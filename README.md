@@ -2,7 +2,6 @@
 
 [![.NET 10](https://img.shields.io/badge/.NET-10-blue)](https://dotnet.microsoft.com/)
 [![Blazor](https://img.shields.io/badge/Blazor-SSR-purple)](https://blazor.net/)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ## 📌 Общая идея проекта
 
@@ -387,4 +386,5 @@ dotnet run
 > **MyDevTools.app** — privacy-first developer tools,  
 > where **all data stays in your browser**.
 
----
+**Никакого server-side processing. Только SSR для HTML.**
+

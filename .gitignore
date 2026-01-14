@@ -54,3 +54,9 @@ TestResult.xml
 nunit-*.xml
 /MyDevToolsApp/.vs
 /MyDevToolsApp/_ReSharper.Caches
+
+# IDE / user-specific
+*.user
+*.DotSettings.user
+.idea/
+.vs/

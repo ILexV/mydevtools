@@ -1,4 +1,8 @@
-# 📘 Copilot Project Instructions — MyDevTools.app
+# 📘 MyDevTools.app — Privacy-First Developer Tools
+
+[![.NET 10](https://img.shields.io/badge/.NET-10-blue)](https://dotnet.microsoft.com/)
+[![Blazor](https://img.shields.io/badge/Blazor-SSR-purple)](https://blazor.net/)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ## 📌 Общая идея проекта
 
@@ -10,21 +14,44 @@
 * 🔐 **Privacy-first** — все преобразования выполняются **в браузере пользователя**
 * 🚫 **Никакие пользовательские данные не отправляются на сервер**
 * ⚡ **WASM для вычислений**, сервер используется только для SSR и статики
-* 🌍 **Многоязычный сайт (i18n)**
+* 🌍 **Многоязычный сайт (i18n)** — поддержка английского, русского, испанского
 * 🔍 **SEO-friendly (SSR, JSON-LD, hreflang)**
+
+---
+
+## ✅ Реализованные функции
+
+### 🎯 Готово к использованию
+
+- ✅ **SSR (Server-Side Rendering)** — быстрая первая загрузка, SEO-оптимизация
+- ✅ **Многоязычность** — автоматическое определение языка браузера
+  - 🇬🇧 Английский (en)
+  - 🇷🇺 Русский (ru)
+  - 🇪🇸 Испанский (es)
+- ✅ **Strongly-Typed Resources** — compile-time безопасность для переводов
+- ✅ **Темная/Светлая тема** — CSS-переменные для кастомизации
+- ✅ **Первый инструмент: Hash Calculator** — SHA-1, SHA-256, SHA-512 (Web Crypto API)
+- ✅ **SEO компоненты** — MetaTags, JSON-LD, Hreflang
+- ✅ **Переиспользуемые UI компоненты** — ToolLayout, LoadingSkeleton, ThemeToggle
+
+### 🚧 В разработке
+
+- 🔜 **WASM интеграция** — замена JavaScript на Rust WASM модули
+- 🔜 **MD5 хэш** — будет добавлен через WASM (не поддерживается в Web Crypto API)
+- 🔜 **Дополнительные инструменты** — JSON Beautifier, Base64, XML Formatter
 
 ---
 
 ## 🧱 Технологический стек
 
-* **.NET 10**
-* **Blazor Web App (SSR / prerendering)**
-* **Blazor Components** (переиспользуемые)
-* **WebAssembly**
-
+* **.NET 10** — последняя версия платформы
+* **Blazor Web App (SSR)** — server-side rendering без WebSocket
+* **Blazor Components** — переиспользуемые UI компоненты
+* **WebAssembly** (планируется)
   * основной язык WASM: **Rust**
   * C# используется только для UI и orchestration
-* **Cloudflare CDN** (кэширование статики)
+* **Web Crypto API** — временное решение для хэшей (до WASM)
+* **Cloudflare CDN** — кэширование статики (планируется)
 * **Без server-side API для обработки данных**
 
 ---
@@ -36,14 +63,14 @@
 * ❌ Любая обработка пользовательских данных на сервере
 * ❌ Отправка файлов, текста, JSON, XML на backend
 * ❌ Использование ASP.NET Minimal API для логики инструментов
+* ❌ WebSocket / SignalR для интерактивности (только SSR + JavaScript)
 
 ### ✅ Разрешено
 
 * ✅ Server-Side Rendering **только для HTML**
-* ✅ Client-side WASM для всех вычислений
-* ✅ JS interop для вызова WASM
+* ✅ Client-side JavaScript для UI интерактивности
+* ✅ Client-side WASM для всех вычислений (будущая замена JS)
 * ✅ Сервер — только:
-
   * SSR
   * отдача статики
   * SEO-метаданные
@@ -51,140 +78,219 @@
 
 ---
 
-## 🧩 Структура Blazor-компонентов
-
-### Основные принципы
-
-* UI компонентов **многоразовый**
-* Все инструменты визуально похожи
-* Каждый инструмент решает **одну чёткую задачу**
-
-### Пример структуры
+## 🏗️ Реализованная структура проекта
 
 ```
-Components/
- ├── Layout/
- │   ├── MainLayout.razor
- │   └── ToolLayout.razor
- ├── Common/
- │   ├── ToolHeader.razor
- │   ├── ToolFooter.razor
- │   ├── LoadingSkeleton.razor
- │   └── LanguageSwitcher.razor
- ├── Seo/
- │   ├── MetaTags.razor
- │   ├── JsonLdTool.razor
- │   └── HreflangLinks.razor
- └── Tools/
-     ├── JsonBeautifier.razor
-     ├── Base64Encoder.razor
-     └── XmlFormatter.razor
+MyDevTools.Site/
+├── Components/
+│   ├── Layout/
+│   │   ├── MainLayout.razor           ✅ Главный layout с header/footer
+│   │   └── ToolLayout.razor            ✅ Универсальный layout для инструментов
+│   ├── Common/
+│   │   ├── LanguageSwitcher.razor     ✅ Переключатель языков
+│   │   ├── ThemeToggle.razor          ✅ Переключатель темы
+│   │   └── LoadingSkeleton.razor      ✅ Скелетон загрузки
+│   ├── Seo/
+│   │   ├── MetaTags.razor             ✅ Meta теги для SEO
+│   │   ├── JsonLdTool.razor           ✅ Schema.org разметка
+│   │   └── HreflangLinks.razor        ✅ Языковые альтернативы
+│   ├── Tools/
+│   │   └── HashCalculator.razor       ✅ Калькулятор хэшей (первый инструмент)
+│   └── Pages/
+│       └── Home.razor                  ✅ Главная страница
+├── Services/
+│   ├── ILocalizationService.cs        ✅ Интерфейс локализации
+│   └── LocalizationService.cs         ✅ Реализация (en, ru, es)
+├── Middleware/
+│   └── CultureRedirectMiddleware.cs   ✅ Редирект + определение языка
+├── Resources/
+│   ├── AppStrings.resx                ✅ Английские тексты
+│   ├── AppStrings.ru.resx             ✅ Русские переводы
+│   ├── AppStrings.es.resx             ✅ Испанские переводы
+│   └── AppStrings.Designer.cs         ✅ Автогенерированный strongly-typed класс
+├── wwwroot/
+│   └── app.css                         ✅ Стили с поддержкой тем
+└── Program.cs                          ✅ Настройка локализации и middleware
 ```
 
 ---
 
-## 🧱 ToolLayout — базовый шаблон инструмента
+## 🧩 Использование компонентов
 
-### Copilot должен:
+### ToolLayout — базовый шаблон инструмента
 
-* использовать `ToolLayout` для всех инструментов
-* **НЕ создавать уникальные layouts для каждого инструмента**
-
-Пример использования:
+**Все инструменты** должны использовать `ToolLayout`:
 
 ```razor
-<ToolLayout Title="@Title" Description="@Description">
-    <InputArea />
-    <OutputArea />
-    <ToolActions />
+@page "/{lang}/my-tool"
+@using MyDevTools.Site.Resources
+
+<ToolLayout Title="@AppStrings.MyTool_Title" 
+            Description="@AppStrings.MyTool_Description">
+    
+    <div class="tool-grid">
+        <div class="input-section">
+            <!-- Input UI -->
+        </div>
+        <div class="output-section">
+            <!-- Output UI -->
+        </div>
+    </div>
+    
 </ToolLayout>
+
+<script>
+    // Client-side logic here
+    // All processing happens in browser!
+</script>
 ```
+
+**НЕ создавайте** уникальные layouts для каждого инструмента!
 
 ---
 
-## ⚙️ WASM: правила интеграции
+## 🌍 Локализация (i18n)
+
+### ✅ Реализовано: Strongly-Typed Resources
+
+**Все тексты** используют strongly-typed ресурсы из `AppStrings.Designer.cs`:
+
+```razor
+@using MyDevTools.Site.Resources
+
+<!-- ✅ Правильно: compile-time безопасность -->
+<h1>@AppStrings.HashCalculator_Title</h1>
+<button>@AppStrings.HashCalculator_Calculate</button>
+
+<!-- ❌ Неправильно: магические строки -->
+<h1>@L["HashCalculator_Title"]</h1>
+```
+
+### URL-структура
+
+```
+/                          → редирект на /en/, /ru/ или /es/ (по языку браузера)
+/en/hash-calculator       → Hash Calculator
+/ru/hash-calculator       → Калькулятор хэшей
+/es/hash-calculator       → Calculadora de Hash
+```
+
+### Добавление новых переводов
+
+1. Откройте `Resources/AppStrings.resx` в Visual Studio
+2. Добавьте новый ключ: `MyTool_ActionButton`
+3. Visual Studio автоматически обновит `AppStrings.Designer.cs`
+4. Добавьте переводы в `.ru.resx` и `.es.resx`
+5. Используйте: `@AppStrings.MyTool_ActionButton`
+
+**См. также:** `LOCALIZATION_GUIDE.md`
+
+---
+
+## ⚙️ WASM: правила интеграции (будущее)
 
 ### Общие требования
 
 * WASM **загружается лениво**
 * При загрузке показывается skeleton / loading state
 * Вычисления происходят:
-
   * в памяти браузера
   * без network calls
 
 ### Категоризация WASM (оптимизация)
 
 * WASM делится по доменам:
+  * `hash.wasm` — MD5, SHA, Blake2
+  * `json.wasm` — парсинг, форматирование JSON
+  * `xml.wasm` — парсинг, форматирование XML
+  * `encoding.wasm` — Base64, URL encoding
 
-  * `json.wasm`
-  * `xml.wasm`
-  * `encoding.wasm`
-* Простые операции (hash, base64) — отдельный минимальный WASM
+**НЕ объединяйте** всё в один огромный wasm — используйте lazy loading!
 
-Copilot **НЕ должен объединять всё в один огромный wasm**.
+### Текущая реализация (временная)
 
----
-
-## 🌍 Локализация (i18n)
-
-* Все тексты **только через ресурсы**
-* Никаких хардкод-строк в компонентах
-
-Пример:
-
-```razor
-@inject IStringLocalizer<AppStrings> L
-
-<h1>@L["JsonBeautifier_Title"]</h1>
-```
-
-### URL-структура
-
-```
-/en/json-beautifier
-/ru/json-beautifier
-/es/json-beautifier
-```
+До интеграции WASM используется **Web Crypto API** (встроенный в браузер):
+- ✅ SHA-1, SHA-256, SHA-512
+- ❌ MD5 (не поддерживается, будет добавлен через WASM)
 
 ---
 
 ## 🔍 SEO и AI-дружественность
 
-Copilot должен:
+### ✅ Реализовано
 
-* использовать SSR-совместимые компоненты
-* добавлять:
+Каждый инструмент автоматически получает:
 
-  * `<meta>` теги
-  * JSON-LD schema (`SoftwareApplication`)
-  * `hreflang` ссылки
+1. **Meta теги** (`MetaTags.razor`):
+   ```html
+   <meta name="description" content="..." />
+   <meta property="og:title" content="..." />
+   ```
 
-### JSON-LD пример
+2. **JSON-LD разметка** (`JsonLdTool.razor`):
+   ```json
+   {
+     "@type": "SoftwareApplication",
+     "name": "Hash Calculator",
+     "applicationCategory": "DeveloperApplication",
+     "isAccessibleForFree": true
+   }
+   ```
 
-```json
-{
-  "@type": "SoftwareApplication",
-  "name": "JSON Beautifier",
-  "applicationCategory": "DeveloperTool",
-  "operatingSystem": "Web",
-  "isAccessibleForFree": true
-}
-```
+3. **Hreflang ссылки** (`HreflangLinks.razor`):
+   ```html
+   <link rel="alternate" hreflang="en" href="/en/hash-calculator" />
+   <link rel="alternate" hreflang="ru" href="/ru/hash-calculator" />
+   <link rel="alternate" hreflang="es" href="/es/hash-calculator" />
+   ```
 
 ---
 
-## 🔐 Безопасность и защита
+## 🎨 Темизация
 
-* WASM **может**:
+### Светлая / Темная тема
 
-  * проверять `window.location.hostname`
-  * проверять подписанный сервером токен
-* WASM **не должен**:
+Используются CSS-переменные для легкой кастомизации:
 
-  * полагаться только на домен (это не защита, а обфускация)
+```css
+:root {
+    --bg-primary: #ffffff;
+    --text-primary: #212529;
+    --accent-color: #0066cc;
+}
 
-Copilot не должен реализовывать «жёсткие» DRM-механизмы — только soft-protection.
+[data-theme="dark"] {
+    --bg-primary: #1a1a1a;
+    --text-primary: #e9ecef;
+    --accent-color: #4d9fff;
+}
+```
+
+Переключатель темы сохраняет выбор пользователя в `localStorage`.
+
+---
+
+## 🚀 Быстрый старт
+
+### Запуск проекта
+
+```bash
+cd MyDevTools.Site
+dotnet run
+```
+
+Откройте браузер: `https://localhost:5001`
+
+Автоматический редирект на:
+- `/en/` — если браузер на английском
+- `/ru/` — если браузер на русском
+- `/es/` — если браузер на испанском
+
+### Проверка локализации
+
+1. Откройте `/en/hash-calculator` — все тексты на английском
+2. Откройте `/ru/hash-calculator` — все тексты на русском
+3. Используйте переключатель языков в header
 
 ---
 
@@ -192,42 +298,93 @@ Copilot не должен реализовывать «жёсткие» DRM-ме
 
 ### Обязательные требования
 
-* Nullable reference types — включены
-* XML-комментарии у базовых компонентов
-* Минимум логики в UI
-* Чёткие имена компонентов (`JsonBeautifier`, а не `Tool1`)
+* ✅ **Nullable reference types** — включены
+* ✅ **XML-комментарии** у базовых компонентов (в блоке `@code`)
+* ✅ **Минимум логики в UI** — вся обработка в JavaScript/WASM
+* ✅ **Чёткие имена компонентов** (`HashCalculator`, а не `Tool1`)
+* ✅ **Strongly-typed ресурсы** — никаких магических строк
 
-### Пример комментария
+### Пример правильного комментария
 
-```csharp
-/// <summary>
-/// Universal SSR-compatible layout for all developer tools.
-/// All data processing happens client-side via WASM.
-/// </summary>
+```razor
+@code {
+    /// <summary>
+    /// Universal SSR-compatible layout for all developer tools.
+    /// All data processing happens client-side via WASM.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = default!;
+}
+```
+
+**❌ НЕ размещайте** XML-комментарии перед `@inject` или `@page` — они рендерятся как текст!
+
+---
+
+## 📚 Дополнительная документация
+
+- **`LOCALIZATION_GUIDE.md`** — как добавлять переводы
+- **`STRONGLY_TYPED_RESOURCES.md`** — использование AppStrings
+- **`FIXES_LOG.md`** — история исправлений и улучшений
+
+---
+
+## 🔐 Безопасность и Privacy
+
+### Privacy-First подход
+
+1. **Никакие данные не покидают браузер пользователя**
+2. **Нет server-side API** для обработки данных
+3. **Нет логирования** пользовательского контента
+4. **Нет аналитики** без согласия пользователя
+
+### WASM Security (будущее)
+
+* WASM **может** проверять `window.location.hostname`
+* WASM **может** проверять подписанный сервером токен
+* **НЕ полагаться** только на домен (это обфускация, а не защита)
+
+---
+
+## 🤖 Для AI помощников (GitHub Copilot, ChatGPT и др.)
+
+### При создании новых инструментов:
+
+1. ✅ Используйте `ToolLayout` для всех инструментов
+2. ✅ Добавляйте переводы в `.resx` файлы
+3. ✅ Используйте `@AppStrings.*` для текстов
+4. ✅ Вся обработка данных — только в браузере (JavaScript → WASM)
+5. ✅ Добавляйте SEO компоненты: `MetaTags`, `JsonLdTool`, `HreflangLinks`
+6. ❌ НЕ создавайте server-side API для обработки
+7. ❌ НЕ отправляйте данные на сервер
+
+### Пример нового инструмента
+
+```razor
+@page "/{lang}/json-beautifier"
+@using MyDevTools.Site.Resources
+
+<MetaTags Title="@AppStrings.JsonBeautifier_Title" 
+          Description="@AppStrings.JsonBeautifier_Description" />
+<HreflangLinks ToolPath="json-beautifier" />
+<JsonLdTool ToolName="@AppStrings.JsonBeautifier_Title" 
+            Description="@AppStrings.JsonBeautifier_Description" />
+
+<ToolLayout Title="@AppStrings.JsonBeautifier_Title" 
+            Description="@AppStrings.JsonBeautifier_Description">
+    <!-- Tool UI here -->
+</ToolLayout>
+
+<script>
+    // Client-side processing only!
+</script>
 ```
 
 ---
 
-## 🤖 Как Copilot должен себя вести
+## 🧭 Краткий принцип проекта
 
-Copilot **должен**:
-
-* предлагать переиспользуемые компоненты
-* избегать дублирования UI
-* учитывать SSR
-* учитывать WASM-first подход
-
-Copilot **не должен**:
-
-* предлагать server-side processing
-* использовать API endpoints для логики
-* хардкодить тексты или URL
-
----
-
-## 🧭 Краткий принцип проекта (one-liner)
-
-> **MyDevTools.app** — privacy-first developer tools,
+> **MyDevTools.app** — privacy-first developer tools,  
 > where **all data stays in your browser**.
 
 ---

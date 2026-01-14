@@ -1,8 +1,8 @@
 <div class="language-switcher">
-    <select @onchange="OnLanguageChanged" value="@CurrentLanguage">
+    <select onchange="location.href=this.value" value="@GetLanguageUrl(CurrentLanguage)">
         @foreach (var lang in SupportedLanguages)
         {
-            <option value="@lang">@GetLanguageName(lang)</option>
+            <option value="@GetLanguageUrl(lang)">@GetLanguageName(lang)</option>
         }
     </select>
 </div>
@@ -16,24 +16,21 @@
 
     private string[] SupportedLanguages = ["en", "ru", "es"];
 
-    private void OnLanguageChanged(ChangeEventArgs e)
+    private string GetLanguageUrl(string lang)
     {
-        var newLang = e.Value?.ToString() ?? "en";
         var currentPath = new Uri(Navigation.Uri).AbsolutePath;
-        
-        // Remove current language from path
         var pathSegments = currentPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
         if (pathSegments.Length > 0 && SupportedLanguages.Contains(pathSegments[0]))
         {
-            pathSegments[0] = newLang;
+            pathSegments[0] = lang;
         }
         else
         {
-            pathSegments = [newLang, .. pathSegments];
+            pathSegments = [lang, .. pathSegments];
         }
-        
-        var newPath = "/" + string.Join("/", pathSegments);
-        Navigation.NavigateTo(newPath, forceLoad: true);
+
+        return "/" + string.Join("/", pathSegments);
     }
 
     private string GetLanguageName(string lang) => lang.ToUpperInvariant();

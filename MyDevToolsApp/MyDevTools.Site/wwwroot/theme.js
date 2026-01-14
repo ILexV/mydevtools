@@ -3,6 +3,20 @@
     const STORAGE_KEY = "theme";
     const root = document.documentElement;
 
+    function getCookie(name) {
+        const value = "; " + document.cookie;
+        const parts = value.split("; " + name + "=");
+        if (parts.length === 2) {
+            return parts.pop().split(";").shift();
+        }
+        return null;
+    }
+
+    function setCookie(name, value) {
+        // 1 year
+        document.cookie = `${name}=${value}; path=/; max-age=31536000; samesite=lax`;
+    }
+
     function isValidTheme(value) {
         return value === "dark" || value === "light";
     }
@@ -11,7 +25,7 @@
         try {
             return localStorage.getItem(STORAGE_KEY);
         } catch {
-            return null;
+            return getCookie(STORAGE_KEY);
         }
     }
 
@@ -49,6 +63,13 @@
     function setTheme(theme) {
         try {
             localStorage.setItem(STORAGE_KEY, theme);
+        } catch {
+            // ignore
+        }
+
+        // Also persist in cookie so server-rendered navigation keeps the theme.
+        try {
+            setCookie(STORAGE_KEY, theme);
         } catch {
             // ignore
         }

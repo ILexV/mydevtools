@@ -1,5 +1,8 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+<!DOCTYPE html>
+<html lang="en" @attributes="HtmlAttributes">
 
 <head>
     <meta charset="utf-8" />
@@ -32,3 +35,19 @@
 </body>
 
 </html>
+
+@code {
+    private string? InitialTheme
+    {
+        get
+        {
+            var theme = HttpContextAccessor.HttpContext?.Request.Cookies["theme"];
+            return theme is "dark" or "light" ? theme : null;
+        }
+    }
+
+    private IReadOnlyDictionary<string, object>? HtmlAttributes
+        => InitialTheme is null
+            ? null
+            : new Dictionary<string, object> { ["data-theme"] = InitialTheme };
+}

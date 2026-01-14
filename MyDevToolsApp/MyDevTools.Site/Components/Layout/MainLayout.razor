@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @using MyDevTools.Site.Resources
 
-<div class="page" data-theme="@(IsDarkMode ? "dark" : "light")">
+<div class="page">
     <header class="main-header">
         <div class="header-content">
             <div class="logo">
@@ -15,7 +15,7 @@
             </nav>
             <div class="header-actions">
                 <LanguageSwitcher CurrentLanguage="@CurrentLanguage" />
-                <ThemeToggle OnThemeChanged="OnThemeChanged" />
+                <ThemeToggle />
             </div>
         </div>
     </header>
@@ -35,8 +35,6 @@
 @code {
     [Inject]
     public NavigationManager Navigation { get; set; } = default!;
-
-    private bool IsDarkMode { get; set; }
     private string CurrentLanguage { get; set; } = "en";
 
     protected override void OnInitialized()
@@ -50,8 +48,4 @@
         }
     }
 
-    private void OnThemeChanged(bool isDark)
-    {
-        IsDarkMode = isDark;
-    }
 }

@@ -1,35 +1,14 @@
 @using MyDevTools.Site.Resources
 
-<button class="theme-toggle" @onclick="ToggleTheme" aria-label="@AppStrings.Theme_Toggle" title="@AppStrings.Theme_Toggle">
-    @if (IsDarkMode)
-    {
-        <span class="icon">??</span>
-    }
-    else
-    {
-        <span class="icon">??</span>
-    }
+<button class="theme-toggle" type="button" data-theme-toggle aria-label="@AppStrings.Theme_Toggle" title="@AppStrings.Theme_Toggle">
+    <span class="icon-sun" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" focusable="false">
+            <path fill="currentColor" d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.8 1.42-1.42zM1 13h3v-2H1v2zm10 10h2v-3h-2v3zm9-10v-2h3v2h-3zm-1.35 7.16l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM17.24 4.84l1.42 1.42 1.79-1.8-1.41-1.41-1.8 1.79zM12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12zm0 10a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM4.84 17.24l1.42-1.42-1.8-1.79-1.41 1.41 1.79 1.8z"/>
+        </svg>
+    </span>
+    <span class="icon-moon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" focusable="false">
+            <path fill="currentColor" d="M12.74 2.02c.43 0 .77.38.68.8-.28 1.24-.22 2.56.23 3.86 1.15 3.35 4.83 5.36 8.26 4.64.42-.09.8.25.8.68 0 6.05-4.9 10.95-10.95 10.95S1.81 18.05 1.81 12 6.69 1.05 12.74 1.05c.43 0 .77.38.68.8-.06.06-.04.12-.02.17-.5 1.26-.62 2.68-.14 4.06 1.2 3.48 5.07 5.36 8.59 4.39.14-.04.28.06.28.2 0 4.93-3.99 8.93-8.93 8.93S3.79 15.6 3.79 10.67c0-4.56 3.41-8.31 7.85-8.65.17-.01.3.13.26.29-.22.87-.2 1.8.1 2.68.86 2.5 3.59 3.85 6.12 3.1.16-.05.33.06.33.23 0 3.34-2.7 6.05-6.05 6.05S6.35 11.66 6.35 8.32c0-3.34 2.7-6.05 6.05-6.05.12 0 .23-.1.23-.25 0-.14.11-.25.11-.25z"/>
+        </svg>
+    </span>
 </button>
-
-@code {
-    [Parameter]
-    public EventCallback<bool> OnThemeChanged { get; set; }
-
-    private bool IsDarkMode { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        // Load theme preference from localStorage via JS interop
-        // For now, default to light mode
-        IsDarkMode = false;
-    }
-
-    private async Task ToggleTheme()
-    {
-        IsDarkMode = !IsDarkMode;
-        await OnThemeChanged.InvokeAsync(IsDarkMode);
-        
-        // TODO: Save to localStorage via JS interop
-        // await JS.InvokeVoidAsync("localStorage.setItem", "theme", IsDarkMode ? "dark" : "light");
-    }
-}

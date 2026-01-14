@@ -17,71 +17,71 @@
     <value>MyDevTools</value>
   </data>
   <data name="AppTagline" xml:space="preserve">
-    <value>Инструменты для разработчиков с приоритетом конфиденциальности, все данные остаются в вашем браузере</value>
+    <value>Herramientas para desarrolladores que priorizan la privacidad, todos los datos permanecen en tu navegador</value>
   </data>
   
   <data name="Nav_Home" xml:space="preserve">
-    <value>Главная</value>
+    <value>Inicio</value>
   </data>
   <data name="Nav_Tools" xml:space="preserve">
-    <value>Инструменты</value>
+    <value>Herramientas</value>
   </data>
   
   <data name="Home_Title" xml:space="preserve">
-    <value>Инструменты для разработчиков</value>
+    <value>Herramientas para Desarrolladores</value>
   </data>
   <data name="Home_Subtitle" xml:space="preserve">
-    <value>Инструменты для разработчиков с приоритетом конфиденциальности. Вся обработка происходит в вашем браузере.</value>
+    <value>Herramientas para desarrolladores que priorizan la privacidad. Todo el procesamiento ocurre en tu navegador.</value>
   </data>
   <data name="Home_NoDataSent" xml:space="preserve">
-    <value>Никакие данные не отправляются на сервер</value>
+    <value>No se env?an datos al servidor</value>
   </data>
   
   <data name="HashCalculator_Title" xml:space="preserve">
-    <value>Калькулятор хэшей</value>
+    <value>Calculadora de Hash</value>
   </data>
   <data name="HashCalculator_Description" xml:space="preserve">
-    <value>Вычисление MD5, SHA-1, SHA-256, SHA-512 хэшей из текста или файлов</value>
+    <value>Calcular hashes MD5, SHA-1, SHA-256, SHA-512 desde texto o archivos</value>
   </data>
   <data name="HashCalculator_InputLabel" xml:space="preserve">
-    <value>Входной текст</value>
+    <value>Texto de entrada</value>
   </data>
   <data name="HashCalculator_InputPlaceholder" xml:space="preserve">
-    <value>Введите текст для хэширования...</value>
+    <value>Ingrese el texto para hash...</value>
   </data>
   <data name="HashCalculator_Calculate" xml:space="preserve">
-    <value>Вычислить</value>
+    <value>Calcular</value>
   </data>
   <data name="HashCalculator_Clear" xml:space="preserve">
-    <value>Очистить</value>
+    <value>Limpiar</value>
   </data>
   <data name="HashCalculator_Copy" xml:space="preserve">
-    <value>Копировать</value>
+    <value>Copiar</value>
   </data>
   <data name="HashCalculator_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>?Copiado!</value>
   </data>
   
   <data name="Common_Input" xml:space="preserve">
-    <value>Ввод</value>
+    <value>Entrada</value>
   </data>
   <data name="Common_Output" xml:space="preserve">
-    <value>Вывод</value>
+    <value>Salida</value>
   </data>
   <data name="Common_Loading" xml:space="preserve">
-    <value>Загрузка...</value>
+    <value>Cargando...</value>
   </data>
   <data name="Common_Error" xml:space="preserve">
-    <value>Ошибка</value>
+    <value>Error</value>
   </data>
   
   <data name="Theme_Light" xml:space="preserve">
-    <value>Светлая</value>
+    <value>Claro</value>
   </data>
   <data name="Theme_Dark" xml:space="preserve">
-    <value>Тёмная</value>
+    <value>Oscuro</value>
   </data>
   <data name="Theme_Toggle" xml:space="preserve">
-    <value>Переключить тему</value>
+    <value>Cambiar tema</value>
   </data>
 </root>

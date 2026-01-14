@@ -1,22 +1,22 @@
 ﻿@page "/{lang}"
-@inject Microsoft.Extensions.Localization.IStringLocalizer<MyDevTools.Site.Resources.AppStrings> L
+@using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
-<MetaTags Title="@L["Home_Title"]" 
-          Description="@L["Home_Subtitle"]" 
+<MetaTags Title="@AppStrings.Home_Title" 
+          Description="@AppStrings.Home_Subtitle" 
           CurrentUrl="@Navigation.Uri" />
 
 <HreflangLinks />
 
 <div class="home-page">
     <div class="hero-section">
-        <h1 class="hero-title">@L["AppName"]</h1>
-        <p class="hero-subtitle">@L["Home_Subtitle"]</p>
+        <h1 class="hero-title">@AppStrings.AppName</h1>
+        <p class="hero-subtitle">@AppStrings.Home_Subtitle</p>
         <div class="hero-badge">
             <svg class="badge-icon" viewBox="0 0 24 24" width="20" height="20">
                 <path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
             </svg>
-            <span>@L["Home_NoDataSent"]</span>
+            <span>@AppStrings.Home_NoDataSent</span>
         </div>
     </div>
 
@@ -58,7 +58,7 @@
     {
         return new List<ToolInfo>
         {
-            new("hash-calculator", "🔐", L["HashCalculator_Title"], L["HashCalculator_Description"])
+            new("hash-calculator", "🔐", AppStrings.HashCalculator_Title, AppStrings.HashCalculator_Description)
         };
     }
 

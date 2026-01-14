@@ -1,6 +1,6 @@
-@inject Microsoft.Extensions.Localization.IStringLocalizer<MyDevTools.Site.Resources.AppStrings> L
+@using MyDevTools.Site.Resources
 
-<button class="theme-toggle" @onclick="ToggleTheme" aria-label="@L["Theme_Toggle"]" title="@L["Theme_Toggle"]">
+<button class="theme-toggle" @onclick="ToggleTheme" aria-label="@AppStrings.Theme_Toggle" title="@AppStrings.Theme_Toggle">
     @if (IsDarkMode)
     {
         <span class="icon">??</span>

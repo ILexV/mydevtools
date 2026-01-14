@@ -1,8 +1,4 @@
-/// <summary>
-/// Universal SSR-compatible layout for all developer tools.
-/// All data processing happens client-side via WASM.
-/// </summary>
-@inject Microsoft.Extensions.Localization.IStringLocalizer<MyDevTools.Site.Resources.AppStrings> L
+@using MyDevTools.Site.Resources
 
 <div class="tool-layout">
     <div class="tool-header">
@@ -23,12 +19,17 @@
             <svg class="privacy-icon" viewBox="0 0 24 24" width="16" height="16">
                 <path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
             </svg>
-            <span>@L["Home_NoDataSent"]</span>
+            <span>@AppStrings.Home_NoDataSent</span>
         </div>
     }
 </div>
 
 @code {
+    /// <summary>
+    /// Universal SSR-compatible layout for all developer tools.
+    /// All data processing happens client-side via WASM.
+    /// </summary>
+    
     /// <summary>
     /// The title of the tool.
     /// </summary>

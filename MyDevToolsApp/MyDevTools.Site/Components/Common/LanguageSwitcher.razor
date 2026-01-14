@@ -1,7 +1,5 @@
-@inject Microsoft.Extensions.Localization.IStringLocalizer<MyDevTools.Site.Resources.AppStrings> L
-
 <div class="language-switcher">
-    <select @onchange="OnLanguageChanged" value="@CurrentLanguage" aria-label="@L["Nav_Language"]">
+    <select @onchange="OnLanguageChanged" value="@CurrentLanguage">
         @foreach (var lang in SupportedLanguages)
         {
             <option value="@lang">@GetLanguageName(lang)</option>

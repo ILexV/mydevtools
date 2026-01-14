@@ -1,16 +1,16 @@
 ﻿@inherits LayoutComponentBase
-@inject Microsoft.Extensions.Localization.IStringLocalizer<MyDevTools.Site.Resources.AppStrings> L
+@using MyDevTools.Site.Resources
 
 <div class="page" data-theme="@(IsDarkMode ? "dark" : "light")">
     <header class="main-header">
         <div class="header-content">
             <div class="logo">
                 <a href="/@CurrentLanguage">
-                    <h1>@L["AppName"]</h1>
+                    <h1>@AppStrings.AppName</h1>
                 </a>
             </div>
             <nav class="main-nav">
-                <a href="/@CurrentLanguage">@L["Nav_Home"]</a>
+                <a href="/@CurrentLanguage">@AppStrings.Nav_Home</a>
                 <a href="/@CurrentLanguage/hash-calculator">Hash Calculator</a>
             </nav>
             <div class="header-actions">
@@ -26,7 +26,7 @@
 
     <footer class="main-footer">
         <div class="footer-content">
-            <p>@L["AppTagline"]</p>
+            <p>@AppStrings.AppTagline</p>
             <p>&copy; @DateTime.UtcNow.Year MyDevTools.app</p>
         </div>
     </footer>

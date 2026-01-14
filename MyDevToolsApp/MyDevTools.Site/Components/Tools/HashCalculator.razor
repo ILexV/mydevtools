@@ -1,31 +1,31 @@
 @page "/{lang}/hash-calculator"
-@inject Microsoft.Extensions.Localization.IStringLocalizer<MyDevTools.Site.Resources.AppStrings> L
+@using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
-<MetaTags Title="@L["HashCalculator_Title"]" 
-          Description="@L["HashCalculator_Description"]" 
+<MetaTags Title="@AppStrings.HashCalculator_Title" 
+          Description="@AppStrings.HashCalculator_Description" 
           CurrentUrl="@Navigation.Uri" />
 
 <HreflangLinks ToolPath="hash-calculator" />
 
-<JsonLdTool ToolName="@L["HashCalculator_Title"]" 
-            Description="@L["HashCalculator_Description"]" 
+<JsonLdTool ToolName="@AppStrings.HashCalculator_Title" 
+            Description="@AppStrings.HashCalculator_Description" 
             CurrentUrl="@Navigation.Uri" />
 
-<ToolLayout Title="@L["HashCalculator_Title"]" Description="@L["HashCalculator_Description"]">
+<ToolLayout Title="@AppStrings.HashCalculator_Title" Description="@AppStrings.HashCalculator_Description">
     <div class="tool-grid">
         <div class="input-section">
-            <label for="input-text">@L["HashCalculator_InputLabel"]</label>
+            <label for="input-text">@AppStrings.HashCalculator_InputLabel</label>
             <textarea id="input-text" 
-                      placeholder="@L["HashCalculator_InputPlaceholder"]"
+                      placeholder="@AppStrings.HashCalculator_InputPlaceholder"
                       rows="10"></textarea>
             
             <div class="action-buttons">
                 <button class="btn btn-primary" id="calculate-btn">
-                    @L["HashCalculator_Calculate"]
+                    @AppStrings.HashCalculator_Calculate
                 </button>
                 <button class="btn btn-secondary" id="clear-btn">
-                    @L["HashCalculator_Clear"]
+                    @AppStrings.HashCalculator_Clear
                 </button>
             </div>
         </div>
@@ -52,7 +52,7 @@
             if (!text) return;
 
             calculateBtn.disabled = true;
-            calculateBtn.textContent = '@L["Common_Loading"]';
+            calculateBtn.textContent = '@AppStrings.Common_Loading';
 
             // Show loading skeleton
             outputSection.innerHTML = `
@@ -83,7 +83,7 @@
             displayResults(results);
 
             calculateBtn.disabled = false;
-            calculateBtn.textContent = '@L["HashCalculator_Calculate"]';
+            calculateBtn.textContent = '@AppStrings.HashCalculator_Calculate';
         });
 
         clearBtn.addEventListener('click', function() {
@@ -121,7 +121,7 @@
                     <div class="hash-value-container">
                         <input type="text" readonly value="${result.value}" class="hash-value" />
                         <button class="btn-copy" onclick="copyToClipboard(this, '${result.value}')">
-                            @L["HashCalculator_Copy"]
+                            @AppStrings.HashCalculator_Copy
                         </button>
                     </div>
                 </div>
@@ -131,7 +131,7 @@
         window.copyToClipboard = function(button, text) {
             navigator.clipboard.writeText(text).then(() => {
                 const originalText = button.textContent;
-                button.textContent = '@L["HashCalculator_Copied"]';
+                button.textContent = '@AppStrings.HashCalculator_Copied';
                 setTimeout(() => {
                     button.textContent = originalText;
                 }, 2000);

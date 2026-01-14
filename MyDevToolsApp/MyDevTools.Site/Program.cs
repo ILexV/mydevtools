@@ -22,6 +22,9 @@ var localizationOptions = new RequestLocalizationOptions
     SupportedUICultures = supportedCultures.Select(c => new CultureInfo(c)).ToArray()
 };
 
+// Custom culture provider that reads from route
+localizationOptions.RequestCultureProviders.Insert(0, new RouteDataRequestCultureProvider());
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
@@ -34,9 +37,10 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
-// Use custom culture redirect middleware
+// Use custom culture redirect middleware FIRST
 app.UseMiddleware<CultureRedirectMiddleware>();
 
+// Then use request localization
 app.UseRequestLocalization(localizationOptions);
 
 app.UseAntiforgery();
@@ -45,3 +49,29 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>();
 
 app.Run();
+
+/// <summary>
+/// Custom culture provider that extracts culture from the route path /{lang}/...
+/// </summary>
+public class RouteDataRequestCultureProvider : RequestCultureProvider
+{
+    public override Task<ProviderCultureResult?> DetermineProviderCultureResult(HttpContext httpContext)
+    {
+        var path = httpContext.Request.Path.Value ?? "";
+        var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        
+        if (segments.Length > 0)
+        {
+            var possibleCulture = segments[0];
+            var supportedCultures = new[] { "en", "ru", "es" };
+            
+            if (supportedCultures.Contains(possibleCulture, StringComparer.OrdinalIgnoreCase))
+            {
+                return Task.FromResult<ProviderCultureResult?>(
+                    new ProviderCultureResult(possibleCulture, possibleCulture));
+            }
+        }
+        
+        return Task.FromResult<ProviderCultureResult?>(null);
+    }
+}

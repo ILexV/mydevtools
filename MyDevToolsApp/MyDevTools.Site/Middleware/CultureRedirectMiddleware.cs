@@ -6,6 +6,7 @@ namespace MyDevTools.Site.Middleware;
 /// <summary>
 /// Middleware that redirects requests without a culture prefix to the appropriate culture-specific URL.
 /// Detects browser language and redirects to /{lang}/{path}.
+/// Also sets the culture for the current request.
 /// </summary>
 public class CultureRedirectMiddleware
 {
@@ -48,10 +49,8 @@ public class CultureRedirectMiddleware
             return;
         }
 
-        // Set culture for the request
-        var culture = new CultureInfo(cultureFromPath);
-        CultureInfo.CurrentCulture = culture;
-        CultureInfo.CurrentUICulture = culture;
+        // Set culture for the request using Items (will be picked up by RequestLocalizationMiddleware)
+        context.Items["Culture"] = cultureFromPath;
 
         await _next(context);
     }

@@ -1,17 +1,57 @@
 ﻿@inherits LayoutComponentBase
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MyDevTools.Site.Resources.AppStrings> L
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+<div class="page" data-theme="@(IsDarkMode ? "dark" : "light")">
+    <header class="main-header">
+        <div class="header-content">
+            <div class="logo">
+                <a href="/@CurrentLanguage">
+                    <h1>@L["AppName"]</h1>
+                </a>
+            </div>
+            <nav class="main-nav">
+                <a href="/@CurrentLanguage">@L["Nav_Home"]</a>
+                <a href="/@CurrentLanguage/hash-calculator">Hash Calculator</a>
+            </nav>
+            <div class="header-actions">
+                <LanguageSwitcher CurrentLanguage="@CurrentLanguage" />
+                <ThemeToggle OnThemeChanged="OnThemeChanged" />
+            </div>
         </div>
+    </header>
 
-        <article class="content px-4">
-            @Body
-        </article>
+    <main class="main-content">
+        @Body
     </main>
+
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>@L["AppTagline"]</p>
+            <p>&copy; @DateTime.UtcNow.Year MyDevTools.app</p>
+        </div>
+    </footer>
 </div>
+
+@code {
+    [Inject]
+    public NavigationManager Navigation { get; set; } = default!;
+
+    private bool IsDarkMode { get; set; }
+    private string CurrentLanguage { get; set; } = "en";
+
+    protected override void OnInitialized()
+    {
+        // Extract language from URL
+        var uri = new Uri(Navigation.Uri);
+        var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (segments.Length > 0 && (segments[0] == "en" || segments[0] == "ru" || segments[0] == "es"))
+        {
+            CurrentLanguage = segments[0];
+        }
+    }
+
+    private void OnThemeChanged(bool isDark)
+    {
+        IsDarkMode = isDark;
+    }
+}

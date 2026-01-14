@@ -1,7 +1,66 @@
-﻿@page "/"
+﻿@page "/{lang}"
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MyDevTools.Site.Resources.AppStrings> L
+@inject NavigationManager Navigation
 
-<PageTitle>Home</PageTitle>
+<MetaTags Title="@L["Home_Title"]" 
+          Description="@L["Home_Subtitle"]" 
+          CurrentUrl="@Navigation.Uri" />
 
-<h1>Hello, world!</h1>
+<HreflangLinks />
 
-Welcome to your new app.
+<div class="home-page">
+    <div class="hero-section">
+        <h1 class="hero-title">@L["AppName"]</h1>
+        <p class="hero-subtitle">@L["Home_Subtitle"]</p>
+        <div class="hero-badge">
+            <svg class="badge-icon" viewBox="0 0 24 24" width="20" height="20">
+                <path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+            </svg>
+            <span>@L["Home_NoDataSent"]</span>
+        </div>
+    </div>
+
+    <div class="tools-grid">
+        @foreach (var tool in GetTools())
+        {
+            <a href="/@Lang/@tool.Slug" class="tool-card">
+                <div class="tool-card-icon">@tool.Icon</div>
+                <h3 class="tool-card-title">@tool.Title</h3>
+                <p class="tool-card-description">@tool.Description</p>
+            </a>
+        }
+    </div>
+
+    <div class="features-section">
+        <div class="feature">
+            <div class="feature-icon">🔒</div>
+            <h3>Privacy First</h3>
+            <p>All processing happens in your browser. Zero data sent to servers.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">⚡</div>
+            <h3>Lightning Fast</h3>
+            <p>Powered by WebAssembly for native-like performance.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">🌍</div>
+            <h3>Multilingual</h3>
+            <p>Available in multiple languages for developers worldwide.</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+
+    private List<ToolInfo> GetTools()
+    {
+        return new List<ToolInfo>
+        {
+            new("hash-calculator", "🔐", L["HashCalculator_Title"], L["HashCalculator_Description"])
+        };
+    }
+
+    private record ToolInfo(string Slug, string Icon, string Title, string Description);
+}

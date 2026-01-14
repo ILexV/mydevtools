@@ -1,0 +1,55 @@
+/// <summary>
+/// Universal SSR-compatible layout for all developer tools.
+/// All data processing happens client-side via WASM.
+/// </summary>
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MyDevTools.Site.Resources.AppStrings> L
+
+<div class="tool-layout">
+    <div class="tool-header">
+        <h1 class="tool-title">@Title</h1>
+        @if (!string.IsNullOrEmpty(Description))
+        {
+            <p class="tool-description">@Description</p>
+        }
+    </div>
+
+    <div class="tool-content">
+        @ChildContent
+    </div>
+
+    @if (ShowPrivacyNotice)
+    {
+        <div class="privacy-notice">
+            <svg class="privacy-icon" viewBox="0 0 24 24" width="16" height="16">
+                <path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+            </svg>
+            <span>@L["Home_NoDataSent"]</span>
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// The title of the tool.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = default!;
+
+    /// <summary>
+    /// The description of the tool.
+    /// </summary>
+    [Parameter]
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// The content of the tool (input/output areas, actions).
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Whether to show the privacy notice.
+    /// </summary>
+    [Parameter]
+    public bool ShowPrivacyNotice { get; set; } = true;
+}

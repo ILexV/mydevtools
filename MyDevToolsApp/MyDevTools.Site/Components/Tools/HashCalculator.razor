@@ -1,0 +1,146 @@
+@page "/{lang}/hash-calculator"
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MyDevTools.Site.Resources.AppStrings> L
+@inject NavigationManager Navigation
+
+<MetaTags Title="@L["HashCalculator_Title"]" 
+          Description="@L["HashCalculator_Description"]" 
+          CurrentUrl="@Navigation.Uri" />
+
+<HreflangLinks ToolPath="hash-calculator" />
+
+<JsonLdTool ToolName="@L["HashCalculator_Title"]" 
+            Description="@L["HashCalculator_Description"]" 
+            CurrentUrl="@Navigation.Uri" />
+
+<ToolLayout Title="@L["HashCalculator_Title"]" Description="@L["HashCalculator_Description"]">
+    <div class="tool-grid">
+        <div class="input-section">
+            <label for="input-text">@L["HashCalculator_InputLabel"]</label>
+            <textarea id="input-text" 
+                      placeholder="@L["HashCalculator_InputPlaceholder"]"
+                      rows="10"></textarea>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="calculate-btn">
+                    @L["HashCalculator_Calculate"]
+                </button>
+                <button class="btn btn-secondary" id="clear-btn">
+                    @L["HashCalculator_Clear"]
+                </button>
+            </div>
+        </div>
+
+        <div class="output-section" id="output-section">
+            <!-- Results will be rendered here by JavaScript -->
+        </div>
+    </div>
+</ToolLayout>
+
+<script>
+    // Client-side hash calculation
+    // This will be replaced with WASM in the future
+    (function() {
+        const inputText = document.getElementById('input-text');
+        const calculateBtn = document.getElementById('calculate-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const outputSection = document.getElementById('output-section');
+
+        if (!calculateBtn || !clearBtn || !inputText || !outputSection) return;
+
+        calculateBtn.addEventListener('click', async function() {
+            const text = inputText.value.trim();
+            if (!text) return;
+
+            calculateBtn.disabled = true;
+            calculateBtn.textContent = '@L["Common_Loading"]';
+
+            // Show loading skeleton
+            outputSection.innerHTML = `
+                <div class="loading-skeleton">
+                    <div class="skeleton-header"></div>
+                    <div class="skeleton-content">
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line short"></div>
+                    </div>
+                </div>
+            `;
+
+            // Simulate WASM loading (replace with actual WASM call later)
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Calculate hashes using SubtleCrypto API
+            const encoder = new TextEncoder();
+            const data = encoder.encode(text);
+
+            const results = await Promise.all([
+                computeHash('MD5', data),
+                computeHash('SHA-1', data),
+                computeHash('SHA-256', data),
+                computeHash('SHA-512', data)
+            ]);
+
+            displayResults(results);
+
+            calculateBtn.disabled = false;
+            calculateBtn.textContent = '@L["HashCalculator_Calculate"]';
+        });
+
+        clearBtn.addEventListener('click', function() {
+            inputText.value = '';
+            outputSection.innerHTML = '';
+        });
+
+        async function computeHash(algorithm, data) {
+            // Map algorithm names to SubtleCrypto format
+            const algoMap = {
+                'MD5': null, // MD5 is not supported in SubtleCrypto
+                'SHA-1': 'SHA-1',
+                'SHA-256': 'SHA-256',
+                'SHA-512': 'SHA-512'
+            };
+
+            const cryptoAlgo = algoMap[algorithm];
+            
+            if (!cryptoAlgo) {
+                // For MD5, we'll show a placeholder (WASM will handle this)
+                return { algorithm: algorithm, value: 'MD5 will be calculated via WASM' };
+            }
+
+            const hashBuffer = await crypto.subtle.digest(cryptoAlgo, data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            
+            return { algorithm: algorithm, value: hashHex };
+        }
+
+        function displayResults(results) {
+            outputSection.innerHTML = results.map(result => `
+                <div class="hash-result">
+                    <div class="hash-label">${result.algorithm}</div>
+                    <div class="hash-value-container">
+                        <input type="text" readonly value="${result.value}" class="hash-value" />
+                        <button class="btn-copy" onclick="copyToClipboard(this, '${result.value}')">
+                            @L["HashCalculator_Copy"]
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.copyToClipboard = function(button, text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = '@L["HashCalculator_Copied"]';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            });
+        };
+    })();
+</script>
+
+@code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

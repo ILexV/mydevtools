@@ -1,0 +1,20 @@
+@inject MyDevTools.Site.Services.ILocalizationService LocalizationService
+@inject NavigationManager Navigation
+
+@foreach (var culture in LocalizationService.SupportedCultures)
+{
+    <link rel="alternate" hreflang="@culture" href="@GetAlternateUrl(culture)" />
+}
+<link rel="alternate" hreflang="x-default" href="@GetAlternateUrl(LocalizationService.DefaultCulture)" />
+
+@code {
+    [Parameter]
+    public string? ToolPath { get; set; }
+
+    private string GetAlternateUrl(string culture)
+    {
+        var baseUri = new Uri(Navigation.BaseUri);
+        var path = string.IsNullOrEmpty(ToolPath) ? "" : $"/{ToolPath}";
+        return $"{baseUri.Scheme}://{baseUri.Host}/{culture}{path}";
+    }
+}

@@ -1,0 +1,38 @@
+@using Microsoft.AspNetCore.Components.Web
+
+<PageTitle>@Title</PageTitle>
+<HeadContent>
+    <meta name="description" content="@Description" />
+    <meta name="keywords" content="@Keywords" />
+    
+    @* Open Graph *@
+    <meta property="og:title" content="@Title" />
+    <meta property="og:description" content="@Description" />
+    <meta property="og:type" content="website" />
+    @if (!string.IsNullOrEmpty(CurrentUrl))
+    {
+        <meta property="og:url" content="@CurrentUrl" />
+    }
+    
+    @* Twitter Card *@
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="@Title" />
+    <meta name="twitter:description" content="@Description" />
+    
+    @* Robots *@
+    <meta name="robots" content="index, follow" />
+</HeadContent>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public string Description { get; set; } = default!;
+
+    [Parameter]
+    public string Keywords { get; set; } = "developer tools, privacy, hash, json, xml, base64";
+
+    [Parameter]
+    public string? CurrentUrl { get; set; }
+}

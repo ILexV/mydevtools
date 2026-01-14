@@ -1,0 +1,42 @@
+@using System.Text.Json
+
+<script type="application/ld+json">
+@((MarkupString)GenerateJsonLd())
+</script>
+
+@code {
+    [Parameter, EditorRequired]
+    public string ToolName { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public string Description { get; set; } = default!;
+
+    [Parameter]
+    public string? CurrentUrl { get; set; }
+
+    private string GenerateJsonLd()
+    {
+        var jsonLd = new
+        {
+            context = "https://schema.org",
+            type = "SoftwareApplication",
+            name = ToolName,
+            description = Description,
+            applicationCategory = "DeveloperApplication",
+            operatingSystem = "Web",
+            isAccessibleForFree = true,
+            offers = new
+            {
+                type = "Offer",
+                price = "0",
+                priceCurrency = "USD"
+            }
+        };
+
+        return JsonSerializer.Serialize(jsonLd, new JsonSerializerOptions 
+        { 
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+    }
+}

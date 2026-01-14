@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Common -->
+  <data name="AppName" xml:space="preserve">
+    <value>MyDevTools</value>
+  </data>
+  <data name="AppTagline" xml:space="preserve">
+    <value>Privacy-first developer tools, where all data stays in your browser</value>
+  </data>
+  
+  <!-- Navigation -->
+  <data name="Nav_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Nav_Tools" xml:space="preserve">
+    <value>Tools</value>
+  </data>
+  
+  <!-- Home Page -->
+  <data name="Home_Title" xml:space="preserve">
+    <value>Developer Tools</value>
+  </data>
+  <data name="Home_Subtitle" xml:space="preserve">
+    <value>Privacy-first tools for developers. All processing happens in your browser.</value>
+  </data>
+  <data name="Home_NoDataSent" xml:space="preserve">
+    <value>No data is sent to the server</value>
+  </data>
+  
+  <!-- Hash Calculator -->
+  <data name="HashCalculator_Title" xml:space="preserve">
+    <value>Hash Calculator</value>
+  </data>
+  <data name="HashCalculator_Description" xml:space="preserve">
+    <value>Calculate MD5, SHA-1, SHA-256, SHA-512 hashes from text or files</value>
+  </data>
+  <data name="HashCalculator_InputLabel" xml:space="preserve">
+    <value>Input Text</value>
+  </data>
+  <data name="HashCalculator_InputPlaceholder" xml:space="preserve">
+    <value>Enter text to hash...</value>
+  </data>
+  <data name="HashCalculator_Calculate" xml:space="preserve">
+    <value>Calculate</value>
+  </data>
+  <data name="HashCalculator_Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="HashCalculator_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="HashCalculator_Copied" xml:space="preserve">
+    <value>Copied!</value>
+  </data>
+  
+  <!-- Common Labels -->
+  <data name="Common_Input" xml:space="preserve">
+    <value>Input</value>
+  </data>
+  <data name="Common_Output" xml:space="preserve">
+    <value>Output</value>
+  </data>
+  <data name="Common_Loading" xml:space="preserve">
+    <value>Loading...</value>
+  </data>
+  <data name="Common_Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  
+  <!-- Theme -->
+  <data name="Theme_Light" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="Theme_Dark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="Theme_Toggle" xml:space="preserve">
+    <value>Toggle theme</value>
+  </data>
+</root>

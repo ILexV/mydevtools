@@ -77,10 +77,46 @@
 
 ---
 
-## 🏗️ Реализованная структура проекта
+## 🏗️ Структура проекта
+
+### 🗂️ Структура репозитория (актуально)
+
+> Ниже — структура от корня репозитория. Папки `bin/`, `obj/`, `.vs/`, `_ReSharper.Caches/` и т.п. намеренно опущены.
 
 ```
-MyDevTools.Site/
+/
+├── README.md
+├── MyDevToolsApp/
+│   ├── MyDevToolsApp.slnx
+│   └── MyDevTools.Site/
+│       ├── Program.cs
+│       ├── Components/
+│       ├── Middleware/
+│       ├── Resources/
+│       ├── Services/
+│       └── wwwroot/
+└── wasm/
+    ├── cryptography/   # Rust → WASM: шифрование/подпись/ключи (планируется)
+    ├── encoding/       # Rust → WASM: hex/base64/url/… (планируется)
+  ├── structured_data/ # Rust → WASM: JSON/XML/YAML форматирование + валидация (планируется)
+    └── hash/           # Rust → WASM: хэши строк/файлов (планируется)
+  └── build.ps1       # Сборка cargo+wasm-bindgen → wwwroot/wasm/<domain>
+```
+
+### `wasm/structured_data`: назначение
+
+Этот домен — “всё про структурированные форматы”:
+
+* форматирование: beautify/minify/normalize
+* валидация (syntax + schema, где применимо)
+* в перспективе: YAML (и возможно конвертации, если будет нужно)
+
+---
+
+### MyDevTools.Site (Blazor SSR)
+
+```
+MyDevToolsApp/MyDevTools.Site/
 ├── Components/
 │   ├── Layout/
 │   │   ├── MainLayout.razor           ✅ Главный layout с header/footer
@@ -198,11 +234,50 @@ MyDevTools.Site/
 
 ### Категоризация WASM (оптимизация)
 
-* WASM делится по доменам:
-  * `hash.wasm` — MD5, SHA, Blake2
-  * `json.wasm` — парсинг, форматирование JSON
-  * `xml.wasm` — парсинг, форматирование XML
-  * `encoding.wasm` — Base64, URL encoding
+* WASM делится по доменам (соответствует папке `wasm/`):
+  * `hash.wasm` — MD5, SHA, Blake2, xxHash и т.д.
+  * `encoding.wasm` — Base64, Hex, URL encoding, etc.
+  * `cryptography.wasm` — шифрование/подпись/ключи (по мере необходимости)
+  * `structured_data.wasm` — JSON/XML/YAML: форматирование + валидация
+
+### Рекомендованное оформление Rust/WASM
+
+* `wasm/` как **Cargo workspace** (один `Cargo.toml` на корне `wasm/`)
+* 1 домен = 1 crate (простая сборка + простой lazy-load):
+  * `wasm/hash/` → crate, который собирается в `hash.wasm`
+  * `wasm/encoding/` → crate → `encoding.wasm`
+  * `wasm/structured_data/` → crate → `structured_data.wasm`
+  * и т.д.
+* Артефакты сборки складывать в `MyDevToolsApp/MyDevTools.Site/wwwroot/wasm/<domain>/...` (чтобы сайт мог грузить модули как статику)
+* Экспорт функций — через `wasm-bindgen` (удобно вызывать из JS и потом обвязать в C#)
+
+### Сборка и тесты (рекомендованный базовый путь)
+
+Цели: (1) писать тесты на все функции, (2) грузить минимум данных (1 wasm на домен), (3) после сборки складывать артефакты в `wwwroot/wasm`.
+
+* Логику держать в обычных Rust-модулях внутри доменного crate и покрывать `cargo test`.
+* Для wasm-crate выставить типы библиотеки так, чтобы тесты тоже работали (примерно: `cdylib` + `rlib`).
+* Для сборки использовать `cargo build --target wasm32-unknown-unknown` + `wasm-bindgen` (стабильно, прозрачно и удобно для CI).
+
+Предварительная установка (1 раз на машину/в CI):
+
+```powershell
+rustup target add wasm32-unknown-unknown
+cargo install wasm-bindgen-cli --locked
+```
+
+Команда сборки всех доменов (складывает результат в `MyDevToolsApp/MyDevTools.Site/wwwroot/wasm/<domain>`):
+
+```powershell
+pwsh ./wasm/build.ps1 -Configuration Release
+```
+
+Пример запуска тестов в домене (когда появится `Cargo.toml`):
+
+```powershell
+cd ./wasm/hash
+cargo test
+```
 
 **НЕ объединяйте** всё в один огромный wasm — используйте lazy loading!
 
@@ -274,7 +349,7 @@ MyDevTools.Site/
 ### Запуск проекта
 
 ```bash
-cd MyDevTools.Site
+cd MyDevToolsApp/MyDevTools.Site
 dotnet run
 ```
 

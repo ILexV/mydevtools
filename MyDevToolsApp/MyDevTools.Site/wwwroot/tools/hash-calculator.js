@@ -43,9 +43,9 @@
         return hashWasmModulePromise;
     }
 
-    async function hashFileSha256WithProgress(file, onProgress, signal) {
+    async function hashFileWithProgress(file, algorithmIds, onProgress, signal) {
         const wasm = await getHashWasm();
-        const hasher = new wasm.Hasher('sha256');
+        const hashers = algorithmIds.map((id) => ({ id, hasher: new wasm.Hasher(id) }));
 
         const chunkSize = 1024 * 1024; // 1 MiB
         let processed = 0;
@@ -57,7 +57,10 @@
 
             const chunk = file.slice(processed, Math.min(processed + chunkSize, total));
             const buf = await chunk.arrayBuffer();
-            hasher.update(new Uint8Array(buf));
+            const bytes = new Uint8Array(buf);
+            for (const h of hashers) {
+                h.hasher.update(bytes);
+            }
             processed += chunk.size;
 
             const elapsedMs = performance.now() - start;
@@ -67,22 +70,26 @@
             await new Promise(requestAnimationFrame);
         }
 
-        return hasher.finalize();
+        return hashers.map(({ id, hasher }) => ({ id, hex: hasher.finalize() }));
     }
 
-    async function computeHashTextViaWebCrypto(algorithm, data) {
+    async function computeHashText(algorithm, data) {
+        if (algorithm === 'MD5') {
+            const wasm = await getHashWasm();
+            const hex = wasm.hash_bytes('md5', data);
+            return { algorithm: algorithm, value: hex };
+        }
+
         // Map algorithm names to SubtleCrypto format
         const algoMap = {
-            'MD5': null, // MD5 is not supported in SubtleCrypto
             'SHA-1': 'SHA-1',
             'SHA-256': 'SHA-256',
             'SHA-512': 'SHA-512'
         };
 
         const cryptoAlgo = algoMap[algorithm];
-
         if (!cryptoAlgo) {
-            return { algorithm: algorithm, value: 'MD5 will be calculated via WASM' };
+            return { algorithm: algorithm, value: 'Unsupported algorithm' };
         }
 
         const hashBuffer = await crypto.subtle.digest(cryptoAlgo, data);
@@ -104,25 +111,11 @@
         `).join('');
     }
 
-    function bindCopyButtons(outputSection, copiedLabel) {
-        outputSection.querySelectorAll('button.btn-copy[data-copy-value]').forEach(btn => {
-            if (btn.dataset.bound === '1') return;
-            btn.dataset.bound = '1';
-            btn.addEventListener('click', async () => {
-                const text = btn.dataset.copyValue || '';
-                await navigator.clipboard.writeText(text);
-                const original = btn.textContent;
-                btn.textContent = copiedLabel;
-                setTimeout(() => {
-                    btn.textContent = original;
-                }, 2000);
-            });
-        });
-    }
+    let abortController = null;
 
-    function init() {
+    function getElements() {
         const root = document.getElementById('hash-calculator-root');
-        if (!root) return;
+        if (!root) return null;
 
         const inputText = document.getElementById('input-text');
         const inputFile = document.getElementById('input-file');
@@ -130,12 +123,13 @@
         const clearBtn = document.getElementById('clear-btn');
         const outputSection = document.getElementById('output-section');
 
-        if (!calculateBtn || !clearBtn || !inputText || !outputSection || !inputFile) return;
-        if (calculateBtn.dataset.bound === '1') return;
-        calculateBtn.dataset.bound = '1';
-        clearBtn.dataset.bound = '1';
+        if (!calculateBtn || !clearBtn || !inputText || !outputSection || !inputFile) return null;
 
-        const strings = {
+        return { root, inputText, inputFile, calculateBtn, clearBtn, outputSection };
+    }
+
+    function getStrings(root) {
+        return {
             loading: root.dataset.loading || 'Loading...',
             error: root.dataset.error || 'Error',
             calculate: root.dataset.calculate || 'Calculate',
@@ -145,114 +139,184 @@
             copied: root.dataset.copied || 'Copied!',
             canceled: root.dataset.canceled || 'Canceled'
         };
+    }
 
-        let abortController = null;
+    function renderTextSkeleton(outputSection) {
+        outputSection.innerHTML = `
+            <div class="loading-skeleton">
+                <div class="skeleton-header"></div>
+                <div class="skeleton-content">
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+            </div>
+        `;
+    }
 
-        calculateBtn.addEventListener('click', async function () {
-            const file = inputFile.files && inputFile.files.length > 0 ? inputFile.files[0] : null;
-            const text = inputText.value.trim();
+    function renderFileProgress(outputSection, strings, file) {
+        outputSection.innerHTML = `
+            <div class="file-progress">
+                <div class="file-progress-header">
+                    <div class="file-progress-title">${escapeHtml(strings.fileProgressTitle)}</div>
+                    <button class="btn btn-secondary btn-small" id="cancel-btn">${escapeHtml(strings.cancel)}</button>
+                </div>
+                <div class="file-progress-meta">${escapeHtml(file.name)} • ${formatBytes(file.size)}</div>
+                <progress id="file-progress-bar" value="0" max="100"></progress>
+                <div id="file-progress-stats" class="file-progress-stats"></div>
+            </div>
+        `;
+    }
 
-            if (!file && !text) return;
+    async function handleCalculate() {
+        const els = getElements();
+        if (!els) return;
 
-            calculateBtn.disabled = true;
-            calculateBtn.textContent = strings.loading;
+        const strings = getStrings(els.root);
+        const file = els.inputFile.files && els.inputFile.files.length > 0 ? els.inputFile.files[0] : null;
+        const text = els.inputText.value.trim();
 
-            try {
-                if (file) {
-                    abortController = new AbortController();
+        if (!file && !text) return;
 
-                    outputSection.innerHTML = `
-                        <div class="file-progress">
-                            <div class="file-progress-header">
-                                <div class="file-progress-title">${escapeHtml(strings.fileProgressTitle)}</div>
-                                <button class="btn btn-secondary btn-small" id="cancel-btn">${escapeHtml(strings.cancel)}</button>
-                            </div>
-                            <div class="file-progress-meta">${escapeHtml(file.name)} • ${formatBytes(file.size)}</div>
-                            <progress id="file-progress-bar" value="0" max="100"></progress>
-                            <div id="file-progress-stats" class="file-progress-stats"></div>
-                        </div>
-                    `;
+        els.calculateBtn.disabled = true;
+        els.calculateBtn.textContent = strings.loading;
 
-                    const cancelBtn = document.getElementById('cancel-btn');
-                    if (cancelBtn) {
-                        cancelBtn.addEventListener('click', () => abortController.abort());
-                    }
+        try {
+            if (file) {
+                abortController = new AbortController();
+                renderFileProgress(els.outputSection, strings, file);
 
-                    const progressBar = document.getElementById('file-progress-bar');
-                    const progressStats = document.getElementById('file-progress-stats');
+                const progressBar = document.getElementById('file-progress-bar');
+                const progressStats = document.getElementById('file-progress-stats');
 
-                    const hex = await hashFileSha256WithProgress(
-                        file,
-                        ({ processed, total, elapsedMs }) => {
-                            const pct = total > 0 ? (processed / total) * 100 : 0;
-                            const elapsedSec = elapsedMs / 1000;
-                            const speed = elapsedSec > 0 ? processed / elapsedSec : 0;
-                            const etaSec = speed > 0 ? (total - processed) / speed : Infinity;
+                const results = await hashFileWithProgress(
+                    file,
+                    ['md5', 'sha256'],
+                    ({ processed, total, elapsedMs }) => {
+                        const pct = total > 0 ? (processed / total) * 100 : 0;
+                        const elapsedSec = elapsedMs / 1000;
+                        const speed = elapsedSec > 0 ? processed / elapsedSec : 0;
+                        const etaSec = speed > 0 ? (total - processed) / speed : Infinity;
 
-                            if (progressBar) progressBar.value = pct;
-                            if (progressStats) {
-                                progressStats.textContent = `${pct.toFixed(1)}% • ${formatBytes(processed)} / ${formatBytes(total)} • ${formatBytes(speed)}/s • ETA ${formatDuration(etaSec)}`;
-                            }
-                        },
-                        abortController.signal
-                    );
+                        if (progressBar) progressBar.value = pct;
+                        if (progressStats) {
+                            progressStats.textContent = `${pct.toFixed(1)}% • ${formatBytes(processed)} / ${formatBytes(total)} • ${formatBytes(speed)}/s • ETA ${formatDuration(etaSec)}`;
+                        }
+                    },
+                    abortController.signal
+                );
 
-                    displayResults(outputSection, strings.copy, [
-                        { algorithm: 'SHA-256', value: hex }
-                    ]);
-                    bindCopyButtons(outputSection, strings.copied);
-                } else {
-                    // Text path (WebCrypto)
-                    outputSection.innerHTML = `
-                        <div class="loading-skeleton">
-                            <div class="skeleton-header"></div>
-                            <div class="skeleton-content">
-                                <div class="skeleton-line"></div>
-                                <div class="skeleton-line"></div>
-                                <div class="skeleton-line short"></div>
-                            </div>
-                        </div>
-                    `;
+                const labelMap = {
+                    md5: 'MD5',
+                    sha256: 'SHA-256'
+                };
 
-                    const encoder = new TextEncoder();
-                    const data = encoder.encode(text);
+                displayResults(
+                    els.outputSection,
+                    strings.copy,
+                    results.map(r => ({ algorithm: labelMap[r.id] || r.id, value: r.hex }))
+                );
+            } else {
+                renderTextSkeleton(els.outputSection);
 
-                    const results = await Promise.all([
-                        computeHashTextViaWebCrypto('MD5', data),
-                        computeHashTextViaWebCrypto('SHA-1', data),
-                        computeHashTextViaWebCrypto('SHA-256', data),
-                        computeHashTextViaWebCrypto('SHA-512', data)
-                    ]);
+                const encoder = new TextEncoder();
+                const data = encoder.encode(text);
 
-                    displayResults(outputSection, strings.copy, results);
-                    bindCopyButtons(outputSection, strings.copied);
-                }
-            } catch (err) {
-                const isAbort = err && (err.name === 'AbortError');
-                displayResults(outputSection, strings.copy, [
-                    { algorithm: strings.error, value: isAbort ? strings.canceled : (err?.message || String(err)) }
+                const results = await Promise.all([
+                    computeHashText('MD5', data),
+                    computeHashText('SHA-1', data),
+                    computeHashText('SHA-256', data),
+                    computeHashText('SHA-512', data)
                 ]);
-            } finally {
-                abortController = null;
-                calculateBtn.disabled = false;
-                calculateBtn.textContent = strings.calculate;
+
+                displayResults(els.outputSection, strings.copy, results);
             }
-        });
+        } catch (err) {
+            const strings2 = getStrings(els.root);
+            const isAbort = err && (err.name === 'AbortError');
+            displayResults(els.outputSection, strings2.copy, [
+                { algorithm: strings2.error, value: isAbort ? strings2.canceled : (err?.message || String(err)) }
+            ]);
+        } finally {
+            abortController = null;
+            els.calculateBtn.disabled = false;
+            els.calculateBtn.textContent = strings.calculate;
+        }
+    }
 
-        clearBtn.addEventListener('click', function () {
-            inputText.value = '';
-            inputFile.value = '';
-            outputSection.innerHTML = '';
+    function handleClear() {
+        const els = getElements();
+        if (!els) return;
 
-            if (abortController) {
-                abortController.abort();
-                abortController = null;
+        els.inputText.value = '';
+        els.inputFile.value = '';
+        els.outputSection.innerHTML = '';
+
+        if (abortController) {
+            abortController.abort();
+            abortController = null;
+        }
+    }
+
+    async function handleCopyButton(button) {
+        const els = getElements();
+        if (!els) return;
+
+        const strings = getStrings(els.root);
+        const text = button.dataset.copyValue || '';
+        try {
+            await navigator.clipboard.writeText(text);
+            const original = button.textContent;
+            button.textContent = strings.copied;
+            setTimeout(() => {
+                button.textContent = original;
+            }, 2000);
+        } catch {
+            // ignore
+        }
+    }
+
+    function bindDelegatedHandlersOnce() {
+        if (window.__hashCalculatorDelegatedHandlersBound === true) return;
+        window.__hashCalculatorDelegatedHandlersBound = true;
+
+        document.addEventListener('click', (ev) => {
+            const target = ev.target;
+            if (!(target instanceof Element)) return;
+
+            const calcBtn = target.closest('#calculate-btn');
+            if (calcBtn) {
+                ev.preventDefault();
+                void handleCalculate();
+                return;
+            }
+
+            const clearBtn = target.closest('#clear-btn');
+            if (clearBtn) {
+                ev.preventDefault();
+                handleClear();
+                return;
+            }
+
+            const cancelBtn = target.closest('#cancel-btn');
+            if (cancelBtn) {
+                ev.preventDefault();
+                if (abortController) abortController.abort();
+                return;
+            }
+
+            const copyBtn = target.closest('button.btn-copy[data-copy-value]');
+            if (copyBtn) {
+                ev.preventDefault();
+                void handleCopyButton(copyBtn);
             }
         });
 
         // Back-compat: if something calls window.copyToClipboard
         window.copyToClipboard = function (button, text) {
             navigator.clipboard.writeText(text).then(() => {
+                const els = getElements();
+                const strings = els ? getStrings(els.root) : { copied: 'Copied!' };
                 const originalText = button.textContent;
                 button.textContent = strings.copied;
                 setTimeout(() => {
@@ -262,15 +326,5 @@
         };
     }
 
-    // Initial load
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-
-    // Blazor SSR enhanced navigation
-    window.addEventListener('enhancedload', init);
-    document.addEventListener('enhancedload', init);
-    window.addEventListener('pageshow', init);
+    bindDelegatedHandlersOnce();
 })();

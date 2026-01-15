@@ -1,5 +1,5 @@
 use wasm_bindgen::prelude::*;
-use sha2::Digest;
+use digest::Digest;
 
 #[wasm_bindgen]
 pub fn version() -> String {
@@ -18,12 +18,14 @@ fn to_hex_lower(bytes: &[u8]) -> String {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Algorithm {
+    Md5,
     Sha256,
 }
 
 impl Algorithm {
     fn parse(id: &str) -> Option<Self> {
         match id.trim().to_ascii_lowercase().as_str() {
+            "md5" | "md-5" => Some(Self::Md5),
             "sha256" | "sha-256" => Some(Self::Sha256),
             _ => None,
         }
@@ -31,24 +33,28 @@ impl Algorithm {
 }
 
 enum HasherImpl {
+    Md5(md5::Md5),
     Sha256(sha2::Sha256),
 }
 
 impl HasherImpl {
     fn new(algorithm: Algorithm) -> Self {
         match algorithm {
+            Algorithm::Md5 => Self::Md5(md5::Md5::new()),
             Algorithm::Sha256 => Self::Sha256(sha2::Sha256::new()),
         }
     }
 
     fn update(&mut self, chunk: &[u8]) {
         match self {
+            Self::Md5(h) => h.update(chunk),
             Self::Sha256(h) => h.update(chunk),
         }
     }
 
     fn finalize(self) -> Vec<u8> {
         match self {
+            Self::Md5(h) => h.finalize().to_vec(),
             Self::Sha256(h) => h.finalize().to_vec(),
         }
     }
@@ -57,7 +63,7 @@ impl HasherImpl {
 /// Streaming hasher for large inputs (files).
 ///
 /// Intended usage from JS:
-/// - `const h = new hash.Hasher("sha256");`
+/// - `const h = new hash.Hasher("md5"); // or "sha256"`
 /// - `h.update(chunkUint8Array);` for each chunk
 /// - `const hex = h.finalize();`
 #[wasm_bindgen]
@@ -95,6 +101,7 @@ impl Hasher {
     /// Returns normalized algorithm id (for debugging/telemetry).
     pub fn algorithm(&self) -> String {
         match self.algorithm {
+            Algorithm::Md5 => "md5".to_string(),
             Algorithm::Sha256 => "sha256".to_string(),
         }
     }
@@ -153,5 +160,44 @@ mod tests {
         let streaming = h.finalize();
 
         assert_eq!(streaming, one_shot);
+    }
+
+    #[test]
+    fn md5_known_vectors() {
+        // RFC 1321 test suite
+        assert_eq!(
+            hash_text_utf8("md5", "").unwrap(),
+            "d41d8cd98f00b204e9800998ecf8427e"
+        );
+        assert_eq!(
+            hash_text_utf8("md5", "a").unwrap(),
+            "0cc175b9c0f1b6a831c399e269772661"
+        );
+        assert_eq!(
+            hash_text_utf8("md5", "abc").unwrap(),
+            "900150983cd24fb0d6963f7d28e17f72"
+        );
+        assert_eq!(
+            hash_text_utf8("md5", "message digest").unwrap(),
+            "f96b697d7cb7938d525a2f31aaf161d0"
+        );
+    }
+
+    #[test]
+    fn md5_streaming_matches_one_shot() {
+        let input = b"The quick brown fox jumps over the lazy dog";
+        let one_shot = hash_bytes("md5", input).unwrap();
+
+        let mut h = Hasher::new("md5").unwrap();
+        h.update(&input[..10]);
+        h.update(&input[10..25]);
+        h.update(&input[25..]);
+        let streaming = h.finalize();
+
+        assert_eq!(streaming, one_shot);
+        assert_eq!(
+            one_shot,
+            "9e107d9d372bb6826bd81d3542a419d6"
+        );
     }
 }

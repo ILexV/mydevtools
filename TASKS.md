@@ -21,7 +21,7 @@
 - [x] Установить `wasm-bindgen-cli` на dev-машинах/в CI (`cargo install wasm-bindgen-cli --locked`)
 - [x] Убедиться что добавлен target: `rustup target add wasm32-unknown-unknown`
 - [x] Выполнить тестовую сборку WASM в `wwwroot/wasm`
-- [ ] Добавить первый WASM-crate в `wasm/hash/` (MD5 для строк)
+- [x] Добавить первый WASM-crate в `wasm/hash/` (MD5 для строк)
 - [x] Добавить хэши файлов (chunking/streaming через JS + WASM)
 - [ ] Добавить общий слой загрузки модулей (lazy-load + кеширование + обработка ошибок)
 - [ ] Добавить интерфейс для вызова WASM из UI (JS interop + обвязка в C# сервис)
@@ -53,8 +53,8 @@
 
 > Цель: реализовать как отдельные функции/модули внутри `wasm/hash`, но собирать одним доменным `hash.wasm`.
 
-- [ ] MD5 — crate: `md-5` (часто нужно для проверки старых хэшей)
-- [ ] SHA-256 — crate: `sha2`
+- [x] MD5 — crate: `md-5` (часто нужно для проверки старых хэшей)
+- [x] SHA-256 — crate: `sha2`
 - [ ] SHA-512 — crate: `sha2`
 - [ ] SHA-384 — crate: `sha2`
 - [ ] SHA-3-256 — crate: `sha3`
@@ -83,7 +83,7 @@
 ## Инструменты сайта
 
 - [x] Hash Calculator (SHA-1/SHA-256/SHA-512 через Web Crypto API)
-- [ ] MD5 (через WASM)
+- [x] MD5 (через WASM)
 - [ ] JSON Beautifier / Minifier
 - [ ] XML Formatter
 - [ ] Base64 / Hex / URL encoding

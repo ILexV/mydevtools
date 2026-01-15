@@ -29,14 +29,13 @@
   - 🇪🇸 Испанский (es)
 - ✅ **Strongly-Typed Resources** — compile-time безопасность для переводов
 - ✅ **Темная/Светлая тема** — CSS-переменные для кастомизации
-- ✅ **Первый инструмент: Hash Calculator** — SHA-1, SHA-256, SHA-512 (Web Crypto API)
+- ✅ **Первый инструмент: Hash Calculator** — MD5 (WASM) + SHA-1/SHA-256/SHA-512 (Web Crypto API)
 - ✅ **SEO компоненты** — MetaTags, JSON-LD, Hreflang
 - ✅ **Переиспользуемые UI компоненты** — ToolLayout, LoadingSkeleton, ThemeToggle
 
 ### 🚧 В разработке
 
 - 🔜 **WASM интеграция** — замена JavaScript на Rust WASM модули
-- 🔜 **MD5 хэш** — будет добавлен через WASM (не поддерживается в Web Crypto API)
 - 🔜 **Дополнительные инструменты** — JSON Beautifier, Base64, XML Formatter
 
 ---
@@ -283,9 +282,18 @@ cargo test
 
 ### Текущая реализация (временная)
 
-До интеграции WASM используется **Web Crypto API** (встроенный в браузер):
-- ✅ SHA-1, SHA-256, SHA-512
-- ❌ MD5 (не поддерживается, будет добавлен через WASM)
+Сейчас используется **Web Crypto API** (встроенный в браузер) + **Rust WASM**:
+- ✅ SHA-1, SHA-256, SHA-512 — Web Crypto API
+- ✅ MD5 — через WASM модуль `wasm/hash`
+
+### Важный нюанс: Blazor SSR + Enhanced Navigation
+
+В Blazor SSR с включённой **enhanced navigation** страница может обновляться через DOM-morphing (частичная замена DOM без полной перезагрузки).
+Из-за этого обработчики, повешенные напрямую на элементы через `addEventListener`/`onclick` в момент initial load, иногда «теряются» после переходов.
+
+Рекомендация для инструментов:
+- использовать **делегирование событий** (один `document.addEventListener('click', ...)` + `target.closest(...)`) или
+- переинициализировать биндинги на событиях `enhancedload` / `pageshow`.
 
 ---
 

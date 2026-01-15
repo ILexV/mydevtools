@@ -5,7 +5,7 @@
  * Streaming hasher for large inputs (files).
  *
  * Intended usage from JS:
- * - `const h = new hash.Hasher("sha256");`
+ * - `const h = new hash.Hasher("md5"); // or "sha256"`
  * - `h.update(chunkUint8Array);` for each chunk
  * - `const hex = h.finalize();`
  */

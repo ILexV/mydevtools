@@ -1,3 +1,4 @@
+@using System.Globalization
 @using System.Text.Encodings.Web
 @using System.Text.Json
 
@@ -7,10 +8,10 @@
 
 @code {
     [Parameter, EditorRequired]
-    public string ToolName { get; set; } = default!;
+    public string SiteName { get; set; } = default!;
 
-    [Parameter, EditorRequired]
-    public string Description { get; set; } = default!;
+    [Parameter]
+    public string? Description { get; set; }
 
     [Parameter]
     public string? CurrentUrl { get; set; }
@@ -20,19 +21,20 @@
         var jsonLd = new Dictionary<string, object?>
         {
             ["@context"] = "https://schema.org",
-            ["@type"] = "SoftwareApplication",
-            ["name"] = ToolName,
-            ["description"] = Description,
-            ["applicationCategory"] = "DeveloperApplication",
-            ["operatingSystem"] = "Web",
-            ["isAccessibleForFree"] = true,
-            ["offers"] = new Dictionary<string, object?>
-            {
-                ["@type"] = "Offer",
-                ["price"] = "0",
-                ["priceCurrency"] = "USD"
-            }
+            ["@type"] = "WebSite",
+            ["name"] = SiteName,
+            ["inLanguage"] = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName
         };
+
+        if (!string.IsNullOrWhiteSpace(Description))
+        {
+            jsonLd["description"] = Description;
+        }
+
+        if (!string.IsNullOrWhiteSpace(CurrentUrl))
+        {
+            jsonLd["url"] = CurrentUrl;
+        }
 
         return JsonSerializer.Serialize(jsonLd, new JsonSerializerOptions
         {

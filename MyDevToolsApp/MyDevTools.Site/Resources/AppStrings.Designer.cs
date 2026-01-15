@@ -131,6 +131,15 @@ namespace MyDevTools.Site.Resources {
                 return ResourceManager.GetString("HashCalculator_Clear", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        public static string HashCalculator_Cancel {
+            get {
+                return ResourceManager.GetString("HashCalculator_Cancel", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Copied!.
@@ -174,6 +183,33 @@ namespace MyDevTools.Site.Resources {
         public static string HashCalculator_InputPlaceholder {
             get {
                 return ResourceManager.GetString("HashCalculator_InputPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to File (optional).
+        /// </summary>
+        public static string HashCalculator_FileLabel {
+            get {
+                return ResourceManager.GetString("HashCalculator_FileLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to If a file is selected, the text input is ignored..
+        /// </summary>
+        public static string HashCalculator_FileHint {
+            get {
+                return ResourceManager.GetString("HashCalculator_FileHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Hashing file....
+        /// </summary>
+        public static string HashCalculator_FileProgressTitle {
+            get {
+                return ResourceManager.GetString("HashCalculator_FileProgressTitle", resourceCulture);
             }
         }
         

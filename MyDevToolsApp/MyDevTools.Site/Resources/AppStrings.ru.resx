@@ -49,6 +49,18 @@
   <data name="HashCalculator_InputPlaceholder" xml:space="preserve">
     <value>Введите текст для хэширования...</value>
   </data>
+  <data name="HashCalculator_FileLabel" xml:space="preserve">
+    <value>Файл (необязательно)</value>
+  </data>
+  <data name="HashCalculator_FileHint" xml:space="preserve">
+    <value>Если выбран файл, текстовое поле игнорируется.</value>
+  </data>
+  <data name="HashCalculator_FileProgressTitle" xml:space="preserve">
+    <value>Хэширование файла...</value>
+  </data>
+  <data name="HashCalculator_Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
   <data name="HashCalculator_Calculate" xml:space="preserve">
     <value>Вычислить</value>
   </data>

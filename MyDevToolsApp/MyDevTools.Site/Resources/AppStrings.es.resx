@@ -49,6 +49,18 @@
   <data name="HashCalculator_InputPlaceholder" xml:space="preserve">
     <value>Ingrese el texto para hash...</value>
   </data>
+  <data name="HashCalculator_FileLabel" xml:space="preserve">
+    <value>Archivo (opcional)</value>
+  </data>
+  <data name="HashCalculator_FileHint" xml:space="preserve">
+    <value>Si se selecciona un archivo, se ignora el texto.</value>
+  </data>
+  <data name="HashCalculator_FileProgressTitle" xml:space="preserve">
+    <value>Calculando hash del archivo...</value>
+  </data>
+  <data name="HashCalculator_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
   <data name="HashCalculator_Calculate" xml:space="preserve">
     <value>Calcular</value>
   </data>

@@ -99,6 +99,18 @@
   <data name="HashCalculator_InputPlaceholder" xml:space="preserve">
     <value>Enter text to hash...</value>
   </data>
+  <data name="HashCalculator_FileLabel" xml:space="preserve">
+    <value>File (optional)</value>
+  </data>
+  <data name="HashCalculator_FileHint" xml:space="preserve">
+    <value>If a file is selected, the text input is ignored.</value>
+  </data>
+  <data name="HashCalculator_FileProgressTitle" xml:space="preserve">
+    <value>Hashing file...</value>
+  </data>
+  <data name="HashCalculator_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
   <data name="HashCalculator_Calculate" xml:space="preserve">
     <value>Calculate</value>
   </data>

@@ -60,3 +60,4 @@ nunit-*.xml
 *.DotSettings.user
 .idea/
 .vs/
+/wasm/target

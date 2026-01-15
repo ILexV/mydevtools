@@ -55,9 +55,9 @@
 
 - [x] MD5 — crate: `md-5` (часто нужно для проверки старых хэшей)
 - [x] SHA-256 — crate: `sha2`
-- [ ] SHA-512 — crate: `sha2`
-- [ ] SHA-384 — crate: `sha2`
-- [ ] SHA-3-256 — crate: `sha3`
+- [x] SHA-512 — crate: `sha2`
+- [x] SHA-384 — crate: `sha2`
+- [x] SHA-3-256 — crate: `sha3`
 - [ ] BLAKE3 — crate: `blake3`
 - [ ] BLAKE2b — crate: `blake2`
 - [ ] aHash — crate: `ahash`

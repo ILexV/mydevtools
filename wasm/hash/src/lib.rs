@@ -20,6 +20,9 @@ fn to_hex_lower(bytes: &[u8]) -> String {
 enum Algorithm {
     Md5,
     Sha256,
+    Sha384,
+    Sha512,
+    Sha3_256,
 }
 
 impl Algorithm {
@@ -27,6 +30,9 @@ impl Algorithm {
         match id.trim().to_ascii_lowercase().as_str() {
             "md5" | "md-5" => Some(Self::Md5),
             "sha256" | "sha-256" => Some(Self::Sha256),
+            "sha384" | "sha-384" => Some(Self::Sha384),
+            "sha512" | "sha-512" => Some(Self::Sha512),
+            "sha3-256" | "sha3_256" | "sha3" => Some(Self::Sha3_256),
             _ => None,
         }
     }
@@ -35,6 +41,9 @@ impl Algorithm {
 enum HasherImpl {
     Md5(md5::Md5),
     Sha256(sha2::Sha256),
+    Sha384(sha2::Sha384),
+    Sha512(sha2::Sha512),
+    Sha3_256(sha3::Sha3_256),
 }
 
 impl HasherImpl {
@@ -42,6 +51,9 @@ impl HasherImpl {
         match algorithm {
             Algorithm::Md5 => Self::Md5(md5::Md5::new()),
             Algorithm::Sha256 => Self::Sha256(sha2::Sha256::new()),
+            Algorithm::Sha384 => Self::Sha384(sha2::Sha384::new()),
+            Algorithm::Sha512 => Self::Sha512(sha2::Sha512::new()),
+            Algorithm::Sha3_256 => Self::Sha3_256(sha3::Sha3_256::new()),
         }
     }
 
@@ -49,6 +61,9 @@ impl HasherImpl {
         match self {
             Self::Md5(h) => h.update(chunk),
             Self::Sha256(h) => h.update(chunk),
+            Self::Sha384(h) => h.update(chunk),
+            Self::Sha512(h) => h.update(chunk),
+            Self::Sha3_256(h) => h.update(chunk),
         }
     }
 
@@ -56,6 +71,9 @@ impl HasherImpl {
         match self {
             Self::Md5(h) => h.finalize().to_vec(),
             Self::Sha256(h) => h.finalize().to_vec(),
+            Self::Sha384(h) => h.finalize().to_vec(),
+            Self::Sha512(h) => h.finalize().to_vec(),
+            Self::Sha3_256(h) => h.finalize().to_vec(),
         }
     }
 }
@@ -103,6 +121,9 @@ impl Hasher {
         match self.algorithm {
             Algorithm::Md5 => "md5".to_string(),
             Algorithm::Sha256 => "sha256".to_string(),
+            Algorithm::Sha384 => "sha384".to_string(),
+            Algorithm::Sha512 => "sha512".to_string(),
+            Algorithm::Sha3_256 => "sha3-256".to_string(),
         }
     }
 }
@@ -160,6 +181,52 @@ mod tests {
         let streaming = h.finalize();
 
         assert_eq!(streaming, one_shot);
+    }
+
+    #[test]
+    fn sha384_known_vector_abc() {
+        // SHA-384("abc")
+        assert_eq!(
+            hash_text_utf8("sha384", "abc").unwrap(),
+            "cb00753f45a35e8bb5a03d699ac65007272c32ab0eded1631a8b605a43ff5bed8086072ba1e7cc2358baeca134c825a7"
+        );
+    }
+
+    #[test]
+    fn sha512_known_vector_abc() {
+        // SHA-512("abc")
+        assert_eq!(
+            hash_text_utf8("sha512", "abc").unwrap(),
+            "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f"
+        );
+    }
+
+    #[test]
+    fn sha3_256_known_vectors() {
+        assert_eq!(
+            hash_text_utf8("sha3-256", "").unwrap(),
+            "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a"
+        );
+        assert_eq!(
+            hash_text_utf8("sha3-256", "abc").unwrap(),
+            "3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532"
+        );
+    }
+
+    #[test]
+    fn sha_family_streaming_matches_one_shot() {
+        let input = b"The quick brown fox jumps over the lazy dog";
+        for alg in ["sha256", "sha384", "sha512", "sha3-256"] {
+            let one_shot = hash_bytes(alg, input).unwrap();
+
+            let mut h = Hasher::new(alg).unwrap();
+            h.update(&input[..10]);
+            h.update(&input[10..25]);
+            h.update(&input[25..]);
+            let streaming = h.finalize();
+
+            assert_eq!(streaming, one_shot, "streaming mismatch for {alg}");
+        }
     }
 
     #[test]

@@ -74,9 +74,10 @@
     }
 
     async function computeHashText(algorithm, data) {
-        if (algorithm === 'MD5') {
+        if (algorithm === 'MD5' || algorithm === 'SHA-3-256') {
             const wasm = await getHashWasm();
-            const hex = wasm.hash_bytes('md5', data);
+            const algoId = algorithm === 'MD5' ? 'md5' : 'sha3-256';
+            const hex = wasm.hash_bytes(algoId, data);
             return { algorithm: algorithm, value: hex };
         }
 
@@ -84,6 +85,7 @@
         const algoMap = {
             'SHA-1': 'SHA-1',
             'SHA-256': 'SHA-256',
+            'SHA-384': 'SHA-384',
             'SHA-512': 'SHA-512'
         };
 
@@ -191,7 +193,7 @@
 
                 const results = await hashFileWithProgress(
                     file,
-                    ['md5', 'sha256'],
+                    ['md5', 'sha256', 'sha384', 'sha512', 'sha3-256'],
                     ({ processed, total, elapsedMs }) => {
                         const pct = total > 0 ? (processed / total) * 100 : 0;
                         const elapsedSec = elapsedMs / 1000;
@@ -208,7 +210,10 @@
 
                 const labelMap = {
                     md5: 'MD5',
-                    sha256: 'SHA-256'
+                    sha256: 'SHA-256',
+                    sha384: 'SHA-384',
+                    sha512: 'SHA-512',
+                    'sha3-256': 'SHA-3-256'
                 };
 
                 displayResults(
@@ -226,7 +231,9 @@
                     computeHashText('MD5', data),
                     computeHashText('SHA-1', data),
                     computeHashText('SHA-256', data),
-                    computeHashText('SHA-512', data)
+                    computeHashText('SHA-384', data),
+                    computeHashText('SHA-512', data),
+                    computeHashText('SHA-3-256', data)
                 ]);
 
                 displayResults(els.outputSection, strings.copy, results);

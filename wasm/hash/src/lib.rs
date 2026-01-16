@@ -35,6 +35,8 @@ enum Algorithm {
     Sha512,
     Sha512_224,
     Sha512_256,
+    Streebog256,
+    Streebog512,
     Sha3_256,
     Sha3_224,
     Sha3_384,
@@ -77,6 +79,8 @@ impl Algorithm {
             "sha512" | "sha-512" => Some(Self::Sha512),
             "sha512-224" | "sha512_224" => Some(Self::Sha512_224),
             "sha512-256" | "sha512_256" => Some(Self::Sha512_256),
+            "streebog-256" | "streebog256" => Some(Self::Streebog256),
+            "streebog-512" | "streebog512" | "streebog" => Some(Self::Streebog512),
             "sha3-256" | "sha3_256" | "sha3" => Some(Self::Sha3_256),
             "sha3-224" | "sha3_224" => Some(Self::Sha3_224),
             "sha3-384" | "sha3_384" => Some(Self::Sha3_384),
@@ -118,6 +122,8 @@ enum HasherImpl {
     Sha256(sha2::Sha256),
     Sha384(sha2::Sha384),
     Sha512(sha2::Sha512),
+    Streebog256(streebog::Streebog256),
+    Streebog512(streebog::Streebog512),
     Sha3_256(sha3::Sha3_256),
     Sha512_224(sha2::Sha512_224),
     Sha512_256(sha2::Sha512_256),
@@ -160,6 +166,8 @@ impl HasherImpl {
             Algorithm::Sha256 => Self::Sha256(sha2::Sha256::new()),
             Algorithm::Sha384 => Self::Sha384(sha2::Sha384::new()),
             Algorithm::Sha512 => Self::Sha512(sha2::Sha512::new()),
+            Algorithm::Streebog256 => Self::Streebog256(streebog::Streebog256::new()),
+            Algorithm::Streebog512 => Self::Streebog512(streebog::Streebog512::new()),
             Algorithm::Sha3_256 => Self::Sha3_256(sha3::Sha3_256::new()),
             Algorithm::Sha512_224 => Self::Sha512_224(sha2::Sha512_224::new()),
             Algorithm::Sha512_256 => Self::Sha512_256(sha2::Sha512_256::new()),
@@ -205,6 +213,8 @@ impl HasherImpl {
             Self::Sha256(h) => h.update(chunk),
             Self::Sha384(h) => h.update(chunk),
             Self::Sha512(h) => h.update(chunk),
+            Self::Streebog256(h) => h.update(chunk),
+            Self::Streebog512(h) => h.update(chunk),
             Self::Sha3_256(h) => h.update(chunk),
             Self::Sha512_224(h) => h.update(chunk),
             Self::Sha512_256(h) => h.update(chunk),
@@ -233,9 +243,7 @@ impl HasherImpl {
             Self::Fnv1a64(h) => h.write(chunk),
             Self::SeaHash64(h) => h.write(chunk),
             Self::Crc32(h) => h.update(chunk),
-            Self::Adler32(h) => {
-                h.write_slice(chunk);
-            }
+            Self::Adler32(h) => h.write_slice(chunk),
             Self::SipHash13(h) => h.write(chunk),
             Self::SipHash24(h) => h.write(chunk),
             Self::HighwayHash64(h) => {
@@ -254,6 +262,8 @@ impl HasherImpl {
             Self::Sha256(h) => h.finalize().to_vec(),
             Self::Sha384(h) => h.finalize().to_vec(),
             Self::Sha512(h) => h.finalize().to_vec(),
+            Self::Streebog256(h) => h.finalize().to_vec(),
+            Self::Streebog512(h) => h.finalize().to_vec(),
             Self::Sha3_256(h) => h.finalize().to_vec(),
             Self::Sha512_224(h) => h.finalize().to_vec(),
             Self::Sha512_256(h) => h.finalize().to_vec(),
@@ -351,6 +361,8 @@ impl Hasher {
             Algorithm::Sha512 => "sha512".to_string(),
             Algorithm::Sha512_224 => "sha512-224".to_string(),
             Algorithm::Sha512_256 => "sha512-256".to_string(),
+            Algorithm::Streebog256 => "streebog-256".to_string(),
+            Algorithm::Streebog512 => "streebog-512".to_string(),
             Algorithm::Sha3_256 => "sha3-256".to_string(),
             Algorithm::Sha3_224 => "sha3-224".to_string(),
             Algorithm::Sha3_384 => "sha3-384".to_string(),
@@ -491,7 +503,16 @@ mod tests {
     #[test]
     fn sha_family_streaming_matches_one_shot() {
         let input = b"The quick brown fox jumps over the lazy dog";
-        for alg in ["sha1", "sha224", "sha256", "sha384", "sha512", "sha3-256"] {
+        for alg in [
+            "sha1",
+            "sha224",
+            "sha256",
+            "sha384",
+            "sha512",
+            "sha3-256",
+            "streebog-256",
+            "streebog-512",
+        ] {
             let one_shot = hash_bytes(alg, input).unwrap();
 
             let mut h = Hasher::new(alg).unwrap();
@@ -527,6 +548,14 @@ mod tests {
         // sha512-256
         let expected_sha512_256 = to_hex_lower(&sha2::Sha512_256::digest(input));
         assert_eq!(hash_bytes("sha512-256", input).unwrap(), expected_sha512_256);
+
+        // streebog-256
+        let expected_streebog256 = to_hex_lower(&streebog::Streebog256::digest(input));
+        assert_eq!(hash_bytes("streebog-256", input).unwrap(), expected_streebog256);
+
+        // streebog-512
+        let expected_streebog512 = to_hex_lower(&streebog::Streebog512::digest(input));
+        assert_eq!(hash_bytes("streebog-512", input).unwrap(), expected_streebog512);
 
         // sha3-224
         let expected_sha3_224 = to_hex_lower(&sha3::Sha3_224::digest(input));

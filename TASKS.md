@@ -58,6 +58,8 @@
 - [x] SHA-512 — crate: `sha2`
 - [x] SHA-512/224 — crate: `sha2`
 - [x] SHA-512/256 — crate: `sha2`
+- [x] Streebog-256 — crate: `streebog`
+- [x] Streebog-512 — crate: `streebog`
 - [x] SHA-384 — crate: `sha2`
 - [x] SHA-3-256 — crate: `sha3`
 - [x] SHA-3-224 — crate: `sha3`
@@ -71,9 +73,9 @@
 - [x] xxHash (xxh3) — crate: `xxhash-rust`
 - [x] xxHash32 — crate: `xxhash-rust`
 - [x] xxHash64 — crate: `xxhash-rust`
-- [ ] GxHash — crate: `gxhash`
-- [ ] Murmur3 — crate: `murmur3`
-- [ ] FarmHash — crate: `farmhash`
+- [ ] GxHash — crate: `gxhash` (⚠️ не подходит: требует AES+SSE2 intrinsics/`target-feature=+aes,+sse2`, не portable для `wasm32-unknown-unknown`)
+- [ ] Murmur3 — crate: `murmur3` (⚠️ не подходит текущий crate: API через `std::io::Read`, нет нормального stateful `update(&[u8])` для нашего streaming API)
+- [ ] FarmHash — crate: `farmhash` (⚠️ не подходит: по сути one-shot; stateful обертка будет буферизовать весь ввод, что ломает streaming на больших файлах)
 - [x] MetroHash64 — crate: `metrohash` (pure Rust)
 - [ ] MetroHash через `fasthash` (⚠️ требуется решение: `fasthash-sys` не собирается на Windows MSVC)
 - [x] FNV — crate: `fnv`

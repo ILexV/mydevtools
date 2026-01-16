@@ -58,19 +58,19 @@
 - [x] SHA-512 — crate: `sha2`
 - [x] SHA-384 — crate: `sha2`
 - [x] SHA-3-256 — crate: `sha3`
-- [ ] BLAKE3 — crate: `blake3`
-- [ ] BLAKE2b — crate: `blake2`
-- [ ] aHash — crate: `ahash`
-- [ ] FxHash — crate: `rustc-hash`
+- [x] BLAKE3 — crate: `blake3`
+- [x] BLAKE2b — crate: `blake2`
+- [ ] aHash — crate: `ahash` (⚠️ требуется решение: тянет `getrandom` и ломает `wasm32-unknown-unknown` без спец. конфигурации)
+- [x] FxHash — crate: `rustc-hash`
 - [ ] HighwayHash — crate: `highway`
-- [ ] xxHash (xxh3) — crate: `xxhash-rust`
+- [x] xxHash (xxh3) — crate: `xxhash-rust`
 - [ ] GxHash — crate: `gxhash`
 - [ ] Murmur3 — crate: `murmur3`
 - [ ] FarmHash — crate: `farmhash`
 - [ ] MetroHash — crate: `fasthash`
-- [ ] FNV — crate: `fnv`
-- [ ] SeaHash — crate: `seahash`
-- [ ] RIPEMD-160 — crate: `ripemd`
+- [x] FNV — crate: `fnv`
+- [x] SeaHash — crate: `seahash`
+- [x] RIPEMD-160 — crate: `ripemd`
 
 ### Дополнительно (часто спрашивают; можно позже)
 

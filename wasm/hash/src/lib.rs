@@ -1,5 +1,6 @@
 use wasm_bindgen::prelude::*;
 use digest::Digest;
+use std::hash::Hasher as StdHasher;
 
 #[wasm_bindgen]
 pub fn version() -> String {
@@ -16,6 +17,10 @@ fn to_hex_lower(bytes: &[u8]) -> String {
     out
 }
 
+fn u64_to_bytes_le(v: u64) -> [u8; 8] {
+    v.to_le_bytes()
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Algorithm {
     Md5,
@@ -25,6 +30,13 @@ enum Algorithm {
     Sha384,
     Sha512,
     Sha3_256,
+    Blake3,
+    Blake2b512,
+    Ripemd160,
+    Xxh3_64,
+    FxHash64,
+    Fnv1a64,
+    SeaHash64,
 }
 
 impl Algorithm {
@@ -37,6 +49,13 @@ impl Algorithm {
             "sha384" | "sha-384" => Some(Self::Sha384),
             "sha512" | "sha-512" => Some(Self::Sha512),
             "sha3-256" | "sha3_256" | "sha3" => Some(Self::Sha3_256),
+            "blake3" | "blake-3" => Some(Self::Blake3),
+            "blake2b" | "blake2b-512" | "blake2b512" => Some(Self::Blake2b512),
+            "ripemd160" | "ripemd-160" => Some(Self::Ripemd160),
+            "xxh3" | "xxh3-64" | "xxhash" => Some(Self::Xxh3_64),
+            "fxhash" | "fxhash64" => Some(Self::FxHash64),
+            "fnv" | "fnv1a" | "fnv1a64" => Some(Self::Fnv1a64),
+            "seahash" | "seahash64" => Some(Self::SeaHash64),
             _ => None,
         }
     }
@@ -50,6 +69,13 @@ enum HasherImpl {
     Sha384(sha2::Sha384),
     Sha512(sha2::Sha512),
     Sha3_256(sha3::Sha3_256),
+    Blake3(blake3::Hasher),
+    Blake2b512(blake2::Blake2b512),
+    Ripemd160(ripemd::Ripemd160),
+    Xxh3_64(xxhash_rust::xxh3::Xxh3),
+    FxHash64(rustc_hash::FxHasher),
+    Fnv1a64(fnv::FnvHasher),
+    SeaHash64(seahash::SeaHasher),
 }
 
 impl HasherImpl {
@@ -62,6 +88,13 @@ impl HasherImpl {
             Algorithm::Sha384 => Self::Sha384(sha2::Sha384::new()),
             Algorithm::Sha512 => Self::Sha512(sha2::Sha512::new()),
             Algorithm::Sha3_256 => Self::Sha3_256(sha3::Sha3_256::new()),
+            Algorithm::Blake3 => Self::Blake3(blake3::Hasher::new()),
+            Algorithm::Blake2b512 => Self::Blake2b512(blake2::Blake2b512::new()),
+            Algorithm::Ripemd160 => Self::Ripemd160(ripemd::Ripemd160::new()),
+            Algorithm::Xxh3_64 => Self::Xxh3_64(xxhash_rust::xxh3::Xxh3::new()),
+            Algorithm::FxHash64 => Self::FxHash64(rustc_hash::FxHasher::default()),
+            Algorithm::Fnv1a64 => Self::Fnv1a64(fnv::FnvHasher::default()),
+            Algorithm::SeaHash64 => Self::SeaHash64(seahash::SeaHasher::new()),
         }
     }
 
@@ -74,6 +107,15 @@ impl HasherImpl {
             Self::Sha384(h) => h.update(chunk),
             Self::Sha512(h) => h.update(chunk),
             Self::Sha3_256(h) => h.update(chunk),
+            Self::Blake3(h) => {
+                h.update(chunk);
+            }
+            Self::Blake2b512(h) => h.update(chunk),
+            Self::Ripemd160(h) => h.update(chunk),
+            Self::Xxh3_64(h) => h.write(chunk),
+            Self::FxHash64(h) => h.write(chunk),
+            Self::Fnv1a64(h) => h.write(chunk),
+            Self::SeaHash64(h) => h.write(chunk),
         }
     }
 
@@ -86,6 +128,13 @@ impl HasherImpl {
             Self::Sha384(h) => h.finalize().to_vec(),
             Self::Sha512(h) => h.finalize().to_vec(),
             Self::Sha3_256(h) => h.finalize().to_vec(),
+            Self::Blake3(h) => h.finalize().as_bytes().to_vec(),
+            Self::Blake2b512(h) => h.finalize().to_vec(),
+            Self::Ripemd160(h) => h.finalize().to_vec(),
+            Self::Xxh3_64(h) => u64_to_bytes_le(h.finish()).to_vec(),
+            Self::FxHash64(h) => u64_to_bytes_le(h.finish()).to_vec(),
+            Self::Fnv1a64(h) => u64_to_bytes_le(h.finish()).to_vec(),
+            Self::SeaHash64(h) => u64_to_bytes_le(h.finish()).to_vec(),
         }
     }
 }
@@ -138,6 +187,13 @@ impl Hasher {
             Algorithm::Sha384 => "sha384".to_string(),
             Algorithm::Sha512 => "sha512".to_string(),
             Algorithm::Sha3_256 => "sha3-256".to_string(),
+            Algorithm::Blake3 => "blake3".to_string(),
+            Algorithm::Blake2b512 => "blake2b-512".to_string(),
+            Algorithm::Ripemd160 => "ripemd-160".to_string(),
+            Algorithm::Xxh3_64 => "xxh3-64".to_string(),
+            Algorithm::FxHash64 => "fxhash64".to_string(),
+            Algorithm::Fnv1a64 => "fnv1a64".to_string(),
+            Algorithm::SeaHash64 => "seahash64".to_string(),
         }
     }
 }
@@ -259,6 +315,45 @@ mod tests {
 
             assert_eq!(streaming, one_shot, "streaming mismatch for {alg}");
         }
+    }
+
+    #[test]
+    fn other_algorithms_match_reference() {
+        let input = b"abc";
+
+        // blake3
+        let expected_blake3 = to_hex_lower(blake3::hash(input).as_bytes());
+        assert_eq!(hash_bytes("blake3", input).unwrap(), expected_blake3);
+
+        // blake2b-512
+        let expected_blake2b = to_hex_lower(&blake2::Blake2b512::digest(input));
+        assert_eq!(hash_bytes("blake2b-512", input).unwrap(), expected_blake2b);
+
+        // ripemd-160
+        let expected_ripemd = to_hex_lower(&ripemd::Ripemd160::digest(input));
+        assert_eq!(hash_bytes("ripemd-160", input).unwrap(), expected_ripemd);
+
+        // xxh3-64 (little-endian bytes in our wasm API)
+        let expected_xxh3 = to_hex_lower(&xxhash_rust::xxh3::xxh3_64(input).to_le_bytes());
+        assert_eq!(hash_bytes("xxh3-64", input).unwrap(), expected_xxh3);
+
+        // fxhash64
+        let mut fx = rustc_hash::FxHasher::default();
+        fx.write(input);
+        let expected_fx = to_hex_lower(&fx.finish().to_le_bytes());
+        assert_eq!(hash_bytes("fxhash64", input).unwrap(), expected_fx);
+
+        // fnv1a64
+        let mut fnv = fnv::FnvHasher::default();
+        fnv.write(input);
+        let expected_fnv = to_hex_lower(&fnv.finish().to_le_bytes());
+        assert_eq!(hash_bytes("fnv1a64", input).unwrap(), expected_fnv);
+
+        // seahash64
+        let mut sea = seahash::SeaHasher::new();
+        sea.write(input);
+        let expected_sea = to_hex_lower(&sea.finish().to_le_bytes());
+        assert_eq!(hash_bytes("seahash64", input).unwrap(), expected_sea);
     }
 
     #[test]

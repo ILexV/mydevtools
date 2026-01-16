@@ -82,7 +82,14 @@
             'SHA-256': 'sha256',
             'SHA-384': 'sha384',
             'SHA-512': 'sha512',
-            'SHA-3-256': 'sha3-256'
+            'SHA-3-256': 'sha3-256',
+            'BLAKE3': 'blake3',
+            'BLAKE2b-512': 'blake2b-512',
+            'RIPEMD-160': 'ripemd-160',
+            'xxh3-64': 'xxh3-64',
+            'FxHash64': 'fxhash64',
+            'FNV-1a 64': 'fnv1a64',
+            'SeaHash64': 'seahash64',
         };
 
         const algoId = algoMap[algorithm];
@@ -184,7 +191,22 @@
 
                 const results = await hashFileWithProgress(
                     file,
-                    ['md5', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512', 'sha3-256'],
+                    [
+                        'md5',
+                        'sha1',
+                        'sha224',
+                        'sha256',
+                        'sha384',
+                        'sha512',
+                        'sha3-256',
+                        'blake3',
+                        'blake2b-512',
+                        'ripemd-160',
+                        'xxh3-64',
+                        'fxhash64',
+                        'fnv1a64',
+                        'seahash64'
+                    ],
                     ({ processed, total, elapsedMs }) => {
                         const pct = total > 0 ? (processed / total) * 100 : 0;
                         const elapsedSec = elapsedMs / 1000;
@@ -206,7 +228,14 @@
                     sha256: 'SHA-256',
                     sha384: 'SHA-384',
                     sha512: 'SHA-512',
-                    'sha3-256': 'SHA-3-256'
+                    'sha3-256': 'SHA-3-256',
+                    blake3: 'BLAKE3',
+                    'blake2b-512': 'BLAKE2b-512',
+                    'ripemd-160': 'RIPEMD-160',
+                    'xxh3-64': 'xxh3-64',
+                    fxhash64: 'FxHash64',
+                    fnv1a64: 'FNV-1a 64',
+                    seahash64: 'SeaHash64'
                 };
 
                 displayResults(
@@ -227,7 +256,14 @@
                     computeHashText('SHA-256', data),
                     computeHashText('SHA-384', data),
                     computeHashText('SHA-512', data),
-                    computeHashText('SHA-3-256', data)
+                    computeHashText('SHA-3-256', data),
+                    computeHashText('BLAKE3', data),
+                    computeHashText('BLAKE2b-512', data),
+                    computeHashText('RIPEMD-160', data),
+                    computeHashText('xxh3-64', data),
+                    computeHashText('FxHash64', data),
+                    computeHashText('FNV-1a 64', data),
+                    computeHashText('SeaHash64', data)
                 ]);
 
                 displayResults(els.outputSection, strings.copy, results);

@@ -396,6 +396,20 @@ html, body {
     color: var(--text-primary);
 }
 
+.tool-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.tool-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+
 .tool-error {
     padding: 0.75rem 1rem;
     border: 1px solid rgba(220, 38, 38, 0.35);

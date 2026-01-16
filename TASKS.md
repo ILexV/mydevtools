@@ -173,7 +173,7 @@
 - [ ] Добавить соглашение по имени выходного файла: добавлять расширение (например `.hex`, `.b64`, `.b32`, `.b58`, `.url.txt`)
 
 - [ ] Создать отдельные страницы инструментов (SSR + ToolLayout + SEO + hreflang), каждая со ссылками на другие форматы:
-  - [ ] Hex Encoder/Decoder
+  - [x] Hex Encoder/Decoder
   - [ ] Base32 Encoder/Decoder
   - [ ] Base58 Encoder/Decoder
   - [ ] Base64 Encoder/Decoder
@@ -191,7 +191,7 @@
 - [x] MD5 (через WASM)
 - [ ] JSON Beautifier / Minifier
 - [ ] XML Formatter
-- [ ] Hex Encoder/Decoder
+- [x] Hex Encoder/Decoder
 - [ ] Base32 Encoder/Decoder
 - [ ] Base58 Encoder/Decoder
 - [ ] Base64 Encoder/Decoder

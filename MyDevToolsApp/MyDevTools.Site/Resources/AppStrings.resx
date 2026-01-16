@@ -77,6 +77,9 @@
   <data name="Nav_UrlEncoder" xml:space="preserve">
     <value>URL Encoder</value>
   </data>
+  <data name="Nav_HexEncoder" xml:space="preserve">
+    <value>Hex</value>
+  </data>
   
   <!-- Home Page -->
   <data name="Home_Title" xml:space="preserve">
@@ -258,5 +261,103 @@
   </data>
   <data name="UrlEncoder_LinkBase64" xml:space="preserve">
     <value>Base64</value>
+  </data>
+
+  <!-- Hex Encoder -->
+  <data name="HexEncoder_Title" xml:space="preserve">
+    <value>Hex Encoder / Decoder</value>
+  </data>
+  <data name="HexEncoder_Description" xml:space="preserve">
+    <value>Encode and decode Hex for text or files with configurable options — all in your browser</value>
+  </data>
+  <data name="HexEncoder_OtherFormats" xml:space="preserve">
+    <value>Other formats:</value>
+  </data>
+  <data name="HexEncoder_LinkUrl" xml:space="preserve">
+    <value>URL</value>
+  </data>
+  <data name="HexEncoder_LinkBase32" xml:space="preserve">
+    <value>Base32</value>
+  </data>
+  <data name="HexEncoder_LinkBase58" xml:space="preserve">
+    <value>Base58</value>
+  </data>
+  <data name="HexEncoder_LinkBase64" xml:space="preserve">
+    <value>Base64</value>
+  </data>
+  <data name="HexEncoder_InputTextLabel" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="HexEncoder_InputTextPlaceholder" xml:space="preserve">
+    <value>Enter text (for Encode) or hex string (for Decode)...</value>
+  </data>
+  <data name="HexEncoder_InputFileLabel" xml:space="preserve">
+    <value>File (optional)</value>
+  </data>
+  <data name="HexEncoder_FileHint" xml:space="preserve">
+    <value>If a file is selected, the text input is ignored.</value>
+  </data>
+  <data name="HexEncoder_FileProgressTitle" xml:space="preserve">
+    <value>Processing file...</value>
+  </data>
+  <data name="HexEncoder_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="HexEncoder_CharsetLabel" xml:space="preserve">
+    <value>Text charset</value>
+  </data>
+  <data name="HexEncoder_CaseLabel" xml:space="preserve">
+    <value>Hex case</value>
+  </data>
+  <data name="HexEncoder_CaseLower" xml:space="preserve">
+    <value>lowercase</value>
+  </data>
+  <data name="HexEncoder_CaseUpper" xml:space="preserve">
+    <value>UPPERCASE</value>
+  </data>
+  <data name="HexEncoder_DecodeOptionsLabel" xml:space="preserve">
+    <value>Decode options</value>
+  </data>
+  <data name="HexEncoder_IgnoreWhitespace" xml:space="preserve">
+    <value>Ignore whitespace</value>
+  </data>
+  <data name="HexEncoder_AllowSeparators" xml:space="preserve">
+    <value>Allow separators (: and -)</value>
+  </data>
+  <data name="HexEncoder_Allow0x" xml:space="preserve">
+    <value>Allow 0x prefix</value>
+  </data>
+  <data name="HexEncoder_OutputModeLabel" xml:space="preserve">
+    <value>File output</value>
+  </data>
+  <data name="HexEncoder_OutputModePreview" xml:space="preserve">
+    <value>Preview in output (download full)</value>
+  </data>
+  <data name="HexEncoder_OutputModeFull" xml:space="preserve">
+    <value>Render full output (may be slow)</value>
+  </data>
+  <data name="HexEncoder_ActionEncode" xml:space="preserve">
+    <value>Encode</value>
+  </data>
+  <data name="HexEncoder_ActionDecode" xml:space="preserve">
+    <value>Decode</value>
+  </data>
+  <data name="HexEncoder_ActionSwap" xml:space="preserve">
+    <value>Swap</value>
+  </data>
+  <data name="HexEncoder_ActionClear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="HexEncoder_OutputLabel" xml:space="preserve">
+    <value>Output</value>
+  </data>
+  <data name="HexEncoder_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="HexEncoder_Copied" xml:space="preserve">
+    <value>Copied!</value>
+  </data>
+  <data name="HexEncoder_Download" xml:space="preserve">
+    <value>Download</value>
   </data>
 </root>

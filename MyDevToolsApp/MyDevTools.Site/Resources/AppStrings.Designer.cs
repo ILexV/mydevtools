@@ -617,5 +617,302 @@ namespace MyDevTools.Site.Resources {
                 return ResourceManager.GetString("UrlEncoder_Title", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Hex.
+        /// </summary>
+        public static string Nav_HexEncoder {
+            get {
+                return ResourceManager.GetString("Nav_HexEncoder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Hex Encoder / Decoder.
+        /// </summary>
+        public static string HexEncoder_Title {
+            get {
+                return ResourceManager.GetString("HexEncoder_Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Encode and decode Hex for text and files — all in your browser.
+        /// </summary>
+        public static string HexEncoder_Description {
+            get {
+                return ResourceManager.GetString("HexEncoder_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Other formats:.
+        /// </summary>
+        public static string HexEncoder_OtherFormats {
+            get {
+                return ResourceManager.GetString("HexEncoder_OtherFormats", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to URL.
+        /// </summary>
+        public static string HexEncoder_LinkUrl {
+            get {
+                return ResourceManager.GetString("HexEncoder_LinkUrl", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Base32.
+        /// </summary>
+        public static string HexEncoder_LinkBase32 {
+            get {
+                return ResourceManager.GetString("HexEncoder_LinkBase32", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Base58.
+        /// </summary>
+        public static string HexEncoder_LinkBase58 {
+            get {
+                return ResourceManager.GetString("HexEncoder_LinkBase58", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Base64.
+        /// </summary>
+        public static string HexEncoder_LinkBase64 {
+            get {
+                return ResourceManager.GetString("HexEncoder_LinkBase64", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Input (text).
+        /// </summary>
+        public static string HexEncoder_InputTextLabel {
+            get {
+                return ResourceManager.GetString("HexEncoder_InputTextLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Enter text....
+        /// </summary>
+        public static string HexEncoder_InputTextPlaceholder {
+            get {
+                return ResourceManager.GetString("HexEncoder_InputTextPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Input file.
+        /// </summary>
+        public static string HexEncoder_InputFileLabel {
+            get {
+                return ResourceManager.GetString("HexEncoder_InputFileLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to If a file is selected, it will be used instead of the text input.
+        /// </summary>
+        public static string HexEncoder_FileHint {
+            get {
+                return ResourceManager.GetString("HexEncoder_FileHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Text charset.
+        /// </summary>
+        public static string HexEncoder_CharsetLabel {
+            get {
+                return ResourceManager.GetString("HexEncoder_CharsetLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Hex case.
+        /// </summary>
+        public static string HexEncoder_CaseLabel {
+            get {
+                return ResourceManager.GetString("HexEncoder_CaseLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to lower (a-f).
+        /// </summary>
+        public static string HexEncoder_CaseLower {
+            get {
+                return ResourceManager.GetString("HexEncoder_CaseLower", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to UPPER (A-F).
+        /// </summary>
+        public static string HexEncoder_CaseUpper {
+            get {
+                return ResourceManager.GetString("HexEncoder_CaseUpper", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Decode options.
+        /// </summary>
+        public static string HexEncoder_DecodeOptionsLabel {
+            get {
+                return ResourceManager.GetString("HexEncoder_DecodeOptionsLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Ignore whitespace.
+        /// </summary>
+        public static string HexEncoder_IgnoreWhitespace {
+            get {
+                return ResourceManager.GetString("HexEncoder_IgnoreWhitespace", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Allow separators (e.g. ':' and '-').
+        /// </summary>
+        public static string HexEncoder_AllowSeparators {
+            get {
+                return ResourceManager.GetString("HexEncoder_AllowSeparators", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Allow 0x prefix.
+        /// </summary>
+        public static string HexEncoder_Allow0x {
+            get {
+                return ResourceManager.GetString("HexEncoder_Allow0x", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Output mode.
+        /// </summary>
+        public static string HexEncoder_OutputModeLabel {
+            get {
+                return ResourceManager.GetString("HexEncoder_OutputModeLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Preview.
+        /// </summary>
+        public static string HexEncoder_OutputModePreview {
+            get {
+                return ResourceManager.GetString("HexEncoder_OutputModePreview", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Full.
+        /// </summary>
+        public static string HexEncoder_OutputModeFull {
+            get {
+                return ResourceManager.GetString("HexEncoder_OutputModeFull", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Encode.
+        /// </summary>
+        public static string HexEncoder_ActionEncode {
+            get {
+                return ResourceManager.GetString("HexEncoder_ActionEncode", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Decode.
+        /// </summary>
+        public static string HexEncoder_ActionDecode {
+            get {
+                return ResourceManager.GetString("HexEncoder_ActionDecode", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Swap.
+        /// </summary>
+        public static string HexEncoder_ActionSwap {
+            get {
+                return ResourceManager.GetString("HexEncoder_ActionSwap", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Clear.
+        /// </summary>
+        public static string HexEncoder_ActionClear {
+            get {
+                return ResourceManager.GetString("HexEncoder_ActionClear", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Output.
+        /// </summary>
+        public static string HexEncoder_OutputLabel {
+            get {
+                return ResourceManager.GetString("HexEncoder_OutputLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copy.
+        /// </summary>
+        public static string HexEncoder_Copy {
+            get {
+                return ResourceManager.GetString("HexEncoder_Copy", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copied!.
+        /// </summary>
+        public static string HexEncoder_Copied {
+            get {
+                return ResourceManager.GetString("HexEncoder_Copied", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Download.
+        /// </summary>
+        public static string HexEncoder_Download {
+            get {
+                return ResourceManager.GetString("HexEncoder_Download", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Processing file.
+        /// </summary>
+        public static string HexEncoder_FileProgressTitle {
+            get {
+                return ResourceManager.GetString("HexEncoder_FileProgressTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        public static string HexEncoder_Cancel {
+            get {
+                return ResourceManager.GetString("HexEncoder_Cancel", resourceCulture);
+            }
+        }
     }
 }

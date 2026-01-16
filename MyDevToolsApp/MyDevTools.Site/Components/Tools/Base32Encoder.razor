@@ -1,0 +1,122 @@
+@page "/{lang}/base32-encoder"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<MetaTags Title="@AppStrings.Base32Encoder_Title"
+          Description="@AppStrings.Base32Encoder_Description"
+          CurrentUrl="@Navigation.Uri" />
+
+<HreflangLinks ToolPath="base32-encoder" />
+
+<JsonLdTool ToolName="@AppStrings.Base32Encoder_Title"
+            Description="@AppStrings.Base32Encoder_Description"
+            CurrentUrl="@Navigation.Uri" />
+
+<ToolLayout Title="@AppStrings.Base32Encoder_Title" Description="@AppStrings.Base32Encoder_Description">
+    <div id="base32-encoder-root"
+         data-loading="@AppStrings.Common_Loading"
+         data-error="@AppStrings.Common_Error"
+         data-file-progress-title="@AppStrings.Base32Encoder_FileProgressTitle"
+         data-cancel="@AppStrings.Base32Encoder_Cancel"
+         data-copy="@AppStrings.Base32Encoder_Copy"
+         data-copied="@AppStrings.Base32Encoder_Copied">
+
+        <div class="tool-links" aria-label="@AppStrings.Base32Encoder_OtherFormats">
+            <span class="tool-links-title">@AppStrings.Base32Encoder_OtherFormats</span>
+            <a class="tool-link" href="/@Lang/hex-encoder">@AppStrings.Base32Encoder_LinkHex</a>
+            <a class="tool-link" href="/@Lang/base64-encoder">@AppStrings.Base32Encoder_LinkBase64</a>
+            <a class="tool-link" href="/@Lang/base58-encoder">@AppStrings.Base32Encoder_LinkBase58</a>
+            <a class="tool-link" href="/@Lang/url-encoder">@AppStrings.Base32Encoder_LinkUrl</a>
+        </div>
+
+        <div class="tool-grid">
+            <div class="input-section">
+                <label for="b32-input-text">@AppStrings.Base32Encoder_InputTextLabel</label>
+                <textarea id="b32-input-text" rows="10" placeholder="@AppStrings.Base32Encoder_InputTextPlaceholder"></textarea>
+
+                <label for="b32-input-file">@AppStrings.Base32Encoder_InputFileLabel</label>
+                <input id="b32-input-file" type="file" />
+                <div class="file-hint">@AppStrings.Base32Encoder_FileHint</div>
+
+                <div class="tool-settings">
+                    <div class="tool-setting">
+                        <label for="b32-charset">@AppStrings.Base32Encoder_CharsetLabel</label>
+                        <select id="b32-charset">
+                            <option value="utf-8">UTF-8</option>
+                            <option value="utf-16le">UTF-16LE</option>
+                            <option value="utf-16be">UTF-16BE</option>
+                            <option value="ascii">ASCII</option>
+                            <option value="latin1">ISO-8859-1 (Latin-1)</option>
+                        </select>
+                    </div>
+
+                    <div class="tool-setting">
+                        <label for="b32-alphabet">@AppStrings.Base32Encoder_AlphabetLabel</label>
+                        <select id="b32-alphabet">
+                            <option value="rfc4648">@AppStrings.Base32Encoder_AlphabetRfc4648</option>
+                            <option value="crockford">@AppStrings.Base32Encoder_AlphabetCrockford</option>
+                            <option value="zbase32">@AppStrings.Base32Encoder_AlphabetZBase32</option>
+                        </select>
+                    </div>
+
+                    <div class="tool-setting">
+                        <label for="b32-padding">@AppStrings.Base32Encoder_PaddingLabel</label>
+                        <select id="b32-padding">
+                            <option value="required">@AppStrings.Base32Encoder_PaddingRequired</option>
+                            <option value="optional">@AppStrings.Base32Encoder_PaddingOptional</option>
+                            <option value="none">@AppStrings.Base32Encoder_PaddingNone</option>
+                        </select>
+                    </div>
+
+                    <div class="tool-setting">
+                        <label for="b32-case">@AppStrings.Base32Encoder_CaseLabel</label>
+                        <select id="b32-case">
+                            <option value="auto">@AppStrings.Base32Encoder_CaseAuto</option>
+                            <option value="upper">@AppStrings.Base32Encoder_CaseUpper</option>
+                            <option value="lower">@AppStrings.Base32Encoder_CaseLower</option>
+                        </select>
+                    </div>
+
+                    <div class="tool-setting">
+                        <label>@AppStrings.Base32Encoder_DecodeOptionsLabel</label>
+                        <div class="tool-checkboxes">
+                            <label class="tool-checkbox"><input id="b32-allow-whitespace" type="checkbox" checked /> @AppStrings.Base32Encoder_AllowWhitespace</label>
+                        </div>
+                    </div>
+
+                    <div class="tool-setting">
+                        <label for="b32-output-mode">@AppStrings.Base32Encoder_OutputModeLabel</label>
+                        <select id="b32-output-mode">
+                            <option value="preview">@AppStrings.Base32Encoder_OutputModePreview</option>
+                            <option value="full">@AppStrings.Base32Encoder_OutputModeFull</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="b32-encode-btn" type="button">@AppStrings.Base32Encoder_ActionEncode</button>
+                    <button class="btn btn-secondary" id="b32-decode-btn" type="button">@AppStrings.Base32Encoder_ActionDecode</button>
+                    <button class="btn btn-secondary" id="b32-swap-btn" type="button">@AppStrings.Base32Encoder_ActionSwap</button>
+                    <button class="btn btn-secondary" id="b32-clear-btn" type="button">@AppStrings.Base32Encoder_ActionClear</button>
+                </div>
+
+                <div class="tool-error" id="b32-error" hidden></div>
+            </div>
+
+            <div class="output-section" id="b32-output-section">
+                <label for="b32-output">@AppStrings.Base32Encoder_OutputLabel</label>
+                <textarea id="b32-output" rows="10" readonly></textarea>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="b32-copy-btn" type="button">@AppStrings.Base32Encoder_Copy</button>
+                    <button class="btn btn-secondary" id="b32-download-btn" type="button">@AppStrings.Base32Encoder_Download</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</ToolLayout>
+
+@code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

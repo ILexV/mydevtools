@@ -424,4 +424,133 @@
   <data name="Base64Encoder_Cancel" xml:space="preserve">
     <value>Отмена</value>
   </data>
+
+  <data name="Nav_Base32Encoder" xml:space="preserve">
+    <value>Base32</value>
+  </data>
+
+  <data name="Base32Encoder_Title" xml:space="preserve">
+    <value>Base32 кодер / декодер</value>
+  </data>
+  <data name="Base32Encoder_Description" xml:space="preserve">
+    <value>Кодирование и декодирование Base32 для текста и файлов — полностью в вашем браузере.</value>
+  </data>
+  <data name="Base32Encoder_OtherFormats" xml:space="preserve">
+    <value>Другие форматы:</value>
+  </data>
+  <data name="Base32Encoder_LinkHex" xml:space="preserve">
+    <value>Hex</value>
+  </data>
+  <data name="Base32Encoder_LinkBase64" xml:space="preserve">
+    <value>Base64</value>
+  </data>
+  <data name="Base32Encoder_LinkBase58" xml:space="preserve">
+    <value>Base58</value>
+  </data>
+  <data name="Base32Encoder_LinkUrl" xml:space="preserve">
+    <value>URL</value>
+  </data>
+
+  <data name="Base32Encoder_InputTextLabel" xml:space="preserve">
+    <value>Ввод (текст)</value>
+  </data>
+  <data name="Base32Encoder_InputTextPlaceholder" xml:space="preserve">
+    <value>Введите текст или Base32...</value>
+  </data>
+  <data name="Base32Encoder_InputFileLabel" xml:space="preserve">
+    <value>Входной файл</value>
+  </data>
+  <data name="Base32Encoder_FileHint" xml:space="preserve">
+    <value>Если выбран файл, он будет использован вместо текстового ввода.</value>
+  </data>
+
+  <data name="Base32Encoder_CharsetLabel" xml:space="preserve">
+    <value>Кодировка текста</value>
+  </data>
+  <data name="Base32Encoder_AlphabetLabel" xml:space="preserve">
+    <value>Алфавит</value>
+  </data>
+  <data name="Base32Encoder_AlphabetRfc4648" xml:space="preserve">
+    <value>RFC 4648 (A-Z2-7)</value>
+  </data>
+  <data name="Base32Encoder_AlphabetCrockford" xml:space="preserve">
+    <value>Crockford (0-9A-Z)</value>
+  </data>
+  <data name="Base32Encoder_AlphabetZBase32" xml:space="preserve">
+    <value>z-base-32</value>
+  </data>
+
+  <data name="Base32Encoder_PaddingLabel" xml:space="preserve">
+    <value>Паддинг</value>
+  </data>
+  <data name="Base32Encoder_PaddingRequired" xml:space="preserve">
+    <value>Обязательный</value>
+  </data>
+  <data name="Base32Encoder_PaddingOptional" xml:space="preserve">
+    <value>Опциональный</value>
+  </data>
+  <data name="Base32Encoder_PaddingNone" xml:space="preserve">
+    <value>Без паддинга</value>
+  </data>
+
+  <data name="Base32Encoder_CaseLabel" xml:space="preserve">
+    <value>Регистр</value>
+  </data>
+  <data name="Base32Encoder_CaseAuto" xml:space="preserve">
+    <value>Авто</value>
+  </data>
+  <data name="Base32Encoder_CaseUpper" xml:space="preserve">
+    <value>Верхний</value>
+  </data>
+  <data name="Base32Encoder_CaseLower" xml:space="preserve">
+    <value>Нижний</value>
+  </data>
+
+  <data name="Base32Encoder_DecodeOptionsLabel" xml:space="preserve">
+    <value>Опции декодирования</value>
+  </data>
+  <data name="Base32Encoder_AllowWhitespace" xml:space="preserve">
+    <value>Разрешить пробелы/переводы строк</value>
+  </data>
+
+  <data name="Base32Encoder_OutputModeLabel" xml:space="preserve">
+    <value>Вывод для файла</value>
+  </data>
+  <data name="Base32Encoder_OutputModePreview" xml:space="preserve">
+    <value>Превью в выводе (полное — в Скачать)</value>
+  </data>
+  <data name="Base32Encoder_OutputModeFull" xml:space="preserve">
+    <value>Показывать полностью (может тормозить)</value>
+  </data>
+
+  <data name="Base32Encoder_ActionEncode" xml:space="preserve">
+    <value>Кодировать</value>
+  </data>
+  <data name="Base32Encoder_ActionDecode" xml:space="preserve">
+    <value>Декодировать</value>
+  </data>
+  <data name="Base32Encoder_ActionSwap" xml:space="preserve">
+    <value>Поменять местами</value>
+  </data>
+  <data name="Base32Encoder_ActionClear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="Base32Encoder_OutputLabel" xml:space="preserve">
+    <value>Вывод</value>
+  </data>
+  <data name="Base32Encoder_Copy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="Base32Encoder_Copied" xml:space="preserve">
+    <value>Скопировано!</value>
+  </data>
+  <data name="Base32Encoder_Download" xml:space="preserve">
+    <value>Скачать</value>
+  </data>
+  <data name="Base32Encoder_FileProgressTitle" xml:space="preserve">
+    <value>Обработка файла...</value>
+  </data>
+  <data name="Base32Encoder_Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
 </root>

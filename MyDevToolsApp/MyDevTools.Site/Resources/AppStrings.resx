@@ -480,4 +480,134 @@
   <data name="Base64Encoder_Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
+
+  <data name="Nav_Base32Encoder" xml:space="preserve">
+    <value>Base32</value>
+  </data>
+
+  <!-- Base32 Encoder/Decoder -->
+  <data name="Base32Encoder_Title" xml:space="preserve">
+    <value>Base32 Encoder / Decoder</value>
+  </data>
+  <data name="Base32Encoder_Description" xml:space="preserve">
+    <value>Encode and decode Base32 for text and files — all in your browser.</value>
+  </data>
+  <data name="Base32Encoder_OtherFormats" xml:space="preserve">
+    <value>Other formats:</value>
+  </data>
+  <data name="Base32Encoder_LinkHex" xml:space="preserve">
+    <value>Hex</value>
+  </data>
+  <data name="Base32Encoder_LinkBase64" xml:space="preserve">
+    <value>Base64</value>
+  </data>
+  <data name="Base32Encoder_LinkBase58" xml:space="preserve">
+    <value>Base58</value>
+  </data>
+  <data name="Base32Encoder_LinkUrl" xml:space="preserve">
+    <value>URL</value>
+  </data>
+
+  <data name="Base32Encoder_InputTextLabel" xml:space="preserve">
+    <value>Input (text)</value>
+  </data>
+  <data name="Base32Encoder_InputTextPlaceholder" xml:space="preserve">
+    <value>Enter text or Base32...</value>
+  </data>
+  <data name="Base32Encoder_InputFileLabel" xml:space="preserve">
+    <value>Input file</value>
+  </data>
+  <data name="Base32Encoder_FileHint" xml:space="preserve">
+    <value>If a file is selected, it will be used instead of the text input.</value>
+  </data>
+
+  <data name="Base32Encoder_CharsetLabel" xml:space="preserve">
+    <value>Text charset</value>
+  </data>
+  <data name="Base32Encoder_AlphabetLabel" xml:space="preserve">
+    <value>Alphabet</value>
+  </data>
+  <data name="Base32Encoder_AlphabetRfc4648" xml:space="preserve">
+    <value>RFC 4648 (A-Z2-7)</value>
+  </data>
+  <data name="Base32Encoder_AlphabetCrockford" xml:space="preserve">
+    <value>Crockford (0-9A-Z)</value>
+  </data>
+  <data name="Base32Encoder_AlphabetZBase32" xml:space="preserve">
+    <value>z-base-32</value>
+  </data>
+
+  <data name="Base32Encoder_PaddingLabel" xml:space="preserve">
+    <value>Padding</value>
+  </data>
+  <data name="Base32Encoder_PaddingRequired" xml:space="preserve">
+    <value>Required</value>
+  </data>
+  <data name="Base32Encoder_PaddingOptional" xml:space="preserve">
+    <value>Optional</value>
+  </data>
+  <data name="Base32Encoder_PaddingNone" xml:space="preserve">
+    <value>No padding</value>
+  </data>
+
+  <data name="Base32Encoder_CaseLabel" xml:space="preserve">
+    <value>Letter case</value>
+  </data>
+  <data name="Base32Encoder_CaseAuto" xml:space="preserve">
+    <value>Auto</value>
+  </data>
+  <data name="Base32Encoder_CaseUpper" xml:space="preserve">
+    <value>Uppercase</value>
+  </data>
+  <data name="Base32Encoder_CaseLower" xml:space="preserve">
+    <value>Lowercase</value>
+  </data>
+
+  <data name="Base32Encoder_DecodeOptionsLabel" xml:space="preserve">
+    <value>Decode options</value>
+  </data>
+  <data name="Base32Encoder_AllowWhitespace" xml:space="preserve">
+    <value>Allow whitespace/newlines</value>
+  </data>
+
+  <data name="Base32Encoder_OutputModeLabel" xml:space="preserve">
+    <value>File output</value>
+  </data>
+  <data name="Base32Encoder_OutputModePreview" xml:space="preserve">
+    <value>Preview in output (download full)</value>
+  </data>
+  <data name="Base32Encoder_OutputModeFull" xml:space="preserve">
+    <value>Render full output (may be slow)</value>
+  </data>
+
+  <data name="Base32Encoder_ActionEncode" xml:space="preserve">
+    <value>Encode</value>
+  </data>
+  <data name="Base32Encoder_ActionDecode" xml:space="preserve">
+    <value>Decode</value>
+  </data>
+  <data name="Base32Encoder_ActionSwap" xml:space="preserve">
+    <value>Swap</value>
+  </data>
+  <data name="Base32Encoder_ActionClear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="Base32Encoder_OutputLabel" xml:space="preserve">
+    <value>Output</value>
+  </data>
+  <data name="Base32Encoder_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="Base32Encoder_Copied" xml:space="preserve">
+    <value>Copied!</value>
+  </data>
+  <data name="Base32Encoder_Download" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="Base32Encoder_FileProgressTitle" xml:space="preserve">
+    <value>Processing file...</value>
+  </data>
+  <data name="Base32Encoder_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
 </root>

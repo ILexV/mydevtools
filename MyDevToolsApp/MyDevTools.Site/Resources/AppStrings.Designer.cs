@@ -1256,5 +1256,365 @@ namespace MyDevTools.Site.Resources {
                 return ResourceManager.GetString("Base64Encoder_Cancel", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Base32.
+        /// </summary>
+        public static string Nav_Base32Encoder {
+            get {
+                return ResourceManager.GetString("Nav_Base32Encoder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Base32 Encoder / Decoder.
+        /// </summary>
+        public static string Base32Encoder_Title {
+            get {
+                return ResourceManager.GetString("Base32Encoder_Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Encode and decode Base32 for text and files — all in your browser.
+        /// </summary>
+        public static string Base32Encoder_Description {
+            get {
+                return ResourceManager.GetString("Base32Encoder_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Other formats:.
+        /// </summary>
+        public static string Base32Encoder_OtherFormats {
+            get {
+                return ResourceManager.GetString("Base32Encoder_OtherFormats", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Hex.
+        /// </summary>
+        public static string Base32Encoder_LinkHex {
+            get {
+                return ResourceManager.GetString("Base32Encoder_LinkHex", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Base64.
+        /// </summary>
+        public static string Base32Encoder_LinkBase64 {
+            get {
+                return ResourceManager.GetString("Base32Encoder_LinkBase64", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Base58.
+        /// </summary>
+        public static string Base32Encoder_LinkBase58 {
+            get {
+                return ResourceManager.GetString("Base32Encoder_LinkBase58", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to URL.
+        /// </summary>
+        public static string Base32Encoder_LinkUrl {
+            get {
+                return ResourceManager.GetString("Base32Encoder_LinkUrl", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Input (text).
+        /// </summary>
+        public static string Base32Encoder_InputTextLabel {
+            get {
+                return ResourceManager.GetString("Base32Encoder_InputTextLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Enter text or Base32....
+        /// </summary>
+        public static string Base32Encoder_InputTextPlaceholder {
+            get {
+                return ResourceManager.GetString("Base32Encoder_InputTextPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Input file.
+        /// </summary>
+        public static string Base32Encoder_InputFileLabel {
+            get {
+                return ResourceManager.GetString("Base32Encoder_InputFileLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to If a file is selected, it will be used instead of the text input..
+        /// </summary>
+        public static string Base32Encoder_FileHint {
+            get {
+                return ResourceManager.GetString("Base32Encoder_FileHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Text charset.
+        /// </summary>
+        public static string Base32Encoder_CharsetLabel {
+            get {
+                return ResourceManager.GetString("Base32Encoder_CharsetLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Alphabet.
+        /// </summary>
+        public static string Base32Encoder_AlphabetLabel {
+            get {
+                return ResourceManager.GetString("Base32Encoder_AlphabetLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to RFC 4648 (A-Z2-7).
+        /// </summary>
+        public static string Base32Encoder_AlphabetRfc4648 {
+            get {
+                return ResourceManager.GetString("Base32Encoder_AlphabetRfc4648", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Crockford (0-9A-Z).
+        /// </summary>
+        public static string Base32Encoder_AlphabetCrockford {
+            get {
+                return ResourceManager.GetString("Base32Encoder_AlphabetCrockford", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to z-base-32.
+        /// </summary>
+        public static string Base32Encoder_AlphabetZBase32 {
+            get {
+                return ResourceManager.GetString("Base32Encoder_AlphabetZBase32", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Padding.
+        /// </summary>
+        public static string Base32Encoder_PaddingLabel {
+            get {
+                return ResourceManager.GetString("Base32Encoder_PaddingLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Required.
+        /// </summary>
+        public static string Base32Encoder_PaddingRequired {
+            get {
+                return ResourceManager.GetString("Base32Encoder_PaddingRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Optional.
+        /// </summary>
+        public static string Base32Encoder_PaddingOptional {
+            get {
+                return ResourceManager.GetString("Base32Encoder_PaddingOptional", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No padding.
+        /// </summary>
+        public static string Base32Encoder_PaddingNone {
+            get {
+                return ResourceManager.GetString("Base32Encoder_PaddingNone", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Letter case.
+        /// </summary>
+        public static string Base32Encoder_CaseLabel {
+            get {
+                return ResourceManager.GetString("Base32Encoder_CaseLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Auto.
+        /// </summary>
+        public static string Base32Encoder_CaseAuto {
+            get {
+                return ResourceManager.GetString("Base32Encoder_CaseAuto", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Uppercase.
+        /// </summary>
+        public static string Base32Encoder_CaseUpper {
+            get {
+                return ResourceManager.GetString("Base32Encoder_CaseUpper", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Lowercase.
+        /// </summary>
+        public static string Base32Encoder_CaseLower {
+            get {
+                return ResourceManager.GetString("Base32Encoder_CaseLower", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Decode options.
+        /// </summary>
+        public static string Base32Encoder_DecodeOptionsLabel {
+            get {
+                return ResourceManager.GetString("Base32Encoder_DecodeOptionsLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Allow whitespace/newlines.
+        /// </summary>
+        public static string Base32Encoder_AllowWhitespace {
+            get {
+                return ResourceManager.GetString("Base32Encoder_AllowWhitespace", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to File output.
+        /// </summary>
+        public static string Base32Encoder_OutputModeLabel {
+            get {
+                return ResourceManager.GetString("Base32Encoder_OutputModeLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Preview in output (download full).
+        /// </summary>
+        public static string Base32Encoder_OutputModePreview {
+            get {
+                return ResourceManager.GetString("Base32Encoder_OutputModePreview", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Render full output (may be slow).
+        /// </summary>
+        public static string Base32Encoder_OutputModeFull {
+            get {
+                return ResourceManager.GetString("Base32Encoder_OutputModeFull", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Encode.
+        /// </summary>
+        public static string Base32Encoder_ActionEncode {
+            get {
+                return ResourceManager.GetString("Base32Encoder_ActionEncode", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Decode.
+        /// </summary>
+        public static string Base32Encoder_ActionDecode {
+            get {
+                return ResourceManager.GetString("Base32Encoder_ActionDecode", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Swap.
+        /// </summary>
+        public static string Base32Encoder_ActionSwap {
+            get {
+                return ResourceManager.GetString("Base32Encoder_ActionSwap", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Clear.
+        /// </summary>
+        public static string Base32Encoder_ActionClear {
+            get {
+                return ResourceManager.GetString("Base32Encoder_ActionClear", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Output.
+        /// </summary>
+        public static string Base32Encoder_OutputLabel {
+            get {
+                return ResourceManager.GetString("Base32Encoder_OutputLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copy.
+        /// </summary>
+        public static string Base32Encoder_Copy {
+            get {
+                return ResourceManager.GetString("Base32Encoder_Copy", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copied!.
+        /// </summary>
+        public static string Base32Encoder_Copied {
+            get {
+                return ResourceManager.GetString("Base32Encoder_Copied", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Download.
+        /// </summary>
+        public static string Base32Encoder_Download {
+            get {
+                return ResourceManager.GetString("Base32Encoder_Download", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Processing file....
+        /// </summary>
+        public static string Base32Encoder_FileProgressTitle {
+            get {
+                return ResourceManager.GetString("Base32Encoder_FileProgressTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        public static string Base32Encoder_Cancel {
+            get {
+                return ResourceManager.GetString("Base32Encoder_Cancel", resourceCulture);
+            }
+        }
     }
 }

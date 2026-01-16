@@ -29,7 +29,7 @@
   - 🇪🇸 Испанский (es)
 - ✅ **Strongly-Typed Resources** — compile-time безопасность для переводов
 - ✅ **Темная/Светлая тема** — CSS-переменные для кастомизации
-- ✅ **Первый инструмент: Hash Calculator** — MD5 + SHA-3-256 (WASM) + SHA-1/SHA-256/SHA-384/SHA-512 (Web Crypto API)
+- ✅ **Первый инструмент: Hash Calculator** — MD5/SHA-1/SHA-224/SHA-256/SHA-384/SHA-512/SHA-3-256 (всё через WASM)
 - ✅ **SEO компоненты** — MetaTags, JSON-LD, Hreflang
 - ✅ **Переиспользуемые UI компоненты** — ToolLayout, LoadingSkeleton, ThemeToggle
 
@@ -282,9 +282,7 @@ cargo test
 
 ### Текущая реализация (временная)
 
-Сейчас используется **Web Crypto API** (встроенный в браузер) + **Rust WASM**:
-- ✅ SHA-1, SHA-256, SHA-384, SHA-512 — Web Crypto API
-- ✅ MD5, SHA-3-256 — через WASM модуль `wasm/hash`
+Сейчас все хэши в Hash Calculator считаются **внутри Rust WASM** (единый путь для всех алгоритмов).
 
 Для файлов хэши считаются потоково (chunking) и можно вычислять несколько алгоритмов **за один проход чтения файла**: один и тот же чанк обновляет несколько независимых hasher-состояний.
 

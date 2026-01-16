@@ -74,31 +74,22 @@
     }
 
     async function computeHashText(algorithm, data) {
-        if (algorithm === 'MD5' || algorithm === 'SHA-3-256') {
-            const wasm = await getHashWasm();
-            const algoId = algorithm === 'MD5' ? 'md5' : 'sha3-256';
-            const hex = wasm.hash_bytes(algoId, data);
-            return { algorithm: algorithm, value: hex };
-        }
-
-        // Map algorithm names to SubtleCrypto format
+        const wasm = await getHashWasm();
         const algoMap = {
-            'SHA-1': 'SHA-1',
-            'SHA-256': 'SHA-256',
-            'SHA-384': 'SHA-384',
-            'SHA-512': 'SHA-512'
+            'MD5': 'md5',
+            'SHA-1': 'sha1',
+            'SHA-224': 'sha224',
+            'SHA-256': 'sha256',
+            'SHA-384': 'sha384',
+            'SHA-512': 'sha512',
+            'SHA-3-256': 'sha3-256'
         };
 
-        const cryptoAlgo = algoMap[algorithm];
-        if (!cryptoAlgo) {
-            return { algorithm: algorithm, value: 'Unsupported algorithm' };
-        }
+        const algoId = algoMap[algorithm];
+        if (!algoId) return { algorithm: algorithm, value: 'Unsupported algorithm' };
 
-        const hashBuffer = await crypto.subtle.digest(cryptoAlgo, data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-        return { algorithm: algorithm, value: hashHex };
+        const hex = wasm.hash_bytes(algoId, data);
+        return { algorithm: algorithm, value: hex };
     }
 
     function displayResults(outputSection, copyLabel, results) {
@@ -193,7 +184,7 @@
 
                 const results = await hashFileWithProgress(
                     file,
-                    ['md5', 'sha256', 'sha384', 'sha512', 'sha3-256'],
+                    ['md5', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512', 'sha3-256'],
                     ({ processed, total, elapsedMs }) => {
                         const pct = total > 0 ? (processed / total) * 100 : 0;
                         const elapsedSec = elapsedMs / 1000;
@@ -210,6 +201,8 @@
 
                 const labelMap = {
                     md5: 'MD5',
+                    sha1: 'SHA-1',
+                    sha224: 'SHA-224',
                     sha256: 'SHA-256',
                     sha384: 'SHA-384',
                     sha512: 'SHA-512',
@@ -230,6 +223,7 @@
                 const results = await Promise.all([
                     computeHashText('MD5', data),
                     computeHashText('SHA-1', data),
+                    computeHashText('SHA-224', data),
                     computeHashText('SHA-256', data),
                     computeHashText('SHA-384', data),
                     computeHashText('SHA-512', data),

@@ -19,6 +19,8 @@ fn to_hex_lower(bytes: &[u8]) -> String {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Algorithm {
     Md5,
+    Sha1,
+    Sha224,
     Sha256,
     Sha384,
     Sha512,
@@ -29,6 +31,8 @@ impl Algorithm {
     fn parse(id: &str) -> Option<Self> {
         match id.trim().to_ascii_lowercase().as_str() {
             "md5" | "md-5" => Some(Self::Md5),
+            "sha1" | "sha-1" => Some(Self::Sha1),
+            "sha224" | "sha-224" => Some(Self::Sha224),
             "sha256" | "sha-256" => Some(Self::Sha256),
             "sha384" | "sha-384" => Some(Self::Sha384),
             "sha512" | "sha-512" => Some(Self::Sha512),
@@ -40,6 +44,8 @@ impl Algorithm {
 
 enum HasherImpl {
     Md5(md5::Md5),
+    Sha1(sha1::Sha1),
+    Sha224(sha2::Sha224),
     Sha256(sha2::Sha256),
     Sha384(sha2::Sha384),
     Sha512(sha2::Sha512),
@@ -50,6 +56,8 @@ impl HasherImpl {
     fn new(algorithm: Algorithm) -> Self {
         match algorithm {
             Algorithm::Md5 => Self::Md5(md5::Md5::new()),
+            Algorithm::Sha1 => Self::Sha1(sha1::Sha1::new()),
+            Algorithm::Sha224 => Self::Sha224(sha2::Sha224::new()),
             Algorithm::Sha256 => Self::Sha256(sha2::Sha256::new()),
             Algorithm::Sha384 => Self::Sha384(sha2::Sha384::new()),
             Algorithm::Sha512 => Self::Sha512(sha2::Sha512::new()),
@@ -60,6 +68,8 @@ impl HasherImpl {
     fn update(&mut self, chunk: &[u8]) {
         match self {
             Self::Md5(h) => h.update(chunk),
+            Self::Sha1(h) => h.update(chunk),
+            Self::Sha224(h) => h.update(chunk),
             Self::Sha256(h) => h.update(chunk),
             Self::Sha384(h) => h.update(chunk),
             Self::Sha512(h) => h.update(chunk),
@@ -70,6 +80,8 @@ impl HasherImpl {
     fn finalize(self) -> Vec<u8> {
         match self {
             Self::Md5(h) => h.finalize().to_vec(),
+            Self::Sha1(h) => h.finalize().to_vec(),
+            Self::Sha224(h) => h.finalize().to_vec(),
             Self::Sha256(h) => h.finalize().to_vec(),
             Self::Sha384(h) => h.finalize().to_vec(),
             Self::Sha512(h) => h.finalize().to_vec(),
@@ -120,6 +132,8 @@ impl Hasher {
     pub fn algorithm(&self) -> String {
         match self.algorithm {
             Algorithm::Md5 => "md5".to_string(),
+            Algorithm::Sha1 => "sha1".to_string(),
+            Algorithm::Sha224 => "sha224".to_string(),
             Algorithm::Sha256 => "sha256".to_string(),
             Algorithm::Sha384 => "sha384".to_string(),
             Algorithm::Sha512 => "sha512".to_string(),
@@ -184,6 +198,24 @@ mod tests {
     }
 
     #[test]
+    fn sha1_known_vector_abc() {
+        // SHA-1("abc")
+        assert_eq!(
+            hash_text_utf8("sha1", "abc").unwrap(),
+            "a9993e364706816aba3e25717850c26c9cd0d89d"
+        );
+    }
+
+    #[test]
+    fn sha224_known_vector_abc() {
+        // SHA-224("abc")
+        assert_eq!(
+            hash_text_utf8("sha224", "abc").unwrap(),
+            "23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7"
+        );
+    }
+
+    #[test]
     fn sha384_known_vector_abc() {
         // SHA-384("abc")
         assert_eq!(
@@ -216,7 +248,7 @@ mod tests {
     #[test]
     fn sha_family_streaming_matches_one_shot() {
         let input = b"The quick brown fox jumps over the lazy dog";
-        for alg in ["sha256", "sha384", "sha512", "sha3-256"] {
+        for alg in ["sha1", "sha224", "sha256", "sha384", "sha512", "sha3-256"] {
             let one_shot = hash_bytes(alg, input).unwrap();
 
             let mut h = Hasher::new(alg).unwrap();

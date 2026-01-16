@@ -74,15 +74,15 @@
 
 ### Дополнительно (часто спрашивают; можно позже)
 
-- [ ] SHA-1 — crate: `sha1` (уже есть в WebCrypto, но иногда нужен единый wasm-путь)
-- [ ] SHA-224 — crate: `sha2` (встречается в старых системах)
+- [x] SHA-1 — crate: `sha1` (единый wasm-путь)
+- [x] SHA-224 — crate: `sha2` (встречается в старых системах)
 - [ ] BLAKE2s — crate: `blake2` (полезно как "быстрый" вариант для небольших входов)
 - [ ] SipHash-1-3 / SipHash-2-4 — crate: `siphasher` или `std`-реализация (для хеш-таблиц/ключей)
 - [ ] CRC32 / Adler32 (checksums) — crate: `crc32fast` / `adler` (для файловых проверок, не крипто)
 
 ## Инструменты сайта
 
-- [x] Hash Calculator (SHA-1/SHA-256/SHA-512 через Web Crypto API)
+- [x] Hash Calculator (все алгоритмы через WASM)
 - [x] MD5 (через WASM)
 - [ ] JSON Beautifier / Minifier
 - [ ] XML Formatter

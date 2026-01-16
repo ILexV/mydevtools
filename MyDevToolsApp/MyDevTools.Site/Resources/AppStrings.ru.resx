@@ -553,4 +553,107 @@
   <data name="Base32Encoder_Cancel" xml:space="preserve">
     <value>Отмена</value>
   </data>
+
+  <data name="Nav_Base58Encoder" xml:space="preserve">
+    <value>Base58</value>
+  </data>
+
+  <data name="Base58Encoder_Title" xml:space="preserve">
+    <value>Base58 кодер / декодер</value>
+  </data>
+  <data name="Base58Encoder_Description" xml:space="preserve">
+    <value>Кодирование и декодирование Base58 для текста и файлов — полностью в вашем браузере.</value>
+  </data>
+  <data name="Base58Encoder_OtherFormats" xml:space="preserve">
+    <value>Другие форматы:</value>
+  </data>
+  <data name="Base58Encoder_LinkHex" xml:space="preserve">
+    <value>Hex</value>
+  </data>
+  <data name="Base58Encoder_LinkBase32" xml:space="preserve">
+    <value>Base32</value>
+  </data>
+  <data name="Base58Encoder_LinkBase64" xml:space="preserve">
+    <value>Base64</value>
+  </data>
+  <data name="Base58Encoder_LinkUrl" xml:space="preserve">
+    <value>URL</value>
+  </data>
+
+  <data name="Base58Encoder_InputTextLabel" xml:space="preserve">
+    <value>Ввод (текст)</value>
+  </data>
+  <data name="Base58Encoder_InputTextPlaceholder" xml:space="preserve">
+    <value>Введите текст или Base58...</value>
+  </data>
+  <data name="Base58Encoder_InputFileLabel" xml:space="preserve">
+    <value>Входной файл</value>
+  </data>
+  <data name="Base58Encoder_FileHint" xml:space="preserve">
+    <value>Если выбран файл, он будет использован вместо текстового ввода.</value>
+  </data>
+
+  <data name="Base58Encoder_CharsetLabel" xml:space="preserve">
+    <value>Кодировка текста</value>
+  </data>
+  <data name="Base58Encoder_AlphabetLabel" xml:space="preserve">
+    <value>Алфавит</value>
+  </data>
+  <data name="Base58Encoder_AlphabetBitcoin" xml:space="preserve">
+    <value>Bitcoin (Base58)</value>
+  </data>
+  <data name="Base58Encoder_AlphabetFlickr" xml:space="preserve">
+    <value>Flickr</value>
+  </data>
+  <data name="Base58Encoder_AlphabetRipple" xml:space="preserve">
+    <value>Ripple</value>
+  </data>
+
+  <data name="Base58Encoder_DecodeOptionsLabel" xml:space="preserve">
+    <value>Опции декодирования</value>
+  </data>
+  <data name="Base58Encoder_AllowWhitespace" xml:space="preserve">
+    <value>Разрешить пробелы/переводы строк</value>
+  </data>
+
+  <data name="Base58Encoder_OutputModeLabel" xml:space="preserve">
+    <value>Вывод для файла</value>
+  </data>
+  <data name="Base58Encoder_OutputModePreview" xml:space="preserve">
+    <value>Превью в выводе (полное — в Скачать)</value>
+  </data>
+  <data name="Base58Encoder_OutputModeFull" xml:space="preserve">
+    <value>Показывать полностью (может тормозить)</value>
+  </data>
+
+  <data name="Base58Encoder_ActionEncode" xml:space="preserve">
+    <value>Кодировать</value>
+  </data>
+  <data name="Base58Encoder_ActionDecode" xml:space="preserve">
+    <value>Декодировать</value>
+  </data>
+  <data name="Base58Encoder_ActionSwap" xml:space="preserve">
+    <value>Поменять местами</value>
+  </data>
+  <data name="Base58Encoder_ActionClear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="Base58Encoder_OutputLabel" xml:space="preserve">
+    <value>Вывод</value>
+  </data>
+  <data name="Base58Encoder_Copy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="Base58Encoder_Copied" xml:space="preserve">
+    <value>Скопировано!</value>
+  </data>
+  <data name="Base58Encoder_Download" xml:space="preserve">
+    <value>Скачать</value>
+  </data>
+  <data name="Base58Encoder_FileProgressTitle" xml:space="preserve">
+    <value>Обработка файла...</value>
+  </data>
+  <data name="Base58Encoder_Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
 </root>

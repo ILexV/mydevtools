@@ -174,10 +174,10 @@
 
 - [ ] Создать отдельные страницы инструментов (SSR + ToolLayout + SEO + hreflang), каждая со ссылками на другие форматы:
   - [x] Hex Encoder/Decoder
-  - [ ] Base32 Encoder/Decoder
-  - [ ] Base58 Encoder/Decoder
-  - [ ] Base64 Encoder/Decoder
-  - [ ] URL Encoder/Decoder (text only)
+  - [x] Base32 Encoder/Decoder
+  - [x] Base58 Encoder/Decoder
+  - [x] Base64 Encoder/Decoder
+  - [x] URL Encoder/Decoder (text only)
 
 - [ ] UI требования для каждой страницы:
   - [ ] режим `Text` / `File` (кроме URL)
@@ -197,9 +197,9 @@
 - [ ] JSON Beautifier / Minifier
 - [ ] XML Formatter
 - [x] Hex Encoder/Decoder
-- [ ] Base32 Encoder/Decoder
-- [ ] Base58 Encoder/Decoder
-- [ ] Base64 Encoder/Decoder
+- [x] Base32 Encoder/Decoder
+- [x] Base58 Encoder/Decoder
+- [x] Base64 Encoder/Decoder
 - [x] URL Encoder/Decoder
 
 ## CI/CD

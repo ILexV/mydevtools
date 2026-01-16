@@ -610,4 +610,108 @@
   <data name="Base32Encoder_Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
+
+  <data name="Nav_Base58Encoder" xml:space="preserve">
+    <value>Base58</value>
+  </data>
+
+  <!-- Base58 Encoder/Decoder -->
+  <data name="Base58Encoder_Title" xml:space="preserve">
+    <value>Base58 Encoder / Decoder</value>
+  </data>
+  <data name="Base58Encoder_Description" xml:space="preserve">
+    <value>Encode and decode Base58 for text and files — all in your browser.</value>
+  </data>
+  <data name="Base58Encoder_OtherFormats" xml:space="preserve">
+    <value>Other formats:</value>
+  </data>
+  <data name="Base58Encoder_LinkHex" xml:space="preserve">
+    <value>Hex</value>
+  </data>
+  <data name="Base58Encoder_LinkBase32" xml:space="preserve">
+    <value>Base32</value>
+  </data>
+  <data name="Base58Encoder_LinkBase64" xml:space="preserve">
+    <value>Base64</value>
+  </data>
+  <data name="Base58Encoder_LinkUrl" xml:space="preserve">
+    <value>URL</value>
+  </data>
+
+  <data name="Base58Encoder_InputTextLabel" xml:space="preserve">
+    <value>Input (text)</value>
+  </data>
+  <data name="Base58Encoder_InputTextPlaceholder" xml:space="preserve">
+    <value>Enter text or Base58...</value>
+  </data>
+  <data name="Base58Encoder_InputFileLabel" xml:space="preserve">
+    <value>Input file</value>
+  </data>
+  <data name="Base58Encoder_FileHint" xml:space="preserve">
+    <value>If a file is selected, it will be used instead of the text input.</value>
+  </data>
+
+  <data name="Base58Encoder_CharsetLabel" xml:space="preserve">
+    <value>Text charset</value>
+  </data>
+  <data name="Base58Encoder_AlphabetLabel" xml:space="preserve">
+    <value>Alphabet</value>
+  </data>
+  <data name="Base58Encoder_AlphabetBitcoin" xml:space="preserve">
+    <value>Bitcoin (Base58)</value>
+  </data>
+  <data name="Base58Encoder_AlphabetFlickr" xml:space="preserve">
+    <value>Flickr</value>
+  </data>
+  <data name="Base58Encoder_AlphabetRipple" xml:space="preserve">
+    <value>Ripple</value>
+  </data>
+
+  <data name="Base58Encoder_DecodeOptionsLabel" xml:space="preserve">
+    <value>Decode options</value>
+  </data>
+  <data name="Base58Encoder_AllowWhitespace" xml:space="preserve">
+    <value>Allow whitespace/newlines</value>
+  </data>
+
+  <data name="Base58Encoder_OutputModeLabel" xml:space="preserve">
+    <value>File output</value>
+  </data>
+  <data name="Base58Encoder_OutputModePreview" xml:space="preserve">
+    <value>Preview in output (download full)</value>
+  </data>
+  <data name="Base58Encoder_OutputModeFull" xml:space="preserve">
+    <value>Render full output (may be slow)</value>
+  </data>
+
+  <data name="Base58Encoder_ActionEncode" xml:space="preserve">
+    <value>Encode</value>
+  </data>
+  <data name="Base58Encoder_ActionDecode" xml:space="preserve">
+    <value>Decode</value>
+  </data>
+  <data name="Base58Encoder_ActionSwap" xml:space="preserve">
+    <value>Swap</value>
+  </data>
+  <data name="Base58Encoder_ActionClear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="Base58Encoder_OutputLabel" xml:space="preserve">
+    <value>Output</value>
+  </data>
+  <data name="Base58Encoder_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="Base58Encoder_Copied" xml:space="preserve">
+    <value>Copied!</value>
+  </data>
+  <data name="Base58Encoder_Download" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="Base58Encoder_FileProgressTitle" xml:space="preserve">
+    <value>Processing file...</value>
+  </data>
+  <data name="Base58Encoder_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
 </root>

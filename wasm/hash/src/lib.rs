@@ -33,7 +33,12 @@ enum Algorithm {
     Sha256,
     Sha384,
     Sha512,
+    Sha512_224,
+    Sha512_256,
     Sha3_256,
+    Sha3_224,
+    Sha3_384,
+    Sha3_512,
     Blake3,
     Blake2b512,
     Blake2s256,
@@ -59,7 +64,12 @@ impl Algorithm {
             "sha256" | "sha-256" => Some(Self::Sha256),
             "sha384" | "sha-384" => Some(Self::Sha384),
             "sha512" | "sha-512" => Some(Self::Sha512),
+            "sha512-224" | "sha512_224" => Some(Self::Sha512_224),
+            "sha512-256" | "sha512_256" => Some(Self::Sha512_256),
             "sha3-256" | "sha3_256" | "sha3" => Some(Self::Sha3_256),
+            "sha3-224" | "sha3_224" => Some(Self::Sha3_224),
+            "sha3-384" | "sha3_384" => Some(Self::Sha3_384),
+            "sha3-512" | "sha3_512" => Some(Self::Sha3_512),
             "blake3" | "blake-3" => Some(Self::Blake3),
             "blake2b" | "blake2b-512" | "blake2b512" => Some(Self::Blake2b512),
             "blake2s" | "blake2s-256" | "blake2s256" => Some(Self::Blake2s256),
@@ -87,6 +97,11 @@ enum HasherImpl {
     Sha384(sha2::Sha384),
     Sha512(sha2::Sha512),
     Sha3_256(sha3::Sha3_256),
+    Sha512_224(sha2::Sha512_224),
+    Sha512_256(sha2::Sha512_256),
+    Sha3_224(sha3::Sha3_224),
+    Sha3_384(sha3::Sha3_384),
+    Sha3_512(sha3::Sha3_512),
     Blake3(blake3::Hasher),
     Blake2b512(blake2::Blake2b512),
     Blake2s256(blake2::Blake2s256),
@@ -113,6 +128,11 @@ impl HasherImpl {
             Algorithm::Sha384 => Self::Sha384(sha2::Sha384::new()),
             Algorithm::Sha512 => Self::Sha512(sha2::Sha512::new()),
             Algorithm::Sha3_256 => Self::Sha3_256(sha3::Sha3_256::new()),
+            Algorithm::Sha512_224 => Self::Sha512_224(sha2::Sha512_224::new()),
+            Algorithm::Sha512_256 => Self::Sha512_256(sha2::Sha512_256::new()),
+            Algorithm::Sha3_224 => Self::Sha3_224(sha3::Sha3_224::new()),
+            Algorithm::Sha3_384 => Self::Sha3_384(sha3::Sha3_384::new()),
+            Algorithm::Sha3_512 => Self::Sha3_512(sha3::Sha3_512::new()),
             Algorithm::Blake3 => Self::Blake3(blake3::Hasher::new()),
             Algorithm::Blake2b512 => Self::Blake2b512(blake2::Blake2b512::new()),
             Algorithm::Blake2s256 => Self::Blake2s256(blake2::Blake2s256::new()),
@@ -142,6 +162,11 @@ impl HasherImpl {
             Self::Sha384(h) => h.update(chunk),
             Self::Sha512(h) => h.update(chunk),
             Self::Sha3_256(h) => h.update(chunk),
+            Self::Sha512_224(h) => h.update(chunk),
+            Self::Sha512_256(h) => h.update(chunk),
+            Self::Sha3_224(h) => h.update(chunk),
+            Self::Sha3_384(h) => h.update(chunk),
+            Self::Sha3_512(h) => h.update(chunk),
             Self::Blake3(h) => {
                 h.update(chunk);
             }
@@ -175,6 +200,11 @@ impl HasherImpl {
             Self::Sha384(h) => h.finalize().to_vec(),
             Self::Sha512(h) => h.finalize().to_vec(),
             Self::Sha3_256(h) => h.finalize().to_vec(),
+            Self::Sha512_224(h) => h.finalize().to_vec(),
+            Self::Sha512_256(h) => h.finalize().to_vec(),
+            Self::Sha3_224(h) => h.finalize().to_vec(),
+            Self::Sha3_384(h) => h.finalize().to_vec(),
+            Self::Sha3_512(h) => h.finalize().to_vec(),
             Self::Blake3(h) => h.finalize().as_bytes().to_vec(),
             Self::Blake2b512(h) => h.finalize().to_vec(),
             Self::Blake2s256(h) => h.finalize().to_vec(),
@@ -243,7 +273,12 @@ impl Hasher {
             Algorithm::Sha256 => "sha256".to_string(),
             Algorithm::Sha384 => "sha384".to_string(),
             Algorithm::Sha512 => "sha512".to_string(),
+            Algorithm::Sha512_224 => "sha512-224".to_string(),
+            Algorithm::Sha512_256 => "sha512-256".to_string(),
             Algorithm::Sha3_256 => "sha3-256".to_string(),
+            Algorithm::Sha3_224 => "sha3-224".to_string(),
+            Algorithm::Sha3_384 => "sha3-384".to_string(),
+            Algorithm::Sha3_512 => "sha3-512".to_string(),
             Algorithm::Blake3 => "blake3".to_string(),
             Algorithm::Blake2b512 => "blake2b-512".to_string(),
             Algorithm::Blake2s256 => "blake2s-256".to_string(),
@@ -396,6 +431,26 @@ mod tests {
         // blake2s-256
         let expected_blake2s = to_hex_lower(&blake2::Blake2s256::digest(input));
         assert_eq!(hash_bytes("blake2s-256", input).unwrap(), expected_blake2s);
+
+        // sha512-224
+        let expected_sha512_224 = to_hex_lower(&sha2::Sha512_224::digest(input));
+        assert_eq!(hash_bytes("sha512-224", input).unwrap(), expected_sha512_224);
+
+        // sha512-256
+        let expected_sha512_256 = to_hex_lower(&sha2::Sha512_256::digest(input));
+        assert_eq!(hash_bytes("sha512-256", input).unwrap(), expected_sha512_256);
+
+        // sha3-224
+        let expected_sha3_224 = to_hex_lower(&sha3::Sha3_224::digest(input));
+        assert_eq!(hash_bytes("sha3-224", input).unwrap(), expected_sha3_224);
+
+        // sha3-384
+        let expected_sha3_384 = to_hex_lower(&sha3::Sha3_384::digest(input));
+        assert_eq!(hash_bytes("sha3-384", input).unwrap(), expected_sha3_384);
+
+        // sha3-512
+        let expected_sha3_512 = to_hex_lower(&sha3::Sha3_512::digest(input));
+        assert_eq!(hash_bytes("sha3-512", input).unwrap(), expected_sha3_512);
 
         // ripemd-160
         let expected_ripemd = to_hex_lower(&ripemd::Ripemd160::digest(input));

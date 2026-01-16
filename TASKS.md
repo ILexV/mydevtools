@@ -56,8 +56,13 @@
 - [x] MD5 — crate: `md-5` (часто нужно для проверки старых хэшей)
 - [x] SHA-256 — crate: `sha2`
 - [x] SHA-512 — crate: `sha2`
+- [x] SHA-512/224 — crate: `sha2`
+- [x] SHA-512/256 — crate: `sha2`
 - [x] SHA-384 — crate: `sha2`
 - [x] SHA-3-256 — crate: `sha3`
+- [x] SHA-3-224 — crate: `sha3`
+- [x] SHA-3-384 — crate: `sha3`
+- [x] SHA-3-512 — crate: `sha3`
 - [x] BLAKE3 — crate: `blake3`
 - [x] BLAKE2b — crate: `blake2`
 - [ ] aHash — crate: `ahash` (⚠️ требуется решение: тянет `getrandom` и ломает `wasm32-unknown-unknown` без спец. конфигурации)

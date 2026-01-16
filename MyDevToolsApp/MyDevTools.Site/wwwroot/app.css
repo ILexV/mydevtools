@@ -365,6 +365,70 @@ html, body {
     gap: 0.5rem;
 }
 
+/* ===== Tool Settings (shared) ===== */
+.tool-settings {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    background-color: var(--bg-secondary);
+}
+
+@media (max-width: 768px) {
+    .tool-settings {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tool-setting {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.tool-setting select {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.tool-error {
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(220, 38, 38, 0.35);
+    border-radius: 0.375rem;
+    background-color: rgba(220, 38, 38, 0.08);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+/* ===== Tool Cross Links ===== */
+.tool-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.tool-links-title {
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.tool-link {
+    text-decoration: none;
+    color: var(--accent-color);
+    font-weight: 500;
+}
+
+.tool-link:hover {
+    text-decoration: underline;
+}
+
 .btn-small {
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;

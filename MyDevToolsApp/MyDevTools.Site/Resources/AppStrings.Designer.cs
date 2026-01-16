@@ -392,6 +392,15 @@ namespace MyDevTools.Site.Resources {
                 return ResourceManager.GetString("Nav_Tools", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to URL Encoder.
+        /// </summary>
+        public static string Nav_UrlEncoder {
+            get {
+                return ResourceManager.GetString("Nav_UrlEncoder", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Dark.
@@ -417,6 +426,195 @@ namespace MyDevTools.Site.Resources {
         public static string Theme_Toggle {
             get {
                 return ResourceManager.GetString("Theme_Toggle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Encode.
+        /// </summary>
+        public static string UrlEncoder_ActionEncode {
+            get {
+                return ResourceManager.GetString("UrlEncoder_ActionEncode", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Clear.
+        /// </summary>
+        public static string UrlEncoder_ActionClear {
+            get {
+                return ResourceManager.GetString("UrlEncoder_ActionClear", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Decode.
+        /// </summary>
+        public static string UrlEncoder_ActionDecode {
+            get {
+                return ResourceManager.GetString("UrlEncoder_ActionDecode", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Swap.
+        /// </summary>
+        public static string UrlEncoder_ActionSwap {
+            get {
+                return ResourceManager.GetString("UrlEncoder_ActionSwap", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Text charset.
+        /// </summary>
+        public static string UrlEncoder_CharsetLabel {
+            get {
+                return ResourceManager.GetString("UrlEncoder_CharsetLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copied!.
+        /// </summary>
+        public static string UrlEncoder_Copied {
+            get {
+                return ResourceManager.GetString("UrlEncoder_Copied", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copy.
+        /// </summary>
+        public static string UrlEncoder_Copy {
+            get {
+                return ResourceManager.GetString("UrlEncoder_Copy", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Encode and decode URL-encoded text (percent-encoding) with selectable modes and charsets — all in your browser.
+        /// </summary>
+        public static string UrlEncoder_Description {
+            get {
+                return ResourceManager.GetString("UrlEncoder_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Input.
+        /// </summary>
+        public static string UrlEncoder_InputLabel {
+            get {
+                return ResourceManager.GetString("UrlEncoder_InputLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Enter text or URL-encoded string....
+        /// </summary>
+        public static string UrlEncoder_InputPlaceholder {
+            get {
+                return ResourceManager.GetString("UrlEncoder_InputPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Base32.
+        /// </summary>
+        public static string UrlEncoder_LinkBase32 {
+            get {
+                return ResourceManager.GetString("UrlEncoder_LinkBase32", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Base58.
+        /// </summary>
+        public static string UrlEncoder_LinkBase58 {
+            get {
+                return ResourceManager.GetString("UrlEncoder_LinkBase58", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Base64.
+        /// </summary>
+        public static string UrlEncoder_LinkBase64 {
+            get {
+                return ResourceManager.GetString("UrlEncoder_LinkBase64", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Hex.
+        /// </summary>
+        public static string UrlEncoder_LinkHex {
+            get {
+                return ResourceManager.GetString("UrlEncoder_LinkHex", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Mode.
+        /// </summary>
+        public static string UrlEncoder_ModeLabel {
+            get {
+                return ResourceManager.GetString("UrlEncoder_ModeLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Component (encodeURIComponent-like).
+        /// </summary>
+        public static string UrlEncoder_Mode_Component {
+            get {
+                return ResourceManager.GetString("UrlEncoder_Mode_Component", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Form (application/x-www-form-urlencoded).
+        /// </summary>
+        public static string UrlEncoder_Mode_Form {
+            get {
+                return ResourceManager.GetString("UrlEncoder_Mode_Form", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to URI (encodeURI-like).
+        /// </summary>
+        public static string UrlEncoder_Mode_Uri {
+            get {
+                return ResourceManager.GetString("UrlEncoder_Mode_Uri", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Other formats:.
+        /// </summary>
+        public static string UrlEncoder_OtherFormats {
+            get {
+                return ResourceManager.GetString("UrlEncoder_OtherFormats", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Output.
+        /// </summary>
+        public static string UrlEncoder_OutputLabel {
+            get {
+                return ResourceManager.GetString("UrlEncoder_OutputLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to URL Encoder / Decoder.
+        /// </summary>
+        public static string UrlEncoder_Title {
+            get {
+                return ResourceManager.GetString("UrlEncoder_Title", resourceCulture);
             }
         }
     }

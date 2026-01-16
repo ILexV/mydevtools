@@ -26,6 +26,9 @@
   <data name="Nav_Tools" xml:space="preserve">
     <value>Инструменты</value>
   </data>
+  <data name="Nav_UrlEncoder" xml:space="preserve">
+    <value>URL</value>
+  </data>
   
   <data name="Home_Title" xml:space="preserve">
     <value>Инструменты для разработчиков</value>
@@ -138,5 +141,69 @@
   </data>
   <data name="Theme_Toggle" xml:space="preserve">
     <value>Переключить тему</value>
+  </data>
+
+  <data name="UrlEncoder_Title" xml:space="preserve">
+    <value>URL кодирование / декодирование</value>
+  </data>
+  <data name="UrlEncoder_Description" xml:space="preserve">
+    <value>Кодируйте и декодируйте URL-строки (percent-encoding) с выбором режима и кодировки текста — всё в вашем браузере</value>
+  </data>
+  <data name="UrlEncoder_InputLabel" xml:space="preserve">
+    <value>Ввод</value>
+  </data>
+  <data name="UrlEncoder_InputPlaceholder" xml:space="preserve">
+    <value>Введите текст или URL-кодированную строку...</value>
+  </data>
+  <data name="UrlEncoder_OutputLabel" xml:space="preserve">
+    <value>Вывод</value>
+  </data>
+  <data name="UrlEncoder_ModeLabel" xml:space="preserve">
+    <value>Режим</value>
+  </data>
+  <data name="UrlEncoder_Mode_Component" xml:space="preserve">
+    <value>Component (аналог encodeURIComponent)</value>
+  </data>
+  <data name="UrlEncoder_Mode_Uri" xml:space="preserve">
+    <value>URI (аналог encodeURI)</value>
+  </data>
+  <data name="UrlEncoder_Mode_Form" xml:space="preserve">
+    <value>Form (application/x-www-form-urlencoded)</value>
+  </data>
+  <data name="UrlEncoder_CharsetLabel" xml:space="preserve">
+    <value>Кодировка текста</value>
+  </data>
+  <data name="UrlEncoder_ActionEncode" xml:space="preserve">
+    <value>Кодировать</value>
+  </data>
+  <data name="UrlEncoder_ActionDecode" xml:space="preserve">
+    <value>Декодировать</value>
+  </data>
+  <data name="UrlEncoder_ActionSwap" xml:space="preserve">
+    <value>Поменять местами</value>
+  </data>
+  <data name="UrlEncoder_ActionClear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="UrlEncoder_Copy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="UrlEncoder_Copied" xml:space="preserve">
+    <value>Скопировано!</value>
+  </data>
+  <data name="UrlEncoder_OtherFormats" xml:space="preserve">
+    <value>Другие форматы:</value>
+  </data>
+  <data name="UrlEncoder_LinkHex" xml:space="preserve">
+    <value>Hex</value>
+  </data>
+  <data name="UrlEncoder_LinkBase32" xml:space="preserve">
+    <value>Base32</value>
+  </data>
+  <data name="UrlEncoder_LinkBase58" xml:space="preserve">
+    <value>Base58</value>
+  </data>
+  <data name="UrlEncoder_LinkBase64" xml:space="preserve">
+    <value>Base64</value>
   </data>
 </root>

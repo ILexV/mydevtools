@@ -101,13 +101,101 @@
 - [x] SipHash-1-3 / SipHash-2-4 — crate: `siphasher` (фиксированный ключ)
 - [x] CRC32 / Adler32 (checksums) — crate: `crc32fast` / `adler` (для файловых проверок, не крипто)
 
+## WASM: Encoding (план работ)
+
+> Домен `wasm/encoding` отвечает за hex/base32/base58/base64/url.
+> Требования: отдельная страница на каждый формат; у каждого формата на UI доступны настройки;
+> text+file encode/decode для всех кроме URL (URL — только text);
+> streaming для файлов — где это возможно; decode ошибки по возможности с позицией;
+> обязательно: выбор текстовой кодировки.
+
+### API и тесты (сначала база)
+
+- [ ] Зафиксировать публичный API для `wasm/encoding`:
+  - bytes → encoded string
+  - encoded string → bytes (с ошибками, включая позицию)
+  - text → bytes (с выбранной кодировкой)
+  - bytes → text (с выбранной кодировкой)
+  - опции (settings) для каждого формата как отдельные структуры/параметры
+- [ ] Добавить единый enum/строковый идентификатор кодировки (например: `utf-8`, `utf-16le`, `windows-1251`, ...)
+- [ ] Определить поведение ошибок декодирования:
+  - позиция (index) + символ/байт + человекочитаемое сообщение
+  - режимы: strict / permissive (если нужно)
+- [ ] Покрыть тестами: round-trip + известные векторы + edge cases (пустой ввод, Unicode, суррогаты/invalid bytes)
+- [ ] Добавить таблицу тест-векторов (по форматам и режимам), чтобы легко расширять
+- [ ] Убедиться что `cargo test` гоняется нативно (быстро), а wasm-сборка не тянет лишнего
+
+### Алгоритмы/форматы + настройки
+
+- [ ] Hex:
+  - [ ] encode: lower/upper-case
+  - [ ] decode: поддержка/игнорирование пробелов и разделителей (` `, `\n`, `:`, `-`), опционально `0x` префикс
+  - [ ] decode ошибки: odd-length, invalid char (с позицией)
+
+- [ ] Base64:
+  - [ ] режимы alphabet: standard / url-safe
+  - [ ] padding: required / optional / no-padding
+  - [ ] decode: разрешить/запретить whitespace/newlines
+  - [ ] (опционально) line wrapping при encode
+  - [ ] decode ошибки: invalid char / invalid padding (с позицией)
+
+- [ ] Base32:
+  - [ ] поддержка вариантов алфавита (настройка пользователем)
+  - [ ] padding: required / optional / no-padding
+  - [ ] case handling при decode (upper/lower/auto)
+  - [ ] decode ошибки: invalid char / invalid padding (с позицией)
+
+- [ ] Base58:
+  - [ ] поддержка вариантов алфавита (настройка пользователем)
+  - [ ] decode ошибки: invalid char (с позицией)
+  - [ ] Исследовать streaming для base58 (скорее всего невозможен без буферизации всего ввода) и зафиксировать решение
+
+- [ ] URL encoding (только текст):
+  - [ ] режимы: `encodeURIComponent`-подобный / `encodeURI`-подобный / `x-www-form-urlencoded` (space → `+`)
+  - [ ] decode: `+` → space (в режиме form)
+  - [ ] decode ошибки: invalid percent-encoding (с позицией)
+
+### Streaming для файлов (JS + WASM)
+
+- [ ] Зафиксировать общий streaming API (по аналогии с `wasm/hash`):
+  - [ ] encode stream (update bytes → output chunks)
+  - [ ] decode stream (update encoded text/bytes → output chunks)
+- [ ] Реализовать streaming там, где это реально:
+  - [ ] hex encode/decode (да)
+  - [ ] base64 encode/decode (да)
+  - [ ] base32 encode/decode (да)
+  - [ ] base58 encode/decode (решение после исследования)
+
+### Интеграция с сайтом
+
+- [ ] Добавить общий слой загрузки `encoding.wasm` (lazy-load + кеширование + обработка ошибок)
+- [ ] Добавить общий JS-слой чтения/записи файлов чанками (progress + cancel) для encoding tools
+- [ ] Добавить соглашение по имени выходного файла: добавлять расширение (например `.hex`, `.b64`, `.b32`, `.b58`, `.url.txt`)
+
+- [ ] Создать отдельные страницы инструментов (SSR + ToolLayout + SEO + hreflang), каждая со ссылками на другие форматы:
+  - [ ] Hex Encoder/Decoder
+  - [ ] Base32 Encoder/Decoder
+  - [ ] Base58 Encoder/Decoder
+  - [ ] Base64 Encoder/Decoder
+  - [ ] URL Encoder/Decoder (text only)
+
+- [ ] UI требования для каждой страницы:
+  - [ ] режим `Text` / `File` (кроме URL)
+  - [ ] выбор кодировки текста (обязательно)
+  - [ ] панель настроек формата (все доступные настройки)
+  - [ ] copy результата, download результата, и понятные ошибки (с подсветкой позиции, где возможно)
+
 ## Инструменты сайта
 
 - [x] Hash Calculator (все алгоритмы через WASM)
 - [x] MD5 (через WASM)
 - [ ] JSON Beautifier / Minifier
 - [ ] XML Formatter
-- [ ] Base64 / Hex / URL encoding
+- [ ] Hex Encoder/Decoder
+- [ ] Base32 Encoder/Decoder
+- [ ] Base58 Encoder/Decoder
+- [ ] Base64 Encoder/Decoder
+- [x] URL Encoder/Decoder
 
 ## CI/CD
 

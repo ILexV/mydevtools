@@ -62,12 +62,13 @@
 - [x] BLAKE2b — crate: `blake2`
 - [ ] aHash — crate: `ahash` (⚠️ требуется решение: тянет `getrandom` и ломает `wasm32-unknown-unknown` без спец. конфигурации)
 - [x] FxHash — crate: `rustc-hash`
-- [ ] HighwayHash — crate: `highway`
+- [x] HighwayHash64 — crate: `highway` (фиксированный ключ)
 - [x] xxHash (xxh3) — crate: `xxhash-rust`
 - [ ] GxHash — crate: `gxhash`
 - [ ] Murmur3 — crate: `murmur3`
 - [ ] FarmHash — crate: `farmhash`
-- [ ] MetroHash — crate: `fasthash`
+- [x] MetroHash64 — crate: `metrohash` (pure Rust)
+- [ ] MetroHash через `fasthash` (⚠️ требуется решение: `fasthash-sys` не собирается на Windows MSVC)
 - [x] FNV — crate: `fnv`
 - [x] SeaHash — crate: `seahash`
 - [x] RIPEMD-160 — crate: `ripemd`
@@ -77,8 +78,8 @@
 - [x] SHA-1 — crate: `sha1` (единый wasm-путь)
 - [x] SHA-224 — crate: `sha2` (встречается в старых системах)
 - [ ] BLAKE2s — crate: `blake2` (полезно как "быстрый" вариант для небольших входов)
-- [ ] SipHash-1-3 / SipHash-2-4 — crate: `siphasher` или `std`-реализация (для хеш-таблиц/ключей)
-- [ ] CRC32 / Adler32 (checksums) — crate: `crc32fast` / `adler` (для файловых проверок, не крипто)
+- [x] SipHash-1-3 / SipHash-2-4 — crate: `siphasher` (фиксированный ключ)
+- [x] CRC32 / Adler32 (checksums) — crate: `crc32fast` / `adler` (для файловых проверок, не крипто)
 
 ## Инструменты сайта
 

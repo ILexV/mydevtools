@@ -21,6 +21,10 @@ fn u64_to_bytes_le(v: u64) -> [u8; 8] {
     v.to_le_bytes()
 }
 
+fn u32_to_bytes_le(v: u32) -> [u8; 4] {
+    v.to_le_bytes()
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Algorithm {
     Md5,
@@ -37,6 +41,12 @@ enum Algorithm {
     FxHash64,
     Fnv1a64,
     SeaHash64,
+    Crc32,
+    Adler32,
+    SipHash13,
+    SipHash24,
+    HighwayHash64,
+    MetroHash64,
 }
 
 impl Algorithm {
@@ -56,6 +66,12 @@ impl Algorithm {
             "fxhash" | "fxhash64" => Some(Self::FxHash64),
             "fnv" | "fnv1a" | "fnv1a64" => Some(Self::Fnv1a64),
             "seahash" | "seahash64" => Some(Self::SeaHash64),
+            "crc32" | "crc-32" => Some(Self::Crc32),
+            "adler32" | "adler-32" => Some(Self::Adler32),
+            "siphash13" | "siphash-1-3" | "siphash1-3" => Some(Self::SipHash13),
+            "siphash24" | "siphash-2-4" | "siphash2-4" => Some(Self::SipHash24),
+            "highwayhash64" | "highwayhash-64" | "highway64" => Some(Self::HighwayHash64),
+            "metrohash64" | "metrohash-64" | "metro64" => Some(Self::MetroHash64),
             _ => None,
         }
     }
@@ -76,6 +92,12 @@ enum HasherImpl {
     FxHash64(rustc_hash::FxHasher),
     Fnv1a64(fnv::FnvHasher),
     SeaHash64(seahash::SeaHasher),
+    Crc32(crc32fast::Hasher),
+    Adler32(adler::Adler32),
+    SipHash13(siphasher::sip::SipHasher13),
+    SipHash24(siphasher::sip::SipHasher24),
+    HighwayHash64(highway::HighwayHasher),
+    MetroHash64(metrohash::MetroHash64),
 }
 
 impl HasherImpl {
@@ -95,6 +117,15 @@ impl HasherImpl {
             Algorithm::FxHash64 => Self::FxHash64(rustc_hash::FxHasher::default()),
             Algorithm::Fnv1a64 => Self::Fnv1a64(fnv::FnvHasher::default()),
             Algorithm::SeaHash64 => Self::SeaHash64(seahash::SeaHasher::new()),
+            Algorithm::Crc32 => Self::Crc32(crc32fast::Hasher::new()),
+            Algorithm::Adler32 => Self::Adler32(adler::Adler32::new()),
+            Algorithm::SipHash13 => Self::SipHash13(siphasher::sip::SipHasher13::new_with_keys(0, 0)),
+            Algorithm::SipHash24 => Self::SipHash24(siphasher::sip::SipHasher24::new_with_keys(0, 0)),
+            Algorithm::HighwayHash64 => {
+                let key = highway::Key([0, 0, 0, 0]);
+                Self::HighwayHash64(highway::HighwayHasher::new(key))
+            }
+            Algorithm::MetroHash64 => Self::MetroHash64(metrohash::MetroHash64::new()),
         }
     }
 
@@ -116,6 +147,17 @@ impl HasherImpl {
             Self::FxHash64(h) => h.write(chunk),
             Self::Fnv1a64(h) => h.write(chunk),
             Self::SeaHash64(h) => h.write(chunk),
+            Self::Crc32(h) => h.update(chunk),
+            Self::Adler32(h) => {
+                h.write_slice(chunk);
+            }
+            Self::SipHash13(h) => h.write(chunk),
+            Self::SipHash24(h) => h.write(chunk),
+            Self::HighwayHash64(h) => {
+                use highway::HighwayHash;
+                h.append(chunk);
+            }
+            Self::MetroHash64(h) => h.write(chunk),
         }
     }
 
@@ -135,6 +177,15 @@ impl HasherImpl {
             Self::FxHash64(h) => u64_to_bytes_le(h.finish()).to_vec(),
             Self::Fnv1a64(h) => u64_to_bytes_le(h.finish()).to_vec(),
             Self::SeaHash64(h) => u64_to_bytes_le(h.finish()).to_vec(),
+            Self::Crc32(h) => u32_to_bytes_le(h.finalize()).to_vec(),
+            Self::Adler32(h) => u32_to_bytes_le(h.checksum()).to_vec(),
+            Self::SipHash13(h) => u64_to_bytes_le(h.finish()).to_vec(),
+            Self::SipHash24(h) => u64_to_bytes_le(h.finish()).to_vec(),
+            Self::HighwayHash64(h) => {
+                use highway::HighwayHash;
+                u64_to_bytes_le(h.finalize64()).to_vec()
+            }
+            Self::MetroHash64(h) => u64_to_bytes_le(h.finish()).to_vec(),
         }
     }
 }
@@ -194,6 +245,12 @@ impl Hasher {
             Algorithm::FxHash64 => "fxhash64".to_string(),
             Algorithm::Fnv1a64 => "fnv1a64".to_string(),
             Algorithm::SeaHash64 => "seahash64".to_string(),
+            Algorithm::Crc32 => "crc32".to_string(),
+            Algorithm::Adler32 => "adler32".to_string(),
+            Algorithm::SipHash13 => "siphash-1-3".to_string(),
+            Algorithm::SipHash24 => "siphash-2-4".to_string(),
+            Algorithm::HighwayHash64 => "highwayhash64".to_string(),
+            Algorithm::MetroHash64 => "metrohash64".to_string(),
         }
     }
 }
@@ -354,6 +411,56 @@ mod tests {
         sea.write(input);
         let expected_sea = to_hex_lower(&sea.finish().to_le_bytes());
         assert_eq!(hash_bytes("seahash64", input).unwrap(), expected_sea);
+
+        // crc32 (little-endian bytes in our wasm API)
+        let expected_crc32 = to_hex_lower(&crc32fast::hash(input).to_le_bytes());
+        assert_eq!(hash_bytes("crc32", input).unwrap(), expected_crc32);
+
+        // adler32 (little-endian bytes in our wasm API)
+        let expected_adler32 = to_hex_lower(&adler::adler32_slice(input).to_le_bytes());
+        assert_eq!(hash_bytes("adler32", input).unwrap(), expected_adler32);
+
+        // siphash-1-3 (k0=k1=0)
+        let mut sip13 = siphasher::sip::SipHasher13::new_with_keys(0, 0);
+        sip13.write(input);
+        let expected_sip13 = to_hex_lower(&sip13.finish().to_le_bytes());
+        assert_eq!(hash_bytes("siphash-1-3", input).unwrap(), expected_sip13);
+
+        // siphash-2-4 (k0=k1=0)
+        let mut sip24 = siphasher::sip::SipHasher24::new_with_keys(0, 0);
+        sip24.write(input);
+        let expected_sip24 = to_hex_lower(&sip24.finish().to_le_bytes());
+        assert_eq!(hash_bytes("siphash-2-4", input).unwrap(), expected_sip24);
+
+        // highwayhash64 (key = 0)
+        let key = highway::Key([0, 0, 0, 0]);
+        let mut highway_hasher = highway::HighwayHasher::new(key);
+        use highway::HighwayHash;
+        highway_hasher.append(input);
+        let expected_highway64 = to_hex_lower(&highway_hasher.finalize64().to_le_bytes());
+        assert_eq!(hash_bytes("highwayhash64", input).unwrap(), expected_highway64);
+
+        // metrohash64
+        let mut metro = metrohash::MetroHash64::new();
+        metro.write(input);
+        let expected_metro64 = to_hex_lower(&metro.finish().to_le_bytes());
+        assert_eq!(hash_bytes("metrohash64", input).unwrap(), expected_metro64);
+    }
+
+    #[test]
+    fn crc32_known_vector_123456789() {
+        // CRC-32/ISO-HDLC (aka "CRC-32" / IEEE 802.3)
+        // CRC32("123456789") = 0xCBF43926
+        assert_eq!(hash_text_utf8("crc32", "123456789").unwrap(), "2639f4cb");
+    }
+
+    #[test]
+    fn adler32_known_vectors() {
+        // Adler32("") = 1
+        assert_eq!(hash_text_utf8("adler32", "").unwrap(), "01000000");
+
+        // Adler32("Wikipedia") = 0x11E60398
+        assert_eq!(hash_text_utf8("adler32", "Wikipedia").unwrap(), "9803e611");
     }
 
     #[test]

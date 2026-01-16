@@ -914,5 +914,347 @@ namespace MyDevTools.Site.Resources {
                 return ResourceManager.GetString("HexEncoder_Cancel", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Base64.
+        /// </summary>
+        public static string Nav_Base64Encoder {
+            get {
+                return ResourceManager.GetString("Nav_Base64Encoder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Base64 Encoder / Decoder.
+        /// </summary>
+        public static string Base64Encoder_Title {
+            get {
+                return ResourceManager.GetString("Base64Encoder_Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Encode and decode Base64 for text and files — all in your browser.
+        /// </summary>
+        public static string Base64Encoder_Description {
+            get {
+                return ResourceManager.GetString("Base64Encoder_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Other formats:.
+        /// </summary>
+        public static string Base64Encoder_OtherFormats {
+            get {
+                return ResourceManager.GetString("Base64Encoder_OtherFormats", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Hex.
+        /// </summary>
+        public static string Base64Encoder_LinkHex {
+            get {
+                return ResourceManager.GetString("Base64Encoder_LinkHex", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Base32.
+        /// </summary>
+        public static string Base64Encoder_LinkBase32 {
+            get {
+                return ResourceManager.GetString("Base64Encoder_LinkBase32", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Base58.
+        /// </summary>
+        public static string Base64Encoder_LinkBase58 {
+            get {
+                return ResourceManager.GetString("Base64Encoder_LinkBase58", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to URL.
+        /// </summary>
+        public static string Base64Encoder_LinkUrl {
+            get {
+                return ResourceManager.GetString("Base64Encoder_LinkUrl", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Input (text).
+        /// </summary>
+        public static string Base64Encoder_InputTextLabel {
+            get {
+                return ResourceManager.GetString("Base64Encoder_InputTextLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Enter text or Base64....
+        /// </summary>
+        public static string Base64Encoder_InputTextPlaceholder {
+            get {
+                return ResourceManager.GetString("Base64Encoder_InputTextPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Input file.
+        /// </summary>
+        public static string Base64Encoder_InputFileLabel {
+            get {
+                return ResourceManager.GetString("Base64Encoder_InputFileLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to If a file is selected, it will be used instead of the text input..
+        /// </summary>
+        public static string Base64Encoder_FileHint {
+            get {
+                return ResourceManager.GetString("Base64Encoder_FileHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Text charset.
+        /// </summary>
+        public static string Base64Encoder_CharsetLabel {
+            get {
+                return ResourceManager.GetString("Base64Encoder_CharsetLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Alphabet.
+        /// </summary>
+        public static string Base64Encoder_AlphabetLabel {
+            get {
+                return ResourceManager.GetString("Base64Encoder_AlphabetLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Standard (+/).
+        /// </summary>
+        public static string Base64Encoder_AlphabetStandard {
+            get {
+                return ResourceManager.GetString("Base64Encoder_AlphabetStandard", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to URL-safe (-_).
+        /// </summary>
+        public static string Base64Encoder_AlphabetUrlSafe {
+            get {
+                return ResourceManager.GetString("Base64Encoder_AlphabetUrlSafe", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Padding.
+        /// </summary>
+        public static string Base64Encoder_PaddingLabel {
+            get {
+                return ResourceManager.GetString("Base64Encoder_PaddingLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Required.
+        /// </summary>
+        public static string Base64Encoder_PaddingRequired {
+            get {
+                return ResourceManager.GetString("Base64Encoder_PaddingRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Optional.
+        /// </summary>
+        public static string Base64Encoder_PaddingOptional {
+            get {
+                return ResourceManager.GetString("Base64Encoder_PaddingOptional", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No padding.
+        /// </summary>
+        public static string Base64Encoder_PaddingNone {
+            get {
+                return ResourceManager.GetString("Base64Encoder_PaddingNone", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Line wrap.
+        /// </summary>
+        public static string Base64Encoder_LineWrapLabel {
+            get {
+                return ResourceManager.GetString("Base64Encoder_LineWrapLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to None.
+        /// </summary>
+        public static string Base64Encoder_LineWrapNone {
+            get {
+                return ResourceManager.GetString("Base64Encoder_LineWrapNone", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 76 chars.
+        /// </summary>
+        public static string Base64Encoder_LineWrap76 {
+            get {
+                return ResourceManager.GetString("Base64Encoder_LineWrap76", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Decode options.
+        /// </summary>
+        public static string Base64Encoder_DecodeOptionsLabel {
+            get {
+                return ResourceManager.GetString("Base64Encoder_DecodeOptionsLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Allow whitespace/newlines.
+        /// </summary>
+        public static string Base64Encoder_AllowWhitespace {
+            get {
+                return ResourceManager.GetString("Base64Encoder_AllowWhitespace", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to File output.
+        /// </summary>
+        public static string Base64Encoder_OutputModeLabel {
+            get {
+                return ResourceManager.GetString("Base64Encoder_OutputModeLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Preview in output (download full).
+        /// </summary>
+        public static string Base64Encoder_OutputModePreview {
+            get {
+                return ResourceManager.GetString("Base64Encoder_OutputModePreview", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Render full output (may be slow).
+        /// </summary>
+        public static string Base64Encoder_OutputModeFull {
+            get {
+                return ResourceManager.GetString("Base64Encoder_OutputModeFull", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Encode.
+        /// </summary>
+        public static string Base64Encoder_ActionEncode {
+            get {
+                return ResourceManager.GetString("Base64Encoder_ActionEncode", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Decode.
+        /// </summary>
+        public static string Base64Encoder_ActionDecode {
+            get {
+                return ResourceManager.GetString("Base64Encoder_ActionDecode", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Swap.
+        /// </summary>
+        public static string Base64Encoder_ActionSwap {
+            get {
+                return ResourceManager.GetString("Base64Encoder_ActionSwap", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Clear.
+        /// </summary>
+        public static string Base64Encoder_ActionClear {
+            get {
+                return ResourceManager.GetString("Base64Encoder_ActionClear", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Output.
+        /// </summary>
+        public static string Base64Encoder_OutputLabel {
+            get {
+                return ResourceManager.GetString("Base64Encoder_OutputLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copy.
+        /// </summary>
+        public static string Base64Encoder_Copy {
+            get {
+                return ResourceManager.GetString("Base64Encoder_Copy", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copied!.
+        /// </summary>
+        public static string Base64Encoder_Copied {
+            get {
+                return ResourceManager.GetString("Base64Encoder_Copied", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Download.
+        /// </summary>
+        public static string Base64Encoder_Download {
+            get {
+                return ResourceManager.GetString("Base64Encoder_Download", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Processing file....
+        /// </summary>
+        public static string Base64Encoder_FileProgressTitle {
+            get {
+                return ResourceManager.GetString("Base64Encoder_FileProgressTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        public static string Base64Encoder_Cancel {
+            get {
+                return ResourceManager.GetString("Base64Encoder_Cancel", resourceCulture);
+            }
+        }
     }
 }

@@ -32,6 +32,9 @@
   <data name="Nav_HexEncoder" xml:space="preserve">
     <value>Hex</value>
   </data>
+  <data name="Nav_Base64Encoder" xml:space="preserve">
+    <value>Base64</value>
+  </data>
   
   <data name="Home_Title" xml:space="preserve">
     <value>Herramientas para Desarrolladores</value>
@@ -305,5 +308,120 @@
   </data>
   <data name="HexEncoder_Download" xml:space="preserve">
     <value>Descargar</value>
+  </data>
+
+  <data name="Base64Encoder_Title" xml:space="preserve">
+    <value>Codificador / Decodificador Base64</value>
+  </data>
+  <data name="Base64Encoder_Description" xml:space="preserve">
+    <value>Codifica y decodifica Base64 para texto y archivos — todo en tu navegador.</value>
+  </data>
+  <data name="Base64Encoder_OtherFormats" xml:space="preserve">
+    <value>Otros formatos:</value>
+  </data>
+  <data name="Base64Encoder_LinkHex" xml:space="preserve">
+    <value>Hex</value>
+  </data>
+  <data name="Base64Encoder_LinkBase32" xml:space="preserve">
+    <value>Base32</value>
+  </data>
+  <data name="Base64Encoder_LinkBase58" xml:space="preserve">
+    <value>Base58</value>
+  </data>
+  <data name="Base64Encoder_LinkUrl" xml:space="preserve">
+    <value>URL</value>
+  </data>
+
+  <data name="Base64Encoder_InputTextLabel" xml:space="preserve">
+    <value>Entrada (texto)</value>
+  </data>
+  <data name="Base64Encoder_InputTextPlaceholder" xml:space="preserve">
+    <value>Introduce texto o Base64...</value>
+  </data>
+  <data name="Base64Encoder_InputFileLabel" xml:space="preserve">
+    <value>Archivo de entrada</value>
+  </data>
+  <data name="Base64Encoder_FileHint" xml:space="preserve">
+    <value>Si seleccionas un archivo, se usará en lugar del texto.</value>
+  </data>
+
+  <data name="Base64Encoder_CharsetLabel" xml:space="preserve">
+    <value>Codificación del texto</value>
+  </data>
+  <data name="Base64Encoder_AlphabetLabel" xml:space="preserve">
+    <value>Alfabeto</value>
+  </data>
+  <data name="Base64Encoder_AlphabetStandard" xml:space="preserve">
+    <value>Estándar (+/)</value>
+  </data>
+  <data name="Base64Encoder_AlphabetUrlSafe" xml:space="preserve">
+    <value>URL-safe (-_)</value>
+  </data>
+  <data name="Base64Encoder_PaddingLabel" xml:space="preserve">
+    <value>Relleno</value>
+  </data>
+  <data name="Base64Encoder_PaddingRequired" xml:space="preserve">
+    <value>Requerido</value>
+  </data>
+  <data name="Base64Encoder_PaddingOptional" xml:space="preserve">
+    <value>Opcional</value>
+  </data>
+  <data name="Base64Encoder_PaddingNone" xml:space="preserve">
+    <value>Sin relleno</value>
+  </data>
+  <data name="Base64Encoder_LineWrapLabel" xml:space="preserve">
+    <value>Salto de línea</value>
+  </data>
+  <data name="Base64Encoder_LineWrapNone" xml:space="preserve">
+    <value>Ninguno</value>
+  </data>
+  <data name="Base64Encoder_LineWrap76" xml:space="preserve">
+    <value>76 caracteres</value>
+  </data>
+  <data name="Base64Encoder_DecodeOptionsLabel" xml:space="preserve">
+    <value>Opciones de decodificación</value>
+  </data>
+  <data name="Base64Encoder_AllowWhitespace" xml:space="preserve">
+    <value>Permitir espacios/saltos de línea</value>
+  </data>
+  <data name="Base64Encoder_OutputModeLabel" xml:space="preserve">
+    <value>Salida para archivo</value>
+  </data>
+  <data name="Base64Encoder_OutputModePreview" xml:space="preserve">
+    <value>Vista previa en salida (descarga completa)</value>
+  </data>
+  <data name="Base64Encoder_OutputModeFull" xml:space="preserve">
+    <value>Mostrar completo (puede ser lento)</value>
+  </data>
+
+  <data name="Base64Encoder_ActionEncode" xml:space="preserve">
+    <value>Codificar</value>
+  </data>
+  <data name="Base64Encoder_ActionDecode" xml:space="preserve">
+    <value>Decodificar</value>
+  </data>
+  <data name="Base64Encoder_ActionSwap" xml:space="preserve">
+    <value>Intercambiar</value>
+  </data>
+  <data name="Base64Encoder_ActionClear" xml:space="preserve">
+    <value>Limpiar</value>
+  </data>
+  <data name="Base64Encoder_OutputLabel" xml:space="preserve">
+    <value>Salida</value>
+  </data>
+  <data name="Base64Encoder_Copy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="Base64Encoder_Copied" xml:space="preserve">
+    <value>¡Copiado!</value>
+  </data>
+  <data name="Base64Encoder_Download" xml:space="preserve">
+    <value>Descargar</value>
+  </data>
+  <data name="Base64Encoder_FileProgressTitle" xml:space="preserve">
+    <value>Procesando archivo...</value>
+  </data>
+  <data name="Base64Encoder_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
   </data>
 </root>

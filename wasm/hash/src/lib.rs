@@ -39,10 +39,19 @@ enum Algorithm {
     Sha3_224,
     Sha3_384,
     Sha3_512,
+    Keccak224,
+    Keccak256,
+    Keccak384,
+    Keccak512,
     Blake3,
     Blake2b512,
     Blake2s256,
     Ripemd160,
+    Ripemd128,
+    Ripemd256,
+    Ripemd320,
+    Xxh32,
+    Xxh64,
     Xxh3_64,
     FxHash64,
     Fnv1a64,
@@ -70,10 +79,19 @@ impl Algorithm {
             "sha3-224" | "sha3_224" => Some(Self::Sha3_224),
             "sha3-384" | "sha3_384" => Some(Self::Sha3_384),
             "sha3-512" | "sha3_512" => Some(Self::Sha3_512),
+            "keccak-224" | "keccak224" => Some(Self::Keccak224),
+            "keccak-256" | "keccak256" | "keccak" => Some(Self::Keccak256),
+            "keccak-384" | "keccak384" => Some(Self::Keccak384),
+            "keccak-512" | "keccak512" => Some(Self::Keccak512),
             "blake3" | "blake-3" => Some(Self::Blake3),
             "blake2b" | "blake2b-512" | "blake2b512" => Some(Self::Blake2b512),
             "blake2s" | "blake2s-256" | "blake2s256" => Some(Self::Blake2s256),
             "ripemd160" | "ripemd-160" => Some(Self::Ripemd160),
+            "ripemd128" | "ripemd-128" => Some(Self::Ripemd128),
+            "ripemd256" | "ripemd-256" => Some(Self::Ripemd256),
+            "ripemd320" | "ripemd-320" => Some(Self::Ripemd320),
+            "xxh32" | "xxhash32" | "xxhash-32" => Some(Self::Xxh32),
+            "xxh64" | "xxhash64" | "xxhash-64" => Some(Self::Xxh64),
             "xxh3" | "xxh3-64" | "xxhash" => Some(Self::Xxh3_64),
             "fxhash" | "fxhash64" => Some(Self::FxHash64),
             "fnv" | "fnv1a" | "fnv1a64" => Some(Self::Fnv1a64),
@@ -102,10 +120,19 @@ enum HasherImpl {
     Sha3_224(sha3::Sha3_224),
     Sha3_384(sha3::Sha3_384),
     Sha3_512(sha3::Sha3_512),
+    Keccak224(sha3::Keccak224),
+    Keccak256(sha3::Keccak256),
+    Keccak384(sha3::Keccak384),
+    Keccak512(sha3::Keccak512),
     Blake3(blake3::Hasher),
     Blake2b512(blake2::Blake2b512),
     Blake2s256(blake2::Blake2s256),
     Ripemd160(ripemd::Ripemd160),
+    Ripemd128(ripemd::Ripemd128),
+    Ripemd256(ripemd::Ripemd256),
+    Ripemd320(ripemd::Ripemd320),
+    Xxh32(xxhash_rust::xxh32::Xxh32),
+    Xxh64(xxhash_rust::xxh64::Xxh64),
     Xxh3_64(xxhash_rust::xxh3::Xxh3),
     FxHash64(rustc_hash::FxHasher),
     Fnv1a64(fnv::FnvHasher),
@@ -133,10 +160,19 @@ impl HasherImpl {
             Algorithm::Sha3_224 => Self::Sha3_224(sha3::Sha3_224::new()),
             Algorithm::Sha3_384 => Self::Sha3_384(sha3::Sha3_384::new()),
             Algorithm::Sha3_512 => Self::Sha3_512(sha3::Sha3_512::new()),
+            Algorithm::Keccak224 => Self::Keccak224(sha3::Keccak224::new()),
+            Algorithm::Keccak256 => Self::Keccak256(sha3::Keccak256::new()),
+            Algorithm::Keccak384 => Self::Keccak384(sha3::Keccak384::new()),
+            Algorithm::Keccak512 => Self::Keccak512(sha3::Keccak512::new()),
             Algorithm::Blake3 => Self::Blake3(blake3::Hasher::new()),
             Algorithm::Blake2b512 => Self::Blake2b512(blake2::Blake2b512::new()),
             Algorithm::Blake2s256 => Self::Blake2s256(blake2::Blake2s256::new()),
             Algorithm::Ripemd160 => Self::Ripemd160(ripemd::Ripemd160::new()),
+            Algorithm::Ripemd128 => Self::Ripemd128(ripemd::Ripemd128::new()),
+            Algorithm::Ripemd256 => Self::Ripemd256(ripemd::Ripemd256::new()),
+            Algorithm::Ripemd320 => Self::Ripemd320(ripemd::Ripemd320::new()),
+            Algorithm::Xxh32 => Self::Xxh32(xxhash_rust::xxh32::Xxh32::new(0)),
+            Algorithm::Xxh64 => Self::Xxh64(xxhash_rust::xxh64::Xxh64::new(0)),
             Algorithm::Xxh3_64 => Self::Xxh3_64(xxhash_rust::xxh3::Xxh3::new()),
             Algorithm::FxHash64 => Self::FxHash64(rustc_hash::FxHasher::default()),
             Algorithm::Fnv1a64 => Self::Fnv1a64(fnv::FnvHasher::default()),
@@ -167,12 +203,21 @@ impl HasherImpl {
             Self::Sha3_224(h) => h.update(chunk),
             Self::Sha3_384(h) => h.update(chunk),
             Self::Sha3_512(h) => h.update(chunk),
+            Self::Keccak224(h) => h.update(chunk),
+            Self::Keccak256(h) => h.update(chunk),
+            Self::Keccak384(h) => h.update(chunk),
+            Self::Keccak512(h) => h.update(chunk),
             Self::Blake3(h) => {
                 h.update(chunk);
             }
             Self::Blake2b512(h) => h.update(chunk),
             Self::Blake2s256(h) => h.update(chunk),
             Self::Ripemd160(h) => h.update(chunk),
+            Self::Ripemd128(h) => h.update(chunk),
+            Self::Ripemd256(h) => h.update(chunk),
+            Self::Ripemd320(h) => h.update(chunk),
+            Self::Xxh32(h) => h.update(chunk),
+            Self::Xxh64(h) => h.write(chunk),
             Self::Xxh3_64(h) => h.write(chunk),
             Self::FxHash64(h) => h.write(chunk),
             Self::Fnv1a64(h) => h.write(chunk),
@@ -205,10 +250,19 @@ impl HasherImpl {
             Self::Sha3_224(h) => h.finalize().to_vec(),
             Self::Sha3_384(h) => h.finalize().to_vec(),
             Self::Sha3_512(h) => h.finalize().to_vec(),
+            Self::Keccak224(h) => h.finalize().to_vec(),
+            Self::Keccak256(h) => h.finalize().to_vec(),
+            Self::Keccak384(h) => h.finalize().to_vec(),
+            Self::Keccak512(h) => h.finalize().to_vec(),
             Self::Blake3(h) => h.finalize().as_bytes().to_vec(),
             Self::Blake2b512(h) => h.finalize().to_vec(),
             Self::Blake2s256(h) => h.finalize().to_vec(),
             Self::Ripemd160(h) => h.finalize().to_vec(),
+            Self::Ripemd128(h) => h.finalize().to_vec(),
+            Self::Ripemd256(h) => h.finalize().to_vec(),
+            Self::Ripemd320(h) => h.finalize().to_vec(),
+            Self::Xxh32(h) => u32_to_bytes_le(h.digest()).to_vec(),
+            Self::Xxh64(h) => u64_to_bytes_le(h.finish()).to_vec(),
             Self::Xxh3_64(h) => u64_to_bytes_le(h.finish()).to_vec(),
             Self::FxHash64(h) => u64_to_bytes_le(h.finish()).to_vec(),
             Self::Fnv1a64(h) => u64_to_bytes_le(h.finish()).to_vec(),
@@ -279,10 +333,19 @@ impl Hasher {
             Algorithm::Sha3_224 => "sha3-224".to_string(),
             Algorithm::Sha3_384 => "sha3-384".to_string(),
             Algorithm::Sha3_512 => "sha3-512".to_string(),
+            Algorithm::Keccak224 => "keccak-224".to_string(),
+            Algorithm::Keccak256 => "keccak-256".to_string(),
+            Algorithm::Keccak384 => "keccak-384".to_string(),
+            Algorithm::Keccak512 => "keccak-512".to_string(),
             Algorithm::Blake3 => "blake3".to_string(),
             Algorithm::Blake2b512 => "blake2b-512".to_string(),
             Algorithm::Blake2s256 => "blake2s-256".to_string(),
             Algorithm::Ripemd160 => "ripemd-160".to_string(),
+            Algorithm::Ripemd128 => "ripemd-128".to_string(),
+            Algorithm::Ripemd256 => "ripemd-256".to_string(),
+            Algorithm::Ripemd320 => "ripemd-320".to_string(),
+            Algorithm::Xxh32 => "xxh32".to_string(),
+            Algorithm::Xxh64 => "xxh64".to_string(),
             Algorithm::Xxh3_64 => "xxh3-64".to_string(),
             Algorithm::FxHash64 => "fxhash64".to_string(),
             Algorithm::Fnv1a64 => "fnv1a64".to_string(),
@@ -452,9 +515,37 @@ mod tests {
         let expected_sha3_512 = to_hex_lower(&sha3::Sha3_512::digest(input));
         assert_eq!(hash_bytes("sha3-512", input).unwrap(), expected_sha3_512);
 
+        // keccak-256
+        let expected_keccak_256 = to_hex_lower(&sha3::Keccak256::digest(input));
+        assert_eq!(hash_bytes("keccak-256", input).unwrap(), expected_keccak_256);
+
+        // keccak-512
+        let expected_keccak_512 = to_hex_lower(&sha3::Keccak512::digest(input));
+        assert_eq!(hash_bytes("keccak-512", input).unwrap(), expected_keccak_512);
+
         // ripemd-160
         let expected_ripemd = to_hex_lower(&ripemd::Ripemd160::digest(input));
         assert_eq!(hash_bytes("ripemd-160", input).unwrap(), expected_ripemd);
+
+        // ripemd-128
+        let expected_ripemd128 = to_hex_lower(&ripemd::Ripemd128::digest(input));
+        assert_eq!(hash_bytes("ripemd-128", input).unwrap(), expected_ripemd128);
+
+        // ripemd-256
+        let expected_ripemd256 = to_hex_lower(&ripemd::Ripemd256::digest(input));
+        assert_eq!(hash_bytes("ripemd-256", input).unwrap(), expected_ripemd256);
+
+        // ripemd-320
+        let expected_ripemd320 = to_hex_lower(&ripemd::Ripemd320::digest(input));
+        assert_eq!(hash_bytes("ripemd-320", input).unwrap(), expected_ripemd320);
+
+        // xxh32 (little-endian bytes in our wasm API)
+        let expected_xxh32 = to_hex_lower(&xxhash_rust::xxh32::xxh32(input, 0).to_le_bytes());
+        assert_eq!(hash_bytes("xxh32", input).unwrap(), expected_xxh32);
+
+        // xxh64 (little-endian bytes in our wasm API)
+        let expected_xxh64 = to_hex_lower(&xxhash_rust::xxh64::xxh64(input, 0).to_le_bytes());
+        assert_eq!(hash_bytes("xxh64", input).unwrap(), expected_xxh64);
 
         // xxh3-64 (little-endian bytes in our wasm API)
         let expected_xxh3 = to_hex_lower(&xxhash_rust::xxh3::xxh3_64(input).to_le_bytes());

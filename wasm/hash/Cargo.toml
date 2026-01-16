@@ -16,7 +16,7 @@ sha3 = "0.10"
 blake3 = "1"
 blake2 = "0.10"
 ripemd = "0.1"
-xxhash-rust = { version = "0.8", features = ["xxh3"] }
+xxhash-rust = { version = "0.8", features = ["xxh3", "xxh32", "xxh64"] }
 seahash = "4"
 fnv = "1"
 rustc-hash = "1.1"

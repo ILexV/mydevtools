@@ -69,6 +69,8 @@
 - [x] FxHash — crate: `rustc-hash`
 - [x] HighwayHash64 — crate: `highway` (фиксированный ключ)
 - [x] xxHash (xxh3) — crate: `xxhash-rust`
+- [x] xxHash32 — crate: `xxhash-rust`
+- [x] xxHash64 — crate: `xxhash-rust`
 - [ ] GxHash — crate: `gxhash`
 - [ ] Murmur3 — crate: `murmur3`
 - [ ] FarmHash — crate: `farmhash`
@@ -77,6 +79,12 @@
 - [x] FNV — crate: `fnv`
 - [x] SeaHash — crate: `seahash`
 - [x] RIPEMD-160 — crate: `ripemd`
+- [x] RIPEMD-128 — crate: `ripemd`
+- [x] RIPEMD-256 — crate: `ripemd`
+- [x] RIPEMD-320 — crate: `ripemd`
+
+- [x] Keccak-256 — crate: `sha3`
+- [x] Keccak-512 — crate: `sha3`
 
 ### Дополнительно (часто спрашивают; можно позже)
 

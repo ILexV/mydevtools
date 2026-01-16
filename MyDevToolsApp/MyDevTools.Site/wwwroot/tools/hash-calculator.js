@@ -552,10 +552,12 @@
 
             // Text input: if user types, clear file selection
             if (target instanceof HTMLTextAreaElement && target.id === 'input-text') {
+                // Always clear stale results on edit.
+                clearOutput(els.outputSection);
+
                 const text = (target.value || '').trim();
                 if (text.length > 0 && els.inputFile.value) {
                     els.inputFile.value = '';
-                    clearOutput(els.outputSection);
                 }
             }
         });

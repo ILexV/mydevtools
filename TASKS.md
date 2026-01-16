@@ -77,7 +77,7 @@
 
 - [x] SHA-1 — crate: `sha1` (единый wasm-путь)
 - [x] SHA-224 — crate: `sha2` (встречается в старых системах)
-- [ ] BLAKE2s — crate: `blake2` (полезно как "быстрый" вариант для небольших входов)
+- [x] BLAKE2s — crate: `blake2` (полезно как "быстрый" вариант для небольших входов)
 - [x] SipHash-1-3 / SipHash-2-4 — crate: `siphasher` (фиксированный ключ)
 - [x] CRC32 / Adler32 (checksums) — crate: `crc32fast` / `adler` (для файловых проверок, не крипто)
 

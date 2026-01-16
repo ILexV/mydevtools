@@ -36,6 +36,7 @@ enum Algorithm {
     Sha3_256,
     Blake3,
     Blake2b512,
+    Blake2s256,
     Ripemd160,
     Xxh3_64,
     FxHash64,
@@ -61,6 +62,7 @@ impl Algorithm {
             "sha3-256" | "sha3_256" | "sha3" => Some(Self::Sha3_256),
             "blake3" | "blake-3" => Some(Self::Blake3),
             "blake2b" | "blake2b-512" | "blake2b512" => Some(Self::Blake2b512),
+            "blake2s" | "blake2s-256" | "blake2s256" => Some(Self::Blake2s256),
             "ripemd160" | "ripemd-160" => Some(Self::Ripemd160),
             "xxh3" | "xxh3-64" | "xxhash" => Some(Self::Xxh3_64),
             "fxhash" | "fxhash64" => Some(Self::FxHash64),
@@ -87,6 +89,7 @@ enum HasherImpl {
     Sha3_256(sha3::Sha3_256),
     Blake3(blake3::Hasher),
     Blake2b512(blake2::Blake2b512),
+    Blake2s256(blake2::Blake2s256),
     Ripemd160(ripemd::Ripemd160),
     Xxh3_64(xxhash_rust::xxh3::Xxh3),
     FxHash64(rustc_hash::FxHasher),
@@ -112,6 +115,7 @@ impl HasherImpl {
             Algorithm::Sha3_256 => Self::Sha3_256(sha3::Sha3_256::new()),
             Algorithm::Blake3 => Self::Blake3(blake3::Hasher::new()),
             Algorithm::Blake2b512 => Self::Blake2b512(blake2::Blake2b512::new()),
+            Algorithm::Blake2s256 => Self::Blake2s256(blake2::Blake2s256::new()),
             Algorithm::Ripemd160 => Self::Ripemd160(ripemd::Ripemd160::new()),
             Algorithm::Xxh3_64 => Self::Xxh3_64(xxhash_rust::xxh3::Xxh3::new()),
             Algorithm::FxHash64 => Self::FxHash64(rustc_hash::FxHasher::default()),
@@ -142,6 +146,7 @@ impl HasherImpl {
                 h.update(chunk);
             }
             Self::Blake2b512(h) => h.update(chunk),
+            Self::Blake2s256(h) => h.update(chunk),
             Self::Ripemd160(h) => h.update(chunk),
             Self::Xxh3_64(h) => h.write(chunk),
             Self::FxHash64(h) => h.write(chunk),
@@ -172,6 +177,7 @@ impl HasherImpl {
             Self::Sha3_256(h) => h.finalize().to_vec(),
             Self::Blake3(h) => h.finalize().as_bytes().to_vec(),
             Self::Blake2b512(h) => h.finalize().to_vec(),
+            Self::Blake2s256(h) => h.finalize().to_vec(),
             Self::Ripemd160(h) => h.finalize().to_vec(),
             Self::Xxh3_64(h) => u64_to_bytes_le(h.finish()).to_vec(),
             Self::FxHash64(h) => u64_to_bytes_le(h.finish()).to_vec(),
@@ -240,6 +246,7 @@ impl Hasher {
             Algorithm::Sha3_256 => "sha3-256".to_string(),
             Algorithm::Blake3 => "blake3".to_string(),
             Algorithm::Blake2b512 => "blake2b-512".to_string(),
+            Algorithm::Blake2s256 => "blake2s-256".to_string(),
             Algorithm::Ripemd160 => "ripemd-160".to_string(),
             Algorithm::Xxh3_64 => "xxh3-64".to_string(),
             Algorithm::FxHash64 => "fxhash64".to_string(),
@@ -385,6 +392,10 @@ mod tests {
         // blake2b-512
         let expected_blake2b = to_hex_lower(&blake2::Blake2b512::digest(input));
         assert_eq!(hash_bytes("blake2b-512", input).unwrap(), expected_blake2b);
+
+        // blake2s-256
+        let expected_blake2s = to_hex_lower(&blake2::Blake2s256::digest(input));
+        assert_eq!(hash_bytes("blake2s-256", input).unwrap(), expected_blake2s);
 
         // ripemd-160
         let expected_ripemd = to_hex_lower(&ripemd::Ripemd160::digest(input));

@@ -1,5 +1,5 @@
 use wasm_bindgen::prelude::*;
-use digest::Digest;
+use digest::{Digest, ExtendableOutput, XofReader};
 use std::hash::Hasher as StdHasher;
 
 #[wasm_bindgen]
@@ -43,6 +43,8 @@ enum Algorithm {
     Keccak256,
     Keccak384,
     Keccak512,
+    Shake128_256,
+    Shake256_256,
     Blake3,
     Blake2b512,
     Blake2s256,
@@ -83,6 +85,8 @@ impl Algorithm {
             "keccak-256" | "keccak256" | "keccak" => Some(Self::Keccak256),
             "keccak-384" | "keccak384" => Some(Self::Keccak384),
             "keccak-512" | "keccak512" => Some(Self::Keccak512),
+            "shake128" | "shake128-256" | "shake128_256" => Some(Self::Shake128_256),
+            "shake256" | "shake256-256" | "shake256_256" => Some(Self::Shake256_256),
             "blake3" | "blake-3" => Some(Self::Blake3),
             "blake2b" | "blake2b-512" | "blake2b512" => Some(Self::Blake2b512),
             "blake2s" | "blake2s-256" | "blake2s256" => Some(Self::Blake2s256),
@@ -124,6 +128,8 @@ enum HasherImpl {
     Keccak256(sha3::Keccak256),
     Keccak384(sha3::Keccak384),
     Keccak512(sha3::Keccak512),
+    Shake128_256(sha3::Shake128),
+    Shake256_256(sha3::Shake256),
     Blake3(blake3::Hasher),
     Blake2b512(blake2::Blake2b512),
     Blake2s256(blake2::Blake2s256),
@@ -164,6 +170,8 @@ impl HasherImpl {
             Algorithm::Keccak256 => Self::Keccak256(sha3::Keccak256::new()),
             Algorithm::Keccak384 => Self::Keccak384(sha3::Keccak384::new()),
             Algorithm::Keccak512 => Self::Keccak512(sha3::Keccak512::new()),
+            Algorithm::Shake128_256 => Self::Shake128_256(sha3::Shake128::default()),
+            Algorithm::Shake256_256 => Self::Shake256_256(sha3::Shake256::default()),
             Algorithm::Blake3 => Self::Blake3(blake3::Hasher::new()),
             Algorithm::Blake2b512 => Self::Blake2b512(blake2::Blake2b512::new()),
             Algorithm::Blake2s256 => Self::Blake2s256(blake2::Blake2s256::new()),
@@ -207,6 +215,8 @@ impl HasherImpl {
             Self::Keccak256(h) => h.update(chunk),
             Self::Keccak384(h) => h.update(chunk),
             Self::Keccak512(h) => h.update(chunk),
+            Self::Shake128_256(h) => digest::Update::update(h, chunk),
+            Self::Shake256_256(h) => digest::Update::update(h, chunk),
             Self::Blake3(h) => {
                 h.update(chunk);
             }
@@ -254,6 +264,18 @@ impl HasherImpl {
             Self::Keccak256(h) => h.finalize().to_vec(),
             Self::Keccak384(h) => h.finalize().to_vec(),
             Self::Keccak512(h) => h.finalize().to_vec(),
+            Self::Shake128_256(h) => {
+                let mut reader = h.finalize_xof();
+                let mut out = [0u8; 32];
+                reader.read(&mut out);
+                out.to_vec()
+            }
+            Self::Shake256_256(h) => {
+                let mut reader = h.finalize_xof();
+                let mut out = [0u8; 32];
+                reader.read(&mut out);
+                out.to_vec()
+            }
             Self::Blake3(h) => h.finalize().as_bytes().to_vec(),
             Self::Blake2b512(h) => h.finalize().to_vec(),
             Self::Blake2s256(h) => h.finalize().to_vec(),
@@ -337,6 +359,8 @@ impl Hasher {
             Algorithm::Keccak256 => "keccak-256".to_string(),
             Algorithm::Keccak384 => "keccak-384".to_string(),
             Algorithm::Keccak512 => "keccak-512".to_string(),
+            Algorithm::Shake128_256 => "shake128-256".to_string(),
+            Algorithm::Shake256_256 => "shake256-256".to_string(),
             Algorithm::Blake3 => "blake3".to_string(),
             Algorithm::Blake2b512 => "blake2b-512".to_string(),
             Algorithm::Blake2s256 => "blake2s-256".to_string(),
@@ -387,6 +411,7 @@ pub fn placeholder_hash(input: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use digest::{ExtendableOutput, Update, XofReader};
 
     #[test]
     fn placeholder_hash_is_stable() {
@@ -519,9 +544,35 @@ mod tests {
         let expected_keccak_256 = to_hex_lower(&sha3::Keccak256::digest(input));
         assert_eq!(hash_bytes("keccak-256", input).unwrap(), expected_keccak_256);
 
+        // keccak-224
+        let expected_keccak_224 = to_hex_lower(&sha3::Keccak224::digest(input));
+        assert_eq!(hash_bytes("keccak-224", input).unwrap(), expected_keccak_224);
+
+        // keccak-384
+        let expected_keccak_384 = to_hex_lower(&sha3::Keccak384::digest(input));
+        assert_eq!(hash_bytes("keccak-384", input).unwrap(), expected_keccak_384);
+
         // keccak-512
         let expected_keccak_512 = to_hex_lower(&sha3::Keccak512::digest(input));
         assert_eq!(hash_bytes("keccak-512", input).unwrap(), expected_keccak_512);
+
+        // shake128-256 (fixed 32 bytes)
+        let mut shake128 = sha3::Shake128::default();
+        shake128.update(input);
+        let mut reader128 = shake128.finalize_xof();
+        let mut out128 = [0u8; 32];
+        reader128.read(&mut out128);
+        let expected_shake128_256 = to_hex_lower(&out128);
+        assert_eq!(hash_bytes("shake128-256", input).unwrap(), expected_shake128_256);
+
+        // shake256-256 (fixed 32 bytes)
+        let mut shake256 = sha3::Shake256::default();
+        shake256.update(input);
+        let mut reader256 = shake256.finalize_xof();
+        let mut out256 = [0u8; 32];
+        reader256.read(&mut out256);
+        let expected_shake256_256 = to_hex_lower(&out256);
+        assert_eq!(hash_bytes("shake256-256", input).unwrap(), expected_shake256_256);
 
         // ripemd-160
         let expected_ripemd = to_hex_lower(&ripemd::Ripemd160::digest(input));

@@ -85,6 +85,11 @@
 
 - [x] Keccak-256 — crate: `sha3`
 - [x] Keccak-512 — crate: `sha3`
+- [x] Keccak-224 — crate: `sha3`
+- [x] Keccak-384 — crate: `sha3`
+
+- [x] SHAKE128-256 (фиксированный вывод 256 бит) — crate: `sha3`
+- [x] SHAKE256-256 (фиксированный вывод 256 бит) — crate: `sha3`
 
 ### Дополнительно (часто спрашивают; можно позже)
 

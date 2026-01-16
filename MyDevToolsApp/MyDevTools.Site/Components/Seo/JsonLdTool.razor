@@ -15,6 +15,9 @@
     [Parameter]
     public string? CurrentUrl { get; set; }
 
+    [Parameter]
+    public IReadOnlyDictionary<string, string>? SupportedAlgorithms { get; set; }
+
     private string GenerateJsonLd()
     {
         var jsonLd = new Dictionary<string, object?>
@@ -33,6 +36,23 @@
                 ["priceCurrency"] = "USD"
             }
         };
+
+        if (!string.IsNullOrWhiteSpace(CurrentUrl))
+        {
+            jsonLd["url"] = CurrentUrl;
+        }
+
+        if (SupportedAlgorithms is { Count: > 0 })
+        {
+            jsonLd["additionalProperty"] = SupportedAlgorithms
+                .Select(kvp => new Dictionary<string, object?>
+                {
+                    ["@type"] = "PropertyValue",
+                    ["name"] = kvp.Key,
+                    ["value"] = kvp.Value
+                })
+                .ToArray();
+        }
 
         return JsonSerializer.Serialize(jsonLd, new JsonSerializerOptions
         {

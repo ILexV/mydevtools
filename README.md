@@ -29,7 +29,8 @@
   - 🇪🇸 Испанский (es)
 - ✅ **Strongly-Typed Resources** — compile-time безопасность для переводов
 - ✅ **Темная/Светлая тема** — CSS-переменные для кастомизации
-- ✅ **Первый инструмент: Hash Calculator** — MD5/SHA-1/SHA-224/SHA-256/SHA-384/SHA-512/SHA-3-256 (всё через WASM)
+- ✅ **Первый инструмент: Hash Calculator** — хэши строк и файлов (streaming) через Rust→WASM.
+  Поддерживаются: MD5, SHA-1/2/3, Keccak, SHAKE, BLAKE2/3, RIPEMD, CRC32/Adler32, xxHash, SipHash, HighwayHash, MetroHash, FNV/FxHash/SeaHash, Streebog-256/512 (ГОСТ Р 34.11-2012).
 - ✅ **SEO компоненты** — MetaTags, JSON-LD, Hreflang
 - ✅ **Переиспользуемые UI компоненты** — ToolLayout, LoadingSkeleton, ThemeToggle
 
@@ -45,10 +46,10 @@
 * **.NET 10** — последняя версия платформы
 * **Blazor Web App (SSR)** — server-side rendering без WebSocket
 * **Blazor Components** — переиспользуемые UI компоненты
-* **WebAssembly** (планируется)
+* **WebAssembly** (используется)
   * основной язык WASM: **Rust**
   * C# используется только для UI и orchestration
-* **Web Crypto API** — временное решение для хэшей (до WASM)
+* **Web Crypto API** — опционально (для некоторых сценариев), но Hash Calculator считает всё через WASM
 * **Cloudflare CDN** — кэширование статики (планируется)
 * **Без server-side API для обработки данных**
 
@@ -98,7 +99,7 @@
     ├── cryptography/   # Rust → WASM: шифрование/подпись/ключи (планируется)
     ├── encoding/       # Rust → WASM: hex/base64/url/… (планируется)
   ├── structured_data/ # Rust → WASM: JSON/XML/YAML форматирование + валидация (планируется)
-    └── hash/           # Rust → WASM: хэши строк/файлов (планируется)
+    └── hash/           # Rust → WASM: хэши строк/файлов (реализовано)
   └── build.ps1       # Сборка cargo+wasm-bindgen → wwwroot/wasm/<domain>
 ```
 

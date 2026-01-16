@@ -58,8 +58,8 @@
 - [x] SHA-512 — crate: `sha2`
 - [x] SHA-512/224 — crate: `sha2`
 - [x] SHA-512/256 — crate: `sha2`
-- [x] Streebog-256 — crate: `streebog`
-- [x] Streebog-512 — crate: `streebog`
+- [x] Streebog-256 (ГОСТ Р 34.11-2012) — crate: `streebog`
+- [x] Streebog-512 (ГОСТ Р 34.11-2012) — crate: `streebog`
 - [x] SHA-384 — crate: `sha2`
 - [x] SHA-3-256 — crate: `sha3`
 - [x] SHA-3-224 — crate: `sha3`

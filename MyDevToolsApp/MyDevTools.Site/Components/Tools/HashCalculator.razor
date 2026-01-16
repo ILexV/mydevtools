@@ -10,7 +10,8 @@
 
 <JsonLdTool ToolName="@AppStrings.HashCalculator_Title" 
             Description="@AppStrings.HashCalculator_Description" 
-            CurrentUrl="@Navigation.Uri" />
+            CurrentUrl="@Navigation.Uri"
+            SupportedAlgorithms="@SupportedHashAlgorithms" />
 
 <ToolLayout Title="@AppStrings.HashCalculator_Title" Description="@AppStrings.HashCalculator_Description">
     <div id="hash-calculator-root"
@@ -54,4 +55,48 @@
 @code {
     [Parameter]
     public string Lang { get; set; } = "en";
+
+    private static readonly IReadOnlyDictionary<string, string> SupportedHashAlgorithms =
+        new Dictionary<string, string>
+        {
+            ["MD5"] = "md5",
+            ["SHA-1"] = "sha1",
+            ["SHA-224"] = "sha224",
+            ["SHA-256"] = "sha256",
+            ["SHA-384"] = "sha384",
+            ["SHA-512"] = "sha512",
+            ["SHA-512/224"] = "sha512-224",
+            ["SHA-512/256"] = "sha512-256",
+            ["Streebog-256 (ГОСТ Р 34.11-2012)"] = "streebog-256",
+            ["Streebog-512 (ГОСТ Р 34.11-2012)"] = "streebog-512",
+            ["SHA-3-224"] = "sha3-224",
+            ["SHA-3-256"] = "sha3-256",
+            ["SHA-3-384"] = "sha3-384",
+            ["SHA-3-512"] = "sha3-512",
+            ["Keccak-224"] = "keccak-224",
+            ["Keccak-256"] = "keccak-256",
+            ["Keccak-384"] = "keccak-384",
+            ["Keccak-512"] = "keccak-512",
+            ["SHAKE128-256"] = "shake128-256",
+            ["SHAKE256-256"] = "shake256-256",
+            ["BLAKE3"] = "blake3",
+            ["BLAKE2b-512"] = "blake2b-512",
+            ["BLAKE2s-256"] = "blake2s-256",
+            ["RIPEMD-160"] = "ripemd-160",
+            ["RIPEMD-128"] = "ripemd-128",
+            ["RIPEMD-256"] = "ripemd-256",
+            ["RIPEMD-320"] = "ripemd-320",
+            ["CRC32"] = "crc32",
+            ["Adler-32"] = "adler32",
+            ["xxh32"] = "xxh32",
+            ["xxh64"] = "xxh64",
+            ["xxh3-64"] = "xxh3-64",
+            ["SipHash-1-3"] = "siphash-1-3",
+            ["SipHash-2-4"] = "siphash-2-4",
+            ["HighwayHash64"] = "highwayhash64",
+            ["MetroHash64"] = "metrohash64",
+            ["FxHash64"] = "fxhash64",
+            ["FNV-1a 64"] = "fnv1a64",
+            ["SeaHash64"] = "seahash64",
+        };
 }

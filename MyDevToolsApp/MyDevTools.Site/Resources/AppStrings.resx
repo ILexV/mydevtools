@@ -82,6 +82,30 @@
   <data name="Home_Subtitle" xml:space="preserve">
     <value>Privacy-first tools for developers. All processing happens in your browser.</value>
   </data>
+  <data name="Home_FeaturePrivacyTitle" xml:space="preserve">
+    <value>Privacy First</value>
+  </data>
+  <data name="Home_FeaturePrivacyDescription" xml:space="preserve">
+    <value>All processing happens in your browser. Zero data sent to servers.</value>
+  </data>
+  <data name="Home_FeatureWasmTitle" xml:space="preserve">
+    <value>Fast &amp; Efficient</value>
+  </data>
+  <data name="Home_FeatureWasmDescription" xml:space="preserve">
+    <value>Powered by WebAssembly for native-like performance.</value>
+  </data>
+  <data name="Home_FeatureLanguagesTitle" xml:space="preserve">
+    <value>Multilingual</value>
+  </data>
+  <data name="Home_FeatureLanguagesDescription" xml:space="preserve">
+    <value>Available in multiple languages for developers worldwide.</value>
+  </data>
+  <data name="Home_FeatureAlgorithmsTitle" xml:space="preserve">
+    <value>Choose What You Need</value>
+  </data>
+  <data name="Home_FeatureAlgorithmsDescription" xml:space="preserve">
+    <value>Select the algorithms you want and save your set in the browser.</value>
+  </data>
   <data name="Home_NoDataSent" xml:space="preserve">
     <value>No data is sent to the server</value>
   </data>
@@ -91,7 +115,7 @@
     <value>Hash Calculator</value>
   </data>
   <data name="HashCalculator_Description" xml:space="preserve">
-    <value>Calculate MD5, SHA-1, SHA-256, SHA-512 hashes from text or files</value>
+    <value>Calculate hashes using selected algorithms (MD5, SHA-1, SHA-256 and more) for text or files — all in your browser</value>
   </data>
   <data name="HashCalculator_InputLabel" xml:space="preserve">
     <value>Input Text</value>
@@ -122,6 +146,25 @@
   </data>
   <data name="HashCalculator_Copied" xml:space="preserve">
     <value>Copied!</value>
+  </data>
+
+  <data name="HashCalculator_AlgorithmsTitle" xml:space="preserve">
+    <value>Algorithms</value>
+  </data>
+  <data name="HashCalculator_AlgorithmsSelected" xml:space="preserve">
+    <value>Selected</value>
+  </data>
+  <data name="HashCalculator_AlgorithmsAvailable" xml:space="preserve">
+    <value>Available</value>
+  </data>
+  <data name="HashCalculator_AlgorithmsSearchPlaceholder" xml:space="preserve">
+    <value>Search algorithms...</value>
+  </data>
+  <data name="HashCalculator_AlgorithmsReset" xml:space="preserve">
+    <value>Reset to defaults</value>
+  </data>
+  <data name="HashCalculator_SelectAtLeastOneAlgorithm" xml:space="preserve">
+    <value>Select at least one algorithm.</value>
   </data>
   
   <!-- Common Labels -->

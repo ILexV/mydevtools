@@ -33,6 +33,30 @@
   <data name="Home_Subtitle" xml:space="preserve">
     <value>Инструменты для разработчиков с приоритетом конфиденциальности. Вся обработка происходит в вашем браузере.</value>
   </data>
+  <data name="Home_FeaturePrivacyTitle" xml:space="preserve">
+    <value>Конфиденциальность</value>
+  </data>
+  <data name="Home_FeaturePrivacyDescription" xml:space="preserve">
+    <value>Вся обработка происходит в браузере. Никакие данные не отправляются на сервер.</value>
+  </data>
+  <data name="Home_FeatureWasmTitle" xml:space="preserve">
+    <value>Быстро и эффективно</value>
+  </data>
+  <data name="Home_FeatureWasmDescription" xml:space="preserve">
+    <value>WebAssembly даёт производительность, близкую к нативной.</value>
+  </data>
+  <data name="Home_FeatureLanguagesTitle" xml:space="preserve">
+    <value>Несколько языков</value>
+  </data>
+  <data name="Home_FeatureLanguagesDescription" xml:space="preserve">
+    <value>Доступно на нескольких языках для разработчиков по всему миру.</value>
+  </data>
+  <data name="Home_FeatureAlgorithmsTitle" xml:space="preserve">
+    <value>Только нужные алгоритмы</value>
+  </data>
+  <data name="Home_FeatureAlgorithmsDescription" xml:space="preserve">
+    <value>Выбирайте нужные алгоритмы и сохраняйте набор в браузере.</value>
+  </data>
   <data name="Home_NoDataSent" xml:space="preserve">
     <value>Никакие данные не отправляются на сервер</value>
   </data>
@@ -41,7 +65,7 @@
     <value>Калькулятор хэшей</value>
   </data>
   <data name="HashCalculator_Description" xml:space="preserve">
-    <value>Вычисление MD5, SHA-1, SHA-256, SHA-512 хэшей из текста или файлов</value>
+    <value>Вычисляйте хэши по выбранным алгоритмам (MD5, SHA-1, SHA-256 и другие) для текста или файлов — всё прямо в браузере</value>
   </data>
   <data name="HashCalculator_InputLabel" xml:space="preserve">
     <value>Входной текст</value>
@@ -72,6 +96,25 @@
   </data>
   <data name="HashCalculator_Copied" xml:space="preserve">
     <value>Скопировано!</value>
+  </data>
+
+  <data name="HashCalculator_AlgorithmsTitle" xml:space="preserve">
+    <value>Алгоритмы</value>
+  </data>
+  <data name="HashCalculator_AlgorithmsSelected" xml:space="preserve">
+    <value>Выбранные</value>
+  </data>
+  <data name="HashCalculator_AlgorithmsAvailable" xml:space="preserve">
+    <value>Доступные</value>
+  </data>
+  <data name="HashCalculator_AlgorithmsSearchPlaceholder" xml:space="preserve">
+    <value>Поиск алгоритмов...</value>
+  </data>
+  <data name="HashCalculator_AlgorithmsReset" xml:space="preserve">
+    <value>Сбросить по умолчанию</value>
+  </data>
+  <data name="HashCalculator_SelectAtLeastOneAlgorithm" xml:space="preserve">
+    <value>Выберите хотя бы один алгоритм.</value>
   </data>
   
   <data name="Common_Input" xml:space="preserve">

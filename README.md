@@ -29,15 +29,19 @@
   - 🇪🇸 Испанский (es)
 - ✅ **Strongly-Typed Resources** — compile-time безопасность для переводов
 - ✅ **Темная/Светлая тема** — CSS-переменные для кастомизации
-- ✅ **Первый инструмент: Hash Calculator** — хэши строк и файлов (streaming) через Rust→WASM.
+- ✅ **Первый инструмент: Hash Calculator** — хэши текста и файлов (streaming) через Rust→WASM.
+  - вычисляет **только по выбранным алгоритмам** (для файла — по кнопке, для текста — можно пересчитать сразу)
+  - выбор алгоритмов сохраняется в **localStorage** (по умолчанию: **MD5, SHA-1, SHA-256**)
+  - большой список алгоритмов: поиск, «выбранные сверху», сортировка по алфавиту
+  - прогресс и отмена для файлов, кнопка копирования результата
   Поддерживаются: MD5, SHA-1/2/3, Keccak, SHAKE, BLAKE2/3, RIPEMD, CRC32/Adler32, xxHash, SipHash, HighwayHash, MetroHash, FNV/FxHash/SeaHash, Streebog-256/512 (ГОСТ Р 34.11-2012).
 - ✅ **SEO компоненты** — MetaTags, JSON-LD, Hreflang
 - ✅ **Переиспользуемые UI компоненты** — ToolLayout, LoadingSkeleton, ThemeToggle
 
 ### 🚧 В разработке
 
-- 🔜 **WASM интеграция** — замена JavaScript на Rust WASM модули
-- 🔜 **Дополнительные инструменты** — JSON Beautifier, Base64, XML Formatter
+- 🔜 **Новые инструменты** — JSON Beautifier, Base64, XML Formatter
+- 🔜 **WASM домены** — расширение набора Rust→WASM модулей (encoding/structured_data/cryptography)
 
 ---
 
@@ -68,7 +72,7 @@
 
 * ✅ Server-Side Rendering **только для HTML**
 * ✅ Client-side JavaScript для UI интерактивности
-* ✅ Client-side WASM для всех вычислений (будущая замена JS)
+* ✅ Client-side WASM для вычислений (а JS — для UI)
 * ✅ Сервер — только:
   * SSR
   * отдача статики

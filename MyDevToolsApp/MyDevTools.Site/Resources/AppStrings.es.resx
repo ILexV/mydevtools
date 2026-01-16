@@ -33,6 +33,30 @@
   <data name="Home_Subtitle" xml:space="preserve">
     <value>Herramientas para desarrolladores que priorizan la privacidad. Todo el procesamiento ocurre en tu navegador.</value>
   </data>
+  <data name="Home_FeaturePrivacyTitle" xml:space="preserve">
+    <value>Privacidad Primero</value>
+  </data>
+  <data name="Home_FeaturePrivacyDescription" xml:space="preserve">
+    <value>Todo el procesamiento ocurre en su navegador. No se envían datos a servidores.</value>
+  </data>
+  <data name="Home_FeatureWasmTitle" xml:space="preserve">
+    <value>Rápido y Eficiente</value>
+  </data>
+  <data name="Home_FeatureWasmDescription" xml:space="preserve">
+    <value>Impulsado por WebAssembly para un rendimiento similar al nativo.</value>
+  </data>
+  <data name="Home_FeatureLanguagesTitle" xml:space="preserve">
+    <value>Multilingüe</value>
+  </data>
+  <data name="Home_FeatureLanguagesDescription" xml:space="preserve">
+    <value>Disponible en varios idiomas para desarrolladores de todo el mundo.</value>
+  </data>
+  <data name="Home_FeatureAlgorithmsTitle" xml:space="preserve">
+    <value>Elija lo que necesite</value>
+  </data>
+  <data name="Home_FeatureAlgorithmsDescription" xml:space="preserve">
+    <value>Seleccione los algoritmos que quiera y guarde su conjunto en el navegador.</value>
+  </data>
   <data name="Home_NoDataSent" xml:space="preserve">
     <value>No se env?an datos al servidor</value>
   </data>
@@ -41,7 +65,7 @@
     <value>Calculadora de Hash</value>
   </data>
   <data name="HashCalculator_Description" xml:space="preserve">
-    <value>Calcular hashes MD5, SHA-1, SHA-256, SHA-512 desde texto o archivos</value>
+    <value>Calcule hashes con los algoritmos seleccionados (MD5, SHA-1, SHA-256 y más) para texto o archivos — todo en su navegador</value>
   </data>
   <data name="HashCalculator_InputLabel" xml:space="preserve">
     <value>Texto de entrada</value>
@@ -72,6 +96,25 @@
   </data>
   <data name="HashCalculator_Copied" xml:space="preserve">
     <value>?Copiado!</value>
+  </data>
+
+  <data name="HashCalculator_AlgorithmsTitle" xml:space="preserve">
+    <value>Algoritmos</value>
+  </data>
+  <data name="HashCalculator_AlgorithmsSelected" xml:space="preserve">
+    <value>Seleccionados</value>
+  </data>
+  <data name="HashCalculator_AlgorithmsAvailable" xml:space="preserve">
+    <value>Disponibles</value>
+  </data>
+  <data name="HashCalculator_AlgorithmsSearchPlaceholder" xml:space="preserve">
+    <value>Buscar algoritmos...</value>
+  </data>
+  <data name="HashCalculator_AlgorithmsReset" xml:space="preserve">
+    <value>Restablecer valores predeterminados</value>
+  </data>
+  <data name="HashCalculator_SelectAtLeastOneAlgorithm" xml:space="preserve">
+    <value>Seleccione al menos un algoritmo.</value>
   </data>
   
   <data name="Common_Input" xml:space="preserve">

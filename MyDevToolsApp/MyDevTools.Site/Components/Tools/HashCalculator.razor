@@ -1,5 +1,6 @@
 @page "/{lang}/hash-calculator"
 @using MyDevTools.Site.Resources
+@using System.Text.Json
 @inject NavigationManager Navigation
 
 <MetaTags Title="@AppStrings.HashCalculator_Title" 
@@ -22,6 +23,12 @@
          data-cancel="@AppStrings.HashCalculator_Cancel"
          data-copy="@AppStrings.HashCalculator_Copy"
          data-copied="@AppStrings.HashCalculator_Copied"
+         data-algorithms-title="@AppStrings.HashCalculator_AlgorithmsTitle"
+         data-algorithms-selected="@AppStrings.HashCalculator_AlgorithmsSelected"
+         data-algorithms-available="@AppStrings.HashCalculator_AlgorithmsAvailable"
+         data-algorithms-search="@AppStrings.HashCalculator_AlgorithmsSearchPlaceholder"
+         data-algorithms-reset="@AppStrings.HashCalculator_AlgorithmsReset"
+         data-algorithms-select-one="@AppStrings.HashCalculator_SelectAtLeastOneAlgorithm"
          data-canceled="Canceled">
 
     <div class="tool-grid">
@@ -43,6 +50,29 @@
                     @AppStrings.HashCalculator_Clear
                 </button>
             </div>
+
+            <div class="algo-picker" id="hash-algo-picker">
+                <div class="algo-picker-header">
+                    <div class="algo-picker-title" id="hash-algo-title"></div>
+                    <div class="algo-picker-actions">
+                        <div class="algo-selected-count" id="hash-algo-selected-count"></div>
+                        <button class="btn btn-secondary btn-small" id="hash-algo-reset-btn" type="button"></button>
+                    </div>
+                </div>
+                <input class="algo-search" id="hash-algo-search" type="search" />
+
+                <div class="algo-groups">
+                    <div class="algo-group">
+                        <div class="algo-group-title" id="hash-algo-selected-title"></div>
+                        <div class="algo-list" id="hash-algo-selected-list"></div>
+                    </div>
+
+                    <div class="algo-group">
+                        <div class="algo-group-title" id="hash-algo-available-title"></div>
+                        <div class="algo-list" id="hash-algo-available-list"></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="output-section" id="output-section">
@@ -50,6 +80,10 @@
         </div>
     </div>
     </div>
+
+    <script type="application/json" id="hash-algorithms-data">
+        @((MarkupString)JsonSerializer.Serialize(SupportedHashAlgorithms.Select(x => new { label = x.Key, id = x.Value })))
+    </script>
 </ToolLayout>
 
 @code {

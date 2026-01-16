@@ -31,6 +31,64 @@
         return `${m}:${String(s).padStart(2, '0')}`;
     }
 
+    const DEFAULT_SELECTED_ALGORITHM_IDS = ['md5', 'sha1', 'sha256'];
+    const STORAGE_KEY_SELECTED_ALGOS = 'mydevtools.tools.hash-calculator.selectedAlgorithms.v1';
+
+    const initializedRoots = new WeakSet();
+    const rootStates = new WeakMap();
+
+    function getState(root) {
+        let state = rootStates.get(root);
+        if (!state) {
+            state = {
+                algorithms: [],
+                algoById: new Map(),
+                selectedIds: [],
+                search: ''
+            };
+            rootStates.set(root, state);
+        }
+        return state;
+    }
+
+    function tryReadAlgorithmsFromDom() {
+        const script = document.getElementById('hash-algorithms-data');
+        if (!script) return null;
+
+        try {
+            const text = script.textContent || '';
+            const parsed = JSON.parse(text);
+            if (!Array.isArray(parsed)) return null;
+
+            return parsed
+                .filter((x) => x && typeof x.id === 'string' && typeof x.label === 'string')
+                .map((x) => ({ id: String(x.id), label: String(x.label) }));
+        } catch {
+            return null;
+        }
+    }
+
+    function loadSelectedAlgorithmIds(validIdsSet) {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY_SELECTED_ALGOS);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) return null;
+            const filtered = parsed.filter((x) => typeof x === 'string' && validIdsSet.has(x));
+            return filtered;
+        } catch {
+            return null;
+        }
+    }
+
+    function saveSelectedAlgorithmIds(ids) {
+        try {
+            localStorage.setItem(STORAGE_KEY_SELECTED_ALGOS, JSON.stringify(ids));
+        } catch {
+            // ignore
+        }
+    }
+
     let hashWasmModulePromise = null;
 
     async function getHashWasm() {
@@ -73,55 +131,9 @@
         return hashers.map(({ id, hasher }) => ({ id, hex: hasher.finalize() }));
     }
 
-    async function computeHashText(algorithm, data) {
+    async function computeHashBytes(algorithmId, data) {
         const wasm = await getHashWasm();
-        const algoMap = {
-            'MD5': 'md5',
-            'SHA-1': 'sha1',
-            'SHA-224': 'sha224',
-            'SHA-256': 'sha256',
-            'SHA-384': 'sha384',
-            'SHA-512': 'sha512',
-            'SHA-512/224': 'sha512-224',
-            'SHA-512/256': 'sha512-256',
-            'Streebog-256': 'streebog-256',
-            'Streebog-512': 'streebog-512',
-            'SHA-3-256': 'sha3-256',
-            'SHA-3-224': 'sha3-224',
-            'SHA-3-384': 'sha3-384',
-            'SHA-3-512': 'sha3-512',
-            'Keccak-224': 'keccak-224',
-            'Keccak-256': 'keccak-256',
-            'Keccak-384': 'keccak-384',
-            'Keccak-512': 'keccak-512',
-            'SHAKE128-256': 'shake128-256',
-            'SHAKE256-256': 'shake256-256',
-            'BLAKE3': 'blake3',
-            'BLAKE2b-512': 'blake2b-512',
-            'BLAKE2s-256': 'blake2s-256',
-            'RIPEMD-160': 'ripemd-160',
-            'RIPEMD-128': 'ripemd-128',
-            'RIPEMD-256': 'ripemd-256',
-            'RIPEMD-320': 'ripemd-320',
-            'CRC32': 'crc32',
-            'Adler-32': 'adler32',
-            'xxh32': 'xxh32',
-            'xxh64': 'xxh64',
-            'xxh3-64': 'xxh3-64',
-            'SipHash-1-3': 'siphash-1-3',
-            'SipHash-2-4': 'siphash-2-4',
-            'HighwayHash64': 'highwayhash64',
-            'MetroHash64': 'metrohash64',
-            'FxHash64': 'fxhash64',
-            'FNV-1a 64': 'fnv1a64',
-            'SeaHash64': 'seahash64',
-        };
-
-        const algoId = algoMap[algorithm];
-        if (!algoId) return { algorithm: algorithm, value: 'Unsupported algorithm' };
-
-        const hex = wasm.hash_bytes(algoId, data);
-        return { algorithm: algorithm, value: hex };
+        return wasm.hash_bytes(algorithmId, data);
     }
 
     function displayResults(outputSection, copyLabel, results) {
@@ -134,6 +146,12 @@
                 </div>
             </div>
         `).join('');
+    }
+
+    function clearOutput(outputSection) {
+        if (!outputSection) return;
+        if (!outputSection.innerHTML) return;
+        outputSection.innerHTML = '';
     }
 
     let abortController = null;
@@ -162,8 +180,136 @@
             cancel: root.dataset.cancel || 'Cancel',
             copy: root.dataset.copy || 'Copy',
             copied: root.dataset.copied || 'Copied!',
-            canceled: root.dataset.canceled || 'Canceled'
+            canceled: root.dataset.canceled || 'Canceled',
+            algorithmsTitle: root.dataset.algorithmsTitle || 'Algorithms',
+            algorithmsSelected: root.dataset.algorithmsSelected || 'Selected',
+            algorithmsAvailable: root.dataset.algorithmsAvailable || 'Available',
+            algorithmsSearch: root.dataset.algorithmsSearch || 'Search algorithms...',
+            algorithmsReset: root.dataset.algorithmsReset || 'Reset to defaults',
+            algorithmsSelectOne: root.dataset.algorithmsSelectOne || 'Select at least one algorithm.'
         };
+    }
+
+    function buildAlgorithmsState(root) {
+        const state = getState(root);
+        if (state.algorithms.length > 0) return state;
+
+        const algorithms = tryReadAlgorithmsFromDom() || [];
+        state.algorithms = algorithms;
+        state.algoById = new Map(algorithms.map((a) => [a.id, a]));
+
+        if (algorithms.length === 0) {
+            // If the page didn't provide the algorithm list yet, don't clobber stored settings.
+            return state;
+        }
+
+        const validIds = new Set(algorithms.map((a) => a.id));
+        const stored = loadSelectedAlgorithmIds(validIds);
+        const initial = stored && stored.length > 0
+            ? stored
+            : DEFAULT_SELECTED_ALGORITHM_IDS.filter((id) => validIds.has(id));
+
+        state.selectedIds = initial;
+        if (!stored) saveSelectedAlgorithmIds(initial);
+
+        return state;
+    }
+
+    function getSelectedAlgorithms(root) {
+        const state = buildAlgorithmsState(root);
+        return state.selectedIds
+            .map((id) => state.algoById.get(id))
+            .filter(Boolean);
+    }
+
+    function renderAlgorithmPicker(root) {
+        const els = getElements();
+        if (!els) return;
+
+        const strings = getStrings(root);
+        const state = buildAlgorithmsState(root);
+
+        const titleEl = document.getElementById('hash-algo-title');
+        const selectedCountEl = document.getElementById('hash-algo-selected-count');
+        const resetBtn = document.getElementById('hash-algo-reset-btn');
+        const searchInput = document.getElementById('hash-algo-search');
+        const selectedTitle = document.getElementById('hash-algo-selected-title');
+        const availableTitle = document.getElementById('hash-algo-available-title');
+        const selectedList = document.getElementById('hash-algo-selected-list');
+        const availableList = document.getElementById('hash-algo-available-list');
+
+        if (!titleEl || !selectedCountEl || !resetBtn || !searchInput || !selectedTitle || !availableTitle || !selectedList || !availableList) {
+            return;
+        }
+
+        titleEl.textContent = strings.algorithmsTitle;
+        selectedTitle.textContent = strings.algorithmsSelected;
+        availableTitle.textContent = strings.algorithmsAvailable;
+        resetBtn.textContent = strings.algorithmsReset;
+        searchInput.placeholder = strings.algorithmsSearch;
+        if (typeof searchInput.value === 'string' && state.search && searchInput.value !== state.search) {
+            searchInput.value = state.search;
+        }
+
+        const query = (state.search || '').trim().toLowerCase();
+        const matches = (algo) => {
+            if (!query) return true;
+            return algo.label.toLowerCase().includes(query) || algo.id.toLowerCase().includes(query);
+        };
+
+        const selectedSet = new Set(state.selectedIds);
+        const selected = state.selectedIds
+            .map((id) => state.algoById.get(id))
+            .filter(Boolean)
+            .filter(matches)
+            .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }));
+
+        const available = state.algorithms
+            .filter((a) => !selectedSet.has(a.id))
+            .filter(matches)
+            .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }));
+
+        selectedCountEl.textContent = `${strings.algorithmsSelected}: ${state.selectedIds.length}`;
+
+        selectedList.innerHTML = '';
+        availableList.innerHTML = '';
+
+        function addItem(container, algo, checked) {
+            const row = document.createElement('div');
+            row.className = 'algo-item';
+
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.checked = checked;
+            input.dataset.algorithmId = algo.id;
+            input.id = `hash-algo-${algo.id}`;
+
+            const label = document.createElement('label');
+            label.htmlFor = input.id;
+            label.textContent = algo.label;
+
+            row.appendChild(input);
+            row.appendChild(label);
+            container.appendChild(row);
+        }
+
+        if (selected.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'algo-empty';
+            empty.textContent = '—';
+            selectedList.appendChild(empty);
+        } else {
+            for (const algo of selected) addItem(selectedList, algo, true);
+        }
+
+        if (available.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'algo-empty';
+            empty.textContent = '—';
+            availableList.appendChild(empty);
+        } else {
+            for (const algo of available) addItem(availableList, algo, false);
+        }
     }
 
     function renderTextSkeleton(outputSection) {
@@ -201,6 +347,14 @@
         const file = els.inputFile.files && els.inputFile.files.length > 0 ? els.inputFile.files[0] : null;
         const text = els.inputText.value.trim();
 
+        const selectedAlgorithms = getSelectedAlgorithms(els.root);
+        if (!selectedAlgorithms || selectedAlgorithms.length === 0) {
+            displayResults(els.outputSection, strings.copy, [
+                { algorithm: strings.error, value: strings.algorithmsSelectOne }
+            ]);
+            return;
+        }
+
         if (!file && !text) return;
 
         els.calculateBtn.disabled = true;
@@ -216,47 +370,7 @@
 
                 const results = await hashFileWithProgress(
                     file,
-                    [
-                        'md5',
-                        'sha1',
-                        'sha224',
-                        'sha256',
-                        'sha384',
-                        'sha512',
-                        'sha512-224',
-                        'sha512-256',
-                        'streebog-256',
-                        'streebog-512',
-                        'sha3-256',
-                        'sha3-224',
-                        'sha3-384',
-                        'sha3-512',
-                        'keccak-224',
-                        'keccak-256',
-                        'keccak-384',
-                        'keccak-512',
-                        'shake128-256',
-                        'shake256-256',
-                        'blake3',
-                        'blake2b-512',
-                        'blake2s-256',
-                        'ripemd-160',
-                        'ripemd-128',
-                        'ripemd-256',
-                        'ripemd-320',
-                        'crc32',
-                        'adler32',
-                        'xxh32',
-                        'xxh64',
-                        'xxh3-64',
-                        'siphash-1-3',
-                        'siphash-2-4',
-                        'highwayhash64',
-                        'metrohash64',
-                        'fxhash64',
-                        'fnv1a64',
-                        'seahash64'
-                    ],
+                    selectedAlgorithms.map((a) => a.id),
                     ({ processed, total, elapsedMs }) => {
                         const pct = total > 0 ? (processed / total) * 100 : 0;
                         const elapsedSec = elapsedMs / 1000;
@@ -271,52 +385,13 @@
                     abortController.signal
                 );
 
-                const labelMap = {
-                    md5: 'MD5',
-                    sha1: 'SHA-1',
-                    sha224: 'SHA-224',
-                    sha256: 'SHA-256',
-                    sha384: 'SHA-384',
-                    sha512: 'SHA-512',
-                    'sha512-224': 'SHA-512/224',
-                    'sha512-256': 'SHA-512/256',
-                    'streebog-256': 'Streebog-256',
-                    'streebog-512': 'Streebog-512',
-                    'sha3-256': 'SHA-3-256',
-                    'sha3-224': 'SHA-3-224',
-                    'sha3-384': 'SHA-3-384',
-                    'sha3-512': 'SHA-3-512',
-                    'keccak-224': 'Keccak-224',
-                    'keccak-256': 'Keccak-256',
-                    'keccak-384': 'Keccak-384',
-                    'keccak-512': 'Keccak-512',
-                    'shake128-256': 'SHAKE128-256',
-                    'shake256-256': 'SHAKE256-256',
-                    blake3: 'BLAKE3',
-                    'blake2b-512': 'BLAKE2b-512',
-                    'blake2s-256': 'BLAKE2s-256',
-                    'ripemd-160': 'RIPEMD-160',
-                    'ripemd-128': 'RIPEMD-128',
-                    'ripemd-256': 'RIPEMD-256',
-                    'ripemd-320': 'RIPEMD-320',
-                    crc32: 'CRC32',
-                    adler32: 'Adler-32',
-                    xxh32: 'xxh32',
-                    xxh64: 'xxh64',
-                    'xxh3-64': 'xxh3-64',
-                    'siphash-1-3': 'SipHash-1-3',
-                    'siphash-2-4': 'SipHash-2-4',
-                    highwayhash64: 'HighwayHash64',
-                    metrohash64: 'MetroHash64',
-                    fxhash64: 'FxHash64',
-                    fnv1a64: 'FNV-1a 64',
-                    seahash64: 'SeaHash64'
-                };
+                const state = buildAlgorithmsState(els.root);
+                const labelMap = state.algoById;
 
                 displayResults(
                     els.outputSection,
                     strings.copy,
-                    results.map(r => ({ algorithm: labelMap[r.id] || r.id, value: r.hex }))
+                    results.map(r => ({ algorithm: (labelMap.get(r.id)?.label) || r.id, value: r.hex }))
                 );
             } else {
                 renderTextSkeleton(els.outputSection);
@@ -324,47 +399,12 @@
                 const encoder = new TextEncoder();
                 const data = encoder.encode(text);
 
-                const results = await Promise.all([
-                    computeHashText('MD5', data),
-                    computeHashText('SHA-1', data),
-                    computeHashText('SHA-224', data),
-                    computeHashText('SHA-256', data),
-                    computeHashText('SHA-384', data),
-                    computeHashText('SHA-512', data),
-                    computeHashText('SHA-512/224', data),
-                    computeHashText('SHA-512/256', data),
-                    computeHashText('Streebog-256', data),
-                    computeHashText('Streebog-512', data),
-                    computeHashText('SHA-3-256', data),
-                    computeHashText('SHA-3-224', data),
-                    computeHashText('SHA-3-384', data),
-                    computeHashText('SHA-3-512', data),
-                    computeHashText('Keccak-224', data),
-                    computeHashText('Keccak-256', data),
-                    computeHashText('Keccak-384', data),
-                    computeHashText('Keccak-512', data),
-                    computeHashText('SHAKE128-256', data),
-                    computeHashText('SHAKE256-256', data),
-                    computeHashText('BLAKE3', data),
-                    computeHashText('BLAKE2b-512', data),
-                    computeHashText('BLAKE2s-256', data),
-                    computeHashText('RIPEMD-160', data),
-                    computeHashText('RIPEMD-128', data),
-                    computeHashText('RIPEMD-256', data),
-                    computeHashText('RIPEMD-320', data),
-                    computeHashText('CRC32', data),
-                    computeHashText('Adler-32', data),
-                    computeHashText('xxh32', data),
-                    computeHashText('xxh64', data),
-                    computeHashText('xxh3-64', data),
-                    computeHashText('SipHash-1-3', data),
-                    computeHashText('SipHash-2-4', data),
-                    computeHashText('HighwayHash64', data),
-                    computeHashText('MetroHash64', data),
-                    computeHashText('FxHash64', data),
-                    computeHashText('FNV-1a 64', data),
-                    computeHashText('SeaHash64', data)
-                ]);
+                const results = await Promise.all(
+                    selectedAlgorithms.map(async (algo) => ({
+                        algorithm: algo.label,
+                        value: await computeHashBytes(algo.id, data)
+                    }))
+                );
 
                 displayResults(els.outputSection, strings.copy, results);
             }
@@ -446,6 +486,92 @@
             if (copyBtn) {
                 ev.preventDefault();
                 void handleCopyButton(copyBtn);
+                return;
+            }
+
+            const resetBtn = target.closest('#hash-algo-reset-btn');
+            if (resetBtn) {
+                ev.preventDefault();
+                const els = getElements();
+                if (!els) return;
+
+                const state = buildAlgorithmsState(els.root);
+                const validIds = new Set(state.algorithms.map((a) => a.id));
+                state.selectedIds = DEFAULT_SELECTED_ALGORITHM_IDS.filter((id) => validIds.has(id));
+                saveSelectedAlgorithmIds(state.selectedIds);
+                renderAlgorithmPicker(els.root);
+
+                const file = els.inputFile.files && els.inputFile.files.length > 0 ? els.inputFile.files[0] : null;
+                const text = els.inputText.value.trim();
+                if (!file && text) {
+                    void handleCalculate();
+                }
+            }
+        });
+
+        document.addEventListener('change', (ev) => {
+            const target = ev.target;
+            if (!(target instanceof HTMLInputElement)) return;
+            const algoId = target.dataset.algorithmId;
+            if (!algoId) return;
+
+            const els = getElements();
+            if (!els) return;
+            const state = buildAlgorithmsState(els.root);
+
+            if (target.checked) {
+                if (!state.selectedIds.includes(algoId)) {
+                    state.selectedIds.push(algoId);
+                }
+            } else {
+                state.selectedIds = state.selectedIds.filter((x) => x !== algoId);
+            }
+
+            saveSelectedAlgorithmIds(state.selectedIds);
+            renderAlgorithmPicker(els.root);
+
+            const file = els.inputFile.files && els.inputFile.files.length > 0 ? els.inputFile.files[0] : null;
+            const text = els.inputText.value.trim();
+            if (!file && text) {
+                void handleCalculate();
+            }
+        });
+
+        document.addEventListener('input', (ev) => {
+            const target = ev.target;
+            const els = getElements();
+            if (!els) return;
+
+            // Algorithm search
+            if (target instanceof HTMLInputElement && target.id === 'hash-algo-search') {
+                const state = buildAlgorithmsState(els.root);
+                state.search = target.value || '';
+                renderAlgorithmPicker(els.root);
+                return;
+            }
+
+            // Text input: if user types, clear file selection
+            if (target instanceof HTMLTextAreaElement && target.id === 'input-text') {
+                const text = (target.value || '').trim();
+                if (text.length > 0 && els.inputFile.value) {
+                    els.inputFile.value = '';
+                    clearOutput(els.outputSection);
+                }
+            }
+        });
+
+        document.addEventListener('change', (ev) => {
+            const target = ev.target;
+            if (!(target instanceof HTMLInputElement)) return;
+            if (target.id !== 'input-file') return;
+
+            const els = getElements();
+            if (!els) return;
+
+            const file = els.inputFile.files && els.inputFile.files.length > 0 ? els.inputFile.files[0] : null;
+            if (file) {
+                els.inputText.value = '';
+                clearOutput(els.outputSection);
             }
         });
 
@@ -464,4 +590,24 @@
     }
 
     bindDelegatedHandlersOnce();
+
+    function initIfPresent() {
+        const els = getElements();
+        if (!els) return;
+        if (initializedRoots.has(els.root)) return;
+
+        initializedRoots.add(els.root);
+        buildAlgorithmsState(els.root);
+        renderAlgorithmPicker(els.root);
+    }
+
+    initIfPresent();
+
+    // Ensure the algorithm picker also initializes after enhanced navigation.
+    try {
+        const observer = new MutationObserver(() => initIfPresent());
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+    } catch {
+        // ignore
+    }
 })();

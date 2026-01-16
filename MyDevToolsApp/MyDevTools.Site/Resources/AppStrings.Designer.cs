@@ -149,6 +149,60 @@ namespace MyDevTools.Site.Resources {
                 return ResourceManager.GetString("HashCalculator_Copied", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Algorithms.
+        /// </summary>
+        public static string HashCalculator_AlgorithmsTitle {
+            get {
+                return ResourceManager.GetString("HashCalculator_AlgorithmsTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Selected.
+        /// </summary>
+        public static string HashCalculator_AlgorithmsSelected {
+            get {
+                return ResourceManager.GetString("HashCalculator_AlgorithmsSelected", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Available.
+        /// </summary>
+        public static string HashCalculator_AlgorithmsAvailable {
+            get {
+                return ResourceManager.GetString("HashCalculator_AlgorithmsAvailable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Search algorithms....
+        /// </summary>
+        public static string HashCalculator_AlgorithmsSearchPlaceholder {
+            get {
+                return ResourceManager.GetString("HashCalculator_AlgorithmsSearchPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Reset to defaults.
+        /// </summary>
+        public static string HashCalculator_AlgorithmsReset {
+            get {
+                return ResourceManager.GetString("HashCalculator_AlgorithmsReset", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Select at least one algorithm..
+        /// </summary>
+        public static string HashCalculator_SelectAtLeastOneAlgorithm {
+            get {
+                return ResourceManager.GetString("HashCalculator_SelectAtLeastOneAlgorithm", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Copy.
@@ -228,6 +282,78 @@ namespace MyDevTools.Site.Resources {
         public static string Home_NoDataSent {
             get {
                 return ResourceManager.GetString("Home_NoDataSent", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Choose What You Need.
+        /// </summary>
+        public static string Home_FeatureAlgorithmsTitle {
+            get {
+                return ResourceManager.GetString("Home_FeatureAlgorithmsTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Select the algorithms you want and save your set in the browser..
+        /// </summary>
+        public static string Home_FeatureAlgorithmsDescription {
+            get {
+                return ResourceManager.GetString("Home_FeatureAlgorithmsDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Multilingual.
+        /// </summary>
+        public static string Home_FeatureLanguagesTitle {
+            get {
+                return ResourceManager.GetString("Home_FeatureLanguagesTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Available in multiple languages for developers worldwide..
+        /// </summary>
+        public static string Home_FeatureLanguagesDescription {
+            get {
+                return ResourceManager.GetString("Home_FeatureLanguagesDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Privacy First.
+        /// </summary>
+        public static string Home_FeaturePrivacyTitle {
+            get {
+                return ResourceManager.GetString("Home_FeaturePrivacyTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to All processing happens in your browser. Zero data sent to servers..
+        /// </summary>
+        public static string Home_FeaturePrivacyDescription {
+            get {
+                return ResourceManager.GetString("Home_FeaturePrivacyDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fast &amp; Efficient.
+        /// </summary>
+        public static string Home_FeatureWasmTitle {
+            get {
+                return ResourceManager.GetString("Home_FeatureWasmTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Powered by WebAssembly for native-like performance..
+        /// </summary>
+        public static string Home_FeatureWasmDescription {
+            get {
+                return ResourceManager.GetString("Home_FeatureWasmDescription", resourceCulture);
             }
         }
         

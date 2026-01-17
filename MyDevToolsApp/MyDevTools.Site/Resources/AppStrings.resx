@@ -714,4 +714,10 @@
   <data name="Base58Encoder_Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="Base58Encoder_FileSizeLimitEncode" xml:space="preserve">
+    <value>Base58 encoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.</value>
+  </data>
+  <data name="Base58Encoder_FileSizeLimitDecode" xml:space="preserve">
+    <value>Base58 decoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.</value>
+  </data>
 </root>

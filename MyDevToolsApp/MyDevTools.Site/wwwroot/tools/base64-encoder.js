@@ -3,6 +3,19 @@
 (function () {
     const initializedRoots = new WeakSet();
 
+    // WASM module lazy loading
+    let encodingWasmModulePromise = null;
+
+    async function getEncodingWasm() {
+        if (!encodingWasmModulePromise) {
+            encodingWasmModulePromise = import('/wasm/encoding/encoding.js').then(async (m) => {
+                await m.default();
+                return m;
+            });
+        }
+        return encodingWasmModulePromise;
+    }
+
     function escapeHtml(text) {
         return String(text)
             .replaceAll('&', '&amp;')
@@ -61,337 +74,74 @@
         return ch === ' ' || ch === '\n' || ch === '\r' || ch === '\t';
     }
 
-    function encodeAsciiLike(str, maxCodePoint, errorLabel) {
-        const bytes = new Uint8Array(str.length);
-        for (let i = 0; i < str.length; i++) {
-            const codeUnit = str.charCodeAt(i);
-            if (codeUnit > maxCodePoint) {
-                return { ok: false, error: { index: i, message: `${errorLabel} at position ${i}` } };
+    async function encodeTextToBytes(text, charset) {
+        try {
+            const wasm = await getEncodingWasm();
+            if (typeof wasm.encode_text_to_bytes !== 'function') {
+                return { ok: false, error: { index: 0, message: 'WASM module not built. Please rebuild the encoding module: cd wasm && .\\build.ps1 -Configuration Release -Domains @(\'encoding\')' } };
             }
-            bytes[i] = codeUnit & 0xff;
-        }
-        return { ok: true, bytes };
-    }
-
-    function encodeTextToBytes(text, charset) {
-        switch (charset) {
-            case 'utf-8':
-                return { ok: true, bytes: new TextEncoder().encode(text) };
-            case 'utf-16le': {
-                const bytes = new Uint8Array(text.length * 2);
-                for (let i = 0; i < text.length; i++) {
-                    const cu = text.charCodeAt(i);
-                    bytes[i * 2] = cu & 0xff;
-                    bytes[i * 2 + 1] = (cu >> 8) & 0xff;
-                }
-                return { ok: true, bytes };
-            }
-            case 'utf-16be': {
-                const bytes = new Uint8Array(text.length * 2);
-                for (let i = 0; i < text.length; i++) {
-                    const cu = text.charCodeAt(i);
-                    bytes[i * 2] = (cu >> 8) & 0xff;
-                    bytes[i * 2 + 1] = cu & 0xff;
-                }
-                return { ok: true, bytes };
-            }
-            case 'ascii':
-                return encodeAsciiLike(text, 0x7f, 'Non-ASCII character');
-            case 'latin1':
-                return encodeAsciiLike(text, 0xff, 'Character not representable in Latin-1');
-            default:
-                return { ok: false, error: { index: 0, message: `Unsupported charset: ${charset}` } };
+            const bytes = wasm.encode_text_to_bytes(text, charset);
+            return { ok: true, bytes: new Uint8Array(bytes) };
+        } catch (err) {
+            const msg = err?.message || String(err);
+            // Try to extract index from error message if possible
+            const indexMatch = msg.match(/position (\d+)/);
+            const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+            return { ok: false, error: { index, message: msg } };
         }
     }
 
-    function decodeUtf8Strict(bytes) {
-        let out = '';
-        let i = 0;
-        while (i < bytes.length) {
-            const b0 = bytes[i];
-            if (b0 <= 0x7f) {
-                out += String.fromCharCode(b0);
-                i += 1;
-                continue;
+    async function decodeBytesToText(bytes, charset) {
+        try {
+            const wasm = await getEncodingWasm();
+            if (typeof wasm.decode_bytes_to_text !== 'function') {
+                return { ok: false, error: { byteIndex: 0, message: 'WASM module not built. Please rebuild the encoding module: cd wasm && .\\build.ps1 -Configuration Release -Domains @(\'encoding\')' } };
             }
-
-            if (b0 >= 0xc2 && b0 <= 0xdf) {
-                if (i + 1 >= bytes.length) return { ok: false, error: { byteIndex: i, message: 'Truncated UTF-8 sequence' } };
-                const b1 = bytes[i + 1];
-                if ((b1 & 0xc0) !== 0x80) return { ok: false, error: { byteIndex: i + 1, message: 'Invalid UTF-8 continuation byte' } };
-                const cp = ((b0 & 0x1f) << 6) | (b1 & 0x3f);
-                out += String.fromCharCode(cp);
-                i += 2;
-                continue;
-            }
-
-            if (b0 >= 0xe0 && b0 <= 0xef) {
-                if (i + 2 >= bytes.length) return { ok: false, error: { byteIndex: i, message: 'Truncated UTF-8 sequence' } };
-                const b1 = bytes[i + 1];
-                const b2 = bytes[i + 2];
-                if ((b1 & 0xc0) !== 0x80) return { ok: false, error: { byteIndex: i + 1, message: 'Invalid UTF-8 continuation byte' } };
-                if ((b2 & 0xc0) !== 0x80) return { ok: false, error: { byteIndex: i + 2, message: 'Invalid UTF-8 continuation byte' } };
-                if (b0 === 0xe0 && b1 < 0xa0) return { ok: false, error: { byteIndex: i, message: 'Overlong UTF-8 sequence' } };
-                if (b0 === 0xed && b1 >= 0xa0) return { ok: false, error: { byteIndex: i, message: 'UTF-8 surrogate code point' } };
-                const cp = ((b0 & 0x0f) << 12) | ((b1 & 0x3f) << 6) | (b2 & 0x3f);
-                out += String.fromCharCode(cp);
-                i += 3;
-                continue;
-            }
-
-            if (b0 >= 0xf0 && b0 <= 0xf4) {
-                if (i + 3 >= bytes.length) return { ok: false, error: { byteIndex: i, message: 'Truncated UTF-8 sequence' } };
-                const b1 = bytes[i + 1];
-                const b2 = bytes[i + 2];
-                const b3 = bytes[i + 3];
-                if ((b1 & 0xc0) !== 0x80) return { ok: false, error: { byteIndex: i + 1, message: 'Invalid UTF-8 continuation byte' } };
-                if ((b2 & 0xc0) !== 0x80) return { ok: false, error: { byteIndex: i + 2, message: 'Invalid UTF-8 continuation byte' } };
-                if ((b3 & 0xc0) !== 0x80) return { ok: false, error: { byteIndex: i + 3, message: 'Invalid UTF-8 continuation byte' } };
-                if (b0 === 0xf0 && b1 < 0x90) return { ok: false, error: { byteIndex: i, message: 'Overlong UTF-8 sequence' } };
-                if (b0 === 0xf4 && b1 > 0x8f) return { ok: false, error: { byteIndex: i, message: 'UTF-8 code point out of range' } };
-
-                let cp = ((b0 & 0x07) << 18) | ((b1 & 0x3f) << 12) | ((b2 & 0x3f) << 6) | (b3 & 0x3f);
-                cp -= 0x10000;
-                out += String.fromCharCode(0xd800 + ((cp >> 10) & 0x3ff), 0xdc00 + (cp & 0x3ff));
-                i += 4;
-                continue;
-            }
-
-            return { ok: false, error: { byteIndex: i, message: 'Invalid UTF-8 leading byte' } };
-        }
-
-        return { ok: true, text: out };
-    }
-
-    function decodeBytesToText(bytes, charset) {
-        switch (charset) {
-            case 'utf-8':
-                return decodeUtf8Strict(bytes);
-            case 'utf-16le': {
-                if (bytes.length % 2 !== 0) return { ok: false, error: { byteIndex: bytes.length - 1, message: 'Odd number of bytes for UTF-16LE' } };
-                let out = '';
-                for (let i = 0; i < bytes.length; i += 2) out += String.fromCharCode(bytes[i] | (bytes[i + 1] << 8));
-                return { ok: true, text: out };
-            }
-            case 'utf-16be': {
-                if (bytes.length % 2 !== 0) return { ok: false, error: { byteIndex: bytes.length - 1, message: 'Odd number of bytes for UTF-16BE' } };
-                let out = '';
-                for (let i = 0; i < bytes.length; i += 2) out += String.fromCharCode((bytes[i] << 8) | bytes[i + 1]);
-                return { ok: true, text: out };
-            }
-            case 'ascii': {
-                for (let i = 0; i < bytes.length; i++) {
-                    if (bytes[i] > 0x7f) return { ok: false, error: { byteIndex: i, message: 'Byte not representable in ASCII' } };
-                }
-                return { ok: true, text: String.fromCharCode(...bytes) };
-            }
-            case 'latin1':
-                return { ok: true, text: String.fromCharCode(...bytes) };
-            default:
-                return { ok: false, error: { byteIndex: 0, message: `Unsupported charset: ${charset}` } };
+            const text = wasm.decode_bytes_to_text(bytes, charset);
+            return { ok: true, text };
+        } catch (err) {
+            const msg = err?.message || String(err);
+            // Try to extract byteIndex from error message if possible
+            const byteIndexMatch = msg.match(/byte (\d+)/i) || msg.match(/position (\d+)/);
+            const byteIndex = byteIndexMatch ? parseInt(byteIndexMatch[1], 10) : 0;
+            return { ok: false, error: { byteIndex, message: msg } };
         }
     }
 
-    function getAlphabet(name) {
-        return name === 'urlsafe'
-            ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
-            : 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    async function encodeBytesToBase64(bytes, alphabetName, paddingMode, lineWrap) {
+        const wasm = await getEncodingWasm();
+        if (typeof wasm.base64_encode !== 'function') {
+            throw new Error('WASM module not built. Please rebuild the encoding module: cd wasm && .\\build.ps1 -Configuration Release -Domains @(\'encoding\')');
+        }
+        const wrapAt = lineWrap === 76 ? 76 : null;
+        return wasm.base64_encode(bytes, alphabetName, paddingMode, wrapAt);
     }
 
-    function makeDecodeMap(alphabet) {
-        const map = new Int16Array(128);
-        map.fill(-1);
-        for (let i = 0; i < alphabet.length; i++) {
-            map[alphabet.charCodeAt(i)] = i;
-        }
-        return map;
-    }
-
-    function encodeBytesToBase64(bytes, alphabetName, paddingMode, lineWrap) {
-        const alphabet = getAlphabet(alphabetName);
-        const wrapAt = lineWrap === 76 ? 76 : 0;
-        let out = '';
-        let lineLen = 0;
-
-        function pushChar(ch) {
-            out += ch;
-            if (wrapAt > 0) {
-                lineLen++;
-                if (lineLen >= wrapAt) {
-                    out += '\n';
-                    lineLen = 0;
-                }
+    async function decodeBase64ToBytes(input, alphabetName, paddingMode, allowWhitespace) {
+        try {
+            const wasm = await getEncodingWasm();
+            if (typeof wasm.base64_decode !== 'function') {
+                return { ok: false, error: { index: 0, message: 'WASM module not built. Please rebuild the encoding module: cd wasm && .\\build.ps1 -Configuration Release -Domains @(\'encoding\')' } };
             }
+            const bytes = wasm.base64_decode(input, alphabetName, paddingMode, allowWhitespace);
+            return { ok: true, bytes: new Uint8Array(bytes) };
+        } catch (err) {
+            const msg = err?.message || String(err);
+            // Try to extract index from error message if possible
+            const indexMatch = msg.match(/position (\d+)/) || msg.match(/index (\d+)/);
+            const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+            return { ok: false, error: { index, message: msg } };
         }
-
-        let i = 0;
-        for (; i + 2 < bytes.length; i += 3) {
-            const n = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2];
-            pushChar(alphabet[(n >> 18) & 63]);
-            pushChar(alphabet[(n >> 12) & 63]);
-            pushChar(alphabet[(n >> 6) & 63]);
-            pushChar(alphabet[n & 63]);
-        }
-
-        const remaining = bytes.length - i;
-        if (remaining === 1) {
-            const n = bytes[i] << 16;
-            pushChar(alphabet[(n >> 18) & 63]);
-            pushChar(alphabet[(n >> 12) & 63]);
-            if (paddingMode === 'none') {
-                // no '='
-            } else {
-                pushChar('=');
-                pushChar('=');
-            }
-        } else if (remaining === 2) {
-            const n = (bytes[i] << 16) | (bytes[i + 1] << 8);
-            pushChar(alphabet[(n >> 18) & 63]);
-            pushChar(alphabet[(n >> 12) & 63]);
-            pushChar(alphabet[(n >> 6) & 63]);
-            if (paddingMode === 'none') {
-                // no '='
-            } else {
-                pushChar('=');
-            }
-        }
-
-        // trim trailing newline for wrapped output
-        if (wrapAt > 0 && out.endsWith('\n')) out = out.slice(0, -1);
-        return out;
-    }
-
-    function normalizeInputForDecode(input, allowWhitespace) {
-        if (allowWhitespace) {
-            let out = '';
-            for (let i = 0; i < input.length; i++) {
-                const ch = input[i];
-                if (isWhitespace(ch)) continue;
-                out += ch;
-            }
-            return { ok: true, text: out };
-        }
-
-        for (let i = 0; i < input.length; i++) {
-            if (isWhitespace(input[i])) {
-                return { ok: false, error: { index: i, message: `Whitespace not allowed at position ${i}` } };
-            }
-        }
-        return { ok: true, text: input };
-    }
-
-    function decodeBase64ToBytes(input, alphabetName, paddingMode, allowWhitespace) {
-        const norm = normalizeInputForDecode(input, allowWhitespace);
-        if (!norm.ok) return norm;
-
-        const text = norm.text;
-        const alphabet = getAlphabet(alphabetName);
-        const map = makeDecodeMap(alphabet);
-
-        let effective = text;
-        if (paddingMode === 'none') {
-            if (effective.includes('=')) {
-                return { ok: false, error: { index: effective.indexOf('='), message: "Padding '=' is not allowed" } };
-            }
-        }
-
-        const len = effective.length;
-        const rem = len % 4;
-        if (paddingMode === 'required') {
-            if (rem !== 0) return { ok: false, error: { index: len - 1, message: 'Invalid Base64 length (padding required)' } };
-        }
-        if (paddingMode === 'none') {
-            if (rem === 1) return { ok: false, error: { index: len - 1, message: 'Invalid Base64 length' } };
-        }
-        if (paddingMode === 'optional') {
-            if (rem === 1) return { ok: false, error: { index: len - 1, message: 'Invalid Base64 length' } };
-        }
-
-        const out = [];
-        let i = 0;
-
-        function valAt(pos) {
-            const ch = effective[pos];
-            if (ch === '=') return -2;
-            const code = ch.charCodeAt(0);
-            if (code > 127) return -1;
-            return map[code];
-        }
-
-        // process full quartets
-        while (i + 3 < len) {
-            const v0 = valAt(i);
-            const v1 = valAt(i + 1);
-            const v2 = valAt(i + 2);
-            const v3 = valAt(i + 3);
-
-            if (v0 < 0) return { ok: false, error: { index: i, message: `Invalid Base64 character '${effective[i]}' at position ${i}` } };
-            if (v1 < 0) return { ok: false, error: { index: i + 1, message: `Invalid Base64 character '${effective[i + 1]}' at position ${i + 1}` } };
-
-            if (v2 === -2) {
-                // xx==
-                if (v3 !== -2) return { ok: false, error: { index: i + 3, message: 'Invalid Base64 padding' } };
-                out.push(((v0 << 2) | (v1 >> 4)) & 0xff);
-                // must be last quartet
-                if (i + 4 !== len) return { ok: false, error: { index: i + 4, message: 'Data after padding' } };
-                break;
-            }
-
-            if (v2 < 0) return { ok: false, error: { index: i + 2, message: `Invalid Base64 character '${effective[i + 2]}' at position ${i + 2}` } };
-
-            if (v3 === -2) {
-                // xxx=
-                out.push(((v0 << 2) | (v1 >> 4)) & 0xff);
-                out.push((((v1 & 0x0f) << 4) | (v2 >> 2)) & 0xff);
-                if (i + 4 !== len) return { ok: false, error: { index: i + 4, message: 'Data after padding' } };
-                break;
-            }
-
-            if (v3 < 0) return { ok: false, error: { index: i + 3, message: `Invalid Base64 character '${effective[i + 3]}' at position ${i + 3}` } };
-
-            const n = (v0 << 18) | (v1 << 12) | (v2 << 6) | v3;
-            out.push((n >> 16) & 0xff);
-            out.push((n >> 8) & 0xff);
-            out.push(n & 0xff);
-
-            i += 4;
-        }
-
-        // handle non-padded tail (optional/none)
-        if (i < len && paddingMode !== 'required') {
-            const remaining = len - i;
-            if (remaining === 2) {
-                const v0 = valAt(i);
-                const v1 = valAt(i + 1);
-                if (v0 < 0) return { ok: false, error: { index: i, message: `Invalid Base64 character '${effective[i]}' at position ${i}` } };
-                if (v1 < 0) return { ok: false, error: { index: i + 1, message: `Invalid Base64 character '${effective[i + 1]}' at position ${i + 1}` } };
-                out.push(((v0 << 2) | (v1 >> 4)) & 0xff);
-            } else if (remaining === 3) {
-                const v0 = valAt(i);
-                const v1 = valAt(i + 1);
-                const v2 = valAt(i + 2);
-                if (v0 < 0) return { ok: false, error: { index: i, message: `Invalid Base64 character '${effective[i]}' at position ${i}` } };
-                if (v1 < 0) return { ok: false, error: { index: i + 1, message: `Invalid Base64 character '${effective[i + 1]}' at position ${i + 1}` } };
-                if (v2 < 0) return { ok: false, error: { index: i + 2, message: `Invalid Base64 character '${effective[i + 2]}' at position ${i + 2}` } };
-                out.push(((v0 << 2) | (v1 >> 4)) & 0xff);
-                out.push((((v1 & 0x0f) << 4) | (v2 >> 2)) & 0xff);
-            } else if (remaining === 1) {
-                return { ok: false, error: { index: len - 1, message: 'Invalid Base64 length' } };
-            }
-        }
-
-        return { ok: true, bytes: new Uint8Array(out) };
     }
 
     async function encodeFileToBase64(file, alphabetName, paddingMode, lineWrap, outputMode, onProgress, signal) {
+        const wasm = await getEncodingWasm();
         const chunkSize = 1024 * 1024; // 1 MiB
         const total = file.size;
         let processed = 0;
         const start = performance.now();
 
-        const alphabet = getAlphabet(alphabetName);
-        const wrapAt = lineWrap === 76 ? 76 : 0;
-        let lineLen = 0;
+        const wrapAt = lineWrap === 76 ? 76 : null;
 
         const parts = [];
         const previewCharLimit = 200_000;
@@ -402,19 +152,6 @@
 
         function pushString(s) {
             if (!s) return;
-            if (wrapAt > 0) {
-                let out = '';
-                for (let i = 0; i < s.length; i++) {
-                    out += s[i];
-                    lineLen++;
-                    if (lineLen >= wrapAt) {
-                        out += '\n';
-                        lineLen = 0;
-                    }
-                }
-                s = out;
-            }
-
             parts.push(s);
 
             if (outputMode !== 'full' && !previewTruncated) {
@@ -448,11 +185,7 @@
             const tailLen = bytes.length - fullLen;
             if (tailLen > 0) carry = bytes.subarray(fullLen);
 
-            const encoded = encodeBytesToBase64(toEncode, alphabetName, 'required', 0); // no wrap here
-            // We applied padding always for the full part; remainder handled at end.
-            // Note: no padding for full triplets anyway.
-            // Now map to selected alphabet (encodeBytesToBase64 already used it) and apply wrapping via pushString.
-            // Also remove any '=' from this part (none expected).
+            const encoded = wasm.base64_encode(toEncode, alphabetName, 'required', wrapAt);
             pushString(encoded);
 
             processed += chunk.size;
@@ -464,13 +197,12 @@
 
         // final carry 1-2 bytes
         if (carry.length > 0) {
-            const tailEncoded = encodeBytesToBase64(carry, alphabetName, paddingMode === 'none' ? 'none' : 'required', 0);
-            // If padding is optional, we will emit padded for better compatibility.
+            const tailEncoded = wasm.base64_encode(carry, alphabetName, paddingMode === 'none' ? 'none' : 'required', wrapAt);
             pushString(tailEncoded);
         }
 
         // If wrap is on, remove trailing newline.
-        if (wrapAt > 0 && parts.length > 0) {
+        if (wrapAt && wrapAt > 0 && parts.length > 0) {
             const last = parts[parts.length - 1];
             if (typeof last === 'string' && last.endsWith('\n')) {
                 parts[parts.length - 1] = last.slice(0, -1);
@@ -486,64 +218,16 @@
     }
 
     async function decodeBase64FileToBytes(file, alphabetName, paddingMode, allowWhitespace, onProgress, signal) {
+        const wasm = await getEncodingWasm();
         const chunkSize = 1024 * 1024; // 1 MiB
         const total = file.size;
         let processed = 0;
         const start = performance.now();
 
-        const alphabet = getAlphabet(alphabetName);
-        const map = makeDecodeMap(alphabet);
         const decoder = new TextDecoder('latin1');
-
-        let quartet = []; // values 0..63 or -2 for '='
-        let logicalIndex = 0; // index in filtered stream (whitespace removed)
+        let accumulatedText = '';
 
         const outChunks = [];
-        let outChunk = new Uint8Array(1024 * 1024);
-        let outPos = 0;
-
-        function pushByte(b) {
-            if (outPos >= outChunk.length) {
-                outChunks.push(outChunk.subarray(0, outPos));
-                outChunk = new Uint8Array(1024 * 1024);
-                outPos = 0;
-            }
-            outChunk[outPos++] = b;
-        }
-
-        function decodeQuartet(q) {
-            // q length 4
-            const v0 = q[0];
-            const v1 = q[1];
-            const v2 = q[2];
-            const v3 = q[3];
-
-            if (v0 < 0 || v1 < 0) return { ok: false, message: 'Invalid Base64 quartet' };
-
-            if (v2 === -2) {
-                if (v3 !== -2) return { ok: false, message: 'Invalid Base64 padding' };
-                pushByte(((v0 << 2) | (v1 >> 4)) & 0xff);
-                return { ok: true, done: true };
-            }
-
-            if (v2 < 0) return { ok: false, message: 'Invalid Base64 quartet' };
-
-            if (v3 === -2) {
-                pushByte(((v0 << 2) | (v1 >> 4)) & 0xff);
-                pushByte((((v1 & 0x0f) << 4) | (v2 >> 2)) & 0xff);
-                return { ok: true, done: true };
-            }
-
-            if (v3 < 0) return { ok: false, message: 'Invalid Base64 quartet' };
-
-            const n = (v0 << 18) | (v1 << 12) | (v2 << 6) | v3;
-            pushByte((n >> 16) & 0xff);
-            pushByte((n >> 8) & 0xff);
-            pushByte(n & 0xff);
-            return { ok: true, done: false };
-        }
-
-        let sawPadding = false;
 
         while (processed < total) {
             if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
@@ -552,48 +236,19 @@
             const buf = await chunk.arrayBuffer();
             const bytes = new Uint8Array(buf);
             const text = decoder.decode(bytes, { stream: true });
+            accumulatedText += text;
 
-            for (let i = 0; i < text.length; i++) {
-                const ch = text[i];
-                if (isWhitespace(ch)) {
-                    if (!allowWhitespace) {
-                        return { ok: false, error: { index: logicalIndex, message: `Whitespace not allowed` } };
-                    }
-                    continue;
-                }
-
-                logicalIndex++;
-
-                if (paddingMode === 'none' && ch === '=') {
-                    return { ok: false, error: { index: logicalIndex - 1, message: "Padding '=' is not allowed" } };
-                }
-
-                let v;
-                if (ch === '=') {
-                    v = -2;
-                    sawPadding = true;
-                } else {
-                    const code = ch.charCodeAt(0);
-                    v = (code <= 127) ? map[code] : -1;
-                    if (v < 0) {
-                        return { ok: false, error: { index: logicalIndex - 1, message: `Invalid Base64 character '${ch}'` } };
-                    }
-                    if (sawPadding) {
-                        return { ok: false, error: { index: logicalIndex - 1, message: 'Data after padding' } };
-                    }
-                }
-
-                quartet.push(v);
-                if (quartet.length === 4) {
-                    const r = decodeQuartet(quartet);
-                    if (!r.ok) {
-                        return { ok: false, error: { index: logicalIndex - 1, message: r.message } };
-                    }
-                    quartet = [];
-                    if (r.done) {
-                        // after padding quartet, the remaining should be only whitespace
-                        // we will keep scanning; any non-ws will trip sawPadding logic above.
-                    }
+            // Process in reasonable chunks to avoid memory issues
+            if (accumulatedText.length > 10 * 1024 * 1024) { // 10MB chunks
+                try {
+                    const decoded = wasm.base64_decode(accumulatedText, alphabetName, paddingMode, allowWhitespace);
+                    outChunks.push(new Uint8Array(decoded));
+                    accumulatedText = '';
+                } catch (err) {
+                    const msg = err?.message || String(err);
+                    const indexMatch = msg.match(/position (\d+)/) || msg.match(/index (\d+)/);
+                    const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+                    return { ok: false, error: { index, message: msg } };
                 }
             }
 
@@ -603,23 +258,19 @@
             await new Promise(requestAnimationFrame);
         }
 
-        // finalize tail for optional/no-padding
-        if (quartet.length !== 0) {
-            if (paddingMode === 'required') {
-                return { ok: false, error: { index: logicalIndex - 1, message: 'Invalid Base64 length (padding required)' } };
-            }
-            if (quartet.length === 1) {
-                return { ok: false, error: { index: logicalIndex - 1, message: 'Invalid Base64 length' } };
-            }
-            // Expand to a 4-length quartet with implied padding and decode
-            while (quartet.length < 4) quartet.push(-2);
-            const r = decodeQuartet(quartet);
-            if (!r.ok) {
-                return { ok: false, error: { index: logicalIndex - 1, message: r.message } };
+        // Process remaining text
+        if (accumulatedText.length > 0) {
+            try {
+                const decoded = wasm.base64_decode(accumulatedText, alphabetName, paddingMode, allowWhitespace);
+                outChunks.push(new Uint8Array(decoded));
+            } catch (err) {
+                const msg = err?.message || String(err);
+                const indexMatch = msg.match(/position (\d+)/) || msg.match(/index (\d+)/);
+                const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+                return { ok: false, error: { index, message: msg } };
             }
         }
 
-        if (outPos > 0) outChunks.push(outChunk.subarray(0, outPos));
         const blob = new Blob(outChunks, { type: 'application/octet-stream' });
         return { ok: true, blob };
     }
@@ -768,13 +419,13 @@
                 setLastDownload(els2.root, result.blob, `${file.name}.b64`);
             } else {
                 const text = els.inputText.value || '';
-                const enc = encodeTextToBytes(text, charset);
+                const enc = await encodeTextToBytes(text, charset);
                 if (!enc.ok) {
                     setError(els, enc.error.message, enc.error.index);
                     return;
                 }
 
-                const out = encodeBytesToBase64(enc.bytes, alphabetName, paddingMode, wrap);
+                const out = await encodeBytesToBase64(enc.bytes, alphabetName, paddingMode, wrap);
                 els.output.value = out;
                 setLastDownload(els.root, new Blob([out], { type: 'text/plain' }), 'text.b64');
             }
@@ -853,13 +504,13 @@
                 setLastDownload(els2.root, decoded.blob, `${file.name}.bin`);
             } else {
                 const input = els.inputText.value || '';
-                const parsed = decodeBase64ToBytes(input, alphabetName, paddingMode, allowWhitespace);
+                const parsed = await decodeBase64ToBytes(input, alphabetName, paddingMode, allowWhitespace);
                 if (!parsed.ok) {
                     setError(els, parsed.error.message, parsed.error.index);
                     return;
                 }
 
-                const text = decodeBytesToText(parsed.bytes, charset);
+                const text = await decodeBytesToText(parsed.bytes, charset);
                 if (!text.ok) {
                     setError(els, `${text.error.message} (byte ${text.error.byteIndex})`, null);
                     return;

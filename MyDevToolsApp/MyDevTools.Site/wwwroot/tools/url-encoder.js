@@ -3,6 +3,19 @@
 (function () {
     const initializedRoots = new WeakSet();
 
+    // WASM module lazy loading
+    let encodingWasmModulePromise = null;
+
+    async function getEncodingWasm() {
+        if (!encodingWasmModulePromise) {
+            encodingWasmModulePromise = import('/wasm/encoding/encoding.js').then(async (m) => {
+                await m.default();
+                return m;
+            });
+        }
+        return encodingWasmModulePromise;
+    }
+
     function isHexDigit(ch) {
         const c = ch.charCodeAt(0);
         return (c >= 48 && c <= 57) || (c >= 65 && c <= 70) || (c >= 97 && c <= 102);
@@ -38,34 +51,19 @@
         return { ok: true, bytes };
     }
 
-    function encodeTextToBytes(text, charset) {
-        switch (charset) {
-            case 'utf-8':
-                return { ok: true, bytes: new TextEncoder().encode(text) };
-            case 'utf-16le': {
-                const bytes = new Uint8Array(text.length * 2);
-                for (let i = 0; i < text.length; i++) {
-                    const cu = text.charCodeAt(i);
-                    bytes[i * 2] = cu & 0xff;
-                    bytes[i * 2 + 1] = (cu >> 8) & 0xff;
-                }
-                return { ok: true, bytes };
+    async function encodeTextToBytes(text, charset) {
+        try {
+            const wasm = await getEncodingWasm();
+            if (typeof wasm.encode_text_to_bytes !== 'function') {
+                return { ok: false, error: { index: 0, message: 'WASM module not built. Please rebuild the encoding module.' } };
             }
-            case 'utf-16be': {
-                const bytes = new Uint8Array(text.length * 2);
-                for (let i = 0; i < text.length; i++) {
-                    const cu = text.charCodeAt(i);
-                    bytes[i * 2] = (cu >> 8) & 0xff;
-                    bytes[i * 2 + 1] = cu & 0xff;
-                }
-                return { ok: true, bytes };
-            }
-            case 'ascii':
-                return encodeAsciiLike(text, 0x7f, 'Non-ASCII character');
-            case 'latin1':
-                return encodeAsciiLike(text, 0xff, 'Character not representable in Latin-1');
-            default:
-                return { ok: false, error: { index: 0, message: `Unsupported charset: ${charset}` } };
+            const bytes = wasm.encode_text_to_bytes(text, charset);
+            return { ok: true, bytes: new Uint8Array(bytes) };
+        } catch (err) {
+            const msg = err?.message || String(err);
+            const indexMatch = msg.match(/position (\d+)/);
+            const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+            return { ok: false, error: { index, message: msg } };
         }
     }
 
@@ -171,86 +169,28 @@
         }
     }
 
-    function encodeUrlBytes(bytes, mode) {
-        const isUnreservedByte = (b) =>
-            (b >= 0x41 && b <= 0x5a) ||
-            (b >= 0x61 && b <= 0x7a) ||
-            (b >= 0x30 && b <= 0x39) ||
-            b === 0x2d || b === 0x2e || b === 0x5f || b === 0x7e;
-
-        const isUriReservedByte = (b) => {
-            // encodeURI-like: preserve reserved + '#'
-            // ";,/?:@&=+$,#" (percent itself handled separately)
-            return (
-                b === 0x3b || b === 0x2c || b === 0x2f || b === 0x3f || b === 0x3a ||
-                b === 0x40 || b === 0x26 || b === 0x3d || b === 0x2b || b === 0x24 ||
-                b === 0x23
-            );
-        };
-
-        let out = '';
-        for (let i = 0; i < bytes.length; i++) {
-            const b = bytes[i];
-
-            if (mode === 'form' && b === 0x20) {
-                out += '+';
-                continue;
-            }
-
-            const safe = mode === 'uri'
-                ? (isUnreservedByte(b) || isUriReservedByte(b))
-                : isUnreservedByte(b);
-
-            if (safe) {
-                out += String.fromCharCode(b);
-            } else {
-                out += '%' + bytesToHexUpper(Uint8Array.of(b));
-            }
+    async function encodeUrlBytes(bytes, mode) {
+        const wasm = await getEncodingWasm();
+        if (typeof wasm.url_encode !== 'function') {
+            throw new Error('WASM module not built. Please rebuild the encoding module.');
         }
-
-        return out;
+        return wasm.url_encode(bytes, mode);
     }
 
-    function decodeUrlToBytes(input, { plusAsSpace, charsetForRawChars }) {
-        const bytes = [];
-        for (let i = 0; i < input.length; i++) {
-            const ch = input[i];
-
-            if (plusAsSpace && ch === '+') {
-                bytes.push(0x20);
-                continue;
+    async function decodeUrlToBytes(input, mode) {
+        try {
+            const wasm = await getEncodingWasm();
+            if (typeof wasm.url_decode !== 'function') {
+                return { ok: false, error: { index: 0, message: 'WASM module not built. Please rebuild the encoding module.' } };
             }
-
-            if (ch === '%') {
-                if (i + 2 >= input.length) {
-                    return { ok: false, error: { index: i, message: 'Incomplete percent-encoding' } };
-                }
-                const a = input[i + 1];
-                const b = input[i + 2];
-                if (!isHexDigit(a) || !isHexDigit(b)) {
-                    return { ok: false, error: { index: i, message: 'Invalid percent-encoding' } };
-                }
-                const byte = (hexValue(a) << 4) | hexValue(b);
-                bytes.push(byte);
-                i += 2;
-                continue;
-            }
-
-            const code = input.charCodeAt(i);
-            if (code <= 0x7f) {
-                bytes.push(code);
-                continue;
-            }
-
-            // Non-ASCII raw char: encode using selected charset and append bytes.
-            const enc = encodeTextToBytes(ch, charsetForRawChars);
-            if (!enc.ok) {
-                return { ok: false, error: { index: i, message: enc.error.message } };
-            }
-            for (let k = 0; k < enc.bytes.length; k++) bytes.push(enc.bytes[k]);
+            const bytes = wasm.url_decode(input, mode);
+            return { ok: true, bytes: new Uint8Array(bytes) };
+        } catch (err) {
+            const msg = err?.message || String(err);
+            const indexMatch = msg.match(/position (\d+)/) || msg.match(/index (\d+)/);
+            const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+            return { ok: false, error: { index, message: msg } };
         }
-
-        return { ok: true, bytes: new Uint8Array(bytes) };
     }
 
     function getElements() {
@@ -292,7 +232,7 @@
         setError(els, '', null);
     }
 
-    function encodeAction() {
+    async function encodeAction() {
         const els = getElements();
         if (!els) return;
         clearError(els);
@@ -301,16 +241,17 @@
         const mode = String(els.mode.value || 'component');
         const charset = String(els.charset.value || 'utf-8');
 
-        const enc = encodeTextToBytes(text, charset);
+        const enc = await encodeTextToBytes(text, charset);
         if (!enc.ok) {
             setError(els, enc.error.message, enc.error.index);
             return;
         }
 
-        els.output.value = encodeUrlBytes(enc.bytes, mode);
+        const out = await encodeUrlBytes(enc.bytes, mode);
+        els.output.value = out;
     }
 
-    function decodeAction() {
+    async function decodeAction() {
         const els = getElements();
         if (!els) return;
         clearError(els);
@@ -318,15 +259,14 @@
         const input = els.input.value || '';
         const mode = String(els.mode.value || 'component');
         const charset = String(els.charset.value || 'utf-8');
-        const plusAsSpace = mode === 'form';
 
-        const decoded = decodeUrlToBytes(input, { plusAsSpace, charsetForRawChars: charset });
+        const decoded = await decodeUrlToBytes(input, mode);
         if (!decoded.ok) {
             setError(els, decoded.error.message, decoded.error.index);
             return;
         }
 
-        const text = decodeBytesToText(decoded.bytes, charset);
+        const text = await decodeBytesToText(decoded.bytes, charset);
         if (!text.ok) {
             setError(els, `${text.error.message} (byte ${text.error.byteIndex})`, null);
             return;

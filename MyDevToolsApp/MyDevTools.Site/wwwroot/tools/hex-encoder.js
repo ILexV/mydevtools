@@ -3,6 +3,19 @@
 (function () {
     const initializedRoots = new WeakSet();
 
+    // WASM module lazy loading
+    let encodingWasmModulePromise = null;
+
+    async function getEncodingWasm() {
+        if (!encodingWasmModulePromise) {
+            encodingWasmModulePromise = import('/wasm/encoding/encoding.js').then(async (m) => {
+                await m.default();
+                return m;
+            });
+        }
+        return encodingWasmModulePromise;
+    }
+
     function escapeHtml(text) {
         return String(text)
             .replaceAll('&', '&amp;')
@@ -89,11 +102,9 @@
         return lut;
     }
 
-    function bytesToHex(bytes, upper) {
-        const lut = makeHexLut(upper);
-        let out = '';
-        for (let i = 0; i < bytes.length; i++) out += lut[bytes[i]];
-        return out;
+    async function bytesToHex(bytes, upper) {
+        const wasm = await getEncodingWasm();
+        return wasm.hex_encode(bytes, upper);
     }
 
     function encodeAsciiLike(str, maxCodePoint, errorLabel) {
@@ -108,34 +119,16 @@
         return { ok: true, bytes };
     }
 
-    function encodeTextToBytes(text, charset) {
-        switch (charset) {
-            case 'utf-8':
-                return { ok: true, bytes: new TextEncoder().encode(text) };
-            case 'utf-16le': {
-                const bytes = new Uint8Array(text.length * 2);
-                for (let i = 0; i < text.length; i++) {
-                    const cu = text.charCodeAt(i);
-                    bytes[i * 2] = cu & 0xff;
-                    bytes[i * 2 + 1] = (cu >> 8) & 0xff;
-                }
-                return { ok: true, bytes };
-            }
-            case 'utf-16be': {
-                const bytes = new Uint8Array(text.length * 2);
-                for (let i = 0; i < text.length; i++) {
-                    const cu = text.charCodeAt(i);
-                    bytes[i * 2] = (cu >> 8) & 0xff;
-                    bytes[i * 2 + 1] = cu & 0xff;
-                }
-                return { ok: true, bytes };
-            }
-            case 'ascii':
-                return encodeAsciiLike(text, 0x7f, 'Non-ASCII character');
-            case 'latin1':
-                return encodeAsciiLike(text, 0xff, 'Character not representable in Latin-1');
-            default:
-                return { ok: false, error: { index: 0, message: `Unsupported charset: ${charset}` } };
+    async function encodeTextToBytes(text, charset) {
+        try {
+            const wasm = await getEncodingWasm();
+            const bytes = wasm.encode_text_to_bytes(text, charset);
+            return { ok: true, bytes: new Uint8Array(bytes) };
+        } catch (err) {
+            const msg = err?.message || String(err);
+            const indexMatch = msg.match(/position (\d+)/);
+            const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+            return { ok: false, error: { index, message: msg } };
         }
     }
 
@@ -198,91 +191,39 @@
         return { ok: true, text: out };
     }
 
-    function decodeBytesToText(bytes, charset) {
-        switch (charset) {
-            case 'utf-8':
-                return decodeUtf8Strict(bytes);
-            case 'utf-16le': {
-                if (bytes.length % 2 !== 0) return { ok: false, error: { byteIndex: bytes.length - 1, message: 'Odd number of bytes for UTF-16LE' } };
-                let out = '';
-                for (let i = 0; i < bytes.length; i += 2) out += String.fromCharCode(bytes[i] | (bytes[i + 1] << 8));
-                return { ok: true, text: out };
-            }
-            case 'utf-16be': {
-                if (bytes.length % 2 !== 0) return { ok: false, error: { byteIndex: bytes.length - 1, message: 'Odd number of bytes for UTF-16BE' } };
-                let out = '';
-                for (let i = 0; i < bytes.length; i += 2) out += String.fromCharCode((bytes[i] << 8) | bytes[i + 1]);
-                return { ok: true, text: out };
-            }
-            case 'ascii': {
-                for (let i = 0; i < bytes.length; i++) {
-                    if (bytes[i] > 0x7f) return { ok: false, error: { byteIndex: i, message: 'Byte not representable in ASCII' } };
-                }
-                return { ok: true, text: String.fromCharCode(...bytes) };
-            }
-            case 'latin1':
-                return { ok: true, text: String.fromCharCode(...bytes) };
-            default:
-                return { ok: false, error: { byteIndex: 0, message: `Unsupported charset: ${charset}` } };
+    async function decodeBytesToText(bytes, charset) {
+        try {
+            const wasm = await getEncodingWasm();
+            const text = wasm.decode_bytes_to_text(bytes, charset);
+            return { ok: true, text };
+        } catch (err) {
+            const msg = err?.message || String(err);
+            const byteIndexMatch = msg.match(/byte (\d+)/i) || msg.match(/position (\d+)/);
+            const byteIndex = byteIndexMatch ? parseInt(byteIndexMatch[1], 10) : 0;
+            return { ok: false, error: { byteIndex, message: msg } };
         }
     }
 
-    function parseHexToBytes(input, options) {
-        // options: { ignoreWhitespace, allowSeparators, allow0x }
-        // Returns { ok:true, bytes } or { ok:false, error:{ index, message } }
-        let i = 0;
-        let haveHigh = false;
-        let high = 0;
-        const out = [];
-
-        while (i < input.length) {
-            const ch = input[i];
-
-            if (options.ignoreWhitespace && isWhitespace(ch)) {
-                i++;
-                continue;
-            }
-
-            if (options.allowSeparators && isSeparator(ch)) {
-                i++;
-                continue;
-            }
-
-            if (options.allow0x && !haveHigh && ch === '0' && (i + 1) < input.length && (input[i + 1] === 'x' || input[i + 1] === 'X')) {
-                i += 2;
-                continue;
-            }
-
-            if (!isHexDigit(ch)) {
-                return { ok: false, error: { index: i, message: `Invalid hex character '${ch}' at position ${i}` } };
-            }
-
-            const v = hexValue(ch);
-            if (!haveHigh) {
-                high = v;
-                haveHigh = true;
-            } else {
-                out.push((high << 4) | v);
-                haveHigh = false;
-            }
-
-            i++;
+    async function parseHexToBytes(input, options) {
+        try {
+            const wasm = await getEncodingWasm();
+            const bytes = wasm.hex_decode(input, options.ignoreWhitespace, options.allowSeparators, options.allow0x);
+            return { ok: true, bytes: new Uint8Array(bytes) };
+        } catch (err) {
+            const msg = err?.message || String(err);
+            const indexMatch = msg.match(/position (\d+)/);
+            const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+            return { ok: false, error: { index, message: msg } };
         }
-
-        if (haveHigh) {
-            return { ok: false, error: { index: input.length - 1, message: 'Odd number of hex digits' } };
-        }
-
-        return { ok: true, bytes: new Uint8Array(out) };
     }
 
     async function encodeFileToHex(file, upper, outputMode, onProgress, signal) {
+        const wasm = await getEncodingWasm();
         const chunkSize = 1024 * 1024; // 1 MiB
         const total = file.size;
         let processed = 0;
         const start = performance.now();
 
-        const lut = makeHexLut(upper);
         const parts = [];
 
         // For preview in textarea: limit to first N chars to keep DOM responsive.
@@ -297,8 +238,7 @@
             const buf = await chunk.arrayBuffer();
             const bytes = new Uint8Array(buf);
 
-            let s = '';
-            for (let i = 0; i < bytes.length; i++) s += lut[bytes[i]];
+            const s = wasm.hex_encode(bytes, upper);
 
             if (outputMode === 'full') {
                 parts.push(s);
@@ -327,28 +267,16 @@
     }
 
     async function decodeHexFileToBytes(file, options, onProgress, signal) {
-        // Read as bytes and interpret as Latin-1 for streaming parsing.
+        const wasm = await getEncodingWasm();
         const chunkSize = 1024 * 1024; // 1 MiB
         const total = file.size;
         let processed = 0;
         const start = performance.now();
 
         const decoder = new TextDecoder('latin1');
-        let carryHigh = null; // number 0..15
-        let position = 0; // logical char position in the concatenated text (rough)
+        let accumulatedText = '';
 
         const outChunks = [];
-        let outChunk = new Uint8Array(1024 * 1024);
-        let outPos = 0;
-
-        function pushByte(b) {
-            if (outPos >= outChunk.length) {
-                outChunks.push(outChunk.subarray(0, outPos));
-                outChunk = new Uint8Array(1024 * 1024);
-                outPos = 0;
-            }
-            outChunk[outPos++] = b;
-        }
 
         while (processed < total) {
             if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
@@ -357,32 +285,20 @@
             const buf = await chunk.arrayBuffer();
             const bytes = new Uint8Array(buf);
             const text = decoder.decode(bytes, { stream: true });
+            accumulatedText += text;
 
-            for (let i = 0; i < text.length; i++) {
-                const ch = text[i];
-
-                if (options.ignoreWhitespace && isWhitespace(ch)) { position++; continue; }
-                if (options.allowSeparators && isSeparator(ch)) { position++; continue; }
-
-                if (options.allow0x && carryHigh === null && ch === '0' && (i + 1) < text.length && (text[i + 1] === 'x' || text[i + 1] === 'X')) {
-                    i += 1;
-                    position += 2;
-                    continue;
+            // Process in reasonable chunks to avoid memory issues
+            if (accumulatedText.length > 10 * 1024 * 1024) { // 10MB chunks
+                try {
+                    const decoded = wasm.hex_decode(accumulatedText, options.ignoreWhitespace, options.allowSeparators, options.allow0x);
+                    outChunks.push(new Uint8Array(decoded));
+                    accumulatedText = '';
+                } catch (err) {
+                    const msg = err?.message || String(err);
+                    const indexMatch = msg.match(/position (\d+)/);
+                    const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+                    return { ok: false, error: { index, message: msg } };
                 }
-
-                if (!isHexDigit(ch)) {
-                    return { ok: false, error: { index: position, message: `Invalid hex character '${ch}' at position ${position}` } };
-                }
-
-                const v = hexValue(ch);
-                if (carryHigh === null) {
-                    carryHigh = v;
-                } else {
-                    pushByte((carryHigh << 4) | v);
-                    carryHigh = null;
-                }
-
-                position++;
             }
 
             processed += chunk.size;
@@ -392,11 +308,19 @@
             await new Promise(requestAnimationFrame);
         }
 
-        if (carryHigh !== null) {
-            return { ok: false, error: { index: position - 1, message: 'Odd number of hex digits' } };
+        // Process remaining text
+        if (accumulatedText.length > 0) {
+            try {
+                const decoded = wasm.hex_decode(accumulatedText, options.ignoreWhitespace, options.allowSeparators, options.allow0x);
+                outChunks.push(new Uint8Array(decoded));
+            } catch (err) {
+                const msg = err?.message || String(err);
+                const indexMatch = msg.match(/position (\d+)/);
+                const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+                return { ok: false, error: { index, message: msg } };
+            }
         }
 
-        if (outPos > 0) outChunks.push(outChunk.subarray(0, outPos));
         const blob = new Blob(outChunks, { type: 'application/octet-stream' });
         return { ok: true, blob };
     }
@@ -542,13 +466,13 @@
                 setLastDownload(els2.root, result.blob, `${file.name}.hex`);
             } else {
                 const text = els.inputText.value || '';
-                const enc = encodeTextToBytes(text, charset);
+                const enc = await encodeTextToBytes(text, charset);
                 if (!enc.ok) {
                     setError(els, enc.error.message, enc.error.index);
                     return;
                 }
 
-                const out = bytesToHex(enc.bytes, upper);
+                const out = await bytesToHex(enc.bytes, upper);
                 els.output.value = out;
                 setLastDownload(els.root, new Blob([out], { type: 'text/plain' }), 'text.hex');
             }
@@ -628,13 +552,13 @@
                 setLastDownload(els2.root, decoded.blob, `${file.name}.bin`);
             } else {
                 const input = els.inputText.value || '';
-                const parsed = parseHexToBytes(input, options);
+                const parsed = await parseHexToBytes(input, options);
                 if (!parsed.ok) {
                     setError(els, parsed.error.message, parsed.error.index);
                     return;
                 }
 
-                const text = decodeBytesToText(parsed.bytes, charset);
+                const text = await decodeBytesToText(parsed.bytes, charset);
                 if (!text.ok) {
                     setError(els, `${text.error.message} (byte ${text.error.byteIndex})`, null);
                     return;

@@ -1904,5 +1904,23 @@ namespace MyDevTools.Site.Resources {
                 return ResourceManager.GetString("Base58Encoder_Cancel", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Base58 encoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.
+        /// </summary>
+        public static string Base58Encoder_FileSizeLimitEncode {
+            get {
+                return ResourceManager.GetString("Base58Encoder_FileSizeLimitEncode", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Base58 decoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.
+        /// </summary>
+        public static string Base58Encoder_FileSizeLimitDecode {
+            get {
+                return ResourceManager.GetString("Base58Encoder_FileSizeLimitDecode", resourceCulture);
+            }
+        }
     }
 }

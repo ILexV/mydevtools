@@ -3,6 +3,19 @@
 (function () {
     const initializedRoots = new WeakSet();
 
+    // WASM module lazy loading
+    let encodingWasmModulePromise = null;
+
+    async function getEncodingWasm() {
+        if (!encodingWasmModulePromise) {
+            encodingWasmModulePromise = import('/wasm/encoding/encoding.js').then(async (m) => {
+                await m.default();
+                return m;
+            });
+        }
+        return encodingWasmModulePromise;
+    }
+
     function escapeHtml(text) {
         return String(text)
             .replaceAll('&', '&amp;')
@@ -73,34 +86,19 @@
         return { ok: true, bytes };
     }
 
-    function encodeTextToBytes(text, charset) {
-        switch (charset) {
-            case 'utf-8':
-                return { ok: true, bytes: new TextEncoder().encode(text) };
-            case 'utf-16le': {
-                const bytes = new Uint8Array(text.length * 2);
-                for (let i = 0; i < text.length; i++) {
-                    const cu = text.charCodeAt(i);
-                    bytes[i * 2] = cu & 0xff;
-                    bytes[i * 2 + 1] = (cu >> 8) & 0xff;
-                }
-                return { ok: true, bytes };
+    async function encodeTextToBytes(text, charset) {
+        try {
+            const wasm = await getEncodingWasm();
+            if (typeof wasm.encode_text_to_bytes !== 'function') {
+                return { ok: false, error: { index: 0, message: 'WASM module not built. Please rebuild the encoding module.' } };
             }
-            case 'utf-16be': {
-                const bytes = new Uint8Array(text.length * 2);
-                for (let i = 0; i < text.length; i++) {
-                    const cu = text.charCodeAt(i);
-                    bytes[i * 2] = (cu >> 8) & 0xff;
-                    bytes[i * 2 + 1] = cu & 0xff;
-                }
-                return { ok: true, bytes };
-            }
-            case 'ascii':
-                return encodeAsciiLike(text, 0x7f, 'Non-ASCII character');
-            case 'latin1':
-                return encodeAsciiLike(text, 0xff, 'Character not representable in Latin-1');
-            default:
-                return { ok: false, error: { index: 0, message: `Unsupported charset: ${charset}` } };
+            const bytes = wasm.encode_text_to_bytes(text, charset);
+            return { ok: true, bytes: new Uint8Array(bytes) };
+        } catch (err) {
+            const msg = err?.message || String(err);
+            const indexMatch = msg.match(/position (\d+)/);
+            const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+            return { ok: false, error: { index, message: msg } };
         }
     }
 
@@ -163,32 +161,19 @@
         return { ok: true, text: out };
     }
 
-    function decodeBytesToText(bytes, charset) {
-        switch (charset) {
-            case 'utf-8':
-                return decodeUtf8Strict(bytes);
-            case 'utf-16le': {
-                if (bytes.length % 2 !== 0) return { ok: false, error: { byteIndex: bytes.length - 1, message: 'Odd number of bytes for UTF-16LE' } };
-                let out = '';
-                for (let i = 0; i < bytes.length; i += 2) out += String.fromCharCode(bytes[i] | (bytes[i + 1] << 8));
-                return { ok: true, text: out };
+    async function decodeBytesToText(bytes, charset) {
+        try {
+            const wasm = await getEncodingWasm();
+            if (typeof wasm.decode_bytes_to_text !== 'function') {
+                return { ok: false, error: { byteIndex: 0, message: 'WASM module not built. Please rebuild the encoding module.' } };
             }
-            case 'utf-16be': {
-                if (bytes.length % 2 !== 0) return { ok: false, error: { byteIndex: bytes.length - 1, message: 'Odd number of bytes for UTF-16BE' } };
-                let out = '';
-                for (let i = 0; i < bytes.length; i += 2) out += String.fromCharCode((bytes[i] << 8) | bytes[i + 1]);
-                return { ok: true, text: out };
-            }
-            case 'ascii': {
-                for (let i = 0; i < bytes.length; i++) {
-                    if (bytes[i] > 0x7f) return { ok: false, error: { byteIndex: i, message: 'Byte not representable in ASCII' } };
-                }
-                return { ok: true, text: String.fromCharCode(...bytes) };
-            }
-            case 'latin1':
-                return { ok: true, text: String.fromCharCode(...bytes) };
-            default:
-                return { ok: false, error: { byteIndex: 0, message: `Unsupported charset: ${charset}` } };
+            const text = wasm.decode_bytes_to_text(bytes, charset);
+            return { ok: true, text };
+        } catch (err) {
+            const msg = err?.message || String(err);
+            const byteIndexMatch = msg.match(/byte (\d+)/i) || msg.match(/position (\d+)/);
+            const byteIndex = byteIndexMatch ? parseInt(byteIndexMatch[1], 10) : 0;
+            return { ok: false, error: { byteIndex, message: msg } };
         }
     }
 
@@ -248,36 +233,12 @@
         return map;
     }
 
-    function encodeBytesToBase32(bytes, alphabetName, paddingMode) {
-        const alphabet = getAlphabet(alphabetName);
-        let out = '';
-        let buffer = 0;
-        let bits = 0;
-
-        for (let i = 0; i < bytes.length; i++) {
-            buffer = (buffer << 8) | bytes[i];
-            bits += 8;
-            while (bits >= 5) {
-                const idx = (buffer >> (bits - 5)) & 31;
-                out += alphabet[idx];
-                bits -= 5;
-                buffer &= (1 << bits) - 1;
-            }
+    async function encodeBytesToBase32(bytes, alphabetName, paddingMode, caseMode) {
+        const wasm = await getEncodingWasm();
+        if (typeof wasm.base32_encode !== 'function') {
+            throw new Error('WASM module not built. Please rebuild the encoding module.');
         }
-
-        if (bits > 0) {
-            const idx = (buffer << (5 - bits)) & 31;
-            out += alphabet[idx];
-            bits = 0;
-            buffer = 0;
-        }
-
-        if (paddingMode !== 'none') {
-            const mod = out.length % 8;
-            if (mod !== 0) out += '='.repeat(8 - mod);
-        }
-
-        return out;
+        return wasm.base32_encode(bytes, alphabetName, paddingMode, caseMode || null);
     }
 
     function validateAndTrimPadding(text, paddingMode) {
@@ -342,48 +303,20 @@
         return { ok: true, text: input };
     }
 
-    function decodeBase32ToBytes(input, alphabetName, paddingMode, caseMode, allowWhitespace) {
-        const norm = normalizeInputForDecode(input, allowWhitespace);
-        if (!norm.ok) return norm;
-
-        const text = norm.text;
-        const alphabet = getAlphabet(alphabetName);
-        const map = makeDecodeMap(alphabet, caseMode);
-
-        const pad = validateAndTrimPadding(text, paddingMode);
-        if (!pad.ok) return pad;
-
-        const dataText = pad.dataText;
-
-        let out = [];
-        let buffer = 0;
-        let bits = 0;
-
-        for (let i = 0; i < dataText.length; i++) {
-            const ch = dataText[i];
-            const code = ch.charCodeAt(0);
-            const v = code <= 127 ? map[code] : -1;
-            if (v < 0) {
-                return { ok: false, error: { index: i, message: `Invalid Base32 character '${ch}' at position ${i}` } };
+    async function decodeBase32ToBytes(input, alphabetName, paddingMode, caseMode, allowWhitespace) {
+        try {
+            const wasm = await getEncodingWasm();
+            if (typeof wasm.base32_decode !== 'function') {
+                return { ok: false, error: { index: 0, message: 'WASM module not built. Please rebuild the encoding module.' } };
             }
-
-            buffer = (buffer << 5) | v;
-            bits += 5;
-            while (bits >= 8) {
-                bits -= 8;
-                out.push((buffer >> bits) & 0xff);
-                buffer &= (1 << bits) - 1;
-            }
+            const bytes = wasm.base32_decode(input, alphabetName, paddingMode, allowWhitespace);
+            return { ok: true, bytes: new Uint8Array(bytes) };
+        } catch (err) {
+            const msg = err?.message || String(err);
+            const indexMatch = msg.match(/position (\d+)/) || msg.match(/index (\d+)/);
+            const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+            return { ok: false, error: { index, message: msg } };
         }
-
-        if (bits > 0) {
-            // remaining bits must be zero
-            if ((buffer & ((1 << bits) - 1)) !== 0) {
-                return { ok: false, error: { index: dataText.length - 1, message: 'Invalid Base32 trailing bits' } };
-            }
-        }
-
-        return { ok: true, bytes: new Uint8Array(out) };
     }
 
     async function encodeFileToBase32(file, alphabetName, paddingMode, outputMode, onProgress, signal) {
@@ -434,7 +367,8 @@
             if (tailLen > 0) carry = bytes.subarray(fullLen);
 
             // For full blocks, never emit '='.
-            const encoded = encodeBytesToBase32(toEncode, alphabetName, 'none');
+            const wasm = await getEncodingWasm();
+            const encoded = await encodeBytesToBase32(toEncode, alphabetName, 'none', null);
             pushString(encoded);
 
             processed += chunk.size;
@@ -445,7 +379,8 @@
         }
 
         if (carry.length > 0) {
-            const tailEncoded = encodeBytesToBase32(carry, alphabetName, paddingMode === 'none' ? 'none' : 'required');
+            const wasm = await getEncodingWasm();
+            const tailEncoded = await encodeBytesToBase32(carry, alphabetName, paddingMode === 'none' ? 'none' : 'required', null);
             // If padding optional, we emit padded for best compatibility.
             pushString(tailEncoded);
         }
@@ -459,35 +394,17 @@
     }
 
     async function decodeBase32FileToBytes(file, alphabetName, paddingMode, caseMode, allowWhitespace, onProgress, signal) {
+        const wasm = await getEncodingWasm();
         const chunkSize = 1024 * 1024; // 1 MiB
         const total = file.size;
         let processed = 0;
         const start = performance.now();
 
-        const alphabet = getAlphabet(alphabetName);
-        const map = makeDecodeMap(alphabet, caseMode);
         const decoder = new TextDecoder('latin1');
-
-        let buffer = 0;
-        let bits = 0;
-
-        let totalChars = 0; // non-whitespace chars including '='
-        let dataChars = 0;  // before '='
-        let padCount = 0;
-        let sawPadding = false;
+        let accumulatedText = '';
 
         const outChunks = [];
-        let outChunk = new Uint8Array(1024 * 1024);
-        let outPos = 0;
 
-        function pushByte(b) {
-            if (outPos >= outChunk.length) {
-                outChunks.push(outChunk.subarray(0, outPos));
-                outChunk = new Uint8Array(1024 * 1024);
-                outPos = 0;
-            }
-            outChunk[outPos++] = b;
-        }
 
         while (processed < total) {
             if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
@@ -497,91 +414,56 @@
             const bytes = new Uint8Array(buf);
             const text = decoder.decode(bytes, { stream: true });
 
-            for (let i = 0; i < text.length; i++) {
-                const ch = text[i];
-                if (isWhitespace(ch)) {
-                    if (!allowWhitespace) {
-                        return { ok: false, error: { index: totalChars, message: 'Whitespace not allowed' } };
-                    }
-                    continue;
-                }
+            accumulatedText += text;
 
-                totalChars++;
-
-                if (ch === '=') {
-                    if (paddingMode === 'none') {
-                        return { ok: false, error: { index: totalChars - 1, message: "Padding '=' is not allowed" } };
-                    }
-                    sawPadding = true;
-                    padCount++;
-                    if (padCount > 6) {
-                        return { ok: false, error: { index: totalChars - 1, message: 'Invalid Base32 padding' } };
-                    }
-                    continue;
-                }
-
-                if (sawPadding) {
-                    return { ok: false, error: { index: totalChars - 1, message: 'Data after padding' } };
-                }
-
-                dataChars++;
-                const code = ch.charCodeAt(0);
-                const v = code <= 127 ? map[code] : -1;
-                if (v < 0) {
-                    return { ok: false, error: { index: totalChars - 1, message: `Invalid Base32 character '${ch}'` } };
-                }
-
-                buffer = (buffer << 5) | v;
-                bits += 5;
-                while (bits >= 8) {
-                    bits -= 8;
-                    pushByte((buffer >> bits) & 0xff);
-                    buffer &= (1 << bits) - 1;
+            // Process in reasonable chunks to avoid memory issues
+            if (accumulatedText.length > 10 * 1024 * 1024) { // 10MB chunks
+                try {
+                    const decoded = wasm.base32_decode(accumulatedText, alphabetName, paddingMode, allowWhitespace);
+                    outChunks.push(new Uint8Array(decoded));
+                    accumulatedText = '';
+                } catch (err) {
+                    const msg = err?.message || String(err);
+                    const indexMatch = msg.match(/position (\d+)/) || msg.match(/index (\d+)/);
+                    const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+                    return { ok: false, error: { index, message: msg } };
                 }
             }
 
             processed += chunk.size;
             const elapsedMs = performance.now() - start;
             onProgress({ processed, total, elapsedMs });
+
             await new Promise(requestAnimationFrame);
         }
 
-        // validate padding/length
-        if (padCount > 0) {
-            if (paddingMode === 'none') {
-                return { ok: false, error: { index: totalChars - 1, message: "Padding '=' is not allowed" } };
-            }
-            if (totalChars % 8 !== 0) {
-                return { ok: false, error: { index: totalChars - 1, message: 'Invalid Base32 length (padding)' } };
-            }
-            if (![1, 3, 4, 6].includes(padCount)) {
-                return { ok: false, error: { index: totalChars - 1, message: 'Invalid Base32 padding length' } };
-            }
-            const mod = dataChars % 8;
-            const expectedMod = (padCount === 6) ? 2 : (padCount === 4) ? 4 : (padCount === 3) ? 5 : 7;
-            if (mod !== expectedMod) {
-                return { ok: false, error: { index: totalChars - padCount, message: 'Invalid Base32 padding' } };
-            }
-        } else {
-            if (paddingMode === 'required') {
-                if (totalChars % 8 !== 0) {
-                    return { ok: false, error: { index: totalChars - 1, message: 'Invalid Base32 length (padding required)' } };
-                }
-            } else {
-                const rem = totalChars % 8;
-                if (rem === 1 || rem === 3 || rem === 6) {
-                    return { ok: false, error: { index: totalChars - 1, message: 'Invalid Base32 length' } };
+        // Process remaining text
+                try {
+                    const decoded = wasm.base32_decode(accumulatedText, alphabetName, paddingMode, allowWhitespace);
+                    outChunks.push(new Uint8Array(decoded));
+                    accumulatedText = '';
+                } catch (err) {
+                    const msg = err?.message || String(err);
+                    const indexMatch = msg.match(/position (\d+)/) || msg.match(/index (\d+)/);
+                    const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+                    return { ok: false, error: { index, message: msg } };
                 }
             }
         }
 
-        if (bits > 0) {
-            if ((buffer & ((1 << bits) - 1)) !== 0) {
-                return { ok: false, error: { index: Math.max(0, totalChars - 1), message: 'Invalid Base32 trailing bits' } };
+        // Process remaining text
+        if (accumulatedText.length > 0) {
+            try {
+                const decoded = wasm.base32_decode(accumulatedText, alphabetName, paddingMode, allowWhitespace);
+                outChunks.push(new Uint8Array(decoded));
+            } catch (err) {
+                const msg = err?.message || String(err);
+                const indexMatch = msg.match(/position (\d+)/) || msg.match(/index (\d+)/);
+                const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+                return { ok: false, error: { index, message: msg } };
             }
         }
 
-        if (outPos > 0) outChunks.push(outChunk.subarray(0, outPos));
         const blob = new Blob(outChunks, { type: 'application/octet-stream' });
         return { ok: true, blob };
     }
@@ -728,13 +610,14 @@
                 setLastDownload(els2.root, result.blob, `${file.name}.b32`);
             } else {
                 const text = els.inputText.value || '';
-                const enc = encodeTextToBytes(text, charset);
+                const enc = await encodeTextToBytes(text, charset);
                 if (!enc.ok) {
                     setError(els, enc.error.message, enc.error.index);
                     return;
                 }
 
-                const out = encodeBytesToBase32(enc.bytes, alphabetName, paddingMode);
+                const caseMode = els.caseMode.value || 'auto';
+                const out = await encodeBytesToBase32(enc.bytes, alphabetName, paddingMode, caseMode);
                 els.output.value = out;
                 setLastDownload(els.root, new Blob([out], { type: 'text/plain' }), 'text.b32');
             }
@@ -815,13 +698,13 @@
                 setLastDownload(els2.root, decoded.blob, `${file.name}.bin`);
             } else {
                 const input = els.inputText.value || '';
-                const parsed = decodeBase32ToBytes(input, alphabetName, paddingMode, caseMode, allowWhitespace);
+                const parsed = await decodeBase32ToBytes(input, alphabetName, paddingMode, caseMode, allowWhitespace);
                 if (!parsed.ok) {
                     setError(els, parsed.error.message, parsed.error.index);
                     return;
                 }
 
-                const text = decodeBytesToText(parsed.bytes, charset);
+                const text = await decodeBytesToText(parsed.bytes, charset);
                 if (!text.ok) {
                     setError(els, `${text.error.message} (byte ${text.error.byteIndex})`, null);
                     return;

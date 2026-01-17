@@ -3,6 +3,19 @@
 (function () {
     const initializedRoots = new WeakSet();
 
+    // WASM module lazy loading
+    let encodingWasmModulePromise = null;
+
+    async function getEncodingWasm() {
+        if (!encodingWasmModulePromise) {
+            encodingWasmModulePromise = import('/wasm/encoding/encoding.js').then(async (m) => {
+                await m.default();
+                return m;
+            });
+        }
+        return encodingWasmModulePromise;
+    }
+
     function escapeHtml(text) {
         return String(text)
             .replaceAll('&', '&amp;')
@@ -73,34 +86,19 @@
         return { ok: true, bytes };
     }
 
-    function encodeTextToBytes(text, charset) {
-        switch (charset) {
-            case 'utf-8':
-                return { ok: true, bytes: new TextEncoder().encode(text) };
-            case 'utf-16le': {
-                const bytes = new Uint8Array(text.length * 2);
-                for (let i = 0; i < text.length; i++) {
-                    const cu = text.charCodeAt(i);
-                    bytes[i * 2] = cu & 0xff;
-                    bytes[i * 2 + 1] = (cu >> 8) & 0xff;
-                }
-                return { ok: true, bytes };
+    async function encodeTextToBytes(text, charset) {
+        try {
+            const wasm = await getEncodingWasm();
+            if (typeof wasm.encode_text_to_bytes !== 'function') {
+                return { ok: false, error: { index: 0, message: 'WASM module not built. Please rebuild the encoding module.' } };
             }
-            case 'utf-16be': {
-                const bytes = new Uint8Array(text.length * 2);
-                for (let i = 0; i < text.length; i++) {
-                    const cu = text.charCodeAt(i);
-                    bytes[i * 2] = (cu >> 8) & 0xff;
-                    bytes[i * 2 + 1] = cu & 0xff;
-                }
-                return { ok: true, bytes };
-            }
-            case 'ascii':
-                return encodeAsciiLike(text, 0x7f, 'Non-ASCII character');
-            case 'latin1':
-                return encodeAsciiLike(text, 0xff, 'Character not representable in Latin-1');
-            default:
-                return { ok: false, error: { index: 0, message: `Unsupported charset: ${charset}` } };
+            const bytes = wasm.encode_text_to_bytes(text, charset);
+            return { ok: true, bytes: new Uint8Array(bytes) };
+        } catch (err) {
+            const msg = err?.message || String(err);
+            const indexMatch = msg.match(/position (\d+)/);
+            const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+            return { ok: false, error: { index, message: msg } };
         }
     }
 
@@ -163,32 +161,19 @@
         return { ok: true, text: out };
     }
 
-    function decodeBytesToText(bytes, charset) {
-        switch (charset) {
-            case 'utf-8':
-                return decodeUtf8Strict(bytes);
-            case 'utf-16le': {
-                if (bytes.length % 2 !== 0) return { ok: false, error: { byteIndex: bytes.length - 1, message: 'Odd number of bytes for UTF-16LE' } };
-                let out = '';
-                for (let i = 0; i < bytes.length; i += 2) out += String.fromCharCode(bytes[i] | (bytes[i + 1] << 8));
-                return { ok: true, text: out };
+    async function decodeBytesToText(bytes, charset) {
+        try {
+            const wasm = await getEncodingWasm();
+            if (typeof wasm.decode_bytes_to_text !== 'function') {
+                return { ok: false, error: { byteIndex: 0, message: 'WASM module not built. Please rebuild the encoding module.' } };
             }
-            case 'utf-16be': {
-                if (bytes.length % 2 !== 0) return { ok: false, error: { byteIndex: bytes.length - 1, message: 'Odd number of bytes for UTF-16BE' } };
-                let out = '';
-                for (let i = 0; i < bytes.length; i += 2) out += String.fromCharCode((bytes[i] << 8) | bytes[i + 1]);
-                return { ok: true, text: out };
-            }
-            case 'ascii': {
-                for (let i = 0; i < bytes.length; i++) {
-                    if (bytes[i] > 0x7f) return { ok: false, error: { byteIndex: i, message: 'Byte not representable in ASCII' } };
-                }
-                return { ok: true, text: String.fromCharCode(...bytes) };
-            }
-            case 'latin1':
-                return { ok: true, text: String.fromCharCode(...bytes) };
-            default:
-                return { ok: false, error: { byteIndex: 0, message: `Unsupported charset: ${charset}` } };
+            const text = wasm.decode_bytes_to_text(bytes, charset);
+            return { ok: true, text };
+        } catch (err) {
+            const msg = err?.message || String(err);
+            const byteIndexMatch = msg.match(/byte (\d+)/i) || msg.match(/position (\d+)/);
+            const byteIndex = byteIndexMatch ? parseInt(byteIndexMatch[1], 10) : 0;
+            return { ok: false, error: { byteIndex, message: msg } };
         }
     }
 
@@ -269,160 +254,125 @@
         return parts.join('');
     }
 
-    function decodeBase58ToBytes(input, alphabetName, allowWhitespace) {
-        const alphabet = getAlphabet(alphabetName);
-        const map = makeDecodeMap(alphabet);
-        const zeroChar = alphabet[0];
-
-        // base256 bytes, little-endian
-        const bytes = [];
-        let leadingZeros = 0;
-        let started = false;
-
-        for (let i = 0; i < input.length; i++) {
-            const ch = input[i];
-            if (isWhitespace(ch)) {
-                if (allowWhitespace) continue;
-                return { ok: false, error: { index: i, message: `Whitespace not allowed at position ${i}` } };
+    async function decodeBase58ToBytes(input, alphabetName, allowWhitespace) {
+        try {
+            const wasm = await getEncodingWasm();
+            if (typeof wasm.base58_decode !== 'function') {
+                return { ok: false, error: { index: 0, message: 'WASM module not built. Please rebuild the encoding module.' } };
             }
-
-            if (!started) {
-                if (ch === zeroChar) {
-                    leadingZeros++;
-                    continue;
-                }
-                started = true;
-            }
-
-            const code = ch.charCodeAt(0);
-            const v = code <= 127 ? map[code] : -1;
-            if (v < 0) {
-                return { ok: false, error: { index: i, message: `Invalid Base58 character '${ch}' at position ${i}` } };
-            }
-
-            let carry = v;
-            for (let bi = 0; bi < bytes.length; bi++) {
-                carry += bytes[bi] * 58;
-                bytes[bi] = carry & 0xff;
-                carry >>= 8;
-            }
-            while (carry > 0) {
-                bytes.push(carry & 0xff);
-                carry >>= 8;
-            }
+            const bytes = wasm.base58_decode(input, alphabetName, allowWhitespace);
+            return { ok: true, bytes: new Uint8Array(bytes) };
+        } catch (err) {
+            const msg = err?.message || String(err);
+            const indexMatch = msg.match(/position (\d+)/) || msg.match(/index (\d+)/);
+            const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+            return { ok: false, error: { index, message: msg } };
         }
-
-        const out = new Uint8Array(leadingZeros + bytes.length);
-        for (let i = 0; i < leadingZeros; i++) out[i] = 0;
-        for (let i = 0; i < bytes.length; i++) out[leadingZeros + i] = bytes[bytes.length - 1 - i];
-        return { ok: true, bytes: out };
     }
 
-    async function encodeFileToBase58(file, alphabetName, outputMode, onProgress, signal) {
-        const alphabet = getAlphabet(alphabetName);
-        const state = createEncodeState(alphabet);
-
-        const chunkSize = 1024 * 1024;
-        const total = file.size;
-        let processed = 0;
-        const start = performance.now();
-
-        while (processed < total) {
-            if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
-
-            const chunk = file.slice(processed, Math.min(processed + chunkSize, total));
-            const buf = await chunk.arrayBuffer();
-            updateEncodeState(state, new Uint8Array(buf));
-
-            processed += chunk.size;
-            const elapsedMs = performance.now() - start;
-            onProgress({ processed, total, elapsedMs });
-            await new Promise(requestAnimationFrame);
+    async function encodeFileToBase58(file, alphabetName, outputMode, onProgress, signal, strings) {
+        const wasm = await getEncodingWasm();
+        
+        // Base58 has O(n²) complexity and cannot be done in chunks
+        // Limit to 1MB to prevent browser freezing
+        const MAX_SIZE = 1024 * 1024; // 1 MB
+        
+        if (file.size > MAX_SIZE) {
+            const message = strings.fileSizeLimitEncode
+                .replace('{0}', formatBytes(MAX_SIZE))
+                .replace('{1}', formatBytes(file.size));
+            throw new Error(message);
         }
-
-        const fullText = finalizeEncode(state);
+        
+        const start = performance.now();
+        
+        // Read entire file at once (since Base58 cannot be chunked)
+        const buf = await file.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        
+        if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+        
+        // Progress at 50% after reading
+        onProgress({ processed: file.size / 2, total: file.size, elapsedMs: performance.now() - start });
+        await new Promise(requestAnimationFrame);
+        
+        if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+        
+        // Encode entire file at once
+        const encoded = wasm.base58_encode(bytes, alphabetName);
+        
+        // Progress at 100%
+        onProgress({ processed: file.size, total: file.size, elapsedMs: performance.now() - start });
+        
         const previewCharLimit = 200_000;
-        const preview = fullText.length > previewCharLimit
-            ? (fullText.slice(0, previewCharLimit) + '\n…(preview truncated, use Download for full output)')
-            : fullText;
+        const text = outputMode === 'full'
+            ? encoded
+            : (encoded.length > previewCharLimit 
+                ? (encoded.slice(0, previewCharLimit) + '\n…(preview truncated, use Download for full output)')
+                : encoded);
 
         return {
-            text: outputMode === 'full' ? fullText : preview,
-            blob: new Blob([fullText], { type: 'text/plain' })
+            text,
+            blob: new Blob([encoded], { type: 'text/plain' })
         };
     }
 
-    async function decodeBase58FileToBytes(file, alphabetName, allowWhitespace, onProgress, signal) {
-        const alphabet = getAlphabet(alphabetName);
-        const map = makeDecodeMap(alphabet);
-        const zeroChar = alphabet[0];
-
-        const chunkSize = 1024 * 1024;
-        const total = file.size;
-        let processed = 0;
-        const start = performance.now();
-
-        const decoder = new TextDecoder('latin1');
-
-        // base256 bytes, little-endian
-        const bytes = [];
-        let leadingZeros = 0;
-        let started = false;
-        let fileCharOffset = 0; // absolute char offset in decoded text stream
-
-        while (processed < total) {
-            if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
-
-            const chunk = file.slice(processed, Math.min(processed + chunkSize, total));
-            const buf = await chunk.arrayBuffer();
-            const text = decoder.decode(new Uint8Array(buf), { stream: true });
-
-            for (let i = 0; i < text.length; i++) {
-                const ch = text[i];
-                const absoluteIndex = fileCharOffset;
-                fileCharOffset++;
-
-                if (isWhitespace(ch)) {
-                    if (allowWhitespace) continue;
-                    return { ok: false, error: { index: absoluteIndex, message: 'Whitespace not allowed' } };
-                }
-
-                if (!started) {
-                    if (ch === zeroChar) {
-                        leadingZeros++;
-                        continue;
-                    }
-                    started = true;
-                }
-
-                const code = ch.charCodeAt(0);
-                const v = code <= 127 ? map[code] : -1;
-                if (v < 0) {
-                    return { ok: false, error: { index: absoluteIndex, message: `Invalid Base58 character '${ch}'` } };
-                }
-
-                let carry = v;
-                for (let bi = 0; bi < bytes.length; bi++) {
-                    carry += bytes[bi] * 58;
-                    bytes[bi] = carry & 0xff;
-                    carry >>= 8;
-                }
-                while (carry > 0) {
-                    bytes.push(carry & 0xff);
-                    carry >>= 8;
-                }
-            }
-
-            processed += chunk.size;
-            const elapsedMs = performance.now() - start;
-            onProgress({ processed, total, elapsedMs });
-            await new Promise(requestAnimationFrame);
+    async function decodeBase58FileToBytes(file, alphabetName, allowWhitespace, onProgress, signal, strings) {
+        const wasm = await getEncodingWasm();
+        
+        // Base58 has O(n²) complexity and cannot be done in chunks
+        // Limit to ~2MB of text data
+        const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
+        
+        if (file.size > MAX_SIZE) {
+            const message = strings.fileSizeLimitDecode
+                .replace('{0}', formatBytes(MAX_SIZE))
+                .replace('{1}', formatBytes(file.size));
+            return { 
+                ok: false, 
+                error: { 
+                    index: 0, 
+                    message: message
+                } 
+            };
         }
-
-        const out = new Uint8Array(leadingZeros + bytes.length);
-        for (let i = 0; i < leadingZeros; i++) out[i] = 0;
-        for (let i = 0; i < bytes.length; i++) out[leadingZeros + i] = bytes[bytes.length - 1 - i];
-        return { ok: true, blob: new Blob([out], { type: 'application/octet-stream' }) };
+        
+        const start = performance.now();
+        
+        // Read entire file at once (since Base58 cannot be chunked)
+        const buf = await file.arrayBuffer();
+        
+        if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+        
+        // Progress at 33% after reading
+        onProgress({ processed: file.size / 3, total: file.size, elapsedMs: performance.now() - start });
+        await new Promise(requestAnimationFrame);
+        
+        if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+        
+        const decoder = new TextDecoder('latin1');
+        const text = decoder.decode(buf);
+        
+        // Progress at 66% after decoding text
+        onProgress({ processed: (file.size * 2) / 3, total: file.size, elapsedMs: performance.now() - start });
+        await new Promise(requestAnimationFrame);
+        
+        if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+        
+        try {
+            const decoded = wasm.base58_decode(text, alphabetName, allowWhitespace);
+            
+            // Progress at 100%
+            onProgress({ processed: file.size, total: file.size, elapsedMs: performance.now() - start });
+            
+            const blob = new Blob([new Uint8Array(decoded)], { type: 'application/octet-stream' });
+            return { ok: true, blob };
+        } catch (err) {
+            const msg = err?.message || String(err);
+            const indexMatch = msg.match(/position (\d+)/) || msg.match(/index (\d+)/);
+            const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+            return { ok: false, error: { index, message: msg } };
+        }
     }
 
     const stateByRoot = new WeakMap();
@@ -472,7 +422,9 @@
             fileProgressTitle: root.dataset.fileProgressTitle || 'Processing file...',
             cancel: root.dataset.cancel || 'Cancel',
             copy: root.dataset.copy || 'Copy',
-            copied: root.dataset.copied || 'Copied!'
+            copied: root.dataset.copied || 'Copied!',
+            fileSizeLimitEncode: root.dataset.fileSizeLimitEncode || 'Base58 encoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.',
+            fileSizeLimitDecode: root.dataset.fileSizeLimitDecode || 'Base58 decoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.'
         };
     }
 
@@ -551,7 +503,8 @@
                                 progressStats.textContent = `${pct.toFixed(1)}% • ${formatBytes(processed)} / ${formatBytes(total)} • ${formatBytes(speed)}/s • ETA ${formatDuration(etaSec)}`;
                             }
                         },
-                        abortController.signal
+                        abortController.signal,
+                        strings
                     );
                 } finally {
                     restoreOutputSection(els.outputSection);
@@ -563,16 +516,14 @@
                 setLastDownload(els2.root, result.blob, `${file.name}.b58`);
             } else {
                 const text = els.inputText.value || '';
-                const enc = encodeTextToBytes(text, charset);
+                const enc = await encodeTextToBytes(text, charset);
                 if (!enc.ok) {
                     setError(els, enc.error.message, enc.error.index);
                     return;
                 }
 
-                const alphabet = getAlphabet(alphabetName);
-                const st = createEncodeState(alphabet);
-                updateEncodeState(st, enc.bytes);
-                const out = finalizeEncode(st);
+                const wasm = await getEncodingWasm();
+                const out = wasm.base58_encode(enc.bytes, alphabetName);
                 els.output.value = out;
                 setLastDownload(els.root, new Blob([out], { type: 'text/plain' }), 'text.b58');
             }
@@ -628,7 +579,8 @@
                                 progressStats.textContent = `${pct.toFixed(1)}% • ${formatBytes(processed)} / ${formatBytes(total)} • ${formatBytes(speed)}/s • ETA ${formatDuration(etaSec)}`;
                             }
                         },
-                        abortController.signal
+                        abortController.signal,
+                        strings
                     );
                 } finally {
                     restoreOutputSection(els.outputSection);
@@ -649,13 +601,13 @@
                 setLastDownload(els2.root, decoded.blob, `${file.name}.bin`);
             } else {
                 const input = els.inputText.value || '';
-                const parsed = decodeBase58ToBytes(input, alphabetName, allowWhitespace);
+                const parsed = await decodeBase58ToBytes(input, alphabetName, allowWhitespace);
                 if (!parsed.ok) {
                     setError(els, parsed.error.message, parsed.error.index);
                     return;
                 }
 
-                const text = decodeBytesToText(parsed.bytes, charset);
+                const text = await decodeBytesToText(parsed.bytes, charset);
                 if (!text.ok) {
                     setError(els, `${text.error.message} (byte ${text.error.byteIndex})`, null);
                     return;

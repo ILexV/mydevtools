@@ -656,4 +656,10 @@
   <data name="Base58Encoder_Cancel" xml:space="preserve">
     <value>Cancelar</value>
   </data>
+  <data name="Base58Encoder_FileSizeLimitEncode" xml:space="preserve">
+    <value>La codificación Base58 está limitada a {0} debido a la complejidad algorítmica. El tamaño de su archivo es {1}. Por favor, use codificación Base64 o Hex para archivos más grandes.</value>
+  </data>
+  <data name="Base58Encoder_FileSizeLimitDecode" xml:space="preserve">
+    <value>La decodificación Base58 está limitada a {0} debido a la complejidad algorítmica. El tamaño de su archivo es {1}. Por favor, use codificación Base64 o Hex para archivos más grandes.</value>
+  </data>
 </root>

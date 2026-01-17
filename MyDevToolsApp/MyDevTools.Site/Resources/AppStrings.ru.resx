@@ -656,4 +656,10 @@
   <data name="Base58Encoder_Cancel" xml:space="preserve">
     <value>Отмена</value>
   </data>
+  <data name="Base58Encoder_FileSizeLimitEncode" xml:space="preserve">
+    <value>Кодирование Base58 ограничено {0} из-за алгоритмической сложности. Размер вашего файла: {1}. Пожалуйста, используйте кодирование Base64 или Hex для больших файлов.</value>
+  </data>
+  <data name="Base58Encoder_FileSizeLimitDecode" xml:space="preserve">
+    <value>Декодирование Base58 ограничено {0} из-за алгоритмической сложности. Размер вашего файла: {1}. Пожалуйста, используйте кодирование Base64 или Hex для больших файлов.</value>
+  </data>
 </root>

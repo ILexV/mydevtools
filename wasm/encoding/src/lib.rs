@@ -352,6 +352,16 @@ pub fn hex_decode(
     allow_separators: bool,
     allow_0x: bool,
 ) -> Result<Vec<u8>, JsValue> {
+    hex_decode_internal(input, ignore_whitespace, allow_separators, allow_0x)
+        .map_err(|e| JsValue::from_str(&e))
+}
+
+fn hex_decode_internal(
+    input: &str,
+    ignore_whitespace: bool,
+    allow_separators: bool,
+    allow_0x: bool,
+) -> Result<Vec<u8>, String> {
     let mut cleaned = input.to_string();
     
     // Remove 0x prefix if allowed
@@ -376,12 +386,12 @@ pub fn hex_decode(
     // Validate hex digits
     for (i, c) in cleaned.chars().enumerate() {
         if !is_hex_digit(c) {
-            return Err(JsValue::from_str(&format!("Invalid hex character '{}' at position {}", c, i)));
+            return Err(format!("Invalid hex character '{}' at position {}", c, i));
         }
     }
 
     if cleaned.len() % 2 != 0 {
-        return Err(JsValue::from_str("Invalid hex length (must be even)"));
+        return Err("Invalid hex length (must be even)".to_string());
     }
 
     let mut bytes = Vec::with_capacity(cleaned.len() / 2);
@@ -759,25 +769,361 @@ pub fn decode_bytes_to_text(bytes: &[u8], charset: &str) -> Result<String, JsVal
 mod tests {
     use super::*;
 
+    // ============================================================================
+    // Base64 Tests
+    // ============================================================================
+
     #[test]
-    fn test_base64_encode() {
+    fn test_base64_encode_standard() {
         let bytes = b"Hello, World!";
         let result = base64_encode_bytes(bytes, Base64Alphabet::Standard, PaddingMode::Required, None);
         assert_eq!(result, "SGVsbG8sIFdvcmxkIQ==");
     }
 
     #[test]
-    fn test_hex_encode() {
-        let bytes = b"Hi";
-        assert_eq!(hex_encode(bytes, false), "4869");
-        assert_eq!(hex_encode(bytes, true), "4869");
+    fn test_base64_decode_standard() {
+        let input = "SGVsbG8sIFdvcmxkIQ==";
+        let result = base64_decode_string(input, Base64Alphabet::Standard, PaddingMode::Required, true).unwrap();
+        assert_eq!(result, b"Hello, World!");
     }
 
     #[test]
+    fn test_base64_urlsafe() {
+        let bytes = b"test\xff\xfe";
+        let encoded = base64_encode_bytes(bytes, Base64Alphabet::UrlSafe, PaddingMode::None, None);
+        let decoded = base64_decode_string(&encoded, Base64Alphabet::UrlSafe, PaddingMode::None, false).unwrap();
+        assert_eq!(decoded, bytes);
+    }
+
+    #[test]
+    fn test_base64_no_padding() {
+        let bytes = b"test";
+        let encoded = base64_encode_bytes(bytes, Base64Alphabet::Standard, PaddingMode::None, None);
+        assert!(!encoded.contains('='));
+        let decoded = base64_decode_string(&encoded, Base64Alphabet::Standard, PaddingMode::None, false).unwrap();
+        assert_eq!(decoded, bytes);
+    }
+
+    #[test]
+    fn test_base64_line_wrap() {
+        let bytes = b"This is a long text that should be wrapped into multiple lines when encoded";
+        let encoded = base64_encode_bytes(bytes, Base64Alphabet::Standard, PaddingMode::Required, Some(64));
+        assert!(encoded.contains('\n'));
+    }
+
+    #[test]
+    fn test_base64_empty() {
+        let bytes = b"";
+        let encoded = base64_encode_bytes(bytes, Base64Alphabet::Standard, PaddingMode::Required, None);
+        assert_eq!(encoded, "");
+        let decoded = base64_decode_string(&encoded, Base64Alphabet::Standard, PaddingMode::Required, false).unwrap();
+        assert_eq!(decoded, bytes);
+    }
+
+    // ============================================================================
+    // Hex Tests
+    // ============================================================================
+
+    #[test]
+    fn test_hex_encode_lowercase() {
+        let bytes = b"Hello";
+        assert_eq!(hex_encode(bytes, false), "48656c6c6f");
+    }
+
+    #[test]
+    fn test_hex_encode_uppercase() {
+        let bytes = b"Hello";
+        assert_eq!(hex_encode(bytes, true), "48656C6C6F");
+    }
+
+    #[test]
+    fn test_hex_decode() {
+        let input = "48656c6c6f";
+        let result = hex_decode_internal(input, false, false, false).unwrap();
+        assert_eq!(result, b"Hello");
+    }
+
+    #[test]
+    fn test_hex_decode_uppercase() {
+        let input = "48656C6C6F";
+        let result = hex_decode_internal(input, false, false, false).unwrap();
+        assert_eq!(result, b"Hello");
+    }
+
+    #[test]
+    fn test_hex_decode_with_separators() {
+        let input = "48:65:6c:6c:6f";
+        let result = hex_decode_internal(input, false, true, false).unwrap();
+        assert_eq!(result, b"Hello");
+    }
+
+    #[test]
+    fn test_hex_decode_with_whitespace() {
+        let input = "48 65 6c 6c 6f";
+        let result = hex_decode_internal(input, true, false, false).unwrap();
+        assert_eq!(result, b"Hello");
+    }
+
+    #[test]
+    fn test_hex_roundtrip() {
+        let bytes = b"\x00\x01\x02\xfe\xff";
+        let encoded = hex_encode(bytes, false);
+        let decoded = hex_decode_internal(&encoded, false, false, false).unwrap();
+        assert_eq!(decoded, bytes);
+    }
+
+    #[test]
+    fn test_hex_invalid_character() {
+        let result = hex_decode_internal("48g5", false, false, false);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_hex_odd_length() {
+        let result = hex_decode_internal("486", false, false, false);
+        assert!(result.is_err());
+    }
+
+    // ============================================================================
+    // Base32 Tests
+    // ============================================================================
+
+    #[test]
+    fn test_base32_encode() {
+        let bytes = b"Hello";
+        let encoded = base32_encode_bytes(bytes, Base32Alphabet::Rfc4648, PaddingMode::Required, None);
+        assert_eq!(encoded, "JBSWY3DP");
+    }
+
+    #[test]
+    fn test_base32_decode() {
+        let input = "JBSWY3DP";
+        let decoded = base32_decode_string(input, Base32Alphabet::Rfc4648, PaddingMode::Required, false).unwrap();
+        assert_eq!(decoded, b"Hello");
+    }
+
+    #[test]
+    fn test_base32_no_padding() {
+        let bytes = b"test";
+        let encoded = base32_encode_bytes(bytes, Base32Alphabet::Rfc4648, PaddingMode::None, None);
+        assert!(!encoded.contains('='));
+        let decoded = base32_decode_string(&encoded, Base32Alphabet::Rfc4648, PaddingMode::None, false).unwrap();
+        assert_eq!(decoded, bytes);
+    }
+
+    #[test]
+    fn test_base32_roundtrip() {
+        let bytes = b"The quick brown fox";
+        let encoded = base32_encode_bytes(bytes, Base32Alphabet::Rfc4648, PaddingMode::Required, None);
+        let decoded = base32_decode_string(&encoded, Base32Alphabet::Rfc4648, PaddingMode::Required, false).unwrap();
+        assert_eq!(decoded, bytes);
+    }
+
+    // ============================================================================
+    // Base58 Tests
+    // ============================================================================
+
+    #[test]
+    fn test_base58_encode() {
+        let bytes = b"Hello";
+        let encoded = base58_encode_bytes(bytes, Base58Alphabet::Bitcoin);
+        assert_eq!(encoded, "9Ajdvzr");
+    }
+
+    #[test]
+    fn test_base58_decode() {
+        let input = "9Ajdvzr";
+        let decoded = base58_decode_string(input, Base58Alphabet::Bitcoin, false).unwrap();
+        assert_eq!(decoded, b"Hello");
+    }
+
+    #[test]
+    fn test_base58_roundtrip() {
+        let bytes = b"The quick brown fox jumps over the lazy dog";
+        let encoded = base58_encode_bytes(bytes, Base58Alphabet::Bitcoin);
+        let decoded = base58_decode_string(&encoded, Base58Alphabet::Bitcoin, false).unwrap();
+        assert_eq!(decoded, bytes);
+    }
+
+    #[test]
+    fn test_base58_empty() {
+        let bytes = b"";
+        let encoded = base58_encode_bytes(bytes, Base58Alphabet::Bitcoin);
+        assert_eq!(encoded, "");
+        let decoded = base58_decode_string(&encoded, Base58Alphabet::Bitcoin, false).unwrap();
+        assert_eq!(decoded, bytes);
+    }
+
+    #[test]
+    fn test_base58_leading_zeros() {
+        let bytes = b"\x00\x00test";
+        let encoded = base58_encode_bytes(bytes, Base58Alphabet::Bitcoin);
+        let decoded = base58_decode_string(&encoded, Base58Alphabet::Bitcoin, false).unwrap();
+        assert_eq!(decoded, bytes);
+    }
+
+    // ============================================================================
+    // URL Encoding Tests
+    // ============================================================================
+
+    #[test]
+    fn test_url_encode_component() {
+        let bytes = b"Hello World!";
+        let encoded = url_encode_bytes(bytes, UrlMode::Component);
+        // ! is not encoded in encodeURIComponent
+        assert_eq!(encoded, "Hello%20World!");
+    }
+
+    #[test]
+    fn test_url_decode_component() {
+        let input = "Hello%20World%21";
+        let decoded = url_decode_string(input, UrlMode::Component).unwrap();
+        assert_eq!(decoded, b"Hello World!");
+    }
+
+    #[test]
+    fn test_url_encode_special_chars() {
+        let bytes = b"key=value&other=data";
+        let encoded = url_encode_bytes(bytes, UrlMode::Component);
+        assert!(encoded.contains("%3D")); // =
+        assert!(encoded.contains("%26")); // &
+    }
+
+    #[test]
+    fn test_url_form_mode() {
+        let bytes = b"Hello World";
+        let encoded = url_encode_bytes(bytes, UrlMode::Form);
+        assert_eq!(encoded, "Hello+World");
+    }
+
+    #[test]
+    fn test_url_decode_form_mode() {
+        let input = "Hello+World";
+        let decoded = url_decode_string(input, UrlMode::Form).unwrap();
+        assert_eq!(decoded, b"Hello World");
+    }
+
+    #[test]
+    fn test_url_decode_invalid_percent() {
+        let result = url_decode_string("test%ZZ", UrlMode::Component);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_url_roundtrip() {
+        let bytes = b"test@example.com?key=value&data=123";
+        let encoded = url_encode_bytes(bytes, UrlMode::Component);
+        let decoded = url_decode_string(&encoded, UrlMode::Component).unwrap();
+        assert_eq!(decoded, bytes);
+    }
+
+    // ============================================================================
+    // Charset Tests
+    // ============================================================================
+
+    #[test]
     fn test_charset_utf8() {
-        let text = "Hello, 世界!";
+        let text = "Hello, 世界! 🌍";
         let bytes = Charset::Utf8.encode_text_to_bytes(text).unwrap();
         let decoded = Charset::Utf8.decode_bytes_to_text(&bytes).unwrap();
         assert_eq!(decoded, text);
+    }
+
+    #[test]
+    fn test_charset_ascii() {
+        let text = "Hello";
+        let bytes = Charset::Ascii.encode_text_to_bytes(text).unwrap();
+        assert_eq!(bytes, b"Hello");
+        let decoded = Charset::Ascii.decode_bytes_to_text(&bytes).unwrap();
+        assert_eq!(decoded, text);
+    }
+
+    #[test]
+    fn test_charset_ascii_invalid() {
+        let text = "Hello 世界";
+        let result = Charset::Ascii.encode_text_to_bytes(text);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_charset_latin1() {
+        let text = "Héllo";
+        let bytes = Charset::Latin1.encode_text_to_bytes(text).unwrap();
+        let decoded = Charset::Latin1.decode_bytes_to_text(&bytes).unwrap();
+        assert_eq!(decoded, text);
+    }
+
+    #[test]
+    fn test_charset_utf16le() {
+        let text = "Hello";
+        let bytes = Charset::Utf16Le.encode_text_to_bytes(text).unwrap();
+        let decoded = Charset::Utf16Le.decode_bytes_to_text(&bytes).unwrap();
+        assert_eq!(decoded, text);
+    }
+
+    #[test]
+    fn test_charset_utf16be() {
+        let text = "World";
+        let bytes = Charset::Utf16Be.encode_text_to_bytes(text).unwrap();
+        let decoded = Charset::Utf16Be.decode_bytes_to_text(&bytes).unwrap();
+        assert_eq!(decoded, text);
+    }
+
+    #[test]
+    fn test_charset_utf16_emoji() {
+        let text = "🎉";
+        let bytes_le = Charset::Utf16Le.encode_text_to_bytes(text).unwrap();
+        let decoded_le = Charset::Utf16Le.decode_bytes_to_text(&bytes_le).unwrap();
+        assert_eq!(decoded_le, text);
+
+        let bytes_be = Charset::Utf16Be.encode_text_to_bytes(text).unwrap();
+        let decoded_be = Charset::Utf16Be.decode_bytes_to_text(&bytes_be).unwrap();
+        assert_eq!(decoded_be, text);
+    }
+
+    #[test]
+    fn test_charset_parse() {
+        assert_eq!(Charset::parse("utf-8").unwrap(), Charset::Utf8);
+        assert_eq!(Charset::parse("UTF-16LE").unwrap(), Charset::Utf16Le);
+        assert_eq!(Charset::parse("ASCII").unwrap(), Charset::Ascii);
+        assert_eq!(Charset::parse("LATIN1").unwrap(), Charset::Latin1);
+        assert!(Charset::parse("unknown").is_err());
+    }
+
+    // ============================================================================
+    // Integration Tests
+    // ============================================================================
+
+    #[test]
+    fn test_base64_with_binary_data() {
+        let bytes: Vec<u8> = (0..=255).collect();
+        let encoded = base64_encode_bytes(&bytes, Base64Alphabet::Standard, PaddingMode::Required, None);
+        let decoded = base64_decode_string(&encoded, Base64Alphabet::Standard, PaddingMode::Required, false).unwrap();
+        assert_eq!(decoded, bytes);
+    }
+
+    #[test]
+    fn test_hex_with_binary_data() {
+        let bytes: Vec<u8> = (0..=255).collect();
+        let encoded = hex_encode(&bytes, false);
+        let decoded = hex_decode_internal(&encoded, false, false, false).unwrap();
+        assert_eq!(decoded, bytes);
+    }
+
+    #[test]
+    fn test_mixed_encoding_flow() {
+        // Original text -> UTF-8 bytes -> Base64 -> Hex -> decode chain
+        let text = "Hello, World!";
+        let utf8_bytes = Charset::Utf8.encode_text_to_bytes(text).unwrap();
+        let base64 = base64_encode_bytes(&utf8_bytes, Base64Alphabet::Standard, PaddingMode::Required, None);
+        let hex = hex_encode(base64.as_bytes(), false);
+        
+        // Decode back
+        let hex_decoded = hex_decode_internal(&hex, false, false, false).unwrap();
+        let base64_str = String::from_utf8(hex_decoded).unwrap();
+        let base64_decoded = base64_decode_string(&base64_str, Base64Alphabet::Standard, PaddingMode::Required, false).unwrap();
+        let final_text = Charset::Utf8.decode_bytes_to_text(&base64_decoded).unwrap();
+        
+        assert_eq!(final_text, text);
     }
 }

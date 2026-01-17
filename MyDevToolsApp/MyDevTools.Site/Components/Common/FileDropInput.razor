@@ -1,0 +1,48 @@
+@using MyDevTools.Site.Resources
+
+<div class="file-upload" data-file-upload>
+    <label for="@InputId">@Label</label>
+    <div class="file-dropzone" data-file-drop>
+        <input id="@InputId" type="file" class="file-drop-input" />
+
+        <div class="file-drop-empty">
+            <div class="file-drop-title">@DropTitle</div>
+            <div class="file-drop-subtitle">@DropSubtitle</div>
+            <button type="button" class="btn btn-secondary file-drop-button">@ButtonLabel</button>
+        </div>
+
+        <div class="file-drop-selected" hidden>
+            <div class="file-drop-selected-name"></div>
+            <div class="file-drop-selected-size"></div>
+            <button type="button" class="btn btn-secondary btn-small file-drop-change">@ChangeButtonLabel</button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Hint))
+    {
+        <div class="file-hint">@Hint</div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string InputId { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Label { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Hint { get; set; } = string.Empty;
+
+    [Parameter]
+    public string DropTitle { get; set; } = AppStrings.Common_FileDropTitle;
+
+    [Parameter]
+    public string DropSubtitle { get; set; } = AppStrings.Common_FileDropSubtitle;
+
+    [Parameter]
+    public string ButtonLabel { get; set; } = AppStrings.Common_FileChooseButton;
+
+    [Parameter]
+    public string ChangeButtonLabel { get; set; } = AppStrings.Common_FileChangeButton;
+}

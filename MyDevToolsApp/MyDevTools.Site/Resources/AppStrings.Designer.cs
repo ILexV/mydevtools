@@ -86,6 +86,42 @@ namespace MyDevTools.Site.Resources {
                 return ResourceManager.GetString("Common_Error", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Drag and drop a file here.
+        /// </summary>
+        public static string Common_FileDropTitle {
+            get {
+                return ResourceManager.GetString("Common_FileDropTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to or choose a file from your device.
+        /// </summary>
+        public static string Common_FileDropSubtitle {
+            get {
+                return ResourceManager.GetString("Common_FileDropSubtitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Choose file.
+        /// </summary>
+        public static string Common_FileChooseButton {
+            get {
+                return ResourceManager.GetString("Common_FileChooseButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Choose another file.
+        /// </summary>
+        public static string Common_FileChangeButton {
+            get {
+                return ResourceManager.GetString("Common_FileChangeButton", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Input.

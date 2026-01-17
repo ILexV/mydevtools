@@ -427,6 +427,7 @@
 
         els.inputText.value = '';
         els.inputFile.value = '';
+        els.inputFile.dispatchEvent(new Event('change', { bubbles: true }));
         els.outputSection.innerHTML = '';
 
         if (abortController) {
@@ -558,6 +559,7 @@
                 const text = (target.value || '').trim();
                 if (text.length > 0 && els.inputFile.value) {
                     els.inputFile.value = '';
+                    els.inputFile.dispatchEvent(new Event('change', { bubbles: true }));
                 }
             }
         });

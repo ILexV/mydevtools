@@ -547,6 +547,7 @@
         els.inputText.value = '';
         els.output.value = '';
         els.inputFile.value = '';
+        els.inputFile.dispatchEvent(new Event('change', { bubbles: true }));
         clearError(els);
         setLastDownload(els.root, null, null);
     }

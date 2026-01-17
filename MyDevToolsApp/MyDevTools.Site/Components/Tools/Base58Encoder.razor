@@ -36,9 +36,9 @@
                 <label for="b58-input-text">@AppStrings.Base58Encoder_InputTextLabel</label>
                 <textarea id="b58-input-text" rows="10" placeholder="@AppStrings.Base58Encoder_InputTextPlaceholder"></textarea>
 
-                <label for="b58-input-file">@AppStrings.Base58Encoder_InputFileLabel</label>
-                <input id="b58-input-file" type="file" />
-                <div class="file-hint">@AppStrings.Base58Encoder_FileHint</div>
+                <FileDropInput InputId="b58-input-file"
+                               Label="@AppStrings.Base58Encoder_InputFileLabel"
+                               Hint="@AppStrings.Base58Encoder_FileHint" />
 
                 <div class="tool-settings">
                     <div class="tool-setting">

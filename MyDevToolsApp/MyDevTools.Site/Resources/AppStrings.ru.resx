@@ -138,6 +138,18 @@
   <data name="Common_Error" xml:space="preserve">
     <value>Ошибка</value>
   </data>
+  <data name="Common_FileDropTitle" xml:space="preserve">
+    <value>Перетащите файл сюда</value>
+  </data>
+  <data name="Common_FileDropSubtitle" xml:space="preserve">
+    <value>или выберите файл на устройстве</value>
+  </data>
+  <data name="Common_FileChooseButton" xml:space="preserve">
+    <value>Выбрать файл</value>
+  </data>
+  <data name="Common_FileChangeButton" xml:space="preserve">
+    <value>Выбрать другой файл</value>
+  </data>
   
   <data name="Theme_Light" xml:space="preserve">
     <value>Светлая</value>

@@ -34,9 +34,9 @@
                 <label for="b64-input-text">@AppStrings.Base64Encoder_InputTextLabel</label>
                 <textarea id="b64-input-text" rows="10" placeholder="@AppStrings.Base64Encoder_InputTextPlaceholder"></textarea>
 
-                <label for="b64-input-file">@AppStrings.Base64Encoder_InputFileLabel</label>
-                <input id="b64-input-file" type="file" />
-                <div class="file-hint">@AppStrings.Base64Encoder_FileHint</div>
+                <FileDropInput InputId="b64-input-file"
+                               Label="@AppStrings.Base64Encoder_InputFileLabel"
+                               Hint="@AppStrings.Base64Encoder_FileHint" />
 
                 <div class="tool-settings">
                     <div class="tool-setting">

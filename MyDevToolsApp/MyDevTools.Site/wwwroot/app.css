@@ -454,6 +454,83 @@ html, body {
     margin-top: -0.25rem;
 }
 
+/* ===== File Drop ===== */
+.file-upload {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.file-dropzone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.5rem;
+    padding: 1.25rem;
+    border: 2px dashed var(--border-color);
+    border-radius: 0.5rem;
+    background-color: var(--bg-secondary);
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.file-dropzone:hover {
+    border-color: var(--accent-color);
+    background-color: var(--bg-tertiary);
+}
+
+.file-dropzone.is-dragging {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.file-dropzone.has-file {
+    border-style: solid;
+}
+
+.file-drop-input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.file-drop-title {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.file-drop-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.file-drop-selected {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    align-items: center;
+}
+
+.file-drop-empty[hidden],
+.file-drop-selected[hidden] {
+    display: none !important;
+}
+
+.file-drop-selected-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    word-break: break-all;
+}
+
+.file-drop-selected-size {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
 /* ===== Hash Algorithm Picker ===== */
 .algo-picker {
     background-color: var(--bg-secondary);

@@ -138,6 +138,18 @@
   <data name="Common_Error" xml:space="preserve">
     <value>Error</value>
   </data>
+  <data name="Common_FileDropTitle" xml:space="preserve">
+    <value>Arrastra y suelta un archivo aquí</value>
+  </data>
+  <data name="Common_FileDropSubtitle" xml:space="preserve">
+    <value>o elige un archivo de tu dispositivo</value>
+  </data>
+  <data name="Common_FileChooseButton" xml:space="preserve">
+    <value>Elegir archivo</value>
+  </data>
+  <data name="Common_FileChangeButton" xml:space="preserve">
+    <value>Elegir otro archivo</value>
+  </data>
   
   <data name="Theme_Light" xml:space="preserve">
     <value>Claro</value>

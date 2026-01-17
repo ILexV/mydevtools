@@ -38,9 +38,9 @@
                       placeholder="@AppStrings.HashCalculator_InputPlaceholder"
                       rows="10"></textarea>
 
-            <label for="input-file">@AppStrings.HashCalculator_FileLabel</label>
-            <input id="input-file" type="file" />
-            <div class="file-hint">@AppStrings.HashCalculator_FileHint</div>
+            <FileDropInput InputId="input-file"
+                           Label="@AppStrings.HashCalculator_FileLabel"
+                           Hint="@AppStrings.HashCalculator_FileHint" />
             
             <div class="action-buttons">
                 <button class="btn btn-primary" id="calculate-btn">

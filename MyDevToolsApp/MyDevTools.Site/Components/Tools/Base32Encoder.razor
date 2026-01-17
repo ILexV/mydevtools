@@ -34,9 +34,9 @@
                 <label for="b32-input-text">@AppStrings.Base32Encoder_InputTextLabel</label>
                 <textarea id="b32-input-text" rows="10" placeholder="@AppStrings.Base32Encoder_InputTextPlaceholder"></textarea>
 
-                <label for="b32-input-file">@AppStrings.Base32Encoder_InputFileLabel</label>
-                <input id="b32-input-file" type="file" />
-                <div class="file-hint">@AppStrings.Base32Encoder_FileHint</div>
+                <FileDropInput InputId="b32-input-file"
+                               Label="@AppStrings.Base32Encoder_InputFileLabel"
+                               Hint="@AppStrings.Base32Encoder_FileHint" />
 
                 <div class="tool-settings">
                     <div class="tool-setting">

@@ -34,9 +34,9 @@
                 <label for="hex-input-text">@AppStrings.HexEncoder_InputTextLabel</label>
                 <textarea id="hex-input-text" rows="10" placeholder="@AppStrings.HexEncoder_InputTextPlaceholder"></textarea>
 
-                <label for="hex-input-file">@AppStrings.HexEncoder_InputFileLabel</label>
-                <input id="hex-input-file" type="file" />
-                <div class="file-hint">@AppStrings.HexEncoder_FileHint</div>
+                <FileDropInput InputId="hex-input-file"
+                               Label="@AppStrings.HexEncoder_InputFileLabel"
+                               Hint="@AppStrings.HexEncoder_FileHint" />
 
                 <div class="tool-settings">
                     <div class="tool-setting">

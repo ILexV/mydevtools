@@ -189,6 +189,18 @@
   <data name="Common_Error" xml:space="preserve">
     <value>Error</value>
   </data>
+  <data name="Common_FileDropTitle" xml:space="preserve">
+    <value>Drag and drop a file here</value>
+  </data>
+  <data name="Common_FileDropSubtitle" xml:space="preserve">
+    <value>or choose a file from your device</value>
+  </data>
+  <data name="Common_FileChooseButton" xml:space="preserve">
+    <value>Choose file</value>
+  </data>
+  <data name="Common_FileChangeButton" xml:space="preserve">
+    <value>Choose another file</value>
+  </data>
   
   <!-- Theme -->
   <data name="Theme_Light" xml:space="preserve">

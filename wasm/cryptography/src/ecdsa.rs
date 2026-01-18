@@ -5,7 +5,6 @@ use p256::ecdsa::{Signature as P256Signature, SigningKey as P256SigningKey, Veri
 use p256::pkcs8::{DecodePrivateKey as P256DecodePrivateKey, EncodePrivateKey as P256EncodePrivateKey};
 use p256::SecretKey as P256SecretKey;
 use p384::ecdsa::{Signature as P384Signature, SigningKey as P384SigningKey, VerifyingKey as P384VerifyingKey};
-use p384::pkcs8::{DecodePrivateKey as P384DecodePrivateKey, EncodePrivateKey as P384EncodePrivateKey};
 use p384::SecretKey as P384SecretKey;
 use signature::{Signer, Verifier};
 

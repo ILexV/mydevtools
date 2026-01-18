@@ -21,11 +21,12 @@ pbkdf2 = "0.12"
 sha2 = "0.10"
 base64 = "0.22"
 rand_core = "0.6"
-rsa = { version = "0.9", features = ["sha2", "pkcs8"] }
+rsa = { version = "0.9", features = ["sha2"] }
 aes = "0.8"
 ctr = "0.9"
 bcrypt-pbkdf = "0.10"
 num-bigint-dig = "0.8"
 pkcs8 = { version = "0.10", features = ["pem", "encryption"] }
 rcgen = "0.13"
-x509-parser = { version = "0.16", features = ["time"] }
+ring = { version = "0.17", features = ["wasm32_unknown_unknown_js"] }
+x509-parser = { version = "0.16" }

@@ -13,6 +13,7 @@ builder.Services.AddHttpContextAccessor();
 // Localization
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
+builder.Services.AddScoped<ICryptographyInteropService, CryptographyInteropService>();
 
 // Configure supported cultures
 var supportedCultures = new[] { "en", "ru", "es" };

@@ -83,6 +83,15 @@
   <data name="Nav_Base64Encoder" xml:space="preserve">
     <value>Base64</value>
   </data>
+  <data name="Nav_OpenSsh" xml:space="preserve">
+    <value>OpenSSH Keys</value>
+  </data>
+  <data name="Nav_X509" xml:space="preserve">
+    <value>X.509</value>
+  </data>
+  <data name="Nav_AeadFile" xml:space="preserve">
+    <value>AEAD File</value>
+  </data>
   
   <!-- Home Page -->
   <data name="Home_Title" xml:space="preserve">
@@ -731,5 +740,177 @@
   </data>
   <data name="Base58Encoder_FileSizeLimitDecode" xml:space="preserve">
     <value>Base58 decoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.</value>
+  </data>
+  
+  <!-- Cryptography UI -->
+  <data name="OpenSsh_Title" xml:space="preserve">
+    <value>OpenSSH Keys</value>
+  </data>
+  <data name="OpenSsh_Description" xml:space="preserve">
+    <value>Generate, import, and convert OpenSSH keys in your browser.</value>
+  </data>
+  <data name="OpenSsh_GenerateSectionTitle" xml:space="preserve">
+    <value>Generate</value>
+  </data>
+  <data name="OpenSsh_AlgorithmLabel" xml:space="preserve">
+    <value>Algorithm</value>
+  </data>
+  <data name="OpenSsh_KeySizeLabel" xml:space="preserve">
+    <value>Key size</value>
+  </data>
+  <data name="OpenSsh_PassphraseLabel" xml:space="preserve">
+    <value>Passphrase (optional)</value>
+  </data>
+  <data name="OpenSsh_GenerateButton" xml:space="preserve">
+    <value>Generate keys</value>
+  </data>
+  <data name="OpenSsh_ImportSectionTitle" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="OpenSsh_ImportLabel" xml:space="preserve">
+    <value>Paste OpenSSH or PKCS#8 key</value>
+  </data>
+  <data name="OpenSsh_ImportPlaceholder" xml:space="preserve">
+    <value>Paste OpenSSH public/private key or PKCS#8 PEM here...</value>
+  </data>
+  <data name="OpenSsh_ImportFileLabel" xml:space="preserve">
+    <value>Key file</value>
+  </data>
+  <data name="OpenSsh_ImportFileHint" xml:space="preserve">
+    <value>Supports OpenSSH public/private and PKCS#8 PEM files.</value>
+  </data>
+  <data name="OpenSsh_ImportButton" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="OpenSsh_ConvertSectionTitle" xml:space="preserve">
+    <value>Convert</value>
+  </data>
+  <data name="OpenSsh_ConvertButton" xml:space="preserve">
+    <value>Convert</value>
+  </data>
+  <data name="OpenSsh_PublicKeyLabel" xml:space="preserve">
+    <value>Public key</value>
+  </data>
+  <data name="OpenSsh_PrivateKeyLabel" xml:space="preserve">
+    <value>Private key</value>
+  </data>
+  <data name="OpenSsh_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="OpenSsh_Copied" xml:space="preserve">
+    <value>Copied!</value>
+  </data>
+  <data name="OpenSsh_Download" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="OpenSsh_WarningsTitle" xml:space="preserve">
+    <value>Warnings</value>
+  </data>
+
+  <data name="X509_Title" xml:space="preserve">
+    <value>X.509 Certificates</value>
+  </data>
+  <data name="X509_Description" xml:space="preserve">
+    <value>Create self-signed certificates, CSRs, and parse PEM/DER.</value>
+  </data>
+  <data name="X509_SelfSignedSectionTitle" xml:space="preserve">
+    <value>Self-signed</value>
+  </data>
+  <data name="X509_SubjectLabel" xml:space="preserve">
+    <value>Subject (CN)</value>
+  </data>
+  <data name="X509_ValidityDaysLabel" xml:space="preserve">
+    <value>Validity (days)</value>
+  </data>
+  <data name="X509_GenerateSelfSigned" xml:space="preserve">
+    <value>Generate certificate</value>
+  </data>
+  <data name="X509_CsrSectionTitle" xml:space="preserve">
+    <value>CSR</value>
+  </data>
+  <data name="X509_GenerateCsr" xml:space="preserve">
+    <value>Generate CSR</value>
+  </data>
+  <data name="X509_ParseSectionTitle" xml:space="preserve">
+    <value>Parse</value>
+  </data>
+  <data name="X509_ParseLabel" xml:space="preserve">
+    <value>Paste PEM/DER</value>
+  </data>
+  <data name="X509_ParsePlaceholder" xml:space="preserve">
+    <value>Paste certificate, CSR, or key (PEM/DER) here...</value>
+  </data>
+  <data name="X509_ParseButton" xml:space="preserve">
+    <value>Parse</value>
+  </data>
+  <data name="X509_OutputLabel" xml:space="preserve">
+    <value>Output</value>
+  </data>
+  <data name="X509_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="X509_Copied" xml:space="preserve">
+    <value>Copied!</value>
+  </data>
+  <data name="X509_Download" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="X509_WarningsTitle" xml:space="preserve">
+    <value>Warnings</value>
+  </data>
+
+  <data name="Aead_Title" xml:space="preserve">
+    <value>AEAD File Encrypt/Decrypt</value>
+  </data>
+  <data name="Aead_Description" xml:space="preserve">
+    <value>Encrypt and decrypt files locally with AEAD.</value>
+  </data>
+  <data name="Aead_EncryptSectionTitle" xml:space="preserve">
+    <value>Encrypt</value>
+  </data>
+  <data name="Aead_DecryptSectionTitle" xml:space="preserve">
+    <value>Decrypt</value>
+  </data>
+  <data name="Aead_FileLabel" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="Aead_FileHint" xml:space="preserve">
+    <value>Large files are processed in chunks in the browser.</value>
+  </data>
+  <data name="Aead_AlgorithmLabel" xml:space="preserve">
+    <value>Algorithm</value>
+  </data>
+  <data name="Aead_PasswordLabel" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Aead_EncryptButton" xml:space="preserve">
+    <value>Encrypt file</value>
+  </data>
+  <data name="Aead_DecryptButton" xml:space="preserve">
+    <value>Decrypt file</value>
+  </data>
+  <data name="Aead_HeaderLabel" xml:space="preserve">
+    <value>Header</value>
+  </data>
+  <data name="Aead_OutputLabel" xml:space="preserve">
+    <value>Output</value>
+  </data>
+  <data name="Aead_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="Aead_Copied" xml:space="preserve">
+    <value>Copied!</value>
+  </data>
+  <data name="Aead_Download" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="Aead_FileProgressTitle" xml:space="preserve">
+    <value>Processing file...</value>
+  </data>
+  <data name="Aead_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Aead_WarningsTitle" xml:space="preserve">
+    <value>Warnings</value>
   </data>
 </root>

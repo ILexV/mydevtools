@@ -1,0 +1,72 @@
+@page "/{lang}/x509"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<MetaTags Title="@AppStrings.X509_Title"
+          Description="@AppStrings.X509_Description"
+          CurrentUrl="@Navigation.Uri" />
+
+<HreflangLinks ToolPath="x509" />
+
+<JsonLdTool ToolName="@AppStrings.X509_Title"
+            Description="@AppStrings.X509_Description"
+            CurrentUrl="@Navigation.Uri" />
+
+<ToolLayout Title="@AppStrings.X509_Title" Description="@AppStrings.X509_Description">
+    <div id="x509-root"
+         data-loading="@AppStrings.Common_Loading"
+         data-error="@AppStrings.Common_Error"
+         data-copy="@AppStrings.X509_Copy"
+         data-copied="@AppStrings.X509_Copied"
+         data-download="@AppStrings.X509_Download"
+         data-warnings-title="@AppStrings.X509_WarningsTitle">
+
+        <div class="tool-grid">
+            <div class="input-section">
+                <h3>@AppStrings.X509_SelfSignedSectionTitle</h3>
+                <div class="tool-settings">
+                    <div class="tool-setting">
+                        <label for="x509-subject">@AppStrings.X509_SubjectLabel</label>
+                        <input id="x509-subject" type="text" placeholder="CN=example.com" />
+                    </div>
+                    <div class="tool-setting">
+                        <label for="x509-validity">@AppStrings.X509_ValidityDaysLabel</label>
+                        <input id="x509-validity" type="number" min="1" value="365" />
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="x509-generate-selfsigned" type="button">@AppStrings.X509_GenerateSelfSigned</button>
+                </div>
+
+                <h3>@AppStrings.X509_CsrSectionTitle</h3>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="x509-generate-csr" type="button">@AppStrings.X509_GenerateCsr</button>
+                </div>
+
+                <h3>@AppStrings.X509_ParseSectionTitle</h3>
+                <label for="x509-parse-input">@AppStrings.X509_ParseLabel</label>
+                <textarea id="x509-parse-input" rows="8" placeholder="@AppStrings.X509_ParsePlaceholder"></textarea>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="x509-parse-btn" type="button">@AppStrings.X509_ParseButton</button>
+                </div>
+            </div>
+
+            <div class="output-section">
+                <label for="x509-output">@AppStrings.X509_OutputLabel</label>
+                <textarea id="x509-output" rows="14" readonly></textarea>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="x509-copy" type="button">@AppStrings.X509_Copy</button>
+                    <button class="btn btn-secondary" id="x509-download" type="button">@AppStrings.X509_Download</button>
+                </div>
+
+                <div class="tool-error" id="x509-warnings" hidden></div>
+            </div>
+        </div>
+    </div>
+</ToolLayout>
+
+@code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

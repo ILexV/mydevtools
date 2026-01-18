@@ -11,22 +11,16 @@ use ed25519_dalek::{
 };
 use getrandom::getrandom;
 use num_bigint_dig::{BigInt, Sign};
-use p256::pkcs8::{
-    DecodePrivateKey as P256DecodePrivateKey, EncodePrivateKey as P256EncodePrivateKey,
-    EncodePublicKey as P256EncodePublicKey,
-};
+use p256::pkcs8::EncodePublicKey as P256EncodePublicKey;
+use p256::elliptic_curve::sec1::ToEncodedPoint;
 use p256::PublicKey as P256PublicKey;
 use p256::SecretKey as P256SecretKey;
-use p384::pkcs8::{
-    DecodePrivateKey as P384DecodePrivateKey, EncodePrivateKey as P384EncodePrivateKey,
-    EncodePublicKey as P384EncodePublicKey,
-};
 use p384::PublicKey as P384PublicKey;
 use p384::SecretKey as P384SecretKey;
 use pkcs8::{der::SecretDocument, EncryptedPrivateKeyInfo};
 use rsa::traits::{PrivateKeyParts, PublicKeyParts};
 use rsa::{
-    pkcs8::{DecodePrivateKey, DecodePublicKey, EncodePrivateKey, EncodePublicKey},
+    pkcs8::DecodePublicKey,
     BigUint, RsaPrivateKey, RsaPublicKey,
 };
 

@@ -35,6 +35,15 @@
   <data name="Nav_Base64Encoder" xml:space="preserve">
     <value>Base64</value>
   </data>
+  <data name="Nav_OpenSsh" xml:space="preserve">
+    <value>Claves OpenSSH</value>
+  </data>
+  <data name="Nav_X509" xml:space="preserve">
+    <value>X.509</value>
+  </data>
+  <data name="Nav_AeadFile" xml:space="preserve">
+    <value>Archivo AEAD</value>
+  </data>
   
   <data name="Home_Title" xml:space="preserve">
     <value>Herramientas para Desarrolladores</value>
@@ -673,5 +682,177 @@
   </data>
   <data name="Base58Encoder_FileSizeLimitDecode" xml:space="preserve">
     <value>La decodificación Base58 está limitada a {0} debido a la complejidad algorítmica. El tamaño de su archivo es {1}. Por favor, use codificación Base64 o Hex para archivos más grandes.</value>
+  </data>
+
+  <!-- Cryptography UI -->
+  <data name="OpenSsh_Title" xml:space="preserve">
+    <value>Claves OpenSSH</value>
+  </data>
+  <data name="OpenSsh_Description" xml:space="preserve">
+    <value>Genera, importa y convierte claves OpenSSH en tu navegador.</value>
+  </data>
+  <data name="OpenSsh_GenerateSectionTitle" xml:space="preserve">
+    <value>Generar</value>
+  </data>
+  <data name="OpenSsh_AlgorithmLabel" xml:space="preserve">
+    <value>Algoritmo</value>
+  </data>
+  <data name="OpenSsh_KeySizeLabel" xml:space="preserve">
+    <value>Tamaño de clave</value>
+  </data>
+  <data name="OpenSsh_PassphraseLabel" xml:space="preserve">
+    <value>Frase de contraseña (opcional)</value>
+  </data>
+  <data name="OpenSsh_GenerateButton" xml:space="preserve">
+    <value>Generar claves</value>
+  </data>
+  <data name="OpenSsh_ImportSectionTitle" xml:space="preserve">
+    <value>Importar</value>
+  </data>
+  <data name="OpenSsh_ImportLabel" xml:space="preserve">
+    <value>Pega una clave OpenSSH o PKCS#8</value>
+  </data>
+  <data name="OpenSsh_ImportPlaceholder" xml:space="preserve">
+    <value>Pega la clave pública/privada OpenSSH o PKCS#8 PEM aquí...</value>
+  </data>
+  <data name="OpenSsh_ImportFileLabel" xml:space="preserve">
+    <value>Archivo de clave</value>
+  </data>
+  <data name="OpenSsh_ImportFileHint" xml:space="preserve">
+    <value>Compatible con OpenSSH public/private y PKCS#8 PEM.</value>
+  </data>
+  <data name="OpenSsh_ImportButton" xml:space="preserve">
+    <value>Importar</value>
+  </data>
+  <data name="OpenSsh_ConvertSectionTitle" xml:space="preserve">
+    <value>Convertir</value>
+  </data>
+  <data name="OpenSsh_ConvertButton" xml:space="preserve">
+    <value>Convertir</value>
+  </data>
+  <data name="OpenSsh_PublicKeyLabel" xml:space="preserve">
+    <value>Clave pública</value>
+  </data>
+  <data name="OpenSsh_PrivateKeyLabel" xml:space="preserve">
+    <value>Clave privada</value>
+  </data>
+  <data name="OpenSsh_Copy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="OpenSsh_Copied" xml:space="preserve">
+    <value>¡Copiado!</value>
+  </data>
+  <data name="OpenSsh_Download" xml:space="preserve">
+    <value>Descargar</value>
+  </data>
+  <data name="OpenSsh_WarningsTitle" xml:space="preserve">
+    <value>Advertencias</value>
+  </data>
+
+  <data name="X509_Title" xml:space="preserve">
+    <value>Certificados X.509</value>
+  </data>
+  <data name="X509_Description" xml:space="preserve">
+    <value>Crea certificados autofirmados, CSR y analiza PEM/DER.</value>
+  </data>
+  <data name="X509_SelfSignedSectionTitle" xml:space="preserve">
+    <value>Autofirmado</value>
+  </data>
+  <data name="X509_SubjectLabel" xml:space="preserve">
+    <value>Subject (CN)</value>
+  </data>
+  <data name="X509_ValidityDaysLabel" xml:space="preserve">
+    <value>Validez (días)</value>
+  </data>
+  <data name="X509_GenerateSelfSigned" xml:space="preserve">
+    <value>Generar certificado</value>
+  </data>
+  <data name="X509_CsrSectionTitle" xml:space="preserve">
+    <value>CSR</value>
+  </data>
+  <data name="X509_GenerateCsr" xml:space="preserve">
+    <value>Generar CSR</value>
+  </data>
+  <data name="X509_ParseSectionTitle" xml:space="preserve">
+    <value>Analizar</value>
+  </data>
+  <data name="X509_ParseLabel" xml:space="preserve">
+    <value>Pega PEM/DER</value>
+  </data>
+  <data name="X509_ParsePlaceholder" xml:space="preserve">
+    <value>Pega un certificado, CSR o clave (PEM/DER) aquí...</value>
+  </data>
+  <data name="X509_ParseButton" xml:space="preserve">
+    <value>Analizar</value>
+  </data>
+  <data name="X509_OutputLabel" xml:space="preserve">
+    <value>Salida</value>
+  </data>
+  <data name="X509_Copy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="X509_Copied" xml:space="preserve">
+    <value>¡Copiado!</value>
+  </data>
+  <data name="X509_Download" xml:space="preserve">
+    <value>Descargar</value>
+  </data>
+  <data name="X509_WarningsTitle" xml:space="preserve">
+    <value>Advertencias</value>
+  </data>
+
+  <data name="Aead_Title" xml:space="preserve">
+    <value>Cifrar/descifrar archivos AEAD</value>
+  </data>
+  <data name="Aead_Description" xml:space="preserve">
+    <value>Cifra y descifra archivos localmente con AEAD.</value>
+  </data>
+  <data name="Aead_EncryptSectionTitle" xml:space="preserve">
+    <value>Cifrar</value>
+  </data>
+  <data name="Aead_DecryptSectionTitle" xml:space="preserve">
+    <value>Descifrar</value>
+  </data>
+  <data name="Aead_FileLabel" xml:space="preserve">
+    <value>Archivo</value>
+  </data>
+  <data name="Aead_FileHint" xml:space="preserve">
+    <value>Los archivos grandes se procesan por bloques en el navegador.</value>
+  </data>
+  <data name="Aead_AlgorithmLabel" xml:space="preserve">
+    <value>Algoritmo</value>
+  </data>
+  <data name="Aead_PasswordLabel" xml:space="preserve">
+    <value>Contraseña</value>
+  </data>
+  <data name="Aead_EncryptButton" xml:space="preserve">
+    <value>Cifrar archivo</value>
+  </data>
+  <data name="Aead_DecryptButton" xml:space="preserve">
+    <value>Descifrar archivo</value>
+  </data>
+  <data name="Aead_HeaderLabel" xml:space="preserve">
+    <value>Encabezado</value>
+  </data>
+  <data name="Aead_OutputLabel" xml:space="preserve">
+    <value>Salida</value>
+  </data>
+  <data name="Aead_Copy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="Aead_Copied" xml:space="preserve">
+    <value>¡Copiado!</value>
+  </data>
+  <data name="Aead_Download" xml:space="preserve">
+    <value>Descargar</value>
+  </data>
+  <data name="Aead_FileProgressTitle" xml:space="preserve">
+    <value>Procesando archivo...</value>
+  </data>
+  <data name="Aead_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Aead_WarningsTitle" xml:space="preserve">
+    <value>Advertencias</value>
   </data>
 </root>

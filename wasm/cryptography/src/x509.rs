@@ -1,9 +1,10 @@
 use wasm_bindgen::prelude::*;
 
-use rcgen::{Certificate, CertificateParams, DistinguishedName, DnType, KeyPair, SanType, SignatureAlgorithm};
+use rcgen::{CertificateParams, DistinguishedName, DnType, KeyPair, SanType, SignatureAlgorithm};
 use std::net::IpAddr;
 use x509_parser::extensions::GeneralName;
 use x509_parser::prelude::*;
+use x509_parser::public_key::PublicKey;
 
 const X509_ALG_ED25519: u8 = 1;
 const X509_ALG_ECDSA_P256: u8 = 2;
@@ -11,7 +12,6 @@ const X509_ALG_ECDSA_P384: u8 = 3;
 
 const OID_RSA_ENCRYPTION: &str = "1.2.840.113549.1.1.1";
 const OID_ECDSA: &str = "1.2.840.10045.2.1";
-const OID_ED25519: &str = "1.3.101.112";
 
 const OID_SHA1_WITH_RSA: &str = "1.2.840.113549.1.1.5";
 const OID_MD5_WITH_RSA: &str = "1.2.840.113549.1.1.4";
@@ -30,7 +30,7 @@ fn signature_algorithm(alg: u8) -> Result<&'static SignatureAlgorithm, JsValue> 
 }
 
 fn build_params(
-    alg: u8,
+    _alg: u8,
     subject_cn: Option<String>,
     san_dns: Vec<String>,
     san_ip: Vec<String>,
@@ -40,8 +40,6 @@ fn build_params(
     } else {
         CertificateParams::new(san_dns).map_err(|_| JsValue::from_str("invalid san"))?
     };
-
-    params.alg = signature_algorithm(alg)?;
 
     if let Some(cn) = subject_cn {
         if !cn.is_empty() {
@@ -59,12 +57,10 @@ fn build_params(
     Ok(params)
 }
 
-fn parse_cert_from_pem(pem: &str) -> Result<X509Certificate<'_>, JsValue> {
+fn parse_pem_to_der(pem: &str) -> Result<Vec<u8>, JsValue> {
     let (_, pem) = x509_parser::pem::parse_x509_pem(pem.as_bytes())
         .map_err(|_| JsValue::from_str("invalid PEM"))?;
-    let (_, cert) = parse_x509_certificate(&pem.contents)
-        .map_err(|_| JsValue::from_str("invalid certificate"))?;
-    Ok(cert)
+    Ok(pem.contents)
 }
 
 fn parse_cert_from_der(der: &[u8]) -> Result<X509Certificate<'_>, JsValue> {
@@ -94,7 +90,17 @@ fn san_to_strings(cert: &X509Certificate<'_>) -> Vec<String> {
         for name in san.value.general_names.iter() {
             match name {
                 GeneralName::DNSName(name) => out.push(format!("DNS:{}", name)),
-                GeneralName::IPAddress(bytes) => out.push(format!("IP:{}", IpAddr::from(*bytes))),
+                GeneralName::IPAddress(bytes) => {
+                    if bytes.len() == 4 {
+                        if let Ok(arr) = <[u8; 4]>::try_from(bytes.as_ref()) {
+                            out.push(format!("IP:{}", IpAddr::from(arr)));
+                        }
+                    } else if bytes.len() == 16 {
+                        if let Ok(arr) = <[u8; 16]>::try_from(bytes.as_ref()) {
+                            out.push(format!("IP:{}", IpAddr::from(arr)));
+                        }
+                    }
+                }
                 GeneralName::RFC822Name(name) => out.push(format!("EMAIL:{}", name)),
                 GeneralName::URI(name) => out.push(format!("URI:{}", name)),
                 _ => {}
@@ -140,7 +146,14 @@ fn public_key_bits(cert: &X509Certificate<'_>) -> Option<u32> {
     if alg == OID_RSA_ENCRYPTION {
         if let Ok(public_key) = spki.parsed() {
             if let PublicKey::RSA(rsa) = public_key {
-                return Some(rsa.modulus.bits() as u32);
+                let bytes = rsa.modulus;
+                if bytes.is_empty() {
+                    return None;
+                }
+                let mut bits = (bytes.len() * 8) as u32;
+                let leading = bytes[0].leading_zeros() as u32;
+                bits = bits.saturating_sub(leading);
+                return Some(bits);
             }
         }
     }
@@ -183,15 +196,13 @@ fn cert_warnings(cert: &X509Certificate<'_>, now_unix: i64) -> Vec<String> {
         warnings.push("signature uses MD5".to_string());
     }
 
-    if let Ok(nb) = cert.validity().not_before.to_datetime() {
-        if now_unix < nb.unix_timestamp() {
-            warnings.push("certificate not yet valid".to_string());
-        }
+    let nb = cert.validity().not_before.to_datetime();
+    if now_unix < nb.unix_timestamp() {
+        warnings.push("certificate not yet valid".to_string());
     }
-    if let Ok(na) = cert.validity().not_after.to_datetime() {
-        if now_unix > na.unix_timestamp() {
-            warnings.push("certificate expired".to_string());
-        }
+    let na = cert.validity().not_after.to_datetime();
+    if now_unix > na.unix_timestamp() {
+        warnings.push("certificate expired".to_string());
     }
 
     if let Some(bits) = public_key_bits(cert) {
@@ -220,14 +231,13 @@ pub fn x509_self_signed_pem(
     san_dns: Vec<String>,
     san_ip: Vec<String>,
 ) -> Result<Vec<String>, JsValue> {
-    let mut params = build_params(algorithm, subject_cn, san_dns, san_ip)?;
-    let key_pair = KeyPair::generate(params.alg)
+    let params = build_params(algorithm, subject_cn, san_dns, san_ip)?;
+    let key_pair = KeyPair::generate_for(signature_algorithm(algorithm)?)
         .map_err(|_| JsValue::from_str("key generation failed"))?;
     let key_pem = key_pair.serialize_pem();
-    params.key_pair = Some(key_pair);
-
-    let cert = Certificate::from_params(params).map_err(|_| JsValue::from_str("certificate failed"))?;
-    let cert_pem = cert.serialize_pem().map_err(|_| JsValue::from_str("encode failed"))?;
+    let cert = params.self_signed(&key_pair)
+        .map_err(|_| JsValue::from_str("certificate failed"))?;
+    let cert_pem = cert.pem();
 
     Ok(vec![cert_pem, key_pem])
 }
@@ -243,16 +253,14 @@ pub fn x509_csr_pem(
     san_dns: Vec<String>,
     san_ip: Vec<String>,
 ) -> Result<Vec<String>, JsValue> {
-    let mut params = build_params(algorithm, subject_cn, san_dns, san_ip)?;
-    let key_pair = KeyPair::generate(params.alg)
+    let params = build_params(algorithm, subject_cn, san_dns, san_ip)?;
+    let key_pair = KeyPair::generate_for(signature_algorithm(algorithm)?)
         .map_err(|_| JsValue::from_str("key generation failed"))?;
     let key_pem = key_pair.serialize_pem();
-    params.key_pair = Some(key_pair);
-
-    let cert = Certificate::from_params(params).map_err(|_| JsValue::from_str("certificate failed"))?;
-    let csr_pem = cert
-        .serialize_request_pem()
+    let csr = params
+        .serialize_request(&key_pair)
         .map_err(|_| JsValue::from_str("encode failed"))?;
+    let csr_pem = csr.pem().map_err(|_| JsValue::from_str("encode failed"))?;
 
     Ok(vec![csr_pem, key_pem])
 }
@@ -260,7 +268,9 @@ pub fn x509_csr_pem(
 /// Parses certificate from PEM and returns JSON string with basic fields.
 #[wasm_bindgen]
 pub fn x509_parse_pem(pem: &str) -> Result<String, JsValue> {
-    let cert = parse_cert_from_pem(pem)?;
+    let der = parse_pem_to_der(pem)?;
+    let (_, cert) = parse_x509_certificate(&der)
+        .map_err(|_| JsValue::from_str("invalid certificate"))?;
     Ok(cert_to_json(&cert))
 }
 
@@ -274,7 +284,9 @@ pub fn x509_parse_der(der: &[u8]) -> Result<String, JsValue> {
 /// Returns warnings for a PEM certificate (provide current unix timestamp).
 #[wasm_bindgen]
 pub fn x509_warnings_pem(pem: &str, now_unix: i64) -> Result<Vec<String>, JsValue> {
-    let cert = parse_cert_from_pem(pem)?;
+    let der = parse_pem_to_der(pem)?;
+    let (_, cert) = parse_x509_certificate(&der)
+        .map_err(|_| JsValue::from_str("invalid certificate"))?;
     Ok(cert_warnings(&cert, now_unix))
 }
 
@@ -294,27 +306,29 @@ pub fn x509_chain_warnings_pem(pem_chain: Vec<String>, now_unix: i64) -> Result<
         return Err(JsValue::from_str("empty chain"));
     }
 
-    let mut certs = Vec::with_capacity(pem_chain.len());
-    for pem in pem_chain.iter() {
-        certs.push(parse_cert_from_pem(pem)?);
-    }
-
     let mut warnings = Vec::new();
-    for cert in certs.iter() {
-        warnings.extend(cert_warnings(cert, now_unix));
+    let mut subjects = Vec::with_capacity(pem_chain.len());
+    let mut issuers = Vec::with_capacity(pem_chain.len());
+
+    for pem in pem_chain.iter() {
+        let der = parse_pem_to_der(pem)?;
+        let (_, cert) = parse_x509_certificate(&der)
+            .map_err(|_| JsValue::from_str("invalid certificate"))?;
+        warnings.extend(cert_warnings(&cert, now_unix));
+        subjects.push(subject_string(&cert));
+        issuers.push(issuer_string(&cert));
     }
 
-    for i in 0..certs.len() - 1 {
-        let issuer = issuer_string(&certs[i]);
-        let subject = subject_string(&certs[i + 1]);
-        if issuer != subject {
+    for i in 0..subjects.len().saturating_sub(1) {
+        if issuers[i] != subjects[i + 1] {
             warnings.push(format!("issuer mismatch at index {}", i));
         }
     }
 
-    let last = certs.last().expect("chain");
-    if issuer_string(last) != subject_string(last) {
-        warnings.push("root is not self-signed".to_string());
+    if let (Some(last_subject), Some(last_issuer)) = (subjects.last(), issuers.last()) {
+        if last_subject != last_issuer {
+            warnings.push("root is not self-signed".to_string());
+        }
     }
 
     warnings.push("signature verification not performed".to_string());

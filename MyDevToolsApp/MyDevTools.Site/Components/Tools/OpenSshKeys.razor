@@ -1,0 +1,97 @@
+@page "/{lang}/openssh-keys"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<MetaTags Title="@AppStrings.OpenSsh_Title"
+          Description="@AppStrings.OpenSsh_Description"
+          CurrentUrl="@Navigation.Uri" />
+
+<HreflangLinks ToolPath="openssh-keys" />
+
+<JsonLdTool ToolName="@AppStrings.OpenSsh_Title"
+            Description="@AppStrings.OpenSsh_Description"
+            CurrentUrl="@Navigation.Uri" />
+
+<ToolLayout Title="@AppStrings.OpenSsh_Title" Description="@AppStrings.OpenSsh_Description">
+    <div id="openssh-keys-root"
+         data-loading="@AppStrings.Common_Loading"
+         data-error="@AppStrings.Common_Error"
+         data-copy="@AppStrings.OpenSsh_Copy"
+         data-copied="@AppStrings.OpenSsh_Copied"
+         data-download="@AppStrings.OpenSsh_Download"
+         data-warnings-title="@AppStrings.OpenSsh_WarningsTitle">
+
+        <div class="tool-grid">
+            <div class="input-section">
+                <h3>@AppStrings.OpenSsh_GenerateSectionTitle</h3>
+                <div class="tool-settings">
+                    <div class="tool-setting">
+                        <label for="openssh-algorithm">@AppStrings.OpenSsh_AlgorithmLabel</label>
+                        <select id="openssh-algorithm">
+                            <option value="ed25519">Ed25519</option>
+                            <option value="ecdsa-p256">ECDSA P-256</option>
+                            <option value="ecdsa-p384">ECDSA P-384</option>
+                            <option value="rsa-3072">RSA 3072</option>
+                            <option value="rsa-4096">RSA 4096</option>
+                        </select>
+                    </div>
+                    <div class="tool-setting">
+                        <label for="openssh-key-size">@AppStrings.OpenSsh_KeySizeLabel</label>
+                        <select id="openssh-key-size">
+                            <option value="3072">3072</option>
+                            <option value="4096">4096</option>
+                        </select>
+                    </div>
+                    <div class="tool-setting">
+                        <label for="openssh-passphrase">@AppStrings.OpenSsh_PassphraseLabel</label>
+                        <input id="openssh-passphrase" type="password" autocomplete="new-password" />
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="openssh-generate-btn" type="button">@AppStrings.OpenSsh_GenerateButton</button>
+                </div>
+
+                <h3>@AppStrings.OpenSsh_ImportSectionTitle</h3>
+                <label for="openssh-import-text">@AppStrings.OpenSsh_ImportLabel</label>
+                <textarea id="openssh-import-text" rows="8" placeholder="@AppStrings.OpenSsh_ImportPlaceholder"></textarea>
+
+                <FileDropInput InputId="openssh-import-file"
+                               Label="@AppStrings.OpenSsh_ImportFileLabel"
+                               Hint="@AppStrings.OpenSsh_ImportFileHint" />
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="openssh-import-btn" type="button">@AppStrings.OpenSsh_ImportButton</button>
+                </div>
+
+                <h3>@AppStrings.OpenSsh_ConvertSectionTitle</h3>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="openssh-convert-btn" type="button">@AppStrings.OpenSsh_ConvertButton</button>
+                </div>
+            </div>
+
+            <div class="output-section">
+                <label for="openssh-public-key">@AppStrings.OpenSsh_PublicKeyLabel</label>
+                <textarea id="openssh-public-key" rows="6" readonly></textarea>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="openssh-public-copy" type="button">@AppStrings.OpenSsh_Copy</button>
+                    <button class="btn btn-secondary" id="openssh-public-download" type="button">@AppStrings.OpenSsh_Download</button>
+                </div>
+
+                <label for="openssh-private-key">@AppStrings.OpenSsh_PrivateKeyLabel</label>
+                <textarea id="openssh-private-key" rows="8" readonly></textarea>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="openssh-private-copy" type="button">@AppStrings.OpenSsh_Copy</button>
+                    <button class="btn btn-secondary" id="openssh-private-download" type="button">@AppStrings.OpenSsh_Download</button>
+                </div>
+
+                <div class="tool-error" id="openssh-warnings" hidden></div>
+            </div>
+        </div>
+    </div>
+</ToolLayout>
+
+@code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

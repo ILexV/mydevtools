@@ -1,0 +1,83 @@
+@page "/{lang}/aead-file"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<MetaTags Title="@AppStrings.Aead_Title"
+          Description="@AppStrings.Aead_Description"
+          CurrentUrl="@Navigation.Uri" />
+
+<HreflangLinks ToolPath="aead-file" />
+
+<JsonLdTool ToolName="@AppStrings.Aead_Title"
+            Description="@AppStrings.Aead_Description"
+            CurrentUrl="@Navigation.Uri" />
+
+<ToolLayout Title="@AppStrings.Aead_Title" Description="@AppStrings.Aead_Description">
+    <div id="aead-root"
+         data-loading="@AppStrings.Common_Loading"
+         data-error="@AppStrings.Common_Error"
+         data-file-progress-title="@AppStrings.Aead_FileProgressTitle"
+         data-cancel="@AppStrings.Aead_Cancel"
+         data-copy="@AppStrings.Aead_Copy"
+         data-copied="@AppStrings.Aead_Copied"
+         data-download="@AppStrings.Aead_Download"
+         data-warnings-title="@AppStrings.Aead_WarningsTitle">
+
+        <div class="tool-grid">
+            <div class="input-section">
+                <h3>@AppStrings.Aead_EncryptSectionTitle</h3>
+                <FileDropInput InputId="aead-input-file"
+                               Label="@AppStrings.Aead_FileLabel"
+                               Hint="@AppStrings.Aead_FileHint" />
+
+                <div class="tool-settings">
+                    <div class="tool-setting">
+                        <label for="aead-algorithm">@AppStrings.Aead_AlgorithmLabel</label>
+                        <select id="aead-algorithm">
+                            <option value="aes-256-gcm">AES-256-GCM</option>
+                            <option value="chacha20-poly1305">ChaCha20-Poly1305</option>
+                            <option value="xchacha20-poly1305">XChaCha20-Poly1305</option>
+                        </select>
+                    </div>
+                    <div class="tool-setting">
+                        <label for="aead-password">@AppStrings.Aead_PasswordLabel</label>
+                        <input id="aead-password" type="password" autocomplete="new-password" />
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="aead-encrypt-btn" type="button">@AppStrings.Aead_EncryptButton</button>
+                </div>
+
+                <h3>@AppStrings.Aead_DecryptSectionTitle</h3>
+                <FileDropInput InputId="aead-decrypt-file"
+                               Label="@AppStrings.Aead_FileLabel"
+                               Hint="@AppStrings.Aead_FileHint" />
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="aead-decrypt-btn" type="button">@AppStrings.Aead_DecryptButton</button>
+                </div>
+            </div>
+
+            <div class="output-section">
+                <label for="aead-header">@AppStrings.Aead_HeaderLabel</label>
+                <textarea id="aead-header" rows="6" readonly></textarea>
+
+                <label for="aead-output">@AppStrings.Aead_OutputLabel</label>
+                <textarea id="aead-output" rows="8" readonly></textarea>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="aead-copy" type="button">@AppStrings.Aead_Copy</button>
+                    <button class="btn btn-secondary" id="aead-download" type="button">@AppStrings.Aead_Download</button>
+                </div>
+
+                <div class="tool-error" id="aead-warnings" hidden></div>
+            </div>
+        </div>
+    </div>
+</ToolLayout>
+
+@code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

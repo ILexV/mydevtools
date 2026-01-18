@@ -1466,4 +1466,41 @@ mod tests {
         let parsed = openssh_private_key_private_key_bytes(&openssh, None).expect("parse");
         assert_eq!(parsed, private_key);
     }
+
+    #[cfg(target_arch = "wasm32")]
+    #[test]
+    fn openssh_private_key_wrong_passphrase() {
+        let private_key = [9u8; 32];
+        let pem = openssh_ed25519_private_key(
+            &private_key,
+            Some("test@local".to_string()),
+            Some("correct".to_string()),
+            Some(4),
+        )
+        .expect("pem");
+
+        assert!(openssh_private_key_private_key_bytes(&pem, Some("wrong".to_string())).is_err());
+    }
+
+    #[test]
+    fn openssh_warnings_for_rsa_key_size() {
+        let private_key = crate::rsa_pss::rsa_generate_private_key_pkcs8(2048).expect("key");
+        let spki = crate::rsa_pss::rsa_public_key_from_private_pkcs8(&private_key).expect("spki");
+
+        let pub_line = openssh_rsa_public_key_from_spki(&spki, Some("test@local".to_string())).expect("line");
+        let warnings = openssh_public_key_warnings(&pub_line).expect("warnings");
+        assert!(warnings.iter().any(|w| w.contains("ssh-rsa uses SHA-1")));
+        assert!(warnings.iter().any(|w| w.contains("RSA key size < 3072")));
+
+        let pem = openssh_rsa_private_key_from_pkcs8(&private_key, None, None, None).expect("pem");
+        let warnings = openssh_private_key_warnings(&pem, None).expect("warnings");
+        assert!(warnings.iter().any(|w| w.contains("ssh-rsa uses SHA-1")));
+        assert!(warnings.iter().any(|w| w.contains("RSA key size < 3072")));
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    #[test]
+    fn openssh_public_key_invalid_rejected() {
+        assert!(openssh_public_key_algorithm("ssh-ed25519 not_base64").is_err());
+    }
 }

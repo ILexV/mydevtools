@@ -30,3 +30,9 @@ pkcs8 = { version = "0.10", features = ["pem", "encryption"] }
 rcgen = "0.13"
 ring = { version = "0.17", features = ["wasm32_unknown_unknown_js"] }
 x509-parser = { version = "0.16" }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+[features]
+wasm-test = []

@@ -690,4 +690,92 @@ mod tests {
         assert_eq!(out_salt, salt);
         assert_eq!(out_prefix, prefix);
     }
+
+    #[cfg(target_arch = "wasm32")]
+    #[test]
+    fn aead_invalid_key_and_nonce_lengths() {
+        let aad = b"aad";
+        let msg = b"secret";
+        assert!(aes256_gcm_encrypt(&[0u8; 31], &[0u8; 12], msg, aad).is_err());
+        assert!(aes256_gcm_encrypt(&[0u8; 32], &[0u8; 11], msg, aad).is_err());
+        assert!(chacha20_poly1305_encrypt(&[0u8; 31], &[0u8; 12], msg, aad).is_err());
+        assert!(xchacha20_poly1305_encrypt(&[0u8; 32], &[0u8; 23], msg, aad).is_err());
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    #[test]
+    fn aead_decrypt_fails_with_wrong_key() {
+        let key = [7u8; 32];
+        let wrong_key = [8u8; 32];
+        let nonce = [1u8; 12];
+        let aad = b"aad";
+        let msg = b"secret";
+        let ct = aes256_gcm_encrypt(&key, &nonce, msg, aad).expect("encrypt");
+        assert!(aes256_gcm_decrypt(&wrong_key, &nonce, &ct, aad).is_err());
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    #[test]
+    fn aead_decrypt_with_password_wrong_password() {
+        let salt = [1u8; 16];
+        let nonce = [2u8; 12];
+        let aad = b"aad";
+        let msg = b"secret";
+
+        let blob = aead_encrypt_with_password(
+            AEAD_ALGO_AES256_GCM,
+            KDF_PBKDF2_SHA512,
+            b"password",
+            &salt,
+            &nonce,
+            64 * 1024,
+            10_000,
+            1,
+            aad,
+            msg,
+        )
+        .expect("encrypt");
+
+        assert!(aead_decrypt_with_password(
+            &blob,
+            KDF_PBKDF2_SHA512,
+            b"wrong-password",
+            64 * 1024,
+            10_000,
+            1,
+            aad,
+        )
+        .is_err());
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    #[test]
+    fn aead_stream_header_invalid_magic() {
+        let data = [0u8; 16];
+        assert!(aead_stream_header_info(&data).is_err());
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    #[test]
+    fn aead_nonce_derivation_invalid_prefix() {
+        assert!(aead_derive_nonce_12(&[0u8; 3], 0).is_err());
+        assert!(aead_derive_nonce_24(&[0u8; 15], 0).is_err());
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    #[test]
+    fn aead_stream_unknown_kdf() {
+        let salt = [1u8; 16];
+        let prefix = [2u8; 4];
+        let header = aead_stream_header_pack(
+            AEAD_ALGO_AES256_GCM,
+            9,
+            &salt,
+            &prefix,
+            1024,
+        )
+        .expect("header");
+
+        assert!(aead_stream_derive_key_from_header(&header, b"password", 64 * 1024, 3, 1).is_err());
+    }
 }

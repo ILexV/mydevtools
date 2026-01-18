@@ -366,4 +366,48 @@ mod tests {
         assert!(out[0].contains("BEGIN CERTIFICATE REQUEST"));
         assert!(out[1].contains("BEGIN PRIVATE KEY"));
     }
+
+    #[test]
+    fn x509_warnings_not_yet_valid() {
+        let out = x509_self_signed_pem(
+            X509_ALG_ED25519,
+            Some("example.local".to_string()),
+            vec!["localhost".to_string()],
+            vec!["127.0.0.1".to_string()],
+        )
+        .expect("cert");
+
+        let warnings = x509_warnings_pem(&out[0], 0).expect("warnings");
+        assert!(warnings.iter().any(|w| w.contains("not yet valid")));
+    }
+
+    #[test]
+    fn x509_chain_warnings_mismatch() {
+        let cert1 = x509_self_signed_pem(
+            X509_ALG_ED25519,
+            Some("example1.local".to_string()),
+            vec!["localhost".to_string()],
+            vec!["127.0.0.1".to_string()],
+        )
+        .expect("cert1");
+        let cert2 = x509_self_signed_pem(
+            X509_ALG_ED25519,
+            Some("example2.local".to_string()),
+            vec!["localhost".to_string()],
+            vec!["127.0.0.1".to_string()],
+        )
+        .expect("cert2");
+
+        let warnings = x509_chain_warnings_pem(vec![cert1[0].clone(), cert2[0].clone()], 0)
+            .expect("warnings");
+        assert!(warnings.iter().any(|w| w.contains("issuer mismatch")));
+        assert!(warnings.iter().any(|w| w.contains("signature verification not performed")));
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    #[test]
+    fn x509_parse_rejects_invalid_data() {
+        assert!(x509_parse_pem("not a pem").is_err());
+        assert!(x509_parse_der(&[0u8; 8]).is_err());
+    }
 }

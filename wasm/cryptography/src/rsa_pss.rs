@@ -106,3 +106,35 @@ pub fn rsa_validate_public_key_spki(public_key_der: &[u8]) -> Result<bool, JsVal
         .map_err(|_| JsValue::from_str("invalid public key"))?;
     Ok(true)
 }
+
+#[cfg(all(test, target_arch = "wasm32"))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rsa_pss_sign_verify_roundtrip() {
+        let private_key = rsa_generate_private_key_pkcs8(2048).expect("key");
+        let public_key = rsa_public_key_from_private_pkcs8(&private_key).expect("spki");
+        let message = b"hello";
+
+        let signature = rsa_pss_sign_pkcs8(&private_key, message, 32).expect("sign");
+        let ok = rsa_pss_verify_spki(&public_key, message, &signature, 32).expect("verify");
+        assert!(ok);
+
+        let ok = rsa_validate_public_key_spki(&public_key).expect("validate");
+        assert!(ok);
+    }
+
+    #[test]
+    fn rsa_pss_verify_fails_on_modified_signature() {
+        let private_key = rsa_generate_private_key_pkcs8(2048).expect("key");
+        let public_key = rsa_public_key_from_private_pkcs8(&private_key).expect("spki");
+        let message = b"hello";
+
+        let mut signature = rsa_pss_sign_pkcs8(&private_key, message, 0).expect("sign");
+        signature[0] ^= 0xFF;
+
+        let ok = rsa_pss_verify_spki(&public_key, message, &signature, 0).expect("verify");
+        assert!(!ok);
+    }
+}

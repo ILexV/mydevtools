@@ -274,6 +274,28 @@
 - [x] Конвертация ключей: OpenSSH ↔ PKCS#8 ↔ raw
 - [x] Проверка цепочки сертификатов (локально, без сети)
 
+### Тесты: WASM Cryptography (план)
+
+- [x] Зафиксировать стратегию тестов для `wasm/cryptography`: unit (Rust) + wasm-bindgen-test (минимум)
+- [x] Организовать структуру тестов: `tests/` + `fixtures/` + общий модуль утилит (генерация ключей/сравнение PEM)
+- [x] AEAD: тест-векторы для AES-256-GCM, ChaCha20-Poly1305, XChaCha20-Poly1305 (encrypt/decrypt)
+- [x] AEAD: негативные тесты (битый tag/nonce/headers, неверный пароль)
+- [x] AEAD streaming: корректность chunk-by-chunk + детерминизм nonce derivation
+- [x] KDF: тест-векторы Argon2id и PBKDF2-SHA512 (проверка ключа + параметры)
+- [x] OpenSSH: keygen → export → parse → round-trip (Ed25519/ECDSA/RSA)
+- [x] OpenSSH: импорт публичных ключей (валидные/невалидные) + ошибки с позицией
+- [x] OpenSSH: private key (new format + bcrypt KDF) — корректность пароля/ошибки
+- [x] PKCS#8 ↔ OpenSSH: round-trip для RSA/ECDSA (DER/PEM)
+- [x] Подписи: Ed25519/ECDSA/RSA-PSS — sign/verify + отрицательные кейсы
+- [x] Detachable .sig: pack/unpack + verify (валидный/битый пакет)
+- [x] X.509: генерация self-signed (ed25519, P-256/P-384) и проверка полей
+- [x] X.509: CSR генерация + парсинг PEM/DER (subject, SAN, validity)
+- [x] X.509: warnings (SHA-1/MD5, expired/not-yet-valid, RSA < 3072) — unit-тесты логики
+- [x] Тесты ошибок парсинга PEM/DER (битые/усечённые данные)
+- [x] wasm-bindgen-test: базовые smoke-тесты экспорта функций и interop
+- [x] Добавить golden fixtures (PEM/DER, OpenSSH keys, .sig) в `wasm/cryptography/tests/fixtures`
+- [x] Обновить команду запуска тестов в документации (cargo test + wasm-bindgen-test)
+
 ## UI: Cryptography (Blazor + JS)
 
 ### Инфраструктура и интеграция

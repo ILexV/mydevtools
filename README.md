@@ -293,6 +293,18 @@ cd ./wasm/hash
 cargo test
 ```
 
+Для `wasm/cryptography` дополнительно есть wasm-специфичные smoke-тесты (`wasm-bindgen-test`).
+Пример (локально):
+
+```powershell
+cd ./wasm/cryptography
+cargo test
+
+# wasm-тесты (нужен wasm-bindgen-test-runner)
+$env:CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER = "wasm-bindgen-test-runner"
+cargo test --target wasm32-unknown-unknown
+```
+
 **НЕ объединяйте** всё в один огромный wasm — используйте lazy loading!
 
 ### Текущая реализация (временная)

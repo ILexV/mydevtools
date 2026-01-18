@@ -54,15 +54,15 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
-    readonly version: () => [number, number];
     readonly __wbg_hasher_free: (a: number, b: number) => void;
-    readonly hasher_new: (a: number, b: number) => [number, number, number];
-    readonly hasher_update: (a: number, b: number, c: number) => void;
-    readonly hasher_finalize: (a: number) => [number, number];
-    readonly hasher_algorithm: (a: number) => [number, number];
     readonly hash_bytes: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly hash_text_utf8: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly hasher_algorithm: (a: number) => [number, number];
+    readonly hasher_finalize: (a: number) => [number, number];
+    readonly hasher_new: (a: number, b: number) => [number, number, number];
+    readonly hasher_update: (a: number, b: number, c: number) => void;
     readonly placeholder_hash: (a: number, b: number) => [number, number];
+    readonly version: () => [number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;

@@ -96,4 +96,24 @@ mod tests {
         let ok = ed25519_verify(&public_key, message, &signature).expect("verify");
         assert!(ok);
     }
+
+    #[test]
+    fn ed25519_verify_fails_on_modified_message() {
+        let private_key = [42u8; 32];
+        let message = b"hello";
+        let signature = ed25519_sign(&private_key, message).expect("sign");
+        let public_key = ed25519_public_key(&private_key).expect("public");
+
+        let ok = ed25519_verify(&public_key, b"hell0", &signature).expect("verify");
+        assert!(!ok);
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    #[test]
+    fn ed25519_verify_rejects_invalid_signature_length() {
+        let public_key = [1u8; 32];
+        let message = b"hello";
+        let signature = [2u8; 63];
+        assert!(ed25519_verify(&public_key, message, &signature).is_err());
+    }
 }

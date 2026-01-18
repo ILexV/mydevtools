@@ -207,4 +207,24 @@ mod tests {
         let derived = ecdsa_p384_public_key(private_key).expect("public");
         assert_eq!(derived, public_key);
     }
+
+    #[test]
+    fn p256_verify_fails_on_modified_message() {
+        let keypair = ecdsa_p256_generate_keypair().expect("keypair");
+        let private_key = &keypair[..32];
+        let public_key = &keypair[32..];
+        let signature = ecdsa_p256_sign(private_key, b"hello").expect("sign");
+
+        let ok = ecdsa_p256_verify(public_key, b"hell0", &signature).expect("verify");
+        assert!(!ok);
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    #[test]
+    fn p384_rejects_invalid_signature() {
+        let keypair = ecdsa_p384_generate_keypair().expect("keypair");
+        let public_key = &keypair[48..];
+        let bad_signature = [0u8; 5];
+        assert!(ecdsa_p384_verify(public_key, b"hello", &bad_signature).is_err());
+    }
 }

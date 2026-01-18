@@ -114,4 +114,25 @@ mod tests {
         let ok = detached_verify_packed(&public_key, message, &packed).expect("verify");
         assert!(ok);
     }
+
+    #[cfg(target_arch = "wasm32")]
+    #[test]
+    fn detached_signature_invalid_magic() {
+        let data = [0u8; 8];
+        assert!(detached_signature_info(&data).is_err());
+    }
+
+    #[test]
+    fn detached_verify_fails_on_tampered_signature() {
+        let private_key = [7u8; 32];
+        let public_key = crate::ed25519::ed25519_public_key(&private_key).expect("public");
+        let message = b"hello";
+
+        let mut packed = detached_sign_and_pack(signing::SIG_ALG_ED25519, &private_key, message).expect("pack");
+        let last = packed.len() - 1;
+        packed[last] ^= 0xFF;
+
+        let ok = detached_verify_packed(&public_key, message, &packed).expect("verify");
+        assert!(!ok);
+    }
 }

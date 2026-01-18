@@ -69,4 +69,13 @@ mod tests {
         let ok = verify_detached(SIG_ALG_ECDSA_P384, public_key, message, &signature).expect("verify");
         assert!(ok);
     }
+
+    #[cfg(target_arch = "wasm32")]
+    #[test]
+    fn sign_verify_unknown_algorithm() {
+        let private_key = [7u8; 32];
+        let public_key = ed25519::ed25519_public_key(&private_key).expect("public");
+        assert!(sign_detached(99, &private_key, b"msg").is_err());
+        assert!(verify_detached(99, &public_key, b"msg", &[0u8; 64]).is_err());
+    }
 }

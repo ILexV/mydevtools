@@ -35,13 +35,15 @@
   - большой список алгоритмов: поиск, «выбранные сверху», сортировка по алфавиту
   - прогресс и отмена для файлов, кнопка копирования результата
   Поддерживаются: MD5, SHA-1/2/3, Keccak, SHAKE, BLAKE2/3, RIPEMD, CRC32/Adler32, xxHash, SipHash, HighwayHash, MetroHash, FNV/FxHash/SeaHash, Streebog-256/512 (ГОСТ Р 34.11-2012).
+- ✅ **Encoding инструменты (WASM + JS UI)** — Hex, Base32, Base58, Base64, URL (text+file где применимо)
+- ✅ **Cryptography WASM core** — OpenSSH keys (public/private + bcrypt KDF), AEAD (AES-GCM/ChaCha/XChaCha + streaming), X.509 self-signed + CSR, PEM/DER parsing + warnings
 - ✅ **SEO компоненты** — MetaTags, JSON-LD, Hreflang
 - ✅ **Переиспользуемые UI компоненты** — ToolLayout, LoadingSkeleton, ThemeToggle
 
 ### 🚧 В разработке
 
-- 🔜 **Новые инструменты** — JSON Beautifier, Base64, XML Formatter
-- 🔜 **WASM домены** — расширение набора Rust→WASM модулей (encoding/structured_data/cryptography)
+- 🔜 **Новые инструменты** — JSON Beautifier, XML Formatter
+- 🔜 **Structured Data WASM** — JSON/XML/YAML форматирование и валидация
 
 ---
 
@@ -100,8 +102,8 @@
 │       ├── Services/
 │       └── wwwroot/
 └── wasm/
-    ├── cryptography/   # Rust → WASM: шифрование/подпись/ключи (планируется)
-    ├── encoding/       # Rust → WASM: hex/base64/url/… (планируется)
+    ├── cryptography/   # Rust → WASM: шифрование/подпись/ключи (реализовано)
+    ├── encoding/       # Rust → WASM: hex/base64/url/… (реализовано)
   ├── structured_data/ # Rust → WASM: JSON/XML/YAML форматирование + валидация (планируется)
     └── hash/           # Rust → WASM: хэши строк/файлов (реализовано)
   └── build.ps1       # Сборка cargo+wasm-bindgen → wwwroot/wasm/<domain>
@@ -241,8 +243,16 @@ MyDevToolsApp/MyDevTools.Site/
 * WASM делится по доменам (соответствует папке `wasm/`):
   * `hash.wasm` — MD5, SHA, Blake2, xxHash и т.д.
   * `encoding.wasm` — Base64, Hex, URL encoding, etc.
-  * `cryptography.wasm` — шифрование/подпись/ключи (по мере необходимости)
+  * `cryptography.wasm` — шифрование/подпись/ключи (реализовано)
   * `structured_data.wasm` — JSON/XML/YAML: форматирование + валидация
+
+### Важно про криптографию в WASM
+
+* PKCS#12/.pfx — **native-only** (нужен OpenSSL/`aws-lc-rs`).
+* Для X.509 в WASM реалистичны **ed25519** и **ECDSA P-256/P-384**; RSA/P-521 — помечаются как *native-only*.
+* JWT (JWS/JWE) и HPKE — отложено, требует отдельной оценки wasm-совместимости.
+* Реализовано в WASM: OpenSSH public/private keys (bcrypt KDF), AEAD (AES-GCM/ChaCha/XChaCha, streaming), X.509 self-signed + CSR и парсинг PEM/DER.
+* Детали и актуальные ограничения: см. crypto-roadmap.md.
 
 ### Рекомендованное оформление Rust/WASM
 

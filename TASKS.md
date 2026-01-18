@@ -7,15 +7,15 @@
 - [x] Обновить структуру репозитория в README (добавить `wasm/*`)
 - [ ] Описать процесс сборки Rust → WASM (инструменты, команды, пути артефактов)
 - [ ] Создать/добавить недостающие документы или убрать ссылки из README:
-  - `LOCALIZATION_GUIDE.md`
-  - `STRONGLY_TYPED_RESOURCES.md`
-  - `FIXES_LOG.md`
+  - [x] `LOCALIZATION_GUIDE.md`
+  - [ ] `STRONGLY_TYPED_RESOURCES.md`
+  - [ ] `FIXES_LOG.md`
 
 ## WASM (Rust)
 
 - [x] Создать доменные папки `wasm/cryptography`, `wasm/encoding`, `wasm/structured_data`, `wasm/hash`
 - [x] Переименовать домен в `wasm/structured_data`
-- [ ] Создать Cargo workspace в `wasm/` (`wasm/Cargo.toml` + members)
+- [x] Создать Cargo workspace в `wasm/` (`wasm/Cargo.toml` + members)
 - [x] Добавить скрипт сборки WASM → `wwwroot/wasm` (`wasm/build.ps1`)
 - [x] Зафиксировать toolchain сборки: `cargo build (wasm32-unknown-unknown)` + `wasm-bindgen`
 - [x] Установить `wasm-bindgen-cli` на dev-машинах/в CI (`cargo install wasm-bindgen-cli --locked`)
@@ -30,33 +30,24 @@
 
 ### API и тесты (сначала база)
 
-- [ ] Зафиксировать публичный API для `wasm/hash`:
   - строка → hex-строка
-  - файл/bytes → hex-строка (через chunking на JS стороне)
   - единый enum/строковый идентификатор алгоритма (например `"sha256"`, `"blake3"`)
 - [ ] Покрыть тестами: корректные векторы + edge cases (пустая строка, Unicode, большие входы)
 - [ ] Добавить тестовые векторы как таблицу (чтобы легко расширять)
-- [ ] Убедиться что `cargo test` гоняется нативно (быстро), а wasm-сборка не тянет лишнего
 
 - [x] Добавить streaming API для файлов: `Hasher.new()` + `update()` + `finalize()`
 - [x] Добавить one-shot API: `hash_bytes()` / `hash_text_utf8()`
 - [x] Реализовать минимум 1 крипто-хэш с тест-вектором (SHA-256)
-
 ### Интеграция с файлами на сайте (конкурентное преимущество)
 
 - [x] JS: чтение `File` чанками (`file.slice`) + `await arrayBuffer()` + `Hasher.update(new Uint8Array(...))`
 - [x] UI: прогресс хэширования файла (процент + скорость + время)
-- [x] UI: отмена/пауза (AbortController или флаг) для больших файлов
 - [ ] Проверка корректности на больших файлах (сравнить с эталоном на стороне пользователя, например через встроенные утилиты)
 
 ### Алгоритмы (по списку) + MD5
 
-> Цель: реализовать как отдельные функции/модули внутри `wasm/hash`, но собирать одним доменным `hash.wasm`.
-
 - [x] MD5 — crate: `md-5` (часто нужно для проверки старых хэшей)
 - [x] SHA-256 — crate: `sha2`
-- [x] SHA-512 — crate: `sha2`
-- [x] SHA-512/224 — crate: `sha2`
 - [x] SHA-512/256 — crate: `sha2`
 - [x] Streebog-256 (ГОСТ Р 34.11-2012) — crate: `streebog`
 - [x] Streebog-512 (ГОСТ Р 34.11-2012) — crate: `streebog`
@@ -204,6 +195,84 @@
   - [ ] Иначе показывать «похоже на бинарник» + hex-preview первых N байт (настройка N)
 
 - [ ] Улучшить ввод файлов/картинок: drag&drop + paste из буфера (без выбора через input)
+
+## WASM: Cryptography (план работ)
+
+### OpenSSH ключи
+
+- [x] Проверить wasm-совместимость: `ssh-key`, `rsa`, `ed25519-dalek`, `p256/p384`, `pem-rfc7468`, `zeroize`, `bcrypt-pbkdf` (KDF OpenSSH) — используем собственный OpenSSH codec + `bcrypt-pbkdf`
+  - [x] Базовый wasm: ed25519-dalek, p256/p384, base64 (используется для OpenSSH public keys)
+- [x] Генерация ключевых пар: ed25519, ecdsa P-256/P-384, RSA 3072/4096
+  - [x] Базовый WASM core: keygen Ed25519
+  - [x] Базовый WASM core: keygen ECDSA P-256/P-384
+  - [x] Базовый WASM core: keygen RSA (PKCS#8) + SPKI public key
+- [x] Экспорт OpenSSH публичных ключей (one-line) + приватных ключей (new format с bcrypt KDF)
+  - [x] Базовый WASM core: OpenSSH public key для Ed25519
+  - [x] Базовый WASM core: OpenSSH public key для ECDSA P-256/P-384
+  - [x] Базовый WASM core: OpenSSH public key для RSA (SPKI → ssh-rsa)
+  - [x] Базовый WASM core: OpenSSH public key для RSA (PKCS#8 → ssh-rsa)
+  - [x] Базовый WASM core: OpenSSH private key (new format, bcrypt KDF)
+- [x] Импорт/парсинг OpenSSH public/private keys
+  - [x] Базовый WASM core: парсинг OpenSSH public key (Ed25519)
+  - [x] Базовый WASM core: парсинг OpenSSH public key (ECDSA P-256/P-384)
+  - [x] Базовый WASM core: определение алгоритма и универсальный парсер
+  - [x] Базовый WASM core: парсинг OpenSSH public key (RSA → SPKI)
+  - [x] Базовый WASM core: парсинг OpenSSH private key (new format, bcrypt KDF)
+- [x] Конвертация: OpenSSH ↔ PKCS#8 (PEM)
+  - [x] Базовый WASM core: OpenSSH public key → SPKI (RSA/ECDSA)
+  - [x] Базовый WASM core: OpenSSH public key → SPKI PEM (RSA/ECDSA)
+  - [x] Базовый WASM core: SPKI PEM → OpenSSH public key (RSA/ECDSA)
+  - [x] Базовый WASM core: OpenSSH private key → PKCS#8 (DER/PEM)
+- [x] PKCS#8 encrypted → OpenSSH (passphrase)
+- [ ] UI-предупреждения: RSA < 3072, устаревшие алгоритмы
+- [x] UI-предупреждения: RSA < 3072, устаревшие алгоритмы
+
+### X.509 (самоподписанные + CSR)
+
+- [x] Генерация сертификатов (ed25519, ECDSA P-256/P-384) в WASM
+- [x] RSA и ECDSA P-521 для X.509 пометить как native-only (rcgen требует `aws-lc-rs`)
+- [x] Генерация CSR (PKCS#10) и экспорт PEM (crt/key)
+- [x] Парсинг PEM/DER и вывод: Subject, Issuer, Validity, SAN, algos
+- [x] UI-warnings: SHA-1/MD5, expired/not-yet-valid, weak curve, RSA < 3072
+
+### Следующие шаги (ближайшие)
+
+- [x] Потоковое шифрование больших файлов (chunk-by-chunk) поверх AEAD
+- [x] OpenSSH private key (new format, bcrypt KDF) — исследование wasm-совместимых crates
+- [x] X.509: выбрать wasm-совместимый путь (ed25519 + P-256/P-384) и минимальный набор полей
+
+### Симметричное шифрование (AEAD)
+
+- [x] AES-256-GCM, ChaCha20-Poly1305, XChaCha20-Poly1305
+  - [x] Базовый WASM core: encrypt/decrypt для байтов
+- [x] KDF из пароля: Argon2id + PBKDF2-SHA512
+  - [x] Базовый WASM core: Argon2id/PBKDF2-SHA512
+- [x] Потоковое шифрование больших файлов (chunk-by-chunk)
+- [x] Потоковое шифрование больших файлов (chunk-by-chunk)
+  - [x] Базовый WASM core: chunk helpers + nonce derivation
+- [x] Формат: custom header (algorithm, salt, nonce, tag) + ciphertext
+  - [x] Базовый WASM core: header pack/unpack + encrypt/decrypt
+  - [x] Базовый WASM core: AEAD + KDF (password → key) end-to-end
+
+### Подписи и верификация
+
+- [x] Ed25519 подпись файлов/строк
+  - [x] Базовый WASM core: keygen/sign/verify для байтов
+- [x] ECDSA P-256/P-384
+  - [x] Базовый WASM core: keygen/sign/verify для байтов
+- [x] RSA-PSS
+  - [x] Базовый WASM core: sign/verify RSA-PSS (SHA-256, PKCS#8/SPKI)
+- [x] Detachable подпись (.sig) и интеграция с hash-модулем
+  - [x] Базовый WASM core: pack/unpack .sig формата
+  - [x] Базовый WASM core: sign/verify по алгоритму (Ed25519/ECDSA)
+  - [x] Базовый WASM core: sign+pack и verify packed
+
+### Дополнительно / ограничения
+
+- [x] PKCS#12 / .pfx → native-only (не реализуемо в чистом WASM без OpenSSL)
+- [x] JWT (JWS + JWE), HPKE — оценка wasm-совместимости библиотек (отложено, не в scope)
+- [x] Конвертация ключей: OpenSSH ↔ PKCS#8 ↔ raw
+- [x] Проверка цепочки сертификатов (локально, без сети)
 
 ## Инструменты сайта
 

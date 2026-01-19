@@ -1,38 +1,85 @@
-/* global document */
+/* global document, CodeMirror */
 
 (function () {
     const initializedRoots = new WeakSet();
 
     function initJsonBeautifier(root) {
         if (initializedRoots.has(root)) return;
+        
+        // Check if CodeMirror is available
+        if (typeof CodeMirror === 'undefined') {
+            console.log('JSON Beautifier: CodeMirror not loaded yet, waiting...');
+            setTimeout(() => initJsonBeautifier(root), 100);
+            return;
+        }
+        
         initializedRoots.add(root);
 
-        const inputTextarea = root.querySelector('#input-json');
-        const outputPre = root.querySelector('#output-json');
-        const outputContainer = root.querySelector('#output-container');
+        const editorElement = root.querySelector('#json-editor');
         const formatBtn = root.querySelector('#format-btn');
         const clearBtn = root.querySelector('#clear-btn');
         const copyBtn = root.querySelector('#copy-btn');
         const indentSelect = root.querySelector('#indent-select');
         const sortKeysCheckbox = root.querySelector('#sort-keys');
         const compactModeCheckbox = root.querySelector('#compact-mode');
-        const lineNumbersCheckbox = root.querySelector('#line-numbers');
-        const collapsibleCheckbox = root.querySelector('#collapsible');
 
         const errorInvalidJson = root.getAttribute('data-error-invalid-json') || 'Invalid JSON. Please check your input.';
         const copiedText = root.getAttribute('data-copied') || 'Copied!';
         const copyButtonText = root.getAttribute('data-copy-button') || 'Copy';
+        const placeholder = root.getAttribute('data-input-placeholder') || 'Paste your JSON here...';
 
-        if (!inputTextarea || !outputPre || !formatBtn) {
-            console.error('JSON Beautifier: Required elements not found');
+        if (!editorElement || !formatBtn || typeof CodeMirror === 'undefined') {
+            console.error('JSON Beautifier: Required elements or CodeMirror not found');
             return;
         }
 
+        // Initialize CodeMirror
+        const editor = CodeMirror(editorElement, {
+            mode: { name: "javascript", json: true },
+            lineNumbers: true,
+            lineWrapping: true,
+            autoCloseBrackets: true,
+            matchBrackets: true,
+            indentUnit: 4,
+            tabSize: 4,
+            theme: 'default',
+            placeholder: placeholder,
+            viewportMargin: Infinity,
+            foldGutter: true,
+            gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+        });
+
+        // Set initial height
+        editor.setSize(null, '600px');
+
+        // Sync theme with site theme
+        function updateEditorTheme() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            // CodeMirror doesn't need theme change as we use CSS variables
+            // Just refresh to apply new styles
+            editor.refresh();
+        }
+
+        // Watch for theme changes
+        const themeObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                    updateEditorTheme();
+                }
+            });
+        });
+
+        themeObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-theme']
+        });
+
+        // Set initial theme
+        updateEditorTheme();
+
         function formatJSON() {
-            const input = inputTextarea.value.trim();
+            const input = editor.getValue().trim();
             if (!input) {
-                outputPre.textContent = '';
-                outputContainer?.classList.remove('line-numbers');
                 return;
             }
 
@@ -49,35 +96,44 @@
                 
                 const space = compactModeCheckbox?.checked ? 0 : (indentSelect?.value === '\\t' ? '\t' : parseInt(indentSelect?.value || '4'));
                 const formatted = JSON.stringify(parsed, replacer, space);
-                outputPre.textContent = formatted;
-                updateOutput();
+                
+                // Update editor content
+                editor.setValue(formatted);
+                
+                // Update indent settings in CodeMirror
+                if (!compactModeCheckbox?.checked) {
+                    const indentValue = indentSelect?.value === '\\t' ? '\t' : parseInt(indentSelect?.value || '4');
+                    if (indentValue === '\t') {
+                        editor.setOption('indentWithTabs', true);
+                    } else {
+                        editor.setOption('indentWithTabs', false);
+                        editor.setOption('indentUnit', indentValue);
+                        editor.setOption('tabSize', indentValue);
+                    }
+                }
+                
+                // Clear any error styling
+                editor.getWrapperElement().classList.remove('json-error');
             } catch (e) {
-                outputPre.textContent = errorInvalidJson;
-                outputContainer?.classList.remove('line-numbers');
+                // Show error indication
+                editor.getWrapperElement().classList.add('json-error');
+                console.error('JSON Error:', e.message);
+                
+                // Optionally show a notification
+                showNotification(errorInvalidJson, 'error');
             }
-        }
-
-        function updateOutput() {
-            if (!outputContainer) return;
-            
-            if (lineNumbersCheckbox?.checked) {
-                outputContainer.classList.add('line-numbers');
-            } else {
-                outputContainer.classList.remove('line-numbers');
-            }
-            // Collapsible functionality can be implemented here if needed
         }
 
         function clearAll() {
-            if (inputTextarea) inputTextarea.value = '';
-            if (outputPre) outputPre.textContent = '';
-            outputContainer?.classList.remove('line-numbers');
+            editor.setValue('');
+            editor.getWrapperElement().classList.remove('json-error');
         }
 
         function copyToClipboard() {
-            if (!outputPre || !copyBtn) return;
+            if (!copyBtn) return;
             
-            navigator.clipboard.writeText(outputPre.textContent).then(() => {
+            const text = editor.getValue();
+            navigator.clipboard.writeText(text).then(() => {
                 const originalText = copyBtn.textContent;
                 copyBtn.textContent = copiedText;
                 setTimeout(() => {
@@ -88,18 +144,53 @@
             });
         }
 
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `json-notification json-notification-${type}`;
+            notification.textContent = message;
+            
+            const editorWrapper = editor.getWrapperElement();
+            editorWrapper.parentElement.insertBefore(notification, editorWrapper);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
         // Event listeners
         formatBtn.addEventListener('click', formatJSON);
         clearBtn?.addEventListener('click', clearAll);
         copyBtn?.addEventListener('click', copyToClipboard);
-        indentSelect?.addEventListener('change', formatJSON);
-        sortKeysCheckbox?.addEventListener('change', formatJSON);
-        compactModeCheckbox?.addEventListener('change', formatJSON);
-        lineNumbersCheckbox?.addEventListener('change', updateOutput);
-        collapsibleCheckbox?.addEventListener('change', updateOutput);
+        
+        // Auto-format on settings change (optional)
+        indentSelect?.addEventListener('change', () => {
+            const value = editor.getValue().trim();
+            if (value) {
+                formatJSON();
+            }
+        });
+        sortKeysCheckbox?.addEventListener('change', () => {
+            const value = editor.getValue().trim();
+            if (value) {
+                formatJSON();
+            }
+        });
+        compactModeCheckbox?.addEventListener('change', () => {
+            const value = editor.getValue().trim();
+            if (value) {
+                formatJSON();
+            }
+        });
 
-        // Auto format on input change
-        inputTextarea.addEventListener('input', formatJSON);
+        // Keyboard shortcuts
+        editor.setOption('extraKeys', {
+            'Ctrl-Enter': formatJSON,
+            'Cmd-Enter': formatJSON,
+            'Ctrl-K': clearAll,
+            'Cmd-K': clearAll
+        });
     }
 
     function observeTools() {

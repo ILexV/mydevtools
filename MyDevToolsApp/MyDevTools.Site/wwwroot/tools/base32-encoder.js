@@ -438,20 +438,6 @@
         }
 
         // Process remaining text
-                try {
-                    const decoded = wasm.base32_decode(accumulatedText, alphabetName, paddingMode, allowWhitespace);
-                    outChunks.push(new Uint8Array(decoded));
-                    accumulatedText = '';
-                } catch (err) {
-                    const msg = err?.message || String(err);
-                    const indexMatch = msg.match(/position (\d+)/) || msg.match(/index (\d+)/);
-                    const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
-                    return { ok: false, error: { index, message: msg } };
-                }
-            }
-        }
-
-        // Process remaining text
         if (accumulatedText.length > 0) {
             try {
                 const decoded = wasm.base32_decode(accumulatedText, alphabetName, paddingMode, allowWhitespace);

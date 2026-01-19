@@ -17,17 +17,13 @@
     <div id="json-beautifier-root"
          data-error-invalid-json="@AppStrings.JsonBeautifier_ErrorInvalidJson"
          data-copied="@AppStrings.JsonBeautifier_Copied"
-         data-copy-button="@AppStrings.JsonBeautifier_CopyButton">
+         data-copy-button="@AppStrings.JsonBeautifier_CopyButton"
+         data-input-placeholder="@AppStrings.JsonBeautifier_InputPlaceholder">
         
-        <div class="tool-grid">
-            <div class="input-section">
-                <label for="input-json">@AppStrings.JsonBeautifier_InputLabel</label>
-                <textarea id="input-json" 
-                          placeholder="@AppStrings.JsonBeautifier_InputPlaceholder"
-                          rows="10"></textarea>
-
-                <div class="settings">
-                    <div class="setting-group">
+        <div class="editor-container">
+            <div class="settings-bar">
+                <div class="settings-group">
+                    <div class="setting-item">
                         <label for="indent-select">@AppStrings.JsonBeautifier_IndentSizeLabel</label>
                         <select id="indent-select">
                             <option value="2">@AppStrings.JsonBeautifier_Indent2Spaces</option>
@@ -35,18 +31,14 @@
                             <option value="\t">@AppStrings.JsonBeautifier_IndentTab</option>
                         </select>
                     </div>
-                    <div class="setting-group">
+                    <div class="setting-item">
                         <label>
                             <input type="checkbox" id="sort-keys" /> @AppStrings.JsonBeautifier_SortKeys
                         </label>
+                    </div>
+                    <div class="setting-item">
                         <label>
                             <input type="checkbox" id="compact-mode" /> @AppStrings.JsonBeautifier_CompactMode
-                        </label>
-                        <label>
-                            <input type="checkbox" id="line-numbers" checked /> @AppStrings.JsonBeautifier_LineNumbers
-                        </label>
-                        <label>
-                            <input type="checkbox" id="collapsible" checked /> @AppStrings.JsonBeautifier_Collapsible
                         </label>
                     </div>
                 </div>
@@ -55,23 +47,16 @@
                     <button class="btn btn-primary" id="format-btn" type="button">
                         @AppStrings.JsonBeautifier_FormatButton
                     </button>
+                    <button class="btn btn-secondary" id="copy-btn" type="button">
+                        @AppStrings.JsonBeautifier_CopyButton
+                    </button>
                     <button class="btn btn-secondary" id="clear-btn" type="button">
                         @AppStrings.JsonBeautifier_ClearButton
                     </button>
                 </div>
             </div>
 
-            <div class="output-section">
-                <label>@AppStrings.JsonBeautifier_OutputLabel</label>
-                <div id="output-container" class="json-output-container">
-                    <pre id="output-json" class="json-output"></pre>
-                </div>
-                <div class="action-buttons">
-                    <button class="btn btn-secondary" id="copy-btn" type="button">
-                        @AppStrings.JsonBeautifier_CopyButton
-                    </button>
-                </div>
-            </div>
+            <div id="json-editor"></div>
         </div>
     </div>
 </ToolLayout>

@@ -913,4 +913,63 @@
   <data name="Aead_WarningsTitle" xml:space="preserve">
     <value>Warnings</value>
   </data>
+  <data name="Nav_JsonBeautifier" xml:space="preserve">
+    <value>JSON Beautifier</value>
+  </data>
+
+  <!-- JSON Beautifier -->
+  <data name="JsonBeautifier_Title" xml:space="preserve">
+    <value>JSON Beautifier</value>
+  </data>
+  <data name="JsonBeautifier_Description" xml:space="preserve">
+    <value>Format and beautify JSON strings with customizable indentation and options — all in your browser</value>
+  </data>
+  <data name="JsonBeautifier_InputLabel" xml:space="preserve">
+    <value>Input JSON</value>
+  </data>
+  <data name="JsonBeautifier_InputPlaceholder" xml:space="preserve">
+    <value>Paste your JSON here...</value>
+  </data>
+  <data name="JsonBeautifier_FormatButton" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="JsonBeautifier_ClearButton" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="JsonBeautifier_CopyButton" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="JsonBeautifier_Copied" xml:space="preserve">
+    <value>Copied!</value>
+  </data>
+  <data name="JsonBeautifier_ErrorInvalidJson" xml:space="preserve">
+    <value>Invalid JSON. Please check your input.</value>
+  </data>
+  <data name="JsonBeautifier_IndentSizeLabel" xml:space="preserve">
+    <value>Indent size</value>
+  </data>
+  <data name="JsonBeautifier_Indent2Spaces" xml:space="preserve">
+    <value>2 spaces</value>
+  </data>
+  <data name="JsonBeautifier_Indent4Spaces" xml:space="preserve">
+    <value>4 spaces</value>
+  </data>
+  <data name="JsonBeautifier_IndentTab" xml:space="preserve">
+    <value>Tab</value>
+  </data>
+  <data name="JsonBeautifier_SortKeys" xml:space="preserve">
+    <value>Sort keys</value>
+  </data>
+  <data name="JsonBeautifier_CompactMode" xml:space="preserve">
+    <value>Compact mode</value>
+  </data>
+  <data name="JsonBeautifier_OutputLabel" xml:space="preserve">
+    <value>Formatted JSON</value>
+  </data>
+  <data name="JsonBeautifier_LineNumbers" xml:space="preserve">
+    <value>Show line numbers</value>
+  </data>
+  <data name="JsonBeautifier_Collapsible" xml:space="preserve">
+    <value>Collapsible blocks</value>
+  </data>
 </root>

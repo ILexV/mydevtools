@@ -781,3 +781,62 @@ html, body {
 .blazor-error-boundary::after {
     content: "An error has occurred."
 }
+
+/* ===== JSON Beautifier ===== */
+.json-output-container {
+    position: relative;
+}
+
+.json-output-container.line-numbers {
+    counter-reset: line;
+}
+
+.json-output-container.line-numbers .json-output {
+    padding-left: 3rem;
+}
+
+.json-output-container.line-numbers .json-output::before {
+    content: counter(line);
+    counter-increment: line;
+    position: absolute;
+    left: 0;
+    width: 2.5rem;
+    text-align: right;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    padding-right: 0.5rem;
+    border-right: 1px solid var(--border-color);
+}
+
+.settings {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.setting-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.setting-group select {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.setting-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.setting-group input[type=\ checkbox\] {
+    margin: 0;
+}

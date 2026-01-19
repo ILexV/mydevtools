@@ -1843,6 +1843,168 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Clear.
+        /// </summary>
+        public static string JsonBeautifier_ClearButton {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_ClearButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Collapsible blocks.
+        /// </summary>
+        public static string JsonBeautifier_Collapsible {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_Collapsible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Compact mode.
+        /// </summary>
+        public static string JsonBeautifier_CompactMode {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_CompactMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copied!.
+        /// </summary>
+        public static string JsonBeautifier_Copied {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_Copied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy.
+        /// </summary>
+        public static string JsonBeautifier_CopyButton {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_CopyButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Format and beautify JSON strings with customizable indentation and options — all in your browser.
+        /// </summary>
+        public static string JsonBeautifier_Description {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid JSON. Please check your input..
+        /// </summary>
+        public static string JsonBeautifier_ErrorInvalidJson {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_ErrorInvalidJson", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Format.
+        /// </summary>
+        public static string JsonBeautifier_FormatButton {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_FormatButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 2 spaces.
+        /// </summary>
+        public static string JsonBeautifier_Indent2Spaces {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_Indent2Spaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 4 spaces.
+        /// </summary>
+        public static string JsonBeautifier_Indent4Spaces {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_Indent4Spaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent size.
+        /// </summary>
+        public static string JsonBeautifier_IndentSizeLabel {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_IndentSizeLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tab.
+        /// </summary>
+        public static string JsonBeautifier_IndentTab {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_IndentTab", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Input JSON.
+        /// </summary>
+        public static string JsonBeautifier_InputLabel {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_InputLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Paste your JSON here....
+        /// </summary>
+        public static string JsonBeautifier_InputPlaceholder {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_InputPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show line numbers.
+        /// </summary>
+        public static string JsonBeautifier_LineNumbers {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_LineNumbers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Formatted JSON.
+        /// </summary>
+        public static string JsonBeautifier_OutputLabel {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_OutputLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sort keys.
+        /// </summary>
+        public static string JsonBeautifier_SortKeys {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_SortKeys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JSON Beautifier.
+        /// </summary>
+        public static string JsonBeautifier_Title {
+            get {
+                return ResourceManager.GetString("JsonBeautifier_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to AEAD File.
         /// </summary>
         public static string Nav_AeadFile {
@@ -1893,6 +2055,15 @@ namespace MyDevTools.Site.Resources {
         public static string Nav_Home {
             get {
                 return ResourceManager.GetString("Nav_Home", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JSON Beautifier.
+        /// </summary>
+        public static string Nav_JsonBeautifier {
+            get {
+                return ResourceManager.GetString("Nav_JsonBeautifier", resourceCulture);
             }
         }
         

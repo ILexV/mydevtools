@@ -855,4 +855,64 @@
   <data name="Aead_WarningsTitle" xml:space="preserve">
     <value>Advertencias</value>
   </data>
+  
+    <data name="Nav_JsonBeautifier" xml:space="preserve">
+    <value>JSON Beautifier</value>
+  </data>
+
+  <!-- JSON Beautifier -->
+  <data name="JsonBeautifier_Title" xml:space="preserve">
+    <value>Embellecedor JSON</value>
+  </data>
+  <data name="JsonBeautifier_Description" xml:space="preserve">
+    <value>Formatea y embellece cadenas JSON con indentación y opciones personalizables — todo en tu navegador</value>
+  </data>
+  <data name="JsonBeautifier_InputLabel" xml:space="preserve">
+    <value>JSON de entrada</value>
+  </data>
+  <data name="JsonBeautifier_InputPlaceholder" xml:space="preserve">
+    <value>Pega tu JSON aquí...</value>
+  </data>
+  <data name="JsonBeautifier_FormatButton" xml:space="preserve">
+    <value>Formatear</value>
+  </data>
+  <data name="JsonBeautifier_ClearButton" xml:space="preserve">
+    <value>Limpiar</value>
+  </data>
+  <data name="JsonBeautifier_CopyButton" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="JsonBeautifier_Copied" xml:space="preserve">
+    <value>¡Copiado!</value>
+  </data>
+  <data name="JsonBeautifier_ErrorInvalidJson" xml:space="preserve">
+    <value>JSON no válido. Por favor, revise su entrada.</value>
+  </data>
+  <data name="JsonBeautifier_IndentSizeLabel" xml:space="preserve">
+    <value>Tamaño de indentación</value>
+  </data>
+  <data name="JsonBeautifier_Indent2Spaces" xml:space="preserve">
+    <value>2 espacios</value>
+  </data>
+  <data name="JsonBeautifier_Indent4Spaces" xml:space="preserve">
+    <value>4 espacios</value>
+  </data>
+  <data name="JsonBeautifier_IndentTab" xml:space="preserve">
+    <value>Tabulación</value>
+  </data>
+  <data name="JsonBeautifier_SortKeys" xml:space="preserve">
+    <value>Ordenar claves</value>
+  </data>
+  <data name="JsonBeautifier_CompactMode" xml:space="preserve">
+    <value>Modo compacto</value>
+  </data>
+  <data name="JsonBeautifier_OutputLabel" xml:space="preserve">
+    <value>JSON formateado</value>
+  </data>
+  <data name="JsonBeautifier_LineNumbers" xml:space="preserve">
+    <value>Mostrar números de línea</value>
+  </data>
+  <data name="JsonBeautifier_Collapsible" xml:space="preserve">
+    <value>Bloques plegables</value>
+  </data>
 </root>

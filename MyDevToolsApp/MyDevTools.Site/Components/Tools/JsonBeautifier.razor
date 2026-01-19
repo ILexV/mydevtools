@@ -1,0 +1,82 @@
+@page "/{lang}/json-beautifier"
+@using MyDevTools.Site.Resources
+@using System.Text.Json
+@inject NavigationManager Navigation
+
+<MetaTags Title="@AppStrings.JsonBeautifier_Title" 
+          Description="@AppStrings.JsonBeautifier_Description" 
+          CurrentUrl="@Navigation.Uri" />
+
+<HreflangLinks ToolPath="json-beautifier" />
+
+<JsonLdTool ToolName="@AppStrings.JsonBeautifier_Title" 
+            Description="@AppStrings.JsonBeautifier_Description" 
+            CurrentUrl="@Navigation.Uri" />
+
+<ToolLayout Title="@AppStrings.JsonBeautifier_Title" Description="@AppStrings.JsonBeautifier_Description">
+    <div id="json-beautifier-root"
+         data-error-invalid-json="@AppStrings.JsonBeautifier_ErrorInvalidJson"
+         data-copied="@AppStrings.JsonBeautifier_Copied"
+         data-copy-button="@AppStrings.JsonBeautifier_CopyButton">
+        
+        <div class="tool-grid">
+            <div class="input-section">
+                <label for="input-json">@AppStrings.JsonBeautifier_InputLabel</label>
+                <textarea id="input-json" 
+                          placeholder="@AppStrings.JsonBeautifier_InputPlaceholder"
+                          rows="10"></textarea>
+
+                <div class="settings">
+                    <div class="setting-group">
+                        <label for="indent-select">@AppStrings.JsonBeautifier_IndentSizeLabel</label>
+                        <select id="indent-select">
+                            <option value="2">@AppStrings.JsonBeautifier_Indent2Spaces</option>
+                            <option value="4" selected>@AppStrings.JsonBeautifier_Indent4Spaces</option>
+                            <option value="\t">@AppStrings.JsonBeautifier_IndentTab</option>
+                        </select>
+                    </div>
+                    <div class="setting-group">
+                        <label>
+                            <input type="checkbox" id="sort-keys" /> @AppStrings.JsonBeautifier_SortKeys
+                        </label>
+                        <label>
+                            <input type="checkbox" id="compact-mode" /> @AppStrings.JsonBeautifier_CompactMode
+                        </label>
+                        <label>
+                            <input type="checkbox" id="line-numbers" checked /> @AppStrings.JsonBeautifier_LineNumbers
+                        </label>
+                        <label>
+                            <input type="checkbox" id="collapsible" checked /> @AppStrings.JsonBeautifier_Collapsible
+                        </label>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="format-btn" type="button">
+                        @AppStrings.JsonBeautifier_FormatButton
+                    </button>
+                    <button class="btn btn-secondary" id="clear-btn" type="button">
+                        @AppStrings.JsonBeautifier_ClearButton
+                    </button>
+                </div>
+            </div>
+
+            <div class="output-section">
+                <label>@AppStrings.JsonBeautifier_OutputLabel</label>
+                <div id="output-container" class="json-output-container">
+                    <pre id="output-json" class="json-output"></pre>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="copy-btn" type="button">
+                        @AppStrings.JsonBeautifier_CopyButton
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</ToolLayout>
+
+@code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

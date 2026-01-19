@@ -12,6 +12,187 @@
             return;
         }
 
+        if (!CodeMirror.modes.simplexml) {
+            CodeMirror.defineMode('simplexml', function () {
+                function startState() {
+                    return {
+                        inTag: false,
+                        inComment: false,
+                        inCdata: false,
+                        inProcessing: false
+                    };
+                }
+
+                function token(stream, state) {
+                    if (state.inComment) {
+                        if (stream.skipTo('-->')) {
+                            stream.match('-->');
+                            state.inComment = false;
+                        } else {
+                            stream.skipToEnd();
+                        }
+                        return 'comment';
+                    }
+
+                    if (state.inCdata) {
+                        if (stream.skipTo(']]>')) {
+                            stream.match(']]>');
+                            state.inCdata = false;
+                        } else {
+                            stream.skipToEnd();
+                        }
+                        return 'atom';
+                    }
+
+                    if (state.inProcessing) {
+                        if (stream.skipTo('?>')) {
+                            stream.match('?>');
+                            state.inProcessing = false;
+                        } else {
+                            stream.skipToEnd();
+                        }
+                        return 'meta';
+                    }
+
+                    if (state.inTag) {
+                        if (stream.match(/^\s*\/?>/)) {
+                            state.inTag = false;
+                            return 'tag';
+                        }
+
+                        if (stream.match(/^\s+[\w:-]+/)) {
+                            return 'attribute';
+                        }
+
+                        if (stream.match(/^\s*=\s*/)) {
+                            return null;
+                        }
+
+                        if (stream.match(/^\s*"(?:[^"\\]|\\.)*"/)) {
+                            return 'string';
+                        }
+
+                        if (stream.match(/^\s*'(?:[^'\\]|\\.)*'/)) {
+                            return 'string';
+                        }
+
+                        stream.next();
+                        return null;
+                    }
+
+                    if (stream.match('<!--')) {
+                        state.inComment = true;
+                        return 'comment';
+                    }
+
+                    if (stream.match('<![CDATA[')) {
+                        state.inCdata = true;
+                        return 'atom';
+                    }
+
+                    if (stream.match('<?')) {
+                        state.inProcessing = true;
+                        return 'meta';
+                    }
+
+                    if (stream.match('</')) {
+                        state.inTag = true;
+                        return 'tag';
+                    }
+
+                    if (stream.match('<')) {
+                        state.inTag = true;
+                        return 'tag';
+                    }
+
+                    stream.eatWhile(/[^<]/);
+                    return null;
+                }
+
+                return {
+                    startState: startState,
+                    token: token
+                };
+            });
+
+            CodeMirror.defineMIME('application/xml', 'simplexml');
+
+            const openTagRegex = /<([A-Za-z_][\w:.-]*)(?=\s|>|\/)/g;
+            const closeTagRegex = /<\/([A-Za-z_][\w:.-]*)\s*>/g;
+
+            function findOpeningTag(line) {
+                let match;
+                while ((match = openTagRegex.exec(line)) !== null) {
+                    const isClosing = line.slice(match.index - 1, match.index + 2) === '</';
+                    const isSelfClosing = /\/\s*>/.test(line.slice(match.index));
+                    if (!isClosing && !isSelfClosing) {
+                        return { name: match[1], ch: match.index };
+                    }
+                }
+                return null;
+            }
+
+            function countTagOccurrences(line, tagName) {
+                let openCount = 0;
+                let closeCount = 0;
+
+                const openRegex = new RegExp(`<${tagName}(?=\\s|>|\\/)`, 'g');
+                const closeRegex = new RegExp(`</${tagName}\\s*>`, 'g');
+                const selfClosingRegex = new RegExp(`<${tagName}(?:\\s[^>]*)?\\s*/>`, 'g');
+
+                openCount += (line.match(openRegex) || []).length;
+                closeCount += (line.match(closeRegex) || []).length;
+                const selfClosingCount = (line.match(selfClosingRegex) || []).length;
+                openCount -= selfClosingCount;
+
+                return { openCount, closeCount };
+            }
+
+            function xmlFoldHelper(cm, start) {
+                const startLine = start.line;
+                const lineText = cm.getLine(startLine);
+                if (!lineText) return null;
+
+                openTagRegex.lastIndex = 0;
+                const opening = findOpeningTag(lineText);
+                if (!opening) return null;
+
+                const tagName = opening.name;
+                let depth = 0;
+                let foundStart = false;
+
+                for (let line = startLine; line < cm.lineCount(); line += 1) {
+                    const text = cm.getLine(line);
+                    if (!text) continue;
+
+                    const counts = countTagOccurrences(text, tagName);
+                    if (line === startLine) {
+                        depth += 1;
+                        foundStart = true;
+                    } else if (foundStart) {
+                        depth += counts.openCount;
+                    }
+
+                    depth -= counts.closeCount;
+
+                    if (foundStart && depth === 0) {
+                        closeTagRegex.lastIndex = 0;
+                        const closeMatch = closeTagRegex.exec(text);
+                        const closeCh = closeMatch ? closeMatch.index : text.length;
+                        return {
+                            from: CodeMirror.Pos(startLine, opening.ch),
+                            to: CodeMirror.Pos(line, closeCh)
+                        };
+                    }
+                }
+
+                return null;
+            }
+
+            CodeMirror.registerHelper('fold', 'simplexml', xmlFoldHelper);
+            CodeMirror.fold.simplexml = xmlFoldHelper;
+        }
+
         initializedRoots.add(root);
 
         const editorElement = root.querySelector('#xml-editor');
@@ -32,7 +213,7 @@
         }
 
         const editor = CodeMirror(editorElement, {
-            mode: 'text/plain',
+            mode: { name: 'simplexml' },
             lineNumbers: true,
             lineWrapping: true,
             autoCloseBrackets: true,
@@ -43,6 +224,9 @@
             placeholder: placeholder,
             viewportMargin: Infinity,
             foldGutter: true,
+            foldOptions: {
+                rangeFinder: CodeMirror.fold.simplexml
+            },
             gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
         });
 

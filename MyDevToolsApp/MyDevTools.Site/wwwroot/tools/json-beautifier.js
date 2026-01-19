@@ -94,7 +94,7 @@
                     return value;
                 }) : null;
                 
-                const space = compactModeCheckbox?.checked ? 0 : (indentSelect?.value === '\\t' ? '\t' : parseInt(indentSelect?.value || '4'));
+                const space = compactModeCheckbox?.checked ? 0 : (indentSelect?.value === 'tab' ? '\t' : parseInt(indentSelect?.value || '4'));
                 const formatted = JSON.stringify(parsed, replacer, space);
                 
                 // Update editor content
@@ -102,7 +102,7 @@
                 
                 // Update indent settings in CodeMirror
                 if (!compactModeCheckbox?.checked) {
-                    const indentValue = indentSelect?.value === '\\t' ? '\t' : parseInt(indentSelect?.value || '4');
+                    const indentValue = indentSelect?.value === 'tab' ? '\t' : parseInt(indentSelect?.value || '4');
                     if (indentValue === '\t') {
                         editor.setOption('indentWithTabs', true);
                     } else {

@@ -2104,6 +2104,15 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to XML Beautifier.
+        /// </summary>
+        public static string Nav_XmlBeautifier {
+            get {
+                return ResourceManager.GetString("Nav_XmlBeautifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Algorithm.
         /// </summary>
         public static string OpenSsh_AlgorithmLabel {
@@ -2658,6 +2667,132 @@ namespace MyDevTools.Site.Resources {
         public static string X509_WarningsTitle {
             get {
                 return ResourceManager.GetString("X509_WarningsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear.
+        /// </summary>
+        public static string XmlBeautifier_ClearButton {
+            get {
+                return ResourceManager.GetString("XmlBeautifier_ClearButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Compact mode.
+        /// </summary>
+        public static string XmlBeautifier_CompactMode {
+            get {
+                return ResourceManager.GetString("XmlBeautifier_CompactMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copied!.
+        /// </summary>
+        public static string XmlBeautifier_Copied {
+            get {
+                return ResourceManager.GetString("XmlBeautifier_Copied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy.
+        /// </summary>
+        public static string XmlBeautifier_CopyButton {
+            get {
+                return ResourceManager.GetString("XmlBeautifier_CopyButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Format and beautify XML with customizable indentation — all in your browser.
+        /// </summary>
+        public static string XmlBeautifier_Description {
+            get {
+                return ResourceManager.GetString("XmlBeautifier_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid XML. Please check your input..
+        /// </summary>
+        public static string XmlBeautifier_ErrorInvalidXml {
+            get {
+                return ResourceManager.GetString("XmlBeautifier_ErrorInvalidXml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Format.
+        /// </summary>
+        public static string XmlBeautifier_FormatButton {
+            get {
+                return ResourceManager.GetString("XmlBeautifier_FormatButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 2 spaces.
+        /// </summary>
+        public static string XmlBeautifier_Indent2Spaces {
+            get {
+                return ResourceManager.GetString("XmlBeautifier_Indent2Spaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 4 spaces.
+        /// </summary>
+        public static string XmlBeautifier_Indent4Spaces {
+            get {
+                return ResourceManager.GetString("XmlBeautifier_Indent4Spaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent size.
+        /// </summary>
+        public static string XmlBeautifier_IndentSizeLabel {
+            get {
+                return ResourceManager.GetString("XmlBeautifier_IndentSizeLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tab.
+        /// </summary>
+        public static string XmlBeautifier_IndentTab {
+            get {
+                return ResourceManager.GetString("XmlBeautifier_IndentTab", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Input XML.
+        /// </summary>
+        public static string XmlBeautifier_InputLabel {
+            get {
+                return ResourceManager.GetString("XmlBeautifier_InputLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Paste your XML here....
+        /// </summary>
+        public static string XmlBeautifier_InputPlaceholder {
+            get {
+                return ResourceManager.GetString("XmlBeautifier_InputPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to XML Beautifier.
+        /// </summary>
+        public static string XmlBeautifier_Title {
+            get {
+                return ResourceManager.GetString("XmlBeautifier_Title", resourceCulture);
             }
         }
     }

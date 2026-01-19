@@ -904,7 +904,7 @@
     <value>Ordenar claves</value>
   </data>
   <data name="JsonBeautifier_CompactMode" xml:space="preserve">
-    <value>Modo compacto</value>
+    <value>Modo compacto (minificar)</value>
   </data>
   <data name="JsonBeautifier_OutputLabel" xml:space="preserve">
     <value>JSON formateado</value>
@@ -914,5 +914,52 @@
   </data>
   <data name="JsonBeautifier_Collapsible" xml:space="preserve">
     <value>Bloques plegables</value>
+  </data>
+  <data name="Nav_XmlBeautifier" xml:space="preserve">
+    <value>XML Beautifier</value>
+  </data>
+
+  <!-- XML Beautifier -->
+  <data name="XmlBeautifier_Title" xml:space="preserve">
+    <value>Embellecedor XML</value>
+  </data>
+  <data name="XmlBeautifier_Description" xml:space="preserve">
+    <value>Formatea y embellece XML con indentación personalizable — todo en tu navegador</value>
+  </data>
+  <data name="XmlBeautifier_InputLabel" xml:space="preserve">
+    <value>XML de entrada</value>
+  </data>
+  <data name="XmlBeautifier_InputPlaceholder" xml:space="preserve">
+    <value>Pega tu XML aquí...</value>
+  </data>
+  <data name="XmlBeautifier_FormatButton" xml:space="preserve">
+    <value>Formatear</value>
+  </data>
+  <data name="XmlBeautifier_ClearButton" xml:space="preserve">
+    <value>Limpiar</value>
+  </data>
+  <data name="XmlBeautifier_CopyButton" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="XmlBeautifier_Copied" xml:space="preserve">
+    <value>¡Copiado!</value>
+  </data>
+  <data name="XmlBeautifier_ErrorInvalidXml" xml:space="preserve">
+    <value>XML no válido. Por favor, revise su entrada.</value>
+  </data>
+  <data name="XmlBeautifier_IndentSizeLabel" xml:space="preserve">
+    <value>Tamaño de indentación</value>
+  </data>
+  <data name="XmlBeautifier_Indent2Spaces" xml:space="preserve">
+    <value>2 espacios</value>
+  </data>
+  <data name="XmlBeautifier_Indent4Spaces" xml:space="preserve">
+    <value>4 espacios</value>
+  </data>
+  <data name="XmlBeautifier_IndentTab" xml:space="preserve">
+    <value>Tabulación</value>
+  </data>
+  <data name="XmlBeautifier_CompactMode" xml:space="preserve">
+    <value>Modo compacto (minificar)</value>
   </data>
 </root>

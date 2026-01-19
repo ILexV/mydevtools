@@ -903,7 +903,7 @@
     <value>Сортировать ключи</value>
   </data>
   <data name="JsonBeautifier_CompactMode" xml:space="preserve">
-    <value>Компактный режим</value>
+    <value>Компактный режим (минификация)</value>
   </data>
   <data name="JsonBeautifier_OutputLabel" xml:space="preserve">
     <value>Отформатированный JSON</value>
@@ -913,5 +913,52 @@
   </data>
   <data name="JsonBeautifier_Collapsible" xml:space="preserve">
     <value>Сворачиваемые блоки</value>
+  </data>
+  <data name="Nav_XmlBeautifier" xml:space="preserve">
+    <value>XML Beautifier</value>
+  </data>
+
+  <!-- XML Beautifier -->
+  <data name="XmlBeautifier_Title" xml:space="preserve">
+    <value>XML Beautifier</value>
+  </data>
+  <data name="XmlBeautifier_Description" xml:space="preserve">
+    <value>Форматирование и украшение XML с настраиваемыми отступами — всё в вашем браузере</value>
+  </data>
+  <data name="XmlBeautifier_InputLabel" xml:space="preserve">
+    <value>Входной XML</value>
+  </data>
+  <data name="XmlBeautifier_InputPlaceholder" xml:space="preserve">
+    <value>Вставьте ваш XML здесь...</value>
+  </data>
+  <data name="XmlBeautifier_FormatButton" xml:space="preserve">
+    <value>Форматировать</value>
+  </data>
+  <data name="XmlBeautifier_ClearButton" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="XmlBeautifier_CopyButton" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="XmlBeautifier_Copied" xml:space="preserve">
+    <value>Скопировано!</value>
+  </data>
+  <data name="XmlBeautifier_ErrorInvalidXml" xml:space="preserve">
+    <value>Неверный XML. Проверьте введённые данные.</value>
+  </data>
+  <data name="XmlBeautifier_IndentSizeLabel" xml:space="preserve">
+    <value>Размер отступа</value>
+  </data>
+  <data name="XmlBeautifier_Indent2Spaces" xml:space="preserve">
+    <value>2 пробела</value>
+  </data>
+  <data name="XmlBeautifier_Indent4Spaces" xml:space="preserve">
+    <value>4 пробела</value>
+  </data>
+  <data name="XmlBeautifier_IndentTab" xml:space="preserve">
+    <value>Табуляция</value>
+  </data>
+  <data name="XmlBeautifier_CompactMode" xml:space="preserve">
+    <value>Компактный режим (минификация)</value>
   </data>
 </root>

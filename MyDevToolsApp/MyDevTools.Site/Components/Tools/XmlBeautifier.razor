@@ -1,0 +1,61 @@
+@page "/{lang}/xml-beautifier"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<MetaTags Title="@AppStrings.XmlBeautifier_Title" 
+          Description="@AppStrings.XmlBeautifier_Description" 
+          CurrentUrl="@Navigation.Uri" />
+
+<HreflangLinks ToolPath="xml-beautifier" />
+
+<JsonLdTool ToolName="@AppStrings.XmlBeautifier_Title" 
+            Description="@AppStrings.XmlBeautifier_Description" 
+            CurrentUrl="@Navigation.Uri" />
+
+<ToolLayout Title="@AppStrings.XmlBeautifier_Title" Description="@AppStrings.XmlBeautifier_Description">
+    <div id="xml-beautifier-root"
+         data-error-invalid-xml="@AppStrings.XmlBeautifier_ErrorInvalidXml"
+         data-copied="@AppStrings.XmlBeautifier_Copied"
+         data-copy-button="@AppStrings.XmlBeautifier_CopyButton"
+         data-input-placeholder="@AppStrings.XmlBeautifier_InputPlaceholder">
+        
+        <div class="editor-container">
+            <div class="settings-bar">
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <label for="xml-indent-select">@AppStrings.XmlBeautifier_IndentSizeLabel</label>
+                        <select id="xml-indent-select">
+                            <option value="2">@AppStrings.XmlBeautifier_Indent2Spaces</option>
+                            <option value="4" selected>@AppStrings.XmlBeautifier_Indent4Spaces</option>
+                            <option value="tab">@AppStrings.XmlBeautifier_IndentTab</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="xml-compact-mode" /> @AppStrings.XmlBeautifier_CompactMode
+                        </label>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="xml-format-btn" type="button">
+                        @AppStrings.XmlBeautifier_FormatButton
+                    </button>
+                    <button class="btn btn-secondary" id="xml-copy-btn" type="button">
+                        @AppStrings.XmlBeautifier_CopyButton
+                    </button>
+                    <button class="btn btn-secondary" id="xml-clear-btn" type="button">
+                        @AppStrings.XmlBeautifier_ClearButton
+                    </button>
+                </div>
+            </div>
+
+            <div id="xml-editor"></div>
+        </div>
+    </div>
+</ToolLayout>
+
+@code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

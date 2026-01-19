@@ -201,6 +201,9 @@
         const copyBtn = root.querySelector('#xml-copy-btn');
         const indentSelect = root.querySelector('#xml-indent-select');
         const compactModeCheckbox = root.querySelector('#xml-compact-mode');
+        const openFileBtn = root.querySelector('#xml-open-file-btn');
+        const saveFileBtn = root.querySelector('#xml-save-file-btn');
+        const fileInput = root.querySelector('#xml-file-input');
 
         const errorInvalidXml = root.getAttribute('data-error-invalid-xml') || 'Invalid XML. Please check your input.';
         const copiedText = root.getAttribute('data-copied') || 'Copied!';
@@ -502,9 +505,38 @@
             }, 3000);
         }
 
+        function openFile() {
+            fileInput.click();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    editor.setValue(e.target.result);
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function saveFile() {
+            const text = editor.getValue();
+            const blob = new Blob([text], { type: 'application/xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'formatted.xml';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
         formatBtn.addEventListener('click', formatXml);
         clearBtn?.addEventListener('click', clearAll);
         copyBtn?.addEventListener('click', copyToClipboard);
+        openFileBtn?.addEventListener('click', openFile);
+        fileInput?.addEventListener('change', handleFileSelect);
+        saveFileBtn?.addEventListener('click', saveFile);
 
         indentSelect?.addEventListener('change', () => {
             localStorage.setItem('xml-beautifier-indent', indentSelect.value);
@@ -526,6 +558,31 @@
             'Cmd-Enter': formatXml,
             'Ctrl-K': clearAll,
             'Cmd-K': clearAll
+        });
+
+        // Drag and drop
+        editorElement.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            editorElement.classList.add('drag-over');
+        });
+        editorElement.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            editorElement.classList.remove('drag-over');
+        });
+        editorElement.addEventListener('drop', (e) => {
+            e.preventDefault();
+            editorElement.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type === 'application/xml' || file.name.endsWith('.xml')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        editor.setValue(e.target.result);
+                    };
+                    reader.readAsText(file);
+                }
+            }
         });
     }
 

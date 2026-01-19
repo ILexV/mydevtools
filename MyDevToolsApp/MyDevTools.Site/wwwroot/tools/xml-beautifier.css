@@ -25,6 +25,11 @@
     align-items: center;
 }
 
+.file-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
 .setting-item {
     display: flex;
     align-items: center;
@@ -225,4 +230,10 @@
     background-color: #1f4b54;
     color: #d1ecf1;
     border-color: #2d6b7a;
+}
+
+/* Drag and drop styles */
+#xml-editor.drag-over {
+    border-color: #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
 }

@@ -22,6 +22,9 @@
         const indentSelect = root.querySelector('#indent-select');
         const sortKeysCheckbox = root.querySelector('#sort-keys');
         const compactModeCheckbox = root.querySelector('#compact-mode');
+        const openFileBtn = root.querySelector('#open-file-btn');
+        const saveFileBtn = root.querySelector('#save-file-btn');
+        const fileInput = root.querySelector('#file-input');
 
         const errorInvalidJson = root.getAttribute('data-error-invalid-json') || 'Invalid JSON. Please check your input.';
         const copiedText = root.getAttribute('data-copied') || 'Copied!';
@@ -184,10 +187,39 @@
             }, 3000);
         }
 
+        function openFile() {
+            fileInput.click();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    editor.setValue(e.target.result);
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function saveFile() {
+            const text = editor.getValue();
+            const blob = new Blob([text], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'formatted.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
         // Event listeners
         formatBtn.addEventListener('click', formatJSON);
         clearBtn?.addEventListener('click', clearAll);
         copyBtn?.addEventListener('click', copyToClipboard);
+        openFileBtn?.addEventListener('click', openFile);
+        fileInput?.addEventListener('change', handleFileSelect);
+        saveFileBtn?.addEventListener('click', saveFile);
         
         // Auto-format on settings change (optional)
         indentSelect?.addEventListener('change', () => {
@@ -218,6 +250,31 @@
             'Cmd-Enter': formatJSON,
             'Ctrl-K': clearAll,
             'Cmd-K': clearAll
+        });
+
+        // Drag and drop
+        editorElement.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            editorElement.classList.add('drag-over');
+        });
+        editorElement.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            editorElement.classList.remove('drag-over');
+        });
+        editorElement.addEventListener('drop', (e) => {
+            e.preventDefault();
+            editorElement.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type === 'application/json' || file.name.endsWith('.json')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        editor.setValue(e.target.result);
+                    };
+                    reader.readAsText(file);
+                }
+            }
         });
     }
 

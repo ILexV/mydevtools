@@ -22,6 +22,14 @@
         <div class="editor-container">
             <div class="settings-bar">
                 <div class="settings-group">
+                    <div class="file-buttons">
+                        <button class="btn btn-secondary" id="xml-open-file-btn" type="button" title="Open XML file">
+                            📁
+                        </button>
+                        <button class="btn btn-secondary" id="xml-save-file-btn" type="button" title="Save XML file">
+                            💾
+                        </button>
+                    </div>
                     <div class="setting-item">
                         <label for="xml-indent-select">@AppStrings.XmlBeautifier_IndentSizeLabel</label>
                         <select id="xml-indent-select">
@@ -38,19 +46,20 @@
                 </div>
 
                 <div class="action-buttons">
-                    <button class="btn btn-primary" id="xml-format-btn" type="button">
-                        @AppStrings.XmlBeautifier_FormatButton
+                    <button class="btn btn-primary" id="xml-format-btn" type="button" title="@AppStrings.XmlBeautifier_FormatButton">
+                        ⚙️
                     </button>
-                    <button class="btn btn-secondary" id="xml-copy-btn" type="button">
-                        @AppStrings.XmlBeautifier_CopyButton
+                    <button class="btn btn-secondary" id="xml-copy-btn" type="button" title="@AppStrings.XmlBeautifier_CopyButton">
+                        📋
                     </button>
-                    <button class="btn btn-secondary" id="xml-clear-btn" type="button">
-                        @AppStrings.XmlBeautifier_ClearButton
+                    <button class="btn btn-secondary" id="xml-clear-btn" type="button" title="@AppStrings.XmlBeautifier_ClearButton">
+                        🗑️
                     </button>
                 </div>
             </div>
 
             <div id="xml-editor"></div>
+            <input type="file" id="xml-file-input" accept=".xml" style="display: none;" />
         </div>
     </div>
 </ToolLayout>

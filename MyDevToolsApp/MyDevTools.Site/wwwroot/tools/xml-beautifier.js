@@ -232,6 +232,27 @@
 
         editor.setSize(null, '600px');
 
+        // Load saved XML from localStorage
+        const savedXml = localStorage.getItem('xml-beautifier-input');
+        if (savedXml) {
+            editor.setValue(savedXml);
+        }
+
+        // Load saved settings
+        const savedIndent = localStorage.getItem('xml-beautifier-indent');
+        if (savedIndent && indentSelect) {
+            indentSelect.value = savedIndent;
+        }
+        const savedCompactMode = localStorage.getItem('xml-beautifier-compact-mode');
+        if (savedCompactMode && compactModeCheckbox) {
+            compactModeCheckbox.checked = savedCompactMode === 'true';
+        }
+
+        // Save to localStorage on change
+        editor.on('change', () => {
+            localStorage.setItem('xml-beautifier-input', editor.getValue());
+        });
+
         function updateEditorTheme() {
             editor.refresh();
         }
@@ -486,12 +507,14 @@
         copyBtn?.addEventListener('click', copyToClipboard);
 
         indentSelect?.addEventListener('change', () => {
+            localStorage.setItem('xml-beautifier-indent', indentSelect.value);
             const value = editor.getValue().trim();
             if (value) {
                 formatXml();
             }
         });
         compactModeCheckbox?.addEventListener('change', () => {
+            localStorage.setItem('xml-beautifier-compact-mode', compactModeCheckbox.checked);
             const value = editor.getValue().trim();
             if (value) {
                 formatXml();

@@ -52,6 +52,31 @@
         // Set initial height
         editor.setSize(null, '600px');
 
+        // Load saved JSON from localStorage
+        const savedJson = localStorage.getItem('json-beautifier-input');
+        if (savedJson) {
+            editor.setValue(savedJson);
+        }
+
+        // Load saved settings
+        const savedIndent = localStorage.getItem('json-beautifier-indent');
+        if (savedIndent && indentSelect) {
+            indentSelect.value = savedIndent;
+        }
+        const savedSortKeys = localStorage.getItem('json-beautifier-sort-keys');
+        if (savedSortKeys && sortKeysCheckbox) {
+            sortKeysCheckbox.checked = savedSortKeys === 'true';
+        }
+        const savedCompactMode = localStorage.getItem('json-beautifier-compact-mode');
+        if (savedCompactMode && compactModeCheckbox) {
+            compactModeCheckbox.checked = savedCompactMode === 'true';
+        }
+
+        // Save to localStorage on change
+        editor.on('change', () => {
+            localStorage.setItem('json-beautifier-input', editor.getValue());
+        });
+
         // Sync theme with site theme
         function updateEditorTheme() {
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -166,18 +191,21 @@
         
         // Auto-format on settings change (optional)
         indentSelect?.addEventListener('change', () => {
+            localStorage.setItem('json-beautifier-indent', indentSelect.value);
             const value = editor.getValue().trim();
             if (value) {
                 formatJSON();
             }
         });
         sortKeysCheckbox?.addEventListener('change', () => {
+            localStorage.setItem('json-beautifier-sort-keys', sortKeysCheckbox.checked);
             const value = editor.getValue().trim();
             if (value) {
                 formatJSON();
             }
         });
         compactModeCheckbox?.addEventListener('change', () => {
+            localStorage.setItem('json-beautifier-compact-mode', compactModeCheckbox.checked);
             const value = editor.getValue().trim();
             if (value) {
                 formatJSON();

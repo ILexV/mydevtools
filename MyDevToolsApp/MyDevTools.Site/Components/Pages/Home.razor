@@ -21,51 +21,7 @@
             </div>
         </div>
         <div class="hero-image">
-            <svg class="hero-illustration" viewBox="0 0 500 350" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- Browser Window -->
-                <rect x="50" y="40" width="400" height="260" rx="12" fill="var(--bg-secondary)" stroke="var(--border-color)" stroke-width="2"/>
-                <path d="M50 80L450 80" stroke="var(--border-color)" stroke-width="2"/>
-                <circle cx="80" cy="60" r="4" fill="#FF5F56"/>
-                <circle cx="100" cy="60" r="4" fill="#FFBD2E"/>
-                <circle cx="120" cy="60" r="4" fill="#27C93F"/>
-                
-                <!-- Shield Glow -->
-                <defs>
-                    <radialGradient id="shieldGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(250 170) rotate(90) scale(100)">
-                        <stop stop-color="var(--accent-color)" stop-opacity="0.4"/>
-                        <stop offset="1" stop-color="var(--accent-color)" stop-opacity="0"/>
-                    </radialGradient>
-                    <linearGradient id="shieldFill" x1="250" y1="120" x2="250" y2="240" gradientUnits="userSpaceOnUse">
-                        <stop stop-color="var(--accent-color)"/>
-                        <stop offset="1" stop-color="var(--accent-hover)"/>
-                    </linearGradient>
-                </defs>
-                <circle cx="250" cy="170" r="80" fill="url(#shieldGlow)"/>
-                
-                <!-- Shield Icon -->
-                <path d="M250 120C250 120 290 130 290 170C290 205 250 240 250 240C250 240 210 205 210 170C210 130 250 120 250 120Z" fill="url(#shieldFill)" stroke="white" stroke-width="2" stroke-linejoin="round"/>
-                <path d="M250 120V240" stroke="white" stroke-width="2" stroke-opacity="0.3"/>
-                
-                <!-- Data Flow Lines -->
-                <g stroke="var(--accent-color)" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 6" opacity="0.6">
-                    <path d="M100 170H190">
-                        <animate attributeName="stroke-dashoffset" from="10" to="0" dur="1s" repeatCount="indefinite"/>
-                    </path>
-                    <path d="M310 170H400">
-                        <animate attributeName="stroke-dashoffset" from="0" to="-10" dur="1s" repeatCount="indefinite"/>
-                    </path>
-                    <path d="M120 200H180">
-                         <animate attributeName="stroke-dashoffset" from="10" to="0" dur="1.5s" repeatCount="indefinite"/>
-                    </path>
-                     <path d="M320 140H380">
-                         <animate attributeName="stroke-dashoffset" from="0" to="-10" dur="1.2s" repeatCount="indefinite"/>
-                    </path>
-                </g>
-                
-                <!-- Particles -->
-                <circle cx="150" cy="150" r="2" fill="var(--accent-color)" opacity="0.5"/>
-                <circle cx="350" cy="190" r="2" fill="var(--accent-color)" opacity="0.5"/>
-            </svg>
+            <img src="/hero_logo.png" alt="@AppStrings.AppName Hero" class="hero-illustration" />
         </div>
     </div>
 

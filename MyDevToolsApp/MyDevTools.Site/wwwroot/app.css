@@ -82,6 +82,26 @@ html, body {
     gap: 2rem;
 }
 
+@media (max-width: 640px) {
+    .header-content {
+        padding: 0 1rem;
+        gap: 0.75rem;
+    }
+    
+    .logo h1 {
+        font-size: 1.1rem;
+    }
+    
+    .main-nav {
+        gap: 1rem;
+        margin-right: 0.5rem;
+    }
+    
+    .header-actions {
+        gap: 0.5rem;
+    }
+}
+
 .logo a {
     text-decoration: none;
     color: var(--text-primary);
@@ -278,9 +298,15 @@ html, body {
 
 .hero-illustration {
     width: 100%;
-    max-width: 500px;
+    max-width: 380px;
     height: auto;
     filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.1));
+}
+
+@media (max-width: 640px) {
+    .hero-illustration {
+        max-width: 240px;
+    }
 }
 
 [data-theme="dark"] .hero-illustration {

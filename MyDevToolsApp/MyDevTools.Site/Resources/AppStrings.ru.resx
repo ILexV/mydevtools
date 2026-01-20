@@ -1020,4 +1020,49 @@
   <data name="PasswordGenerator_ClearHistory" xml:space="preserve">
     <value>Очистить историю</value>
   </data>
+  <data name="TextCaseConverter_AlternatingCase" xml:space="preserve">
+    <value>чЕрЕдУюЩиЙсЯ рЕгИсТр</value>
+  </data>
+  <data name="TextCaseConverter_CamelCase" xml:space="preserve">
+    <value>Camel Case</value>
+  </data>
+  <data name="TextCaseConverter_ClearButton" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="TextCaseConverter_Copied" xml:space="preserve">
+    <value>Скопировано!</value>
+  </data>
+  <data name="TextCaseConverter_CopyButton" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="TextCaseConverter_Description" xml:space="preserve">
+    <value>Преобразование текста в различные регистры: верхний, нижний, заглавный, camel, snake и другие.</value>
+  </data>
+  <data name="TextCaseConverter_InputPlaceholder" xml:space="preserve">
+    <value>Введите или вставьте текст здесь...</value>
+  </data>
+  <data name="TextCaseConverter_InverseCase" xml:space="preserve">
+    <value>Инвертировать регистр</value>
+  </data>
+  <data name="TextCaseConverter_KebabCase" xml:space="preserve">
+    <value>Kebab Case</value>
+  </data>
+  <data name="TextCaseConverter_LowerCase" xml:space="preserve">
+    <value>нижний регистр</value>
+  </data>
+  <data name="TextCaseConverter_SentenceCase" xml:space="preserve">
+    <value>Как в предложениях</value>
+  </data>
+  <data name="TextCaseConverter_SnakeCase" xml:space="preserve">
+    <value>Snake Case</value>
+  </data>
+  <data name="TextCaseConverter_Title" xml:space="preserve">
+    <value>Конвертер регистра</value>
+  </data>
+  <data name="TextCaseConverter_TitleCase" xml:space="preserve">
+    <value>Заглавный Регистр</value>
+  </data>
+  <data name="TextCaseConverter_UpperCase" xml:space="preserve">
+    <value>ВЕРХНИЙ РЕГИСТР</value>
+  </data>
 </root>

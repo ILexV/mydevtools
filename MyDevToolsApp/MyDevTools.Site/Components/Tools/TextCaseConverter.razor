@@ -1,0 +1,55 @@
+@page "/{lang}/text-case-converter"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<MetaTags Title="@AppStrings.TextCaseConverter_Title" 
+          Description="@AppStrings.TextCaseConverter_Description" 
+          CurrentUrl="@Navigation.Uri" />
+
+<HreflangLinks ToolPath="text-case-converter" />
+
+<JsonLdTool ToolName="@AppStrings.TextCaseConverter_Title" 
+            Description="@AppStrings.TextCaseConverter_Description" 
+            CurrentUrl="@Navigation.Uri" />
+
+<ToolLayout Title="@AppStrings.TextCaseConverter_Title" Description="@AppStrings.TextCaseConverter_Description">
+    <div id="text-case-converter-root"
+         data-copied="@AppStrings.TextCaseConverter_Copied"
+         data-input-placeholder="@AppStrings.TextCaseConverter_InputPlaceholder">
+        
+        <div class="tcc-container">
+            <div class="tcc-actions">
+                <button type="button" class="btn btn-secondary" data-case-type="sentence">@AppStrings.TextCaseConverter_SentenceCase</button>
+                <button type="button" class="btn btn-secondary" data-case-type="lower">@AppStrings.TextCaseConverter_LowerCase</button>
+                <button type="button" class="btn btn-secondary" data-case-type="upper">@AppStrings.TextCaseConverter_UpperCase</button>
+                <button type="button" class="btn btn-secondary" data-case-type="title">@AppStrings.TextCaseConverter_TitleCase</button>
+                <button type="button" class="btn btn-secondary" data-case-type="alternating">@AppStrings.TextCaseConverter_AlternatingCase</button>
+                <button type="button" class="btn btn-secondary" data-case-type="inverse">@AppStrings.TextCaseConverter_InverseCase</button>
+            </div>
+            
+            <div class="tcc-divider"></div>
+
+            <div class="tcc-actions">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-case-type="camel">@AppStrings.TextCaseConverter_CamelCase</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-case-type="snake">@AppStrings.TextCaseConverter_SnakeCase</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-case-type="kebab">@AppStrings.TextCaseConverter_KebabCase</button>
+                
+                <div class="ms-auto d-flex gap-2">
+                    <button type="button" class="btn btn-primary" id="tcc-copy-btn" title="@AppStrings.TextCaseConverter_CopyButton">
+                        📋 @AppStrings.TextCaseConverter_CopyButton
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="tcc-clear-btn" title="@AppStrings.TextCaseConverter_ClearButton">
+                        🗑️
+                    </button>
+                </div>
+            </div>
+
+            <textarea id="tcc-input-text" rows="12" placeholder="@AppStrings.TextCaseConverter_InputPlaceholder"></textarea>
+        </div>
+    </div>
+</ToolLayout>
+
+@code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

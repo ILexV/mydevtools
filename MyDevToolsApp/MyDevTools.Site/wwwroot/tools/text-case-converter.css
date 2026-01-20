@@ -1,0 +1,70 @@
+.tcc-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    padding: 1.5rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-card);
+}
+
+.tcc-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.tcc-actions .btn {
+    white-space: nowrap;
+}
+
+.tcc-divider {
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 0.5rem 0;
+    width: 100%;
+}
+
+#tcc-input-text {
+    width: 100%;
+    min-height: 300px;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 1rem;
+    line-height: 1.5;
+    resize: vertical;
+    transition: border-color 0.2s;
+}
+
+#tcc-input-text:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+@media (max-width: 640px) {
+    .tcc-container {
+        padding: 1rem;
+    }
+    
+    .tcc-actions {
+        gap: 0.5rem;
+    }
+    
+    .tcc-actions .btn {
+        flex: 1 1 auto;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    #tcc-input-text {
+        min-height: 200px;
+    }
+}

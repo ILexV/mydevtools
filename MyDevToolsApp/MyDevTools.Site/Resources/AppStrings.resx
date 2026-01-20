@@ -1079,4 +1079,49 @@
   <data name="PasswordGenerator_ClearHistory" xml:space="preserve">
     <value>Clear History</value>
   </data>
+  <data name="TextCaseConverter_AlternatingCase" xml:space="preserve">
+    <value>Alternating Case</value>
+  </data>
+  <data name="TextCaseConverter_CamelCase" xml:space="preserve">
+    <value>Camel Case</value>
+  </data>
+  <data name="TextCaseConverter_ClearButton" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="TextCaseConverter_Copied" xml:space="preserve">
+    <value>Copied!</value>
+  </data>
+  <data name="TextCaseConverter_CopyButton" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="TextCaseConverter_Description" xml:space="preserve">
+    <value>Convert text between different letter cases: upper, lower, title, camel, snake, and more.</value>
+  </data>
+  <data name="TextCaseConverter_InputPlaceholder" xml:space="preserve">
+    <value>Type or paste your text here...</value>
+  </data>
+  <data name="TextCaseConverter_InverseCase" xml:space="preserve">
+    <value>Inverse Case</value>
+  </data>
+  <data name="TextCaseConverter_KebabCase" xml:space="preserve">
+    <value>Kebab Case</value>
+  </data>
+  <data name="TextCaseConverter_LowerCase" xml:space="preserve">
+    <value>lower case</value>
+  </data>
+  <data name="TextCaseConverter_SentenceCase" xml:space="preserve">
+    <value>Sentence case</value>
+  </data>
+  <data name="TextCaseConverter_SnakeCase" xml:space="preserve">
+    <value>Snake Case</value>
+  </data>
+  <data name="TextCaseConverter_Title" xml:space="preserve">
+    <value>Text Case Converter</value>
+  </data>
+  <data name="TextCaseConverter_TitleCase" xml:space="preserve">
+    <value>Title Case</value>
+  </data>
+  <data name="TextCaseConverter_UpperCase" xml:space="preserve">
+    <value>UPPER CASE</value>
+  </data>
 </root>

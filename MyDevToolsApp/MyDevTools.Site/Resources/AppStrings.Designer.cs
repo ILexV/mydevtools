@@ -2473,6 +2473,141 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Alternating Case.
+        /// </summary>
+        public static string TextCaseConverter_AlternatingCase {
+            get {
+                return ResourceManager.GetString("TextCaseConverter_AlternatingCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Camel Case.
+        /// </summary>
+        public static string TextCaseConverter_CamelCase {
+            get {
+                return ResourceManager.GetString("TextCaseConverter_CamelCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear.
+        /// </summary>
+        public static string TextCaseConverter_ClearButton {
+            get {
+                return ResourceManager.GetString("TextCaseConverter_ClearButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copied!.
+        /// </summary>
+        public static string TextCaseConverter_Copied {
+            get {
+                return ResourceManager.GetString("TextCaseConverter_Copied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy.
+        /// </summary>
+        public static string TextCaseConverter_CopyButton {
+            get {
+                return ResourceManager.GetString("TextCaseConverter_CopyButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert text between different letter cases: upper, lower, title, camel, snake, and more..
+        /// </summary>
+        public static string TextCaseConverter_Description {
+            get {
+                return ResourceManager.GetString("TextCaseConverter_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type or paste your text here....
+        /// </summary>
+        public static string TextCaseConverter_InputPlaceholder {
+            get {
+                return ResourceManager.GetString("TextCaseConverter_InputPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inverse Case.
+        /// </summary>
+        public static string TextCaseConverter_InverseCase {
+            get {
+                return ResourceManager.GetString("TextCaseConverter_InverseCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Kebab Case.
+        /// </summary>
+        public static string TextCaseConverter_KebabCase {
+            get {
+                return ResourceManager.GetString("TextCaseConverter_KebabCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to lower case.
+        /// </summary>
+        public static string TextCaseConverter_LowerCase {
+            get {
+                return ResourceManager.GetString("TextCaseConverter_LowerCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sentence case.
+        /// </summary>
+        public static string TextCaseConverter_SentenceCase {
+            get {
+                return ResourceManager.GetString("TextCaseConverter_SentenceCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Snake Case.
+        /// </summary>
+        public static string TextCaseConverter_SnakeCase {
+            get {
+                return ResourceManager.GetString("TextCaseConverter_SnakeCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Text Case Converter.
+        /// </summary>
+        public static string TextCaseConverter_Title {
+            get {
+                return ResourceManager.GetString("TextCaseConverter_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Title Case.
+        /// </summary>
+        public static string TextCaseConverter_TitleCase {
+            get {
+                return ResourceManager.GetString("TextCaseConverter_TitleCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UPPER CASE.
+        /// </summary>
+        public static string TextCaseConverter_UpperCase {
+            get {
+                return ResourceManager.GetString("TextCaseConverter_UpperCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Dark.
         /// </summary>
         public static string Theme_Dark {

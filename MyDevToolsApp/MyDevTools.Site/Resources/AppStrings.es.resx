@@ -1021,4 +1021,49 @@
   <data name="PasswordGenerator_ClearHistory" xml:space="preserve">
     <value>Borrar historial</value>
   </data>
+  <data name="TextCaseConverter_AlternatingCase" xml:space="preserve">
+    <value>cAsO aLtErNo</value>
+  </data>
+  <data name="TextCaseConverter_CamelCase" xml:space="preserve">
+    <value>Camel Case</value>
+  </data>
+  <data name="TextCaseConverter_ClearButton" xml:space="preserve">
+    <value>Borrar</value>
+  </data>
+  <data name="TextCaseConverter_Copied" xml:space="preserve">
+    <value>¡Copiado!</value>
+  </data>
+  <data name="TextCaseConverter_CopyButton" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="TextCaseConverter_Description" xml:space="preserve">
+    <value>Convierte texto entre diferentes casos: mayúsculas, minúsculas, título, camel, snake y más.</value>
+  </data>
+  <data name="TextCaseConverter_InputPlaceholder" xml:space="preserve">
+    <value>Escribe o pega tu texto aquí...</value>
+  </data>
+  <data name="TextCaseConverter_InverseCase" xml:space="preserve">
+    <value>Invertir Caso</value>
+  </data>
+  <data name="TextCaseConverter_KebabCase" xml:space="preserve">
+    <value>Kebab Case</value>
+  </data>
+  <data name="TextCaseConverter_LowerCase" xml:space="preserve">
+    <value>minúsculas</value>
+  </data>
+  <data name="TextCaseConverter_SentenceCase" xml:space="preserve">
+    <value>Caso de oración</value>
+  </data>
+  <data name="TextCaseConverter_SnakeCase" xml:space="preserve">
+    <value>Snake Case</value>
+  </data>
+  <data name="TextCaseConverter_Title" xml:space="preserve">
+    <value>Convertidor de Mayúsculas y Minúsculas</value>
+  </data>
+  <data name="TextCaseConverter_TitleCase" xml:space="preserve">
+    <value>Caso de Título</value>
+  </data>
+  <data name="TextCaseConverter_UpperCase" xml:space="preserve">
+    <value>MAYÚSCULAS</value>
+  </data>
 </root>

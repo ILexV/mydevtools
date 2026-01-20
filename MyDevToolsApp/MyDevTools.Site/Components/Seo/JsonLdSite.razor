@@ -3,43 +3,44 @@
 @using System.Text.Json
 
 <HeadContent>
-    <script type="application/ld+json">@((MarkupString)GenerateJsonLd())</script>
+  <script type="application/ld+json">@((MarkupString)GenerateJsonLd())</script>
 </HeadContent>
 
 @code {
-    [Parameter, EditorRequired]
-    public string SiteName { get; set; } = default!;
+  [Parameter, EditorRequired]
+  public string SiteName { get; set; } = default!;
 
-    [Parameter]
-    public string? Description { get; set; }
+  [Parameter]
+  public string? Description { get; set; }
 
-    [Parameter]
-    public string? CurrentUrl { get; set; }
+  [Parameter]
+  public string? CurrentUrl { get; set; }
 
-    private string GenerateJsonLd()
+  private string GenerateJsonLd()
+  {
+    var jsonLd = new Dictionary<string, object?>
     {
-        var jsonLd = new Dictionary<string, object?>
-        {
-            ["@context"] = "https://schema.org",
-            ["@type"] = "WebSite",
-            ["name"] = SiteName,
-            ["inLanguage"] = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName
-        };
+      ["@context"] = "https://schema.org",
+      ["@type"] = "WebSite",
+      ["name"] = SiteName,
+      ["inLanguage"] = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+      ["operatingSystem"] = "Any",
+    };
 
-        if (!string.IsNullOrWhiteSpace(Description))
-        {
-            jsonLd["description"] = Description;
-        }
-
-        if (!string.IsNullOrWhiteSpace(CurrentUrl))
-        {
-            jsonLd["url"] = CurrentUrl;
-        }
-
-        return JsonSerializer.Serialize(jsonLd, new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-        });
+    if (!string.IsNullOrWhiteSpace(Description))
+    {
+      jsonLd["description"] = Description;
     }
+
+    if (!string.IsNullOrWhiteSpace(CurrentUrl))
+    {
+      jsonLd["url"] = CurrentUrl;
+    }
+
+    return JsonSerializer.Serialize(jsonLd, new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    });
+  }
 }

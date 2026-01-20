@@ -147,14 +147,40 @@ html, body {
 }
 
 /* ===== Language Switcher ===== */
+.language-switcher {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
 .language-switcher select {
-    padding: 0.4rem 0.75rem;
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0.4rem 1.75rem 0.4rem 0.75rem;
     border: 1px solid var(--border-color);
     border-radius: 999px; /* Pill shape */
     background-color: var(--bg-primary);
     color: var(--text-primary);
     cursor: pointer;
     font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.language-switcher::after {
+    content: "";
+    position: absolute;
+    right: 0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0.75rem;
+    height: 0.75rem;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd' /%3E%3C/svg%3E") no-repeat 50% 50%;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd' /%3E%3C/svg%3E") no-repeat 50% 50%;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    pointer-events: none;
+    opacity: 0.7;
 }
 
 /* ===== Theme Toggle ===== */

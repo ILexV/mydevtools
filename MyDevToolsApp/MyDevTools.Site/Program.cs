@@ -1,6 +1,7 @@
 using MyDevTools.Site.Components;
 using MyDevTools.Site.Middleware;
 using MyDevTools.Site.Services;
+using MyDevTools.Site.Endpoints;
 using Microsoft.AspNetCore.Localization;
 using System.Globalization;
 
@@ -9,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddRazorComponents();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddMemoryCache();
 
 // Localization
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -46,6 +48,8 @@ app.UseMiddleware<CultureRedirectMiddleware>();
 app.UseRequestLocalization(localizationOptions);
 
 app.UseAntiforgery();
+
+app.MapSitemapEndpoint();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>();

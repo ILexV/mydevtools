@@ -1,4 +1,4 @@
-﻿@page "/{lang}"
+@page "/{lang}"
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
@@ -13,48 +13,81 @@
 <HreflangLinks />
 
 <div class="home-page">
-    <div class="hero-section">
-        <h1 class="hero-title">@AppStrings.AppName</h1>
-        <p class="hero-subtitle">@AppStrings.Home_Subtitle</p>
-        <div class="hero-badge">
-            <svg class="badge-icon" viewBox="0 0 24 24" width="20" height="20">
-                <path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+    <div class="hero-container">
+        <div class="hero-content">
+            <h1 class="hero-title">@AppStrings.AppName</h1>
+            <p class="hero-subtitle">@AppStrings.Home_Subtitle</p>
+            <div class="hero-actions">
+                <a href="/@Lang/#tools" class="btn btn-primary">@AppStrings.Home_ExploreUtilities</a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <svg class="hero-illustration" viewBox="0 0 500 350" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Browser Window -->
+                <rect x="50" y="40" width="400" height="260" rx="12" fill="var(--bg-secondary)" stroke="var(--border-color)" stroke-width="2"/>
+                <path d="M50 80L450 80" stroke="var(--border-color)" stroke-width="2"/>
+                <circle cx="80" cy="60" r="4" fill="#FF5F56"/>
+                <circle cx="100" cy="60" r="4" fill="#FFBD2E"/>
+                <circle cx="120" cy="60" r="4" fill="#27C93F"/>
+                
+                <!-- Shield Glow -->
+                <defs>
+                    <radialGradient id="shieldGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(250 170) rotate(90) scale(100)">
+                        <stop stop-color="var(--accent-color)" stop-opacity="0.4"/>
+                        <stop offset="1" stop-color="var(--accent-color)" stop-opacity="0"/>
+                    </radialGradient>
+                    <linearGradient id="shieldFill" x1="250" y1="120" x2="250" y2="240" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="var(--accent-color)"/>
+                        <stop offset="1" stop-color="var(--accent-hover)"/>
+                    </linearGradient>
+                </defs>
+                <circle cx="250" cy="170" r="80" fill="url(#shieldGlow)"/>
+                
+                <!-- Shield Icon -->
+                <path d="M250 120C250 120 290 130 290 170C290 205 250 240 250 240C250 240 210 205 210 170C210 130 250 120 250 120Z" fill="url(#shieldFill)" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M250 120V240" stroke="white" stroke-width="2" stroke-opacity="0.3"/>
+                
+                <!-- Data Flow Lines -->
+                <g stroke="var(--accent-color)" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 6" opacity="0.6">
+                    <path d="M100 170H190">
+                        <animate attributeName="stroke-dashoffset" from="10" to="0" dur="1s" repeatCount="indefinite"/>
+                    </path>
+                    <path d="M310 170H400">
+                        <animate attributeName="stroke-dashoffset" from="0" to="-10" dur="1s" repeatCount="indefinite"/>
+                    </path>
+                    <path d="M120 200H180">
+                         <animate attributeName="stroke-dashoffset" from="10" to="0" dur="1.5s" repeatCount="indefinite"/>
+                    </path>
+                     <path d="M320 140H380">
+                         <animate attributeName="stroke-dashoffset" from="0" to="-10" dur="1.2s" repeatCount="indefinite"/>
+                    </path>
+                </g>
+                
+                <!-- Particles -->
+                <circle cx="150" cy="150" r="2" fill="var(--accent-color)" opacity="0.5"/>
+                <circle cx="350" cy="190" r="2" fill="var(--accent-color)" opacity="0.5"/>
             </svg>
-            <span>@AppStrings.Home_NoDataSent</span>
         </div>
     </div>
 
-    <div class="tools-grid">
-        @foreach (var tool in GetTools())
-        {
-            <a href="/@Lang/@tool.Slug" class="tool-card">
-                <div class="tool-card-icon">@tool.Icon</div>
-                <h3 class="tool-card-title">@tool.Title</h3>
-                <p class="tool-card-description">@tool.Description</p>
-            </a>
-        }
-    </div>
-
-    <div class="features-section">
-        <div class="feature">
-            <div class="feature-icon">🔒</div>
-            <h3>@AppStrings.Home_FeaturePrivacyTitle</h3>
-            <p>@AppStrings.Home_FeaturePrivacyDescription</p>
+    <div id="tools" class="tools-section">
+        <div class="section-header">
+            <h2 class="section-title">@AppStrings.Home_FeaturedTools</h2>
         </div>
-        <div class="feature">
-            <div class="feature-icon">⚡</div>
-            <h3>@AppStrings.Home_FeatureWasmTitle</h3>
-            <p>@AppStrings.Home_FeatureWasmDescription</p>
-        </div>
-        <div class="feature">
-            <div class="feature-icon">🌍</div>
-            <h3>@AppStrings.Home_FeatureLanguagesTitle</h3>
-            <p>@AppStrings.Home_FeatureLanguagesDescription</p>
-        </div>
-        <div class="feature">
-            <div class="feature-icon">🧩</div>
-            <h3>@AppStrings.Home_FeatureAlgorithmsTitle</h3>
-            <p>@AppStrings.Home_FeatureAlgorithmsDescription</p>
+        <div class="tool-list">
+            @foreach (var tool in GetTools())
+            {
+                <a href="/@Lang/@tool.Slug" class="tool-row">
+                    <div class="tool-row-icon">@tool.Icon</div>
+                    <div class="tool-row-content">
+                        <h3 class="tool-row-title">@tool.Title</h3>
+                        <p class="tool-row-description">@tool.Description</p>
+                    </div>
+                    <div class="tool-row-action">
+                        @AppStrings.Home_Launch
+                    </div>
+                </a>
+            }
         </div>
     </div>
 </div>
@@ -68,14 +101,14 @@
         return new List<ToolInfo>
         {
             new("hash-calculator", "🔐", AppStrings.HashCalculator_Title, AppStrings.HashCalculator_Description),
+            new("base64-encoder", "🧬", AppStrings.Base64Encoder_Title, AppStrings.Base64Encoder_Description),
+            new("json-beautifier", "✨", AppStrings.JsonBeautifier_Title, AppStrings.JsonBeautifier_Description),
+            new("aead-file", "🛡️", AppStrings.Aead_Title, AppStrings.Aead_Description),
             new("openssh-keys", "🔑", AppStrings.OpenSsh_Title, AppStrings.OpenSsh_Description),
             new("x509", "📜", AppStrings.X509_Title, AppStrings.X509_Description),
-            new("aead-file", "🛡️", AppStrings.Aead_Title, AppStrings.Aead_Description),
-            new("json-beautifier", "✨", AppStrings.JsonBeautifier_Title, AppStrings.JsonBeautifier_Description),
-            new("xml-beautifier", "🧷", AppStrings.XmlBeautifier_Title, AppStrings.XmlBeautifier_Description),
             new("url-encoder", "🔗", AppStrings.UrlEncoder_Title, AppStrings.UrlEncoder_Description),
+            new("xml-beautifier", "🧷", AppStrings.XmlBeautifier_Title, AppStrings.XmlBeautifier_Description),
             new("hex-encoder", "🧱", AppStrings.HexEncoder_Title, AppStrings.HexEncoder_Description),
-            new("base64-encoder", "🧬", AppStrings.Base64Encoder_Title, AppStrings.Base64Encoder_Description),
             new("base32-encoder", "🧪", AppStrings.Base32Encoder_Title, AppStrings.Base32Encoder_Description),
             new("base58-encoder", "🧿", AppStrings.Base58Encoder_Title, AppStrings.Base58Encoder_Description)
         };

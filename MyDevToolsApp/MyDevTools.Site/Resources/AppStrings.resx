@@ -127,6 +127,18 @@
   <data name="Home_NoDataSent" xml:space="preserve">
     <value>No data is sent to the server</value>
   </data>
+  <data name="Home_ExploreUtilities" xml:space="preserve">
+    <value>Explore Utilities</value>
+  </data>
+  <data name="Home_FeaturedTools" xml:space="preserve">
+    <value>Featured Tools</value>
+  </data>
+  <data name="Home_Launch" xml:space="preserve">
+    <value>Launch</value>
+  </data>
+  <data name="Nav_Utilities" xml:space="preserve">
+    <value>Utilities</value>
+  </data>
   
   <!-- Hash Calculator -->
   <data name="HashCalculator_Title" xml:space="preserve">

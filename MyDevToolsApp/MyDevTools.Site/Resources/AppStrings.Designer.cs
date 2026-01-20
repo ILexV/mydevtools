@@ -1744,6 +1744,15 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Explore Utilities.
+        /// </summary>
+        public static string Home_ExploreUtilities {
+            get {
+                return ResourceManager.GetString("Home_ExploreUtilities", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select the algorithms you want and save your set in the browser..
         /// </summary>
         public static string Home_FeatureAlgorithmsDescription {
@@ -1758,6 +1767,15 @@ namespace MyDevTools.Site.Resources {
         public static string Home_FeatureAlgorithmsTitle {
             get {
                 return ResourceManager.GetString("Home_FeatureAlgorithmsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Featured Tools.
+        /// </summary>
+        public static string Home_FeaturedTools {
+            get {
+                return ResourceManager.GetString("Home_FeaturedTools", resourceCulture);
             }
         }
         
@@ -1816,6 +1834,15 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Launch.
+        /// </summary>
+        public static string Home_Launch {
+            get {
+                return ResourceManager.GetString("Home_Launch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No data is sent to the server.
         /// </summary>
         public static string Home_NoDataSent {
@@ -1861,7 +1888,7 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Compact mode.
+        ///   Looks up a localized string similar to Compact mode (minify).
         /// </summary>
         public static string JsonBeautifier_CompactMode {
             get {
@@ -2091,6 +2118,15 @@ namespace MyDevTools.Site.Resources {
         public static string Nav_UrlEncoder {
             get {
                 return ResourceManager.GetString("Nav_UrlEncoder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Utilities.
+        /// </summary>
+        public static string Nav_Utilities {
+            get {
+                return ResourceManager.GetString("Nav_Utilities", resourceCulture);
             }
         }
         
@@ -2680,7 +2716,7 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Compact mode.
+        ///   Looks up a localized string similar to Compact mode (minify).
         /// </summary>
         public static string XmlBeautifier_CompactMode {
             get {

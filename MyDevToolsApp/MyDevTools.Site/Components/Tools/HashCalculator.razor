@@ -31,54 +31,56 @@
          data-algorithms-select-one="@AppStrings.HashCalculator_SelectAtLeastOneAlgorithm"
          data-canceled="Canceled">
 
-    <div class="tool-grid">
-        <div class="input-section">
-            <label for="input-text">@AppStrings.HashCalculator_InputLabel</label>
-            <textarea id="input-text" 
-                      placeholder="@AppStrings.HashCalculator_InputPlaceholder"
-                      rows="10"></textarea>
+        <div class="hash-grid">
+            <div class="input-section hash-inputs">
+                <label for="input-text">@AppStrings.HashCalculator_InputLabel</label>
+                <textarea id="input-text" 
+                          placeholder="@AppStrings.HashCalculator_InputPlaceholder"
+                          rows="10"></textarea>
 
-            <FileDropInput InputId="input-file"
-                           Label="@AppStrings.HashCalculator_FileLabel"
-                           Hint="@AppStrings.HashCalculator_FileHint" />
-            
-            <div class="action-buttons">
-                <button class="btn btn-primary" id="calculate-btn">
-                    @AppStrings.HashCalculator_Calculate
-                </button>
-                <button class="btn btn-secondary" id="clear-btn">
-                    @AppStrings.HashCalculator_Clear
-                </button>
+                <FileDropInput InputId="input-file"
+                               Label="@AppStrings.HashCalculator_FileLabel"
+                               Hint="@AppStrings.HashCalculator_FileHint" />
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="calculate-btn">
+                        @AppStrings.HashCalculator_Calculate
+                    </button>
+                    <button class="btn btn-secondary" id="clear-btn">
+                        @AppStrings.HashCalculator_Clear
+                    </button>
+                </div>
             </div>
 
-            <div class="algo-picker" id="hash-algo-picker">
-                <div class="algo-picker-header">
-                    <div class="algo-picker-title" id="hash-algo-title"></div>
-                    <div class="algo-picker-actions">
-                        <div class="algo-selected-count" id="hash-algo-selected-count"></div>
-                        <button class="btn btn-secondary btn-small" id="hash-algo-reset-btn" type="button"></button>
-                    </div>
-                </div>
-                <input class="algo-search" id="hash-algo-search" type="search" />
+            <div class="output-section hash-results" id="output-section">
+                <!-- Results will be rendered here by JavaScript -->
+            </div>
 
-                <div class="algo-groups">
-                    <div class="algo-group">
-                        <div class="algo-group-title" id="hash-algo-selected-title"></div>
-                        <div class="algo-list" id="hash-algo-selected-list"></div>
+            <div class="hash-algos">
+                <div class="algo-picker" id="hash-algo-picker">
+                    <div class="algo-picker-header">
+                        <div class="algo-picker-title" id="hash-algo-title"></div>
+                        <div class="algo-picker-actions">
+                            <div class="algo-selected-count" id="hash-algo-selected-count"></div>
+                            <button class="btn btn-secondary btn-small" id="hash-algo-reset-btn" type="button"></button>
+                        </div>
                     </div>
+                    <input class="algo-search" id="hash-algo-search" type="search" />
 
-                    <div class="algo-group">
-                        <div class="algo-group-title" id="hash-algo-available-title"></div>
-                        <div class="algo-list" id="hash-algo-available-list"></div>
+                    <div class="algo-groups">
+                        <div class="algo-group">
+                            <div class="algo-group-title" id="hash-algo-selected-title"></div>
+                            <div class="algo-list" id="hash-algo-selected-list"></div>
+                        </div>
+
+                        <div class="algo-group">
+                            <div class="algo-group-title" id="hash-algo-available-title"></div>
+                            <div class="algo-list" id="hash-algo-available-list"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="output-section" id="output-section">
-            <!-- Results will be rendered here by JavaScript -->
-        </div>
-    </div>
     </div>
 
     <script type="application/json" id="hash-algorithms-data">

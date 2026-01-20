@@ -34,7 +34,7 @@
     const DEFAULT_SELECTED_ALGORITHM_IDS = ['md5', 'sha1', 'sha256'];
     const STORAGE_KEY_SELECTED_ALGOS = 'mydevtools.tools.hash-calculator.selectedAlgorithms.v1';
 
-    const initializedRoots = new WeakSet();
+    // const initializedRoots = new WeakSet();
     const rootStates = new WeakMap();
 
     function getState(root) {
@@ -598,9 +598,14 @@
     function initIfPresent() {
         const els = getElements();
         if (!els) return;
-        if (initializedRoots.has(els.root)) return;
 
-        initializedRoots.add(els.root);
+        // STATELESS CHECK: if the algorithm list (checkboxes) is already rendered,
+        // assume we are initialized and do not need to re-render.
+        // This handles Blazor recycling the container.
+        const existingItems = els.root.querySelectorAll('.algo-item');
+        if (existingItems.length > 0) return;
+
+        // initializedRoots.add(els.root);
         buildAlgorithmsState(els.root);
         renderAlgorithmPicker(els.root);
     }

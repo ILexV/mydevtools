@@ -37,6 +37,9 @@
     }
 
     function applyTheme(theme) {
+        // Avoiding infinite loops where observer triggers change
+        if (root.getAttribute("data-theme") === theme) return;
+
         root.setAttribute("data-theme", theme);
 
         // Keep existing markup in sync (MainLayout currently renders data-theme on .page)
@@ -47,14 +50,15 @@
     }
 
     function getCurrentTheme() {
-        const attr = root.getAttribute("data-theme");
-        if (isValidTheme(attr)) {
-            return attr;
-        }
-
         const stored = getStoredTheme();
         if (isValidTheme(stored)) {
             return stored;
+        }
+
+        // If no storage, see what's currently rendered (SSR might have set it)
+        const attr = root.getAttribute("data-theme");
+        if (isValidTheme(attr)) {
+            return attr;
         }
 
         return getPreferredTheme();
@@ -77,13 +81,35 @@
     }
 
     function toggleTheme() {
+        // We always base toggle on the stored/calculated preference, 
+        // not necessarily just the DOM attribute, to ensure consistency.
         const current = getCurrentTheme();
         const next = current === "dark" ? "light" : "dark";
         setTheme(next);
     }
 
     // Initial sync
-    applyTheme(getCurrentTheme());
+    const initialTheme = getCurrentTheme();
+    applyTheme(initialTheme);
+
+    // Blazor Enhanced Navigation can sometimes reset attributes on the <html> tag
+    // or parts of the body. We watch for changes and re-apply our preferred theme
+    // if it gets messed up.
+    let isEnforcing = false;
+    const observer = new MutationObserver((mutations) => {
+        if (isEnforcing) return;
+
+        const desiredTheme = getCurrentTheme();
+        const currentAttr = root.getAttribute("data-theme");
+
+        if (currentAttr !== desiredTheme) {
+            isEnforcing = true;
+            applyTheme(desiredTheme);
+            requestAnimationFrame(() => isEnforcing = false);
+        }
+    });
+
+    observer.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
 
     // Click handler for any theme toggle button
     document.addEventListener("click", function (e) {

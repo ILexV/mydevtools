@@ -1,10 +1,9 @@
 /* global document, CodeMirror */
 
 (function () {
-    const initializedRoots = new WeakSet();
-
     function initXmlBeautifier(root) {
-        if (initializedRoots.has(root)) return;
+        // STATELESS CHECK: logic moved from WeakSet to DOM inspection.
+        if (root.querySelector('.CodeMirror')) return;
 
         if (typeof CodeMirror === 'undefined') {
             console.log('XML Beautifier: CodeMirror not loaded yet, waiting...');
@@ -193,10 +192,20 @@
             CodeMirror.fold.simplexml = xmlFoldHelper;
         }
 
-        initializedRoots.add(root);
-
         const editorElement = root.querySelector('#xml-editor');
         const formatBtn = root.querySelector('#xml-format-btn');
+        // ... (other element queries happen here, but we check critical ones below)
+
+        // FAIL-SAFE: Do not mark as initialized if critical elements are missing.
+        // This allows the observer to try again when Blazor finishes rendering content.
+        if (!editorElement || !formatBtn) {
+            // console.warn('XML Beautifier: Required elements not found yet, retrying...');
+            return;
+        }
+
+        // We no longer use initializedRoots.add(root);
+        // The presence of the CodeMirror DOM elements acts as our "initialized" flag.
+
         const clearBtn = root.querySelector('#xml-clear-btn');
         const copyBtn = root.querySelector('#xml-copy-btn');
         const indentSelect = root.querySelector('#xml-indent-select');
@@ -209,11 +218,6 @@
         const copiedText = root.getAttribute('data-copied') || 'Copied!';
         const copyButtonText = root.getAttribute('data-copy-button') || 'Copy';
         const placeholder = root.getAttribute('data-input-placeholder') || 'Paste your XML here...';
-
-        if (!editorElement || !formatBtn || typeof CodeMirror === 'undefined') {
-            console.error('XML Beautifier: Required elements or CodeMirror not found');
-            return;
-        }
 
         const editor = CodeMirror(editorElement, {
             mode: { name: 'simplexml' },

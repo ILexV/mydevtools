@@ -1,22 +1,31 @@
 /* global document, CodeMirror */
 
 (function () {
-    const initializedRoots = new WeakSet();
-
     function initJsonBeautifier(root) {
-        if (initializedRoots.has(root)) return;
-        
+        // STATELESS CHECK: logic moved from WeakSet to DOM inspection.
+        if (root.querySelector('.CodeMirror')) return;
+
         // Check if CodeMirror is available
         if (typeof CodeMirror === 'undefined') {
             console.log('JSON Beautifier: CodeMirror not loaded yet, waiting...');
             setTimeout(() => initJsonBeautifier(root), 100);
             return;
         }
-        
-        initializedRoots.add(root);
 
         const editorElement = root.querySelector('#json-editor');
         const formatBtn = root.querySelector('#format-btn');
+        // ... (other element queries happen here, but we check critical ones below)
+
+        // FAIL-SAFE: Do not mark as initialized if critical elements are missing.
+        // This allows the observer to try again when Blazor finishes rendering content.
+        if (!editorElement || !formatBtn) {
+            // console.warn('JSON Beautifier: Required elements not found yet, retrying...');
+            return;
+        }
+
+        // We no longer use initializedRoots.add(root);
+        // The presence of the CodeMirror DOM elements acts as our "initialized" flag.
+
         const clearBtn = root.querySelector('#clear-btn');
         const copyBtn = root.querySelector('#copy-btn');
         const indentSelect = root.querySelector('#indent-select');
@@ -30,11 +39,6 @@
         const copiedText = root.getAttribute('data-copied') || 'Copied!';
         const copyButtonText = root.getAttribute('data-copy-button') || 'Copy';
         const placeholder = root.getAttribute('data-input-placeholder') || 'Paste your JSON here...';
-
-        if (!editorElement || !formatBtn || typeof CodeMirror === 'undefined') {
-            console.error('JSON Beautifier: Required elements or CodeMirror not found');
-            return;
-        }
 
         // Initialize CodeMirror
         const editor = CodeMirror(editorElement, {
@@ -121,13 +125,13 @@
                     }
                     return value;
                 }) : null;
-                
+
                 const space = compactModeCheckbox?.checked ? 0 : (indentSelect?.value === 'tab' ? '\t' : parseInt(indentSelect?.value || '4'));
                 const formatted = JSON.stringify(parsed, replacer, space);
-                
+
                 // Update editor content
                 editor.setValue(formatted);
-                
+
                 // Update indent settings in CodeMirror
                 if (!compactModeCheckbox?.checked) {
                     const indentValue = indentSelect?.value === 'tab' ? '\t' : parseInt(indentSelect?.value || '4');
@@ -139,14 +143,14 @@
                         editor.setOption('tabSize', indentValue);
                     }
                 }
-                
+
                 // Clear any error styling
                 editor.getWrapperElement().classList.remove('json-error');
             } catch (e) {
                 // Show error indication
                 editor.getWrapperElement().classList.add('json-error');
                 console.error('JSON Error:', e.message);
-                
+
                 // Optionally show a notification
                 showNotification(errorInvalidJson, 'error');
             }
@@ -159,7 +163,7 @@
 
         function copyToClipboard() {
             if (!copyBtn) return;
-            
+
             const text = editor.getValue();
             navigator.clipboard.writeText(text).then(() => {
                 const originalText = copyBtn.textContent;
@@ -177,10 +181,10 @@
             const notification = document.createElement('div');
             notification.className = `json-notification json-notification-${type}`;
             notification.textContent = message;
-            
+
             const editorWrapper = editor.getWrapperElement();
             editorWrapper.parentElement.insertBefore(notification, editorWrapper);
-            
+
             // Auto remove after 3 seconds
             setTimeout(() => {
                 notification.remove();
@@ -220,7 +224,7 @@
         openFileBtn?.addEventListener('click', openFile);
         fileInput?.addEventListener('change', handleFileSelect);
         saveFileBtn?.addEventListener('click', saveFile);
-        
+
         // Auto-format on settings change (optional)
         indentSelect?.addEventListener('change', () => {
             localStorage.setItem('json-beautifier-indent', indentSelect.value);

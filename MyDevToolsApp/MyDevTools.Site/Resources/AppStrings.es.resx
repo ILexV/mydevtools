@@ -76,7 +76,19 @@
     <value>Seleccione los algoritmos que quiera y guarde su conjunto en el navegador.</value>
   </data>
   <data name="Home_NoDataSent" xml:space="preserve">
-    <value>No se env?an datos al servidor</value>
+    <value>No se envían datos al servidor</value>
+  </data>
+  <data name="Home_ExploreUtilities" xml:space="preserve">
+    <value>Explorar Utilidades</value>
+  </data>
+  <data name="Home_FeaturedTools" xml:space="preserve">
+    <value>Herramientas Destacadas</value>
+  </data>
+  <data name="Home_Launch" xml:space="preserve">
+    <value>Lanzar</value>
+  </data>
+  <data name="Nav_Utilities" xml:space="preserve">
+    <value>Utilidades</value>
   </data>
   
   <data name="HashCalculator_Title" xml:space="preserve">

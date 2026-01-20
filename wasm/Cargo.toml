@@ -6,4 +6,5 @@ members = [
   "encoding",
   "cryptography",
   "structured_data",
+  "password",
 ]

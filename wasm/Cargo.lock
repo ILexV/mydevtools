@@ -783,6 +783,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "mydevtools_password"
+version = "0.1.0"
+dependencies = [
+ "getrandom",
+ "rand",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "mydevtools_structured_data"
 version = "0.1.0"
 dependencies = [

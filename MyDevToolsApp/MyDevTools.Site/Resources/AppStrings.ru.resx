@@ -973,4 +973,51 @@
   <data name="XmlBeautifier_CompactMode" xml:space="preserve">
     <value>Компактный режим (минификация)</value>
   </data>
+
+  <data name="Nav_PasswordGenerator" xml:space="preserve">
+    <value>Генератор паролей</value>
+  </data>
+
+  <data name="PasswordGenerator_Title" xml:space="preserve">
+    <value>Генератор паролей</value>
+  </data>
+  <data name="PasswordGenerator_Description" xml:space="preserve">
+    <value>Создавайте надежные, безопасные случайные пароли локально в вашем браузере.</value>
+  </data>
+  <data name="PasswordGenerator_LengthLabel" xml:space="preserve">
+    <value>Длина пароля</value>
+  </data>
+  <data name="PasswordGenerator_UppercaseLabel" xml:space="preserve">
+    <value>Заглавные (A-Z)</value>
+  </data>
+  <data name="PasswordGenerator_LowercaseLabel" xml:space="preserve">
+    <value>Строчные (a-z)</value>
+  </data>
+  <data name="PasswordGenerator_NumbersLabel" xml:space="preserve">
+    <value>Цифры (0-9)</value>
+  </data>
+  <data name="PasswordGenerator_SpecialLabel" xml:space="preserve">
+    <value>Спецсимволы</value>
+  </data>
+  <data name="PasswordGenerator_CustomSpecialLabel" xml:space="preserve">
+    <value>Пользовательские символы</value>
+  </data>
+  <data name="PasswordGenerator_GenerateButton" xml:space="preserve">
+    <value>Сгенерировать</value>
+  </data>
+  <data name="PasswordGenerator_CopyButton" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="PasswordGenerator_Copied" xml:space="preserve">
+    <value>Скопировано!</value>
+  </data>
+  <data name="PasswordGenerator_ResultLabel" xml:space="preserve">
+    <value>Сгенерированный пароль</value>
+  </data>
+  <data name="PasswordGenerator_HistoryLabel" xml:space="preserve">
+    <value>История (последние 10)</value>
+  </data>
+  <data name="PasswordGenerator_ClearHistory" xml:space="preserve">
+    <value>Очистить историю</value>
+  </data>
 </root>

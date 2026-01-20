@@ -2104,6 +2104,15 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Password Generator.
+        /// </summary>
+        public static string Nav_PasswordGenerator {
+            get {
+                return ResourceManager.GetString("Nav_PasswordGenerator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tools.
         /// </summary>
         public static string Nav_Tools {
@@ -2334,6 +2343,132 @@ namespace MyDevTools.Site.Resources {
         public static string OpenSsh_WarningsTitle {
             get {
                 return ResourceManager.GetString("OpenSsh_WarningsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear History.
+        /// </summary>
+        public static string PasswordGenerator_ClearHistory {
+            get {
+                return ResourceManager.GetString("PasswordGenerator_ClearHistory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copied!.
+        /// </summary>
+        public static string PasswordGenerator_Copied {
+            get {
+                return ResourceManager.GetString("PasswordGenerator_Copied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy.
+        /// </summary>
+        public static string PasswordGenerator_CopyButton {
+            get {
+                return ResourceManager.GetString("PasswordGenerator_CopyButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Custom Symbols.
+        /// </summary>
+        public static string PasswordGenerator_CustomSpecialLabel {
+            get {
+                return ResourceManager.GetString("PasswordGenerator_CustomSpecialLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate strong, secure random passwords locally in your browser..
+        /// </summary>
+        public static string PasswordGenerator_Description {
+            get {
+                return ResourceManager.GetString("PasswordGenerator_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate Password.
+        /// </summary>
+        public static string PasswordGenerator_GenerateButton {
+            get {
+                return ResourceManager.GetString("PasswordGenerator_GenerateButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to History (last 10).
+        /// </summary>
+        public static string PasswordGenerator_HistoryLabel {
+            get {
+                return ResourceManager.GetString("PasswordGenerator_HistoryLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password Length.
+        /// </summary>
+        public static string PasswordGenerator_LengthLabel {
+            get {
+                return ResourceManager.GetString("PasswordGenerator_LengthLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lowercase (a-z).
+        /// </summary>
+        public static string PasswordGenerator_LowercaseLabel {
+            get {
+                return ResourceManager.GetString("PasswordGenerator_LowercaseLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Numbers (0-9).
+        /// </summary>
+        public static string PasswordGenerator_NumbersLabel {
+            get {
+                return ResourceManager.GetString("PasswordGenerator_NumbersLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generated Password.
+        /// </summary>
+        public static string PasswordGenerator_ResultLabel {
+            get {
+                return ResourceManager.GetString("PasswordGenerator_ResultLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Special Characters.
+        /// </summary>
+        public static string PasswordGenerator_SpecialLabel {
+            get {
+                return ResourceManager.GetString("PasswordGenerator_SpecialLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password Generator.
+        /// </summary>
+        public static string PasswordGenerator_Title {
+            get {
+                return ResourceManager.GetString("PasswordGenerator_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Uppercase (A-Z).
+        /// </summary>
+        public static string PasswordGenerator_UppercaseLabel {
+            get {
+                return ResourceManager.GetString("PasswordGenerator_UppercaseLabel", resourceCulture);
             }
         }
         

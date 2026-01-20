@@ -79,8 +79,24 @@ pwsh ./wasm/build.ps1 -Domains @('hash')
 *   Load WASM in JS only when needed.
 
 ### 5. Blazor SSR Specifics
-*   Beware of "Enhanced Navigation". Events bound via `addEventListener` might be lost on navigation.
-*   Use **event delegation** (bind to `document`) or re-initialize on `enhancedload` event.
+*   **JavaScript Loading:**
+    *   **NEVER** put `<script src="...">` tags inside Razor components (e.g., `PasswordGenerator.razor`). This causes re-execution issues and event binding failures during navigation.
+    *   **ALWAYS** add the script reference to `Components/App.razor` (Global scope).
+*   **JavaScript Initialization (Crucial):**
+    *   Use a `WeakSet` to track initialized root elements to prevent double-initialization.
+    *   Use `MutationObserver` to detect when the tool's root element is added to the DOM (handling Enhanced Navigation updates).
+    *   **Event Delegation:** Bind click/input events to `document` (delegated) exactly once. Use a global flag (e.g., `window.__toolNameHandlersBound`) to ensure listeners are not added multiple times.
+    *   **Pattern:**
+        ```javascript
+        const initializedRoots = new WeakSet();
+        function init() {
+            const root = document.getElementById('my-tool-root');
+            if (!root || initializedRoots.has(root)) return;
+            initializedRoots.add(root);
+            // ... init logic ...
+        }
+        // ... observer code ...
+        ```
 
 ## 📄 Key Documentation Files
 *   `README.md`: General overview.

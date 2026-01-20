@@ -41,7 +41,53 @@
         };
     }
 
+    const SETTINGS_KEY = 'mydevtools.tools.password-generator.settings.v1';
+
+    function loadSettings() {
+        try {
+            const raw = localStorage.getItem(SETTINGS_KEY);
+            if (!raw) return;
+            const settings = JSON.parse(raw);
+            const els = getElements();
+            if (!els) return;
+
+            if (typeof settings.length === 'number') {
+                els.lengthInput.value = settings.length;
+                if (els.lengthVal) els.lengthVal.textContent = settings.length;
+            }
+            if (typeof settings.uppercase === 'boolean') els.chkUpper.checked = settings.uppercase;
+            if (typeof settings.lowercase === 'boolean') els.chkLower.checked = settings.lowercase;
+            if (typeof settings.numbers === 'boolean') els.chkNumbers.checked = settings.numbers;
+            if (typeof settings.special === 'boolean') els.chkSpecial.checked = settings.special;
+            if (typeof settings.specialChars === 'string') els.specialCharsInput.value = settings.specialChars;
+
+        } catch {
+            // ignore
+        }
+    }
+
+    function saveSettings() {
+        const els = getElements();
+        if (!els) return;
+
+        const settings = {
+            length: parseInt(els.lengthInput.value, 10),
+            uppercase: els.chkUpper.checked,
+            lowercase: els.chkLower.checked,
+            numbers: els.chkNumbers.checked,
+            special: els.chkSpecial.checked,
+            specialChars: els.specialCharsInput.value
+        };
+
+        try {
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        } catch {
+            // ignore
+        }
+    }
+
     async function generatePassword() {
+        saveSettings(); // Save whenever we generate (state is stable)
         const els = getElements();
         if (!els) return;
 
@@ -99,10 +145,21 @@
         window.__passwordGeneratorDelegatedHandlersBound = true;
 
         document.addEventListener('input', (ev) => {
-            if (ev.target.id === 'pg-length') {
+            const target = ev.target;
+            if (target.id === 'pg-length') {
                 const val = document.getElementById('pg-length-val');
-                if (val) val.textContent = ev.target.value;
+                if (val) val.textContent = target.value;
+                saveSettings();
+            } else if (target.id === 'pg-special-chars') {
+                saveSettings();
             }
+        });
+        
+        document.addEventListener('change', (ev) => {
+             const target = ev.target;
+             if (['pg-uppercase', 'pg-lowercase', 'pg-numbers', 'pg-special'].includes(target.id)) {
+                 saveSettings();
+             }
         });
 
         document.addEventListener('click', async (ev) => {
@@ -169,7 +226,7 @@
         if (initializedRoots.has(els.root)) return;
 
         initializedRoots.add(els.root);
-        // generatePassword(); // Optional: generate on first load
+        loadSettings();
     }
 
     bindDelegatedHandlersOnce();

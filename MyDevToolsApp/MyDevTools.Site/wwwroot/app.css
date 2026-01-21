@@ -42,7 +42,8 @@
     box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
     font-family: var(--font-sans);
     background-color: var(--bg-primary);
     color: var(--text-primary);
@@ -58,7 +59,8 @@ html, body {
 
 /* ===== Header Styles ===== */
 .main-header {
-    background-color: var(--bg-primary); /* Blend with body */
+    background-color: var(--bg-primary);
+    /* Blend with body */
     /* border-bottom: 1px solid var(--border-color); Removed border for cleaner look */
     padding: 1.5rem 0;
     position: sticky;
@@ -69,7 +71,7 @@ html, body {
 }
 
 [data-theme="dark"] .main-header {
-     background-color: rgba(15, 17, 21, 0.9);
+    background-color: rgba(15, 17, 21, 0.9);
 }
 
 .header-content {
@@ -87,16 +89,16 @@ html, body {
         padding: 0 1rem;
         gap: 0.75rem;
     }
-    
+
     .logo h1 {
         font-size: 1.1rem;
     }
-    
+
     .main-nav {
         gap: 1rem;
         margin-right: 0.5rem;
     }
-    
+
     .header-actions {
         gap: 0.5rem;
     }
@@ -124,7 +126,8 @@ html, body {
 .main-nav {
     display: flex;
     gap: 2rem;
-    margin-left: auto; /* Push to right */
+    margin-left: auto;
+    /* Push to right */
     margin-right: 2rem;
 }
 
@@ -158,7 +161,8 @@ html, body {
     -webkit-appearance: none;
     padding: 0.4rem 1.75rem 0.4rem 0.75rem;
     border: 1px solid var(--border-color);
-    border-radius: 999px; /* Pill shape */
+    border-radius: 999px;
+    /* Pill shape */
     background-color: var(--bg-primary);
     color: var(--text-primary);
     cursor: pointer;
@@ -269,11 +273,11 @@ html, body {
         text-align: center;
         gap: 3rem;
     }
-    
+
     .hero-container .hero-content {
         order: 2;
     }
-    
+
     .hero-container .hero-image {
         order: 1;
         justify-content: center;
@@ -438,16 +442,186 @@ html, body {
         gap: 1rem;
         text-align: center;
     }
-    
+
     .tool-row-icon {
         margin: 0 auto;
     }
-    
+
     .tool-row-action {
         justify-self: center;
         display: inline-block;
         width: fit-content;
         margin: 0 auto;
+    }
+}
+
+/* ===== Favorites Section ===== */
+.favorites-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.favorites-scroll {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scroll-behavior: smooth;
+}
+
+.favorites-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+
+.favorites-scroll::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+}
+
+.favorites-scroll::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.favorites-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+.favorite-tool-compact {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    text-decoration: none;
+    transition: var(--transition);
+    box-shadow: var(--shadow-card);
+    min-width: 120px;
+    flex-shrink: 0;
+}
+
+.favorite-tool-compact:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--accent-color);
+}
+
+.favorite-tool-compact-icon {
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    background-color: var(--bg-tertiary);
+    border-radius: 0.5rem;
+}
+
+.favorite-tool-compact-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: center;
+    line-height: 1.2;
+}
+
+.favorites-empty {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-secondary);
+    background-color: var(--bg-secondary);
+    border: 1px dashed var(--border-color);
+    border-radius: 0.75rem;
+}
+
+.favorites-empty p {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* ===== Tool Row Wrapper & Favorite Button ===== */
+.tool-row-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.tool-row-wrapper .tool-row {
+    flex: 1;
+}
+
+.favorite-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.favorite-btn:hover {
+    background-color: var(--bg-tertiary);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.favorite-btn.is-favorite {
+    background-color: rgba(255, 193, 7, 0.1);
+    border-color: #FFC107;
+    color: #FFC107;
+}
+
+.favorite-btn.is-favorite svg {
+    fill: #FFC107;
+}
+
+[data-theme="dark"] .favorite-btn.is-favorite {
+    background-color: rgba(255, 193, 7, 0.15);
+}
+
+.favorite-btn svg {
+    width: 18px;
+    height: 18px;
+    transition: var(--transition);
+}
+
+@media (max-width: 640px) {
+    .tool-row-wrapper {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .favorite-btn {
+        align-self: stretch;
+        width: 100%;
+    }
+
+    .favorites-scroll {
+        gap: 0.75rem;
+    }
+
+    .favorite-tool-compact {
+        min-width: 100px;
+        padding: 0.75rem;
+    }
+
+    .favorite-tool-compact-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1.5rem;
     }
 }
 
@@ -501,9 +675,17 @@ html, body {
     align-items: start;
 }
 
-.hash-inputs { grid-area: inputs; }
-.hash-results { grid-area: results; }
-.hash-algos { grid-area: algos; }
+.hash-inputs {
+    grid-area: inputs;
+}
+
+.hash-results {
+    grid-area: results;
+}
+
+.hash-algos {
+    grid-area: algos;
+}
 
 @media (max-width: 960px) {
     .hash-grid {
@@ -941,8 +1123,15 @@ html, body {
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
 }
 
 .skeleton-header {

@@ -1960,11 +1960,29 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add to favorites.
+        /// </summary>
+        public static string Home_AddToFavorites {
+            get {
+                return ResourceManager.GetString("Home_AddToFavorites", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Explore Utilities.
         /// </summary>
         public static string Home_ExploreUtilities {
             get {
                 return ResourceManager.GetString("Home_ExploreUtilities", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Favorites.
+        /// </summary>
+        public static string Home_Favorites {
+            get {
+                return ResourceManager.GetString("Home_Favorites", resourceCulture);
             }
         }
         
@@ -2064,6 +2082,24 @@ namespace MyDevTools.Site.Resources {
         public static string Home_NoDataSent {
             get {
                 return ResourceManager.GetString("Home_NoDataSent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No favorites yet. Click the star icon on any tool to add it to your favorites..
+        /// </summary>
+        public static string Home_NoFavorites {
+            get {
+                return ResourceManager.GetString("Home_NoFavorites", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove from favorites.
+        /// </summary>
+        public static string Home_RemoveFromFavorites {
+            get {
+                return ResourceManager.GetString("Home_RemoveFromFavorites", resourceCulture);
             }
         }
         

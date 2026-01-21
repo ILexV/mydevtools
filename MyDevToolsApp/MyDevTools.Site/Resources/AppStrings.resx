@@ -136,6 +136,18 @@
   <data name="Home_Launch" xml:space="preserve">
     <value>Launch</value>
   </data>
+  <data name="Home_Favorites" xml:space="preserve">
+    <value>Favorites</value>
+  </data>
+  <data name="Home_AddToFavorites" xml:space="preserve">
+    <value>Add to favorites</value>
+  </data>
+  <data name="Home_RemoveFromFavorites" xml:space="preserve">
+    <value>Remove from favorites</value>
+  </data>
+  <data name="Home_NoFavorites" xml:space="preserve">
+    <value>No favorites yet. Click the star icon on any tool to add it to your favorites.</value>
+  </data>
   <data name="Nav_Utilities" xml:space="preserve">
     <value>Utilities</value>
   </data>

@@ -12,7 +12,7 @@
 
 <HreflangLinks />
 
-<div class="home-page">
+<div id="home-page-root" class="home-page">
     <div class="hero-container">
         <div class="hero-content">
             <h1 class="hero-title">@AppStrings.AppName</h1>
@@ -25,6 +25,26 @@
         </div>
     </div>
 
+    @* Favorites Section *@
+    <div id="favorites-section" class="favorites-section">
+        <div class="section-header">
+            <h2 class="section-title">⭐ @AppStrings.Home_Favorites</h2>
+        </div>
+        <div class="favorites-scroll">
+            @foreach (var tool in GetTools())
+            {
+                <a href="/@Lang/@tool.Slug" class="favorite-tool-compact" data-tool-slug="@tool.Slug" style="display: none;">
+                    <div class="favorite-tool-compact-icon">@tool.Icon</div>
+                    <div class="favorite-tool-compact-title">@tool.Title</div>
+                </a>
+            }
+        </div>
+        <div class="favorites-empty" style="display: none;">
+            <p>@AppStrings.Home_NoFavorites</p>
+        </div>
+    </div>
+
+    @* All Tools Section *@
     <div id="tools" class="tools-section">
         <div class="section-header">
             <h2 class="section-title">@AppStrings.Home_FeaturedTools</h2>
@@ -32,16 +52,27 @@
         <div class="tool-list">
             @foreach (var tool in GetTools())
             {
-                <a href="/@Lang/@tool.Slug" class="tool-row">
-                    <div class="tool-row-icon">@tool.Icon</div>
-                    <div class="tool-row-content">
-                        <h3 class="tool-row-title">@tool.Title</h3>
-                        <p class="tool-row-description">@tool.Description</p>
-                    </div>
-                    <div class="tool-row-action">
-                        @AppStrings.Home_Launch
-                    </div>
-                </a>
+                <div class="tool-row-wrapper">
+                    <a href="/@Lang/@tool.Slug" class="tool-row">
+                        <div class="tool-row-icon">@tool.Icon</div>
+                        <div class="tool-row-content">
+                            <h3 class="tool-row-title">@tool.Title</h3>
+                            <p class="tool-row-description">@tool.Description</p>
+                        </div>
+                        <div class="tool-row-action">
+                            @AppStrings.Home_Launch
+                        </div>
+                    </a>
+                    <button class="favorite-btn" 
+                            data-tool-slug="@tool.Slug" 
+                            aria-label="@AppStrings.Home_AddToFavorites"
+                            aria-pressed="false"
+                            title="@AppStrings.Home_AddToFavorites">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
             }
         </div>
     </div>

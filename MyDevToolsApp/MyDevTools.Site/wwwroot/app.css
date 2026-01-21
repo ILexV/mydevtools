@@ -1223,6 +1223,6 @@ body {
     cursor: pointer;
 }
 
-.setting-group input[type=\ checkbox\] {
+.setting-group input[type="checkbox"] {
     margin: 0;
 }

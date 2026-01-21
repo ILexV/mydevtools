@@ -19,6 +19,10 @@
                 // ignore
             }
         })();
+        
+        // Disable Blazor Enhanced Navigation
+        window.Blazor = window.Blazor || {};
+        window.Blazor.enhancedNavigationEnabled = false;
     </script>
     <ResourcePreloader />
     
@@ -28,56 +32,141 @@
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["MyDevTools.Site.styles.css"]" />
     
-    <!-- CodeMirror CSS -->
-    <link rel="stylesheet" href="@Assets["lib/codemirror/codemirror.min.css"]" />
-    <link rel="stylesheet" href="@Assets["lib/codemirror/addon/fold/foldgutter.min.css"]" />
-    <link rel="stylesheet" href="@Assets["tools/json-beautifier.css"]" />
-    <link rel="stylesheet" href="@Assets["tools/text-case-converter.css"]" />
-    <link rel="stylesheet" href="@Assets["tools/xml-beautifier.css"]" />
+    @* CodeMirror CSS - only for pages that need it *@
+    @if (NeedsCodeMirror)
+    {
+        <link rel="stylesheet" href="@Assets["lib/codemirror/codemirror.min.css"]" />
+        <link rel="stylesheet" href="@Assets["lib/codemirror/addon/fold/foldgutter.min.css"]" />
+    }
+    @if (IsJsonBeautifier)
+    {
+        <link rel="stylesheet" href="@Assets["tools/json-beautifier.css"]" />
+    }
+    @if (IsXmlBeautifier)
+    {
+        <link rel="stylesheet" href="@Assets["tools/xml-beautifier.css"]" />
+    }
+    @if (IsTextCaseConverter)
+    {
+        <link rel="stylesheet" href="@Assets["tools/text-case-converter.css"]" />
+    }
     
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
     <HeadOutlet />
 </head>
 
-<body>
+<body data-enhance-nav="false">
     <Routes />
+    
+    @* Core scripts - always loaded *@
     <script src="@Assets["file-drop.js"]"></script>
     <script src="@Assets["tools/file-processing.js"]"></script>
     <script src="@Assets["theme.js"]"></script>
     <script src="@Assets["favorites.js"]"></script>
-    <script src="@Assets["_framework/blazor.web.js"]"></script>
-    <script src="@Assets["tools/hash-calculator.js"]" defer></script>
-    <script src="@Assets["tools/text-case-converter.js"]" defer></script>
-    <script src="@Assets["tools/url-encoder.js"]" defer></script>
-    <script src="@Assets["tools/hex-encoder.js"]" defer></script>
-    <script src="@Assets["tools/base64-encoder.js"]" defer></script>
-    <script src="@Assets["tools/base32-encoder.js"]" defer></script>
-    <script src="@Assets["tools/base58-encoder.js"]" defer></script>
-    <script src="@Assets["tools/openssh-keys.js"]" defer></script>
-    <script src="@Assets["tools/x509-tool.js"]" defer></script>
-    <script src="@Assets["tools/aead-file.js"]" defer></script>
-    <script src="@Assets["tools/password-generator.js"]" defer></script>
-    <script src="@Assets["tools/date-converter.js"]" defer></script>
-    <script src="@Assets["tools/jwt-debugger.js"]" defer></script>
     
-    <!-- CodeMirror JavaScript -->
-    <script src="@Assets["lib/codemirror/codemirror.min.js"]" defer></script>
-    <script src="@Assets["lib/codemirror/mode/javascript/javascript.min.js"]" defer></script>
-    <script src="@Assets["lib/codemirror/addon/fold/foldcode.min.js"]" defer></script>
-    <script src="@Assets["lib/codemirror/addon/fold/foldgutter.min.js"]" defer></script>
-    <script src="@Assets["lib/codemirror/addon/fold/brace-fold.min.js"]" defer></script>
-    <script src="@Assets["lib/codemirror/addon/edit/closebrackets.min.js"]" defer></script>
-    <script src="@Assets["lib/codemirror/addon/edit/matchbrackets.min.js"]" defer></script>
-    <script src="@Assets["tools/json-beautifier.js"]" defer></script>
-    <script src="@Assets["tools/xml-beautifier.js"]" defer></script>
-
+    @* CodeMirror - only for JSON/XML beautifiers *@
+    @if (NeedsCodeMirror)
+    {
+        <script src="@Assets["lib/codemirror/codemirror.min.js"]"></script>
+        <script src="@Assets["lib/codemirror/mode/javascript/javascript.min.js"]"></script>
+        <script src="@Assets["lib/codemirror/addon/fold/foldcode.min.js"]"></script>
+        <script src="@Assets["lib/codemirror/addon/fold/foldgutter.min.js"]"></script>
+        <script src="@Assets["lib/codemirror/addon/fold/brace-fold.min.js"]"></script>
+        <script src="@Assets["lib/codemirror/addon/edit/closebrackets.min.js"]"></script>
+        <script src="@Assets["lib/codemirror/addon/edit/matchbrackets.min.js"]"></script>
+    }
+    
+    @* Tool-specific scripts *@
+    @if (IsJsonBeautifier)
+    {
+        <script src="@Assets["tools/json-beautifier.js"]"></script>
+    }
+    @if (IsXmlBeautifier)
+    {
+        <script src="@Assets["tools/xml-beautifier.js"]"></script>
+    }
+    @if (IsHashCalculator)
+    {
+        <script src="@Assets["tools/hash-calculator.js"]"></script>
+    }
+    @if (IsPasswordGenerator)
+    {
+        <script src="@Assets["tools/password-generator.js"]"></script>
+    }
+    @if (IsTextCaseConverter)
+    {
+        <script src="@Assets["tools/text-case-converter.js"]"></script>
+    }
+    @if (IsUrlEncoder)
+    {
+        <script src="@Assets["tools/url-encoder.js"]"></script>
+    }
+    @if (IsHexEncoder)
+    {
+        <script src="@Assets["tools/hex-encoder.js"]"></script>
+    }
+    @if (IsBase64Encoder)
+    {
+        <script src="@Assets["tools/base64-encoder.js"]"></script>
+    }
+    @if (IsBase32Encoder)
+    {
+        <script src="@Assets["tools/base32-encoder.js"]"></script>
+    }
+    @if (IsBase58Encoder)
+    {
+        <script src="@Assets["tools/base58-encoder.js"]"></script>
+    }
+    @if (IsOpenSshKeys)
+    {
+        <script src="@Assets["tools/openssh-keys.js"]"></script>
+    }
+    @if (IsX509Tool)
+    {
+        <script src="@Assets["tools/x509-tool.js"]"></script>
+    }
+    @if (IsAeadFile)
+    {
+        <script src="@Assets["tools/aead-file.js"]"></script>
+    }
+    @if (IsDateConverter)
+    {
+        <script src="@Assets["tools/date-converter.js"]"></script>
+    }
+    @if (IsJwtDebugger)
+    {
+        <script src="@Assets["tools/jwt-debugger.js"]"></script>
+    }
+    
     <script src="@Assets["_framework/blazor.web.js"]" data-enhance-nav="false"></script>
 </body>
 
 </html>
 
 @code {
+    private string CurrentPath => HttpContextAccessor.HttpContext?.Request.Path.Value ?? "";
+    
+    // Tool page checks
+    private bool IsJsonBeautifier => CurrentPath.Contains("/json-beautifier", StringComparison.OrdinalIgnoreCase);
+    private bool IsXmlBeautifier => CurrentPath.Contains("/xml-beautifier", StringComparison.OrdinalIgnoreCase);
+    private bool IsHashCalculator => CurrentPath.Contains("/hash-calculator", StringComparison.OrdinalIgnoreCase);
+    private bool IsPasswordGenerator => CurrentPath.Contains("/password-generator", StringComparison.OrdinalIgnoreCase);
+    private bool IsTextCaseConverter => CurrentPath.Contains("/text-case-converter", StringComparison.OrdinalIgnoreCase);
+    private bool IsUrlEncoder => CurrentPath.Contains("/url-encoder", StringComparison.OrdinalIgnoreCase);
+    private bool IsHexEncoder => CurrentPath.Contains("/hex-encoder", StringComparison.OrdinalIgnoreCase);
+    private bool IsBase64Encoder => CurrentPath.Contains("/base64-encoder", StringComparison.OrdinalIgnoreCase);
+    private bool IsBase32Encoder => CurrentPath.Contains("/base32-encoder", StringComparison.OrdinalIgnoreCase);
+    private bool IsBase58Encoder => CurrentPath.Contains("/base58-encoder", StringComparison.OrdinalIgnoreCase);
+    private bool IsOpenSshKeys => CurrentPath.Contains("/openssh-keys", StringComparison.OrdinalIgnoreCase);
+    private bool IsX509Tool => CurrentPath.Contains("/x509", StringComparison.OrdinalIgnoreCase);
+    private bool IsAeadFile => CurrentPath.Contains("/aead", StringComparison.OrdinalIgnoreCase);
+    private bool IsDateConverter => CurrentPath.Contains("/date-converter", StringComparison.OrdinalIgnoreCase);
+    private bool IsJwtDebugger => CurrentPath.Contains("/jwt-debugger", StringComparison.OrdinalIgnoreCase);
+    
+    // CodeMirror is needed for JSON and XML beautifiers
+    private bool NeedsCodeMirror => IsJsonBeautifier || IsXmlBeautifier;
+    
     private string? InitialTheme
     {
         get
@@ -92,3 +181,4 @@
             ? null
             : new Dictionary<string, object> { ["data-theme"] = InitialTheme };
 }
+

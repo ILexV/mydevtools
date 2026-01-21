@@ -1,0 +1,180 @@
+@page "/{lang}/jwt-debugger"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<MetaTags Title="@AppStrings.JwtDebugger_Title"
+          Description="@AppStrings.JwtDebugger_Description"
+          CurrentUrl="@Navigation.Uri" />
+
+<HreflangLinks ToolPath="jwt-debugger" />
+
+<JsonLdTool ToolName="@AppStrings.JwtDebugger_Title"
+            Description="@AppStrings.JwtDebugger_Description"
+            CurrentUrl="@Navigation.Uri" />
+
+<ToolLayout Title="@AppStrings.JwtDebugger_Title" Description="@AppStrings.JwtDebugger_Description">
+    <div id="jwt-debugger-root" class="jwt-debugger-container"
+         data-loading="@AppStrings.Common_Loading"
+         data-error="@AppStrings.Common_Error"
+         data-copy="@AppStrings.HashCalculator_Copy"
+         data-copied="@AppStrings.HashCalculator_Copied"
+         data-signature-verified="@AppStrings.JwtDebugger_SignatureVerified"
+         data-signature-invalid="@AppStrings.JwtDebugger_SignatureInvalid">
+
+        <!-- Encoded Token Input -->
+        <div class="jwt-section">
+            <h3 class="jwt-section-title">@AppStrings.JwtDebugger_EncodedLabel</h3>
+            <textarea id="jwt-encoded" class="jwt-textarea jwt-encoded-input" placeholder="@AppStrings.JwtDebugger_EncodedPlaceholder" spellcheck="false"></textarea>
+            <div class="jwt-error-message" id="jwt-encoded-error" hidden></div>
+        </div>
+
+        <div class="jwt-decoder-layout">
+            <!-- Header (Decoded) -->
+            <div class="jwt-column">
+                <h3 class="jwt-section-title">@AppStrings.JwtDebugger_DecodedHeaderLabel</h3>
+                <textarea id="jwt-header" class="jwt-textarea jwt-code" spellcheck="false"></textarea>
+            </div>
+
+            <!-- Payload (Decoded) -->
+            <div class="jwt-column">
+                <h3 class="jwt-section-title">@AppStrings.JwtDebugger_DecodedPayloadLabel</h3>
+                <textarea id="jwt-payload" class="jwt-textarea jwt-code" spellcheck="false"></textarea>
+            </div>
+        </div>
+
+        <!-- Signature Verification -->
+        <div class="jwt-section jwt-signature-section">
+            <h3 class="jwt-section-title">@AppStrings.JwtDebugger_SignatureLabel</h3>
+            
+            <div class="jwt-signature-controls">
+                <div class="jwt-algorithm-display">
+                    Algorithm: <span id="jwt-algorithm-value" class="jwt-badge">HS256</span>
+                </div>
+
+                <div class="jwt-secret-container">
+                    <label for="jwt-secret">@AppStrings.JwtDebugger_SecretLabel</label>
+                    <textarea id="jwt-secret" class="jwt-secret-input" placeholder="@AppStrings.JwtDebugger_SecretPlaceholder" spellcheck="false"></textarea>
+                </div>
+            </div>
+
+            <div class="jwt-signature-status" id="jwt-signature-status" hidden>
+                <!-- Status icon and text injected by JS -->
+            </div>
+        </div>
+
+    </div>
+</ToolLayout>
+
+<style>
+    .jwt-debugger-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .jwt-textarea {
+        width: 100%;
+        font-family: 'JetBrains Mono', 'Consolas', monospace;
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background-color: var(--bg-surface);
+        color: var(--text-primary);
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .jwt-encoded-input {
+        min-height: 150px;
+        font-size: 1.1rem;
+        line-height: 1.4;
+        word-break: break-all;
+    }
+
+    .jwt-code {
+        font-size: 0.9rem;
+        min-height: 250px;
+        color: var(--text-vscode); /* Assuming theme var exists, or fallback */
+    }
+
+    .jwt-decoder-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    @@media (max-width: 768px) {
+        .jwt-decoder-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .jwt-section-title {
+        margin-bottom: 0.5rem;
+        margin-top: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    .jwt-error-message {
+        color: var(--error-color, #ff4444);
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .jwt-secret-input {
+        width: 100%;
+        font-family: monospace;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background-color: var(--bg-surface-alt, #f5f5f5);
+        min-height: 80px;
+        resize: vertical;
+    }
+    
+    .jwt-signature-section {
+        background-color: var(--bg-surface-secondary);
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    }
+
+    .jwt-badge {
+        display: inline-block;
+        padding: 0.25em 0.6em;
+        font-size: 0.85em;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--text-inverse);
+        background-color: var(--primary-color);
+        border-radius: 0.25rem;
+        margin-left: 0.5rem;
+    }
+
+    .jwt-signature-status {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 4px;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .jwt-signature-status.verified {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+        border: 1px solid #28a745;
+    }
+
+    .jwt-signature-status.invalid {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        border: 1px solid #dc3545;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

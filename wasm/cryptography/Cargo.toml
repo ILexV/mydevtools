@@ -27,9 +27,12 @@ ctr = "0.9"
 bcrypt-pbkdf = "0.10"
 num-bigint-dig = "0.8"
 pkcs8 = { version = "0.10", features = ["pem", "encryption"] }
-rcgen = "0.13"
-ring = { version = "0.17", features = ["wasm32_unknown_unknown_js"] }
+# rcgen = "0.13"
+# ring = { version = "0.17", features = ["wasm32_unknown_unknown_js"] }
 x509-parser = { version = "0.16" }
+hmac = "0.12"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"

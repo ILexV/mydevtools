@@ -1139,4 +1139,37 @@
   <data name="DateConverter_CustomFormatPlaceholder" xml:space="preserve">
     <value>Ingrese formato (ej. dd/MM/yyyy)</value>
   </data>
+  <data name="JwtDebugger_Title" xml:space="preserve">
+    <value>Depurador JWT</value>
+  </data>
+  <data name="JwtDebugger_Description" xml:space="preserve">
+    <value>Decodifica, verifica y firma JSON Web Tokens (JWT) directamente en tu navegador.</value>
+  </data>
+  <data name="JwtDebugger_EncodedLabel" xml:space="preserve">
+    <value>Token Codificado</value>
+  </data>
+  <data name="JwtDebugger_EncodedPlaceholder" xml:space="preserve">
+    <value>Pega el JWT aquí...</value>
+  </data>
+  <data name="JwtDebugger_DecodedHeaderLabel" xml:space="preserve">
+    <value>Encabezado (Decoded)</value>
+  </data>
+  <data name="JwtDebugger_DecodedPayloadLabel" xml:space="preserve">
+    <value>Carga útil (Decoded)</value>
+  </data>
+  <data name="JwtDebugger_SignatureLabel" xml:space="preserve">
+    <value>Veriricar Firma</value>
+  </data>
+  <data name="JwtDebugger_SecretLabel" xml:space="preserve">
+    <value>Secreto (para HMAC) o Clave Pública (para RSA)</value>
+  </data>
+  <data name="JwtDebugger_SecretPlaceholder" xml:space="preserve">
+    <value>Introduce tu secreto...</value>
+  </data>
+  <data name="JwtDebugger_SignatureVerified" xml:space="preserve">
+    <value>Firma Verificada</value>
+  </data>
+  <data name="JwtDebugger_SignatureInvalid" xml:space="preserve">
+    <value>Firma Inválida</value>
+  </data>
 </root>

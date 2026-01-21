@@ -1010,6 +1010,85 @@ export function ed25519_verify(public_key, message, signature) {
 }
 
 /**
+ * @param {string} token
+ * @returns {string}
+ */
+export function jwt_decode(token) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        const ptr0 = passStringToWasm0(token, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.jwt_decode(ptr0, len0);
+        var ptr2 = ret[0];
+        var len2 = ret[1];
+        if (ret[3]) {
+            ptr2 = 0; len2 = 0;
+            throw takeFromExternrefTable0(ret[2]);
+        }
+        deferred3_0 = ptr2;
+        deferred3_1 = len2;
+        return getStringFromWasm0(ptr2, len2);
+    } finally {
+        wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
+ * @param {string} header_json
+ * @param {string} payload_json
+ * @param {string} secret
+ * @param {string} alg
+ * @returns {string}
+ */
+export function jwt_sign(header_json, payload_json, secret, alg) {
+    let deferred6_0;
+    let deferred6_1;
+    try {
+        const ptr0 = passStringToWasm0(header_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passStringToWasm0(payload_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len1 = WASM_VECTOR_LEN;
+        const ptr2 = passStringToWasm0(secret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len2 = WASM_VECTOR_LEN;
+        const ptr3 = passStringToWasm0(alg, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len3 = WASM_VECTOR_LEN;
+        const ret = wasm.jwt_sign(ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3);
+        var ptr5 = ret[0];
+        var len5 = ret[1];
+        if (ret[3]) {
+            ptr5 = 0; len5 = 0;
+            throw takeFromExternrefTable0(ret[2]);
+        }
+        deferred6_0 = ptr5;
+        deferred6_1 = len5;
+        return getStringFromWasm0(ptr5, len5);
+    } finally {
+        wasm.__wbindgen_free(deferred6_0, deferred6_1, 1);
+    }
+}
+
+/**
+ * @param {string} token
+ * @param {string} secret
+ * @param {string} alg
+ * @returns {boolean}
+ */
+export function jwt_verify(token, secret, alg) {
+    const ptr0 = passStringToWasm0(token, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passStringToWasm0(secret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ptr2 = passStringToWasm0(alg, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len2 = WASM_VECTOR_LEN;
+    const ret = wasm.jwt_verify(ptr0, len0, ptr1, len1, ptr2, len2);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return ret[0] !== 0;
+}
+
+/**
  * Derives a 32-byte key using Argon2id.
  *
  * Params are intentionally explicit for UI control.
@@ -2055,168 +2134,6 @@ export function version() {
 }
 
 /**
- * Basic chain checks for a PEM certificate list (order: leaf -> root).
- *
- * Note: signature verification is not performed; checks only subject/issuer linkage and validity.
- * @param {string[]} pem_chain
- * @param {bigint} now_unix
- * @returns {string[]}
- */
-export function x509_chain_warnings_pem(pem_chain, now_unix) {
-    const ptr0 = passArrayJsValueToWasm0(pem_chain, wasm.__wbindgen_malloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.x509_chain_warnings_pem(ptr0, len0, now_unix);
-    if (ret[3]) {
-        throw takeFromExternrefTable0(ret[2]);
-    }
-    var v2 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
-    wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
-    return v2;
-}
-
-/**
- * Generates a CSR and private key (PEM).
- *
- * algorithm: 1 = Ed25519, 2 = ECDSA P-256, 3 = ECDSA P-384
- * Returns [csr_pem, key_pem].
- * @param {number} algorithm
- * @param {string | null | undefined} subject_cn
- * @param {string[]} san_dns
- * @param {string[]} san_ip
- * @returns {string[]}
- */
-export function x509_csr_pem(algorithm, subject_cn, san_dns, san_ip) {
-    var ptr0 = isLikeNone(subject_cn) ? 0 : passStringToWasm0(subject_cn, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    var len0 = WASM_VECTOR_LEN;
-    const ptr1 = passArrayJsValueToWasm0(san_dns, wasm.__wbindgen_malloc);
-    const len1 = WASM_VECTOR_LEN;
-    const ptr2 = passArrayJsValueToWasm0(san_ip, wasm.__wbindgen_malloc);
-    const len2 = WASM_VECTOR_LEN;
-    const ret = wasm.x509_csr_pem(algorithm, ptr0, len0, ptr1, len1, ptr2, len2);
-    if (ret[3]) {
-        throw takeFromExternrefTable0(ret[2]);
-    }
-    var v4 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
-    wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
-    return v4;
-}
-
-/**
- * Parses certificate from DER and returns JSON string with basic fields.
- * @param {Uint8Array} der
- * @returns {string}
- */
-export function x509_parse_der(der) {
-    let deferred3_0;
-    let deferred3_1;
-    try {
-        const ptr0 = passArray8ToWasm0(der, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.x509_parse_der(ptr0, len0);
-        var ptr2 = ret[0];
-        var len2 = ret[1];
-        if (ret[3]) {
-            ptr2 = 0; len2 = 0;
-            throw takeFromExternrefTable0(ret[2]);
-        }
-        deferred3_0 = ptr2;
-        deferred3_1 = len2;
-        return getStringFromWasm0(ptr2, len2);
-    } finally {
-        wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
-    }
-}
-
-/**
- * Parses certificate from PEM and returns JSON string with basic fields.
- * @param {string} pem
- * @returns {string}
- */
-export function x509_parse_pem(pem) {
-    let deferred3_0;
-    let deferred3_1;
-    try {
-        const ptr0 = passStringToWasm0(pem, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.x509_parse_pem(ptr0, len0);
-        var ptr2 = ret[0];
-        var len2 = ret[1];
-        if (ret[3]) {
-            ptr2 = 0; len2 = 0;
-            throw takeFromExternrefTable0(ret[2]);
-        }
-        deferred3_0 = ptr2;
-        deferred3_1 = len2;
-        return getStringFromWasm0(ptr2, len2);
-    } finally {
-        wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
-    }
-}
-
-/**
- * Generates a self-signed certificate and private key (PEM).
- *
- * algorithm: 1 = Ed25519, 2 = ECDSA P-256, 3 = ECDSA P-384
- * Returns [cert_pem, key_pem].
- * @param {number} algorithm
- * @param {string | null | undefined} subject_cn
- * @param {string[]} san_dns
- * @param {string[]} san_ip
- * @returns {string[]}
- */
-export function x509_self_signed_pem(algorithm, subject_cn, san_dns, san_ip) {
-    var ptr0 = isLikeNone(subject_cn) ? 0 : passStringToWasm0(subject_cn, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    var len0 = WASM_VECTOR_LEN;
-    const ptr1 = passArrayJsValueToWasm0(san_dns, wasm.__wbindgen_malloc);
-    const len1 = WASM_VECTOR_LEN;
-    const ptr2 = passArrayJsValueToWasm0(san_ip, wasm.__wbindgen_malloc);
-    const len2 = WASM_VECTOR_LEN;
-    const ret = wasm.x509_self_signed_pem(algorithm, ptr0, len0, ptr1, len1, ptr2, len2);
-    if (ret[3]) {
-        throw takeFromExternrefTable0(ret[2]);
-    }
-    var v4 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
-    wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
-    return v4;
-}
-
-/**
- * Returns warnings for a DER certificate (provide current unix timestamp).
- * @param {Uint8Array} der
- * @param {bigint} now_unix
- * @returns {string[]}
- */
-export function x509_warnings_der(der, now_unix) {
-    const ptr0 = passArray8ToWasm0(der, wasm.__wbindgen_malloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.x509_warnings_der(ptr0, len0, now_unix);
-    if (ret[3]) {
-        throw takeFromExternrefTable0(ret[2]);
-    }
-    var v2 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
-    wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
-    return v2;
-}
-
-/**
- * Returns warnings for a PEM certificate (provide current unix timestamp).
- * @param {string} pem
- * @param {bigint} now_unix
- * @returns {string[]}
- */
-export function x509_warnings_pem(pem, now_unix) {
-    const ptr0 = passStringToWasm0(pem, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.x509_warnings_pem(ptr0, len0, now_unix);
-    if (ret[3]) {
-        throw takeFromExternrefTable0(ret[2]);
-    }
-    var v2 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
-    wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
-    return v2;
-}
-
-/**
  * XChaCha20-Poly1305 decrypt (nonce = 24 bytes). Expects ciphertext with tag appended.
  * @param {Uint8Array} key
  * @param {Uint8Array} nonce
@@ -2341,14 +2258,6 @@ function __wbg_get_imports() {
         __wbg___wbindgen_is_undefined_9e4d92534c42d778: function(arg0) {
             const ret = arg0 === undefined;
             return ret;
-        },
-        __wbg___wbindgen_string_get_72fb696202c56729: function(arg0, arg1) {
-            const obj = arg1;
-            const ret = typeof(obj) === 'string' ? obj : undefined;
-            var ptr1 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-            var len1 = WASM_VECTOR_LEN;
-            getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
-            getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
         },
         __wbg___wbindgen_throw_be289d5034ed271b: function(arg0, arg1) {
             throw new Error(getStringFromWasm0(arg0, arg1));
@@ -2525,16 +2434,6 @@ function passArray8ToWasm0(arg, malloc) {
     const ptr = malloc(arg.length * 1, 1) >>> 0;
     getUint8ArrayMemory0().set(arg, ptr / 1);
     WASM_VECTOR_LEN = arg.length;
-    return ptr;
-}
-
-function passArrayJsValueToWasm0(array, malloc) {
-    const ptr = malloc(array.length * 4, 4) >>> 0;
-    for (let i = 0; i < array.length; i++) {
-        const add = addToExternrefTable0(array[i]);
-        getDataViewMemory0().setUint32(ptr + 4 * i, add, true);
-    }
-    WASM_VECTOR_LEN = array.length;
     return ptr;
 }
 

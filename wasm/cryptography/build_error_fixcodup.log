@@ -1,0 +1,6 @@
+error: duplicate key `num-bigint-dig` in table `dependencies`
+  --> Cargo.toml:29:1
+   |
+29 | num-bigint-dig = "0.8"
+   | ^
+   |

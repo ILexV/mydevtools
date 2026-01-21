@@ -1197,4 +1197,38 @@
   <data name="DateConverter_CustomFormatPlaceholder" xml:space="preserve">
     <value>Enter format (e.g. dd/MM/yyyy)</value>
   </data>
+  <!-- JWT Debugger -->
+  <data name="JwtDebugger_Title" xml:space="preserve">
+    <value>JWT Debugger</value>
+  </data>
+  <data name="JwtDebugger_Description" xml:space="preserve">
+    <value>Decode, verify, and generate JSON Web Tokens (JWT) directly in your browser.</value>
+  </data>
+  <data name="JwtDebugger_EncodedLabel" xml:space="preserve">
+    <value>Encoded</value>
+  </data>
+  <data name="JwtDebugger_EncodedPlaceholder" xml:space="preserve">
+    <value>Paste a JWT here...</value>
+  </data>
+  <data name="JwtDebugger_DecodedHeaderLabel" xml:space="preserve">
+    <value>Header</value>
+  </data>
+  <data name="JwtDebugger_DecodedPayloadLabel" xml:space="preserve">
+    <value>Payload</value>
+  </data>
+  <data name="JwtDebugger_SignatureLabel" xml:space="preserve">
+    <value>Verify Signature</value>
+  </data>
+  <data name="JwtDebugger_SecretLabel" xml:space="preserve">
+    <value>Secret / Public Key</value>
+  </data>
+  <data name="JwtDebugger_SecretPlaceholder" xml:space="preserve">
+    <value>Enter your 256-bit secret...</value>
+  </data>
+  <data name="JwtDebugger_SignatureVerified" xml:space="preserve">
+    <value>Signature Verified</value>
+  </data>
+  <data name="JwtDebugger_SignatureInvalid" xml:space="preserve">
+    <value>Invalid Signature</value>
+  </data>
 </root>

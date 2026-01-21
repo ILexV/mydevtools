@@ -1138,4 +1138,37 @@
   <data name="DateConverter_CustomFormatPlaceholder" xml:space="preserve">
     <value>Введите формат (напр. dd/MM/yyyy)</value>
   </data>
+  <data name="JwtDebugger_Title" xml:space="preserve">
+    <value>Отладчик JWT</value>
+  </data>
+  <data name="JwtDebugger_Description" xml:space="preserve">
+    <value>Декодирование, проверка и подпись JSON Web Tokens (JWT) прямо в вашем браузере.</value>
+  </data>
+  <data name="JwtDebugger_EncodedLabel" xml:space="preserve">
+    <value>Закодированный токен</value>
+  </data>
+  <data name="JwtDebugger_EncodedPlaceholder" xml:space="preserve">
+    <value>Вставьте JWT сюда...</value>
+  </data>
+  <data name="JwtDebugger_DecodedHeaderLabel" xml:space="preserve">
+    <value>Заголовок (Decoded)</value>
+  </data>
+  <data name="JwtDebugger_DecodedPayloadLabel" xml:space="preserve">
+    <value>Полезная нагрузка (Decoded)</value>
+  </data>
+  <data name="JwtDebugger_SignatureLabel" xml:space="preserve">
+    <value>Проверка подписи</value>
+  </data>
+  <data name="JwtDebugger_SecretLabel" xml:space="preserve">
+    <value>Секрет (для HMAC) или Публичный ключ (для RSA)</value>
+  </data>
+  <data name="JwtDebugger_SecretPlaceholder" xml:space="preserve">
+    <value>Введите секрет...</value>
+  </data>
+  <data name="JwtDebugger_SignatureVerified" xml:space="preserve">
+    <value>Подпись проверена</value>
+  </data>
+  <data name="JwtDebugger_SignatureInvalid" xml:space="preserve">
+    <value>Неверная подпись</value>
+  </data>
 </root>

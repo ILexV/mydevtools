@@ -8,7 +8,8 @@ pub mod kdf;
 pub mod openssh;
 pub mod signing;
 pub mod rsa_pss;
-pub mod x509;
+// pub mod x509;
+pub mod jwt;
 
 #[wasm_bindgen]
 pub fn version() -> String {

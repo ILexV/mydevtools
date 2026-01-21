@@ -2248,6 +2248,105 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Header.
+        /// </summary>
+        public static string JwtDebugger_DecodedHeaderLabel {
+            get {
+                return ResourceManager.GetString("JwtDebugger_DecodedHeaderLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Payload.
+        /// </summary>
+        public static string JwtDebugger_DecodedPayloadLabel {
+            get {
+                return ResourceManager.GetString("JwtDebugger_DecodedPayloadLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Decode, verify, and generate JSON Web Tokens (JWT) directly in your browser..
+        /// </summary>
+        public static string JwtDebugger_Description {
+            get {
+                return ResourceManager.GetString("JwtDebugger_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encoded.
+        /// </summary>
+        public static string JwtDebugger_EncodedLabel {
+            get {
+                return ResourceManager.GetString("JwtDebugger_EncodedLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Paste a JWT here....
+        /// </summary>
+        public static string JwtDebugger_EncodedPlaceholder {
+            get {
+                return ResourceManager.GetString("JwtDebugger_EncodedPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Secret / Public Key.
+        /// </summary>
+        public static string JwtDebugger_SecretLabel {
+            get {
+                return ResourceManager.GetString("JwtDebugger_SecretLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter your 256-bit secret....
+        /// </summary>
+        public static string JwtDebugger_SecretPlaceholder {
+            get {
+                return ResourceManager.GetString("JwtDebugger_SecretPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid Signature.
+        /// </summary>
+        public static string JwtDebugger_SignatureInvalid {
+            get {
+                return ResourceManager.GetString("JwtDebugger_SignatureInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verify Signature.
+        /// </summary>
+        public static string JwtDebugger_SignatureLabel {
+            get {
+                return ResourceManager.GetString("JwtDebugger_SignatureLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Signature Verified.
+        /// </summary>
+        public static string JwtDebugger_SignatureVerified {
+            get {
+                return ResourceManager.GetString("JwtDebugger_SignatureVerified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JWT Debugger.
+        /// </summary>
+        public static string JwtDebugger_Title {
+            get {
+                return ResourceManager.GetString("JwtDebugger_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to AEAD File.
         /// </summary>
         public static string Nav_AeadFile {

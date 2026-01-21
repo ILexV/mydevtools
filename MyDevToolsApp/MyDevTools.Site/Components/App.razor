@@ -21,6 +21,10 @@
         })();
     </script>
     <ResourcePreloader />
+    
+    @* Preload critical resources *@
+    <link rel="preload" href="@Assets["app.css"]" as="style" />
+    
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["MyDevTools.Site.styles.css"]" />
     
@@ -43,30 +47,30 @@
     <script src="@Assets["theme.js"]"></script>
     <script src="@Assets["favorites.js"]"></script>
     <script src="@Assets["_framework/blazor.web.js"]"></script>
-    <script src="@Assets["tools/hash-calculator.js"]"></script>
-    <script src="@Assets["tools/text-case-converter.js"]"></script>
-    <script src="@Assets["tools/url-encoder.js"]"></script>
-    <script src="@Assets["tools/hex-encoder.js"]"></script>
-    <script src="@Assets["tools/base64-encoder.js"]"></script>
-    <script src="@Assets["tools/base32-encoder.js"]"></script>
-    <script src="@Assets["tools/base58-encoder.js"]"></script>
-    <script src="@Assets["tools/openssh-keys.js"]"></script>
-    <script src="@Assets["tools/x509-tool.js"]"></script>
-    <script src="@Assets["tools/aead-file.js"]"></script>
-    <script src="@Assets["tools/password-generator.js"]"></script>
-    <script src="@Assets["tools/date-converter.js"]"></script>
-    <script src="@Assets["tools/jwt-debugger.js"]"></script>
+    <script src="@Assets["tools/hash-calculator.js"]" defer></script>
+    <script src="@Assets["tools/text-case-converter.js"]" defer></script>
+    <script src="@Assets["tools/url-encoder.js"]" defer></script>
+    <script src="@Assets["tools/hex-encoder.js"]" defer></script>
+    <script src="@Assets["tools/base64-encoder.js"]" defer></script>
+    <script src="@Assets["tools/base32-encoder.js"]" defer></script>
+    <script src="@Assets["tools/base58-encoder.js"]" defer></script>
+    <script src="@Assets["tools/openssh-keys.js"]" defer></script>
+    <script src="@Assets["tools/x509-tool.js"]" defer></script>
+    <script src="@Assets["tools/aead-file.js"]" defer></script>
+    <script src="@Assets["tools/password-generator.js"]" defer></script>
+    <script src="@Assets["tools/date-converter.js"]" defer></script>
+    <script src="@Assets["tools/jwt-debugger.js"]" defer></script>
     
     <!-- CodeMirror JavaScript -->
-    <script src="@Assets["lib/codemirror/codemirror.min.js"]"></script>
-    <script src="@Assets["lib/codemirror/mode/javascript/javascript.min.js"]"></script>
-    <script src="@Assets["lib/codemirror/addon/fold/foldcode.min.js"]"></script>
-    <script src="@Assets["lib/codemirror/addon/fold/foldgutter.min.js"]"></script>
-    <script src="@Assets["lib/codemirror/addon/fold/brace-fold.min.js"]"></script>
-    <script src="@Assets["lib/codemirror/addon/edit/closebrackets.min.js"]"></script>
-    <script src="@Assets["lib/codemirror/addon/edit/matchbrackets.min.js"]"></script>
-    <script src="@Assets["tools/json-beautifier.js"]"></script>
-    <script src="@Assets["tools/xml-beautifier.js"]"></script>
+    <script src="@Assets["lib/codemirror/codemirror.min.js"]" defer></script>
+    <script src="@Assets["lib/codemirror/mode/javascript/javascript.min.js"]" defer></script>
+    <script src="@Assets["lib/codemirror/addon/fold/foldcode.min.js"]" defer></script>
+    <script src="@Assets["lib/codemirror/addon/fold/foldgutter.min.js"]" defer></script>
+    <script src="@Assets["lib/codemirror/addon/fold/brace-fold.min.js"]" defer></script>
+    <script src="@Assets["lib/codemirror/addon/edit/closebrackets.min.js"]" defer></script>
+    <script src="@Assets["lib/codemirror/addon/edit/matchbrackets.min.js"]" defer></script>
+    <script src="@Assets["tools/json-beautifier.js"]" defer></script>
+    <script src="@Assets["tools/xml-beautifier.js"]" defer></script>
 </body>
 
 </html>

@@ -1,0 +1,84 @@
+@page "/{lang}/date-converter"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<MetaTags Title="@AppStrings.DateConverter_Title"
+          Description="@AppStrings.DateConverter_Description"
+          CurrentUrl="@Navigation.Uri" />
+
+<HreflangLinks ToolPath="date-converter" />
+
+<JsonLdTool ToolName="@AppStrings.DateConverter_Title"
+            Description="@AppStrings.DateConverter_Description"
+            CurrentUrl="@Navigation.Uri" />
+
+<ToolLayout Title="@AppStrings.DateConverter_Title" Description="@AppStrings.DateConverter_Description">
+    <div id="date-converter-root"
+         data-error-invalid="@AppStrings.DateConverter_Error_Invalid"
+         data-copied="@AppStrings.DateConverter_Copied">
+
+        <div class="tool-grid">
+            <div class="input-section">
+                <div class="tool-settings">
+                    <div class="tool-setting">
+                        <label for="date-input-type">@AppStrings.DateConverter_InputTypeLabel</label>
+                        <select id="date-input-type">
+                            <option value="auto">@AppStrings.DateConverter_InputType_Auto</option>
+                            <option value="unix-sec">@AppStrings.DateConverter_InputType_UnixSec</option>
+                            <option value="unix-ms">@AppStrings.DateConverter_InputType_UnixMs</option>
+                            <option value="iso">@AppStrings.DateConverter_InputType_ISO</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label for="date-input">@AppStrings.DateConverter_InputLabel</label>
+                <textarea id="date-input" rows="3" class="code-font"></textarea>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="date-convert-btn" type="button">@AppStrings.DateConverter_ActionConvert</button>
+                    <button class="btn btn-secondary" id="date-now-btn" type="button">@AppStrings.DateConverter_ActionCurrentTime</button>
+                </div>
+                
+                <div class="tool-error" id="date-error" hidden></div>
+            </div>
+
+            <div class="output-section">
+                <div class="tool-settings">
+                    <div class="tool-setting">
+                        <label for="date-output-format">@AppStrings.DateConverter_OutputFormatLabel</label>
+                        <select id="date-output-format">
+                            <option value="iso">@AppStrings.DateConverter_Format_ISO</option>
+                            <option value="euro">@AppStrings.DateConverter_Format_European</option>
+                            <option value="utc">@AppStrings.DateConverter_Format_UTC</option>
+                            <option value="local">@AppStrings.DateConverter_Format_Local</option>
+                            <option value="rfc">@AppStrings.DateConverter_Format_RFC</option>
+                            <option value="unix-sec">@AppStrings.DateConverter_Format_UnixSec</option>
+                            <option value="unix-ms">@AppStrings.DateConverter_Format_UnixMs</option>
+                            <option value="custom">@AppStrings.DateConverter_Format_Custom</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="date-custom-fmt-container" hidden>
+                    <div class="tool-settings">
+                        <div class="tool-setting">
+                             <input id="date-output-custom-fmt" type="text" placeholder="@AppStrings.DateConverter_CustomFormatPlaceholder" value="dd.MM.yyyy HH:mm:ss" />
+                        </div>
+                    </div>
+                </div>
+
+                <label for="date-output">@AppStrings.DateConverter_OutputLabel</label>
+                <textarea id="date-output" rows="3" readonly class="code-font"></textarea>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="date-copy-btn" type="button">@AppStrings.DateConverter_Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</ToolLayout>
+
+@code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

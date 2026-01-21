@@ -1066,4 +1066,77 @@
   <data name="TextCaseConverter_UpperCase" xml:space="preserve">
     <value>MAYÚSCULAS</value>
   </data>
+  <!-- Date Converter -->
+  <data name="DateConverter_Title" xml:space="preserve">
+    <value>Convertidor de Fechas</value>
+  </data>
+  <data name="DateConverter_Description" xml:space="preserve">
+    <value>Convierta entre marcas de tiempo Unix y fechas legibles (ISO 8601, RFC 2822): todo en su navegador</value>
+  </data>
+  <data name="DateConverter_InputLabel" xml:space="preserve">
+    <value>Entrada (Fecha / Timestamp)</value>
+  </data>
+  <data name="DateConverter_OutputLabel" xml:space="preserve">
+    <value>Resultado</value>
+  </data>
+  <data name="DateConverter_ActionConvert" xml:space="preserve">
+    <value>Convertir</value>
+  </data>
+  <data name="DateConverter_ActionCurrentTime" xml:space="preserve">
+    <value>Hora Actual</value>
+  </data>
+  <data name="DateConverter_InputTypeLabel" xml:space="preserve">
+    <value>Tipo de entrada</value>
+  </data>
+  <data name="DateConverter_InputType_Auto" xml:space="preserve">
+    <value>Auto-detectar</value>
+  </data>
+  <data name="DateConverter_InputType_UnixSec" xml:space="preserve">
+    <value>Unix Timestamp (segundos)</value>
+  </data>
+  <data name="DateConverter_InputType_UnixMs" xml:space="preserve">
+    <value>Unix Timestamp (milisegundos)</value>
+  </data>
+  <data name="DateConverter_InputType_ISO" xml:space="preserve">
+    <value>Cadena ISO 8601</value>
+  </data>
+  <data name="DateConverter_OutputFormatLabel" xml:space="preserve">
+    <value>Formato de salida</value>
+  </data>
+  <data name="DateConverter_Format_ISO" xml:space="preserve">
+    <value>ISO 8601</value>
+  </data>
+  <data name="DateConverter_Format_RFC" xml:space="preserve">
+    <value>RFC 2822 / 5322</value>
+  </data>
+  <data name="DateConverter_Format_UnixSec" xml:space="preserve">
+    <value>Unix Timestamp (segundos)</value>
+  </data>
+  <data name="DateConverter_Format_UnixMs" xml:space="preserve">
+    <value>Unix Timestamp (milisegundos)</value>
+  </data>
+  <data name="DateConverter_Format_UTC" xml:space="preserve">
+    <value>Cadena UTC</value>
+  </data>
+  <data name="DateConverter_Format_Local" xml:space="preserve">
+    <value>Cadena Local</value>
+  </data>
+  <data name="DateConverter_Copy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="DateConverter_Copied" xml:space="preserve">
+    <value>¡Copiado!</value>
+  </data>
+  <data name="DateConverter_Error_Invalid" xml:space="preserve">
+    <value>Formato de fecha inválido.</value>
+  </data>
+  <data name="DateConverter_Format_European" xml:space="preserve">
+    <value>Europeo (dd.MM.yyyy HH:mm:ss)</value>
+  </data>
+  <data name="DateConverter_Format_Custom" xml:space="preserve">
+    <value>Formato personalizado</value>
+  </data>
+  <data name="DateConverter_CustomFormatPlaceholder" xml:space="preserve">
+    <value>Ingrese formato (ej. dd/MM/yyyy)</value>
+  </data>
 </root>

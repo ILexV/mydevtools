@@ -1294,6 +1294,222 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert.
+        /// </summary>
+        public static string DateConverter_ActionConvert {
+            get {
+                return ResourceManager.GetString("DateConverter_ActionConvert", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current Time (Now).
+        /// </summary>
+        public static string DateConverter_ActionCurrentTime {
+            get {
+                return ResourceManager.GetString("DateConverter_ActionCurrentTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copied!.
+        /// </summary>
+        public static string DateConverter_Copied {
+            get {
+                return ResourceManager.GetString("DateConverter_Copied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy.
+        /// </summary>
+        public static string DateConverter_Copy {
+            get {
+                return ResourceManager.GetString("DateConverter_Copy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter format (e.g. dd/MM/yyyy).
+        /// </summary>
+        public static string DateConverter_CustomFormatPlaceholder {
+            get {
+                return ResourceManager.GetString("DateConverter_CustomFormatPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert between Unix timestamps and human-readable dates (ISO 8601, RFC 2822) — all in your browser.
+        /// </summary>
+        public static string DateConverter_Description {
+            get {
+                return ResourceManager.GetString("DateConverter_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid date format..
+        /// </summary>
+        public static string DateConverter_Error_Invalid {
+            get {
+                return ResourceManager.GetString("DateConverter_Error_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Custom Format.
+        /// </summary>
+        public static string DateConverter_Format_Custom {
+            get {
+                return ResourceManager.GetString("DateConverter_Format_Custom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to European (dd.MM.yyyy HH:mm:ss).
+        /// </summary>
+        public static string DateConverter_Format_European {
+            get {
+                return ResourceManager.GetString("DateConverter_Format_European", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 8601.
+        /// </summary>
+        public static string DateConverter_Format_ISO {
+            get {
+                return ResourceManager.GetString("DateConverter_Format_ISO", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Local String.
+        /// </summary>
+        public static string DateConverter_Format_Local {
+            get {
+                return ResourceManager.GetString("DateConverter_Format_Local", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RFC 2822 / 5322.
+        /// </summary>
+        public static string DateConverter_Format_RFC {
+            get {
+                return ResourceManager.GetString("DateConverter_Format_RFC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unix Timestamp (Milliseconds).
+        /// </summary>
+        public static string DateConverter_Format_UnixMs {
+            get {
+                return ResourceManager.GetString("DateConverter_Format_UnixMs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unix Timestamp (Seconds).
+        /// </summary>
+        public static string DateConverter_Format_UnixSec {
+            get {
+                return ResourceManager.GetString("DateConverter_Format_UnixSec", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UTC String.
+        /// </summary>
+        public static string DateConverter_Format_UTC {
+            get {
+                return ResourceManager.GetString("DateConverter_Format_UTC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Date / Timestamp input.
+        /// </summary>
+        public static string DateConverter_InputLabel {
+            get {
+                return ResourceManager.GetString("DateConverter_InputLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Auto-detect.
+        /// </summary>
+        public static string DateConverter_InputType_Auto {
+            get {
+                return ResourceManager.GetString("DateConverter_InputType_Auto", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 8601 String.
+        /// </summary>
+        public static string DateConverter_InputType_ISO {
+            get {
+                return ResourceManager.GetString("DateConverter_InputType_ISO", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unix Timestamp (Milliseconds).
+        /// </summary>
+        public static string DateConverter_InputType_UnixMs {
+            get {
+                return ResourceManager.GetString("DateConverter_InputType_UnixMs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unix Timestamp (Seconds).
+        /// </summary>
+        public static string DateConverter_InputType_UnixSec {
+            get {
+                return ResourceManager.GetString("DateConverter_InputType_UnixSec", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Input Type.
+        /// </summary>
+        public static string DateConverter_InputTypeLabel {
+            get {
+                return ResourceManager.GetString("DateConverter_InputTypeLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Output Format.
+        /// </summary>
+        public static string DateConverter_OutputFormatLabel {
+            get {
+                return ResourceManager.GetString("DateConverter_OutputFormatLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Converted Date.
+        /// </summary>
+        public static string DateConverter_OutputLabel {
+            get {
+                return ResourceManager.GetString("DateConverter_OutputLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Date Converter.
+        /// </summary>
+        public static string DateConverter_Title {
+            get {
+                return ResourceManager.GetString("DateConverter_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Available.
         /// </summary>
         public static string HashCalculator_AlgorithmsAvailable {

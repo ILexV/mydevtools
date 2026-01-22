@@ -2,7 +2,6 @@ use wasm_bindgen::prelude::*;
 use std::io::Cursor;
 use image::{ImageFormat, ImageEncoder};
 use image::codecs::jpeg::JpegEncoder;
-use image::codecs::webp::WebPEncoder;
 
 #[wasm_bindgen]
 pub fn compress_image(input_data: &[u8], format_str: &str, quality: u8) -> Result<Vec<u8>, String> {
@@ -11,11 +10,13 @@ pub fn compress_image(input_data: &[u8], format_str: &str, quality: u8) -> Resul
     let img = image::load_from_memory(input_data)
         .map_err(|e| format!("Failed to load image: {}", e))?;
 
-    let mut output_buffer = Vec::new();
-    let mut cursor = Cursor::new(&mut output_buffer);
-
+    let mut output_buffer = Vec::new(); // We need a Growable buffer. Cursor<Vec<u8>> works if we access inner.
+    // However, `png::Encoder` needs a writer. `Cursor<&mut Vec<u8>>` or just `&mut Vec<u8>`?
+    // `Vec<u8>` implements Write.
+    
     match format_str.to_lowercase().as_str() {
         "jpeg" | "jpg" => {
+            let mut cursor = Cursor::new(&mut output_buffer);
             // Quality is 1-100
             let mut encoder = JpegEncoder::new_with_quality(&mut cursor, quality);
             encoder.write_image(
@@ -26,57 +27,59 @@ pub fn compress_image(input_data: &[u8], format_str: &str, quality: u8) -> Resul
             ).map_err(|e| format!("Failed to encode JPEG: {}", e))?;
         },
         "png" => {
-            // PNG is lossless, so quality parameter doesn't apply directly to visual quality,
-            // but we can use Best compression.
-            let encoder = image::codecs::png::PngEncoder::new_with_quality(
-                &mut cursor,
-                image::codecs::png::CompressionType::Best,
-                image::codecs::png::FilterType::Adaptive,
-            );
-             img.write_with_encoder(encoder).map_err(|e| e.to_string())?;
+             // If quality < 90, perform lossy quantization (256 colors)
+             if quality < 90 {
+                let width = img.width();
+                let height = img.height();
+                let rgba = img.to_rgba8();
+                let raw_pixels = rgba.as_raw();
+
+                // color_quant::NeuQuant::new(speed, max_colors, pixels)
+                // speed: 1 (highest quality) - 30 (fastest). 10 is good default.
+                let nq = color_quant::NeuQuant::new(10, 256, raw_pixels);
+                
+                // Map pixels to indices
+                let ind_data: Vec<u8> = raw_pixels.chunks(4).map(|pix| nq.index_of(pix) as u8).collect();
+                
+                // Extract palette
+                // color_quant returns [r, g, b, a, r, g, b, a, ...]
+                let color_map = nq.color_map_rgba();
+                
+                // Prepare PNG encoder
+                let mut encoder = png::Encoder::new(&mut output_buffer, width, height);
+                encoder.set_color(png::ColorType::Indexed);
+                encoder.set_depth(png::BitDepth::Eight);
+                
+                // Convert RGBA palette to RGB palette + TRNS chunk
+                let mut palette = Vec::with_capacity(256 * 3);
+                let mut trns = Vec::with_capacity(256);
+                
+                for chunk in color_map.chunks(4) {
+                    palette.push(chunk[0]);
+                    palette.push(chunk[1]);
+                    palette.push(chunk[2]);
+                    trns.push(chunk[3]);
+                }
+                
+                encoder.set_palette(palette);
+                encoder.set_trns(trns);
+                
+                let mut writer = encoder.write_header().map_err(|e| format!("PNG Header error: {}", e))?;
+                writer.write_image_data(&ind_data).map_err(|e| format!("PNG Write error: {}", e))?;
+                writer.finish().map_err(|e| format!("PNG finish error: {}", e))?;
+                
+             } else {
+                 let mut cursor = Cursor::new(&mut output_buffer);
+                 let encoder = image::codecs::png::PngEncoder::new_with_quality(
+                    &mut cursor,
+                    image::codecs::png::CompressionType::Best,
+                    image::codecs::png::FilterType::Adaptive,
+                );
+                 img.write_with_encoder(encoder).map_err(|e| e.to_string())?;
+             }
         },
         "webp" => {
-             // Quality 1-100.
-             // If quality is 100, we could theoretically use lossless, but here we treat it as lossy quality control
-             // unless user explicitly wants lossless (separate toggle, but for now stick to quality slider).
-             // image 0.25 WebPEncoder takes quality in new_with_quality (if available) or we check docs.
-             // Checking docs for image 0.25: WebPEncoder::new(&mut w).
-             // Actually image 0.25 might not fully expose libwebp options via simple API yet or it changed.
-             // Let's check if new uses default.
-             
-             // Wait, image 0.25 WebP support might be limited or use 'image-webp' crate. 
-             // To be safe and simple: using write_to with WebP format usually uses defaults.
-             // But we want control.
-             // Let's try to use WebPEncoder if it allows config.
-             // If not, we might need a specific crate or just use default.
-             // Looking at source for image 0.25, WebPEncoder usually supports lossless or lossy.
-             
-             // For now, let's stick to simple write_to for WebP if we can't easily set quality, 
-             // but 'image' crate usually defaults to lossy.
-             // HOWEVER, we want to allow the USER to control it.
-             
-             // Attempting to use WebPEncoder logic if available.
-             // Since I can't check docs live easily, I'll stick to a safe implementation.
-             // If image::codecs::webp::WebPEncoder doesn't have quality, we might only get default.
-             
-             // Actually, let's use the standard `write_to` for now as a fallback if specific encoder config is complex,
-             // BUT `image` crate recently updated.
-             
-             // Let's assume standard behavior:
-             let encoder = WebPEncoder::new_lossless(&mut cursor); // This would be lossless.
-             // We want lossy with quality.
-             // The `image` crate's WebP encoder is often pure Rust and might not support all libwebp features.
-             // If we really want "iloveimg" quality, we might need `webp` crate, but that might be C binding (issues with WASM?).
-             // `image` crate is pure Rust (mostly).
-             
-             // Let's try standard write_to and accept default for now, OR:
-             // Checking recent 'image' crate:
-             // It seems WebP writing is limited.
-             // Re-reading plan: "Use WebPEncoder with quality settings if available".
-             
-             // Reverting to `write_to` for WebP to avoid compilation errors if specific API is missing,
-             // creating a TODO to investigate better WebP control.
-             
+             let mut cursor = Cursor::new(&mut output_buffer);
              img.write_to(&mut cursor, ImageFormat::WebP).map_err(|e| e.to_string())?;
         },
         _ => return Err(format!("Unsupported target format: {}", format_str)),

@@ -189,6 +189,56 @@
         btn.textContent = originalText;
         if (els.downloadAllBtn) els.downloadAllBtn.classList.remove('hidden');
       }
+
+      // DOWNLOAD ALL BUTTON
+      if (e.target.closest('#downloadAllBtn')) {
+        const els = getElements(root);
+        const state = getState(root);
+        const strings = getStrings(root);
+
+        const processedFiles = state.files.filter(f => f.processed);
+        if (processedFiles.length === 0) return;
+
+        const btn = e.target.closest('#downloadAllBtn');
+        const originalText = btn.textContent;
+        btn.textContent = strings.processing;
+        btn.disabled = true;
+
+        try {
+          if (!window.JSZip) {
+            await new Promise((resolve, reject) => {
+              const script = document.createElement('script');
+              script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+              script.onload = resolve;
+              script.onerror = reject;
+              document.head.appendChild(script);
+            });
+          }
+
+          const zip = new window.JSZip();
+          processedFiles.forEach(item => {
+            zip.file(item.processed.name, item.processed.blob);
+          });
+
+          const content = await zip.generateAsync({ type: 'blob' });
+          const zipName = `compressed_images_${new Date().toISOString().slice(0, 10)}.zip`;
+
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(content);
+          link.download = zipName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(link.href);
+
+        } catch (err) {
+          console.error('Zip generation failed:', err);
+          alert('Failed to generate zip archive.');
+        } finally {
+          btn.textContent = originalText;
+          btn.disabled = false;
+        }
+      }
     });
 
     document.addEventListener('change', (e) => {
@@ -238,14 +288,7 @@
 
   function initIfPresent() {
     if (window.__imageCompressorDelegatedHandlersBound) return;
-
-    // Try to find the root. If not in DOM, we can still bind document handlers?
-    // Actually, since we bind to document, we can bind ONCE globally regardless of whether the tool is open.
-    // BUT we should only do it if we are on a page where this script is loaded.
-
     bindDelegatedHandlersOnce();
-
-    // Eagerly load WASM if the tool root is present
     if (document.getElementById('image-compressor-root')) {
       ensureWasm();
     }
@@ -253,13 +296,11 @@
 
   initIfPresent();
 
-  // Auto-init for enhanced nav
   try {
     const observer = new MutationObserver(() => initIfPresent());
     observer.observe(document.documentElement, { childList: true, subtree: true });
   } catch { }
 
-  // Backup exposed init
   window.initImageCompressor = function () {
     initIfPresent();
   };

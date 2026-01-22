@@ -496,6 +496,49 @@ export function verify_detached(algorithm: number, public_key: Uint8Array, messa
 export function version(): string;
 
 /**
+ * Basic chain checks for a PEM certificate list (order: leaf -> root).
+ *
+ * Note: signature verification is not performed; checks only subject/issuer linkage and validity.
+ */
+export function x509_chain_warnings_pem(pem_chain: string[], now_unix: bigint): string[];
+
+/**
+ * Generates a CSR and private key (PEM).
+ *
+ * algorithm: 1 = Ed25519, 2 = ECDSA P-256, 3 = ECDSA P-384
+ * Returns [csr_pem, key_pem].
+ */
+export function x509_csr_pem(algorithm: number, subject_cn: string | null | undefined, san_dns: string[], san_ip: string[]): string[];
+
+/**
+ * Parses certificate from DER and returns JSON string with basic fields.
+ */
+export function x509_parse_der(der: Uint8Array): string;
+
+/**
+ * Parses certificate from PEM and returns JSON string with basic fields.
+ */
+export function x509_parse_pem(pem: string): string;
+
+/**
+ * Generates a self-signed certificate and private key (PEM).
+ *
+ * algorithm: 1 = Ed25519, 2 = ECDSA P-256, 3 = ECDSA P-384
+ * Returns [cert_pem, key_pem].
+ */
+export function x509_self_signed_pem(algorithm: number, subject_cn: string | null | undefined, san_dns: string[], san_ip: string[]): string[];
+
+/**
+ * Returns warnings for a DER certificate (provide current unix timestamp).
+ */
+export function x509_warnings_der(der: Uint8Array, now_unix: bigint): string[];
+
+/**
+ * Returns warnings for a PEM certificate (provide current unix timestamp).
+ */
+export function x509_warnings_pem(pem: string, now_unix: bigint): string[];
+
+/**
  * XChaCha20-Poly1305 decrypt (nonce = 24 bytes). Expects ciphertext with tag appended.
  */
 export function xchacha20_poly1305_decrypt(key: Uint8Array, nonce: Uint8Array, ciphertext: Uint8Array, aad: Uint8Array): Uint8Array;
@@ -519,111 +562,119 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
-    readonly openssh_ed25519_public_key: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly openssh_ed25519_public_key_from_private: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly openssh_ecdsa_p256_parse_public_key: (a: number, b: number) => [number, number, number, number];
+    readonly openssh_ecdsa_p256_private_key: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
     readonly openssh_ecdsa_p256_public_key: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly openssh_ecdsa_p256_public_key_from_private: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly openssh_ecdsa_p384_public_key: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly openssh_rsa_public_key_from_spki: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly openssh_rsa_public_key_from_private_pkcs8: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly openssh_ed25519_private_key: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
-    readonly openssh_ecdsa_p256_private_key: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
+    readonly openssh_ecdsa_p384_parse_public_key: (a: number, b: number) => [number, number, number, number];
     readonly openssh_ecdsa_p384_private_key: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
-    readonly openssh_rsa_private_key_from_pkcs8: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
+    readonly openssh_ecdsa_p384_public_key: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly openssh_ecdsa_p384_public_key_from_private: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly openssh_ed25519_parse_public_key: (a: number, b: number) => [number, number, number, number];
-    readonly openssh_ecdsa_p256_parse_public_key: (a: number, b: number) => [number, number, number, number];
-    readonly openssh_ecdsa_p384_parse_public_key: (a: number, b: number) => [number, number, number, number];
-    readonly openssh_rsa_parse_public_key: (a: number, b: number) => [number, number, number, number];
-    readonly openssh_public_key_algorithm: (a: number, b: number) => [number, number, number];
-    readonly openssh_public_key_bytes: (a: number, b: number) => [number, number, number, number];
-    readonly openssh_public_key_to_spki: (a: number, b: number) => [number, number, number, number];
-    readonly openssh_public_key_to_spki_pem: (a: number, b: number) => [number, number, number, number];
-    readonly openssh_public_key_from_spki_pem: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly openssh_ed25519_private_key: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
+    readonly openssh_ed25519_public_key: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly openssh_ed25519_public_key_from_private: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly openssh_private_key_algorithm: (a: number, b: number, c: number, d: number) => [number, number, number];
-    readonly openssh_private_key_public_key_bytes: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly openssh_private_key_private_key_bytes: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly openssh_private_key_comment: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly openssh_public_key_warnings: (a: number, b: number) => [number, number, number, number];
-    readonly openssh_private_key_warnings: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly openssh_private_key_to_public_key_line: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
-    readonly openssh_private_key_to_spki: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly openssh_private_key_to_pkcs8: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly openssh_private_key_to_pkcs8_pem: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly openssh_private_key_from_pkcs8: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
     readonly openssh_private_key_from_pkcs8_pem: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => [number, number, number, number];
-    readonly ed25519_generate_keypair: () => [number, number, number, number];
-    readonly ed25519_public_key: (a: number, b: number) => [number, number, number, number];
-    readonly ed25519_private_key_to_pkcs8: (a: number, b: number) => [number, number, number, number];
-    readonly ed25519_private_key_from_pkcs8: (a: number, b: number) => [number, number, number, number];
-    readonly ed25519_sign: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly ed25519_verify: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+    readonly openssh_private_key_private_key_bytes: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly openssh_private_key_public_key_bytes: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly openssh_private_key_to_pkcs8: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly openssh_private_key_to_pkcs8_pem: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly openssh_private_key_to_public_key_line: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
+    readonly openssh_private_key_to_spki: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly openssh_private_key_warnings: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly openssh_public_key_algorithm: (a: number, b: number) => [number, number, number];
+    readonly openssh_public_key_bytes: (a: number, b: number) => [number, number, number, number];
+    readonly openssh_public_key_from_spki_pem: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly openssh_public_key_to_spki: (a: number, b: number) => [number, number, number, number];
+    readonly openssh_public_key_to_spki_pem: (a: number, b: number) => [number, number, number, number];
+    readonly openssh_public_key_warnings: (a: number, b: number) => [number, number, number, number];
+    readonly openssh_rsa_parse_public_key: (a: number, b: number) => [number, number, number, number];
+    readonly openssh_rsa_private_key_from_pkcs8: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
+    readonly openssh_rsa_public_key_from_private_pkcs8: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly openssh_rsa_public_key_from_spki: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly detached_sign_and_pack: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
+    readonly detached_signature_extract: (a: number, b: number) => [number, number, number, number];
+    readonly detached_signature_info: (a: number, b: number) => [number, number, number, number];
+    readonly detached_signature_pack: (a: number, b: number, c: number) => [number, number, number, number];
+    readonly detached_verify_packed: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
     readonly kdf_argon2id: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
     readonly kdf_pbkdf2_sha512: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
-    readonly sign_detached: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
-    readonly verify_detached: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
-    readonly version: () => [number, number];
-    readonly detached_signature_pack: (a: number, b: number, c: number) => [number, number, number, number];
-    readonly detached_signature_info: (a: number, b: number) => [number, number, number, number];
-    readonly detached_signature_extract: (a: number, b: number) => [number, number, number, number];
-    readonly detached_sign_and_pack: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
-    readonly detached_verify_packed: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+    readonly rsa_generate_private_key_pkcs8: (a: number) => [number, number, number, number];
     readonly rsa_pss_sign_pkcs8: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
     readonly rsa_pss_verify_spki: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
-    readonly rsa_generate_private_key_pkcs8: (a: number) => [number, number, number, number];
     readonly rsa_public_key_from_private_pkcs8: (a: number, b: number) => [number, number, number, number];
     readonly rsa_validate_public_key_spki: (a: number, b: number) => [number, number, number];
     readonly ecdsa_p256_generate_keypair: () => [number, number, number, number];
-    readonly ecdsa_p256_sign: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly ecdsa_p256_private_key_from_pkcs8: (a: number, b: number) => [number, number, number, number];
+    readonly ecdsa_p256_private_key_to_pkcs8: (a: number, b: number) => [number, number, number, number];
     readonly ecdsa_p256_public_key: (a: number, b: number) => [number, number, number, number];
+    readonly ecdsa_p256_sign: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly ecdsa_p256_verify: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
     readonly ecdsa_p384_generate_keypair: () => [number, number, number, number];
-    readonly ecdsa_p384_sign: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly ecdsa_p384_public_key: (a: number, b: number) => [number, number, number, number];
-    readonly ecdsa_p256_private_key_to_pkcs8: (a: number, b: number) => [number, number, number, number];
-    readonly ecdsa_p256_private_key_from_pkcs8: (a: number, b: number) => [number, number, number, number];
-    readonly ecdsa_p384_private_key_to_pkcs8: (a: number, b: number) => [number, number, number, number];
     readonly ecdsa_p384_private_key_from_pkcs8: (a: number, b: number) => [number, number, number, number];
+    readonly ecdsa_p384_private_key_to_pkcs8: (a: number, b: number) => [number, number, number, number];
+    readonly ecdsa_p384_public_key: (a: number, b: number) => [number, number, number, number];
+    readonly ecdsa_p384_sign: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly ecdsa_p384_verify: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
-    readonly aead_stream_header_info: (a: number, b: number) => [number, number, number, number];
-    readonly aead_stream_header_pack: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
-    readonly aead_stream_extract_salt: (a: number, b: number) => [number, number, number, number];
-    readonly aead_stream_extract_nonce_prefix: (a: number, b: number) => [number, number, number, number];
-    readonly aead_stream_derive_key_from_header: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
-    readonly aead_stream_encrypt_chunk: (a: number, b: number, c: number, d: number, e: number, f: bigint, g: number, h: number, i: number, j: number) => [number, number, number, number];
-    readonly aead_stream_decrypt_chunk: (a: number, b: number, c: number, d: number, e: number, f: bigint, g: number, h: number, i: number, j: number) => [number, number, number, number];
-    readonly aes256_gcm_encrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
-    readonly aes256_gcm_decrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
-    readonly chacha20_poly1305_encrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
-    readonly chacha20_poly1305_decrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
-    readonly xchacha20_poly1305_encrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
-    readonly xchacha20_poly1305_decrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
-    readonly aead_header_info: (a: number, b: number) => [number, number, number, number];
-    readonly aead_extract_salt: (a: number, b: number) => [number, number, number, number];
-    readonly aead_extract_nonce: (a: number, b: number) => [number, number, number, number];
-    readonly aead_extract_ciphertext: (a: number, b: number) => [number, number, number, number];
-    readonly aead_encrypt_with_header: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => [number, number, number, number];
-    readonly aead_decrypt_with_header: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
-    readonly aead_encrypt_with_password: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number, n: number, o: number) => [number, number, number, number];
-    readonly aead_decrypt_with_password: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number, number];
-    readonly aead_derive_nonce_12: (a: number, b: number, c: bigint) => [number, number, number, number];
-    readonly aead_derive_nonce_24: (a: number, b: number, c: bigint) => [number, number, number, number];
-    readonly aes256_gcm_encrypt_chunk: (a: number, b: number, c: number, d: number, e: bigint, f: number, g: number, h: number, i: number) => [number, number, number, number];
-    readonly aes256_gcm_decrypt_chunk: (a: number, b: number, c: number, d: number, e: bigint, f: number, g: number, h: number, i: number) => [number, number, number, number];
-    readonly chacha20_poly1305_encrypt_chunk: (a: number, b: number, c: number, d: number, e: bigint, f: number, g: number, h: number, i: number) => [number, number, number, number];
-    readonly chacha20_poly1305_decrypt_chunk: (a: number, b: number, c: number, d: number, e: bigint, f: number, g: number, h: number, i: number) => [number, number, number, number];
-    readonly xchacha20_poly1305_encrypt_chunk: (a: number, b: number, c: number, d: number, e: bigint, f: number, g: number, h: number, i: number) => [number, number, number, number];
-    readonly xchacha20_poly1305_decrypt_chunk: (a: number, b: number, c: number, d: number, e: bigint, f: number, g: number, h: number, i: number) => [number, number, number, number];
     readonly jwt_decode: (a: number, b: number) => [number, number, number, number];
     readonly jwt_sign: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
     readonly jwt_verify: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+    readonly aead_decrypt_with_header: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
+    readonly aead_decrypt_with_password: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number, number];
+    readonly aead_derive_nonce_12: (a: number, b: number, c: bigint) => [number, number, number, number];
+    readonly aead_derive_nonce_24: (a: number, b: number, c: bigint) => [number, number, number, number];
+    readonly aead_encrypt_with_header: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => [number, number, number, number];
+    readonly aead_encrypt_with_password: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number, n: number, o: number) => [number, number, number, number];
+    readonly aead_extract_ciphertext: (a: number, b: number) => [number, number, number, number];
+    readonly aead_extract_nonce: (a: number, b: number) => [number, number, number, number];
+    readonly aead_extract_salt: (a: number, b: number) => [number, number, number, number];
+    readonly aead_header_info: (a: number, b: number) => [number, number, number, number];
+    readonly aead_stream_decrypt_chunk: (a: number, b: number, c: number, d: number, e: number, f: bigint, g: number, h: number, i: number, j: number) => [number, number, number, number];
+    readonly aead_stream_derive_key_from_header: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
+    readonly aead_stream_encrypt_chunk: (a: number, b: number, c: number, d: number, e: number, f: bigint, g: number, h: number, i: number, j: number) => [number, number, number, number];
+    readonly aead_stream_extract_nonce_prefix: (a: number, b: number) => [number, number, number, number];
+    readonly aead_stream_extract_salt: (a: number, b: number) => [number, number, number, number];
+    readonly aead_stream_header_info: (a: number, b: number) => [number, number, number, number];
+    readonly aead_stream_header_pack: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
+    readonly aes256_gcm_decrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
+    readonly aes256_gcm_decrypt_chunk: (a: number, b: number, c: number, d: number, e: bigint, f: number, g: number, h: number, i: number) => [number, number, number, number];
+    readonly aes256_gcm_encrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
+    readonly aes256_gcm_encrypt_chunk: (a: number, b: number, c: number, d: number, e: bigint, f: number, g: number, h: number, i: number) => [number, number, number, number];
+    readonly chacha20_poly1305_decrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
+    readonly chacha20_poly1305_decrypt_chunk: (a: number, b: number, c: number, d: number, e: bigint, f: number, g: number, h: number, i: number) => [number, number, number, number];
+    readonly chacha20_poly1305_encrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
+    readonly chacha20_poly1305_encrypt_chunk: (a: number, b: number, c: number, d: number, e: bigint, f: number, g: number, h: number, i: number) => [number, number, number, number];
+    readonly xchacha20_poly1305_decrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
+    readonly xchacha20_poly1305_decrypt_chunk: (a: number, b: number, c: number, d: number, e: bigint, f: number, g: number, h: number, i: number) => [number, number, number, number];
+    readonly xchacha20_poly1305_encrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
+    readonly xchacha20_poly1305_encrypt_chunk: (a: number, b: number, c: number, d: number, e: bigint, f: number, g: number, h: number, i: number) => [number, number, number, number];
+    readonly x509_chain_warnings_pem: (a: number, b: number, c: bigint) => [number, number, number, number];
+    readonly x509_csr_pem: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
+    readonly x509_parse_der: (a: number, b: number) => [number, number, number, number];
+    readonly x509_parse_pem: (a: number, b: number) => [number, number, number, number];
+    readonly x509_self_signed_pem: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
+    readonly x509_warnings_der: (a: number, b: number, c: bigint) => [number, number, number, number];
+    readonly x509_warnings_pem: (a: number, b: number, c: bigint) => [number, number, number, number];
+    readonly ed25519_generate_keypair: () => [number, number, number, number];
+    readonly ed25519_private_key_from_pkcs8: (a: number, b: number) => [number, number, number, number];
+    readonly ed25519_private_key_to_pkcs8: (a: number, b: number) => [number, number, number, number];
+    readonly ed25519_public_key: (a: number, b: number) => [number, number, number, number];
+    readonly ed25519_sign: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly ed25519_verify: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+    readonly sign_detached: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
+    readonly verify_detached: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
+    readonly version: () => [number, number];
+    readonly ring_core_0_17_14__bn_mul_mont: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+    readonly __wbindgen_malloc: (a: number, b: number) => number;
+    readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
     readonly __wbindgen_exn_store: (a: number) => void;
     readonly __externref_table_alloc: () => number;
     readonly __wbindgen_externrefs: WebAssembly.Table;
-    readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __externref_table_dealloc: (a: number) => void;
     readonly __wbindgen_free: (a: number, b: number, c: number) => void;
-    readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
     readonly __externref_drop_slice: (a: number, b: number) => void;
     readonly __wbindgen_start: () => void;
 }

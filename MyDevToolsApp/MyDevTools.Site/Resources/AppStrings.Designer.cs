@@ -2122,6 +2122,60 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Compressing....
+        /// </summary>
+        public static string ImageCompressor_Compressing {
+            get {
+                return ResourceManager.GetString("ImageCompressor_Compressing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Compress JPG, PNG, and WebP images locally in your browser..
+        /// </summary>
+        public static string ImageCompressor_Description {
+            get {
+                return ResourceManager.GetString("ImageCompressor_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Done!.
+        /// </summary>
+        public static string ImageCompressor_Done {
+            get {
+                return ResourceManager.GetString("ImageCompressor_Done", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Download.
+        /// </summary>
+        public static string ImageCompressor_Download {
+            get {
+                return ResourceManager.GetString("ImageCompressor_Download", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Processing....
+        /// </summary>
+        public static string ImageCompressor_Processing {
+            get {
+                return ResourceManager.GetString("ImageCompressor_Processing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Image Compressor.
+        /// </summary>
+        public static string ImageCompressor_Title {
+            get {
+                return ResourceManager.GetString("ImageCompressor_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Convert.
         /// </summary>
         public static string ImageConverter_Convert {
@@ -2176,7 +2230,7 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Quality (JPEG only).
+        ///   Looks up a localized string similar to Quality (JPEG, WebP).
         /// </summary>
         public static string ImageConverter_Quality {
             get {

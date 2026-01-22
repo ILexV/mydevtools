@@ -1184,4 +1184,31 @@
   <data name="JwtDebugger_SignatureInvalid" xml:space="preserve">
     <value>Firma Inválida</value>
   </data>
+  <data name="ImageConverter_Title" xml:space="preserve">
+    <value>Convertidor de imágenes</value>
+  </data>
+  <data name="ImageConverter_Description" xml:space="preserve">
+    <value>Convierte imágenes entre formatos (PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA) de forma segura en tu navegador.</value>
+  </data>
+  <data name="ImageConverter_SelectFormat" xml:space="preserve">
+    <value>Seleccionar formato de salida</value>
+  </data>
+  <data name="ImageConverter_Convert" xml:space="preserve">
+    <value>Convertir</value>
+  </data>
+  <data name="ImageConverter_Download" xml:space="preserve">
+    <value>Descargar</value>
+  </data>
+  <data name="ImageConverter_DragDrop" xml:space="preserve">
+    <value>Arrastra y suelta una imagen aquí o haz clic para seleccionar</value>
+  </data>
+  <data name="ImageConverter_Processing" xml:space="preserve">
+    <value>Procesando...</value>
+  </data>
+  <data name="ImageConverter_Quality" xml:space="preserve">
+    <value>Calidad (JPEG, WebP)</value>
+  </data>
+  <data name="ImageConverter_OutputSize" xml:space="preserve">
+    <value>Tamaño:</value>
+  </data>
 </root>

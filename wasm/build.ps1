@@ -3,7 +3,7 @@ param(
     [ValidateSet('Debug', 'Release')]
     [string]$Configuration = 'Release',
 
-    [string[]]$Domains = @('hash', 'encoding', 'cryptography', 'structured_data')
+    [string[]]$Domains = @('hash', 'encoding', 'cryptography', 'structured_data', 'password', 'text_tools', 'image_tools')
 )
 
 $ErrorActionPreference = 'Stop'

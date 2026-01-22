@@ -1183,4 +1183,31 @@
   <data name="JwtDebugger_SignatureInvalid" xml:space="preserve">
     <value>Неверная подпись</value>
   </data>
+  <data name="ImageConverter_Title" xml:space="preserve">
+    <value>Конвертер изображений</value>
+  </data>
+  <data name="ImageConverter_Description" xml:space="preserve">
+    <value>Конвертируйте изображения в различные форматы (PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA) безопасно в вашем браузере.</value>
+  </data>
+  <data name="ImageConverter_SelectFormat" xml:space="preserve">
+    <value>Выберите формат</value>
+  </data>
+  <data name="ImageConverter_Convert" xml:space="preserve">
+    <value>Конвертировать</value>
+  </data>
+  <data name="ImageConverter_Download" xml:space="preserve">
+    <value>Скачать</value>
+  </data>
+  <data name="ImageConverter_DragDrop" xml:space="preserve">
+    <value>Перетащите изображение сюда или кликните для выбора</value>
+  </data>
+  <data name="ImageConverter_Processing" xml:space="preserve">
+    <value>Обработка...</value>
+  </data>
+  <data name="ImageConverter_Quality" xml:space="preserve">
+    <value>Качество (JPEG, WebP)</value>
+  </data>
+  <data name="ImageConverter_OutputSize" xml:space="preserve">
+    <value>Размер:</value>
+  </data>
 </root>

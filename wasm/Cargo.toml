@@ -8,4 +8,5 @@ members = [
   "structured_data",
   "password",
   "text_tools",
+  "image_tools",
 ]

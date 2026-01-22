@@ -1,0 +1,77 @@
+@page "/{lang}/image-converter"
+@using MyDevTools.Site.Components.Layout
+@using MyDevTools.Site.Components.Common
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<MetaTags Title="@AppStrings.ImageConverter_Title"
+          Description="@AppStrings.ImageConverter_Description"
+          CurrentUrl="@Navigation.Uri" />
+
+<HreflangLinks ToolPath="image-converter" />
+
+<JsonLdTool ToolName="@AppStrings.ImageConverter_Title"
+            Description="@AppStrings.ImageConverter_Description"
+            CurrentUrl="@Navigation.Uri" />
+
+<ToolLayout Title="@AppStrings.ImageConverter_Title" Description="@AppStrings.ImageConverter_Description">
+    <div id="image-converter-root"
+         data-loading="@AppStrings.ImageConverter_Processing"
+         data-error="@AppStrings.Common_Error">
+
+        <div class="tool-grid">
+            <div class="input-section">
+                <FileDropInput InputId="ic-input-file"
+                               Label="@AppStrings.ImageConverter_DragDrop"
+                               DropTitle="@AppStrings.ImageConverter_DragDrop"
+                               ButtonLabel="@AppStrings.Common_FileChooseButton" />
+
+                <div class="tool-settings mt-4">
+                    <div class="tool-setting">
+                        <label for="ic-format-select">@AppStrings.ImageConverter_SelectFormat</label>
+                        <select id="ic-format-select" class="input-select">
+                            <option value="png">PNG</option>
+                            <option value="jpeg">JPEG</option>
+                            <option value="webp">WebP</option>
+                            <option value="gif">GIF</option>
+                            <option value="bmp">BMP</option>
+                            <option value="ico">ICO</option>
+                            <option value="tiff">TIFF</option>
+                            <option value="tga">TGA</option>
+                        </select>
+                    </div>
+
+                    <div class="tool-setting" id="ic-quality-container" hidden>
+                        <label for="ic-quality">@AppStrings.ImageConverter_Quality: <span id="ic-quality-value">90</span></label>
+                        <input type="range" id="ic-quality" min="1" max="100" value="90" class="input-range" />
+                    </div>
+                </div>
+
+                <div class="action-buttons mt-4">
+                    <button class="btn btn-primary" id="ic-convert-btn" type="button" disabled>@AppStrings.ImageConverter_Convert</button>
+                </div>
+
+                <div class="tool-error" id="ic-error" hidden></div>
+            </div>
+
+            <div class="output-section" id="ic-output-section" hidden>
+                <div id="ic-preview-container" class="image-preview" style="text-align: center; margin-bottom: 1rem;">
+                    <!-- Preview image will be inserted here -->
+                </div>
+                
+                <div class="text-center font-bold mb-2">
+                    @AppStrings.ImageConverter_OutputSize <span id="ic-output-size"></span>
+                </div>
+
+                <div class="action-buttons mt-4" style="justify-content: center;">
+                     <button class="btn btn-primary" id="ic-download-btn" type="button">@AppStrings.ImageConverter_Download</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</ToolLayout>
+
+@code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

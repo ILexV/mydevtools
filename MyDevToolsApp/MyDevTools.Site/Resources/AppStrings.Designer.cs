@@ -2122,6 +2122,87 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert.
+        /// </summary>
+        public static string ImageConverter_Convert {
+            get {
+                return ResourceManager.GetString("ImageConverter_Convert", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert images between formats (PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA) securely in your browser..
+        /// </summary>
+        public static string ImageConverter_Description {
+            get {
+                return ResourceManager.GetString("ImageConverter_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Download.
+        /// </summary>
+        public static string ImageConverter_Download {
+            get {
+                return ResourceManager.GetString("ImageConverter_Download", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Drag &amp; drop an image here or click to select.
+        /// </summary>
+        public static string ImageConverter_DragDrop {
+            get {
+                return ResourceManager.GetString("ImageConverter_DragDrop", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Output Size:.
+        /// </summary>
+        public static string ImageConverter_OutputSize {
+            get {
+                return ResourceManager.GetString("ImageConverter_OutputSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Processing....
+        /// </summary>
+        public static string ImageConverter_Processing {
+            get {
+                return ResourceManager.GetString("ImageConverter_Processing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Quality (JPEG only).
+        /// </summary>
+        public static string ImageConverter_Quality {
+            get {
+                return ResourceManager.GetString("ImageConverter_Quality", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select output format.
+        /// </summary>
+        public static string ImageConverter_SelectFormat {
+            get {
+                return ResourceManager.GetString("ImageConverter_SelectFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Image Converter.
+        /// </summary>
+        public static string ImageConverter_Title {
+            get {
+                return ResourceManager.GetString("ImageConverter_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Clear.
         /// </summary>
         public static string JsonBeautifier_ClearButton {

@@ -153,6 +153,10 @@
     {
         <script src="@Assets["tools/jwt-debugger.js"]"></script>
     }
+    @if (IsImageConverter)
+    {
+        <script src="@Assets["tools/image-converter.js"]"></script>
+    }
 
 </body>
 
@@ -165,6 +169,7 @@
     private string CurrentPath => HttpContext?.Request.Path.Value ?? "";
     
     // Tool page checks
+    private bool IsImageConverter => CurrentPath.Contains("/image-converter", StringComparison.OrdinalIgnoreCase);
     private bool IsJsonBeautifier => CurrentPath.Contains("/json-beautifier", StringComparison.OrdinalIgnoreCase);
     private bool IsXmlBeautifier => CurrentPath.Contains("/xml-beautifier", StringComparison.OrdinalIgnoreCase);
     private bool IsHashCalculator => CurrentPath.Contains("/hash-calculator", StringComparison.OrdinalIgnoreCase);

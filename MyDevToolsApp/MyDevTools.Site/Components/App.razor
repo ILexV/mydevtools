@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Http
+@using MyDevTools.Site.Resources
 @inject IHttpContextAccessor HttpContextAccessor
 
 <!DOCTYPE html>
@@ -7,6 +8,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="@AppStrings.Home_Subtitle" />
     <base href="/" />
     <script>
         (function () {

@@ -415,14 +415,14 @@ body {
 
 .tool-row-description {
     font-size: 0.95rem;
-    color: var(--text-secondary);
+    color: #374151;
     margin: 0;
 }
 
 .tool-row-action {
     font-size: 0.9rem;
     font-weight: 500;
-    color: var(--accent-color);
+    color: var(--accent-hover);
     padding: 0.5rem 1rem;
     border-radius: 0.375rem;
     background-color: rgba(0, 123, 255, 0.05);

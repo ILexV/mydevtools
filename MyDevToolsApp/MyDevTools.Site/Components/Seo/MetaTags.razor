@@ -21,6 +21,11 @@
     
     @* Robots *@
     <meta name="robots" content="index, follow" />
+    
+    @if (!string.IsNullOrEmpty(CurrentUrl))
+    {
+        <link rel="canonical" href="@CurrentUrl" />
+    }
 </HeadContent>
 
 @code {

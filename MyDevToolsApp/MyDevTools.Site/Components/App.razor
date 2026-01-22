@@ -1,6 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Http
 @using MyDevTools.Site.Resources
-@inject IHttpContextAccessor HttpContextAccessor
+@* Removed IHttpContextAccessor injection in favor of CascadingParameter *@
 
 <!DOCTYPE html>
 <html lang="en" @attributes="HtmlAttributes">
@@ -13,12 +13,25 @@
     <script>
         (function () {
             try {
+                // 1. Check LocalStorage
                 var theme = localStorage.getItem('theme');
+                // 2. Check Cookie if LS is missing
+                if (!theme) {
+                    var value = "; " + document.cookie;
+                    var parts = value.split("; theme=");
+                    if (parts.length === 2) theme = parts.pop().split(";").shift();
+                }
+                // 3. Check System Preference if both missing
+                if (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    theme = 'dark';
+                }
+                
+                // Apply
                 if (theme === 'dark' || theme === 'light') {
                     document.documentElement.setAttribute('data-theme', theme);
                 }
-            } catch {
-                // ignore
+            } catch (e) {
+                console.error('Theme init error', e);
             }
         })();
         
@@ -146,7 +159,10 @@
 </html>
 
 @code {
-    private string CurrentPath => HttpContextAccessor.HttpContext?.Request.Path.Value ?? "";
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    private string CurrentPath => HttpContext?.Request.Path.Value ?? "";
     
     // Tool page checks
     private bool IsJsonBeautifier => CurrentPath.Contains("/json-beautifier", StringComparison.OrdinalIgnoreCase);
@@ -172,7 +188,7 @@
     {
         get
         {
-            var theme = HttpContextAccessor.HttpContext?.Request.Cookies["theme"];
+            var theme = HttpContext?.Request.Cookies["theme"];
             return theme is "dark" or "light" ? theme : null;
         }
     }

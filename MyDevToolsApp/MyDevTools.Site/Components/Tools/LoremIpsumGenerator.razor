@@ -1,0 +1,357 @@
+@page "/{lang}/lorem-ipsum-generator"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<ToolLayout Title="@AppStrings.LoremIpsumGenerator_Title" Description="@AppStrings.LoremIpsumGenerator_Description">
+    <MetaTags Title="@AppStrings.LoremIpsumGenerator_Title"
+              Description="@AppStrings.LoremIpsumGenerator_Description"
+              CurrentUrl="@Navigation.Uri" />
+
+    <HreflangLinks ToolPath="lorem-ipsum-generator" />
+
+    <JsonLdTool ToolName="@AppStrings.LoremIpsumGenerator_Title"
+                Description="@AppStrings.LoremIpsumGenerator_Description"
+                CurrentUrl="@Navigation.Uri" />
+
+    <div id="lorem-ipsum-root" class="tool-container" data-copied="@AppStrings.LoremIpsumGenerator_Copied">
+        <div class="input-section">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="generate-type">@AppStrings.LoremIpsumGenerator_GenerateTypeLabel</label>
+                    <select id="generate-type">
+                        <option value="paragraphs">@AppStrings.LoremIpsumGenerator_Paragraphs</option>
+                        <option value="sentences">@AppStrings.LoremIpsumGenerator_Sentences</option>
+                        <option value="words">@AppStrings.LoremIpsumGenerator_Words</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="count">@AppStrings.LoremIpsumGenerator_CountLabel</label>
+                    <input type="number" id="count" min="1" max="100" value="5" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="start-classic" checked />
+                        @AppStrings.LoremIpsumGenerator_StartWithClassic
+                    </label>
+                </div>
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="wrap-paragraphs" />
+                        @AppStrings.LoremIpsumGenerator_WrapParagraphs
+                    </label>
+                </div>
+            </div>
+
+            <button id="generate-btn" class="primary-btn">@AppStrings.LoremIpsumGenerator_GenerateButton</button>
+        </div>
+
+        <div class="output-section">
+            <label for="output">@AppStrings.LoremIpsumGenerator_OutputLabel</label>
+            <textarea id="output" rows="15" readonly></textarea>
+            <div class="button-group">
+                <button id="copy-btn" class="secondary-btn">@AppStrings.LoremIpsumGenerator_CopyButton</button>
+                <button id="download-btn" class="secondary-btn">@AppStrings.LoremIpsumGenerator_DownloadButton</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .tool-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .input-section, .output-section {
+            margin-bottom: 2rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: monospace;
+            font-size: 0.95rem;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .primary-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .primary-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .secondary-btn {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: background-color 0.2s;
+        }
+
+        .secondary-btn:hover {
+            background-color: var(--bg-hover);
+        }
+
+        /* Dark theme fixes for select elements */
+        #lorem-ipsum-root select {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        #lorem-ipsum-root select option {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] #lorem-ipsum-root select {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] #lorem-ipsum-root select option {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+    </style>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // Lorem Ipsum word bank
+            const loremWords = [
+                'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit',
+                'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore',
+                'magna', 'aliqua', 'enim', 'ad', 'minim', 'veniam', 'quis', 'nostrud',
+                'exercitation', 'ullamco', 'laboris', 'nisi', 'aliquip', 'ex', 'ea', 'commodo',
+                'consequat', 'duis', 'aute', 'irure', 'in', 'reprehenderit', 'voluptate',
+                'velit', 'esse', 'cillum', 'fugiat', 'nulla', 'pariatur', 'excepteur', 'sint',
+                'occaecat', 'cupidatat', 'non', 'proident', 'sunt', 'culpa', 'qui', 'officia',
+                'deserunt', 'mollit', 'anim', 'id', 'est', 'laborum', 'vivamus', 'suspendisse',
+                'potenti', 'nullam', 'ac', 'tortor', 'vitae', 'purus', 'faucibus', 'ornare',
+                'luctus', 'cum', 'sociis', 'natoque', 'penatibus', 'magnis', 'dis', 'parturient',
+                'montes', 'nascetur', 'ridiculus', 'mus', 'donec', 'quam', 'felis', 'ultricies',
+                'nec', 'pellentesque', 'eu', 'pretium', 'sem', 'nulla', 'consequat', 'massa',
+                'quis', 'enim', 'etiam', 'rhoncus', 'mauris', 'erat', 'volutpat', 'maecenas',
+                'tempus', 'tellus', 'eget', 'condimentum', 'nibh', 'pulvinar', 'sapien', 'ligula',
+                'venenatis', 'lacus', 'vel', 'scelerisque', 'nisl', 'consectetur', 'pede',
+                'metus', 'mollis', 'justo', 'iaculis', 'porttitor', 'lacinia', 'posuere',
+                'cubilia', 'curae', 'proin', 'blandit', 'odio', 'sodales', 'tincidunt',
+                'integer', 'ante', 'dapibus', 'augue', 'facilisis', 'gravida', 'neque',
+                'convallis', 'morbi', 'vestibulum', 'velit', 'id', 'pretium', 'iaculis',
+                'diam', 'erat', 'fermentum', 'justo', 'nec', 'sagittis', 'aliquam',
+                'malesuada', 'bibendum', 'arcu', 'elementum', 'cursus', 'turpis', 'massa',
+                'tincidunt', 'dui', 'tempus', 'viverra', 'accumsan', 'tortor', 'urna',
+                'habitant', 'tristique', 'senectus', 'netus', 'fames', 'nisl', 'suscipit',
+                'adipiscing', 'bibendum', 'est', 'ultricies', 'integer', 'quis', 'auctor'
+            ];
+
+            const classicStart = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.';
+
+            const generateBtn = document.getElementById('generate-btn');
+            const copyBtn = document.getElementById('copy-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const output = document.getElementById('output');
+            const generateType = document.getElementById('generate-type');
+            const count = document.getElementById('count');
+            const startClassic = document.getElementById('start-classic');
+            const wrapParagraphs = document.getElementById('wrap-paragraphs');
+
+            // Random word generator
+            function getRandomWord() {
+                return loremWords[Math.floor(Math.random() * loremWords.length)];
+            }
+
+            // Generate a sentence (5-15 words)
+            function generateSentence() {
+                const wordCount = Math.floor(Math.random() * 11) + 5; // 5-15 words
+                const words = [];
+                for (let i = 0; i < wordCount; i++) {
+                    words.push(getRandomWord());
+                }
+                // Capitalize first word
+                words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1);
+                return words.join(' ') + '.';
+            }
+
+            // Generate a paragraph (3-7 sentences)
+            function generateParagraph() {
+                const sentenceCount = Math.floor(Math.random() * 5) + 3; // 3-7 sentences
+                const sentences = [];
+                for (let i = 0; i < sentenceCount; i++) {
+                    sentences.push(generateSentence());
+                }
+                return sentences.join(' ');
+            }
+
+            // Main generate function
+            function generateLoremIpsum() {
+                const type = generateType.value;
+                const num = parseInt(count.value) || 1;
+                const useClassic = startClassic.checked;
+                const wrap = wrapParagraphs.checked;
+                let result = '';
+
+                if (type === 'paragraphs') {
+                    const paragraphs = [];
+                    
+                    if (useClassic) {
+                        paragraphs.push(classicStart);
+                    }
+                    
+                    const additionalCount = useClassic ? num - 1 : num;
+                    for (let i = 0; i < additionalCount; i++) {
+                        paragraphs.push(generateParagraph());
+                    }
+
+                    if (wrap) {
+                        result = paragraphs.map(p => `<p>${p}</p>`).join('\n\n');
+                    } else {
+                        result = paragraphs.join('\n\n');
+                    }
+                } else if (type === 'sentences') {
+                    const sentences = [];
+                    
+                    if (useClassic) {
+                        sentences.push(classicStart);
+                    }
+                    
+                    const additionalCount = useClassic ? num - 1 : num;
+                    for (let i = 0; i < additionalCount; i++) {
+                        sentences.push(generateSentence());
+                    }
+                    
+                    result = sentences.join(' ');
+                } else if (type === 'words') {
+                    const words = [];
+                    
+                    if (useClassic) {
+                        // Use the classic sentence as the start
+                        const classicWords = classicStart.replace('.', '').split(' ');
+                        words.push(...classicWords);
+                    }
+                    
+                    const additionalCount = useClassic ? num - classicStart.replace('.', '').split(' ').length : num;
+                    for (let i = 0; i < additionalCount; i++) {
+                        words.push(getRandomWord());
+                    }
+                    
+                    result = words.join(' ');
+                }
+
+                output.value = result;
+            }
+
+            // Copy to clipboard
+            function copyToClipboard() {
+                output.select();
+                document.execCommand('copy');
+                
+                const originalText = copyBtn.textContent;
+                const copiedText = document.getElementById('lorem-ipsum-root').getAttribute('data-copied');
+                copyBtn.textContent = copiedText;
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            }
+
+            // Download as TXT
+            function downloadAsTxt() {
+                const text = output.value;
+                const blob = new Blob([text], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'lorem-ipsum.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // Event listeners
+            generateBtn.addEventListener('click', generateLoremIpsum);
+            copyBtn.addEventListener('click', copyToClipboard);
+            downloadBtn.addEventListener('click', downloadAsTxt);
+
+            // Generate initial lorem ipsum on page load
+            generateLoremIpsum();
+        })();
+    </script>
+</ToolLayout>
+
+@code {
+    [Parameter]
+    public string lang { get; set; } = "en";
+}

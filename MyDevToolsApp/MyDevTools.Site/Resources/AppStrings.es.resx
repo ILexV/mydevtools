@@ -1466,4 +1466,47 @@
   <data name="UuidGenerator_Copied" xml:space="preserve">
     <value>¡Copiado!</value>
   </data>
+
+  <data name="LoremIpsumGenerator_Title" xml:space="preserve">
+    <value>Generador de Lorem Ipsum</value>
+  </data>
+  <data name="LoremIpsumGenerator_Description" xml:space="preserve">
+    <value>Genera texto de marcador de posición para maquetas y diseños, completamente en tu navegador.</value>
+  </data>
+  <data name="LoremIpsumGenerator_GenerateTypeLabel" xml:space="preserve">
+    <value>Generar por</value>
+  </data>
+  <data name="LoremIpsumGenerator_Paragraphs" xml:space="preserve">
+    <value>Párrafos</value>
+  </data>
+  <data name="LoremIpsumGenerator_Sentences" xml:space="preserve">
+    <value>Oraciones</value>
+  </data>
+  <data name="LoremIpsumGenerator_Words" xml:space="preserve">
+    <value>Palabras</value>
+  </data>
+  <data name="LoremIpsumGenerator_CountLabel" xml:space="preserve">
+    <value>Cantidad</value>
+  </data>
+  <data name="LoremIpsumGenerator_StartWithClassic" xml:space="preserve">
+    <value>Comenzar con "Lorem ipsum dolor sit amet..."</value>
+  </data>
+  <data name="LoremIpsumGenerator_WrapParagraphs" xml:space="preserve">
+    <value>Envolver párrafos con etiquetas &lt;p&gt;</value>
+  </data>
+  <data name="LoremIpsumGenerator_GenerateButton" xml:space="preserve">
+    <value>Generar</value>
+  </data>
+  <data name="LoremIpsumGenerator_OutputLabel" xml:space="preserve">
+    <value>Texto generado</value>
+  </data>
+  <data name="LoremIpsumGenerator_CopyButton" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="LoremIpsumGenerator_DownloadButton" xml:space="preserve">
+    <value>Descargar como TXT</value>
+  </data>
+  <data name="LoremIpsumGenerator_Copied" xml:space="preserve">
+    <value>¡Copiado!</value>
+  </data>
 </root>

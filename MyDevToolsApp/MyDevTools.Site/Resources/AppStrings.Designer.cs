@@ -2617,6 +2617,132 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Copied!.
+        /// </summary>
+        public static string LoremIpsumGenerator_Copied {
+            get {
+                return ResourceManager.GetString("LoremIpsumGenerator_Copied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy.
+        /// </summary>
+        public static string LoremIpsumGenerator_CopyButton {
+            get {
+                return ResourceManager.GetString("LoremIpsumGenerator_CopyButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Count.
+        /// </summary>
+        public static string LoremIpsumGenerator_CountLabel {
+            get {
+                return ResourceManager.GetString("LoremIpsumGenerator_CountLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate placeholder text for mockups and designs — completely in your browser..
+        /// </summary>
+        public static string LoremIpsumGenerator_Description {
+            get {
+                return ResourceManager.GetString("LoremIpsumGenerator_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Download as TXT.
+        /// </summary>
+        public static string LoremIpsumGenerator_DownloadButton {
+            get {
+                return ResourceManager.GetString("LoremIpsumGenerator_DownloadButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate.
+        /// </summary>
+        public static string LoremIpsumGenerator_GenerateButton {
+            get {
+                return ResourceManager.GetString("LoremIpsumGenerator_GenerateButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate by.
+        /// </summary>
+        public static string LoremIpsumGenerator_GenerateTypeLabel {
+            get {
+                return ResourceManager.GetString("LoremIpsumGenerator_GenerateTypeLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generated Text.
+        /// </summary>
+        public static string LoremIpsumGenerator_OutputLabel {
+            get {
+                return ResourceManager.GetString("LoremIpsumGenerator_OutputLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Paragraphs.
+        /// </summary>
+        public static string LoremIpsumGenerator_Paragraphs {
+            get {
+                return ResourceManager.GetString("LoremIpsumGenerator_Paragraphs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sentences.
+        /// </summary>
+        public static string LoremIpsumGenerator_Sentences {
+            get {
+                return ResourceManager.GetString("LoremIpsumGenerator_Sentences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start with &quot;Lorem ipsum dolor sit amet...&quot;.
+        /// </summary>
+        public static string LoremIpsumGenerator_StartWithClassic {
+            get {
+                return ResourceManager.GetString("LoremIpsumGenerator_StartWithClassic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lorem Ipsum Generator.
+        /// </summary>
+        public static string LoremIpsumGenerator_Title {
+            get {
+                return ResourceManager.GetString("LoremIpsumGenerator_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Words.
+        /// </summary>
+        public static string LoremIpsumGenerator_Words {
+            get {
+                return ResourceManager.GetString("LoremIpsumGenerator_Words", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap paragraphs with &lt;p&gt; tags.
+        /// </summary>
+        public static string LoremIpsumGenerator_WrapParagraphs {
+            get {
+                return ResourceManager.GetString("LoremIpsumGenerator_WrapParagraphs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to AEAD File.
         /// </summary>
         public static string Nav_AeadFile {

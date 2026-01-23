@@ -1465,4 +1465,47 @@
   <data name="UuidGenerator_Copied" xml:space="preserve">
     <value>Скопировано!</value>
   </data>
+
+  <data name="LoremIpsumGenerator_Title" xml:space="preserve">
+    <value>Генератор Lorem Ipsum</value>
+  </data>
+  <data name="LoremIpsumGenerator_Description" xml:space="preserve">
+    <value>Генерация текста-заполнителя для макетов и дизайнов — полностью в вашем браузере.</value>
+  </data>
+  <data name="LoremIpsumGenerator_GenerateTypeLabel" xml:space="preserve">
+    <value>Генерировать по</value>
+  </data>
+  <data name="LoremIpsumGenerator_Paragraphs" xml:space="preserve">
+    <value>Абзацам</value>
+  </data>
+  <data name="LoremIpsumGenerator_Sentences" xml:space="preserve">
+    <value>Предложениям</value>
+  </data>
+  <data name="LoremIpsumGenerator_Words" xml:space="preserve">
+    <value>Словам</value>
+  </data>
+  <data name="LoremIpsumGenerator_CountLabel" xml:space="preserve">
+    <value>Количество</value>
+  </data>
+  <data name="LoremIpsumGenerator_StartWithClassic" xml:space="preserve">
+    <value>Начать с "Lorem ipsum dolor sit amet..."</value>
+  </data>
+  <data name="LoremIpsumGenerator_WrapParagraphs" xml:space="preserve">
+    <value>Обернуть абзацы тегами &lt;p&gt;</value>
+  </data>
+  <data name="LoremIpsumGenerator_GenerateButton" xml:space="preserve">
+    <value>Генерировать</value>
+  </data>
+  <data name="LoremIpsumGenerator_OutputLabel" xml:space="preserve">
+    <value>Сгенерированный текст</value>
+  </data>
+  <data name="LoremIpsumGenerator_CopyButton" xml:space="preserve">
+    <value>Скопировать</value>
+  </data>
+  <data name="LoremIpsumGenerator_DownloadButton" xml:space="preserve">
+    <value>Скачать как TXT</value>
+  </data>
+  <data name="LoremIpsumGenerator_Copied" xml:space="preserve">
+    <value>Скопировано!</value>
+  </data>
 </root>

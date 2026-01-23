@@ -1525,4 +1525,47 @@
   <data name="UuidGenerator_Copied" xml:space="preserve">
     <value>Copied!</value>
   </data>
+
+  <data name="LoremIpsumGenerator_Title" xml:space="preserve">
+    <value>Lorem Ipsum Generator</value>
+  </data>
+  <data name="LoremIpsumGenerator_Description" xml:space="preserve">
+    <value>Generate placeholder text for mockups and designs — completely in your browser.</value>
+  </data>
+  <data name="LoremIpsumGenerator_GenerateTypeLabel" xml:space="preserve">
+    <value>Generate by</value>
+  </data>
+  <data name="LoremIpsumGenerator_Paragraphs" xml:space="preserve">
+    <value>Paragraphs</value>
+  </data>
+  <data name="LoremIpsumGenerator_Sentences" xml:space="preserve">
+    <value>Sentences</value>
+  </data>
+  <data name="LoremIpsumGenerator_Words" xml:space="preserve">
+    <value>Words</value>
+  </data>
+  <data name="LoremIpsumGenerator_CountLabel" xml:space="preserve">
+    <value>Count</value>
+  </data>
+  <data name="LoremIpsumGenerator_StartWithClassic" xml:space="preserve">
+    <value>Start with "Lorem ipsum dolor sit amet..."</value>
+  </data>
+  <data name="LoremIpsumGenerator_WrapParagraphs" xml:space="preserve">
+    <value>Wrap paragraphs with &lt;p&gt; tags</value>
+  </data>
+  <data name="LoremIpsumGenerator_GenerateButton" xml:space="preserve">
+    <value>Generate</value>
+  </data>
+  <data name="LoremIpsumGenerator_OutputLabel" xml:space="preserve">
+    <value>Generated Text</value>
+  </data>
+  <data name="LoremIpsumGenerator_CopyButton" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="LoremIpsumGenerator_DownloadButton" xml:space="preserve">
+    <value>Download as TXT</value>
+  </data>
+  <data name="LoremIpsumGenerator_Copied" xml:space="preserve">
+    <value>Copied!</value>
+  </data>
 </root>

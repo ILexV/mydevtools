@@ -1549,4 +1549,93 @@
   <data name="ColorConverter_ShadesPalette" xml:space="preserve">
     <value>Палитра оттенков</value>
   </data>
+  <data name="ColorConverter_ContrastChecker" xml:space="preserve">
+    <value>Проверка контраста</value>
+  </data>
+  <data name="ColorConverter_ForegroundColor" xml:space="preserve">
+    <value>Цвет текста</value>
+  </data>
+  <data name="ColorConverter_BackgroundColor" xml:space="preserve">
+    <value>Цвет фона</value>
+  </data>
+  <data name="ColorConverter_ContrastRatio" xml:space="preserve">
+    <value>Коэффициент контраста</value>
+  </data>
+  <data name="ColorConverter_WCAGCompliance" xml:space="preserve">
+    <value>Соответствие WCAG</value>
+  </data>
+  <data name="ColorConverter_WCAG_AA_Normal" xml:space="preserve">
+    <value>AA обычный текст (4.5:1)</value>
+  </data>
+  <data name="ColorConverter_WCAG_AA_Large" xml:space="preserve">
+    <value>AA крупный текст (3:1)</value>
+  </data>
+  <data name="ColorConverter_WCAG_AAA_Normal" xml:space="preserve">
+    <value>AAA обычный текст (7:1)</value>
+  </data>
+  <data name="ColorConverter_WCAG_AAA_Large" xml:space="preserve">
+    <value>AAA крупный текст (4.5:1)</value>
+  </data>
+  <data name="ColorConverter_Pass" xml:space="preserve">
+    <value>Пройдено</value>
+  </data>
+  <data name="ColorConverter_Fail" xml:space="preserve">
+    <value>Не пройдено</value>
+  </data>
+  <data name="ColorConverter_PreviewText" xml:space="preserve">
+    <value>Пример текста</value>
+  </data>
+
+  <!-- Markdown Preview -->
+  <data name="Nav_MarkdownPreview" xml:space="preserve">
+    <value>Markdown превью</value>
+  </data>
+  <data name="MarkdownPreview_Title" xml:space="preserve">
+    <value>Markdown превью</value>
+  </data>
+  <data name="MarkdownPreview_Description" xml:space="preserve">
+    <value>Живой редактор markdown с превью HTML в реальном времени, split-view и подсветкой синтаксиса — всё в вашем браузере</value>
+  </data>
+  <data name="MarkdownPreview_EditorLabel" xml:space="preserve">
+    <value>Редактор Markdown</value>
+  </data>
+  <data name="MarkdownPreview_EditorPlaceholder" xml:space="preserve">
+    <value>Введите ваш markdown здесь...</value>
+  </data>
+  <data name="MarkdownPreview_PreviewLabel" xml:space="preserve">
+    <value>Превью</value>
+  </data>
+  <data name="MarkdownPreview_Bold" xml:space="preserve">
+    <value>Жирный</value>
+  </data>
+  <data name="MarkdownPreview_Italic" xml:space="preserve">
+    <value>Курсив</value>
+  </data>
+  <data name="MarkdownPreview_Heading" xml:space="preserve">
+    <value>Заголовок</value>
+  </data>
+  <data name="MarkdownPreview_Link" xml:space="preserve">
+    <value>Ссылка</value>
+  </data>
+  <data name="MarkdownPreview_Image" xml:space="preserve">
+    <value>Изображение</value>
+  </data>
+  <data name="MarkdownPreview_Code" xml:space="preserve">
+    <value>Код</value>
+  </data>
+  <data name="MarkdownPreview_List" xml:space="preserve">
+    <value>Список</value>
+  </data>
+  <data name="MarkdownPreview_Clear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="MarkdownPreview_CopyHTML" xml:space="preserve">
+    <value>Копировать HTML</value>
+  </data>
+  <data name="MarkdownPreview_CopyMarkdown" xml:space="preserve">
+    <value>Копировать Markdown</value>
+  </data>
+  <data name="MarkdownPreview_Download" xml:space="preserve">
+    <value>Скачать HTML</value>
+  </data>
 </root>

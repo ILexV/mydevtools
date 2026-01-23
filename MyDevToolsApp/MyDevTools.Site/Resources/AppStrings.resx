@@ -1609,4 +1609,93 @@
   <data name="ColorConverter_ShadesPalette" xml:space="preserve">
     <value>Shades Palette</value>
   </data>
+  <data name="ColorConverter_ContrastChecker" xml:space="preserve">
+    <value>Contrast Checker</value>
+  </data>
+  <data name="ColorConverter_ForegroundColor" xml:space="preserve">
+    <value>Foreground Color</value>
+  </data>
+  <data name="ColorConverter_BackgroundColor" xml:space="preserve">
+    <value>Background Color</value>
+  </data>
+  <data name="ColorConverter_ContrastRatio" xml:space="preserve">
+    <value>Contrast Ratio</value>
+  </data>
+  <data name="ColorConverter_WCAGCompliance" xml:space="preserve">
+    <value>WCAG Compliance</value>
+  </data>
+  <data name="ColorConverter_WCAG_AA_Normal" xml:space="preserve">
+    <value>AA Normal Text (4.5:1)</value>
+  </data>
+  <data name="ColorConverter_WCAG_AA_Large" xml:space="preserve">
+    <value>AA Large Text (3:1)</value>
+  </data>
+  <data name="ColorConverter_WCAG_AAA_Normal" xml:space="preserve">
+    <value>AAA Normal Text (7:1)</value>
+  </data>
+  <data name="ColorConverter_WCAG_AAA_Large" xml:space="preserve">
+    <value>AAA Large Text (4.5:1)</value>
+  </data>
+  <data name="ColorConverter_Pass" xml:space="preserve">
+    <value>Pass</value>
+  </data>
+  <data name="ColorConverter_Fail" xml:space="preserve">
+    <value>Fail</value>
+  </data>
+  <data name="ColorConverter_PreviewText" xml:space="preserve">
+    <value>Sample Text</value>
+  </data>
+
+  <!-- Markdown Preview -->
+  <data name="Nav_MarkdownPreview" xml:space="preserve">
+    <value>Markdown Preview</value>
+  </data>
+  <data name="MarkdownPreview_Title" xml:space="preserve">
+    <value>Markdown Preview</value>
+  </data>
+  <data name="MarkdownPreview_Description" xml:space="preserve">
+    <value>Live markdown editor with real-time HTML preview, split-view, and syntax highlighting — all in your browser</value>
+  </data>
+  <data name="MarkdownPreview_EditorLabel" xml:space="preserve">
+    <value>Markdown Editor</value>
+  </data>
+  <data name="MarkdownPreview_EditorPlaceholder" xml:space="preserve">
+    <value>Type your markdown here...</value>
+  </data>
+  <data name="MarkdownPreview_PreviewLabel" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="MarkdownPreview_Bold" xml:space="preserve">
+    <value>Bold</value>
+  </data>
+  <data name="MarkdownPreview_Italic" xml:space="preserve">
+    <value>Italic</value>
+  </data>
+  <data name="MarkdownPreview_Heading" xml:space="preserve">
+    <value>Heading</value>
+  </data>
+  <data name="MarkdownPreview_Link" xml:space="preserve">
+    <value>Link</value>
+  </data>
+  <data name="MarkdownPreview_Image" xml:space="preserve">
+    <value>Image</value>
+  </data>
+  <data name="MarkdownPreview_Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="MarkdownPreview_List" xml:space="preserve">
+    <value>List</value>
+  </data>
+  <data name="MarkdownPreview_Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="MarkdownPreview_CopyHTML" xml:space="preserve">
+    <value>Copy HTML</value>
+  </data>
+  <data name="MarkdownPreview_CopyMarkdown" xml:space="preserve">
+    <value>Copy Markdown</value>
+  </data>
+  <data name="MarkdownPreview_Download" xml:space="preserve">
+    <value>Download HTML</value>
+  </data>
 </root>

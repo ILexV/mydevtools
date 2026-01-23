@@ -1222,6 +1222,15 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Background Color.
+        /// </summary>
+        public static string ColorConverter_BackgroundColor {
+            get {
+                return ResourceManager.GetString("ColorConverter_BackgroundColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Clear.
         /// </summary>
         public static string ColorConverter_Clear {
@@ -1236,6 +1245,24 @@ namespace MyDevTools.Site.Resources {
         public static string ColorConverter_ColorPicker {
             get {
                 return ResourceManager.GetString("ColorConverter_ColorPicker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Contrast Checker.
+        /// </summary>
+        public static string ColorConverter_ContrastChecker {
+            get {
+                return ResourceManager.GetString("ColorConverter_ContrastChecker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Contrast Ratio.
+        /// </summary>
+        public static string ColorConverter_ContrastRatio {
+            get {
+                return ResourceManager.GetString("ColorConverter_ContrastRatio", resourceCulture);
             }
         }
         
@@ -1285,6 +1312,24 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fail.
+        /// </summary>
+        public static string ColorConverter_Fail {
+            get {
+                return ResourceManager.GetString("ColorConverter_Fail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Foreground Color.
+        /// </summary>
+        public static string ColorConverter_ForegroundColor {
+            get {
+                return ResourceManager.GetString("ColorConverter_ForegroundColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Input Format.
         /// </summary>
         public static string ColorConverter_InputFormat {
@@ -1312,6 +1357,24 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pass.
+        /// </summary>
+        public static string ColorConverter_Pass {
+            get {
+                return ResourceManager.GetString("ColorConverter_Pass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sample Text.
+        /// </summary>
+        public static string ColorConverter_PreviewText {
+            get {
+                return ResourceManager.GetString("ColorConverter_PreviewText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Shades Palette.
         /// </summary>
         public static string ColorConverter_ShadesPalette {
@@ -1326,6 +1389,51 @@ namespace MyDevTools.Site.Resources {
         public static string ColorConverter_Title {
             get {
                 return ResourceManager.GetString("ColorConverter_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AA Large Text (3:1).
+        /// </summary>
+        public static string ColorConverter_WCAG_AA_Large {
+            get {
+                return ResourceManager.GetString("ColorConverter_WCAG_AA_Large", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AA Normal Text (4.5:1).
+        /// </summary>
+        public static string ColorConverter_WCAG_AA_Normal {
+            get {
+                return ResourceManager.GetString("ColorConverter_WCAG_AA_Normal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AAA Large Text (4.5:1).
+        /// </summary>
+        public static string ColorConverter_WCAG_AAA_Large {
+            get {
+                return ResourceManager.GetString("ColorConverter_WCAG_AAA_Large", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AAA Normal Text (7:1).
+        /// </summary>
+        public static string ColorConverter_WCAG_AAA_Normal {
+            get {
+                return ResourceManager.GetString("ColorConverter_WCAG_AAA_Normal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to WCAG Compliance.
+        /// </summary>
+        public static string ColorConverter_WCAGCompliance {
+            get {
+                return ResourceManager.GetString("ColorConverter_WCAGCompliance", resourceCulture);
             }
         }
         
@@ -2851,6 +2959,150 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Bold.
+        /// </summary>
+        public static string MarkdownPreview_Bold {
+            get {
+                return ResourceManager.GetString("MarkdownPreview_Bold", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear.
+        /// </summary>
+        public static string MarkdownPreview_Clear {
+            get {
+                return ResourceManager.GetString("MarkdownPreview_Clear", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Code.
+        /// </summary>
+        public static string MarkdownPreview_Code {
+            get {
+                return ResourceManager.GetString("MarkdownPreview_Code", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy HTML.
+        /// </summary>
+        public static string MarkdownPreview_CopyHTML {
+            get {
+                return ResourceManager.GetString("MarkdownPreview_CopyHTML", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy Markdown.
+        /// </summary>
+        public static string MarkdownPreview_CopyMarkdown {
+            get {
+                return ResourceManager.GetString("MarkdownPreview_CopyMarkdown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Live markdown editor with real-time HTML preview, split-view, and syntax highlighting — all in your browser.
+        /// </summary>
+        public static string MarkdownPreview_Description {
+            get {
+                return ResourceManager.GetString("MarkdownPreview_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Download HTML.
+        /// </summary>
+        public static string MarkdownPreview_Download {
+            get {
+                return ResourceManager.GetString("MarkdownPreview_Download", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Markdown Editor.
+        /// </summary>
+        public static string MarkdownPreview_EditorLabel {
+            get {
+                return ResourceManager.GetString("MarkdownPreview_EditorLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type your markdown here....
+        /// </summary>
+        public static string MarkdownPreview_EditorPlaceholder {
+            get {
+                return ResourceManager.GetString("MarkdownPreview_EditorPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Heading.
+        /// </summary>
+        public static string MarkdownPreview_Heading {
+            get {
+                return ResourceManager.GetString("MarkdownPreview_Heading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Image.
+        /// </summary>
+        public static string MarkdownPreview_Image {
+            get {
+                return ResourceManager.GetString("MarkdownPreview_Image", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Italic.
+        /// </summary>
+        public static string MarkdownPreview_Italic {
+            get {
+                return ResourceManager.GetString("MarkdownPreview_Italic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Link.
+        /// </summary>
+        public static string MarkdownPreview_Link {
+            get {
+                return ResourceManager.GetString("MarkdownPreview_Link", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to List.
+        /// </summary>
+        public static string MarkdownPreview_List {
+            get {
+                return ResourceManager.GetString("MarkdownPreview_List", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Preview.
+        /// </summary>
+        public static string MarkdownPreview_PreviewLabel {
+            get {
+                return ResourceManager.GetString("MarkdownPreview_PreviewLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Markdown Preview.
+        /// </summary>
+        public static string MarkdownPreview_Title {
+            get {
+                return ResourceManager.GetString("MarkdownPreview_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to AEAD File.
         /// </summary>
         public static string Nav_AeadFile {
@@ -2919,6 +3171,15 @@ namespace MyDevTools.Site.Resources {
         public static string Nav_JsonBeautifier {
             get {
                 return ResourceManager.GetString("Nav_JsonBeautifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Markdown Preview.
+        /// </summary>
+        public static string Nav_MarkdownPreview {
+            get {
+                return ResourceManager.GetString("Nav_MarkdownPreview", resourceCulture);
             }
         }
         

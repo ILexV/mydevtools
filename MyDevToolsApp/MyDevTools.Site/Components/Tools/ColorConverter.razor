@@ -13,7 +13,10 @@
             CurrentUrl="@Navigation.Uri" />
 
 <ToolLayout Title="@AppStrings.ColorConverter_Title" Description="@AppStrings.ColorConverter_Description">
-    <div id="color-converter-root">
+    <div id="color-converter-root" 
+         data-copied="@AppStrings.ColorConverter_Copied"
+         data-pass="@AppStrings.ColorConverter_Pass"
+         data-fail="@AppStrings.ColorConverter_Fail">
         <div class="tool-grid">
             <!-- Color Input Section -->
             <div class="input-section">
@@ -104,6 +107,78 @@
             <h3 style="margin-bottom: 1rem;">@AppStrings.ColorConverter_ShadesPalette</h3>
             <div id="shades-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem;">
                 <!-- Shades will be dynamically generated -->
+            </div>
+        </div>
+
+        <!-- Contrast Checker -->
+        <div style="margin-top: 2rem;">
+            <h3 style="margin-bottom: 1rem;">@AppStrings.ColorConverter_ContrastChecker</h3>
+            <div class="tool-grid">
+                <div class="input-section">
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <!-- Foreground Color -->
+                        <div>
+                            <label for="contrast-fg-color">@AppStrings.ColorConverter_ForegroundColor</label>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                                <input type="color" id="contrast-fg-color" value="#000000" 
+                                       style="width: 60px; height: 40px; cursor: pointer; border: 2px solid var(--border-color); border-radius: 4px;" />
+                                <input type="text" id="contrast-fg-input" value="#000000" style="flex: 1;" />
+                            </div>
+                        </div>
+
+                        <!-- Background Color -->
+                        <div>
+                            <label for="contrast-bg-color">@AppStrings.ColorConverter_BackgroundColor</label>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                                <input type="color" id="contrast-bg-color" value="#ffffff" 
+                                       style="width: 60px; height: 40px; cursor: pointer; border: 2px solid var(--border-color); border-radius: 4px;" />
+                                <input type="text" id="contrast-bg-input" value="#ffffff" style="flex: 1;" />
+                            </div>
+                        </div>
+
+                        <!-- Preview -->
+                        <div>
+                            <label>@AppStrings.ColorConverter_PreviewText</label>
+                            <div id="contrast-preview" style="margin-top: 0.5rem; padding: 2rem; border-radius: 8px; text-align: center;">
+                                <p style="font-size: 1rem; margin: 0; font-weight: normal;">The quick brown fox jumps over the lazy dog</p>
+                                <p style="font-size: 1.5rem; margin: 1rem 0 0 0; font-weight: bold;">Large Text Example</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="output-section">
+                    <!-- Contrast Ratio -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <label>@AppStrings.ColorConverter_ContrastRatio</label>
+                        <div id="contrast-ratio" style="font-size: 2rem; font-weight: bold; color: var(--primary-color); margin-top: 0.5rem;">
+                            21:1
+                        </div>
+                    </div>
+
+                    <!-- WCAG Compliance -->
+                    <div>
+                        <label style="margin-bottom: 0.75rem; display: block;">@AppStrings.ColorConverter_WCAGCompliance</label>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div class="wcag-item">
+                                <span class="wcag-label">@AppStrings.ColorConverter_WCAG_AA_Normal</span>
+                                <span class="wcag-badge wcag-pass" id="wcag-aa-normal">@AppStrings.ColorConverter_Pass</span>
+                            </div>
+                            <div class="wcag-item">
+                                <span class="wcag-label">@AppStrings.ColorConverter_WCAG_AA_Large</span>
+                                <span class="wcag-badge wcag-pass" id="wcag-aa-large">@AppStrings.ColorConverter_Pass</span>
+                            </div>
+                            <div class="wcag-item">
+                                <span class="wcag-label">@AppStrings.ColorConverter_WCAG_AAA_Normal</span>
+                                <span class="wcag-badge wcag-pass" id="wcag-aaa-normal">@AppStrings.ColorConverter_Pass</span>
+                            </div>
+                            <div class="wcag-item">
+                                <span class="wcag-label">@AppStrings.ColorConverter_WCAG_AAA_Large</span>
+                                <span class="wcag-badge wcag-pass" id="wcag-aaa-large">@AppStrings.ColorConverter_Pass</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -376,6 +451,107 @@
 
     // Initialize with default color
     updateOutputs(currentColor);
+
+    // ===== Contrast Checker =====
+    const contrastFgColor = document.getElementById('contrast-fg-color');
+    const contrastBgColor = document.getElementById('contrast-bg-color');
+    const contrastFgInput = document.getElementById('contrast-fg-input');
+    const contrastBgInput = document.getElementById('contrast-bg-input');
+    const contrastPreview = document.getElementById('contrast-preview');
+    const contrastRatio = document.getElementById('contrast-ratio');
+    const wcagAaNormal = document.getElementById('wcag-aa-normal');
+    const wcagAaLarge = document.getElementById('wcag-aa-large');
+    const wcagAaaNormal = document.getElementById('wcag-aaa-normal');
+    const wcagAaaLarge = document.getElementById('wcag-aaa-large');
+
+    // Calculate relative luminance
+    function getLuminance(r, g, b) {
+        const rsRGB = r / 255;
+        const gsRGB = g / 255;
+        const bsRGB = b / 255;
+
+        const rLin = rsRGB <= 0.03928 ? rsRGB / 12.92 : Math.pow((rsRGB + 0.055) / 1.055, 2.4);
+        const gLin = gsRGB <= 0.03928 ? gsRGB / 12.92 : Math.pow((gsRGB + 0.055) / 1.055, 2.4);
+        const bLin = bsRGB <= 0.03928 ? bsRGB / 12.92 : Math.pow((bsRGB + 0.055) / 1.055, 2.4);
+
+        return 0.2126 * rLin + 0.7152 * gLin + 0.0722 * bLin;
+    }
+
+    // Calculate contrast ratio
+    function getContrastRatio(rgb1, rgb2) {
+        const lum1 = getLuminance(rgb1.r, rgb1.g, rgb1.b);
+        const lum2 = getLuminance(rgb2.r, rgb2.g, rgb2.b);
+        const lighter = Math.max(lum1, lum2);
+        const darker = Math.min(lum1, lum2);
+        return (lighter + 0.05) / (darker + 0.05);
+    }
+
+    function updateContrastChecker() {
+        const fgRgb = hexToRgb(contrastFgInput.value);
+        const bgRgb = hexToRgb(contrastBgInput.value);
+
+        if (!fgRgb || !bgRgb) return;
+
+        // Update preview
+        contrastPreview.style.color = contrastFgInput.value;
+        contrastPreview.style.background = contrastBgInput.value;
+
+        // Calculate contrast ratio
+        const ratio = getContrastRatio(fgRgb, bgRgb);
+        contrastRatio.textContent = ratio.toFixed(2) + ':1';
+
+        // Update WCAG compliance
+        updateWCAGBadge(wcagAaNormal, ratio >= 4.5);
+        updateWCAGBadge(wcagAaLarge, ratio >= 3);
+        updateWCAGBadge(wcagAaaNormal, ratio >= 7);
+        updateWCAGBadge(wcagAaaLarge, ratio >= 4.5);
+    }
+
+    function updateWCAGBadge(element, passes) {
+        const passText = element.parentElement.querySelector('.wcag-label').textContent.includes('(4.5:1)') || 
+                         element.parentElement.querySelector('.wcag-label').textContent.includes('(3:1)') ||
+                         element.parentElement.querySelector('.wcag-label').textContent.includes('(7:1)') ? 
+                         root.getAttribute('data-pass') || 'Pass' : root.getAttribute('data-pass') || 'Pass';
+        const failText = root.getAttribute('data-fail') || 'Fail';
+        
+        if (passes) {
+            element.textContent = passText;
+            element.className = 'wcag-badge wcag-pass';
+        } else {
+            element.textContent = failText;
+            element.className = 'wcag-badge wcag-fail';
+        }
+    }
+
+    // Event listeners for contrast checker
+    contrastFgColor.addEventListener('input', (e) => {
+        contrastFgInput.value = e.target.value;
+        updateContrastChecker();
+    });
+
+    contrastBgColor.addEventListener('input', (e) => {
+        contrastBgInput.value = e.target.value;
+        updateContrastChecker();
+    });
+
+    contrastFgInput.addEventListener('input', (e) => {
+        const rgb = hexToRgb(e.target.value);
+        if (rgb) {
+            contrastFgColor.value = e.target.value;
+            updateContrastChecker();
+        }
+    });
+
+    contrastBgInput.addEventListener('input', (e) => {
+        const rgb = hexToRgb(e.target.value);
+        if (rgb) {
+            contrastBgColor.value = e.target.value;
+            updateContrastChecker();
+        }
+    });
+
+    // Initialize contrast checker
+    updateContrastChecker();
 })();
 </script>
 
@@ -412,6 +588,38 @@
     #color-picker::-webkit-color-swatch {
         border: none;
         border-radius: 6px;
+    }
+
+    .wcag-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem;
+        background: var(--bg-secondary);
+        border-radius: 4px;
+    }
+
+    .wcag-label {
+        font-size: 0.875rem;
+        color: var(--text-primary);
+    }
+
+    .wcag-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .wcag-pass {
+        background: #10b981;
+        color: white;
+    }
+
+    .wcag-fail {
+        background: #ef4444;
+        color: white;
     }
 </style>
 

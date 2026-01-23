@@ -87,3 +87,8 @@ pub fn compress_image(input_data: &[u8], format_str: &str, quality: u8) -> Resul
 
     Ok(output_buffer)
 }
+
+#[wasm_bindgen]
+pub fn convert_image(input_data: &[u8], format_str: &str, quality: u8) -> Result<Vec<u8>, String> {
+    compress_image(input_data, format_str, quality)
+}

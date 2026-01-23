@@ -1,0 +1,493 @@
+@page "/{lang}/text-diff-viewer"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<MetaTags Title="@AppStrings.TextDiffViewer_Title" 
+          Description="@AppStrings.TextDiffViewer_Description" 
+          CurrentUrl="@Navigation.Uri" />
+
+<HreflangLinks ToolPath="text-diff-viewer" />
+
+<JsonLdTool ToolName="@AppStrings.TextDiffViewer_Title" 
+            Description="@AppStrings.TextDiffViewer_Description" 
+            CurrentUrl="@Navigation.Uri" />
+
+<ToolLayout Title="@AppStrings.TextDiffViewer_Title" Description="@AppStrings.TextDiffViewer_Description">
+    <div id="text-diff-viewer-root"
+         data-error-msg="@AppStrings.TextDiffViewer_ErrorMessage"
+         data-loading-msg="@AppStrings.Common_Loading">
+        
+        <div class="diff-controls mb-3">
+            <div class="diff-inputs-grid">
+                <div class="diff-input-section">
+                    <label class="form-label fw-semibold">@AppStrings.TextDiffViewer_OriginalLabel</label>
+                    <textarea id="diff-original-text" 
+                              class="form-control font-monospace" 
+                              rows="15" 
+                              placeholder="@AppStrings.TextDiffViewer_OriginalPlaceholder"></textarea>
+                    <div class="mt-2">
+                        <label for="diff-original-file" class="file-upload-label">
+                            @AppStrings.TextDiffViewer_ChooseOriginalFile
+                        </label>
+                        <input type="file" id="diff-original-file" class="file-input-hidden" accept=".txt,.js,.json,.xml,.html,.css,.md,.py,.java,.cpp,.c,.h,.rs,.go,.php,.rb,.ts,.tsx,.jsx" />
+                    </div>
+                </div>
+                
+                <div class="diff-input-section">
+                    <label class="form-label fw-semibold">@AppStrings.TextDiffViewer_ModifiedLabel</label>
+                    <textarea id="diff-modified-text" 
+                              class="form-control font-monospace" 
+                              rows="15" 
+                              placeholder="@AppStrings.TextDiffViewer_ModifiedPlaceholder"></textarea>
+                    <div class="mt-2">
+                        <label for="diff-modified-file" class="file-upload-label">
+                            @AppStrings.TextDiffViewer_ChooseModifiedFile
+                        </label>
+                        <input type="file" id="diff-modified-file" class="file-input-hidden" accept=".txt,.js,.json,.xml,.html,.css,.md,.py,.java,.cpp,.c,.h,.rs,.go,.php,.rb,.ts,.tsx,.jsx" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="diff-actions mt-3 d-flex gap-2 align-items-center">
+                <button type="button" class="btn btn-primary" id="diff-compare-btn">
+                    🔍 @AppStrings.TextDiffViewer_CompareButton
+                </button>
+                <button type="button" class="btn btn-secondary" id="diff-clear-btn">
+                    🗑️ @AppStrings.TextDiffViewer_ClearButton
+                </button>
+                
+                <div class="ms-auto d-flex gap-2 align-items-center">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="diff-line-by-line" checked>
+                        <label class="form-check-label" for="diff-line-by-line">
+                            @AppStrings.TextDiffViewer_LineByLine
+                        </label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="diff-side-by-side">
+                        <label class="form-check-label" for="diff-side-by-side">
+                            @AppStrings.TextDiffViewer_SideBySide
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="diff-output" class="mt-4"></div>
+    </div>
+</ToolLayout>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/diff2html/bundles/css/diff2html.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js"></script>
+
+<script>
+(function() {
+    'use strict';
+
+    let currentOriginalContent = '';
+    let currentModifiedContent = '';
+
+    function createUnifiedDiff(original, modified, filename = 'file.txt') {
+        const originalLines = original.split('\n');
+        const modifiedLines = modified.split('\n');
+        
+        const maxLines = Math.max(originalLines.length, modifiedLines.length);
+        
+        // Create unified diff format
+        let diff = `--- a/${filename}\n+++ b/${filename}\n`;
+        
+        // Create one big hunk showing all differences
+        diff += `@@@@ -1,${originalLines.length} +1,${modifiedLines.length} @@@@\n`;
+        
+        // Simple algorithm: show all lines from both files
+        for (let i = 0; i < maxLines; i++) {
+            const origLine = i < originalLines.length ? originalLines[i] : undefined;
+            const modLine = i < modifiedLines.length ? modifiedLines[i] : undefined;
+            
+            if (origLine === modLine && origLine !== undefined) {
+                // Same line
+                diff += ` ${origLine}\n`;
+            } else {
+                // Different lines
+                if (origLine !== undefined) {
+                    diff += `-${origLine}\n`;
+                }
+                if (modLine !== undefined) {
+                    diff += `+${modLine}\n`;
+                }
+            }
+        }
+        
+        return diff;
+    }
+
+    function renderDiff() {
+        const outputEl = document.getElementById('diff-output');
+        const lineByLineCheckbox = document.getElementById('diff-line-by-line');
+        
+        if (!outputEl || !lineByLineCheckbox) return;
+        
+        const lineByLine = lineByLineCheckbox.checked;
+        
+        if (!currentOriginalContent && !currentModifiedContent) {
+            const root = document.getElementById('text-diff-viewer-root');
+            const errorMsg = root ? root.dataset.errorMsg : 'Enter text to compare';
+            outputEl.innerHTML = '<div class="alert alert-info">📝 ' + errorMsg + '</div>';
+            return;
+        }
+        
+        const diffString = createUnifiedDiff(currentOriginalContent, currentModifiedContent);
+        
+        const configuration = {
+            drawFileList: false,
+            matching: 'lines',
+            outputFormat: lineByLine ? 'line-by-line' : 'side-by-side',
+            highlight: true,
+            renderNothingWhenEmpty: false
+        };
+        
+        outputEl.innerHTML = '';
+        
+        if (typeof Diff2HtmlUI !== 'undefined') {
+            const diff2htmlUi = new Diff2HtmlUI(outputEl, diffString, configuration);
+            diff2htmlUi.draw();
+            diff2htmlUi.highlightCode();
+        } else {
+            outputEl.innerHTML = '<div class="alert alert-danger">Diff2Html library failed to load. Please refresh the page.</div>';
+        }
+    }
+
+    function loadFileContent(file, callback) {
+        const reader = new FileReader();
+        reader.onload = (e) => callback(e.target.result);
+        reader.onerror = () => {
+            const root = document.getElementById('text-diff-viewer-root');
+            const errorMsg = root ? root.dataset.errorMsg : 'Error reading file';
+            alert(errorMsg);
+        };
+        reader.readAsText(file);
+    }
+
+    function init() {
+        const originalTextArea = document.getElementById('diff-original-text');
+        const modifiedTextArea = document.getElementById('diff-modified-text');
+        const originalFileInput = document.getElementById('diff-original-file');
+        const modifiedFileInput = document.getElementById('diff-modified-file');
+        const compareBtn = document.getElementById('diff-compare-btn');
+        const clearBtn = document.getElementById('diff-clear-btn');
+        const lineByLineCheckbox = document.getElementById('diff-line-by-line');
+        const sideBySideCheckbox = document.getElementById('diff-side-by-side');
+
+        if (!originalTextArea || !modifiedTextArea) return;
+
+        // Sync checkboxes
+        if (lineByLineCheckbox) {
+            lineByLineCheckbox.addEventListener('change', () => {
+                if (lineByLineCheckbox.checked && sideBySideCheckbox) {
+                    sideBySideCheckbox.checked = false;
+                }
+                if (currentOriginalContent || currentModifiedContent) {
+                    renderDiff();
+                }
+            });
+        }
+
+        if (sideBySideCheckbox) {
+            sideBySideCheckbox.addEventListener('change', () => {
+                if (sideBySideCheckbox.checked && lineByLineCheckbox) {
+                    lineByLineCheckbox.checked = false;
+                } else if (!sideBySideCheckbox.checked && lineByLineCheckbox) {
+                    lineByLineCheckbox.checked = true;
+                }
+                if (currentOriginalContent || currentModifiedContent) {
+                    renderDiff();
+                }
+            });
+        }
+
+        // File inputs
+        if (originalFileInput) {
+            originalFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    loadFileContent(file, (content) => {
+                        originalTextArea.value = content;
+                        currentOriginalContent = content;
+                        // Auto-render if both files are loaded
+                        if (currentModifiedContent) {
+                            renderDiff();
+                        }
+                    });
+                }
+            });
+        }
+
+        if (modifiedFileInput) {
+            modifiedFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    loadFileContent(file, (content) => {
+                        modifiedTextArea.value = content;
+                        currentModifiedContent = content;
+                        // Auto-render if both files are loaded
+                        if (currentOriginalContent) {
+                            renderDiff();
+                        }
+                    });
+                }
+            });
+        }
+
+        // Compare button
+        if (compareBtn) {
+            compareBtn.addEventListener('click', () => {
+                currentOriginalContent = originalTextArea.value;
+                currentModifiedContent = modifiedTextArea.value;
+                renderDiff();
+            });
+        }
+
+        // Clear button
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                originalTextArea.value = '';
+                modifiedTextArea.value = '';
+                currentOriginalContent = '';
+                currentModifiedContent = '';
+                if (originalFileInput) originalFileInput.value = '';
+                if (modifiedFileInput) modifiedFileInput.value = '';
+                const outputEl = document.getElementById('diff-output');
+                if (outputEl) outputEl.innerHTML = '';
+            });
+        }
+
+        // Auto-update on text change
+        originalTextArea.addEventListener('input', () => {
+            currentOriginalContent = originalTextArea.value;
+        });
+
+        modifiedTextArea.addEventListener('input', () => {
+            currentModifiedContent = modifiedTextArea.value;
+        });
+    }
+
+    // Initialize on page load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    // Reinitialize on Blazor enhanced navigation
+    document.addEventListener('enhancedload', init);
+})();
+</script>
+
+<style>
+    .diff-controls {
+        background: var(--bs-body-bg);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        border: 1px solid var(--bs-border-color);
+    }
+    
+    .diff-inputs-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    @@media (max-width: 768px) {
+        .diff-inputs-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .diff-input-section {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .diff-controls textarea {
+        resize: vertical;
+        min-height: 300px;
+    }
+    
+    /* File upload button styling */
+    .file-input-hidden {
+        display: none;
+    }
+    
+    .file-upload-label {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background: var(--bs-primary);
+        color: white;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: background 0.2s;
+        text-align: center;
+        width: 100%;
+    }
+    
+    .file-upload-label:hover {
+        background: var(--bs-primary-dark, #0056b3);
+    }
+    
+    /* Diff output container */
+    #diff-output {
+        border-radius: 0.5rem;
+        overflow: auto;
+        min-height: 200px;
+    }
+    
+    #diff-output .d2h-wrapper {
+        border: 1px solid var(--bs-border-color);
+    }
+    
+    /* Fix diff2html display issues */
+    #diff-output .d2h-file-wrapper {
+        border: 1px solid var(--bs-border-color);
+        border-radius: 0.375rem;
+        margin-bottom: 1rem;
+    }
+    
+    #diff-output .d2h-file-header {
+        background: var(--bs-secondary-bg);
+        padding: 0.5rem 1rem;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+    
+    #diff-output .d2h-diff-table {
+        width: 100%;
+        font-family: 'Courier New', monospace;
+        font-size: 0.875rem;
+    }
+    
+    #diff-output .d2h-code-line {
+        padding: 0.25rem 0.5rem;
+        white-space: pre;
+    }
+    
+    #diff-output .d2h-code-linenumber {
+        padding: 0.25rem 0.5rem;
+        min-width: 50px;
+        text-align: right;
+        user-select: none;
+    }
+    
+    /* Line-by-line view */
+    #diff-output .d2h-code-line-ctn {
+        display: table-cell;
+        vertical-align: top;
+    }
+    
+    /* Side-by-side view */
+    #diff-output .d2h-code-side-linenumber {
+        padding: 0.25rem 0.5rem;
+        min-width: 40px;
+        text-align: right;
+        user-select: none;
+    }
+    
+    /* Hide the "viewed" checkbox from diff2html */
+    #diff-output .d2h-file-collapse,
+    #diff-output .d2h-file-collapse-input {
+        display: none !important;
+    }
+    
+    /* Dark theme support for diff2html */
+    @@media (prefers-color-scheme: dark) {
+        #diff-output .d2h-wrapper {
+            background-color: var(--bs-body-bg);
+            color: var(--bs-body-color);
+        }
+        
+        #diff-output .d2h-file-header {
+            background-color: var(--bs-secondary-bg);
+            color: var(--bs-body-color);
+        }
+        
+        #diff-output .d2h-diff-table {
+            background-color: var(--bs-body-bg);
+        }
+        
+        /* Line numbers */
+        #diff-output .d2h-code-linenumber,
+        #diff-output .d2h-code-side-linenumber {
+            background-color: var(--bs-secondary-bg);
+            color: var(--bs-secondary-color);
+            border-color: var(--bs-border-color);
+        }
+        
+        /* Context lines (unchanged) */
+        #diff-output .d2h-code-line,
+        #diff-output .d2h-code-side-line {
+            background-color: var(--bs-body-bg);
+            color: var(--bs-body-color);
+        }
+        
+        /* Deleted lines (red background) */
+        #diff-output .d2h-del {
+            background-color: rgba(220, 38, 38, 0.2);
+            color: #fca5a5;
+        }
+        
+        #diff-output .d2h-del .d2h-code-linenumber,
+        #diff-output .d2h-del .d2h-code-side-linenumber {
+            background-color: rgba(220, 38, 38, 0.3);
+            color: #fca5a5;
+        }
+        
+        /* Added lines (green background) */
+        #diff-output .d2h-ins {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+        }
+        
+        #diff-output .d2h-ins .d2h-code-linenumber,
+        #diff-output .d2h-ins .d2h-code-side-linenumber {
+            background-color: rgba(34, 197, 94, 0.3);
+            color: #86efac;
+        }
+        
+        /* Changed text within lines */
+        #diff-output .d2h-code-line-del,
+        #diff-output .d2h-code-side-del {
+            background-color: rgba(220, 38, 38, 0.3);
+        }
+        
+        #diff-output .d2h-code-line-ins,
+        #diff-output .d2h-code-side-ins {
+            background-color: rgba(34, 197, 94, 0.3);
+        }
+        
+        /* Empty lines */
+        #diff-output .d2h-emptyplaceholder {
+            background-color: var(--bs-secondary-bg);
+            color: var(--bs-secondary-color);
+        }
+        
+        /* Info section */
+        #diff-output .d2h-info {
+            background-color: var(--bs-info-bg-subtle);
+            color: var(--bs-info-text-emphasis);
+        }
+        
+        /* File stats */
+        #diff-output .d2h-file-stats {
+            color: var(--bs-body-color);
+        }
+    }
+</style>
+
+@code {
+    /// <summary>
+    /// Language parameter for multi-language routing
+    /// </summary>
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

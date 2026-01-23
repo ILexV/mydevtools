@@ -61,3 +61,4 @@ nunit-*.xml
 .idea/
 .vs/
 /wasm/target
+/nul

@@ -1639,4 +1639,48 @@
   <data name="MarkdownPreview_Download" xml:space="preserve">
     <value>Descargar HTML</value>
   </data>
+  
+  <!-- Text Diff Viewer -->
+  <data name="Nav_TextDiffViewer" xml:space="preserve">
+    <value>Visor de diferencias de texto</value>
+  </data>
+  <data name="TextDiffViewer_Title" xml:space="preserve">
+    <value>Visor de diferencias de texto</value>
+  </data>
+  <data name="TextDiffViewer_Description" xml:space="preserve">
+    <value>Compare dos archivos de texto o fragmentos de código lado a lado con un visor de diferencias visual, similar a Git diff. Resalta cambios, adiciones y eliminaciones en un formato legible.</value>
+  </data>
+  <data name="TextDiffViewer_OriginalLabel" xml:space="preserve">
+    <value>Texto original</value>
+  </data>
+  <data name="TextDiffViewer_OriginalPlaceholder" xml:space="preserve">
+    <value>Pegue o escriba el texto original aquí, o cargue un archivo abajo...</value>
+  </data>
+  <data name="TextDiffViewer_ModifiedLabel" xml:space="preserve">
+    <value>Texto modificado</value>
+  </data>
+  <data name="TextDiffViewer_ModifiedPlaceholder" xml:space="preserve">
+    <value>Pegue o escriba el texto modificado aquí, o cargue un archivo abajo...</value>
+  </data>
+  <data name="TextDiffViewer_CompareButton" xml:space="preserve">
+    <value>Comparar</value>
+  </data>
+  <data name="TextDiffViewer_ClearButton" xml:space="preserve">
+    <value>Limpiar</value>
+  </data>
+  <data name="TextDiffViewer_LineByLine" xml:space="preserve">
+    <value>Línea por línea</value>
+  </data>
+  <data name="TextDiffViewer_SideBySide" xml:space="preserve">
+    <value>Lado a lado</value>
+  </data>
+  <data name="TextDiffViewer_ErrorMessage" xml:space="preserve">
+    <value>Por favor, ingrese texto en ambos campos para comparar.</value>
+  </data>
+  <data name="TextDiffViewer_ChooseOriginalFile" xml:space="preserve">
+    <value>📁 Elegir archivo original</value>
+  </data>
+  <data name="TextDiffViewer_ChooseModifiedFile" xml:space="preserve">
+    <value>📁 Elegir archivo modificado</value>
+  </data>
 </root>

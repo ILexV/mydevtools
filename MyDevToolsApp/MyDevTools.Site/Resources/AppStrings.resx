@@ -1698,4 +1698,48 @@
   <data name="MarkdownPreview_Download" xml:space="preserve">
     <value>Download HTML</value>
   </data>
+  
+  <!-- Text Diff Viewer -->
+  <data name="Nav_TextDiffViewer" xml:space="preserve">
+    <value>Text Diff Viewer</value>
+  </data>
+  <data name="TextDiffViewer_Title" xml:space="preserve">
+    <value>Text Diff Viewer</value>
+  </data>
+  <data name="TextDiffViewer_Description" xml:space="preserve">
+    <value>Compare two text files or code snippets side-by-side with a visual diff viewer, similar to Git diff. Highlight changes, additions, and deletions in a readable format.</value>
+  </data>
+  <data name="TextDiffViewer_OriginalLabel" xml:space="preserve">
+    <value>Original Text</value>
+  </data>
+  <data name="TextDiffViewer_OriginalPlaceholder" xml:space="preserve">
+    <value>Paste or type original text here, or upload a file below...</value>
+  </data>
+  <data name="TextDiffViewer_ModifiedLabel" xml:space="preserve">
+    <value>Modified Text</value>
+  </data>
+  <data name="TextDiffViewer_ModifiedPlaceholder" xml:space="preserve">
+    <value>Paste or type modified text here, or upload a file below...</value>
+  </data>
+  <data name="TextDiffViewer_CompareButton" xml:space="preserve">
+    <value>Compare</value>
+  </data>
+  <data name="TextDiffViewer_ClearButton" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="TextDiffViewer_LineByLine" xml:space="preserve">
+    <value>Line by Line</value>
+  </data>
+  <data name="TextDiffViewer_SideBySide" xml:space="preserve">
+    <value>Side by Side</value>
+  </data>
+  <data name="TextDiffViewer_ErrorMessage" xml:space="preserve">
+    <value>Please enter text in both fields to compare.</value>
+  </data>
+  <data name="TextDiffViewer_ChooseOriginalFile" xml:space="preserve">
+    <value>📁 Choose original file</value>
+  </data>
+  <data name="TextDiffViewer_ChooseModifiedFile" xml:space="preserve">
+    <value>📁 Choose modified file</value>
+  </data>
 </root>

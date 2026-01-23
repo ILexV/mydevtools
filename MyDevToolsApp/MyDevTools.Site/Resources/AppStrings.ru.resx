@@ -1638,4 +1638,48 @@
   <data name="MarkdownPreview_Download" xml:space="preserve">
     <value>Скачать HTML</value>
   </data>
+  
+  <!-- Text Diff Viewer -->
+  <data name="Nav_TextDiffViewer" xml:space="preserve">
+    <value>Просмотр различий текста</value>
+  </data>
+  <data name="TextDiffViewer_Title" xml:space="preserve">
+    <value>Просмотр различий текста</value>
+  </data>
+  <data name="TextDiffViewer_Description" xml:space="preserve">
+    <value>Сравните два текстовых файла или фрагмента кода с визуальным отображением различий, как в Git diff. Подсветка изменений, добавлений и удалений в удобном формате.</value>
+  </data>
+  <data name="TextDiffViewer_OriginalLabel" xml:space="preserve">
+    <value>Исходный текст</value>
+  </data>
+  <data name="TextDiffViewer_OriginalPlaceholder" xml:space="preserve">
+    <value>Вставьте или введите исходный текст здесь, или загрузите файл ниже...</value>
+  </data>
+  <data name="TextDiffViewer_ModifiedLabel" xml:space="preserve">
+    <value>Измененный текст</value>
+  </data>
+  <data name="TextDiffViewer_ModifiedPlaceholder" xml:space="preserve">
+    <value>Вставьте или введите измененный текст здесь, или загрузите файл ниже...</value>
+  </data>
+  <data name="TextDiffViewer_CompareButton" xml:space="preserve">
+    <value>Сравнить</value>
+  </data>
+  <data name="TextDiffViewer_ClearButton" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="TextDiffViewer_LineByLine" xml:space="preserve">
+    <value>Построчно</value>
+  </data>
+  <data name="TextDiffViewer_SideBySide" xml:space="preserve">
+    <value>Рядом</value>
+  </data>
+  <data name="TextDiffViewer_ErrorMessage" xml:space="preserve">
+    <value>Пожалуйста, введите текст в оба поля для сравнения.</value>
+  </data>
+  <data name="TextDiffViewer_ChooseOriginalFile" xml:space="preserve">
+    <value>📁 Выбрать исходный файл</value>
+  </data>
+  <data name="TextDiffViewer_ChooseModifiedFile" xml:space="preserve">
+    <value>📁 Выбрать изменённый файл</value>
+  </data>
 </root>

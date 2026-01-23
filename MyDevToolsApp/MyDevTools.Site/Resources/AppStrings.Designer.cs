@@ -3211,6 +3211,15 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Text Diff Viewer.
+        /// </summary>
+        public static string Nav_TextDiffViewer {
+            get {
+                return ResourceManager.GetString("Nav_TextDiffViewer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tools.
         /// </summary>
         public static string Nav_Tools {
@@ -4062,6 +4071,123 @@ namespace MyDevTools.Site.Resources {
         public static string TextCaseConverter_UpperCase {
             get {
                 return ResourceManager.GetString("TextCaseConverter_UpperCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 📁 Choose modified file.
+        /// </summary>
+        public static string TextDiffViewer_ChooseModifiedFile {
+            get {
+                return ResourceManager.GetString("TextDiffViewer_ChooseModifiedFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 📁 Choose original file.
+        /// </summary>
+        public static string TextDiffViewer_ChooseOriginalFile {
+            get {
+                return ResourceManager.GetString("TextDiffViewer_ChooseOriginalFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear.
+        /// </summary>
+        public static string TextDiffViewer_ClearButton {
+            get {
+                return ResourceManager.GetString("TextDiffViewer_ClearButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Compare.
+        /// </summary>
+        public static string TextDiffViewer_CompareButton {
+            get {
+                return ResourceManager.GetString("TextDiffViewer_CompareButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Compare two text files or code snippets side-by-side with a visual diff viewer, similar to Git diff. Highlight changes, additions, and deletions in a readable format..
+        /// </summary>
+        public static string TextDiffViewer_Description {
+            get {
+                return ResourceManager.GetString("TextDiffViewer_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please enter text in both fields to compare..
+        /// </summary>
+        public static string TextDiffViewer_ErrorMessage {
+            get {
+                return ResourceManager.GetString("TextDiffViewer_ErrorMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Line by Line.
+        /// </summary>
+        public static string TextDiffViewer_LineByLine {
+            get {
+                return ResourceManager.GetString("TextDiffViewer_LineByLine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modified Text.
+        /// </summary>
+        public static string TextDiffViewer_ModifiedLabel {
+            get {
+                return ResourceManager.GetString("TextDiffViewer_ModifiedLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Paste or type modified text here, or upload a file below....
+        /// </summary>
+        public static string TextDiffViewer_ModifiedPlaceholder {
+            get {
+                return ResourceManager.GetString("TextDiffViewer_ModifiedPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Original Text.
+        /// </summary>
+        public static string TextDiffViewer_OriginalLabel {
+            get {
+                return ResourceManager.GetString("TextDiffViewer_OriginalLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Paste or type original text here, or upload a file below....
+        /// </summary>
+        public static string TextDiffViewer_OriginalPlaceholder {
+            get {
+                return ResourceManager.GetString("TextDiffViewer_OriginalPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Side by Side.
+        /// </summary>
+        public static string TextDiffViewer_SideBySide {
+            get {
+                return ResourceManager.GetString("TextDiffViewer_SideBySide", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Text Diff Viewer.
+        /// </summary>
+        public static string TextDiffViewer_Title {
+            get {
+                return ResourceManager.GetString("TextDiffViewer_Title", resourceCulture);
             }
         }
         

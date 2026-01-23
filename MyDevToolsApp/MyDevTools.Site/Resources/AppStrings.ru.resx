@@ -140,6 +140,13 @@
     <value>Скопировано!</value>
   </data>
 
+  <data name="Common_Download" xml:space="preserve">
+    <value>Скачать</value>
+  </data>
+  <data name="ImageConverter_TargetFormatLabel" xml:space="preserve">
+    <value>Целевой формат</value>
+  </data>
+
   <data name="HashCalculator_AlgorithmsTitle" xml:space="preserve">
     <value>Алгоритмы</value>
   </data>
@@ -1228,6 +1235,31 @@
   <data name="ImageCompressor_Download" xml:space="preserve">
     <value>Скачать</value>
   </data>
+  <data name="ImageResizer_Title" xml:space="preserve">
+    <value>Изменение размера</value>
+  </data>
+  <data name="ImageResizer_Description" xml:space="preserve">
+    <value>Изменяйте размер изображений с блокировкой пропорций.</value>
+  </data>
+  <data name="ImageResizer_OriginalInfo" xml:space="preserve">
+    <value>Исходное изображение</value>
+  </data>
+  <data name="ImageResizer_Width" xml:space="preserve">
+    <value>Ширина (px)</value>
+  </data>
+  <data name="ImageResizer_Height" xml:space="preserve">
+    <value>Высота (px)</value>
+  </data>
+  <data name="ImageResizer_LockAspectRatio" xml:space="preserve">
+    <value>Сохранять пропорции</value>
+  </data>
+  <data name="ImageResizer_Resize" xml:space="preserve">
+    <value>Изменить размер</value>
+  </data>
+  <data name="ImageResizer_Resizing" xml:space="preserve">
+    <value>Обработка...</value>
+  </data>
+
   <data name="Home_DevelopmentNotice" xml:space="preserve">
     <value>Сайт находится в стадии активной разработки. Функционал и дизайн будут улучшены в ближайшее время.</value>
   </data>

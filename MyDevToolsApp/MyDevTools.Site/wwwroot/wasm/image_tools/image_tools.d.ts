@@ -5,11 +5,14 @@ export function compress_image(input_data: Uint8Array, format_str: string, quali
 
 export function convert_image(input_data: Uint8Array, format_str: string, quality: number): Uint8Array;
 
+export function resize_image(input_data: Uint8Array, width: number, height: number, format_str: string): Uint8Array;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly compress_image: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
+    readonly resize_image: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
     readonly convert_image: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
     readonly __wbindgen_free: (a: number, b: number, c: number) => void;
     readonly __wbindgen_malloc: (a: number, b: number) => number;

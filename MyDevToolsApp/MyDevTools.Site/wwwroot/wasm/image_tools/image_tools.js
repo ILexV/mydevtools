@@ -40,6 +40,27 @@ export function convert_image(input_data, format_str, quality) {
     return v3;
 }
 
+/**
+ * @param {Uint8Array} input_data
+ * @param {number} width
+ * @param {number} height
+ * @param {string} format_str
+ * @returns {Uint8Array}
+ */
+export function resize_image(input_data, width, height, format_str) {
+    const ptr0 = passArray8ToWasm0(input_data, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passStringToWasm0(format_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.resize_image(ptr0, len0, width, height, ptr1, len1);
+    if (ret[3]) {
+        throw takeFromExternrefTable0(ret[2]);
+    }
+    var v3 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v3;
+}
+
 function __wbg_get_imports() {
     const import0 = {
         __proto__: null,

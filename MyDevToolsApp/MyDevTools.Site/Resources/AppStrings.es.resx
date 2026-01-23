@@ -140,6 +140,13 @@
     <value>?Copiado!</value>
   </data>
 
+  <data name="Common_Download" xml:space="preserve">
+    <value>Descargar</value>
+  </data>
+  <data name="ImageConverter_TargetFormatLabel" xml:space="preserve">
+    <value>Formato de destino</value>
+  </data>
+
   <data name="HashCalculator_AlgorithmsTitle" xml:space="preserve">
     <value>Algoritmos</value>
   </data>
@@ -1229,6 +1236,31 @@
   <data name="ImageCompressor_Download" xml:space="preserve">
     <value>Descargar</value>
   </data>
+  <data name="ImageResizer_Title" xml:space="preserve">
+    <value>Redimensionar Imagen</value>
+  </data>
+  <data name="ImageResizer_Description" xml:space="preserve">
+    <value>Redimensiona imágenes con dimensiones personalizadas y bloqueo de relación de aspecto.</value>
+  </data>
+  <data name="ImageResizer_OriginalInfo" xml:space="preserve">
+    <value>Imagen Original</value>
+  </data>
+  <data name="ImageResizer_Width" xml:space="preserve">
+    <value>Ancho (px)</value>
+  </data>
+  <data name="ImageResizer_Height" xml:space="preserve">
+    <value>Alto (px)</value>
+  </data>
+  <data name="ImageResizer_LockAspectRatio" xml:space="preserve">
+    <value>Mantener relación de aspecto</value>
+  </data>
+  <data name="ImageResizer_Resize" xml:space="preserve">
+    <value>Redimensionar</value>
+  </data>
+  <data name="ImageResizer_Resizing" xml:space="preserve">
+    <value>Procesando...</value>
+  </data>
+
   <data name="Home_DevelopmentNotice" xml:space="preserve">
     <value>Este sitio está actualmente en desarrollo activo. La funcionalidad y el diseño se mejorarán pronto.</value>
   </data>

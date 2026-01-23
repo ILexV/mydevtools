@@ -1222,6 +1222,15 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Download.
+        /// </summary>
+        public static string Common_Download {
+            get {
+                return ResourceManager.GetString("Common_Download", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error.
         /// </summary>
         public static string Common_Error {
@@ -2257,11 +2266,92 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Target Format.
+        /// </summary>
+        public static string ImageConverter_TargetFormatLabel {
+            get {
+                return ResourceManager.GetString("ImageConverter_TargetFormatLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Image Converter.
         /// </summary>
         public static string ImageConverter_Title {
             get {
                 return ResourceManager.GetString("ImageConverter_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resize images with custom dimensions and aspect ratio locking..
+        /// </summary>
+        public static string ImageResizer_Description {
+            get {
+                return ResourceManager.GetString("ImageResizer_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Height (px).
+        /// </summary>
+        public static string ImageResizer_Height {
+            get {
+                return ResourceManager.GetString("ImageResizer_Height", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Maintain Aspect Ratio.
+        /// </summary>
+        public static string ImageResizer_LockAspectRatio {
+            get {
+                return ResourceManager.GetString("ImageResizer_LockAspectRatio", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Original Image.
+        /// </summary>
+        public static string ImageResizer_OriginalInfo {
+            get {
+                return ResourceManager.GetString("ImageResizer_OriginalInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resize.
+        /// </summary>
+        public static string ImageResizer_Resize {
+            get {
+                return ResourceManager.GetString("ImageResizer_Resize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resizing....
+        /// </summary>
+        public static string ImageResizer_Resizing {
+            get {
+                return ResourceManager.GetString("ImageResizer_Resizing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Image Resizer.
+        /// </summary>
+        public static string ImageResizer_Title {
+            get {
+                return ResourceManager.GetString("ImageResizer_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Width (px).
+        /// </summary>
+        public static string ImageResizer_Width {
+            get {
+                return ResourceManager.GetString("ImageResizer_Width", resourceCulture);
             }
         }
         

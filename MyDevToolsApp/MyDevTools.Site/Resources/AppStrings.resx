@@ -192,6 +192,13 @@
   <data name="HashCalculator_Copied" xml:space="preserve">
     <value>Copied!</value>
   </data>
+  
+  <data name="Common_Download" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="ImageConverter_TargetFormatLabel" xml:space="preserve">
+    <value>Target Format</value>
+  </data>
 
   <data name="HashCalculator_AlgorithmsTitle" xml:space="preserve">
     <value>Algorithms</value>
@@ -1292,6 +1299,31 @@
     <value>Download</value>
   </data>
   
+  <data name="ImageResizer_Title" xml:space="preserve">
+    <value>Image Resizer</value>
+  </data>
+  <data name="ImageResizer_Description" xml:space="preserve">
+    <value>Resize images with custom dimensions and aspect ratio locking.</value>
+  </data>
+  <data name="ImageResizer_OriginalInfo" xml:space="preserve">
+    <value>Original Image</value>
+  </data>
+  <data name="ImageResizer_Width" xml:space="preserve">
+    <value>Width (px)</value>
+  </data>
+  <data name="ImageResizer_Height" xml:space="preserve">
+    <value>Height (px)</value>
+  </data>
+  <data name="ImageResizer_LockAspectRatio" xml:space="preserve">
+    <value>Maintain Aspect Ratio</value>
+  </data>
+  <data name="ImageResizer_Resize" xml:space="preserve">
+    <value>Resize</value>
+  </data>
+  <data name="ImageResizer_Resizing" xml:space="preserve">
+    <value>Resizing...</value>
+  </data>
+
   <!-- Regex Tester -->
   <data name="RegexTester_Title" xml:space="preserve">
     <value>Regex Tester</value>

@@ -9,4 +9,5 @@ members = [
   "password",
   "text_tools",
   "image_tools",
+  "regex_tool",
 ]

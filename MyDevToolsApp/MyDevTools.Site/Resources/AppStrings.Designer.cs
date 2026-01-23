@@ -1969,6 +1969,15 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This site is currently under active development. Functionality and design are being improved..
+        /// </summary>
+        public static string Home_DevelopmentNotice {
+            get {
+                return ResourceManager.GetString("Home_DevelopmentNotice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Explore Utilities.
         /// </summary>
         public static string Home_ExploreUtilities {
@@ -2176,7 +2185,7 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Quality (JPEG only).
+        ///   Looks up a localized string similar to Quality (JPEG, WebP).
         /// </summary>
         public static string ImageConverter_Quality {
             get {
@@ -2901,6 +2910,114 @@ namespace MyDevTools.Site.Resources {
         public static string PasswordGenerator_UppercaseLabel {
             get {
                 return ResourceManager.GetString("PasswordGenerator_UppercaseLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test and debug regular expressions using the Rust regex engine (WASM) — all in your browser.
+        /// </summary>
+        public static string RegexTester_Description {
+            get {
+                return ResourceManager.GetString("RegexTester_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex Error.
+        /// </summary>
+        public static string RegexTester_ErrorTitle {
+            get {
+                return ResourceManager.GetString("RegexTester_ErrorTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Examples.
+        /// </summary>
+        public static string RegexTester_ExamplesTitle {
+            get {
+                return ResourceManager.GetString("RegexTester_ExamplesTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Flags.
+        /// </summary>
+        public static string RegexTester_FlagsLabel {
+            get {
+                return ResourceManager.GetString("RegexTester_FlagsLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter a Rust-flavor regular expression and test string below. Matches will be highlighted..
+        /// </summary>
+        public static string RegexTester_Instructions {
+            get {
+                return ResourceManager.GetString("RegexTester_Instructions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches.
+        /// </summary>
+        public static string RegexTester_MatchesLabel {
+            get {
+                return ResourceManager.GetString("RegexTester_MatchesLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No matches found.
+        /// </summary>
+        public static string RegexTester_NoMatches {
+            get {
+                return ResourceManager.GetString("RegexTester_NoMatches", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pattern.
+        /// </summary>
+        public static string RegexTester_PatternLabel {
+            get {
+                return ResourceManager.GetString("RegexTester_PatternLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter regex pattern....
+        /// </summary>
+        public static string RegexTester_PatternPlaceholder {
+            get {
+                return ResourceManager.GetString("RegexTester_PatternPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test String.
+        /// </summary>
+        public static string RegexTester_TextLabel {
+            get {
+                return ResourceManager.GetString("RegexTester_TextLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter text to match against....
+        /// </summary>
+        public static string RegexTester_TextPlaceholder {
+            get {
+                return ResourceManager.GetString("RegexTester_TextPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex Tester.
+        /// </summary>
+        public static string RegexTester_Title {
+            get {
+                return ResourceManager.GetString("RegexTester_Title", resourceCulture);
             }
         }
         

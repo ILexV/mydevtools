@@ -157,6 +157,10 @@
     {
         <script src="@Assets["tools/image-converter.js"]"></script>
     }
+    @if (IsRegexTester)
+    {
+        <script type="module" src="@Assets["tools/regex-tester.js"]"></script>
+    }
 
 </body>
 
@@ -185,6 +189,7 @@
     private bool IsAeadFile => CurrentPath.Contains("/aead", StringComparison.OrdinalIgnoreCase);
     private bool IsDateConverter => CurrentPath.Contains("/date-converter", StringComparison.OrdinalIgnoreCase);
     private bool IsJwtDebugger => CurrentPath.Contains("/jwt-debugger", StringComparison.OrdinalIgnoreCase);
+    private bool IsRegexTester => CurrentPath.Contains("/regex-tester", StringComparison.OrdinalIgnoreCase);
     
     // CodeMirror is needed for JSON and XML beautifiers
     private bool NeedsCodeMirror => IsJsonBeautifier || IsXmlBeautifier;

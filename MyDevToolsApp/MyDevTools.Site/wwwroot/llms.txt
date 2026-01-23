@@ -1,0 +1,93 @@
+# MyDevTools - Developer Tools Platform
+
+## Overview
+MyDevTools is a web-based developer tools platform that prioritizes user privacy and data confidentiality. All tools operate entirely in the browser using WebAssembly (WASM) and Rust, ensuring that no data is sent to external servers. Complete data processing occurs locally on the user's machine.
+
+## Core Mission
+Provide essential developer utilities with privacy-first architecture. All operations are performed in-browser using modern web technologies (WASM/Rust), making tools fast, secure, and completely transparent.
+
+## Key Features
+- **100% Browser-Based Processing**: All tools run using WebAssembly and Rust compiled to web assembly
+- **Zero Server Transmission**: No data leaves your browser - everything stays local
+- **Privacy-Focused**: Complete confidentiality for sensitive data processing
+- **Instant Access**: No installation or server dependencies required
+- **Full Feature Control**: Customizable options and parameters for each tool
+
+## Available Tools
+
+### Encoding & Decoding
+- **Base64 Encoder/Decoder**: Encode and decode Base64 for text and files in-browser
+- **Base32 Encoder/Decoder**: Base32 encoding/decoding with full browser processing
+- **Base58 Encoder/Decoder**: Base58 text and file encoding/decoding
+- **Hex Encoder/Decoder**: Encode/decode hexadecimal data with customizable settings
+- **URL Encoder/Decoder**: URL percent-encoding with multiple encoding mode options
+
+### Data Formatting & Beautification
+- **JSON Beautifier**: Format and pretty-print JSON with customizable indentation and options
+- **XML Beautifier**: Format and beautify XML with adjustable whitespace and formatting parameters
+- **Case Converter**: Convert text between multiple formats (uppercase, lowercase, camelCase, snake_case, kebab-case, etc.)
+
+### Cryptography & Security
+- **Hash Calculator**: Calculate hashes using MD5, SHA-1, SHA-256 and other algorithms for text and files
+- **OpenSSH Keys**: Generate, import, and convert OpenSSH keys directly in browser
+- **X.509 Certificates**: Create self-signed certificates, CSR generation, and PEM/DER conversion
+- **AEAD File Encryption/Decryption**: Local file encryption with AEAD using browser-native processing
+
+### Image Processing
+- **Image Converter**: Convert images between multiple formats (PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA) securely in-browser
+
+### Utilities
+- **Password Generator**: Create secure, random passwords locally with customizable algorithms (MD5, SHA-1, SHA-256)
+- **Hash Calculator**: Hash text or files using various cryptographic algorithms
+
+## Technology Stack
+- **Frontend**: Modern web technologies with responsive design
+- **Backend**: WebAssembly (WASM) compiled Rust for processing
+- **Privacy Model**: Client-side only processing with zero server involvement
+- **Architecture**: Single Page Application (SPA) pattern
+
+## Use Cases
+- Developers needing secure, local data processing
+- Teams handling sensitive configuration and credentials
+- Privacy-conscious users requiring data confidentiality
+- CI/CD pipeline integration without external dependencies
+- Secure development workflows with audit requirements
+- Offline-capable development tools
+
+## Interface & Accessibility
+- **Responsive Design**: Works seamlessly across desktop, tablet, and mobile browsers
+- **Internationalization**: Russian language support with multi-language capability
+- **Dark Mode**: Built-in dark mode toggle for accessibility
+- **Starred Tools**: Users can bookmark favorite tools for quick access
+
+## Data Privacy Policy
+- All processing occurs locally within your browser
+- No data is transmitted to servers
+- No cookies or tracking for tool functionality
+- User can inspect browser developer tools to verify local-only processing
+- Complete user control over all operations and data
+
+## Browser Compatibility
+- Modern browsers with WebAssembly support (Chrome, Firefox, Safari, Edge)
+- Works online and offline
+- No plugins or extensions required
+- Native browser functionality only
+
+## Target Audience
+- Software developers and engineers
+- DevOps and system administrators
+- Security professionals
+- System architects
+- IT teams requiring secure local processing
+- Privacy-conscious technical users
+- Organizations with strict data confidentiality requirements
+
+## Contact & Support
+- Website: https://mydevtools.app/ru
+- Platform: Web-based, accessible from any modern browser
+- Language: Russian interface available
+
+---
+
+**Last Updated**: January 2026
+**Platform Status**: Active and maintained

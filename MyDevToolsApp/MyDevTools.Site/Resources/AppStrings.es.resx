@@ -1211,4 +1211,45 @@
   <data name="ImageConverter_OutputSize" xml:space="preserve">
     <value>Tamaño:</value>
   </data>
+  <data name="Home_DevelopmentNotice" xml:space="preserve">
+    <value>Este sitio está actualmente en desarrollo activo. La funcionalidad y el diseño se mejorarán pronto.</value>
+  </data>
+  
+  <!-- Regex Tester -->
+  <data name="RegexTester_Title" xml:space="preserve">
+    <value>Probador de Regex</value>
+  </data>
+  <data name="RegexTester_Description" xml:space="preserve">
+    <value>Pruebe y depure expresiones regulares (Rust/WASM) — todo en su navegador</value>
+  </data>
+  <data name="RegexTester_PatternLabel" xml:space="preserve">
+    <value>Patrón</value>
+  </data>
+  <data name="RegexTester_PatternPlaceholder" xml:space="preserve">
+    <value>Ingresar expresión regular...</value>
+  </data>
+  <data name="RegexTester_TextLabel" xml:space="preserve">
+    <value>Texto de prueba</value>
+  </data>
+  <data name="RegexTester_TextPlaceholder" xml:space="preserve">
+    <value>Ingrese el texto para buscar...</value>
+  </data>
+  <data name="RegexTester_FlagsLabel" xml:space="preserve">
+    <value>Banderas</value>
+  </data>
+  <data name="RegexTester_MatchesLabel" xml:space="preserve">
+    <value>Coincidencias</value>
+  </data>
+  <data name="RegexTester_NoMatches" xml:space="preserve">
+    <value>No se encontraron coincidencias</value>
+  </data>
+  <data name="RegexTester_ErrorTitle" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="RegexTester_ExamplesTitle" xml:space="preserve">
+    <value>Ejemplos</value>
+  </data>
+  <data name="RegexTester_Instructions" xml:space="preserve">
+    <value>Ingrese una expresión regular y un texto de prueba. Las coincidencias se resaltarán.</value>
+  </data>
 </root>

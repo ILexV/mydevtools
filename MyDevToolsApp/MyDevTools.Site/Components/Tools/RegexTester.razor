@@ -1,0 +1,222 @@
+@page "/{lang}/regex-tester"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<MetaTags Title="@AppStrings.RegexTester_Title" 
+          Description="@AppStrings.RegexTester_Description" 
+          CurrentUrl="@Navigation.Uri" />
+
+<HreflangLinks ToolPath="regex-tester" />
+
+<JsonLdTool ToolName="@AppStrings.RegexTester_Title" 
+            Description="@AppStrings.RegexTester_Description" 
+            CurrentUrl="@Navigation.Uri"
+            SupportedAlgorithms="@_empty" />
+
+<ToolLayout Title="@AppStrings.RegexTester_Title" Description="@AppStrings.RegexTester_Description">
+    <div id="regex-tester-root"
+         data-loading="@AppStrings.Common_Loading"
+         data-error="@AppStrings.Common_Error"
+         data-pattern-label="@AppStrings.RegexTester_PatternLabel"
+         data-pattern-placeholder="@AppStrings.RegexTester_PatternPlaceholder"
+         data-text-label="@AppStrings.RegexTester_TextLabel"
+         data-text-placeholder="@AppStrings.RegexTester_TextPlaceholder"
+         data-matches-label="@AppStrings.RegexTester_MatchesLabel"
+         data-no-matches="@AppStrings.RegexTester_NoMatches"
+         data-error-title="@AppStrings.RegexTester_ErrorTitle"
+         data-copy="@AppStrings.HashCalculator_Copy"
+         data-copied="@AppStrings.HashCalculator_Copied">
+
+         <!-- Instructions / Info Alert -->
+         <div class="alert alert-info" role="alert" style="margin-bottom: 2rem;">
+             ℹ️ @AppStrings.RegexTester_Instructions
+         </div>
+
+         <div class="regex-grid">
+            <div class="input-section regex-inputs">
+                <div class="form-group">
+                    <label for="regex-pattern">@AppStrings.RegexTester_PatternLabel</label>
+                    <div class="regex-input-container">
+                        <span class="regex-slash">/</span>
+                        <input type="text" id="regex-pattern" class="form-control" placeholder="@AppStrings.RegexTester_PatternPlaceholder" autocomplete="off" spellcheck="false" />
+                        <span class="regex-slash">/</span>
+                    </div>
+                </div>
+
+                <!-- Flags Checkboxes -->
+                <div class="form-group flags-section">
+                    <label>@AppStrings.RegexTester_FlagsLabel</label>
+                    <div class="checkbox-group">
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                            <input type="checkbox" class="custom-control-input regex-flag" id="flag-i" value="i">
+                            <label class="custom-control-label" for="flag-i" title="Case-insensitive">Case Insensitive (i)</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                            <input type="checkbox" class="custom-control-input regex-flag" id="flag-m" value="m">
+                            <label class="custom-control-label" for="flag-m" title="Multi-line mode: ^ and $ match begin/end of line">Multi-line (m)</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                            <input type="checkbox" class="custom-control-input regex-flag" id="flag-s" value="s">
+                            <label class="custom-control-label" for="flag-s" title="Dot allows matching newlines">Dot All (s)</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                            <input type="checkbox" class="custom-control-input regex-flag" id="flag-x" value="x">
+                            <label class="custom-control-label" for="flag-x" title="Ignore whitespace in pattern">Verbose (x)</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                            <input type="checkbox" class="custom-control-input regex-flag" id="flag-u" value="u" checked>
+                            <label class="custom-control-label" for="flag-u" title="Unicode support (defaut)">Unicode (u)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="regex-text">@AppStrings.RegexTester_TextLabel</label>
+                    <textarea id="regex-text" class="form-control" rows="8" placeholder="@AppStrings.RegexTester_TextPlaceholder" spellcheck="false"></textarea>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <div class="results-header">
+                     <h3>@AppStrings.RegexTester_MatchesLabel <span id="match-count" class="badge"></span></h3>
+                </div>
+                <div id="regex-results" class="regex-results"></div>
+            </div>
+
+            <div class="examples-section">
+                <h3>@AppStrings.RegexTester_ExamplesTitle</h3>
+                <ul class="regex-examples-list" id="regex-examples">
+                    <!-- Populated by JS -->
+                </ul>
+            </div>
+         </div>
+    </div>
+</ToolLayout>
+
+<style>
+    .regex-input-container {
+        display: flex;
+        align-items: center;
+        background: var(--bg-input);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        padding: 0 0.5rem;
+        width: 100%; /* Ensure it takes full width */
+    }
+    .regex-input-container input {
+        border: none;
+        box-shadow: none;
+        background: transparent;
+        flex: 1; /* Take remaining space */
+        min-width: 0; /* Allow shrinking below content size if needed */
+        font-family: monospace; /* Better for patterns */
+    }
+    .regex-slash {
+        font-family: monospace;
+        font-weight: bold;
+        color: var(--text-muted);
+        user-select: none;
+        flex-shrink: 0;
+    }
+    .flags-section {
+        margin-top: 1rem;
+    }
+    .checkbox-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+    /* Simple highlighting styles if not in global css */
+    .regex-match {
+        background-color: rgba(255, 255, 0, 0.4);
+        border-bottom: 2px solid #e6b800;
+        border-radius: 2px;
+    }
+    [data-theme='dark'] .regex-match {
+         background-color: rgba(255, 215, 0, 0.25);
+         border-bottom: 2px solid #ffd700;
+    }
+    .regex-output {
+        padding: 1rem;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        white-space: pre-wrap;
+        font-family: monospace;
+        min-height: 100px;
+    }
+    .match-details {
+        margin-top: 1rem;
+        background: var(--bg-card-secondary);
+        padding: 1rem;
+        border-radius: 4px;
+    }
+    .match-group-info ul {
+        list-style: none;
+        padding-left: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Example List Styles */
+    .regex-examples-list {
+        list-style: none;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+    }
+    .regex-example-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        text-align: left;
+        padding: 1rem;
+        height: 100%;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--bg-card);
+        color: var(--text-color);
+        transition: all 0.2s;
+    }
+    .regex-example-btn:hover {
+        border-color: var(--primary-color);
+        background: var(--bg-card-hover);
+        text-decoration: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .example-name {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+    .example-name::after {
+        content: "📋"; /* Try it / Copy icon */
+        margin-left: auto;
+        font-size: 0.8em;
+        opacity: 0.5;
+    }
+    .regex-example-btn:hover .example-name::after {
+        opacity: 1;
+    }
+    .example-pattern {
+        font-family: monospace;
+        font-size: 0.85em;
+        color: var(--text-muted);
+        background: var(--bg-code);
+        padding: 2px 4px;
+        border-radius: 4px;
+        word-break: break-all;
+        max-width: 100%;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+
+    private static readonly Dictionary<string, string> _empty = new();
+}

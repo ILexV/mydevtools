@@ -11,6 +11,10 @@
            CurrentUrl="@Navigation.Uri" />
 
 <HreflangLinks />
+    
+<div class="alert alert-warning text-center" role="alert" style="margin: 1rem;">
+    🚧 @AppStrings.Home_DevelopmentNotice
+</div>
 
 <div id="home-page-root" class="home-page">
     <div class="hero-container">
@@ -101,7 +105,8 @@
             new("base32-encoder", "🧪", AppStrings.Base32Encoder_Title, AppStrings.Base32Encoder_Description),
             new("base58-encoder", "🧿", AppStrings.Base58Encoder_Title, AppStrings.Base58Encoder_Description),
             new("date-converter", "📅", AppStrings.DateConverter_Title, AppStrings.DateConverter_Description),
-            new("jwt-debugger", "🛂", AppStrings.JwtDebugger_Title, AppStrings.JwtDebugger_Description)
+            new("jwt-debugger", "🛂", AppStrings.JwtDebugger_Title, AppStrings.JwtDebugger_Description),
+            new("regex-tester", "🔍", AppStrings.RegexTester_Title, AppStrings.RegexTester_Description)
         };
     }
 

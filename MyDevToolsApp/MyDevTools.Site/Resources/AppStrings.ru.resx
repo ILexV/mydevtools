@@ -1210,4 +1210,45 @@
   <data name="ImageConverter_OutputSize" xml:space="preserve">
     <value>Размер:</value>
   </data>
+  <data name="Home_DevelopmentNotice" xml:space="preserve">
+    <value>Сайт находится в стадии активной разработки. Функционал и дизайн будут улучшены в ближайшее время.</value>
+  </data>
+  
+  <!-- Regex Tester -->
+  <data name="RegexTester_Title" xml:space="preserve">
+    <value>Тестер Regex</value>
+  </data>
+  <data name="RegexTester_Description" xml:space="preserve">
+    <value>Тестирование и отладка регулярных выражений (Rust/WASM) — прямо в браузере</value>
+  </data>
+  <data name="RegexTester_PatternLabel" xml:space="preserve">
+    <value>Шаблон</value>
+  </data>
+  <data name="RegexTester_PatternPlaceholder" xml:space="preserve">
+    <value>Введите выражение...</value>
+  </data>
+  <data name="RegexTester_TextLabel" xml:space="preserve">
+    <value>Текст</value>
+  </data>
+  <data name="RegexTester_TextPlaceholder" xml:space="preserve">
+    <value>Введите текст для проверки...</value>
+  </data>
+  <data name="RegexTester_FlagsLabel" xml:space="preserve">
+    <value>Флаги</value>
+  </data>
+  <data name="RegexTester_MatchesLabel" xml:space="preserve">
+    <value>Совпадения</value>
+  </data>
+  <data name="RegexTester_NoMatches" xml:space="preserve">
+    <value>Совпадений не найдено</value>
+  </data>
+  <data name="RegexTester_ErrorTitle" xml:space="preserve">
+    <value>Ошибка</value>
+  </data>
+  <data name="RegexTester_ExamplesTitle" xml:space="preserve">
+    <value>Примеры</value>
+  </data>
+  <data name="RegexTester_Instructions" xml:space="preserve">
+    <value>Введите регулярное выражение и текст. Совпадения будут подсвечены.</value>
+  </data>
 </root>

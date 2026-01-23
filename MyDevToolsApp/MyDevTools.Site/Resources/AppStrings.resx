@@ -136,6 +136,9 @@
   <data name="Home_Launch" xml:space="preserve">
     <value>Launch</value>
   </data>
+  <data name="Home_DevelopmentNotice" xml:space="preserve">
+    <value>This site is currently under active development. Functionality and design are being improved.</value>
+  </data>
   <data name="Home_Favorites" xml:space="preserve">
     <value>Favorites</value>
   </data>
@@ -1269,5 +1272,43 @@
   </data>
   <data name="ImageConverter_OutputSize" xml:space="preserve">
     <value>Output Size:</value>
+  </data>
+  
+  <!-- Regex Tester -->
+  <data name="RegexTester_Title" xml:space="preserve">
+    <value>Regex Tester</value>
+  </data>
+  <data name="RegexTester_Description" xml:space="preserve">
+    <value>Test and debug regular expressions using the Rust regex engine (WASM) — all in your browser</value>
+  </data>
+  <data name="RegexTester_PatternLabel" xml:space="preserve">
+    <value>Pattern</value>
+  </data>
+  <data name="RegexTester_PatternPlaceholder" xml:space="preserve">
+    <value>Enter regex pattern...</value>
+  </data>
+  <data name="RegexTester_TextLabel" xml:space="preserve">
+    <value>Test String</value>
+  </data>
+  <data name="RegexTester_TextPlaceholder" xml:space="preserve">
+    <value>Enter text to match against...</value>
+  </data>
+  <data name="RegexTester_FlagsLabel" xml:space="preserve">
+    <value>Flags</value>
+  </data>
+  <data name="RegexTester_MatchesLabel" xml:space="preserve">
+    <value>Matches</value>
+  </data>
+  <data name="RegexTester_NoMatches" xml:space="preserve">
+    <value>No matches found</value>
+  </data>
+  <data name="RegexTester_ErrorTitle" xml:space="preserve">
+    <value>Regex Error</value>
+  </data>
+  <data name="RegexTester_ExamplesTitle" xml:space="preserve">
+    <value>Examples</value>
+  </data>
+  <data name="RegexTester_Instructions" xml:space="preserve">
+    <value>Enter a Rust-flavor regular expression and test string below. Matches will be highlighted.</value>
   </data>
 </root>

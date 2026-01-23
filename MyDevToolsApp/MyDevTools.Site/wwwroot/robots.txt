@@ -1,11 +1,45 @@
 # robots.txt for MyDevTools.app
-# Privacy-first developer tools
+# Privacy-first developer tools with WASM/Rust - optimized for IT professionals and AI indexing
 
 User-agent: *
 Allow: /
 
-# Sitemap location (update this URL when you deploy)
-# Sitemap: https://mydevtools.app/sitemap.xml
+# AI and LLM crawlers - explicit allow
+User-agent: GPTBot
+Allow: /
+Crawl-delay: 0
 
-# Crawl-delay (optional, uncomment if needed)
-# Crawl-delay: 1
+User-agent: ChatGPT-User
+Allow: /
+Crawl-delay: 0
+
+User-agent: CCBot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Claude-Web
+Allow: /
+Crawl-delay: 0
+
+User-agent: Gemini
+Allow: /
+Crawl-delay: 0
+
+User-agent: Perplexity
+Allow: /
+Crawl-delay: 0
+
+User-agent: DataForSeoBot
+Allow: /
+Crawl-delay: 0
+
+# Standard search engines
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+Sitemap: https://mydevtools.app/sitemap.xml

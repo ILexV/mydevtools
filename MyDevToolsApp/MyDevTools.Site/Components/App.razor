@@ -164,6 +164,10 @@
 
     <script type="module" src="tools/image-compressor.js"></script>
     <script type="module" src="tools/image-resizer.js"></script>
+    @if (IsQrCodeGenerator)
+    {
+        <script type="module" src="@Assets["tools/qr-code-generator.js"]"></script>
+    }
 </body>
 
 </html>
@@ -192,6 +196,7 @@
     private bool IsDateConverter => CurrentPath.Contains("/date-converter", StringComparison.OrdinalIgnoreCase);
     private bool IsJwtDebugger => CurrentPath.Contains("/jwt-debugger", StringComparison.OrdinalIgnoreCase);
     private bool IsRegexTester => CurrentPath.Contains("/regex-tester", StringComparison.OrdinalIgnoreCase);
+    private bool IsQrCodeGenerator => CurrentPath.Contains("/qr-code-generator", StringComparison.OrdinalIgnoreCase);
     
     // CodeMirror is needed for JSON and XML beautifiers
     private bool NeedsCodeMirror => IsJsonBeautifier || IsXmlBeautifier;

@@ -1361,4 +1361,72 @@
   <data name="RegexTester_Instructions" xml:space="preserve">
     <value>Enter a Rust-flavor regular expression and test string below. Matches will be highlighted.</value>
   </data>
+
+  <!-- QR Code Generator -->
+  <data name="QrCodeGenerator_Title" xml:space="preserve">
+    <value>QR Code Generator</value>
+  </data>
+  <data name="QrCodeGenerator_Description" xml:space="preserve">
+    <value>Create custom QR codes with colors, styles and logos — all in your browser</value>
+  </data>
+  <data name="QrCodeGenerator_ContentLabel" xml:space="preserve">
+    <value>Content</value>
+  </data>
+  <data name="QrCodeGenerator_ContentPlaceholder" xml:space="preserve">
+    <value>Enter text or URL to encode...</value>
+  </data>
+  <data name="QrCodeGenerator_ColorsSection" xml:space="preserve">
+    <value>Colors</value>
+  </data>
+  <data name="QrCodeGenerator_ForegroundColor" xml:space="preserve">
+    <value>QR Code Color</value>
+  </data>
+  <data name="QrCodeGenerator_BackgroundColor" xml:space="preserve">
+    <value>Background Color</value>
+  </data>
+  <data name="QrCodeGenerator_OptionsSection" xml:space="preserve">
+    <value>Options</value>
+  </data>
+  <data name="QrCodeGenerator_StyleLabel" xml:space="preserve">
+    <value>Style</value>
+  </data>
+  <data name="QrCodeGenerator_StyleSquare" xml:space="preserve">
+    <value>Square</value>
+  </data>
+  <data name="QrCodeGenerator_StyleDots" xml:space="preserve">
+    <value>Dots</value>
+  </data>
+  <data name="QrCodeGenerator_StyleRounded" xml:space="preserve">
+    <value>Rounded</value>
+  </data>
+  <data name="QrCodeGenerator_ErrorCorrectionLabel" xml:space="preserve">
+    <value>Error Correction Level</value>
+  </data>
+  <data name="QrCodeGenerator_SizeLabel" xml:space="preserve">
+    <value>Image Size</value>
+  </data>
+  <data name="QrCodeGenerator_LogoSection" xml:space="preserve">
+    <value>Logo (optional)</value>
+  </data>
+  <data name="QrCodeGenerator_LogoHint" xml:space="preserve">
+    <value>Add a logo to the center of your QR code. Use high error correction (Q or H) for best results.</value>
+  </data>
+  <data name="QrCodeGenerator_LogoDropText" xml:space="preserve">
+    <value>Drop logo here or click to select</value>
+  </data>
+  <data name="QrCodeGenerator_LogoRemove" xml:space="preserve">
+    <value>Remove logo</value>
+  </data>
+  <data name="QrCodeGenerator_Generate" xml:space="preserve">
+    <value>Generate QR Code</value>
+  </data>
+  <data name="QrCodeGenerator_Generating" xml:space="preserve">
+    <value>Generating...</value>
+  </data>
+  <data name="QrCodeGenerator_PreviewSection" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="QrCodeGenerator_PreviewPlaceholder" xml:space="preserve">
+    <value>Your QR code will appear here</value>
+  </data>
 </root>

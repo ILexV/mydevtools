@@ -10,4 +10,5 @@ members = [
   "text_tools",
   "image_tools",
   "regex_tool",
+  "qrcode",
 ]

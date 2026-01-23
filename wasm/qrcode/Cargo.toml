@@ -1,0 +1,13 @@
+[package]
+name = "qrcode_tool"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+console_error_panic_hook = "0.1"
+qrcode = "0.14"
+image = { version = "0.25", default-features = false, features = ["png", "webp", "jpeg"] }

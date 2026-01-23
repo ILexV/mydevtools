@@ -1302,4 +1302,72 @@
   <data name="RegexTester_Instructions" xml:space="preserve">
     <value>Ingrese una expresión regular y un texto de prueba. Las coincidencias se resaltarán.</value>
   </data>
+
+  <!-- QR Code Generator -->
+  <data name="QrCodeGenerator_Title" xml:space="preserve">
+    <value>Generador de Códigos QR</value>
+  </data>
+  <data name="QrCodeGenerator_Description" xml:space="preserve">
+    <value>Crea códigos QR personalizados con colores, estilos y logotipos — todo en tu navegador</value>
+  </data>
+  <data name="QrCodeGenerator_ContentLabel" xml:space="preserve">
+    <value>Contenido</value>
+  </data>
+  <data name="QrCodeGenerator_ContentPlaceholder" xml:space="preserve">
+    <value>Ingresa texto o URL para codificar...</value>
+  </data>
+  <data name="QrCodeGenerator_ColorsSection" xml:space="preserve">
+    <value>Colores</value>
+  </data>
+  <data name="QrCodeGenerator_ForegroundColor" xml:space="preserve">
+    <value>Color del código QR</value>
+  </data>
+  <data name="QrCodeGenerator_BackgroundColor" xml:space="preserve">
+    <value>Color de fondo</value>
+  </data>
+  <data name="QrCodeGenerator_OptionsSection" xml:space="preserve">
+    <value>Opciones</value>
+  </data>
+  <data name="QrCodeGenerator_StyleLabel" xml:space="preserve">
+    <value>Estilo</value>
+  </data>
+  <data name="QrCodeGenerator_StyleSquare" xml:space="preserve">
+    <value>Cuadrado</value>
+  </data>
+  <data name="QrCodeGenerator_StyleDots" xml:space="preserve">
+    <value>Puntos</value>
+  </data>
+  <data name="QrCodeGenerator_StyleRounded" xml:space="preserve">
+    <value>Redondeado</value>
+  </data>
+  <data name="QrCodeGenerator_ErrorCorrectionLabel" xml:space="preserve">
+    <value>Nivel de corrección de errores</value>
+  </data>
+  <data name="QrCodeGenerator_SizeLabel" xml:space="preserve">
+    <value>Tamaño de imagen</value>
+  </data>
+  <data name="QrCodeGenerator_LogoSection" xml:space="preserve">
+    <value>Logotipo (opcional)</value>
+  </data>
+  <data name="QrCodeGenerator_LogoHint" xml:space="preserve">
+    <value>Añade un logotipo al centro del código QR. Usa corrección alta (Q o H) para mejores resultados.</value>
+  </data>
+  <data name="QrCodeGenerator_LogoDropText" xml:space="preserve">
+    <value>Arrastra el logotipo aquí</value>
+  </data>
+  <data name="QrCodeGenerator_LogoRemove" xml:space="preserve">
+    <value>Eliminar logotipo</value>
+  </data>
+  <data name="QrCodeGenerator_Generate" xml:space="preserve">
+    <value>Generar Código QR</value>
+  </data>
+  <data name="QrCodeGenerator_Generating" xml:space="preserve">
+    <value>Generando...</value>
+  </data>
+  <data name="QrCodeGenerator_PreviewSection" xml:space="preserve">
+    <value>Vista previa</value>
+  </data>
+  <data name="QrCodeGenerator_PreviewPlaceholder" xml:space="preserve">
+    <value>Tu código QR aparecerá aquí</value>
+  </data>
 </root>

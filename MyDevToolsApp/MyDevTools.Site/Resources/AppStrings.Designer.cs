@@ -3058,6 +3058,204 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Background Color.
+        /// </summary>
+        public static string QrCodeGenerator_BackgroundColor {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_BackgroundColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Colors.
+        /// </summary>
+        public static string QrCodeGenerator_ColorsSection {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_ColorsSection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Content.
+        /// </summary>
+        public static string QrCodeGenerator_ContentLabel {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_ContentLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter text or URL to encode....
+        /// </summary>
+        public static string QrCodeGenerator_ContentPlaceholder {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_ContentPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create custom QR codes with colors, styles and logos — all in your browser.
+        /// </summary>
+        public static string QrCodeGenerator_Description {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error Correction Level.
+        /// </summary>
+        public static string QrCodeGenerator_ErrorCorrectionLabel {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_ErrorCorrectionLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to QR Code Color.
+        /// </summary>
+        public static string QrCodeGenerator_ForegroundColor {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_ForegroundColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate QR Code.
+        /// </summary>
+        public static string QrCodeGenerator_Generate {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_Generate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generating....
+        /// </summary>
+        public static string QrCodeGenerator_Generating {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_Generating", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Drop logo here or click to select.
+        /// </summary>
+        public static string QrCodeGenerator_LogoDropText {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_LogoDropText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add a logo to the center of your QR code. Use high error correction (Q or H) for best results..
+        /// </summary>
+        public static string QrCodeGenerator_LogoHint {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_LogoHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove logo.
+        /// </summary>
+        public static string QrCodeGenerator_LogoRemove {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_LogoRemove", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Logo (optional).
+        /// </summary>
+        public static string QrCodeGenerator_LogoSection {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_LogoSection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Options.
+        /// </summary>
+        public static string QrCodeGenerator_OptionsSection {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_OptionsSection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your QR code will appear here.
+        /// </summary>
+        public static string QrCodeGenerator_PreviewPlaceholder {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_PreviewPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Preview.
+        /// </summary>
+        public static string QrCodeGenerator_PreviewSection {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_PreviewSection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Image Size.
+        /// </summary>
+        public static string QrCodeGenerator_SizeLabel {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_SizeLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dots.
+        /// </summary>
+        public static string QrCodeGenerator_StyleDots {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_StyleDots", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Style.
+        /// </summary>
+        public static string QrCodeGenerator_StyleLabel {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_StyleLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rounded.
+        /// </summary>
+        public static string QrCodeGenerator_StyleRounded {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_StyleRounded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Square.
+        /// </summary>
+        public static string QrCodeGenerator_StyleSquare {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_StyleSquare", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to QR Code Generator.
+        /// </summary>
+        public static string QrCodeGenerator_Title {
+            get {
+                return ResourceManager.GetString("QrCodeGenerator_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Test and debug regular expressions using the Rust regex engine (WASM) — all in your browser.
         /// </summary>
         public static string RegexTester_Description {

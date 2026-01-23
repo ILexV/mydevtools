@@ -1370,9 +1370,6 @@
   <data name="QrCodeGenerator_PreviewPlaceholder" xml:space="preserve">
     <value>Tu código QR aparecerá aquí</value>
   </data>
-  <data name="QrCodeGenerator_PreviewPlaceholder" xml:space="preserve">
-    <value>Tu código QR aparecerá aquí</value>
-  </data>
   <data name="QrScanner_Title" xml:space="preserve">
     <value>Escáner de Códigos QR</value>
   </data>

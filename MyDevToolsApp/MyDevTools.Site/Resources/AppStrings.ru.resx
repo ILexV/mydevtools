@@ -1369,4 +1369,26 @@
   <data name="QrCodeGenerator_PreviewPlaceholder" xml:space="preserve">
     <value>Ваш QR-код появится здесь</value>
   </data>
+  <data name="QrCodeGenerator_PreviewPlaceholder" xml:space="preserve">
+    <value>Ваш QR-код появится здесь</value>
+  </data>
+  <data name="QrScanner_Title" xml:space="preserve">
+    <value>Сканер QR-кодов</value>
+  </data>
+  <data name="QrScanner_Description" xml:space="preserve">
+    <value>Сканируйте QR-коды из изображений прямо в браузере, без отправки на сервер.</value>
+  </data>
+  <data name="QrScanner_DropZone" xml:space="preserve">
+    <value>Перетащите изображение с QR-кодом сюда</value>
+  </data>
+  <data name="QrScanner_ResultLabel" xml:space="preserve">
+    <value>Результат сканирования</value>
+  </data>
+  <data name="QrScanner_ErrorReading" xml:space="preserve">
+    <value>Ошибка чтения текста из изображения.</value>
+  </data>
+  
+  <data name="Nav_QrScanner" xml:space="preserve">
+    <value>Сканер QR</value>
+  </data>
 </root>

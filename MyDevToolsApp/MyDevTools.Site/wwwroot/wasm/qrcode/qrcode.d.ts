@@ -2,6 +2,12 @@
 /* eslint-disable */
 
 /**
+ * Decode QR code from image bytes
+ * Returns the decoded text content
+ */
+export function decode_qr(image_bytes: Uint8Array): string;
+
+/**
  * Generate QR code as PNG bytes
  *
  * # Arguments
@@ -24,6 +30,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly decode_qr: (a: number, b: number) => [number, number, number, number];
     readonly generate_qr_png: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number) => [number, number, number, number];
     readonly generate_qr_svg: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
     readonly __wbindgen_free: (a: number, b: number, c: number) => void;

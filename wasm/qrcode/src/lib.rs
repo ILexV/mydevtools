@@ -3,6 +3,9 @@ use qrcode::{QrCode, EcLevel};
 use qrcode::render::svg;
 use image::{Rgba, RgbaImage, DynamicImage, GenericImageView};
 use std::io::Cursor;
+use rxing;
+use rxing::Reader; // Import the Reader trait to enable .decode_with_hints()
+use rxing::Luma8LuminanceSource; // Import explicitly to avoid path issues
 
 /// Parse hex color string (#RRGGBB or RRGGBB) to Rgba
 fn parse_hex_color(hex: &str) -> Result<Rgba<u8>, String> {
@@ -238,4 +241,34 @@ pub fn generate_qr_svg(
         .build();
     
     Ok(svg)
+}
+
+/// Decode QR code from image bytes
+/// Returns the decoded text content
+#[wasm_bindgen]
+pub fn decode_qr(image_bytes: &[u8]) -> Result<String, String> {
+    console_error_panic_hook::set_once();
+
+    let img = image::load_from_memory(image_bytes)
+        .map_err(|e| format!("Failed to load image: {}", e))?;
+    
+    // Convert to DynamicImage which rxing helpers use
+    let dyn_img = DynamicImage::ImageRgba8(img.to_rgba8());
+    
+    // Use rxing's helper to prepare the image
+    // Note: rxing suggests using luminance source. We can convert to luma8.
+    let luma_img = dyn_img.to_luma8();
+    let width = luma_img.width();
+    let height = luma_img.height();
+    let raw_pixels = luma_img.into_raw();
+    
+    let source = Luma8LuminanceSource::new(raw_pixels, width, height);
+    
+    let mut hints = rxing::DecodingHintDictionary::default();
+    hints.insert(rxing::DecodeHintType::TRY_HARDER, rxing::DecodeHintValue::TryHarder(true));
+    
+    let result = rxing::MultiFormatReader::default().decode_with_hints(&mut rxing::BinaryBitmap::new(rxing::common::HybridBinarizer::new(source)), &hints)
+         .map_err(|e| format!("Decoding failed: {}", e))?;
+
+    Ok(result.getText().to_string())
 }

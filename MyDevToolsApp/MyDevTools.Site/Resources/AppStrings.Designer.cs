@@ -2698,6 +2698,15 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to QR Scanner.
+        /// </summary>
+        public static string Nav_QrScanner {
+            get {
+                return ResourceManager.GetString("Nav_QrScanner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tools.
         /// </summary>
         public static string Nav_Tools {
@@ -3252,6 +3261,51 @@ namespace MyDevTools.Site.Resources {
         public static string QrCodeGenerator_Title {
             get {
                 return ResourceManager.GetString("QrCodeGenerator_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scan QR codes from images directly in your browser without uploading to any server..
+        /// </summary>
+        public static string QrScanner_Description {
+            get {
+                return ResourceManager.GetString("QrScanner_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Drag &amp; drop an image with a QR code here.
+        /// </summary>
+        public static string QrScanner_DropZone {
+            get {
+                return ResourceManager.GetString("QrScanner_DropZone", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error reading text from the image..
+        /// </summary>
+        public static string QrScanner_ErrorReading {
+            get {
+                return ResourceManager.GetString("QrScanner_ErrorReading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scanned Content.
+        /// </summary>
+        public static string QrScanner_ResultLabel {
+            get {
+                return ResourceManager.GetString("QrScanner_ResultLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to QR Code Scanner.
+        /// </summary>
+        public static string QrScanner_Title {
+            get {
+                return ResourceManager.GetString("QrScanner_Title", resourceCulture);
             }
         }
         

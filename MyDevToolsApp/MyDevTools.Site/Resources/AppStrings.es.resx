@@ -1370,4 +1370,26 @@
   <data name="QrCodeGenerator_PreviewPlaceholder" xml:space="preserve">
     <value>Tu código QR aparecerá aquí</value>
   </data>
+  <data name="QrCodeGenerator_PreviewPlaceholder" xml:space="preserve">
+    <value>Tu código QR aparecerá aquí</value>
+  </data>
+  <data name="QrScanner_Title" xml:space="preserve">
+    <value>Escáner de Códigos QR</value>
+  </data>
+  <data name="QrScanner_Description" xml:space="preserve">
+    <value>Escanea códigos QR desde imágenes directamente en tu navegador sin subirlos a ningún servidor.</value>
+  </data>
+  <data name="QrScanner_DropZone" xml:space="preserve">
+    <value>Arrastra y suelta una imagen con un código QR aquí</value>
+  </data>
+  <data name="QrScanner_ResultLabel" xml:space="preserve">
+    <value>Contenido Escaneado</value>
+  </data>
+  <data name="QrScanner_ErrorReading" xml:space="preserve">
+    <value>Error al leer el texto de la imagen.</value>
+  </data>
+  
+  <data name="Nav_QrScanner" xml:space="preserve">
+    <value>Escáner QR</value>
+  </data>
 </root>

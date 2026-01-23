@@ -1508,4 +1508,45 @@
   <data name="LoremIpsumGenerator_Copied" xml:space="preserve">
     <value>Скопировано!</value>
   </data>
+
+  <!-- Color Converter -->
+  <data name="Nav_ColorConverter" xml:space="preserve">
+    <value>Конвертер цветов</value>
+  </data>
+  <data name="ColorConverter_Title" xml:space="preserve">
+    <value>Конвертер цветов</value>
+  </data>
+  <data name="ColorConverter_Description" xml:space="preserve">
+    <value>Конвертация цветов между форматами HEX, RGB, HSL и CMYK с палитрой цветов и оттенками — всё в вашем браузере</value>
+  </data>
+  <data name="ColorConverter_ColorPicker" xml:space="preserve">
+    <value>Выбор цвета</value>
+  </data>
+  <data name="ColorConverter_InputFormat" xml:space="preserve">
+    <value>Формат ввода</value>
+  </data>
+  <data name="ColorConverter_ManualInput" xml:space="preserve">
+    <value>Ручной ввод</value>
+  </data>
+  <data name="ColorConverter_InputHint" xml:space="preserve">
+    <value>Примеры: #3b82f6, rgb(59, 130, 246), hsl(217, 91%, 60%), cmyk(76%, 47%, 0%, 4%)</value>
+  </data>
+  <data name="ColorConverter_Convert" xml:space="preserve">
+    <value>Конвертировать</value>
+  </data>
+  <data name="ColorConverter_Clear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="ColorConverter_Copy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="ColorConverter_Copied" xml:space="preserve">
+    <value>Скопировано!</value>
+  </data>
+  <data name="ColorConverter_ConvertedFormats" xml:space="preserve">
+    <value>Конвертированные форматы</value>
+  </data>
+  <data name="ColorConverter_ShadesPalette" xml:space="preserve">
+    <value>Палитра оттенков</value>
+  </data>
 </root>

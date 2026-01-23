@@ -1222,6 +1222,114 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Clear.
+        /// </summary>
+        public static string ColorConverter_Clear {
+            get {
+                return ResourceManager.GetString("ColorConverter_Clear", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Color Picker.
+        /// </summary>
+        public static string ColorConverter_ColorPicker {
+            get {
+                return ResourceManager.GetString("ColorConverter_ColorPicker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert.
+        /// </summary>
+        public static string ColorConverter_Convert {
+            get {
+                return ResourceManager.GetString("ColorConverter_Convert", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Converted Formats.
+        /// </summary>
+        public static string ColorConverter_ConvertedFormats {
+            get {
+                return ResourceManager.GetString("ColorConverter_ConvertedFormats", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copied!.
+        /// </summary>
+        public static string ColorConverter_Copied {
+            get {
+                return ResourceManager.GetString("ColorConverter_Copied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy.
+        /// </summary>
+        public static string ColorConverter_Copy {
+            get {
+                return ResourceManager.GetString("ColorConverter_Copy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert colors between HEX, RGB, HSL, and CMYK formats with color picker and shades palette — all in your browser.
+        /// </summary>
+        public static string ColorConverter_Description {
+            get {
+                return ResourceManager.GetString("ColorConverter_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Input Format.
+        /// </summary>
+        public static string ColorConverter_InputFormat {
+            get {
+                return ResourceManager.GetString("ColorConverter_InputFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Examples: #3b82f6, rgb(59, 130, 246), hsl(217, 91%, 60%), cmyk(76%, 47%, 0%, 4%).
+        /// </summary>
+        public static string ColorConverter_InputHint {
+            get {
+                return ResourceManager.GetString("ColorConverter_InputHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Manual Input.
+        /// </summary>
+        public static string ColorConverter_ManualInput {
+            get {
+                return ResourceManager.GetString("ColorConverter_ManualInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shades Palette.
+        /// </summary>
+        public static string ColorConverter_ShadesPalette {
+            get {
+                return ResourceManager.GetString("ColorConverter_ShadesPalette", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Color Converter.
+        /// </summary>
+        public static string ColorConverter_Title {
+            get {
+                return ResourceManager.GetString("ColorConverter_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Download.
         /// </summary>
         public static string Common_Download {
@@ -2775,6 +2883,15 @@ namespace MyDevTools.Site.Resources {
         public static string Nav_Base64Encoder {
             get {
                 return ResourceManager.GetString("Nav_Base64Encoder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Color Converter.
+        /// </summary>
+        public static string Nav_ColorConverter {
+            get {
+                return ResourceManager.GetString("Nav_ColorConverter", resourceCulture);
             }
         }
         

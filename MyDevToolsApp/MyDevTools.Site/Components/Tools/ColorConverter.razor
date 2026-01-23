@@ -1,0 +1,424 @@
+@page "/{lang}/color-converter"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<MetaTags Title="@AppStrings.ColorConverter_Title"
+          Description="@AppStrings.ColorConverter_Description"
+          CurrentUrl="@Navigation.Uri" />
+
+<HreflangLinks ToolPath="color-converter" />
+
+<JsonLdTool ToolName="@AppStrings.ColorConverter_Title"
+            Description="@AppStrings.ColorConverter_Description"
+            CurrentUrl="@Navigation.Uri" />
+
+<ToolLayout Title="@AppStrings.ColorConverter_Title" Description="@AppStrings.ColorConverter_Description">
+    <div id="color-converter-root">
+        <div class="tool-grid">
+            <!-- Color Input Section -->
+            <div class="input-section">
+                <div class="color-input-container" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Color Picker -->
+                    <div>
+                        <label for="color-picker">@AppStrings.ColorConverter_ColorPicker</label>
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem;">
+                            <input type="color" id="color-picker" value="#3b82f6" 
+                                   style="width: 80px; height: 80px; cursor: pointer; border: 2px solid var(--border-color); border-radius: 8px;" />
+                            <div id="color-preview" style="flex: 1; height: 80px; border-radius: 8px; border: 2px solid var(--border-color); background: #3b82f6;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Format Selection -->
+                    <div class="tool-setting">
+                        <label for="input-format">@AppStrings.ColorConverter_InputFormat</label>
+                        <select id="input-format">
+                            <option value="hex">HEX</option>
+                            <option value="rgb">RGB</option>
+                            <option value="hsl">HSL</option>
+                            <option value="cmyk">CMYK</option>
+                        </select>
+                    </div>
+
+                    <!-- Manual Input -->
+                    <div>
+                        <label for="color-input">@AppStrings.ColorConverter_ManualInput</label>
+                        <input type="text" id="color-input" placeholder="#3b82f6" />
+                        <p class="tool-hint">@AppStrings.ColorConverter_InputHint</p>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="convert-btn" type="button">@AppStrings.ColorConverter_Convert</button>
+                        <button class="btn btn-secondary" id="clear-btn" type="button">@AppStrings.ColorConverter_Clear</button>
+                    </div>
+
+                    <div class="tool-error" id="color-error" hidden></div>
+                </div>
+            </div>
+
+            <!-- Output Section -->
+            <div class="output-section">
+                <label>@AppStrings.ColorConverter_ConvertedFormats</label>
+                
+                <div id="color-outputs" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <!-- HEX -->
+                    <div class="color-output-item">
+                        <label class="color-format-label">HEX</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" id="output-hex" readonly style="flex: 1;" />
+                            <button class="btn btn-secondary btn-sm copy-btn" data-target="output-hex" type="button">@AppStrings.ColorConverter_Copy</button>
+                        </div>
+                    </div>
+
+                    <!-- RGB -->
+                    <div class="color-output-item">
+                        <label class="color-format-label">RGB</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" id="output-rgb" readonly style="flex: 1;" />
+                            <button class="btn btn-secondary btn-sm copy-btn" data-target="output-rgb" type="button">@AppStrings.ColorConverter_Copy</button>
+                        </div>
+                    </div>
+
+                    <!-- HSL -->
+                    <div class="color-output-item">
+                        <label class="color-format-label">HSL</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" id="output-hsl" readonly style="flex: 1;" />
+                            <button class="btn btn-secondary btn-sm copy-btn" data-target="output-hsl" type="button">@AppStrings.ColorConverter_Copy</button>
+                        </div>
+                    </div>
+
+                    <!-- CMYK -->
+                    <div class="color-output-item">
+                        <label class="color-format-label">CMYK</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" id="output-cmyk" readonly style="flex: 1;" />
+                            <button class="btn btn-secondary btn-sm copy-btn" data-target="output-cmyk" type="button">@AppStrings.ColorConverter_Copy</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shades Palette -->
+        <div style="margin-top: 2rem;">
+            <h3 style="margin-bottom: 1rem;">@AppStrings.ColorConverter_ShadesPalette</h3>
+            <div id="shades-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem;">
+                <!-- Shades will be dynamically generated -->
+            </div>
+        </div>
+    </div>
+</ToolLayout>
+
+<script>
+(function() {
+    'use strict';
+
+    const root = document.getElementById('color-converter-root');
+    if (!root) return;
+
+    const colorPicker = document.getElementById('color-picker');
+    const colorPreview = document.getElementById('color-preview');
+    const colorInput = document.getElementById('color-input');
+    const inputFormat = document.getElementById('input-format');
+    const convertBtn = document.getElementById('convert-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const errorDiv = document.getElementById('color-error');
+    
+    const outputHex = document.getElementById('output-hex');
+    const outputRgb = document.getElementById('output-rgb');
+    const outputHsl = document.getElementById('output-hsl');
+    const outputCmyk = document.getElementById('output-cmyk');
+    const shadesContainer = document.getElementById('shades-container');
+
+    let currentColor = { r: 59, g: 130, b: 246 }; // #3b82f6
+
+    // Color conversion functions
+    function hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    }
+
+    function rgbToHex(r, g, b) {
+        return "#" + [r, g, b].map(x => {
+            const hex = x.toString(16);
+            return hex.length === 1 ? "0" + hex : hex;
+        }).join('');
+    }
+
+    function rgbToHsl(r, g, b) {
+        r /= 255;
+        g /= 255;
+        b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h, s, l = (max + min) / 2;
+
+        if (max === min) {
+            h = s = 0;
+        } else {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                case g: h = ((b - r) / d + 2) / 6; break;
+                case b: h = ((r - g) / d + 4) / 6; break;
+            }
+        }
+
+        return {
+            h: Math.round(h * 360),
+            s: Math.round(s * 100),
+            l: Math.round(l * 100)
+        };
+    }
+
+    function hslToRgb(h, s, l) {
+        h /= 360;
+        s /= 100;
+        l /= 100;
+        let r, g, b;
+
+        if (s === 0) {
+            r = g = b = l;
+        } else {
+            const hue2rgb = (p, q, t) => {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1/3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1/3);
+        }
+
+        return {
+            r: Math.round(r * 255),
+            g: Math.round(g * 255),
+            b: Math.round(b * 255)
+        };
+    }
+
+    function rgbToCmyk(r, g, b) {
+        let c = 1 - (r / 255);
+        let m = 1 - (g / 255);
+        let y = 1 - (b / 255);
+        let k = Math.min(c, m, y);
+        
+        if (k === 1) {
+            return { c: 0, m: 0, y: 0, k: 100 };
+        }
+        
+        c = Math.round(((c - k) / (1 - k)) * 100);
+        m = Math.round(((m - k) / (1 - k)) * 100);
+        y = Math.round(((y - k) / (1 - k)) * 100);
+        k = Math.round(k * 100);
+        
+        return { c, m, y, k };
+    }
+
+    function cmykToRgb(c, m, y, k) {
+        c /= 100;
+        m /= 100;
+        y /= 100;
+        k /= 100;
+        
+        const r = Math.round(255 * (1 - c) * (1 - k));
+        const g = Math.round(255 * (1 - m) * (1 - k));
+        const b = Math.round(255 * (1 - y) * (1 - k));
+        
+        return { r, g, b };
+    }
+
+    function parseColorInput(value, format) {
+        value = value.trim();
+        
+        if (format === 'hex') {
+            return hexToRgb(value);
+        } else if (format === 'rgb') {
+            const match = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+            if (match) {
+                return { r: parseInt(match[1]), g: parseInt(match[2]), b: parseInt(match[3]) };
+            }
+        } else if (format === 'hsl') {
+            const match = value.match(/hsla?\((\d+),\s*(\d+)%?,\s*(\d+)%?/i);
+            if (match) {
+                return hslToRgb(parseInt(match[1]), parseInt(match[2]), parseInt(match[3]));
+            }
+        } else if (format === 'cmyk') {
+            const match = value.match(/cmyk\((\d+)%?,\s*(\d+)%?,\s*(\d+)%?,\s*(\d+)%?\)/i);
+            if (match) {
+                return cmykToRgb(parseInt(match[1]), parseInt(match[2]), parseInt(match[3]), parseInt(match[4]));
+            }
+        }
+        
+        return null;
+    }
+
+    function updateOutputs(rgb) {
+        currentColor = rgb;
+        const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+        const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+        const cmyk = rgbToCmyk(rgb.r, rgb.g, rgb.b);
+
+        outputHex.value = hex.toUpperCase();
+        outputRgb.value = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+        outputHsl.value = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+        outputCmyk.value = `cmyk(${cmyk.c}%, ${cmyk.m}%, ${cmyk.y}%, ${cmyk.k}%)`;
+
+        colorPreview.style.background = hex;
+        colorPicker.value = hex;
+
+        generateShades(rgb);
+        hideError();
+    }
+
+    function generateShades(rgb) {
+        shadesContainer.innerHTML = '';
+        const baseHsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+        
+        // Generate lighter shades
+        for (let i = 90; i >= 10; i -= 10) {
+            createShadeCard({ ...baseHsl, l: i }, i > baseHsl.l);
+        }
+    }
+
+    function createShadeCard(hsl, isLighter) {
+        const rgb = hslToRgb(hsl.h, hsl.s, hsl.l);
+        const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+        
+        const card = document.createElement('div');
+        card.style.cssText = 'border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.2s;';
+        card.onmouseenter = () => card.style.transform = 'scale(1.05)';
+        card.onmouseleave = () => card.style.transform = 'scale(1)';
+        
+        const colorBox = document.createElement('div');
+        colorBox.style.cssText = `height: 60px; background: ${hex};`;
+        
+        const textBox = document.createElement('div');
+        textBox.style.cssText = 'padding: 0.5rem; font-size: 0.75rem; text-align: center; background: var(--bg-secondary);';
+        textBox.innerHTML = `<strong>${hex.toUpperCase()}</strong><br>${hsl.l}%`;
+        
+        card.appendChild(colorBox);
+        card.appendChild(textBox);
+        
+        card.addEventListener('click', () => {
+            updateOutputs(rgb);
+            colorInput.value = hex;
+        });
+        
+        shadesContainer.appendChild(card);
+    }
+
+    function showError(message) {
+        errorDiv.textContent = message;
+        errorDiv.hidden = false;
+    }
+
+    function hideError() {
+        errorDiv.hidden = true;
+    }
+
+    // Event handlers
+    colorPicker.addEventListener('input', (e) => {
+        const rgb = hexToRgb(e.target.value);
+        if (rgb) {
+            updateOutputs(rgb);
+            colorInput.value = e.target.value;
+        }
+    });
+
+    convertBtn.addEventListener('click', () => {
+        const value = colorInput.value.trim();
+        if (!value) {
+            showError('Please enter a color value');
+            return;
+        }
+
+        const rgb = parseColorInput(value, inputFormat.value);
+        if (rgb) {
+            updateOutputs(rgb);
+        } else {
+            showError('Invalid color format. Please check your input.');
+        }
+    });
+
+    clearBtn.addEventListener('click', () => {
+        colorInput.value = '';
+        const defaultRgb = { r: 59, g: 130, b: 246 };
+        updateOutputs(defaultRgb);
+    });
+
+    // Copy buttons
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const target = e.target.getAttribute('data-target');
+            const input = document.getElementById(target);
+            if (input && input.value) {
+                try {
+                    await navigator.clipboard.writeText(input.value);
+                    const originalText = e.target.textContent;
+                    e.target.textContent = root.getAttribute('data-copied') || 'Copied!';
+                    setTimeout(() => e.target.textContent = originalText, 2000);
+                } catch (err) {
+                    console.error('Failed to copy:', err);
+                }
+            }
+        });
+    });
+
+    // Initialize with default color
+    updateOutputs(currentColor);
+})();
+</script>
+
+<style>
+    .color-output-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .color-format-label {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        white-space: nowrap;
+    }
+
+    .tool-hint {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin-top: 0.25rem;
+        margin-bottom: 0;
+    }
+
+    #color-picker::-webkit-color-swatch-wrapper {
+        padding: 0;
+    }
+
+    #color-picker::-webkit-color-swatch {
+        border: none;
+        border-radius: 6px;
+    }
+</style>
+
+@code {
+    /// <summary>
+    /// Language parameter from URL route
+    /// </summary>
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

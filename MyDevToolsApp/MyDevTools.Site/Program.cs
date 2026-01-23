@@ -40,7 +40,10 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
-// Use custom culture redirect middleware FIRST
+// Handle HEAD requests from bots/crawlers FIRST
+app.UseMiddleware<HeadRequestMiddleware>();
+
+// Use custom culture redirect middleware
 app.UseMiddleware<SitemapMiddleware>();
 app.UseMiddleware<CultureRedirectMiddleware>();
 

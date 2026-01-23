@@ -23,6 +23,9 @@ public class CultureRedirectMiddleware
     {
         var path = context.Request.Path.Value ?? "/";
         
+        // Detect if this is a bot request
+        var isBot = BotDetectionHelper.IsBot(context);
+        
         // Skip static files and already localized paths
         if (path.StartsWith("/_") || 
             path.StartsWith("/css") || 
@@ -38,14 +41,41 @@ public class CultureRedirectMiddleware
         
         if (cultureFromPath == null)
         {
-            // Detect browser language
+            // For bots, rewrite the path to include default culture WITHOUT redirect
+            // This allows bots to access "/" as equivalent to "/en/"
+            if (isBot)
+            {
+                var defaultCulture = _localizationService.DefaultCulture;
+                var culture = new CultureInfo(defaultCulture);
+                CultureInfo.CurrentCulture = culture;
+                CultureInfo.CurrentUICulture = culture;
+                context.Items["Culture"] = defaultCulture;
+                
+                // Rewrite the path to include the culture prefix with trailing slash
+                var newPath = path == "/" 
+                    ? $"/{defaultCulture}/" 
+                    : $"/{defaultCulture}{path}";
+                
+                // Ensure trailing slash for directory-like paths (Blazor requirement)
+                if (!newPath.EndsWith('/') && !Path.HasExtension(newPath))
+                {
+                    newPath += '/';
+                }
+                
+                context.Request.Path = newPath;
+                
+                await _next(context);
+                return;
+            }
+
+            // For regular users, redirect to localized path
             var browserCulture = GetBrowserCulture(context);
             var targetCulture = _localizationService.IsCultureSupported(browserCulture) 
                 ? browserCulture 
                 : _localizationService.DefaultCulture;
 
-            var newPath = $"/{targetCulture}{path}";
-            context.Response.Redirect(newPath, permanent: false);
+            var newPath2 = $"/{targetCulture}{path}";
+            context.Response.Redirect(newPath2, permanent: false);
             return;
         }
 

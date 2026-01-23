@@ -1211,6 +1211,24 @@
   <data name="ImageConverter_OutputSize" xml:space="preserve">
     <value>Tamaño:</value>
   </data>
+  <data name="ImageCompressor_Title" xml:space="preserve">
+    <value>Compresor de Imágenes</value>
+  </data>
+  <data name="ImageCompressor_Description" xml:space="preserve">
+    <value>Comprime imágenes JPG, PNG y WebP localmente en tu navegador.</value>
+  </data>
+  <data name="ImageCompressor_Compressing" xml:space="preserve">
+    <value>Comprimiendo...</value>
+  </data>
+  <data name="ImageCompressor_Processing" xml:space="preserve">
+    <value>Procesando...</value>
+  </data>
+  <data name="ImageCompressor_Done" xml:space="preserve">
+    <value>¡Hecho!</value>
+  </data>
+  <data name="ImageCompressor_Download" xml:space="preserve">
+    <value>Descargar</value>
+  </data>
   <data name="Home_DevelopmentNotice" xml:space="preserve">
     <value>Este sitio está actualmente en desarrollo activo. La funcionalidad y el diseño se mejorarán pronto.</value>
   </data>

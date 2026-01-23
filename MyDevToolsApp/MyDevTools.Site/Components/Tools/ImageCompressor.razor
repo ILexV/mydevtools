@@ -1,0 +1,83 @@
+@page "/{lang}/image-compressor"
+@using MyDevTools.Site.Components.Layout
+@inject IJSRuntime JSRuntime
+
+@using MyDevTools.Site.Resources
+<ToolLayout Title="@AppStrings.ImageCompressor_Title" Description="@AppStrings.ImageCompressor_Description">
+    <div id="image-compressor-root" class="max-w-4xl mx-auto space-y-8 p-4"
+         data-compressing="@AppStrings.ImageCompressor_Compressing"
+         data-processing="@AppStrings.ImageCompressor_Processing"
+         data-done="@AppStrings.ImageCompressor_Done"
+         data-error="@AppStrings.Common_Error"
+         data-download="@AppStrings.ImageCompressor_Download">
+        
+        <!-- Drag & Drop Zone -->
+        <div class="upload-box flex flex-col items-center justify-center border-4 border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-12 text-center transition-all hover:border-blue-500 cursor-pointer bg-gray-50 dark:bg-gray-800/50">
+            <div class="pointer-events-none">
+                <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                <h3 class="text-xl font-bold text-gray-700 dark:text-gray-200 mb-2">Drop images here</h3>
+                <p class="text-gray-500 dark:text-gray-400">or click to select files</p>
+                <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">JPG, PNG, WebP supported</p>
+            </div>
+            <input type="file" id="fileInput" multiple accept="image/png, image/jpeg, image/webp" class="hidden" />
+        </div>
+
+        <!-- Controls -->
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-800">
+            <h4 class="font-semibold text-lg mb-4 text-gray-800 dark:text-gray-100">Compression Settings</h4>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Quality Slider -->
+                <div>
+                    <label for="quality" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Quality: <span id="quality-value" class="font-bold text-blue-600 dark:text-blue-400">80%</span>
+                    </label>
+                    <input type="range" id="quality" min="1" max="100" value="80" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700" />
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Lower quality = smaller file size</p>
+                </div>
+
+                <!-- Format Selection -->
+                <div>
+                    <label for="format" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output Format</label>
+                    <select id="format" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                        <option value="original" selected>Keep Original Format</option>
+                        <option value="jpeg">JPEG</option>
+                        <option value="png">PNG</option>
+                        <option value="webp">WebP</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- File List & Actions -->
+        <div>
+            <div class="file-list hidden space-y-2 mb-6">
+                <!-- Items injected by JS -->
+            </div>
+
+            <div class="flex gap-4">
+                <button id="compressBtn" class="hidden w-full md:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors shadow-md">
+                    Compress Images
+                </button>
+                <button id="downloadAllBtn" class="hidden w-full md:w-auto px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-lg transition-colors shadow-md dark:bg-gray-700 dark:hover:bg-gray-600">
+                    Download All (ZIP)
+                </button> 
+            </div>
+        </div>
+
+    </div>
+</ToolLayout>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Import module for its side effects (loading the script)
+        await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./tools/image-compressor.js?v=" + DateTime.Now.Ticks);
+        
+        // The script registers window.initImageCompressor, so we call it globally
+        await JSRuntime.InvokeVoidAsync("initImageCompressor", "image-compressor-root");
+    }
+
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

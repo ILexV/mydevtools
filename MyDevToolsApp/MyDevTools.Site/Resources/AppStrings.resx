@@ -1273,6 +1273,24 @@
   <data name="ImageConverter_OutputSize" xml:space="preserve">
     <value>Output Size:</value>
   </data>
+  <data name="ImageCompressor_Title" xml:space="preserve">
+    <value>Image Compressor</value>
+  </data>
+  <data name="ImageCompressor_Description" xml:space="preserve">
+    <value>Compress JPG, PNG, and WebP images locally in your browser.</value>
+  </data>
+  <data name="ImageCompressor_Compressing" xml:space="preserve">
+    <value>Compressing...</value>
+  </data>
+  <data name="ImageCompressor_Processing" xml:space="preserve">
+    <value>Processing...</value>
+  </data>
+  <data name="ImageCompressor_Done" xml:space="preserve">
+    <value>Done!</value>
+  </data>
+  <data name="ImageCompressor_Download" xml:space="preserve">
+    <value>Download</value>
+  </data>
   
   <!-- Regex Tester -->
   <data name="RegexTester_Title" xml:space="preserve">

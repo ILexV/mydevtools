@@ -6,12 +6,12 @@
  * @param {number} quality
  * @returns {Uint8Array}
  */
-export function convert_image(input_data, format_str, quality) {
+export function compress_image(input_data, format_str, quality) {
     const ptr0 = passArray8ToWasm0(input_data, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passStringToWasm0(format_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len1 = WASM_VECTOR_LEN;
-    const ret = wasm.convert_image(ptr0, len0, ptr1, len1, quality);
+    const ret = wasm.compress_image(ptr0, len0, ptr1, len1, quality);
     if (ret[3]) {
         throw takeFromExternrefTable0(ret[2]);
     }

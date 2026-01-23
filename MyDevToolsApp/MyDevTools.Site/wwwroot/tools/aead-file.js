@@ -243,7 +243,7 @@
 
             const chunks = [header];
             let processed = 0;
-            let counter = 0;
+            let counter = 0n;
             const total = file.size;
             const start = performance.now();
 
@@ -255,7 +255,7 @@
                 const ciphertext = wasm.aead_stream_encrypt_chunk(algorithmId, key, noncePrefix, counter, bytes, new Uint8Array());
                 chunks.push(ciphertext);
                 processed += slice.size;
-                counter += 1;
+                counter += 1n;
                 updateProgress(processed, total, performance.now() - start);
                 await new Promise(requestAnimationFrame);
             }
@@ -325,7 +325,7 @@
 
             const chunks = [];
             let offset = headerLen;
-            let counter = 0;
+            let counter = 0n;
             const tagLen = 16;
             const total = file.size - headerLen;
             const start = performance.now();
@@ -338,7 +338,7 @@
                 const plaintext = wasm.aead_stream_decrypt_chunk(algorithmId, key, noncePrefix, counter, bytes, new Uint8Array());
                 chunks.push(plaintext);
                 offset += bytes.length;
-                counter += 1;
+                counter += 1n;
                 updateProgress(offset - headerLen, total, performance.now() - start);
                 await new Promise(requestAnimationFrame);
             }

@@ -1388,4 +1388,81 @@
   <data name="Nav_QrScanner" xml:space="preserve">
     <value>Сканер QR</value>
   </data>
+  
+  <!-- UUID Generator -->
+  <data name="Nav_UuidGenerator" xml:space="preserve">
+    <value>Генератор UUID</value>
+  </data>
+  <data name="UuidGenerator_Title" xml:space="preserve">
+    <value>Генератор UUID/GUID</value>
+  </data>
+  <data name="UuidGenerator_Description" xml:space="preserve">
+    <value>Генерация UUID v4 (случайный) и UUID v7 (с временной меткой) прямо в браузере. Вся генерация происходит локально.</value>
+  </data>
+  <data name="UuidGenerator_VersionLabel" xml:space="preserve">
+    <value>Версия UUID</value>
+  </data>
+  <data name="UuidGenerator_Version4" xml:space="preserve">
+    <value>Версия 4 (Случайный)</value>
+  </data>
+  <data name="UuidGenerator_Version7" xml:space="preserve">
+    <value>Версия 7 (С временной меткой)</value>
+  </data>
+  <data name="UuidGenerator_FormatLabel" xml:space="preserve">
+    <value>Формат</value>
+  </data>
+  <data name="UuidGenerator_FormatHyphenated" xml:space="preserve">
+    <value>С дефисами (8-4-4-4-12)</value>
+  </data>
+  <data name="UuidGenerator_FormatPlain" xml:space="preserve">
+    <value>Без дефисов</value>
+  </data>
+  <data name="UuidGenerator_FormatBraces" xml:space="preserve">
+    <value>Фигурные скобки {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}</value>
+  </data>
+  <data name="UuidGenerator_FormatUrn" xml:space="preserve">
+    <value>URN (urn:uuid:...)</value>
+  </data>
+  <data name="UuidGenerator_CaseLabel" xml:space="preserve">
+    <value>Регистр</value>
+  </data>
+  <data name="UuidGenerator_CaseUpper" xml:space="preserve">
+    <value>ВЕРХНИЙ</value>
+  </data>
+  <data name="UuidGenerator_CaseLower" xml:space="preserve">
+    <value>нижний</value>
+  </data>
+  <data name="UuidGenerator_CountLabel" xml:space="preserve">
+    <value>Количество UUID</value>
+  </data>
+  <data name="UuidGenerator_Generate" xml:space="preserve">
+    <value>Генерировать</value>
+  </data>
+  <data name="UuidGenerator_GenerateOne" xml:space="preserve">
+    <value>Сгенерировать один</value>
+  </data>
+  <data name="UuidGenerator_GenerateBatch" xml:space="preserve">
+    <value>Сгенерировать пакет</value>
+  </data>
+  <data name="UuidGenerator_OutputLabel" xml:space="preserve">
+    <value>Сгенерированные UUID</value>
+  </data>
+  <data name="UuidGenerator_OutputPlaceholder" xml:space="preserve">
+    <value>Здесь появятся ваши UUID</value>
+  </data>
+  <data name="UuidGenerator_Copy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="UuidGenerator_CopyAll" xml:space="preserve">
+    <value>Копировать все</value>
+  </data>
+  <data name="UuidGenerator_Download" xml:space="preserve">
+    <value>Скачать как TXT</value>
+  </data>
+  <data name="UuidGenerator_Clear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="UuidGenerator_Copied" xml:space="preserve">
+    <value>Скопировано!</value>
+  </data>
 </root>

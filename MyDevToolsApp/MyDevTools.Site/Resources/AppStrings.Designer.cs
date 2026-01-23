@@ -2734,6 +2734,15 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to UUID Generator.
+        /// </summary>
+        public static string Nav_UuidGenerator {
+            get {
+                return ResourceManager.GetString("Nav_UuidGenerator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to X.509.
         /// </summary>
         public static string Nav_X509 {
@@ -3765,6 +3774,222 @@ namespace MyDevTools.Site.Resources {
         public static string UrlEncoder_Title {
             get {
                 return ResourceManager.GetString("UrlEncoder_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Case.
+        /// </summary>
+        public static string UuidGenerator_CaseLabel {
+            get {
+                return ResourceManager.GetString("UuidGenerator_CaseLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to lowercase.
+        /// </summary>
+        public static string UuidGenerator_CaseLower {
+            get {
+                return ResourceManager.GetString("UuidGenerator_CaseLower", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UPPERCASE.
+        /// </summary>
+        public static string UuidGenerator_CaseUpper {
+            get {
+                return ResourceManager.GetString("UuidGenerator_CaseUpper", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear.
+        /// </summary>
+        public static string UuidGenerator_Clear {
+            get {
+                return ResourceManager.GetString("UuidGenerator_Clear", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copied!.
+        /// </summary>
+        public static string UuidGenerator_Copied {
+            get {
+                return ResourceManager.GetString("UuidGenerator_Copied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy.
+        /// </summary>
+        public static string UuidGenerator_Copy {
+            get {
+                return ResourceManager.GetString("UuidGenerator_Copy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy All.
+        /// </summary>
+        public static string UuidGenerator_CopyAll {
+            get {
+                return ResourceManager.GetString("UuidGenerator_CopyAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Number of UUIDs.
+        /// </summary>
+        public static string UuidGenerator_CountLabel {
+            get {
+                return ResourceManager.GetString("UuidGenerator_CountLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate UUID v4 (random) and UUID v7 (timestamp-based) identifiers directly in your browser. All generation happens locally..
+        /// </summary>
+        public static string UuidGenerator_Description {
+            get {
+                return ResourceManager.GetString("UuidGenerator_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Download as TXT.
+        /// </summary>
+        public static string UuidGenerator_Download {
+            get {
+                return ResourceManager.GetString("UuidGenerator_Download", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Braces {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}.
+        /// </summary>
+        public static string UuidGenerator_FormatBraces {
+            get {
+                return ResourceManager.GetString("UuidGenerator_FormatBraces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hyphenated (8-4-4-4-12).
+        /// </summary>
+        public static string UuidGenerator_FormatHyphenated {
+            get {
+                return ResourceManager.GetString("UuidGenerator_FormatHyphenated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Format.
+        /// </summary>
+        public static string UuidGenerator_FormatLabel {
+            get {
+                return ResourceManager.GetString("UuidGenerator_FormatLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plain (no hyphens).
+        /// </summary>
+        public static string UuidGenerator_FormatPlain {
+            get {
+                return ResourceManager.GetString("UuidGenerator_FormatPlain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to URN (urn:uuid:...).
+        /// </summary>
+        public static string UuidGenerator_FormatUrn {
+            get {
+                return ResourceManager.GetString("UuidGenerator_FormatUrn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate.
+        /// </summary>
+        public static string UuidGenerator_Generate {
+            get {
+                return ResourceManager.GetString("UuidGenerator_Generate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate Batch.
+        /// </summary>
+        public static string UuidGenerator_GenerateBatch {
+            get {
+                return ResourceManager.GetString("UuidGenerator_GenerateBatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate One.
+        /// </summary>
+        public static string UuidGenerator_GenerateOne {
+            get {
+                return ResourceManager.GetString("UuidGenerator_GenerateOne", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generated UUIDs.
+        /// </summary>
+        public static string UuidGenerator_OutputLabel {
+            get {
+                return ResourceManager.GetString("UuidGenerator_OutputLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your UUIDs will appear here.
+        /// </summary>
+        public static string UuidGenerator_OutputPlaceholder {
+            get {
+                return ResourceManager.GetString("UuidGenerator_OutputPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UUID/GUID Generator.
+        /// </summary>
+        public static string UuidGenerator_Title {
+            get {
+                return ResourceManager.GetString("UuidGenerator_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Version 4 (Random).
+        /// </summary>
+        public static string UuidGenerator_Version4 {
+            get {
+                return ResourceManager.GetString("UuidGenerator_Version4", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Version 7 (Timestamp-based).
+        /// </summary>
+        public static string UuidGenerator_Version7 {
+            get {
+                return ResourceManager.GetString("UuidGenerator_Version7", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UUID Version.
+        /// </summary>
+        public static string UuidGenerator_VersionLabel {
+            get {
+                return ResourceManager.GetString("UuidGenerator_VersionLabel", resourceCulture);
             }
         }
         

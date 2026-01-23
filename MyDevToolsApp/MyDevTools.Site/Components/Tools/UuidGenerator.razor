@@ -1,0 +1,391 @@
+@page "/{lang}/uuid-generator"
+@using MyDevTools.Site.Components.Layout
+@using MyDevTools.Site.Resources
+@using MyDevTools.Site.Components.Seo
+@inject NavigationManager Navigation
+
+<ToolLayout Title="@AppStrings.UuidGenerator_Title" Description="@AppStrings.UuidGenerator_Description">
+    
+    <MetaTags 
+        Title="@AppStrings.UuidGenerator_Title" 
+        Description="@AppStrings.UuidGenerator_Description" 
+        CurrentUrl="@Navigation.Uri" />
+
+    <HreflangLinks ToolPath="uuid-generator" />
+
+    <JsonLdTool ToolName="@AppStrings.UuidGenerator_Title" 
+                Description="@AppStrings.UuidGenerator_Description" 
+                CurrentUrl="@Navigation.Uri" />
+
+    <div id="uuid-generator-root"
+         data-copied="@AppStrings.UuidGenerator_Copied"
+         class="tool-container">
+
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-transparent fw-bold">
+                        @AppStrings.UuidGenerator_Title
+                    </div>
+                    <div class="card-body">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">@AppStrings.UuidGenerator_VersionLabel</label>
+                            <select id="uuid-version" class="form-select">
+                                <option value="v4" selected>@AppStrings.UuidGenerator_Version4</option>
+                                <option value="v7">@AppStrings.UuidGenerator_Version7</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">@AppStrings.UuidGenerator_FormatLabel</label>
+                            <select id="uuid-format" class="form-select">
+                                <option value="hyphenated" selected>@AppStrings.UuidGenerator_FormatHyphenated</option>
+                                <option value="plain">@AppStrings.UuidGenerator_FormatPlain</option>
+                                <option value="braces">@AppStrings.UuidGenerator_FormatBraces</option>
+                                <option value="urn">@AppStrings.UuidGenerator_FormatUrn</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">@AppStrings.UuidGenerator_CaseLabel</label>
+                            <select id="uuid-case" class="form-select">
+                                <option value="lower" selected>@AppStrings.UuidGenerator_CaseLower</option>
+                                <option value="upper">@AppStrings.UuidGenerator_CaseUpper</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="uuid-count" class="form-label d-flex justify-content-between">
+                                <span>@AppStrings.UuidGenerator_CountLabel</span>
+                                <span id="uuid-count-val" class="badge bg-secondary">1</span>
+                            </label>
+                            <input type="range" class="form-range" id="uuid-count" min="1" max="100" value="1">
+                        </div>
+
+                        <button id="uuid-generate-btn" class="btn btn-success w-100 py-2 fw-bold mb-2">
+                            @AppStrings.UuidGenerator_Generate
+                        </button>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-transparent fw-bold d-flex justify-content-between align-items-center">
+                        <span>@AppStrings.UuidGenerator_OutputLabel</span>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary me-2" id="uuid-copy-all-btn" style="display: none;">
+                                @AppStrings.UuidGenerator_CopyAll
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary me-2" id="uuid-download-btn" style="display: none;">
+                                @AppStrings.UuidGenerator_Download
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" id="uuid-clear-btn" style="display: none;">
+                                @AppStrings.UuidGenerator_Clear
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="uuid-output-container">
+                            <div class="text-muted text-center py-5" id="uuid-placeholder">
+                                @AppStrings.UuidGenerator_OutputPlaceholder
+                            </div>
+                            <div id="uuid-list" class="uuid-list" style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <style>
+        /* Fix for select dropdowns in dark theme */
+        #uuid-generator-root select {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        #uuid-generator-root select option {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        [data-theme="dark"] #uuid-generator-root select {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        
+        [data-theme="dark"] #uuid-generator-root select option {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        
+        .uuid-list {
+            font-family: var(--bs-font-monospace);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .uuid-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--bs-border-color);
+            transition: background-color 0.2s;
+        }
+        .uuid-item:last-child {
+            border-bottom: none;
+        }
+        .uuid-item:hover {
+            background-color: var(--bs-secondary-bg);
+        }
+        .uuid-value {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-right: 10px;
+            user-select: all;
+            cursor: text;
+        }
+        .uuid-copy-btn {
+            background: none;
+            border: 1px solid var(--bs-border-color);
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s, border-color 0.2s;
+            font-size: 0.875rem;
+        }
+        .uuid-copy-btn:hover {
+            opacity: 1;
+            border-color: var(--bs-primary);
+        }
+        .uuid-copy-btn.copied {
+            color: green;
+            border-color: green;
+        }
+        #uuid-output-container {
+            min-height: 300px;
+        }
+    </style>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // UUID v4 generator using Web Crypto API
+            function generateUUIDv4() {
+                const bytes = new Uint8Array(16);
+                crypto.getRandomValues(bytes);
+                
+                // Set version (4) and variant bits
+                bytes[6] = (bytes[6] & 0x0f) | 0x40;
+                bytes[8] = (bytes[8] & 0x3f) | 0x80;
+                
+                const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+                return hex;
+            }
+
+            // UUID v7 generator (timestamp-based)
+            function generateUUIDv7() {
+                const timestamp = Date.now();
+                const bytes = new Uint8Array(16);
+                
+                // Timestamp (48 bits = 6 bytes)
+                bytes[0] = (timestamp >> 40) & 0xff;
+                bytes[1] = (timestamp >> 32) & 0xff;
+                bytes[2] = (timestamp >> 24) & 0xff;
+                bytes[3] = (timestamp >> 16) & 0xff;
+                bytes[4] = (timestamp >> 8) & 0xff;
+                bytes[5] = timestamp & 0xff;
+                
+                // Random bytes for the rest
+                const randomBytes = new Uint8Array(10);
+                crypto.getRandomValues(randomBytes);
+                bytes.set(randomBytes, 6);
+                
+                // Set version (7) and variant bits
+                bytes[6] = (bytes[6] & 0x0f) | 0x70;
+                bytes[8] = (bytes[8] & 0x3f) | 0x80;
+                
+                const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+                return hex;
+            }
+
+            // Format UUID according to user preferences
+            function formatUUID(hex, format, caseType) {
+                let formatted;
+                const hyphenated = `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+                
+                switch(format) {
+                    case 'plain':
+                        formatted = hex;
+                        break;
+                    case 'braces':
+                        formatted = `{${hyphenated}}`;
+                        break;
+                    case 'urn':
+                        formatted = `urn:uuid:${hyphenated}`;
+                        break;
+                    case 'hyphenated':
+                    default:
+                        formatted = hyphenated;
+                        break;
+                }
+                
+                return caseType === 'upper' ? formatted.toUpperCase() : formatted.toLowerCase();
+            }
+
+            // Copy to clipboard
+            async function copyToClipboard(text, button) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    const originalText = button.textContent;
+                    const copiedText = document.getElementById('uuid-generator-root').dataset.copied;
+                    button.textContent = copiedText;
+                    button.classList.add('copied');
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.classList.remove('copied');
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy:', err);
+                }
+            }
+
+            // Download UUIDs as text file
+            function downloadUUIDs(uuids) {
+                const blob = new Blob([uuids.join('\n')], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `uuids-${new Date().toISOString().slice(0,10)}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // Render UUID list
+            function renderUUIDs(uuids) {
+                const placeholder = document.getElementById('uuid-placeholder');
+                const list = document.getElementById('uuid-list');
+                const copyAllBtn = document.getElementById('uuid-copy-all-btn');
+                const downloadBtn = document.getElementById('uuid-download-btn');
+                const clearBtn = document.getElementById('uuid-clear-btn');
+                
+                if (uuids.length === 0) {
+                    placeholder.style.display = 'block';
+                    list.style.display = 'none';
+                    copyAllBtn.style.display = 'none';
+                    downloadBtn.style.display = 'none';
+                    clearBtn.style.display = 'none';
+                    return;
+                }
+                
+                placeholder.style.display = 'none';
+                list.style.display = 'block';
+                copyAllBtn.style.display = 'inline-block';
+                downloadBtn.style.display = 'inline-block';
+                clearBtn.style.display = 'inline-block';
+                
+                list.innerHTML = uuids.map(uuid => `
+                    <div class="uuid-item">
+                        <span class="uuid-value">${uuid}</span>
+                        <button class="uuid-copy-btn" data-uuid="${uuid}">Copy</button>
+                    </div>
+                `).join('');
+                
+                // Attach copy handlers
+                list.querySelectorAll('.uuid-copy-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        copyToClipboard(btn.dataset.uuid, btn);
+                    });
+                });
+            }
+
+            // Initialize
+            function init() {
+                const root = document.getElementById('uuid-generator-root');
+                if (!root) return;
+
+                let generatedUUIDs = [];
+                
+                const versionSelect = document.getElementById('uuid-version');
+                const formatSelect = document.getElementById('uuid-format');
+                const caseSelect = document.getElementById('uuid-case');
+                const countInput = document.getElementById('uuid-count');
+                const countValue = document.getElementById('uuid-count-val');
+                const generateBtn = document.getElementById('uuid-generate-btn');
+                const copyAllBtn = document.getElementById('uuid-copy-all-btn');
+                const downloadBtn = document.getElementById('uuid-download-btn');
+                const clearBtn = document.getElementById('uuid-clear-btn');
+                
+                // Update count display
+                countInput.addEventListener('input', () => {
+                    countValue.textContent = countInput.value;
+                });
+                
+                // Generate UUIDs
+                generateBtn.addEventListener('click', () => {
+                    const version = versionSelect.value;
+                    const format = formatSelect.value;
+                    const caseType = caseSelect.value;
+                    const count = parseInt(countInput.value);
+                    
+                    const newUUIDs = [];
+                    for (let i = 0; i < count; i++) {
+                        const hex = version === 'v7' ? generateUUIDv7() : generateUUIDv4();
+                        const formatted = formatUUID(hex, format, caseType);
+                        newUUIDs.push(formatted);
+                    }
+                    
+                    generatedUUIDs = newUUIDs;
+                    renderUUIDs(generatedUUIDs);
+                });
+                
+                // Copy all
+                copyAllBtn.addEventListener('click', () => {
+                    copyToClipboard(generatedUUIDs.join('\n'), copyAllBtn);
+                });
+                
+                // Download
+                downloadBtn.addEventListener('click', () => {
+                    downloadUUIDs(generatedUUIDs);
+                });
+                
+                // Clear
+                clearBtn.addEventListener('click', () => {
+                    generatedUUIDs = [];
+                    renderUUIDs(generatedUUIDs);
+                });
+            }
+
+            // Handle Blazor enhanced navigation
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+            
+            document.addEventListener('DOMContentLoaded', init);
+            window.addEventListener('pageshow', init);
+        })();
+    </script>
+</ToolLayout>
+
+@code {
+    /// <summary>
+    /// Universal UUID/GUID generator tool.
+    /// Supports UUID v4 (random) and v7 (timestamp-based).
+    /// All generation happens client-side using Web Crypto API.
+    /// </summary>
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

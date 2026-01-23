@@ -1448,4 +1448,81 @@
   <data name="Nav_QrScanner" xml:space="preserve">
     <value>QR Scanner</value>
   </data>
+  
+  <!-- UUID Generator -->
+  <data name="Nav_UuidGenerator" xml:space="preserve">
+    <value>UUID Generator</value>
+  </data>
+  <data name="UuidGenerator_Title" xml:space="preserve">
+    <value>UUID/GUID Generator</value>
+  </data>
+  <data name="UuidGenerator_Description" xml:space="preserve">
+    <value>Generate UUID v4 (random) and UUID v7 (timestamp-based) identifiers directly in your browser. All generation happens locally.</value>
+  </data>
+  <data name="UuidGenerator_VersionLabel" xml:space="preserve">
+    <value>UUID Version</value>
+  </data>
+  <data name="UuidGenerator_Version4" xml:space="preserve">
+    <value>Version 4 (Random)</value>
+  </data>
+  <data name="UuidGenerator_Version7" xml:space="preserve">
+    <value>Version 7 (Timestamp-based)</value>
+  </data>
+  <data name="UuidGenerator_FormatLabel" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="UuidGenerator_FormatHyphenated" xml:space="preserve">
+    <value>Hyphenated (8-4-4-4-12)</value>
+  </data>
+  <data name="UuidGenerator_FormatPlain" xml:space="preserve">
+    <value>Plain (no hyphens)</value>
+  </data>
+  <data name="UuidGenerator_FormatBraces" xml:space="preserve">
+    <value>Braces {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}</value>
+  </data>
+  <data name="UuidGenerator_FormatUrn" xml:space="preserve">
+    <value>URN (urn:uuid:...)</value>
+  </data>
+  <data name="UuidGenerator_CaseLabel" xml:space="preserve">
+    <value>Case</value>
+  </data>
+  <data name="UuidGenerator_CaseUpper" xml:space="preserve">
+    <value>UPPERCASE</value>
+  </data>
+  <data name="UuidGenerator_CaseLower" xml:space="preserve">
+    <value>lowercase</value>
+  </data>
+  <data name="UuidGenerator_CountLabel" xml:space="preserve">
+    <value>Number of UUIDs</value>
+  </data>
+  <data name="UuidGenerator_Generate" xml:space="preserve">
+    <value>Generate</value>
+  </data>
+  <data name="UuidGenerator_GenerateOne" xml:space="preserve">
+    <value>Generate One</value>
+  </data>
+  <data name="UuidGenerator_GenerateBatch" xml:space="preserve">
+    <value>Generate Batch</value>
+  </data>
+  <data name="UuidGenerator_OutputLabel" xml:space="preserve">
+    <value>Generated UUIDs</value>
+  </data>
+  <data name="UuidGenerator_OutputPlaceholder" xml:space="preserve">
+    <value>Your UUIDs will appear here</value>
+  </data>
+  <data name="UuidGenerator_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="UuidGenerator_CopyAll" xml:space="preserve">
+    <value>Copy All</value>
+  </data>
+  <data name="UuidGenerator_Download" xml:space="preserve">
+    <value>Download as TXT</value>
+  </data>
+  <data name="UuidGenerator_Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="UuidGenerator_Copied" xml:space="preserve">
+    <value>Copied!</value>
+  </data>
 </root>

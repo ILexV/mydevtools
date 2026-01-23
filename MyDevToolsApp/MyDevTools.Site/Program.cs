@@ -1,7 +1,6 @@
 using MyDevTools.Site.Components;
 using MyDevTools.Site.Middleware;
 using MyDevTools.Site.Services;
-using MyDevTools.Site.Endpoints;
 using Microsoft.AspNetCore.Localization;
 using System.Globalization;
 
@@ -42,14 +41,13 @@ app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages:
 app.UseHttpsRedirection();
 
 // Use custom culture redirect middleware FIRST
+app.UseMiddleware<SitemapMiddleware>();
 app.UseMiddleware<CultureRedirectMiddleware>();
 
 // Then use request localization
 app.UseRequestLocalization(localizationOptions);
 
 app.UseAntiforgery();
-
-app.MapSitemapEndpoint();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>();

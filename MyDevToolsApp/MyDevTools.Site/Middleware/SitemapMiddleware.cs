@@ -3,18 +3,33 @@ using Microsoft.Extensions.Caching.Memory;
 using System.Reflection;
 using System.Xml.Linq;
 
-namespace MyDevTools.Site.Endpoints;
+namespace MyDevTools.Site.Middleware;
 
-public static class SitemapEndpoint
+/// <summary>
+/// Middleware that serves the sitemap.xml file.
+/// Placed early in the pipeline to avoid redirects/auth/localization issues.
+/// </summary>
+public class SitemapMiddleware
 {
-    public static IEndpointRouteBuilder MapSitemapEndpoint(this IEndpointRouteBuilder app)
+    private readonly RequestDelegate _next;
+    private readonly IMemoryCache _cache;
+
+    public SitemapMiddleware(RequestDelegate next, IMemoryCache cache)
     {
-        app.MapGet("/sitemap.xml", async (HttpContext context, IMemoryCache cache) =>
+        _next = next;
+        _cache = cache;
+    }
+
+    public async Task InvokeAsync(HttpContext context)
+    {
+        if (context.Request.Path.Value?.Equals("/sitemap.xml", StringComparison.OrdinalIgnoreCase) == true)
         {
             // Try to get from cache
-            if (cache.TryGetValue("sitemap_xml", out string? cachedSitemap))
+            if (_cache.TryGetValue("sitemap_xml", out string? cachedSitemap) && !string.IsNullOrEmpty(cachedSitemap))
             {
-                return Results.Text(cachedSitemap, "application/xml");
+                context.Response.ContentType = "application/xml";
+                await context.Response.WriteAsync(cachedSitemap);
+                return;
             }
 
             // Generate if not cached
@@ -24,12 +39,14 @@ public static class SitemapEndpoint
             var cacheEntryOptions = new MemoryCacheEntryOptions()
                 .SetAbsoluteExpiration(TimeSpan.FromHours(24));
 
-            cache.Set("sitemap_xml", sitemap, cacheEntryOptions);
+            _cache.Set("sitemap_xml", sitemap, cacheEntryOptions);
 
-            return Results.Text(sitemap, "application/xml");
-        });
+            context.Response.ContentType = "application/xml";
+            await context.Response.WriteAsync(sitemap);
+            return;
+        }
 
-        return app;
+        await _next(context);
     }
 
     private static string GenerateSitemap(HttpContext context)
@@ -70,10 +87,6 @@ public static class SitemapEndpoint
             }
         }
         
-        // Also add the root redirector (optional, but good for completeness if we consider "/" important, 
-        // though strictly speaking "/" redirects to /{lang}/, so maybe not needed in sitemap proper 
-        // if we list all lang variations. Google prefers final URLs.)
-
         return new XDocument(new XDeclaration("1.0", "utf-8", "yes"), root).ToString();
     }
 }

@@ -1,0 +1,332 @@
+@page "/{lang}/daisyui-demo"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<MetaTags Title="@AppStrings.DaisyUIDemo_Title" Description="@AppStrings.DaisyUIDemo_Description" CurrentUrl="@Navigation.Uri" />
+<HreflangLinks ToolPath="daisyui-demo" />
+<JsonLdTool ToolName="@AppStrings.DaisyUIDemo_Title" Description="@AppStrings.DaisyUIDemo_Description" CurrentUrl="@Navigation.Uri" />
+
+<ToolLayout Title="@AppStrings.DaisyUIDemo_Title" Description="@AppStrings.DaisyUIDemo_Description">
+    <div id="daisyui-demo-container" data-theme="light">
+        <div class="space-y-8 p-4">
+        
+        <!-- Theme Selector -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">@AppStrings.DaisyUIDemo_ThemeSelector</h2>
+                <select class="select select-bordered w-full max-w-xs" id="theme-selector">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="cupcake">Cupcake</option>
+                    <option value="bumblebee">Bumblebee</option>
+                    <option value="emerald">Emerald</option>
+                    <option value="corporate">Corporate</option>
+                    <option value="synthwave">Synthwave</option>
+                    <option value="retro">Retro</option>
+                    <option value="cyberpunk">Cyberpunk</option>
+                    <option value="valentine">Valentine</option>
+                    <option value="halloween">Halloween</option>
+                    <option value="garden">Garden</option>
+                    <option value="forest">Forest</option>
+                    <option value="aqua">Aqua</option>
+                    <option value="lofi">Lofi</option>
+                    <option value="pastel">Pastel</option>
+                    <option value="fantasy">Fantasy</option>
+                    <option value="wireframe">Wireframe</option>
+                    <option value="black">Black</option>
+                    <option value="luxury">Luxury</option>
+                    <option value="dracula">Dracula</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Buttons Section -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">@AppStrings.DaisyUIDemo_Buttons</h2>
+                <div class="flex flex-wrap gap-4">
+                    <button class="btn">Default</button>
+                    <button class="btn btn-primary">Primary</button>
+                    <button class="btn btn-secondary">Secondary</button>
+                    <button class="btn btn-accent">Accent</button>
+                    <button class="btn btn-info">Info</button>
+                    <button class="btn btn-success">Success</button>
+                    <button class="btn btn-warning">Warning</button>
+                    <button class="btn btn-error">Error</button>
+                    <button class="btn btn-ghost">Ghost</button>
+                    <button class="btn btn-link">Link</button>
+                </div>
+                <div class="flex flex-wrap gap-4 mt-4">
+                    <button class="btn btn-outline">Outline</button>
+                    <button class="btn btn-outline btn-primary">Outline Primary</button>
+                    <button class="btn btn-outline btn-secondary">Outline Secondary</button>
+                    <button class="btn btn-outline btn-accent">Outline Accent</button>
+                </div>
+                <div class="flex flex-wrap gap-4 mt-4 items-center">
+                    <button class="btn btn-xs">Tiny</button>
+                    <button class="btn btn-sm">Small</button>
+                    <button class="btn">Normal</button>
+                    <button class="btn btn-lg">Large</button>
+                </div>
+                <div class="flex flex-wrap gap-4 mt-4">
+                    <button class="btn btn-wide">Wide</button>
+                    <button class="btn btn-square">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                    <button class="btn btn-circle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                    <button class="btn loading">Loading</button>
+                    <button class="btn" disabled>Disabled</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forms Section -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">@AppStrings.DaisyUIDemo_Forms</h2>
+                <div class="form-control w-full max-w-xs">
+                    <label class="label">
+                        <span class="label-text">@AppStrings.DaisyUIDemo_EmailLabel</span>
+                    </label>
+                    <input type="text" placeholder="Type here" class="input input-bordered w-full max-w-xs" />
+                </div>
+                <div class="form-control w-full max-w-xs">
+                    <label class="label">
+                        <span class="label-text">@AppStrings.DaisyUIDemo_PasswordLabel</span>
+                    </label>
+                    <input type="password" placeholder="Type here" class="input input-bordered w-full max-w-xs" />
+                </div>
+                <div class="form-control w-full max-w-xs">
+                    <label class="label">
+                        <span class="label-text">Select</span>
+                    </label>
+                    <select class="select select-bordered">
+                        <option disabled selected>Pick one</option>
+                        <option>Option 1</option>
+                        <option>Option 2</option>
+                        <option>Option 3</option>
+                    </select>
+                </div>
+                <div class="form-control w-full max-w-xs">
+                    <label class="label">
+                        <span class="label-text">Textarea</span>
+                    </label>
+                    <textarea class="textarea textarea-bordered h-24" placeholder="Bio"></textarea>
+                </div>
+                <div class="form-control">
+                    <label class="label cursor-pointer">
+                        <span class="label-text">Checkbox</span>
+                        <input type="checkbox" class="checkbox" />
+                    </label>
+                </div>
+                <div class="form-control">
+                    <label class="label cursor-pointer">
+                        <span class="label-text">Toggle</span>
+                        <input type="checkbox" class="toggle" />
+                    </label>
+                </div>
+                <div class="form-control">
+                    <label class="label cursor-pointer">
+                        <span class="label-text">Radio</span>
+                        <input type="radio" name="radio-1" class="radio" checked />
+                    </label>
+                </div>
+                <div class="mt-4">
+                    <button class="btn btn-primary">@AppStrings.DaisyUIDemo_Submit</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards Section -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">@AppStrings.DaisyUIDemo_Cards</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="card bg-primary text-primary-content">
+                        <div class="card-body">
+                            <h3 class="card-title">Primary Card</h3>
+                            <p>@AppStrings.DaisyUIDemo_CardDescription</p>
+                            <div class="card-actions justify-end">
+                                <button class="btn">@AppStrings.DaisyUIDemo_LearnMore</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card bg-secondary text-secondary-content">
+                        <div class="card-body">
+                            <h3 class="card-title">Secondary Card</h3>
+                            <p>@AppStrings.DaisyUIDemo_CardDescription</p>
+                            <div class="card-actions justify-end">
+                                <button class="btn">@AppStrings.DaisyUIDemo_LearnMore</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card bg-accent text-accent-content">
+                        <div class="card-body">
+                            <h3 class="card-title">Accent Card</h3>
+                            <p>@AppStrings.DaisyUIDemo_CardDescription</p>
+                            <div class="card-actions justify-end">
+                                <button class="btn">@AppStrings.DaisyUIDemo_LearnMore</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Section -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">@AppStrings.DaisyUIDemo_Alerts</h2>
+                <div class="space-y-4">
+                    <div class="alert alert-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>@AppStrings.DaisyUIDemo_InfoAlert</span>
+                    </div>
+                    <div class="alert alert-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span>@AppStrings.DaisyUIDemo_SuccessAlert</span>
+                    </div>
+                    <div class="alert alert-warning">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        <span>@AppStrings.DaisyUIDemo_WarningAlert</span>
+                    </div>
+                    <div class="alert alert-error">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span>@AppStrings.DaisyUIDemo_ErrorAlert</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modals Section -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">@AppStrings.DaisyUIDemo_Modals</h2>
+                <button class="btn btn-primary" onclick="my_modal_1.showModal()">@AppStrings.DaisyUIDemo_OpenModal</button>
+                <dialog id="my_modal_1" class="modal">
+                    <div class="modal-box">
+                        <h3 class="font-bold text-lg">@AppStrings.DaisyUIDemo_ModalTitle</h3>
+                        <p class="py-4">@AppStrings.DaisyUIDemo_ModalBody</p>
+                        <div class="modal-action">
+                            <form method="dialog">
+                                <button class="btn">@AppStrings.DaisyUIDemo_Close</button>
+                            </form>
+                        </div>
+                    </div>
+                </dialog>
+            </div>
+        </div>
+
+        <!-- Additional Components -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">More Components</h2>
+                
+                <!-- Progress -->
+                <div class="space-y-2">
+                    <progress class="progress w-56"></progress>
+                    <progress class="progress progress-primary w-56" value="0" max="100"></progress>
+                    <progress class="progress progress-primary w-56" value="10" max="100"></progress>
+                    <progress class="progress progress-primary w-56" value="40" max="100"></progress>
+                    <progress class="progress progress-primary w-56" value="70" max="100"></progress>
+                    <progress class="progress progress-primary w-56" value="100" max="100"></progress>
+                </div>
+
+                <!-- Radial Progress -->
+                <div class="flex gap-4 mt-4">
+                    <div class="radial-progress" style="--value:0;" role="progressbar">0%</div>
+                    <div class="radial-progress" style="--value:20;" role="progressbar">20%</div>
+                    <div class="radial-progress" style="--value:60;" role="progressbar">60%</div>
+                    <div class="radial-progress" style="--value:100;" role="progressbar">100%</div>
+                </div>
+
+                <!-- Badge -->
+                <div class="flex gap-2 mt-4">
+                    <div class="badge">neutral</div>
+                    <div class="badge badge-primary">primary</div>
+                    <div class="badge badge-secondary">secondary</div>
+                    <div class="badge badge-accent">accent</div>
+                    <div class="badge badge-ghost">ghost</div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs tabs-boxed mt-4">
+                    <a class="tab">Tab 1</a>
+                    <a class="tab tab-active">Tab 2</a>
+                    <a class="tab">Tab 3</a>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats shadow mt-4">
+                    <div class="stat">
+                        <div class="stat-title">Total Page Views</div>
+                        <div class="stat-value">89,400</div>
+                        <div class="stat-desc">21% more than last month</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-title">Downloads</div>
+                        <div class="stat-value">31K</div>
+                        <div class="stat-desc">Jan 1st - Feb 1st</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        </div>
+    </div>
+</ToolLayout>
+
+<script>
+    // Theme switcher for DaisyUI demo
+    (function() {
+        function initThemeSwitcher() {
+            const container = document.getElementById('daisyui-demo-container');
+            const themeSelector = document.getElementById('theme-selector');
+            
+            if (!container || !themeSelector) {
+                return;
+            }
+
+            // Load saved theme
+            const savedTheme = localStorage.getItem('daisyui-theme') || 'light';
+            container.setAttribute('data-theme', savedTheme);
+            themeSelector.value = savedTheme;
+
+            // Remove old listener if exists
+            const oldListener = themeSelector._themeChangeListener;
+            if (oldListener) {
+                themeSelector.removeEventListener('change', oldListener);
+            }
+
+            // Handle theme change
+            const listener = function() {
+                const theme = this.value;
+                container.setAttribute('data-theme', theme);
+                localStorage.setItem('daisyui-theme', theme);
+            };
+            
+            themeSelector._themeChangeListener = listener;
+            themeSelector.addEventListener('change', listener);
+        }
+
+        // Initialize on load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initThemeSwitcher);
+        } else {
+            initThemeSwitcher();
+        }
+
+        // Re-initialize after Blazor enhanced navigation
+        document.addEventListener('enhancedload', initThemeSwitcher);
+    })();
+</script>
+
+@code {
+    /// <summary>
+    /// Язык интерфейса
+    /// </summary>
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

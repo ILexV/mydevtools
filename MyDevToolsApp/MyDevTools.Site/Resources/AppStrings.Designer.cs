@@ -1519,6 +1519,213 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Alerts.
+        /// </summary>
+        public static string DaisyUIDemo_Alerts {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_Alerts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Buttons.
+        /// </summary>
+        public static string DaisyUIDemo_Buttons {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_Buttons", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This is a beautiful DaisyUI card component with Tailwind CSS styling..
+        /// </summary>
+        public static string DaisyUIDemo_CardDescription {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_CardDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cards.
+        /// </summary>
+        public static string DaisyUIDemo_Cards {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_Cards", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Card Title.
+        /// </summary>
+        public static string DaisyUIDemo_CardTitle {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_CardTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Click me.
+        /// </summary>
+        public static string DaisyUIDemo_ClickMe {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_ClickMe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Close.
+        /// </summary>
+        public static string DaisyUIDemo_Close {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_Close", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test page showcasing various DaisyUI components and themes.
+        /// </summary>
+        public static string DaisyUIDemo_Description {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Email.
+        /// </summary>
+        public static string DaisyUIDemo_EmailLabel {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_EmailLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error! Something went wrong..
+        /// </summary>
+        public static string DaisyUIDemo_ErrorAlert {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_ErrorAlert", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Forms.
+        /// </summary>
+        public static string DaisyUIDemo_Forms {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_Forms", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Info: This is an informational message..
+        /// </summary>
+        public static string DaisyUIDemo_InfoAlert {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_InfoAlert", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn More.
+        /// </summary>
+        public static string DaisyUIDemo_LearnMore {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_LearnMore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This is a modal dialog built with DaisyUI components. Press ESC key or click outside to close..
+        /// </summary>
+        public static string DaisyUIDemo_ModalBody {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_ModalBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modals.
+        /// </summary>
+        public static string DaisyUIDemo_Modals {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_Modals", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hello from DaisyUI Modal!.
+        /// </summary>
+        public static string DaisyUIDemo_ModalTitle {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_ModalTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open Modal.
+        /// </summary>
+        public static string DaisyUIDemo_OpenModal {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_OpenModal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password.
+        /// </summary>
+        public static string DaisyUIDemo_PasswordLabel {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_PasswordLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Submit.
+        /// </summary>
+        public static string DaisyUIDemo_Submit {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_Submit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Success! Your operation completed successfully..
+        /// </summary>
+        public static string DaisyUIDemo_SuccessAlert {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_SuccessAlert", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select Theme.
+        /// </summary>
+        public static string DaisyUIDemo_ThemeSelector {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_ThemeSelector", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DaisyUI Components Demo.
+        /// </summary>
+        public static string DaisyUIDemo_Title {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning! Please check your input..
+        /// </summary>
+        public static string DaisyUIDemo_WarningAlert {
+            get {
+                return ResourceManager.GetString("DaisyUIDemo_WarningAlert", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Convert.
         /// </summary>
         public static string DateConverter_ActionConvert {

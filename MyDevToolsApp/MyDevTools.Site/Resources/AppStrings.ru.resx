@@ -1682,4 +1682,73 @@
   <data name="TextDiffViewer_ChooseModifiedFile" xml:space="preserve">
     <value>📁 Выбрать изменённый файл</value>
   </data>
+  <data name="DaisyUIDemo_Title" xml:space="preserve">
+    <value>Демонстрация компонентов DaisyUI</value>
+  </data>
+  <data name="DaisyUIDemo_Description" xml:space="preserve">
+    <value>Тестовая страница с различными компонентами и темами DaisyUI</value>
+  </data>
+  <data name="DaisyUIDemo_Buttons" xml:space="preserve">
+    <value>Кнопки</value>
+  </data>
+  <data name="DaisyUIDemo_Forms" xml:space="preserve">
+    <value>Формы</value>
+  </data>
+  <data name="DaisyUIDemo_Cards" xml:space="preserve">
+    <value>Карточки</value>
+  </data>
+  <data name="DaisyUIDemo_Alerts" xml:space="preserve">
+    <value>Уведомления</value>
+  </data>
+  <data name="DaisyUIDemo_Modals" xml:space="preserve">
+    <value>Модальные окна</value>
+  </data>
+  <data name="DaisyUIDemo_ThemeSelector" xml:space="preserve">
+    <value>Выбрать тему</value>
+  </data>
+  <data name="DaisyUIDemo_ClickMe" xml:space="preserve">
+    <value>Нажми меня</value>
+  </data>
+  <data name="DaisyUIDemo_CardTitle" xml:space="preserve">
+    <value>Заголовок карточки</value>
+  </data>
+  <data name="DaisyUIDemo_CardDescription" xml:space="preserve">
+    <value>Это красивый компонент карточки DaisyUI со стилизацией Tailwind CSS.</value>
+  </data>
+  <data name="DaisyUIDemo_LearnMore" xml:space="preserve">
+    <value>Узнать больше</value>
+  </data>
+  <data name="DaisyUIDemo_SuccessAlert" xml:space="preserve">
+    <value>Успешно! Операция завершена успешно.</value>
+  </data>
+  <data name="DaisyUIDemo_InfoAlert" xml:space="preserve">
+    <value>Информация: Это информационное сообщение.</value>
+  </data>
+  <data name="DaisyUIDemo_WarningAlert" xml:space="preserve">
+    <value>Внимание! Пожалуйста, проверьте ввод.</value>
+  </data>
+  <data name="DaisyUIDemo_ErrorAlert" xml:space="preserve">
+    <value>Ошибка! Что-то пошло не так.</value>
+  </data>
+  <data name="DaisyUIDemo_OpenModal" xml:space="preserve">
+    <value>Открыть модальное окно</value>
+  </data>
+  <data name="DaisyUIDemo_ModalTitle" xml:space="preserve">
+    <value>Привет из модального окна DaisyUI!</value>
+  </data>
+  <data name="DaisyUIDemo_ModalBody" xml:space="preserve">
+    <value>Это модальное окно, созданное с помощью компонентов DaisyUI. Нажмите ESC или кликните снаружи, чтобы закрыть.</value>
+  </data>
+  <data name="DaisyUIDemo_Close" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="DaisyUIDemo_EmailLabel" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="DaisyUIDemo_PasswordLabel" xml:space="preserve">
+    <value>Пароль</value>
+  </data>
+  <data name="DaisyUIDemo_Submit" xml:space="preserve">
+    <value>Отправить</value>
+  </data>
 </root>

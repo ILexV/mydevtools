@@ -1,10 +1,9 @@
 import { defineConfig } from 'vite';
-import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  plugins: [
-    tailwindcss(),
-  ],
+  css: {
+    postcss: './postcss.config.js',
+  },
   build: {
     // Write output to wwwroot
     outDir: 'wwwroot',
@@ -15,7 +14,7 @@ export default defineConfig({
       output: {
         // Force the output filename to be app.css (no hash)
         assetFileNames: (assetInfo) => {
-          if (assetInfo.names.includes('app.css')) {
+          if (assetInfo.names && assetInfo.names.includes('app.css')) {
             return 'app.css';
           }
           return '[name][extname]';

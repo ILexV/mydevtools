@@ -1742,4 +1742,73 @@
   <data name="TextDiffViewer_ChooseModifiedFile" xml:space="preserve">
     <value>📁 Choose modified file</value>
   </data>
+  <data name="DaisyUIDemo_Title" xml:space="preserve">
+    <value>DaisyUI Components Demo</value>
+  </data>
+  <data name="DaisyUIDemo_Description" xml:space="preserve">
+    <value>Test page showcasing various DaisyUI components and themes</value>
+  </data>
+  <data name="DaisyUIDemo_Buttons" xml:space="preserve">
+    <value>Buttons</value>
+  </data>
+  <data name="DaisyUIDemo_Forms" xml:space="preserve">
+    <value>Forms</value>
+  </data>
+  <data name="DaisyUIDemo_Cards" xml:space="preserve">
+    <value>Cards</value>
+  </data>
+  <data name="DaisyUIDemo_Alerts" xml:space="preserve">
+    <value>Alerts</value>
+  </data>
+  <data name="DaisyUIDemo_Modals" xml:space="preserve">
+    <value>Modals</value>
+  </data>
+  <data name="DaisyUIDemo_ThemeSelector" xml:space="preserve">
+    <value>Select Theme</value>
+  </data>
+  <data name="DaisyUIDemo_ClickMe" xml:space="preserve">
+    <value>Click me</value>
+  </data>
+  <data name="DaisyUIDemo_CardTitle" xml:space="preserve">
+    <value>Card Title</value>
+  </data>
+  <data name="DaisyUIDemo_CardDescription" xml:space="preserve">
+    <value>This is a beautiful DaisyUI card component with Tailwind CSS styling.</value>
+  </data>
+  <data name="DaisyUIDemo_LearnMore" xml:space="preserve">
+    <value>Learn More</value>
+  </data>
+  <data name="DaisyUIDemo_SuccessAlert" xml:space="preserve">
+    <value>Success! Your operation completed successfully.</value>
+  </data>
+  <data name="DaisyUIDemo_InfoAlert" xml:space="preserve">
+    <value>Info: This is an informational message.</value>
+  </data>
+  <data name="DaisyUIDemo_WarningAlert" xml:space="preserve">
+    <value>Warning! Please check your input.</value>
+  </data>
+  <data name="DaisyUIDemo_ErrorAlert" xml:space="preserve">
+    <value>Error! Something went wrong.</value>
+  </data>
+  <data name="DaisyUIDemo_OpenModal" xml:space="preserve">
+    <value>Open Modal</value>
+  </data>
+  <data name="DaisyUIDemo_ModalTitle" xml:space="preserve">
+    <value>Hello from DaisyUI Modal!</value>
+  </data>
+  <data name="DaisyUIDemo_ModalBody" xml:space="preserve">
+    <value>This is a modal dialog built with DaisyUI components. Press ESC key or click outside to close.</value>
+  </data>
+  <data name="DaisyUIDemo_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="DaisyUIDemo_EmailLabel" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="DaisyUIDemo_PasswordLabel" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="DaisyUIDemo_Submit" xml:space="preserve">
+    <value>Submit</value>
+  </data>
 </root>

@@ -1,0 +1,91 @@
+@using MyDevTools.Site.Resources
+
+@* 
+FileDropZone Component - Reusable file drop zone with customizable icon and description
+
+Usage Example 1 (QR Scanner with camera icon):
+<FileDropZone 
+    Id="drop-zone" 
+    InputId="file-input"
+    IconSvg='<svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+    </svg>'
+    Description="Drag & drop an image here"
+    Accept="image/*" />
+
+Usage Example 2 (Default upload icon):
+<FileDropZone 
+    Id="file-upload" 
+    InputId="file-input"
+    Description="Drag & drop your file here"
+    Accept=".pdf,.doc,.docx" />
+
+Usage Example 3 (Custom button text):
+<FileDropZone 
+    Id="csv-upload" 
+    InputId="csv-input"
+    Description="Upload CSV file"
+    ButtonText="Select CSV"
+    Accept=".csv" />
+*@
+
+<div id="@Id" class="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center transition-colors cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20">
+    <input type="file" id="@InputId" class="hidden" accept="@Accept" />
+    
+    <div class="flex flex-col items-center justify-center space-y-4">
+        @if (!string.IsNullOrWhiteSpace(IconSvg))
+        {
+            @((MarkupString)IconSvg)
+        }
+        
+        <div class="text-lg font-medium text-gray-700 dark:text-gray-200">
+            @Description
+        </div>
+        
+        <button type="button" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm cursor-pointer pointer-events-none">
+            @ButtonText
+        </button>
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// Unique identifier for the drop zone container
+    /// </summary>
+    [Parameter]
+    public string Id { get; set; } = "drop-zone";
+
+    /// <summary>
+    /// Unique identifier for the file input element
+    /// </summary>
+    [Parameter]
+    public string InputId { get; set; } = "file-input";
+
+    /// <summary>
+    /// SVG icon markup to display in the center (use raw SVG string with proper classes)
+    /// Default: Upload cloud icon
+    /// </summary>
+    [Parameter]
+    public string IconSvg { get; set; } = @"<svg class=""w-12 h-12 text-gray-400"" fill=""none"" stroke=""currentColor"" viewBox=""0 0 24 24"">
+    <path stroke-linecap=""round"" stroke-linejoin=""round"" stroke-width=""2"" d=""M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"" />
+</svg>";
+
+    /// <summary>
+    /// Description text displayed in the center
+    /// </summary>
+    [Parameter]
+    public string Description { get; set; } = "Drag & drop a file here";
+
+    /// <summary>
+    /// Button text (localized by default to "Choose file")
+    /// </summary>
+    [Parameter]
+    public string ButtonText { get; set; } = AppStrings.Common_FileChooseButton;
+
+    /// <summary>
+    /// Accepted file types (e.g., "image/*", ".pdf", ".csv", etc.)
+    /// Default: Accept all file types
+    /// </summary>
+    [Parameter]
+    public string Accept { get; set; } = "*/*";
+}

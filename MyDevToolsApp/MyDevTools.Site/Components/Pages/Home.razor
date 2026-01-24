@@ -12,62 +12,60 @@
 
 <HreflangLinks />
     
-<div class="alert alert-warning text-center" role="alert" style="margin: 1rem;">
-    🚧 @AppStrings.Home_DevelopmentNotice
+<div class="alert alert-warning shadow-lg mb-6">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+    <span>🚧 @AppStrings.Home_DevelopmentNotice</span>
 </div>
 
-<div id="home-page-root" class="home-page">
-    <div class="hero-container">
-        <div class="hero-content">
-            <h1 class="hero-title">@AppStrings.AppName</h1>
-            <p class="hero-subtitle">@AppStrings.Home_Subtitle</p>
-            <div class="hero-actions">
+<div id="home-page-root">
+    <div class="hero bg-base-200 rounded-box mb-8">
+        <div class="hero-content flex-col lg:flex-row-reverse gap-8 py-12">
+            <img src="/hero_logo.webp" alt="@AppStrings.AppName Hero" class="max-w-sm rounded-lg shadow-2xl" width="400" height="297" />
+            <div>
+                <h1 class="text-5xl font-bold">@AppStrings.AppName</h1>
+                <p class="py-6 text-lg">@AppStrings.Home_Subtitle</p>
             </div>
-        </div>
-        <div class="hero-image">
-            <img src="/hero_logo.webp" alt="@AppStrings.AppName Hero" class="hero-illustration" width="400" height="297" />
         </div>
     </div>
 
     @* Favorites Section *@
-    <div id="favorites-section" class="favorites-section">
-        <div class="section-header">
-            <h2 class="section-title">⭐ @AppStrings.Home_Favorites</h2>
-        </div>
-        <div class="favorites-scroll">
+    <div id="favorites-section" class="mb-8">
+        <h2 class="text-2xl font-bold mb-4">⭐ @AppStrings.Home_Favorites</h2>
+        <div class="favorites-scroll mb-4">
             @foreach (var tool in GetTools())
             {
-                <a href="/@Lang/@tool.Slug" class="favorite-tool-compact" data-tool-slug="@tool.Slug" style="display: none;">
-                    <div class="favorite-tool-compact-icon">@tool.Icon</div>
-                    <div class="favorite-tool-compact-title">@tool.Title</div>
+                <a href="/@Lang/@tool.Slug" class="favorite-tool-compact card card-compact bg-base-200 shadow-xl hover:shadow-2xl transition-shadow" data-tool-slug="@tool.Slug" style="display: none;">
+                    <div class="card-body flex-row items-center gap-3">
+                        <div class="text-3xl">@tool.Icon</div>
+                        <div class="text-sm font-semibold">@tool.Title</div>
+                    </div>
                 </a>
             }
         </div>
-        <div class="favorites-empty" style="display: none;">
-            <p>@AppStrings.Home_NoFavorites</p>
+        <div class="favorites-empty alert alert-info shadow-lg" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>@AppStrings.Home_NoFavorites</span>
         </div>
     </div>
 
     @* All Tools Section *@
-    <div id="tools" class="tools-section">
-        <div class="section-header">
-            <h2 class="section-title">@AppStrings.Home_FeaturedTools</h2>
-        </div>
-        <div class="tool-list">
+    <div id="tools">
+        <h2 class="text-2xl font-bold mb-4">@AppStrings.Home_FeaturedTools</h2>
+        <div class="space-y-2">
             @foreach (var tool in GetTools())
             {
-                <div class="tool-row-wrapper">
-                    <a href="/@Lang/@tool.Slug" class="tool-row">
-                        <div class="tool-row-icon">@tool.Icon</div>
-                        <div class="tool-row-content">
-                            <h3 class="tool-row-title">@tool.Title</h3>
-                            <p class="tool-row-description">@tool.Description</p>
-                        </div>
-                        <div class="tool-row-action">
-                            @AppStrings.Home_Launch
+                <div class="relative">
+                    <a href="/@Lang/@tool.Slug" class="card card-compact bg-base-100 shadow-xl hover:shadow-2xl transition-shadow w-full">
+                        <div class="card-body flex-row items-center gap-4">
+                            <div class="text-4xl">@tool.Icon</div>
+                            <div class="flex-1">
+                                <h3 class="card-title text-base">@tool.Title</h3>
+                                <p class="text-sm opacity-70">@tool.Description</p>
+                            </div>
+                            <div class="badge badge-primary badge-outline">@AppStrings.Home_Launch</div>
                         </div>
                     </a>
-                    <button class="favorite-btn" 
+                    <button class="favorite-btn btn btn-ghost btn-circle btn-sm absolute top-2 right-2" 
                             data-tool-slug="@tool.Slug" 
                             aria-label="@AppStrings.Home_AddToFavorites"
                             aria-pressed="false"

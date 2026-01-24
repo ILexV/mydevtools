@@ -11,6 +11,6 @@ export default {
     require('daisyui'),
   ],
   daisyui: {
-    themes: true, // Enable ALL DaisyUI themes (v4 syntax)
+    themes: ["light", "dark"], // ТОЛЬКО light и dark темы для минимального размера бандла
   },
 }

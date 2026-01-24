@@ -17,25 +17,25 @@
         <!-- Toolbar -->
         <div class="markdown-toolbar">
             <div class="toolbar-section">
-                <button class="toolbar-btn" id="md-bold" type="button" title="@AppStrings.MarkdownPreview_Bold">
+                <button class="btn btn-sm" id="md-bold" type="button" title="@AppStrings.MarkdownPreview_Bold">
                     <strong>B</strong>
                 </button>
-                <button class="toolbar-btn" id="md-italic" type="button" title="@AppStrings.MarkdownPreview_Italic">
+                <button class="btn btn-sm" id="md-italic" type="button" title="@AppStrings.MarkdownPreview_Italic">
                     <em>I</em>
                 </button>
-                <button class="toolbar-btn" id="md-heading" type="button" title="@AppStrings.MarkdownPreview_Heading">
+                <button class="btn btn-sm" id="md-heading" type="button" title="@AppStrings.MarkdownPreview_Heading">
                     H
                 </button>
-                <button class="toolbar-btn" id="md-link" type="button" title="@AppStrings.MarkdownPreview_Link">
+                <button class="btn btn-sm" id="md-link" type="button" title="@AppStrings.MarkdownPreview_Link">
                     🔗
                 </button>
-                <button class="toolbar-btn" id="md-image" type="button" title="@AppStrings.MarkdownPreview_Image">
+                <button class="btn btn-sm" id="md-image" type="button" title="@AppStrings.MarkdownPreview_Image">
                     🖼️
                 </button>
-                <button class="toolbar-btn" id="md-code" type="button" title="@AppStrings.MarkdownPreview_Code">
+                <button class="btn btn-sm" id="md-code" type="button" title="@AppStrings.MarkdownPreview_Code">
                     &lt;/&gt;
                 </button>
-                <button class="toolbar-btn" id="md-list" type="button" title="@AppStrings.MarkdownPreview_List">
+                <button class="btn btn-sm" id="md-list" type="button" title="@AppStrings.MarkdownPreview_List">
                     ≡
                 </button>
             </div>
@@ -48,7 +48,7 @@
         <div class="markdown-split-view">
             <!-- Editor Section -->
             <div class="markdown-editor-section">
-                <label for="markdown-input">@AppStrings.MarkdownPreview_EditorLabel</label>
+                <label class="label" for="markdown-input"><span class="label-text font-semibold">@AppStrings.MarkdownPreview_EditorLabel</span></label>
                 <textarea id="markdown-input" 
                           placeholder="@AppStrings.MarkdownPreview_EditorPlaceholder"
                           spellcheck="false"></textarea>
@@ -56,19 +56,19 @@
 
             <!-- Preview Section -->
             <div class="markdown-preview-section">
-                <label>@AppStrings.MarkdownPreview_PreviewLabel</label>
+                <label class="label"><span class="label-text font-semibold">@AppStrings.MarkdownPreview_PreviewLabel</span></label>
                 <div id="markdown-output" class="markdown-content"></div>
             </div>
         </div>
 
         <!-- Actions -->
-        <div class="action-buttons">
+        <div class="flex flex-wrap gap-2">
             <button class="btn btn-secondary" id="md-copy-html" type="button">@AppStrings.MarkdownPreview_CopyHTML</button>
             <button class="btn btn-secondary" id="md-copy-md" type="button">@AppStrings.MarkdownPreview_CopyMarkdown</button>
             <button class="btn btn-secondary" id="md-download" type="button">@AppStrings.MarkdownPreview_Download</button>
         </div>
 
-        <div class="tool-error" id="markdown-error" hidden></div>
+        <div class="alert alert-error" id="markdown-error" hidden></div>
     </div>
 </ToolLayout>
 

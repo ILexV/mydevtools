@@ -23,36 +23,37 @@
             <div class="settings-bar">
                 <div class="settings-group">
                     <div class="file-buttons">
-                        <button class="btn btn-secondary" id="xml-open-file-btn" type="button" title="Open XML file">
+                        <button class="btn btn-secondary btn-sm" id="xml-open-file-btn" type="button" title="Open XML file">
                             📁
                         </button>
-                        <button class="btn btn-secondary" id="xml-save-file-btn" type="button" title="Save XML file">
+                        <button class="btn btn-secondary btn-sm" id="xml-save-file-btn" type="button" title="Save XML file">
                             💾
                         </button>
                     </div>
-                    <div class="setting-item">
-                        <label for="xml-indent-select">@AppStrings.XmlBeautifier_IndentSizeLabel</label>
-                        <select id="xml-indent-select">
+                    <div class="form-control">
+                        <label class="label" for="xml-indent-select"><span class="label-text">@AppStrings.XmlBeautifier_IndentSizeLabel</span></label>
+                        <select id="xml-indent-select" class="select select-bordered select-sm">
                             <option value="2">@AppStrings.XmlBeautifier_Indent2Spaces</option>
                             <option value="4" selected>@AppStrings.XmlBeautifier_Indent4Spaces</option>
                             <option value="tab">@AppStrings.XmlBeautifier_IndentTab</option>
                         </select>
                     </div>
-                    <div class="setting-item">
-                        <label>
-                            <input type="checkbox" id="xml-compact-mode" /> @AppStrings.XmlBeautifier_CompactMode
+                    <div class="form-control">
+                        <label class="label cursor-pointer gap-2">
+                            <input type="checkbox" id="xml-compact-mode" class="checkbox checkbox-sm" />
+                            <span class="label-text">@AppStrings.XmlBeautifier_CompactMode</span>
                         </label>
                     </div>
                 </div>
 
-                <div class="action-buttons">
-                    <button class="btn btn-primary" id="xml-format-btn" type="button" title="@AppStrings.XmlBeautifier_FormatButton">
+                <div class="flex flex-wrap gap-2">
+                    <button class="btn btn-primary btn-sm" id="xml-format-btn" type="button" title="@AppStrings.XmlBeautifier_FormatButton">
                         ⚙️
                     </button>
-                    <button class="btn btn-secondary" id="xml-copy-btn" type="button" title="@AppStrings.XmlBeautifier_CopyButton">
+                    <button class="btn btn-secondary btn-sm" id="xml-copy-btn" type="button" title="@AppStrings.XmlBeautifier_CopyButton">
                         📋
                     </button>
-                    <button class="btn btn-secondary" id="xml-clear-btn" type="button" title="@AppStrings.XmlBeautifier_ClearButton">
+                    <button class="btn btn-secondary btn-sm" id="xml-clear-btn" type="button" title="@AppStrings.XmlBeautifier_ClearButton">
                         🗑️
                     </button>
                 </div>

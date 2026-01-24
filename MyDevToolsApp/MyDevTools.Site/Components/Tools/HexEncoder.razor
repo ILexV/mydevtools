@@ -21,76 +21,91 @@
          data-copy="@AppStrings.HexEncoder_Copy"
          data-copied="@AppStrings.HexEncoder_Copied">
 
-        <div class="tool-links" aria-label="@AppStrings.HexEncoder_OtherFormats">
+        <div class="flex flex-wrap gap-2 items-center mb-4" aria-label="@AppStrings.HexEncoder_OtherFormats">
             <span class="tool-links-title">@AppStrings.HexEncoder_OtherFormats</span>
-            <a class="tool-link" href="/@Lang/url-encoder">@AppStrings.HexEncoder_LinkUrl</a>
-            <a class="tool-link" href="/@Lang/base32-encoder">@AppStrings.HexEncoder_LinkBase32</a>
-            <a class="tool-link" href="/@Lang/base58-encoder">@AppStrings.HexEncoder_LinkBase58</a>
-            <a class="tool-link" href="/@Lang/base64-encoder">@AppStrings.HexEncoder_LinkBase64</a>
+            <a class="link link-primary" href="/@Lang/url-encoder">@AppStrings.HexEncoder_LinkUrl</a>
+            <a class="link link-primary" href="/@Lang/base32-encoder">@AppStrings.HexEncoder_LinkBase32</a>
+            <a class="link link-primary" href="/@Lang/base58-encoder">@AppStrings.HexEncoder_LinkBase58</a>
+            <a class="link link-primary" href="/@Lang/base64-encoder">@AppStrings.HexEncoder_LinkBase64</a>
         </div>
 
-        <div class="tool-grid">
-            <div class="input-section">
-                <label for="hex-input-text">@AppStrings.HexEncoder_InputTextLabel</label>
-                <textarea id="hex-input-text" rows="10" placeholder="@AppStrings.HexEncoder_InputTextPlaceholder"></textarea>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="space-y-4">
+                <label class="label" for="hex-input-text"><span class="label-text font-semibold">@AppStrings.HexEncoder_InputTextLabel</span></label>
+                <textarea id="hex-input-text" rows="10" placeholder="@AppStrings.HexEncoder_InputTextPlaceholder" class="textarea textarea-bordered w-full font-mono"></textarea>
 
                 <FileDropInput InputId="hex-input-file"
                                Label="@AppStrings.HexEncoder_InputFileLabel"
                                Hint="@AppStrings.HexEncoder_FileHint" />
 
-                <div class="tool-settings">
-                    <div class="tool-setting">
-                        <label for="hex-charset">@AppStrings.HexEncoder_CharsetLabel</label>
-                        <select id="hex-charset">
-                            <option value="utf-8">UTF-8</option>
-                            <option value="utf-16le">UTF-16LE</option>
-                            <option value="utf-16be">UTF-16BE</option>
-                            <option value="ascii">ASCII</option>
-                            <option value="latin1">ISO-8859-1 (Latin-1)</option>
-                        </select>
+                <div class="collapse collapse-arrow bg-base-200">
+                    <input type="checkbox" checked /> 
+                    <div class="collapse-title text-xl font-medium">
+                        Settings
                     </div>
-
-                    <div class="tool-setting">
-                        <label for="hex-case">@AppStrings.HexEncoder_CaseLabel</label>
-                        <select id="hex-case">
-                            <option value="lower">@AppStrings.HexEncoder_CaseLower</option>
-                            <option value="upper">@AppStrings.HexEncoder_CaseUpper</option>
-                        </select>
-                    </div>
-
-                    <div class="tool-setting">
-                        <label>@AppStrings.HexEncoder_DecodeOptionsLabel</label>
-                        <div class="tool-checkboxes">
-                            <label class="tool-checkbox"><input id="hex-ignore-whitespace" type="checkbox" checked /> @AppStrings.HexEncoder_IgnoreWhitespace</label>
-                            <label class="tool-checkbox"><input id="hex-allow-separators" type="checkbox" checked /> @AppStrings.HexEncoder_AllowSeparators</label>
-                            <label class="tool-checkbox"><input id="hex-allow-0x" type="checkbox" checked /> @AppStrings.HexEncoder_Allow0x</label>
+                    <div class="collapse-content space-y-4">
+                        <div class="form-control w-full">
+                            <label class="label" for="hex-charset"><span class="label-text">@AppStrings.HexEncoder_CharsetLabel</span></label>
+                            <select id="hex-charset" class="select select-bordered w-full">
+                                <option value="utf-8">UTF-8</option>
+                                <option value="utf-16le">UTF-16LE</option>
+                                <option value="utf-16be">UTF-16BE</option>
+                                <option value="ascii">ASCII</option>
+                                <option value="latin1">ISO-8859-1 (Latin-1)</option>
+                            </select>
                         </div>
-                    </div>
 
-                    <div class="tool-setting">
-                        <label for="hex-output-mode">@AppStrings.HexEncoder_OutputModeLabel</label>
-                        <select id="hex-output-mode">
-                            <option value="preview">@AppStrings.HexEncoder_OutputModePreview</option>
-                            <option value="full">@AppStrings.HexEncoder_OutputModeFull</option>
-                        </select>
+                        <div class="form-control w-full">
+                            <label class="label" for="hex-case"><span class="label-text">@AppStrings.HexEncoder_CaseLabel</span></label>
+                            <select id="hex-case" class="select select-bordered w-full">
+                                <option value="lower">@AppStrings.HexEncoder_CaseLower</option>
+                                <option value="upper">@AppStrings.HexEncoder_CaseUpper</option>
+                            </select>
+                        </div>
+
+                        <div class="form-control w-full">
+                            <label class="label"><span class="label-text">@AppStrings.HexEncoder_DecodeOptionsLabel</span></label>
+                            <div class="space-y-2">
+                                <label class="label cursor-pointer gap-2">
+                                    <input id="hex-ignore-whitespace" type="checkbox" checked class="checkbox" />
+                                    <span class="label-text">@AppStrings.HexEncoder_IgnoreWhitespace</span>
+                                </label>
+                                <label class="label cursor-pointer gap-2">
+                                    <input id="hex-allow-separators" type="checkbox" checked class="checkbox" />
+                                    <span class="label-text">@AppStrings.HexEncoder_AllowSeparators</span>
+                                </label>
+                                <label class="label cursor-pointer gap-2">
+                                    <input id="hex-allow-0x" type="checkbox" checked class="checkbox" />
+                                    <span class="label-text">@AppStrings.HexEncoder_Allow0x</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-control w-full">
+                            <label class="label" for="hex-output-mode"><span class="label-text">@AppStrings.HexEncoder_OutputModeLabel</span></label>
+                            <select id="hex-output-mode" class="select select-bordered w-full">
+                                <option value="preview">@AppStrings.HexEncoder_OutputModePreview</option>
+                                <option value="full">@AppStrings.HexEncoder_OutputModeFull</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <div class="action-buttons">
+                <div class="flex flex-wrap gap-2">
                     <button class="btn btn-primary" id="hex-encode-btn" type="button">@AppStrings.HexEncoder_ActionEncode</button>
                     <button class="btn btn-secondary" id="hex-decode-btn" type="button">@AppStrings.HexEncoder_ActionDecode</button>
                     <button class="btn btn-secondary" id="hex-swap-btn" type="button">@AppStrings.HexEncoder_ActionSwap</button>
                     <button class="btn btn-secondary" id="hex-clear-btn" type="button">@AppStrings.HexEncoder_ActionClear</button>
                 </div>
 
-                <div class="tool-error" id="hex-error" hidden></div>
+                <div class="alert alert-error" id="hex-error" hidden></div>
             </div>
 
-            <div class="output-section" id="hex-output-section">
-                <label for="hex-output">@AppStrings.HexEncoder_OutputLabel</label>
-                <textarea id="hex-output" rows="10" readonly></textarea>
+            <div class="space-y-4" id="hex-output-section">
+                <label class="label" for="hex-output"><span class="label-text font-semibold">@AppStrings.HexEncoder_OutputLabel</span></label>
+                <textarea id="hex-output" rows="10" readonly class="textarea textarea-bordered w-full font-mono"></textarea>
 
-                <div class="action-buttons">
+                <div class="flex flex-wrap gap-2">
                     <button class="btn btn-secondary" id="hex-copy-btn" type="button">@AppStrings.HexEncoder_Copy</button>
                     <button class="btn btn-secondary" id="hex-download-btn" type="button">@AppStrings.HexEncoder_Download</button>
                 </div>

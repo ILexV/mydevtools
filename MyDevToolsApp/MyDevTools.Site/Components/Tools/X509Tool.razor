@@ -21,46 +21,46 @@
          data-download="@AppStrings.X509_Download"
          data-warnings-title="@AppStrings.X509_WarningsTitle">
 
-        <div class="tool-grid">
-            <div class="input-section">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="space-y-4">
                 <h3>@AppStrings.X509_SelfSignedSectionTitle</h3>
-                <div class="tool-settings">
-                    <div class="tool-setting">
-                        <label for="x509-subject">@AppStrings.X509_SubjectLabel</label>
-                        <input id="x509-subject" type="text" placeholder="CN=example.com" />
+                <div class="space-y-4">
+                    <div class="form-control w-full">
+                        <label class="label" for="x509-subject"><span class="label-text">@AppStrings.X509_SubjectLabel</span></label>
+                        <input id="x509-subject" type="text" placeholder="CN=example.com" class="input input-bordered w-full" />
                     </div>
-                    <div class="tool-setting">
-                        <label for="x509-validity">@AppStrings.X509_ValidityDaysLabel</label>
-                        <input id="x509-validity" type="number" min="1" value="365" />
+                    <div class="form-control w-full">
+                        <label class="label" for="x509-validity"><span class="label-text">@AppStrings.X509_ValidityDaysLabel</span></label>
+                        <input id="x509-validity" type="number" min="1" value="365" class="input input-bordered w-full" />
                     </div>
                 </div>
 
-                <div class="action-buttons">
+                <div class="flex flex-wrap gap-2">
                     <button class="btn btn-primary" id="x509-generate-selfsigned" type="button">@AppStrings.X509_GenerateSelfSigned</button>
                 </div>
 
                 <h3>@AppStrings.X509_CsrSectionTitle</h3>
-                <div class="action-buttons">
+                <div class="flex flex-wrap gap-2">
                     <button class="btn btn-secondary" id="x509-generate-csr" type="button">@AppStrings.X509_GenerateCsr</button>
                 </div>
 
                 <h3>@AppStrings.X509_ParseSectionTitle</h3>
-                <label for="x509-parse-input">@AppStrings.X509_ParseLabel</label>
-                <textarea id="x509-parse-input" rows="8" placeholder="@AppStrings.X509_ParsePlaceholder"></textarea>
-                <div class="action-buttons">
+                <label class="label" for="x509-parse-input"><span class="label-text">@AppStrings.X509_ParseLabel</span></label>
+                <textarea id="x509-parse-input" rows="8" placeholder="@AppStrings.X509_ParsePlaceholder" class="textarea textarea-bordered w-full font-mono"></textarea>
+                <div class="flex flex-wrap gap-2">
                     <button class="btn btn-secondary" id="x509-parse-btn" type="button">@AppStrings.X509_ParseButton</button>
                 </div>
             </div>
 
-            <div class="output-section">
-                <label for="x509-output">@AppStrings.X509_OutputLabel</label>
-                <textarea id="x509-output" rows="14" readonly></textarea>
-                <div class="action-buttons">
+            <div class="space-y-4">
+                <label class="label" for="x509-output"><span class="label-text font-semibold">@AppStrings.X509_OutputLabel</span></label>
+                <textarea id="x509-output" rows="14" readonly class="textarea textarea-bordered w-full font-mono"></textarea>
+                <div class="flex flex-wrap gap-2">
                     <button class="btn btn-secondary" id="x509-copy" type="button">@AppStrings.X509_Copy</button>
                     <button class="btn btn-secondary" id="x509-download" type="button">@AppStrings.X509_Download</button>
                 </div>
 
-                <div class="tool-error" id="x509-warnings" hidden></div>
+                <div class="alert alert-error" id="x509-warnings" hidden></div>
             </div>
         </div>
     </div>

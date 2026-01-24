@@ -1,26 +1,30 @@
 @using MyDevTools.Site.Resources
 
-<div class="file-upload" data-file-upload>
-    <label for="@InputId">@Label</label>
+<div class="form-control w-full" data-file-upload>
+    <label class="label" for="@InputId">
+        <span class="label-text font-semibold">@Label</span>
+    </label>
     <div class="file-dropzone" data-file-drop>
         <input id="@InputId" type="file" class="file-drop-input" />
 
         <div class="file-drop-empty">
-            <div class="file-drop-title">@DropTitle</div>
-            <div class="file-drop-subtitle">@DropSubtitle</div>
+            <div class="text-lg font-semibold mb-2">@DropTitle</div>
+            <div class="text-sm opacity-70 mb-4">@DropSubtitle</div>
             <button type="button" class="btn btn-secondary file-drop-button">@ButtonLabel</button>
         </div>
 
         <div class="file-drop-selected" hidden>
-            <div class="file-drop-selected-name"></div>
-            <div class="file-drop-selected-size"></div>
-            <button type="button" class="btn btn-secondary btn-small file-drop-change">@ChangeButtonLabel</button>
+            <div class="file-drop-selected-name font-semibold mb-1"></div>
+            <div class="file-drop-selected-size text-sm opacity-70 mb-4"></div>
+            <button type="button" class="btn btn-secondary btn-sm file-drop-change">@ChangeButtonLabel</button>
         </div>
     </div>
 
     @if (!string.IsNullOrWhiteSpace(Hint))
     {
-        <div class="file-hint">@Hint</div>
+        <label class="label">
+            <span class="label-text-alt opacity-70">@Hint</span>
+        </label>
     }
 </div>
 

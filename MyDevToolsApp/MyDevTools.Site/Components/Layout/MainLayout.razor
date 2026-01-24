@@ -1,32 +1,35 @@
 @inherits LayoutComponentBase
 @using MyDevTools.Site.Resources
 
-<div class="page">
-    <header class="main-header">
-        <div class="header-content">
-            <div class="logo">
-                <a href="/@CurrentLanguage" tabindex="-1" style="outline: none;">
-                    <h1>@AppStrings.AppName</h1>
-                </a>
-            </div>
-            <nav class="main-nav">
-                <a href="/@CurrentLanguage/#tools">@AppStrings.Nav_Utilities</a>
-            </nav>
-            <div class="header-actions">
-                <LanguageSwitcher CurrentLanguage="@CurrentLanguage" />
-                <ThemeToggle />
-            </div>
+<div class="min-h-screen flex flex-col bg-base-100">
+    <!-- Navbar -->
+    <div class="navbar bg-base-200 shadow-lg sticky top-0 z-50 border-b border-base-300">
+        <div class="navbar-start">
+            <a href="/@CurrentLanguage" class="btn btn-ghost text-xl font-bold" tabindex="-1">
+                @AppStrings.AppName
+            </a>
         </div>
-    </header>
+        <div class="navbar-center hidden md:flex">
+            <ul class="menu menu-horizontal px-1">
+                <li><a href="/@CurrentLanguage/#tools" class="font-medium">@AppStrings.Nav_Utilities</a></li>
+            </ul>
+        </div>
+        <div class="navbar-end gap-2">
+            <LanguageSwitcher CurrentLanguage="@CurrentLanguage" />
+            <ThemeToggle />
+        </div>
+    </div>
 
-    <main class="main-content">
+    <!-- Main Content -->
+    <main class="flex-1 container mx-auto px-4 py-8 max-w-7xl">
         @Body
     </main>
 
-    <footer class="main-footer">
-        <div class="footer-content">
-            <p>@AppStrings.AppTagline</p>
-            <p>&copy; @DateTime.UtcNow.Year MyDevTools.app</p>
+    <!-- Footer -->
+    <footer class="footer footer-center p-10 bg-base-200 text-base-content border-t border-base-300 mt-16">
+        <div>
+            <p class="font-semibold">@AppStrings.AppTagline</p>
+            <p class="text-sm opacity-70">&copy; @DateTime.UtcNow.Year MyDevTools.app</p>
         </div>
     </footer>
 </div>

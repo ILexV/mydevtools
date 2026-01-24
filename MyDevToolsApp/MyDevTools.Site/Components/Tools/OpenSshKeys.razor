@@ -21,13 +21,13 @@
          data-download="@AppStrings.OpenSsh_Download"
          data-warnings-title="@AppStrings.OpenSsh_WarningsTitle">
 
-        <div class="tool-grid">
-            <div class="input-section">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="space-y-4">
                 <h3>@AppStrings.OpenSsh_GenerateSectionTitle</h3>
-                <div class="tool-settings">
-                    <div class="tool-setting">
-                        <label for="openssh-algorithm">@AppStrings.OpenSsh_AlgorithmLabel</label>
-                        <select id="openssh-algorithm">
+                <div class="space-y-4">
+                    <div class="form-control w-full">
+                        <label class="label" for="openssh-algorithm"><span class="label-text">@AppStrings.OpenSsh_AlgorithmLabel</span></label>
+                        <select id="openssh-algorithm" class="select select-bordered w-full">
                             <option value="ed25519">Ed25519</option>
                             <option value="ecdsa-p256">ECDSA P-256</option>
                             <option value="ecdsa-p384">ECDSA P-384</option>
@@ -35,57 +35,57 @@
                             <option value="rsa-4096">RSA 4096</option>
                         </select>
                     </div>
-                    <div class="tool-setting">
-                        <label for="openssh-key-size">@AppStrings.OpenSsh_KeySizeLabel</label>
-                        <select id="openssh-key-size">
+                    <div class="form-control w-full">
+                        <label class="label" for="openssh-key-size"><span class="label-text">@AppStrings.OpenSsh_KeySizeLabel</span></label>
+                        <select id="openssh-key-size" class="select select-bordered w-full">
                             <option value="3072">3072</option>
                             <option value="4096">4096</option>
                         </select>
                     </div>
-                    <div class="tool-setting">
-                        <label for="openssh-passphrase">@AppStrings.OpenSsh_PassphraseLabel</label>
-                        <input id="openssh-passphrase" type="password" autocomplete="new-password" />
+                    <div class="form-control w-full">
+                        <label class="label" for="openssh-passphrase"><span class="label-text">@AppStrings.OpenSsh_PassphraseLabel</span></label>
+                        <input id="openssh-passphrase" type="password" autocomplete="new-password" class="input input-bordered w-full" />
                     </div>
                 </div>
 
-                <div class="action-buttons">
+                <div class="flex flex-wrap gap-2">
                     <button class="btn btn-primary" id="openssh-generate-btn" type="button">@AppStrings.OpenSsh_GenerateButton</button>
                 </div>
 
                 <h3>@AppStrings.OpenSsh_ImportSectionTitle</h3>
-                <label for="openssh-import-text">@AppStrings.OpenSsh_ImportLabel</label>
-                <textarea id="openssh-import-text" rows="8" placeholder="@AppStrings.OpenSsh_ImportPlaceholder"></textarea>
+                <label class="label" for="openssh-import-text"><span class="label-text">@AppStrings.OpenSsh_ImportLabel</span></label>
+                <textarea id="openssh-import-text" rows="8" placeholder="@AppStrings.OpenSsh_ImportPlaceholder" class="textarea textarea-bordered w-full font-mono"></textarea>
 
                 <FileDropInput InputId="openssh-import-file"
                                Label="@AppStrings.OpenSsh_ImportFileLabel"
                                Hint="@AppStrings.OpenSsh_ImportFileHint" />
 
-                <div class="action-buttons">
+                <div class="flex flex-wrap gap-2">
                     <button class="btn btn-secondary" id="openssh-import-btn" type="button">@AppStrings.OpenSsh_ImportButton</button>
                 </div>
 
                 <h3>@AppStrings.OpenSsh_ConvertSectionTitle</h3>
-                <div class="action-buttons">
+                <div class="flex flex-wrap gap-2">
                     <button class="btn btn-secondary" id="openssh-convert-btn" type="button">@AppStrings.OpenSsh_ConvertButton</button>
                 </div>
             </div>
 
-            <div class="output-section">
-                <label for="openssh-public-key">@AppStrings.OpenSsh_PublicKeyLabel</label>
-                <textarea id="openssh-public-key" rows="6" readonly></textarea>
-                <div class="action-buttons">
+            <div class="space-y-4">
+                <label class="label" for="openssh-public-key"><span class="label-text font-semibold">@AppStrings.OpenSsh_PublicKeyLabel</span></label>
+                <textarea id="openssh-public-key" rows="6" readonly class="textarea textarea-bordered w-full font-mono"></textarea>
+                <div class="flex flex-wrap gap-2">
                     <button class="btn btn-secondary" id="openssh-public-copy" type="button">@AppStrings.OpenSsh_Copy</button>
                     <button class="btn btn-secondary" id="openssh-public-download" type="button">@AppStrings.OpenSsh_Download</button>
                 </div>
 
-                <label for="openssh-private-key">@AppStrings.OpenSsh_PrivateKeyLabel</label>
-                <textarea id="openssh-private-key" rows="8" readonly></textarea>
-                <div class="action-buttons">
+                <label class="label" for="openssh-private-key"><span class="label-text font-semibold">@AppStrings.OpenSsh_PrivateKeyLabel</span></label>
+                <textarea id="openssh-private-key" rows="8" readonly class="textarea textarea-bordered w-full font-mono"></textarea>
+                <div class="flex flex-wrap gap-2">
                     <button class="btn btn-secondary" id="openssh-private-copy" type="button">@AppStrings.OpenSsh_Copy</button>
                     <button class="btn btn-secondary" id="openssh-private-download" type="button">@AppStrings.OpenSsh_Download</button>
                 </div>
 
-                <div class="tool-error" id="openssh-warnings" hidden></div>
+                <div class="alert alert-error" id="openssh-warnings" hidden></div>
             </div>
         </div>
     </div>

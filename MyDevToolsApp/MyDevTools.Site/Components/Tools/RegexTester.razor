@@ -33,46 +33,56 @@
          </div>
 
          <div class="regex-grid">
-            <div class="input-section regex-inputs">
-                <div class="form-group">
-                    <label for="regex-pattern">@AppStrings.RegexTester_PatternLabel</label>
+            <div class="space-y-4 regex-inputs">
+                <div class="form-control w-full">
+                    <label class="label" for="regex-pattern"><span class="label-text font-semibold">@AppStrings.RegexTester_PatternLabel</span></label>
                     <div class="regex-input-container">
                         <span class="regex-slash">/</span>
-                        <input type="text" id="regex-pattern" class="form-control" placeholder="@AppStrings.RegexTester_PatternPlaceholder" autocomplete="off" spellcheck="false" />
+                        <input type="text" id="regex-pattern" class="input input-bordered w-full" placeholder="@AppStrings.RegexTester_PatternPlaceholder" autocomplete="off" spellcheck="false" />
                         <span class="regex-slash">/</span>
                     </div>
                 </div>
 
                 <!-- Flags Checkboxes -->
-                <div class="form-group flags-section">
-                    <label>@AppStrings.RegexTester_FlagsLabel</label>
+                <div class="form-control w-full flags-section">
+                    <label class="label"><span class="label-text">@AppStrings.RegexTester_FlagsLabel</span></label>
                     <div class="checkbox-group">
-                        <div class="custom-control custom-checkbox custom-control-inline">
-                            <input type="checkbox" class="custom-control-input regex-flag" id="flag-i" value="i">
-                            <label class="custom-control-label" for="flag-i" title="Case-insensitive">Case Insensitive (i)</label>
+                        <div class="form-control">
+                            <label class="label cursor-pointer gap-2">
+                                <input type="checkbox" class="checkbox regex-flag" id="flag-i" value="i" />
+                                <span class="label-text" title="Case-insensitive">Case Insensitive (i)</span>
+                            </label>
                         </div>
-                        <div class="custom-control custom-checkbox custom-control-inline">
-                            <input type="checkbox" class="custom-control-input regex-flag" id="flag-m" value="m">
-                            <label class="custom-control-label" for="flag-m" title="Multi-line mode: ^ and $ match begin/end of line">Multi-line (m)</label>
+                        <div class="form-control">
+                            <label class="label cursor-pointer gap-2">
+                                <input type="checkbox" class="checkbox regex-flag" id="flag-m" value="m" />
+                                <span class="label-text" title="Multi-line mode: ^ and $ match begin/end of line">Multi-line (m)</span>
+                            </label>
                         </div>
-                        <div class="custom-control custom-checkbox custom-control-inline">
-                            <input type="checkbox" class="custom-control-input regex-flag" id="flag-s" value="s">
-                            <label class="custom-control-label" for="flag-s" title="Dot allows matching newlines">Dot All (s)</label>
+                        <div class="form-control">
+                            <label class="label cursor-pointer gap-2">
+                                <input type="checkbox" class="checkbox regex-flag" id="flag-s" value="s" />
+                                <span class="label-text" title="Dot allows matching newlines">Dot All (s)</span>
+                            </label>
                         </div>
-                        <div class="custom-control custom-checkbox custom-control-inline">
-                            <input type="checkbox" class="custom-control-input regex-flag" id="flag-x" value="x">
-                            <label class="custom-control-label" for="flag-x" title="Ignore whitespace in pattern">Verbose (x)</label>
+                        <div class="form-control">
+                            <label class="label cursor-pointer gap-2">
+                                <input type="checkbox" class="checkbox regex-flag" id="flag-x" value="x" />
+                                <span class="label-text" title="Ignore whitespace in pattern">Verbose (x)</span>
+                            </label>
                         </div>
-                        <div class="custom-control custom-checkbox custom-control-inline">
-                            <input type="checkbox" class="custom-control-input regex-flag" id="flag-u" value="u" checked>
-                            <label class="custom-control-label" for="flag-u" title="Unicode support (defaut)">Unicode (u)</label>
+                        <div class="form-control">
+                            <label class="label cursor-pointer gap-2">
+                                <input type="checkbox" class="checkbox regex-flag" id="flag-u" value="u" checked />
+                                <span class="label-text" title="Unicode support (defaut)">Unicode (u)</span>
+                            </label>
                         </div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="regex-text">@AppStrings.RegexTester_TextLabel</label>
-                    <textarea id="regex-text" class="form-control" rows="8" placeholder="@AppStrings.RegexTester_TextPlaceholder" spellcheck="false"></textarea>
+                <div class="form-control w-full">
+                    <label class="label" for="regex-text"><span class="label-text font-semibold">@AppStrings.RegexTester_TextLabel</span></label>
+                    <textarea id="regex-text" class="textarea textarea-bordered w-full font-mono" rows="8" placeholder="@AppStrings.RegexTester_TextPlaceholder" spellcheck="false"></textarea>
                 </div>
             </div>
 

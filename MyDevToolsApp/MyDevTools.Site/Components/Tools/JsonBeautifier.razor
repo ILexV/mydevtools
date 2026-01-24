@@ -20,51 +20,60 @@
          data-copy-button="@AppStrings.JsonBeautifier_CopyButton"
          data-input-placeholder="@AppStrings.JsonBeautifier_InputPlaceholder">
         
-        <div class="editor-container">
-            <div class="settings-bar">
-                <div class="settings-group">
-                    <div class="file-buttons">
-                        <button class="btn btn-secondary" id="open-file-btn" type="button" title="Open JSON file">
-                            📁
-                        </button>
-                        <button class="btn btn-secondary" id="save-file-btn" type="button" title="Save JSON file">
-                            💾
-                        </button>
-                    </div>
-                    <div class="setting-item">
-                        <label for="indent-select">@AppStrings.JsonBeautifier_IndentSizeLabel</label>
-                        <select id="indent-select">
-                            <option value="2">@AppStrings.JsonBeautifier_Indent2Spaces</option>
-                            <option value="4" selected>@AppStrings.JsonBeautifier_Indent4Spaces</option>
-                            <option value="tab">@AppStrings.JsonBeautifier_IndentTab</option>
-                        </select>
-                    </div>
-                    <div class="setting-item">
-                        <label>
-                            <input type="checkbox" id="sort-keys" /> @AppStrings.JsonBeautifier_SortKeys
-                        </label>
-                    </div>
-                    <div class="setting-item">
-                        <label>
-                            <input type="checkbox" id="compact-mode" /> @AppStrings.JsonBeautifier_CompactMode
-                        </label>
-                    </div>
-                </div>
+        <div class="space-y-4">
+            <div class="card bg-base-200 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="flex flex-wrap gap-4 items-center">
+                        <div class="join">
+                            <button class="btn btn-secondary join-item" id="open-file-btn" type="button" title="Open JSON file">
+                                📁
+                            </button>
+                            <button class="btn btn-secondary join-item" id="save-file-btn" type="button" title="Save JSON file">
+                                💾
+                            </button>
+                        </div>
 
-                <div class="action-buttons">
-                    <button class="btn btn-primary" id="format-btn" type="button" title="@AppStrings.JsonBeautifier_FormatButton">
-                        ⚙️
-                    </button>
-                    <button class="btn btn-secondary" id="copy-btn" type="button" title="@AppStrings.JsonBeautifier_CopyButton">
-                        📋
-                    </button>
-                    <button class="btn btn-secondary" id="clear-btn" type="button" title="@AppStrings.JsonBeautifier_ClearButton">
-                        🗑️
-                    </button>
+                        <div class="form-control">
+                            <label class="label py-0">
+                                <span class="label-text text-xs">@AppStrings.JsonBeautifier_IndentSizeLabel</span>
+                            </label>
+                            <select id="indent-select" class="select select-bordered select-sm">
+                                <option value="2">@AppStrings.JsonBeautifier_Indent2Spaces</option>
+                                <option value="4" selected>@AppStrings.JsonBeautifier_Indent4Spaces</option>
+                                <option value="tab">@AppStrings.JsonBeautifier_IndentTab</option>
+                            </select>
+                        </div>
+
+                        <label class="label cursor-pointer gap-2">
+                            <input type="checkbox" id="sort-keys" class="checkbox checkbox-sm" />
+                            <span class="label-text">@AppStrings.JsonBeautifier_SortKeys</span>
+                        </label>
+
+                        <label class="label cursor-pointer gap-2">
+                            <input type="checkbox" id="compact-mode" class="checkbox checkbox-sm" />
+                            <span class="label-text">@AppStrings.JsonBeautifier_CompactMode</span>
+                        </label>
+
+                        <div class="ml-auto join">
+                            <button class="btn btn-primary join-item" id="format-btn" type="button" title="@AppStrings.JsonBeautifier_FormatButton">
+                                ⚙️
+                            </button>
+                            <button class="btn btn-secondary join-item" id="copy-btn" type="button" title="@AppStrings.JsonBeautifier_CopyButton">
+                                📋
+                            </button>
+                            <button class="btn btn-secondary join-item" id="clear-btn" type="button" title="@AppStrings.JsonBeautifier_ClearButton">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div id="json-editor"></div>
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body p-0">
+                    <div id="json-editor"></div>
+                </div>
+            </div>
             <input type="file" id="file-input" accept=".json" style="display: none;" />
         </div>
     </div>

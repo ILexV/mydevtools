@@ -19,10 +19,10 @@
         
         <div class="diff-controls mb-3">
             <div class="diff-inputs-grid">
-                <div class="diff-input-section">
-                    <label class="form-label fw-semibold">@AppStrings.TextDiffViewer_OriginalLabel</label>
+                <div class="diff-input-section space-y-4">
+                    <label class="label" for="diff-original-text"><span class="label-text font-semibold">@AppStrings.TextDiffViewer_OriginalLabel</span></label>
                     <textarea id="diff-original-text" 
-                              class="form-control font-monospace" 
+                              class="textarea textarea-bordered w-full font-mono" 
                               rows="15" 
                               placeholder="@AppStrings.TextDiffViewer_OriginalPlaceholder"></textarea>
                     <div class="mt-2">
@@ -33,10 +33,10 @@
                     </div>
                 </div>
                 
-                <div class="diff-input-section">
-                    <label class="form-label fw-semibold">@AppStrings.TextDiffViewer_ModifiedLabel</label>
+                <div class="diff-input-section space-y-4">
+                    <label class="label" for="diff-modified-text"><span class="label-text font-semibold">@AppStrings.TextDiffViewer_ModifiedLabel</span></label>
                     <textarea id="diff-modified-text" 
-                              class="form-control font-monospace" 
+                              class="textarea textarea-bordered w-full font-mono" 
                               rows="15" 
                               placeholder="@AppStrings.TextDiffViewer_ModifiedPlaceholder"></textarea>
                     <div class="mt-2">
@@ -48,7 +48,7 @@
                 </div>
             </div>
 
-            <div class="diff-actions mt-3 d-flex gap-2 align-items-center">
+            <div class="diff-actions mt-3 flex flex-wrap gap-2 align-items-center">
                 <button type="button" class="btn btn-primary" id="diff-compare-btn">
                     🔍 @AppStrings.TextDiffViewer_CompareButton
                 </button>
@@ -56,17 +56,17 @@
                     🗑️ @AppStrings.TextDiffViewer_ClearButton
                 </button>
                 
-                <div class="ms-auto d-flex gap-2 align-items-center">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="diff-line-by-line" checked>
-                        <label class="form-check-label" for="diff-line-by-line">
-                            @AppStrings.TextDiffViewer_LineByLine
+                <div class="ms-auto flex gap-2 align-items-center">
+                    <div class="form-control">
+                        <label class="label cursor-pointer gap-2">
+                            <span class="label-text">@AppStrings.TextDiffViewer_LineByLine</span>
+                            <input type="checkbox" class="checkbox" id="diff-line-by-line" checked />
                         </label>
                     </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="diff-side-by-side">
-                        <label class="form-check-label" for="diff-side-by-side">
-                            @AppStrings.TextDiffViewer_SideBySide
+                    <div class="form-control">
+                        <label class="label cursor-pointer gap-2">
+                            <span class="label-text">@AppStrings.TextDiffViewer_SideBySide</span>
+                            <input type="checkbox" class="checkbox" id="diff-side-by-side" />
                         </label>
                     </div>
                 </div>

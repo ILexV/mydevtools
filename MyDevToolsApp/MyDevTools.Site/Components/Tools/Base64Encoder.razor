@@ -21,91 +21,116 @@
          data-copy="@AppStrings.Base64Encoder_Copy"
          data-copied="@AppStrings.Base64Encoder_Copied">
 
-        <div class="tool-links" aria-label="@AppStrings.Base64Encoder_OtherFormats">
-            <span class="tool-links-title">@AppStrings.Base64Encoder_OtherFormats</span>
-            <a class="tool-link" href="/@Lang/hex-encoder">@AppStrings.Base64Encoder_LinkHex</a>
-            <a class="tool-link" href="/@Lang/base32-encoder">@AppStrings.Base64Encoder_LinkBase32</a>
-            <a class="tool-link" href="/@Lang/base58-encoder">@AppStrings.Base64Encoder_LinkBase58</a>
-            <a class="tool-link" href="/@Lang/url-encoder">@AppStrings.Base64Encoder_LinkUrl</a>
+        <div class="flex flex-wrap gap-2 items-center mb-4" aria-label="@AppStrings.Base64Encoder_OtherFormats">
+            <span class="font-semibold opacity-70">@AppStrings.Base64Encoder_OtherFormats</span>
+            <a class="link link-primary" href="/@Lang/hex-encoder">@AppStrings.Base64Encoder_LinkHex</a>
+            <a class="link link-primary" href="/@Lang/base32-encoder">@AppStrings.Base64Encoder_LinkBase32</a>
+            <a class="link link-primary" href="/@Lang/base58-encoder">@AppStrings.Base64Encoder_LinkBase58</a>
+            <a class="link link-primary" href="/@Lang/url-encoder">@AppStrings.Base64Encoder_LinkUrl</a>
         </div>
 
-        <div class="tool-grid">
-            <div class="input-section">
-                <label for="b64-input-text">@AppStrings.Base64Encoder_InputTextLabel</label>
-                <textarea id="b64-input-text" rows="10" placeholder="@AppStrings.Base64Encoder_InputTextPlaceholder"></textarea>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="space-y-4">
+                <div class="form-control w-full">
+                    <label class="label" for="b64-input-text">
+                        <span class="label-text font-semibold">@AppStrings.Base64Encoder_InputTextLabel</span>
+                    </label>
+                    <textarea id="b64-input-text" rows="10" class="textarea textarea-bordered w-full font-mono" placeholder="@AppStrings.Base64Encoder_InputTextPlaceholder"></textarea>
+                </div>
 
                 <FileDropInput InputId="b64-input-file"
                                Label="@AppStrings.Base64Encoder_InputFileLabel"
                                Hint="@AppStrings.Base64Encoder_FileHint" />
 
-                <div class="tool-settings">
-                    <div class="tool-setting">
-                        <label for="b64-charset">@AppStrings.Base64Encoder_CharsetLabel</label>
-                        <select id="b64-charset">
-                            <option value="utf-8">UTF-8</option>
-                            <option value="utf-16le">UTF-16LE</option>
-                            <option value="utf-16be">UTF-16BE</option>
-                            <option value="ascii">ASCII</option>
-                            <option value="latin1">ISO-8859-1 (Latin-1)</option>
-                        </select>
-                    </div>
-
-                    <div class="tool-setting">
-                        <label for="b64-alphabet">@AppStrings.Base64Encoder_AlphabetLabel</label>
-                        <select id="b64-alphabet">
-                            <option value="standard">@AppStrings.Base64Encoder_AlphabetStandard</option>
-                            <option value="urlsafe">@AppStrings.Base64Encoder_AlphabetUrlSafe</option>
-                        </select>
-                    </div>
-
-                    <div class="tool-setting">
-                        <label for="b64-padding">@AppStrings.Base64Encoder_PaddingLabel</label>
-                        <select id="b64-padding">
-                            <option value="required">@AppStrings.Base64Encoder_PaddingRequired</option>
-                            <option value="optional">@AppStrings.Base64Encoder_PaddingOptional</option>
-                            <option value="none">@AppStrings.Base64Encoder_PaddingNone</option>
-                        </select>
-                    </div>
-
-                    <div class="tool-setting">
-                        <label for="b64-wrap">@AppStrings.Base64Encoder_LineWrapLabel</label>
-                        <select id="b64-wrap">
-                            <option value="none">@AppStrings.Base64Encoder_LineWrapNone</option>
-                            <option value="76">@AppStrings.Base64Encoder_LineWrap76</option>
-                        </select>
-                    </div>
-
-                    <div class="tool-setting">
-                        <label>@AppStrings.Base64Encoder_DecodeOptionsLabel</label>
-                        <div class="tool-checkboxes">
-                            <label class="tool-checkbox"><input id="b64-allow-whitespace" type="checkbox" checked /> @AppStrings.Base64Encoder_AllowWhitespace</label>
+                <div class="collapse collapse-arrow bg-base-200">
+                    <input type="checkbox" />
+                    <div class="collapse-title text-lg font-semibold">@AppStrings.Base64Encoder_CharsetLabel</div>
+                    <div class="collapse-content space-y-4">
+                        <div class="form-control w-full">
+                            <label class="label" for="b64-charset">
+                                <span class="label-text">@AppStrings.Base64Encoder_CharsetLabel</span>
+                            </label>
+                            <select id="b64-charset" class="select select-bordered w-full">
+                                <option value="utf-8">UTF-8</option>
+                                <option value="utf-16le">UTF-16LE</option>
+                                <option value="utf-16be">UTF-16BE</option>
+                                <option value="ascii">ASCII</option>
+                                <option value="latin1">ISO-8859-1 (Latin-1)</option>
+                            </select>
                         </div>
-                    </div>
 
-                    <div class="tool-setting">
-                        <label for="b64-output-mode">@AppStrings.Base64Encoder_OutputModeLabel</label>
-                        <select id="b64-output-mode">
-                            <option value="preview">@AppStrings.Base64Encoder_OutputModePreview</option>
-                            <option value="full">@AppStrings.Base64Encoder_OutputModeFull</option>
-                        </select>
+                        <div class="form-control w-full">
+                            <label class="label" for="b64-alphabet">
+                                <span class="label-text">@AppStrings.Base64Encoder_AlphabetLabel</span>
+                            </label>
+                            <select id="b64-alphabet" class="select select-bordered w-full">
+                                <option value="standard">@AppStrings.Base64Encoder_AlphabetStandard</option>
+                                <option value="urlsafe">@AppStrings.Base64Encoder_AlphabetUrlSafe</option>
+                            </select>
+                        </div>
+
+                        <div class="form-control w-full">
+                            <label class="label" for="b64-padding">
+                                <span class="label-text">@AppStrings.Base64Encoder_PaddingLabel</span>
+                            </label>
+                            <select id="b64-padding" class="select select-bordered w-full">
+                                <option value="required">@AppStrings.Base64Encoder_PaddingRequired</option>
+                                <option value="optional">@AppStrings.Base64Encoder_PaddingOptional</option>
+                                <option value="none">@AppStrings.Base64Encoder_PaddingNone</option>
+                            </select>
+                        </div>
+
+                        <div class="form-control w-full">
+                            <label class="label" for="b64-wrap">
+                                <span class="label-text">@AppStrings.Base64Encoder_LineWrapLabel</span>
+                            </label>
+                            <select id="b64-wrap" class="select select-bordered w-full">
+                                <option value="none">@AppStrings.Base64Encoder_LineWrapNone</option>
+                                <option value="76">@AppStrings.Base64Encoder_LineWrap76</option>
+                            </select>
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">@AppStrings.Base64Encoder_DecodeOptionsLabel</span>
+                            </label>
+                            <label class="label cursor-pointer justify-start gap-3">
+                                <input id="b64-allow-whitespace" type="checkbox" class="checkbox" checked />
+                                <span class="label-text">@AppStrings.Base64Encoder_AllowWhitespace</span>
+                            </label>
+                        </div>
+
+                        <div class="form-control w-full">
+                            <label class="label" for="b64-output-mode">
+                                <span class="label-text">@AppStrings.Base64Encoder_OutputModeLabel</span>
+                            </label>
+                            <select id="b64-output-mode" class="select select-bordered w-full">
+                                <option value="preview">@AppStrings.Base64Encoder_OutputModePreview</option>
+                                <option value="full">@AppStrings.Base64Encoder_OutputModeFull</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <div class="action-buttons">
+                <div class="flex flex-wrap gap-2">
                     <button class="btn btn-primary" id="b64-encode-btn" type="button">@AppStrings.Base64Encoder_ActionEncode</button>
                     <button class="btn btn-secondary" id="b64-decode-btn" type="button">@AppStrings.Base64Encoder_ActionDecode</button>
                     <button class="btn btn-secondary" id="b64-swap-btn" type="button">@AppStrings.Base64Encoder_ActionSwap</button>
                     <button class="btn btn-secondary" id="b64-clear-btn" type="button">@AppStrings.Base64Encoder_ActionClear</button>
                 </div>
 
-                <div class="tool-error" id="b64-error" hidden></div>
+                <div class="alert alert-error" id="b64-error" hidden></div>
             </div>
 
-            <div class="output-section" id="b64-output-section">
-                <label for="b64-output">@AppStrings.Base64Encoder_OutputLabel</label>
-                <textarea id="b64-output" rows="10" readonly></textarea>
+            <div class="space-y-4" id="b64-output-section">
+                <div class="form-control w-full">
+                    <label class="label" for="b64-output">
+                        <span class="label-text font-semibold">@AppStrings.Base64Encoder_OutputLabel</span>
+                    </label>
+                    <textarea id="b64-output" rows="10" class="textarea textarea-bordered w-full font-mono" readonly></textarea>
+                </div>
 
-                <div class="action-buttons">
+                <div class="flex flex-wrap gap-2">
                     <button class="btn btn-secondary" id="b64-copy-btn" type="button">@AppStrings.Base64Encoder_Copy</button>
                     <button class="btn btn-secondary" id="b64-download-btn" type="button">@AppStrings.Base64Encoder_Download</button>
                 </div>

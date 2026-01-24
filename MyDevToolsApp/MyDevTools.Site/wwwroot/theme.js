@@ -40,13 +40,8 @@
         // Avoiding infinite loops where observer triggers change
         if (root.getAttribute("data-theme") === theme) return;
 
+        // Set data-theme on html element for DaisyUI
         root.setAttribute("data-theme", theme);
-
-        // Keep existing markup in sync (MainLayout currently renders data-theme on .page)
-        const pages = document.querySelectorAll(".page");
-        for (const page of pages) {
-            page.setAttribute("data-theme", theme);
-        }
     }
 
     function getCurrentTheme() {

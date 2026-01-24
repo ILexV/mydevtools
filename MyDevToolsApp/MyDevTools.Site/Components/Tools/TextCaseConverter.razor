@@ -18,7 +18,7 @@
          data-input-placeholder="@AppStrings.TextCaseConverter_InputPlaceholder">
         
         <div class="tcc-container">
-            <div class="tcc-actions">
+            <div class="flex flex-wrap gap-2 mb-4">
                 <button type="button" class="btn btn-secondary" data-case-type="sentence">@AppStrings.TextCaseConverter_SentenceCase</button>
                 <button type="button" class="btn btn-secondary" data-case-type="lower">@AppStrings.TextCaseConverter_LowerCase</button>
                 <button type="button" class="btn btn-secondary" data-case-type="upper">@AppStrings.TextCaseConverter_UpperCase</button>
@@ -27,14 +27,14 @@
                 <button type="button" class="btn btn-secondary" data-case-type="inverse">@AppStrings.TextCaseConverter_InverseCase</button>
             </div>
             
-            <div class="tcc-divider"></div>
+            <div class="divider"></div>
 
-            <div class="tcc-actions">
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-case-type="camel">@AppStrings.TextCaseConverter_CamelCase</button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-case-type="snake">@AppStrings.TextCaseConverter_SnakeCase</button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-case-type="kebab">@AppStrings.TextCaseConverter_KebabCase</button>
+            <div class="flex flex-wrap gap-2 items-center mb-4">
+                <button type="button" class="btn btn-outline btn-sm" data-case-type="camel">@AppStrings.TextCaseConverter_CamelCase</button>
+                <button type="button" class="btn btn-outline btn-sm" data-case-type="snake">@AppStrings.TextCaseConverter_SnakeCase</button>
+                <button type="button" class="btn btn-outline btn-sm" data-case-type="kebab">@AppStrings.TextCaseConverter_KebabCase</button>
                 
-                <div class="ms-auto d-flex gap-2">
+                <div class="ml-auto flex gap-2">
                     <button type="button" class="btn btn-primary" id="tcc-copy-btn" title="@AppStrings.TextCaseConverter_CopyButton">
                         📋 @AppStrings.TextCaseConverter_CopyButton
                     </button>
@@ -44,7 +44,7 @@
                 </div>
             </div>
 
-            <textarea id="tcc-input-text" rows="12" placeholder="@AppStrings.TextCaseConverter_InputPlaceholder"></textarea>
+            <textarea id="tcc-input-text" rows="12" placeholder="@AppStrings.TextCaseConverter_InputPlaceholder" class="textarea textarea-bordered w-full font-mono"></textarea>
         </div>
     </div>
 </ToolLayout>

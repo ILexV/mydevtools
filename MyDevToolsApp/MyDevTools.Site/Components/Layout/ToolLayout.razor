@@ -1,28 +1,35 @@
 @using MyDevTools.Site.Resources
 
-<div class="tool-layout">
-    <div class="tool-header">
-        <MetaTags Title="@Title" Description="@Description" />
-        <h1 class="tool-title">@Title</h1>
-        @if (!string.IsNullOrEmpty(Description))
-        {
-            <p class="tool-description">@Description</p>
-        }
-    </div>
+<div class="w-full">
+    <div class="card bg-base-100 shadow-xl border border-base-300">
+        <div class="card-body">
+            <!-- Tool Header -->
+            <div class="text-center mb-6">
+                <MetaTags Title="@Title" Description="@Description" />
+                <h1 class="text-4xl font-bold mb-3">@Title</h1>
+                @if (!string.IsNullOrEmpty(Description))
+                {
+                    <p class="text-lg opacity-70">@Description</p>
+                }
+            </div>
 
-    <div class="tool-content">
-        @ChildContent
-    </div>
+            <!-- Tool Content -->
+            <div class="w-full">
+                @ChildContent
+            </div>
 
-    @if (ShowPrivacyNotice)
-    {
-        <div class="privacy-notice">
-            <svg class="privacy-icon" viewBox="0 0 24 24" width="16" height="16">
-                <path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
-            </svg>
-            <span>@AppStrings.Home_NoDataSent</span>
+            <!-- Privacy Notice -->
+            @if (ShowPrivacyNotice)
+            {
+                <div class="alert alert-info mt-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                    </svg>
+                    <span>@AppStrings.Home_NoDataSent</span>
+                </div>
+            }
         </div>
-    }
+    </div>
 </div>
 
 @code {

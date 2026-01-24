@@ -31,18 +31,23 @@
          data-algorithms-select-one="@AppStrings.HashCalculator_SelectAtLeastOneAlgorithm"
          data-canceled="Canceled">
 
-        <div class="hash-grid">
-            <div class="input-section hash-inputs">
-                <label for="input-text">@AppStrings.HashCalculator_InputLabel</label>
-                <textarea id="input-text" 
-                          placeholder="@AppStrings.HashCalculator_InputPlaceholder"
-                          rows="10"></textarea>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="space-y-4 lg:col-span-2">
+                <div class="form-control w-full">
+                    <label class="label" for="input-text">
+                        <span class="label-text font-semibold">@AppStrings.HashCalculator_InputLabel</span>
+                    </label>
+                    <textarea id="input-text" 
+                              class="textarea textarea-bordered w-full font-mono"
+                              placeholder="@AppStrings.HashCalculator_InputPlaceholder"
+                              rows="10"></textarea>
+                </div>
 
                 <FileDropInput InputId="input-file"
                                Label="@AppStrings.HashCalculator_FileLabel"
                                Hint="@AppStrings.HashCalculator_FileHint" />
                 
-                <div class="action-buttons">
+                <div class="flex flex-wrap gap-2">
                     <button class="btn btn-primary" id="calculate-btn">
                         @AppStrings.HashCalculator_Calculate
                     </button>
@@ -50,32 +55,34 @@
                         @AppStrings.HashCalculator_Clear
                     </button>
                 </div>
+
+                <div class="space-y-2" id="output-section">
+                    <!-- Results will be rendered here by JavaScript -->
+                </div>
             </div>
 
-            <div class="output-section hash-results" id="output-section">
-                <!-- Results will be rendered here by JavaScript -->
-            </div>
-
-            <div class="hash-algos">
-                <div class="algo-picker" id="hash-algo-picker">
-                    <div class="algo-picker-header">
-                        <div class="algo-picker-title" id="hash-algo-title"></div>
-                        <div class="algo-picker-actions">
-                            <div class="algo-selected-count" id="hash-algo-selected-count"></div>
-                            <button class="btn btn-secondary btn-small" id="hash-algo-reset-btn" type="button"></button>
+            <div class="lg:col-span-1">
+                <div class="card bg-base-200 shadow-xl">
+                    <div class="card-body p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="card-title text-base" id="hash-algo-title"></h3>
+                            <div class="flex items-center gap-2">
+                                <div class="badge badge-primary" id="hash-algo-selected-count"></div>
+                                <button class="btn btn-ghost btn-xs" id="hash-algo-reset-btn" type="button"></button>
+                            </div>
                         </div>
-                    </div>
-                    <input class="algo-search" id="hash-algo-search" type="search" />
+                        <input class="input input-bordered w-full input-sm mb-3" id="hash-algo-search" type="search" />
 
-                    <div class="algo-groups">
-                        <div class="algo-group">
-                            <div class="algo-group-title" id="hash-algo-selected-title"></div>
-                            <div class="algo-list" id="hash-algo-selected-list"></div>
-                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="text-sm font-semibold mb-2 opacity-70" id="hash-algo-selected-title"></div>
+                                <div class="algo-list" id="hash-algo-selected-list"></div>
+                            </div>
 
-                        <div class="algo-group">
-                            <div class="algo-group-title" id="hash-algo-available-title"></div>
-                            <div class="algo-list" id="hash-algo-available-list"></div>
+                            <div>
+                                <div class="text-sm font-semibold mb-2 opacity-70" id="hash-algo-available-title"></div>
+                                <div class="algo-list" id="hash-algo-available-list"></div>
+                            </div>
                         </div>
                     </div>
                 </div>

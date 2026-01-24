@@ -18,9 +18,9 @@
 </div>
 
 <div id="home-page-root">
-    <div class="hero bg-base-200 rounded-box mb-8">
+    <div class="hero mb-8">
         <div class="hero-content flex-col lg:flex-row-reverse gap-8 py-12">
-            <img src="/hero_logo.webp" alt="@AppStrings.AppName Hero" class="max-w-sm rounded-lg shadow-2xl" width="400" height="297" />
+            <img src="/hero_logo.webp" alt="@AppStrings.AppName Hero" class="max-w-sm" width="400" height="297" />
             <div>
                 <h1 class="text-5xl font-bold">@AppStrings.AppName</h1>
                 <p class="py-6 text-lg">@AppStrings.Home_Subtitle</p>
@@ -42,9 +42,9 @@
                 </a>
             }
         </div>
-        <div class="favorites-empty alert alert-info shadow-lg" style="display: none;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <span>@AppStrings.Home_NoFavorites</span>
+        <div class="favorites-empty border border-base-300 rounded-lg p-4 flex items-center gap-3" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6 opacity-70"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="opacity-70">@AppStrings.Home_NoFavorites</span>
         </div>
     </div>
 
@@ -52,29 +52,36 @@
     <div id="tools">
         <h2 class="text-2xl font-bold mb-4">@AppStrings.Home_FeaturedTools</h2>
         <div class="space-y-2">
-            @foreach (var tool in GetTools())
+            @foreach (var category in GetToolsByCategory())
             {
-                <div class="relative">
-                    <a href="/@Lang/@tool.Slug" class="card card-compact bg-base-100 shadow-xl hover:shadow-2xl transition-shadow w-full">
-                        <div class="card-body flex-row items-center gap-4">
-                            <div class="text-4xl">@tool.Icon</div>
-                            <div class="flex-1">
-                                <h3 class="card-title text-base">@tool.Title</h3>
-                                <p class="text-sm opacity-70">@tool.Description</p>
-                            </div>
-                            <div class="badge badge-primary badge-outline">@AppStrings.Home_Launch</div>
+                @if (category.Tools.Any())
+                {
+                    <div class="divider divider-start text-lg font-semibold">@category.Name</div>
+                    
+                    @foreach (var tool in category.Tools)
+                    {
+                        <div class="relative">
+                            <a href="/@Lang/@tool.Slug" class="card card-compact bg-base-100 shadow-xl hover:shadow-2xl transition-shadow w-full">
+                                <div class="card-body flex-row items-center gap-4">
+                                    <div class="text-4xl">@tool.Icon</div>
+                                    <div class="flex-1">
+                                        <h3 class="card-title text-base">@tool.Title</h3>
+                                        <p class="text-sm opacity-70">@tool.Description</p>
+                                    </div>
+                                </div>
+                            </a>
+                            <button class="favorite-btn btn btn-ghost btn-circle btn-sm absolute top-2 right-2" 
+                                    data-tool-slug="@tool.Slug" 
+                                    aria-label="@AppStrings.Home_AddToFavorites"
+                                    aria-pressed="false"
+                                    title="@AppStrings.Home_AddToFavorites">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                </svg>
+                            </button>
                         </div>
-                    </a>
-                    <button class="favorite-btn btn btn-ghost btn-circle btn-sm absolute top-2 right-2" 
-                            data-tool-slug="@tool.Slug" 
-                            aria-label="@AppStrings.Home_AddToFavorites"
-                            aria-pressed="false"
-                            title="@AppStrings.Home_AddToFavorites">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                        </svg>
-                    </button>
-                </div>
+                    }
+                }
             }
         </div>
     </div>
@@ -117,5 +124,77 @@
         };
     }
 
+    private List<ToolCategory> GetToolsByCategory()
+    {
+        var tools = GetTools();
+        
+        return new List<ToolCategory>
+        {
+            new(AppStrings.Category_Images, new[]
+            {
+                tools.First(t => t.Slug == "image-converter"),
+                tools.First(t => t.Slug == "image-compressor"),
+                tools.First(t => t.Slug == "image-resizer")
+            }),
+            new(AppStrings.Category_ColorsAndDesign, new[]
+            {
+                tools.First(t => t.Slug == "color-converter"),
+                tools.First(t => t.Slug == "markdown-preview")
+            }),
+            new(AppStrings.Category_HashingAndSecurity, new[]
+            {
+                tools.First(t => t.Slug == "hash-calculator"),
+                tools.First(t => t.Slug == "password-generator")
+            }),
+            new(AppStrings.Category_Generators, new[]
+            {
+                tools.First(t => t.Slug == "uuid-generator"),
+                tools.First(t => t.Slug == "lorem-ipsum-generator")
+            }),
+            new(AppStrings.Category_Encoding, new[]
+            {
+                tools.First(t => t.Slug == "base64-encoder"),
+                tools.First(t => t.Slug == "base32-encoder"),
+                tools.First(t => t.Slug == "base58-encoder"),
+                tools.First(t => t.Slug == "hex-encoder"),
+                tools.First(t => t.Slug == "url-encoder")
+            }),
+            new(AppStrings.Category_StructuredData, new[]
+            {
+                tools.First(t => t.Slug == "json-beautifier"),
+                tools.First(t => t.Slug == "xml-beautifier")
+            }),
+            new(AppStrings.Category_TextTools, new[]
+            {
+                tools.First(t => t.Slug == "text-case-converter"),
+                tools.First(t => t.Slug == "text-diff-viewer")
+            }),
+            new(AppStrings.Category_Cryptography, new[]
+            {
+                tools.First(t => t.Slug == "aead-file"),
+                tools.First(t => t.Slug == "openssh-keys"),
+                tools.First(t => t.Slug == "x509")
+            }),
+            new(AppStrings.Category_DateTime, new[]
+            {
+                tools.First(t => t.Slug == "date-converter")
+            }),
+            new(AppStrings.Category_JwtAndTokens, new[]
+            {
+                tools.First(t => t.Slug == "jwt-debugger")
+            }),
+            new(AppStrings.Category_Regex, new[]
+            {
+                tools.First(t => t.Slug == "regex-tester")
+            }),
+            new(AppStrings.Category_QrCodes, new[]
+            {
+                tools.First(t => t.Slug == "qr-code-generator"),
+                tools.First(t => t.Slug == "qr-scanner")
+            })
+        };
+    }
+
     private record ToolInfo(string Slug, string Icon, string Title, string Description);
+    private record ToolCategory(string Name, IEnumerable<ToolInfo> Tools);
 }

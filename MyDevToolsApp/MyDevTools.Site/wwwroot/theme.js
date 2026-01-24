@@ -106,6 +106,15 @@
 
     observer.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
 
+    // Sync checkbox state with current theme
+    function syncCheckbox() {
+        const checkbox = document.querySelector('[data-theme-toggle]');
+        if (checkbox && checkbox instanceof HTMLInputElement && checkbox.type === 'checkbox') {
+            const currentTheme = getCurrentTheme();
+            checkbox.checked = currentTheme === 'dark';
+        }
+    }
+
     // Click handler for any theme toggle button
     document.addEventListener("click", function (e) {
         const target = e.target;
@@ -116,5 +125,31 @@
 
         e.preventDefault();
         toggleTheme();
+        
+        // Sync checkbox after toggle
+        requestAnimationFrame(syncCheckbox);
     });
+
+    // Listen to checkbox change events for DaisyUI theme-controller
+    document.addEventListener("change", function (e) {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (!target.classList.contains('theme-controller')) return;
+        
+        const theme = target.checked ? 'dark' : 'light';
+        setTheme(theme);
+    });
+
+    // Sync on page load and enhanced navigation
+    function init() {
+        syncCheckbox();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+    
+    document.addEventListener('enhancedload', init);
 })();

@@ -5,7 +5,7 @@
         <span class="label-text font-semibold">@Label</span>
     </label>
     <div class="file-dropzone" data-file-drop>
-        <input id="@InputId" type="file" class="file-drop-input" />
+        <input id="@InputId" type="file" class="file-drop-input" accept="@Accept" />
 
         <div class="file-drop-empty">
             <div class="text-lg font-semibold mb-2">@DropTitle</div>
@@ -49,4 +49,7 @@
 
     [Parameter]
     public string ChangeButtonLabel { get; set; } = AppStrings.Common_FileChangeButton;
+
+    [Parameter]
+    public string Accept { get; set; } = string.Empty;
 }

@@ -1222,6 +1222,114 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Colors &amp; Design.
+        /// </summary>
+        public static string Category_ColorsAndDesign {
+            get {
+                return ResourceManager.GetString("Category_ColorsAndDesign", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cryptography.
+        /// </summary>
+        public static string Category_Cryptography {
+            get {
+                return ResourceManager.GetString("Category_Cryptography", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Date &amp; Time.
+        /// </summary>
+        public static string Category_DateTime {
+            get {
+                return ResourceManager.GetString("Category_DateTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encoding.
+        /// </summary>
+        public static string Category_Encoding {
+            get {
+                return ResourceManager.GetString("Category_Encoding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generators.
+        /// </summary>
+        public static string Category_Generators {
+            get {
+                return ResourceManager.GetString("Category_Generators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hashing &amp; Security.
+        /// </summary>
+        public static string Category_HashingAndSecurity {
+            get {
+                return ResourceManager.GetString("Category_HashingAndSecurity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Images.
+        /// </summary>
+        public static string Category_Images {
+            get {
+                return ResourceManager.GetString("Category_Images", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JWT &amp; Tokens.
+        /// </summary>
+        public static string Category_JwtAndTokens {
+            get {
+                return ResourceManager.GetString("Category_JwtAndTokens", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to QR Codes.
+        /// </summary>
+        public static string Category_QrCodes {
+            get {
+                return ResourceManager.GetString("Category_QrCodes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regular Expressions.
+        /// </summary>
+        public static string Category_Regex {
+            get {
+                return ResourceManager.GetString("Category_Regex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Structured Data.
+        /// </summary>
+        public static string Category_StructuredData {
+            get {
+                return ResourceManager.GetString("Category_StructuredData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Text Tools.
+        /// </summary>
+        public static string Category_TextTools {
+            get {
+                return ResourceManager.GetString("Category_TextTools", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Background Color.
         /// </summary>
         public static string ColorConverter_BackgroundColor {

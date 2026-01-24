@@ -24,7 +24,8 @@
                 <FileDropInput InputId="ic-input-file"
                                Label="@AppStrings.ImageConverter_DragDrop"
                                DropTitle="@AppStrings.ImageConverter_DragDrop"
-                               ButtonLabel="@AppStrings.Common_FileChooseButton" />
+                               ButtonLabel="@AppStrings.Common_FileChooseButton"
+                               Accept="image/*" />
 
                 <div class="collapse collapse-arrow bg-base-200 mt-4">
                     <input type="checkbox" checked /> 
@@ -57,7 +58,7 @@
                     <button class="btn btn-primary" id="ic-convert-btn" type="button" disabled>@AppStrings.ImageConverter_Convert</button>
                 </div>
 
-                <div class="alert alert-error" id="ic-error" hidden></div>
+                <div class="alert alert-error" id="ic-error" style="display: none;"></div>
             </div>
 
             <div class="space-y-4" id="ic-output-section" hidden>

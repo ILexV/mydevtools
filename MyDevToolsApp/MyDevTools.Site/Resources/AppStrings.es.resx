@@ -1752,4 +1752,42 @@
   <data name="DaisyUIDemo_Submit" xml:space="preserve">
     <value>Enviar</value>
   </data>
+  
+  <!-- Tool Categories -->
+  <data name="Category_Images" xml:space="preserve">
+    <value>Imágenes</value>
+  </data>
+  <data name="Category_ColorsAndDesign" xml:space="preserve">
+    <value>Colores y diseño</value>
+  </data>
+  <data name="Category_HashingAndSecurity" xml:space="preserve">
+    <value>Hash y seguridad</value>
+  </data>
+  <data name="Category_Generators" xml:space="preserve">
+    <value>Generadores</value>
+  </data>
+  <data name="Category_Encoding" xml:space="preserve">
+    <value>Codificación</value>
+  </data>
+  <data name="Category_StructuredData" xml:space="preserve">
+    <value>Datos estructurados</value>
+  </data>
+  <data name="Category_TextTools" xml:space="preserve">
+    <value>Herramientas de texto</value>
+  </data>
+  <data name="Category_Cryptography" xml:space="preserve">
+    <value>Criptografía</value>
+  </data>
+  <data name="Category_DateTime" xml:space="preserve">
+    <value>Fecha y hora</value>
+  </data>
+  <data name="Category_JwtAndTokens" xml:space="preserve">
+    <value>JWT y tokens</value>
+  </data>
+  <data name="Category_Regex" xml:space="preserve">
+    <value>Expresiones regulares</value>
+  </data>
+  <data name="Category_QrCodes" xml:space="preserve">
+    <value>Códigos QR</value>
+  </data>
 </root>

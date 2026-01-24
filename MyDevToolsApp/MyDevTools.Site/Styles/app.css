@@ -146,6 +146,36 @@
 .favorite-tool-compact {
     min-width: 180px;
     flex-shrink: 0;
+    border: 2px solid transparent;
+}
+
+.favorite-tool-compact:hover {
+    border-color: hsl(var(--p) / 0.3);
+    background-color: hsl(var(--b3)) !important;
+}
+
+/* Tools Grid Layout */
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.25rem;
+    padding: 0.5rem 0;
+}
+
+.tool-card-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 140px;
+}
+
+.tool-card-wrapper .card {
+    border: 2px solid transparent;
+    transition: all 0.2s ease-in-out;
+}
+
+.tool-card-wrapper .card:hover {
+    border-color: hsl(var(--p) / 0.3);
+    background-color: hsl(var(--b2));
 }
 
 /* Responsive adjustments */
@@ -156,5 +186,31 @@
 
     .favorite-tool-compact {
         min-width: 150px;
+    }
+
+    .tools-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+
+    .tool-card-wrapper {
+        min-height: 120px;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+    .tools-grid {
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    }
+}
+
+@media (min-width: 1025px) {
+    .tools-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .tool-card-wrapper {
+        min-height: 160px;
     }
 }

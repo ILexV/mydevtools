@@ -2,98 +2,97 @@
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
-<MetaTags Title="@AppStrings.Home_Title" 
-          Description="@AppStrings.Home_Subtitle" 
+<MetaTags Title="@AppStrings.Home_Title"
+          Description="@AppStrings.Home_Subtitle"
           CurrentUrl="@Navigation.Uri" />
 
 <JsonLdSite SiteName="@AppStrings.AppName"
-           Description="@AppStrings.Home_Subtitle"
-           CurrentUrl="@Navigation.Uri" />
+            Description="@AppStrings.Home_Subtitle"
+            CurrentUrl="@Navigation.Uri" />
 
 <HreflangLinks />
-    
+
 <div class="alert alert-warning shadow-lg mb-6">
-    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-    <span>🚧 @AppStrings.Home_DevelopmentNotice</span>
+  <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+  <span>🚧 @AppStrings.Home_DevelopmentNotice</span>
 </div>
 
 <div id="home-page-root">
-    <div class="hero mb-8">
-        <div class="hero-content flex-col lg:flex-row-reverse gap-8 py-12">
-            <img src="/hero_logo.webp" alt="@AppStrings.AppName Hero" class="max-w-sm" width="400" height="297" />
-            <div>
-                <h1 class="text-5xl font-bold">@AppStrings.AppName</h1>
-                <p class="py-6 text-lg">@AppStrings.Home_Subtitle</p>
-            </div>
-        </div>
+  <div class="hero mb-8">
+    <div class="hero-content flex-col lg:flex-row-reverse gap-8 py-12">
+      <img src="/hero_logo.webp" alt="@AppStrings.AppName Hero" class="max-w-sm" width="400" height="297" />
+      <div>
+        <h1 class="text-5xl font-bold">@AppStrings.AppName</h1>
+        <p class="py-6 text-lg">@AppStrings.Home_Subtitle</p>
+      </div>
     </div>
+  </div>
 
-    @* Favorites Section *@
-    <div id="favorites-section" class="mb-8">
-        <h2 class="text-2xl font-bold mb-4">⭐ @AppStrings.Home_Favorites</h2>
-        <div class="favorites-scroll mb-4">
-            @foreach (var tool in GetTools())
+  @* Favorites Section *@
+  <div id="favorites-section" class="mb-8">
+    <h2 class="text-2xl font-bold mb-4">⭐ @AppStrings.Home_Favorites</h2>
+    <div class="favorites-scroll mb-4">
+      @foreach (var tool in GetTools())
+      {
+        <a href="/@Lang/@tool.Slug" class="favorite-tool-compact card card-compact bg-base-200 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-200" data-tool-slug="@tool.Slug" style="display: none;">
+          <div class="card-body flex-row items-center gap-3">
+            <div class="text-3xl">@tool.Icon</div>
+            <div class="text-sm font-semibold">@tool.Title</div>
+          </div>
+        </a>
+      }
+    </div>
+    <div class="favorites-empty border border-base-300 rounded-lg p-4 flex items-center gap-3" style="display: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6 opacity-70"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <span class="opacity-70">@AppStrings.Home_NoFavorites</span>
+    </div>
+  </div>
+
+  @* All Tools Section *@
+  <div id="tools">
+    <h2 class="text-2xl font-bold mb-4">@AppStrings.Home_FeaturedTools</h2>
+    <div class="space-y-6">
+      @foreach (var category in GetToolsByCategory())
+      {
+        @if (category.Tools.Any())
+        {
+          <div class="divider text-lg divider-info font-semibold text-success">@category.Name</div>
+
+          <div class="tools-grid">
+            @foreach (var tool in category.Tools)
             {
-                <a href="/@Lang/@tool.Slug" class="favorite-tool-compact card card-compact bg-base-200 shadow-xl hover:shadow-2xl transition-shadow" data-tool-slug="@tool.Slug" style="display: none;">
-                    <div class="card-body flex-row items-center gap-3">
-                        <div class="text-3xl">@tool.Icon</div>
-                        <div class="text-sm font-semibold">@tool.Title</div>
-                    </div>
+              <div class="tool-card-wrapper tooltip tooltip-neutral" data-tip="@tool.Description">
+                <a href="/@Lang/@tool.Slug" class="card card-compact bg-base-200 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-200 w-full h-full">
+                  <div class="card-body items-center">
+                    <div class="text-4xl">@tool.Icon</div>
+                    <h3 class="card-title text-base text-center">@tool.Title</h3>
+                  </div>
                 </a>
+                <button class="favorite-btn btn btn-ghost btn-circle btn-sm absolute top-2 right-2"
+                        data-tool-slug="@tool.Slug"
+                        aria-label="@AppStrings.Home_AddToFavorites"
+                        aria-pressed="false"
+                        title="@AppStrings.Home_AddToFavorites">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                </button>
+              </div>
             }
-        </div>
-        <div class="favorites-empty border border-base-300 rounded-lg p-4 flex items-center gap-3" style="display: none;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6 opacity-70"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <span class="opacity-70">@AppStrings.Home_NoFavorites</span>
-        </div>
+          </div>
+        }
+      }
     </div>
-
-    @* All Tools Section *@
-    <div id="tools">
-        <h2 class="text-2xl font-bold mb-4">@AppStrings.Home_FeaturedTools</h2>
-        <div class="space-y-2">
-            @foreach (var category in GetToolsByCategory())
-            {
-                @if (category.Tools.Any())
-                {
-                    <div class="divider divider-start text-lg font-semibold">@category.Name</div>
-                    
-                    @foreach (var tool in category.Tools)
-                    {
-                        <div class="relative">
-                            <a href="/@Lang/@tool.Slug" class="card card-compact bg-base-100 shadow-xl hover:shadow-2xl transition-shadow w-full">
-                                <div class="card-body flex-row items-center gap-4">
-                                    <div class="text-4xl">@tool.Icon</div>
-                                    <div class="flex-1">
-                                        <h3 class="card-title text-base">@tool.Title</h3>
-                                        <p class="text-sm opacity-70">@tool.Description</p>
-                                    </div>
-                                </div>
-                            </a>
-                            <button class="favorite-btn btn btn-ghost btn-circle btn-sm absolute top-2 right-2" 
-                                    data-tool-slug="@tool.Slug" 
-                                    aria-label="@AppStrings.Home_AddToFavorites"
-                                    aria-pressed="false"
-                                    title="@AppStrings.Home_AddToFavorites">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                                </svg>
-                            </button>
-                        </div>
-                    }
-                }
-            }
-        </div>
-    </div>
+  </div>
 </div>
 
 @code {
-    [Parameter]
-    public string Lang { get; set; } = "en";
+  [Parameter]
+  public string Lang { get; set; } = "en";
 
-    private List<ToolInfo> GetTools()
-    {
-        return new List<ToolInfo>
+  private List<ToolInfo> GetTools()
+  {
+    return new List<ToolInfo>
         {
             new("image-converter", "🖼️", AppStrings.ImageConverter_Title, AppStrings.ImageConverter_Description),
             new("image-compressor", "📉", AppStrings.ImageCompressor_Title, AppStrings.ImageCompressor_Description),
@@ -122,13 +121,13 @@
             new("qr-code-generator", "📱", AppStrings.QrCodeGenerator_Title, AppStrings.QrCodeGenerator_Description),
             new("qr-scanner", "📷", AppStrings.QrScanner_Title, AppStrings.QrScanner_Description)
         };
-    }
+  }
 
-    private List<ToolCategory> GetToolsByCategory()
-    {
-        var tools = GetTools();
-        
-        return new List<ToolCategory>
+  private List<ToolCategory> GetToolsByCategory()
+  {
+    var tools = GetTools();
+
+    return new List<ToolCategory>
         {
             new(AppStrings.Category_Images, new[]
             {
@@ -193,8 +192,8 @@
                 tools.First(t => t.Slug == "qr-scanner")
             })
         };
-    }
+  }
 
-    private record ToolInfo(string Slug, string Icon, string Title, string Description);
-    private record ToolCategory(string Name, IEnumerable<ToolInfo> Tools);
+  private record ToolInfo(string Slug, string Icon, string Title, string Description);
+  private record ToolCategory(string Name, IEnumerable<ToolInfo> Tools);
 }

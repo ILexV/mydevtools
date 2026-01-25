@@ -123,6 +123,7 @@
             new("jwt-encoder", "🔐", AppStrings.JwtEncoder_Title, AppStrings.JwtEncoder_Description),
             new("regex-tester", "🔍", AppStrings.RegexTester_Title, AppStrings.RegexTester_Description),
             new("qr-code-generator", "📱", AppStrings.QrCodeGenerator_Title, AppStrings.QrCodeGenerator_Description),
+            new("hmac-calculator", "🔐", AppStrings.HmacCalculator_Title, AppStrings.HmacCalculator_Description),
             new("qr-scanner", "📷", AppStrings.QrScanner_Title, AppStrings.QrScanner_Description)
         };
   }
@@ -174,6 +175,7 @@
             }),
             new(AppStrings.Category_Cryptography, new[]
             {
+                tools.First(t => t.Slug == "hmac-calculator"),
                 tools.First(t => t.Slug == "aead-file"),
                 tools.First(t => t.Slug == "openssh-keys"),
                 tools.First(t => t.Slug == "x509")

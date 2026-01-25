@@ -174,6 +174,10 @@
     {
         <script type="module" src="@Assets["tools/qr-code-generator.js"]"></script>
     }
+    @if (IsHmacCalculator)
+    {
+        <script src="@Assets["tools/hmac-calculator.js"]"></script>
+    }
 </body>
 
 </html>
@@ -204,6 +208,7 @@
     private bool IsJwtEncoder => CurrentPath.Contains("/jwt-encoder", StringComparison.OrdinalIgnoreCase);
     private bool IsRegexTester => CurrentPath.Contains("/regex-tester", StringComparison.OrdinalIgnoreCase);
     private bool IsQrCodeGenerator => CurrentPath.Contains("/qr-code-generator", StringComparison.OrdinalIgnoreCase);
+    private bool IsHmacCalculator => CurrentPath.Contains("/hmac-calculator", StringComparison.OrdinalIgnoreCase);
     
     // CodeMirror is needed for JSON and XML beautifiers
     private bool NeedsCodeMirror => IsJsonBeautifier || IsXmlBeautifier;

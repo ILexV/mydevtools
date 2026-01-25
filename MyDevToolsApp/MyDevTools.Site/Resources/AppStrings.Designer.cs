@@ -1294,6 +1294,132 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SHA-256.
+        /// </summary>
+        public static string HmacCalculator_Sha256 {
+            get {
+                return ResourceManager.GetString("HmacCalculator_Sha256", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SHA-512.
+        /// </summary>
+        public static string HmacCalculator_Sha512 {
+            get {
+                return ResourceManager.GetString("HmacCalculator_Sha512", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Algorithm.
+        /// </summary>
+        public static string HmacCalculator_AlgorithmLabel {
+            get {
+                return ResourceManager.GetString("HmacCalculator_AlgorithmLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Calculate.
+        /// </summary>
+        public static string HmacCalculator_Calculate {
+            get {
+                return ResourceManager.GetString("HmacCalculator_Calculate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear.
+        /// </summary>
+        public static string HmacCalculator_Clear {
+            get {
+                return ResourceManager.GetString("HmacCalculator_Clear", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copied!.
+        /// </summary>
+        public static string HmacCalculator_Copied {
+            get {
+                return ResourceManager.GetString("HmacCalculator_Copied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy.
+        /// </summary>
+        public static string HmacCalculator_Copy {
+            get {
+                return ResourceManager.GetString("HmacCalculator_Copy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Calculate HMAC with SHA-256 and SHA-512 — all in your browser.
+        /// </summary>
+        public static string HmacCalculator_Description {
+            get {
+                return ResourceManager.GetString("HmacCalculator_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Key.
+        /// </summary>
+        public static string HmacCalculator_KeyLabel {
+            get {
+                return ResourceManager.GetString("HmacCalculator_KeyLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter HMAC key (e.g. secret key)....
+        /// </summary>
+        public static string HmacCalculator_KeyPlaceholder {
+            get {
+                return ResourceManager.GetString("HmacCalculator_KeyPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Message.
+        /// </summary>
+        public static string HmacCalculator_MessageLabel {
+            get {
+                return ResourceManager.GetString("HmacCalculator_MessageLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter message to hash....
+        /// </summary>
+        public static string HmacCalculator_MessagePlaceholder {
+            get {
+                return ResourceManager.GetString("HmacCalculator_MessagePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Output.
+        /// </summary>
+        public static string HmacCalculator_OutputLabel {
+            get {
+                return ResourceManager.GetString("HmacCalculator_OutputLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to HMAC Calculator.
+        /// </summary>
+        public static string HmacCalculator_Title {
+            get {
+                return ResourceManager.GetString("HmacCalculator_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to QR Codes.
         /// </summary>
         public static string Category_QrCodes {

@@ -1847,11 +1847,49 @@
   <data name="DaisyUIDemo_PasswordLabel" xml:space="preserve">
     <value>Password</value>
   </data>
-  <data name="DaisyUIDemo_Submit" xml:space="preserve">
+   <data name="DaisyUIDemo_Submit" xml:space="preserve">
     <value>Submit</value>
-  </data>
-  
-  <!-- Tool Categories -->
+   </data>
+   
+   <!-- HMAC Calculator -->
+   <data name="HmacCalculator_Title" xml:space="preserve">
+    <value>HMAC Calculator</value>
+   </data>
+   <data name="HmacCalculator_Description" xml:space="preserve">
+    <value>Generate HMAC hashes using SHA-256 and SHA-512 with custom keys and messages — all in your browser</value>
+   </data>
+   <data name="HmacCalculator_KeyLabel" xml:space="preserve">
+    <value>Secret Key</value>
+   </data>
+   <data name="HmacCalculator_KeyPlaceholder" xml:space="preserve">
+    <value>Enter your secret key...</value>
+   </data>
+   <data name="HmacCalculator_MessageLabel" xml:space="preserve">
+    <value>Message</value>
+   </data>
+   <data name="HmacCalculator_MessagePlaceholder" xml:space="preserve">
+    <value>Enter message to hash...</value>
+   </data>
+   <data name="HmacCalculator_AlgorithmLabel" xml:space="preserve">
+    <value>Algorithm</value>
+   </data>
+   <data name="HmacCalculator_Calculate" xml:space="preserve">
+    <value>Calculate HMAC</value>
+   </data>
+   <data name="HmacCalculator_Clear" xml:space="preserve">
+    <value>Clear</value>
+   </data>
+   <data name="HmacCalculator_OutputLabel" xml:space="preserve">
+    <value>HMAC Result</value>
+   </data>
+   <data name="HmacCalculator_Copy" xml:space="preserve">
+    <value>Copy</value>
+   </data>
+   <data name="HmacCalculator_Copied" xml:space="preserve">
+    <value>Copied!</value>
+   </data>
+   
+   <!-- Tool Categories -->
   <data name="Category_Images" xml:space="preserve">
     <value>Images</value>
   </data>

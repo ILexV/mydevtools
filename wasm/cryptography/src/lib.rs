@@ -4,12 +4,13 @@ pub mod aead;
 pub mod detached;
 pub mod ecdsa;
 pub mod ed25519;
+pub mod hmac;
+pub mod jwt;
 pub mod kdf;
 pub mod openssh;
-pub mod signing;
 pub mod rsa_pss;
+pub mod signing;
 pub mod x509;
-pub mod jwt;
 
 #[wasm_bindgen]
 pub fn version() -> String {

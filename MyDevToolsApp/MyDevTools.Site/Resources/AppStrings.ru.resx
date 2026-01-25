@@ -1825,8 +1825,41 @@
   <data name="Category_Regex" xml:space="preserve">
     <value>Регулярные выражения</value>
   </data>
-  <data name="Category_QrCodes" xml:space="preserve">
-    <value>QR-коды</value>
+  <data name="HmacCalculator_Title" xml:space="preserve">
+    <value>Калькулятор HMAC</value>
+  </data>
+  <data name="HmacCalculator_Description" xml:space="preserve">
+    <value>Вычислите HMAC с SHA-256 и SHA-512 — все в вашем браузере</value>
+  </data>
+  <data name="HmacCalculator_KeyLabel" xml:space="preserve">
+    <value>Ключ</value>
+  </data>
+  <data name="HmacCalculator_KeyPlaceholder" xml:space="preserve">
+    <value>Введите ключ HMAC (например, секретный ключ)...</value>
+  </data>
+  <data name="HmacCalculator_MessageLabel" xml:space="preserve">
+    <value>Сообщение</value>
+  </data>
+  <data name="HmacCalculator_MessagePlaceholder" xml:space="preserve">
+    <value>Введите сообщение для хеширования...</value>
+  </data>
+  <data name="HmacCalculator_AlgorithmLabel" xml:space="preserve">
+    <value>Алгоритм</value>
+  </data>
+  <data name="HmacCalculator_Calculate" xml:space="preserve">
+    <value>Вычислить</value>
+  </data>
+  <data name="HmacCalculator_Clear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="HmacCalculator_OutputLabel" xml:space="preserve">
+    <value>Вывод</value>
+  </data>
+  <data name="HmacCalculator_Copy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="HmacCalculator_Copied" xml:space="preserve">
+    <value>Скопировано!</value>
   </data>
 </root>
 

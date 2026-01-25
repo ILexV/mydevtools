@@ -1826,7 +1826,40 @@
   <data name="Category_Regex" xml:space="preserve">
     <value>Expresiones regulares</value>
   </data>
-  <data name="Category_QrCodes" xml:space="preserve">
-    <value>Códigos QR</value>
+  <data name="HmacCalculator_Title" xml:space="preserve">
+    <value>Calculadora HMAC</value>
+  </data>
+  <data name="HmacCalculator_Description" xml:space="preserve">
+    <value>Calcula HMAC con SHA-256 y SHA-512 — todo en tu navegador</value>
+  </data>
+  <data name="HmacCalculator_KeyLabel" xml:space="preserve">
+    <value>Clave</value>
+  </data>
+  <data name="HmacCalculator_KeyPlaceholder" xml:space="preserve">
+    <value>Introduce la clave HMAC (ej. clave secreta)...</value>
+  </data>
+  <data name="HmacCalculator_MessageLabel" xml:space="preserve">
+    <value>Mensaje</value>
+  </data>
+  <data name="HmacCalculator_MessagePlaceholder" xml:space="preserve">
+    <value>Introduce el mensaje para hashear...</value>
+  </data>
+  <data name="HmacCalculator_AlgorithmLabel" xml:space="preserve">
+    <value>Algoritmo</value>
+  </data>
+  <data name="HmacCalculator_Calculate" xml:space="preserve">
+    <value>Calcular</value>
+  </data>
+  <data name="HmacCalculator_Clear" xml:space="preserve">
+    <value>Limpiar</value>
+  </data>
+  <data name="HmacCalculator_OutputLabel" xml:space="preserve">
+    <value>Salida</value>
+  </data>
+  <data name="HmacCalculator_Copy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="HmacCalculator_Copied" xml:space="preserve">
+    <value>¡Copiado!</value>
   </data>
 </root>

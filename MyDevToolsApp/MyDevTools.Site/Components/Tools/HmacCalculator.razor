@@ -1,0 +1,84 @@
+@page "/{lang}/hmac-calculator"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<MetaTags Title="@AppStrings.HmacCalculator_Title"
+          Description="@AppStrings.HmacCalculator_Description"
+          CurrentUrl="@Navigation.Uri" />
+
+<HreflangLinks ToolPath="hmac-calculator" />
+
+<JsonLdTool ToolName="@AppStrings.HmacCalculator_Title"
+            Description="@AppStrings.HmacCalculator_Description"
+            CurrentUrl="@Navigation.Uri" />
+
+<ToolLayout Title="@AppStrings.HmacCalculator_Title" Description="@AppStrings.HmacCalculator_Description">
+    <div id="hmac-calculator-root"
+         data-loading="@AppStrings.Common_Loading"
+         data-error="@AppStrings.Common_Error"
+         data-copy="@AppStrings.HmacCalculator_Copy"
+         data-copied="@AppStrings.HmacCalculator_Copied">
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Key Input -->
+            <div class="form-control w-full">
+                <label class="label" for="hmac-key-input">
+                    <span class="label-text font-semibold">@AppStrings.HmacCalculator_KeyLabel</span>
+                </label>
+                <textarea id="hmac-key-input" class="textarea textarea-bordered w-full font-mono min-h-[120px]" placeholder="@AppStrings.HmacCalculator_KeyPlaceholder" spellcheck="false"></textarea>
+            </div>
+
+            <!-- Message Input -->
+            <div class="form-control w-full">
+                <label class="label" for="hmac-message-input">
+                    <span class="label-text font-semibold">@AppStrings.HmacCalculator_MessageLabel</span>
+                </label>
+                <textarea id="hmac-message-input" class="textarea textarea-bordered w-full font-mono min-h-[120px]" placeholder="@AppStrings.HmacCalculator_MessagePlaceholder" spellcheck="false"></textarea>
+            </div>
+        </div>
+
+        <!-- Algorithm Selection -->
+        <div class="form-control w-full max-w-xs">
+            <label class="label" for="hmac-algorithm-select">
+                <span class="label-text font-semibold">@AppStrings.HmacCalculator_AlgorithmLabel</span>
+            </label>
+            <select id="hmac-algorithm-select" class="select select-bordered w-full">
+                <option value="sha256" selected>SHA-256</option>
+                <option value="sha512">SHA-512</option>
+            </select>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex flex-wrap gap-2">
+            <button class="btn btn-primary" id="calculate-hmac-btn">
+                @AppStrings.HmacCalculator_Calculate
+            </button>
+            <button class="btn btn-secondary" id="clear-hmac-btn">
+                @AppStrings.HmacCalculator_Clear
+            </button>
+        </div>
+
+        <!-- Output Section -->
+        <div class="form-control w-full">
+            <label class="label" for="hmac-output">
+                <span class="label-text font-semibold">@AppStrings.HmacCalculator_OutputLabel</span>
+            </label>
+            <div class="flex gap-2">
+                <textarea id="hmac-output" class="flex-1 textarea textarea-bordered font-mono min-h-[80px] text-lg" readonly spellcheck="false"></textarea>
+                <button class="btn btn-outline" id="copy-hmac-btn">
+                    @AppStrings.HmacCalculator_Copy
+                </button>
+            </div>
+        </div>
+
+        <div class="alert alert-error mt-4" id="hmac-error" style="display: none;"></div>
+    </div>
+</ToolLayout>
+
+@code {
+    /// <summary>
+    /// Language parameter from URL route
+    /// </summary>
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

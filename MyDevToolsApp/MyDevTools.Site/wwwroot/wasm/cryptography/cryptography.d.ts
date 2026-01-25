@@ -255,6 +255,16 @@ export function ed25519_sign(private_key: Uint8Array, message: Uint8Array): Uint
  */
 export function ed25519_verify(public_key: Uint8Array, message: Uint8Array, signature: Uint8Array): boolean;
 
+/**
+ * Computes HMAC-SHA256
+ */
+export function hmac_sha256(key: Uint8Array, message: Uint8Array): Uint8Array;
+
+/**
+ * Computes HMAC-SHA512
+ */
+export function hmac_sha512(key: Uint8Array, message: Uint8Array): Uint8Array;
+
 export function jwt_decode(token: string): string;
 
 export function jwt_sign(header_json: string, payload_json: string, secret: string, alg: string): string;
@@ -595,33 +605,6 @@ export interface InitOutput {
     readonly openssh_rsa_private_key_from_pkcs8: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
     readonly openssh_rsa_public_key_from_private_pkcs8: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly openssh_rsa_public_key_from_spki: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly detached_sign_and_pack: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
-    readonly detached_signature_extract: (a: number, b: number) => [number, number, number, number];
-    readonly detached_signature_info: (a: number, b: number) => [number, number, number, number];
-    readonly detached_signature_pack: (a: number, b: number, c: number) => [number, number, number, number];
-    readonly detached_verify_packed: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
-    readonly kdf_argon2id: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
-    readonly kdf_pbkdf2_sha512: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
-    readonly rsa_generate_private_key_pkcs8: (a: number) => [number, number, number, number];
-    readonly rsa_pss_sign_pkcs8: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
-    readonly rsa_pss_verify_spki: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
-    readonly rsa_public_key_from_private_pkcs8: (a: number, b: number) => [number, number, number, number];
-    readonly rsa_validate_public_key_spki: (a: number, b: number) => [number, number, number];
-    readonly ecdsa_p256_generate_keypair: () => [number, number, number, number];
-    readonly ecdsa_p256_private_key_from_pkcs8: (a: number, b: number) => [number, number, number, number];
-    readonly ecdsa_p256_private_key_to_pkcs8: (a: number, b: number) => [number, number, number, number];
-    readonly ecdsa_p256_public_key: (a: number, b: number) => [number, number, number, number];
-    readonly ecdsa_p256_sign: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly ecdsa_p256_verify: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
-    readonly ecdsa_p384_generate_keypair: () => [number, number, number, number];
-    readonly ecdsa_p384_private_key_from_pkcs8: (a: number, b: number) => [number, number, number, number];
-    readonly ecdsa_p384_private_key_to_pkcs8: (a: number, b: number) => [number, number, number, number];
-    readonly ecdsa_p384_public_key: (a: number, b: number) => [number, number, number, number];
-    readonly ecdsa_p384_sign: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly ecdsa_p384_verify: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
-    readonly jwt_decode: (a: number, b: number) => [number, number, number, number];
-    readonly jwt_sign: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
-    readonly jwt_verify: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
     readonly aead_decrypt_with_header: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
     readonly aead_decrypt_with_password: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number, number];
     readonly aead_derive_nonce_12: (a: number, b: number, c: bigint) => [number, number, number, number];
@@ -651,6 +634,44 @@ export interface InitOutput {
     readonly xchacha20_poly1305_decrypt_chunk: (a: number, b: number, c: number, d: number, e: bigint, f: number, g: number, h: number, i: number) => [number, number, number, number];
     readonly xchacha20_poly1305_encrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
     readonly xchacha20_poly1305_encrypt_chunk: (a: number, b: number, c: number, d: number, e: bigint, f: number, g: number, h: number, i: number) => [number, number, number, number];
+    readonly jwt_decode: (a: number, b: number) => [number, number, number, number];
+    readonly jwt_sign: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
+    readonly jwt_verify: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+    readonly ed25519_generate_keypair: () => [number, number, number, number];
+    readonly ed25519_private_key_from_pkcs8: (a: number, b: number) => [number, number, number, number];
+    readonly ed25519_private_key_to_pkcs8: (a: number, b: number) => [number, number, number, number];
+    readonly ed25519_public_key: (a: number, b: number) => [number, number, number, number];
+    readonly ed25519_sign: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly ed25519_verify: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+    readonly kdf_argon2id: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
+    readonly kdf_pbkdf2_sha512: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
+    readonly sign_detached: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
+    readonly verify_detached: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
+    readonly version: () => [number, number];
+    readonly rsa_generate_private_key_pkcs8: (a: number) => [number, number, number, number];
+    readonly rsa_pss_sign_pkcs8: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
+    readonly rsa_pss_verify_spki: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
+    readonly rsa_public_key_from_private_pkcs8: (a: number, b: number) => [number, number, number, number];
+    readonly rsa_validate_public_key_spki: (a: number, b: number) => [number, number, number];
+    readonly hmac_sha256: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly hmac_sha512: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly detached_sign_and_pack: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
+    readonly detached_signature_extract: (a: number, b: number) => [number, number, number, number];
+    readonly detached_signature_info: (a: number, b: number) => [number, number, number, number];
+    readonly detached_signature_pack: (a: number, b: number, c: number) => [number, number, number, number];
+    readonly detached_verify_packed: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+    readonly ecdsa_p256_generate_keypair: () => [number, number, number, number];
+    readonly ecdsa_p256_private_key_from_pkcs8: (a: number, b: number) => [number, number, number, number];
+    readonly ecdsa_p256_private_key_to_pkcs8: (a: number, b: number) => [number, number, number, number];
+    readonly ecdsa_p256_public_key: (a: number, b: number) => [number, number, number, number];
+    readonly ecdsa_p256_sign: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly ecdsa_p256_verify: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+    readonly ecdsa_p384_generate_keypair: () => [number, number, number, number];
+    readonly ecdsa_p384_private_key_from_pkcs8: (a: number, b: number) => [number, number, number, number];
+    readonly ecdsa_p384_private_key_to_pkcs8: (a: number, b: number) => [number, number, number, number];
+    readonly ecdsa_p384_public_key: (a: number, b: number) => [number, number, number, number];
+    readonly ecdsa_p384_sign: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly ecdsa_p384_verify: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
     readonly x509_chain_warnings_pem: (a: number, b: number, c: bigint) => [number, number, number, number];
     readonly x509_csr_pem: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
     readonly x509_parse_der: (a: number, b: number) => [number, number, number, number];
@@ -658,15 +679,6 @@ export interface InitOutput {
     readonly x509_self_signed_pem: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
     readonly x509_warnings_der: (a: number, b: number, c: bigint) => [number, number, number, number];
     readonly x509_warnings_pem: (a: number, b: number, c: bigint) => [number, number, number, number];
-    readonly ed25519_generate_keypair: () => [number, number, number, number];
-    readonly ed25519_private_key_from_pkcs8: (a: number, b: number) => [number, number, number, number];
-    readonly ed25519_private_key_to_pkcs8: (a: number, b: number) => [number, number, number, number];
-    readonly ed25519_public_key: (a: number, b: number) => [number, number, number, number];
-    readonly ed25519_sign: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly ed25519_verify: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
-    readonly sign_detached: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
-    readonly verify_detached: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
-    readonly version: () => [number, number];
     readonly ring_core_0_17_14__bn_mul_mont: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;

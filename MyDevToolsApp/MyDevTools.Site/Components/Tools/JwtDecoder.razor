@@ -1,0 +1,93 @@
+@page "/{lang}/jwt-decoder"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<MetaTags Title="@AppStrings.JwtDecoder_Title"
+          Description="@AppStrings.JwtDecoder_Description"
+          CurrentUrl="@Navigation.Uri" />
+
+<HreflangLinks ToolPath="jwt-decoder" />
+
+<JsonLdTool ToolName="@AppStrings.JwtDecoder_Title"
+            Description="@AppStrings.JwtDecoder_Description"
+            CurrentUrl="@Navigation.Uri" />
+
+<ToolLayout Title="@AppStrings.JwtDecoder_Title" Description="@AppStrings.JwtDecoder_Description">
+    <div class="alert alert-info mb-6">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>@AppStrings.JwtDecoder_LinkToEncoder → <a href="/@Lang/jwt-encoder" class="link link-hover font-semibold">@AppStrings.JwtEncoder_Title</a></span>
+    </div>
+
+    <div id="jwt-decoder-root" class="flex flex-col gap-8"
+         data-loading="@AppStrings.Common_Loading"
+         data-error="@AppStrings.Common_Error"
+         data-copy="@AppStrings.HashCalculator_Copy"
+         data-copied="@AppStrings.HashCalculator_Copied"
+         data-signature-verified="@AppStrings.JwtDecoder_SignatureVerified"
+         data-signature-invalid="@AppStrings.JwtDecoder_SignatureInvalid">
+
+        <!-- Encoded Token Input -->
+        <div class="space-y-2">
+            <h3 class="text-base font-semibold">@AppStrings.JwtDecoder_EncodedLabel</h3>
+            <textarea id="jwt-encoded" class="textarea textarea-bordered w-full font-mono min-h-[150px] text-lg leading-relaxed break-all" placeholder="@AppStrings.JwtDecoder_EncodedPlaceholder" spellcheck="false"></textarea>
+            <div class="text-error text-sm mt-2" id="jwt-encoded-error" hidden></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Header (Decoded) -->
+            <div class="space-y-2">
+                <h3 class="text-base font-semibold">@AppStrings.JwtDecoder_DecodedHeaderLabel</h3>
+                <textarea id="jwt-header" class="textarea textarea-bordered w-full font-mono min-h-[250px] text-sm" spellcheck="false" readonly></textarea>
+            </div>
+
+            <!-- Payload (Decoded) -->
+            <div class="space-y-2">
+                <h3 class="text-base font-semibold">@AppStrings.JwtDecoder_DecodedPayloadLabel</h3>
+                <textarea id="jwt-payload" class="textarea textarea-bordered w-full font-mono min-h-[250px] text-sm" spellcheck="false" readonly></textarea>
+            </div>
+        </div>
+
+        <!-- Signature Verification -->
+        <div class="bg-base-200 p-6 rounded-lg border border-base-300 space-y-4">
+            <h3 class="text-base font-semibold">@AppStrings.JwtDecoder_SignatureLabel</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <span class="font-medium">Algorithm:</span>
+                    <span id="jwt-algorithm-value" class="badge badge-primary badge-lg ml-2">HS256</span>
+                </div>
+
+                <div class="form-control w-full">
+                    <label class="label" for="jwt-secret">
+                        <span class="label-text font-semibold">@AppStrings.JwtDecoder_SecretLabel</span>
+                    </label>
+                    <textarea id="jwt-secret" class="textarea textarea-bordered w-full font-mono min-h-[80px] bg-base-100" placeholder="@AppStrings.JwtDecoder_SecretPlaceholder" spellcheck="false"></textarea>
+                </div>
+            </div>
+
+            <div id="jwt-signature-status" class="mt-4 p-4 rounded font-semibold text-center" hidden>
+                <!-- Status icon and text injected by JS -->
+            </div>
+        </div>
+
+    </div>
+</ToolLayout>
+
+<style>
+    #jwt-signature-status.verified {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+        border: 1px solid #28a745;
+    }
+
+    #jwt-signature-status.invalid {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        border: 1px solid #dc3545;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

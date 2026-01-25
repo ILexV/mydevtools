@@ -3069,99 +3069,198 @@ namespace MyDevTools.Site.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Header.
         /// </summary>
-        public static string JwtDebugger_DecodedHeaderLabel {
+        public static string JwtDecoder_DecodedHeaderLabel {
             get {
-                return ResourceManager.GetString("JwtDebugger_DecodedHeaderLabel", resourceCulture);
+                return ResourceManager.GetString("JwtDecoder_DecodedHeaderLabel", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Payload.
         /// </summary>
-        public static string JwtDebugger_DecodedPayloadLabel {
+        public static string JwtDecoder_DecodedPayloadLabel {
             get {
-                return ResourceManager.GetString("JwtDebugger_DecodedPayloadLabel", resourceCulture);
+                return ResourceManager.GetString("JwtDecoder_DecodedPayloadLabel", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Decode, verify, and generate JSON Web Tokens (JWT) directly in your browser..
+        ///   Looks up a localized string similar to Decode and verify JSON Web Tokens (JWT) directly in your browser..
         /// </summary>
-        public static string JwtDebugger_Description {
+        public static string JwtDecoder_Description {
             get {
-                return ResourceManager.GetString("JwtDebugger_Description", resourceCulture);
+                return ResourceManager.GetString("JwtDecoder_Description", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Encoded.
         /// </summary>
-        public static string JwtDebugger_EncodedLabel {
+        public static string JwtDecoder_EncodedLabel {
             get {
-                return ResourceManager.GetString("JwtDebugger_EncodedLabel", resourceCulture);
+                return ResourceManager.GetString("JwtDecoder_EncodedLabel", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Paste a JWT here....
         /// </summary>
-        public static string JwtDebugger_EncodedPlaceholder {
+        public static string JwtDecoder_EncodedPlaceholder {
             get {
-                return ResourceManager.GetString("JwtDebugger_EncodedPlaceholder", resourceCulture);
+                return ResourceManager.GetString("JwtDecoder_EncodedPlaceholder", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Secret / Public Key.
         /// </summary>
-        public static string JwtDebugger_SecretLabel {
+        public static string JwtDecoder_SecretLabel {
             get {
-                return ResourceManager.GetString("JwtDebugger_SecretLabel", resourceCulture);
+                return ResourceManager.GetString("JwtDecoder_SecretLabel", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Enter your 256-bit secret....
         /// </summary>
-        public static string JwtDebugger_SecretPlaceholder {
+        public static string JwtDecoder_SecretPlaceholder {
             get {
-                return ResourceManager.GetString("JwtDebugger_SecretPlaceholder", resourceCulture);
+                return ResourceManager.GetString("JwtDecoder_SecretPlaceholder", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Invalid Signature.
         /// </summary>
-        public static string JwtDebugger_SignatureInvalid {
+        public static string JwtDecoder_SignatureInvalid {
             get {
-                return ResourceManager.GetString("JwtDebugger_SignatureInvalid", resourceCulture);
+                return ResourceManager.GetString("JwtDecoder_SignatureInvalid", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Verify Signature.
         /// </summary>
-        public static string JwtDebugger_SignatureLabel {
+        public static string JwtDecoder_SignatureLabel {
             get {
-                return ResourceManager.GetString("JwtDebugger_SignatureLabel", resourceCulture);
+                return ResourceManager.GetString("JwtDecoder_SignatureLabel", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Signature Verified.
         /// </summary>
-        public static string JwtDebugger_SignatureVerified {
+        public static string JwtDecoder_SignatureVerified {
             get {
-                return ResourceManager.GetString("JwtDebugger_SignatureVerified", resourceCulture);
+                return ResourceManager.GetString("JwtDecoder_SignatureVerified", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to JWT Debugger.
+        ///   Looks up a localized string similar to JWT Decoder.
         /// </summary>
-        public static string JwtDebugger_Title {
+        public static string JwtDecoder_Title {
             get {
-                return ResourceManager.GetString("JwtDebugger_Title", resourceCulture);
+                return ResourceManager.GetString("JwtDecoder_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Need to generate a JWT? Try the JWT Encoder.
+        /// </summary>
+        public static string JwtDecoder_LinkToEncoder {
+            get {
+                return ResourceManager.GetString("JwtDecoder_LinkToEncoder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Algorithm.
+        /// </summary>
+        public static string JwtEncoder_AlgorithmLabel {
+            get {
+                return ResourceManager.GetString("JwtEncoder_AlgorithmLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate and sign JSON Web Tokens (JWT) directly in your browser..
+        /// </summary>
+        public static string JwtEncoder_Description {
+            get {
+                return ResourceManager.GetString("JwtEncoder_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generated JWT.
+        /// </summary>
+        public static string JwtEncoder_EncodedLabel {
+            get {
+                return ResourceManager.GetString("JwtEncoder_EncodedLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate JWT.
+        /// </summary>
+        public static string JwtEncoder_GenerateButton {
+            get {
+                return ResourceManager.GetString("JwtEncoder_GenerateButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Header (JSON).
+        /// </summary>
+        public static string JwtEncoder_HeaderLabel {
+            get {
+                return ResourceManager.GetString("JwtEncoder_HeaderLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Need to decode a JWT? Try the JWT Decoder.
+        /// </summary>
+        public static string JwtEncoder_LinkToDecoder {
+            get {
+                return ResourceManager.GetString("JwtEncoder_LinkToDecoder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Payload (JSON).
+        /// </summary>
+        public static string JwtEncoder_PayloadLabel {
+            get {
+                return ResourceManager.GetString("JwtEncoder_PayloadLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Secret / Private Key.
+        /// </summary>
+        public static string JwtEncoder_SecretLabel {
+            get {
+                return ResourceManager.GetString("JwtEncoder_SecretLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter your secret key....
+        /// </summary>
+        public static string JwtEncoder_SecretPlaceholder {
+            get {
+                return ResourceManager.GetString("JwtEncoder_SecretPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JWT Encoder.
+        /// </summary>
+        public static string JwtEncoder_Title {
+            get {
+                return ResourceManager.GetString("JwtEncoder_Title", resourceCulture);
             }
         }
         

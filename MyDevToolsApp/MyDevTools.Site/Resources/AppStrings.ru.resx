@@ -1160,38 +1160,71 @@
   <data name="DateConverter_CustomFormatPlaceholder" xml:space="preserve">
     <value>Введите формат (напр. dd/MM/yyyy)</value>
   </data>
-  <data name="JwtDebugger_Title" xml:space="preserve">
-    <value>Отладчик JWT</value>
+  <data name="JwtDecoder_Title" xml:space="preserve">
+    <value>Декодер JWT</value>
   </data>
-  <data name="JwtDebugger_Description" xml:space="preserve">
-    <value>Декодирование, проверка и подпись JSON Web Tokens (JWT) прямо в вашем браузере.</value>
+  <data name="JwtDecoder_Description" xml:space="preserve">
+    <value>Декодирование и проверка JSON Web Tokens (JWT) прямо в вашем браузере.</value>
   </data>
-  <data name="JwtDebugger_EncodedLabel" xml:space="preserve">
+  <data name="JwtDecoder_EncodedLabel" xml:space="preserve">
     <value>Закодированный токен</value>
   </data>
-  <data name="JwtDebugger_EncodedPlaceholder" xml:space="preserve">
+  <data name="JwtDecoder_EncodedPlaceholder" xml:space="preserve">
     <value>Вставьте JWT сюда...</value>
   </data>
-  <data name="JwtDebugger_DecodedHeaderLabel" xml:space="preserve">
+  <data name="JwtDecoder_DecodedHeaderLabel" xml:space="preserve">
     <value>Заголовок (Decoded)</value>
   </data>
-  <data name="JwtDebugger_DecodedPayloadLabel" xml:space="preserve">
+  <data name="JwtDecoder_DecodedPayloadLabel" xml:space="preserve">
     <value>Полезная нагрузка (Decoded)</value>
   </data>
-  <data name="JwtDebugger_SignatureLabel" xml:space="preserve">
+  <data name="JwtDecoder_SignatureLabel" xml:space="preserve">
     <value>Проверка подписи</value>
   </data>
-  <data name="JwtDebugger_SecretLabel" xml:space="preserve">
+  <data name="JwtDecoder_SecretLabel" xml:space="preserve">
     <value>Секрет (для HMAC) или Публичный ключ (для RSA)</value>
   </data>
-  <data name="JwtDebugger_SecretPlaceholder" xml:space="preserve">
+  <data name="JwtDecoder_SecretPlaceholder" xml:space="preserve">
     <value>Введите секрет...</value>
   </data>
-  <data name="JwtDebugger_SignatureVerified" xml:space="preserve">
+  <data name="JwtDecoder_SignatureVerified" xml:space="preserve">
     <value>Подпись проверена</value>
   </data>
-  <data name="JwtDebugger_SignatureInvalid" xml:space="preserve">
+  <data name="JwtDecoder_SignatureInvalid" xml:space="preserve">
     <value>Неверная подпись</value>
+  </data>
+  <data name="JwtEncoder_Title" xml:space="preserve">
+    <value>Кодировщик JWT</value>
+  </data>
+  <data name="JwtEncoder_Description" xml:space="preserve">
+    <value>Генерация и подпись JSON Web Tokens (JWT) прямо в вашем браузере.</value>
+  </data>
+  <data name="JwtEncoder_HeaderLabel" xml:space="preserve">
+    <value>Заголовок (JSON)</value>
+  </data>
+  <data name="JwtEncoder_PayloadLabel" xml:space="preserve">
+    <value>Полезная нагрузка (JSON)</value>
+  </data>
+  <data name="JwtEncoder_SecretLabel" xml:space="preserve">
+    <value>Секрет / Приватный ключ</value>
+  </data>
+  <data name="JwtEncoder_SecretPlaceholder" xml:space="preserve">
+    <value>Введите ваш секретный ключ...</value>
+  </data>
+  <data name="JwtEncoder_EncodedLabel" xml:space="preserve">
+    <value>Сгенерированный JWT</value>
+  </data>
+  <data name="JwtEncoder_AlgorithmLabel" xml:space="preserve">
+    <value>Алгоритм</value>
+  </data>
+  <data name="JwtEncoder_GenerateButton" xml:space="preserve">
+    <value>Сгенерировать JWT</value>
+  </data>
+  <data name="JwtDecoder_LinkToEncoder" xml:space="preserve">
+    <value>Нужно создать JWT? Попробуйте Кодировщик JWT</value>
+  </data>
+  <data name="JwtEncoder_LinkToDecoder" xml:space="preserve">
+    <value>Нужно декодировать JWT? Попробуйте Декодер JWT</value>
   </data>
   <data name="ImageConverter_Title" xml:space="preserve">
     <value>Конвертер изображений</value>

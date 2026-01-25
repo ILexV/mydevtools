@@ -119,7 +119,8 @@
             new("base32-encoder", "🧪", AppStrings.Base32Encoder_Title, AppStrings.Base32Encoder_Description),
             new("base58-encoder", "🧿", AppStrings.Base58Encoder_Title, AppStrings.Base58Encoder_Description),
             new("date-converter", "📅", AppStrings.DateConverter_Title, AppStrings.DateConverter_Description),
-            new("jwt-debugger", "🛂", AppStrings.JwtDebugger_Title, AppStrings.JwtDebugger_Description),
+            new("jwt-decoder", "🔓", AppStrings.JwtDecoder_Title, AppStrings.JwtDecoder_Description),
+            new("jwt-encoder", "🔐", AppStrings.JwtEncoder_Title, AppStrings.JwtEncoder_Description),
             new("regex-tester", "🔍", AppStrings.RegexTester_Title, AppStrings.RegexTester_Description),
             new("qr-code-generator", "📱", AppStrings.QrCodeGenerator_Title, AppStrings.QrCodeGenerator_Description),
             new("qr-scanner", "📷", AppStrings.QrScanner_Title, AppStrings.QrScanner_Description)
@@ -183,7 +184,8 @@
             }),
             new(AppStrings.Category_JwtAndTokens, new[]
             {
-                tools.First(t => t.Slug == "jwt-debugger")
+                tools.First(t => t.Slug == "jwt-decoder"),
+                tools.First(t => t.Slug == "jwt-encoder")
             }),
             new(AppStrings.Category_Regex, new[]
             {

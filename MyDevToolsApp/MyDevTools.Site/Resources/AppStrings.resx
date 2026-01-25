@@ -1223,38 +1223,71 @@
     <value>Enter format (e.g. dd/MM/yyyy)</value>
   </data>
   <!-- JWT Debugger -->
-  <data name="JwtDebugger_Title" xml:space="preserve">
-    <value>JWT Debugger</value>
+  <data name="JwtDecoder_Title" xml:space="preserve">
+    <value>JWT Decoder</value>
   </data>
-  <data name="JwtDebugger_Description" xml:space="preserve">
-    <value>Decode, verify, and generate JSON Web Tokens (JWT) directly in your browser.</value>
+  <data name="JwtDecoder_Description" xml:space="preserve">
+    <value>Decode and verify JSON Web Tokens (JWT) directly in your browser.</value>
   </data>
-  <data name="JwtDebugger_EncodedLabel" xml:space="preserve">
+  <data name="JwtDecoder_EncodedLabel" xml:space="preserve">
     <value>Encoded</value>
   </data>
-  <data name="JwtDebugger_EncodedPlaceholder" xml:space="preserve">
+  <data name="JwtDecoder_EncodedPlaceholder" xml:space="preserve">
     <value>Paste a JWT here...</value>
   </data>
-  <data name="JwtDebugger_DecodedHeaderLabel" xml:space="preserve">
+  <data name="JwtDecoder_DecodedHeaderLabel" xml:space="preserve">
     <value>Header</value>
   </data>
-  <data name="JwtDebugger_DecodedPayloadLabel" xml:space="preserve">
+  <data name="JwtDecoder_DecodedPayloadLabel" xml:space="preserve">
     <value>Payload</value>
   </data>
-  <data name="JwtDebugger_SignatureLabel" xml:space="preserve">
+  <data name="JwtDecoder_SignatureLabel" xml:space="preserve">
     <value>Verify Signature</value>
   </data>
-  <data name="JwtDebugger_SecretLabel" xml:space="preserve">
+  <data name="JwtDecoder_SecretLabel" xml:space="preserve">
     <value>Secret / Public Key</value>
   </data>
-  <data name="JwtDebugger_SecretPlaceholder" xml:space="preserve">
+  <data name="JwtDecoder_SecretPlaceholder" xml:space="preserve">
     <value>Enter your 256-bit secret...</value>
   </data>
-  <data name="JwtDebugger_SignatureVerified" xml:space="preserve">
+  <data name="JwtDecoder_SignatureVerified" xml:space="preserve">
     <value>Signature Verified</value>
   </data>
-  <data name="JwtDebugger_SignatureInvalid" xml:space="preserve">
+  <data name="JwtDecoder_SignatureInvalid" xml:space="preserve">
     <value>Invalid Signature</value>
+  </data>
+  <data name="JwtEncoder_Title" xml:space="preserve">
+    <value>JWT Encoder</value>
+  </data>
+  <data name="JwtEncoder_Description" xml:space="preserve">
+    <value>Generate and sign JSON Web Tokens (JWT) directly in your browser.</value>
+  </data>
+  <data name="JwtEncoder_HeaderLabel" xml:space="preserve">
+    <value>Header (JSON)</value>
+  </data>
+  <data name="JwtEncoder_PayloadLabel" xml:space="preserve">
+    <value>Payload (JSON)</value>
+  </data>
+  <data name="JwtEncoder_SecretLabel" xml:space="preserve">
+    <value>Secret / Private Key</value>
+  </data>
+  <data name="JwtEncoder_SecretPlaceholder" xml:space="preserve">
+    <value>Enter your secret key...</value>
+  </data>
+  <data name="JwtEncoder_EncodedLabel" xml:space="preserve">
+    <value>Generated JWT</value>
+  </data>
+  <data name="JwtEncoder_AlgorithmLabel" xml:space="preserve">
+    <value>Algorithm</value>
+  </data>
+  <data name="JwtEncoder_GenerateButton" xml:space="preserve">
+    <value>Generate JWT</value>
+  </data>
+  <data name="JwtDecoder_LinkToEncoder" xml:space="preserve">
+    <value>Need to generate a JWT? Try the JWT Encoder</value>
+  </data>
+  <data name="JwtEncoder_LinkToDecoder" xml:space="preserve">
+    <value>Need to decode a JWT? Try the JWT Decoder</value>
   </data>
   <data name="ImageConverter_Title" xml:space="preserve">
     <value>Image Converter</value>

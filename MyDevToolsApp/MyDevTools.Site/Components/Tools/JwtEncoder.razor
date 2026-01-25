@@ -1,0 +1,84 @@
+@page "/{lang}/jwt-encoder"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<MetaTags Title="@AppStrings.JwtEncoder_Title"
+          Description="@AppStrings.JwtEncoder_Description"
+          CurrentUrl="@Navigation.Uri" />
+
+<HreflangLinks ToolPath="jwt-encoder" />
+
+<JsonLdTool ToolName="@AppStrings.JwtEncoder_Title"
+            Description="@AppStrings.JwtEncoder_Description"
+            CurrentUrl="@Navigation.Uri" />
+
+<ToolLayout Title="@AppStrings.JwtEncoder_Title" Description="@AppStrings.JwtEncoder_Description">
+    <div class="alert alert-info mb-6">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>@AppStrings.JwtEncoder_LinkToDecoder → <a href="/@Lang/jwt-decoder" class="link link-hover font-semibold">@AppStrings.JwtDecoder_Title</a></span>
+    </div>
+
+    <div id="jwt-encoder-root" class="flex flex-col gap-8"
+         data-loading="@AppStrings.Common_Loading"
+         data-error="@AppStrings.Common_Error"
+         data-copy="@AppStrings.HashCalculator_Copy"
+         data-copied="@AppStrings.HashCalculator_Copied">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Header (JSON) -->
+            <div class="space-y-2">
+                <h3 class="text-base font-semibold">@AppStrings.JwtEncoder_HeaderLabel</h3>
+                <textarea id="jwt-header-input" class="textarea textarea-bordered w-full font-mono min-h-[250px] text-sm" spellcheck="false">{"alg":"HS256","typ":"JWT"}</textarea>
+                <div class="text-error text-sm mt-2" id="jwt-header-error" hidden></div>
+            </div>
+
+            <!-- Payload (JSON) -->
+            <div class="space-y-2">
+                <h3 class="text-base font-semibold">@AppStrings.JwtEncoder_PayloadLabel</h3>
+                <textarea id="jwt-payload-input" class="textarea textarea-bordered w-full font-mono min-h-[250px] text-sm" spellcheck="false">{"sub":"1234567890","name":"John Doe","iat":1516239022}</textarea>
+                <div class="text-error text-sm mt-2" id="jwt-payload-error" hidden></div>
+            </div>
+        </div>
+
+        <!-- Algorithm & Secret -->
+        <div class="bg-base-200 p-6 rounded-lg border border-base-300 space-y-4">
+            <div class="space-y-4">
+                <div>
+                    <label class="label" for="jwt-algorithm-select">
+                        <span class="label-text font-semibold">@AppStrings.JwtEncoder_AlgorithmLabel</span>
+                    </label>
+                    <select id="jwt-algorithm-select" class="select select-bordered w-full max-w-xs">
+                        <option value="HS256" selected>HS256</option>
+                        <option value="HS384">HS384</option>
+                        <option value="HS512">HS512</option>
+                    </select>
+                </div>
+
+                <div class="form-control w-full">
+                    <label class="label" for="jwt-secret-input">
+                        <span class="label-text font-semibold">@AppStrings.JwtEncoder_SecretLabel</span>
+                    </label>
+                    <textarea id="jwt-secret-input" class="textarea textarea-bordered w-full font-mono min-h-[80px] bg-base-100" placeholder="@AppStrings.JwtEncoder_SecretPlaceholder" spellcheck="false"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generated JWT Output -->
+        <div class="space-y-2">
+            <div class="flex justify-between items-center">
+                <h3 class="text-base font-semibold">@AppStrings.JwtEncoder_EncodedLabel</h3>
+                <button id="copy-jwt-btn" class="btn btn-sm btn-primary" disabled>
+                    @AppStrings.HashCalculator_Copy
+                </button>
+            </div>
+            <textarea id="jwt-encoded-output" class="textarea textarea-bordered w-full font-mono min-h-[150px] text-lg leading-relaxed break-all" spellcheck="false" readonly></textarea>
+            <div class="text-error text-sm mt-2" id="jwt-encode-error" hidden></div>
+        </div>
+
+    </div>
+</ToolLayout>
+
+@code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

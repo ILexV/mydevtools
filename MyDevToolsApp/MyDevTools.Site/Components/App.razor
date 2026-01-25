@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Http
 @using MyDevTools.Site.Resources
 @* Removed IHttpContextAccessor injection in favor of CascadingParameter *@
 
@@ -151,9 +151,13 @@
     {
         <script src="@Assets["tools/date-converter.js"]"></script>
     }
-    @if (IsJwtDebugger)
+    @if (IsJwtDecoder)
     {
-        <script src="@Assets["tools/jwt-debugger.js"]"></script>
+        <script src="@Assets["tools/jwt-decoder.js"]"></script>
+    }
+    @if (IsJwtEncoder)
+    {
+        <script src="@Assets["tools/jwt-encoder.js"]"></script>
     }
     @if (IsImageConverter)
     {
@@ -196,7 +200,8 @@
     private bool IsX509Tool => CurrentPath.Contains("/x509", StringComparison.OrdinalIgnoreCase);
     private bool IsAeadFile => CurrentPath.Contains("/aead", StringComparison.OrdinalIgnoreCase);
     private bool IsDateConverter => CurrentPath.Contains("/date-converter", StringComparison.OrdinalIgnoreCase);
-    private bool IsJwtDebugger => CurrentPath.Contains("/jwt-debugger", StringComparison.OrdinalIgnoreCase);
+    private bool IsJwtDecoder => CurrentPath.Contains("/jwt-decoder", StringComparison.OrdinalIgnoreCase);
+    private bool IsJwtEncoder => CurrentPath.Contains("/jwt-encoder", StringComparison.OrdinalIgnoreCase);
     private bool IsRegexTester => CurrentPath.Contains("/regex-tester", StringComparison.OrdinalIgnoreCase);
     private bool IsQrCodeGenerator => CurrentPath.Contains("/qr-code-generator", StringComparison.OrdinalIgnoreCase);
     

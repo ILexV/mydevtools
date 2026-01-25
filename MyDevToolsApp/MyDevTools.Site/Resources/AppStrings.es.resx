@@ -1161,38 +1161,71 @@
   <data name="DateConverter_CustomFormatPlaceholder" xml:space="preserve">
     <value>Ingrese formato (ej. dd/MM/yyyy)</value>
   </data>
-  <data name="JwtDebugger_Title" xml:space="preserve">
-    <value>Depurador JWT</value>
+  <data name="JwtDecoder_Title" xml:space="preserve">
+    <value>Decodificador JWT</value>
   </data>
-  <data name="JwtDebugger_Description" xml:space="preserve">
-    <value>Decodifica, verifica y firma JSON Web Tokens (JWT) directamente en tu navegador.</value>
+  <data name="JwtDecoder_Description" xml:space="preserve">
+    <value>Decodifica y verifica JSON Web Tokens (JWT) directamente en tu navegador.</value>
   </data>
-  <data name="JwtDebugger_EncodedLabel" xml:space="preserve">
+  <data name="JwtDecoder_EncodedLabel" xml:space="preserve">
     <value>Token Codificado</value>
   </data>
-  <data name="JwtDebugger_EncodedPlaceholder" xml:space="preserve">
+  <data name="JwtDecoder_EncodedPlaceholder" xml:space="preserve">
     <value>Pega el JWT aquí...</value>
   </data>
-  <data name="JwtDebugger_DecodedHeaderLabel" xml:space="preserve">
+  <data name="JwtDecoder_DecodedHeaderLabel" xml:space="preserve">
     <value>Encabezado (Decoded)</value>
   </data>
-  <data name="JwtDebugger_DecodedPayloadLabel" xml:space="preserve">
+  <data name="JwtDecoder_DecodedPayloadLabel" xml:space="preserve">
     <value>Carga útil (Decoded)</value>
   </data>
-  <data name="JwtDebugger_SignatureLabel" xml:space="preserve">
+  <data name="JwtDecoder_SignatureLabel" xml:space="preserve">
     <value>Veriricar Firma</value>
   </data>
-  <data name="JwtDebugger_SecretLabel" xml:space="preserve">
+  <data name="JwtDecoder_SecretLabel" xml:space="preserve">
     <value>Secreto (para HMAC) o Clave Pública (para RSA)</value>
   </data>
-  <data name="JwtDebugger_SecretPlaceholder" xml:space="preserve">
+  <data name="JwtDecoder_SecretPlaceholder" xml:space="preserve">
     <value>Introduce tu secreto...</value>
   </data>
-  <data name="JwtDebugger_SignatureVerified" xml:space="preserve">
+  <data name="JwtDecoder_SignatureVerified" xml:space="preserve">
     <value>Firma Verificada</value>
   </data>
-  <data name="JwtDebugger_SignatureInvalid" xml:space="preserve">
+  <data name="JwtDecoder_SignatureInvalid" xml:space="preserve">
     <value>Firma Inválida</value>
+  </data>
+  <data name="JwtEncoder_Title" xml:space="preserve">
+    <value>Codificador JWT</value>
+  </data>
+  <data name="JwtEncoder_Description" xml:space="preserve">
+    <value>Genera y firma JSON Web Tokens (JWT) directamente en tu navegador.</value>
+  </data>
+  <data name="JwtEncoder_HeaderLabel" xml:space="preserve">
+    <value>Encabezado (JSON)</value>
+  </data>
+  <data name="JwtEncoder_PayloadLabel" xml:space="preserve">
+    <value>Carga útil (JSON)</value>
+  </data>
+  <data name="JwtEncoder_SecretLabel" xml:space="preserve">
+    <value>Secreto / Clave Privada</value>
+  </data>
+  <data name="JwtEncoder_SecretPlaceholder" xml:space="preserve">
+    <value>Introduce tu clave secreta...</value>
+  </data>
+  <data name="JwtEncoder_EncodedLabel" xml:space="preserve">
+    <value>JWT Generado</value>
+  </data>
+  <data name="JwtEncoder_AlgorithmLabel" xml:space="preserve">
+    <value>Algoritmo</value>
+  </data>
+  <data name="JwtEncoder_GenerateButton" xml:space="preserve">
+    <value>Generar JWT</value>
+  </data>
+  <data name="JwtDecoder_LinkToEncoder" xml:space="preserve">
+    <value>¿Necesitas generar un JWT? Prueba el Codificador JWT</value>
+  </data>
+  <data name="JwtEncoder_LinkToDecoder" xml:space="preserve">
+    <value>¿Necesitas decodificar un JWT? Prueba el Decodificador JWT</value>
   </data>
   <data name="ImageConverter_Title" xml:space="preserve">
     <value>Convertidor de imágenes</value>

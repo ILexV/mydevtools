@@ -107,7 +107,6 @@
   function bindDelegatedHandlersOnce() {
     if (window.__imageCompressorDelegatedHandlersBound) return;
     window.__imageCompressorDelegatedHandlersBound = true;
-    console.log('[ImageCompressor] Handlers bound');
 
     const getRoot = (target) => target.closest('#image-compressor-root');
 

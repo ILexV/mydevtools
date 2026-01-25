@@ -26,11 +26,12 @@ public class CultureRedirectMiddleware
         // Detect if this is a bot request
         var isBot = BotDetectionHelper.IsBot(context);
         
-        // Skip static files and already localized paths
+        // Skip static files, already localized paths, and error pages
         if (path.StartsWith("/_") || 
             path.StartsWith("/css") || 
             path.StartsWith("/js") || 
             path.StartsWith("/lib") ||
+            path.StartsWith("/not-found") ||
             path.Contains('.'))
         {
             await _next(context);

@@ -21,7 +21,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             
             @* Left Column: Settings *@
-            <div class="space-y-6">
+            <div class="space-y-4">
                 
                 @* Content Input *@
                 <div class="p-6 rounded-xl shadow-sm" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
@@ -45,7 +45,8 @@
                             </label>
                             <div class="flex items-center gap-2">
                                 <input type="color" id="qr-fg-color" value="#000000" 
-                                       class="w-10 h-10 rounded cursor-pointer border-0" />
+                                       class="w-12 h-12 rounded cursor-pointer border-0 flex-shrink-0" 
+                                       style="min-width: 48px; min-height: 48px;" />
                                 <input type="text" id="qr-fg-color-text" value="#000000" 
                                        class="flex-1 px-3 py-2 rounded-lg text-sm font-mono border"
                                        style="background-color: var(--bg-primary); color: var(--text-primary); border-color: var(--border-color);" />
@@ -57,7 +58,8 @@
                             </label>
                             <div class="flex items-center gap-2">
                                 <input type="color" id="qr-bg-color" value="#FFFFFF" 
-                                       class="w-10 h-10 rounded cursor-pointer border-0" />
+                                       class="w-12 h-12 rounded cursor-pointer border-0 flex-shrink-0" 
+                                       style="min-width: 48px; min-height: 48px;" />
                                 <input type="text" id="qr-bg-color-text" value="#FFFFFF" 
                                        class="flex-1 px-3 py-2 rounded-lg text-sm font-mono border"
                                        style="background-color: var(--bg-primary); color: var(--text-primary); border-color: var(--border-color);" />
@@ -130,23 +132,14 @@
                     <h3 class="text-sm font-medium mb-3" style="color: var(--text-primary);">@AppStrings.QrCodeGenerator_LogoSection</h3>
                     <p class="text-xs mb-3" style="color: var(--text-secondary);">@AppStrings.QrCodeGenerator_LogoHint</p>
                     
-                    <div id="qr-logo-drop" 
-                         class="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all duration-200"
-                         style="border-color: var(--border-color);">
-                        <input type="file" id="qr-logo-input" accept="image/png,image/jpeg,image/webp" class="hidden" />
-                        <div id="qr-logo-placeholder">
-                            <svg class="w-8 h-8 mx-auto mb-2" style="color: var(--text-secondary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            <span class="text-sm" style="color: var(--text-secondary);">@AppStrings.QrCodeGenerator_LogoDropText</span>
-                        </div>
-                        <div id="qr-logo-preview" class="hidden">
-                            <img id="qr-logo-img" class="max-h-16 mx-auto mb-2 rounded" alt="Logo preview" />
-                            <button type="button" id="qr-logo-remove" class="text-xs text-red-500 hover:underline">
-                                @AppStrings.QrCodeGenerator_LogoRemove
-                            </button>
-                        </div>
-                    </div>
+                    <FileDropZone
+                        Id="qr-logo-drop-zone"
+                        InputId="qr-logo-input"
+                        IconSvg='<svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>'
+                        Description="@AppStrings.QrCodeGenerator_LogoDropText"
+                        Accept="image/png,image/jpeg,image/webp"
+                        ShowPreview="true"
+                        ShowClearButton="true" />
                 </div>
 
                 @* Generate Button *@

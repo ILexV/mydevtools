@@ -40,9 +40,25 @@
                     <textarea id="b58-input-text" rows="10" class="textarea textarea-bordered w-full font-mono" placeholder="@AppStrings.Base58Encoder_InputTextPlaceholder"></textarea>
                 </div>
 
-                <FileDropInput InputId="b58-input-file"
-                               Label="@AppStrings.Base58Encoder_InputFileLabel"
-                               Hint="@AppStrings.Base58Encoder_FileHint" />
+                <div class="form-control w-full">
+                    <label class="label" for="b58-input-file">
+                        <span class="label-text font-semibold">@AppStrings.Base58Encoder_InputFileLabel</span>
+                    </label>
+                    <FileDropZone
+                        Id="b58-drop-zone"
+                        InputId="b58-input-file"
+                        IconSvg='<svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>'
+                        Description="@AppStrings.Common_FileDropTitle"
+                        Accept="*/*"
+                        ShowFileInfo="true"
+                        ShowClearButton="true" />
+                    @if (!string.IsNullOrWhiteSpace(AppStrings.Base58Encoder_FileHint))
+                    {
+                        <label class="label">
+                            <span class="label-text-alt opacity-70">@AppStrings.Base58Encoder_FileHint</span>
+                        </label>
+                    }
+                </div>
 
                 <div class="collapse collapse-arrow bg-base-200">
                     <input type="checkbox" />

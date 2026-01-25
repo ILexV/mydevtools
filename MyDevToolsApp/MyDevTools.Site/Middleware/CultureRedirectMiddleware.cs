@@ -75,7 +75,7 @@ public class CultureRedirectMiddleware
                 : _localizationService.DefaultCulture;
 
             var newPath2 = $"/{targetCulture}{path}";
-            context.Response.Redirect(newPath2, permanent: false);
+            context.Response.Redirect(newPath2, permanent: true);
             return;
         }
 

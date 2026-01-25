@@ -36,12 +36,7 @@
             downloadPng: document.getElementById('qr-download-png'),
             downloadSvg: document.getElementById('qr-download-svg'),
             errorEl: document.getElementById('qr-error'),
-            logoDrop: document.getElementById('qr-logo-drop'),
-            logoInput: document.getElementById('qr-logo-input'),
-            logoPlaceholder: document.getElementById('qr-logo-placeholder'),
-            logoPreview: document.getElementById('qr-logo-preview'),
-            logoImg: document.getElementById('qr-logo-img'),
-            logoRemove: document.getElementById('qr-logo-remove')
+            logoInput: document.getElementById('qr-logo-input')
         };
     }
 
@@ -72,33 +67,25 @@
     }
 
     async function handleLogoFile(file) {
-        const els = getElements();
-        if (!els || !file) return;
+        if (!file) return;
 
         if (!file.type.match('image.*')) {
-            showError(els, 'Please select an image file');
+            const els = getElements();
+            if (els) showError(els, 'Please select an image file');
             return;
         }
 
         const reader = new FileReader();
         reader.onload = (e) => {
             logoBytes = new Uint8Array(e.target.result);
-            els.logoImg.src = URL.createObjectURL(file);
-            els.logoPlaceholder.classList.add('hidden');
-            els.logoPreview.classList.remove('hidden');
         };
         reader.readAsArrayBuffer(file);
     }
 
     function removeLogo() {
-        const els = getElements();
-        if (!els) return;
-
         logoBytes = null;
-        els.logoImg.src = '';
-        els.logoPlaceholder.classList.remove('hidden');
-        els.logoPreview.classList.add('hidden');
-        els.logoInput.value = '';
+        const logoInput = document.getElementById('qr-logo-input');
+        if (logoInput) logoInput.value = '';
     }
 
     async function generateQrCode() {
@@ -200,48 +187,16 @@
             if (e.target.id === 'qr-generate-btn') {
                 generateQrCode();
             }
-
-            // Logo drop zone click
-            if (e.target.closest('#qr-logo-drop') && !e.target.closest('#qr-logo-remove')) {
-                const els = getElements();
-                if (els) els.logoInput.click();
-            }
-
-            // Logo remove
-            if (e.target.id === 'qr-logo-remove') {
-                e.stopPropagation();
-                removeLogo();
-            }
         });
 
-        // Logo file input
+        // Logo file input - handle file selection and clearing
         document.addEventListener('change', (e) => {
-            if (e.target.id === 'qr-logo-input' && e.target.files && e.target.files[0]) {
-                handleLogoFile(e.target.files[0]);
-            }
-        });
-
-        // Logo drag and drop
-        document.addEventListener('dragover', (e) => {
-            if (e.target.closest('#qr-logo-drop')) {
-                e.preventDefault();
-                e.target.closest('#qr-logo-drop').classList.add('drag-over');
-            }
-        });
-
-        document.addEventListener('dragleave', (e) => {
-            if (e.target.closest('#qr-logo-drop')) {
-                e.target.closest('#qr-logo-drop').classList.remove('drag-over');
-            }
-        });
-
-        document.addEventListener('drop', (e) => {
-            const drop = e.target.closest('#qr-logo-drop');
-            if (drop) {
-                e.preventDefault();
-                drop.classList.remove('drag-over');
-                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                    handleLogoFile(e.dataTransfer.files[0]);
+            if (e.target.id === 'qr-logo-input') {
+                if (e.target.files && e.target.files[0]) {
+                    handleLogoFile(e.target.files[0]);
+                } else {
+                    // File was cleared
+                    removeLogo();
                 }
             }
         });

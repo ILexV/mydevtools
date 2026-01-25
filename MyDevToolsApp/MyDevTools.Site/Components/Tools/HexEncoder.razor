@@ -34,9 +34,25 @@
                 <label class="label" for="hex-input-text"><span class="label-text font-semibold">@AppStrings.HexEncoder_InputTextLabel</span></label>
                 <textarea id="hex-input-text" rows="10" placeholder="@AppStrings.HexEncoder_InputTextPlaceholder" class="textarea textarea-bordered w-full font-mono"></textarea>
 
-                <FileDropInput InputId="hex-input-file"
-                               Label="@AppStrings.HexEncoder_InputFileLabel"
-                               Hint="@AppStrings.HexEncoder_FileHint" />
+                <div class="form-control w-full">
+                    <label class="label" for="hex-input-file">
+                        <span class="label-text font-semibold">@AppStrings.HexEncoder_InputFileLabel</span>
+                    </label>
+                    <FileDropZone
+                        Id="hex-drop-zone"
+                        InputId="hex-input-file"
+                        IconSvg='<svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>'
+                        Description="@AppStrings.Common_FileDropTitle"
+                        Accept="*/*"
+                        ShowFileInfo="true"
+                        ShowClearButton="true" />
+                    @if (!string.IsNullOrWhiteSpace(AppStrings.HexEncoder_FileHint))
+                    {
+                        <label class="label">
+                            <span class="label-text-alt opacity-70">@AppStrings.HexEncoder_FileHint</span>
+                        </label>
+                    }
+                </div>
 
                 <div class="collapse collapse-arrow bg-base-200">
                     <input type="checkbox" checked /> 

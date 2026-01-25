@@ -51,6 +51,10 @@ public class CultureRedirectMiddleware
                 CultureInfo.CurrentUICulture = culture;
                 context.Items["Culture"] = defaultCulture;
                 
+                // SEO: Add headers to help search engines understand content negotiation
+                context.Response.Headers.Vary = "Accept-Language";
+                context.Response.Headers.ContentLanguage = defaultCulture;
+                
                 // Rewrite the path to include the culture prefix with trailing slash
                 var newPath = path == "/" 
                     ? $"/{defaultCulture}/" 
@@ -69,6 +73,9 @@ public class CultureRedirectMiddleware
             }
 
             // For regular users, redirect to localized path
+            // SEO: Indicate that response varies by language preference
+            context.Response.Headers.Vary = "Accept-Language";
+            
             var browserCulture = GetBrowserCulture(context);
             var targetCulture = _localizationService.IsCultureSupported(browserCulture) 
                 ? browserCulture 

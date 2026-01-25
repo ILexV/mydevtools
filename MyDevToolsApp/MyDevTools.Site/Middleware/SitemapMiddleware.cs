@@ -57,6 +57,13 @@ public class SitemapMiddleware
 
         var root = new XElement(ns + "urlset");
 
+        // Add root page with highest priority
+        root.Add(new XElement(ns + "url",
+            new XElement(ns + "loc", baseUrl + "/"),
+            new XElement(ns + "changefreq", "daily"),
+            new XElement(ns + "priority", "1.0")
+        ));
+
         // Scan for all Components with @page (RouteAttribute)
         var componentTypes = Assembly.GetExecutingAssembly().GetTypes()
             .Where(t => typeof(IComponent).IsAssignableFrom(t) && !t.IsAbstract);
@@ -72,15 +79,22 @@ public class SitemapMiddleware
                 // We assume tool pages are defined like "/{lang}/tool-name"
                 if (template.Contains("{lang}"))
                 {
+                    // Determine if this is the home page
+                    bool isHomePage = template == "/{lang}";
+                    
                     foreach (var lang in supportedCultures)
                     {
                         var path = template.Replace("{lang}", lang);
                         var fullUrl = $"{baseUrl}{path}";
 
+                        // Home pages have higher priority and update more frequently
+                        var priority = isHomePage ? "0.9" : "0.7";
+                        var changefreq = isHomePage ? "daily" : "weekly";
+
                         root.Add(new XElement(ns + "url",
                             new XElement(ns + "loc", fullUrl),
-                            new XElement(ns + "changefreq", "weekly"),
-                            new XElement(ns + "priority", "0.8")
+                            new XElement(ns + "changefreq", changefreq),
+                            new XElement(ns + "priority", priority)
                         ));
                     }
                 }

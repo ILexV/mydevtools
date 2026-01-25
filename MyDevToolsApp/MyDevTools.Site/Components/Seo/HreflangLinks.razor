@@ -1,13 +1,20 @@
 @inject MyDevTools.Site.Services.ILocalizationService LocalizationService
 @inject NavigationManager Navigation
 
+@* Language-specific versions *@
 @foreach (var culture in LocalizationService.SupportedCultures)
 {
     <link rel="alternate" hreflang="@culture" href="@GetAlternateUrl(culture)" />
 }
-<link rel="alternate" hreflang="x-default" href="@GetAlternateUrl(LocalizationService.DefaultCulture)" />
+
+@* x-default points to root URL for home, or /en/{tool} for tools *@
+<link rel="alternate" hreflang="x-default" href="@GetDefaultUrl()" />
 
 @code {
+    /// <summary>
+    /// Optional tool path (e.g., "hash-calculator"). 
+    /// If null or empty, this is the home page.
+    /// </summary>
     [Parameter]
     public string? ToolPath { get; set; }
 
@@ -16,5 +23,19 @@
         var baseUri = new Uri(Navigation.BaseUri);
         var path = string.IsNullOrEmpty(ToolPath) ? "" : $"/{ToolPath}";
         return $"{baseUri.Scheme}://{baseUri.Host}/{culture}{path}";
+    }
+
+    private string GetDefaultUrl()
+    {
+        var baseUri = new Uri(Navigation.BaseUri);
+        
+        // For home page: x-default points to root /
+        if (string.IsNullOrEmpty(ToolPath))
+        {
+            return $"{baseUri.Scheme}://{baseUri.Host}/";
+        }
+        
+        // For tool pages: x-default points to /en/{tool}
+        return $"{baseUri.Scheme}://{baseUri.Host}/en/{ToolPath}";
     }
 }

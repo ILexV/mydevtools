@@ -1,10 +1,13 @@
+@page "/"
 @page "/{lang}"
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
 <MetaTags Title="@AppStrings.Home_Title"
           Description="@AppStrings.Home_Subtitle"
-          CurrentUrl="@Navigation.Uri" />
+          CurrentUrl="@Navigation.Uri"
+          IsHomePage="true"
+          Lang="@Lang" />
 
 <JsonLdSite SiteName="@AppStrings.AppName"
             Description="@AppStrings.Home_Subtitle"

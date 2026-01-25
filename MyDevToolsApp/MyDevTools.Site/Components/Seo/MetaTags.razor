@@ -24,7 +24,7 @@
     
     @if (!string.IsNullOrEmpty(CurrentUrl))
     {
-        <link rel="canonical" href="@CurrentUrl" />
+        <link rel="canonical" href="@GetCanonicalUrl()" />
     }
 </HeadContent>
 
@@ -40,4 +40,35 @@
 
     [Parameter]
     public string? CurrentUrl { get; set; }
+
+    /// <summary>
+    /// Indicates if this is the home page (/en/, /ru/, /es/).
+    /// </summary>
+    [Parameter]
+    public bool IsHomePage { get; set; } = false;
+
+    /// <summary>
+    /// Current language code (e.g., "en", "ru", "es").
+    /// Used to determine canonical URL for home page.
+    /// </summary>
+    [Parameter]
+    public string? Lang { get; set; }
+
+    private string GetCanonicalUrl()
+    {
+        if (string.IsNullOrEmpty(CurrentUrl))
+        {
+            return CurrentUrl!;
+        }
+        
+        // For home page language versions (/en/, /ru/, /es/): canonical points to root /
+        if (IsHomePage && !string.IsNullOrEmpty(Lang))
+        {
+            var baseUri = new Uri(CurrentUrl);
+            return $"{baseUri.Scheme}://{baseUri.Host}/";
+        }
+        
+        // For all other pages: self-referencing canonical
+        return CurrentUrl;
+    }
 }

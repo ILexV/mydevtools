@@ -51,7 +51,7 @@ public class SitemapMiddleware
 
     private static string GenerateSitemap(HttpContext context)
     {
-        var baseUrl = $"{context.Request.Scheme}://{context.Request.Host}";
+        var baseUrl = $"https://{context.Request.Host}";
         var ns = XNamespace.Get("http://www.sitemaps.org/schemas/sitemap/0.9");
         var supportedCultures = new[] { "en", "ru", "es" };
 

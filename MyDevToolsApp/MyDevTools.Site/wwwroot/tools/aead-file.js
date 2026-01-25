@@ -46,9 +46,9 @@
         const copyBtn = document.getElementById('aead-copy');
         const downloadBtn = document.getElementById('aead-download');
         const warnings = document.getElementById('aead-warnings');
-        const outputSection = output?.closest('.output-section');
+        const outputSection = output?.closest('.space-y-4') || output?.parentElement;
 
-        if (!inputFile || !decryptFile || !algorithm || !password || !encryptBtn || !decryptBtn || !header || !output || !copyBtn || !downloadBtn || !warnings || !outputSection) {
+        if (!inputFile || !decryptFile || !algorithm || !password || !encryptBtn || !decryptBtn || !header || !output || !copyBtn || !downloadBtn || !warnings) {
             return null;
         }
 

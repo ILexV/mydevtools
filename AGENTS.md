@@ -343,7 +343,20 @@ public string? Description { get; set; }
 - **README.md** - Project overview and principles
 - **DEVELOPMENT.md** - Detailed development guide
 - **ARCHITECTURE.md** - System architecture
+- **TOOL_DEVELOPMENT_GUIDE.md** - ⭐ **ВАЖНО!** Руководство по созданию инструментов (JavaScript, события, типичные проблемы)
 - **LOCALIZATION_GUIDE.md** - Localization details
 - **WASM_INTEGRATION.md** - WASM integration patterns
 - **PROJECT_STRUCTURE.md** - Directory structure
 - **crypto-roadmap.md** - Cryptography feature roadmap
+
+## ⚠️ Критически важно при создании инструментов
+
+**ВСЕГДА читайте [TOOL_DEVELOPMENT_GUIDE.md](./TOOL_DEVELOPMENT_GUIDE.md) перед созданием нового инструмента!**
+
+Этот документ содержит:
+- ✅ Правильные паттерны обработки событий для Blazor SSR
+- ✅ Решения типичных проблем (кнопки не работают, редиректы, CDN блокируется)
+- ✅ Шаблоны кода для быстрого старта
+- ✅ Чеклист перед коммитом
+
+Несоблюдение этих рекомендаций приводит к проблемам с обработчиками событий!

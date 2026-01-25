@@ -244,6 +244,9 @@
   <data name="Common_FileChangeButton" xml:space="preserve">
     <value>Choose another file</value>
   </data>
+  <data name="Common_ClearFile" xml:space="preserve">
+    <value>Clear file</value>
+  </data>
   
   <!-- Theme -->
   <data name="Theme_Light" xml:space="preserve">
@@ -1297,6 +1300,9 @@
   </data>
   <data name="ImageCompressor_Download" xml:space="preserve">
     <value>Download</value>
+  </data>
+  <data name="ImageCompressor_DragDrop" xml:space="preserve">
+    <value>Drop images here or click to select files</value>
   </data>
   
   <data name="ImageResizer_Title" xml:space="preserve">

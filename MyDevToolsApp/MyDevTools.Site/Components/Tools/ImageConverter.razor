@@ -21,11 +21,13 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="space-y-4">
-                <FileDropInput InputId="ic-input-file"
-                               Label="@AppStrings.ImageConverter_DragDrop"
-                               DropTitle="@AppStrings.ImageConverter_DragDrop"
-                               ButtonLabel="@AppStrings.Common_FileChooseButton"
-                               Accept="image/*" />
+                <FileDropZone InputId="ic-input-file"
+                              IconSvg='<span style="font-size: 3rem;">🖼️</span>'
+                              Description="@AppStrings.ImageConverter_DragDrop"
+                              Accept="image/*"
+                              ShowFileInfo="true"
+                              ShowPreview="true"
+                              ShowClearButton="true" />
 
                 <div class="collapse collapse-arrow bg-base-200 mt-4">
                     <input type="checkbox" checked /> 

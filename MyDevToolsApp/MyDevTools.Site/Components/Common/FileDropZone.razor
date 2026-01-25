@@ -3,36 +3,59 @@
 @* 
 FileDropZone Component - Reusable file drop zone with customizable icon and description
 
-Usage Example 1 (QR Scanner with camera icon):
+Features:
+- Drag & drop file upload
+- Click to select files
+- Optional file info display (name, size)
+- Optional image preview
+- Optional clear button
+- Customizable icon and text
+- Localization support
+
+Usage Example 1 (Simple):
 <FileDropZone 
     Id="drop-zone" 
     InputId="file-input"
-    IconSvg='<svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-    </svg>'
     Description="Drag & drop an image here"
     Accept="image/*" />
 
-Usage Example 2 (Default upload icon):
+Usage Example 2 (With file info):
 <FileDropZone 
-    Id="file-upload" 
+    Id="drop-zone" 
     InputId="file-input"
-    Description="Drag & drop your file here"
-    Accept=".pdf,.doc,.docx" />
+    Description="Drag & drop an image here"
+    Accept="image/*"
+    ShowFileInfo="true" />
 
-Usage Example 3 (Custom button text):
+Usage Example 3 (With preview and clear button):
 <FileDropZone 
-    Id="csv-upload" 
-    InputId="csv-input"
-    Description="Upload CSV file"
-    ButtonText="Select CSV"
-    Accept=".csv" />
+    Id="drop-zone" 
+    InputId="file-input"
+    IconSvg='<span style="font-size: 3rem;">🖼️</span>'
+    Description="@AppStrings.ImageConverter_DragDrop"
+    Accept="image/*"
+    ShowFileInfo="true"
+    ShowPreview="true"
+    ShowClearButton="true" />
 *@
 
-<div id="@Id" class="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center transition-colors cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20">
-    <input type="file" id="@InputId" class="hidden" accept="@Accept" />
+<div id="@Id" class="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center transition-colors cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 relative" data-has-file="false">
+    <input type="file" id="@InputId" class="hidden" accept="@Accept" @(AllowMultiple ? "multiple" : "") />
     
-    <div class="flex flex-col items-center justify-center space-y-4">
+    @if (ShowClearButton)
+    {
+        <button type="button" 
+                class="file-drop-clear-btn btn btn-ghost btn-circle btn-sm absolute top-2 right-2 opacity-0 pointer-events-none transition-opacity"
+                aria-label="@AppStrings.Common_ClearFile"
+                title="@AppStrings.Common_ClearFile">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+    }
+    
+    <div class="file-drop-empty flex flex-col items-center justify-center space-y-4">
         @if (!string.IsNullOrWhiteSpace(IconSvg))
         {
             @((MarkupString)IconSvg)
@@ -42,10 +65,42 @@ Usage Example 3 (Custom button text):
             @Description
         </div>
         
-        <button type="button" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm cursor-pointer pointer-events-none">
+        <button type="button" class="file-drop-choose-btn px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
             @ButtonText
         </button>
     </div>
+    
+    @if (ShowFileInfo || ShowPreview)
+    {
+        <div class="file-drop-selected hidden">
+            <div class="flex flex-col items-center justify-center space-y-4">
+                @if (ShowPreview)
+                {
+                    <div class="file-drop-preview-container">
+                        <img class="file-drop-preview rounded-lg shadow-md max-w-xs max-h-48 object-contain" alt="File preview" style="display: none;" />
+                    </div>
+                }
+                
+                @if (ShowFileInfo)
+                {
+                    <div class="file-drop-info space-y-2">
+                        <div class="flex items-center gap-2 text-gray-700 dark:text-gray-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                                <polyline points="13 2 13 9 20 9"></polyline>
+                            </svg>
+                            <span class="file-drop-name font-medium"></span>
+                        </div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400 file-drop-size"></div>
+                    </div>
+                }
+                
+                <button type="button" class="file-drop-change-btn px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                    @ChangeButtonText
+                </button>
+            </div>
+        </div>
+    }
 </div>
 
 @code {
@@ -83,9 +138,43 @@ Usage Example 3 (Custom button text):
     public string ButtonText { get; set; } = AppStrings.Common_FileChooseButton;
 
     /// <summary>
+    /// Button text when file is selected (localized by default to "Choose another file")
+    /// </summary>
+    [Parameter]
+    public string ChangeButtonText { get; set; } = AppStrings.Common_FileChangeButton;
+
+    /// <summary>
     /// Accepted file types (e.g., "image/*", ".pdf", ".csv", etc.)
     /// Default: Accept all file types
     /// </summary>
     [Parameter]
     public string Accept { get; set; } = "*/*";
+
+    /// <summary>
+    /// Allow selecting multiple files
+    /// Default: false (single file selection)
+    /// </summary>
+    [Parameter]
+    public bool AllowMultiple { get; set; } = false;
+
+    /// <summary>
+    /// Show file name and size after selection
+    /// Default: false
+    /// </summary>
+    [Parameter]
+    public bool ShowFileInfo { get; set; } = false;
+
+    /// <summary>
+    /// Show image preview after selection (only works for image files)
+    /// Default: false
+    /// </summary>
+    [Parameter]
+    public bool ShowPreview { get; set; } = false;
+
+    /// <summary>
+    /// Show clear button in the top-right corner
+    /// Default: false
+    /// </summary>
+    [Parameter]
+    public bool ShowClearButton { get; set; } = false;
 }

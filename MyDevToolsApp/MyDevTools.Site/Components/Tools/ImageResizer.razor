@@ -23,21 +23,15 @@
             <div class="space-y-6">
                 
                 <!-- Drop Zone -->
-                <div id="ir-drop-zone" 
-                     class="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200"
-                     style="border-color: var(--border-color); background-color: var(--bg-secondary);">
-                    <div class="mb-4">
-                        <span style="font-size: 3rem;">🖼️</span>
-                    </div>
-                    <h5 class="text-lg font-semibold mb-2" style="color: var(--text-primary);">@AppStrings.Common_FileDropTitle</h5>
-                    <p class="text-sm mb-4" style="color: var(--text-secondary);">@AppStrings.Common_FileDropSubtitle</p>
-                    
-                    <input type="file" id="ir-input-file" accept="image/*" style="display: none;" />
-                    <!-- Removed inline onclick to prevent double event firing -->
-                    <button class="btn btn-primary px-6 py-2 rounded-full">
-                        @AppStrings.Common_FileChooseButton
-                    </button>
-                </div>
+                <FileDropZone 
+                    Id="ir-drop-zone"
+                    InputId="ir-input-file"
+                    IconSvg='<span style="font-size: 3rem;">🖼️</span>'
+                    Description="@AppStrings.Common_FileDropTitle"
+                    Accept="image/*"
+                    ShowFileInfo="true"
+                    ShowPreview="true"
+                    ShowClearButton="true" />
 
                 <!-- Settings Panel (Hidden until file selected) -->
                 <div id="ir-settings-panel" class="p-6 rounded-xl shadow-sm transition-all" 

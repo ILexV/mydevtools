@@ -115,15 +115,6 @@
       const root = getRoot(e.target);
       if (!root) return;
 
-      // UPLOAD BOX CLICK
-      if (e.target.closest('.upload-box')) {
-        if (e.target.matches('input[type="file"]')) return;
-
-        const fileInput = root.querySelector('#fileInput');
-        if (fileInput) fileInput.click();
-        return;
-      }
-
       // COMPRESS BUTTON
       if (e.target.closest('#compressBtn')) {
         const btn = e.target.closest('#compressBtn');

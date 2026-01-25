@@ -228,10 +228,6 @@
             if (e.target.id === 'ir-resize-btn') {
                 performResize();
             }
-            if (e.target.closest('#ir-drop-zone')) {
-                const root = getRoot();
-                if (root) root.querySelector('#ir-input-file').click();
-            }
         });
 
         // Drag and drop

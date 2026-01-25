@@ -190,6 +190,9 @@
   <data name="Common_FileChangeButton" xml:space="preserve">
     <value>Elegir otro archivo</value>
   </data>
+  <data name="Common_ClearFile" xml:space="preserve">
+    <value>Limpiar archivo</value>
+  </data>
   
   <data name="Theme_Light" xml:space="preserve">
     <value>Claro</value>
@@ -1235,6 +1238,9 @@
   </data>
   <data name="ImageCompressor_Download" xml:space="preserve">
     <value>Descargar</value>
+  </data>
+  <data name="ImageCompressor_DragDrop" xml:space="preserve">
+    <value>Suelta imágenes aquí o haz clic para seleccionar archivos</value>
   </data>
   <data name="ImageResizer_Title" xml:space="preserve">
     <value>Redimensionar Imagen</value>

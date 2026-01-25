@@ -124,6 +124,7 @@
             new("regex-tester", "🔍", AppStrings.RegexTester_Title, AppStrings.RegexTester_Description),
             new("qr-code-generator", "📱", AppStrings.QrCodeGenerator_Title, AppStrings.QrCodeGenerator_Description),
             new("hmac-calculator", "🔐", AppStrings.HmacCalculator_Title, AppStrings.HmacCalculator_Description),
+            new("yaml-beautifier-validator", "📄", AppStrings.YamlBeautifierValidator_Title, AppStrings.YamlBeautifierValidator_Description),
             new("qr-scanner", "📷", AppStrings.QrScanner_Title, AppStrings.QrScanner_Description)
         };
   }
@@ -166,7 +167,8 @@
             new(AppStrings.Category_StructuredData, new[]
             {
                 tools.First(t => t.Slug == "json-beautifier"),
-                tools.First(t => t.Slug == "xml-beautifier")
+                tools.First(t => t.Slug == "xml-beautifier"),
+                tools.First(t => t.Slug == "yaml-beautifier-validator")
             }),
             new(AppStrings.Category_TextTools, new[]
             {

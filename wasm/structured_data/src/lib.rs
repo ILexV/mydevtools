@@ -1,5 +1,7 @@
 use wasm_bindgen::prelude::*;
 
+pub mod yaml;
+
 #[wasm_bindgen]
 pub fn version() -> String {
     "mydevtools_structured_data@0.1.0".to_string()

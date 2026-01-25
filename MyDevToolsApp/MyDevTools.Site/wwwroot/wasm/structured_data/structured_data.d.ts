@@ -11,16 +11,29 @@ export function normalize_whitespace(input: string): string;
 
 export function version(): string;
 
+/**
+ * YAML beautifier: formats YAML, but comments are not preserved due to library limitations.
+ */
+export function yaml_format(input: string): string;
+
+/**
+ * YAML validator: checks if input is valid YAML.
+ */
+export function yaml_validate(input: string): void;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly normalize_whitespace: (a: number, b: number) => [number, number];
     readonly version: () => [number, number];
+    readonly yaml_format: (a: number, b: number) => [number, number, number, number];
+    readonly yaml_validate: (a: number, b: number) => [number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
     readonly __wbindgen_free: (a: number, b: number, c: number) => void;
+    readonly __externref_table_dealloc: (a: number) => void;
     readonly __wbindgen_start: () => void;
 }
 

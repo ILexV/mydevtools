@@ -61,6 +61,10 @@
     {
         <link rel="stylesheet" href="@Assets["tools/xml-beautifier.css"]" />
     }
+    @if (IsYamlBeautifierValidator)
+    {
+        <script src="@Assets["lib/codemirror/mode/yaml/yaml.min.js"]"></script>
+    }
     @if (IsTextCaseConverter)
     {
         <link rel="stylesheet" href="@Assets["tools/text-case-converter.css"]" />
@@ -178,6 +182,10 @@
     {
         <script src="@Assets["tools/hmac-calculator.js"]"></script>
     }
+    @if (IsYamlBeautifierValidator)
+    {
+        <script src="@Assets["tools/yaml-beautifier-validator.js"]"></script>
+    }
 </body>
 
 </html>
@@ -209,9 +217,10 @@
     private bool IsRegexTester => CurrentPath.Contains("/regex-tester", StringComparison.OrdinalIgnoreCase);
     private bool IsQrCodeGenerator => CurrentPath.Contains("/qr-code-generator", StringComparison.OrdinalIgnoreCase);
     private bool IsHmacCalculator => CurrentPath.Contains("/hmac-calculator", StringComparison.OrdinalIgnoreCase);
+    private bool IsYamlBeautifierValidator => CurrentPath.Contains("/yaml-beautifier-validator", StringComparison.OrdinalIgnoreCase);
     
-    // CodeMirror is needed for JSON and XML beautifiers
-    private bool NeedsCodeMirror => IsJsonBeautifier || IsXmlBeautifier;
+    // CodeMirror is needed for JSON, XML, and YAML beautifiers
+    private bool NeedsCodeMirror => IsJsonBeautifier || IsXmlBeautifier || IsYamlBeautifierValidator;
     
     private string? InitialTheme
     {

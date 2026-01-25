@@ -1859,7 +1859,39 @@
   <data name="HmacCalculator_Copy" xml:space="preserve">
     <value>Copiar</value>
   </data>
-  <data name="HmacCalculator_Copied" xml:space="preserve">
+   <data name="HmacCalculator_Copied" xml:space="preserve">
     <value>¡Copiado!</value>
-  </data>
-</root>
+   </data>
+   
+   <!-- YAML Beautifier/Validator -->
+   <data name="YamlBeautifierValidator_Title" xml:space="preserve">
+    <value>Formateador/Validador YAML</value>
+   </data>
+   <data name="YamlBeautifierValidator_Description" xml:space="preserve">
+    <value>Formatea y valida YAML con resaltado de errores</value>
+   </data>
+   <data name="YamlBeautifierValidator_InputLabel" xml:space="preserve">
+    <value>Entrada YAML</value>
+   </data>
+   <data name="YamlBeautifierValidator_InputPlaceholder" xml:space="preserve">
+    <value>Ingresa el contenido YAML aquí...</value>
+   </data>
+   <data name="YamlBeautifierValidator_Format" xml:space="preserve">
+    <value>Formatear</value>
+   </data>
+   <data name="YamlBeautifierValidator_Validate" xml:space="preserve">
+    <value>Validar</value>
+   </data>
+   <data name="YamlBeautifierValidator_Clear" xml:space="preserve">
+    <value>Limpiar</value>
+   </data>
+   <data name="YamlBeautifierValidator_OutputLabel" xml:space="preserve">
+    <value>Salida</value>
+   </data>
+   <data name="YamlBeautifierValidator_Valid" xml:space="preserve">
+    <value>YAML es válido</value>
+   </data>
+   <data name="YamlBeautifierValidator_Invalid" xml:space="preserve">
+    <value>YAML es inválido</value>
+   </data>
+ </root>

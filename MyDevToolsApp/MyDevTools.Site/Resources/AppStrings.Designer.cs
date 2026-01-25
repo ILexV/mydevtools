@@ -1420,6 +1420,96 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Clear.
+        /// </summary>
+        public static string YamlBeautifierValidator_Clear {
+            get {
+                return ResourceManager.GetString("YamlBeautifierValidator_Clear", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Format and validate YAML with error highlighting.
+        /// </summary>
+        public static string YamlBeautifierValidator_Description {
+            get {
+                return ResourceManager.GetString("YamlBeautifierValidator_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Format.
+        /// </summary>
+        public static string YamlBeautifierValidator_Format {
+            get {
+                return ResourceManager.GetString("YamlBeautifierValidator_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to YAML Input.
+        /// </summary>
+        public static string YamlBeautifierValidator_InputLabel {
+            get {
+                return ResourceManager.GetString("YamlBeautifierValidator_InputLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter YAML content here....
+        /// </summary>
+        public static string YamlBeautifierValidator_InputPlaceholder {
+            get {
+                return ResourceManager.GetString("YamlBeautifierValidator_InputPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Output.
+        /// </summary>
+        public static string YamlBeautifierValidator_OutputLabel {
+            get {
+                return ResourceManager.GetString("YamlBeautifierValidator_OutputLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to YAML Beautifier/Validator.
+        /// </summary>
+        public static string YamlBeautifierValidator_Title {
+            get {
+                return ResourceManager.GetString("YamlBeautifierValidator_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to YAML is invalid.
+        /// </summary>
+        public static string YamlBeautifierValidator_Invalid {
+            get {
+                return ResourceManager.GetString("YamlBeautifierValidator_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Validate.
+        /// </summary>
+        public static string YamlBeautifierValidator_Validate {
+            get {
+                return ResourceManager.GetString("YamlBeautifierValidator_Validate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to YAML is valid.
+        /// </summary>
+        public static string YamlBeautifierValidator_Valid {
+            get {
+                return ResourceManager.GetString("YamlBeautifierValidator_Valid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to QR Codes.
         /// </summary>
         public static string Category_QrCodes {

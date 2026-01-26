@@ -51,8 +51,21 @@
 
         <!-- File List & Actions -->
         <div>
-            <div class="file-list hidden space-y-2 mb-6">
-                <!-- Items injected by JS -->
+            <div class="file-list-container hidden mb-6 overflow-x-auto bg-base-100 rounded-box shadow">
+                <table class="table w-full">
+                    <thead>
+                        <tr>
+                            <th>Preview</th>
+                            <th>Name</th>
+                            <th>Original Size</th>
+                            <th>Status / Result</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="file-list">
+                        <!-- Items injected by JS -->
+                    </tbody>
+                </table>
             </div>
 
             <div class="flex gap-4">

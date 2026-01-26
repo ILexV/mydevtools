@@ -33,6 +33,7 @@
     return {
       root,
       fileInput: root.querySelector('#fileInput'),
+      fileListContainer: root.querySelector('.file-list-container'),
       fileList: root.querySelector('.file-list'),
       qualitySlider: root.querySelector('#quality'),
       qualityValue: root.querySelector('#quality-value'),
@@ -65,8 +66,8 @@
     const els = getElements(root);
     if (!els || !files.length) return;
 
-    if (els.fileList.classList.contains('hidden')) {
-      els.fileList.classList.remove('hidden');
+    if (els.fileListContainer && els.fileListContainer.classList.contains('hidden')) {
+      els.fileListContainer.classList.remove('hidden');
       els.compressBtn.classList.remove('hidden');
     }
 
@@ -78,9 +79,24 @@
       const fileId = Math.random().toString(36).substr(2, 9);
       state.files.push({ id: fileId, file: file, processed: null });
 
-      const item = document.createElement('div');
-      item.className = 'file-item p-4 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-between mb-2 shadow-sm border border-gray-100 dark:border-gray-700';
+      const item = document.createElement('tr');
       item.id = `file-${fileId}`;
+
+      item.innerHTML = `
+        <td>
+            <div class="avatar">
+                <div class="w-12 h-12 mask mask-squircle bg-base-300">
+                    <img class="thumbnail" src="" alt="preview" />
+                </div>
+            </div>
+        </td>
+        <td>
+            <div class="font-bold truncate max-w-[200px]" title="${file.name}">${file.name}</div>
+        </td>
+        <td class="text-sm opacity-70">${formatSize(file.size)}</td>
+        <td class="status text-sm">Ready</td>
+        <td class="action"></td>
+      `;
 
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -88,17 +104,6 @@
         if (img) img.src = e.target.result;
       };
       reader.readAsDataURL(file);
-
-      item.innerHTML = `
-                <div class="flex items-center gap-4">
-                    <img class="thumbnail w-12 h-12 object-cover rounded bg-gray-200 dark:bg-gray-700" src="" />
-                    <div class="min-w-0">
-                        <div class="font-medium text-sm truncate max-w-[150px] sm:max-w-[200px] text-gray-700 dark:text-gray-200">${file.name}</div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400">${formatSize(file.size)}</div>
-                    </div>
-                </div>
-                <div class="status text-sm text-gray-500 dark:text-gray-400">Ready</div>
-            `;
 
       els.fileList.appendChild(item);
     });
@@ -164,11 +169,27 @@
             item.processed = { blob: blob, name: newName };
 
             const savedPerc = Math.round((1 - (blob.size / item.file.size)) * 100);
+            const actionTd = uiItem.querySelector('.action');
+            
+            // Update status cell
             statusDiv.innerHTML = `
-                            <span class="text-green-600 dark:text-green-400 font-bold">${strings.done}</span> 
-                            <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">${formatSize(blob.size)} (${savedPerc > 0 ? '-' : ''}${savedPerc}%)</span>
-                            <a href="${URL.createObjectURL(blob)}" download="${item.processed.name}" class="ml-4 text-blue-600 dark:text-blue-400 hover:underline font-medium">${strings.download}</a>
-                        `;
+                <div class="flex flex-col">
+                    <span class="badge badge-success gap-2">
+                        ${strings.done} 
+                        ${savedPerc > 0 ? `<span class="font-bold">-${savedPerc}%</span>` : ''}
+                    </span>
+                    <span class="text-xs opacity-70 mt-1">${formatSize(blob.size)}</span>
+                </div>
+            `;
+            
+            // Update action cell with download button
+            if (actionTd) {
+                actionTd.innerHTML = `
+                    <a href="${URL.createObjectURL(blob)}" download="${item.processed.name}" class="btn btn-sm btn-ghost">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    </a>
+                `;
+            }
           } catch (err) {
             console.error(err);
             statusDiv.innerHTML = `<span class="text-red-500 dark:text-red-400 font-bold">${strings.error}</span>`;

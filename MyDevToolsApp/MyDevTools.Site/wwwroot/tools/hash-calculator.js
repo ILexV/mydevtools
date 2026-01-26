@@ -269,7 +269,7 @@
             .filter(matches)
             .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }));
 
-        selectedCountEl.textContent = `${strings.algorithmsSelected}: ${state.selectedIds.length}`;
+        selectedCountEl.textContent = state.selectedIds.length;
 
         selectedList.innerHTML = '';
         availableList.innerHTML = '';

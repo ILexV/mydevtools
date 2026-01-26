@@ -137,15 +137,40 @@
     }
 
     function displayResults(outputSection, copyLabel, results) {
-        outputSection.innerHTML = results.map(result => `
-            <div class="hash-result">
-                <div class="hash-label">${escapeHtml(result.algorithm)}</div>
-                <div class="hash-value-container">
-                    <input type="text" readonly value="${escapeHtml(result.value)}" class="hash-value" />
-                    <button class="btn-copy" data-copy-value="${escapeHtml(result.value)}">${escapeHtml(copyLabel)}</button>
-                </div>
+        if (!results || results.length === 0) {
+            outputSection.innerHTML = '';
+            return;
+        }
+
+        const table = `
+            <div class="overflow-x-auto border border-base-300 rounded-lg">
+                <table class="table table-zebra table-sm w-full">
+                    <thead>
+                        <tr class="bg-base-200">
+                            <th class="w-32">Algorithm</th>
+                            <th>Hash</th>
+                            <th class="w-20 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${results.map(result => `
+                            <tr>
+                                <td class="font-bold whitespace-nowrap align-top py-2">${escapeHtml(result.algorithm)}</td>
+                                <td class="font-mono text-xs break-all align-middle py-2">${escapeHtml(result.value)}</td>
+                                <td class="text-right align-top py-2">
+                                    <button class="btn btn-ghost btn-xs btn-copy" data-copy-value="${escapeHtml(result.value)}" title="${escapeHtml(copyLabel)}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m2 4h6a2 2 0 012 2v6a2 2 0 01-2 2h-6a2 2 0 01-2-2v-6a2 2 0 012-2z" />
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
             </div>
-        `).join('');
+        `;
+        outputSection.innerHTML = table;
     }
 
     function clearOutput(outputSection) {
@@ -231,6 +256,7 @@
 
         const titleEl = document.getElementById('hash-algo-title');
         const selectedCountEl = document.getElementById('hash-algo-selected-count');
+        const availableCountEl = document.getElementById('hash-algo-available-count');
         const resetBtn = document.getElementById('hash-algo-reset-btn');
         const searchInput = document.getElementById('hash-algo-search');
         const selectedTitle = document.getElementById('hash-algo-selected-title');
@@ -270,13 +296,17 @@
             .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }));
 
         selectedCountEl.textContent = state.selectedIds.length;
+        if (availableCountEl) {
+            // Show total available count (ignoring search) to be consistent with selected count
+            availableCountEl.textContent = state.algorithms.length - state.selectedIds.length;
+        }
 
         selectedList.innerHTML = '';
         availableList.innerHTML = '';
 
         function addItem(container, algo, checked) {
             const row = document.createElement('div');
-            row.className = 'algo-item';
+            row.className = 'algo-item flex items-center space-x-2 py-0 min-h-[24px] hover:bg-base-300 rounded px-1 transition-colors cursor-pointer';
 
             const input = document.createElement('input');
             input.type = 'checkbox';

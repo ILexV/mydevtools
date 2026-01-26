@@ -1,12 +1,12 @@
 // Service Worker for MyDevTools PWA
-const CACHE_VERSION = 'v1.0.0-1769418935798';
+const CACHE_VERSION = 'v1.0.0-1769420242012';
 const CACHE_NAME = `mydevtools-${CACHE_VERSION}`;
 
 // Assets to cache on install
 // Note: Language-specific pages (/{lang}/) are cached dynamically as users visit them
 // This approach scales to any number of languages without updating the service worker
 const STATIC_ASSETS = [
-    '/',
+    // '/', // Removed to allow server-side redirection to language path
     '/app.css',
     '/theme.js',
     '/favorites.js',
@@ -61,6 +61,11 @@ self.addEventListener('fetch', (event) => {
 
     // Skip cross-origin requests (don't cache external resources)
     if (url.origin !== self.location.origin) {
+        return;
+    }
+
+    // Skip root path to allow server-side redirection middleware to work
+    if (url.pathname === '/' && url.search === '') {
         return;
     }
 

@@ -23,16 +23,13 @@ public class CultureRedirectMiddleware
     {
         var path = context.Request.Path.Value ?? "/";
         
-        // Detect if this is a bot request
-        var isBot = BotDetectionHelper.IsBot(context);
-        
         // Skip static files, already localized paths, and error pages
         if (path.StartsWith("/_") || 
             path.StartsWith("/css") || 
             path.StartsWith("/js") || 
             path.StartsWith("/lib") ||
             path.StartsWith("/not-found") ||
-            path.Contains('.'))
+            (path.Contains('.') && !path.EndsWith("sitemap.xml"))) // Allow sitemap.xml
         {
             await _next(context);
             return;
@@ -42,11 +39,14 @@ public class CultureRedirectMiddleware
         
         if (cultureFromPath == null)
         {
+            // Detect if this is a bot request
+            var isBot = BotDetectionHelper.IsBot(context);
+            var defaultCulture = _localizationService.DefaultCulture;
+
             // For bots, rewrite the path to include default culture WITHOUT redirect
             // This allows bots to access "/" as equivalent to "/en/"
             if (isBot)
             {
-                var defaultCulture = _localizationService.DefaultCulture;
                 var culture = new CultureInfo(defaultCulture);
                 CultureInfo.CurrentCulture = culture;
                 CultureInfo.CurrentUICulture = culture;
@@ -56,13 +56,11 @@ public class CultureRedirectMiddleware
                 context.Response.Headers.Vary = "Accept-Language";
                 context.Response.Headers.ContentLanguage = defaultCulture;
                 
-                // Rewrite the path to include the culture prefix with trailing slash
-                var newPath = path == "/" 
-                    ? $"/{defaultCulture}/" 
-                    : $"/{defaultCulture}{path}";
+                // Rewrite the path to include the culture prefix
+                var newPath = $"/{defaultCulture}{path}";
                 
-                // Ensure trailing slash for directory-like paths (Blazor requirement)
-                if (!newPath.EndsWith('/') && !Path.HasExtension(newPath))
+                // Ensure trailing slash for directory-like paths if root
+                if (path == "/" && !newPath.EndsWith('/'))
                 {
                     newPath += '/';
                 }
@@ -80,10 +78,26 @@ public class CultureRedirectMiddleware
             var browserCulture = GetBrowserCulture(context);
             var targetCulture = _localizationService.IsCultureSupported(browserCulture) 
                 ? browserCulture 
-                : _localizationService.DefaultCulture;
+                : defaultCulture;
+
+            // SAFETY CHECK: Prevent redirect loop if path already starts with target culture
+            // This handles cases where GetCultureFromPath might have missed it
+            if (path.StartsWith($"/{targetCulture}/", StringComparison.OrdinalIgnoreCase) || 
+                path.Equals($"/{targetCulture}", StringComparison.OrdinalIgnoreCase))
+            {
+                context.Items["Culture"] = targetCulture;
+                await _next(context);
+                return;
+            }
 
             var newPath2 = $"/{targetCulture}{path}";
-            context.Response.Redirect(newPath2, permanent: false);
+            // Ensure single slash
+            if (newPath2.EndsWith("//")) newPath2 = newPath2.TrimEnd('/');
+            
+            // Preserve query string
+            var queryString = context.Request.QueryString;
+            
+            context.Response.Redirect(newPath2 + queryString, permanent: false);
             return;
         }
 
@@ -101,18 +115,26 @@ public class CultureRedirectMiddleware
             return _localizationService.DefaultCulture;
         }
 
-        var languages = acceptLanguageHeader.Split(',')
-            .Select(lang => lang.Split(';')[0].Trim())
-            .Select(lang => lang.Length > 2 ? lang[..2] : lang);
-
-        foreach (var lang in languages)
+        try 
         {
-            if (_localizationService.IsCultureSupported(lang))
+            var languages = acceptLanguageHeader.Split(',')
+                .Select(lang => lang.Split(';')[0].Trim())
+                .Select(lang => lang.Length >= 2 ? lang[..2] : lang);
+
+            foreach (var lang in languages)
             {
-                return lang;
+                if (_localizationService.IsCultureSupported(lang))
+                {
+                    return lang;
+                }
             }
+        }
+        catch
+        {
+            // Fallback on any parsing error
         }
 
         return _localizationService.DefaultCulture;
     }
 }
+

@@ -20,60 +20,83 @@
          data-error="@AppStrings.Common_Error">
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="space-y-4">
-                <FileDropZone InputId="ic-input-file"
-                              IconSvg='<span style="font-size: 3rem;">🖼️</span>'
-                              Description="@AppStrings.ImageConverter_DragDrop"
-                              Accept="image/*"
-                              ShowFileInfo="true"
-                              ShowPreview="true"
-                              ShowClearButton="true" />
+            <div class="card bg-base-200 shadow-xl h-fit">
+                <div class="card-body">
+                    <h2 class="card-title text-base opacity-70 mb-4">Input & Settings</h2>
+                    
+                    <FileDropZone InputId="ic-input-file"
+                                  IconSvg='<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>'
+                                  Description="@AppStrings.ImageConverter_DragDrop"
+                                  Accept="image/*"
+                                  ShowFileInfo="true"
+                                  ShowPreview="true"
+                                  ShowClearButton="true" />
 
-                <div class="collapse collapse-arrow bg-base-200 mt-4">
-                    <input type="checkbox" checked /> 
-                    <div class="collapse-title text-xl font-medium">
-                        Settings
+                    <div class="divider">Settings</div>
+
+                    <div class="form-control w-full">
+                        <label class="label" for="ic-format-select"><span class="label-text font-semibold">@AppStrings.ImageConverter_SelectFormat</span></label>
+                        <select id="ic-format-select" class="select select-bordered w-full">
+                            <option value="png">PNG (Lossless)</option>
+                            <option value="jpeg">JPEG (Web)</option>
+                            <option value="webp">WebP (Modern)</option>
+                            <option value="gif">GIF</option>
+                            <option value="bmp">BMP</option>
+                            <option value="ico">ICO (Favicon)</option>
+                            <option value="tiff">TIFF</option>
+                            <option value="tga">TGA</option>
+                        </select>
                     </div>
-                    <div class="collapse-content space-y-4">
-                        <div class="form-control w-full">
-                            <label class="label" for="ic-format-select"><span class="label-text">@AppStrings.ImageConverter_SelectFormat</span></label>
-                            <select id="ic-format-select" class="select select-bordered w-full">
-                                <option value="png">PNG</option>
-                                <option value="jpeg">JPEG</option>
-                                <option value="webp">WebP</option>
-                                <option value="gif">GIF</option>
-                                <option value="bmp">BMP</option>
-                                <option value="ico">ICO</option>
-                                <option value="tiff">TIFF</option>
-                                <option value="tga">TGA</option>
-                            </select>
-                        </div>
 
-                        <div class="form-control w-full" id="ic-quality-container" hidden>
-                            <label class="label" for="ic-quality"><span class="label-text">@AppStrings.ImageConverter_Quality: <span id="ic-quality-value">90</span></span></label>
-                            <input type="range" id="ic-quality" min="1" max="100" value="90" class="range range-primary" />
+                    <div class="form-control w-full mt-4" id="ic-quality-container" hidden>
+                        <label class="label" for="ic-quality">
+                            <span class="label-text font-semibold">@AppStrings.ImageConverter_Quality</span>
+                            <span class="label-text-alt font-mono font-bold" id="ic-quality-value">90</span>
+                        </label>
+                        <input type="range" id="ic-quality" min="1" max="100" value="90" class="range range-primary range-sm" />
+                        <div class="w-full flex justify-between text-xs px-2 mt-1 opacity-50">
+                            <span>Low</span>
+                            <span>High</span>
                         </div>
+                    </div>
+
+                    <div class="card-actions mt-6">
+                        <button class="btn btn-primary w-full" id="ic-convert-btn" type="button" disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                            @AppStrings.ImageConverter_Convert
+                        </button>
+                    </div>
+
+                    <div class="alert alert-error shadow-lg text-sm mt-4 hidden" id="ic-error">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span>Error</span>
                     </div>
                 </div>
-
-                <div class="flex flex-wrap gap-2 mt-4">
-                    <button class="btn btn-primary" id="ic-convert-btn" type="button" disabled>@AppStrings.ImageConverter_Convert</button>
-                </div>
-
-                <div class="alert alert-error" id="ic-error" style="display: none;"></div>
             </div>
 
-            <div class="space-y-4" id="ic-output-section" hidden>
-                <div id="ic-preview-container" class="image-preview" style="text-align: center; margin-bottom: 1rem;">
-                    <!-- Preview image will be inserted here -->
-                </div>
-                
-                <div class="text-center font-bold mb-2">
-                    @AppStrings.ImageConverter_OutputSize <span id="ic-output-size"></span>
-                </div>
+            <div class="card bg-base-200 shadow-xl h-fit" id="ic-output-section" hidden>
+                <div class="card-body">
+                    <h2 class="card-title text-base opacity-70 mb-4">Output</h2>
+                    
+                    <div class="rounded-box border border-base-300 bg-base-100 p-4 flex items-center justify-center min-h-[200px] relative overflow-hidden bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAMUlEQVQ4T2NkYGAQYcAP3uCTZhw1gGGYhAGBZIA/nYDCgBDAm9BGDWAAJyRCgLaBCAAgXwixzAS0pgAAAABJRU5ErkJggg==')]">
+                        <div id="ic-preview-container" class="relative z-10 max-h-[400px]">
+                            <!-- Preview image inserted here -->
+                        </div>
+                    </div>
 
-                <div class="flex flex-wrap gap-2 mt-4" style="justify-content: center;">
-                     <button class="btn btn-primary" id="ic-download-btn" type="button">@AppStrings.ImageConverter_Download</button>
+                    <div class="stats shadow mt-4 w-full">
+                        <div class="stat place-items-center p-2">
+                            <div class="stat-title text-xs">Size</div>
+                            <div class="stat-value text-xl" id="ic-output-size">0 KB</div>
+                        </div>
+                    </div>
+
+                    <div class="card-actions mt-6">
+                         <button class="btn btn-success w-full text-white" id="ic-download-btn" type="button">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                             @AppStrings.ImageConverter_Download
+                         </button>
+                    </div>
                 </div>
             </div>
         </div>

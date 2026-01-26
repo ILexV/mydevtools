@@ -229,6 +229,9 @@
     const els = getElements();
     if (els) {
         updateQualityVisibility(els);
+        if (els.inputFile && els.inputFile.files && els.inputFile.files.length > 0) {
+            els.convertBtn.disabled = false;
+        }
     }
 
 })();

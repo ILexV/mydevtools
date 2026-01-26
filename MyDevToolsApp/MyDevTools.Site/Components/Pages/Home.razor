@@ -27,6 +27,26 @@
       <div>
         <h1 class="text-5xl font-bold">@AppStrings.AppName</h1>
         <p class="py-6 text-lg">@AppStrings.Home_Subtitle</p>
+        
+        
+        @* PWA Install Prompt - Subtle notification *@
+        <div id="pwa-install-prompt" class="alert shadow-md bg-base-200 border border-base-300" style="display: none;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-5 h-5 opacity-70">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <div class="text-sm">
+            <div class="font-medium">@AppStrings.PWA_InstallTitle</div>
+            <div class="text-xs opacity-70">@AppStrings.PWA_InstallDescription</div>
+          </div>
+          <div class="flex gap-2">
+            <button id="pwa-install-btn" class="btn btn-sm btn-primary">
+              @AppStrings.PWA_InstallButton
+            </button>
+            <button id="pwa-install-dismiss" class="btn btn-sm btn-ghost">
+              @AppStrings.PWA_InstallDismiss
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

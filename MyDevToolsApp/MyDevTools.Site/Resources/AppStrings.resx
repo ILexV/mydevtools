@@ -155,6 +155,35 @@
     <value>Utilities</value>
   </data>
   
+  <!-- PWA -->
+  <data name="PWA_InstallTitle" xml:space="preserve">
+    <value>Install MyDevTools</value>
+  </data>
+  <data name="PWA_InstallDescription" xml:space="preserve">
+    <value>Install this app for quick access and offline use</value>
+  </data>
+  <data name="PWA_InstallButton" xml:space="preserve">
+    <value>Install App</value>
+  </data>
+  <data name="PWA_InstallDismiss" xml:space="preserve">
+    <value>Not now</value>
+  </data>
+  <data name="PWA_UpdateAvailableTitle" xml:space="preserve">
+    <value>Update Available</value>
+  </data>
+  <data name="PWA_UpdateAvailableDescription" xml:space="preserve">
+    <value>A new version is available. Refresh to update.</value>
+  </data>
+  <data name="PWA_UpdateButton" xml:space="preserve">
+    <value>Update Now</value>
+  </data>
+  <data name="PWA_UpdateDismiss" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="PWA_Installed" xml:space="preserve">
+    <value>App installed successfully!</value>
+  </data>
+  
   <!-- Hash Calculator -->
   <data name="HashCalculator_Title" xml:space="preserve">
     <value>Hash Calculator</value>

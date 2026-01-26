@@ -103,6 +103,35 @@
     <value>Инструменты</value>
   </data>
   
+  <!-- PWA -->
+  <data name="PWA_InstallTitle" xml:space="preserve">
+    <value>Установить MyDevTools</value>
+  </data>
+  <data name="PWA_InstallDescription" xml:space="preserve">
+    <value>Установите приложение для быстрого доступа и работы офлайн</value>
+  </data>
+  <data name="PWA_InstallButton" xml:space="preserve">
+    <value>Установить</value>
+  </data>
+  <data name="PWA_InstallDismiss" xml:space="preserve">
+    <value>Не сейчас</value>
+  </data>
+  <data name="PWA_UpdateAvailableTitle" xml:space="preserve">
+    <value>Доступно обновление</value>
+  </data>
+  <data name="PWA_UpdateAvailableDescription" xml:space="preserve">
+    <value>Доступна новая версия. Обновите страницу.</value>
+  </data>
+  <data name="PWA_UpdateButton" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="PWA_UpdateDismiss" xml:space="preserve">
+    <value>Позже</value>
+  </data>
+  <data name="PWA_Installed" xml:space="preserve">
+    <value>Приложение успешно установлено!</value>
+  </data>
+  
   <data name="HashCalculator_Title" xml:space="preserve">
     <value>Калькулятор хэшей</value>
   </data>

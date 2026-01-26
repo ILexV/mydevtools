@@ -1,0 +1,77 @@
+{
+  "name": "MyDevTools - Privacy-First Developer Tools",
+  "short_name": "MyDevTools",
+  "description": "Privacy-first tools for developers. All processing happens in your browser.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "64x64",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/hero_logo.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/hero_logo.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "MyDevTools Home Screen"
+    }
+  ],
+  "categories": [
+    "development",
+    "utilities",
+    "productivity"
+  ],
+  "shortcuts": [
+    {
+      "name": "Hash Calculator",
+      "short_name": "Hash",
+      "description": "Calculate hashes",
+      "url": "/en/hash-calculator",
+      "icons": [
+        {
+          "src": "/favicon.png",
+          "sizes": "64x64"
+        }
+      ]
+    },
+    {
+      "name": "Base64 Encoder",
+      "short_name": "Base64",
+      "description": "Encode/Decode Base64",
+      "url": "/en/base64-encoder",
+      "icons": [
+        {
+          "src": "/favicon.png",
+          "sizes": "64x64"
+        }
+      ]
+    },
+    {
+      "name": "JSON Beautifier",
+      "short_name": "JSON",
+      "description": "Format JSON",
+      "url": "/en/json-beautifier",
+      "icons": [
+        {
+          "src": "/favicon.png",
+          "sizes": "64x64"
+        }
+      ]
+    }
+  ]
+}

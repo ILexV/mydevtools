@@ -5,6 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "prebuild": "node update-sw-version.js",
     "dev": "vite",
     "build": "vite build"
   },

@@ -115,15 +115,20 @@
         const els = getElements();
         if (!els) return;
 
-        const item = document.createElement('div');
-        item.className = 'history-item';
-        item.innerHTML = `
-            <span class="history-pass">${escapeHtml(password)}</span>
-            <button class="btn-icon btn-copy-history" title="Copy">📋</button>
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="font-mono text-base break-all align-middle py-2 history-pass">${escapeHtml(password)}</td>
+            <td class="text-right align-top py-2">
+                <button class="btn btn-ghost btn-xs btn-copy-history" title="Copy">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m2 4h6a2 2 0 012 2v6a2 2 0 01-2 2h-6a2 2 0 01-2-2v-6a2 2 0 012-2z" />
+                    </svg>
+                </button>
+            </td>
         `;
         
         // Add to top
-        els.historyList.insertBefore(item, els.historyList.firstChild);
+        els.historyList.insertBefore(row, els.historyList.firstChild);
 
         // Limit to 10
         while (els.historyList.children.length > 10) {
@@ -186,8 +191,14 @@
             const historyCopyBtn = target.closest('.btn-copy-history');
             if (historyCopyBtn) {
                 ev.preventDefault();
-                const pass = historyCopyBtn.parentElement.querySelector('.history-pass').textContent;
-                await copyToClipboard(historyCopyBtn, pass);
+                // Find closest tr, then find .history-pass
+                const tr = historyCopyBtn.closest('tr');
+                if (tr) {
+                    const passEl = tr.querySelector('.history-pass');
+                    if (passEl) {
+                        await copyToClipboard(historyCopyBtn, passEl.textContent);
+                    }
+                }
                 return;
             }
 

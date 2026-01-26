@@ -21,6 +21,7 @@
         const codeBtn = document.getElementById('md-code');
         const listBtn = document.getElementById('md-list');
         const clearBtn = document.getElementById('md-clear');
+        const syncScrollToggle = document.getElementById('md-sync-scroll');
 
         // Action buttons
         const copyHtmlBtn = document.getElementById('md-copy-html');
@@ -235,6 +236,39 @@ output.innerHTML +
         };
 
         if (downloadBtn) downloadBtn.onclick = downloadAsHTML;
+
+        // Sync Scroll Logic
+        let isSyncingLeft = false;
+        let isSyncingRight = false;
+
+        function handleInputScroll() {
+            if (!syncScrollToggle || !syncScrollToggle.checked) return;
+            if (isSyncingLeft) return;
+
+            isSyncingRight = true;
+            // Calculate percentage
+            const percentage = input.scrollTop / (input.scrollHeight - input.clientHeight);
+            // Apply to output
+            output.scrollTop = percentage * (output.scrollHeight - output.clientHeight);
+            
+            // Reset flag after a short delay
+            requestAnimationFrame(() => { isSyncingRight = false; });
+        }
+
+        function handleOutputScroll() {
+            if (!syncScrollToggle || !syncScrollToggle.checked) return;
+            if (isSyncingRight) return;
+
+            isSyncingLeft = true;
+            const percentage = output.scrollTop / (output.scrollHeight - output.clientHeight);
+            input.scrollTop = percentage * (input.scrollHeight - input.clientHeight);
+            
+            requestAnimationFrame(() => { isSyncingLeft = false; });
+        }
+
+        // Attach scroll listeners
+        input.onscroll = handleInputScroll;
+        output.onscroll = handleOutputScroll;
 
         // Initial render
         renderMarkdown();

@@ -1757,6 +1757,9 @@
   <data name="MarkdownPreview_Clear" xml:space="preserve">
     <value>Clear</value>
   </data>
+  <data name="MarkdownPreview_SyncScroll" xml:space="preserve">
+    <value>Sync Scroll</value>
+  </data>
   <data name="MarkdownPreview_CopyHTML" xml:space="preserve">
     <value>Copy HTML</value>
   </data>

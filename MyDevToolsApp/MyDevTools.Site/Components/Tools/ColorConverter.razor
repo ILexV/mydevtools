@@ -19,83 +19,94 @@
          data-fail="@AppStrings.ColorConverter_Fail">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Color Input Section -->
-            <div class="space-y-4">
-                <div class="color-input-container" style="display: flex; flex-direction: column; gap: 1rem;">
-                    <!-- Color Picker -->
-                    <div class="form-control w-full">
-                        <label class="label" for="color-picker"><span class="label-text font-semibold">@AppStrings.ColorConverter_ColorPicker</span></label>
-                        <div style="display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem;">
-                            <input type="color" id="color-picker" value="#3b82f6" 
-                                   style="width: 80px; height: 80px; cursor: pointer; border: 2px solid var(--border-color); border-radius: 8px;" />
-                            <div id="color-preview" style="flex: 1; height: 80px; border-radius: 8px; border: 2px solid var(--border-color); background: #3b82f6;"></div>
+            <div class="card bg-base-200 shadow-xl">
+                <div class="card-body">
+                    <div class="space-y-4">
+                        <!-- Color Picker -->
+                        <div class="form-control w-full">
+                            <label class="label" for="color-picker"><span class="label-text font-semibold">@AppStrings.ColorConverter_ColorPicker</span></label>
+                            <div class="flex items-center gap-4">
+                                <input type="color" id="color-picker" value="#3b82f6" 
+                                       class="w-24 h-16 cursor-pointer rounded-box border-base-300 shadow-sm p-1 bg-base-100" />
+                                <div id="color-preview" class="flex-1 h-16 rounded-box border border-base-300 shadow-inner bg-blue-500 transition-colors duration-200"></div>
+                            </div>
+                        </div>
+
+                        <!-- Format Selection -->
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="form-control col-span-1">
+                                <label class="label" for="input-format"><span class="label-text">Format</span></label>
+                                <select id="input-format" class="select select-bordered w-full">
+                                    <option value="hex">HEX</option>
+                                    <option value="rgb">RGB</option>
+                                    <option value="hsl">HSL</option>
+                                    <option value="cmyk">CMYK</option>
+                                </select>
+                            </div>
+
+                            <!-- Manual Input -->
+                            <div class="form-control col-span-2">
+                                <label class="label" for="color-input"><span class="label-text">@AppStrings.ColorConverter_ManualInput</span></label>
+                                <input type="text" id="color-input" placeholder="#3b82f6" class="input input-bordered w-full font-mono" />
+                            </div>
+                        </div>
+                        <p class="text-xs text-base-content/60 px-1">@AppStrings.ColorConverter_InputHint</p>
+
+                        <div class="flex flex-wrap gap-2 pt-2">
+                            <button class="btn btn-primary flex-1" id="convert-btn" type="button">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                @AppStrings.ColorConverter_Convert
+                            </button>
+                            <button class="btn btn-ghost" id="clear-btn" type="button">@AppStrings.ColorConverter_Clear</button>
+                        </div>
+
+                        <div class="alert alert-error shadow-lg text-sm mt-2 hidden" id="color-error">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span>Error!</span>
                         </div>
                     </div>
-
-                    <!-- Format Selection -->
-                    <div class="form-control w-full">
-                        <label class="label" for="input-format"><span class="label-text">@AppStrings.ColorConverter_InputFormat</span></label>
-                        <select id="input-format" class="select select-bordered w-full">
-                            <option value="hex">HEX</option>
-                            <option value="rgb">RGB</option>
-                            <option value="hsl">HSL</option>
-                            <option value="cmyk">CMYK</option>
-                        </select>
-                    </div>
-
-                    <!-- Manual Input -->
-                    <div class="form-control w-full">
-                        <label class="label" for="color-input"><span class="label-text">@AppStrings.ColorConverter_ManualInput</span></label>
-                        <input type="text" id="color-input" placeholder="#3b82f6" class="input input-bordered w-full" />
-                        <p class="tool-hint">@AppStrings.ColorConverter_InputHint</p>
-                    </div>
-
-                    <div class="flex flex-wrap gap-2">
-                        <button class="btn btn-primary" id="convert-btn" type="button">@AppStrings.ColorConverter_Convert</button>
-                        <button class="btn btn-secondary" id="clear-btn" type="button">@AppStrings.ColorConverter_Clear</button>
-                    </div>
-
-                    <div class="alert alert-error" id="color-error" style="display: none;"></div>
                 </div>
             </div>
 
             <!-- Output Section -->
-            <div class="space-y-4">
-                <label class="label"><span class="label-text font-semibold">@AppStrings.ColorConverter_ConvertedFormats</span></label>
-                
-                <div id="color-outputs" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                    <!-- HEX -->
-                    <div class="color-output-item">
-                        <label class="color-format-label">HEX</label>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <input type="text" id="output-hex" readonly style="flex: 1;" class="input input-bordered w-full" />
-                            <button class="btn btn-secondary btn-sm copy-btn" data-target="output-hex" type="button">@AppStrings.ColorConverter_Copy</button>
+            <div class="card bg-base-200 shadow-xl">
+                <div class="card-body">
+                    <h3 class="card-title text-base opacity-70 mb-4">@AppStrings.ColorConverter_ConvertedFormats</h3>
+                    <div class="space-y-4" id="color-outputs">
+                        <!-- HEX -->
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold text-xs uppercase text-base-content/70">HEX</span></label>
+                            <div class="join w-full">
+                                <input type="text" id="output-hex" readonly class="input input-bordered join-item w-full font-mono" />
+                                <button class="btn btn-neutral join-item copy-btn" data-target="output-hex" type="button">@AppStrings.ColorConverter_Copy</button>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- RGB -->
-                    <div class="color-output-item">
-                        <label class="color-format-label">RGB</label>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <input type="text" id="output-rgb" readonly style="flex: 1;" class="input input-bordered w-full" />
-                            <button class="btn btn-secondary btn-sm copy-btn" data-target="output-rgb" type="button">@AppStrings.ColorConverter_Copy</button>
+                        <!-- RGB -->
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold text-xs uppercase text-base-content/70">RGB</span></label>
+                            <div class="join w-full">
+                                <input type="text" id="output-rgb" readonly class="input input-bordered join-item w-full font-mono" />
+                                <button class="btn btn-neutral join-item copy-btn" data-target="output-rgb" type="button">@AppStrings.ColorConverter_Copy</button>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- HSL -->
-                    <div class="color-output-item">
-                        <label class="color-format-label">HSL</label>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <input type="text" id="output-hsl" readonly style="flex: 1;" class="input input-bordered w-full" />
-                            <button class="btn btn-secondary btn-sm copy-btn" data-target="output-hsl" type="button">@AppStrings.ColorConverter_Copy</button>
+                        <!-- HSL -->
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold text-xs uppercase text-base-content/70">HSL</span></label>
+                            <div class="join w-full">
+                                <input type="text" id="output-hsl" readonly class="input input-bordered join-item w-full font-mono" />
+                                <button class="btn btn-neutral join-item copy-btn" data-target="output-hsl" type="button">@AppStrings.ColorConverter_Copy</button>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- CMYK -->
-                    <div class="color-output-item">
-                        <label class="color-format-label">CMYK</label>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <input type="text" id="output-cmyk" readonly style="flex: 1;" class="input input-bordered w-full" />
-                            <button class="btn btn-secondary btn-sm copy-btn" data-target="output-cmyk" type="button">@AppStrings.ColorConverter_Copy</button>
+                        <!-- CMYK -->
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold text-xs uppercase text-base-content/70">CMYK</span></label>
+                            <div class="join w-full">
+                                <input type="text" id="output-cmyk" readonly class="input input-bordered join-item w-full font-mono" />
+                                <button class="btn btn-neutral join-item copy-btn" data-target="output-cmyk" type="button">@AppStrings.ColorConverter_Copy</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -111,70 +122,72 @@
         </div>
 
         <!-- Contrast Checker -->
-        <div style="margin-top: 2rem;">
-            <h3 style="margin-bottom: 1rem;">@AppStrings.ColorConverter_ContrastChecker</h3>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="space-y-4">
-                    <div style="display: flex; flex-direction: column; gap: 1rem;">
-                        <!-- Foreground Color -->
-                        <div class="form-control w-full">
-                            <label class="label" for="contrast-fg-color"><span class="label-text">@AppStrings.ColorConverter_ForegroundColor</span></label>
-                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
-                                <input type="color" id="contrast-fg-color" value="#000000" 
-                                       style="width: 60px; height: 40px; cursor: pointer; border: 2px solid var(--border-color); border-radius: 4px;" />
-                                <input type="text" id="contrast-fg-input" value="#000000" style="flex: 1;" class="input input-bordered w-full" />
+        <div class="card bg-base-200 shadow-xl mt-8">
+            <div class="card-body">
+                <h3 class="card-title mb-4">@AppStrings.ColorConverter_ContrastChecker</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <!-- Foreground Color -->
+                            <div class="form-control">
+                                <label class="label" for="contrast-fg-color"><span class="label-text">@AppStrings.ColorConverter_ForegroundColor</span></label>
+                                <div class="flex gap-2">
+                                    <input type="color" id="contrast-fg-color" value="#000000" 
+                                           class="w-12 h-12 rounded-lg cursor-pointer border border-base-300 p-0 bg-base-100 shadow-sm" />
+                                    <input type="text" id="contrast-fg-input" value="#000000" class="input input-bordered w-full min-w-0 font-mono" />
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Background Color -->
-                        <div class="form-control w-full">
-                            <label class="label" for="contrast-bg-color"><span class="label-text">@AppStrings.ColorConverter_BackgroundColor</span></label>
-                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
-                                <input type="color" id="contrast-bg-color" value="#ffffff" 
-                                       style="width: 60px; height: 40px; cursor: pointer; border: 2px solid var(--border-color); border-radius: 4px;" />
-                                <input type="text" id="contrast-bg-input" value="#ffffff" style="flex: 1;" class="input input-bordered w-full" />
+                            <!-- Background Color -->
+                            <div class="form-control">
+                                <label class="label" for="contrast-bg-color"><span class="label-text">@AppStrings.ColorConverter_BackgroundColor</span></label>
+                                <div class="flex gap-2">
+                                    <input type="color" id="contrast-bg-color" value="#ffffff" 
+                                           class="w-12 h-12 rounded-lg cursor-pointer border border-base-300 p-0 bg-base-100 shadow-sm" />
+                                    <input type="text" id="contrast-bg-input" value="#ffffff" class="input input-bordered w-full min-w-0 font-mono" />
+                                </div>
                             </div>
                         </div>
 
                         <!-- Preview -->
                         <div class="form-control w-full">
                             <label class="label"><span class="label-text">@AppStrings.ColorConverter_PreviewText</span></label>
-                            <div id="contrast-preview" style="margin-top: 0.5rem; padding: 2rem; border-radius: 8px; text-align: center;">
-                                <p style="font-size: 1rem; margin: 0; font-weight: normal;">The quick brown fox jumps over the lazy dog</p>
-                                <p style="font-size: 1.5rem; margin: 1rem 0 0 0; font-weight: bold;">Large Text Example</p>
+                            <div id="contrast-preview" class="rounded-box p-8 text-center shadow-inner border border-base-300 transition-colors duration-200">
+                                <p class="text-base font-normal m-0 opacity-90">The quick brown fox jumps over the lazy dog</p>
+                                <p class="text-2xl font-bold mt-4 opacity-100">Large Text Example</p>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="space-y-4">
-                    <!-- Contrast Ratio -->
-                    <div style="margin-bottom: 1.5rem;">
-                        <label class="label"><span class="label-text font-semibold">@AppStrings.ColorConverter_ContrastRatio</span></label>
-                        <div id="contrast-ratio" style="font-size: 2rem; font-weight: bold; color: var(--primary-color); margin-top: 0.5rem;">
-                            21:1
+                    <div class="space-y-6">
+                        <!-- Contrast Ratio -->
+                        <div class="text-center p-4 bg-base-100 rounded-box border border-base-300 shadow-sm">
+                            <label class="label justify-center pb-0"><span class="label-text font-semibold uppercase tracking-wider text-xs">@AppStrings.ColorConverter_ContrastRatio</span></label>
+                            <div id="contrast-ratio" class="text-5xl font-black font-mono my-2 text-primary">
+                                21:1
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- WCAG Compliance -->
-                    <div>
-                        <label style="margin-bottom: 0.75rem; display: block;" class="label-text font-semibold">@AppStrings.ColorConverter_WCAGCompliance</label>
-                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                            <div class="wcag-item">
-                                <span class="wcag-label">@AppStrings.ColorConverter_WCAG_AA_Normal</span>
-                                <span class="wcag-badge wcag-pass" id="wcag-aa-normal">@AppStrings.ColorConverter_Pass</span>
-                            </div>
-                            <div class="wcag-item">
-                                <span class="wcag-label">@AppStrings.ColorConverter_WCAG_AA_Large</span>
-                                <span class="wcag-badge wcag-pass" id="wcag-aa-large">@AppStrings.ColorConverter_Pass</span>
-                            </div>
-                            <div class="wcag-item">
-                                <span class="wcag-label">@AppStrings.ColorConverter_WCAG_AAA_Normal</span>
-                                <span class="wcag-badge wcag-pass" id="wcag-aaa-normal">@AppStrings.ColorConverter_Pass</span>
-                            </div>
-                            <div class="wcag-item">
-                                <span class="wcag-label">@AppStrings.ColorConverter_WCAG_AAA_Large</span>
-                                <span class="wcag-badge wcag-pass" id="wcag-aaa-large">@AppStrings.ColorConverter_Pass</span>
+                        <!-- WCAG Compliance -->
+                        <div>
+                            <label class="label"><span class="label-text font-semibold">@AppStrings.ColorConverter_WCAGCompliance</span></label>
+                            <div class="grid grid-cols-1 gap-3">
+                                <div class="flex justify-between items-center p-3 bg-base-100 rounded-lg border border-base-300">
+                                    <span class="wcag-label text-sm font-medium">@AppStrings.ColorConverter_WCAG_AA_Normal</span>
+                                    <span class="badge" id="wcag-aa-normal">@AppStrings.ColorConverter_Pass</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-base-100 rounded-lg border border-base-300">
+                                    <span class="wcag-label text-sm font-medium">@AppStrings.ColorConverter_WCAG_AA_Large</span>
+                                    <span class="badge" id="wcag-aa-large">@AppStrings.ColorConverter_Pass</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-base-100 rounded-lg border border-base-300">
+                                    <span class="wcag-label text-sm font-medium">@AppStrings.ColorConverter_WCAG_AAA_Normal</span>
+                                    <span class="badge" id="wcag-aaa-normal">@AppStrings.ColorConverter_Pass</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-base-100 rounded-lg border border-base-300">
+                                    <span class="wcag-label text-sm font-medium">@AppStrings.ColorConverter_WCAG_AAA_Large</span>
+                                    <span class="badge" id="wcag-aaa-large">@AppStrings.ColorConverter_Pass</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -516,10 +529,10 @@
         
         if (passes) {
             element.textContent = passText;
-            element.className = 'wcag-badge wcag-pass';
+            element.className = 'badge badge-success font-bold text-white';
         } else {
             element.textContent = failText;
-            element.className = 'wcag-badge wcag-fail';
+            element.className = 'badge badge-error font-bold text-white';
         }
     }
 
@@ -556,70 +569,25 @@
 </script>
 
 <style>
-    .color-output-item {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
-    .color-format-label {
-        font-weight: 600;
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-    }
-
-    .btn-sm {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.875rem;
-        white-space: nowrap;
-    }
-
-    .tool-hint {
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-        margin-top: 0.25rem;
-        margin-bottom: 0;
-    }
-
+    /* Custom styling for color input to match Tailwind rounded classes */
     #color-picker::-webkit-color-swatch-wrapper {
         padding: 0;
     }
 
     #color-picker::-webkit-color-swatch {
         border: none;
-        border-radius: 6px;
+        border-radius: var(--rounded-box, 1rem);
     }
-
-    .wcag-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.5rem;
-        background: var(--bg-secondary);
-        border-radius: 4px;
+    
+    #contrast-fg-color::-webkit-color-swatch-wrapper,
+    #contrast-bg-color::-webkit-color-swatch-wrapper {
+        padding: 0;
     }
-
-    .wcag-label {
-        font-size: 0.875rem;
-        color: var(--text-primary);
-    }
-
-    .wcag-badge {
-        padding: 0.25rem 0.75rem;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-
-    .wcag-pass {
-        background: #10b981;
-        color: white;
-    }
-
-    .wcag-fail {
-        background: #ef4444;
-        color: white;
+    
+    #contrast-fg-color::-webkit-color-swatch,
+    #contrast-bg-color::-webkit-color-swatch {
+        border: none;
+        border-radius: var(--rounded-btn, 0.5rem);
     }
 </style>
 

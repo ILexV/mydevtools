@@ -1,7 +1,4 @@
-/* global document, window */
-
 (function () {
-    const initializedRoots = new WeakSet();
     let wasmModulePromise = null;
 
     async function getWasm() {
@@ -19,24 +16,15 @@
         if (!root) return null;
 
         const inputText = document.getElementById('tcc-input-text');
-        const copyBtn = document.getElementById('tcc-copy-btn');
-        const clearBtn = document.getElementById('tcc-clear-btn');
-
-        if (!inputText) return null;
-
-        return { root, inputText, copyBtn, clearBtn };
-    }
-
-    function getStrings(root) {
-        return {
-            copied: root.dataset.copied || 'Copied!',
-            error: root.dataset.error || 'Error'
-        };
+        
+        // Buttons can be retrieved dynamically
+        
+        return { root, inputText };
     }
 
     async function convertCase(caseType) {
         const els = getElements();
-        if (!els) return;
+        if (!els || !els.inputText) return;
 
         const text = els.inputText.value;
         if (!text) return;
@@ -50,21 +38,33 @@
         }
     }
 
-    async function handleCopy() {
+    async function handleCopy(btn) {
         const els = getElements();
-        if (!els || !els.copyBtn) return;
+        if (!els || !els.inputText) return;
 
         const text = els.inputText.value;
         if (!text) return;
 
-        const strings = getStrings(els.root);
         try {
             await navigator.clipboard.writeText(text);
-            const original = els.copyBtn.innerHTML;
-            els.copyBtn.textContent = strings.copied;
+            
+            // Visual feedback
+            const originalContent = btn.innerHTML;
+            const originalClass = btn.className;
+            
+            btn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1 text-success">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                Copied!
+            `;
+            btn.classList.add('text-success');
+            
             setTimeout(() => {
-                els.copyBtn.innerHTML = original;
+                btn.innerHTML = originalContent;
+                btn.className = originalClass;
             }, 2000);
+
         } catch (err) {
             console.error('Copy error:', err);
         }
@@ -72,55 +72,47 @@
 
     function handleClear() {
         const els = getElements();
-        if (!els) return;
+        if (!els || !els.inputText) return;
         els.inputText.value = '';
     }
 
-    function bindHandlers() {
-        if (window.__textCaseConverterHandlersBound) return;
-        window.__textCaseConverterHandlersBound = true;
+    function handleButtonClick(ev) {
+        const target = ev.target;
+        if (!target) return;
 
-        document.addEventListener('click', (ev) => {
-            const target = ev.target;
-            if (!(target instanceof Element)) return;
+        // Conversion Buttons
+        const actionBtn = target.closest('button[data-case-type]');
+        if (actionBtn) {
+            ev.preventDefault();
+            const caseType = actionBtn.dataset.caseType;
+            void convertCase(caseType);
+            return;
+        }
 
-            const actionBtn = target.closest('button[data-case-type]');
-            if (actionBtn) {
-                ev.preventDefault();
-                const caseType = actionBtn.dataset.caseType;
-                void convertCase(caseType);
-                return;
-            }
+        // Copy Button
+        const copyBtn = target.closest('#tcc-copy-btn');
+        if (copyBtn) {
+            ev.preventDefault();
+            void handleCopy(copyBtn);
+            return;
+        }
 
-            if (target.closest('#tcc-copy-btn')) {
-                ev.preventDefault();
-                void handleCopy();
-                return;
-            }
-
-            if (target.closest('#tcc-clear-btn')) {
-                ev.preventDefault();
-                handleClear();
-                return;
-            }
-        });
+        // Clear Button
+        const clearBtn = target.closest('#tcc-clear-btn');
+        if (clearBtn) {
+            ev.preventDefault();
+            handleClear();
+            return;
+        }
     }
-
-    bindHandlers();
 
     function init() {
-        const els = getElements();
-        if (!els || initializedRoots.has(els.root)) return;
-        initializedRoots.add(els.root);
+        // Remove existing listener to prevent duplicates if init is called multiple times
+        document.removeEventListener('click', handleButtonClick);
+        document.addEventListener('click', handleButtonClick);
     }
 
-    init();
+    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('enhancedload', init);
 
-    document.addEventListener('blazor:enhancedload', init);
-
-    // Re-init on navigation (fallback)
-    try {
-        const observer = new MutationObserver(() => init());
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-    } catch { /* ignore */ }
 })();

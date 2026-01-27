@@ -217,7 +217,7 @@
     <value>下载</value>
   </data>
   <data name="ImageConverter_TargetFormatLabel" xml:space="preserve">
-    <value>Target Format</value>
+    <value>目标格式</value>
   </data>
   <data name="HashCalculator_AlgorithmsTitle" xml:space="preserve">
     <value>算法</value>
@@ -364,73 +364,73 @@
     <value>输入文本（用于编码）或 Hex 字符串（用于解码）...</value>
   </data>
   <data name="HexEncoder_InputFileLabel" xml:space="preserve">
-    <value>File (optional)</value>
+    <value>文件（可选）</value>
   </data>
   <data name="HexEncoder_FileHint" xml:space="preserve">
-    <value>If a file is selected, the text input is ignored.</value>
+    <value>如果选择了文件，文本输入将被忽略。</value>
   </data>
   <data name="HexEncoder_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>正在处理文件...</value>
   </data>
   <data name="HexEncoder_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>取消</value>
   </data>
   <data name="HexEncoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>文本字符集</value>
   </data>
   <data name="HexEncoder_CaseLabel" xml:space="preserve">
-    <value>Hex case</value>
+    <value>Hex 大小写</value>
   </data>
   <data name="HexEncoder_CaseLower" xml:space="preserve">
-    <value>lowercase</value>
+    <value>小写</value>
   </data>
   <data name="HexEncoder_CaseUpper" xml:space="preserve">
-    <value>UPPERCASE</value>
+    <value>大写</value>
   </data>
   <data name="HexEncoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Decode options</value>
+    <value>解码选项</value>
   </data>
   <data name="HexEncoder_IgnoreWhitespace" xml:space="preserve">
-    <value>Ignore whitespace</value>
+    <value>忽略空白字符</value>
   </data>
   <data name="HexEncoder_AllowSeparators" xml:space="preserve">
-    <value>Allow separators (: and -)</value>
+    <value>允许分隔符(: 和 -)</value>
   </data>
   <data name="HexEncoder_Allow0x" xml:space="preserve">
-    <value>Allow 0x prefix</value>
+    <value>允许 0x 前缀</value>
   </data>
   <data name="HexEncoder_OutputModeLabel" xml:space="preserve">
-    <value>File output</value>
+    <value>文件输出</value>
   </data>
   <data name="HexEncoder_OutputModePreview" xml:space="preserve">
-    <value>Preview in output (download full)</value>
+    <value>在输出中预览（下载完整文件）</value>
   </data>
   <data name="HexEncoder_OutputModeFull" xml:space="preserve">
-    <value>Render full output (may be slow)</value>
+    <value>渲染完整输出（可能较慢）</value>
   </data>
   <data name="HexEncoder_ActionEncode" xml:space="preserve">
-    <value>Encode</value>
+    <value>编码</value>
   </data>
   <data name="HexEncoder_ActionDecode" xml:space="preserve">
-    <value>Decode</value>
+    <value>解码</value>
   </data>
   <data name="HexEncoder_ActionSwap" xml:space="preserve">
-    <value>Swap</value>
+    <value>交换</value>
   </data>
   <data name="HexEncoder_ActionClear" xml:space="preserve">
-    <value>Clear</value>
+    <value>清除</value>
   </data>
   <data name="HexEncoder_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>输出</value>
   </data>
   <data name="HexEncoder_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>复制</value>
   </data>
   <data name="HexEncoder_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>已复制！</value>
   </data>
   <data name="HexEncoder_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>下载</value>
   </data>
   <data name="Base64Encoder_Title" xml:space="preserve">
     <value>Base64 编码 / 解码</value>
@@ -457,103 +457,103 @@
     <value>输入（文本）</value>
   </data>
   <data name="Base64Encoder_InputTextPlaceholder" xml:space="preserve">
-    <value>Enter text or Base64...</value>
+    <value>输入文本或 Base64...</value>
   </data>
   <data name="Base64Encoder_InputFileLabel" xml:space="preserve">
-    <value>Input file</value>
+    <value>输入文件</value>
   </data>
   <data name="Base64Encoder_FileHint" xml:space="preserve">
-    <value>If a file is selected, it will be used instead of the text input.</value>
+    <value>如果选择了文件，将使用文件而非文本输入。</value>
   </data>
   <data name="Base64Encoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>文本字符集</value>
   </data>
   <data name="Base64Encoder_AlphabetLabel" xml:space="preserve">
-    <value>Alphabet</value>
+    <value>字母表</value>
   </data>
   <data name="Base64Encoder_AlphabetStandard" xml:space="preserve">
-    <value>Standard (+/)</value>
+    <value>标准 (+/)</value>
   </data>
   <data name="Base64Encoder_AlphabetUrlSafe" xml:space="preserve">
-    <value>URL-safe (-_)</value>
+    <value>URL 安全 (-_)</value>
   </data>
   <data name="Base64Encoder_PaddingLabel" xml:space="preserve">
-    <value>Padding</value>
+    <value>填充</value>
   </data>
   <data name="Base64Encoder_PaddingRequired" xml:space="preserve">
-    <value>Required</value>
+    <value>必需</value>
   </data>
   <data name="Base64Encoder_PaddingOptional" xml:space="preserve">
-    <value>Optional</value>
+    <value>可选</value>
   </data>
   <data name="Base64Encoder_PaddingNone" xml:space="preserve">
-    <value>No padding</value>
+    <value>无填充</value>
   </data>
   <data name="Base64Encoder_LineWrapLabel" xml:space="preserve">
-    <value>Line wrap</value>
+    <value>换行</value>
   </data>
   <data name="Base64Encoder_LineWrapNone" xml:space="preserve">
-    <value>None</value>
+    <value>无</value>
   </data>
   <data name="Base64Encoder_LineWrap76" xml:space="preserve">
-    <value>76 chars</value>
+    <value>76 字符</value>
   </data>
   <data name="Base64Encoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Decode options</value>
+    <value>解码选项</value>
   </data>
   <data name="Base64Encoder_AllowWhitespace" xml:space="preserve">
-    <value>Allow whitespace/newlines</value>
+    <value>允许空白字符/换行</value>
   </data>
   <data name="Base64Encoder_OutputModeLabel" xml:space="preserve">
-    <value>File output</value>
+    <value>文件输出</value>
   </data>
   <data name="Base64Encoder_OutputModePreview" xml:space="preserve">
-    <value>Preview in output (download full)</value>
+    <value>在输出中预览（下载完整文件）</value>
   </data>
   <data name="Base64Encoder_OutputModeFull" xml:space="preserve">
-    <value>Render full output (may be slow)</value>
+    <value>渲染完整输出（可能较慢）</value>
   </data>
   <data name="Base64Encoder_ActionEncode" xml:space="preserve">
-    <value>Encode</value>
+    <value>编码</value>
   </data>
   <data name="Base64Encoder_ActionDecode" xml:space="preserve">
-    <value>Decode</value>
+    <value>解码</value>
   </data>
   <data name="Base64Encoder_ActionSwap" xml:space="preserve">
-    <value>Swap</value>
+    <value>交换</value>
   </data>
   <data name="Base64Encoder_ActionClear" xml:space="preserve">
-    <value>Clear</value>
+    <value>清除</value>
   </data>
   <data name="Base64Encoder_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>输出</value>
   </data>
   <data name="Base64Encoder_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>复制</value>
   </data>
   <data name="Base64Encoder_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>已复制！</value>
   </data>
   <data name="Base64Encoder_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>下载</value>
   </data>
   <data name="Base64Encoder_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>正在处理文件...</value>
   </data>
   <data name="Base64Encoder_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>取消</value>
   </data>
   <data name="Nav_Base32Encoder" xml:space="preserve">
     <value>Base32 编码器</value>
   </data>
   <data name="Base32Encoder_Title" xml:space="preserve">
-    <value>Base32 Encoder / Decoder</value>
+    <value>Base32 编码器 / 解码器</value>
   </data>
   <data name="Base32Encoder_Description" xml:space="preserve">
-    <value>Encode and decode Base32 for text and files — all in your browser.</value>
+    <value>为文本和文件进行 Base32 编码和解码 — 全部在您的浏览器中。</value>
   </data>
   <data name="Base32Encoder_OtherFormats" xml:space="preserve">
-    <value>Other formats:</value>
+    <value>其他格式：</value>
   </data>
   <data name="Base32Encoder_LinkHex" xml:space="preserve">
     <value>Hex</value>
@@ -568,22 +568,22 @@
     <value>URL</value>
   </data>
   <data name="Base32Encoder_InputTextLabel" xml:space="preserve">
-    <value>Input (text)</value>
+    <value>输入（文本）</value>
   </data>
   <data name="Base32Encoder_InputTextPlaceholder" xml:space="preserve">
-    <value>Enter text or Base32...</value>
+    <value>输入文本或 Base32...</value>
   </data>
   <data name="Base32Encoder_InputFileLabel" xml:space="preserve">
-    <value>Input file</value>
+    <value>输入文件</value>
   </data>
   <data name="Base32Encoder_FileHint" xml:space="preserve">
-    <value>If a file is selected, it will be used instead of the text input.</value>
+    <value>如果选择了文件，将使用文件而非文本输入。</value>
   </data>
   <data name="Base32Encoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>文本字符集</value>
   </data>
   <data name="Base32Encoder_AlphabetLabel" xml:space="preserve">
-    <value>Alphabet</value>
+    <value>字母表</value>
   </data>
   <data name="Base32Encoder_AlphabetRfc4648" xml:space="preserve">
     <value>RFC 4648 (A-Z2-7)</value>
@@ -595,85 +595,85 @@
     <value>z-base-32</value>
   </data>
   <data name="Base32Encoder_PaddingLabel" xml:space="preserve">
-    <value>Padding</value>
+    <value>填充</value>
   </data>
   <data name="Base32Encoder_PaddingRequired" xml:space="preserve">
-    <value>Required</value>
+    <value>必需</value>
   </data>
   <data name="Base32Encoder_PaddingOptional" xml:space="preserve">
-    <value>Optional</value>
+    <value>可选</value>
   </data>
   <data name="Base32Encoder_PaddingNone" xml:space="preserve">
-    <value>No padding</value>
+    <value>无填充</value>
   </data>
   <data name="Base32Encoder_CaseLabel" xml:space="preserve">
-    <value>Letter case</value>
+    <value>字母大小写</value>
   </data>
   <data name="Base32Encoder_CaseAuto" xml:space="preserve">
-    <value>Auto</value>
+    <value>自动</value>
   </data>
   <data name="Base32Encoder_CaseUpper" xml:space="preserve">
-    <value>Uppercase</value>
+    <value>大写</value>
   </data>
   <data name="Base32Encoder_CaseLower" xml:space="preserve">
-    <value>Lowercase</value>
+    <value>小写</value>
   </data>
   <data name="Base32Encoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Decode options</value>
+    <value>解码选项</value>
   </data>
   <data name="Base32Encoder_AllowWhitespace" xml:space="preserve">
-    <value>Allow whitespace/newlines</value>
+    <value>允许空白字符/换行</value>
   </data>
   <data name="Base32Encoder_OutputModeLabel" xml:space="preserve">
-    <value>File output</value>
+    <value>文件输出</value>
   </data>
   <data name="Base32Encoder_OutputModePreview" xml:space="preserve">
-    <value>Preview in output (download full)</value>
+    <value>在输出中预览（下载完整文件）</value>
   </data>
   <data name="Base32Encoder_OutputModeFull" xml:space="preserve">
-    <value>Render full output (may be slow)</value>
+    <value>渲染完整输出（可能较慢）</value>
   </data>
   <data name="Base32Encoder_ActionEncode" xml:space="preserve">
-    <value>Encode</value>
+    <value>编码</value>
   </data>
   <data name="Base32Encoder_ActionDecode" xml:space="preserve">
-    <value>Decode</value>
+    <value>解码</value>
   </data>
   <data name="Base32Encoder_ActionSwap" xml:space="preserve">
-    <value>Swap</value>
+    <value>交换</value>
   </data>
   <data name="Base32Encoder_ActionClear" xml:space="preserve">
-    <value>Clear</value>
+    <value>清除</value>
   </data>
   <data name="Base32Encoder_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>输出</value>
   </data>
   <data name="Base32Encoder_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>复制</value>
   </data>
   <data name="Base32Encoder_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>已复制！</value>
   </data>
   <data name="Base32Encoder_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>下载</value>
   </data>
   <data name="Base32Encoder_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>正在处理文件...</value>
   </data>
   <data name="Base32Encoder_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>取消</value>
   </data>
   <data name="Nav_Base58Encoder" xml:space="preserve">
     <value>Base58 编码器</value>
   </data>
   <data name="Base58Encoder_Title" xml:space="preserve">
-    <value>Base58 Encoder / Decoder</value>
+    <value>Base58 编码器 / 解码器</value>
   </data>
   <data name="Base58Encoder_Description" xml:space="preserve">
-    <value>Encode and decode Base58 for text and files — all in your browser.</value>
+    <value>为文本和文件进行 Base58 编码和解码 — 全部在您的浏览器中。</value>
   </data>
   <data name="Base58Encoder_OtherFormats" xml:space="preserve">
-    <value>Other formats:</value>
+    <value>其他格式：</value>
   </data>
   <data name="Base58Encoder_LinkHex" xml:space="preserve">
     <value>Hex</value>
@@ -688,22 +688,22 @@
     <value>URL</value>
   </data>
   <data name="Base58Encoder_InputTextLabel" xml:space="preserve">
-    <value>Input (text)</value>
+    <value>输入（文本）</value>
   </data>
   <data name="Base58Encoder_InputTextPlaceholder" xml:space="preserve">
-    <value>Enter text or Base58...</value>
+    <value>输入文本或 Base58...</value>
   </data>
   <data name="Base58Encoder_InputFileLabel" xml:space="preserve">
-    <value>Input file</value>
+    <value>输入文件</value>
   </data>
   <data name="Base58Encoder_FileHint" xml:space="preserve">
-    <value>If a file is selected, it will be used instead of the text input.</value>
+    <value>如果选择了文件，将使用文件而非文本输入。</value>
   </data>
   <data name="Base58Encoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>文本字符集</value>
   </data>
   <data name="Base58Encoder_AlphabetLabel" xml:space="preserve">
-    <value>Alphabet</value>
+    <value>字母表</value>
   </data>
   <data name="Base58Encoder_AlphabetBitcoin" xml:space="preserve">
     <value>Bitcoin (Base58)</value>
@@ -715,223 +715,223 @@
     <value>Ripple</value>
   </data>
   <data name="Base58Encoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Decode options</value>
+    <value>解码选项</value>
   </data>
   <data name="Base58Encoder_AllowWhitespace" xml:space="preserve">
-    <value>Allow whitespace/newlines</value>
+    <value>允许空白字符/换行</value>
   </data>
   <data name="Base58Encoder_OutputModeLabel" xml:space="preserve">
-    <value>File output</value>
+    <value>文件输出</value>
   </data>
   <data name="Base58Encoder_OutputModePreview" xml:space="preserve">
-    <value>Preview in output (download full)</value>
+    <value>在输出中预览（下载完整文件）</value>
   </data>
   <data name="Base58Encoder_OutputModeFull" xml:space="preserve">
-    <value>Render full output (may be slow)</value>
+    <value>渲染完整输出（可能较慢）</value>
   </data>
   <data name="Base58Encoder_ActionEncode" xml:space="preserve">
-    <value>Encode</value>
+    <value>编码</value>
   </data>
   <data name="Base58Encoder_ActionDecode" xml:space="preserve">
-    <value>Decode</value>
+    <value>解码</value>
   </data>
   <data name="Base58Encoder_ActionSwap" xml:space="preserve">
-    <value>Swap</value>
+    <value>交换</value>
   </data>
   <data name="Base58Encoder_ActionClear" xml:space="preserve">
-    <value>Clear</value>
+    <value>清除</value>
   </data>
   <data name="Base58Encoder_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>输出</value>
   </data>
   <data name="Base58Encoder_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>复制</value>
   </data>
   <data name="Base58Encoder_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>已复制！</value>
   </data>
   <data name="Base58Encoder_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>下载</value>
   </data>
   <data name="Base58Encoder_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>正在处理文件...</value>
   </data>
   <data name="Base58Encoder_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>取消</value>
   </data>
   <data name="Base58Encoder_FileSizeLimitEncode" xml:space="preserve">
-    <value>Base58 encoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.</value>
+    <value>由于算法复杂性，Base58 编码限制为 {0}。您的文件大小为 {1}。对于较大的文件，请使用 Base64 或 Hex 编码。</value>
   </data>
   <data name="Base58Encoder_FileSizeLimitDecode" xml:space="preserve">
-    <value>Base58 decoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.</value>
+    <value>由于算法复杂性，Base58 解码限制为 {0}。您的文件大小为 {1}。对于较大的文件，请使用 Base64 或 Hex 编码。</value>
   </data>
   <data name="OpenSsh_Title" xml:space="preserve">
-    <value>OpenSSH Keys</value>
+    <value>OpenSSH 密钥</value>
   </data>
   <data name="OpenSsh_Description" xml:space="preserve">
-    <value>Generate, import, and convert OpenSSH keys in your browser.</value>
+    <value>在您的浏览器中生成、导入和转换 OpenSSH 密钥。</value>
   </data>
   <data name="OpenSsh_GenerateSectionTitle" xml:space="preserve">
-    <value>Generate</value>
+    <value>生成</value>
   </data>
   <data name="OpenSsh_AlgorithmLabel" xml:space="preserve">
-    <value>Algorithm</value>
+    <value>算法</value>
   </data>
   <data name="OpenSsh_KeySizeLabel" xml:space="preserve">
-    <value>Key size</value>
+    <value>密钥大小</value>
   </data>
   <data name="OpenSsh_PassphraseLabel" xml:space="preserve">
-    <value>Passphrase (optional)</value>
+    <value>密码短语（可选）</value>
   </data>
   <data name="OpenSsh_GenerateButton" xml:space="preserve">
-    <value>Generate keys</value>
+    <value>生成密钥</value>
   </data>
   <data name="OpenSsh_ImportSectionTitle" xml:space="preserve">
-    <value>Import</value>
+    <value>导入</value>
   </data>
   <data name="OpenSsh_ImportLabel" xml:space="preserve">
-    <value>Paste OpenSSH or PKCS#8 key</value>
+    <value>粘贴 OpenSSH 或 PKCS#8 密钥</value>
   </data>
   <data name="OpenSsh_ImportPlaceholder" xml:space="preserve">
-    <value>Paste OpenSSH public/private key or PKCS#8 PEM here...</value>
+    <value>在此处粘贴 OpenSSH 公钥/私钥或 PKCS#8 PEM...</value>
   </data>
   <data name="OpenSsh_ImportFileLabel" xml:space="preserve">
-    <value>Key file</value>
+    <value>密钥文件</value>
   </data>
   <data name="OpenSsh_ImportFileHint" xml:space="preserve">
-    <value>Supports OpenSSH public/private and PKCS#8 PEM files.</value>
+    <value>支持 OpenSSH 公钥/私钥和 PKCS#8 PEM 文件。</value>
   </data>
   <data name="OpenSsh_ImportButton" xml:space="preserve">
-    <value>Import</value>
+    <value>导入</value>
   </data>
   <data name="OpenSsh_ConvertSectionTitle" xml:space="preserve">
-    <value>Convert</value>
+    <value>转换</value>
   </data>
   <data name="OpenSsh_ConvertButton" xml:space="preserve">
-    <value>Convert</value>
+    <value>转换</value>
   </data>
   <data name="OpenSsh_PublicKeyLabel" xml:space="preserve">
-    <value>Public key</value>
+    <value>公钥</value>
   </data>
   <data name="OpenSsh_PrivateKeyLabel" xml:space="preserve">
-    <value>Private key</value>
+    <value>私钥</value>
   </data>
   <data name="OpenSsh_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>复制</value>
   </data>
   <data name="OpenSsh_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>已复制！</value>
   </data>
   <data name="OpenSsh_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>下载</value>
   </data>
   <data name="OpenSsh_WarningsTitle" xml:space="preserve">
-    <value>Warnings</value>
+    <value>警告</value>
   </data>
   <data name="X509_Title" xml:space="preserve">
-    <value>X.509 Certificates</value>
+    <value>X.509 证书</value>
   </data>
   <data name="X509_Description" xml:space="preserve">
-    <value>Create self-signed certificates, CSRs, and parse PEM/DER.</value>
+    <value>创建自签名证书、CSR 并解析 PEM/DER。</value>
   </data>
   <data name="X509_SelfSignedSectionTitle" xml:space="preserve">
-    <value>Self-signed</value>
+    <value>自签名</value>
   </data>
   <data name="X509_SubjectLabel" xml:space="preserve">
-    <value>Subject (CN)</value>
+    <value>主题 (CN)</value>
   </data>
   <data name="X509_ValidityDaysLabel" xml:space="preserve">
-    <value>Validity (days)</value>
+    <value>有效期（天）</value>
   </data>
   <data name="X509_GenerateSelfSigned" xml:space="preserve">
-    <value>Generate certificate</value>
+    <value>生成证书</value>
   </data>
   <data name="X509_CsrSectionTitle" xml:space="preserve">
     <value>CSR</value>
   </data>
   <data name="X509_GenerateCsr" xml:space="preserve">
-    <value>Generate CSR</value>
+    <value>生成 CSR</value>
   </data>
   <data name="X509_ParseSectionTitle" xml:space="preserve">
-    <value>Parse</value>
+    <value>解析</value>
   </data>
   <data name="X509_ParseLabel" xml:space="preserve">
-    <value>Paste PEM/DER</value>
+    <value>粘贴 PEM/DER</value>
   </data>
   <data name="X509_ParsePlaceholder" xml:space="preserve">
-    <value>Paste certificate, CSR, or key (PEM/DER) here...</value>
+    <value>在此处粘贴证书、CSR 或密钥 (PEM/DER)...</value>
   </data>
   <data name="X509_ParseButton" xml:space="preserve">
-    <value>Parse</value>
+    <value>解析</value>
   </data>
   <data name="X509_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>输出</value>
   </data>
   <data name="X509_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>复制</value>
   </data>
   <data name="X509_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>已复制！</value>
   </data>
   <data name="X509_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>下载</value>
   </data>
   <data name="X509_WarningsTitle" xml:space="preserve">
-    <value>Warnings</value>
+    <value>警告</value>
   </data>
   <data name="Aead_Title" xml:space="preserve">
-    <value>AEAD File Encrypt/Decrypt</value>
+    <value>AEAD 文件加密/解密</value>
   </data>
   <data name="Aead_Description" xml:space="preserve">
-    <value>Encrypt and decrypt files locally with AEAD.</value>
+    <value>使用 AEAD 在本地加密和解密文件。</value>
   </data>
   <data name="Aead_EncryptSectionTitle" xml:space="preserve">
-    <value>Encrypt</value>
+    <value>加密</value>
   </data>
   <data name="Aead_DecryptSectionTitle" xml:space="preserve">
-    <value>Decrypt</value>
+    <value>解密</value>
   </data>
   <data name="Aead_FileLabel" xml:space="preserve">
-    <value>File</value>
+    <value>文件</value>
   </data>
   <data name="Aead_FileHint" xml:space="preserve">
-    <value>Large files are processed in chunks in the browser.</value>
+    <value>大文件在浏览器中分块处理。</value>
   </data>
   <data name="Aead_AlgorithmLabel" xml:space="preserve">
-    <value>Algorithm</value>
+    <value>算法</value>
   </data>
   <data name="Aead_PasswordLabel" xml:space="preserve">
-    <value>Password</value>
+    <value>密码</value>
   </data>
   <data name="Aead_EncryptButton" xml:space="preserve">
-    <value>Encrypt file</value>
+    <value>加密文件</value>
   </data>
   <data name="Aead_DecryptButton" xml:space="preserve">
-    <value>Decrypt file</value>
+    <value>解密文件</value>
   </data>
   <data name="Aead_HeaderLabel" xml:space="preserve">
-    <value>Header</value>
+    <value>头部</value>
   </data>
   <data name="Aead_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>输出</value>
   </data>
   <data name="Aead_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>复制</value>
   </data>
   <data name="Aead_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>已复制！</value>
   </data>
   <data name="Aead_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>下载</value>
   </data>
   <data name="Aead_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>正在处理文件...</value>
   </data>
   <data name="Aead_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>取消</value>
   </data>
   <data name="Aead_WarningsTitle" xml:space="preserve">
-    <value>Warnings</value>
+    <value>警告</value>
   </data>
   <data name="Nav_JsonBeautifier" xml:space="preserve">
     <value>JSON 格式化</value>
@@ -946,7 +946,7 @@
     <value>输入 JSON</value>
   </data>
   <data name="JsonBeautifier_InputPlaceholder" xml:space="preserve">
-    <value>Paste your JSON here...</value>
+    <value>在此处粘贴您的 JSON...</value>
   </data>
   <data name="JsonBeautifier_FormatButton" xml:space="preserve">
     <value>格式化</value>
@@ -958,82 +958,82 @@
     <value>复制</value>
   </data>
   <data name="JsonBeautifier_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>已复制！</value>
   </data>
   <data name="JsonBeautifier_ErrorInvalidJson" xml:space="preserve">
-    <value>Invalid JSON. Please check your input.</value>
+    <value>无效的 JSON。请检查您的输入。</value>
   </data>
   <data name="JsonBeautifier_IndentSizeLabel" xml:space="preserve">
-    <value>Indent size</value>
+    <value>缩进大小</value>
   </data>
   <data name="JsonBeautifier_Indent2Spaces" xml:space="preserve">
-    <value>2 spaces</value>
+    <value>2 空格</value>
   </data>
   <data name="JsonBeautifier_Indent4Spaces" xml:space="preserve">
-    <value>4 spaces</value>
+    <value>4 空格</value>
   </data>
   <data name="JsonBeautifier_IndentTab" xml:space="preserve">
-    <value>Tab</value>
+    <value>制表符</value>
   </data>
   <data name="JsonBeautifier_SortKeys" xml:space="preserve">
-    <value>Sort keys</value>
+    <value>排序键</value>
   </data>
   <data name="JsonBeautifier_CompactMode" xml:space="preserve">
-    <value>Compact mode (minify)</value>
+    <value>紧凑模式（压缩）</value>
   </data>
   <data name="JsonBeautifier_OutputLabel" xml:space="preserve">
     <value>格式化后的 JSON</value>
   </data>
   <data name="JsonBeautifier_LineNumbers" xml:space="preserve">
-    <value>Show line numbers</value>
+    <value>显示行号</value>
   </data>
   <data name="JsonBeautifier_Collapsible" xml:space="preserve">
-    <value>Collapsible blocks</value>
+    <value>可折叠块</value>
   </data>
   <data name="Nav_XmlBeautifier" xml:space="preserve">
     <value>XML 格式化</value>
   </data>
   <data name="XmlBeautifier_Title" xml:space="preserve">
-    <value>XML Beautifier</value>
+    <value>XML 格式化</value>
   </data>
   <data name="XmlBeautifier_Description" xml:space="preserve">
-    <value>Format and beautify XML with customizable indentation — all in your browser</value>
+    <value>使用可自定义的缩进格式化和美化 XML — 全部在您的浏览器中</value>
   </data>
   <data name="XmlBeautifier_InputLabel" xml:space="preserve">
-    <value>Input XML</value>
+    <value>输入 XML</value>
   </data>
   <data name="XmlBeautifier_InputPlaceholder" xml:space="preserve">
-    <value>Paste your XML here...</value>
+    <value>在此处粘贴您的 XML...</value>
   </data>
   <data name="XmlBeautifier_FormatButton" xml:space="preserve">
-    <value>Format</value>
+    <value>格式化</value>
   </data>
   <data name="XmlBeautifier_ClearButton" xml:space="preserve">
-    <value>Clear</value>
+    <value>清除</value>
   </data>
   <data name="XmlBeautifier_CopyButton" xml:space="preserve">
-    <value>Copy</value>
+    <value>复制</value>
   </data>
   <data name="XmlBeautifier_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>已复制！</value>
   </data>
   <data name="XmlBeautifier_ErrorInvalidXml" xml:space="preserve">
-    <value>Invalid XML. Please check your input.</value>
+    <value>无效的 XML。请检查您的输入。</value>
   </data>
   <data name="XmlBeautifier_IndentSizeLabel" xml:space="preserve">
-    <value>Indent size</value>
+    <value>缩进大小</value>
   </data>
   <data name="XmlBeautifier_Indent2Spaces" xml:space="preserve">
-    <value>2 spaces</value>
+    <value>2 空格</value>
   </data>
   <data name="XmlBeautifier_Indent4Spaces" xml:space="preserve">
-    <value>4 spaces</value>
+    <value>4 空格</value>
   </data>
   <data name="XmlBeautifier_IndentTab" xml:space="preserve">
-    <value>Tab</value>
+    <value>制表符</value>
   </data>
   <data name="XmlBeautifier_CompactMode" xml:space="preserve">
-    <value>Compact mode (minify)</value>
+    <value>紧凑模式（压缩）</value>
   </data>
   <data name="Nav_PasswordGenerator" xml:space="preserve">
     <value>密码生成器</value>
@@ -1045,22 +1045,22 @@
     <value>在您的浏览器中本地生成安全、随机的密码。</value>
   </data>
   <data name="PasswordGenerator_LengthLabel" xml:space="preserve">
-    <value>Password Length</value>
+    <value>密码长度</value>
   </data>
   <data name="PasswordGenerator_UppercaseLabel" xml:space="preserve">
-    <value>Uppercase (A-Z)</value>
+    <value>大写字母 (A-Z)</value>
   </data>
   <data name="PasswordGenerator_LowercaseLabel" xml:space="preserve">
-    <value>Lowercase (a-z)</value>
+    <value>小写字母 (a-z)</value>
   </data>
   <data name="PasswordGenerator_NumbersLabel" xml:space="preserve">
-    <value>Numbers (0-9)</value>
+    <value>数字 (0-9)</value>
   </data>
   <data name="PasswordGenerator_SpecialLabel" xml:space="preserve">
-    <value>Special Characters</value>
+    <value>特殊字符</value>
   </data>
   <data name="PasswordGenerator_CustomSpecialLabel" xml:space="preserve">
-    <value>Custom Symbols</value>
+    <value>自定义符号</value>
   </data>
   <data name="PasswordGenerator_GenerateButton" xml:space="preserve">
     <value>生成密码</value>
@@ -1069,61 +1069,61 @@
     <value>复制</value>
   </data>
   <data name="PasswordGenerator_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>已复制！</value>
   </data>
   <data name="PasswordGenerator_ResultLabel" xml:space="preserve">
     <value>生成的密码</value>
   </data>
   <data name="PasswordGenerator_HistoryLabel" xml:space="preserve">
-    <value>History (last 10)</value>
+    <value>历史记录（最近 10 个）</value>
   </data>
   <data name="PasswordGenerator_ClearHistory" xml:space="preserve">
-    <value>Clear History</value>
+    <value>清除历史记录</value>
   </data>
   <data name="TextCaseConverter_AlternatingCase" xml:space="preserve">
-    <value>Alternating Case</value>
+    <value>交替大小写</value>
   </data>
   <data name="TextCaseConverter_CamelCase" xml:space="preserve">
-    <value>Camel Case</value>
+    <value>驼峰式</value>
   </data>
   <data name="TextCaseConverter_ClearButton" xml:space="preserve">
-    <value>Clear</value>
+    <value>清除</value>
   </data>
   <data name="TextCaseConverter_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>已复制！</value>
   </data>
   <data name="TextCaseConverter_CopyButton" xml:space="preserve">
-    <value>Copy</value>
+    <value>复制</value>
   </data>
   <data name="TextCaseConverter_Description" xml:space="preserve">
-    <value>Convert text between different letter cases: upper, lower, title, camel, snake, and more.</value>
+    <value>在不同字母大小写之间转换文本：大写、小写、标题、驼峰、蛇形等。</value>
   </data>
   <data name="TextCaseConverter_InputPlaceholder" xml:space="preserve">
-    <value>Type or paste your text here...</value>
+    <value>在此处输入或粘贴您的文本...</value>
   </data>
   <data name="TextCaseConverter_InverseCase" xml:space="preserve">
-    <value>Inverse Case</value>
+    <value>反转大小写</value>
   </data>
   <data name="TextCaseConverter_KebabCase" xml:space="preserve">
-    <value>Kebab Case</value>
+    <value>烤肉串式</value>
   </data>
   <data name="TextCaseConverter_LowerCase" xml:space="preserve">
-    <value>lower case</value>
+    <value>小写</value>
   </data>
   <data name="TextCaseConverter_SentenceCase" xml:space="preserve">
-    <value>Sentence case</value>
+    <value>句子大小写</value>
   </data>
   <data name="TextCaseConverter_SnakeCase" xml:space="preserve">
-    <value>Snake Case</value>
+    <value>蛇形式</value>
   </data>
   <data name="TextCaseConverter_Title" xml:space="preserve">
-    <value>Text Case Converter</value>
+    <value>文本大小写转换器</value>
   </data>
   <data name="TextCaseConverter_TitleCase" xml:space="preserve">
-    <value>Title Case</value>
+    <value>标题大小写</value>
   </data>
   <data name="TextCaseConverter_UpperCase" xml:space="preserve">
-    <value>UPPER CASE</value>
+    <value>大写</value>
   </data>
   <data name="DateConverter_Title" xml:space="preserve">
     <value>日期转换器</value>
@@ -1141,25 +1141,25 @@
     <value>转换</value>
   </data>
   <data name="DateConverter_ActionCurrentTime" xml:space="preserve">
-    <value>Current Time (Now)</value>
+    <value>当前时间（现在）</value>
   </data>
   <data name="DateConverter_InputTypeLabel" xml:space="preserve">
-    <value>Input Type</value>
+    <value>输入类型</value>
   </data>
   <data name="DateConverter_InputType_Auto" xml:space="preserve">
-    <value>Auto-detect</value>
+    <value>自动检测</value>
   </data>
   <data name="DateConverter_InputType_UnixSec" xml:space="preserve">
-    <value>Unix Timestamp (Seconds)</value>
+    <value>Unix 时间戳（秒）</value>
   </data>
   <data name="DateConverter_InputType_UnixMs" xml:space="preserve">
-    <value>Unix Timestamp (Milliseconds)</value>
+    <value>Unix 时间戳（毫秒）</value>
   </data>
   <data name="DateConverter_InputType_ISO" xml:space="preserve">
-    <value>ISO 8601 String</value>
+    <value>ISO 8601 字符串</value>
   </data>
   <data name="DateConverter_OutputFormatLabel" xml:space="preserve">
-    <value>Output Format</value>
+    <value>输出格式</value>
   </data>
   <data name="DateConverter_Format_ISO" xml:space="preserve">
     <value>ISO 8601</value>
@@ -1168,208 +1168,208 @@
     <value>RFC 2822 / 5322</value>
   </data>
   <data name="DateConverter_Format_UnixSec" xml:space="preserve">
-    <value>Unix Timestamp (Seconds)</value>
+    <value>Unix 时间戳（秒）</value>
   </data>
   <data name="DateConverter_Format_UnixMs" xml:space="preserve">
-    <value>Unix Timestamp (Milliseconds)</value>
+    <value>Unix 时间戳（毫秒）</value>
   </data>
   <data name="DateConverter_Format_UTC" xml:space="preserve">
-    <value>UTC String</value>
+    <value>UTC 字符串</value>
   </data>
   <data name="DateConverter_Format_Local" xml:space="preserve">
-    <value>Local String</value>
+    <value>本地字符串</value>
   </data>
   <data name="DateConverter_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>复制</value>
   </data>
   <data name="DateConverter_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>已复制！</value>
   </data>
   <data name="DateConverter_Error_Invalid" xml:space="preserve">
-    <value>Invalid date format.</value>
+    <value>无效的日期格式。</value>
   </data>
   <data name="DateConverter_Format_European" xml:space="preserve">
-    <value>European (dd.MM.yyyy HH:mm:ss)</value>
+    <value>欧洲格式 (dd.MM.yyyy HH:mm:ss)</value>
   </data>
   <data name="DateConverter_Format_Custom" xml:space="preserve">
-    <value>Custom Format</value>
+    <value>自定义格式</value>
   </data>
   <data name="DateConverter_CustomFormatPlaceholder" xml:space="preserve">
-    <value>Enter format (e.g. dd/MM/yyyy)</value>
+    <value>输入格式（例如 dd/MM/yyyy）</value>
   </data>
   <data name="JwtDecoder_Title" xml:space="preserve">
-    <value>JWT Decoder</value>
+    <value>JWT 解码器</value>
   </data>
   <data name="JwtDecoder_Description" xml:space="preserve">
-    <value>Decode and verify JSON Web Tokens (JWT) directly in your browser.</value>
+    <value>直接在您的浏览器中解码和验证 JSON Web Tokens (JWT)。</value>
   </data>
   <data name="JwtDecoder_EncodedLabel" xml:space="preserve">
-    <value>Encoded</value>
+    <value>编码的 JWT</value>
   </data>
   <data name="JwtDecoder_EncodedPlaceholder" xml:space="preserve">
-    <value>Paste a JWT here...</value>
+    <value>在此处粘贴 JWT...</value>
   </data>
   <data name="JwtDecoder_DecodedHeaderLabel" xml:space="preserve">
-    <value>Header</value>
+    <value>头部</value>
   </data>
   <data name="JwtDecoder_DecodedPayloadLabel" xml:space="preserve">
-    <value>Payload</value>
+    <value>载荷</value>
   </data>
   <data name="JwtDecoder_SignatureLabel" xml:space="preserve">
-    <value>Verify Signature</value>
+    <value>验证签名</value>
   </data>
   <data name="JwtDecoder_SecretLabel" xml:space="preserve">
-    <value>Secret / Public Key</value>
+    <value>密钥 / 公钥</value>
   </data>
   <data name="JwtDecoder_SecretPlaceholder" xml:space="preserve">
-    <value>Enter your 256-bit secret...</value>
+    <value>输入您的 256 位密钥...</value>
   </data>
   <data name="JwtDecoder_SignatureVerified" xml:space="preserve">
-    <value>Signature Verified</value>
+    <value>签名已验证</value>
   </data>
   <data name="JwtDecoder_SignatureInvalid" xml:space="preserve">
-    <value>Invalid Signature</value>
+    <value>无效签名</value>
   </data>
   <data name="JwtEncoder_Title" xml:space="preserve">
-    <value>JWT Encoder</value>
+    <value>JWT 编码器</value>
   </data>
   <data name="JwtEncoder_Description" xml:space="preserve">
-    <value>Generate and sign JSON Web Tokens (JWT) directly in your browser.</value>
+    <value>直接在您的浏览器中生成和签名 JSON Web Tokens (JWT)。</value>
   </data>
   <data name="JwtEncoder_HeaderLabel" xml:space="preserve">
-    <value>Header (JSON)</value>
+    <value>头部 (JSON)</value>
   </data>
   <data name="JwtEncoder_PayloadLabel" xml:space="preserve">
-    <value>Payload (JSON)</value>
+    <value>载荷 (JSON)</value>
   </data>
   <data name="JwtEncoder_SecretLabel" xml:space="preserve">
-    <value>Secret / Private Key</value>
+    <value>密钥 / 私钥</value>
   </data>
   <data name="JwtEncoder_SecretPlaceholder" xml:space="preserve">
-    <value>Enter your secret key...</value>
+    <value>输入您的密钥...</value>
   </data>
   <data name="JwtEncoder_EncodedLabel" xml:space="preserve">
-    <value>Generated JWT</value>
+    <value>生成的 JWT</value>
   </data>
   <data name="JwtEncoder_AlgorithmLabel" xml:space="preserve">
-    <value>Algorithm</value>
+    <value>算法</value>
   </data>
   <data name="JwtEncoder_GenerateButton" xml:space="preserve">
-    <value>Generate JWT</value>
+    <value>生成 JWT</value>
   </data>
   <data name="JwtDecoder_LinkToEncoder" xml:space="preserve">
-    <value>Need to generate a JWT? Try the JWT Encoder</value>
+    <value>需要生成 JWT？试试 JWT 编码器</value>
   </data>
   <data name="JwtEncoder_LinkToDecoder" xml:space="preserve">
-    <value>Need to decode a JWT? Try the JWT Decoder</value>
+    <value>需要解码 JWT？试试 JWT 解码器</value>
   </data>
   <data name="ImageConverter_Title" xml:space="preserve">
-    <value>Image Converter</value>
+    <value>图像转换器</value>
   </data>
   <data name="ImageConverter_Description" xml:space="preserve">
-    <value>Convert images between formats (PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA) securely in your browser.</value>
+    <value>在浏览器中安全地在格式之间转换图像 (PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA)。</value>
   </data>
   <data name="ImageConverter_SelectFormat" xml:space="preserve">
-    <value>Select output format</value>
+    <value>选择输出格式</value>
   </data>
   <data name="ImageConverter_Convert" xml:space="preserve">
-    <value>Convert</value>
+    <value>转换</value>
   </data>
   <data name="ImageConverter_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>下载</value>
   </data>
   <data name="ImageConverter_DragDrop" xml:space="preserve">
-    <value>Drag &amp; drop an image here or click to select</value>
+    <value>拖放图像到此处或点击选择</value>
   </data>
   <data name="ImageConverter_Processing" xml:space="preserve">
-    <value>Processing...</value>
+    <value>处理中...</value>
   </data>
   <data name="ImageConverter_Quality" xml:space="preserve">
-    <value>Quality (JPEG, WebP)</value>
+    <value>质量 (JPEG, WebP)</value>
   </data>
   <data name="ImageConverter_OutputSize" xml:space="preserve">
-    <value>Output Size:</value>
+    <value>输出大小：</value>
   </data>
   <data name="ImageCompressor_Title" xml:space="preserve">
-    <value>Image Compressor</value>
+    <value>图像压缩器</value>
   </data>
   <data name="ImageCompressor_Description" xml:space="preserve">
-    <value>Compress JPG, PNG, and WebP images locally in your browser.</value>
+    <value>在您的浏览器中本地压缩 JPG、PNG 和 WebP 图像。</value>
   </data>
   <data name="ImageCompressor_Compressing" xml:space="preserve">
-    <value>Compressing...</value>
+    <value>压缩中...</value>
   </data>
   <data name="ImageCompressor_Processing" xml:space="preserve">
-    <value>Processing...</value>
+    <value>处理中...</value>
   </data>
   <data name="ImageCompressor_Done" xml:space="preserve">
-    <value>Done!</value>
+    <value>完成！</value>
   </data>
   <data name="ImageCompressor_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>下载</value>
   </data>
   <data name="ImageCompressor_DragDrop" xml:space="preserve">
-    <value>Drop images here or click to select files</value>
+    <value>拖放图像到此处或点击选择文件</value>
   </data>
   <data name="ImageResizer_Title" xml:space="preserve">
-    <value>Image Resizer</value>
+    <value>图像缩放器</value>
   </data>
   <data name="ImageResizer_Description" xml:space="preserve">
-    <value>Resize images with custom dimensions and aspect ratio locking.</value>
+    <value>使用自定义尺寸和锁定宽高比缩放图像。</value>
   </data>
   <data name="ImageResizer_OriginalInfo" xml:space="preserve">
-    <value>Original Image</value>
+    <value>原始图像</value>
   </data>
   <data name="ImageResizer_Width" xml:space="preserve">
-    <value>Width (px)</value>
+    <value>宽度 (像素)</value>
   </data>
   <data name="ImageResizer_Height" xml:space="preserve">
-    <value>Height (px)</value>
+    <value>高度 (像素)</value>
   </data>
   <data name="ImageResizer_LockAspectRatio" xml:space="preserve">
-    <value>Maintain Aspect Ratio</value>
+    <value>保持宽高比</value>
   </data>
   <data name="ImageResizer_Resize" xml:space="preserve">
-    <value>Resize</value>
+    <value>缩放</value>
   </data>
   <data name="ImageResizer_Resizing" xml:space="preserve">
-    <value>Resizing...</value>
+    <value>缩放中...</value>
   </data>
   <data name="RegexTester_Title" xml:space="preserve">
-    <value>Regex Tester</value>
+    <value>正则表达式测试器</value>
   </data>
   <data name="RegexTester_Description" xml:space="preserve">
-    <value>Test and debug regular expressions using the Rust regex engine (WASM) — all in your browser</value>
+    <value>使用 Rust 正则表达式引擎 (WASM) 测试和调试正则表达式 — 全部在您的浏览器中</value>
   </data>
   <data name="RegexTester_PatternLabel" xml:space="preserve">
-    <value>Pattern</value>
+    <value>模式</value>
   </data>
   <data name="RegexTester_PatternPlaceholder" xml:space="preserve">
-    <value>Enter regex pattern...</value>
+    <value>输入正则表达式模式...</value>
   </data>
   <data name="RegexTester_TextLabel" xml:space="preserve">
-    <value>Test String</value>
+    <value>测试字符串</value>
   </data>
   <data name="RegexTester_TextPlaceholder" xml:space="preserve">
-    <value>Enter text to match against...</value>
+    <value>输入要匹配的文本...</value>
   </data>
   <data name="RegexTester_FlagsLabel" xml:space="preserve">
-    <value>Flags</value>
+    <value>标志</value>
   </data>
   <data name="RegexTester_MatchesLabel" xml:space="preserve">
-    <value>Matches</value>
+    <value>匹配项</value>
   </data>
   <data name="RegexTester_NoMatches" xml:space="preserve">
-    <value>No matches found</value>
+    <value>未找到匹配项</value>
   </data>
   <data name="RegexTester_ErrorTitle" xml:space="preserve">
-    <value>Regex Error</value>
+    <value>正则表达式错误</value>
   </data>
   <data name="RegexTester_ExamplesTitle" xml:space="preserve">
-    <value>Examples</value>
+    <value>示例</value>
   </data>
   <data name="RegexTester_Instructions" xml:space="preserve">
-    <value>Enter a Rust-flavor regular expression and test string below. Matches will be highlighted.</value>
+    <value>在下方输入 Rust 风格的正则表达式和测试字符串。匹配项将高亮显示。</value>
   </data>
   <data name="QrCodeGenerator_Title" xml:space="preserve">
     <value>二维码生成器</value>
@@ -1381,76 +1381,76 @@
     <value>内容</value>
   </data>
   <data name="QrCodeGenerator_ContentPlaceholder" xml:space="preserve">
-    <value>Enter text or URL to encode...</value>
+    <value>输入要编码的文本或 URL...</value>
   </data>
   <data name="QrCodeGenerator_ColorsSection" xml:space="preserve">
-    <value>Colors</value>
+    <value>颜色</value>
   </data>
   <data name="QrCodeGenerator_ForegroundColor" xml:space="preserve">
-    <value>QR Code Color</value>
+    <value>二维码颜色</value>
   </data>
   <data name="QrCodeGenerator_BackgroundColor" xml:space="preserve">
-    <value>Background Color</value>
+    <value>背景颜色</value>
   </data>
   <data name="QrCodeGenerator_OptionsSection" xml:space="preserve">
-    <value>Options</value>
+    <value>选项</value>
   </data>
   <data name="QrCodeGenerator_StyleLabel" xml:space="preserve">
-    <value>Style</value>
+    <value>样式</value>
   </data>
   <data name="QrCodeGenerator_StyleSquare" xml:space="preserve">
-    <value>Square</value>
+    <value>方形</value>
   </data>
   <data name="QrCodeGenerator_StyleDots" xml:space="preserve">
-    <value>Dots</value>
+    <value>点状</value>
   </data>
   <data name="QrCodeGenerator_StyleRounded" xml:space="preserve">
-    <value>Rounded</value>
+    <value>圆角</value>
   </data>
   <data name="QrCodeGenerator_ErrorCorrectionLabel" xml:space="preserve">
-    <value>Error Correction Level</value>
+    <value>纠错等级</value>
   </data>
   <data name="QrCodeGenerator_SizeLabel" xml:space="preserve">
-    <value>Image Size</value>
+    <value>图像大小</value>
   </data>
   <data name="QrCodeGenerator_LogoSection" xml:space="preserve">
-    <value>Logo (optional)</value>
+    <value>徽标（可选）</value>
   </data>
   <data name="QrCodeGenerator_LogoHint" xml:space="preserve">
-    <value>Add a logo to the center of your QR code. Use high error correction (Q or H) for best results.</value>
+    <value>在二维码中心添加徽标。为获得最佳效果，请使用高纠错等级 (Q 或 H)。</value>
   </data>
   <data name="QrCodeGenerator_LogoDropText" xml:space="preserve">
-    <value>Drop logo here or click to select</value>
+    <value>拖放徽标到此处或点击选择</value>
   </data>
   <data name="QrCodeGenerator_LogoRemove" xml:space="preserve">
-    <value>Remove logo</value>
+    <value>移除徽标</value>
   </data>
   <data name="QrCodeGenerator_Generate" xml:space="preserve">
     <value>生成二维码</value>
   </data>
   <data name="QrCodeGenerator_Generating" xml:space="preserve">
-    <value>Generating...</value>
+    <value>生成中...</value>
   </data>
   <data name="QrCodeGenerator_PreviewSection" xml:space="preserve">
-    <value>Preview</value>
+    <value>预览</value>
   </data>
   <data name="QrCodeGenerator_PreviewPlaceholder" xml:space="preserve">
-    <value>Your QR code will appear here</value>
+    <value>您的二维码将在此处显示</value>
   </data>
   <data name="QrScanner_Title" xml:space="preserve">
-    <value>QR Code Scanner</value>
+    <value>二维码扫描器</value>
   </data>
   <data name="QrScanner_Description" xml:space="preserve">
-    <value>Scan QR codes from images directly in your browser without uploading to any server.</value>
+    <value>直接在浏览器中从图像扫描二维码，无需上传到任何服务器。</value>
   </data>
   <data name="QrScanner_DropZone" xml:space="preserve">
-    <value>Drag &amp; drop an image with a QR code here</value>
+    <value>拖放带有二维码的图像到此处</value>
   </data>
   <data name="QrScanner_ResultLabel" xml:space="preserve">
-    <value>Scanned Content</value>
+    <value>扫描到的内容</value>
   </data>
   <data name="QrScanner_ErrorReading" xml:space="preserve">
-    <value>Error reading text from the image.</value>
+    <value>从图像读取文本时出错。</value>
   </data>
   <data name="Nav_QrScanner" xml:space="preserve">
     <value>二维码扫描器</value>
@@ -1534,7 +1534,7 @@
     <value>Lorem Ipsum 生成器</value>
   </data>
   <data name="LoremIpsumGenerator_Description" xml:space="preserve">
-    <value>生成用于模型和设计的占位符文本 — 完全在您的浏览器中。</value>
+    <value>为模型和设计生成占位符文本 — 完全在您的浏览器中。</value>
   </data>
   <data name="LoremIpsumGenerator_GenerateTypeLabel" xml:space="preserve">
     <value>生成方式</value>
@@ -1576,307 +1576,307 @@
     <value>颜色转换器</value>
   </data>
   <data name="ColorConverter_Title" xml:space="preserve">
-    <value>Color Converter</value>
+    <value>颜色转换器</value>
   </data>
   <data name="ColorConverter_Description" xml:space="preserve">
-    <value>Convert colors between HEX, RGB, HSL, and CMYK formats with color picker and shades palette — all in your browser</value>
+    <value>在 HEX、RGB、HSL 和 CMYK 格式之间转换颜色，带有颜色选择器和调色板 — 全部在您的浏览器中</value>
   </data>
   <data name="ColorConverter_ColorPicker" xml:space="preserve">
-    <value>Color Picker</value>
+    <value>颜色选择器</value>
   </data>
   <data name="ColorConverter_InputFormat" xml:space="preserve">
-    <value>Input Format</value>
+    <value>输入格式</value>
   </data>
   <data name="ColorConverter_ManualInput" xml:space="preserve">
-    <value>Manual Input</value>
+    <value>手动输入</value>
   </data>
   <data name="ColorConverter_InputHint" xml:space="preserve">
-    <value>Examples: #3b82f6, rgb(59, 130, 246), hsl(217, 91%, 60%), cmyk(76%, 47%, 0%, 4%)</value>
+    <value>示例：#3b82f6, rgb(59, 130, 246), hsl(217, 91%, 60%), cmyk(76%, 47%, 0%, 4%)</value>
   </data>
   <data name="ColorConverter_Convert" xml:space="preserve">
-    <value>Convert</value>
+    <value>转换</value>
   </data>
   <data name="ColorConverter_Clear" xml:space="preserve">
-    <value>Clear</value>
+    <value>清除</value>
   </data>
   <data name="ColorConverter_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>复制</value>
   </data>
   <data name="ColorConverter_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>已复制！</value>
   </data>
   <data name="ColorConverter_ConvertedFormats" xml:space="preserve">
-    <value>Converted Formats</value>
+    <value>转换后的格式</value>
   </data>
   <data name="ColorConverter_ShadesPalette" xml:space="preserve">
-    <value>Shades Palette</value>
+    <value>调色板</value>
   </data>
   <data name="ColorConverter_ContrastChecker" xml:space="preserve">
-    <value>Contrast Checker</value>
+    <value>对比度检查器</value>
   </data>
   <data name="ColorConverter_ForegroundColor" xml:space="preserve">
-    <value>Foreground Color</value>
+    <value>前景色</value>
   </data>
   <data name="ColorConverter_BackgroundColor" xml:space="preserve">
-    <value>Background Color</value>
+    <value>背景色</value>
   </data>
   <data name="ColorConverter_ContrastRatio" xml:space="preserve">
-    <value>Contrast Ratio</value>
+    <value>对比度比率</value>
   </data>
   <data name="ColorConverter_WCAGCompliance" xml:space="preserve">
-    <value>WCAG Compliance</value>
+    <value>WCAG 合规性</value>
   </data>
   <data name="ColorConverter_WCAG_AA_Normal" xml:space="preserve">
-    <value>AA Normal Text (4.5:1)</value>
+    <value>AA 普通文本 (4.5:1)</value>
   </data>
   <data name="ColorConverter_WCAG_AA_Large" xml:space="preserve">
-    <value>AA Large Text (3:1)</value>
+    <value>AA 大文本 (3:1)</value>
   </data>
   <data name="ColorConverter_WCAG_AAA_Normal" xml:space="preserve">
-    <value>AAA Normal Text (7:1)</value>
+    <value>AAA 普通文本 (7:1)</value>
   </data>
   <data name="ColorConverter_WCAG_AAA_Large" xml:space="preserve">
-    <value>AAA Large Text (4.5:1)</value>
+    <value>AAA 大文本 (4.5:1)</value>
   </data>
   <data name="ColorConverter_Pass" xml:space="preserve">
-    <value>Pass</value>
+    <value>通过</value>
   </data>
   <data name="ColorConverter_Fail" xml:space="preserve">
-    <value>Fail</value>
+    <value>失败</value>
   </data>
   <data name="ColorConverter_PreviewText" xml:space="preserve">
-    <value>Sample Text</value>
+    <value>示例文本</value>
   </data>
   <data name="Nav_MarkdownPreview" xml:space="preserve">
     <value>Markdown 预览</value>
   </data>
   <data name="MarkdownPreview_Title" xml:space="preserve">
-    <value>Markdown Preview</value>
+    <value>Markdown 预览</value>
   </data>
   <data name="MarkdownPreview_Description" xml:space="preserve">
-    <value>Live markdown editor with real-time HTML preview, split-view, and syntax highlighting — all in your browser</value>
+    <value>实时 Markdown 编辑器，带有实时 HTML 预览、分屏视图和语法高亮 — 全部在您的浏览器中</value>
   </data>
   <data name="MarkdownPreview_EditorLabel" xml:space="preserve">
-    <value>Markdown Editor</value>
+    <value>Markdown 编辑器</value>
   </data>
   <data name="MarkdownPreview_EditorPlaceholder" xml:space="preserve">
-    <value>Type your markdown here...</value>
+    <value>在此处输入您的 Markdown...</value>
   </data>
   <data name="MarkdownPreview_PreviewLabel" xml:space="preserve">
-    <value>Preview</value>
+    <value>预览</value>
   </data>
   <data name="MarkdownPreview_Bold" xml:space="preserve">
-    <value>Bold</value>
+    <value>粗体</value>
   </data>
   <data name="MarkdownPreview_Italic" xml:space="preserve">
-    <value>Italic</value>
+    <value>斜体</value>
   </data>
   <data name="MarkdownPreview_Heading" xml:space="preserve">
-    <value>Heading</value>
+    <value>标题</value>
   </data>
   <data name="MarkdownPreview_Link" xml:space="preserve">
-    <value>Link</value>
+    <value>链接</value>
   </data>
   <data name="MarkdownPreview_Image" xml:space="preserve">
-    <value>Image</value>
+    <value>图像</value>
   </data>
   <data name="MarkdownPreview_Code" xml:space="preserve">
-    <value>Code</value>
+    <value>代码</value>
   </data>
   <data name="MarkdownPreview_List" xml:space="preserve">
-    <value>List</value>
+    <value>列表</value>
   </data>
   <data name="MarkdownPreview_Clear" xml:space="preserve">
-    <value>Clear</value>
+    <value>清除</value>
   </data>
   <data name="MarkdownPreview_SyncScroll" xml:space="preserve">
-    <value>Sync Scroll</value>
+    <value>同步滚动</value>
   </data>
   <data name="MarkdownPreview_CopyHTML" xml:space="preserve">
-    <value>Copy HTML</value>
+    <value>复制 HTML</value>
   </data>
   <data name="MarkdownPreview_CopyMarkdown" xml:space="preserve">
-    <value>Copy Markdown</value>
+    <value>复制 Markdown</value>
   </data>
   <data name="MarkdownPreview_Download" xml:space="preserve">
-    <value>Download HTML</value>
+    <value>下载 HTML</value>
   </data>
   <data name="Nav_TextDiffViewer" xml:space="preserve">
     <value>文本差异查看器</value>
   </data>
   <data name="TextDiffViewer_Title" xml:space="preserve">
-    <value>Text Diff Viewer</value>
+    <value>文本差异查看器</value>
   </data>
   <data name="TextDiffViewer_Description" xml:space="preserve">
-    <value>Compare two text files or code snippets side-by-side with a visual diff viewer, similar to Git diff. Highlight changes, additions, and deletions in a readable format.</value>
+    <value>使用可视化差异查看器并排比较两个文本文件或代码片段，类似于 Git diff。以可读格式高亮显示更改、添加和删除。</value>
   </data>
   <data name="TextDiffViewer_OriginalLabel" xml:space="preserve">
-    <value>Original Text</value>
+    <value>原始文本</value>
   </data>
   <data name="TextDiffViewer_OriginalPlaceholder" xml:space="preserve">
-    <value>Paste or type original text here, or upload a file below...</value>
+    <value>在此处粘贴或输入原始文本，或在下方上传文件...</value>
   </data>
   <data name="TextDiffViewer_ModifiedLabel" xml:space="preserve">
-    <value>Modified Text</value>
+    <value>修改后的文本</value>
   </data>
   <data name="TextDiffViewer_ModifiedPlaceholder" xml:space="preserve">
-    <value>Paste or type modified text here, or upload a file below...</value>
+    <value>在此处粘贴或输入修改后的文本，或在下方上传文件...</value>
   </data>
   <data name="TextDiffViewer_CompareButton" xml:space="preserve">
-    <value>Compare</value>
+    <value>比较</value>
   </data>
   <data name="TextDiffViewer_ClearButton" xml:space="preserve">
-    <value>Clear</value>
+    <value>清除</value>
   </data>
   <data name="TextDiffViewer_LineByLine" xml:space="preserve">
-    <value>Line by Line</value>
+    <value>逐行比较</value>
   </data>
   <data name="TextDiffViewer_SideBySide" xml:space="preserve">
-    <value>Side by Side</value>
+    <value>并排比较</value>
   </data>
   <data name="TextDiffViewer_ErrorMessage" xml:space="preserve">
-    <value>Please enter text in both fields to compare.</value>
+    <value>请在两个字段中输入文本以进行比较。</value>
   </data>
   <data name="TextDiffViewer_ChooseOriginalFile" xml:space="preserve">
-    <value>📁 Choose original file</value>
+    <value>📁 选择原始文件</value>
   </data>
   <data name="TextDiffViewer_ChooseModifiedFile" xml:space="preserve">
-    <value>📁 Choose modified file</value>
+    <value>📁 选择修改后的文件</value>
   </data>
   <data name="DaisyUIDemo_Title" xml:space="preserve">
-    <value>DaisyUI Components Demo</value>
+    <value>DaisyUI 组件演示</value>
   </data>
   <data name="DaisyUIDemo_Description" xml:space="preserve">
-    <value>Test page showcasing various DaisyUI components and themes</value>
+    <value>展示各种 DaisyUI 组件和主题的测试页面</value>
   </data>
   <data name="DaisyUIDemo_Buttons" xml:space="preserve">
-    <value>Buttons</value>
+    <value>按钮</value>
   </data>
   <data name="DaisyUIDemo_Forms" xml:space="preserve">
-    <value>Forms</value>
+    <value>表单</value>
   </data>
   <data name="DaisyUIDemo_Cards" xml:space="preserve">
-    <value>Cards</value>
+    <value>卡片</value>
   </data>
   <data name="DaisyUIDemo_Alerts" xml:space="preserve">
-    <value>Alerts</value>
+    <value>警告框</value>
   </data>
   <data name="DaisyUIDemo_Modals" xml:space="preserve">
-    <value>Modals</value>
+    <value>模态框</value>
   </data>
   <data name="DaisyUIDemo_ThemeSelector" xml:space="preserve">
-    <value>Select Theme</value>
+    <value>选择主题</value>
   </data>
   <data name="DaisyUIDemo_ClickMe" xml:space="preserve">
-    <value>Click me</value>
+    <value>点击我</value>
   </data>
   <data name="DaisyUIDemo_CardTitle" xml:space="preserve">
-    <value>Card Title</value>
+    <value>卡片标题</value>
   </data>
   <data name="DaisyUIDemo_CardDescription" xml:space="preserve">
-    <value>This is a beautiful DaisyUI card component with Tailwind CSS styling.</value>
+    <value>这是一个使用 Tailwind CSS 样式设计的精美 DaisyUI 卡片组件。</value>
   </data>
   <data name="DaisyUIDemo_LearnMore" xml:space="preserve">
-    <value>Learn More</value>
+    <value>了解更多</value>
   </data>
   <data name="DaisyUIDemo_SuccessAlert" xml:space="preserve">
-    <value>Success! Your operation completed successfully.</value>
+    <value>成功！您的操作已成功完成。</value>
   </data>
   <data name="DaisyUIDemo_InfoAlert" xml:space="preserve">
-    <value>Info: This is an informational message.</value>
+    <value>信息：这是一条信息性消息。</value>
   </data>
   <data name="DaisyUIDemo_WarningAlert" xml:space="preserve">
-    <value>Warning! Please check your input.</value>
+    <value>警告！请检查您的输入。</value>
   </data>
   <data name="DaisyUIDemo_ErrorAlert" xml:space="preserve">
-    <value>Error! Something went wrong.</value>
+    <value>错误！出错了。</value>
   </data>
   <data name="DaisyUIDemo_OpenModal" xml:space="preserve">
-    <value>Open Modal</value>
+    <value>打开模态框</value>
   </data>
   <data name="DaisyUIDemo_ModalTitle" xml:space="preserve">
-    <value>Hello from DaisyUI Modal!</value>
+    <value>来自 DaisyUI 模态框的问候！</value>
   </data>
   <data name="DaisyUIDemo_ModalBody" xml:space="preserve">
-    <value>This is a modal dialog built with DaisyUI components. Press ESC key or click outside to close.</value>
+    <value>这是一个使用 DaisyUI 组件构建的模态对话框。按 ESC 键或点击外部关闭。</value>
   </data>
   <data name="DaisyUIDemo_Close" xml:space="preserve">
-    <value>Close</value>
+    <value>关闭</value>
   </data>
   <data name="DaisyUIDemo_EmailLabel" xml:space="preserve">
-    <value>Email</value>
+    <value>电子邮件</value>
   </data>
   <data name="DaisyUIDemo_PasswordLabel" xml:space="preserve">
-    <value>Password</value>
+    <value>密码</value>
   </data>
   <data name="DaisyUIDemo_Submit" xml:space="preserve">
-    <value>Submit</value>
+    <value>提交</value>
   </data>
   <data name="HmacCalculator_Title" xml:space="preserve">
-    <value>HMAC Calculator</value>
+    <value>HMAC 计算器</value>
   </data>
   <data name="HmacCalculator_Description" xml:space="preserve">
-    <value>Generate HMAC hashes using SHA-256 and SHA-512 with custom keys and messages — all in your browser</value>
+    <value>使用自定义密钥和消息生成 SHA-256 和 SHA-512 的 HMAC 哈希值 — 全部在您的浏览器中</value>
   </data>
   <data name="HmacCalculator_KeyLabel" xml:space="preserve">
-    <value>Secret Key</value>
+    <value>密钥</value>
   </data>
   <data name="HmacCalculator_KeyPlaceholder" xml:space="preserve">
-    <value>Enter your secret key...</value>
+    <value>输入您的密钥...</value>
   </data>
   <data name="HmacCalculator_MessageLabel" xml:space="preserve">
-    <value>Message</value>
+    <value>消息</value>
   </data>
   <data name="HmacCalculator_MessagePlaceholder" xml:space="preserve">
-    <value>Enter message to hash...</value>
+    <value>输入要哈希的消息...</value>
   </data>
   <data name="HmacCalculator_AlgorithmLabel" xml:space="preserve">
-    <value>Algorithm</value>
+    <value>算法</value>
   </data>
   <data name="HmacCalculator_Calculate" xml:space="preserve">
-    <value>Calculate HMAC</value>
+    <value>计算 HMAC</value>
   </data>
   <data name="HmacCalculator_Clear" xml:space="preserve">
-    <value>Clear</value>
+    <value>清除</value>
   </data>
   <data name="HmacCalculator_OutputLabel" xml:space="preserve">
-    <value>HMAC Result</value>
+    <value>HMAC 结果</value>
   </data>
   <data name="HmacCalculator_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>复制</value>
   </data>
   <data name="HmacCalculator_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>已复制！</value>
   </data>
   <data name="YamlBeautifierValidator_Title" xml:space="preserve">
-    <value>YAML Beautifier/Validator</value>
+    <value>YAML 格式化/验证器</value>
   </data>
   <data name="YamlBeautifierValidator_Description" xml:space="preserve">
-    <value>Format and validate YAML with error highlighting</value>
+    <value>格式化和验证 YAML，带有错误高亮</value>
   </data>
   <data name="YamlBeautifierValidator_InputLabel" xml:space="preserve">
-    <value>YAML Input</value>
+    <value>YAML 输入</value>
   </data>
   <data name="YamlBeautifierValidator_InputPlaceholder" xml:space="preserve">
-    <value>Enter YAML content here...</value>
+    <value>在此处输入 YAML 内容...</value>
   </data>
   <data name="YamlBeautifierValidator_Format" xml:space="preserve">
-    <value>Format</value>
+    <value>格式化</value>
   </data>
   <data name="YamlBeautifierValidator_Validate" xml:space="preserve">
-    <value>Validate</value>
+    <value>验证</value>
   </data>
   <data name="YamlBeautifierValidator_Clear" xml:space="preserve">
-    <value>Clear</value>
+    <value>清除</value>
   </data>
   <data name="YamlBeautifierValidator_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>输出</value>
   </data>
   <data name="YamlBeautifierValidator_Valid" xml:space="preserve">
-    <value>YAML is valid</value>
+    <value>YAML 有效</value>
   </data>
   <data name="YamlBeautifierValidator_Invalid" xml:space="preserve">
-    <value>YAML is invalid</value>
+    <value>YAML 无效</value>
   </data>
   <data name="Category_Images" xml:space="preserve">
     <value>图像</value>

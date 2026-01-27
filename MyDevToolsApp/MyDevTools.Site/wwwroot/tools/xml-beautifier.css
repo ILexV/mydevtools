@@ -237,3 +237,11 @@
     border-color: #007bff;
     background-color: rgba(0, 123, 255, 0.1);
 }
+
+/* Dark Mode Syntax Highlighting */
+[data-theme="dark"] .cm-s-default .cm-tag { color: #569cd6; }
+[data-theme="dark"] .cm-s-default .cm-attribute { color: #9cdcfe; }
+[data-theme="dark"] .cm-s-default .cm-string { color: #ce9178; }
+[data-theme="dark"] .cm-s-default .cm-comment { color: #6a9955; }
+[data-theme="dark"] .cm-s-default .cm-meta { color: #c586c0; }
+[data-theme="dark"] .cm-s-default .cm-bracket { color: #808080; }

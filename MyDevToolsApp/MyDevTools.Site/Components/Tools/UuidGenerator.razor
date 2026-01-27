@@ -17,88 +17,106 @@
                 Description="@AppStrings.UuidGenerator_Description" 
                 CurrentUrl="@Navigation.Uri" />
 
-    <div id="uuid-generator-root"
-         data-copied="@AppStrings.UuidGenerator_Copied"
-         class="tool-container">
-
-        <div class="row">
-            <div class="col-lg-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-header bg-transparent fw-bold">
-                        @AppStrings.UuidGenerator_Title
+    <div id="uuid-generator-root" data-copied="@AppStrings.UuidGenerator_Copied">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <!-- Settings -->
+            <div class="col-span-1 lg:col-span-4 card bg-base-200 shadow-xl h-fit">
+                <div class="card-body">
+                    <h2 class="card-title text-base opacity-70 mb-4">@AppStrings.UuidGenerator_Title</h2>
+                    
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-semibold">@AppStrings.UuidGenerator_VersionLabel</span>
+                        </label>
+                        <select id="uuid-version" class="select select-bordered w-full">
+                            <option value="v4" selected>@AppStrings.UuidGenerator_Version4</option>
+                            <option value="v7">@AppStrings.UuidGenerator_Version7</option>
+                        </select>
                     </div>
-                    <div class="card-body">
-                        
-                        <div class="mb-3">
-                            <label class="form-label">@AppStrings.UuidGenerator_VersionLabel</label>
-                            <select id="uuid-version" class="form-select">
-                                <option value="v4" selected>@AppStrings.UuidGenerator_Version4</option>
-                                <option value="v7">@AppStrings.UuidGenerator_Version7</option>
-                            </select>
-                        </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">@AppStrings.UuidGenerator_FormatLabel</label>
-                            <select id="uuid-format" class="form-select">
-                                <option value="hyphenated" selected>@AppStrings.UuidGenerator_FormatHyphenated</option>
-                                <option value="plain">@AppStrings.UuidGenerator_FormatPlain</option>
-                                <option value="braces">@AppStrings.UuidGenerator_FormatBraces</option>
-                                <option value="urn">@AppStrings.UuidGenerator_FormatUrn</option>
-                            </select>
-                        </div>
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-semibold">@AppStrings.UuidGenerator_FormatLabel</span>
+                        </label>
+                        <select id="uuid-format" class="select select-bordered w-full">
+                            <option value="hyphenated" selected>@AppStrings.UuidGenerator_FormatHyphenated</option>
+                            <option value="plain">@AppStrings.UuidGenerator_FormatPlain</option>
+                            <option value="braces">@AppStrings.UuidGenerator_FormatBraces</option>
+                            <option value="urn">@AppStrings.UuidGenerator_FormatUrn</option>
+                        </select>
+                    </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">@AppStrings.UuidGenerator_CaseLabel</label>
-                            <select id="uuid-case" class="form-select">
-                                <option value="lower" selected>@AppStrings.UuidGenerator_CaseLower</option>
-                                <option value="upper">@AppStrings.UuidGenerator_CaseUpper</option>
-                            </select>
-                        </div>
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-semibold">@AppStrings.UuidGenerator_CaseLabel</span>
+                        </label>
+                        <select id="uuid-case" class="select select-bordered w-full">
+                            <option value="lower" selected>@AppStrings.UuidGenerator_CaseLower</option>
+                            <option value="upper">@AppStrings.UuidGenerator_CaseUpper</option>
+                        </select>
+                    </div>
 
-                        <div class="mb-4">
-                            <label for="uuid-count" class="form-label d-flex justify-content-between">
-                                <span>@AppStrings.UuidGenerator_CountLabel</span>
-                                <span id="uuid-count-val" class="badge bg-secondary">1</span>
-                            </label>
-                            <input type="range" class="form-range" id="uuid-count" min="1" max="100" value="1">
-                        </div>
+                    <div class="form-control w-full mt-2">
+                        <label for="uuid-count" class="label">
+                            <span class="label-text font-semibold">@AppStrings.UuidGenerator_CountLabel</span>
+                            <span id="uuid-count-val" class="badge badge-neutral">1</span>
+                        </label>
+                        <input type="range" class="range range-primary range-sm" id="uuid-count" min="1" max="100" value="1">
+                    </div>
 
-                        <button id="uuid-generate-btn" class="btn btn-success w-100 py-2 fw-bold mb-2">
+                    <div class="card-actions mt-6">
+                        <button id="uuid-generate-btn" class="btn btn-primary w-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
                             @AppStrings.UuidGenerator_Generate
                         </button>
-
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-8 mb-4">
-                <div class="card h-100">
-                    <div class="card-header bg-transparent fw-bold d-flex justify-content-between align-items-center">
-                        <span>@AppStrings.UuidGenerator_OutputLabel</span>
-                        <div>
-                            <button class="btn btn-sm btn-outline-primary me-2" id="uuid-copy-all-btn" style="display: none;">
-                                @AppStrings.UuidGenerator_CopyAll
+            <!-- Output -->
+            <div class="col-span-1 lg:col-span-8 card bg-base-200 shadow-xl h-fit">
+                <div class="card-body">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="card-title text-base opacity-70">@AppStrings.UuidGenerator_OutputLabel</h2>
+                        <div class="flex gap-2 opacity-0 transition-opacity duration-200" id="uuid-actions">
+                            <button class="btn btn-sm btn-ghost" id="uuid-copy-all-btn" title="@AppStrings.UuidGenerator_CopyAll">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
                             </button>
-                            <button class="btn btn-sm btn-outline-secondary me-2" id="uuid-download-btn" style="display: none;">
-                                @AppStrings.UuidGenerator_Download
+                            <button class="btn btn-sm btn-ghost" id="uuid-download-btn" title="@AppStrings.UuidGenerator_Download">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                             </button>
-                            <button class="btn btn-sm btn-outline-danger" id="uuid-clear-btn" style="display: none;">
-                                @AppStrings.UuidGenerator_Clear
+                            <button class="btn btn-sm btn-ghost text-error" id="uuid-clear-btn" title="@AppStrings.UuidGenerator_Clear">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             </button>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <div id="uuid-output-container">
-                            <div class="text-muted text-center py-5" id="uuid-placeholder">
-                                @AppStrings.UuidGenerator_OutputPlaceholder
-                            </div>
-                            <div id="uuid-list" class="uuid-list" style="display: none;"></div>
+                    
+                    <div class="rounded-box bg-base-100 border border-base-300 min-h-[300px] overflow-hidden">
+                        <div class="p-10 text-center opacity-50" id="uuid-placeholder">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            @AppStrings.UuidGenerator_OutputPlaceholder
+                        </div>
+                        
+                        <div id="uuid-list-container" class="hidden max-h-[600px] overflow-y-auto">
+                            <table class="table w-full">
+                                <thead>
+                                    <tr class="bg-base-200">
+                                        <th class="w-16 text-center">#</th>
+                                        <th>UUID</th>
+                                        <th class="w-24 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="uuid-list" class="font-mono text-sm">
+                                    <!-- Rows injected here -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
     </div>
 
     <style>
@@ -275,31 +293,37 @@
             // Render UUID list
             function renderUUIDs(uuids) {
                 const placeholder = document.getElementById('uuid-placeholder');
+                const listContainer = document.getElementById('uuid-list-container');
                 const list = document.getElementById('uuid-list');
-                const copyAllBtn = document.getElementById('uuid-copy-all-btn');
-                const downloadBtn = document.getElementById('uuid-download-btn');
-                const clearBtn = document.getElementById('uuid-clear-btn');
+                const actions = document.getElementById('uuid-actions');
                 
                 if (uuids.length === 0) {
                     placeholder.style.display = 'block';
-                    list.style.display = 'none';
-                    copyAllBtn.style.display = 'none';
-                    downloadBtn.style.display = 'none';
-                    clearBtn.style.display = 'none';
+                    if(listContainer) listContainer.classList.add('hidden');
+                    if(actions) {
+                        actions.classList.remove('opacity-100');
+                        actions.classList.add('opacity-0');
+                    }
                     return;
                 }
                 
                 placeholder.style.display = 'none';
-                list.style.display = 'block';
-                copyAllBtn.style.display = 'inline-block';
-                downloadBtn.style.display = 'inline-block';
-                clearBtn.style.display = 'inline-block';
+                if(listContainer) listContainer.classList.remove('hidden');
+                if(actions) {
+                    actions.classList.remove('opacity-0');
+                    actions.classList.add('opacity-100');
+                }
                 
-                list.innerHTML = uuids.map(uuid => `
-                    <div class="uuid-item">
-                        <span class="uuid-value">${uuid}</span>
-                        <button class="uuid-copy-btn" data-uuid="${uuid}">Copy</button>
-                    </div>
+                list.innerHTML = uuids.map((uuid, index) => `
+                    <tr class="hover">
+                        <td class="text-center opacity-50 select-none">${index + 1}</td>
+                        <td class="select-all font-mono">${uuid}</td>
+                        <td class="text-right">
+                            <button class="btn btn-xs btn-ghost uuid-copy-btn" data-uuid="${uuid}">
+                                Copy
+                            </button>
+                        </td>
+                    </tr>
                 `).join('');
                 
                 // Attach copy handlers

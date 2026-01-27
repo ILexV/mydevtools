@@ -217,7 +217,7 @@
     <value>Télécharger</value>
   </data>
   <data name="ImageConverter_TargetFormatLabel" xml:space="preserve">
-    <value>Target Format</value>
+    <value>Format Cible</value>
   </data>
   <data name="HashCalculator_AlgorithmsTitle" xml:space="preserve">
     <value>Algorithmes</value>
@@ -292,16 +292,16 @@
     <value>Mode</value>
   </data>
   <data name="UrlEncoder_Mode_Component" xml:space="preserve">
-    <value>Component (encodeURIComponent-like)</value>
+    <value>Composant (similaire à encodeURIComponent)</value>
   </data>
   <data name="UrlEncoder_Mode_Uri" xml:space="preserve">
-    <value>URI (encodeURI-like)</value>
+    <value>URI (similaire à encodeURI)</value>
   </data>
   <data name="UrlEncoder_Mode_Form" xml:space="preserve">
-    <value>Form (application/x-www-form-urlencoded)</value>
+    <value>Formulaire (application/x-www-form-urlencoded)</value>
   </data>
   <data name="UrlEncoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>Jeu de caractères du texte</value>
   </data>
   <data name="UrlEncoder_ActionEncode" xml:space="preserve">
     <value>Encoder</value>
@@ -322,7 +322,7 @@
     <value>Copié !</value>
   </data>
   <data name="UrlEncoder_OtherFormats" xml:space="preserve">
-    <value>Other formats:</value>
+    <value>Autres formats :</value>
   </data>
   <data name="UrlEncoder_LinkHex" xml:space="preserve">
     <value>Hex</value>
@@ -343,7 +343,7 @@
     <value>Encoder et décoder Hex pour du texte ou des fichiers — tout dans votre navigateur</value>
   </data>
   <data name="HexEncoder_OtherFormats" xml:space="preserve">
-    <value>Other formats:</value>
+    <value>Autres formats :</value>
   </data>
   <data name="HexEncoder_LinkUrl" xml:space="preserve">
     <value>URL</value>
@@ -364,73 +364,73 @@
     <value>Entrez du texte (pour encoder) ou une chaîne hex (pour décoder)...</value>
   </data>
   <data name="HexEncoder_InputFileLabel" xml:space="preserve">
-    <value>File (optional)</value>
+    <value>Fichier (optionnel)</value>
   </data>
   <data name="HexEncoder_FileHint" xml:space="preserve">
-    <value>If a file is selected, the text input is ignored.</value>
+    <value>Si un fichier est sélectionné, l'entrée texte est ignorée.</value>
   </data>
   <data name="HexEncoder_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>Traitement du fichier...</value>
   </data>
   <data name="HexEncoder_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>Annuler</value>
   </data>
   <data name="HexEncoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>Jeu de caractères du texte</value>
   </data>
   <data name="HexEncoder_CaseLabel" xml:space="preserve">
-    <value>Hex case</value>
+    <value>Casse Hex</value>
   </data>
   <data name="HexEncoder_CaseLower" xml:space="preserve">
-    <value>lowercase</value>
+    <value>minuscules</value>
   </data>
   <data name="HexEncoder_CaseUpper" xml:space="preserve">
-    <value>UPPERCASE</value>
+    <value>MAJUSCULES</value>
   </data>
   <data name="HexEncoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Decode options</value>
+    <value>Options de décodage</value>
   </data>
   <data name="HexEncoder_IgnoreWhitespace" xml:space="preserve">
-    <value>Ignore whitespace</value>
+    <value>Ignorer les espaces</value>
   </data>
   <data name="HexEncoder_AllowSeparators" xml:space="preserve">
-    <value>Allow separators (: and -)</value>
+    <value>Autoriser les séparateurs (: et -)</value>
   </data>
   <data name="HexEncoder_Allow0x" xml:space="preserve">
-    <value>Allow 0x prefix</value>
+    <value>Autoriser le préfixe 0x</value>
   </data>
   <data name="HexEncoder_OutputModeLabel" xml:space="preserve">
-    <value>File output</value>
+    <value>Sortie fichier</value>
   </data>
   <data name="HexEncoder_OutputModePreview" xml:space="preserve">
-    <value>Preview in output (download full)</value>
+    <value>Aperçu dans la sortie (télécharger complet)</value>
   </data>
   <data name="HexEncoder_OutputModeFull" xml:space="preserve">
-    <value>Render full output (may be slow)</value>
+    <value>Afficher la sortie complète (peut être lent)</value>
   </data>
   <data name="HexEncoder_ActionEncode" xml:space="preserve">
-    <value>Encode</value>
+    <value>Encoder</value>
   </data>
   <data name="HexEncoder_ActionDecode" xml:space="preserve">
-    <value>Decode</value>
+    <value>Décoder</value>
   </data>
   <data name="HexEncoder_ActionSwap" xml:space="preserve">
-    <value>Swap</value>
+    <value>Inverser</value>
   </data>
   <data name="HexEncoder_ActionClear" xml:space="preserve">
-    <value>Clear</value>
+    <value>Effacer</value>
   </data>
   <data name="HexEncoder_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>Sortie</value>
   </data>
   <data name="HexEncoder_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>Copier</value>
   </data>
   <data name="HexEncoder_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>Copié !</value>
   </data>
   <data name="HexEncoder_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>Télécharger</value>
   </data>
   <data name="Base64Encoder_Title" xml:space="preserve">
     <value>Encodeur / Décodeur Base64</value>
@@ -439,7 +439,7 @@
     <value>Encoder et décoder Base64 pour du texte et des fichiers — tout dans votre navigateur.</value>
   </data>
   <data name="Base64Encoder_OtherFormats" xml:space="preserve">
-    <value>Other formats:</value>
+    <value>Autres formats :</value>
   </data>
   <data name="Base64Encoder_LinkHex" xml:space="preserve">
     <value>Hex</value>
@@ -457,16 +457,16 @@
     <value>Entrée (texte)</value>
   </data>
   <data name="Base64Encoder_InputTextPlaceholder" xml:space="preserve">
-    <value>Enter text or Base64...</value>
+    <value>Entrez du texte ou Base64...</value>
   </data>
   <data name="Base64Encoder_InputFileLabel" xml:space="preserve">
-    <value>Input file</value>
+    <value>Fichier d'entrée</value>
   </data>
   <data name="Base64Encoder_FileHint" xml:space="preserve">
-    <value>If a file is selected, it will be used instead of the text input.</value>
+    <value>Si un fichier est sélectionné, il sera utilisé à la place de l'entrée texte.</value>
   </data>
   <data name="Base64Encoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>Jeu de caractères du texte</value>
   </data>
   <data name="Base64Encoder_AlphabetLabel" xml:space="preserve">
     <value>Alphabet</value>
@@ -475,73 +475,73 @@
     <value>Standard (+/)</value>
   </data>
   <data name="Base64Encoder_AlphabetUrlSafe" xml:space="preserve">
-    <value>URL-safe (-_)</value>
+    <value>Sécurisé pour les URL (-_)</value>
   </data>
   <data name="Base64Encoder_PaddingLabel" xml:space="preserve">
-    <value>Padding</value>
+    <value>Remplissage</value>
   </data>
   <data name="Base64Encoder_PaddingRequired" xml:space="preserve">
-    <value>Required</value>
+    <value>Requis</value>
   </data>
   <data name="Base64Encoder_PaddingOptional" xml:space="preserve">
-    <value>Optional</value>
+    <value>Optionnel</value>
   </data>
   <data name="Base64Encoder_PaddingNone" xml:space="preserve">
-    <value>No padding</value>
+    <value>Sans remplissage</value>
   </data>
   <data name="Base64Encoder_LineWrapLabel" xml:space="preserve">
-    <value>Line wrap</value>
+    <value>Retour à la ligne</value>
   </data>
   <data name="Base64Encoder_LineWrapNone" xml:space="preserve">
-    <value>None</value>
+    <value>Aucun</value>
   </data>
   <data name="Base64Encoder_LineWrap76" xml:space="preserve">
-    <value>76 chars</value>
+    <value>76 caractères</value>
   </data>
   <data name="Base64Encoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Decode options</value>
+    <value>Options de décodage</value>
   </data>
   <data name="Base64Encoder_AllowWhitespace" xml:space="preserve">
-    <value>Allow whitespace/newlines</value>
+    <value>Autoriser espaces/sauts de ligne</value>
   </data>
   <data name="Base64Encoder_OutputModeLabel" xml:space="preserve">
-    <value>File output</value>
+    <value>Sortie fichier</value>
   </data>
   <data name="Base64Encoder_OutputModePreview" xml:space="preserve">
-    <value>Preview in output (download full)</value>
+    <value>Aperçu dans la sortie (télécharger complet)</value>
   </data>
   <data name="Base64Encoder_OutputModeFull" xml:space="preserve">
-    <value>Render full output (may be slow)</value>
+    <value>Afficher la sortie complète (peut être lent)</value>
   </data>
   <data name="Base64Encoder_ActionEncode" xml:space="preserve">
-    <value>Encode</value>
+    <value>Encoder</value>
   </data>
   <data name="Base64Encoder_ActionDecode" xml:space="preserve">
-    <value>Decode</value>
+    <value>Décoder</value>
   </data>
   <data name="Base64Encoder_ActionSwap" xml:space="preserve">
-    <value>Swap</value>
+    <value>Inverser</value>
   </data>
   <data name="Base64Encoder_ActionClear" xml:space="preserve">
-    <value>Clear</value>
+    <value>Effacer</value>
   </data>
   <data name="Base64Encoder_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>Sortie</value>
   </data>
   <data name="Base64Encoder_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>Copier</value>
   </data>
   <data name="Base64Encoder_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>Copié !</value>
   </data>
   <data name="Base64Encoder_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>Télécharger</value>
   </data>
   <data name="Base64Encoder_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>Traitement du fichier...</value>
   </data>
   <data name="Base64Encoder_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>Annuler</value>
   </data>
   <data name="Nav_Base32Encoder" xml:space="preserve">
     <value>Encodeur Base32</value>
@@ -550,10 +550,10 @@
     <value>Encodeur Base32</value>
   </data>
   <data name="Base32Encoder_Description" xml:space="preserve">
-    <value>Encode and decode Base32 for text and files — all in your browser.</value>
+    <value>Encoder et décoder Base32 pour du texte et des fichiers — tout dans votre navigateur.</value>
   </data>
   <data name="Base32Encoder_OtherFormats" xml:space="preserve">
-    <value>Other formats:</value>
+    <value>Autres formats :</value>
   </data>
   <data name="Base32Encoder_LinkHex" xml:space="preserve">
     <value>Hex</value>
@@ -568,19 +568,19 @@
     <value>URL</value>
   </data>
   <data name="Base32Encoder_InputTextLabel" xml:space="preserve">
-    <value>Input (text)</value>
+    <value>Entrée (texte)</value>
   </data>
   <data name="Base32Encoder_InputTextPlaceholder" xml:space="preserve">
-    <value>Enter text or Base32...</value>
+    <value>Entrez du texte ou Base32...</value>
   </data>
   <data name="Base32Encoder_InputFileLabel" xml:space="preserve">
-    <value>Input file</value>
+    <value>Fichier d'entrée</value>
   </data>
   <data name="Base32Encoder_FileHint" xml:space="preserve">
-    <value>If a file is selected, it will be used instead of the text input.</value>
+    <value>Si un fichier est sélectionné, il sera utilisé à la place de l'entrée texte.</value>
   </data>
   <data name="Base32Encoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>Jeu de caractères du texte</value>
   </data>
   <data name="Base32Encoder_AlphabetLabel" xml:space="preserve">
     <value>Alphabet</value>
@@ -595,73 +595,73 @@
     <value>z-base-32</value>
   </data>
   <data name="Base32Encoder_PaddingLabel" xml:space="preserve">
-    <value>Padding</value>
+    <value>Remplissage</value>
   </data>
   <data name="Base32Encoder_PaddingRequired" xml:space="preserve">
-    <value>Required</value>
+    <value>Requis</value>
   </data>
   <data name="Base32Encoder_PaddingOptional" xml:space="preserve">
-    <value>Optional</value>
+    <value>Optionnel</value>
   </data>
   <data name="Base32Encoder_PaddingNone" xml:space="preserve">
-    <value>No padding</value>
+    <value>Sans remplissage</value>
   </data>
   <data name="Base32Encoder_CaseLabel" xml:space="preserve">
-    <value>Letter case</value>
+    <value>Casse des lettres</value>
   </data>
   <data name="Base32Encoder_CaseAuto" xml:space="preserve">
     <value>Auto</value>
   </data>
   <data name="Base32Encoder_CaseUpper" xml:space="preserve">
-    <value>Uppercase</value>
+    <value>Majuscules</value>
   </data>
   <data name="Base32Encoder_CaseLower" xml:space="preserve">
-    <value>Lowercase</value>
+    <value>Minuscules</value>
   </data>
   <data name="Base32Encoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Decode options</value>
+    <value>Options de décodage</value>
   </data>
   <data name="Base32Encoder_AllowWhitespace" xml:space="preserve">
-    <value>Allow whitespace/newlines</value>
+    <value>Autoriser espaces/sauts de ligne</value>
   </data>
   <data name="Base32Encoder_OutputModeLabel" xml:space="preserve">
-    <value>File output</value>
+    <value>Sortie fichier</value>
   </data>
   <data name="Base32Encoder_OutputModePreview" xml:space="preserve">
-    <value>Preview in output (download full)</value>
+    <value>Aperçu dans la sortie (télécharger complet)</value>
   </data>
   <data name="Base32Encoder_OutputModeFull" xml:space="preserve">
-    <value>Render full output (may be slow)</value>
+    <value>Afficher la sortie complète (peut être lent)</value>
   </data>
   <data name="Base32Encoder_ActionEncode" xml:space="preserve">
-    <value>Encode</value>
+    <value>Encoder</value>
   </data>
   <data name="Base32Encoder_ActionDecode" xml:space="preserve">
-    <value>Decode</value>
+    <value>Décoder</value>
   </data>
   <data name="Base32Encoder_ActionSwap" xml:space="preserve">
-    <value>Swap</value>
+    <value>Inverser</value>
   </data>
   <data name="Base32Encoder_ActionClear" xml:space="preserve">
-    <value>Clear</value>
+    <value>Effacer</value>
   </data>
   <data name="Base32Encoder_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>Sortie</value>
   </data>
   <data name="Base32Encoder_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>Copier</value>
   </data>
   <data name="Base32Encoder_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>Copié !</value>
   </data>
   <data name="Base32Encoder_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>Télécharger</value>
   </data>
   <data name="Base32Encoder_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>Traitement du fichier...</value>
   </data>
   <data name="Base32Encoder_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>Annuler</value>
   </data>
   <data name="Nav_Base58Encoder" xml:space="preserve">
     <value>Encodeur Base58</value>
@@ -670,10 +670,10 @@
     <value>Encodeur Base58</value>
   </data>
   <data name="Base58Encoder_Description" xml:space="preserve">
-    <value>Encode and decode Base58 for text and files — all in your browser.</value>
+    <value>Encoder et décoder Base58 pour du texte et des fichiers — tout dans votre navigateur.</value>
   </data>
   <data name="Base58Encoder_OtherFormats" xml:space="preserve">
-    <value>Other formats:</value>
+    <value>Autres formats :</value>
   </data>
   <data name="Base58Encoder_LinkHex" xml:space="preserve">
     <value>Hex</value>
@@ -688,19 +688,19 @@
     <value>URL</value>
   </data>
   <data name="Base58Encoder_InputTextLabel" xml:space="preserve">
-    <value>Input (text)</value>
+    <value>Entrée (texte)</value>
   </data>
   <data name="Base58Encoder_InputTextPlaceholder" xml:space="preserve">
-    <value>Enter text or Base58...</value>
+    <value>Entrez du texte ou Base58...</value>
   </data>
   <data name="Base58Encoder_InputFileLabel" xml:space="preserve">
-    <value>Input file</value>
+    <value>Fichier d'entrée</value>
   </data>
   <data name="Base58Encoder_FileHint" xml:space="preserve">
-    <value>If a file is selected, it will be used instead of the text input.</value>
+    <value>Si un fichier est sélectionné, il sera utilisé à la place de l'entrée texte.</value>
   </data>
   <data name="Base58Encoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>Jeu de caractères du texte</value>
   </data>
   <data name="Base58Encoder_AlphabetLabel" xml:space="preserve">
     <value>Alphabet</value>
@@ -715,223 +715,223 @@
     <value>Ripple</value>
   </data>
   <data name="Base58Encoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Decode options</value>
+    <value>Options de décodage</value>
   </data>
   <data name="Base58Encoder_AllowWhitespace" xml:space="preserve">
-    <value>Allow whitespace/newlines</value>
+    <value>Autoriser espaces/sauts de ligne</value>
   </data>
   <data name="Base58Encoder_OutputModeLabel" xml:space="preserve">
-    <value>File output</value>
+    <value>Sortie fichier</value>
   </data>
   <data name="Base58Encoder_OutputModePreview" xml:space="preserve">
-    <value>Preview in output (download full)</value>
+    <value>Aperçu dans la sortie (télécharger complet)</value>
   </data>
   <data name="Base58Encoder_OutputModeFull" xml:space="preserve">
-    <value>Render full output (may be slow)</value>
+    <value>Afficher la sortie complète (peut être lent)</value>
   </data>
   <data name="Base58Encoder_ActionEncode" xml:space="preserve">
-    <value>Encode</value>
+    <value>Encoder</value>
   </data>
   <data name="Base58Encoder_ActionDecode" xml:space="preserve">
-    <value>Decode</value>
+    <value>Décoder</value>
   </data>
   <data name="Base58Encoder_ActionSwap" xml:space="preserve">
-    <value>Swap</value>
+    <value>Inverser</value>
   </data>
   <data name="Base58Encoder_ActionClear" xml:space="preserve">
-    <value>Clear</value>
+    <value>Effacer</value>
   </data>
   <data name="Base58Encoder_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>Sortie</value>
   </data>
   <data name="Base58Encoder_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>Copier</value>
   </data>
   <data name="Base58Encoder_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>Copié !</value>
   </data>
   <data name="Base58Encoder_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>Télécharger</value>
   </data>
   <data name="Base58Encoder_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>Traitement du fichier...</value>
   </data>
   <data name="Base58Encoder_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>Annuler</value>
   </data>
   <data name="Base58Encoder_FileSizeLimitEncode" xml:space="preserve">
-    <value>Base58 encoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.</value>
+    <value>L'encodage Base58 est limité à {0} en raison de la complexité algorithmique. Votre fichier fait {1}. Veuillez utiliser l'encodage Base64 ou Hex pour les fichiers plus volumineux.</value>
   </data>
   <data name="Base58Encoder_FileSizeLimitDecode" xml:space="preserve">
-    <value>Base58 decoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.</value>
+    <value>Le décodage Base58 est limité à {0} en raison de la complexité algorithmique. Votre fichier fait {1}. Veuillez utiliser l'encodage Base64 ou Hex pour les fichiers plus volumineux.</value>
   </data>
   <data name="OpenSsh_Title" xml:space="preserve">
     <value>Clés OpenSSH</value>
   </data>
   <data name="OpenSsh_Description" xml:space="preserve">
-    <value>Generate, import, and convert OpenSSH keys in your browser.</value>
+    <value>Générez, importez et convertissez des clés OpenSSH dans votre navigateur.</value>
   </data>
   <data name="OpenSsh_GenerateSectionTitle" xml:space="preserve">
-    <value>Generate</value>
+    <value>Générer</value>
   </data>
   <data name="OpenSsh_AlgorithmLabel" xml:space="preserve">
-    <value>Algorithm</value>
+    <value>Algorithme</value>
   </data>
   <data name="OpenSsh_KeySizeLabel" xml:space="preserve">
-    <value>Key size</value>
+    <value>Taille de la clé</value>
   </data>
   <data name="OpenSsh_PassphraseLabel" xml:space="preserve">
-    <value>Passphrase (optional)</value>
+    <value>Phrase secrète (optionnelle)</value>
   </data>
   <data name="OpenSsh_GenerateButton" xml:space="preserve">
-    <value>Generate keys</value>
+    <value>Générer les clés</value>
   </data>
   <data name="OpenSsh_ImportSectionTitle" xml:space="preserve">
-    <value>Import</value>
+    <value>Importer</value>
   </data>
   <data name="OpenSsh_ImportLabel" xml:space="preserve">
-    <value>Paste OpenSSH or PKCS#8 key</value>
+    <value>Collez une clé OpenSSH ou PKCS#8</value>
   </data>
   <data name="OpenSsh_ImportPlaceholder" xml:space="preserve">
-    <value>Paste OpenSSH public/private key or PKCS#8 PEM here...</value>
+    <value>Collez une clé publique/privée OpenSSH ou PEM PKCS#8 ici...</value>
   </data>
   <data name="OpenSsh_ImportFileLabel" xml:space="preserve">
-    <value>Key file</value>
+    <value>Fichier de clé</value>
   </data>
   <data name="OpenSsh_ImportFileHint" xml:space="preserve">
-    <value>Supports OpenSSH public/private and PKCS#8 PEM files.</value>
+    <value>Prend en charge les fichiers PEM OpenSSH publics/privés et PKCS#8.</value>
   </data>
   <data name="OpenSsh_ImportButton" xml:space="preserve">
-    <value>Import</value>
+    <value>Importer</value>
   </data>
   <data name="OpenSsh_ConvertSectionTitle" xml:space="preserve">
-    <value>Convert</value>
+    <value>Convertir</value>
   </data>
   <data name="OpenSsh_ConvertButton" xml:space="preserve">
-    <value>Convert</value>
+    <value>Convertir</value>
   </data>
   <data name="OpenSsh_PublicKeyLabel" xml:space="preserve">
-    <value>Public key</value>
+    <value>Clé publique</value>
   </data>
   <data name="OpenSsh_PrivateKeyLabel" xml:space="preserve">
-    <value>Private key</value>
+    <value>Clé privée</value>
   </data>
   <data name="OpenSsh_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>Copier</value>
   </data>
   <data name="OpenSsh_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>Copié !</value>
   </data>
   <data name="OpenSsh_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>Télécharger</value>
   </data>
   <data name="OpenSsh_WarningsTitle" xml:space="preserve">
-    <value>Warnings</value>
+    <value>Avertissements</value>
   </data>
   <data name="X509_Title" xml:space="preserve">
     <value>Certificats X.509</value>
   </data>
   <data name="X509_Description" xml:space="preserve">
-    <value>Create self-signed certificates, CSRs, and parse PEM/DER.</value>
+    <value>Créez des certificats auto-signés, des CSR et analysez PEM/DER.</value>
   </data>
   <data name="X509_SelfSignedSectionTitle" xml:space="preserve">
-    <value>Self-signed</value>
+    <value>Auto-signé</value>
   </data>
   <data name="X509_SubjectLabel" xml:space="preserve">
-    <value>Subject (CN)</value>
+    <value>Sujet (CN)</value>
   </data>
   <data name="X509_ValidityDaysLabel" xml:space="preserve">
-    <value>Validity (days)</value>
+    <value>Validité (jours)</value>
   </data>
   <data name="X509_GenerateSelfSigned" xml:space="preserve">
-    <value>Generate certificate</value>
+    <value>Générer le certificat</value>
   </data>
   <data name="X509_CsrSectionTitle" xml:space="preserve">
     <value>CSR</value>
   </data>
   <data name="X509_GenerateCsr" xml:space="preserve">
-    <value>Generate CSR</value>
+    <value>Générer CSR</value>
   </data>
   <data name="X509_ParseSectionTitle" xml:space="preserve">
-    <value>Parse</value>
+    <value>Analyser</value>
   </data>
   <data name="X509_ParseLabel" xml:space="preserve">
-    <value>Paste PEM/DER</value>
+    <value>Collez PEM/DER</value>
   </data>
   <data name="X509_ParsePlaceholder" xml:space="preserve">
-    <value>Paste certificate, CSR, or key (PEM/DER) here...</value>
+    <value>Collez un certificat, CSR ou clé (PEM/DER) ici...</value>
   </data>
   <data name="X509_ParseButton" xml:space="preserve">
-    <value>Parse</value>
+    <value>Analyser</value>
   </data>
   <data name="X509_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>Sortie</value>
   </data>
   <data name="X509_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>Copier</value>
   </data>
   <data name="X509_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>Copié !</value>
   </data>
   <data name="X509_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>Télécharger</value>
   </data>
   <data name="X509_WarningsTitle" xml:space="preserve">
-    <value>Warnings</value>
+    <value>Avertissements</value>
   </data>
   <data name="Aead_Title" xml:space="preserve">
     <value>Chiffrement AEAD</value>
   </data>
   <data name="Aead_Description" xml:space="preserve">
-    <value>Encrypt and decrypt files locally with AEAD.</value>
+    <value>Chiffrez et déchiffrez des fichiers localement avec AEAD.</value>
   </data>
   <data name="Aead_EncryptSectionTitle" xml:space="preserve">
-    <value>Encrypt</value>
+    <value>Chiffrer</value>
   </data>
   <data name="Aead_DecryptSectionTitle" xml:space="preserve">
-    <value>Decrypt</value>
+    <value>Déchiffrer</value>
   </data>
   <data name="Aead_FileLabel" xml:space="preserve">
-    <value>File</value>
+    <value>Fichier</value>
   </data>
   <data name="Aead_FileHint" xml:space="preserve">
-    <value>Large files are processed in chunks in the browser.</value>
+    <value>Les gros fichiers sont traités par morceaux dans le navigateur.</value>
   </data>
   <data name="Aead_AlgorithmLabel" xml:space="preserve">
-    <value>Algorithm</value>
+    <value>Algorithme</value>
   </data>
   <data name="Aead_PasswordLabel" xml:space="preserve">
-    <value>Password</value>
+    <value>Mot de passe</value>
   </data>
   <data name="Aead_EncryptButton" xml:space="preserve">
-    <value>Encrypt file</value>
+    <value>Chiffrer le fichier</value>
   </data>
   <data name="Aead_DecryptButton" xml:space="preserve">
-    <value>Decrypt file</value>
+    <value>Déchiffrer le fichier</value>
   </data>
   <data name="Aead_HeaderLabel" xml:space="preserve">
-    <value>Header</value>
+    <value>En-tête</value>
   </data>
   <data name="Aead_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>Sortie</value>
   </data>
   <data name="Aead_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>Copier</value>
   </data>
   <data name="Aead_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>Copié !</value>
   </data>
   <data name="Aead_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>Télécharger</value>
   </data>
   <data name="Aead_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>Traitement du fichier...</value>
   </data>
   <data name="Aead_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>Annuler</value>
   </data>
   <data name="Aead_WarningsTitle" xml:space="preserve">
-    <value>Warnings</value>
+    <value>Avertissements</value>
   </data>
   <data name="Nav_JsonBeautifier" xml:space="preserve">
     <value>Embellisseur JSON</value>
@@ -946,7 +946,7 @@
     <value>JSON d'entrée</value>
   </data>
   <data name="JsonBeautifier_InputPlaceholder" xml:space="preserve">
-    <value>Paste your JSON here...</value>
+    <value>Collez votre JSON ici...</value>
   </data>
   <data name="JsonBeautifier_FormatButton" xml:space="preserve">
     <value>Formater</value>
@@ -958,82 +958,82 @@
     <value>Copier</value>
   </data>
   <data name="JsonBeautifier_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>Copié !</value>
   </data>
   <data name="JsonBeautifier_ErrorInvalidJson" xml:space="preserve">
-    <value>Invalid JSON. Please check your input.</value>
+    <value>JSON invalide. Veuillez vérifier votre saisie.</value>
   </data>
   <data name="JsonBeautifier_IndentSizeLabel" xml:space="preserve">
-    <value>Indent size</value>
+    <value>Taille de l'indentation</value>
   </data>
   <data name="JsonBeautifier_Indent2Spaces" xml:space="preserve">
-    <value>2 spaces</value>
+    <value>2 espaces</value>
   </data>
   <data name="JsonBeautifier_Indent4Spaces" xml:space="preserve">
-    <value>4 spaces</value>
+    <value>4 espaces</value>
   </data>
   <data name="JsonBeautifier_IndentTab" xml:space="preserve">
-    <value>Tab</value>
+    <value>Tabulation</value>
   </data>
   <data name="JsonBeautifier_SortKeys" xml:space="preserve">
-    <value>Sort keys</value>
+    <value>Trier les clés</value>
   </data>
   <data name="JsonBeautifier_CompactMode" xml:space="preserve">
-    <value>Compact mode (minify)</value>
+    <value>Mode compact (minifier)</value>
   </data>
   <data name="JsonBeautifier_OutputLabel" xml:space="preserve">
     <value>JSON Formaté</value>
   </data>
   <data name="JsonBeautifier_LineNumbers" xml:space="preserve">
-    <value>Show line numbers</value>
+    <value>Afficher les numéros de ligne</value>
   </data>
   <data name="JsonBeautifier_Collapsible" xml:space="preserve">
-    <value>Collapsible blocks</value>
+    <value>Blocs repliables</value>
   </data>
   <data name="Nav_XmlBeautifier" xml:space="preserve">
     <value>Embellisseur XML</value>
   </data>
   <data name="XmlBeautifier_Title" xml:space="preserve">
-    <value>XML Beautifier</value>
+    <value>Embellisseur XML</value>
   </data>
   <data name="XmlBeautifier_Description" xml:space="preserve">
-    <value>Format and beautify XML with customizable indentation — all in your browser</value>
+    <value>Formatez et embellissez le XML avec une indentation personnalisable — tout dans votre navigateur</value>
   </data>
   <data name="XmlBeautifier_InputLabel" xml:space="preserve">
-    <value>Input XML</value>
+    <value>XML d'entrée</value>
   </data>
   <data name="XmlBeautifier_InputPlaceholder" xml:space="preserve">
-    <value>Paste your XML here...</value>
+    <value>Collez votre XML ici...</value>
   </data>
   <data name="XmlBeautifier_FormatButton" xml:space="preserve">
-    <value>Format</value>
+    <value>Formater</value>
   </data>
   <data name="XmlBeautifier_ClearButton" xml:space="preserve">
-    <value>Clear</value>
+    <value>Effacer</value>
   </data>
   <data name="XmlBeautifier_CopyButton" xml:space="preserve">
-    <value>Copy</value>
+    <value>Copier</value>
   </data>
   <data name="XmlBeautifier_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>Copié !</value>
   </data>
   <data name="XmlBeautifier_ErrorInvalidXml" xml:space="preserve">
-    <value>Invalid XML. Please check your input.</value>
+    <value>XML invalide. Veuillez vérifier votre saisie.</value>
   </data>
   <data name="XmlBeautifier_IndentSizeLabel" xml:space="preserve">
-    <value>Indent size</value>
+    <value>Taille de l'indentation</value>
   </data>
   <data name="XmlBeautifier_Indent2Spaces" xml:space="preserve">
-    <value>2 spaces</value>
+    <value>2 espaces</value>
   </data>
   <data name="XmlBeautifier_Indent4Spaces" xml:space="preserve">
-    <value>4 spaces</value>
+    <value>4 espaces</value>
   </data>
   <data name="XmlBeautifier_IndentTab" xml:space="preserve">
-    <value>Tab</value>
+    <value>Tabulation</value>
   </data>
   <data name="XmlBeautifier_CompactMode" xml:space="preserve">
-    <value>Compact mode (minify)</value>
+    <value>Mode compact (minifier)</value>
   </data>
   <data name="Nav_PasswordGenerator" xml:space="preserve">
     <value>Générateur de MdP</value>
@@ -1045,22 +1045,22 @@
     <value>Générez des mots de passe sécurisés et aléatoires localement dans votre navigateur.</value>
   </data>
   <data name="PasswordGenerator_LengthLabel" xml:space="preserve">
-    <value>Password Length</value>
+    <value>Longueur du mot de passe</value>
   </data>
   <data name="PasswordGenerator_UppercaseLabel" xml:space="preserve">
-    <value>Uppercase (A-Z)</value>
+    <value>Majuscules (A-Z)</value>
   </data>
   <data name="PasswordGenerator_LowercaseLabel" xml:space="preserve">
-    <value>Lowercase (a-z)</value>
+    <value>Minuscules (a-z)</value>
   </data>
   <data name="PasswordGenerator_NumbersLabel" xml:space="preserve">
-    <value>Numbers (0-9)</value>
+    <value>Chiffres (0-9)</value>
   </data>
   <data name="PasswordGenerator_SpecialLabel" xml:space="preserve">
-    <value>Special Characters</value>
+    <value>Caractères spéciaux</value>
   </data>
   <data name="PasswordGenerator_CustomSpecialLabel" xml:space="preserve">
-    <value>Custom Symbols</value>
+    <value>Symboles personnalisés</value>
   </data>
   <data name="PasswordGenerator_GenerateButton" xml:space="preserve">
     <value>Générer le mot de passe</value>
@@ -1069,61 +1069,61 @@
     <value>Copier</value>
   </data>
   <data name="PasswordGenerator_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>Copié !</value>
   </data>
   <data name="PasswordGenerator_ResultLabel" xml:space="preserve">
     <value>Mot de passe généré</value>
   </data>
   <data name="PasswordGenerator_HistoryLabel" xml:space="preserve">
-    <value>History (last 10)</value>
+    <value>Historique (10 derniers)</value>
   </data>
   <data name="PasswordGenerator_ClearHistory" xml:space="preserve">
-    <value>Clear History</value>
+    <value>Effacer l'historique</value>
   </data>
   <data name="TextCaseConverter_AlternatingCase" xml:space="preserve">
-    <value>Alternating Case</value>
+    <value>Alterner la casse</value>
   </data>
   <data name="TextCaseConverter_CamelCase" xml:space="preserve">
     <value>Camel Case</value>
   </data>
   <data name="TextCaseConverter_ClearButton" xml:space="preserve">
-    <value>Clear</value>
+    <value>Effacer</value>
   </data>
   <data name="TextCaseConverter_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>Copié !</value>
   </data>
   <data name="TextCaseConverter_CopyButton" xml:space="preserve">
-    <value>Copy</value>
+    <value>Copier</value>
   </data>
   <data name="TextCaseConverter_Description" xml:space="preserve">
-    <value>Convert text between different letter cases: upper, lower, title, camel, snake, and more.</value>
+    <value>Convertissez du texte entre différentes casse : majuscules, minuscules, titre, camel, snake, et plus.</value>
   </data>
   <data name="TextCaseConverter_InputPlaceholder" xml:space="preserve">
-    <value>Type or paste your text here...</value>
+    <value>Tapez ou collez votre texte ici...</value>
   </data>
   <data name="TextCaseConverter_InverseCase" xml:space="preserve">
-    <value>Inverse Case</value>
+    <value>Inverser la casse</value>
   </data>
   <data name="TextCaseConverter_KebabCase" xml:space="preserve">
     <value>Kebab Case</value>
   </data>
   <data name="TextCaseConverter_LowerCase" xml:space="preserve">
-    <value>lower case</value>
+    <value>minuscules</value>
   </data>
   <data name="TextCaseConverter_SentenceCase" xml:space="preserve">
-    <value>Sentence case</value>
+    <value>Phrase (première lettre majuscule)</value>
   </data>
   <data name="TextCaseConverter_SnakeCase" xml:space="preserve">
     <value>Snake Case</value>
   </data>
   <data name="TextCaseConverter_Title" xml:space="preserve">
-    <value>Text Case Converter</value>
+    <value>Convertisseur de casse de texte</value>
   </data>
   <data name="TextCaseConverter_TitleCase" xml:space="preserve">
-    <value>Title Case</value>
+    <value>Titre (chaque mot en majuscule)</value>
   </data>
   <data name="TextCaseConverter_UpperCase" xml:space="preserve">
-    <value>UPPER CASE</value>
+    <value>MAJUSCULES</value>
   </data>
   <data name="DateConverter_Title" xml:space="preserve">
     <value>Convertisseur de Date</value>
@@ -1141,25 +1141,25 @@
     <value>Convertir</value>
   </data>
   <data name="DateConverter_ActionCurrentTime" xml:space="preserve">
-    <value>Current Time (Now)</value>
+    <value>Heure actuelle (Maintenant)</value>
   </data>
   <data name="DateConverter_InputTypeLabel" xml:space="preserve">
-    <value>Input Type</value>
+    <value>Type d'entrée</value>
   </data>
   <data name="DateConverter_InputType_Auto" xml:space="preserve">
-    <value>Auto-detect</value>
+    <value>Détection automatique</value>
   </data>
   <data name="DateConverter_InputType_UnixSec" xml:space="preserve">
-    <value>Unix Timestamp (Seconds)</value>
+    <value>Horodatage Unix (Secondes)</value>
   </data>
   <data name="DateConverter_InputType_UnixMs" xml:space="preserve">
-    <value>Unix Timestamp (Milliseconds)</value>
+    <value>Horodatage Unix (Millisecondes)</value>
   </data>
   <data name="DateConverter_InputType_ISO" xml:space="preserve">
-    <value>ISO 8601 String</value>
+    <value>Chaîne ISO 8601</value>
   </data>
   <data name="DateConverter_OutputFormatLabel" xml:space="preserve">
-    <value>Output Format</value>
+    <value>Format de sortie</value>
   </data>
   <data name="DateConverter_Format_ISO" xml:space="preserve">
     <value>ISO 8601</value>
@@ -1168,208 +1168,208 @@
     <value>RFC 2822 / 5322</value>
   </data>
   <data name="DateConverter_Format_UnixSec" xml:space="preserve">
-    <value>Unix Timestamp (Seconds)</value>
+    <value>Horodatage Unix (Secondes)</value>
   </data>
   <data name="DateConverter_Format_UnixMs" xml:space="preserve">
-    <value>Unix Timestamp (Milliseconds)</value>
+    <value>Horodatage Unix (Millisecondes)</value>
   </data>
   <data name="DateConverter_Format_UTC" xml:space="preserve">
-    <value>UTC String</value>
+    <value>Chaîne UTC</value>
   </data>
   <data name="DateConverter_Format_Local" xml:space="preserve">
-    <value>Local String</value>
+    <value>Chaîne locale</value>
   </data>
   <data name="DateConverter_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>Copier</value>
   </data>
   <data name="DateConverter_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>Copié !</value>
   </data>
   <data name="DateConverter_Error_Invalid" xml:space="preserve">
-    <value>Invalid date format.</value>
+    <value>Format de date invalide.</value>
   </data>
   <data name="DateConverter_Format_European" xml:space="preserve">
-    <value>European (dd.MM.yyyy HH:mm:ss)</value>
+    <value>Européen (dd.MM.yyyy HH:mm:ss)</value>
   </data>
   <data name="DateConverter_Format_Custom" xml:space="preserve">
-    <value>Custom Format</value>
+    <value>Format personnalisé</value>
   </data>
   <data name="DateConverter_CustomFormatPlaceholder" xml:space="preserve">
-    <value>Enter format (e.g. dd/MM/yyyy)</value>
+    <value>Entrez le format (ex. dd/MM/yyyy)</value>
   </data>
   <data name="JwtDecoder_Title" xml:space="preserve">
     <value>Décodeur JWT</value>
   </data>
   <data name="JwtDecoder_Description" xml:space="preserve">
-    <value>Decode and verify JSON Web Tokens (JWT) directly in your browser.</value>
+    <value>Décodez et vérifiez les JSON Web Tokens (JWT) directement dans votre navigateur.</value>
   </data>
   <data name="JwtDecoder_EncodedLabel" xml:space="preserve">
-    <value>Encoded</value>
+    <value>Encodé</value>
   </data>
   <data name="JwtDecoder_EncodedPlaceholder" xml:space="preserve">
-    <value>Paste a JWT here...</value>
+    <value>Collez un JWT ici...</value>
   </data>
   <data name="JwtDecoder_DecodedHeaderLabel" xml:space="preserve">
-    <value>Header</value>
+    <value>En-tête</value>
   </data>
   <data name="JwtDecoder_DecodedPayloadLabel" xml:space="preserve">
-    <value>Payload</value>
+    <value>Charge utile</value>
   </data>
   <data name="JwtDecoder_SignatureLabel" xml:space="preserve">
-    <value>Verify Signature</value>
+    <value>Vérifier la signature</value>
   </data>
   <data name="JwtDecoder_SecretLabel" xml:space="preserve">
-    <value>Secret / Public Key</value>
+    <value>Secret / Clé publique</value>
   </data>
   <data name="JwtDecoder_SecretPlaceholder" xml:space="preserve">
-    <value>Enter your 256-bit secret...</value>
+    <value>Entrez votre secret de 256 bits...</value>
   </data>
   <data name="JwtDecoder_SignatureVerified" xml:space="preserve">
-    <value>Signature Verified</value>
+    <value>Signature vérifiée</value>
   </data>
   <data name="JwtDecoder_SignatureInvalid" xml:space="preserve">
-    <value>Invalid Signature</value>
+    <value>Signature invalide</value>
   </data>
   <data name="JwtEncoder_Title" xml:space="preserve">
     <value>Encodeur JWT</value>
   </data>
   <data name="JwtEncoder_Description" xml:space="preserve">
-    <value>Generate and sign JSON Web Tokens (JWT) directly in your browser.</value>
+    <value>Générez et signez des JSON Web Tokens (JWT) directement dans votre navigateur.</value>
   </data>
   <data name="JwtEncoder_HeaderLabel" xml:space="preserve">
-    <value>Header (JSON)</value>
+    <value>En-tête (JSON)</value>
   </data>
   <data name="JwtEncoder_PayloadLabel" xml:space="preserve">
-    <value>Payload (JSON)</value>
+    <value>Charge utile (JSON)</value>
   </data>
   <data name="JwtEncoder_SecretLabel" xml:space="preserve">
-    <value>Secret / Private Key</value>
+    <value>Secret / Clé privée</value>
   </data>
   <data name="JwtEncoder_SecretPlaceholder" xml:space="preserve">
-    <value>Enter your secret key...</value>
+    <value>Entrez votre clé secrète...</value>
   </data>
   <data name="JwtEncoder_EncodedLabel" xml:space="preserve">
-    <value>Generated JWT</value>
+    <value>JWT généré</value>
   </data>
   <data name="JwtEncoder_AlgorithmLabel" xml:space="preserve">
-    <value>Algorithm</value>
+    <value>Algorithme</value>
   </data>
   <data name="JwtEncoder_GenerateButton" xml:space="preserve">
-    <value>Generate JWT</value>
+    <value>Générer JWT</value>
   </data>
   <data name="JwtDecoder_LinkToEncoder" xml:space="preserve">
-    <value>Need to generate a JWT? Try the JWT Encoder</value>
+    <value>Besoin de générer un JWT ? Essayez l'Encodeur JWT</value>
   </data>
   <data name="JwtEncoder_LinkToDecoder" xml:space="preserve">
-    <value>Need to decode a JWT? Try the JWT Decoder</value>
+    <value>Besoin de décoder un JWT ? Essayez le Décodeur JWT</value>
   </data>
   <data name="ImageConverter_Title" xml:space="preserve">
-    <value>Image Converter</value>
+    <value>Convertisseur d'images</value>
   </data>
   <data name="ImageConverter_Description" xml:space="preserve">
-    <value>Convert images between formats (PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA) securely in your browser.</value>
+    <value>Convertissez des images entre formats (PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA) en toute sécurité dans votre navigateur.</value>
   </data>
   <data name="ImageConverter_SelectFormat" xml:space="preserve">
-    <value>Select output format</value>
+    <value>Sélectionnez le format de sortie</value>
   </data>
   <data name="ImageConverter_Convert" xml:space="preserve">
-    <value>Convert</value>
+    <value>Convertir</value>
   </data>
   <data name="ImageConverter_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>Télécharger</value>
   </data>
   <data name="ImageConverter_DragDrop" xml:space="preserve">
-    <value>Drag &amp; drop an image here or click to select</value>
+    <value>Glissez-déposez une image ici ou cliquez pour sélectionner</value>
   </data>
   <data name="ImageConverter_Processing" xml:space="preserve">
-    <value>Processing...</value>
+    <value>Traitement en cours...</value>
   </data>
   <data name="ImageConverter_Quality" xml:space="preserve">
-    <value>Quality (JPEG, WebP)</value>
+    <value>Qualité (JPEG, WebP)</value>
   </data>
   <data name="ImageConverter_OutputSize" xml:space="preserve">
-    <value>Output Size:</value>
+    <value>Taille de sortie :</value>
   </data>
   <data name="ImageCompressor_Title" xml:space="preserve">
-    <value>Image Compressor</value>
+    <value>Compresseur d'images</value>
   </data>
   <data name="ImageCompressor_Description" xml:space="preserve">
-    <value>Compress JPG, PNG, and WebP images locally in your browser.</value>
+    <value>Compressez des images JPG, PNG et WebP localement dans votre navigateur.</value>
   </data>
   <data name="ImageCompressor_Compressing" xml:space="preserve">
-    <value>Compressing...</value>
+    <value>Compression en cours...</value>
   </data>
   <data name="ImageCompressor_Processing" xml:space="preserve">
-    <value>Processing...</value>
+    <value>Traitement en cours...</value>
   </data>
   <data name="ImageCompressor_Done" xml:space="preserve">
-    <value>Done!</value>
+    <value>Terminé !</value>
   </data>
   <data name="ImageCompressor_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>Télécharger</value>
   </data>
   <data name="ImageCompressor_DragDrop" xml:space="preserve">
-    <value>Drop images here or click to select files</value>
+    <value>Déposez des images ici ou cliquez pour sélectionner des fichiers</value>
   </data>
   <data name="ImageResizer_Title" xml:space="preserve">
-    <value>Image Resizer</value>
+    <value>Redimensionneur d'images</value>
   </data>
   <data name="ImageResizer_Description" xml:space="preserve">
-    <value>Resize images with custom dimensions and aspect ratio locking.</value>
+    <value>Redimensionnez des images avec des dimensions personnalisées et verrouillage du ratio d'aspect.</value>
   </data>
   <data name="ImageResizer_OriginalInfo" xml:space="preserve">
-    <value>Original Image</value>
+    <value>Image originale</value>
   </data>
   <data name="ImageResizer_Width" xml:space="preserve">
-    <value>Width (px)</value>
+    <value>Largeur (px)</value>
   </data>
   <data name="ImageResizer_Height" xml:space="preserve">
-    <value>Height (px)</value>
+    <value>Hauteur (px)</value>
   </data>
   <data name="ImageResizer_LockAspectRatio" xml:space="preserve">
-    <value>Maintain Aspect Ratio</value>
+    <value>Conserver le ratio d'aspect</value>
   </data>
   <data name="ImageResizer_Resize" xml:space="preserve">
-    <value>Resize</value>
+    <value>Redimensionner</value>
   </data>
   <data name="ImageResizer_Resizing" xml:space="preserve">
-    <value>Resizing...</value>
+    <value>Redimensionnement en cours...</value>
   </data>
   <data name="RegexTester_Title" xml:space="preserve">
     <value>Testeur Regex</value>
   </data>
   <data name="RegexTester_Description" xml:space="preserve">
-    <value>Test and debug regular expressions using the Rust regex engine (WASM) — all in your browser</value>
+    <value>Testez et déboguez des expressions régulières en utilisant le moteur regex Rust (WASM) — tout dans votre navigateur</value>
   </data>
   <data name="RegexTester_PatternLabel" xml:space="preserve">
-    <value>Pattern</value>
+    <value>Modèle</value>
   </data>
   <data name="RegexTester_PatternPlaceholder" xml:space="preserve">
-    <value>Enter regex pattern...</value>
+    <value>Entrez un modèle regex...</value>
   </data>
   <data name="RegexTester_TextLabel" xml:space="preserve">
-    <value>Test String</value>
+    <value>Chaîne de test</value>
   </data>
   <data name="RegexTester_TextPlaceholder" xml:space="preserve">
-    <value>Enter text to match against...</value>
+    <value>Entrez du texte pour tester...</value>
   </data>
   <data name="RegexTester_FlagsLabel" xml:space="preserve">
-    <value>Flags</value>
+    <value>Drapeaux</value>
   </data>
   <data name="RegexTester_MatchesLabel" xml:space="preserve">
-    <value>Matches</value>
+    <value>Correspondances</value>
   </data>
   <data name="RegexTester_NoMatches" xml:space="preserve">
-    <value>No matches found</value>
+    <value>Aucune correspondance trouvée</value>
   </data>
   <data name="RegexTester_ErrorTitle" xml:space="preserve">
-    <value>Regex Error</value>
+    <value>Erreur Regex</value>
   </data>
   <data name="RegexTester_ExamplesTitle" xml:space="preserve">
-    <value>Examples</value>
+    <value>Exemples</value>
   </data>
   <data name="RegexTester_Instructions" xml:space="preserve">
-    <value>Enter a Rust-flavor regular expression and test string below. Matches will be highlighted.</value>
+    <value>Entrez une expression régulière de style Rust et une chaîne de test ci-dessous. Les correspondances seront surlignées.</value>
   </data>
   <data name="QrCodeGenerator_Title" xml:space="preserve">
     <value>Générateur de QR Code</value>
@@ -1381,16 +1381,16 @@
     <value>Contenu</value>
   </data>
   <data name="QrCodeGenerator_ContentPlaceholder" xml:space="preserve">
-    <value>Enter text or URL to encode...</value>
+    <value>Entrez du texte ou une URL à encoder...</value>
   </data>
   <data name="QrCodeGenerator_ColorsSection" xml:space="preserve">
-    <value>Colors</value>
+    <value>Couleurs</value>
   </data>
   <data name="QrCodeGenerator_ForegroundColor" xml:space="preserve">
-    <value>QR Code Color</value>
+    <value>Couleur du QR Code</value>
   </data>
   <data name="QrCodeGenerator_BackgroundColor" xml:space="preserve">
-    <value>Background Color</value>
+    <value>Couleur de fond</value>
   </data>
   <data name="QrCodeGenerator_OptionsSection" xml:space="preserve">
     <value>Options</value>
@@ -1399,58 +1399,58 @@
     <value>Style</value>
   </data>
   <data name="QrCodeGenerator_StyleSquare" xml:space="preserve">
-    <value>Square</value>
+    <value>Carré</value>
   </data>
   <data name="QrCodeGenerator_StyleDots" xml:space="preserve">
-    <value>Dots</value>
+    <value>Points</value>
   </data>
   <data name="QrCodeGenerator_StyleRounded" xml:space="preserve">
-    <value>Rounded</value>
+    <value>Arrondi</value>
   </data>
   <data name="QrCodeGenerator_ErrorCorrectionLabel" xml:space="preserve">
-    <value>Error Correction Level</value>
+    <value>Niveau de correction d'erreur</value>
   </data>
   <data name="QrCodeGenerator_SizeLabel" xml:space="preserve">
-    <value>Image Size</value>
+    <value>Taille de l'image</value>
   </data>
   <data name="QrCodeGenerator_LogoSection" xml:space="preserve">
-    <value>Logo (optional)</value>
+    <value>Logo (optionnel)</value>
   </data>
   <data name="QrCodeGenerator_LogoHint" xml:space="preserve">
-    <value>Add a logo to the center of your QR code. Use high error correction (Q or H) for best results.</value>
+    <value>Ajoutez un logo au centre de votre QR code. Utilisez une correction d'erreur élevée (Q ou H) pour de meilleurs résultats.</value>
   </data>
   <data name="QrCodeGenerator_LogoDropText" xml:space="preserve">
-    <value>Drop logo here or click to select</value>
+    <value>Déposez un logo ici ou cliquez pour sélectionner</value>
   </data>
   <data name="QrCodeGenerator_LogoRemove" xml:space="preserve">
-    <value>Remove logo</value>
+    <value>Supprimer le logo</value>
   </data>
   <data name="QrCodeGenerator_Generate" xml:space="preserve">
     <value>Générer QR Code</value>
   </data>
   <data name="QrCodeGenerator_Generating" xml:space="preserve">
-    <value>Generating...</value>
+    <value>Génération en cours...</value>
   </data>
   <data name="QrCodeGenerator_PreviewSection" xml:space="preserve">
-    <value>Preview</value>
+    <value>Aperçu</value>
   </data>
   <data name="QrCodeGenerator_PreviewPlaceholder" xml:space="preserve">
-    <value>Your QR code will appear here</value>
+    <value>Votre QR code apparaîtra ici</value>
   </data>
   <data name="QrScanner_Title" xml:space="preserve">
     <value>Scanner QR</value>
   </data>
   <data name="QrScanner_Description" xml:space="preserve">
-    <value>Scan QR codes from images directly in your browser without uploading to any server.</value>
+    <value>Scannez des QR codes à partir d'images directement dans votre navigateur sans téléchargement vers aucun serveur.</value>
   </data>
   <data name="QrScanner_DropZone" xml:space="preserve">
-    <value>Drag &amp; drop an image with a QR code here</value>
+    <value>Glissez-déposez une image avec un QR code ici</value>
   </data>
   <data name="QrScanner_ResultLabel" xml:space="preserve">
-    <value>Scanned Content</value>
+    <value>Contenu scanné</value>
   </data>
   <data name="QrScanner_ErrorReading" xml:space="preserve">
-    <value>Error reading text from the image.</value>
+    <value>Erreur lors de la lecture du texte de l'image.</value>
   </data>
   <data name="Nav_QrScanner" xml:space="preserve">
     <value>Scanner QR</value>
@@ -1579,73 +1579,73 @@
     <value>Convertisseur de Couleurs</value>
   </data>
   <data name="ColorConverter_Description" xml:space="preserve">
-    <value>Convert colors between HEX, RGB, HSL, and CMYK formats with color picker and shades palette — all in your browser</value>
+    <value>Convertissez les couleurs entre les formats HEX, RGB, HSL et CMYK avec sélecteur de couleur et palette de nuances — tout dans votre navigateur</value>
   </data>
   <data name="ColorConverter_ColorPicker" xml:space="preserve">
-    <value>Color Picker</value>
+    <value>Sélecteur de couleur</value>
   </data>
   <data name="ColorConverter_InputFormat" xml:space="preserve">
-    <value>Input Format</value>
+    <value>Format d'entrée</value>
   </data>
   <data name="ColorConverter_ManualInput" xml:space="preserve">
-    <value>Manual Input</value>
+    <value>Saisie manuelle</value>
   </data>
   <data name="ColorConverter_InputHint" xml:space="preserve">
-    <value>Examples: #3b82f6, rgb(59, 130, 246), hsl(217, 91%, 60%), cmyk(76%, 47%, 0%, 4%)</value>
+    <value>Exemples : #3b82f6, rgb(59, 130, 246), hsl(217, 91%, 60%), cmyk(76%, 47%, 0%, 4%)</value>
   </data>
   <data name="ColorConverter_Convert" xml:space="preserve">
-    <value>Convert</value>
+    <value>Convertir</value>
   </data>
   <data name="ColorConverter_Clear" xml:space="preserve">
-    <value>Clear</value>
+    <value>Effacer</value>
   </data>
   <data name="ColorConverter_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>Copier</value>
   </data>
   <data name="ColorConverter_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>Copié !</value>
   </data>
   <data name="ColorConverter_ConvertedFormats" xml:space="preserve">
-    <value>Converted Formats</value>
+    <value>Formats convertis</value>
   </data>
   <data name="ColorConverter_ShadesPalette" xml:space="preserve">
-    <value>Shades Palette</value>
+    <value>Palette de nuances</value>
   </data>
   <data name="ColorConverter_ContrastChecker" xml:space="preserve">
-    <value>Contrast Checker</value>
+    <value>Vérificateur de contraste</value>
   </data>
   <data name="ColorConverter_ForegroundColor" xml:space="preserve">
-    <value>Foreground Color</value>
+    <value>Couleur de premier plan</value>
   </data>
   <data name="ColorConverter_BackgroundColor" xml:space="preserve">
-    <value>Background Color</value>
+    <value>Couleur d'arrière-plan</value>
   </data>
   <data name="ColorConverter_ContrastRatio" xml:space="preserve">
-    <value>Contrast Ratio</value>
+    <value>Ratio de contraste</value>
   </data>
   <data name="ColorConverter_WCAGCompliance" xml:space="preserve">
-    <value>WCAG Compliance</value>
+    <value>Conformité WCAG</value>
   </data>
   <data name="ColorConverter_WCAG_AA_Normal" xml:space="preserve">
-    <value>AA Normal Text (4.5:1)</value>
+    <value>AA Texte normal (4.5:1)</value>
   </data>
   <data name="ColorConverter_WCAG_AA_Large" xml:space="preserve">
-    <value>AA Large Text (3:1)</value>
+    <value>AA Gros texte (3:1)</value>
   </data>
   <data name="ColorConverter_WCAG_AAA_Normal" xml:space="preserve">
-    <value>AAA Normal Text (7:1)</value>
+    <value>AAA Texte normal (7:1)</value>
   </data>
   <data name="ColorConverter_WCAG_AAA_Large" xml:space="preserve">
-    <value>AAA Large Text (4.5:1)</value>
+    <value>AAA Gros texte (4.5:1)</value>
   </data>
   <data name="ColorConverter_Pass" xml:space="preserve">
-    <value>Pass</value>
+    <value>Passer</value>
   </data>
   <data name="ColorConverter_Fail" xml:space="preserve">
-    <value>Fail</value>
+    <value>Échouer</value>
   </data>
   <data name="ColorConverter_PreviewText" xml:space="preserve">
-    <value>Sample Text</value>
+    <value>Exemple de texte</value>
   </data>
   <data name="Nav_MarkdownPreview" xml:space="preserve">
     <value>Aperçu Markdown</value>
@@ -1654,28 +1654,28 @@
     <value>Aperçu Markdown</value>
   </data>
   <data name="MarkdownPreview_Description" xml:space="preserve">
-    <value>Live markdown editor with real-time HTML preview, split-view, and syntax highlighting — all in your browser</value>
+    <value>Éditeur Markdown en direct avec aperçu HTML en temps réel, vue partagée et coloration syntaxique — tout dans votre navigateur</value>
   </data>
   <data name="MarkdownPreview_EditorLabel" xml:space="preserve">
-    <value>Markdown Editor</value>
+    <value>Éditeur Markdown</value>
   </data>
   <data name="MarkdownPreview_EditorPlaceholder" xml:space="preserve">
-    <value>Type your markdown here...</value>
+    <value>Tapez votre markdown ici...</value>
   </data>
   <data name="MarkdownPreview_PreviewLabel" xml:space="preserve">
-    <value>Preview</value>
+    <value>Aperçu</value>
   </data>
   <data name="MarkdownPreview_Bold" xml:space="preserve">
-    <value>Bold</value>
+    <value>Gras</value>
   </data>
   <data name="MarkdownPreview_Italic" xml:space="preserve">
-    <value>Italic</value>
+    <value>Italique</value>
   </data>
   <data name="MarkdownPreview_Heading" xml:space="preserve">
-    <value>Heading</value>
+    <value>Titre</value>
   </data>
   <data name="MarkdownPreview_Link" xml:space="preserve">
-    <value>Link</value>
+    <value>Lien</value>
   </data>
   <data name="MarkdownPreview_Image" xml:space="preserve">
     <value>Image</value>
@@ -1684,22 +1684,22 @@
     <value>Code</value>
   </data>
   <data name="MarkdownPreview_List" xml:space="preserve">
-    <value>List</value>
+    <value>Liste</value>
   </data>
   <data name="MarkdownPreview_Clear" xml:space="preserve">
-    <value>Clear</value>
+    <value>Effacer</value>
   </data>
   <data name="MarkdownPreview_SyncScroll" xml:space="preserve">
-    <value>Sync Scroll</value>
+    <value>Synchroniser le défilement</value>
   </data>
   <data name="MarkdownPreview_CopyHTML" xml:space="preserve">
-    <value>Copy HTML</value>
+    <value>Copier HTML</value>
   </data>
   <data name="MarkdownPreview_CopyMarkdown" xml:space="preserve">
-    <value>Copy Markdown</value>
+    <value>Copier Markdown</value>
   </data>
   <data name="MarkdownPreview_Download" xml:space="preserve">
-    <value>Download HTML</value>
+    <value>Télécharger HTML</value>
   </data>
   <data name="Nav_TextDiffViewer" xml:space="preserve">
     <value>Comparateur de Texte</value>
@@ -1708,175 +1708,175 @@
     <value>Comparateur de Texte</value>
   </data>
   <data name="TextDiffViewer_Description" xml:space="preserve">
-    <value>Compare two text files or code snippets side-by-side with a visual diff viewer, similar to Git diff. Highlight changes, additions, and deletions in a readable format.</value>
+    <value>Comparez deux fichiers texte ou extraits de code côte à côte avec un visualiseur de diff, similaire à Git diff. Mettez en évidence les modifications, ajouts et suppressions dans un format lisible.</value>
   </data>
   <data name="TextDiffViewer_OriginalLabel" xml:space="preserve">
-    <value>Original Text</value>
+    <value>Texte original</value>
   </data>
   <data name="TextDiffViewer_OriginalPlaceholder" xml:space="preserve">
-    <value>Paste or type original text here, or upload a file below...</value>
+    <value>Collez ou tapez le texte original ici, ou téléchargez un fichier ci-dessous...</value>
   </data>
   <data name="TextDiffViewer_ModifiedLabel" xml:space="preserve">
-    <value>Modified Text</value>
+    <value>Texte modifié</value>
   </data>
   <data name="TextDiffViewer_ModifiedPlaceholder" xml:space="preserve">
-    <value>Paste or type modified text here, or upload a file below...</value>
+    <value>Collez ou tapez le texte modifié ici, ou téléchargez un fichier ci-dessous...</value>
   </data>
   <data name="TextDiffViewer_CompareButton" xml:space="preserve">
-    <value>Compare</value>
+    <value>Comparer</value>
   </data>
   <data name="TextDiffViewer_ClearButton" xml:space="preserve">
-    <value>Clear</value>
+    <value>Effacer</value>
   </data>
   <data name="TextDiffViewer_LineByLine" xml:space="preserve">
-    <value>Line by Line</value>
+    <value>Ligne par ligne</value>
   </data>
   <data name="TextDiffViewer_SideBySide" xml:space="preserve">
-    <value>Side by Side</value>
+    <value>Côte à côte</value>
   </data>
   <data name="TextDiffViewer_ErrorMessage" xml:space="preserve">
-    <value>Please enter text in both fields to compare.</value>
+    <value>Veuillez saisir du texte dans les deux champs pour comparer.</value>
   </data>
   <data name="TextDiffViewer_ChooseOriginalFile" xml:space="preserve">
-    <value>📁 Choose original file</value>
+    <value>📁 Choisir le fichier original</value>
   </data>
   <data name="TextDiffViewer_ChooseModifiedFile" xml:space="preserve">
-    <value>📁 Choose modified file</value>
+    <value>📁 Choisir le fichier modifié</value>
   </data>
   <data name="DaisyUIDemo_Title" xml:space="preserve">
-    <value>DaisyUI Components Demo</value>
+    <value>Démonstration des composants DaisyUI</value>
   </data>
   <data name="DaisyUIDemo_Description" xml:space="preserve">
-    <value>Test page showcasing various DaisyUI components and themes</value>
+    <value>Page de test présentant divers composants et thèmes DaisyUI</value>
   </data>
   <data name="DaisyUIDemo_Buttons" xml:space="preserve">
-    <value>Buttons</value>
+    <value>Boutons</value>
   </data>
   <data name="DaisyUIDemo_Forms" xml:space="preserve">
-    <value>Forms</value>
+    <value>Formulaires</value>
   </data>
   <data name="DaisyUIDemo_Cards" xml:space="preserve">
-    <value>Cards</value>
+    <value>Cartes</value>
   </data>
   <data name="DaisyUIDemo_Alerts" xml:space="preserve">
-    <value>Alerts</value>
+    <value>Alertes</value>
   </data>
   <data name="DaisyUIDemo_Modals" xml:space="preserve">
-    <value>Modals</value>
+    <value>Modales</value>
   </data>
   <data name="DaisyUIDemo_ThemeSelector" xml:space="preserve">
-    <value>Select Theme</value>
+    <value>Sélectionner le thème</value>
   </data>
   <data name="DaisyUIDemo_ClickMe" xml:space="preserve">
-    <value>Click me</value>
+    <value>Cliquez-moi</value>
   </data>
   <data name="DaisyUIDemo_CardTitle" xml:space="preserve">
-    <value>Card Title</value>
+    <value>Titre de la carte</value>
   </data>
   <data name="DaisyUIDemo_CardDescription" xml:space="preserve">
-    <value>This is a beautiful DaisyUI card component with Tailwind CSS styling.</value>
+    <value>Ceci est une belle carte composant DaisyUI avec style Tailwind CSS.</value>
   </data>
   <data name="DaisyUIDemo_LearnMore" xml:space="preserve">
-    <value>Learn More</value>
+    <value>En savoir plus</value>
   </data>
   <data name="DaisyUIDemo_SuccessAlert" xml:space="preserve">
-    <value>Success! Your operation completed successfully.</value>
+    <value>Succès ! Votre opération s'est terminée avec succès.</value>
   </data>
   <data name="DaisyUIDemo_InfoAlert" xml:space="preserve">
-    <value>Info: This is an informational message.</value>
+    <value>Info : Ceci est un message informatif.</value>
   </data>
   <data name="DaisyUIDemo_WarningAlert" xml:space="preserve">
-    <value>Warning! Please check your input.</value>
+    <value>Avertissement ! Veuillez vérifier votre saisie.</value>
   </data>
   <data name="DaisyUIDemo_ErrorAlert" xml:space="preserve">
-    <value>Error! Something went wrong.</value>
+    <value>Erreur ! Quelque chose s'est mal passé.</value>
   </data>
   <data name="DaisyUIDemo_OpenModal" xml:space="preserve">
-    <value>Open Modal</value>
+    <value>Ouvrir la modale</value>
   </data>
   <data name="DaisyUIDemo_ModalTitle" xml:space="preserve">
-    <value>Hello from DaisyUI Modal!</value>
+    <value>Bonjour depuis la modale DaisyUI !</value>
   </data>
   <data name="DaisyUIDemo_ModalBody" xml:space="preserve">
-    <value>This is a modal dialog built with DaisyUI components. Press ESC key or click outside to close.</value>
+    <value>Ceci est une boîte de dialogue modale construite avec des composants DaisyUI. Appuyez sur la touche ESC ou cliquez à l'extérieur pour fermer.</value>
   </data>
   <data name="DaisyUIDemo_Close" xml:space="preserve">
-    <value>Close</value>
+    <value>Fermer</value>
   </data>
   <data name="DaisyUIDemo_EmailLabel" xml:space="preserve">
-    <value>Email</value>
+    <value>E-mail</value>
   </data>
   <data name="DaisyUIDemo_PasswordLabel" xml:space="preserve">
-    <value>Password</value>
+    <value>Mot de passe</value>
   </data>
   <data name="DaisyUIDemo_Submit" xml:space="preserve">
-    <value>Submit</value>
+    <value>Soumettre</value>
   </data>
   <data name="HmacCalculator_Title" xml:space="preserve">
     <value>Calculateur HMAC</value>
   </data>
   <data name="HmacCalculator_Description" xml:space="preserve">
-    <value>Generate HMAC hashes using SHA-256 and SHA-512 with custom keys and messages — all in your browser</value>
+    <value>Générez des hachages HMAC en utilisant SHA-256 et SHA-512 avec des clés et messages personnalisés — tout dans votre navigateur</value>
   </data>
   <data name="HmacCalculator_KeyLabel" xml:space="preserve">
-    <value>Secret Key</value>
+    <value>Clé secrète</value>
   </data>
   <data name="HmacCalculator_KeyPlaceholder" xml:space="preserve">
-    <value>Enter your secret key...</value>
+    <value>Entrez votre clé secrète...</value>
   </data>
   <data name="HmacCalculator_MessageLabel" xml:space="preserve">
     <value>Message</value>
   </data>
   <data name="HmacCalculator_MessagePlaceholder" xml:space="preserve">
-    <value>Enter message to hash...</value>
+    <value>Entrez le message à hacher...</value>
   </data>
   <data name="HmacCalculator_AlgorithmLabel" xml:space="preserve">
-    <value>Algorithm</value>
+    <value>Algorithme</value>
   </data>
   <data name="HmacCalculator_Calculate" xml:space="preserve">
-    <value>Calculate HMAC</value>
+    <value>Calculer HMAC</value>
   </data>
   <data name="HmacCalculator_Clear" xml:space="preserve">
-    <value>Clear</value>
+    <value>Effacer</value>
   </data>
   <data name="HmacCalculator_OutputLabel" xml:space="preserve">
-    <value>HMAC Result</value>
+    <value>Résultat HMAC</value>
   </data>
   <data name="HmacCalculator_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>Copier</value>
   </data>
   <data name="HmacCalculator_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>Copié !</value>
   </data>
   <data name="YamlBeautifierValidator_Title" xml:space="preserve">
     <value>Validateur YAML</value>
   </data>
   <data name="YamlBeautifierValidator_Description" xml:space="preserve">
-    <value>Format and validate YAML with error highlighting</value>
+    <value>Formatez et validez YAML avec mise en évidence des erreurs</value>
   </data>
   <data name="YamlBeautifierValidator_InputLabel" xml:space="preserve">
-    <value>YAML Input</value>
+    <value>Entrée YAML</value>
   </data>
   <data name="YamlBeautifierValidator_InputPlaceholder" xml:space="preserve">
-    <value>Enter YAML content here...</value>
+    <value>Entrez le contenu YAML ici...</value>
   </data>
   <data name="YamlBeautifierValidator_Format" xml:space="preserve">
-    <value>Format</value>
+    <value>Formater</value>
   </data>
   <data name="YamlBeautifierValidator_Validate" xml:space="preserve">
-    <value>Validate</value>
+    <value>Valider</value>
   </data>
   <data name="YamlBeautifierValidator_Clear" xml:space="preserve">
-    <value>Clear</value>
+    <value>Effacer</value>
   </data>
   <data name="YamlBeautifierValidator_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>Sortie</value>
   </data>
   <data name="YamlBeautifierValidator_Valid" xml:space="preserve">
-    <value>YAML is valid</value>
+    <value>YAML valide</value>
   </data>
   <data name="YamlBeautifierValidator_Invalid" xml:space="preserve">
-    <value>YAML is invalid</value>
+    <value>YAML invalide</value>
   </data>
   <data name="Category_Images" xml:space="preserve">
     <value>Images</value>

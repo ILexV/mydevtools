@@ -176,8 +176,24 @@ import init, { test_regex } from '/wasm/regex_tool/regex_tool.js';
 
     function getSavedPatterns() {
         try {
-            return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        } catch {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return [];
+            
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) {
+                console.warn('Saved regex patterns corrupted (not an array). Resetting.');
+                return [];
+            }
+            
+            // Filter valid items to prevent rendering errors
+            return parsed.filter(item => 
+                item && 
+                typeof item === 'object' && 
+                typeof item.name === 'string' && 
+                typeof item.pattern === 'string'
+            );
+        } catch (err) {
+            console.error('Error reading saved regex patterns:', err);
             return [];
         }
     }

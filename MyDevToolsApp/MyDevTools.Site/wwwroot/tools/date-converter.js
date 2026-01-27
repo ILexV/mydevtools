@@ -18,14 +18,23 @@
             convertBtn: document.getElementById('date-convert-btn'),
             nowBtn: document.getElementById('date-now-btn'),
             copyBtn: document.getElementById('date-copy-btn'),
-            error: document.getElementById('date-error')
+            error: document.getElementById('date-error'),
+            errorText: document.getElementById('date-error-text')
         };
     }
 
     function setError(els, msg) {
         if (!els.error) return;
-        els.error.textContent = msg;
-        els.error.hidden = !msg;
+        
+        if (msg) {
+            els.error.classList.remove('hidden');
+            els.error.style.display = 'flex';
+            if (els.errorText) els.errorText.textContent = msg;
+            else els.error.textContent = msg;
+        } else {
+            els.error.classList.add('hidden');
+            els.error.style.display = 'none';
+        }
     }
 
     function parseInput(value, type) {
@@ -101,7 +110,13 @@
     function toggleCustomFormatVisibility(els) {
         const isCustom = els.outputFormat.value === 'custom';
         if (els.customFmtContainer) {
-            els.customFmtContainer.hidden = !isCustom;
+            if (isCustom) {
+                els.customFmtContainer.classList.remove('hidden');
+                els.customFmtContainer.style.display = 'block';
+            } else {
+                els.customFmtContainer.classList.add('hidden');
+                els.customFmtContainer.style.display = 'none';
+            }
         }
     }
 
@@ -153,7 +168,7 @@
         convertAction();
     }
 
-    function copyAction() {
+    function copyAction(btn) {
         const els = getElements();
         if (!els) return;
 
@@ -161,10 +176,17 @@
         if (!text) return;
 
         navigator.clipboard.writeText(text).then(() => {
-            const original = els.copyBtn.textContent;
-            els.copyBtn.textContent = els.root.dataset.copied || 'Copied!';
+            const originalInner = btn.innerHTML;
+            
+            // Visual feedback with success checkmark
+            btn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-success">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+            `;
+            
             setTimeout(() => {
-                els.copyBtn.textContent = original;
+                btn.innerHTML = originalInner;
             }, 1500);
         });
     }
@@ -177,15 +199,25 @@
             const target = ev.target;
             if (!(target instanceof HTMLElement)) return;
 
-            if (target.id === 'date-convert-btn') return convertAction();
-            if (target.id === 'date-now-btn') return currentTimeAction();
-            if (target.id === 'date-copy-btn') return copyAction();
+            const convertBtn = target.closest('#date-convert-btn');
+            if (convertBtn) return void convertAction();
+
+            const nowBtn = target.closest('#date-now-btn');
+            if (nowBtn) return void currentTimeAction();
+
+            const copyBtn = target.closest('#date-copy-btn');
+            if (copyBtn) return void copyAction(copyBtn);
         });
 
         document.addEventListener('input', (ev) => {
             const target = ev.target;
             if (target.id === 'date-output-custom-fmt') {
-                if (document.getElementById('date-convert-btn')) {
+                convertAction();
+            }
+            if (target.id === 'date-input') {
+                // Auto convert on input if valid
+                const els = getElements();
+                if (els && els.input.value.trim().length > 0) {
                     convertAction();
                 }
             }
@@ -194,9 +226,7 @@
         document.addEventListener('change', (ev) => {
             const target = ev.target;
             if (target.id === 'date-input-type' || target.id === 'date-output-format') {
-                if (document.getElementById('date-convert-btn')) {
-                    convertAction();
-                }
+                convertAction();
             }
         });
     }
@@ -205,15 +235,14 @@
         const els = getElements();
         if (!els || initializedRoots.has(els.root)) return;
         initializedRoots.add(els.root);
+        
+        // Initial visibility check
+        toggleCustomFormatVisibility(els);
     }
 
     bindDelegatedHandlersOnce();
-    init();
+    
+    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('enhancedload', init);
 
-    try {
-        const observer = new MutationObserver(() => init());
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-    } catch {
-        // ignore
-    }
 })();

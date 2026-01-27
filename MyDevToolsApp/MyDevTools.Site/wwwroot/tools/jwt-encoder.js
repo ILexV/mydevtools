@@ -7,17 +7,12 @@
 
     async function getCryptoWasm() {
         if (!cryptoWasmPromise) {
-            cryptoWasmPromise = import('/wasm/cryptography/cryptography-loader.js').then((m) => m.getCryptographyWasm());
+            cryptoWasmPromise = import('/wasm/cryptography/cryptography.js').then(async (m) => {
+                await m.default();
+                return m;
+            });
         }
         return cryptoWasmPromise;
-    }
-
-    function ensureFunctions(wasm, names) {
-        for (const name of names) {
-            if (typeof wasm[name] !== 'function') {
-                throw new Error('WASM function missing: ' + name);
-            }
-        }
     }
 
     function getElements() {
@@ -34,7 +29,8 @@
             copyBtn: document.getElementById('copy-jwt-btn'),
             headerError: document.getElementById('jwt-header-error'),
             payloadError: document.getElementById('jwt-payload-error'),
-            encodeError: document.getElementById('jwt-encode-error')
+            encodeError: document.getElementById('jwt-encode-error'),
+            encodeErrorText: document.getElementById('jwt-encode-error-text')
         };
     }
 
@@ -45,102 +41,104 @@
         };
     }
 
-    // Validate and format JSON
     function validateAndFormatJSON(text, errorElement) {
         try {
             const obj = JSON.parse(text);
             const formatted = JSON.stringify(obj, null, 2);
-            errorElement.hidden = true;
+            errorElement.classList.add('hidden');
+            errorElement.style.display = 'none';
             return formatted;
         } catch (err) {
             errorElement.textContent = 'Invalid JSON: ' + err.message;
-            errorElement.hidden = false;
+            errorElement.classList.remove('hidden');
+            errorElement.style.display = 'flex';
             throw err;
         }
     }
 
-    // Generate JWT token
     async function generateToken(els) {
         if (!els) return;
 
         try {
-            // Validate inputs
-            const headerText = validateAndFormatJSON(els.headerInput.value, els.headerError);
-            const payloadText = validateAndFormatJSON(els.payloadInput.value, els.payloadError);
+            // Only validate JSON, don't reformat inputs to avoid cursor jumps
+            const headerText = els.headerInput.value;
+            const payloadText = els.payloadInput.value;
+            
+            // Validate (throws if invalid)
+            JSON.parse(headerText);
+            els.headerError.classList.add('hidden');
+            
+            JSON.parse(payloadText);
+            els.payloadError.classList.add('hidden');
             
             const secret = els.secretInput.value;
             const alg = els.algorithmSelect.value;
 
-            // Update header with selected algorithm
+            // Ensure header has correct alg (we parse and re-stringify only for the signing operation)
             const headerObj = JSON.parse(headerText);
             headerObj.alg = alg;
-            const updatedHeader = JSON.stringify(headerObj, null, 2);
-            els.headerInput.value = updatedHeader;
+            const updatedHeader = JSON.stringify(headerObj);
 
             const wasm = await getCryptoWasm();
-            ensureFunctions(wasm, ['jwt_sign']);
+            // ensureFunctions(wasm, ['jwt_sign']); // Assumed present
 
             const token = wasm.jwt_sign(updatedHeader, payloadText, secret, alg);
             
             els.encodedOutput.value = token;
-            els.encodeError.hidden = true;
+            if (els.encodeError) els.encodeError.classList.add('hidden');
             els.copyBtn.disabled = false;
 
         } catch (err) {
             console.error("Encoding failed:", err);
             els.encodedOutput.value = '';
             els.copyBtn.disabled = true;
-            if (!els.headerError.hidden || !els.payloadError.hidden) {
-                // JSON errors already shown
-                return;
+            
+            // If it's not a JSON parsing error we just handled (by checking input validity), show generic error
+            // Check if parsing failed
+            try { JSON.parse(els.headerInput.value); } catch { 
+                els.headerError.textContent = 'Invalid JSON';
+                els.headerError.classList.remove('hidden');
+                return; 
             }
-            els.encodeError.textContent = 'Failed to generate JWT: ' + err;
-            els.encodeError.hidden = false;
+            try { JSON.parse(els.payloadInput.value); } catch { 
+                els.payloadError.textContent = 'Invalid JSON';
+                els.payloadError.classList.remove('hidden');
+                return; 
+            }
+
+            if (els.encodeError) {
+                if (els.encodeErrorText) els.encodeErrorText.textContent = 'Failed to generate JWT: ' + (err.message || err);
+                els.encodeError.classList.remove('hidden');
+                els.encodeError.style.display = 'flex';
+            }
         }
     }
 
-    // Copy to clipboard
-    async function copyToClipboard(text, btn, strings) {
+    async function copyToClipboard(btn, strings) {
+        const els = getElements();
+        if (!els || !els.encodedOutput.value) return;
+        const text = els.encodedOutput.value;
+
         try {
-            // Modern clipboard API (requires HTTPS or localhost)
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(text);
-            } else {
-                // Fallback for HTTP or older browsers
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                textarea.style.position = 'fixed';
-                textarea.style.left = '-999999px';
-                textarea.style.top = '-999999px';
-                document.body.appendChild(textarea);
-                textarea.focus();
-                textarea.select();
-                
-                try {
-                    document.execCommand('copy');
-                } finally {
-                    document.body.removeChild(textarea);
-                }
-            }
+            await navigator.clipboard.writeText(text);
             
-            const originalText = btn.textContent;
-            btn.textContent = strings.copied;
-            btn.classList.add('btn-success');
-            btn.classList.remove('btn-primary');
+            const originalInner = btn.innerHTML;
+            const originalClass = btn.className;
+            
+            btn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-1 text-success">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                ${strings.copied}
+            `;
+            btn.classList.add('text-success');
             
             setTimeout(() => {
-                btn.textContent = originalText;
-                btn.classList.remove('btn-success');
-                btn.classList.add('btn-primary');
-            }, 2000);
+                btn.innerHTML = originalInner;
+                btn.className = originalClass;
+            }, 1500);
         } catch (err) {
             console.error('Failed to copy:', err);
-            // Show error briefly
-            const originalText = btn.textContent;
-            btn.textContent = 'Failed!';
-            setTimeout(() => {
-                btn.textContent = originalText;
-            }, 2000);
         }
     }
 
@@ -148,7 +146,6 @@
         if (window.__mydevtools_jwtencoder_bound) return;
         window.__mydevtools_jwtencoder_bound = true;
 
-        // Handle input changes
         document.addEventListener('input', (ev) => {
             const target = ev.target;
             const els = getElements();
@@ -161,7 +158,6 @@
             }
         });
 
-        // Handle algorithm selection
         document.addEventListener('change', (ev) => {
             const target = ev.target;
             const els = getElements();
@@ -172,41 +168,32 @@
             }
         });
 
-        // Handle copy button
         document.addEventListener('click', (ev) => {
             const target = ev.target;
             if (!(target instanceof HTMLElement)) return;
 
-            // Use closest to handle clicks on button text/children
             const copyBtn = target.closest('#copy-jwt-btn');
             if (copyBtn) {
                 ev.preventDefault();
                 const els = getElements();
                 if (!els) return;
                 const strings = getStrings(els.root);
-                copyToClipboard(els.encodedOutput.value, els.copyBtn, strings);
-                return;
+                copyToClipboard(copyBtn, strings);
             }
         });
     }
 
-    bindDelegatedHandlersOnce();
-
-    function initIfPresent() {
+    function init() {
         const els = getElements();
-        if (!els) return;
-        if (initializedRoots.has(els.root)) return;
+        if (!els || initializedRoots.has(els.root)) return;
         initializedRoots.add(els.root);
 
-        // Generate initial token
         generateToken(els);
     }
 
-    initIfPresent();
-
-    try {
-        const observer = new MutationObserver(() => initIfPresent());
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-    } catch { }
+    bindDelegatedHandlersOnce();
+    
+    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('enhancedload', init);
 
 })();

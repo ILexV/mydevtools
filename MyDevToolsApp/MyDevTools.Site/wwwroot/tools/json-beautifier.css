@@ -237,3 +237,16 @@
     border-color: #007bff;
     background-color: rgba(0, 123, 255, 0.1);
 }
+
+/* Dark Mode Syntax Highlighting */
+[data-theme="dark"] .cm-s-default .cm-string { color: #ce9178; }
+[data-theme="dark"] .cm-s-default .cm-string-2 { color: #ce9178; }
+[data-theme="dark"] .cm-s-default .cm-number { color: #b5cea8; }
+[data-theme="dark"] .cm-s-default .cm-atom { color: #569cd6; }
+[data-theme="dark"] .cm-s-default .cm-keyword { color: #c586c0; }
+[data-theme="dark"] .cm-s-default .cm-variable { color: #9cdcfe; }
+[data-theme="dark"] .cm-s-default .cm-def { color: #dcdcaa; }
+[data-theme="dark"] .cm-s-default .cm-property { color: #9cdcfe; }
+[data-theme="dark"] .cm-s-default .cm-operator { color: #d4d4d4; }
+[data-theme="dark"] .cm-s-default .cm-comment { color: #6a9955; }
+[data-theme="dark"] .cm-s-default .cm-meta { color: #569cd6; }

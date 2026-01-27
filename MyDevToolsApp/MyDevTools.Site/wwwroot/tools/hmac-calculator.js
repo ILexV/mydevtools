@@ -1,8 +1,6 @@
 /* global document, window, navigator */
 
 (function () {
-    const initializedRoots = new WeakSet();
-
     let cryptoWasmPromise = null;
 
     async function getCryptoWasm() {
@@ -26,14 +24,8 @@
             algorithmSelect: document.getElementById('hmac-algorithm-select'),
             output: document.getElementById('hmac-output'),
             copyBtn: document.getElementById('copy-hmac-btn'),
-            errorDiv: document.getElementById('hmac-error')
-        };
-    }
-
-    function getStrings(root) {
-        return {
-            copy: root.dataset.copy || 'Copy',
-            copied: root.dataset.copied || 'Copied!'
+            errorDiv: document.getElementById('hmac-error'),
+            errorText: document.getElementById('hmac-error-text')
         };
     }
 
@@ -47,15 +39,20 @@
         if (!els) return;
 
         try {
-            const key = new TextEncoder().encode(els.keyInput.value);
-            const message = new TextEncoder().encode(els.messageInput.value);
-            const algorithm = els.algorithmSelect.value;
+            const keyVal = els.keyInput.value;
+            const msgVal = els.messageInput.value;
 
-            if (key.length === 0 || message.length === 0) {
+            // Only calculate if both inputs are present
+            if (!keyVal || !msgVal) {
+                // Keep output empty but don't show error
                 els.output.value = '';
                 els.copyBtn.style.display = 'none';
                 return;
             }
+
+            const key = new TextEncoder().encode(keyVal);
+            const message = new TextEncoder().encode(msgVal);
+            const algorithm = els.algorithmSelect.value;
 
             const wasm = await getCryptoWasm();
 
@@ -71,51 +68,42 @@
             const hex = arrayToHex(result);
             els.output.value = hex;
             els.errorDiv.style.display = 'none';
-            els.copyBtn.style.display = '';
+            els.errorDiv.classList.add('hidden');
+            els.copyBtn.style.display = 'flex';
 
         } catch (err) {
             console.error("HMAC calculation failed:", err);
             els.output.value = '';
             els.copyBtn.style.display = 'none';
-            els.errorDiv.textContent = 'Error: ' + err.message;
-            els.errorDiv.style.display = '';
+            if (els.errorText) els.errorText.textContent = err.message || 'Error occurred';
+            els.errorDiv.style.display = 'flex';
+            els.errorDiv.classList.remove('hidden');
         }
     }
 
-    async function copyToClipboard(text, btn, strings) {
+    async function copyToClipboard(btn) {
+        const els = getElements();
+        if (!els || !els.output.value) return;
+        const text = els.output.value;
+
         try {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(text);
-            } else {
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                textarea.style.position = 'fixed';
-                textarea.style.left = '-999999px';
-                textarea.style.top = '-999999px';
-                document.body.appendChild(textarea);
-                textarea.focus();
-                textarea.select();
+            await navigator.clipboard.writeText(text);
 
-                try {
-                    document.execCommand('copy');
-                } finally {
-                    document.body.removeChild(textarea);
-                }
-            }
-
-            const originalText = btn.textContent;
-            btn.textContent = strings.copied;
-
+            // Visual feedback
+            const originalInner = btn.innerHTML;
+            
+            btn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-success">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+            `;
+            
             setTimeout(() => {
-                btn.textContent = originalText;
+                btn.innerHTML = originalInner;
             }, 2000);
+
         } catch (err) {
             console.error('Failed to copy:', err);
-            const originalText = btn.textContent;
-            btn.textContent = 'Failed!';
-            setTimeout(() => {
-                btn.textContent = originalText;
-            }, 2000);
         }
     }
 
@@ -126,36 +114,28 @@
         els.output.value = '';
         els.copyBtn.style.display = 'none';
         els.errorDiv.style.display = 'none';
+        els.errorDiv.classList.add('hidden');
     }
 
-    function bindDelegatedHandlersOnce() {
-        if (window.__mydevtools_hmaccalculator_bound) return;
-        window.__mydevtools_hmaccalculator_bound = true;
+    function handleEvent(ev) {
+        const target = ev.target;
+        if (!target) return;
 
-        document.addEventListener('input', (ev) => {
-            const target = ev.target;
+        // Calculate on Input/Change
+        if (ev.type === 'input' || ev.type === 'change') {
             const els = getElements();
-            if (!els) return;
-
-            if (target === els.keyInput || target === els.messageInput) {
+            // Debounce lightly if needed, but WASM is fast enough for direct input usually
+            // Just check if the target is one of our inputs
+            if (target.id === 'hmac-key-input' || 
+                target.id === 'hmac-message-input' || 
+                target.id === 'hmac-algorithm-select') {
                 calculateHmac(els);
             }
-        });
+            return;
+        }
 
-        document.addEventListener('change', (ev) => {
-            const target = ev.target;
-            const els = getElements();
-            if (!els) return;
-
-            if (target === els.algorithmSelect) {
-                calculateHmac(els);
-            }
-        });
-
-        document.addEventListener('click', (ev) => {
-            const target = ev.target;
-            if (!(target instanceof HTMLElement)) return;
-
+        // Click Handlers
+        if (ev.type === 'click') {
             const calculateBtn = target.closest('#calculate-hmac-btn');
             if (calculateBtn) {
                 ev.preventDefault();
@@ -175,30 +155,25 @@
             const copyBtn = target.closest('#copy-hmac-btn');
             if (copyBtn) {
                 ev.preventDefault();
-                const els = getElements();
-                if (!els || !els.output.value) return;
-                const strings = getStrings(els.root);
-                copyToClipboard(els.output.value, els.copyBtn, strings);
+                copyToClipboard(copyBtn);
                 return;
             }
-        });
+        }
     }
 
-    bindDelegatedHandlersOnce();
+    function init() {
+        // Remove old listeners to prevent duplication
+        document.removeEventListener('input', handleEvent);
+        document.removeEventListener('change', handleEvent);
+        document.removeEventListener('click', handleEvent);
 
-    function initIfPresent() {
-        const els = getElements();
-        if (!els) return;
-        if (initializedRoots.has(els.root)) return;
-        initializedRoots.add(els.root);
-        // No initial calculation needed
+        // Add listeners
+        document.addEventListener('input', handleEvent);
+        document.addEventListener('change', handleEvent);
+        document.addEventListener('click', handleEvent);
     }
 
-    initIfPresent();
-
-    try {
-        const observer = new MutationObserver(() => initIfPresent());
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-    } catch { }
+    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('enhancedload', init);
 
 })();

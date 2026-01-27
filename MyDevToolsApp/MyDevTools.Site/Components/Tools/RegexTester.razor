@@ -17,216 +17,241 @@
     <div id="regex-tester-root"
          data-loading="@AppStrings.Common_Loading"
          data-error="@AppStrings.Common_Error"
-         data-pattern-label="@AppStrings.RegexTester_PatternLabel"
-         data-pattern-placeholder="@AppStrings.RegexTester_PatternPlaceholder"
-         data-text-label="@AppStrings.RegexTester_TextLabel"
-         data-text-placeholder="@AppStrings.RegexTester_TextPlaceholder"
-         data-matches-label="@AppStrings.RegexTester_MatchesLabel"
          data-no-matches="@AppStrings.RegexTester_NoMatches"
-         data-error-title="@AppStrings.RegexTester_ErrorTitle"
-         data-copy="@AppStrings.HashCalculator_Copy"
-         data-copied="@AppStrings.HashCalculator_Copied">
+         class="max-w-5xl mx-auto space-y-6">
 
-         <!-- Instructions / Info Alert -->
-         <div class="alert alert-info" role="alert" style="margin-bottom: 2rem;">
-             ℹ️ @AppStrings.RegexTester_Instructions
-         </div>
-
-         <div class="regex-grid">
-            <div class="space-y-4 regex-inputs">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body p-4 sm:p-6">
+                
+                <!-- Pattern Input -->
                 <div class="form-control w-full">
-                    <label class="label" for="regex-pattern"><span class="label-text font-semibold">@AppStrings.RegexTester_PatternLabel</span></label>
-                    <div class="regex-input-container">
-                        <span class="regex-slash">/</span>
-                        <input type="text" id="regex-pattern" class="input input-bordered w-full" placeholder="@AppStrings.RegexTester_PatternPlaceholder" autocomplete="off" spellcheck="false" />
-                        <span class="regex-slash">/</span>
+                    <label class="label justify-between items-end pb-1" for="regex-pattern">
+                        <span class="label-text font-bold text-lg">@AppStrings.RegexTester_PatternLabel</span>
+                        <div class="flex gap-2">
+                            <button id="save-pattern-btn" class="btn btn-xs btn-outline" type="button">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3 mr-1">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 3.478-.397m7.5 0v0H12" />
+                                </svg>
+                                Save Pattern
+                            </button>
+                            <div class="dropdown dropdown-end">
+                                <label tabindex="0" class="btn btn-xs btn-ghost text-info">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                                    </svg>
+                                    Cheat Sheet
+                                </label>
+                                <div tabindex="0" class="dropdown-content z-[1] card card-compact w-64 p-2 shadow bg-base-100 text-base-content border border-base-300">
+                                    <div class="card-body text-xs p-2">
+                                        <h3 class="font-bold border-b pb-1 mb-1">Common Tokens</h3>
+                                        <div class="grid grid-cols-2 gap-1">
+                                            <code>.</code> <span>Any char</span>
+                                            <code>\d</code> <span>Digit</span>
+                                            <code>\w</code> <span>Word char</span>
+                                            <code>\s</code> <span>Whitespace</span>
+                                            <code>^</code> <span>Start</span>
+                                            <code>$</code> <span>End</span>
+                                            <code>*</code> <span>0 or more</span>
+                                            <code>+</code> <span>1 or more</span>
+                                            <code>?</code> <span>0 or 1</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                    <div class="join w-full">
+                        <span class="join-item btn btn-active font-mono text-lg px-3 cursor-default bg-base-200 border-base-300">/</span>
+                        <input type="text" id="regex-pattern" class="input input-bordered join-item w-full font-mono text-lg bg-base-100" placeholder="@AppStrings.RegexTester_PatternPlaceholder" autocomplete="off" spellcheck="false" />
+                        <span class="join-item btn btn-active font-mono text-lg px-3 cursor-default bg-base-200 border-base-300">/</span>
                     </div>
                 </div>
 
-                <!-- Flags Checkboxes -->
-                <div class="form-control w-full flags-section">
-                    <label class="label"><span class="label-text">@AppStrings.RegexTester_FlagsLabel</span></label>
-                    <div class="checkbox-group">
-                        <div class="form-control">
-                            <label class="label cursor-pointer gap-2">
-                                <input type="checkbox" class="checkbox regex-flag" id="flag-i" value="i" />
-                                <span class="label-text" title="Case-insensitive">Case Insensitive (i)</span>
-                            </label>
-                        </div>
-                        <div class="form-control">
-                            <label class="label cursor-pointer gap-2">
-                                <input type="checkbox" class="checkbox regex-flag" id="flag-m" value="m" />
-                                <span class="label-text" title="Multi-line mode: ^ and $ match begin/end of line">Multi-line (m)</span>
-                            </label>
-                        </div>
-                        <div class="form-control">
-                            <label class="label cursor-pointer gap-2">
-                                <input type="checkbox" class="checkbox regex-flag" id="flag-s" value="s" />
-                                <span class="label-text" title="Dot allows matching newlines">Dot All (s)</span>
-                            </label>
-                        </div>
-                        <div class="form-control">
-                            <label class="label cursor-pointer gap-2">
-                                <input type="checkbox" class="checkbox regex-flag" id="flag-x" value="x" />
-                                <span class="label-text" title="Ignore whitespace in pattern">Verbose (x)</span>
-                            </label>
-                        </div>
-                        <div class="form-control">
-                            <label class="label cursor-pointer gap-2">
-                                <input type="checkbox" class="checkbox regex-flag" id="flag-u" value="u" checked />
-                                <span class="label-text" title="Unicode support (defaut)">Unicode (u)</span>
-                            </label>
-                        </div>
+                <!-- Flags -->
+                <div class="form-control mt-2">
+                    <div class="flex flex-wrap gap-2">
+                        <label class="cursor-pointer label border border-base-300 rounded-lg px-3 py-1 hover:bg-base-200 transition-colors">
+                            <input type="checkbox" class="checkbox checkbox-xs checkbox-primary mr-2 regex-flag" value="g" checked />
+                            <span class="label-text font-mono text-xs font-bold">g (Global)</span>
+                        </label>
+                        <label class="cursor-pointer label border border-base-300 rounded-lg px-3 py-1 hover:bg-base-200 transition-colors">
+                            <input type="checkbox" class="checkbox checkbox-xs checkbox-primary mr-2 regex-flag" value="i" />
+                            <span class="label-text font-mono text-xs font-bold">i (Insensitive)</span>
+                        </label>
+                        <label class="cursor-pointer label border border-base-300 rounded-lg px-3 py-1 hover:bg-base-200 transition-colors">
+                            <input type="checkbox" class="checkbox checkbox-xs checkbox-primary mr-2 regex-flag" value="m" />
+                            <span class="label-text font-mono text-xs font-bold">m (Multi-line)</span>
+                        </label>
+                        <label class="cursor-pointer label border border-base-300 rounded-lg px-3 py-1 hover:bg-base-200 transition-colors">
+                            <input type="checkbox" class="checkbox checkbox-xs checkbox-primary mr-2 regex-flag" value="s" />
+                            <span class="label-text font-mono text-xs font-bold">s (Dot all)</span>
+                        </label>
+                        <label class="cursor-pointer label border border-base-300 rounded-lg px-3 py-1 hover:bg-base-200 transition-colors">
+                            <input type="checkbox" class="checkbox checkbox-xs checkbox-primary mr-2 regex-flag" value="u" checked />
+                            <span class="label-text font-mono text-xs font-bold">u (Unicode)</span>
+                        </label>
                     </div>
                 </div>
 
-                <div class="form-control w-full">
-                    <label class="label" for="regex-text"><span class="label-text font-semibold">@AppStrings.RegexTester_TextLabel</span></label>
-                    <textarea id="regex-text" class="textarea textarea-bordered w-full font-mono" rows="8" placeholder="@AppStrings.RegexTester_TextPlaceholder" spellcheck="false"></textarea>
+                <!-- Test String -->
+                <div class="form-control w-full mt-4">
+                    <label class="label font-semibold" for="regex-text">@AppStrings.RegexTester_TextLabel</label>
+                    <!-- Enhanced Textarea with Highlight Layer -->
+                    <div class="relative w-full font-mono text-base leading-relaxed h-[200px]">
+                        <div id="regex-backdrop" class="absolute inset-0 w-full h-full p-4 pointer-events-none overflow-auto whitespace-pre-wrap break-all z-0 bg-transparent text-transparent"></div>
+                        <textarea id="regex-text" class="textarea textarea-bordered absolute inset-0 w-full h-full p-4 bg-transparent text-base-content z-10 resize-none font-mono text-base leading-relaxed break-all focus:bg-transparent" placeholder="@AppStrings.RegexTester_TextPlaceholder" spellcheck="false"></textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body p-4 sm:p-6">
+                <h3 class="card-title text-base mb-4">
+                    @AppStrings.RegexTester_MatchesLabel 
+                    <div class="badge badge-primary badge-lg ml-2" id="match-count">0</div>
+                </h3>
+                
+                <div id="regex-results" class="space-y-2 overflow-x-auto">
+                    <!-- Match details populated by JS -->
+                    <div class="text-base-content/50 italic text-sm">@AppStrings.RegexTester_NoMatches</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Saved Patterns -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body p-4 sm:p-6">
+                    <h3 class="card-title text-base mb-4 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 3.478-.397m7.5 0v0H12" />
+                        </svg>
+                        Saved Patterns
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra table-xs w-full">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Pattern</th>
+                                    <th class="w-16">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="regex-saved-body">
+                                <!-- JS populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="regex-saved-empty" class="text-center text-sm opacity-50 py-4 hidden">No saved patterns yet.</div>
                 </div>
             </div>
 
-            <div class="results-section">
-                <div class="results-header">
-                     <h3>@AppStrings.RegexTester_MatchesLabel <span id="match-count" class="badge"></span></h3>
+            <!-- Quick Examples -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body p-4 sm:p-6">
+                    <h3 class="card-title text-base mb-4 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                        </svg>
+                        @AppStrings.RegexTester_ExamplesTitle
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra table-xs w-full">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Pattern</th>
+                                    <th class="w-16">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="regex-examples-body">
+                                <!-- JS Populated -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div id="regex-results" class="regex-results"></div>
             </div>
+        </div>
 
-            <div class="examples-section">
-                <h3>@AppStrings.RegexTester_ExamplesTitle</h3>
-                <ul class="regex-examples-list" id="regex-examples">
-                    <!-- Populated by JS -->
-                </ul>
-            </div>
-         </div>
     </div>
+    
+    <!-- Simple Modal for Saving -->
+    <dialog id="save_pattern_modal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Save Pattern</h3>
+            <p class="py-4">Enter a name for this regular expression pattern.</p>
+            <input type="text" id="save-pattern-name" placeholder="e.g. Email Validator" class="input input-bordered w-full" />
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn btn-sm btn-ghost">Cancel</button>
+                </form>
+                <button class="btn btn-sm btn-primary" id="confirm-save-btn" type="button">Save</button>
+            </div>
+        </div>
+    </dialog>
+
+    <script src="/tools/regex-tester.js" type="module"></script>
 </ToolLayout>
 
 <style>
-    .regex-input-container {
-        display: flex;
-        align-items: center;
-        background: var(--bg-input);
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        padding: 0 0.5rem;
-        width: 100%; /* Ensure it takes full width */
-    }
-    .regex-input-container input {
-        border: none;
-        box-shadow: none;
-        background: transparent;
-        flex: 1; /* Take remaining space */
-        min-width: 0; /* Allow shrinking below content size if needed */
-        font-family: monospace; /* Better for patterns */
-    }
-    .regex-slash {
-        font-family: monospace;
-        font-weight: bold;
-        color: var(--text-muted);
-        user-select: none;
-        flex-shrink: 0;
-    }
-    .flags-section {
-        margin-top: 1rem;
-    }
-    .checkbox-group {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        margin-top: 0.5rem;
-    }
-    /* Simple highlighting styles if not in global css */
-    .regex-match {
-        background-color: rgba(255, 255, 0, 0.4);
-        border-bottom: 2px solid #e6b800;
-        border-radius: 2px;
-    }
-    [data-theme='dark'] .regex-match {
-         background-color: rgba(255, 215, 0, 0.25);
-         border-bottom: 2px solid #ffd700;
-    }
-    .regex-output {
-        padding: 1rem;
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        white-space: pre-wrap;
-        font-family: monospace;
-        min-height: 100px;
-    }
-    .match-details {
-        margin-top: 1rem;
-        background: var(--bg-card-secondary);
-        padding: 1rem;
-        border-radius: 4px;
-    }
-    .match-group-info ul {
-        list-style: none;
-        padding-left: 1rem;
-        margin-bottom: 0.5rem;
+    /* Highlighting Styles */
+    #regex-backdrop {
+        /* Sync styling with textarea exactly */
+        border: 1px solid transparent; /* Match textarea border width */
     }
     
-    /* Example List Styles */
-    .regex-examples-list {
-        list-style: none;
-        padding: 0;
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1rem;
+    mark.highlight {
+        background-color: oklch(var(--wa)); /* Warning color from DaisyUI */
+        color: transparent;
+        border-radius: 2px;
+        box-shadow: 0 0 0 1px oklch(var(--wa)); /* Ensure visibility */
     }
-    .regex-example-btn {
+
+    /* Dark Mode Adjustment */
+    [data-theme="dark"] mark.highlight {
+        background-color: oklch(var(--wa) / 0.4);
+        box-shadow: none;
+    }
+
+    /* Match Detail Cards - styling moved to JS or standard CSS */
+    .match-card {
+        border: 1px solid oklch(var(--b2));
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        background-color: oklch(var(--b2) / 0.5);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.875rem;
+        transition: background-color 0.2s;
+    }
+    .match-card:hover {
+        background-color: oklch(var(--b2));
+    }
+    .match-header {
         display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        width: 100%;
-        text-align: left;
-        padding: 1rem;
-        height: 100%;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        background: var(--bg-card);
-        color: var(--text-color);
-        transition: all 0.2s;
-    }
-    .regex-example-btn:hover {
-        border-color: var(--primary-color);
-        background: var(--bg-card-hover);
-        text-decoration: none;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    .example-name {
-        font-weight: 600;
+        justify-content: space-between;
+        font-weight: bold;
         margin-bottom: 0.25rem;
+        opacity: 0.7;
+    }
+    .group-row {
         display: flex;
-        align-items: center;
-        width: 100%;
+        gap: 0.5rem;
+        margin-left: 1rem;
+        border-left: 2px solid oklch(var(--p) / 0.3);
+        padding-left: 0.5rem;
+        margin-top: 0.25rem;
     }
-    .example-name::after {
-        content: "📋"; /* Try it / Copy icon */
-        margin-left: auto;
-        font-size: 0.8em;
-        opacity: 0.5;
-    }
-    .regex-example-btn:hover .example-name::after {
-        opacity: 1;
-    }
-    .example-pattern {
-        font-family: monospace;
-        font-size: 0.85em;
-        color: var(--text-muted);
-        background: var(--bg-code);
-        padding: 2px 4px;
-        border-radius: 4px;
-        word-break: break-all;
-        max-width: 100%;
+    .group-name {
+        font-weight: 600;
+        color: oklch(var(--p));
     }
 </style>
 
 @code {
     [Parameter]
     public string Lang { get; set; } = "en";
-
     private static readonly Dictionary<string, string> _empty = new();
 }

@@ -1,266 +1,379 @@
+/* global document, window, localStorage */
+
 import init, { test_regex } from '/wasm/regex_tool/regex_tool.js';
 
-// Global state to track initialization
-let wasmInitialized = false;
+(function () {
+    let wasmInitialized = false;
+    let debounceTimer;
+    const STORAGE_KEY = 'mydevtools_regex_saved';
+    
+    // Track initialized roots to prevent infinite re-init loops with MutationObserver
+    const initializedRoots = new WeakSet();
 
-const COMMON_REGEXES = [
-    { name: "Email", pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", sample: "Valid: user@example.com\nInvalid: user@.com @example.com" },
-    { name: "Date (ISO)", pattern: "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$", sample: "2024-05-20\n2024-13-01 (invalid month)" },
-    { name: "URL", pattern: "https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)", sample: "Visit https://google.com or http://localhost:8080" },
-    { name: "IPv4", pattern: "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", sample: "192.168.1.1\n999.999.999.999" },
-    { name: "Hex Color", pattern: "^#?([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$", sample: "#ff0000\n#0f0\ninvalid" }
-];
+    const COMMON_REGEXES = [
+        { name: "Email", pattern: "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}", sample: "test@example.com\ninvalid-email\nuser.name+tag@mail.co.uk" },
+        { name: "IPv4 Address", pattern: "\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b", sample: "192.168.1.1\n10.0.0.1\n256.0.0.1 (invalid)" },
+        { name: "Date (YYYY-MM-DD)", pattern: "\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])", sample: "2023-12-31\n2024-02-29\n2023-13-01 (invalid)" },
+        { name: "Hex Color", pattern: "#?([a-fA-F0-9]{6}|[a-fA-F0-9]{3})", sample: "#FFF\n#000000\n#555555" },
+        { name: "URL (Simple)", pattern: "https?:\\/\\/[\\w\\-\\.]+(?::\\d+)?(?:\\/[\\w\\-._~:/?#[\\]@!$&'()*+,;=]*)?", sample: "https://www.google.com\nhttp://localhost:8080/api/v1" }
+    ];
 
-async function ensureWasm() {
-    if (!wasmInitialized) {
-        await init();
-        wasmInitialized = true;
+    async function ensureWasm() {
+        if (!wasmInitialized) {
+            await init();
+            wasmInitialized = true;
+        }
     }
-}
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+    function getElements() {
+        const root = document.getElementById('regex-tester-root');
+        if (!root) return null;
 
-function getElements() {
-    const root = document.getElementById('regex-tester-root');
-    if (!root) return null;
+        return {
+            root,
+            pattern: document.getElementById('regex-pattern'),
+            text: document.getElementById('regex-text'),
+            backdrop: document.getElementById('regex-backdrop'),
+            results: document.getElementById('regex-results'),
+            countBadge: document.getElementById('match-count'),
+            examplesBody: document.getElementById('regex-examples-body'),
+            savedBody: document.getElementById('regex-saved-body'),
+            savedEmpty: document.getElementById('regex-saved-empty'),
+            saveBtn: document.getElementById('save-pattern-btn'),
+            confirmSaveBtn: document.getElementById('confirm-save-btn'),
+            saveNameInput: document.getElementById('save-pattern-name'),
+            modal: document.getElementById('save_pattern_modal'),
+            flags: Array.from(document.querySelectorAll('.regex-flag'))
+        };
+    }
 
-    return {
-        root,
-        patternInput: document.getElementById('regex-pattern'),
-        textInput: document.getElementById('regex-text'),
-        resultsContainer: document.getElementById('regex-results'),
-        matchCountBadge: document.getElementById('match-count'),
-        examplesList: document.getElementById('regex-examples'),
-        flags: Array.from(document.querySelectorAll('.regex-flag'))
-    };
-}
+    function escapeHtml(text) {
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
 
-// Logic to run the test
-async function runTest() {
-    const els = getElements();
-    if (!els) return;
+    // --- Highlighting Logic ---
+    function updateHighlight(els, text, matches) {
+        let html = '';
+        let lastIndex = 0;
+        
+        matches.forEach(m => {
+            if (m.start < lastIndex) return; 
 
-    const pattern = els.patternInput.value;
-    const text = els.textInput.value;
+            html += escapeHtml(text.substring(lastIndex, m.start));
+            html += `<mark class="highlight">${escapeHtml(text.substring(m.start, m.end))}</mark>`;
+            lastIndex = m.end;
+        });
 
-    // Collect flags
-    let flagsStr = "";
-    els.flags.forEach(cb => {
-        if (cb.checked) flagsStr += cb.value;
-    });
+        html += escapeHtml(text.substring(lastIndex));
 
-    if (!pattern) return;
-
-    const loadingText = els.root.dataset.loading;
-    const errorText = els.root.dataset.error;
-    const noMatchesText = els.root.dataset.noMatches;
-
-    try {
-        await ensureWasm();
-
-        let fullPattern = pattern;
-        if (flagsStr) {
-            fullPattern = `(?${flagsStr})${pattern}`;
+        if (text.endsWith('\n')) {
+            html += '<br>&nbsp;';
         }
 
-        const result = test_regex(fullPattern, text);
+        els.backdrop.innerHTML = html;
+    }
 
-        if (result.error) {
-            els.resultsContainer.innerHTML = `<div class="alert alert-danger">${escapeHtml(result.error)}</div>`;
-            els.matchCountBadge.textContent = "Error";
+    function syncScroll(els) {
+        els.backdrop.scrollTop = els.text.scrollTop;
+        els.backdrop.scrollLeft = els.text.scrollLeft;
+    }
+
+    async function runTest() {
+        const els = getElements();
+        if (!els) return;
+
+        const pattern = els.pattern.value;
+        const text = els.text.value;
+        
+        let flags = '';
+        els.flags.forEach(f => { if (f.checked) flags += f.value; });
+
+        syncScroll(els);
+
+        if (!pattern) {
+            els.backdrop.innerHTML = escapeHtml(text);
+            els.results.innerHTML = `<div class="text-base-content/50 italic text-sm">${els.root.dataset.noMatches}</div>`;
+            els.countBadge.textContent = '0';
             return;
         }
 
-        renderResults(els, text, result.matches, noMatchesText);
+        try {
+            await ensureWasm();
+            const rustFlags = flags.replace(/[gy]/g, ''); 
+            const fullPattern = rustFlags ? `(?${rustFlags})${pattern}` : pattern;
 
-    } catch (e) {
-        console.error(e);
-        els.resultsContainer.innerHTML = `<div class="alert alert-danger">${errorText}: ${e.message}</div>`;
+            const result = test_regex(fullPattern, text);
+
+            if (result.error) {
+                els.results.innerHTML = `<div class="alert alert-error text-sm py-2"><span>${escapeHtml(result.error)}</span></div>`;
+                els.countBadge.textContent = '!';
+                els.backdrop.innerHTML = escapeHtml(text); 
+                return;
+            }
+
+            updateHighlight(els, text, result.matches);
+            renderMatchDetails(els, result.matches);
+
+        } catch (err) {
+            console.error(err);
+            els.results.innerHTML = `<div class="alert alert-error text-sm py-2"><span>WASM Error: ${err.message}</span></div>`;
+        }
     }
-}
 
-function renderResults(els, originalText, matches, noMatchesText) {
-    if (!matches || matches.length === 0) {
-        els.resultsContainer.innerHTML = `<div class="text-muted">${noMatchesText}</div>`;
-        els.matchCountBadge.textContent = "0";
-        return;
-    }
+    function renderMatchDetails(els, matches) {
+        els.countBadge.textContent = matches.length;
 
-    els.matchCountBadge.textContent = matches.length;
+        if (matches.length === 0) {
+            els.results.innerHTML = `<div class="text-base-content/50 italic text-sm">${els.root.dataset.noMatches}</div>`;
+            return;
+        }
 
-    let lastIndex = 0;
-    let html = "";
+        const renderLimit = 50;
+        const visibleMatches = matches.slice(0, renderLimit);
+        
+        let html = '';
+        visibleMatches.forEach((m, idx) => {
+            const matchText = m.text || ''; 
+            const displayMatch = matchText.length > 100 ? matchText.substring(0, 100) + '...' : matchText;
 
-    matches.forEach((m, idx) => {
-        // Text before match
-        html += escapeHtml(originalText.substring(lastIndex, m.start));
-
-        // Match itself
-        html += `<span class="regex-match" title="Match ${idx + 1}" style="background-color: rgba(255, 215, 0, 0.25); border-bottom: 2px solid #ffcc00;">`;
-        html += escapeHtml(originalText.substring(m.start, m.end));
-        html += `</span>`;
-
-        lastIndex = m.end;
-    });
-
-    // Remaining text
-    html += escapeHtml(originalText.substring(lastIndex));
-
-    const pre = document.createElement('pre');
-    pre.className = 'regex-output';
-    pre.innerHTML = html;
-
-    els.resultsContainer.innerHTML = '';
-    els.resultsContainer.appendChild(pre);
-
-    // Details
-    if (matches.length > 0) {
-        const details = document.createElement('div');
-        details.className = 'match-details';
-
-        const MAX_DETAILS = 50; // Performance limit
-
-        matches.slice(0, MAX_DETAILS).forEach((m, i) => {
+            let groupsHtml = '';
             if (m.captures && m.captures.length > 0) {
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'match-group-info';
-                groupDiv.style.marginBottom = '0.5rem';
-                groupDiv.innerHTML = `<strong>Match ${i + 1}:</strong>`;
-                const ul = document.createElement('ul');
-                m.captures.forEach(c => {
-                    const li = document.createElement('li');
-                    const name = c.name ? `<strong>${c.name}</strong>` : `Group`;
-                    li.innerHTML = `${name}: <code>${escapeHtml(c.text)}</code>`;
-                    ul.appendChild(li);
+                m.captures.forEach((c) => {
+                    const groupName = c.name ? c.name : `Group`;
+                    groupsHtml += `
+                        <div class="group-row">
+                            <span class="group-name text-xs">${escapeHtml(groupName)}:</span>
+                            <span class="font-mono text-xs bg-base-300 rounded px-1 break-all">${escapeHtml(c.text)}</span>
+                            <span class="text-xs opacity-50 ml-auto">[${c.start}-${c.end}]</span>
+                        </div>
+                    `;
                 });
-                groupDiv.appendChild(ul);
-                details.appendChild(groupDiv);
             }
+
+            html += `
+                <div class="match-card">
+                    <div class="match-header">
+                        <span>Match ${idx + 1}</span>
+                        <span class="font-normal opacity-50">[${m.start}-${m.end}]</span>
+                    </div>
+                    <div class="bg-base-100 p-2 rounded border border-base-300 break-all mb-1">${escapeHtml(displayMatch)}</div>
+                    ${groupsHtml}
+                </div>
+            `;
         });
 
-        if (matches.length > MAX_DETAILS) {
-            const more = document.createElement('div');
-            more.textContent = `... and ${matches.length - MAX_DETAILS} more matches.`;
-            details.appendChild(more);
+        if (matches.length > renderLimit) {
+            html += `<div class="text-center text-xs opacity-50 mt-2">...and ${matches.length - renderLimit} more matches</div>`;
         }
 
-        if (details.hasChildNodes()) {
-            els.resultsContainer.appendChild(document.createElement('hr'));
-            els.resultsContainer.appendChild(details);
-        }
-    }
-}
-
-// -----------------------------------------------------------
-// Event Delegation Pattern for Blazor SSR / Enhanced Navigation
-// -----------------------------------------------------------
-
-function bindDelegatedEvents() {
-    if (window.__regexTesterBound) return;
-    window.__regexTesterBound = true;
-
-    // Click handler for Examples
-    // Click handler for Examples
-    document.addEventListener('click', (ev) => {
-        const target = ev.target;
-        if (!target) return;
-
-        // Example buttons - traverse up in case they clicked inner span/code
-        const btn = target.closest('.regex-example-btn');
-        if (btn) {
-            const idx = parseInt(btn.dataset.index);
-            const example = COMMON_REGEXES[idx];
-            if (example) {
-                const els = getElements();
-                if (els) {
-                    els.patternInput.value = example.pattern;
-                    els.textInput.value = example.sample || "";
-                    // Defaults flags
-                    els.flags.forEach(f => f.checked = (f.value === 'u')); // Reset tags to Unicode only
-                    runTest();
-                }
-            }
-        }
-    });
-
-    // Input handlers
-    // Use 'input' event for real-time updates (debounced)
-    // Use 'change' event for checkboxes
-    let debounceTimer;
-    document.addEventListener('input', (ev) => {
-        const target = ev.target;
-        if (!target) return;
-
-        const root = document.getElementById('regex-tester-root');
-        if (!root) return; // Only if tool is present
-
-        if (target.id === 'regex-pattern' || target.id === 'regex-text') {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(runTest, 300);
-        }
-    });
-
-    document.addEventListener('change', (ev) => {
-        const target = ev.target;
-        if (target.classList.contains('regex-flag')) {
-            runTest();
-        }
-    });
-}
-
-// Initialization Logic
-function initUI() {
-    const els = getElements();
-    if (!els) return;
-
-    // Render Examples if empty (idempotent check)
-    if (els.examplesList.children.length === 0) {
-        COMMON_REGEXES.forEach((ex, idx) => {
-            const li = document.createElement('li');
-
-            const btn = document.createElement('button');
-            btn.className = 'btn btn-link regex-example-btn';
-            btn.type = 'button'; // Explicit type
-            btn.dataset.index = idx;
-
-            const nameSpan = document.createElement('span');
-            nameSpan.className = 'example-name';
-            nameSpan.textContent = ex.name;
-
-            const codeSpan = document.createElement('code');
-            codeSpan.className = 'example-pattern';
-            codeSpan.textContent = ex.pattern.length > 50 ? ex.pattern.substring(0, 47) + '...' : ex.pattern;
-
-            btn.appendChild(nameSpan);
-            btn.appendChild(codeSpan);
-
-            li.appendChild(btn);
-            els.examplesList.appendChild(li);
-        });
+        els.results.innerHTML = html;
     }
 
-    // Initial Test run if empty
-    if (!els.patternInput.value && !els.textInput.value) {
-        // Set default example (Email)
-        const def = COMMON_REGEXES[0];
-        els.patternInput.value = def.pattern;
-        els.textInput.value = def.sample;
+    function getSavedPatterns() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        } catch {
+            return [];
+        }
+    }
+
+    function saveCurrentPattern(els) {
+        const name = els.saveNameInput.value.trim();
+        if (!name) return;
+
+        const pattern = els.pattern.value;
+        const sample = els.text.value;
+        const flags = els.flags.filter(f => f.checked).map(f => f.value);
+
+        if (!pattern) return;
+
+        const saved = getSavedPatterns();
+        saved.push({ name, pattern, sample, flags });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+        
+        // Reset and close
+        els.saveNameInput.value = '';
+        renderSavedPatterns(els);
+        els.modal.close();
+    }
+
+    function deletePattern(index) {
+        const saved = getSavedPatterns();
+        saved.splice(index, 1);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+        const els = getElements();
+        if (els) renderSavedPatterns(els);
+    }
+
+    function loadPattern(data) {
+        const els = getElements();
+        if (!els || !data) return;
+
+        els.pattern.value = data.pattern;
+        els.text.value = data.sample || '';
+        
+        // Restore flags if present
+        if (data.flags && Array.isArray(data.flags)) {
+            els.flags.forEach(f => f.checked = data.flags.includes(f.value));
+        }
+
         runTest();
     }
-}
 
-// Run once on load
-bindDelegatedEvents();
+    function renderSavedPatterns(els) {
+        const saved = getSavedPatterns();
+        els.savedBody.innerHTML = '';
+        
+        if (saved.length === 0) {
+            els.savedEmpty.classList.remove('hidden');
+            return;
+        }
+        els.savedEmpty.classList.add('hidden');
 
-// Initial check
-initUI();
+        saved.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="font-bold text-xs">${escapeHtml(item.name)}</td>
+                <td><code class="text-[10px] bg-base-200 p-1 rounded opacity-70 truncate block max-w-[150px]">${escapeHtml(item.pattern)}</code></td>
+                <td>
+                    <div class="join">
+                        <button class="btn btn-xs btn-ghost join-item load-saved-btn" data-index="${idx}" title="Load">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
+                        </button>
+                        <button class="btn btn-xs btn-ghost text-error join-item delete-saved-btn" data-index="${idx}" title="Delete">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                        </button>
+                    </div>
+                </td>
+            `;
+            els.savedBody.appendChild(tr);
+        });
+    }
 
-// Observe DOM for navigation changes (Blazor Enhanced Nav)
-const observer = new MutationObserver(() => {
-    initUI();
-});
-observer.observe(document.body, { childList: true, subtree: true });
+    function initUI() {
+        const els = getElements();
+        // Guard: if root not found or already initialized, skip
+        if (!els) return;
+        if (initializedRoots.has(els.root)) return;
+        
+        // Mark as initialized to prevent loop
+        initializedRoots.add(els.root);
+
+        // Render Examples Table
+        if (els.examplesBody.children.length === 0) {
+            COMMON_REGEXES.forEach((ex, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="font-bold text-xs">${escapeHtml(ex.name)}</td>
+                    <td><code class="text-[10px] bg-base-200 p-1 rounded opacity-70 truncate block max-w-[150px]">${escapeHtml(ex.pattern)}</code></td>
+                    <td>
+                        <button class="btn btn-xs btn-ghost load-example-btn" data-index="${idx}" title="Load">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
+                        </button>
+                    </td>
+                `;
+                els.examplesBody.appendChild(tr);
+            });
+        }
+
+        renderSavedPatterns(els);
+
+        // Run initial test if empty
+        if (!els.pattern.value && !els.text.value) {
+            // Load email example by default but don't save it as user state
+        }
+    }
+
+    // Event Delegation
+    function bindEvents() {
+        if (window.__regexTesterBound) return;
+        window.__regexTesterBound = true;
+
+        document.addEventListener('click', (ev) => {
+            const target = ev.target;
+            
+            // Save Button (Open Modal)
+            const saveBtn = target.closest('#save-pattern-btn');
+            if (saveBtn) {
+                const els = getElements();
+                if (els) els.modal.showModal();
+                return;
+            }
+
+            // Confirm Save
+            const confirmSave = target.closest('#confirm-save-btn');
+            if (confirmSave) {
+                ev.preventDefault(); // Prevent any default behavior
+                const els = getElements();
+                if (els) saveCurrentPattern(els);
+                return;
+            }
+
+            // Load Example
+            const loadExBtn = target.closest('.load-example-btn');
+            if (loadExBtn) {
+                const idx = parseInt(loadExBtn.dataset.index);
+                const ex = COMMON_REGEXES[idx];
+                if (ex) loadPattern({ pattern: ex.pattern, sample: ex.sample, flags: ['u'] }); // Default flags for examples
+                return;
+            }
+
+            // Load Saved
+            const loadSavedBtn = target.closest('.load-saved-btn');
+            if (loadSavedBtn) {
+                const idx = parseInt(loadSavedBtn.dataset.index);
+                const saved = getSavedPatterns();
+                if (saved[idx]) loadPattern(saved[idx]);
+                return;
+            }
+
+            // Delete Saved
+            const delSavedBtn = target.closest('.delete-saved-btn');
+            if (delSavedBtn) {
+                const idx = parseInt(delSavedBtn.dataset.index);
+                if (confirm('Delete this pattern?')) {
+                    deletePattern(idx);
+                }
+                return;
+            }
+        });
+
+        document.addEventListener('input', (ev) => {
+            const target = ev.target;
+            if (target.id === 'regex-pattern' || target.id === 'regex-text') {
+                const els = getElements();
+                if (!els) return;
+                
+                if (target.id === 'regex-text') syncScroll(els);
+
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(runTest, 150);
+            }
+        });
+
+        document.addEventListener('change', (ev) => {
+            if (ev.target.classList.contains('regex-flag')) {
+                runTest();
+            }
+        });
+
+        document.addEventListener('scroll', (ev) => {
+            if (ev.target.id === 'regex-text') {
+                const els = getElements();
+                if (els) syncScroll(els);
+            }
+        }, { capture: true });
+    }
+
+    bindEvents();
+    
+    // Standard initialization
+    document.addEventListener('DOMContentLoaded', initUI);
+    document.addEventListener('enhancedload', initUI);
+
+})();

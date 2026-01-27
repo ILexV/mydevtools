@@ -1,0 +1,110 @@
+/* Dark Mode Overrides for Diff2Html */
+[data-theme="dark"] .d2h-wrapper {
+    background-color: oklch(var(--b1));
+    color: oklch(var(--bc));
+}
+
+[data-theme="dark"] .d2h-file-header {
+    background-color: oklch(var(--b2));
+    border-bottom: 1px solid oklch(var(--b3));
+    color: oklch(var(--bc));
+    display: none; /* Hide header as requested */
+}
+
+/* Hide header in light mode too for consistency */
+.d2h-file-header {
+    display: none !important;
+}
+
+[data-theme="dark"] .d2h-file-name {
+    color: oklch(var(--bc));
+}
+
+[data-theme="dark"] .d2h-diff-table {
+    background-color: oklch(var(--b1));
+}
+
+/* --- LINE NUMBERS FIX --- */
+/* Ensure consistent visibility and contrast */
+[data-theme="dark"] .d2h-code-linenumber,
+[data-theme="dark"] .d2h-code-side-linenumber {
+    background-color: oklch(var(--b2));
+    color: oklch(var(--bc) / 0.7); /* Increased opacity from 0.5 to 0.7 */
+    border-color: oklch(var(--b3));
+}
+
+/* Fix for specific border consistency in line-by-line view */
+[data-theme="dark"] .d2h-code-linenumber {
+    border-right: 1px solid oklch(var(--b3));
+}
+
+/* --- TEXT CONTRAST FIX --- */
+/* Ensure default code text is bright enough in dark mode */
+[data-theme="dark"] .d2h-code-line,
+[data-theme="dark"] .d2h-code-side-line {
+    background-color: oklch(var(--b1));
+    color: oklch(var(--bc) / 0.9);
+}
+
+[data-theme="dark"] .d2h-code-line-ctn {
+    color: oklch(var(--bc) / 0.9);
+}
+
+[data-theme="dark"] .d2h-emptyplaceholder {
+    background-color: oklch(var(--b2));
+    border-color: oklch(var(--b3));
+}
+
+/* Deletions (Red) - Dark Mode */
+[data-theme="dark"] .d2h-del {
+    background-color: rgba(239, 68, 68, 0.15); /* text-error equivalent */
+    border-color: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+}
+
+[data-theme="dark"] .d2h-code-line del,
+[data-theme="dark"] .d2h-code-side-line del {
+    background-color: rgba(239, 68, 68, 0.3);
+    color: white; 
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Insertions (Green) - Dark Mode */
+[data-theme="dark"] .d2h-ins {
+    background-color: rgba(34, 197, 94, 0.15); /* text-success equivalent */
+    border-color: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+}
+
+[data-theme="dark"] .d2h-code-line ins,
+[data-theme="dark"] .d2h-code-side-line ins {
+    background-color: rgba(34, 197, 94, 0.3); 
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Info Messages */
+[data-theme="dark"] .d2h-info {
+    background-color: oklch(var(--b2));
+    color: oklch(var(--bc));
+    border-color: oklch(var(--b3));
+}
+
+/* Selection Color */
+[data-theme="dark"] .d2h-diff-table .d2h-code-line-ctn ::selection {
+    background-color: oklch(var(--p) / 0.3);
+}
+
+/* General Layout Tweaks */
+.d2h-file-wrapper {
+    border: 1px solid oklch(var(--b3));
+    border-radius: 8px;
+    margin-bottom: 0;
+}
+
+.d2h-code-line-ctn {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 13px;
+}

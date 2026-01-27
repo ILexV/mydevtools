@@ -17,7 +17,10 @@
 
     async function getCryptoWasm() {
         if (!cryptoWasmPromise) {
-            cryptoWasmPromise = import('/wasm/cryptography/cryptography-loader.js').then((m) => m.getCryptographyWasm());
+            cryptoWasmPromise = import('/wasm/cryptography/cryptography.js').then(async (m) => {
+                await m.default();
+                return m;
+            });
         }
         return cryptoWasmPromise;
     }
@@ -34,43 +37,25 @@
         const root = document.getElementById('openssh-keys-root');
         if (!root) return null;
 
-        const algorithm = document.getElementById('openssh-algorithm');
-        const keySize = document.getElementById('openssh-key-size');
-        const passphrase = document.getElementById('openssh-passphrase');
-        const generateBtn = document.getElementById('openssh-generate-btn');
-        const importText = document.getElementById('openssh-import-text');
-        const importFile = document.getElementById('openssh-import-file');
-        const importBtn = document.getElementById('openssh-import-btn');
-        const convertBtn = document.getElementById('openssh-convert-btn');
-        const publicKey = document.getElementById('openssh-public-key');
-        const privateKey = document.getElementById('openssh-private-key');
-        const publicCopy = document.getElementById('openssh-public-copy');
-        const privateCopy = document.getElementById('openssh-private-copy');
-        const publicDownload = document.getElementById('openssh-public-download');
-        const privateDownload = document.getElementById('openssh-private-download');
-        const warnings = document.getElementById('openssh-warnings');
-
-        if (!algorithm || !keySize || !passphrase || !generateBtn || !importText || !importFile || !importBtn || !convertBtn || !publicKey || !privateKey || !publicCopy || !privateCopy || !publicDownload || !privateDownload || !warnings) {
-            return null;
-        }
-
         return {
             root,
-            algorithm,
-            keySize,
-            passphrase,
-            generateBtn,
-            importText,
-            importFile,
-            importBtn,
-            convertBtn,
-            publicKey,
-            privateKey,
-            publicCopy,
-            privateCopy,
-            publicDownload,
-            privateDownload,
-            warnings
+            algorithm: document.getElementById('openssh-algorithm'),
+            keySize: document.getElementById('openssh-key-size'),
+            passphrase: document.getElementById('openssh-passphrase'),
+            generateBtn: document.getElementById('openssh-generate-btn'),
+            importText: document.getElementById('openssh-import-text'),
+            importFile: document.getElementById('openssh-import-file'),
+            importFileName: document.getElementById('openssh-import-file-name'),
+            importBtn: document.getElementById('openssh-import-btn'),
+            convertBtn: document.getElementById('openssh-convert-btn'),
+            publicKey: document.getElementById('openssh-public-key'),
+            privateKey: document.getElementById('openssh-private-key'),
+            publicCopy: document.getElementById('openssh-public-copy'),
+            privateCopy: document.getElementById('openssh-private-copy'),
+            publicDownload: document.getElementById('openssh-public-download'),
+            privateDownload: document.getElementById('openssh-private-download'),
+            warnings: document.getElementById('openssh-warnings'),
+            warningsText: document.getElementById('openssh-warnings-text')
         };
     }
 
@@ -87,18 +72,21 @@
 
     function setWarnings(els, warnings, strings) {
         if (!warnings || warnings.length === 0) {
-            els.warnings.hidden = true;
-            els.warnings.textContent = '';
+            els.warnings.classList.add('hidden');
+            els.warnings.style.display = 'none';
+            if (els.warningsText) els.warningsText.textContent = '';
             return;
         }
 
-        els.warnings.hidden = false;
-        els.warnings.innerHTML = `<strong>${strings.warningsTitle}:</strong> ${warnings.map(escapeHtml).join('; ')}`;
+        els.warnings.classList.remove('hidden');
+        els.warnings.style.display = 'flex';
+        if (els.warningsText) els.warningsText.innerHTML = `<strong>${strings.warningsTitle}:</strong> ${warnings.map(escapeHtml).join('; ')}`;
     }
 
     function setError(els, message) {
-        els.warnings.hidden = false;
-        els.warnings.innerHTML = `<strong>Error:</strong> ${escapeHtml(message)}`;
+        els.warnings.classList.remove('hidden');
+        els.warnings.style.display = 'flex';
+        if (els.warningsText) els.warningsText.innerHTML = `<strong>Error:</strong> ${escapeHtml(message)}`;
     }
 
     function escapeHtml(text) {
@@ -126,8 +114,10 @@
         const original = button.textContent;
         navigator.clipboard.writeText(textarea.value || '').then(() => {
             button.textContent = strings.copied;
+            button.classList.add('text-success');
             setTimeout(() => {
                 button.textContent = original;
+                button.classList.remove('text-success');
             }, 1200);
         });
     }
@@ -151,25 +141,13 @@
         const els = getElements();
         if (!els) return;
         const strings = getStrings(els.root);
+        setWarnings(els, [], strings);
 
         try {
             const wasm = await getCryptoWasm();
             const passphrase = getPassphrase(els);
             const algorithm = els.algorithm.value;
             const comment = null;
-
-            ensureFunctions(wasm, [
-                'ed25519_generate_keypair',
-                'ecdsa_p256_generate_keypair',
-                'ecdsa_p384_generate_keypair',
-                'rsa_generate_private_key_pkcs8',
-                'openssh_ed25519_private_key',
-                'openssh_ecdsa_p256_private_key',
-                'openssh_ecdsa_p384_private_key',
-                'openssh_rsa_private_key_from_pkcs8',
-                'openssh_private_key_to_public_key_line',
-                'openssh_private_key_warnings'
-            ]);
 
             let privateKeyPem = '';
             if (algorithm === 'ed25519') {
@@ -201,6 +179,7 @@
             state.lastPublicName = 'id_key.pub';
             state.lastPrivateName = 'id_key';
         } catch (err) {
+            console.error(err);
             setError(els, err?.message || String(err));
         }
     }
@@ -218,16 +197,10 @@
         const els = getElements();
         if (!els) return;
         const strings = getStrings(els.root);
+        setWarnings(els, [], strings);
 
         try {
             const wasm = await getCryptoWasm();
-            ensureFunctions(wasm, [
-                'openssh_private_key_to_public_key_line',
-                'openssh_private_key_warnings',
-                'openssh_public_key_warnings',
-                'openssh_public_key_from_spki_pem',
-                'openssh_private_key_from_pkcs8_pem'
-            ]);
             const passphrase = getPassphrase(els);
             const input = await readImportText(els);
             const kind = guessInput(input);
@@ -274,16 +247,10 @@
         const els = getElements();
         if (!els) return;
         const strings = getStrings(els.root);
+        setWarnings(els, [], strings);
 
         try {
             const wasm = await getCryptoWasm();
-            ensureFunctions(wasm, [
-                'openssh_private_key_to_pkcs8_pem',
-                'openssh_private_key_to_public_key_line',
-                'openssh_public_key_to_spki_pem',
-                'openssh_public_key_from_spki_pem',
-                'openssh_private_key_from_pkcs8_pem'
-            ]);
             const passphrase = getPassphrase(els);
             const input = await readImportText(els);
             const kind = guessInput(input);
@@ -328,9 +295,37 @@
         downloadText(state.lastPrivateName || 'id_key', els.privateKey.value);
     }
 
+    function updateFileName(input, label) {
+        if (input.files && input.files.length > 0) {
+            label.textContent = input.files[0].name;
+            label.classList.add('text-primary');
+            label.classList.add('font-semibold');
+        } else {
+            label.textContent = 'Drag & drop or click to select';
+            label.classList.remove('text-primary');
+            label.classList.remove('font-semibold');
+        }
+    }
+
     function bindDelegatedHandlersOnce() {
         if (window.__mydevtools_openssh_bound) return;
         window.__mydevtools_openssh_bound = true;
+
+        document.addEventListener('change', (ev) => {
+            const target = ev.target;
+            if (target.id === 'openssh-algorithm') {
+                const els = getElements();
+                if (els) {
+                    const isRsa = target.value.startsWith('rsa');
+                    els.keySize.disabled = !isRsa;
+                    if (!isRsa) els.keySize.value = 'default';
+                }
+            }
+            if (target.id === 'openssh-import-file') {
+                const els = getElements();
+                if (els) updateFileName(target, els.importFileName);
+            }
+        });
 
         document.addEventListener('click', (ev) => {
             const target = ev.target;
@@ -356,20 +351,14 @@
 
     bindDelegatedHandlersOnce();
 
-    function initIfPresent() {
+    function init() {
         const els = getElements();
-        if (!els) return;
-        if (initializedRoots.has(els.root)) return;
-        initializedRoots.add(els.root);
-        setWarnings(els, [], getStrings(els.root));
+        if (els && !initializedRoots.has(els.root)) {
+            initializedRoots.add(els.root);
+        }
     }
 
-    initIfPresent();
+    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('enhancedload', init);
 
-    try {
-        const observer = new MutationObserver(() => initIfPresent());
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-    } catch {
-        // ignore
-    }
 })();

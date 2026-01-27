@@ -581,15 +581,18 @@
 
         document.addEventListener('click', (ev) => {
             const target = ev.target;
-            if (!(target instanceof HTMLElement)) return;
+            // Allow HTMLElement and SVGElement (buttons might contain SVGs)
+            if (!(target instanceof Element)) return;
 
-            if (target.id === 'b64-encode-btn') return void encodeAction();
-            if (target.id === 'b64-decode-btn') return void decodeAction();
-            if (target.id === 'b64-swap-btn') return void swapAction();
-            if (target.id === 'b64-clear-btn') return void clearAction();
-            if (target.id === 'b64-copy-btn') return void copyOutputAction();
-            if (target.id === 'b64-download-btn') return void downloadAction();
-            if (target.id === 'b64-cancel-btn') {
+            const btn = (id) => target.closest(`#${id}`);
+
+            if (btn('b64-encode-btn')) return void encodeAction();
+            if (btn('b64-decode-btn')) return void decodeAction();
+            if (btn('b64-swap-btn')) return void swapAction();
+            if (btn('b64-clear-btn')) return void clearAction();
+            if (btn('b64-copy-btn')) return void copyOutputAction();
+            if (btn('b64-download-btn')) return void downloadAction();
+            if (btn('b64-cancel-btn')) {
                 try {
                     abortController?.abort();
                 } catch {

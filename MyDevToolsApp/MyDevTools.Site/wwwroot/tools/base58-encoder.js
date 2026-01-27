@@ -678,15 +678,16 @@
 
         document.addEventListener('click', (ev) => {
             const target = ev.target;
-            if (!(target instanceof HTMLElement)) return;
+            if (!(target instanceof Element)) return;
+            const btn = (id) => target.closest(`#${id}`);
 
-            if (target.id === 'b58-encode-btn') return void encodeAction();
-            if (target.id === 'b58-decode-btn') return void decodeAction();
-            if (target.id === 'b58-swap-btn') return void swapAction();
-            if (target.id === 'b58-clear-btn') return void clearAction();
-            if (target.id === 'b58-copy-btn') return void copyOutputAction();
-            if (target.id === 'b58-download-btn') return void downloadAction();
-            if (target.id === 'b58-cancel-btn') {
+            if (btn('b58-encode-btn')) return void encodeAction();
+            if (btn('b58-decode-btn')) return void decodeAction();
+            if (btn('b58-swap-btn')) return void swapAction();
+            if (btn('b58-clear-btn')) return void clearAction();
+            if (btn('b58-copy-btn')) return void copyOutputAction();
+            if (btn('b58-download-btn')) return void downloadAction();
+            if (btn('b58-cancel-btn')) {
                 try {
                     abortController?.abort();
                 } catch {

@@ -2,18 +2,19 @@
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
-<MetaTags Title="@AppStrings.Base58Encoder_Title"
-          Description="@AppStrings.Base58Encoder_Description"
-          CurrentUrl="@Navigation.Uri" />
-
-<HreflangLinks ToolPath="base58-encoder" />
-
-<JsonLdTool ToolName="@AppStrings.Base58Encoder_Title"
-            Description="@AppStrings.Base58Encoder_Description"
-            CurrentUrl="@Navigation.Uri" />
-
 <ToolLayout Title="@AppStrings.Base58Encoder_Title" Description="@AppStrings.Base58Encoder_Description">
+    <MetaTags Title="@AppStrings.Base58Encoder_Title"
+              Description="@AppStrings.Base58Encoder_Description"
+              CurrentUrl="@Navigation.Uri" />
+
+    <HreflangLinks ToolPath="base58-encoder" />
+
+    <JsonLdTool ToolName="@AppStrings.Base58Encoder_Title"
+                Description="@AppStrings.Base58Encoder_Description"
+                CurrentUrl="@Navigation.Uri" />
+
     <div id="base58-encoder-root"
+         class="grid grid-cols-1 lg:grid-cols-2 gap-6"
          data-loading="@AppStrings.Common_Loading"
          data-error="@AppStrings.Common_Error"
          data-file-progress-title="@AppStrings.Base58Encoder_FileProgressTitle"
@@ -23,117 +24,163 @@
          data-file-size-limit-encode="@AppStrings.Base58Encoder_FileSizeLimitEncode"
          data-file-size-limit-decode="@AppStrings.Base58Encoder_FileSizeLimitDecode">
 
-        <div class="flex flex-wrap gap-2 items-center mb-4" aria-label="@AppStrings.Base58Encoder_OtherFormats">
-            <span class="font-semibold">@AppStrings.Base58Encoder_OtherFormats</span>
-            <a class="link link-primary" href="/@Lang/hex-encoder">@AppStrings.Base58Encoder_LinkHex</a>
-            <a class="link link-primary" href="/@Lang/base32-encoder">@AppStrings.Base58Encoder_LinkBase32</a>
-            <a class="link link-primary" href="/@Lang/base64-encoder">@AppStrings.Base58Encoder_LinkBase64</a>
-            <a class="link link-primary" href="/@Lang/url-encoder">@AppStrings.Base58Encoder_LinkUrl</a>
-        </div>
+        <!-- Input & Settings Card -->
+        <div class="card bg-base-200 shadow-xl h-fit">
+            <div class="card-body">
+                <h2 class="card-title text-base opacity-70 mb-4">Input & Settings</h2>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="space-y-4">
-                <div class="form-control w-full">
+                <!-- Text Input -->
+                <div class="form-control">
                     <label class="label" for="b58-input-text">
                         <span class="label-text font-semibold">@AppStrings.Base58Encoder_InputTextLabel</span>
                     </label>
-                    <textarea id="b58-input-text" rows="10" class="textarea textarea-bordered w-full font-mono" placeholder="@AppStrings.Base58Encoder_InputTextPlaceholder"></textarea>
+                    <textarea id="b58-input-text" class="textarea textarea-bordered h-48 font-mono text-sm" placeholder="@AppStrings.Base58Encoder_InputTextPlaceholder"></textarea>
                 </div>
 
+                <!-- File Input -->
+                <div class="divider text-xs opacity-50 font-bold">OR FILE</div>
+                
                 <div class="form-control w-full">
-                    <label class="label" for="b58-input-file">
-                        <span class="label-text font-semibold">@AppStrings.Base58Encoder_InputFileLabel</span>
-                    </label>
                     <FileDropZone
                         Id="b58-drop-zone"
                         InputId="b58-input-file"
-                        IconSvg='<svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>'
+                        IconSvg='<svg class="w-10 h-10 text-base-content/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>'
                         Description="@AppStrings.Common_FileDropTitle"
                         Accept="*/*"
                         ShowFileInfo="true"
                         ShowClearButton="true" />
                     @if (!string.IsNullOrWhiteSpace(AppStrings.Base58Encoder_FileHint))
                     {
-                        <label class="label">
+                        <label class="label pb-0">
                             <span class="label-text-alt opacity-70">@AppStrings.Base58Encoder_FileHint</span>
                         </label>
                     }
                 </div>
 
-                <div class="collapse collapse-arrow bg-base-200">
-                    <input type="checkbox" />
-                    <div class="collapse-title font-semibold">Settings</div>
-                    <div class="collapse-content space-y-4">
-                        <div class="form-control w-full">
-                            <label class="label" for="b58-charset">
-                                <span class="label-text font-semibold">@AppStrings.Base58Encoder_CharsetLabel</span>
-                            </label>
-                            <select id="b58-charset" class="select select-bordered w-full">
-                                <option value="utf-8">UTF-8</option>
-                                <option value="utf-16le">UTF-16LE</option>
-                                <option value="utf-16be">UTF-16BE</option>
-                                <option value="ascii">ASCII</option>
-                                <option value="latin1">ISO-8859-1 (Latin-1)</option>
-                            </select>
-                        </div>
+                <!-- Advanced Settings -->
+                <div class="collapse collapse-arrow bg-base-100 border border-base-300 rounded-box mt-4">
+                    <input type="checkbox" /> 
+                    <div class="collapse-title font-medium text-sm">
+                        Advanced Settings
+                    </div>
+                    <div class="collapse-content">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                            <!-- Charset -->
+                            <div class="form-control w-full">
+                                <label class="label py-1" for="b58-charset">
+                                    <span class="label-text text-xs">@AppStrings.Base58Encoder_CharsetLabel</span>
+                                </label>
+                                <select id="b58-charset" class="select select-bordered select-sm w-full">
+                                    <option value="utf-8">UTF-8</option>
+                                    <option value="utf-16le">UTF-16LE</option>
+                                    <option value="utf-16be">UTF-16BE</option>
+                                    <option value="ascii">ASCII</option>
+                                    <option value="latin1">ISO-8859-1 (Latin-1)</option>
+                                </select>
+                            </div>
 
-                        <div class="form-control w-full">
-                            <label class="label" for="b58-alphabet">
-                                <span class="label-text font-semibold">@AppStrings.Base58Encoder_AlphabetLabel</span>
-                            </label>
-                            <select id="b58-alphabet" class="select select-bordered w-full">
-                                <option value="bitcoin">@AppStrings.Base58Encoder_AlphabetBitcoin</option>
-                                <option value="flickr">@AppStrings.Base58Encoder_AlphabetFlickr</option>
-                                <option value="ripple">@AppStrings.Base58Encoder_AlphabetRipple</option>
-                            </select>
-                        </div>
+                            <!-- Alphabet -->
+                            <div class="form-control w-full">
+                                <label class="label py-1" for="b58-alphabet">
+                                    <span class="label-text text-xs">@AppStrings.Base58Encoder_AlphabetLabel</span>
+                                </label>
+                                <select id="b58-alphabet" class="select select-bordered select-sm w-full">
+                                    <option value="bitcoin">@AppStrings.Base58Encoder_AlphabetBitcoin</option>
+                                    <option value="flickr">@AppStrings.Base58Encoder_AlphabetFlickr</option>
+                                    <option value="ripple">@AppStrings.Base58Encoder_AlphabetRipple</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Output Mode -->
+                            <div class="form-control w-full md:col-span-2">
+                                <label class="label py-1" for="b58-output-mode">
+                                    <span class="label-text text-xs">@AppStrings.Base58Encoder_OutputModeLabel</span>
+                                </label>
+                                <select id="b58-output-mode" class="select select-bordered select-sm w-full">
+                                    <option value="preview">@AppStrings.Base58Encoder_OutputModePreview</option>
+                                    <option value="full">@AppStrings.Base58Encoder_OutputModeFull</option>
+                                </select>
+                            </div>
 
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text font-semibold">@AppStrings.Base58Encoder_DecodeOptionsLabel</span>
-                            </label>
-                            <label class="label cursor-pointer justify-start gap-2">
-                                <input id="b58-allow-whitespace" type="checkbox" checked class="checkbox" />
-                                <span class="label-text">@AppStrings.Base58Encoder_AllowWhitespace</span>
-                            </label>
-                        </div>
-
-                        <div class="form-control w-full">
-                            <label class="label" for="b58-output-mode">
-                                <span class="label-text font-semibold">@AppStrings.Base58Encoder_OutputModeLabel</span>
-                            </label>
-                            <select id="b58-output-mode" class="select select-bordered w-full">
-                                <option value="preview">@AppStrings.Base58Encoder_OutputModePreview</option>
-                                <option value="full">@AppStrings.Base58Encoder_OutputModeFull</option>
-                            </select>
+                            <!-- Options -->
+                            <div class="form-control md:col-span-2">
+                                <label class="label cursor-pointer justify-start gap-3">
+                                    <input id="b58-allow-whitespace" type="checkbox" class="checkbox checkbox-sm checkbox-primary" checked />
+                                    <span class="label-text text-sm">@AppStrings.Base58Encoder_AllowWhitespace</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex flex-wrap gap-2">
-                    <button class="btn btn-primary" id="b58-encode-btn" type="button">@AppStrings.Base58Encoder_ActionEncode</button>
-                    <button class="btn btn-secondary" id="b58-decode-btn" type="button">@AppStrings.Base58Encoder_ActionDecode</button>
-                    <button class="btn btn-secondary" id="b58-swap-btn" type="button">@AppStrings.Base58Encoder_ActionSwap</button>
-                    <button class="btn btn-secondary" id="b58-clear-btn" type="button">@AppStrings.Base58Encoder_ActionClear</button>
+                <!-- Actions -->
+                <div class="card-actions mt-6 grid grid-cols-2 gap-4">
+                    <button class="btn btn-primary" id="b58-encode-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                        @AppStrings.Base58Encoder_ActionEncode
+                    </button>
+                    <button class="btn btn-secondary" id="b58-decode-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                        @AppStrings.Base58Encoder_ActionDecode
+                    </button>
                 </div>
-
-                <div class="alert alert-error" id="b58-error" style="display: none;"></div>
+                
+                <div class="flex justify-between mt-2">
+                     <button class="btn btn-ghost btn-sm text-error" id="b58-clear-btn">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                         @AppStrings.Base58Encoder_ActionClear
+                     </button>
+                     <button class="btn btn-ghost btn-sm" id="b58-swap-btn">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
+                         @AppStrings.Base58Encoder_ActionSwap
+                     </button>
+                </div>
+                
+                <div class="alert alert-error shadow-lg mt-4 hidden" id="b58-error"></div>
             </div>
+        </div>
 
-            <div class="space-y-4" id="b58-output-section">
-                <div class="form-control w-full">
-                    <label class="label" for="b58-output">
-                        <span class="label-text font-semibold">@AppStrings.Base58Encoder_OutputLabel</span>
-                    </label>
-                    <textarea id="b58-output" rows="10" readonly class="textarea textarea-bordered w-full font-mono"></textarea>
+        <!-- Output Card -->
+        <div class="card bg-base-200 shadow-xl h-fit">
+            <div class="card-body" id="b58-output-section">
+                <h2 class="card-title text-base opacity-70 mb-4">Output</h2>
+                
+                <div class="form-control h-full">
+                    <textarea id="b58-output" class="textarea textarea-bordered h-[500px] font-mono text-sm leading-relaxed" readonly></textarea>
                 </div>
-
-                <div class="flex flex-wrap gap-2">
-                    <button class="btn btn-secondary" id="b58-copy-btn" type="button">@AppStrings.Base58Encoder_Copy</button>
-                    <button class="btn btn-secondary" id="b58-download-btn" type="button">@AppStrings.Base58Encoder_Download</button>
+                
+                <div class="card-actions justify-between items-center mt-4">
+                    <div class="text-xs opacity-50">
+                        <!-- Stats could go here -->
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="btn btn-ghost btn-sm" id="b58-copy-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                            @AppStrings.Base58Encoder_Copy
+                        </button>
+                        <button class="btn btn-ghost btn-sm" id="b58-download-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                            @AppStrings.Base58Encoder_Download
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Related Links -->
+        <div class="col-span-1 lg:col-span-2 mt-4">
+            <div class="flex flex-wrap gap-3 justify-center items-center opacity-70 text-sm">
+                <span class="font-bold">@AppStrings.Base58Encoder_OtherFormats</span>
+                <a class="link link-hover" href="/@Lang/hex-encoder">@AppStrings.Base58Encoder_LinkHex</a>
+                <span class="opacity-30">|</span>
+                <a class="link link-hover" href="/@Lang/base32-encoder">@AppStrings.Base58Encoder_LinkBase32</a>
+                <span class="opacity-30">|</span>
+                <a class="link link-hover" href="/@Lang/base64-encoder">@AppStrings.Base58Encoder_LinkBase64</a>
+                <span class="opacity-30">|</span>
+                <a class="link link-hover" href="/@Lang/url-encoder">@AppStrings.Base58Encoder_LinkUrl</a>
+            </div>
+        </div>
+
     </div>
 </ToolLayout>
 

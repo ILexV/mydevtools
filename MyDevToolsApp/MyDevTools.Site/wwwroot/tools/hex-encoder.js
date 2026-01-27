@@ -629,15 +629,16 @@
 
         document.addEventListener('click', (ev) => {
             const target = ev.target;
-            if (!(target instanceof HTMLElement)) return;
+            if (!(target instanceof Element)) return;
+            const btn = (id) => target.closest(`#${id}`);
 
-            if (target.id === 'hex-encode-btn') return void encodeAction();
-            if (target.id === 'hex-decode-btn') return void decodeAction();
-            if (target.id === 'hex-swap-btn') return void swapAction();
-            if (target.id === 'hex-clear-btn') return void clearAction();
-            if (target.id === 'hex-copy-btn') return void copyOutputAction();
-            if (target.id === 'hex-download-btn') return void downloadAction();
-            if (target.id === 'hex-cancel-btn') {
+            if (btn('hex-encode-btn')) return void encodeAction();
+            if (btn('hex-decode-btn')) return void decodeAction();
+            if (btn('hex-swap-btn')) return void swapAction();
+            if (btn('hex-clear-btn')) return void clearAction();
+            if (btn('hex-copy-btn')) return void copyOutputAction();
+            if (btn('hex-download-btn')) return void downloadAction();
+            if (btn('hex-cancel-btn')) {
                 try {
                     abortController?.abort();
                 } catch {

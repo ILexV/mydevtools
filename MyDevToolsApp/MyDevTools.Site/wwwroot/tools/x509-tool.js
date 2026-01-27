@@ -1,4 +1,4 @@
-/* global document, window */
+/* global document, window, BigInt */
 
 (function () {
     const initializedRoots = new WeakSet();
@@ -17,7 +17,10 @@
 
     async function getCryptoWasm() {
         if (!cryptoWasmPromise) {
-            cryptoWasmPromise = import('/wasm/cryptography/cryptography-loader.js').then((m) => m.getCryptographyWasm());
+            cryptoWasmPromise = import('/wasm/cryptography/cryptography.js').then(async (m) => {
+                await m.default();
+                return m;
+            });
         }
         return cryptoWasmPromise;
     }
@@ -34,33 +37,19 @@
         const root = document.getElementById('x509-root');
         if (!root) return null;
 
-        const subject = document.getElementById('x509-subject');
-        const validity = document.getElementById('x509-validity');
-        const generateSelfSigned = document.getElementById('x509-generate-selfsigned');
-        const generateCsr = document.getElementById('x509-generate-csr');
-        const parseInput = document.getElementById('x509-parse-input');
-        const parseBtn = document.getElementById('x509-parse-btn');
-        const output = document.getElementById('x509-output');
-        const copyBtn = document.getElementById('x509-copy');
-        const downloadBtn = document.getElementById('x509-download');
-        const warnings = document.getElementById('x509-warnings');
-
-        if (!subject || !validity || !generateSelfSigned || !generateCsr || !parseInput || !parseBtn || !output || !copyBtn || !downloadBtn || !warnings) {
-            return null;
-        }
-
         return {
             root,
-            subject,
-            validity,
-            generateSelfSigned,
-            generateCsr,
-            parseInput,
-            parseBtn,
-            output,
-            copyBtn,
-            downloadBtn,
-            warnings
+            subject: document.getElementById('x509-subject'),
+            validity: document.getElementById('x509-validity'),
+            generateSelfSigned: document.getElementById('x509-generate-selfsigned'),
+            generateCsr: document.getElementById('x509-generate-csr'),
+            parseInput: document.getElementById('x509-parse-input'),
+            parseBtn: document.getElementById('x509-parse-btn'),
+            output: document.getElementById('x509-output'),
+            copyBtn: document.getElementById('x509-copy'),
+            downloadBtn: document.getElementById('x509-download'),
+            warnings: document.getElementById('x509-warnings'),
+            warningsText: document.getElementById('x509-warnings-text')
         };
     }
 
@@ -86,25 +75,48 @@
 
     function setWarnings(els, warnings, strings) {
         if (!warnings || warnings.length === 0) {
-            els.warnings.hidden = true;
-            els.warnings.textContent = '';
+            if (els.warnings) {
+                els.warnings.classList.add('hidden');
+                els.warnings.style.display = 'none';
+            }
+            if (els.warningsText) els.warningsText.textContent = '';
             return;
         }
-        els.warnings.hidden = false;
-        els.warnings.innerHTML = `<strong>${strings.warningsTitle}:</strong> ${warnings.map(escapeHtml).join('; ')}`;
+        if (els.warnings) {
+            els.warnings.classList.remove('hidden');
+            els.warnings.style.display = 'flex';
+        }
+        if (els.warningsText) {
+            els.warningsText.innerHTML = `<strong>${strings.warningsTitle}:</strong> ${warnings.map(escapeHtml).join('; ')}`;
+        }
     }
 
     function setError(els, message) {
-        els.warnings.hidden = false;
-        els.warnings.innerHTML = `<strong>Error:</strong> ${escapeHtml(message)}`;
+        if (els.warnings) {
+            els.warnings.classList.remove('hidden');
+            els.warnings.style.display = 'flex';
+        }
+        if (els.warningsText) {
+            els.warningsText.innerHTML = `<strong>Error:</strong> ${escapeHtml(message)}`;
+        }
     }
 
     function copyOutput(els, strings) {
-        const original = els.copyBtn.textContent;
+        const original = els.copyBtn.innerHTML;
+        const originalClass = els.copyBtn.className;
+        
         navigator.clipboard.writeText(els.output.value || '').then(() => {
-            els.copyBtn.textContent = strings.copied;
+            els.copyBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1 text-success">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                ${strings.copied}
+            `;
+            els.copyBtn.classList.add('text-success');
+            
             setTimeout(() => {
-                els.copyBtn.textContent = original;
+                els.copyBtn.innerHTML = original;
+                els.copyBtn.className = originalClass;
             }, 1200);
         });
     }
@@ -146,21 +158,21 @@
         const els = getElements();
         if (!els) return;
         const strings = getStrings(els.root);
+        setWarnings(els, [], strings);
 
         try {
             const wasm = await getCryptoWasm();
-            ensureFunctions(wasm, ['x509_self_signed_pem']);
-
             const subject = (els.subject.value || '').trim();
             const outputs = wasm.x509_self_signed_pem(1, subject || null, [], []);
+            
             const cert = outputs[0] || '';
             const key = outputs[1] || '';
             els.output.value = `${cert}\n${key}`.trim();
-            setWarnings(els, [], strings);
-
+            
             const state = getState(els.root);
             state.lastDownloadName = 'certificate.pem';
         } catch (err) {
+            console.error(err);
             setError(els, err?.message || String(err));
         }
     }
@@ -169,21 +181,22 @@
         const els = getElements();
         if (!els) return;
         const strings = getStrings(els.root);
+        setWarnings(els, [], strings);
 
         try {
             const wasm = await getCryptoWasm();
-            ensureFunctions(wasm, ['x509_csr_pem']);
-
+            
             const subject = (els.subject.value || '').trim();
             const outputs = wasm.x509_csr_pem(1, subject || null, [], []);
+            
             const csr = outputs[0] || '';
             const key = outputs[1] || '';
             els.output.value = `${csr}\n${key}`.trim();
-            setWarnings(els, [], strings);
-
+            
             const state = getState(els.root);
             state.lastDownloadName = 'request.csr.pem';
         } catch (err) {
+            console.error(err);
             setError(els, err?.message || String(err));
         }
     }
@@ -192,30 +205,37 @@
         const els = getElements();
         if (!els) return;
         const strings = getStrings(els.root);
+        setWarnings(els, [], strings);
 
         try {
             const wasm = await getCryptoWasm();
-            ensureFunctions(wasm, ['x509_parse_pem', 'x509_parse_der', 'x509_warnings_pem', 'x509_warnings_der']);
             const input = (els.parseInput.value || '').trim();
             if (!input) return;
 
             const now = Math.floor(Date.now() / 1000);
+            const nowBigInt = BigInt(now);
+
             if (input.includes('BEGIN')) {
                 const json = wasm.x509_parse_pem(input);
                 els.output.value = prettyJson(json);
-                const warnings = wasm.x509_warnings_pem(input, now);
+                const warnings = wasm.x509_warnings_pem(input, nowBigInt);
                 setWarnings(els, warnings, strings);
             } else {
-                const bytes = base64ToBytes(input);
-                const json = wasm.x509_parse_der(bytes);
-                els.output.value = prettyJson(json);
-                const warnings = wasm.x509_warnings_der(bytes, now);
-                setWarnings(els, warnings, strings);
+                try {
+                    const bytes = base64ToBytes(input);
+                    const json = wasm.x509_parse_der(bytes);
+                    els.output.value = prettyJson(json);
+                    const warnings = wasm.x509_warnings_der(bytes, nowBigInt);
+                    setWarnings(els, warnings, strings);
+                } catch (e) {
+                    throw new Error("Invalid format. Paste PEM or Base64 DER.");
+                }
             }
 
             const state = getState(els.root);
             state.lastDownloadName = 'x509.json';
         } catch (err) {
+            console.error(err);
             setError(els, err?.message || String(err));
         }
     }
@@ -228,15 +248,24 @@
             const target = ev.target;
             if (!(target instanceof HTMLElement)) return;
 
-            if (target.id === 'x509-generate-selfsigned') return void generateSelfSignedAction();
-            if (target.id === 'x509-generate-csr') return void generateCsrAction();
-            if (target.id === 'x509-parse-btn') return void parseAction();
-            if (target.id === 'x509-copy') {
+            const generateSelfBtn = target.closest('#x509-generate-selfsigned');
+            if (generateSelfBtn) return void generateSelfSignedAction();
+
+            const generateCsrBtn = target.closest('#x509-generate-csr');
+            if (generateCsrBtn) return void generateCsrAction();
+
+            const parseBtn = target.closest('#x509-parse-btn');
+            if (parseBtn) return void parseAction();
+
+            const copyBtn = target.closest('#x509-copy');
+            if (copyBtn) {
                 const els = getElements();
                 if (!els) return;
                 return void copyOutput(els, getStrings(els.root));
             }
-            if (target.id === 'x509-download') {
+
+            const downloadBtn = target.closest('#x509-download');
+            if (downloadBtn) {
                 const els = getElements();
                 if (!els) return;
                 return void downloadOutput(els);
@@ -246,20 +275,14 @@
 
     bindDelegatedHandlersOnce();
 
-    function initIfPresent() {
+    function init() {
         const els = getElements();
-        if (!els) return;
-        if (initializedRoots.has(els.root)) return;
-        initializedRoots.add(els.root);
-        setWarnings(els, [], getStrings(els.root));
+        if (els && !initializedRoots.has(els.root)) {
+            initializedRoots.add(els.root);
+        }
     }
 
-    initIfPresent();
+    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('enhancedload', init);
 
-    try {
-        const observer = new MutationObserver(() => initIfPresent());
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-    } catch {
-        // ignore
-    }
 })();

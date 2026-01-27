@@ -1,0 +1,77 @@
+/* YAML Beautifier Styles with CodeMirror */
+
+.editor-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+}
+
+/* CodeMirror Container */
+.code-mirror-editor {
+    border: 1px solid oklch(var(--b3));
+    border-radius: var(--rounded-btn, 0.5rem);
+    overflow: hidden;
+}
+
+.code-mirror-editor .CodeMirror {
+    height: 600px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    background-color: oklch(var(--b1));
+    color: oklch(var(--bc));
+}
+
+.code-mirror-editor .CodeMirror-gutters {
+    background-color: oklch(var(--b2));
+    border-right: 1px solid oklch(var(--b3));
+}
+
+.code-mirror-editor .CodeMirror-linenumber {
+    color: oklch(var(--bc) / 0.5);
+}
+
+.code-mirror-editor .CodeMirror-cursor {
+    border-left: 2px solid oklch(var(--bc));
+}
+
+.code-mirror-editor .CodeMirror-selected {
+    background-color: oklch(var(--p) / 0.2);
+}
+
+.code-mirror-editor .CodeMirror-line::selection,
+.code-mirror-editor .CodeMirror-line > span::selection,
+.code-mirror-editor .CodeMirror-line > span > span::selection {
+    background-color: oklch(var(--p) / 0.2);
+}
+
+/* Error state */
+.code-mirror-editor.error {
+    border-color: oklch(var(--er));
+}
+
+.code-mirror-editor.error .CodeMirror {
+    background-color: oklch(var(--er) / 0.1);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .code-mirror-editor .CodeMirror {
+        height: 400px;
+    }
+}
+
+/* Dark Mode Syntax Highlighting Override for Default Theme */
+[data-theme="dark"] .cm-s-default .cm-string { color: #ce9178; }
+[data-theme="dark"] .cm-s-default .cm-string-2 { color: #ce9178; }
+[data-theme="dark"] .cm-s-default .cm-number { color: #b5cea8; }
+[data-theme="dark"] .cm-s-default .cm-atom { color: #569cd6; }
+[data-theme="dark"] .cm-s-default .cm-keyword { color: #c586c0; }
+[data-theme="dark"] .cm-s-default .cm-variable { color: #9cdcfe; }
+[data-theme="dark"] .cm-s-default .cm-def { color: #dcdcaa; }
+[data-theme="dark"] .cm-s-default .cm-property { color: #9cdcfe; }
+[data-theme="dark"] .cm-s-default .cm-operator { color: #d4d4d4; }
+[data-theme="dark"] .cm-s-default .cm-comment { color: #6a9955; }
+[data-theme="dark"] .cm-s-default .cm-meta { color: #569cd6; }
+[data-theme="dark"] .cm-s-default .cm-tag { color: #569cd6; }
+[data-theme="dark"] .cm-s-default .cm-attribute { color: #9cdcfe; }

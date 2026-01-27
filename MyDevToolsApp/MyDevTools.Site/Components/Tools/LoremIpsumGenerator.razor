@@ -13,183 +13,125 @@
                 Description="@AppStrings.LoremIpsumGenerator_Description"
                 CurrentUrl="@Navigation.Uri" />
 
-    <div id="lorem-ipsum-root" class="tool-container" data-copied="@AppStrings.LoremIpsumGenerator_Copied">
-        <div class="space-y-4">
-            <div class="form-row">
-                <div class="form-control w-full">
-                    <label class="label" for="generate-type"><span class="label-text">@AppStrings.LoremIpsumGenerator_GenerateTypeLabel</span></label>
-                    <select id="generate-type" class="select select-bordered w-full">
-                        <option value="paragraphs">@AppStrings.LoremIpsumGenerator_Paragraphs</option>
-                        <option value="sentences">@AppStrings.LoremIpsumGenerator_Sentences</option>
-                        <option value="words">@AppStrings.LoremIpsumGenerator_Words</option>
+    <div id="lorem-ipsum-root" class="grid grid-cols-1 lg:grid-cols-3 gap-6" data-copied="@AppStrings.LoremIpsumGenerator_Copied">
+        
+        <!-- Controls -->
+        <div class="card bg-base-200 shadow-xl h-fit lg:col-span-1">
+            <div class="card-body">
+                <h2 class="card-title text-base opacity-70 mb-4">Settings</h2>
+                
+                <!-- Count & Type -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">@AppStrings.LoremIpsumGenerator_GenerateTypeLabel</span>
+                    </label>
+                    <div class="join w-full">
+                        <input class="input input-bordered join-item w-20 text-center" type="number" id="count" min="1" max="500" value="5" />
+                        <select id="generate-type" class="select select-bordered join-item flex-1">
+                            <option value="paragraphs">@AppStrings.LoremIpsumGenerator_Paragraphs</option>
+                            <option value="sentences">@AppStrings.LoremIpsumGenerator_Sentences</option>
+                            <option value="words">@AppStrings.LoremIpsumGenerator_Words</option>
+                            <option value="list-items">List Items</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Format -->
+                <div class="form-control w-full mt-2">
+                    <label class="label">
+                        <span class="label-text font-semibold">Format</span>
+                    </label>
+                    <select id="output-format" class="select select-bordered w-full">
+                        <option value="plain">Plain Text</option>
+                        <option value="html">HTML</option>
+                        <option value="markdown">Markdown</option>
                     </select>
                 </div>
-                <div class="form-control w-full">
-                    <label class="label" for="count"><span class="label-text">@AppStrings.LoremIpsumGenerator_CountLabel</span></label>
-                    <input type="number" id="count" min="1" max="100" value="5" class="input input-bordered w-full" />
-                </div>
-            </div>
 
-            <div class="form-row">
+                <div class="divider my-4">Options</div>
+
+                <!-- Checkboxes -->
                 <div class="form-control">
-                    <label class="label cursor-pointer gap-2">
-                        <input type="checkbox" id="start-classic" checked class="checkbox" />
+                    <label class="label cursor-pointer justify-start gap-3 py-1">
+                        <input type="checkbox" id="start-classic" checked class="checkbox checkbox-sm checkbox-primary" />
                         <span class="label-text">@AppStrings.LoremIpsumGenerator_StartWithClassic</span>
                     </label>
                 </div>
-                <div class="form-control">
-                    <label class="label cursor-pointer gap-2">
-                        <input type="checkbox" id="wrap-paragraphs" class="checkbox" />
-                        <span class="label-text">@AppStrings.LoremIpsumGenerator_WrapParagraphs</span>
-                    </label>
+
+                <!-- Rich Options -->
+                <div id="rich-options" class="space-y-1 transition-all duration-300 overflow-hidden">
+                    <div class="form-control">
+                        <label class="label cursor-pointer justify-start gap-3 py-1">
+                            <input type="checkbox" id="include-headers" class="checkbox checkbox-sm" />
+                            <span class="label-text">Include Headers</span>
+                        </label>
+                    </div>
+                    <div class="form-control">
+                        <label class="label cursor-pointer justify-start gap-3 py-1">
+                            <input type="checkbox" id="include-lists" class="checkbox checkbox-sm" />
+                            <span class="label-text">Include Lists</span>
+                        </label>
+                    </div>
+                    <div class="form-control">
+                        <label class="label cursor-pointer justify-start gap-3 py-1">
+                            <input type="checkbox" id="include-formatting" class="checkbox checkbox-sm" />
+                            <span class="label-text">Bold & Italic</span>
+                        </label>
+                    </div>
+                    <div class="form-control">
+                        <label class="label cursor-pointer justify-start gap-3 py-1">
+                            <input type="checkbox" id="include-links" class="checkbox checkbox-sm" />
+                            <span class="label-text">Include Links</span>
+                        </label>
+                    </div>
+                    <div class="form-control">
+                        <label class="label cursor-pointer justify-start gap-3 py-1">
+                            <input type="checkbox" id="include-code" class="checkbox checkbox-sm" />
+                            <span class="label-text">Code Blocks</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="card-actions mt-6">
+                    <button id="generate-btn" class="btn btn-primary w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                        @AppStrings.LoremIpsumGenerator_GenerateButton
+                    </button>
                 </div>
             </div>
-
-            <button id="generate-btn" class="btn btn-primary">@AppStrings.LoremIpsumGenerator_GenerateButton</button>
         </div>
 
-        <div class="space-y-4 mt-6">
-            <label class="label" for="output"><span class="label-text font-semibold">@AppStrings.LoremIpsumGenerator_OutputLabel</span></label>
-            <textarea id="output" rows="15" readonly class="textarea textarea-bordered w-full font-mono"></textarea>
-            <div class="flex flex-wrap gap-2">
-                <button id="copy-btn" class="btn btn-secondary">@AppStrings.LoremIpsumGenerator_CopyButton</button>
-                <button id="download-btn" class="btn btn-secondary">@AppStrings.LoremIpsumGenerator_DownloadButton</button>
+        <!-- Output -->
+        <div class="card bg-base-200 shadow-xl h-fit lg:col-span-2">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="card-title text-base opacity-70">@AppStrings.LoremIpsumGenerator_OutputLabel</h2>
+                    <div class="flex gap-2">
+                        <button id="copy-btn" class="btn btn-sm btn-ghost" title="@AppStrings.LoremIpsumGenerator_CopyButton">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                            Copy
+                        </button>
+                        <button id="download-btn" class="btn btn-sm btn-ghost" title="@AppStrings.LoremIpsumGenerator_DownloadButton">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                            Download
+                        </button>
+                    </div>
+                </div>
+                
+                <textarea id="output" class="textarea textarea-bordered w-full h-[600px] font-mono text-sm leading-relaxed" readonly></textarea>
+                
+                <div class="text-xs opacity-50 mt-2 text-right" id="stats">
+                    
+                </div>
             </div>
         </div>
+
     </div>
-
-    <style>
-        .tool-container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .input-section, .output-section {
-            margin-bottom: 2rem;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .form-group {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-        }
-
-        .checkbox-group label {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: auto;
-            margin: 0;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-        select, input[type="number"] {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            font-size: 1rem;
-        }
-
-        textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            font-family: monospace;
-            font-size: 0.95rem;
-            resize: vertical;
-            line-height: 1.6;
-        }
-
-        .primary-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-
-        .primary-btn:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .button-group {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .secondary-btn {
-            background-color: var(--bg-secondary);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.95rem;
-            transition: background-color 0.2s;
-        }
-
-        .secondary-btn:hover {
-            background-color: var(--bg-hover);
-        }
-
-        /* Dark theme fixes for select elements */
-        #lorem-ipsum-root select {
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-        }
-
-        #lorem-ipsum-root select option {
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-        }
-
-        [data-theme="dark"] #lorem-ipsum-root select {
-            background-color: var(--bg-secondary);
-            color: var(--text-primary);
-        }
-
-        [data-theme="dark"] #lorem-ipsum-root select option {
-            background-color: var(--bg-secondary);
-            color: var(--text-primary);
-        }
-    </style>
 
     <script>
         (function() {
             'use strict';
 
-            // Lorem Ipsum word bank
             const loremWords = [
                 'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit',
                 'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore',
@@ -219,117 +161,255 @@
 
             const classicStart = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.';
 
-            const generateBtn = document.getElementById('generate-btn');
-            const copyBtn = document.getElementById('copy-btn');
-            const downloadBtn = document.getElementById('download-btn');
-            const output = document.getElementById('output');
-            const generateType = document.getElementById('generate-type');
-            const count = document.getElementById('count');
-            const startClassic = document.getElementById('start-classic');
-            const wrapParagraphs = document.getElementById('wrap-paragraphs');
+            // Elements
+            const els = {
+                generateBtn: document.getElementById('generate-btn'),
+                copyBtn: document.getElementById('copy-btn'),
+                downloadBtn: document.getElementById('download-btn'),
+                output: document.getElementById('output'),
+                type: document.getElementById('generate-type'),
+                count: document.getElementById('count'),
+                format: document.getElementById('output-format'),
+                startClassic: document.getElementById('start-classic'),
+                richOptions: document.getElementById('rich-options'),
+                stats: document.getElementById('stats'),
+                checkboxes: {
+                    headers: document.getElementById('include-headers'),
+                    lists: document.getElementById('include-lists'),
+                    formatting: document.getElementById('include-formatting'),
+                    links: document.getElementById('include-links'),
+                    code: document.getElementById('include-code')
+                }
+            };
 
-            // Random word generator
+            // Helper functions
             function getRandomWord() {
                 return loremWords[Math.floor(Math.random() * loremWords.length)];
             }
 
-            // Generate a sentence (5-15 words)
-            function generateSentence() {
-                const wordCount = Math.floor(Math.random() * 11) + 5; // 5-15 words
-                const words = [];
-                for (let i = 0; i < wordCount; i++) {
-                    words.push(getRandomWord());
-                }
-                // Capitalize first word
-                words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1);
-                return words.join(' ') + '.';
+            function capitalize(str) {
+                return str.charAt(0).toUpperCase() + str.slice(1);
             }
 
-            // Generate a paragraph (3-7 sentences)
-            function generateParagraph() {
-                const sentenceCount = Math.floor(Math.random() * 5) + 3; // 3-7 sentences
+            function generateSentence(min = 5, max = 15) {
+                const count = Math.floor(Math.random() * (max - min + 1)) + min;
+                const words = [];
+                for (let i = 0; i < count; i++) words.push(getRandomWord());
+                return capitalize(words.join(' ')) + '.';
+            }
+
+            function generateParagraph(min = 3, max = 7) {
+                const count = Math.floor(Math.random() * (max - min + 1)) + min;
                 const sentences = [];
-                for (let i = 0; i < sentenceCount; i++) {
-                    sentences.push(generateSentence());
-                }
+                for (let i = 0; i < count; i++) sentences.push(generateSentence());
                 return sentences.join(' ');
             }
 
-            // Main generate function
-            function generateLoremIpsum() {
-                const type = generateType.value;
-                const num = parseInt(count.value) || 1;
-                const useClassic = startClassic.checked;
-                const wrap = wrapParagraphs.checked;
-                let result = '';
-
-                if (type === 'paragraphs') {
-                    const paragraphs = [];
-                    
-                    if (useClassic) {
-                        paragraphs.push(classicStart);
+            function formatRichText(text, format, options) {
+                const words = text.split(' ');
+                
+                // Bold/Italic
+                if (options.formatting) {
+                    for (let i = 0; i < words.length; i++) {
+                        if (Math.random() < 0.05) { // 5% chance
+                            const type = Math.random() > 0.5 ? 'strong' : 'em';
+                            if (format === 'html') {
+                                words[i] = `<${type}>${words[i]}</${type}>`;
+                            } else if (format === 'markdown') {
+                                const wrap = type === 'strong' ? '**' : '*';
+                                words[i] = `${wrap}${words[i]}${wrap}`;
+                            }
+                        }
                     }
-                    
-                    const additionalCount = useClassic ? num - 1 : num;
-                    for (let i = 0; i < additionalCount; i++) {
-                        paragraphs.push(generateParagraph());
-                    }
-
-                    if (wrap) {
-                        result = paragraphs.map(p => `<p>${p}</p>`).join('\n\n');
-                    } else {
-                        result = paragraphs.join('\n\n');
-                    }
-                } else if (type === 'sentences') {
-                    const sentences = [];
-                    
-                    if (useClassic) {
-                        sentences.push(classicStart);
-                    }
-                    
-                    const additionalCount = useClassic ? num - 1 : num;
-                    for (let i = 0; i < additionalCount; i++) {
-                        sentences.push(generateSentence());
-                    }
-                    
-                    result = sentences.join(' ');
-                } else if (type === 'words') {
-                    const words = [];
-                    
-                    if (useClassic) {
-                        // Use the classic sentence as the start
-                        const classicWords = classicStart.replace('.', '').split(' ');
-                        words.push(...classicWords);
-                    }
-                    
-                    const additionalCount = useClassic ? num - classicStart.replace('.', '').split(' ').length : num;
-                    for (let i = 0; i < additionalCount; i++) {
-                        words.push(getRandomWord());
-                    }
-                    
-                    result = words.join(' ');
                 }
 
-                output.value = result;
+                // Links
+                if (options.links) {
+                    for (let i = 0; i < words.length; i++) {
+                        if (Math.random() < 0.03 && !words[i].includes('<') && !words[i].includes('*')) {
+                            if (format === 'html') {
+                                words[i] = `<a href="#">${words[i]}</a>`;
+                            } else if (format === 'markdown') {
+                                words[i] = `[${words[i]}](#)`;
+                            }
+                        }
+                    }
+                }
+
+                return words.join(' ');
             }
 
-            // Copy to clipboard
-            function copyToClipboard() {
-                output.select();
-                document.execCommand('copy');
+            function generate() {
+                const type = els.type.value;
+                const count = parseInt(els.count.value) || 5;
+                const format = els.format.value;
+                const startClassic = els.startClassic.checked;
+                const options = {
+                    headers: els.checkboxes.headers.checked,
+                    lists: els.checkboxes.lists.checked,
+                    formatting: els.checkboxes.formatting.checked,
+                    links: els.checkboxes.links.checked,
+                    code: els.checkboxes.code.checked
+                };
+
+                // Update UI visibility
+                const showRich = (type === 'paragraphs') && (format === 'html' || format === 'markdown');
+                els.richOptions.style.display = showRich ? 'block' : 'none';
+                // Also show formatting/links for sentences/words if HTML/MD? Maybe just paragraphs for simplicity layout-wise.
+                // Let's allow formatting for all text types if HTML/MD.
+                if (format === 'plain') {
+                    els.richOptions.style.display = 'none';
+                } else if (type !== 'paragraphs') {
+                    // Only show formatting/links for non-paragraphs
+                    Array.from(els.richOptions.children).forEach(child => {
+                        const input = child.querySelector('input');
+                        if (input && (input.id === 'include-formatting' || input.id === 'include-links')) {
+                            child.style.display = 'block';
+                        } else {
+                            child.style.display = 'none';
+                        }
+                    });
+                    els.richOptions.style.display = 'block';
+                } else {
+                    // Show all for paragraphs
+                    Array.from(els.richOptions.children).forEach(c => c.style.display = 'block');
+                }
+
+                let items = [];
+                let rawText = '';
+
+                // Generator Core
+                if (type === 'words') {
+                    let words = [];
+                    if (startClassic) {
+                        words = classicStart.replace('.', '').toLowerCase().replace(',', '').split(' ');
+                    }
+                    while (words.length < count) {
+                        words.push(getRandomWord());
+                    }
+                    words = words.slice(0, count);
+                    rawText = words.join(' ');
+                    
+                    if (format !== 'plain') {
+                        rawText = formatRichText(rawText, format, options);
+                    }
+                    items.push(rawText);
+                } else if (type === 'sentences') {
+                    let c = count;
+                    if (startClassic) {
+                        items.push(classicStart);
+                        c--;
+                    }
+                    for (let i = 0; i < c; i++) {
+                        let sent = generateSentence();
+                        if (format !== 'plain') sent = formatRichText(sent, format, options);
+                        items.push(sent);
+                    }
+                } else if (type === 'list-items') {
+                    let c = count;
+                    for (let i = 0; i < c; i++) {
+                        let sent = generateSentence(3, 8).replace('.', ''); // shorter sentences
+                        if (format !== 'plain') sent = formatRichText(sent, format, options);
+                        items.push(sent);
+                    }
+                } else { // paragraphs
+                    let c = count;
+                    if (startClassic) {
+                        let p = classicStart + ' ' + generateParagraph();
+                        if (format !== 'plain') p = formatRichText(p, format, options);
+                        items.push(p);
+                        c--;
+                    }
+                    
+                    for (let i = 0; i < c; i++) {
+                        let p = generateParagraph();
+                        if (format !== 'plain') p = formatRichText(p, format, options);
+                        items.push(p);
+
+                        // Inject headers/lists/code occasionally if allowed
+                        if (format !== 'plain' && i < c - 1) { // not after last
+                            if (options.headers && Math.random() < 0.2) {
+                                const h = generateSentence(3, 6).replace('.', '');
+                                items.push({ type: 'header', content: h });
+                            }
+                            if (options.lists && Math.random() < 0.15) {
+                                const lItems = [];
+                                for(let j=0; j<3; j++) lItems.push(generateSentence(2,5).replace('.',''));
+                                items.push({ type: 'list', content: lItems });
+                            }
+                            if (options.code && Math.random() < 0.1) {
+                                items.push({ type: 'code', content: 'console.log("Lorem ipsum");' });
+                            }
+                        }
+                    }
+                }
+
+                // Output Formatting
+                let outputText = '';
                 
-                const originalText = copyBtn.textContent;
-                const copiedText = document.getElementById('lorem-ipsum-root').getAttribute('data-copied');
-                copyBtn.textContent = copiedText;
-                setTimeout(() => {
-                    copyBtn.textContent = originalText;
-                }, 2000);
+                if (type === 'list-items') {
+                    if (format === 'html') {
+                        outputText = '<ul>\n' + items.map(i => `  <li>${i}</li>`).join('\n') + '\n</ul>';
+                    } else if (format === 'markdown') {
+                        outputText = items.map(i => `- ${i}`).join('\n');
+                    } else {
+                        outputText = items.join('\n');
+                    }
+                } else if (type === 'paragraphs') {
+                    if (format === 'plain') {
+                        outputText = items.join('\n\n');
+                    } else {
+                        // HTML/MD
+                        outputText = items.map(item => {
+                            if (typeof item === 'string') {
+                                return format === 'html' ? `<p>${item}</p>` : `${item}`; // MD paragraphs just text separated by newline
+                            } else {
+                                // Special blocks
+                                if (item.type === 'header') {
+                                    return format === 'html' ? `<h2>${item.content}</h2>` : `## ${item.content}`;
+                                } else if (item.type === 'list') {
+                                    if (format === 'html') {
+                                        return `<ul>\n${item.content.map(li => `  <li>${li}</li>`).join('\n')}\n</ul>`;
+                                    } else {
+                                        return item.content.map(li => `- ${li}`).join('\n');
+                                    }
+                                } else if (item.type === 'code') {
+                                    return format === 'html' ? `<pre><code>${item.content}</code></pre>` : "```javascript\n" + item.content + "\n```";
+                                }
+                            }
+                            return '';
+                        }).join('\n\n');
+                    }
+                } else {
+                    outputText = items.join(type === 'words' ? ' ' : ' ');
+                }
+
+                els.output.value = outputText;
+                
+                // Stats
+                const wordCount = outputText.split(/\s+/).filter(w => w.length > 0).length;
+                const charCount = outputText.length;
+                els.stats.textContent = `${wordCount} words, ${charCount} characters`;
             }
 
-            // Download as TXT
-            function downloadAsTxt() {
-                const text = output.value;
-                const blob = new Blob([text], { type: 'text/plain' });
+            // Events
+            els.generateBtn.addEventListener('click', generate);
+            
+            [els.type, els.format, els.count, els.startClassic, ...Object.values(els.checkboxes)].forEach(el => {
+                el.addEventListener('change', generate);
+                el.addEventListener('input', generate);
+            });
+
+            els.copyBtn.addEventListener('click', () => {
+                els.output.select();
+                document.execCommand('copy');
+                const original = els.copyBtn.innerHTML;
+                els.copyBtn.innerText = 'Copied!';
+                setTimeout(() => els.copyBtn.innerHTML = original, 2000);
+            });
+
+            els.downloadBtn.addEventListener('click', () => {
+                const blob = new Blob([els.output.value], { type: 'text/plain' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -337,21 +417,15 @@
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }
+            });
 
-            // Event listeners
-            generateBtn.addEventListener('click', generateLoremIpsum);
-            copyBtn.addEventListener('click', copyToClipboard);
-            downloadBtn.addEventListener('click', downloadAsTxt);
-
-            // Generate initial lorem ipsum on page load
-            generateLoremIpsum();
+            // Init
+            generate();
         })();
     </script>
 </ToolLayout>
 
 @code {
     [Parameter]
-    public string lang { get; set; } = "en";
+    public string Lang { get; set; } = "en";
 }

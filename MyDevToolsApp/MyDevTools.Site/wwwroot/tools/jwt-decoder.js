@@ -7,18 +7,12 @@
 
     async function getCryptoWasm() {
         if (!cryptoWasmPromise) {
-            // Lazy load the WASM module
-            cryptoWasmPromise = import('/wasm/cryptography/cryptography-loader.js').then((m) => m.getCryptographyWasm());
+            cryptoWasmPromise = import('/wasm/cryptography/cryptography.js').then(async (m) => {
+                await m.default();
+                return m;
+            });
         }
         return cryptoWasmPromise;
-    }
-
-    function ensureFunctions(wasm, names) {
-        for (const name of names) {
-            if (typeof wasm[name] !== 'function') {
-                throw new Error('WASM function missing: ' + name);
-            }
-        }
     }
 
     function getElements() {
@@ -29,6 +23,7 @@
             root,
             encoded: document.getElementById('jwt-encoded'),
             encodedError: document.getElementById('jwt-encoded-error'),
+            encodedErrorText: document.getElementById('jwt-encoded-error-text'),
             header: document.getElementById('jwt-header'),
             payload: document.getElementById('jwt-payload'),
             secret: document.getElementById('jwt-secret'),
@@ -46,43 +41,47 @@
         };
     }
 
-    // Helper to extract alg from header JSON safely
     function getAlgFromHeader(headerText) {
         try {
             const obj = JSON.parse(headerText);
             return obj.alg || 'HS256';
         } catch {
-            return 'HS256'; // Default
+            return 'HS256';
         }
     }
 
-    // Update the UI with decode/verify results
     async function updateAll(els) {
         if (!els) return;
         const strings = getStrings(els.root);
         const encoded = els.encoded.value.trim();
-        const secret = els.secret.value; // May be empty
+        const secret = els.secret.value;
 
         if (!encoded) {
-            els.encodedError.hidden = true;
+            if (els.encodedError) els.encodedError.classList.add('hidden');
             els.header.value = '';
             els.payload.value = '';
-            els.signatureStatus.hidden = true;
+            els.signatureStatus.classList.add('hidden');
+            els.algorithmDisplay.textContent = 'ALG';
             return;
         }
 
         try {
             const wasm = await getCryptoWasm();
-            ensureFunctions(wasm, ['jwt_decode', 'jwt_verify']);
-
+            
             // 1. Decode
             let decodedJson = '';
             try {
                 decodedJson = wasm.jwt_decode(encoded);
-                els.encodedError.hidden = true;
+                if (els.encodedError) els.encodedError.classList.add('hidden');
             } catch (err) {
-                els.encodedError.textContent = err;
-                els.encodedError.hidden = false;
+                if (els.encodedError) {
+                    els.encodedError.classList.remove('hidden');
+                    if (els.encodedErrorText) els.encodedErrorText.textContent = err;
+                }
+                // Clear outputs on error
+                els.header.value = '';
+                els.payload.value = '';
+                els.signatureStatus.classList.add('hidden');
                 return;
             }
 
@@ -105,11 +104,30 @@
                 verified = false;
             }
 
-            els.signatureStatus.hidden = false;
-            els.signatureStatus.className = 'jwt-signature-status ' + (verified ? 'verified' : 'invalid');
-            els.signatureStatus.innerHTML = verified
-                ? `<span class="icon">✓</span> ${strings.signatureVerified}`
-                : `<span class="icon">✕</span> ${strings.signatureInvalid}`;
+            els.signatureStatus.classList.remove('hidden');
+            
+            // Reset classes
+            els.signatureStatus.classList.remove('bg-success/10', 'text-success', 'border-success', 'bg-error/10', 'text-error', 'border-error');
+            
+            if (verified) {
+                els.signatureStatus.classList.add('bg-success/10', 'text-success', 'border', 'border-success/20');
+                els.signatureStatus.innerHTML = `
+                    <div class="flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                        <span>${strings.signatureVerified}</span>
+                    </div>`;
+            } else {
+                els.signatureStatus.classList.add('bg-error/10', 'text-error', 'border', 'border-error/20');
+                els.signatureStatus.innerHTML = `
+                    <div class="flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                        <span>${strings.signatureInvalid}</span>
+                    </div>`;
+            }
 
         } catch (err) {
             console.error(err);
@@ -122,35 +140,27 @@
 
         document.addEventListener('input', (ev) => {
             const target = ev.target;
-            const els = getElements();
-            if (!els) return;
-
-            // If Encoded or Secret changed -> Decode & Verify
-            if (target === els.encoded || target === els.secret) {
-                updateAll(els);
+            // Decode on input for encoded text or secret
+            if (target.id === 'jwt-encoded' || target.id === 'jwt-secret') {
+                const els = getElements();
+                if (els) updateAll(els);
             }
         });
     }
 
-    bindDelegatedHandlersOnce();
-
-    function initIfPresent() {
+    function init() {
         const els = getElements();
-        if (!els) return;
-        if (initializedRoots.has(els.root)) return;
+        if (!els || initializedRoots.has(els.root)) return;
         initializedRoots.add(els.root);
 
-        // Initial update if there is content (e.g. preserved state)
         if (els.encoded.value) {
             updateAll(els);
         }
     }
 
-    initIfPresent();
-
-    try {
-        const observer = new MutationObserver(() => initIfPresent());
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-    } catch { }
+    bindDelegatedHandlersOnce();
+    
+    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('enhancedload', init);
 
 })();

@@ -21,103 +21,146 @@
          data-copy="@AppStrings.Aead_Copy"
          data-copied="@AppStrings.Aead_Copied"
          data-download="@AppStrings.Aead_Download"
-         data-warnings-title="@AppStrings.Aead_WarningsTitle">
+         data-warnings-title="@AppStrings.Aead_WarningsTitle"
+         class="max-w-5xl mx-auto">
+
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="space-y-4">
-                <h3 class="text-lg font-semibold">@AppStrings.Aead_EncryptSectionTitle</h3>
-                <div class="form-control w-full">
-                    <label class="label" for="aead-input-file">
-                        <span class="label-text font-semibold">@AppStrings.Aead_FileLabel</span>
-                    </label>
-                    <FileDropZone
-                        Id="aead-encrypt-drop-zone"
-                        InputId="aead-input-file"
-                        IconSvg='<svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>'
-                        Description="@AppStrings.Common_FileDropTitle"
-                        Accept="*/*"
-                        ShowFileInfo="true"
-                        ShowClearButton="true" />
-                    @if (!string.IsNullOrWhiteSpace(AppStrings.Aead_FileHint))
-                    {
-                        <label class="label">
-                            <span class="label-text-alt opacity-70">@AppStrings.Aead_FileHint</span>
-                        </label>
-                    }
-                </div>
+            <!-- Encryption Panel -->
+            <div class="card bg-base-100 shadow-xl h-fit">
+                <div class="card-body p-4 sm:p-6">
+                    <h2 class="card-title text-primary flex items-center gap-2 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                        </svg>
+                        @AppStrings.Aead_EncryptSectionTitle
+                    </h2>
 
-                <div class="form-control w-full">
-                    <label class="label" for="aead-algorithm">
-                        <span class="label-text font-semibold">@AppStrings.Aead_AlgorithmLabel</span>
-                    </label>
-                    <select id="aead-algorithm" class="select select-bordered w-full">
-                        <option value="aes-256-gcm">AES-256-GCM</option>
-                        <option value="chacha20-poly1305">ChaCha20-Poly1305</option>
-                        <option value="xchacha20-poly1305">XChaCha20-Poly1305</option>
-                    </select>
-                </div>
+                    <!-- Encrypt File Input -->
+                    <div class="form-control w-full mb-4">
+                        <label class="label font-semibold" for="aead-input-file">@AppStrings.Aead_FileLabel</label>
+                        <div class="flex items-center justify-center w-full">
+                            <label for="aead-input-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-base-content/20 rounded-lg cursor-pointer hover:bg-base-200 transition-colors">
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <svg class="w-8 h-8 mb-2 text-base-content/50" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                    </svg>
+                                    <p class="mb-2 text-sm text-base-content/70"><span class="font-semibold">@AppStrings.Common_FileChooseButton</span></p>
+                                    <p class="text-xs text-base-content/50" id="aead-input-file-name">@AppStrings.Common_FileDropSubtitle</p>
+                                </div>
+                                <input id="aead-input-file" type="file" class="hidden" />
+                            </label>
+                        </div>
+                    </div>
 
-                <div class="form-control w-full">
-                    <label class="label" for="aead-password">
-                        <span class="label-text font-semibold">@AppStrings.Aead_PasswordLabel</span>
-                    </label>
-                    <input id="aead-password" type="password" autocomplete="new-password" class="input input-bordered w-full" />
-                </div>
+                    <!-- Algorithm -->
+                    <div class="form-control w-full mb-4">
+                        <label class="label font-semibold" for="aead-algorithm">@AppStrings.Aead_AlgorithmLabel</label>
+                        <select id="aead-algorithm" class="select select-bordered w-full">
+                            <option value="aes-256-gcm">AES-256-GCM (Standard)</option>
+                            <option value="chacha20-poly1305">ChaCha20-Poly1305 (Fast)</option>
+                            <option value="xchacha20-poly1305">XChaCha20-Poly1305 (Extended Nonce)</option>
+                        </select>
+                    </div>
 
-                <div class="flex flex-wrap gap-2">
-                    <button class="btn btn-primary" id="aead-encrypt-btn" type="button">@AppStrings.Aead_EncryptButton</button>
-                </div>
+                    <!-- Password -->
+                    <div class="form-control w-full mb-6">
+                        <label class="label font-semibold" for="aead-password">@AppStrings.Aead_PasswordLabel</label>
+                        <div class="join w-full">
+                            <input id="aead-password" type="password" autocomplete="new-password" class="input input-bordered join-item w-full" placeholder="••••••••" />
+                            <button class="btn btn-square join-item" type="button" onclick="const p = document.getElementById('aead-password'); p.type = p.type === 'password' ? 'text' : 'password';">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
 
-                <h3 class="text-lg font-semibold mt-6">@AppStrings.Aead_DecryptSectionTitle</h3>
-                <div class="form-control w-full">
-                    <label class="label" for="aead-decrypt-file">
-                        <span class="label-text font-semibold">@AppStrings.Aead_FileLabel</span>
-                    </label>
-                    <FileDropZone
-                        Id="aead-decrypt-drop-zone"
-                        InputId="aead-decrypt-file"
-                        IconSvg='<svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>'
-                        Description="@AppStrings.Common_FileDropTitle"
-                        Accept="*/*"
-                        ShowFileInfo="true"
-                        ShowClearButton="true" />
-                    @if (!string.IsNullOrWhiteSpace(AppStrings.Aead_FileHint))
-                    {
-                        <label class="label">
-                            <span class="label-text-alt opacity-70">@AppStrings.Aead_FileHint</span>
-                        </label>
-                    }
-                </div>
-
-                <div class="flex flex-wrap gap-2">
-                    <button class="btn btn-secondary" id="aead-decrypt-btn" type="button">@AppStrings.Aead_DecryptButton</button>
+                    <button class="btn btn-primary w-full" id="aead-encrypt-btn" type="button">
+                        @AppStrings.Aead_EncryptButton
+                    </button>
                 </div>
             </div>
 
-            <div class="space-y-4">
-                <div class="form-control w-full">
-                    <label class="label" for="aead-header">
-                        <span class="label-text font-semibold">@AppStrings.Aead_HeaderLabel</span>
-                    </label>
-                    <textarea id="aead-header" rows="6" readonly class="textarea textarea-bordered w-full font-mono"></textarea>
-                </div>
+            <!-- Decryption Panel -->
+            <div class="card bg-base-100 shadow-xl h-fit">
+                <div class="card-body p-4 sm:p-6">
+                    <h2 class="card-title text-secondary flex items-center gap-2 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                        </svg>
+                        @AppStrings.Aead_DecryptSectionTitle
+                    </h2>
 
-                <div class="form-control w-full">
-                    <label class="label" for="aead-output">
-                        <span class="label-text font-semibold">@AppStrings.Aead_OutputLabel</span>
-                    </label>
-                    <textarea id="aead-output" rows="8" readonly class="textarea textarea-bordered w-full font-mono"></textarea>
-                </div>
+                    <!-- Decrypt File Input -->
+                    <div class="form-control w-full mb-4">
+                        <label class="label font-semibold" for="aead-decrypt-file">@AppStrings.Aead_FileLabel</label>
+                        <div class="flex items-center justify-center w-full">
+                            <label for="aead-decrypt-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-base-content/20 rounded-lg cursor-pointer hover:bg-base-200 transition-colors">
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <svg class="w-8 h-8 mb-2 text-base-content/50" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                    </svg>
+                                    <p class="mb-2 text-sm text-base-content/70"><span class="font-semibold">@AppStrings.Common_FileChooseButton</span></p>
+                                    <p class="text-xs text-base-content/50" id="aead-decrypt-file-name">@AppStrings.Common_FileDropSubtitle</p>
+                                </div>
+                                <input id="aead-decrypt-file" type="file" class="hidden" />
+                            </label>
+                        </div>
+                    </div>
 
-                <div class="flex flex-wrap gap-2">
-                    <button class="btn btn-secondary" id="aead-copy" type="button">@AppStrings.Aead_Copy</button>
-                    <button class="btn btn-secondary" id="aead-download" type="button">@AppStrings.Aead_Download</button>
-                </div>
+                    <!-- Note: Password is shared or could be duplicated if needed. For now using same input. -->
+                    <div class="alert alert-warning text-xs py-2 mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        <span>Uses the password entered in the left panel.</span>
+                    </div>
 
-                <div class="alert alert-error" id="aead-warnings" style="display: none;"></div>
+                    <button class="btn btn-secondary w-full" id="aead-decrypt-btn" type="button">
+                        @AppStrings.Aead_DecryptButton
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Section (Full Width) -->
+        <div class="card bg-base-100 shadow-xl mt-6">
+            <div class="card-body p-4 sm:p-6" id="aead-output-section">
+                <h3 class="text-lg font-semibold mb-4">@AppStrings.Aead_OutputLabel</h3>
+                
+                <div class="space-y-4">
+                    <!-- Progress (dynamically injected) -->
+                    
+                    <!-- Header Info -->
+                    <div class="form-control w-full">
+                        <label class="label font-semibold" for="aead-header">@AppStrings.Aead_HeaderLabel</label>
+                        <textarea id="aead-header" rows="3" readonly class="textarea textarea-bordered font-mono text-sm bg-base-200 text-base-content/70"></textarea>
+                    </div>
+
+                    <!-- Result Info -->
+                    <div class="form-control w-full">
+                        <label class="label font-semibold" for="aead-output">Result</label>
+                        <div class="flex gap-2">
+                            <input id="aead-output" type="text" readonly class="input input-bordered w-full font-mono" />
+                            <button class="btn btn-outline" id="aead-download" type="button" disabled>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-1">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                </svg>
+                                @AppStrings.Aead_Download
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-error shadow-lg mt-4 hidden" id="aead-warnings">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span id="aead-warnings-text"></span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+    
+    <script src="/tools/aead-file.js"></script>
 </ToolLayout>
 
 @code {

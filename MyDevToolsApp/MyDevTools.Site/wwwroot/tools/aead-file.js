@@ -18,54 +18,35 @@
 
     async function getCryptoWasm() {
         if (!cryptoWasmPromise) {
-            cryptoWasmPromise = import('/wasm/cryptography/cryptography-loader.js').then((m) => m.getCryptographyWasm());
+            // Updated path to ensure correct loading
+            cryptoWasmPromise = import('/wasm/cryptography/cryptography.js').then(async (m) => {
+                await m.default();
+                return m;
+            });
         }
         return cryptoWasmPromise;
-    }
-
-    function ensureFunctions(wasm, names) {
-        for (const name of names) {
-            if (typeof wasm[name] !== 'function') {
-                throw new Error('WASM module not built. Please rebuild cryptography.wasm.');
-            }
-        }
     }
 
     function getElements() {
         const root = document.getElementById('aead-root');
         if (!root) return null;
 
-        const inputFile = document.getElementById('aead-input-file');
-        const decryptFile = document.getElementById('aead-decrypt-file');
-        const algorithm = document.getElementById('aead-algorithm');
-        const password = document.getElementById('aead-password');
-        const encryptBtn = document.getElementById('aead-encrypt-btn');
-        const decryptBtn = document.getElementById('aead-decrypt-btn');
-        const header = document.getElementById('aead-header');
-        const output = document.getElementById('aead-output');
-        const copyBtn = document.getElementById('aead-copy');
-        const downloadBtn = document.getElementById('aead-download');
-        const warnings = document.getElementById('aead-warnings');
-        const outputSection = output?.closest('.space-y-4') || output?.parentElement;
-
-        if (!inputFile || !decryptFile || !algorithm || !password || !encryptBtn || !decryptBtn || !header || !output || !copyBtn || !downloadBtn || !warnings) {
-            return null;
-        }
-
         return {
             root,
-            inputFile,
-            decryptFile,
-            algorithm,
-            password,
-            encryptBtn,
-            decryptBtn,
-            header,
-            output,
-            copyBtn,
-            downloadBtn,
-            warnings,
-            outputSection
+            inputFile: document.getElementById('aead-input-file'),
+            inputFileName: document.getElementById('aead-input-file-name'),
+            decryptFile: document.getElementById('aead-decrypt-file'),
+            decryptFileName: document.getElementById('aead-decrypt-file-name'),
+            algorithm: document.getElementById('aead-algorithm'),
+            password: document.getElementById('aead-password'),
+            encryptBtn: document.getElementById('aead-encrypt-btn'),
+            decryptBtn: document.getElementById('aead-decrypt-btn'),
+            header: document.getElementById('aead-header'),
+            output: document.getElementById('aead-output'),
+            downloadBtn: document.getElementById('aead-download'),
+            warnings: document.getElementById('aead-warnings'),
+            warningsText: document.getElementById('aead-warnings-text'),
+            outputSection: document.getElementById('aead-output-section')
         };
     }
 
@@ -75,15 +56,12 @@
             error: root.dataset.error || 'Error',
             fileProgressTitle: root.dataset.fileProgressTitle || 'Processing file...',
             cancel: root.dataset.cancel || 'Cancel',
-            copy: root.dataset.copy || 'Copy',
-            copied: root.dataset.copied || 'Copied!',
             download: root.dataset.download || 'Download',
             warningsTitle: root.dataset.warningsTitle || 'Warnings'
         };
     }
 
     function formatBytes(bytes) {
-        if (window.MyDevToolsFile?.formatBytes) return window.MyDevToolsFile.formatBytes(bytes);
         const units = ['B', 'KB', 'MB', 'GB', 'TB'];
         let value = bytes;
         let unitIndex = 0;
@@ -96,7 +74,6 @@
     }
 
     function formatDuration(seconds) {
-        if (window.MyDevToolsFile?.formatDuration) return window.MyDevToolsFile.formatDuration(seconds);
         if (!isFinite(seconds) || seconds < 0) return '--:--';
         const s = Math.floor(seconds % 60);
         const m = Math.floor((seconds / 60) % 60);
@@ -115,27 +92,33 @@
     }
 
     function renderFileProgress(outputSection, strings, file) {
-        if (!outputSection.dataset.originalHtml) {
-            outputSection.dataset.originalHtml = outputSection.innerHTML;
+        // Save original content if not saved (to restore later if needed, though we might just replace back)
+        // Here we prepend or replace a specific div
+        
+        let progressContainer = document.getElementById('aead-progress-container');
+        if (!progressContainer) {
+            progressContainer = document.createElement('div');
+            progressContainer.id = 'aead-progress-container';
+            progressContainer.className = 'w-full mb-4 bg-base-200 rounded-lg p-4';
+            outputSection.insertBefore(progressContainer, outputSection.firstChild);
         }
-        outputSection.innerHTML = `
-            <div class="file-progress">
-                <div class="file-progress-header">
-                    <div class="file-progress-title">${escapeHtml(strings.fileProgressTitle)}</div>
-                    <button class="btn btn-secondary btn-small" id="aead-cancel-btn">${escapeHtml(strings.cancel)}</button>
-                </div>
-                <div class="file-progress-meta">${escapeHtml(file.name)} • ${formatBytes(file.size)}</div>
-                <progress id="aead-file-progress-bar" value="0" max="100"></progress>
-                <div id="aead-file-progress-stats" class="file-progress-stats"></div>
+
+        progressContainer.innerHTML = `
+            <div class="flex justify-between items-center mb-2">
+                <span class="font-bold">${escapeHtml(strings.fileProgressTitle)}</span>
+                <button class="btn btn-xs btn-ghost text-error" id="aead-cancel-btn">${escapeHtml(strings.cancel)}</button>
             </div>
+            <div class="text-xs opacity-70 mb-2">${escapeHtml(file.name)} • ${formatBytes(file.size)}</div>
+            <progress id="aead-file-progress-bar" class="progress progress-primary w-full" value="0" max="100"></progress>
+            <div id="aead-file-progress-stats" class="text-xs text-right mt-1 font-mono opacity-70"></div>
         `;
+        
+        progressContainer.style.display = 'block';
     }
 
-    function restoreOutputSection(outputSection) {
-        const html = outputSection?.dataset?.originalHtml;
-        if (typeof html === 'string' && html.length > 0) {
-            outputSection.innerHTML = html;
-        }
+    function hideFileProgress() {
+        const container = document.getElementById('aead-progress-container');
+        if (container) container.style.display = 'none';
     }
 
     function updateProgress(processed, total, elapsedMs) {
@@ -151,29 +134,18 @@
         statsEl.textContent = `${formatBytes(processed)} / ${formatBytes(total)} • ${formatBytes(speed)}/s • ETA ${formatDuration(remaining)}`;
     }
 
-    function setWarnings(els, warnings, strings) {
-        if (!warnings || warnings.length === 0) {
-            els.warnings.hidden = true;
-            els.warnings.textContent = '';
-            return;
-        }
-        els.warnings.hidden = false;
-        els.warnings.innerHTML = `<strong>${strings.warningsTitle}:</strong> ${warnings.map(escapeHtml).join('; ')}`;
-    }
-
     function setError(els, message) {
-        els.warnings.hidden = false;
-        els.warnings.innerHTML = `<strong>Error:</strong> ${escapeHtml(message)}`;
+        if (!els.warnings || !els.warningsText) return;
+        els.warnings.classList.remove('hidden');
+        els.warnings.style.display = 'flex';
+        els.warningsText.textContent = message;
+        hideFileProgress();
     }
 
-    function copyOutput(els, strings) {
-        const original = els.copyBtn.textContent;
-        navigator.clipboard.writeText(els.output.value || '').then(() => {
-            els.copyBtn.textContent = strings.copied;
-            setTimeout(() => {
-                els.copyBtn.textContent = original;
-            }, 1200);
-        });
+    function clearError(els) {
+        if (!els.warnings) return;
+        els.warnings.classList.add('hidden');
+        els.warnings.style.display = 'none';
     }
 
     function downloadOutput(els) {
@@ -190,11 +162,7 @@
     }
 
     function toHex(bytes) {
-        let out = '';
-        for (const b of bytes) {
-            out += b.toString(16).padStart(2, '0');
-        }
-        return out;
+        return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
     function getAlgorithmId(value) {
@@ -204,10 +172,23 @@
         return 1;
     }
 
+    function updateFileName(input, label) {
+        if (input.files && input.files.length > 0) {
+            label.textContent = input.files[0].name;
+            label.classList.add('text-primary');
+            label.classList.add('font-semibold');
+        } else {
+            label.textContent = 'Drag & drop or click to select';
+            label.classList.remove('text-primary');
+            label.classList.remove('font-semibold');
+        }
+    }
+
     async function encryptAction() {
         const els = getElements();
         if (!els) return;
         const strings = getStrings(els.root);
+        clearError(els);
 
         const file = els.inputFile.files && els.inputFile.files.length > 0 ? els.inputFile.files[0] : null;
         if (!file) return setError(els, 'Select a file to encrypt');
@@ -215,22 +196,17 @@
         if (!password) return setError(els, 'Password is required');
 
         const wasm = await getCryptoWasm();
-        try {
-            ensureFunctions(wasm, [
-                'aead_stream_header_pack',
-                'aead_stream_derive_key_from_header',
-                'aead_stream_encrypt_chunk'
-            ]);
-        } catch (err) {
-            return setError(els, err?.message || String(err));
-        }
+        
+        // Disable buttons
+        els.encryptBtn.disabled = true;
+        els.downloadBtn.disabled = true;
 
         abortController = new AbortController();
         renderFileProgress(els.outputSection, strings, file);
 
         try {
             const algorithmId = getAlgorithmId(els.algorithm.value);
-            const chunkSize = 1024 * 1024;
+            const chunkSize = 1024 * 1024; // 1MB chunks
             const kdfId = 1; // Argon2id
             const salt = new Uint8Array(16);
             crypto.getRandomValues(salt);
@@ -249,14 +225,19 @@
 
             while (processed < total) {
                 if (abortController?.signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+                
                 const slice = file.slice(processed, Math.min(processed + chunkSize, total));
                 const buf = await slice.arrayBuffer();
                 const bytes = new Uint8Array(buf);
                 const ciphertext = wasm.aead_stream_encrypt_chunk(algorithmId, key, noncePrefix, counter, bytes, new Uint8Array());
+                
                 chunks.push(ciphertext);
                 processed += slice.size;
-                counter += 1n;
+                counter += 1n; // BigInt increment
+                
                 updateProgress(processed, total, performance.now() - start);
+                
+                // Allow UI update
                 await new Promise(requestAnimationFrame);
             }
 
@@ -266,23 +247,23 @@
             state.lastBlob = outBlob;
             state.lastName = outName;
 
-            restoreOutputSection(els.outputSection);
-            const refreshed = getElements();
-            if (refreshed) {
-                refreshed.header.value = toHex(new Uint8Array(header));
-                refreshed.output.value = `${outName} • ${formatBytes(outBlob.size)}`;
-                setWarnings(refreshed, [], strings);
-            }
+            hideFileProgress();
+            
+            // Update UI
+            els.header.value = toHex(new Uint8Array(header));
+            els.output.value = `${outName} • ${formatBytes(outBlob.size)}`;
+            els.downloadBtn.disabled = false;
+
         } catch (err) {
-            restoreOutputSection(els.outputSection);
-            const refreshed = getElements();
-            if (refreshed) {
-                if (err?.name === 'AbortError') {
-                    setError(refreshed, 'Canceled');
-                } else {
-                    setError(refreshed, err?.message || String(err));
-                }
+            hideFileProgress();
+            if (err?.name === 'AbortError') {
+                setError(els, 'Operation canceled');
+            } else {
+                console.error(err);
+                setError(els, err?.message || String(err));
             }
+        } finally {
+            els.encryptBtn.disabled = false;
         }
     }
 
@@ -290,6 +271,7 @@
         const els = getElements();
         if (!els) return;
         const strings = getStrings(els.root);
+        clearError(els);
 
         const file = els.decryptFile.files && els.decryptFile.files.length > 0 ? els.decryptFile.files[0] : null;
         if (!file) return setError(els, 'Select a file to decrypt');
@@ -297,22 +279,17 @@
         if (!password) return setError(els, 'Password is required');
 
         const wasm = await getCryptoWasm();
-        try {
-            ensureFunctions(wasm, [
-                'aead_stream_header_info',
-                'aead_stream_extract_nonce_prefix',
-                'aead_stream_derive_key_from_header',
-                'aead_stream_decrypt_chunk'
-            ]);
-        } catch (err) {
-            return setError(els, err?.message || String(err));
-        }
+        
+        els.decryptBtn.disabled = true;
+        els.downloadBtn.disabled = true;
 
         abortController = new AbortController();
         renderFileProgress(els.outputSection, strings, file);
 
         try {
+            // Read first chunk to get header info
             const headerPreview = new Uint8Array(await file.slice(0, 128).arrayBuffer());
+            // aead_stream_header_info returns [algoId, kdfId, saltLen, noncePrefixLen, chunkSize, headerLen]
             const info = wasm.aead_stream_header_info(headerPreview);
             const algorithmId = info[0];
             const chunkSize = info[4];
@@ -327,18 +304,23 @@
             let offset = headerLen;
             let counter = 0n;
             const tagLen = 16;
-            const total = file.size - headerLen;
+            const total = file.size - headerLen; // approximate payload size
             const start = performance.now();
 
             while (offset < file.size) {
                 if (abortController?.signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+                
+                // Chunk size in file = plaintext_chunk + tag
                 const slice = file.slice(offset, Math.min(offset + chunkSize + tagLen, file.size));
                 const buf = await slice.arrayBuffer();
                 const bytes = new Uint8Array(buf);
+                
                 const plaintext = wasm.aead_stream_decrypt_chunk(algorithmId, key, noncePrefix, counter, bytes, new Uint8Array());
+                
                 chunks.push(plaintext);
                 offset += bytes.length;
                 counter += 1n;
+                
                 updateProgress(offset - headerLen, total, performance.now() - start);
                 await new Promise(requestAnimationFrame);
             }
@@ -349,23 +331,22 @@
             state.lastBlob = outBlob;
             state.lastName = outName;
 
-            restoreOutputSection(els.outputSection);
-            const refreshed = getElements();
-            if (refreshed) {
-                refreshed.header.value = toHex(new Uint8Array(headerBytes));
-                refreshed.output.value = `${outName} • ${formatBytes(outBlob.size)}`;
-                setWarnings(refreshed, [], strings);
-            }
+            hideFileProgress();
+            
+            els.header.value = toHex(new Uint8Array(headerBytes));
+            els.output.value = `${outName} • ${formatBytes(outBlob.size)}`;
+            els.downloadBtn.disabled = false;
+
         } catch (err) {
-            restoreOutputSection(els.outputSection);
-            const refreshed = getElements();
-            if (refreshed) {
-                if (err?.name === 'AbortError') {
-                    setError(refreshed, 'Canceled');
-                } else {
-                    setError(refreshed, err?.message || String(err));
-                }
+            hideFileProgress();
+            if (err?.name === 'AbortError') {
+                setError(els, 'Operation canceled');
+            } else {
+                console.error(err);
+                setError(els, err?.message || String(err));
             }
+        } finally {
+            els.decryptBtn.disabled = false;
         }
     }
 
@@ -373,48 +354,63 @@
         if (window.__mydevtools_aead_bound) return;
         window.__mydevtools_aead_bound = true;
 
+        document.addEventListener('change', (ev) => {
+            const target = ev.target;
+            if (target.id === 'aead-input-file') {
+                const els = getElements();
+                if (els) updateFileName(target, els.inputFileName);
+            }
+            if (target.id === 'aead-decrypt-file') {
+                const els = getElements();
+                if (els) updateFileName(target, els.decryptFileName);
+            }
+        });
+
         document.addEventListener('click', (ev) => {
             const target = ev.target;
             if (!(target instanceof HTMLElement)) return;
 
-            if (target.id === 'aead-encrypt-btn') return void encryptAction();
-            if (target.id === 'aead-decrypt-btn') return void decryptAction();
-            if (target.id === 'aead-copy') {
-                const els = getElements();
-                if (!els) return;
-                return void copyOutput(els, getStrings(els.root));
+            const encryptBtn = target.closest('#aead-encrypt-btn');
+            if (encryptBtn) {
+                ev.preventDefault();
+                encryptAction();
+                return;
             }
-            if (target.id === 'aead-download') {
-                const els = getElements();
-                if (!els) return;
-                return void downloadOutput(els);
+
+            const decryptBtn = target.closest('#aead-decrypt-btn');
+            if (decryptBtn) {
+                ev.preventDefault();
+                decryptAction();
+                return;
             }
-            if (target.id === 'aead-cancel-btn') {
-                try {
-                    abortController?.abort();
-                } catch {
-                    // ignore
-                }
+
+            const downloadBtn = target.closest('#aead-download');
+            if (downloadBtn) {
+                ev.preventDefault();
+                const els = getElements();
+                if (els && !downloadBtn.disabled) downloadOutput(els);
+                return;
+            }
+
+            const cancelBtn = target.closest('#aead-cancel-btn');
+            if (cancelBtn) {
+                ev.preventDefault();
+                if (abortController) abortController.abort();
+                return;
             }
         });
     }
 
     bindDelegatedHandlersOnce();
 
-    function initIfPresent() {
+    function init() {
         const els = getElements();
-        if (!els) return;
-        if (initializedRoots.has(els.root)) return;
-        initializedRoots.add(els.root);
-        setWarnings(els, [], getStrings(els.root));
+        if (els && !initializedRoots.has(els.root)) {
+            initializedRoots.add(els.root);
+        }
     }
 
-    initIfPresent();
+    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('enhancedload', init);
 
-    try {
-        const observer = new MutationObserver(() => initIfPresent());
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-    } catch {
-        // ignore
-    }
 })();

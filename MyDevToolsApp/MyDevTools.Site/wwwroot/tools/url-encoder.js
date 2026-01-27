@@ -312,13 +312,14 @@
 
         document.addEventListener('click', (ev) => {
             const target = ev.target;
-            if (!(target instanceof HTMLElement)) return;
+            if (!(target instanceof Element)) return;
+            const btn = (id) => target.closest(`#${id}`);
 
-            if (target.id === 'url-encode-btn') return void encodeAction();
-            if (target.id === 'url-decode-btn') return void decodeAction();
-            if (target.id === 'url-swap-btn') return void swapAction();
-            if (target.id === 'url-clear-btn') return void clearAction();
-            if (target.id === 'url-copy-btn') return void copyOutputAction();
+            if (btn('url-encode-btn')) return void encodeAction();
+            if (btn('url-decode-btn')) return void decodeAction();
+            if (btn('url-swap-btn')) return void swapAction();
+            if (btn('url-clear-btn')) return void clearAction();
+            if (btn('url-copy-btn')) return void copyOutputAction();
         });
     }
 

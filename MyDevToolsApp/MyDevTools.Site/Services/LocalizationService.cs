@@ -5,7 +5,7 @@ namespace MyDevTools.Site.Services;
 /// </summary>
 public class LocalizationService : ILocalizationService
 {
-    public string[] SupportedCultures { get; } = ["en", "ru", "es"];
+    public string[] SupportedCultures { get; } = ["en", "ru", "es", "de", "pt", "zh", "fr", "ja", "ko", "hi"];
     
     public string DefaultCulture { get; } = "en";
 

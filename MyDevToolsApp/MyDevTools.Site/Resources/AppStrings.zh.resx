@@ -1,64 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
-    Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
-    associated with the data types.
-    
-    Example:
-    
-    ... ado.net/XML headers & schema ...
-    <resheader name="resmimetype">text/microsoft-resx</resheader>
-    <resheader name="version">2.0</resheader>
-    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
-    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
-    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
-    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
-    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
-        <value>[base64 mime encoded serialized .NET Framework object]</value>
-    </data>
-    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
-        <comment>This is a comment</comment>
-    </data>
-                
-    There are any number of "resheader" rows that contain simple 
-    name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
-    mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
-    extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
-    read any of the formats listed below.
-    
-    mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
-            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
-            : and then encoded with base64 encoding.
-    
-    mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
-            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
-            : and then encoded with base64 encoding.
-
-    mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
-            : using a System.ComponentModel.TypeConverter
-            : and then encoded with base64 encoding.
-    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -117,269 +58,271 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  
+  <!-- Common -->
   <data name="AppName" xml:space="preserve">
     <value>MyDevTools</value>
   </data>
   <data name="AppTagline" xml:space="preserve">
-    <value>Инструменты для разработчиков с приоритетом конфиденциальности, все данные остаются в вашем браузере</value>
+    <value>隐私优先的开发者工具，所有数据都保留在您的浏览器中</value>
   </data>
   <data name="Nav_Home" xml:space="preserve">
-    <value>Главная</value>
+    <value>首页</value>
   </data>
   <data name="Nav_Tools" xml:space="preserve">
-    <value>Инструменты</value>
+    <value>工具</value>
   </data>
   <data name="Nav_UrlEncoder" xml:space="preserve">
-    <value>URL</value>
+    <value>URL 编码器</value>
   </data>
   <data name="Nav_HexEncoder" xml:space="preserve">
-    <value>Hex</value>
+    <value>Hex 编码器</value>
   </data>
   <data name="Nav_Base64Encoder" xml:space="preserve">
-    <value>Base64</value>
+    <value>Base64 编码器</value>
   </data>
   <data name="Nav_OpenSsh" xml:space="preserve">
-    <value>OpenSSH ключи</value>
+    <value>OpenSSH 密钥</value>
   </data>
   <data name="Nav_X509" xml:space="preserve">
     <value>X.509</value>
   </data>
   <data name="Nav_AeadFile" xml:space="preserve">
-    <value>AEAD файл</value>
+    <value>AEAD 文件</value>
   </data>
   <data name="Home_Title" xml:space="preserve">
-    <value>Инструменты для разработчиков</value>
+    <value>开发者工具</value>
   </data>
   <data name="Home_Subtitle" xml:space="preserve">
-    <value>Инструменты для разработчиков с приоритетом конфиденциальности. Вся обработка происходит в вашем браузере.</value>
+    <value>隐私优先的开发者工具。所有处理都在您的浏览器中进行。</value>
   </data>
   <data name="Home_FeaturePrivacyTitle" xml:space="preserve">
-    <value>Конфиденциальность</value>
+    <value>隐私至上</value>
   </data>
   <data name="Home_FeaturePrivacyDescription" xml:space="preserve">
-    <value>Вся обработка происходит в браузере. Никакие данные не отправляются на сервер.</value>
+    <value>所有处理都在浏览器中进行。零数据发送到服务器。</value>
   </data>
   <data name="Home_FeatureWasmTitle" xml:space="preserve">
-    <value>Быстро и эффективно</value>
+    <value>快速高效</value>
   </data>
   <data name="Home_FeatureWasmDescription" xml:space="preserve">
-    <value>WebAssembly даёт производительность, близкую к нативной.</value>
+    <value>由 WebAssembly 提供支持，实现原生般的性能。</value>
   </data>
   <data name="Home_FeatureLanguagesTitle" xml:space="preserve">
-    <value>Несколько языков</value>
+    <value>多语言</value>
   </data>
   <data name="Home_FeatureLanguagesDescription" xml:space="preserve">
-    <value>Доступно на нескольких языках для разработчиков по всему миру.</value>
+    <value>为全球开发者提供多种语言版本。</value>
   </data>
   <data name="Home_FeatureAlgorithmsTitle" xml:space="preserve">
-    <value>Только нужные алгоритмы</value>
+    <value>按需选择</value>
   </data>
   <data name="Home_FeatureAlgorithmsDescription" xml:space="preserve">
-    <value>Выбирайте нужные алгоритмы и сохраняйте набор в браузере.</value>
+    <value>选择您想要的算法并将其保存在浏览器中。</value>
   </data>
   <data name="Home_NoDataSent" xml:space="preserve">
-    <value>Никакие данные не отправляются на сервер</value>
+    <value>没有数据发送到服务器</value>
   </data>
   <data name="Home_ExploreUtilities" xml:space="preserve">
-    <value>Посмотреть инструменты</value>
+    <value>探索工具</value>
   </data>
   <data name="Home_FeaturedTools" xml:space="preserve">
-    <value>Популярные инструменты</value>
+    <value>精选工具</value>
   </data>
   <data name="Home_Launch" xml:space="preserve">
-    <value>Запустить</value>
+    <value>启动</value>
   </data>
   <data name="Home_DevelopmentNotice" xml:space="preserve">
-    <value>Сайт находится в стадии активной разработки. Функционал и дизайн будут улучшены в ближайшее время.</value>
+    <value>本网站目前正在积极开发中。功能和设计正在改进。</value>
   </data>
   <data name="Home_Favorites" xml:space="preserve">
-    <value>Избранное</value>
+    <value>收藏夹</value>
   </data>
   <data name="Home_AddToFavorites" xml:space="preserve">
-    <value>Добавить в избранное</value>
+    <value>添加到收藏夹</value>
   </data>
   <data name="Home_RemoveFromFavorites" xml:space="preserve">
-    <value>Удалить из избранного</value>
+    <value>从收藏夹移除</value>
   </data>
   <data name="Home_NoFavorites" xml:space="preserve">
-    <value>Пока нет избранного. Нажмите на значок звезды на любом инструменте, чтобы добавить его в избранное.</value>
+    <value>暂无收藏。点击任何工具上的星形图标将其添加到收藏夹。</value>
   </data>
   <data name="Nav_Utilities" xml:space="preserve">
-    <value>Инструменты</value>
+    <value>实用工具</value>
   </data>
   <data name="PWA_InstallTitle" xml:space="preserve">
-    <value>Установить MyDevTools</value>
+    <value>安装 MyDevTools</value>
   </data>
   <data name="PWA_InstallDescription" xml:space="preserve">
-    <value>Установите приложение для быстрого доступа и работы офлайн</value>
+    <value>安装此应用以快速访问和离线使用</value>
   </data>
   <data name="PWA_InstallButton" xml:space="preserve">
-    <value>Установить</value>
+    <value>安装应用</value>
   </data>
   <data name="PWA_InstallDismiss" xml:space="preserve">
-    <value>Не сейчас</value>
+    <value>暂不</value>
   </data>
   <data name="PWA_UpdateAvailableTitle" xml:space="preserve">
-    <value>Доступно обновление</value>
+    <value>有可用更新</value>
   </data>
   <data name="PWA_UpdateAvailableDescription" xml:space="preserve">
-    <value>Доступна новая версия. Обновите страницу.</value>
+    <value>新版本可用。刷新以更新。</value>
   </data>
   <data name="PWA_UpdateButton" xml:space="preserve">
-    <value>Обновить</value>
+    <value>立即更新</value>
   </data>
   <data name="PWA_UpdateDismiss" xml:space="preserve">
-    <value>Позже</value>
+    <value>稍后</value>
   </data>
   <data name="PWA_Installed" xml:space="preserve">
-    <value>Приложение успешно установлено!</value>
+    <value>应用安装成功！</value>
   </data>
   <data name="HashCalculator_Title" xml:space="preserve">
-    <value>Калькулятор хэшей</value>
+    <value>哈希计算器</value>
   </data>
   <data name="HashCalculator_Description" xml:space="preserve">
-    <value>Вычисляйте хэши по выбранным алгоритмам (MD5, SHA-1, SHA-256 и другие) для текста или файлов — всё прямо в браузере</value>
+    <value>使用选定的算法（MD5、SHA-1、SHA-256 等）计算文本或文件的哈希值 — 全部在您的浏览器中</value>
   </data>
   <data name="HashCalculator_InputLabel" xml:space="preserve">
-    <value>Входной текст</value>
+    <value>输入文本</value>
   </data>
   <data name="HashCalculator_InputPlaceholder" xml:space="preserve">
-    <value>Введите текст для хэширования...</value>
+    <value>输入要哈希的文本...</value>
   </data>
   <data name="HashCalculator_FileLabel" xml:space="preserve">
-    <value>Файл (необязательно)</value>
+    <value>文件（可选）</value>
   </data>
   <data name="HashCalculator_FileHint" xml:space="preserve">
-    <value>Если выбран файл, текстовое поле игнорируется.</value>
+    <value>如果选择了文件，将忽略文本输入。</value>
   </data>
   <data name="HashCalculator_FileProgressTitle" xml:space="preserve">
-    <value>Хэширование файла...</value>
+    <value>正在计算文件哈希...</value>
   </data>
   <data name="HashCalculator_Cancel" xml:space="preserve">
-    <value>Отмена</value>
+    <value>取消</value>
   </data>
   <data name="HashCalculator_Calculate" xml:space="preserve">
-    <value>Вычислить</value>
+    <value>计算</value>
   </data>
   <data name="HashCalculator_Clear" xml:space="preserve">
-    <value>Очистить</value>
+    <value>清除</value>
   </data>
   <data name="HashCalculator_Copy" xml:space="preserve">
-    <value>Копировать</value>
+    <value>复制</value>
   </data>
   <data name="HashCalculator_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>已复制！</value>
   </data>
   <data name="Common_Download" xml:space="preserve">
-    <value>Скачать</value>
+    <value>下载</value>
   </data>
   <data name="ImageConverter_TargetFormatLabel" xml:space="preserve">
-    <value>Целевой формат</value>
+    <value>Target Format</value>
   </data>
   <data name="HashCalculator_AlgorithmsTitle" xml:space="preserve">
-    <value>Алгоритмы</value>
+    <value>算法</value>
   </data>
   <data name="HashCalculator_AlgorithmsSelected" xml:space="preserve">
-    <value>Выбранные</value>
+    <value>已选</value>
   </data>
   <data name="HashCalculator_AlgorithmsAvailable" xml:space="preserve">
-    <value>Доступные</value>
+    <value>可用</value>
   </data>
   <data name="HashCalculator_AlgorithmsSearchPlaceholder" xml:space="preserve">
-    <value>Поиск алгоритмов...</value>
+    <value>搜索算法...</value>
   </data>
   <data name="HashCalculator_AlgorithmsReset" xml:space="preserve">
-    <value>Сбросить по умолчанию</value>
+    <value>重置为默认值</value>
   </data>
   <data name="HashCalculator_SelectAtLeastOneAlgorithm" xml:space="preserve">
-    <value>Выберите хотя бы один алгоритм.</value>
+    <value>请至少选择一种算法。</value>
   </data>
   <data name="Common_Input" xml:space="preserve">
-    <value>Ввод</value>
+    <value>输入</value>
   </data>
   <data name="Common_Output" xml:space="preserve">
-    <value>Вывод</value>
+    <value>输出</value>
   </data>
   <data name="Common_Loading" xml:space="preserve">
-    <value>Загрузка...</value>
+    <value>加载中...</value>
   </data>
   <data name="Common_Error" xml:space="preserve">
-    <value>Ошибка</value>
+    <value>错误</value>
   </data>
   <data name="Common_FileDropTitle" xml:space="preserve">
-    <value>Перетащите файл сюда</value>
+    <value>拖放文件到此处</value>
   </data>
   <data name="Common_FileDropSubtitle" xml:space="preserve">
-    <value>или выберите файл на устройстве</value>
+    <value>或从您的设备选择文件</value>
   </data>
   <data name="Common_FileChooseButton" xml:space="preserve">
-    <value>Выбрать файл</value>
+    <value>选择文件</value>
   </data>
   <data name="Common_FileChangeButton" xml:space="preserve">
-    <value>Выбрать другой файл</value>
+    <value>选择其他文件</value>
   </data>
   <data name="Common_ClearFile" xml:space="preserve">
-    <value>Очистить файл</value>
+    <value>清除文件</value>
   </data>
   <data name="Theme_Light" xml:space="preserve">
-    <value>Светлая</value>
+    <value>浅色</value>
   </data>
   <data name="Theme_Dark" xml:space="preserve">
-    <value>Тёмная</value>
+    <value>深色</value>
   </data>
   <data name="Theme_Toggle" xml:space="preserve">
-    <value>Переключить тему</value>
+    <value>切换主题</value>
   </data>
   <data name="UrlEncoder_Title" xml:space="preserve">
-    <value>URL кодирование / декодирование</value>
+    <value>URL 编码 / 解码</value>
   </data>
   <data name="UrlEncoder_Description" xml:space="preserve">
-    <value>Кодируйте и декодируйте URL-строки (percent-encoding) с выбором режима и кодировки текста — всё в вашем браузере</value>
+    <value>编码和解码 URL 编码文本（百分比编码），支持可选模式和字符集 — 全部在您的浏览器中</value>
   </data>
   <data name="UrlEncoder_InputLabel" xml:space="preserve">
-    <value>Ввод</value>
+    <value>输入</value>
   </data>
   <data name="UrlEncoder_InputPlaceholder" xml:space="preserve">
-    <value>Введите текст или URL-кодированную строку...</value>
+    <value>输入文本或 URL 编码字符串...</value>
   </data>
   <data name="UrlEncoder_OutputLabel" xml:space="preserve">
-    <value>Вывод</value>
+    <value>输出</value>
   </data>
   <data name="UrlEncoder_ModeLabel" xml:space="preserve">
-    <value>Режим</value>
+    <value>Mode</value>
   </data>
   <data name="UrlEncoder_Mode_Component" xml:space="preserve">
-    <value>Component (аналог encodeURIComponent)</value>
+    <value>Component (encodeURIComponent-like)</value>
   </data>
   <data name="UrlEncoder_Mode_Uri" xml:space="preserve">
-    <value>URI (аналог encodeURI)</value>
+    <value>URI (encodeURI-like)</value>
   </data>
   <data name="UrlEncoder_Mode_Form" xml:space="preserve">
     <value>Form (application/x-www-form-urlencoded)</value>
   </data>
   <data name="UrlEncoder_CharsetLabel" xml:space="preserve">
-    <value>Кодировка текста</value>
+    <value>Text charset</value>
   </data>
   <data name="UrlEncoder_ActionEncode" xml:space="preserve">
-    <value>Кодировать</value>
+    <value>编码</value>
   </data>
   <data name="UrlEncoder_ActionDecode" xml:space="preserve">
-    <value>Декодировать</value>
+    <value>解码</value>
   </data>
   <data name="UrlEncoder_ActionSwap" xml:space="preserve">
-    <value>Поменять местами</value>
+    <value>交换</value>
   </data>
   <data name="UrlEncoder_ActionClear" xml:space="preserve">
-    <value>Очистить</value>
+    <value>清除</value>
   </data>
   <data name="UrlEncoder_Copy" xml:space="preserve">
-    <value>Копировать</value>
+    <value>复制</value>
   </data>
   <data name="UrlEncoder_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>已复制！</value>
   </data>
   <data name="UrlEncoder_OtherFormats" xml:space="preserve">
-    <value>Другие форматы:</value>
+    <value>Other formats:</value>
   </data>
   <data name="UrlEncoder_LinkHex" xml:space="preserve">
     <value>Hex</value>
@@ -394,13 +337,13 @@
     <value>Base64</value>
   </data>
   <data name="HexEncoder_Title" xml:space="preserve">
-    <value>Hex кодирование / декодирование</value>
+    <value>Hex 编码 / 解码</value>
   </data>
   <data name="HexEncoder_Description" xml:space="preserve">
-    <value>Кодируйте и декодируйте Hex для текста или файлов с настройками — всё в вашем браузере</value>
+    <value>为文本或文件进行 Hex 编码和解码 — 全部在您的浏览器中</value>
   </data>
   <data name="HexEncoder_OtherFormats" xml:space="preserve">
-    <value>Другие форматы:</value>
+    <value>Other formats:</value>
   </data>
   <data name="HexEncoder_LinkUrl" xml:space="preserve">
     <value>URL</value>
@@ -415,88 +358,88 @@
     <value>Base64</value>
   </data>
   <data name="HexEncoder_InputTextLabel" xml:space="preserve">
-    <value>Текст</value>
+    <value>文本</value>
   </data>
   <data name="HexEncoder_InputTextPlaceholder" xml:space="preserve">
-    <value>Введите текст (для кодирования) или hex-строку (для декодирования)...</value>
+    <value>输入文本（用于编码）或 Hex 字符串（用于解码）...</value>
   </data>
   <data name="HexEncoder_InputFileLabel" xml:space="preserve">
-    <value>Файл (необязательно)</value>
+    <value>File (optional)</value>
   </data>
   <data name="HexEncoder_FileHint" xml:space="preserve">
-    <value>Если выбран файл, текстовое поле игнорируется.</value>
+    <value>If a file is selected, the text input is ignored.</value>
   </data>
   <data name="HexEncoder_FileProgressTitle" xml:space="preserve">
-    <value>Обработка файла...</value>
+    <value>Processing file...</value>
   </data>
   <data name="HexEncoder_Cancel" xml:space="preserve">
-    <value>Отмена</value>
+    <value>Cancel</value>
   </data>
   <data name="HexEncoder_CharsetLabel" xml:space="preserve">
-    <value>Кодировка текста</value>
+    <value>Text charset</value>
   </data>
   <data name="HexEncoder_CaseLabel" xml:space="preserve">
-    <value>Регистр hex</value>
+    <value>Hex case</value>
   </data>
   <data name="HexEncoder_CaseLower" xml:space="preserve">
-    <value>нижний</value>
+    <value>lowercase</value>
   </data>
   <data name="HexEncoder_CaseUpper" xml:space="preserve">
-    <value>ВЕРХНИЙ</value>
+    <value>UPPERCASE</value>
   </data>
   <data name="HexEncoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Опции декодирования</value>
+    <value>Decode options</value>
   </data>
   <data name="HexEncoder_IgnoreWhitespace" xml:space="preserve">
-    <value>Игнорировать пробелы/переводы строк</value>
+    <value>Ignore whitespace</value>
   </data>
   <data name="HexEncoder_AllowSeparators" xml:space="preserve">
-    <value>Разрешить разделители (: и -)</value>
+    <value>Allow separators (: and -)</value>
   </data>
   <data name="HexEncoder_Allow0x" xml:space="preserve">
-    <value>Разрешить префикс 0x</value>
+    <value>Allow 0x prefix</value>
   </data>
   <data name="HexEncoder_OutputModeLabel" xml:space="preserve">
-    <value>Вывод для файлов</value>
+    <value>File output</value>
   </data>
   <data name="HexEncoder_OutputModePreview" xml:space="preserve">
-    <value>Показывать превью (полный — скачать)</value>
+    <value>Preview in output (download full)</value>
   </data>
   <data name="HexEncoder_OutputModeFull" xml:space="preserve">
-    <value>Показывать полностью (может тормозить)</value>
+    <value>Render full output (may be slow)</value>
   </data>
   <data name="HexEncoder_ActionEncode" xml:space="preserve">
-    <value>Кодировать</value>
+    <value>Encode</value>
   </data>
   <data name="HexEncoder_ActionDecode" xml:space="preserve">
-    <value>Декодировать</value>
+    <value>Decode</value>
   </data>
   <data name="HexEncoder_ActionSwap" xml:space="preserve">
-    <value>Поменять местами</value>
+    <value>Swap</value>
   </data>
   <data name="HexEncoder_ActionClear" xml:space="preserve">
-    <value>Очистить</value>
+    <value>Clear</value>
   </data>
   <data name="HexEncoder_OutputLabel" xml:space="preserve">
-    <value>Вывод</value>
+    <value>Output</value>
   </data>
   <data name="HexEncoder_Copy" xml:space="preserve">
-    <value>Копировать</value>
+    <value>Copy</value>
   </data>
   <data name="HexEncoder_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>Copied!</value>
   </data>
   <data name="HexEncoder_Download" xml:space="preserve">
-    <value>Скачать</value>
+    <value>Download</value>
   </data>
   <data name="Base64Encoder_Title" xml:space="preserve">
-    <value>Base64 кодер / декодер</value>
+    <value>Base64 编码 / 解码</value>
   </data>
   <data name="Base64Encoder_Description" xml:space="preserve">
-    <value>Кодирование и декодирование Base64 для текста и файлов — полностью в вашем браузере.</value>
+    <value>为文本和文件进行 Base64 编码和解码 — 全部在您的浏览器中。</value>
   </data>
   <data name="Base64Encoder_OtherFormats" xml:space="preserve">
-    <value>Другие форматы:</value>
+    <value>Other formats:</value>
   </data>
   <data name="Base64Encoder_LinkHex" xml:space="preserve">
     <value>Hex</value>
@@ -511,106 +454,106 @@
     <value>URL</value>
   </data>
   <data name="Base64Encoder_InputTextLabel" xml:space="preserve">
-    <value>Ввод (текст)</value>
+    <value>输入（文本）</value>
   </data>
   <data name="Base64Encoder_InputTextPlaceholder" xml:space="preserve">
-    <value>Введите текст или Base64...</value>
+    <value>Enter text or Base64...</value>
   </data>
   <data name="Base64Encoder_InputFileLabel" xml:space="preserve">
-    <value>Входной файл</value>
+    <value>Input file</value>
   </data>
   <data name="Base64Encoder_FileHint" xml:space="preserve">
-    <value>Если выбран файл, он будет использован вместо текстового ввода.</value>
+    <value>If a file is selected, it will be used instead of the text input.</value>
   </data>
   <data name="Base64Encoder_CharsetLabel" xml:space="preserve">
-    <value>Кодировка текста</value>
+    <value>Text charset</value>
   </data>
   <data name="Base64Encoder_AlphabetLabel" xml:space="preserve">
-    <value>Алфавит</value>
+    <value>Alphabet</value>
   </data>
   <data name="Base64Encoder_AlphabetStandard" xml:space="preserve">
-    <value>Стандартный (+/)</value>
+    <value>Standard (+/)</value>
   </data>
   <data name="Base64Encoder_AlphabetUrlSafe" xml:space="preserve">
     <value>URL-safe (-_)</value>
   </data>
   <data name="Base64Encoder_PaddingLabel" xml:space="preserve">
-    <value>Паддинг</value>
+    <value>Padding</value>
   </data>
   <data name="Base64Encoder_PaddingRequired" xml:space="preserve">
-    <value>Обязательный</value>
+    <value>Required</value>
   </data>
   <data name="Base64Encoder_PaddingOptional" xml:space="preserve">
-    <value>Опциональный</value>
+    <value>Optional</value>
   </data>
   <data name="Base64Encoder_PaddingNone" xml:space="preserve">
-    <value>Без паддинга</value>
+    <value>No padding</value>
   </data>
   <data name="Base64Encoder_LineWrapLabel" xml:space="preserve">
-    <value>Перенос строк</value>
+    <value>Line wrap</value>
   </data>
   <data name="Base64Encoder_LineWrapNone" xml:space="preserve">
-    <value>Нет</value>
+    <value>None</value>
   </data>
   <data name="Base64Encoder_LineWrap76" xml:space="preserve">
-    <value>76 символов</value>
+    <value>76 chars</value>
   </data>
   <data name="Base64Encoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Опции декодирования</value>
+    <value>Decode options</value>
   </data>
   <data name="Base64Encoder_AllowWhitespace" xml:space="preserve">
-    <value>Разрешить пробелы/переводы строк</value>
+    <value>Allow whitespace/newlines</value>
   </data>
   <data name="Base64Encoder_OutputModeLabel" xml:space="preserve">
-    <value>Вывод для файла</value>
+    <value>File output</value>
   </data>
   <data name="Base64Encoder_OutputModePreview" xml:space="preserve">
-    <value>Превью в выводе (полное — в Скачать)</value>
+    <value>Preview in output (download full)</value>
   </data>
   <data name="Base64Encoder_OutputModeFull" xml:space="preserve">
-    <value>Показывать полностью (может тормозить)</value>
+    <value>Render full output (may be slow)</value>
   </data>
   <data name="Base64Encoder_ActionEncode" xml:space="preserve">
-    <value>Кодировать</value>
+    <value>Encode</value>
   </data>
   <data name="Base64Encoder_ActionDecode" xml:space="preserve">
-    <value>Декодировать</value>
+    <value>Decode</value>
   </data>
   <data name="Base64Encoder_ActionSwap" xml:space="preserve">
-    <value>Поменять местами</value>
+    <value>Swap</value>
   </data>
   <data name="Base64Encoder_ActionClear" xml:space="preserve">
-    <value>Очистить</value>
+    <value>Clear</value>
   </data>
   <data name="Base64Encoder_OutputLabel" xml:space="preserve">
-    <value>Вывод</value>
+    <value>Output</value>
   </data>
   <data name="Base64Encoder_Copy" xml:space="preserve">
-    <value>Копировать</value>
+    <value>Copy</value>
   </data>
   <data name="Base64Encoder_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>Copied!</value>
   </data>
   <data name="Base64Encoder_Download" xml:space="preserve">
-    <value>Скачать</value>
+    <value>Download</value>
   </data>
   <data name="Base64Encoder_FileProgressTitle" xml:space="preserve">
-    <value>Обработка файла...</value>
+    <value>Processing file...</value>
   </data>
   <data name="Base64Encoder_Cancel" xml:space="preserve">
-    <value>Отмена</value>
+    <value>Cancel</value>
   </data>
   <data name="Nav_Base32Encoder" xml:space="preserve">
-    <value>Base32</value>
+    <value>Base32 编码器</value>
   </data>
   <data name="Base32Encoder_Title" xml:space="preserve">
-    <value>Base32 кодер / декодер</value>
+    <value>Base32 Encoder / Decoder</value>
   </data>
   <data name="Base32Encoder_Description" xml:space="preserve">
-    <value>Кодирование и декодирование Base32 для текста и файлов — полностью в вашем браузере.</value>
+    <value>Encode and decode Base32 for text and files — all in your browser.</value>
   </data>
   <data name="Base32Encoder_OtherFormats" xml:space="preserve">
-    <value>Другие форматы:</value>
+    <value>Other formats:</value>
   </data>
   <data name="Base32Encoder_LinkHex" xml:space="preserve">
     <value>Hex</value>
@@ -625,22 +568,22 @@
     <value>URL</value>
   </data>
   <data name="Base32Encoder_InputTextLabel" xml:space="preserve">
-    <value>Ввод (текст)</value>
+    <value>Input (text)</value>
   </data>
   <data name="Base32Encoder_InputTextPlaceholder" xml:space="preserve">
-    <value>Введите текст или Base32...</value>
+    <value>Enter text or Base32...</value>
   </data>
   <data name="Base32Encoder_InputFileLabel" xml:space="preserve">
-    <value>Входной файл</value>
+    <value>Input file</value>
   </data>
   <data name="Base32Encoder_FileHint" xml:space="preserve">
-    <value>Если выбран файл, он будет использован вместо текстового ввода.</value>
+    <value>If a file is selected, it will be used instead of the text input.</value>
   </data>
   <data name="Base32Encoder_CharsetLabel" xml:space="preserve">
-    <value>Кодировка текста</value>
+    <value>Text charset</value>
   </data>
   <data name="Base32Encoder_AlphabetLabel" xml:space="preserve">
-    <value>Алфавит</value>
+    <value>Alphabet</value>
   </data>
   <data name="Base32Encoder_AlphabetRfc4648" xml:space="preserve">
     <value>RFC 4648 (A-Z2-7)</value>
@@ -652,85 +595,85 @@
     <value>z-base-32</value>
   </data>
   <data name="Base32Encoder_PaddingLabel" xml:space="preserve">
-    <value>Паддинг</value>
+    <value>Padding</value>
   </data>
   <data name="Base32Encoder_PaddingRequired" xml:space="preserve">
-    <value>Обязательный</value>
+    <value>Required</value>
   </data>
   <data name="Base32Encoder_PaddingOptional" xml:space="preserve">
-    <value>Опциональный</value>
+    <value>Optional</value>
   </data>
   <data name="Base32Encoder_PaddingNone" xml:space="preserve">
-    <value>Без паддинга</value>
+    <value>No padding</value>
   </data>
   <data name="Base32Encoder_CaseLabel" xml:space="preserve">
-    <value>Регистр</value>
+    <value>Letter case</value>
   </data>
   <data name="Base32Encoder_CaseAuto" xml:space="preserve">
-    <value>Авто</value>
+    <value>Auto</value>
   </data>
   <data name="Base32Encoder_CaseUpper" xml:space="preserve">
-    <value>Верхний</value>
+    <value>Uppercase</value>
   </data>
   <data name="Base32Encoder_CaseLower" xml:space="preserve">
-    <value>Нижний</value>
+    <value>Lowercase</value>
   </data>
   <data name="Base32Encoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Опции декодирования</value>
+    <value>Decode options</value>
   </data>
   <data name="Base32Encoder_AllowWhitespace" xml:space="preserve">
-    <value>Разрешить пробелы/переводы строк</value>
+    <value>Allow whitespace/newlines</value>
   </data>
   <data name="Base32Encoder_OutputModeLabel" xml:space="preserve">
-    <value>Вывод для файла</value>
+    <value>File output</value>
   </data>
   <data name="Base32Encoder_OutputModePreview" xml:space="preserve">
-    <value>Превью в выводе (полное — в Скачать)</value>
+    <value>Preview in output (download full)</value>
   </data>
   <data name="Base32Encoder_OutputModeFull" xml:space="preserve">
-    <value>Показывать полностью (может тормозить)</value>
+    <value>Render full output (may be slow)</value>
   </data>
   <data name="Base32Encoder_ActionEncode" xml:space="preserve">
-    <value>Кодировать</value>
+    <value>Encode</value>
   </data>
   <data name="Base32Encoder_ActionDecode" xml:space="preserve">
-    <value>Декодировать</value>
+    <value>Decode</value>
   </data>
   <data name="Base32Encoder_ActionSwap" xml:space="preserve">
-    <value>Поменять местами</value>
+    <value>Swap</value>
   </data>
   <data name="Base32Encoder_ActionClear" xml:space="preserve">
-    <value>Очистить</value>
+    <value>Clear</value>
   </data>
   <data name="Base32Encoder_OutputLabel" xml:space="preserve">
-    <value>Вывод</value>
+    <value>Output</value>
   </data>
   <data name="Base32Encoder_Copy" xml:space="preserve">
-    <value>Копировать</value>
+    <value>Copy</value>
   </data>
   <data name="Base32Encoder_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>Copied!</value>
   </data>
   <data name="Base32Encoder_Download" xml:space="preserve">
-    <value>Скачать</value>
+    <value>Download</value>
   </data>
   <data name="Base32Encoder_FileProgressTitle" xml:space="preserve">
-    <value>Обработка файла...</value>
+    <value>Processing file...</value>
   </data>
   <data name="Base32Encoder_Cancel" xml:space="preserve">
-    <value>Отмена</value>
+    <value>Cancel</value>
   </data>
   <data name="Nav_Base58Encoder" xml:space="preserve">
-    <value>Base58</value>
+    <value>Base58 编码器</value>
   </data>
   <data name="Base58Encoder_Title" xml:space="preserve">
-    <value>Base58 кодер / декодер</value>
+    <value>Base58 Encoder / Decoder</value>
   </data>
   <data name="Base58Encoder_Description" xml:space="preserve">
-    <value>Кодирование и декодирование Base58 для текста и файлов — полностью в вашем браузере.</value>
+    <value>Encode and decode Base58 for text and files — all in your browser.</value>
   </data>
   <data name="Base58Encoder_OtherFormats" xml:space="preserve">
-    <value>Другие форматы:</value>
+    <value>Other formats:</value>
   </data>
   <data name="Base58Encoder_LinkHex" xml:space="preserve">
     <value>Hex</value>
@@ -745,22 +688,22 @@
     <value>URL</value>
   </data>
   <data name="Base58Encoder_InputTextLabel" xml:space="preserve">
-    <value>Ввод (текст)</value>
+    <value>Input (text)</value>
   </data>
   <data name="Base58Encoder_InputTextPlaceholder" xml:space="preserve">
-    <value>Введите текст или Base58...</value>
+    <value>Enter text or Base58...</value>
   </data>
   <data name="Base58Encoder_InputFileLabel" xml:space="preserve">
-    <value>Входной файл</value>
+    <value>Input file</value>
   </data>
   <data name="Base58Encoder_FileHint" xml:space="preserve">
-    <value>Если выбран файл, он будет использован вместо текстового ввода.</value>
+    <value>If a file is selected, it will be used instead of the text input.</value>
   </data>
   <data name="Base58Encoder_CharsetLabel" xml:space="preserve">
-    <value>Кодировка текста</value>
+    <value>Text charset</value>
   </data>
   <data name="Base58Encoder_AlphabetLabel" xml:space="preserve">
-    <value>Алфавит</value>
+    <value>Alphabet</value>
   </data>
   <data name="Base58Encoder_AlphabetBitcoin" xml:space="preserve">
     <value>Bitcoin (Base58)</value>
@@ -772,451 +715,451 @@
     <value>Ripple</value>
   </data>
   <data name="Base58Encoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Опции декодирования</value>
+    <value>Decode options</value>
   </data>
   <data name="Base58Encoder_AllowWhitespace" xml:space="preserve">
-    <value>Разрешить пробелы/переводы строк</value>
+    <value>Allow whitespace/newlines</value>
   </data>
   <data name="Base58Encoder_OutputModeLabel" xml:space="preserve">
-    <value>Вывод для файла</value>
+    <value>File output</value>
   </data>
   <data name="Base58Encoder_OutputModePreview" xml:space="preserve">
-    <value>Превью в выводе (полное — в Скачать)</value>
+    <value>Preview in output (download full)</value>
   </data>
   <data name="Base58Encoder_OutputModeFull" xml:space="preserve">
-    <value>Показывать полностью (может тормозить)</value>
+    <value>Render full output (may be slow)</value>
   </data>
   <data name="Base58Encoder_ActionEncode" xml:space="preserve">
-    <value>Кодировать</value>
+    <value>Encode</value>
   </data>
   <data name="Base58Encoder_ActionDecode" xml:space="preserve">
-    <value>Декодировать</value>
+    <value>Decode</value>
   </data>
   <data name="Base58Encoder_ActionSwap" xml:space="preserve">
-    <value>Поменять местами</value>
+    <value>Swap</value>
   </data>
   <data name="Base58Encoder_ActionClear" xml:space="preserve">
-    <value>Очистить</value>
+    <value>Clear</value>
   </data>
   <data name="Base58Encoder_OutputLabel" xml:space="preserve">
-    <value>Вывод</value>
+    <value>Output</value>
   </data>
   <data name="Base58Encoder_Copy" xml:space="preserve">
-    <value>Копировать</value>
+    <value>Copy</value>
   </data>
   <data name="Base58Encoder_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>Copied!</value>
   </data>
   <data name="Base58Encoder_Download" xml:space="preserve">
-    <value>Скачать</value>
+    <value>Download</value>
   </data>
   <data name="Base58Encoder_FileProgressTitle" xml:space="preserve">
-    <value>Обработка файла...</value>
+    <value>Processing file...</value>
   </data>
   <data name="Base58Encoder_Cancel" xml:space="preserve">
-    <value>Отмена</value>
+    <value>Cancel</value>
   </data>
   <data name="Base58Encoder_FileSizeLimitEncode" xml:space="preserve">
-    <value>Кодирование Base58 ограничено {0} из-за алгоритмической сложности. Размер вашего файла: {1}. Пожалуйста, используйте кодирование Base64 или Hex для больших файлов.</value>
+    <value>Base58 encoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.</value>
   </data>
   <data name="Base58Encoder_FileSizeLimitDecode" xml:space="preserve">
-    <value>Декодирование Base58 ограничено {0} из-за алгоритмической сложности. Размер вашего файла: {1}. Пожалуйста, используйте кодирование Base64 или Hex для больших файлов.</value>
+    <value>Base58 decoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.</value>
   </data>
   <data name="OpenSsh_Title" xml:space="preserve">
-    <value>Ключи OpenSSH</value>
+    <value>OpenSSH Keys</value>
   </data>
   <data name="OpenSsh_Description" xml:space="preserve">
-    <value>Генерация, импорт и конвертация OpenSSH‑ключей прямо в браузере.</value>
+    <value>Generate, import, and convert OpenSSH keys in your browser.</value>
   </data>
   <data name="OpenSsh_GenerateSectionTitle" xml:space="preserve">
-    <value>Генерация</value>
+    <value>Generate</value>
   </data>
   <data name="OpenSsh_AlgorithmLabel" xml:space="preserve">
-    <value>Алгоритм</value>
+    <value>Algorithm</value>
   </data>
   <data name="OpenSsh_KeySizeLabel" xml:space="preserve">
-    <value>Размер ключа</value>
+    <value>Key size</value>
   </data>
   <data name="OpenSsh_PassphraseLabel" xml:space="preserve">
-    <value>Парольная фраза (необязательно)</value>
+    <value>Passphrase (optional)</value>
   </data>
   <data name="OpenSsh_GenerateButton" xml:space="preserve">
-    <value>Сгенерировать ключи</value>
+    <value>Generate keys</value>
   </data>
   <data name="OpenSsh_ImportSectionTitle" xml:space="preserve">
-    <value>Импорт</value>
+    <value>Import</value>
   </data>
   <data name="OpenSsh_ImportLabel" xml:space="preserve">
-    <value>Вставьте OpenSSH или PKCS#8 ключ</value>
+    <value>Paste OpenSSH or PKCS#8 key</value>
   </data>
   <data name="OpenSsh_ImportPlaceholder" xml:space="preserve">
-    <value>Вставьте OpenSSH public/private или PKCS#8 PEM...</value>
+    <value>Paste OpenSSH public/private key or PKCS#8 PEM here...</value>
   </data>
   <data name="OpenSsh_ImportFileLabel" xml:space="preserve">
-    <value>Файл ключа</value>
+    <value>Key file</value>
   </data>
   <data name="OpenSsh_ImportFileHint" xml:space="preserve">
-    <value>Поддерживаются OpenSSH public/private и PKCS#8 PEM.</value>
+    <value>Supports OpenSSH public/private and PKCS#8 PEM files.</value>
   </data>
   <data name="OpenSsh_ImportButton" xml:space="preserve">
-    <value>Импортировать</value>
+    <value>Import</value>
   </data>
   <data name="OpenSsh_ConvertSectionTitle" xml:space="preserve">
-    <value>Конвертация</value>
+    <value>Convert</value>
   </data>
   <data name="OpenSsh_ConvertButton" xml:space="preserve">
-    <value>Конвертировать</value>
+    <value>Convert</value>
   </data>
   <data name="OpenSsh_PublicKeyLabel" xml:space="preserve">
-    <value>Публичный ключ</value>
+    <value>Public key</value>
   </data>
   <data name="OpenSsh_PrivateKeyLabel" xml:space="preserve">
-    <value>Приватный ключ</value>
+    <value>Private key</value>
   </data>
   <data name="OpenSsh_Copy" xml:space="preserve">
-    <value>Копировать</value>
+    <value>Copy</value>
   </data>
   <data name="OpenSsh_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>Copied!</value>
   </data>
   <data name="OpenSsh_Download" xml:space="preserve">
-    <value>Скачать</value>
+    <value>Download</value>
   </data>
   <data name="OpenSsh_WarningsTitle" xml:space="preserve">
-    <value>Предупреждения</value>
+    <value>Warnings</value>
   </data>
   <data name="X509_Title" xml:space="preserve">
-    <value>Сертификаты X.509</value>
+    <value>X.509 Certificates</value>
   </data>
   <data name="X509_Description" xml:space="preserve">
-    <value>Создание self‑signed сертификатов, CSR и разбор PEM/DER.</value>
+    <value>Create self-signed certificates, CSRs, and parse PEM/DER.</value>
   </data>
   <data name="X509_SelfSignedSectionTitle" xml:space="preserve">
-    <value>Self‑signed</value>
+    <value>Self-signed</value>
   </data>
   <data name="X509_SubjectLabel" xml:space="preserve">
     <value>Subject (CN)</value>
   </data>
   <data name="X509_ValidityDaysLabel" xml:space="preserve">
-    <value>Срок действия (дни)</value>
+    <value>Validity (days)</value>
   </data>
   <data name="X509_GenerateSelfSigned" xml:space="preserve">
-    <value>Сгенерировать сертификат</value>
+    <value>Generate certificate</value>
   </data>
   <data name="X509_CsrSectionTitle" xml:space="preserve">
     <value>CSR</value>
   </data>
   <data name="X509_GenerateCsr" xml:space="preserve">
-    <value>Сгенерировать CSR</value>
+    <value>Generate CSR</value>
   </data>
   <data name="X509_ParseSectionTitle" xml:space="preserve">
-    <value>Разбор</value>
+    <value>Parse</value>
   </data>
   <data name="X509_ParseLabel" xml:space="preserve">
-    <value>Вставьте PEM/DER</value>
+    <value>Paste PEM/DER</value>
   </data>
   <data name="X509_ParsePlaceholder" xml:space="preserve">
-    <value>Вставьте сертификат, CSR или ключ (PEM/DER)...</value>
+    <value>Paste certificate, CSR, or key (PEM/DER) here...</value>
   </data>
   <data name="X509_ParseButton" xml:space="preserve">
-    <value>Разобрать</value>
+    <value>Parse</value>
   </data>
   <data name="X509_OutputLabel" xml:space="preserve">
-    <value>Вывод</value>
+    <value>Output</value>
   </data>
   <data name="X509_Copy" xml:space="preserve">
-    <value>Копировать</value>
+    <value>Copy</value>
   </data>
   <data name="X509_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>Copied!</value>
   </data>
   <data name="X509_Download" xml:space="preserve">
-    <value>Скачать</value>
+    <value>Download</value>
   </data>
   <data name="X509_WarningsTitle" xml:space="preserve">
-    <value>Предупреждения</value>
+    <value>Warnings</value>
   </data>
   <data name="Aead_Title" xml:space="preserve">
-    <value>AEAD шифрование/дешифрование файлов</value>
+    <value>AEAD File Encrypt/Decrypt</value>
   </data>
   <data name="Aead_Description" xml:space="preserve">
-    <value>Локальное шифрование и дешифрование файлов с AEAD.</value>
+    <value>Encrypt and decrypt files locally with AEAD.</value>
   </data>
   <data name="Aead_EncryptSectionTitle" xml:space="preserve">
-    <value>Шифрование</value>
+    <value>Encrypt</value>
   </data>
   <data name="Aead_DecryptSectionTitle" xml:space="preserve">
-    <value>Дешифрование</value>
+    <value>Decrypt</value>
   </data>
   <data name="Aead_FileLabel" xml:space="preserve">
-    <value>Файл</value>
+    <value>File</value>
   </data>
   <data name="Aead_FileHint" xml:space="preserve">
-    <value>Большие файлы обрабатываются чанками в браузере.</value>
+    <value>Large files are processed in chunks in the browser.</value>
   </data>
   <data name="Aead_AlgorithmLabel" xml:space="preserve">
-    <value>Алгоритм</value>
+    <value>Algorithm</value>
   </data>
   <data name="Aead_PasswordLabel" xml:space="preserve">
-    <value>Пароль</value>
+    <value>Password</value>
   </data>
   <data name="Aead_EncryptButton" xml:space="preserve">
-    <value>Зашифровать файл</value>
+    <value>Encrypt file</value>
   </data>
   <data name="Aead_DecryptButton" xml:space="preserve">
-    <value>Расшифровать файл</value>
+    <value>Decrypt file</value>
   </data>
   <data name="Aead_HeaderLabel" xml:space="preserve">
-    <value>Заголовок</value>
+    <value>Header</value>
   </data>
   <data name="Aead_OutputLabel" xml:space="preserve">
-    <value>Вывод</value>
+    <value>Output</value>
   </data>
   <data name="Aead_Copy" xml:space="preserve">
-    <value>Копировать</value>
+    <value>Copy</value>
   </data>
   <data name="Aead_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>Copied!</value>
   </data>
   <data name="Aead_Download" xml:space="preserve">
-    <value>Скачать</value>
+    <value>Download</value>
   </data>
   <data name="Aead_FileProgressTitle" xml:space="preserve">
-    <value>Обработка файла...</value>
+    <value>Processing file...</value>
   </data>
   <data name="Aead_Cancel" xml:space="preserve">
-    <value>Отмена</value>
+    <value>Cancel</value>
   </data>
   <data name="Aead_WarningsTitle" xml:space="preserve">
-    <value>Предупреждения</value>
+    <value>Warnings</value>
   </data>
   <data name="Nav_JsonBeautifier" xml:space="preserve">
-    <value>JSON Beautifier</value>
+    <value>JSON 格式化</value>
   </data>
   <data name="JsonBeautifier_Title" xml:space="preserve">
-    <value>JSON Beautifier</value>
+    <value>JSON 格式化</value>
   </data>
   <data name="JsonBeautifier_Description" xml:space="preserve">
-    <value>Форматирование и украшение JSON-строк с настраиваемыми отступами и опциями — всё в вашем браузере</value>
+    <value>格式化和美化 JSON 字符串，支持自定义缩进。</value>
   </data>
   <data name="JsonBeautifier_InputLabel" xml:space="preserve">
-    <value>Входной JSON</value>
+    <value>输入 JSON</value>
   </data>
   <data name="JsonBeautifier_InputPlaceholder" xml:space="preserve">
-    <value>Вставьте ваш JSON здесь...</value>
+    <value>Paste your JSON here...</value>
   </data>
   <data name="JsonBeautifier_FormatButton" xml:space="preserve">
-    <value>Форматировать</value>
+    <value>格式化</value>
   </data>
   <data name="JsonBeautifier_ClearButton" xml:space="preserve">
-    <value>Очистить</value>
+    <value>清除</value>
   </data>
   <data name="JsonBeautifier_CopyButton" xml:space="preserve">
-    <value>Копировать</value>
+    <value>复制</value>
   </data>
   <data name="JsonBeautifier_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>Copied!</value>
   </data>
   <data name="JsonBeautifier_ErrorInvalidJson" xml:space="preserve">
-    <value>Неверный JSON. Проверьте введённые данные.</value>
+    <value>Invalid JSON. Please check your input.</value>
   </data>
   <data name="JsonBeautifier_IndentSizeLabel" xml:space="preserve">
-    <value>Размер отступа</value>
+    <value>Indent size</value>
   </data>
   <data name="JsonBeautifier_Indent2Spaces" xml:space="preserve">
-    <value>2 пробела</value>
+    <value>2 spaces</value>
   </data>
   <data name="JsonBeautifier_Indent4Spaces" xml:space="preserve">
-    <value>4 пробела</value>
+    <value>4 spaces</value>
   </data>
   <data name="JsonBeautifier_IndentTab" xml:space="preserve">
-    <value>Табуляция</value>
+    <value>Tab</value>
   </data>
   <data name="JsonBeautifier_SortKeys" xml:space="preserve">
-    <value>Сортировать ключи</value>
+    <value>Sort keys</value>
   </data>
   <data name="JsonBeautifier_CompactMode" xml:space="preserve">
-    <value>Компактный режим (минификация)</value>
+    <value>Compact mode (minify)</value>
   </data>
   <data name="JsonBeautifier_OutputLabel" xml:space="preserve">
-    <value>Отформатированный JSON</value>
+    <value>格式化后的 JSON</value>
   </data>
   <data name="JsonBeautifier_LineNumbers" xml:space="preserve">
-    <value>Показать номера строк</value>
+    <value>Show line numbers</value>
   </data>
   <data name="JsonBeautifier_Collapsible" xml:space="preserve">
-    <value>Сворачиваемые блоки</value>
+    <value>Collapsible blocks</value>
   </data>
   <data name="Nav_XmlBeautifier" xml:space="preserve">
-    <value>XML Beautifier</value>
+    <value>XML 格式化</value>
   </data>
   <data name="XmlBeautifier_Title" xml:space="preserve">
     <value>XML Beautifier</value>
   </data>
   <data name="XmlBeautifier_Description" xml:space="preserve">
-    <value>Форматирование и украшение XML с настраиваемыми отступами — всё в вашем браузере</value>
+    <value>Format and beautify XML with customizable indentation — all in your browser</value>
   </data>
   <data name="XmlBeautifier_InputLabel" xml:space="preserve">
-    <value>Входной XML</value>
+    <value>Input XML</value>
   </data>
   <data name="XmlBeautifier_InputPlaceholder" xml:space="preserve">
-    <value>Вставьте ваш XML здесь...</value>
+    <value>Paste your XML here...</value>
   </data>
   <data name="XmlBeautifier_FormatButton" xml:space="preserve">
-    <value>Форматировать</value>
+    <value>Format</value>
   </data>
   <data name="XmlBeautifier_ClearButton" xml:space="preserve">
-    <value>Очистить</value>
+    <value>Clear</value>
   </data>
   <data name="XmlBeautifier_CopyButton" xml:space="preserve">
-    <value>Копировать</value>
+    <value>Copy</value>
   </data>
   <data name="XmlBeautifier_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>Copied!</value>
   </data>
   <data name="XmlBeautifier_ErrorInvalidXml" xml:space="preserve">
-    <value>Неверный XML. Проверьте введённые данные.</value>
+    <value>Invalid XML. Please check your input.</value>
   </data>
   <data name="XmlBeautifier_IndentSizeLabel" xml:space="preserve">
-    <value>Размер отступа</value>
+    <value>Indent size</value>
   </data>
   <data name="XmlBeautifier_Indent2Spaces" xml:space="preserve">
-    <value>2 пробела</value>
+    <value>2 spaces</value>
   </data>
   <data name="XmlBeautifier_Indent4Spaces" xml:space="preserve">
-    <value>4 пробела</value>
+    <value>4 spaces</value>
   </data>
   <data name="XmlBeautifier_IndentTab" xml:space="preserve">
-    <value>Табуляция</value>
+    <value>Tab</value>
   </data>
   <data name="XmlBeautifier_CompactMode" xml:space="preserve">
-    <value>Компактный режим (минификация)</value>
+    <value>Compact mode (minify)</value>
   </data>
   <data name="Nav_PasswordGenerator" xml:space="preserve">
-    <value>Генератор паролей</value>
+    <value>密码生成器</value>
   </data>
   <data name="PasswordGenerator_Title" xml:space="preserve">
-    <value>Генератор паролей</value>
+    <value>密码生成器</value>
   </data>
   <data name="PasswordGenerator_Description" xml:space="preserve">
-    <value>Создавайте надежные, безопасные случайные пароли локально в вашем браузере.</value>
+    <value>在您的浏览器中本地生成安全、随机的密码。</value>
   </data>
   <data name="PasswordGenerator_LengthLabel" xml:space="preserve">
-    <value>Длина пароля</value>
+    <value>Password Length</value>
   </data>
   <data name="PasswordGenerator_UppercaseLabel" xml:space="preserve">
-    <value>Заглавные (A-Z)</value>
+    <value>Uppercase (A-Z)</value>
   </data>
   <data name="PasswordGenerator_LowercaseLabel" xml:space="preserve">
-    <value>Строчные (a-z)</value>
+    <value>Lowercase (a-z)</value>
   </data>
   <data name="PasswordGenerator_NumbersLabel" xml:space="preserve">
-    <value>Цифры (0-9)</value>
+    <value>Numbers (0-9)</value>
   </data>
   <data name="PasswordGenerator_SpecialLabel" xml:space="preserve">
-    <value>Спецсимволы</value>
+    <value>Special Characters</value>
   </data>
   <data name="PasswordGenerator_CustomSpecialLabel" xml:space="preserve">
-    <value>Пользовательские символы</value>
+    <value>Custom Symbols</value>
   </data>
   <data name="PasswordGenerator_GenerateButton" xml:space="preserve">
-    <value>Сгенерировать</value>
+    <value>生成密码</value>
   </data>
   <data name="PasswordGenerator_CopyButton" xml:space="preserve">
-    <value>Копировать</value>
+    <value>复制</value>
   </data>
   <data name="PasswordGenerator_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>Copied!</value>
   </data>
   <data name="PasswordGenerator_ResultLabel" xml:space="preserve">
-    <value>Сгенерированный пароль</value>
+    <value>生成的密码</value>
   </data>
   <data name="PasswordGenerator_HistoryLabel" xml:space="preserve">
-    <value>История (последние 10)</value>
+    <value>History (last 10)</value>
   </data>
   <data name="PasswordGenerator_ClearHistory" xml:space="preserve">
-    <value>Очистить историю</value>
+    <value>Clear History</value>
   </data>
   <data name="TextCaseConverter_AlternatingCase" xml:space="preserve">
-    <value>чЕрЕдУюЩиЙсЯ рЕгИсТр</value>
+    <value>Alternating Case</value>
   </data>
   <data name="TextCaseConverter_CamelCase" xml:space="preserve">
     <value>Camel Case</value>
   </data>
   <data name="TextCaseConverter_ClearButton" xml:space="preserve">
-    <value>Очистить</value>
+    <value>Clear</value>
   </data>
   <data name="TextCaseConverter_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>Copied!</value>
   </data>
   <data name="TextCaseConverter_CopyButton" xml:space="preserve">
-    <value>Копировать</value>
+    <value>Copy</value>
   </data>
   <data name="TextCaseConverter_Description" xml:space="preserve">
-    <value>Преобразование текста в различные регистры: верхний, нижний, заглавный, camel, snake и другие.</value>
+    <value>Convert text between different letter cases: upper, lower, title, camel, snake, and more.</value>
   </data>
   <data name="TextCaseConverter_InputPlaceholder" xml:space="preserve">
-    <value>Введите или вставьте текст здесь...</value>
+    <value>Type or paste your text here...</value>
   </data>
   <data name="TextCaseConverter_InverseCase" xml:space="preserve">
-    <value>Инвертировать регистр</value>
+    <value>Inverse Case</value>
   </data>
   <data name="TextCaseConverter_KebabCase" xml:space="preserve">
     <value>Kebab Case</value>
   </data>
   <data name="TextCaseConverter_LowerCase" xml:space="preserve">
-    <value>нижний регистр</value>
+    <value>lower case</value>
   </data>
   <data name="TextCaseConverter_SentenceCase" xml:space="preserve">
-    <value>Как в предложениях</value>
+    <value>Sentence case</value>
   </data>
   <data name="TextCaseConverter_SnakeCase" xml:space="preserve">
     <value>Snake Case</value>
   </data>
   <data name="TextCaseConverter_Title" xml:space="preserve">
-    <value>Конвертер регистра</value>
+    <value>Text Case Converter</value>
   </data>
   <data name="TextCaseConverter_TitleCase" xml:space="preserve">
-    <value>Заглавный Регистр</value>
+    <value>Title Case</value>
   </data>
   <data name="TextCaseConverter_UpperCase" xml:space="preserve">
-    <value>ВЕРХНИЙ РЕГИСТР</value>
+    <value>UPPER CASE</value>
   </data>
   <data name="DateConverter_Title" xml:space="preserve">
-    <value>Конвертер дат</value>
+    <value>日期转换器</value>
   </data>
   <data name="DateConverter_Description" xml:space="preserve">
-    <value>Преобразование timestamp и дат (ISO 8601, RFC 2822) — всё в вашем браузере</value>
+    <value>在 Unix 时间戳和可读日期之间进行转换。</value>
   </data>
   <data name="DateConverter_InputLabel" xml:space="preserve">
-    <value>Ввод (Дата / Timestamp)</value>
+    <value>日期 / 时间戳</value>
   </data>
   <data name="DateConverter_OutputLabel" xml:space="preserve">
-    <value>Результат</value>
+    <value>转换后的日期</value>
   </data>
   <data name="DateConverter_ActionConvert" xml:space="preserve">
-    <value>Преобразовать</value>
+    <value>转换</value>
   </data>
   <data name="DateConverter_ActionCurrentTime" xml:space="preserve">
-    <value>Текущее время</value>
+    <value>Current Time (Now)</value>
   </data>
   <data name="DateConverter_InputTypeLabel" xml:space="preserve">
-    <value>Тип ввода</value>
+    <value>Input Type</value>
   </data>
   <data name="DateConverter_InputType_Auto" xml:space="preserve">
-    <value>Авто-определение</value>
+    <value>Auto-detect</value>
   </data>
   <data name="DateConverter_InputType_UnixSec" xml:space="preserve">
-    <value>Unix Timestamp (секунды)</value>
+    <value>Unix Timestamp (Seconds)</value>
   </data>
   <data name="DateConverter_InputType_UnixMs" xml:space="preserve">
-    <value>Unix Timestamp (милисекунды)</value>
+    <value>Unix Timestamp (Milliseconds)</value>
   </data>
   <data name="DateConverter_InputType_ISO" xml:space="preserve">
-    <value>ISO 8601 строка</value>
+    <value>ISO 8601 String</value>
   </data>
   <data name="DateConverter_OutputFormatLabel" xml:space="preserve">
-    <value>Формат вывода</value>
+    <value>Output Format</value>
   </data>
   <data name="DateConverter_Format_ISO" xml:space="preserve">
     <value>ISO 8601</value>
@@ -1225,750 +1168,750 @@
     <value>RFC 2822 / 5322</value>
   </data>
   <data name="DateConverter_Format_UnixSec" xml:space="preserve">
-    <value>Unix Timestamp (секунды)</value>
+    <value>Unix Timestamp (Seconds)</value>
   </data>
   <data name="DateConverter_Format_UnixMs" xml:space="preserve">
-    <value>Unix Timestamp (милисекунды)</value>
+    <value>Unix Timestamp (Milliseconds)</value>
   </data>
   <data name="DateConverter_Format_UTC" xml:space="preserve">
-    <value>Строка UTC</value>
+    <value>UTC String</value>
   </data>
   <data name="DateConverter_Format_Local" xml:space="preserve">
-    <value>Локальная строка</value>
+    <value>Local String</value>
   </data>
   <data name="DateConverter_Copy" xml:space="preserve">
-    <value>Копировать</value>
+    <value>Copy</value>
   </data>
   <data name="DateConverter_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>Copied!</value>
   </data>
   <data name="DateConverter_Error_Invalid" xml:space="preserve">
-    <value>Неверный формат даты.</value>
+    <value>Invalid date format.</value>
   </data>
   <data name="DateConverter_Format_European" xml:space="preserve">
-    <value>Европейский (dd.MM.yyyy HH:mm:ss)</value>
+    <value>European (dd.MM.yyyy HH:mm:ss)</value>
   </data>
   <data name="DateConverter_Format_Custom" xml:space="preserve">
-    <value>Свой формат</value>
+    <value>Custom Format</value>
   </data>
   <data name="DateConverter_CustomFormatPlaceholder" xml:space="preserve">
-    <value>Введите формат (напр. dd/MM/yyyy)</value>
+    <value>Enter format (e.g. dd/MM/yyyy)</value>
   </data>
   <data name="JwtDecoder_Title" xml:space="preserve">
-    <value>Декодер JWT</value>
+    <value>JWT Decoder</value>
   </data>
   <data name="JwtDecoder_Description" xml:space="preserve">
-    <value>Декодирование и проверка JSON Web Tokens (JWT) прямо в вашем браузере.</value>
+    <value>Decode and verify JSON Web Tokens (JWT) directly in your browser.</value>
   </data>
   <data name="JwtDecoder_EncodedLabel" xml:space="preserve">
-    <value>Закодированный токен</value>
+    <value>Encoded</value>
   </data>
   <data name="JwtDecoder_EncodedPlaceholder" xml:space="preserve">
-    <value>Вставьте JWT сюда...</value>
+    <value>Paste a JWT here...</value>
   </data>
   <data name="JwtDecoder_DecodedHeaderLabel" xml:space="preserve">
-    <value>Заголовок (Decoded)</value>
+    <value>Header</value>
   </data>
   <data name="JwtDecoder_DecodedPayloadLabel" xml:space="preserve">
-    <value>Полезная нагрузка (Decoded)</value>
+    <value>Payload</value>
   </data>
   <data name="JwtDecoder_SignatureLabel" xml:space="preserve">
-    <value>Проверка подписи</value>
+    <value>Verify Signature</value>
   </data>
   <data name="JwtDecoder_SecretLabel" xml:space="preserve">
-    <value>Секрет (для HMAC) или Публичный ключ (для RSA)</value>
+    <value>Secret / Public Key</value>
   </data>
   <data name="JwtDecoder_SecretPlaceholder" xml:space="preserve">
-    <value>Введите секрет...</value>
+    <value>Enter your 256-bit secret...</value>
   </data>
   <data name="JwtDecoder_SignatureVerified" xml:space="preserve">
-    <value>Подпись проверена</value>
+    <value>Signature Verified</value>
   </data>
   <data name="JwtDecoder_SignatureInvalid" xml:space="preserve">
-    <value>Неверная подпись</value>
+    <value>Invalid Signature</value>
   </data>
   <data name="JwtEncoder_Title" xml:space="preserve">
-    <value>Кодировщик JWT</value>
+    <value>JWT Encoder</value>
   </data>
   <data name="JwtEncoder_Description" xml:space="preserve">
-    <value>Генерация и подпись JSON Web Tokens (JWT) прямо в вашем браузере.</value>
+    <value>Generate and sign JSON Web Tokens (JWT) directly in your browser.</value>
   </data>
   <data name="JwtEncoder_HeaderLabel" xml:space="preserve">
-    <value>Заголовок (JSON)</value>
+    <value>Header (JSON)</value>
   </data>
   <data name="JwtEncoder_PayloadLabel" xml:space="preserve">
-    <value>Полезная нагрузка (JSON)</value>
+    <value>Payload (JSON)</value>
   </data>
   <data name="JwtEncoder_SecretLabel" xml:space="preserve">
-    <value>Секрет / Приватный ключ</value>
+    <value>Secret / Private Key</value>
   </data>
   <data name="JwtEncoder_SecretPlaceholder" xml:space="preserve">
-    <value>Введите ваш секретный ключ...</value>
+    <value>Enter your secret key...</value>
   </data>
   <data name="JwtEncoder_EncodedLabel" xml:space="preserve">
-    <value>Сгенерированный JWT</value>
+    <value>Generated JWT</value>
   </data>
   <data name="JwtEncoder_AlgorithmLabel" xml:space="preserve">
-    <value>Алгоритм</value>
+    <value>Algorithm</value>
   </data>
   <data name="JwtEncoder_GenerateButton" xml:space="preserve">
-    <value>Сгенерировать JWT</value>
+    <value>Generate JWT</value>
   </data>
   <data name="JwtDecoder_LinkToEncoder" xml:space="preserve">
-    <value>Нужно создать JWT? Попробуйте Кодировщик JWT</value>
+    <value>Need to generate a JWT? Try the JWT Encoder</value>
   </data>
   <data name="JwtEncoder_LinkToDecoder" xml:space="preserve">
-    <value>Нужно декодировать JWT? Попробуйте Декодер JWT</value>
+    <value>Need to decode a JWT? Try the JWT Decoder</value>
   </data>
   <data name="ImageConverter_Title" xml:space="preserve">
-    <value>Конвертер изображений</value>
+    <value>Image Converter</value>
   </data>
   <data name="ImageConverter_Description" xml:space="preserve">
-    <value>Конвертируйте изображения в различные форматы (PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA) безопасно в вашем браузере.</value>
+    <value>Convert images between formats (PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA) securely in your browser.</value>
   </data>
   <data name="ImageConverter_SelectFormat" xml:space="preserve">
-    <value>Выберите формат</value>
+    <value>Select output format</value>
   </data>
   <data name="ImageConverter_Convert" xml:space="preserve">
-    <value>Конвертировать</value>
+    <value>Convert</value>
   </data>
   <data name="ImageConverter_Download" xml:space="preserve">
-    <value>Скачать</value>
+    <value>Download</value>
   </data>
   <data name="ImageConverter_DragDrop" xml:space="preserve">
-    <value>Перетащите изображение сюда или кликните для выбора</value>
+    <value>Drag &amp; drop an image here or click to select</value>
   </data>
   <data name="ImageConverter_Processing" xml:space="preserve">
-    <value>Обработка...</value>
+    <value>Processing...</value>
   </data>
   <data name="ImageConverter_Quality" xml:space="preserve">
-    <value>Качество (JPEG, WebP)</value>
+    <value>Quality (JPEG, WebP)</value>
   </data>
   <data name="ImageConverter_OutputSize" xml:space="preserve">
-    <value>Размер:</value>
+    <value>Output Size:</value>
   </data>
   <data name="ImageCompressor_Title" xml:space="preserve">
-    <value>Сжатие изображений</value>
+    <value>Image Compressor</value>
   </data>
   <data name="ImageCompressor_Description" xml:space="preserve">
-    <value>Сжимайте изображения JPG, PNG и WebP прямо в браузере.</value>
+    <value>Compress JPG, PNG, and WebP images locally in your browser.</value>
   </data>
   <data name="ImageCompressor_Compressing" xml:space="preserve">
-    <value>Сжатие...</value>
+    <value>Compressing...</value>
   </data>
   <data name="ImageCompressor_Processing" xml:space="preserve">
-    <value>Обработка...</value>
+    <value>Processing...</value>
   </data>
   <data name="ImageCompressor_Done" xml:space="preserve">
-    <value>Готово!</value>
+    <value>Done!</value>
   </data>
   <data name="ImageCompressor_Download" xml:space="preserve">
-    <value>Скачать</value>
+    <value>Download</value>
   </data>
   <data name="ImageCompressor_DragDrop" xml:space="preserve">
-    <value>Перетащите изображения сюда или нажмите для выбора файлов</value>
+    <value>Drop images here or click to select files</value>
   </data>
   <data name="ImageResizer_Title" xml:space="preserve">
-    <value>Изменение размера</value>
+    <value>Image Resizer</value>
   </data>
   <data name="ImageResizer_Description" xml:space="preserve">
-    <value>Изменяйте размер изображений с блокировкой пропорций.</value>
+    <value>Resize images with custom dimensions and aspect ratio locking.</value>
   </data>
   <data name="ImageResizer_OriginalInfo" xml:space="preserve">
-    <value>Исходное изображение</value>
+    <value>Original Image</value>
   </data>
   <data name="ImageResizer_Width" xml:space="preserve">
-    <value>Ширина (px)</value>
+    <value>Width (px)</value>
   </data>
   <data name="ImageResizer_Height" xml:space="preserve">
-    <value>Высота (px)</value>
+    <value>Height (px)</value>
   </data>
   <data name="ImageResizer_LockAspectRatio" xml:space="preserve">
-    <value>Сохранять пропорции</value>
+    <value>Maintain Aspect Ratio</value>
   </data>
   <data name="ImageResizer_Resize" xml:space="preserve">
-    <value>Изменить размер</value>
+    <value>Resize</value>
   </data>
   <data name="ImageResizer_Resizing" xml:space="preserve">
-    <value>Обработка...</value>
+    <value>Resizing...</value>
   </data>
   <data name="RegexTester_Title" xml:space="preserve">
-    <value>Тестер Regex</value>
+    <value>Regex Tester</value>
   </data>
   <data name="RegexTester_Description" xml:space="preserve">
-    <value>Тестирование и отладка регулярных выражений (Rust/WASM) — прямо в браузере</value>
+    <value>Test and debug regular expressions using the Rust regex engine (WASM) — all in your browser</value>
   </data>
   <data name="RegexTester_PatternLabel" xml:space="preserve">
-    <value>Шаблон</value>
+    <value>Pattern</value>
   </data>
   <data name="RegexTester_PatternPlaceholder" xml:space="preserve">
-    <value>Введите выражение...</value>
+    <value>Enter regex pattern...</value>
   </data>
   <data name="RegexTester_TextLabel" xml:space="preserve">
-    <value>Текст</value>
+    <value>Test String</value>
   </data>
   <data name="RegexTester_TextPlaceholder" xml:space="preserve">
-    <value>Введите текст для проверки...</value>
+    <value>Enter text to match against...</value>
   </data>
   <data name="RegexTester_FlagsLabel" xml:space="preserve">
-    <value>Флаги</value>
+    <value>Flags</value>
   </data>
   <data name="RegexTester_MatchesLabel" xml:space="preserve">
-    <value>Совпадения</value>
+    <value>Matches</value>
   </data>
   <data name="RegexTester_NoMatches" xml:space="preserve">
-    <value>Совпадений не найдено</value>
+    <value>No matches found</value>
   </data>
   <data name="RegexTester_ErrorTitle" xml:space="preserve">
-    <value>Ошибка</value>
+    <value>Regex Error</value>
   </data>
   <data name="RegexTester_ExamplesTitle" xml:space="preserve">
-    <value>Примеры</value>
+    <value>Examples</value>
   </data>
   <data name="RegexTester_Instructions" xml:space="preserve">
-    <value>Введите регулярное выражение и текст. Совпадения будут подсвечены.</value>
+    <value>Enter a Rust-flavor regular expression and test string below. Matches will be highlighted.</value>
   </data>
   <data name="QrCodeGenerator_Title" xml:space="preserve">
-    <value>Генератор QR-кодов</value>
+    <value>二维码生成器</value>
   </data>
   <data name="QrCodeGenerator_Description" xml:space="preserve">
-    <value>Создавайте QR-коды с цветами, стилями и логотипами — всё в вашем браузере</value>
+    <value>创建带有颜色和徽标的自定义二维码。</value>
   </data>
   <data name="QrCodeGenerator_ContentLabel" xml:space="preserve">
-    <value>Содержимое</value>
+    <value>内容</value>
   </data>
   <data name="QrCodeGenerator_ContentPlaceholder" xml:space="preserve">
-    <value>Введите текст или URL для кодирования...</value>
+    <value>Enter text or URL to encode...</value>
   </data>
   <data name="QrCodeGenerator_ColorsSection" xml:space="preserve">
-    <value>Цвета</value>
+    <value>Colors</value>
   </data>
   <data name="QrCodeGenerator_ForegroundColor" xml:space="preserve">
-    <value>Цвет QR-кода</value>
+    <value>QR Code Color</value>
   </data>
   <data name="QrCodeGenerator_BackgroundColor" xml:space="preserve">
-    <value>Цвет фона</value>
+    <value>Background Color</value>
   </data>
   <data name="QrCodeGenerator_OptionsSection" xml:space="preserve">
-    <value>Настройки</value>
+    <value>Options</value>
   </data>
   <data name="QrCodeGenerator_StyleLabel" xml:space="preserve">
-    <value>Стиль</value>
+    <value>Style</value>
   </data>
   <data name="QrCodeGenerator_StyleSquare" xml:space="preserve">
-    <value>Квадраты</value>
+    <value>Square</value>
   </data>
   <data name="QrCodeGenerator_StyleDots" xml:space="preserve">
-    <value>Точки</value>
+    <value>Dots</value>
   </data>
   <data name="QrCodeGenerator_StyleRounded" xml:space="preserve">
-    <value>Скруглённые</value>
+    <value>Rounded</value>
   </data>
   <data name="QrCodeGenerator_ErrorCorrectionLabel" xml:space="preserve">
-    <value>Уровень коррекции ошибок</value>
+    <value>Error Correction Level</value>
   </data>
   <data name="QrCodeGenerator_SizeLabel" xml:space="preserve">
-    <value>Размер изображения</value>
+    <value>Image Size</value>
   </data>
   <data name="QrCodeGenerator_LogoSection" xml:space="preserve">
-    <value>Логотип (опционально)</value>
+    <value>Logo (optional)</value>
   </data>
   <data name="QrCodeGenerator_LogoHint" xml:space="preserve">
-    <value>Добавьте логотип в центр QR-кода. Для лучших результатов используйте уровень коррекции Q или H.</value>
+    <value>Add a logo to the center of your QR code. Use high error correction (Q or H) for best results.</value>
   </data>
   <data name="QrCodeGenerator_LogoDropText" xml:space="preserve">
-    <value>Перетащите логотип сюда</value>
+    <value>Drop logo here or click to select</value>
   </data>
   <data name="QrCodeGenerator_LogoRemove" xml:space="preserve">
-    <value>Удалить логотип</value>
+    <value>Remove logo</value>
   </data>
   <data name="QrCodeGenerator_Generate" xml:space="preserve">
-    <value>Создать QR-код</value>
+    <value>生成二维码</value>
   </data>
   <data name="QrCodeGenerator_Generating" xml:space="preserve">
-    <value>Создание...</value>
+    <value>Generating...</value>
   </data>
   <data name="QrCodeGenerator_PreviewSection" xml:space="preserve">
-    <value>Предпросмотр</value>
+    <value>Preview</value>
   </data>
   <data name="QrCodeGenerator_PreviewPlaceholder" xml:space="preserve">
-    <value>Ваш QR-код появится здесь</value>
+    <value>Your QR code will appear here</value>
   </data>
   <data name="QrScanner_Title" xml:space="preserve">
-    <value>Сканер QR-кодов</value>
+    <value>QR Code Scanner</value>
   </data>
   <data name="QrScanner_Description" xml:space="preserve">
-    <value>Сканируйте QR-коды из изображений прямо в браузере, без отправки на сервер.</value>
+    <value>Scan QR codes from images directly in your browser without uploading to any server.</value>
   </data>
   <data name="QrScanner_DropZone" xml:space="preserve">
-    <value>Перетащите изображение с QR-кодом сюда</value>
+    <value>Drag &amp; drop an image with a QR code here</value>
   </data>
   <data name="QrScanner_ResultLabel" xml:space="preserve">
-    <value>Результат сканирования</value>
+    <value>Scanned Content</value>
   </data>
   <data name="QrScanner_ErrorReading" xml:space="preserve">
-    <value>Ошибка чтения текста из изображения.</value>
+    <value>Error reading text from the image.</value>
   </data>
   <data name="Nav_QrScanner" xml:space="preserve">
-    <value>Сканер QR</value>
+    <value>二维码扫描器</value>
   </data>
   <data name="Nav_UuidGenerator" xml:space="preserve">
-    <value>Генератор UUID</value>
+    <value>UUID 生成器</value>
   </data>
   <data name="UuidGenerator_Title" xml:space="preserve">
-    <value>Генератор UUID/GUID</value>
+    <value>UUID 生成器</value>
   </data>
   <data name="UuidGenerator_Description" xml:space="preserve">
-    <value>Генерация UUID v4 (случайный) и UUID v7 (с временной меткой) прямо в браузере. Вся генерация происходит локально.</value>
+    <value>生成 UUID v4 和 v7 标识符。</value>
   </data>
   <data name="UuidGenerator_VersionLabel" xml:space="preserve">
-    <value>Версия UUID</value>
+    <value>UUID 版本</value>
   </data>
   <data name="UuidGenerator_Version4" xml:space="preserve">
-    <value>Версия 4 (Случайный)</value>
+    <value>版本 4 (随机)</value>
   </data>
   <data name="UuidGenerator_Version7" xml:space="preserve">
-    <value>Версия 7 (С временной меткой)</value>
+    <value>版本 7 (基于时间)</value>
   </data>
   <data name="UuidGenerator_FormatLabel" xml:space="preserve">
-    <value>Формат</value>
+    <value>格式</value>
   </data>
   <data name="UuidGenerator_FormatHyphenated" xml:space="preserve">
-    <value>С дефисами (8-4-4-4-12)</value>
+    <value>连字符 (8-4-4-4-12)</value>
   </data>
   <data name="UuidGenerator_FormatPlain" xml:space="preserve">
-    <value>Без дефисов</value>
+    <value>纯文本 (无连字符)</value>
   </data>
   <data name="UuidGenerator_FormatBraces" xml:space="preserve">
-    <value>Фигурные скобки {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}</value>
+    <value>大括号 {xxxxxxxx-...}</value>
   </data>
   <data name="UuidGenerator_FormatUrn" xml:space="preserve">
     <value>URN (urn:uuid:...)</value>
   </data>
   <data name="UuidGenerator_CaseLabel" xml:space="preserve">
-    <value>Регистр</value>
+    <value>大小写</value>
   </data>
   <data name="UuidGenerator_CaseUpper" xml:space="preserve">
-    <value>ВЕРХНИЙ</value>
+    <value>大写</value>
   </data>
   <data name="UuidGenerator_CaseLower" xml:space="preserve">
-    <value>нижний</value>
+    <value>小写</value>
   </data>
   <data name="UuidGenerator_CountLabel" xml:space="preserve">
-    <value>Количество UUID</value>
+    <value>数量</value>
   </data>
   <data name="UuidGenerator_Generate" xml:space="preserve">
-    <value>Генерировать</value>
+    <value>生成</value>
   </data>
   <data name="UuidGenerator_GenerateOne" xml:space="preserve">
-    <value>Сгенерировать один</value>
+    <value>生成一个</value>
   </data>
   <data name="UuidGenerator_GenerateBatch" xml:space="preserve">
-    <value>Сгенерировать пакет</value>
+    <value>批量生成</value>
   </data>
   <data name="UuidGenerator_OutputLabel" xml:space="preserve">
-    <value>Сгенерированные UUID</value>
+    <value>生成的 UUID</value>
   </data>
   <data name="UuidGenerator_OutputPlaceholder" xml:space="preserve">
-    <value>Здесь появятся ваши UUID</value>
+    <value>您的 UUID 将显示在这里</value>
   </data>
   <data name="UuidGenerator_Copy" xml:space="preserve">
-    <value>Копировать</value>
+    <value>复制</value>
   </data>
   <data name="UuidGenerator_CopyAll" xml:space="preserve">
-    <value>Копировать все</value>
+    <value>全部复制</value>
   </data>
   <data name="UuidGenerator_Download" xml:space="preserve">
-    <value>Скачать как TXT</value>
+    <value>下载为 TXT</value>
   </data>
   <data name="UuidGenerator_Clear" xml:space="preserve">
-    <value>Очистить</value>
+    <value>清除</value>
   </data>
   <data name="UuidGenerator_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>已复制！</value>
   </data>
   <data name="LoremIpsumGenerator_Title" xml:space="preserve">
-    <value>Генератор Lorem Ipsum</value>
+    <value>Lorem Ipsum 生成器</value>
   </data>
   <data name="LoremIpsumGenerator_Description" xml:space="preserve">
-    <value>Генерация текста-заполнителя для макетов и дизайнов — полностью в вашем браузере.</value>
+    <value>生成用于模型和设计的占位符文本 — 完全在您的浏览器中。</value>
   </data>
   <data name="LoremIpsumGenerator_GenerateTypeLabel" xml:space="preserve">
-    <value>Генерировать по</value>
+    <value>生成方式</value>
   </data>
   <data name="LoremIpsumGenerator_Paragraphs" xml:space="preserve">
-    <value>Абзацам</value>
+    <value>段落</value>
   </data>
   <data name="LoremIpsumGenerator_Sentences" xml:space="preserve">
-    <value>Предложениям</value>
+    <value>句子</value>
   </data>
   <data name="LoremIpsumGenerator_Words" xml:space="preserve">
-    <value>Словам</value>
+    <value>单词</value>
   </data>
   <data name="LoremIpsumGenerator_CountLabel" xml:space="preserve">
-    <value>Количество</value>
+    <value>数量</value>
   </data>
   <data name="LoremIpsumGenerator_StartWithClassic" xml:space="preserve">
-    <value>Начать с "Lorem ipsum dolor sit amet..."</value>
+    <value>以 "Lorem ipsum dolor sit amet..." 开头</value>
   </data>
   <data name="LoremIpsumGenerator_WrapParagraphs" xml:space="preserve">
-    <value>Обернуть абзацы тегами &lt;p&gt;</value>
+    <value>用 &lt;p&gt; 标签包裹段落</value>
   </data>
   <data name="LoremIpsumGenerator_GenerateButton" xml:space="preserve">
-    <value>Генерировать</value>
+    <value>生成</value>
   </data>
   <data name="LoremIpsumGenerator_OutputLabel" xml:space="preserve">
-    <value>Сгенерированный текст</value>
+    <value>生成的文本</value>
   </data>
   <data name="LoremIpsumGenerator_CopyButton" xml:space="preserve">
-    <value>Скопировать</value>
+    <value>复制</value>
   </data>
   <data name="LoremIpsumGenerator_DownloadButton" xml:space="preserve">
-    <value>Скачать как TXT</value>
+    <value>下载为 TXT</value>
   </data>
   <data name="LoremIpsumGenerator_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>已复制！</value>
   </data>
   <data name="Nav_ColorConverter" xml:space="preserve">
-    <value>Конвертер цветов</value>
+    <value>颜色转换器</value>
   </data>
   <data name="ColorConverter_Title" xml:space="preserve">
-    <value>Конвертер цветов</value>
+    <value>Color Converter</value>
   </data>
   <data name="ColorConverter_Description" xml:space="preserve">
-    <value>Конвертация цветов между форматами HEX, RGB, HSL и CMYK с палитрой цветов и оттенками — всё в вашем браузере</value>
+    <value>Convert colors between HEX, RGB, HSL, and CMYK formats with color picker and shades palette — all in your browser</value>
   </data>
   <data name="ColorConverter_ColorPicker" xml:space="preserve">
-    <value>Выбор цвета</value>
+    <value>Color Picker</value>
   </data>
   <data name="ColorConverter_InputFormat" xml:space="preserve">
-    <value>Формат ввода</value>
+    <value>Input Format</value>
   </data>
   <data name="ColorConverter_ManualInput" xml:space="preserve">
-    <value>Ручной ввод</value>
+    <value>Manual Input</value>
   </data>
   <data name="ColorConverter_InputHint" xml:space="preserve">
-    <value>Примеры: #3b82f6, rgb(59, 130, 246), hsl(217, 91%, 60%), cmyk(76%, 47%, 0%, 4%)</value>
+    <value>Examples: #3b82f6, rgb(59, 130, 246), hsl(217, 91%, 60%), cmyk(76%, 47%, 0%, 4%)</value>
   </data>
   <data name="ColorConverter_Convert" xml:space="preserve">
-    <value>Конвертировать</value>
+    <value>Convert</value>
   </data>
   <data name="ColorConverter_Clear" xml:space="preserve">
-    <value>Очистить</value>
+    <value>Clear</value>
   </data>
   <data name="ColorConverter_Copy" xml:space="preserve">
-    <value>Копировать</value>
+    <value>Copy</value>
   </data>
   <data name="ColorConverter_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>Copied!</value>
   </data>
   <data name="ColorConverter_ConvertedFormats" xml:space="preserve">
-    <value>Конвертированные форматы</value>
+    <value>Converted Formats</value>
   </data>
   <data name="ColorConverter_ShadesPalette" xml:space="preserve">
-    <value>Палитра оттенков</value>
+    <value>Shades Palette</value>
   </data>
   <data name="ColorConverter_ContrastChecker" xml:space="preserve">
-    <value>Проверка контраста</value>
+    <value>Contrast Checker</value>
   </data>
   <data name="ColorConverter_ForegroundColor" xml:space="preserve">
-    <value>Цвет текста</value>
+    <value>Foreground Color</value>
   </data>
   <data name="ColorConverter_BackgroundColor" xml:space="preserve">
-    <value>Цвет фона</value>
+    <value>Background Color</value>
   </data>
   <data name="ColorConverter_ContrastRatio" xml:space="preserve">
-    <value>Коэффициент контраста</value>
+    <value>Contrast Ratio</value>
   </data>
   <data name="ColorConverter_WCAGCompliance" xml:space="preserve">
-    <value>Соответствие WCAG</value>
+    <value>WCAG Compliance</value>
   </data>
   <data name="ColorConverter_WCAG_AA_Normal" xml:space="preserve">
-    <value>AA обычный текст (4.5:1)</value>
+    <value>AA Normal Text (4.5:1)</value>
   </data>
   <data name="ColorConverter_WCAG_AA_Large" xml:space="preserve">
-    <value>AA крупный текст (3:1)</value>
+    <value>AA Large Text (3:1)</value>
   </data>
   <data name="ColorConverter_WCAG_AAA_Normal" xml:space="preserve">
-    <value>AAA обычный текст (7:1)</value>
+    <value>AAA Normal Text (7:1)</value>
   </data>
   <data name="ColorConverter_WCAG_AAA_Large" xml:space="preserve">
-    <value>AAA крупный текст (4.5:1)</value>
+    <value>AAA Large Text (4.5:1)</value>
   </data>
   <data name="ColorConverter_Pass" xml:space="preserve">
-    <value>Пройдено</value>
+    <value>Pass</value>
   </data>
   <data name="ColorConverter_Fail" xml:space="preserve">
-    <value>Не пройдено</value>
+    <value>Fail</value>
   </data>
   <data name="ColorConverter_PreviewText" xml:space="preserve">
-    <value>Пример текста</value>
+    <value>Sample Text</value>
   </data>
   <data name="Nav_MarkdownPreview" xml:space="preserve">
-    <value>Markdown превью</value>
+    <value>Markdown 预览</value>
   </data>
   <data name="MarkdownPreview_Title" xml:space="preserve">
-    <value>Markdown превью</value>
+    <value>Markdown Preview</value>
   </data>
   <data name="MarkdownPreview_Description" xml:space="preserve">
-    <value>Живой редактор markdown с превью HTML в реальном времени, split-view и подсветкой синтаксиса — всё в вашем браузере</value>
+    <value>Live markdown editor with real-time HTML preview, split-view, and syntax highlighting — all in your browser</value>
   </data>
   <data name="MarkdownPreview_EditorLabel" xml:space="preserve">
-    <value>Редактор Markdown</value>
+    <value>Markdown Editor</value>
   </data>
   <data name="MarkdownPreview_EditorPlaceholder" xml:space="preserve">
-    <value>Введите ваш markdown здесь...</value>
+    <value>Type your markdown here...</value>
   </data>
   <data name="MarkdownPreview_PreviewLabel" xml:space="preserve">
-    <value>Превью</value>
+    <value>Preview</value>
   </data>
   <data name="MarkdownPreview_Bold" xml:space="preserve">
-    <value>Жирный</value>
+    <value>Bold</value>
   </data>
   <data name="MarkdownPreview_Italic" xml:space="preserve">
-    <value>Курсив</value>
+    <value>Italic</value>
   </data>
   <data name="MarkdownPreview_Heading" xml:space="preserve">
-    <value>Заголовок</value>
+    <value>Heading</value>
   </data>
   <data name="MarkdownPreview_Link" xml:space="preserve">
-    <value>Ссылка</value>
+    <value>Link</value>
   </data>
   <data name="MarkdownPreview_Image" xml:space="preserve">
-    <value>Изображение</value>
+    <value>Image</value>
   </data>
   <data name="MarkdownPreview_Code" xml:space="preserve">
-    <value>Код</value>
+    <value>Code</value>
   </data>
   <data name="MarkdownPreview_List" xml:space="preserve">
-    <value>Список</value>
+    <value>List</value>
   </data>
   <data name="MarkdownPreview_Clear" xml:space="preserve">
-    <value>Очистить</value>
+    <value>Clear</value>
   </data>
   <data name="MarkdownPreview_SyncScroll" xml:space="preserve">
     <value>Sync Scroll</value>
   </data>
   <data name="MarkdownPreview_CopyHTML" xml:space="preserve">
-    <value>Копировать HTML</value>
+    <value>Copy HTML</value>
   </data>
   <data name="MarkdownPreview_CopyMarkdown" xml:space="preserve">
-    <value>Копировать Markdown</value>
+    <value>Copy Markdown</value>
   </data>
   <data name="MarkdownPreview_Download" xml:space="preserve">
-    <value>Скачать HTML</value>
+    <value>Download HTML</value>
   </data>
   <data name="Nav_TextDiffViewer" xml:space="preserve">
-    <value>Просмотр различий текста</value>
+    <value>文本差异查看器</value>
   </data>
   <data name="TextDiffViewer_Title" xml:space="preserve">
-    <value>Просмотр различий текста</value>
+    <value>Text Diff Viewer</value>
   </data>
   <data name="TextDiffViewer_Description" xml:space="preserve">
-    <value>Сравните два текстовых файла или фрагмента кода с визуальным отображением различий, как в Git diff. Подсветка изменений, добавлений и удалений в удобном формате.</value>
+    <value>Compare two text files or code snippets side-by-side with a visual diff viewer, similar to Git diff. Highlight changes, additions, and deletions in a readable format.</value>
   </data>
   <data name="TextDiffViewer_OriginalLabel" xml:space="preserve">
-    <value>Исходный текст</value>
+    <value>Original Text</value>
   </data>
   <data name="TextDiffViewer_OriginalPlaceholder" xml:space="preserve">
-    <value>Вставьте или введите исходный текст здесь, или загрузите файл ниже...</value>
+    <value>Paste or type original text here, or upload a file below...</value>
   </data>
   <data name="TextDiffViewer_ModifiedLabel" xml:space="preserve">
-    <value>Измененный текст</value>
+    <value>Modified Text</value>
   </data>
   <data name="TextDiffViewer_ModifiedPlaceholder" xml:space="preserve">
-    <value>Вставьте или введите измененный текст здесь, или загрузите файл ниже...</value>
+    <value>Paste or type modified text here, or upload a file below...</value>
   </data>
   <data name="TextDiffViewer_CompareButton" xml:space="preserve">
-    <value>Сравнить</value>
+    <value>Compare</value>
   </data>
   <data name="TextDiffViewer_ClearButton" xml:space="preserve">
-    <value>Очистить</value>
+    <value>Clear</value>
   </data>
   <data name="TextDiffViewer_LineByLine" xml:space="preserve">
-    <value>Построчно</value>
+    <value>Line by Line</value>
   </data>
   <data name="TextDiffViewer_SideBySide" xml:space="preserve">
-    <value>Рядом</value>
+    <value>Side by Side</value>
   </data>
   <data name="TextDiffViewer_ErrorMessage" xml:space="preserve">
-    <value>Пожалуйста, введите текст в оба поля для сравнения.</value>
+    <value>Please enter text in both fields to compare.</value>
   </data>
   <data name="TextDiffViewer_ChooseOriginalFile" xml:space="preserve">
-    <value>📁 Выбрать исходный файл</value>
+    <value>📁 Choose original file</value>
   </data>
   <data name="TextDiffViewer_ChooseModifiedFile" xml:space="preserve">
-    <value>📁 Выбрать изменённый файл</value>
+    <value>📁 Choose modified file</value>
   </data>
   <data name="DaisyUIDemo_Title" xml:space="preserve">
-    <value>Демонстрация компонентов DaisyUI</value>
+    <value>DaisyUI Components Demo</value>
   </data>
   <data name="DaisyUIDemo_Description" xml:space="preserve">
-    <value>Тестовая страница с различными компонентами и темами DaisyUI</value>
+    <value>Test page showcasing various DaisyUI components and themes</value>
   </data>
   <data name="DaisyUIDemo_Buttons" xml:space="preserve">
-    <value>Кнопки</value>
+    <value>Buttons</value>
   </data>
   <data name="DaisyUIDemo_Forms" xml:space="preserve">
-    <value>Формы</value>
+    <value>Forms</value>
   </data>
   <data name="DaisyUIDemo_Cards" xml:space="preserve">
-    <value>Карточки</value>
+    <value>Cards</value>
   </data>
   <data name="DaisyUIDemo_Alerts" xml:space="preserve">
-    <value>Уведомления</value>
+    <value>Alerts</value>
   </data>
   <data name="DaisyUIDemo_Modals" xml:space="preserve">
-    <value>Модальные окна</value>
+    <value>Modals</value>
   </data>
   <data name="DaisyUIDemo_ThemeSelector" xml:space="preserve">
-    <value>Выбрать тему</value>
+    <value>Select Theme</value>
   </data>
   <data name="DaisyUIDemo_ClickMe" xml:space="preserve">
-    <value>Нажми меня</value>
+    <value>Click me</value>
   </data>
   <data name="DaisyUIDemo_CardTitle" xml:space="preserve">
-    <value>Заголовок карточки</value>
+    <value>Card Title</value>
   </data>
   <data name="DaisyUIDemo_CardDescription" xml:space="preserve">
-    <value>Это красивый компонент карточки DaisyUI со стилизацией Tailwind CSS.</value>
+    <value>This is a beautiful DaisyUI card component with Tailwind CSS styling.</value>
   </data>
   <data name="DaisyUIDemo_LearnMore" xml:space="preserve">
-    <value>Узнать больше</value>
+    <value>Learn More</value>
   </data>
   <data name="DaisyUIDemo_SuccessAlert" xml:space="preserve">
-    <value>Успешно! Операция завершена успешно.</value>
+    <value>Success! Your operation completed successfully.</value>
   </data>
   <data name="DaisyUIDemo_InfoAlert" xml:space="preserve">
-    <value>Информация: Это информационное сообщение.</value>
+    <value>Info: This is an informational message.</value>
   </data>
   <data name="DaisyUIDemo_WarningAlert" xml:space="preserve">
-    <value>Внимание! Пожалуйста, проверьте ввод.</value>
+    <value>Warning! Please check your input.</value>
   </data>
   <data name="DaisyUIDemo_ErrorAlert" xml:space="preserve">
-    <value>Ошибка! Что-то пошло не так.</value>
+    <value>Error! Something went wrong.</value>
   </data>
   <data name="DaisyUIDemo_OpenModal" xml:space="preserve">
-    <value>Открыть модальное окно</value>
+    <value>Open Modal</value>
   </data>
   <data name="DaisyUIDemo_ModalTitle" xml:space="preserve">
-    <value>Привет из модального окна DaisyUI!</value>
+    <value>Hello from DaisyUI Modal!</value>
   </data>
   <data name="DaisyUIDemo_ModalBody" xml:space="preserve">
-    <value>Это модальное окно, созданное с помощью компонентов DaisyUI. Нажмите ESC или кликните снаружи, чтобы закрыть.</value>
+    <value>This is a modal dialog built with DaisyUI components. Press ESC key or click outside to close.</value>
   </data>
   <data name="DaisyUIDemo_Close" xml:space="preserve">
-    <value>Закрыть</value>
+    <value>Close</value>
   </data>
   <data name="DaisyUIDemo_EmailLabel" xml:space="preserve">
     <value>Email</value>
   </data>
   <data name="DaisyUIDemo_PasswordLabel" xml:space="preserve">
-    <value>Пароль</value>
+    <value>Password</value>
   </data>
   <data name="DaisyUIDemo_Submit" xml:space="preserve">
-    <value>Отправить</value>
+    <value>Submit</value>
   </data>
   <data name="HmacCalculator_Title" xml:space="preserve">
-    <value>Калькулятор HMAC</value>
+    <value>HMAC Calculator</value>
   </data>
   <data name="HmacCalculator_Description" xml:space="preserve">
-    <value>Вычислите HMAC с SHA-256 и SHA-512 — все в вашем браузере</value>
+    <value>Generate HMAC hashes using SHA-256 and SHA-512 with custom keys and messages — all in your browser</value>
   </data>
   <data name="HmacCalculator_KeyLabel" xml:space="preserve">
-    <value>Ключ</value>
+    <value>Secret Key</value>
   </data>
   <data name="HmacCalculator_KeyPlaceholder" xml:space="preserve">
-    <value>Введите ключ HMAC (например, секретный ключ)...</value>
+    <value>Enter your secret key...</value>
   </data>
   <data name="HmacCalculator_MessageLabel" xml:space="preserve">
-    <value>Сообщение</value>
+    <value>Message</value>
   </data>
   <data name="HmacCalculator_MessagePlaceholder" xml:space="preserve">
-    <value>Введите сообщение для хеширования...</value>
+    <value>Enter message to hash...</value>
   </data>
   <data name="HmacCalculator_AlgorithmLabel" xml:space="preserve">
-    <value>Алгоритм</value>
+    <value>Algorithm</value>
   </data>
   <data name="HmacCalculator_Calculate" xml:space="preserve">
-    <value>Вычислить</value>
+    <value>Calculate HMAC</value>
   </data>
   <data name="HmacCalculator_Clear" xml:space="preserve">
-    <value>Очистить</value>
+    <value>Clear</value>
   </data>
   <data name="HmacCalculator_OutputLabel" xml:space="preserve">
-    <value>Вывод</value>
+    <value>HMAC Result</value>
   </data>
   <data name="HmacCalculator_Copy" xml:space="preserve">
-    <value>Копировать</value>
+    <value>Copy</value>
   </data>
   <data name="HmacCalculator_Copied" xml:space="preserve">
-    <value>Скопировано!</value>
+    <value>Copied!</value>
   </data>
   <data name="YamlBeautifierValidator_Title" xml:space="preserve">
-    <value>YAML Форматировщик/Валидатор</value>
+    <value>YAML Beautifier/Validator</value>
   </data>
   <data name="YamlBeautifierValidator_Description" xml:space="preserve">
-    <value>Форматируйте и проверяйте YAML с выделением ошибок</value>
+    <value>Format and validate YAML with error highlighting</value>
   </data>
   <data name="YamlBeautifierValidator_InputLabel" xml:space="preserve">
-    <value>Ввод YAML</value>
+    <value>YAML Input</value>
   </data>
   <data name="YamlBeautifierValidator_InputPlaceholder" xml:space="preserve">
-    <value>Введите содержимое YAML здесь...</value>
+    <value>Enter YAML content here...</value>
   </data>
   <data name="YamlBeautifierValidator_Format" xml:space="preserve">
-    <value>Форматировать</value>
+    <value>Format</value>
   </data>
   <data name="YamlBeautifierValidator_Validate" xml:space="preserve">
-    <value>Проверить</value>
+    <value>Validate</value>
   </data>
   <data name="YamlBeautifierValidator_Clear" xml:space="preserve">
-    <value>Очистить</value>
+    <value>Clear</value>
   </data>
   <data name="YamlBeautifierValidator_OutputLabel" xml:space="preserve">
-    <value>Вывод</value>
+    <value>Output</value>
   </data>
   <data name="YamlBeautifierValidator_Valid" xml:space="preserve">
-    <value>YAML действителен</value>
+    <value>YAML is valid</value>
   </data>
   <data name="YamlBeautifierValidator_Invalid" xml:space="preserve">
-    <value>YAML недействителен</value>
+    <value>YAML is invalid</value>
   </data>
   <data name="Category_Images" xml:space="preserve">
-    <value>Изображения</value>
+    <value>图像</value>
   </data>
   <data name="Category_ColorsAndDesign" xml:space="preserve">
-    <value>Цвета и дизайн</value>
+    <value>颜色与设计</value>
   </data>
   <data name="Category_HashingAndSecurity" xml:space="preserve">
-    <value>Хеширование и безопасность</value>
+    <value>哈希与安全</value>
   </data>
   <data name="Category_Generators" xml:space="preserve">
-    <value>Генераторы</value>
+    <value>生成器</value>
   </data>
   <data name="Category_Encoding" xml:space="preserve">
-    <value>Кодирование</value>
+    <value>编码</value>
   </data>
   <data name="Category_StructuredData" xml:space="preserve">
-    <value>Структурированные данные</value>
+    <value>结构化数据</value>
   </data>
   <data name="Category_TextTools" xml:space="preserve">
-    <value>Текстовые инструменты</value>
+    <value>文本工具</value>
   </data>
   <data name="Category_Cryptography" xml:space="preserve">
-    <value>Криптография</value>
+    <value>加密</value>
   </data>
   <data name="Category_DateTime" xml:space="preserve">
-    <value>Дата и время</value>
+    <value>日期与时间</value>
   </data>
   <data name="Category_JwtAndTokens" xml:space="preserve">
-    <value>JWT и токены</value>
+    <value>JWT 与令牌</value>
   </data>
   <data name="Category_Regex" xml:space="preserve">
-    <value>Регулярные выражения</value>
+    <value>正则表达式</value>
   </data>
   <data name="Category_QrCodes" xml:space="preserve">
-    <value>QR коды</value>
+    <value>二维码</value>
   </data>
 </root>

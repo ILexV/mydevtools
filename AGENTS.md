@@ -8,7 +8,7 @@ This document provides essential information for AI coding agents working on MyD
 - **.NET 10** with Blazor SSR (Server-Side Rendering)
 - **Rust/WebAssembly** for client-side data processing
 - **Tailwind CSS** (v4) via Vite for styling
-- **Multi-language support** (English, Russian, Spanish)
+- **Multi-language support** (English, Russian, Spanish, German, Portuguese, Chinese (Simplified), French, Japanese, Korean, Hindi)
 
 **Core Principle**: ALL user data processing happens in the browser via WASM. The server only handles SSR and static file serving.
 
@@ -76,6 +76,13 @@ npm run build
 
 # Development mode with watch
 npm run dev
+```
+
+### Running the Site (Local Development)
+
+```powershell
+# Run using the configured launch settings (Port 3311)
+dotnet run --project MyDevToolsApp/MyDevTools.Site/MyDevTools.Site.csproj
 ```
 
 ## Code Style Guidelines

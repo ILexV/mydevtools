@@ -17,7 +17,7 @@ builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
 builder.Services.AddScoped<ICryptographyInteropService, CryptographyInteropService>();
 
 // Configure supported cultures
-var supportedCultures = new[] { "en", "ru", "es" };
+var supportedCultures = new[] { "en", "ru", "es", "de", "pt", "zh", "fr", "ja", "ko", "hi" };
 var localizationOptions = new RequestLocalizationOptions
 {
     DefaultRequestCulture = new RequestCulture("en"),
@@ -70,7 +70,7 @@ public class RouteDataRequestCultureProvider : RequestCultureProvider
         if (segments.Length > 0)
         {
             var possibleCulture = segments[0];
-            var supportedCultures = new[] { "en", "ru", "es" };
+            var supportedCultures = new[] { "en", "ru", "es", "de", "pt", "zh", "fr", "ja", "ko", "hi" };
             
             if (supportedCultures.Contains(possibleCulture, StringComparer.OrdinalIgnoreCase))
             {

@@ -1,5 +1,6 @@
 @inherits LayoutComponentBase
 @using MyDevTools.Site.Resources
+@using MyDevTools.Site.Services
 
 <div class="min-h-screen flex flex-col bg-base-100">
     <!-- Navbar -->
@@ -37,6 +38,10 @@
 @code {
     [Inject]
     public NavigationManager Navigation { get; set; } = default!;
+    
+    [Inject]
+    public ILocalizationService LocalizationService { get; set; } = default!;
+
     private string CurrentLanguage { get; set; } = "en";
 
     protected override void OnInitialized()
@@ -44,7 +49,8 @@
         // Extract language from URL
         var uri = new Uri(Navigation.Uri);
         var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (segments.Length > 0 && (segments[0] == "en" || segments[0] == "ru" || segments[0] == "es"))
+        
+        if (segments.Length > 0 && LocalizationService.IsCultureSupported(segments[0]))
         {
             CurrentLanguage = segments[0];
         }

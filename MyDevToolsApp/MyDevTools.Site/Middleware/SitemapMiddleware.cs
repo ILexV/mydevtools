@@ -53,7 +53,7 @@ public class SitemapMiddleware
     {
         var baseUrl = $"https://{context.Request.Host}";
         var ns = XNamespace.Get("http://www.sitemaps.org/schemas/sitemap/0.9");
-        var supportedCultures = new[] { "en", "ru", "es" };
+        var supportedCultures = new[] { "en", "ru", "es", "de", "pt", "zh", "fr", "ja", "ko", "hi" };
 
         var root = new XElement(ns + "urlset");
 

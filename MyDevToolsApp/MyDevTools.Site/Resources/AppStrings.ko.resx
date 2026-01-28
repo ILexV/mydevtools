@@ -217,7 +217,7 @@
     <value>다운로드</value>
   </data>
   <data name="ImageConverter_TargetFormatLabel" xml:space="preserve">
-    <value>Target Format</value>
+    <value>대상 형식</value>
   </data>
   <data name="HashCalculator_AlgorithmsTitle" xml:space="preserve">
     <value>알고리즘</value>
@@ -289,19 +289,19 @@
     <value>출력</value>
   </data>
   <data name="UrlEncoder_ModeLabel" xml:space="preserve">
-    <value>Mode</value>
+    <value>모드</value>
   </data>
   <data name="UrlEncoder_Mode_Component" xml:space="preserve">
-    <value>Component (encodeURIComponent-like)</value>
+    <value>컴포넌트 (encodeURIComponent 방식)</value>
   </data>
   <data name="UrlEncoder_Mode_Uri" xml:space="preserve">
-    <value>URI (encodeURI-like)</value>
+    <value>URI (encodeURI 방식)</value>
   </data>
   <data name="UrlEncoder_Mode_Form" xml:space="preserve">
-    <value>Form (application/x-www-form-urlencoded)</value>
+    <value>폼 (application/x-www-form-urlencoded)</value>
   </data>
   <data name="UrlEncoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>텍스트 문자셋</value>
   </data>
   <data name="UrlEncoder_ActionEncode" xml:space="preserve">
     <value>인코딩</value>
@@ -322,7 +322,7 @@
     <value>복사됨!</value>
   </data>
   <data name="UrlEncoder_OtherFormats" xml:space="preserve">
-    <value>Other formats:</value>
+    <value>다른 형식:</value>
   </data>
   <data name="UrlEncoder_LinkHex" xml:space="preserve">
     <value>Hex</value>
@@ -343,7 +343,7 @@
     <value>브라우저에서 직접 텍스트 또는 파일에 대해 Hex 인코딩 및 디코딩 수행</value>
   </data>
   <data name="HexEncoder_OtherFormats" xml:space="preserve">
-    <value>Other formats:</value>
+    <value>다른 형식:</value>
   </data>
   <data name="HexEncoder_LinkUrl" xml:space="preserve">
     <value>URL</value>
@@ -364,73 +364,73 @@
     <value>텍스트(인코딩용) 또는 Hex 문자열(디코딩용) 입력...</value>
   </data>
   <data name="HexEncoder_InputFileLabel" xml:space="preserve">
-    <value>File (optional)</value>
+    <value>파일 (선택 사항)</value>
   </data>
   <data name="HexEncoder_FileHint" xml:space="preserve">
-    <value>If a file is selected, the text input is ignored.</value>
+    <value>파일을 선택하면 텍스트 입력은 무시됩니다.</value>
   </data>
   <data name="HexEncoder_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>파일 처리 중...</value>
   </data>
   <data name="HexEncoder_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>취소</value>
   </data>
   <data name="HexEncoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>텍스트 문자셋</value>
   </data>
   <data name="HexEncoder_CaseLabel" xml:space="preserve">
-    <value>Hex case</value>
+    <value>Hex 대소문자</value>
   </data>
   <data name="HexEncoder_CaseLower" xml:space="preserve">
-    <value>lowercase</value>
+    <value>소문자</value>
   </data>
   <data name="HexEncoder_CaseUpper" xml:space="preserve">
-    <value>UPPERCASE</value>
+    <value>대문자</value>
   </data>
   <data name="HexEncoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Decode options</value>
+    <value>디코딩 옵션</value>
   </data>
   <data name="HexEncoder_IgnoreWhitespace" xml:space="preserve">
-    <value>Ignore whitespace</value>
+    <value>공백 무시</value>
   </data>
   <data name="HexEncoder_AllowSeparators" xml:space="preserve">
-    <value>Allow separators (: and -)</value>
+    <value>구분자(: 및 -) 허용</value>
   </data>
   <data name="HexEncoder_Allow0x" xml:space="preserve">
-    <value>Allow 0x prefix</value>
+    <value>0x 접두사 허용</value>
   </data>
   <data name="HexEncoder_OutputModeLabel" xml:space="preserve">
-    <value>File output</value>
+    <value>파일 출력</value>
   </data>
   <data name="HexEncoder_OutputModePreview" xml:space="preserve">
-    <value>Preview in output (download full)</value>
+    <value>출력에서 미리보기 (전체 다운로드)</value>
   </data>
   <data name="HexEncoder_OutputModeFull" xml:space="preserve">
-    <value>Render full output (may be slow)</value>
+    <value>전체 출력 렌더링 (느릴 수 있음)</value>
   </data>
   <data name="HexEncoder_ActionEncode" xml:space="preserve">
-    <value>Encode</value>
+    <value>인코딩</value>
   </data>
   <data name="HexEncoder_ActionDecode" xml:space="preserve">
-    <value>Decode</value>
+    <value>디코딩</value>
   </data>
   <data name="HexEncoder_ActionSwap" xml:space="preserve">
-    <value>Swap</value>
+    <value>교체</value>
   </data>
   <data name="HexEncoder_ActionClear" xml:space="preserve">
-    <value>Clear</value>
+    <value>지우기</value>
   </data>
   <data name="HexEncoder_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>출력</value>
   </data>
   <data name="HexEncoder_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>복사</value>
   </data>
   <data name="HexEncoder_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>복사됨!</value>
   </data>
   <data name="HexEncoder_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>다운로드</value>
   </data>
   <data name="Base64Encoder_Title" xml:space="preserve">
     <value>Base64 인코더 / 디코더</value>
@@ -439,7 +439,7 @@
     <value>브라우저에서 직접 텍스트 및 파일에 대해 Base64 인코딩 및 디코딩 수행</value>
   </data>
   <data name="Base64Encoder_OtherFormats" xml:space="preserve">
-    <value>Other formats:</value>
+    <value>다른 형식:</value>
   </data>
   <data name="Base64Encoder_LinkHex" xml:space="preserve">
     <value>Hex</value>
@@ -457,103 +457,103 @@
     <value>입력 (텍스트)</value>
   </data>
   <data name="Base64Encoder_InputTextPlaceholder" xml:space="preserve">
-    <value>Enter text or Base64...</value>
+    <value>텍스트 또는 Base64 입력...</value>
   </data>
   <data name="Base64Encoder_InputFileLabel" xml:space="preserve">
-    <value>Input file</value>
+    <value>입력 파일</value>
   </data>
   <data name="Base64Encoder_FileHint" xml:space="preserve">
-    <value>If a file is selected, it will be used instead of the text input.</value>
+    <value>파일을 선택하면 텍스트 입력 대신 사용됩니다.</value>
   </data>
   <data name="Base64Encoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>텍스트 문자셋</value>
   </data>
   <data name="Base64Encoder_AlphabetLabel" xml:space="preserve">
-    <value>Alphabet</value>
+    <value>알파벳</value>
   </data>
   <data name="Base64Encoder_AlphabetStandard" xml:space="preserve">
-    <value>Standard (+/)</value>
+    <value>표준 (+/)</value>
   </data>
   <data name="Base64Encoder_AlphabetUrlSafe" xml:space="preserve">
-    <value>URL-safe (-_)</value>
+    <value>URL 안전 (-_)</value>
   </data>
   <data name="Base64Encoder_PaddingLabel" xml:space="preserve">
-    <value>Padding</value>
+    <value>패딩</value>
   </data>
   <data name="Base64Encoder_PaddingRequired" xml:space="preserve">
-    <value>Required</value>
+    <value>필수</value>
   </data>
   <data name="Base64Encoder_PaddingOptional" xml:space="preserve">
-    <value>Optional</value>
+    <value>선택 사항</value>
   </data>
   <data name="Base64Encoder_PaddingNone" xml:space="preserve">
-    <value>No padding</value>
+    <value>패딩 없음</value>
   </data>
   <data name="Base64Encoder_LineWrapLabel" xml:space="preserve">
-    <value>Line wrap</value>
+    <value>줄 바꿈</value>
   </data>
   <data name="Base64Encoder_LineWrapNone" xml:space="preserve">
-    <value>None</value>
+    <value>없음</value>
   </data>
   <data name="Base64Encoder_LineWrap76" xml:space="preserve">
-    <value>76 chars</value>
+    <value>76자</value>
   </data>
   <data name="Base64Encoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Decode options</value>
+    <value>디코딩 옵션</value>
   </data>
   <data name="Base64Encoder_AllowWhitespace" xml:space="preserve">
-    <value>Allow whitespace/newlines</value>
+    <value>공백/개행 허용</value>
   </data>
   <data name="Base64Encoder_OutputModeLabel" xml:space="preserve">
-    <value>File output</value>
+    <value>파일 출력</value>
   </data>
   <data name="Base64Encoder_OutputModePreview" xml:space="preserve">
-    <value>Preview in output (download full)</value>
+    <value>출력에서 미리보기 (전체 다운로드)</value>
   </data>
   <data name="Base64Encoder_OutputModeFull" xml:space="preserve">
-    <value>Render full output (may be slow)</value>
+    <value>전체 출력 렌더링 (느릴 수 있음)</value>
   </data>
   <data name="Base64Encoder_ActionEncode" xml:space="preserve">
-    <value>Encode</value>
+    <value>인코딩</value>
   </data>
   <data name="Base64Encoder_ActionDecode" xml:space="preserve">
-    <value>Decode</value>
+    <value>디코딩</value>
   </data>
   <data name="Base64Encoder_ActionSwap" xml:space="preserve">
-    <value>Swap</value>
+    <value>교체</value>
   </data>
   <data name="Base64Encoder_ActionClear" xml:space="preserve">
-    <value>Clear</value>
+    <value>지우기</value>
   </data>
   <data name="Base64Encoder_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>출력</value>
   </data>
   <data name="Base64Encoder_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>복사</value>
   </data>
   <data name="Base64Encoder_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>복사됨!</value>
   </data>
   <data name="Base64Encoder_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>다운로드</value>
   </data>
   <data name="Base64Encoder_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>파일 처리 중...</value>
   </data>
   <data name="Base64Encoder_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>취소</value>
   </data>
   <data name="Nav_Base32Encoder" xml:space="preserve">
     <value>Base32 인코더</value>
   </data>
   <data name="Base32Encoder_Title" xml:space="preserve">
-    <value>Base32 Encoder / Decoder</value>
+    <value>Base32 인코더 / 디코더</value>
   </data>
   <data name="Base32Encoder_Description" xml:space="preserve">
-    <value>Encode and decode Base32 for text and files — all in your browser.</value>
+    <value>텍스트 및 파일에 대한 Base32 인코딩 및 디코딩 — 모두 브라우저에서</value>
   </data>
   <data name="Base32Encoder_OtherFormats" xml:space="preserve">
-    <value>Other formats:</value>
+    <value>다른 형식:</value>
   </data>
   <data name="Base32Encoder_LinkHex" xml:space="preserve">
     <value>Hex</value>
@@ -568,22 +568,22 @@
     <value>URL</value>
   </data>
   <data name="Base32Encoder_InputTextLabel" xml:space="preserve">
-    <value>Input (text)</value>
+    <value>입력 (텍스트)</value>
   </data>
   <data name="Base32Encoder_InputTextPlaceholder" xml:space="preserve">
-    <value>Enter text or Base32...</value>
+    <value>텍스트 또는 Base32 입력...</value>
   </data>
   <data name="Base32Encoder_InputFileLabel" xml:space="preserve">
-    <value>Input file</value>
+    <value>입력 파일</value>
   </data>
   <data name="Base32Encoder_FileHint" xml:space="preserve">
-    <value>If a file is selected, it will be used instead of the text input.</value>
+    <value>파일을 선택하면 텍스트 입력 대신 사용됩니다.</value>
   </data>
   <data name="Base32Encoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>텍스트 문자셋</value>
   </data>
   <data name="Base32Encoder_AlphabetLabel" xml:space="preserve">
-    <value>Alphabet</value>
+    <value>알파벳</value>
   </data>
   <data name="Base32Encoder_AlphabetRfc4648" xml:space="preserve">
     <value>RFC 4648 (A-Z2-7)</value>
@@ -595,85 +595,85 @@
     <value>z-base-32</value>
   </data>
   <data name="Base32Encoder_PaddingLabel" xml:space="preserve">
-    <value>Padding</value>
+    <value>패딩</value>
   </data>
   <data name="Base32Encoder_PaddingRequired" xml:space="preserve">
-    <value>Required</value>
+    <value>필수</value>
   </data>
   <data name="Base32Encoder_PaddingOptional" xml:space="preserve">
-    <value>Optional</value>
+    <value>선택 사항</value>
   </data>
   <data name="Base32Encoder_PaddingNone" xml:space="preserve">
-    <value>No padding</value>
+    <value>패딩 없음</value>
   </data>
   <data name="Base32Encoder_CaseLabel" xml:space="preserve">
-    <value>Letter case</value>
+    <value>문자 대소문자</value>
   </data>
   <data name="Base32Encoder_CaseAuto" xml:space="preserve">
-    <value>Auto</value>
+    <value>자동</value>
   </data>
   <data name="Base32Encoder_CaseUpper" xml:space="preserve">
-    <value>Uppercase</value>
+    <value>대문자</value>
   </data>
   <data name="Base32Encoder_CaseLower" xml:space="preserve">
-    <value>Lowercase</value>
+    <value>소문자</value>
   </data>
   <data name="Base32Encoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Decode options</value>
+    <value>디코딩 옵션</value>
   </data>
   <data name="Base32Encoder_AllowWhitespace" xml:space="preserve">
-    <value>Allow whitespace/newlines</value>
+    <value>공백/개행 허용</value>
   </data>
   <data name="Base32Encoder_OutputModeLabel" xml:space="preserve">
-    <value>File output</value>
+    <value>파일 출력</value>
   </data>
   <data name="Base32Encoder_OutputModePreview" xml:space="preserve">
-    <value>Preview in output (download full)</value>
+    <value>출력에서 미리보기 (전체 다운로드)</value>
   </data>
   <data name="Base32Encoder_OutputModeFull" xml:space="preserve">
-    <value>Render full output (may be slow)</value>
+    <value>전체 출력 렌더링 (느릴 수 있음)</value>
   </data>
   <data name="Base32Encoder_ActionEncode" xml:space="preserve">
-    <value>Encode</value>
+    <value>인코딩</value>
   </data>
   <data name="Base32Encoder_ActionDecode" xml:space="preserve">
-    <value>Decode</value>
+    <value>디코딩</value>
   </data>
   <data name="Base32Encoder_ActionSwap" xml:space="preserve">
-    <value>Swap</value>
+    <value>교체</value>
   </data>
   <data name="Base32Encoder_ActionClear" xml:space="preserve">
-    <value>Clear</value>
+    <value>지우기</value>
   </data>
   <data name="Base32Encoder_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>출력</value>
   </data>
   <data name="Base32Encoder_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>복사</value>
   </data>
   <data name="Base32Encoder_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>복사됨!</value>
   </data>
   <data name="Base32Encoder_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>다운로드</value>
   </data>
   <data name="Base32Encoder_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>파일 처리 중...</value>
   </data>
   <data name="Base32Encoder_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>취소</value>
   </data>
   <data name="Nav_Base58Encoder" xml:space="preserve">
     <value>Base58 인코더</value>
   </data>
   <data name="Base58Encoder_Title" xml:space="preserve">
-    <value>Base58 Encoder / Decoder</value>
+    <value>Base58 인코더 / 디코더</value>
   </data>
   <data name="Base58Encoder_Description" xml:space="preserve">
-    <value>Encode and decode Base58 for text and files — all in your browser.</value>
+    <value>텍스트 및 파일에 대한 Base58 인코딩 및 디코딩 — 모두 브라우저에서</value>
   </data>
   <data name="Base58Encoder_OtherFormats" xml:space="preserve">
-    <value>Other formats:</value>
+    <value>다른 형식:</value>
   </data>
   <data name="Base58Encoder_LinkHex" xml:space="preserve">
     <value>Hex</value>
@@ -688,22 +688,22 @@
     <value>URL</value>
   </data>
   <data name="Base58Encoder_InputTextLabel" xml:space="preserve">
-    <value>Input (text)</value>
+    <value>입력 (텍스트)</value>
   </data>
   <data name="Base58Encoder_InputTextPlaceholder" xml:space="preserve">
-    <value>Enter text or Base58...</value>
+    <value>텍스트 또는 Base58 입력...</value>
   </data>
   <data name="Base58Encoder_InputFileLabel" xml:space="preserve">
-    <value>Input file</value>
+    <value>입력 파일</value>
   </data>
   <data name="Base58Encoder_FileHint" xml:space="preserve">
-    <value>If a file is selected, it will be used instead of the text input.</value>
+    <value>파일을 선택하면 텍스트 입력 대신 사용됩니다.</value>
   </data>
   <data name="Base58Encoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>텍스트 문자셋</value>
   </data>
   <data name="Base58Encoder_AlphabetLabel" xml:space="preserve">
-    <value>Alphabet</value>
+    <value>알파벳</value>
   </data>
   <data name="Base58Encoder_AlphabetBitcoin" xml:space="preserve">
     <value>Bitcoin (Base58)</value>
@@ -715,223 +715,223 @@
     <value>Ripple</value>
   </data>
   <data name="Base58Encoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Decode options</value>
+    <value>디코딩 옵션</value>
   </data>
   <data name="Base58Encoder_AllowWhitespace" xml:space="preserve">
-    <value>Allow whitespace/newlines</value>
+    <value>공백/개행 허용</value>
   </data>
   <data name="Base58Encoder_OutputModeLabel" xml:space="preserve">
-    <value>File output</value>
+    <value>파일 출력</value>
   </data>
   <data name="Base58Encoder_OutputModePreview" xml:space="preserve">
-    <value>Preview in output (download full)</value>
+    <value>출력에서 미리보기 (전체 다운로드)</value>
   </data>
   <data name="Base58Encoder_OutputModeFull" xml:space="preserve">
-    <value>Render full output (may be slow)</value>
+    <value>전체 출력 렌더링 (느릴 수 있음)</value>
   </data>
   <data name="Base58Encoder_ActionEncode" xml:space="preserve">
-    <value>Encode</value>
+    <value>인코딩</value>
   </data>
   <data name="Base58Encoder_ActionDecode" xml:space="preserve">
-    <value>Decode</value>
+    <value>디코딩</value>
   </data>
   <data name="Base58Encoder_ActionSwap" xml:space="preserve">
-    <value>Swap</value>
+    <value>교체</value>
   </data>
   <data name="Base58Encoder_ActionClear" xml:space="preserve">
-    <value>Clear</value>
+    <value>지우기</value>
   </data>
   <data name="Base58Encoder_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>출력</value>
   </data>
   <data name="Base58Encoder_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>복사</value>
   </data>
   <data name="Base58Encoder_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>복사됨!</value>
   </data>
   <data name="Base58Encoder_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>다운로드</value>
   </data>
   <data name="Base58Encoder_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>파일 처리 중...</value>
   </data>
   <data name="Base58Encoder_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>취소</value>
   </data>
   <data name="Base58Encoder_FileSizeLimitEncode" xml:space="preserve">
-    <value>Base58 encoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.</value>
+    <value>Base58 인코딩은 알고리즘 복잡도로 인해 {0}로 제한됩니다. 파일 크기는 {1}입니다. 더 큰 파일의 경우 Base64 또는 Hex 인코딩을 사용하세요.</value>
   </data>
   <data name="Base58Encoder_FileSizeLimitDecode" xml:space="preserve">
-    <value>Base58 decoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.</value>
+    <value>Base58 디코딩은 알고리즘 복잡도로 인해 {0}로 제한됩니다. 파일 크기는 {1}입니다. 더 큰 파일의 경우 Base64 또는 Hex 인코딩을 사용하세요.</value>
   </data>
   <data name="OpenSsh_Title" xml:space="preserve">
-    <value>OpenSSH Keys</value>
+    <value>OpenSSH 키</value>
   </data>
   <data name="OpenSsh_Description" xml:space="preserve">
-    <value>Generate, import, and convert OpenSSH keys in your browser.</value>
+    <value>브라우저에서 OpenSSH 키 생성, 가져오기 및 변환</value>
   </data>
   <data name="OpenSsh_GenerateSectionTitle" xml:space="preserve">
-    <value>Generate</value>
+    <value>생성</value>
   </data>
   <data name="OpenSsh_AlgorithmLabel" xml:space="preserve">
-    <value>Algorithm</value>
+    <value>알고리즘</value>
   </data>
   <data name="OpenSsh_KeySizeLabel" xml:space="preserve">
-    <value>Key size</value>
+    <value>키 크기</value>
   </data>
   <data name="OpenSsh_PassphraseLabel" xml:space="preserve">
-    <value>Passphrase (optional)</value>
+    <value>암호문 (선택 사항)</value>
   </data>
   <data name="OpenSsh_GenerateButton" xml:space="preserve">
-    <value>Generate keys</value>
+    <value>키 생성</value>
   </data>
   <data name="OpenSsh_ImportSectionTitle" xml:space="preserve">
-    <value>Import</value>
+    <value>가져오기</value>
   </data>
   <data name="OpenSsh_ImportLabel" xml:space="preserve">
-    <value>Paste OpenSSH or PKCS#8 key</value>
+    <value>OpenSSH 또는 PKCS#8 키 붙여넣기</value>
   </data>
   <data name="OpenSsh_ImportPlaceholder" xml:space="preserve">
-    <value>Paste OpenSSH public/private key or PKCS#8 PEM here...</value>
+    <value>OpenSSH 공개/개인 키 또는 PKCS#8 PEM을 여기에 붙여넣으세요...</value>
   </data>
   <data name="OpenSsh_ImportFileLabel" xml:space="preserve">
-    <value>Key file</value>
+    <value>키 파일</value>
   </data>
   <data name="OpenSsh_ImportFileHint" xml:space="preserve">
-    <value>Supports OpenSSH public/private and PKCS#8 PEM files.</value>
+    <value>OpenSSH 공개/개인 키 및 PKCS#8 PEM 파일을 지원합니다.</value>
   </data>
   <data name="OpenSsh_ImportButton" xml:space="preserve">
-    <value>Import</value>
+    <value>가져오기</value>
   </data>
   <data name="OpenSsh_ConvertSectionTitle" xml:space="preserve">
-    <value>Convert</value>
+    <value>변환</value>
   </data>
   <data name="OpenSsh_ConvertButton" xml:space="preserve">
-    <value>Convert</value>
+    <value>변환</value>
   </data>
   <data name="OpenSsh_PublicKeyLabel" xml:space="preserve">
-    <value>Public key</value>
+    <value>공개 키</value>
   </data>
   <data name="OpenSsh_PrivateKeyLabel" xml:space="preserve">
-    <value>Private key</value>
+    <value>개인 키</value>
   </data>
   <data name="OpenSsh_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>복사</value>
   </data>
   <data name="OpenSsh_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>복사됨!</value>
   </data>
   <data name="OpenSsh_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>다운로드</value>
   </data>
   <data name="OpenSsh_WarningsTitle" xml:space="preserve">
-    <value>Warnings</value>
+    <value>경고</value>
   </data>
   <data name="X509_Title" xml:space="preserve">
-    <value>X.509 Certificates</value>
+    <value>X.509 인증서</value>
   </data>
   <data name="X509_Description" xml:space="preserve">
-    <value>Create self-signed certificates, CSRs, and parse PEM/DER.</value>
+    <value>자체 서명 인증서 생성, CSR 생성 및 PEM/DER 파싱</value>
   </data>
   <data name="X509_SelfSignedSectionTitle" xml:space="preserve">
-    <value>Self-signed</value>
+    <value>자체 서명</value>
   </data>
   <data name="X509_SubjectLabel" xml:space="preserve">
-    <value>Subject (CN)</value>
+    <value>주체 (CN)</value>
   </data>
   <data name="X509_ValidityDaysLabel" xml:space="preserve">
-    <value>Validity (days)</value>
+    <value>유효 기간 (일)</value>
   </data>
   <data name="X509_GenerateSelfSigned" xml:space="preserve">
-    <value>Generate certificate</value>
+    <value>인증서 생성</value>
   </data>
   <data name="X509_CsrSectionTitle" xml:space="preserve">
     <value>CSR</value>
   </data>
   <data name="X509_GenerateCsr" xml:space="preserve">
-    <value>Generate CSR</value>
+    <value>CSR 생성</value>
   </data>
   <data name="X509_ParseSectionTitle" xml:space="preserve">
-    <value>Parse</value>
+    <value>파싱</value>
   </data>
   <data name="X509_ParseLabel" xml:space="preserve">
-    <value>Paste PEM/DER</value>
+    <value>PEM/DER 붙여넣기</value>
   </data>
   <data name="X509_ParsePlaceholder" xml:space="preserve">
-    <value>Paste certificate, CSR, or key (PEM/DER) here...</value>
+    <value>인증서, CSR 또는 키(PEM/DER)를 여기에 붙여넣으세요...</value>
   </data>
   <data name="X509_ParseButton" xml:space="preserve">
-    <value>Parse</value>
+    <value>파싱</value>
   </data>
   <data name="X509_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>출력</value>
   </data>
   <data name="X509_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>복사</value>
   </data>
   <data name="X509_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>복사됨!</value>
   </data>
   <data name="X509_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>다운로드</value>
   </data>
   <data name="X509_WarningsTitle" xml:space="preserve">
-    <value>Warnings</value>
+    <value>경고</value>
   </data>
   <data name="Aead_Title" xml:space="preserve">
-    <value>AEAD File Encrypt/Decrypt</value>
+    <value>AEAD 파일 암호화/복호화</value>
   </data>
   <data name="Aead_Description" xml:space="preserve">
-    <value>Encrypt and decrypt files locally with AEAD.</value>
+    <value>AEAD로 로컬에서 파일 암호화 및 복호화</value>
   </data>
   <data name="Aead_EncryptSectionTitle" xml:space="preserve">
-    <value>Encrypt</value>
+    <value>암호화</value>
   </data>
   <data name="Aead_DecryptSectionTitle" xml:space="preserve">
-    <value>Decrypt</value>
+    <value>복호화</value>
   </data>
   <data name="Aead_FileLabel" xml:space="preserve">
-    <value>File</value>
+    <value>파일</value>
   </data>
   <data name="Aead_FileHint" xml:space="preserve">
-    <value>Large files are processed in chunks in the browser.</value>
+    <value>대용량 파일은 브라우저에서 청크 단위로 처리됩니다.</value>
   </data>
   <data name="Aead_AlgorithmLabel" xml:space="preserve">
-    <value>Algorithm</value>
+    <value>알고리즘</value>
   </data>
   <data name="Aead_PasswordLabel" xml:space="preserve">
-    <value>Password</value>
+    <value>비밀번호</value>
   </data>
   <data name="Aead_EncryptButton" xml:space="preserve">
-    <value>Encrypt file</value>
+    <value>파일 암호화</value>
   </data>
   <data name="Aead_DecryptButton" xml:space="preserve">
-    <value>Decrypt file</value>
+    <value>파일 복호화</value>
   </data>
   <data name="Aead_HeaderLabel" xml:space="preserve">
-    <value>Header</value>
+    <value>헤더</value>
   </data>
   <data name="Aead_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>출력</value>
   </data>
   <data name="Aead_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>복사</value>
   </data>
   <data name="Aead_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>복사됨!</value>
   </data>
   <data name="Aead_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>다운로드</value>
   </data>
   <data name="Aead_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>파일 처리 중...</value>
   </data>
   <data name="Aead_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>취소</value>
   </data>
   <data name="Aead_WarningsTitle" xml:space="preserve">
-    <value>Warnings</value>
+    <value>경고</value>
   </data>
   <data name="Nav_JsonBeautifier" xml:space="preserve">
     <value>JSON 포맷터</value>
@@ -946,7 +946,7 @@
     <value>입력 JSON</value>
   </data>
   <data name="JsonBeautifier_InputPlaceholder" xml:space="preserve">
-    <value>Paste your JSON here...</value>
+    <value>JSON을 여기에 붙여넣으세요...</value>
   </data>
   <data name="JsonBeautifier_FormatButton" xml:space="preserve">
     <value>포맷</value>
@@ -958,82 +958,82 @@
     <value>복사</value>
   </data>
   <data name="JsonBeautifier_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>복사됨!</value>
   </data>
   <data name="JsonBeautifier_ErrorInvalidJson" xml:space="preserve">
-    <value>Invalid JSON. Please check your input.</value>
+    <value>잘못된 JSON입니다. 입력을 확인하세요.</value>
   </data>
   <data name="JsonBeautifier_IndentSizeLabel" xml:space="preserve">
-    <value>Indent size</value>
+    <value>들여쓰기 크기</value>
   </data>
   <data name="JsonBeautifier_Indent2Spaces" xml:space="preserve">
-    <value>2 spaces</value>
+    <value>2칸 공백</value>
   </data>
   <data name="JsonBeautifier_Indent4Spaces" xml:space="preserve">
-    <value>4 spaces</value>
+    <value>4칸 공백</value>
   </data>
   <data name="JsonBeautifier_IndentTab" xml:space="preserve">
-    <value>Tab</value>
+    <value>탭</value>
   </data>
   <data name="JsonBeautifier_SortKeys" xml:space="preserve">
-    <value>Sort keys</value>
+    <value>키 정렬</value>
   </data>
   <data name="JsonBeautifier_CompactMode" xml:space="preserve">
-    <value>Compact mode (minify)</value>
+    <value>압축 모드 (최소화)</value>
   </data>
   <data name="JsonBeautifier_OutputLabel" xml:space="preserve">
     <value>포맷된 JSON</value>
   </data>
   <data name="JsonBeautifier_LineNumbers" xml:space="preserve">
-    <value>Show line numbers</value>
+    <value>줄 번호 표시</value>
   </data>
   <data name="JsonBeautifier_Collapsible" xml:space="preserve">
-    <value>Collapsible blocks</value>
+    <value>접을 수 있는 블록</value>
   </data>
   <data name="Nav_XmlBeautifier" xml:space="preserve">
     <value>XML 포맷터</value>
   </data>
   <data name="XmlBeautifier_Title" xml:space="preserve">
-    <value>XML Beautifier</value>
+    <value>XML 포맷터</value>
   </data>
   <data name="XmlBeautifier_Description" xml:space="preserve">
-    <value>Format and beautify XML with customizable indentation — all in your browser</value>
+    <value>사용자 정의 가능한 들여쓰기로 XML 포맷 및 정리 — 모두 브라우저에서</value>
   </data>
   <data name="XmlBeautifier_InputLabel" xml:space="preserve">
-    <value>Input XML</value>
+    <value>입력 XML</value>
   </data>
   <data name="XmlBeautifier_InputPlaceholder" xml:space="preserve">
-    <value>Paste your XML here...</value>
+    <value>XML을 여기에 붙여넣으세요...</value>
   </data>
   <data name="XmlBeautifier_FormatButton" xml:space="preserve">
-    <value>Format</value>
+    <value>포맷</value>
   </data>
   <data name="XmlBeautifier_ClearButton" xml:space="preserve">
-    <value>Clear</value>
+    <value>지우기</value>
   </data>
   <data name="XmlBeautifier_CopyButton" xml:space="preserve">
-    <value>Copy</value>
+    <value>복사</value>
   </data>
   <data name="XmlBeautifier_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>복사됨!</value>
   </data>
   <data name="XmlBeautifier_ErrorInvalidXml" xml:space="preserve">
-    <value>Invalid XML. Please check your input.</value>
+    <value>잘못된 XML입니다. 입력을 확인하세요.</value>
   </data>
   <data name="XmlBeautifier_IndentSizeLabel" xml:space="preserve">
-    <value>Indent size</value>
+    <value>들여쓰기 크기</value>
   </data>
   <data name="XmlBeautifier_Indent2Spaces" xml:space="preserve">
-    <value>2 spaces</value>
+    <value>2칸 공백</value>
   </data>
   <data name="XmlBeautifier_Indent4Spaces" xml:space="preserve">
-    <value>4 spaces</value>
+    <value>4칸 공백</value>
   </data>
   <data name="XmlBeautifier_IndentTab" xml:space="preserve">
-    <value>Tab</value>
+    <value>탭</value>
   </data>
   <data name="XmlBeautifier_CompactMode" xml:space="preserve">
-    <value>Compact mode (minify)</value>
+    <value>압축 모드 (최소화)</value>
   </data>
   <data name="Nav_PasswordGenerator" xml:space="preserve">
     <value>비밀번호 생성기</value>
@@ -1045,22 +1045,22 @@
     <value>브라우저에서 안전한 임의의 비밀번호를 생성합니다.</value>
   </data>
   <data name="PasswordGenerator_LengthLabel" xml:space="preserve">
-    <value>Password Length</value>
+    <value>비밀번호 길이</value>
   </data>
   <data name="PasswordGenerator_UppercaseLabel" xml:space="preserve">
-    <value>Uppercase (A-Z)</value>
+    <value>대문자 (A-Z)</value>
   </data>
   <data name="PasswordGenerator_LowercaseLabel" xml:space="preserve">
-    <value>Lowercase (a-z)</value>
+    <value>소문자 (a-z)</value>
   </data>
   <data name="PasswordGenerator_NumbersLabel" xml:space="preserve">
-    <value>Numbers (0-9)</value>
+    <value>숫자 (0-9)</value>
   </data>
   <data name="PasswordGenerator_SpecialLabel" xml:space="preserve">
-    <value>Special Characters</value>
+    <value>특수 문자</value>
   </data>
   <data name="PasswordGenerator_CustomSpecialLabel" xml:space="preserve">
-    <value>Custom Symbols</value>
+    <value>사용자 정의 기호</value>
   </data>
   <data name="PasswordGenerator_GenerateButton" xml:space="preserve">
     <value>비밀번호 생성</value>
@@ -1069,61 +1069,61 @@
     <value>복사</value>
   </data>
   <data name="PasswordGenerator_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>복사됨!</value>
   </data>
   <data name="PasswordGenerator_ResultLabel" xml:space="preserve">
     <value>생성된 비밀번호</value>
   </data>
   <data name="PasswordGenerator_HistoryLabel" xml:space="preserve">
-    <value>History (last 10)</value>
+    <value>기록 (최근 10개)</value>
   </data>
   <data name="PasswordGenerator_ClearHistory" xml:space="preserve">
-    <value>Clear History</value>
+    <value>기록 지우기</value>
   </data>
   <data name="TextCaseConverter_AlternatingCase" xml:space="preserve">
-    <value>Alternating Case</value>
+    <value>교차 대소문자</value>
   </data>
   <data name="TextCaseConverter_CamelCase" xml:space="preserve">
-    <value>Camel Case</value>
+    <value>카멜 케이스</value>
   </data>
   <data name="TextCaseConverter_ClearButton" xml:space="preserve">
-    <value>Clear</value>
+    <value>지우기</value>
   </data>
   <data name="TextCaseConverter_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>복사됨!</value>
   </data>
   <data name="TextCaseConverter_CopyButton" xml:space="preserve">
-    <value>Copy</value>
+    <value>복사</value>
   </data>
   <data name="TextCaseConverter_Description" xml:space="preserve">
-    <value>Convert text between different letter cases: upper, lower, title, camel, snake, and more.</value>
+    <value>텍스트를 다양한 대소문자 형식으로 변환: 대문자, 소문자, 제목 케이스, 카멜 케이스, 스네이크 케이스 등</value>
   </data>
   <data name="TextCaseConverter_InputPlaceholder" xml:space="preserve">
-    <value>Type or paste your text here...</value>
+    <value>텍스트를 입력하거나 붙여넣으세요...</value>
   </data>
   <data name="TextCaseConverter_InverseCase" xml:space="preserve">
-    <value>Inverse Case</value>
+    <value>반전 대소문자</value>
   </data>
   <data name="TextCaseConverter_KebabCase" xml:space="preserve">
-    <value>Kebab Case</value>
+    <value>케밥 케이스</value>
   </data>
   <data name="TextCaseConverter_LowerCase" xml:space="preserve">
-    <value>lower case</value>
+    <value>소문자</value>
   </data>
   <data name="TextCaseConverter_SentenceCase" xml:space="preserve">
-    <value>Sentence case</value>
+    <value>문장 케이스</value>
   </data>
   <data name="TextCaseConverter_SnakeCase" xml:space="preserve">
-    <value>Snake Case</value>
+    <value>스네이크 케이스</value>
   </data>
   <data name="TextCaseConverter_Title" xml:space="preserve">
-    <value>Text Case Converter</value>
+    <value>텍스트 대소문자 변환기</value>
   </data>
   <data name="TextCaseConverter_TitleCase" xml:space="preserve">
-    <value>Title Case</value>
+    <value>제목 케이스</value>
   </data>
   <data name="TextCaseConverter_UpperCase" xml:space="preserve">
-    <value>UPPER CASE</value>
+    <value>대문자</value>
   </data>
   <data name="DateConverter_Title" xml:space="preserve">
     <value>날짜 변환기</value>
@@ -1141,25 +1141,25 @@
     <value>변환</value>
   </data>
   <data name="DateConverter_ActionCurrentTime" xml:space="preserve">
-    <value>Current Time (Now)</value>
+    <value>현재 시간 (지금)</value>
   </data>
   <data name="DateConverter_InputTypeLabel" xml:space="preserve">
-    <value>Input Type</value>
+    <value>입력 유형</value>
   </data>
   <data name="DateConverter_InputType_Auto" xml:space="preserve">
-    <value>Auto-detect</value>
+    <value>자동 감지</value>
   </data>
   <data name="DateConverter_InputType_UnixSec" xml:space="preserve">
-    <value>Unix Timestamp (Seconds)</value>
+    <value>Unix 타임스탬프 (초)</value>
   </data>
   <data name="DateConverter_InputType_UnixMs" xml:space="preserve">
-    <value>Unix Timestamp (Milliseconds)</value>
+    <value>Unix 타임스탬프 (밀리초)</value>
   </data>
   <data name="DateConverter_InputType_ISO" xml:space="preserve">
-    <value>ISO 8601 String</value>
+    <value>ISO 8601 문자열</value>
   </data>
   <data name="DateConverter_OutputFormatLabel" xml:space="preserve">
-    <value>Output Format</value>
+    <value>출력 형식</value>
   </data>
   <data name="DateConverter_Format_ISO" xml:space="preserve">
     <value>ISO 8601</value>
@@ -1168,208 +1168,208 @@
     <value>RFC 2822 / 5322</value>
   </data>
   <data name="DateConverter_Format_UnixSec" xml:space="preserve">
-    <value>Unix Timestamp (Seconds)</value>
+    <value>Unix 타임스탬프 (초)</value>
   </data>
   <data name="DateConverter_Format_UnixMs" xml:space="preserve">
-    <value>Unix Timestamp (Milliseconds)</value>
+    <value>Unix 타임스탬프 (밀리초)</value>
   </data>
   <data name="DateConverter_Format_UTC" xml:space="preserve">
-    <value>UTC String</value>
+    <value>UTC 문자열</value>
   </data>
   <data name="DateConverter_Format_Local" xml:space="preserve">
-    <value>Local String</value>
+    <value>로컬 문자열</value>
   </data>
   <data name="DateConverter_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>복사</value>
   </data>
   <data name="DateConverter_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>복사됨!</value>
   </data>
   <data name="DateConverter_Error_Invalid" xml:space="preserve">
-    <value>Invalid date format.</value>
+    <value>잘못된 날짜 형식입니다.</value>
   </data>
   <data name="DateConverter_Format_European" xml:space="preserve">
-    <value>European (dd.MM.yyyy HH:mm:ss)</value>
+    <value>유럽식 (dd.MM.yyyy HH:mm:ss)</value>
   </data>
   <data name="DateConverter_Format_Custom" xml:space="preserve">
-    <value>Custom Format</value>
+    <value>사용자 정의 형식</value>
   </data>
   <data name="DateConverter_CustomFormatPlaceholder" xml:space="preserve">
-    <value>Enter format (e.g. dd/MM/yyyy)</value>
+    <value>형식 입력 (예: dd/MM/yyyy)</value>
   </data>
   <data name="JwtDecoder_Title" xml:space="preserve">
-    <value>JWT Decoder</value>
+    <value>JWT 디코더</value>
   </data>
   <data name="JwtDecoder_Description" xml:space="preserve">
-    <value>Decode and verify JSON Web Tokens (JWT) directly in your browser.</value>
+    <value>브라우저에서 직접 JSON Web Tokens (JWT) 디코딩 및 검증</value>
   </data>
   <data name="JwtDecoder_EncodedLabel" xml:space="preserve">
-    <value>Encoded</value>
+    <value>인코딩됨</value>
   </data>
   <data name="JwtDecoder_EncodedPlaceholder" xml:space="preserve">
-    <value>Paste a JWT here...</value>
+    <value>JWT를 여기에 붙여넣으세요...</value>
   </data>
   <data name="JwtDecoder_DecodedHeaderLabel" xml:space="preserve">
-    <value>Header</value>
+    <value>헤더</value>
   </data>
   <data name="JwtDecoder_DecodedPayloadLabel" xml:space="preserve">
-    <value>Payload</value>
+    <value>페이로드</value>
   </data>
   <data name="JwtDecoder_SignatureLabel" xml:space="preserve">
-    <value>Verify Signature</value>
+    <value>서명 검증</value>
   </data>
   <data name="JwtDecoder_SecretLabel" xml:space="preserve">
-    <value>Secret / Public Key</value>
+    <value>시크릿 / 공개 키</value>
   </data>
   <data name="JwtDecoder_SecretPlaceholder" xml:space="preserve">
-    <value>Enter your 256-bit secret...</value>
+    <value>256비트 시크릿 입력...</value>
   </data>
   <data name="JwtDecoder_SignatureVerified" xml:space="preserve">
-    <value>Signature Verified</value>
+    <value>서명 검증됨</value>
   </data>
   <data name="JwtDecoder_SignatureInvalid" xml:space="preserve">
-    <value>Invalid Signature</value>
+    <value>잘못된 서명</value>
   </data>
   <data name="JwtEncoder_Title" xml:space="preserve">
-    <value>JWT Encoder</value>
+    <value>JWT 인코더</value>
   </data>
   <data name="JwtEncoder_Description" xml:space="preserve">
-    <value>Generate and sign JSON Web Tokens (JWT) directly in your browser.</value>
+    <value>브라우저에서 직접 JSON Web Tokens (JWT) 생성 및 서명</value>
   </data>
   <data name="JwtEncoder_HeaderLabel" xml:space="preserve">
-    <value>Header (JSON)</value>
+    <value>헤더 (JSON)</value>
   </data>
   <data name="JwtEncoder_PayloadLabel" xml:space="preserve">
-    <value>Payload (JSON)</value>
+    <value>페이로드 (JSON)</value>
   </data>
   <data name="JwtEncoder_SecretLabel" xml:space="preserve">
-    <value>Secret / Private Key</value>
+    <value>시크릿 / 개인 키</value>
   </data>
   <data name="JwtEncoder_SecretPlaceholder" xml:space="preserve">
-    <value>Enter your secret key...</value>
+    <value>시크릿 키 입력...</value>
   </data>
   <data name="JwtEncoder_EncodedLabel" xml:space="preserve">
-    <value>Generated JWT</value>
+    <value>생성된 JWT</value>
   </data>
   <data name="JwtEncoder_AlgorithmLabel" xml:space="preserve">
-    <value>Algorithm</value>
+    <value>알고리즘</value>
   </data>
   <data name="JwtEncoder_GenerateButton" xml:space="preserve">
-    <value>Generate JWT</value>
+    <value>JWT 생성</value>
   </data>
   <data name="JwtDecoder_LinkToEncoder" xml:space="preserve">
-    <value>Need to generate a JWT? Try the JWT Encoder</value>
+    <value>JWT를 생성해야 하나요? JWT 인코더를 사용해보세요</value>
   </data>
   <data name="JwtEncoder_LinkToDecoder" xml:space="preserve">
-    <value>Need to decode a JWT? Try the JWT Decoder</value>
+    <value>JWT를 디코딩해야 하나요? JWT 디코더를 사용해보세요</value>
   </data>
   <data name="ImageConverter_Title" xml:space="preserve">
-    <value>Image Converter</value>
+    <value>이미지 변환기</value>
   </data>
   <data name="ImageConverter_Description" xml:space="preserve">
-    <value>Convert images between formats (PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA) securely in your browser.</value>
+    <value>브라우저에서 안전하게 이미지를 형식(PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA) 간 변환</value>
   </data>
   <data name="ImageConverter_SelectFormat" xml:space="preserve">
-    <value>Select output format</value>
+    <value>출력 형식 선택</value>
   </data>
   <data name="ImageConverter_Convert" xml:space="preserve">
-    <value>Convert</value>
+    <value>변환</value>
   </data>
   <data name="ImageConverter_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>다운로드</value>
   </data>
   <data name="ImageConverter_DragDrop" xml:space="preserve">
-    <value>Drag &amp; drop an image here or click to select</value>
+    <value>이미지를 여기로 드래그 앤 드롭하거나 클릭하여 선택</value>
   </data>
   <data name="ImageConverter_Processing" xml:space="preserve">
-    <value>Processing...</value>
+    <value>처리 중...</value>
   </data>
   <data name="ImageConverter_Quality" xml:space="preserve">
-    <value>Quality (JPEG, WebP)</value>
+    <value>품질 (JPEG, WebP)</value>
   </data>
   <data name="ImageConverter_OutputSize" xml:space="preserve">
-    <value>Output Size:</value>
+    <value>출력 크기:</value>
   </data>
   <data name="ImageCompressor_Title" xml:space="preserve">
-    <value>Image Compressor</value>
+    <value>이미지 압축기</value>
   </data>
   <data name="ImageCompressor_Description" xml:space="preserve">
-    <value>Compress JPG, PNG, and WebP images locally in your browser.</value>
+    <value>브라우저에서 로컬로 JPG, PNG, WebP 이미지 압축</value>
   </data>
   <data name="ImageCompressor_Compressing" xml:space="preserve">
-    <value>Compressing...</value>
+    <value>압축 중...</value>
   </data>
   <data name="ImageCompressor_Processing" xml:space="preserve">
-    <value>Processing...</value>
+    <value>처리 중...</value>
   </data>
   <data name="ImageCompressor_Done" xml:space="preserve">
-    <value>Done!</value>
+    <value>완료!</value>
   </data>
   <data name="ImageCompressor_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>다운로드</value>
   </data>
   <data name="ImageCompressor_DragDrop" xml:space="preserve">
-    <value>Drop images here or click to select files</value>
+    <value>이미지를 여기로 드롭하거나 클릭하여 파일 선택</value>
   </data>
   <data name="ImageResizer_Title" xml:space="preserve">
-    <value>Image Resizer</value>
+    <value>이미지 크기 조정기</value>
   </data>
   <data name="ImageResizer_Description" xml:space="preserve">
-    <value>Resize images with custom dimensions and aspect ratio locking.</value>
+    <value>사용자 정의 치수와 종횡비 잠금으로 이미지 크기 조정</value>
   </data>
   <data name="ImageResizer_OriginalInfo" xml:space="preserve">
-    <value>Original Image</value>
+    <value>원본 이미지</value>
   </data>
   <data name="ImageResizer_Width" xml:space="preserve">
-    <value>Width (px)</value>
+    <value>너비 (픽셀)</value>
   </data>
   <data name="ImageResizer_Height" xml:space="preserve">
-    <value>Height (px)</value>
+    <value>높이 (픽셀)</value>
   </data>
   <data name="ImageResizer_LockAspectRatio" xml:space="preserve">
-    <value>Maintain Aspect Ratio</value>
+    <value>종횡비 유지</value>
   </data>
   <data name="ImageResizer_Resize" xml:space="preserve">
-    <value>Resize</value>
+    <value>크기 조정</value>
   </data>
   <data name="ImageResizer_Resizing" xml:space="preserve">
-    <value>Resizing...</value>
+    <value>크기 조정 중...</value>
   </data>
   <data name="RegexTester_Title" xml:space="preserve">
-    <value>Regex Tester</value>
+    <value>정규식 테스터</value>
   </data>
   <data name="RegexTester_Description" xml:space="preserve">
-    <value>Test and debug regular expressions using the Rust regex engine (WASM) — all in your browser</value>
+    <value>Rust 정규식 엔진(WASM)을 사용하여 정규식 테스트 및 디버깅 — 모두 브라우저에서</value>
   </data>
   <data name="RegexTester_PatternLabel" xml:space="preserve">
-    <value>Pattern</value>
+    <value>패턴</value>
   </data>
   <data name="RegexTester_PatternPlaceholder" xml:space="preserve">
-    <value>Enter regex pattern...</value>
+    <value>정규식 패턴 입력...</value>
   </data>
   <data name="RegexTester_TextLabel" xml:space="preserve">
-    <value>Test String</value>
+    <value>테스트 문자열</value>
   </data>
   <data name="RegexTester_TextPlaceholder" xml:space="preserve">
-    <value>Enter text to match against...</value>
+    <value>테스트할 텍스트 입력...</value>
   </data>
   <data name="RegexTester_FlagsLabel" xml:space="preserve">
-    <value>Flags</value>
+    <value>플래그</value>
   </data>
   <data name="RegexTester_MatchesLabel" xml:space="preserve">
-    <value>Matches</value>
+    <value>일치 항목</value>
   </data>
   <data name="RegexTester_NoMatches" xml:space="preserve">
-    <value>No matches found</value>
+    <value>일치하는 항목이 없습니다</value>
   </data>
   <data name="RegexTester_ErrorTitle" xml:space="preserve">
-    <value>Regex Error</value>
+    <value>정규식 오류</value>
   </data>
   <data name="RegexTester_ExamplesTitle" xml:space="preserve">
-    <value>Examples</value>
+    <value>예제</value>
   </data>
   <data name="RegexTester_Instructions" xml:space="preserve">
-    <value>Enter a Rust-flavor regular expression and test string below. Matches will be highlighted.</value>
+    <value>Rust 스타일 정규식과 테스트 문자열을 아래에 입력하세요. 일치하는 항목이 강조 표시됩니다.</value>
   </data>
   <data name="QrCodeGenerator_Title" xml:space="preserve">
     <value>QR 코드 생성기</value>
@@ -1381,76 +1381,76 @@
     <value>내용</value>
   </data>
   <data name="QrCodeGenerator_ContentPlaceholder" xml:space="preserve">
-    <value>Enter text or URL to encode...</value>
+    <value>인코딩할 텍스트 또는 URL 입력...</value>
   </data>
   <data name="QrCodeGenerator_ColorsSection" xml:space="preserve">
-    <value>Colors</value>
+    <value>색상</value>
   </data>
   <data name="QrCodeGenerator_ForegroundColor" xml:space="preserve">
-    <value>QR Code Color</value>
+    <value>QR 코드 색상</value>
   </data>
   <data name="QrCodeGenerator_BackgroundColor" xml:space="preserve">
-    <value>Background Color</value>
+    <value>배경색</value>
   </data>
   <data name="QrCodeGenerator_OptionsSection" xml:space="preserve">
-    <value>Options</value>
+    <value>옵션</value>
   </data>
   <data name="QrCodeGenerator_StyleLabel" xml:space="preserve">
-    <value>Style</value>
+    <value>스타일</value>
   </data>
   <data name="QrCodeGenerator_StyleSquare" xml:space="preserve">
-    <value>Square</value>
+    <value>사각형</value>
   </data>
   <data name="QrCodeGenerator_StyleDots" xml:space="preserve">
-    <value>Dots</value>
+    <value>점</value>
   </data>
   <data name="QrCodeGenerator_StyleRounded" xml:space="preserve">
-    <value>Rounded</value>
+    <value>둥근 모서리</value>
   </data>
   <data name="QrCodeGenerator_ErrorCorrectionLabel" xml:space="preserve">
-    <value>Error Correction Level</value>
+    <value>오류 정정 수준</value>
   </data>
   <data name="QrCodeGenerator_SizeLabel" xml:space="preserve">
-    <value>Image Size</value>
+    <value>이미지 크기</value>
   </data>
   <data name="QrCodeGenerator_LogoSection" xml:space="preserve">
-    <value>Logo (optional)</value>
+    <value>로고 (선택 사항)</value>
   </data>
   <data name="QrCodeGenerator_LogoHint" xml:space="preserve">
-    <value>Add a logo to the center of your QR code. Use high error correction (Q or H) for best results.</value>
+    <value>QR 코드 중앙에 로고를 추가하세요. 최상의 결과를 위해 높은 오류 정정(Q 또는 H)을 사용하세요.</value>
   </data>
   <data name="QrCodeGenerator_LogoDropText" xml:space="preserve">
-    <value>Drop logo here or click to select</value>
+    <value>로고를 여기로 드롭하거나 클릭하여 선택</value>
   </data>
   <data name="QrCodeGenerator_LogoRemove" xml:space="preserve">
-    <value>Remove logo</value>
+    <value>로고 제거</value>
   </data>
   <data name="QrCodeGenerator_Generate" xml:space="preserve">
     <value>QR 코드 생성</value>
   </data>
   <data name="QrCodeGenerator_Generating" xml:space="preserve">
-    <value>Generating...</value>
+    <value>생성 중...</value>
   </data>
   <data name="QrCodeGenerator_PreviewSection" xml:space="preserve">
-    <value>Preview</value>
+    <value>미리보기</value>
   </data>
   <data name="QrCodeGenerator_PreviewPlaceholder" xml:space="preserve">
-    <value>Your QR code will appear here</value>
+    <value>QR 코드가 여기에 표시됩니다</value>
   </data>
   <data name="QrScanner_Title" xml:space="preserve">
-    <value>QR Code Scanner</value>
+    <value>QR 코드 스캐너</value>
   </data>
   <data name="QrScanner_Description" xml:space="preserve">
-    <value>Scan QR codes from images directly in your browser without uploading to any server.</value>
+    <value>서버에 업로드하지 않고 브라우저에서 직접 이미지에서 QR 코드 스캔</value>
   </data>
   <data name="QrScanner_DropZone" xml:space="preserve">
-    <value>Drag &amp; drop an image with a QR code here</value>
+    <value>QR 코드가 있는 이미지를 여기로 드래그 앤 드롭</value>
   </data>
   <data name="QrScanner_ResultLabel" xml:space="preserve">
-    <value>Scanned Content</value>
+    <value>스캔된 내용</value>
   </data>
   <data name="QrScanner_ErrorReading" xml:space="preserve">
-    <value>Error reading text from the image.</value>
+    <value>이미지에서 텍스트를 읽는 중 오류가 발생했습니다.</value>
   </data>
   <data name="Nav_QrScanner" xml:space="preserve">
     <value>QR 코드 스캐너</value>
@@ -1465,49 +1465,49 @@
     <value>UUID v4 및 v7 식별자를 생성합니다.</value>
   </data>
   <data name="UuidGenerator_VersionLabel" xml:space="preserve">
-    <value>UUID Version</value>
+    <value>UUID 버전</value>
   </data>
   <data name="UuidGenerator_Version4" xml:space="preserve">
-    <value>Version 4 (Random)</value>
+    <value>버전 4 (무작위)</value>
   </data>
   <data name="UuidGenerator_Version7" xml:space="preserve">
-    <value>Version 7 (Timestamp-based)</value>
+    <value>버전 7 (타임스탬프 기반)</value>
   </data>
   <data name="UuidGenerator_FormatLabel" xml:space="preserve">
-    <value>Format</value>
+    <value>형식</value>
   </data>
   <data name="UuidGenerator_FormatHyphenated" xml:space="preserve">
-    <value>Hyphenated (8-4-4-4-12)</value>
+    <value>하이픈 포함 (8-4-4-4-12)</value>
   </data>
   <data name="UuidGenerator_FormatPlain" xml:space="preserve">
-    <value>Plain (no hyphens)</value>
+    <value>일반 (하이픈 없음)</value>
   </data>
   <data name="UuidGenerator_FormatBraces" xml:space="preserve">
-    <value>Braces {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}</value>
+    <value>중괄호 {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}</value>
   </data>
   <data name="UuidGenerator_FormatUrn" xml:space="preserve">
     <value>URN (urn:uuid:...)</value>
   </data>
   <data name="UuidGenerator_CaseLabel" xml:space="preserve">
-    <value>Case</value>
+    <value>대소문자</value>
   </data>
   <data name="UuidGenerator_CaseUpper" xml:space="preserve">
-    <value>UPPERCASE</value>
+    <value>대문자</value>
   </data>
   <data name="UuidGenerator_CaseLower" xml:space="preserve">
-    <value>lowercase</value>
+    <value>소문자</value>
   </data>
   <data name="UuidGenerator_CountLabel" xml:space="preserve">
-    <value>Number of UUIDs</value>
+    <value>UUID 개수</value>
   </data>
   <data name="UuidGenerator_Generate" xml:space="preserve">
     <value>생성</value>
   </data>
   <data name="UuidGenerator_GenerateOne" xml:space="preserve">
-    <value>Generate One</value>
+    <value>하나 생성</value>
   </data>
   <data name="UuidGenerator_GenerateBatch" xml:space="preserve">
-    <value>Generate Batch</value>
+    <value>일괄 생성</value>
   </data>
   <data name="UuidGenerator_OutputLabel" xml:space="preserve">
     <value>생성된 UUID</value>
@@ -1576,307 +1576,307 @@
     <value>색상 변환기</value>
   </data>
   <data name="ColorConverter_Title" xml:space="preserve">
-    <value>Color Converter</value>
+    <value>색상 변환기</value>
   </data>
   <data name="ColorConverter_Description" xml:space="preserve">
-    <value>Convert colors between HEX, RGB, HSL, and CMYK formats with color picker and shades palette — all in your browser</value>
+    <value>색상 선택기와 색조 팔레트를 사용하여 HEX, RGB, HSL, CMYK 형식 간 색상 변환 — 모두 브라우저에서</value>
   </data>
   <data name="ColorConverter_ColorPicker" xml:space="preserve">
-    <value>Color Picker</value>
+    <value>색상 선택기</value>
   </data>
   <data name="ColorConverter_InputFormat" xml:space="preserve">
-    <value>Input Format</value>
+    <value>입력 형식</value>
   </data>
   <data name="ColorConverter_ManualInput" xml:space="preserve">
-    <value>Manual Input</value>
+    <value>수동 입력</value>
   </data>
   <data name="ColorConverter_InputHint" xml:space="preserve">
-    <value>Examples: #3b82f6, rgb(59, 130, 246), hsl(217, 91%, 60%), cmyk(76%, 47%, 0%, 4%)</value>
+    <value>예시: #3b82f6, rgb(59, 130, 246), hsl(217, 91%, 60%), cmyk(76%, 47%, 0%, 4%)</value>
   </data>
   <data name="ColorConverter_Convert" xml:space="preserve">
-    <value>Convert</value>
+    <value>변환</value>
   </data>
   <data name="ColorConverter_Clear" xml:space="preserve">
-    <value>Clear</value>
+    <value>지우기</value>
   </data>
   <data name="ColorConverter_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>복사</value>
   </data>
   <data name="ColorConverter_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>복사됨!</value>
   </data>
   <data name="ColorConverter_ConvertedFormats" xml:space="preserve">
-    <value>Converted Formats</value>
+    <value>변환된 형식</value>
   </data>
   <data name="ColorConverter_ShadesPalette" xml:space="preserve">
-    <value>Shades Palette</value>
+    <value>색조 팔레트</value>
   </data>
   <data name="ColorConverter_ContrastChecker" xml:space="preserve">
-    <value>Contrast Checker</value>
+    <value>대비 검사기</value>
   </data>
   <data name="ColorConverter_ForegroundColor" xml:space="preserve">
-    <value>Foreground Color</value>
+    <value>전경색</value>
   </data>
   <data name="ColorConverter_BackgroundColor" xml:space="preserve">
-    <value>Background Color</value>
+    <value>배경색</value>
   </data>
   <data name="ColorConverter_ContrastRatio" xml:space="preserve">
-    <value>Contrast Ratio</value>
+    <value>대비 비율</value>
   </data>
   <data name="ColorConverter_WCAGCompliance" xml:space="preserve">
-    <value>WCAG Compliance</value>
+    <value>WCAG 준수</value>
   </data>
   <data name="ColorConverter_WCAG_AA_Normal" xml:space="preserve">
-    <value>AA Normal Text (4.5:1)</value>
+    <value>AA 일반 텍스트 (4.5:1)</value>
   </data>
   <data name="ColorConverter_WCAG_AA_Large" xml:space="preserve">
-    <value>AA Large Text (3:1)</value>
+    <value>AA 큰 텍스트 (3:1)</value>
   </data>
   <data name="ColorConverter_WCAG_AAA_Normal" xml:space="preserve">
-    <value>AAA Normal Text (7:1)</value>
+    <value>AAA 일반 텍스트 (7:1)</value>
   </data>
   <data name="ColorConverter_WCAG_AAA_Large" xml:space="preserve">
-    <value>AAA Large Text (4.5:1)</value>
+    <value>AAA 큰 텍스트 (4.5:1)</value>
   </data>
   <data name="ColorConverter_Pass" xml:space="preserve">
-    <value>Pass</value>
+    <value>통과</value>
   </data>
   <data name="ColorConverter_Fail" xml:space="preserve">
-    <value>Fail</value>
+    <value>실패</value>
   </data>
   <data name="ColorConverter_PreviewText" xml:space="preserve">
-    <value>Sample Text</value>
+    <value>예시 텍스트</value>
   </data>
   <data name="Nav_MarkdownPreview" xml:space="preserve">
     <value>마크다운 미리보기</value>
   </data>
   <data name="MarkdownPreview_Title" xml:space="preserve">
-    <value>Markdown Preview</value>
+    <value>마크다운 미리보기</value>
   </data>
   <data name="MarkdownPreview_Description" xml:space="preserve">
-    <value>Live markdown editor with real-time HTML preview, split-view, and syntax highlighting — all in your browser</value>
+    <value>실시간 HTML 미리보기, 분할 보기 및 구문 강조 기능을 갖춘 라이브 마크다운 에디터 — 모두 브라우저에서</value>
   </data>
   <data name="MarkdownPreview_EditorLabel" xml:space="preserve">
-    <value>Markdown Editor</value>
+    <value>마크다운 에디터</value>
   </data>
   <data name="MarkdownPreview_EditorPlaceholder" xml:space="preserve">
-    <value>Type your markdown here...</value>
+    <value>마크다운을 여기에 입력하세요...</value>
   </data>
   <data name="MarkdownPreview_PreviewLabel" xml:space="preserve">
-    <value>Preview</value>
+    <value>미리보기</value>
   </data>
   <data name="MarkdownPreview_Bold" xml:space="preserve">
-    <value>Bold</value>
+    <value>굵게</value>
   </data>
   <data name="MarkdownPreview_Italic" xml:space="preserve">
-    <value>Italic</value>
+    <value>기울임</value>
   </data>
   <data name="MarkdownPreview_Heading" xml:space="preserve">
-    <value>Heading</value>
+    <value>제목</value>
   </data>
   <data name="MarkdownPreview_Link" xml:space="preserve">
-    <value>Link</value>
+    <value>링크</value>
   </data>
   <data name="MarkdownPreview_Image" xml:space="preserve">
-    <value>Image</value>
+    <value>이미지</value>
   </data>
   <data name="MarkdownPreview_Code" xml:space="preserve">
-    <value>Code</value>
+    <value>코드</value>
   </data>
   <data name="MarkdownPreview_List" xml:space="preserve">
-    <value>List</value>
+    <value>목록</value>
   </data>
   <data name="MarkdownPreview_Clear" xml:space="preserve">
-    <value>Clear</value>
+    <value>지우기</value>
   </data>
   <data name="MarkdownPreview_SyncScroll" xml:space="preserve">
-    <value>Sync Scroll</value>
+    <value>스크롤 동기화</value>
   </data>
   <data name="MarkdownPreview_CopyHTML" xml:space="preserve">
-    <value>Copy HTML</value>
+    <value>HTML 복사</value>
   </data>
   <data name="MarkdownPreview_CopyMarkdown" xml:space="preserve">
-    <value>Copy Markdown</value>
+    <value>마크다운 복사</value>
   </data>
   <data name="MarkdownPreview_Download" xml:space="preserve">
-    <value>Download HTML</value>
+    <value>HTML 다운로드</value>
   </data>
   <data name="Nav_TextDiffViewer" xml:space="preserve">
     <value>텍스트 차이 뷰어</value>
   </data>
   <data name="TextDiffViewer_Title" xml:space="preserve">
-    <value>Text Diff Viewer</value>
+    <value>텍스트 차이 뷰어</value>
   </data>
   <data name="TextDiffViewer_Description" xml:space="preserve">
-    <value>Compare two text files or code snippets side-by-side with a visual diff viewer, similar to Git diff. Highlight changes, additions, and deletions in a readable format.</value>
+    <value>Git diff와 유사한 시각적 차이 뷰어로 두 텍스트 파일 또는 코드 조각을 나란히 비교하세요. 읽기 쉬운 형식으로 변경, 추가 및 삭제 사항을 강조 표시합니다.</value>
   </data>
   <data name="TextDiffViewer_OriginalLabel" xml:space="preserve">
-    <value>Original Text</value>
+    <value>원본 텍스트</value>
   </data>
   <data name="TextDiffViewer_OriginalPlaceholder" xml:space="preserve">
-    <value>Paste or type original text here, or upload a file below...</value>
+    <value>원본 텍스트를 붙여넣거나 입력하거나 아래에서 파일 업로드...</value>
   </data>
   <data name="TextDiffViewer_ModifiedLabel" xml:space="preserve">
-    <value>Modified Text</value>
+    <value>수정된 텍스트</value>
   </data>
   <data name="TextDiffViewer_ModifiedPlaceholder" xml:space="preserve">
-    <value>Paste or type modified text here, or upload a file below...</value>
+    <value>수정된 텍스트를 붙여넣거나 입력하거나 아래에서 파일 업로드...</value>
   </data>
   <data name="TextDiffViewer_CompareButton" xml:space="preserve">
-    <value>Compare</value>
+    <value>비교</value>
   </data>
   <data name="TextDiffViewer_ClearButton" xml:space="preserve">
-    <value>Clear</value>
+    <value>지우기</value>
   </data>
   <data name="TextDiffViewer_LineByLine" xml:space="preserve">
-    <value>Line by Line</value>
+    <value>줄 단위</value>
   </data>
   <data name="TextDiffViewer_SideBySide" xml:space="preserve">
-    <value>Side by Side</value>
+    <value>나란히</value>
   </data>
   <data name="TextDiffViewer_ErrorMessage" xml:space="preserve">
-    <value>Please enter text in both fields to compare.</value>
+    <value>비교하려면 두 필드 모두에 텍스트를 입력하세요.</value>
   </data>
   <data name="TextDiffViewer_ChooseOriginalFile" xml:space="preserve">
-    <value>📁 Choose original file</value>
+    <value>📁 원본 파일 선택</value>
   </data>
   <data name="TextDiffViewer_ChooseModifiedFile" xml:space="preserve">
-    <value>📁 Choose modified file</value>
+    <value>📁 수정된 파일 선택</value>
   </data>
   <data name="DaisyUIDemo_Title" xml:space="preserve">
-    <value>DaisyUI Components Demo</value>
+    <value>DaisyUI 컴포넌트 데모</value>
   </data>
   <data name="DaisyUIDemo_Description" xml:space="preserve">
-    <value>Test page showcasing various DaisyUI components and themes</value>
+    <value>다양한 DaisyUI 컴포넌트와 테마를 보여주는 테스트 페이지</value>
   </data>
   <data name="DaisyUIDemo_Buttons" xml:space="preserve">
-    <value>Buttons</value>
+    <value>버튼</value>
   </data>
   <data name="DaisyUIDemo_Forms" xml:space="preserve">
-    <value>Forms</value>
+    <value>폼</value>
   </data>
   <data name="DaisyUIDemo_Cards" xml:space="preserve">
-    <value>Cards</value>
+    <value>카드</value>
   </data>
   <data name="DaisyUIDemo_Alerts" xml:space="preserve">
-    <value>Alerts</value>
+    <value>알림</value>
   </data>
   <data name="DaisyUIDemo_Modals" xml:space="preserve">
-    <value>Modals</value>
+    <value>모달</value>
   </data>
   <data name="DaisyUIDemo_ThemeSelector" xml:space="preserve">
-    <value>Select Theme</value>
+    <value>테마 선택</value>
   </data>
   <data name="DaisyUIDemo_ClickMe" xml:space="preserve">
-    <value>Click me</value>
+    <value>클릭하세요</value>
   </data>
   <data name="DaisyUIDemo_CardTitle" xml:space="preserve">
-    <value>Card Title</value>
+    <value>카드 제목</value>
   </data>
   <data name="DaisyUIDemo_CardDescription" xml:space="preserve">
-    <value>This is a beautiful DaisyUI card component with Tailwind CSS styling.</value>
+    <value>Tailwind CSS 스타일링이 적용된 아름다운 DaisyUI 카드 컴포넌트입니다.</value>
   </data>
   <data name="DaisyUIDemo_LearnMore" xml:space="preserve">
-    <value>Learn More</value>
+    <value>더 알아보기</value>
   </data>
   <data name="DaisyUIDemo_SuccessAlert" xml:space="preserve">
-    <value>Success! Your operation completed successfully.</value>
+    <value>성공! 작업이 완료되었습니다.</value>
   </data>
   <data name="DaisyUIDemo_InfoAlert" xml:space="preserve">
-    <value>Info: This is an informational message.</value>
+    <value>정보: 이는 정보 메시지입니다.</value>
   </data>
   <data name="DaisyUIDemo_WarningAlert" xml:space="preserve">
-    <value>Warning! Please check your input.</value>
+    <value>경고! 입력을 확인하세요.</value>
   </data>
   <data name="DaisyUIDemo_ErrorAlert" xml:space="preserve">
-    <value>Error! Something went wrong.</value>
+    <value>오류! 문제가 발생했습니다.</value>
   </data>
   <data name="DaisyUIDemo_OpenModal" xml:space="preserve">
-    <value>Open Modal</value>
+    <value>모달 열기</value>
   </data>
   <data name="DaisyUIDemo_ModalTitle" xml:space="preserve">
-    <value>Hello from DaisyUI Modal!</value>
+    <value>DaisyUI 모달입니다!</value>
   </data>
   <data name="DaisyUIDemo_ModalBody" xml:space="preserve">
-    <value>This is a modal dialog built with DaisyUI components. Press ESC key or click outside to close.</value>
+    <value>이는 DaisyUI 컴포넌트로 빌드된 모달 대화상자입니다. ESC 키를 누르거나 외부를 클릭하여 닫으세요.</value>
   </data>
   <data name="DaisyUIDemo_Close" xml:space="preserve">
-    <value>Close</value>
+    <value>닫기</value>
   </data>
   <data name="DaisyUIDemo_EmailLabel" xml:space="preserve">
-    <value>Email</value>
+    <value>이메일</value>
   </data>
   <data name="DaisyUIDemo_PasswordLabel" xml:space="preserve">
-    <value>Password</value>
+    <value>비밀번호</value>
   </data>
   <data name="DaisyUIDemo_Submit" xml:space="preserve">
-    <value>Submit</value>
+    <value>제출</value>
   </data>
   <data name="HmacCalculator_Title" xml:space="preserve">
-    <value>HMAC Calculator</value>
+    <value>HMAC 계산기</value>
   </data>
   <data name="HmacCalculator_Description" xml:space="preserve">
-    <value>Generate HMAC hashes using SHA-256 and SHA-512 with custom keys and messages — all in your browser</value>
+    <value>사용자 정의 키와 메시지를 사용하여 SHA-256 및 SHA-512로 HMAC 해시 생성 — 모두 브라우저에서</value>
   </data>
   <data name="HmacCalculator_KeyLabel" xml:space="preserve">
-    <value>Secret Key</value>
+    <value>시크릿 키</value>
   </data>
   <data name="HmacCalculator_KeyPlaceholder" xml:space="preserve">
-    <value>Enter your secret key...</value>
+    <value>시크릿 키 입력...</value>
   </data>
   <data name="HmacCalculator_MessageLabel" xml:space="preserve">
-    <value>Message</value>
+    <value>메시지</value>
   </data>
   <data name="HmacCalculator_MessagePlaceholder" xml:space="preserve">
-    <value>Enter message to hash...</value>
+    <value>해시할 메시지 입력...</value>
   </data>
   <data name="HmacCalculator_AlgorithmLabel" xml:space="preserve">
-    <value>Algorithm</value>
+    <value>알고리즘</value>
   </data>
   <data name="HmacCalculator_Calculate" xml:space="preserve">
-    <value>Calculate HMAC</value>
+    <value>HMAC 계산</value>
   </data>
   <data name="HmacCalculator_Clear" xml:space="preserve">
-    <value>Clear</value>
+    <value>지우기</value>
   </data>
   <data name="HmacCalculator_OutputLabel" xml:space="preserve">
-    <value>HMAC Result</value>
+    <value>HMAC 결과</value>
   </data>
   <data name="HmacCalculator_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>복사</value>
   </data>
   <data name="HmacCalculator_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>복사됨!</value>
   </data>
   <data name="YamlBeautifierValidator_Title" xml:space="preserve">
-    <value>YAML Beautifier/Validator</value>
+    <value>YAML 포맷터/검증기</value>
   </data>
   <data name="YamlBeautifierValidator_Description" xml:space="preserve">
-    <value>Format and validate YAML with error highlighting</value>
+    <value>오류 강조 표시 기능으로 YAML 포맷 및 검증</value>
   </data>
   <data name="YamlBeautifierValidator_InputLabel" xml:space="preserve">
-    <value>YAML Input</value>
+    <value>YAML 입력</value>
   </data>
   <data name="YamlBeautifierValidator_InputPlaceholder" xml:space="preserve">
-    <value>Enter YAML content here...</value>
+    <value>YAML 내용을 여기에 입력하세요...</value>
   </data>
   <data name="YamlBeautifierValidator_Format" xml:space="preserve">
-    <value>Format</value>
+    <value>포맷</value>
   </data>
   <data name="YamlBeautifierValidator_Validate" xml:space="preserve">
-    <value>Validate</value>
+    <value>검증</value>
   </data>
   <data name="YamlBeautifierValidator_Clear" xml:space="preserve">
-    <value>Clear</value>
+    <value>지우기</value>
   </data>
   <data name="YamlBeautifierValidator_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>출력</value>
   </data>
   <data name="YamlBeautifierValidator_Valid" xml:space="preserve">
-    <value>YAML is valid</value>
+    <value>YAML이 유효합니다</value>
   </data>
   <data name="YamlBeautifierValidator_Invalid" xml:space="preserve">
-    <value>YAML is invalid</value>
+    <value>YAML이 유효하지 않습니다</value>
   </data>
   <data name="Category_Images" xml:space="preserve">
     <value>이미지</value>

@@ -217,7 +217,7 @@
     <value>डाउनलोड</value>
   </data>
   <data name="ImageConverter_TargetFormatLabel" xml:space="preserve">
-    <value>Target Format</value>
+    <value>लक्ष्य प्रारूप</value>
   </data>
   <data name="HashCalculator_AlgorithmsTitle" xml:space="preserve">
     <value>एल्गोरिदम</value>
@@ -289,19 +289,19 @@
     <value>आउटपुट</value>
   </data>
   <data name="UrlEncoder_ModeLabel" xml:space="preserve">
-    <value>Mode</value>
+    <value>मोड</value>
   </data>
   <data name="UrlEncoder_Mode_Component" xml:space="preserve">
-    <value>Component (encodeURIComponent-like)</value>
+    <value>घटक (encodeURIComponent जैसा)</value>
   </data>
   <data name="UrlEncoder_Mode_Uri" xml:space="preserve">
-    <value>URI (encodeURI-like)</value>
+    <value>URI (encodeURI जैसा)</value>
   </data>
   <data name="UrlEncoder_Mode_Form" xml:space="preserve">
-    <value>Form (application/x-www-form-urlencoded)</value>
+    <value>फ़ॉर्म (application/x-www-form-urlencoded)</value>
   </data>
   <data name="UrlEncoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>टेक्स्ट वर्णसेट</value>
   </data>
   <data name="UrlEncoder_ActionEncode" xml:space="preserve">
     <value>एनकोड</value>
@@ -322,10 +322,10 @@
     <value>कॉपी हो गया!</value>
   </data>
   <data name="UrlEncoder_OtherFormats" xml:space="preserve">
-    <value>Other formats:</value>
+    <value>अन्य प्रारूप:</value>
   </data>
   <data name="UrlEncoder_LinkHex" xml:space="preserve">
-    <value>Hex</value>
+    <value>हेक्स</value>
   </data>
   <data name="UrlEncoder_LinkBase32" xml:space="preserve">
     <value>Base32</value>
@@ -343,7 +343,7 @@
     <value>टेक्स्ट या फ़ाइलों के लिए Hex को एनकोड और डिकोड करें — सब कुछ आपके ब्राउज़र में</value>
   </data>
   <data name="HexEncoder_OtherFormats" xml:space="preserve">
-    <value>Other formats:</value>
+    <value>अन्य प्रारूप:</value>
   </data>
   <data name="HexEncoder_LinkUrl" xml:space="preserve">
     <value>URL</value>
@@ -364,73 +364,73 @@
     <value>टेक्स्ट (एनकोड के लिए) या हेक्स स्ट्रिंग (डिकोड के लिए) दर्ज करें...</value>
   </data>
   <data name="HexEncoder_InputFileLabel" xml:space="preserve">
-    <value>File (optional)</value>
+    <value>फ़ाइल (वैकल्पिक)</value>
   </data>
   <data name="HexEncoder_FileHint" xml:space="preserve">
-    <value>If a file is selected, the text input is ignored.</value>
+    <value>यदि कोई फ़ाइल चुनी जाती है, तो टेक्स्ट इनपुट को अनदेखा कर दिया जाता है।</value>
   </data>
   <data name="HexEncoder_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>फ़ाइल प्रोसेस की जा रही है...</value>
   </data>
   <data name="HexEncoder_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>रद्द करें</value>
   </data>
   <data name="HexEncoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>टेक्स्ट वर्णसेट</value>
   </data>
   <data name="HexEncoder_CaseLabel" xml:space="preserve">
-    <value>Hex case</value>
+    <value>हेक्स केस</value>
   </data>
   <data name="HexEncoder_CaseLower" xml:space="preserve">
-    <value>lowercase</value>
+    <value>लोअरकेस</value>
   </data>
   <data name="HexEncoder_CaseUpper" xml:space="preserve">
-    <value>UPPERCASE</value>
+    <value>अपरकेस</value>
   </data>
   <data name="HexEncoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Decode options</value>
+    <value>डिकोड विकल्प</value>
   </data>
   <data name="HexEncoder_IgnoreWhitespace" xml:space="preserve">
-    <value>Ignore whitespace</value>
+    <value>व्हाइटस्पेस अनदेखा करें</value>
   </data>
   <data name="HexEncoder_AllowSeparators" xml:space="preserve">
-    <value>Allow separators (: and -)</value>
+    <value>सेपरेटर्स की अनुमति दें (: और -)</value>
   </data>
   <data name="HexEncoder_Allow0x" xml:space="preserve">
-    <value>Allow 0x prefix</value>
+    <value>0x उपसर्ग की अनुमति दें</value>
   </data>
   <data name="HexEncoder_OutputModeLabel" xml:space="preserve">
-    <value>File output</value>
+    <value>फ़ाइल आउटपुट</value>
   </data>
   <data name="HexEncoder_OutputModePreview" xml:space="preserve">
-    <value>Preview in output (download full)</value>
+    <value>आउटपुट में पूर्वावलोकन (पूर्ण डाउनलोड करें)</value>
   </data>
   <data name="HexEncoder_OutputModeFull" xml:space="preserve">
-    <value>Render full output (may be slow)</value>
+    <value>पूरा आउटपुट रेंडर करें (धीमा हो सकता है)</value>
   </data>
   <data name="HexEncoder_ActionEncode" xml:space="preserve">
-    <value>Encode</value>
+    <value>एनकोड</value>
   </data>
   <data name="HexEncoder_ActionDecode" xml:space="preserve">
-    <value>Decode</value>
+    <value>डिकोड</value>
   </data>
   <data name="HexEncoder_ActionSwap" xml:space="preserve">
-    <value>Swap</value>
+    <value>स्वैप</value>
   </data>
   <data name="HexEncoder_ActionClear" xml:space="preserve">
-    <value>Clear</value>
+    <value>साफ़ करें</value>
   </data>
   <data name="HexEncoder_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>आउटपुट</value>
   </data>
   <data name="HexEncoder_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>कॉपी</value>
   </data>
   <data name="HexEncoder_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>कॉपी हो गया!</value>
   </data>
   <data name="HexEncoder_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>डाउनलोड</value>
   </data>
   <data name="Base64Encoder_Title" xml:space="preserve">
     <value>Base64 एनकोडर / डिकोडर</value>
@@ -439,10 +439,10 @@
     <value>टेक्स्ट और फ़ाइलों के लिए Base64 को एनकोड और डिकोड करें — सब कुछ आपके ब्राउज़र में।</value>
   </data>
   <data name="Base64Encoder_OtherFormats" xml:space="preserve">
-    <value>Other formats:</value>
+    <value>अन्य प्रारूप:</value>
   </data>
   <data name="Base64Encoder_LinkHex" xml:space="preserve">
-    <value>Hex</value>
+    <value>हेक्स</value>
   </data>
   <data name="Base64Encoder_LinkBase32" xml:space="preserve">
     <value>Base32</value>
@@ -457,106 +457,106 @@
     <value>इनपुट (टेक्स्ट)</value>
   </data>
   <data name="Base64Encoder_InputTextPlaceholder" xml:space="preserve">
-    <value>Enter text or Base64...</value>
+    <value>टेक्स्ट या Base64 दर्ज करें...</value>
   </data>
   <data name="Base64Encoder_InputFileLabel" xml:space="preserve">
-    <value>Input file</value>
+    <value>इनपुट फ़ाइल</value>
   </data>
   <data name="Base64Encoder_FileHint" xml:space="preserve">
-    <value>If a file is selected, it will be used instead of the text input.</value>
+    <value>यदि कोई फ़ाइल चुनी जाती है, तो उसे टेक्स्ट इनपुट के बजाय इस्तेमाल किया जाएगा।</value>
   </data>
   <data name="Base64Encoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>टेक्स्ट वर्णसेट</value>
   </data>
   <data name="Base64Encoder_AlphabetLabel" xml:space="preserve">
-    <value>Alphabet</value>
+    <value>वर्णमाला</value>
   </data>
   <data name="Base64Encoder_AlphabetStandard" xml:space="preserve">
-    <value>Standard (+/)</value>
+    <value>मानक (+/)</value>
   </data>
   <data name="Base64Encoder_AlphabetUrlSafe" xml:space="preserve">
-    <value>URL-safe (-_)</value>
+    <value>URL-सुरक्षित (-_)</value>
   </data>
   <data name="Base64Encoder_PaddingLabel" xml:space="preserve">
-    <value>Padding</value>
+    <value>पैडिंग</value>
   </data>
   <data name="Base64Encoder_PaddingRequired" xml:space="preserve">
-    <value>Required</value>
+    <value>आवश्यक</value>
   </data>
   <data name="Base64Encoder_PaddingOptional" xml:space="preserve">
-    <value>Optional</value>
+    <value>वैकल्पिक</value>
   </data>
   <data name="Base64Encoder_PaddingNone" xml:space="preserve">
-    <value>No padding</value>
+    <value>कोई पैडिंग नहीं</value>
   </data>
   <data name="Base64Encoder_LineWrapLabel" xml:space="preserve">
-    <value>Line wrap</value>
+    <value>लाइन रैप</value>
   </data>
   <data name="Base64Encoder_LineWrapNone" xml:space="preserve">
-    <value>None</value>
+    <value>कोई नहीं</value>
   </data>
   <data name="Base64Encoder_LineWrap76" xml:space="preserve">
-    <value>76 chars</value>
+    <value>76 वर्ण</value>
   </data>
   <data name="Base64Encoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Decode options</value>
+    <value>डिकोड विकल्प</value>
   </data>
   <data name="Base64Encoder_AllowWhitespace" xml:space="preserve">
-    <value>Allow whitespace/newlines</value>
+    <value>व्हाइटस्पेस/नई लाइनों की अनुमति दें</value>
   </data>
   <data name="Base64Encoder_OutputModeLabel" xml:space="preserve">
-    <value>File output</value>
+    <value>फ़ाइल आउटपुट</value>
   </data>
   <data name="Base64Encoder_OutputModePreview" xml:space="preserve">
-    <value>Preview in output (download full)</value>
+    <value>आउटपुट में पूर्वावलोकन (पूर्ण डाउनलोड करें)</value>
   </data>
   <data name="Base64Encoder_OutputModeFull" xml:space="preserve">
-    <value>Render full output (may be slow)</value>
+    <value>पूरा आउटपुट रेंडर करें (धीमा हो सकता है)</value>
   </data>
   <data name="Base64Encoder_ActionEncode" xml:space="preserve">
-    <value>Encode</value>
+    <value>एनकोड</value>
   </data>
   <data name="Base64Encoder_ActionDecode" xml:space="preserve">
-    <value>Decode</value>
+    <value>डिकोड</value>
   </data>
   <data name="Base64Encoder_ActionSwap" xml:space="preserve">
-    <value>Swap</value>
+    <value>स्वैप</value>
   </data>
   <data name="Base64Encoder_ActionClear" xml:space="preserve">
-    <value>Clear</value>
+    <value>साफ़ करें</value>
   </data>
   <data name="Base64Encoder_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>आउटपुट</value>
   </data>
   <data name="Base64Encoder_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>कॉपी</value>
   </data>
   <data name="Base64Encoder_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>कॉपी हो गया!</value>
   </data>
   <data name="Base64Encoder_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>डाउनलोड</value>
   </data>
   <data name="Base64Encoder_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>फ़ाइल प्रोसेस की जा रही है...</value>
   </data>
   <data name="Base64Encoder_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>रद्द करें</value>
   </data>
   <data name="Nav_Base32Encoder" xml:space="preserve">
     <value>Base32 एनकोडर</value>
   </data>
   <data name="Base32Encoder_Title" xml:space="preserve">
-    <value>Base32 Encoder / Decoder</value>
+    <value>Base32 एनकोडर / डिकोडर</value>
   </data>
   <data name="Base32Encoder_Description" xml:space="preserve">
-    <value>Encode and decode Base32 for text and files — all in your browser.</value>
+    <value>टेक्स्ट और फ़ाइलों के लिए Base32 को एनकोड और डिकोड करें — सब कुछ आपके ब्राउज़र में।</value>
   </data>
   <data name="Base32Encoder_OtherFormats" xml:space="preserve">
-    <value>Other formats:</value>
+    <value>अन्य प्रारूप:</value>
   </data>
   <data name="Base32Encoder_LinkHex" xml:space="preserve">
-    <value>Hex</value>
+    <value>हेक्स</value>
   </data>
   <data name="Base32Encoder_LinkBase64" xml:space="preserve">
     <value>Base64</value>
@@ -568,115 +568,115 @@
     <value>URL</value>
   </data>
   <data name="Base32Encoder_InputTextLabel" xml:space="preserve">
-    <value>Input (text)</value>
+    <value>इनपुट (टेक्स्ट)</value>
   </data>
   <data name="Base32Encoder_InputTextPlaceholder" xml:space="preserve">
-    <value>Enter text or Base32...</value>
+    <value>टेक्स्ट या Base32 दर्ज करें...</value>
   </data>
   <data name="Base32Encoder_InputFileLabel" xml:space="preserve">
-    <value>Input file</value>
+    <value>इनपुट फ़ाइल</value>
   </data>
   <data name="Base32Encoder_FileHint" xml:space="preserve">
-    <value>If a file is selected, it will be used instead of the text input.</value>
+    <value>यदि कोई फ़ाइल चुनी जाती है, तो उसे टेक्स्ट इनपुट के बजाय इस्तेमाल किया जाएगा।</value>
   </data>
   <data name="Base32Encoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>टेक्स्ट वर्णसेट</value>
   </data>
   <data name="Base32Encoder_AlphabetLabel" xml:space="preserve">
-    <value>Alphabet</value>
+    <value>वर्णमाला</value>
   </data>
   <data name="Base32Encoder_AlphabetRfc4648" xml:space="preserve">
     <value>RFC 4648 (A-Z2-7)</value>
   </data>
   <data name="Base32Encoder_AlphabetCrockford" xml:space="preserve">
-    <value>Crockford (0-9A-Z)</value>
+    <value>क्रॉकफोर्ड (0-9A-Z)</value>
   </data>
   <data name="Base32Encoder_AlphabetZBase32" xml:space="preserve">
     <value>z-base-32</value>
   </data>
   <data name="Base32Encoder_PaddingLabel" xml:space="preserve">
-    <value>Padding</value>
+    <value>पैडिंग</value>
   </data>
   <data name="Base32Encoder_PaddingRequired" xml:space="preserve">
-    <value>Required</value>
+    <value>आवश्यक</value>
   </data>
   <data name="Base32Encoder_PaddingOptional" xml:space="preserve">
-    <value>Optional</value>
+    <value>वैकल्पिक</value>
   </data>
   <data name="Base32Encoder_PaddingNone" xml:space="preserve">
-    <value>No padding</value>
+    <value>कोई पैडिंग नहीं</value>
   </data>
   <data name="Base32Encoder_CaseLabel" xml:space="preserve">
-    <value>Letter case</value>
+    <value>अक्षर केस</value>
   </data>
   <data name="Base32Encoder_CaseAuto" xml:space="preserve">
-    <value>Auto</value>
+    <value>ऑटो</value>
   </data>
   <data name="Base32Encoder_CaseUpper" xml:space="preserve">
-    <value>Uppercase</value>
+    <value>अपरकेस</value>
   </data>
   <data name="Base32Encoder_CaseLower" xml:space="preserve">
-    <value>Lowercase</value>
+    <value>लोअरकेस</value>
   </data>
   <data name="Base32Encoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Decode options</value>
+    <value>डिकोड विकल्प</value>
   </data>
   <data name="Base32Encoder_AllowWhitespace" xml:space="preserve">
-    <value>Allow whitespace/newlines</value>
+    <value>व्हाइटस्पेस/नई लाइनों की अनुमति दें</value>
   </data>
   <data name="Base32Encoder_OutputModeLabel" xml:space="preserve">
-    <value>File output</value>
+    <value>फ़ाइल आउटपुट</value>
   </data>
   <data name="Base32Encoder_OutputModePreview" xml:space="preserve">
-    <value>Preview in output (download full)</value>
+    <value>आउटपुट में पूर्वावलोकन (पूर्ण डाउनलोड करें)</value>
   </data>
   <data name="Base32Encoder_OutputModeFull" xml:space="preserve">
-    <value>Render full output (may be slow)</value>
+    <value>पूरा आउटपुट रेंडर करें (धीमा हो सकता है)</value>
   </data>
   <data name="Base32Encoder_ActionEncode" xml:space="preserve">
-    <value>Encode</value>
+    <value>एनकोड</value>
   </data>
   <data name="Base32Encoder_ActionDecode" xml:space="preserve">
-    <value>Decode</value>
+    <value>डिकोड</value>
   </data>
   <data name="Base32Encoder_ActionSwap" xml:space="preserve">
-    <value>Swap</value>
+    <value>स्वैप</value>
   </data>
   <data name="Base32Encoder_ActionClear" xml:space="preserve">
-    <value>Clear</value>
+    <value>साफ़ करें</value>
   </data>
   <data name="Base32Encoder_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>आउटपुट</value>
   </data>
   <data name="Base32Encoder_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>कॉपी</value>
   </data>
   <data name="Base32Encoder_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>कॉपी हो गया!</value>
   </data>
   <data name="Base32Encoder_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>डाउनलोड</value>
   </data>
   <data name="Base32Encoder_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>फ़ाइल प्रोसेस की जा रही है...</value>
   </data>
   <data name="Base32Encoder_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>रद्द करें</value>
   </data>
   <data name="Nav_Base58Encoder" xml:space="preserve">
     <value>Base58 एनकोडर</value>
   </data>
   <data name="Base58Encoder_Title" xml:space="preserve">
-    <value>Base58 Encoder / Decoder</value>
+    <value>Base58 एनकोडर / डिकोडर</value>
   </data>
   <data name="Base58Encoder_Description" xml:space="preserve">
-    <value>Encode and decode Base58 for text and files — all in your browser.</value>
+    <value>टेक्स्ट और फ़ाइलों के लिए Base58 को एनकोड और डिकोड करें — सब कुछ आपके ब्राउज़र में।</value>
   </data>
   <data name="Base58Encoder_OtherFormats" xml:space="preserve">
-    <value>Other formats:</value>
+    <value>अन्य प्रारूप:</value>
   </data>
   <data name="Base58Encoder_LinkHex" xml:space="preserve">
-    <value>Hex</value>
+    <value>हेक्स</value>
   </data>
   <data name="Base58Encoder_LinkBase32" xml:space="preserve">
     <value>Base32</value>
@@ -688,250 +688,250 @@
     <value>URL</value>
   </data>
   <data name="Base58Encoder_InputTextLabel" xml:space="preserve">
-    <value>Input (text)</value>
+    <value>इनपुट (टेक्स्ट)</value>
   </data>
   <data name="Base58Encoder_InputTextPlaceholder" xml:space="preserve">
-    <value>Enter text or Base58...</value>
+    <value>टेक्स्ट या Base58 दर्ज करें...</value>
   </data>
   <data name="Base58Encoder_InputFileLabel" xml:space="preserve">
-    <value>Input file</value>
+    <value>इनपुट फ़ाइल</value>
   </data>
   <data name="Base58Encoder_FileHint" xml:space="preserve">
-    <value>If a file is selected, it will be used instead of the text input.</value>
+    <value>यदि कोई फ़ाइल चुनी जाती है, तो उसे टेक्स्ट इनपुट के बजाय इस्तेमाल किया जाएगा।</value>
   </data>
   <data name="Base58Encoder_CharsetLabel" xml:space="preserve">
-    <value>Text charset</value>
+    <value>टेक्स्ट वर्णसेट</value>
   </data>
   <data name="Base58Encoder_AlphabetLabel" xml:space="preserve">
-    <value>Alphabet</value>
+    <value>वर्णमाला</value>
   </data>
   <data name="Base58Encoder_AlphabetBitcoin" xml:space="preserve">
-    <value>Bitcoin (Base58)</value>
+    <value>बिटकॉइन (Base58)</value>
   </data>
   <data name="Base58Encoder_AlphabetFlickr" xml:space="preserve">
-    <value>Flickr</value>
+    <value>फ़्लिकर</value>
   </data>
   <data name="Base58Encoder_AlphabetRipple" xml:space="preserve">
-    <value>Ripple</value>
+    <value>रिपल</value>
   </data>
   <data name="Base58Encoder_DecodeOptionsLabel" xml:space="preserve">
-    <value>Decode options</value>
+    <value>डिकोड विकल्प</value>
   </data>
   <data name="Base58Encoder_AllowWhitespace" xml:space="preserve">
-    <value>Allow whitespace/newlines</value>
+    <value>व्हाइटस्पेस/नई लाइनों की अनुमति दें</value>
   </data>
   <data name="Base58Encoder_OutputModeLabel" xml:space="preserve">
-    <value>File output</value>
+    <value>फ़ाइल आउटपुट</value>
   </data>
   <data name="Base58Encoder_OutputModePreview" xml:space="preserve">
-    <value>Preview in output (download full)</value>
+    <value>आउटपुट में पूर्वावलोकन (पूर्ण डाउनलोड करें)</value>
   </data>
   <data name="Base58Encoder_OutputModeFull" xml:space="preserve">
-    <value>Render full output (may be slow)</value>
+    <value>पूरा आउटपुट रेंडर करें (धीमा हो सकता है)</value>
   </data>
   <data name="Base58Encoder_ActionEncode" xml:space="preserve">
-    <value>Encode</value>
+    <value>एनकोड</value>
   </data>
   <data name="Base58Encoder_ActionDecode" xml:space="preserve">
-    <value>Decode</value>
+    <value>डिकोड</value>
   </data>
   <data name="Base58Encoder_ActionSwap" xml:space="preserve">
-    <value>Swap</value>
+    <value>स्वैप</value>
   </data>
   <data name="Base58Encoder_ActionClear" xml:space="preserve">
-    <value>Clear</value>
+    <value>साफ़ करें</value>
   </data>
   <data name="Base58Encoder_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>आउटपुट</value>
   </data>
   <data name="Base58Encoder_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>कॉपी</value>
   </data>
   <data name="Base58Encoder_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>कॉपी हो गया!</value>
   </data>
   <data name="Base58Encoder_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>डाउनलोड</value>
   </data>
   <data name="Base58Encoder_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>फ़ाइल प्रोसेस की जा रही है...</value>
   </data>
   <data name="Base58Encoder_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>रद्द करें</value>
   </data>
   <data name="Base58Encoder_FileSizeLimitEncode" xml:space="preserve">
-    <value>Base58 encoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.</value>
+    <value>Base58 एनकोडिंग एल्गोरिदम की जटिलता के कारण {0} तक सीमित है। आपकी फ़ाइल {1} है। कृपया बड़ी फ़ाइलों के लिए Base64 या Hex एनकोडिंग का उपयोग करें।</value>
   </data>
   <data name="Base58Encoder_FileSizeLimitDecode" xml:space="preserve">
-    <value>Base58 decoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.</value>
+    <value>Base58 डिकोडिंग एल्गोरिदम की जटिलता के कारण {0} तक सीमित है। आपकी फ़ाइल {1} है। कृपया बड़ी फ़ाइलों के लिए Base64 या Hex एनकोडिंग का उपयोग करें।</value>
   </data>
   <data name="OpenSsh_Title" xml:space="preserve">
-    <value>OpenSSH Keys</value>
+    <value>OpenSSH कीज़</value>
   </data>
   <data name="OpenSsh_Description" xml:space="preserve">
-    <value>Generate, import, and convert OpenSSH keys in your browser.</value>
+    <value>अपने ब्राउज़र में OpenSSH कीज़ जनरेट, इम्पोर्ट और कन्वर्ट करें।</value>
   </data>
   <data name="OpenSsh_GenerateSectionTitle" xml:space="preserve">
-    <value>Generate</value>
+    <value>जनरेट</value>
   </data>
   <data name="OpenSsh_AlgorithmLabel" xml:space="preserve">
-    <value>Algorithm</value>
+    <value>एल्गोरिदम</value>
   </data>
   <data name="OpenSsh_KeySizeLabel" xml:space="preserve">
-    <value>Key size</value>
+    <value>की साइज़</value>
   </data>
   <data name="OpenSsh_PassphraseLabel" xml:space="preserve">
-    <value>Passphrase (optional)</value>
+    <value>पासफ़्रेज़ (वैकल्पिक)</value>
   </data>
   <data name="OpenSsh_GenerateButton" xml:space="preserve">
-    <value>Generate keys</value>
+    <value>कीज़ जनरेट करें</value>
   </data>
   <data name="OpenSsh_ImportSectionTitle" xml:space="preserve">
-    <value>Import</value>
+    <value>इम्पोर्ट</value>
   </data>
   <data name="OpenSsh_ImportLabel" xml:space="preserve">
-    <value>Paste OpenSSH or PKCS#8 key</value>
+    <value>OpenSSH या PKCS#8 की पेस्ट करें</value>
   </data>
   <data name="OpenSsh_ImportPlaceholder" xml:space="preserve">
-    <value>Paste OpenSSH public/private key or PKCS#8 PEM here...</value>
+    <value>OpenSSH पब्लिक/प्राइवेट की या PKCS#8 PEM यहाँ पेस्ट करें...</value>
   </data>
   <data name="OpenSsh_ImportFileLabel" xml:space="preserve">
-    <value>Key file</value>
+    <value>की फ़ाइल</value>
   </data>
   <data name="OpenSsh_ImportFileHint" xml:space="preserve">
-    <value>Supports OpenSSH public/private and PKCS#8 PEM files.</value>
+    <value>OpenSSH पब्लिक/प्राइवेट और PKCS#8 PEM फ़ाइलों का समर्थन करता है।</value>
   </data>
   <data name="OpenSsh_ImportButton" xml:space="preserve">
-    <value>Import</value>
+    <value>इम्पोर्ट</value>
   </data>
   <data name="OpenSsh_ConvertSectionTitle" xml:space="preserve">
-    <value>Convert</value>
+    <value>कन्वर्ट</value>
   </data>
   <data name="OpenSsh_ConvertButton" xml:space="preserve">
-    <value>Convert</value>
+    <value>कन्वर्ट</value>
   </data>
   <data name="OpenSsh_PublicKeyLabel" xml:space="preserve">
-    <value>Public key</value>
+    <value>पब्लिक की</value>
   </data>
   <data name="OpenSsh_PrivateKeyLabel" xml:space="preserve">
-    <value>Private key</value>
+    <value>प्राइवेट की</value>
   </data>
   <data name="OpenSsh_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>कॉपी</value>
   </data>
   <data name="OpenSsh_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>कॉपी हो गया!</value>
   </data>
   <data name="OpenSsh_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>डाउनलोड</value>
   </data>
   <data name="OpenSsh_WarningsTitle" xml:space="preserve">
-    <value>Warnings</value>
+    <value>चेतावनियाँ</value>
   </data>
   <data name="X509_Title" xml:space="preserve">
-    <value>X.509 Certificates</value>
+    <value>X.509 प्रमाणपत्र</value>
   </data>
   <data name="X509_Description" xml:space="preserve">
-    <value>Create self-signed certificates, CSRs, and parse PEM/DER.</value>
+    <value>स्व-हस्ताक्षरित प्रमाणपत्र, CSR बनाएँ, और PEM/DER पार्स करें।</value>
   </data>
   <data name="X509_SelfSignedSectionTitle" xml:space="preserve">
-    <value>Self-signed</value>
+    <value>स्व-हस्ताक्षरित</value>
   </data>
   <data name="X509_SubjectLabel" xml:space="preserve">
-    <value>Subject (CN)</value>
+    <value>सब्जेक्ट (CN)</value>
   </data>
   <data name="X509_ValidityDaysLabel" xml:space="preserve">
-    <value>Validity (days)</value>
+    <value>वैधता (दिन)</value>
   </data>
   <data name="X509_GenerateSelfSigned" xml:space="preserve">
-    <value>Generate certificate</value>
+    <value>प्रमाणपत्र जनरेट करें</value>
   </data>
   <data name="X509_CsrSectionTitle" xml:space="preserve">
     <value>CSR</value>
   </data>
   <data name="X509_GenerateCsr" xml:space="preserve">
-    <value>Generate CSR</value>
+    <value>CSR जनरेट करें</value>
   </data>
   <data name="X509_ParseSectionTitle" xml:space="preserve">
-    <value>Parse</value>
+    <value>पार्स</value>
   </data>
   <data name="X509_ParseLabel" xml:space="preserve">
-    <value>Paste PEM/DER</value>
+    <value>PEM/DER पेस्ट करें</value>
   </data>
   <data name="X509_ParsePlaceholder" xml:space="preserve">
-    <value>Paste certificate, CSR, or key (PEM/DER) here...</value>
+    <value>प्रमाणपत्र, CSR, या की (PEM/DER) यहाँ पेस्ट करें...</value>
   </data>
   <data name="X509_ParseButton" xml:space="preserve">
-    <value>Parse</value>
+    <value>पार्स</value>
   </data>
   <data name="X509_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>आउटपुट</value>
   </data>
   <data name="X509_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>कॉपी</value>
   </data>
   <data name="X509_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>कॉपी हो गया!</value>
   </data>
   <data name="X509_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>डाउनलोड</value>
   </data>
   <data name="X509_WarningsTitle" xml:space="preserve">
-    <value>Warnings</value>
+    <value>चेतावनियाँ</value>
   </data>
   <data name="Aead_Title" xml:space="preserve">
-    <value>AEAD File Encrypt/Decrypt</value>
+    <value>AEAD फ़ाइल एन्क्रिप्ट/डिक्रिप्ट</value>
   </data>
   <data name="Aead_Description" xml:space="preserve">
-    <value>Encrypt and decrypt files locally with AEAD.</value>
+    <value>AEAD के साथ फ़ाइलों को स्थानीय रूप से एन्क्रिप्ट और डिक्रिप्ट करें।</value>
   </data>
   <data name="Aead_EncryptSectionTitle" xml:space="preserve">
-    <value>Encrypt</value>
+    <value>एन्क्रिप्ट</value>
   </data>
   <data name="Aead_DecryptSectionTitle" xml:space="preserve">
-    <value>Decrypt</value>
+    <value>डिक्रिप्ट</value>
   </data>
   <data name="Aead_FileLabel" xml:space="preserve">
-    <value>File</value>
+    <value>फ़ाइल</value>
   </data>
   <data name="Aead_FileHint" xml:space="preserve">
-    <value>Large files are processed in chunks in the browser.</value>
+    <value>बड़ी फ़ाइलें ब्राउज़र में चंक्स में प्रोसेस की जाती हैं।</value>
   </data>
   <data name="Aead_AlgorithmLabel" xml:space="preserve">
-    <value>Algorithm</value>
+    <value>एल्गोरिदम</value>
   </data>
   <data name="Aead_PasswordLabel" xml:space="preserve">
-    <value>Password</value>
+    <value>पासवर्ड</value>
   </data>
   <data name="Aead_EncryptButton" xml:space="preserve">
-    <value>Encrypt file</value>
+    <value>फ़ाइल एन्क्रिप्ट करें</value>
   </data>
   <data name="Aead_DecryptButton" xml:space="preserve">
-    <value>Decrypt file</value>
+    <value>फ़ाइल डिक्रिप्ट करें</value>
   </data>
   <data name="Aead_HeaderLabel" xml:space="preserve">
-    <value>Header</value>
+    <value>हेडर</value>
   </data>
   <data name="Aead_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>आउटपुट</value>
   </data>
   <data name="Aead_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>कॉपी</value>
   </data>
   <data name="Aead_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>कॉपी हो गया!</value>
   </data>
   <data name="Aead_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>डाउनलोड</value>
   </data>
   <data name="Aead_FileProgressTitle" xml:space="preserve">
-    <value>Processing file...</value>
+    <value>फ़ाइल प्रोसेस की जा रही है...</value>
   </data>
   <data name="Aead_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>रद्द करें</value>
   </data>
   <data name="Aead_WarningsTitle" xml:space="preserve">
-    <value>Warnings</value>
+    <value>चेतावनियाँ</value>
   </data>
   <data name="Nav_JsonBeautifier" xml:space="preserve">
     <value>JSON फॉर्मेटेर</value>
@@ -946,7 +946,7 @@
     <value>इनपुट JSON</value>
   </data>
   <data name="JsonBeautifier_InputPlaceholder" xml:space="preserve">
-    <value>Paste your JSON here...</value>
+    <value>अपना JSON यहाँ पेस्ट करें...</value>
   </data>
   <data name="JsonBeautifier_FormatButton" xml:space="preserve">
     <value>फॉर्मेट</value>
@@ -958,82 +958,82 @@
     <value>कॉपी</value>
   </data>
   <data name="JsonBeautifier_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>कॉपी हो गया!</value>
   </data>
   <data name="JsonBeautifier_ErrorInvalidJson" xml:space="preserve">
-    <value>Invalid JSON. Please check your input.</value>
+    <value>अमान्य JSON। कृपया अपना इनपुट जाँचें।</value>
   </data>
   <data name="JsonBeautifier_IndentSizeLabel" xml:space="preserve">
-    <value>Indent size</value>
+    <value>इंडेंट साइज़</value>
   </data>
   <data name="JsonBeautifier_Indent2Spaces" xml:space="preserve">
-    <value>2 spaces</value>
+    <value>2 स्पेस</value>
   </data>
   <data name="JsonBeautifier_Indent4Spaces" xml:space="preserve">
-    <value>4 spaces</value>
+    <value>4 स्पेस</value>
   </data>
   <data name="JsonBeautifier_IndentTab" xml:space="preserve">
-    <value>Tab</value>
+    <value>टैब</value>
   </data>
   <data name="JsonBeautifier_SortKeys" xml:space="preserve">
-    <value>Sort keys</value>
+    <value>कीज़ सॉर्ट करें</value>
   </data>
   <data name="JsonBeautifier_CompactMode" xml:space="preserve">
-    <value>Compact mode (minify)</value>
+    <value>कॉम्पैक्ट मोड (मिनिफाई)</value>
   </data>
   <data name="JsonBeautifier_OutputLabel" xml:space="preserve">
     <value>फॉर्मेट किया गया JSON</value>
   </data>
   <data name="JsonBeautifier_LineNumbers" xml:space="preserve">
-    <value>Show line numbers</value>
+    <value>लाइन नंबर्स दिखाएँ</value>
   </data>
   <data name="JsonBeautifier_Collapsible" xml:space="preserve">
-    <value>Collapsible blocks</value>
+    <value>कॉलैप्सिबल ब्लॉक्स</value>
   </data>
   <data name="Nav_XmlBeautifier" xml:space="preserve">
     <value>XML फॉर्मेटेर</value>
   </data>
   <data name="XmlBeautifier_Title" xml:space="preserve">
-    <value>XML Beautifier</value>
+    <value>XML फॉर्मेटेर</value>
   </data>
   <data name="XmlBeautifier_Description" xml:space="preserve">
-    <value>Format and beautify XML with customizable indentation — all in your browser</value>
+    <value>XML को फॉर्मेट और सुंदर बनाएं — सब कुछ आपके ब्राउज़र में</value>
   </data>
   <data name="XmlBeautifier_InputLabel" xml:space="preserve">
-    <value>Input XML</value>
+    <value>इनपुट XML</value>
   </data>
   <data name="XmlBeautifier_InputPlaceholder" xml:space="preserve">
-    <value>Paste your XML here...</value>
+    <value>अपना XML यहाँ पेस्ट करें...</value>
   </data>
   <data name="XmlBeautifier_FormatButton" xml:space="preserve">
-    <value>Format</value>
+    <value>फॉर्मेट</value>
   </data>
   <data name="XmlBeautifier_ClearButton" xml:space="preserve">
-    <value>Clear</value>
+    <value>साफ़ करें</value>
   </data>
   <data name="XmlBeautifier_CopyButton" xml:space="preserve">
-    <value>Copy</value>
+    <value>कॉपी</value>
   </data>
   <data name="XmlBeautifier_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>कॉपी हो गया!</value>
   </data>
   <data name="XmlBeautifier_ErrorInvalidXml" xml:space="preserve">
-    <value>Invalid XML. Please check your input.</value>
+    <value>अमान्य XML। कृपया अपना इनपुट जाँचें।</value>
   </data>
   <data name="XmlBeautifier_IndentSizeLabel" xml:space="preserve">
-    <value>Indent size</value>
+    <value>इंडेंट साइज़</value>
   </data>
   <data name="XmlBeautifier_Indent2Spaces" xml:space="preserve">
-    <value>2 spaces</value>
+    <value>2 स्पेस</value>
   </data>
   <data name="XmlBeautifier_Indent4Spaces" xml:space="preserve">
-    <value>4 spaces</value>
+    <value>4 स्पेस</value>
   </data>
   <data name="XmlBeautifier_IndentTab" xml:space="preserve">
-    <value>Tab</value>
+    <value>टैब</value>
   </data>
   <data name="XmlBeautifier_CompactMode" xml:space="preserve">
-    <value>Compact mode (minify)</value>
+    <value>कॉम्पैक्ट मोड (मिनिफाई)</value>
   </data>
   <data name="Nav_PasswordGenerator" xml:space="preserve">
     <value>पासवर्ड जनरेटर</value>
@@ -1045,22 +1045,22 @@
     <value>अपने ब्राउज़र में सुरक्षित और रैंडम पासवर्ड जनरेट करें।</value>
   </data>
   <data name="PasswordGenerator_LengthLabel" xml:space="preserve">
-    <value>Password Length</value>
+    <value>पासवर्ड लंबाई</value>
   </data>
   <data name="PasswordGenerator_UppercaseLabel" xml:space="preserve">
-    <value>Uppercase (A-Z)</value>
+    <value>अपरकेस (A-Z)</value>
   </data>
   <data name="PasswordGenerator_LowercaseLabel" xml:space="preserve">
-    <value>Lowercase (a-z)</value>
+    <value>लोअरकेस (a-z)</value>
   </data>
   <data name="PasswordGenerator_NumbersLabel" xml:space="preserve">
-    <value>Numbers (0-9)</value>
+    <value>नंबर्स (0-9)</value>
   </data>
   <data name="PasswordGenerator_SpecialLabel" xml:space="preserve">
-    <value>Special Characters</value>
+    <value>विशेष वर्ण</value>
   </data>
   <data name="PasswordGenerator_CustomSpecialLabel" xml:space="preserve">
-    <value>Custom Symbols</value>
+    <value>कस्टम प्रतीक</value>
   </data>
   <data name="PasswordGenerator_GenerateButton" xml:space="preserve">
     <value>पासवर्ड जनरेट करें</value>
@@ -1069,61 +1069,61 @@
     <value>कॉपी</value>
   </data>
   <data name="PasswordGenerator_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>कॉपी हो गया!</value>
   </data>
   <data name="PasswordGenerator_ResultLabel" xml:space="preserve">
     <value>जनरेट किया गया पासवर्ड</value>
   </data>
   <data name="PasswordGenerator_HistoryLabel" xml:space="preserve">
-    <value>History (last 10)</value>
+    <value>इतिहास (अंतिम 10)</value>
   </data>
   <data name="PasswordGenerator_ClearHistory" xml:space="preserve">
-    <value>Clear History</value>
+    <value>इतिहास साफ़ करें</value>
   </data>
   <data name="TextCaseConverter_AlternatingCase" xml:space="preserve">
-    <value>Alternating Case</value>
+    <value>वैकल्पिक केस</value>
   </data>
   <data name="TextCaseConverter_CamelCase" xml:space="preserve">
-    <value>Camel Case</value>
+    <value>कैमल केस</value>
   </data>
   <data name="TextCaseConverter_ClearButton" xml:space="preserve">
-    <value>Clear</value>
+    <value>साफ़ करें</value>
   </data>
   <data name="TextCaseConverter_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>कॉपी हो गया!</value>
   </data>
   <data name="TextCaseConverter_CopyButton" xml:space="preserve">
-    <value>Copy</value>
+    <value>कॉपी</value>
   </data>
   <data name="TextCaseConverter_Description" xml:space="preserve">
-    <value>Convert text between different letter cases: upper, lower, title, camel, snake, and more.</value>
+    <value>टेक्स्ट को अलग-अलग लेटर केस में कन्वर्ट करें: अपर, लोअर, टाइटल, कैमल, स्नेक, और अधिक।</value>
   </data>
   <data name="TextCaseConverter_InputPlaceholder" xml:space="preserve">
-    <value>Type or paste your text here...</value>
+    <value>अपना टेक्स्ट यहाँ टाइप या पेस्ट करें...</value>
   </data>
   <data name="TextCaseConverter_InverseCase" xml:space="preserve">
-    <value>Inverse Case</value>
+    <value>उल्टा केस</value>
   </data>
   <data name="TextCaseConverter_KebabCase" xml:space="preserve">
-    <value>Kebab Case</value>
+    <value>केबाब केस</value>
   </data>
   <data name="TextCaseConverter_LowerCase" xml:space="preserve">
-    <value>lower case</value>
+    <value>लोअर केस</value>
   </data>
   <data name="TextCaseConverter_SentenceCase" xml:space="preserve">
-    <value>Sentence case</value>
+    <value>वाक्य केस</value>
   </data>
   <data name="TextCaseConverter_SnakeCase" xml:space="preserve">
-    <value>Snake Case</value>
+    <value>स्नेक केस</value>
   </data>
   <data name="TextCaseConverter_Title" xml:space="preserve">
-    <value>Text Case Converter</value>
+    <value>टेक्स्ट केस कनवर्टर</value>
   </data>
   <data name="TextCaseConverter_TitleCase" xml:space="preserve">
-    <value>Title Case</value>
+    <value>टाइटल केस</value>
   </data>
   <data name="TextCaseConverter_UpperCase" xml:space="preserve">
-    <value>UPPER CASE</value>
+    <value>अपर केस</value>
   </data>
   <data name="DateConverter_Title" xml:space="preserve">
     <value>दिनांक कनवर्टर</value>
@@ -1141,25 +1141,25 @@
     <value>कनवर्ट करें</value>
   </data>
   <data name="DateConverter_ActionCurrentTime" xml:space="preserve">
-    <value>Current Time (Now)</value>
+    <value>वर्तमान समय (अभी)</value>
   </data>
   <data name="DateConverter_InputTypeLabel" xml:space="preserve">
-    <value>Input Type</value>
+    <value>इनपुट प्रकार</value>
   </data>
   <data name="DateConverter_InputType_Auto" xml:space="preserve">
-    <value>Auto-detect</value>
+    <value>ऑटो-डिटेक्ट</value>
   </data>
   <data name="DateConverter_InputType_UnixSec" xml:space="preserve">
-    <value>Unix Timestamp (Seconds)</value>
+    <value>Unix टाइमस्टैम्प (सेकंड)</value>
   </data>
   <data name="DateConverter_InputType_UnixMs" xml:space="preserve">
-    <value>Unix Timestamp (Milliseconds)</value>
+    <value>Unix टाइमस्टैम्प (मिलीसेकंड)</value>
   </data>
   <data name="DateConverter_InputType_ISO" xml:space="preserve">
-    <value>ISO 8601 String</value>
+    <value>ISO 8601 स्ट्रिंग</value>
   </data>
   <data name="DateConverter_OutputFormatLabel" xml:space="preserve">
-    <value>Output Format</value>
+    <value>आउटपुट प्रारूप</value>
   </data>
   <data name="DateConverter_Format_ISO" xml:space="preserve">
     <value>ISO 8601</value>
@@ -1168,208 +1168,208 @@
     <value>RFC 2822 / 5322</value>
   </data>
   <data name="DateConverter_Format_UnixSec" xml:space="preserve">
-    <value>Unix Timestamp (Seconds)</value>
+    <value>Unix टाइमस्टैम्प (सेकंड)</value>
   </data>
   <data name="DateConverter_Format_UnixMs" xml:space="preserve">
-    <value>Unix Timestamp (Milliseconds)</value>
+    <value>Unix टाइमस्टैम्प (मिलीसेकंड)</value>
   </data>
   <data name="DateConverter_Format_UTC" xml:space="preserve">
-    <value>UTC String</value>
+    <value>UTC स्ट्रिंग</value>
   </data>
   <data name="DateConverter_Format_Local" xml:space="preserve">
-    <value>Local String</value>
+    <value>स्थानीय स्ट्रिंग</value>
   </data>
   <data name="DateConverter_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>कॉपी</value>
   </data>
   <data name="DateConverter_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>कॉपी हो गया!</value>
   </data>
   <data name="DateConverter_Error_Invalid" xml:space="preserve">
-    <value>Invalid date format.</value>
+    <value>अमान्य तिथि प्रारूप।</value>
   </data>
   <data name="DateConverter_Format_European" xml:space="preserve">
-    <value>European (dd.MM.yyyy HH:mm:ss)</value>
+    <value>यूरोपीय (dd.MM.yyyy HH:mm:ss)</value>
   </data>
   <data name="DateConverter_Format_Custom" xml:space="preserve">
-    <value>Custom Format</value>
+    <value>कस्टम प्रारूप</value>
   </data>
   <data name="DateConverter_CustomFormatPlaceholder" xml:space="preserve">
-    <value>Enter format (e.g. dd/MM/yyyy)</value>
+    <value>प्रारूप दर्ज करें (जैसे dd/MM/yyyy)</value>
   </data>
   <data name="JwtDecoder_Title" xml:space="preserve">
-    <value>JWT Decoder</value>
+    <value>JWT डिकोडर</value>
   </data>
   <data name="JwtDecoder_Description" xml:space="preserve">
-    <value>Decode and verify JSON Web Tokens (JWT) directly in your browser.</value>
+    <value>JSON Web Tokens (JWT) को सीधे अपने ब्राउज़र में डिकोड और वेरीफाई करें।</value>
   </data>
   <data name="JwtDecoder_EncodedLabel" xml:space="preserve">
-    <value>Encoded</value>
+    <value>एनकोडेड</value>
   </data>
   <data name="JwtDecoder_EncodedPlaceholder" xml:space="preserve">
-    <value>Paste a JWT here...</value>
+    <value>JWT यहाँ पेस्ट करें...</value>
   </data>
   <data name="JwtDecoder_DecodedHeaderLabel" xml:space="preserve">
-    <value>Header</value>
+    <value>हेडर</value>
   </data>
   <data name="JwtDecoder_DecodedPayloadLabel" xml:space="preserve">
-    <value>Payload</value>
+    <value>पेलोड</value>
   </data>
   <data name="JwtDecoder_SignatureLabel" xml:space="preserve">
-    <value>Verify Signature</value>
+    <value>सिग्नेचर वेरीफाई करें</value>
   </data>
   <data name="JwtDecoder_SecretLabel" xml:space="preserve">
-    <value>Secret / Public Key</value>
+    <value>सीक्रेट / पब्लिक की</value>
   </data>
   <data name="JwtDecoder_SecretPlaceholder" xml:space="preserve">
-    <value>Enter your 256-bit secret...</value>
+    <value>अपना 256-बिट सीक्रेट दर्ज करें...</value>
   </data>
   <data name="JwtDecoder_SignatureVerified" xml:space="preserve">
-    <value>Signature Verified</value>
+    <value>सिग्नेचर वेरीफाई हो गया</value>
   </data>
   <data name="JwtDecoder_SignatureInvalid" xml:space="preserve">
-    <value>Invalid Signature</value>
+    <value>अमान्य सिग्नेचर</value>
   </data>
   <data name="JwtEncoder_Title" xml:space="preserve">
-    <value>JWT Encoder</value>
+    <value>JWT एनकोडर</value>
   </data>
   <data name="JwtEncoder_Description" xml:space="preserve">
-    <value>Generate and sign JSON Web Tokens (JWT) directly in your browser.</value>
+    <value>JSON Web Tokens (JWT) सीधे अपने ब्राउज़र में जनरेट और साइन करें।</value>
   </data>
   <data name="JwtEncoder_HeaderLabel" xml:space="preserve">
-    <value>Header (JSON)</value>
+    <value>हेडर (JSON)</value>
   </data>
   <data name="JwtEncoder_PayloadLabel" xml:space="preserve">
-    <value>Payload (JSON)</value>
+    <value>पेलोड (JSON)</value>
   </data>
   <data name="JwtEncoder_SecretLabel" xml:space="preserve">
-    <value>Secret / Private Key</value>
+    <value>सीक्रेट / प्राइवेट की</value>
   </data>
   <data name="JwtEncoder_SecretPlaceholder" xml:space="preserve">
-    <value>Enter your secret key...</value>
+    <value>अपना सीक्रेट की दर्ज करें...</value>
   </data>
   <data name="JwtEncoder_EncodedLabel" xml:space="preserve">
-    <value>Generated JWT</value>
+    <value>जनरेट किया गया JWT</value>
   </data>
   <data name="JwtEncoder_AlgorithmLabel" xml:space="preserve">
-    <value>Algorithm</value>
+    <value>एल्गोरिदम</value>
   </data>
   <data name="JwtEncoder_GenerateButton" xml:space="preserve">
-    <value>Generate JWT</value>
+    <value>JWT जनरेट करें</value>
   </data>
   <data name="JwtDecoder_LinkToEncoder" xml:space="preserve">
-    <value>Need to generate a JWT? Try the JWT Encoder</value>
+    <value>JWT जनरेट करने की आवश्यकता है? JWT एनकोडर आज़माएँ</value>
   </data>
   <data name="JwtEncoder_LinkToDecoder" xml:space="preserve">
-    <value>Need to decode a JWT? Try the JWT Decoder</value>
+    <value>JWT डिकोड करने की आवश्यकता है? JWT डिकोडर आज़माएँ</value>
   </data>
   <data name="ImageConverter_Title" xml:space="preserve">
-    <value>Image Converter</value>
+    <value>इमेज कनवर्टर</value>
   </data>
   <data name="ImageConverter_Description" xml:space="preserve">
-    <value>Convert images between formats (PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA) securely in your browser.</value>
+    <value>इमेज को प्रारूपों (PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA) के बीच सुरक्षित रूप से अपने ब्राउज़र में कन्वर्ट करें।</value>
   </data>
   <data name="ImageConverter_SelectFormat" xml:space="preserve">
-    <value>Select output format</value>
+    <value>आउटपुट प्रारूप चुनें</value>
   </data>
   <data name="ImageConverter_Convert" xml:space="preserve">
-    <value>Convert</value>
+    <value>कन्वर्ट</value>
   </data>
   <data name="ImageConverter_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>डाउनलोड</value>
   </data>
   <data name="ImageConverter_DragDrop" xml:space="preserve">
-    <value>Drag &amp; drop an image here or click to select</value>
+    <value>इमेज को यहाँ ड्रैग एंड ड्रॉप करें या चुनने के लिए क्लिक करें</value>
   </data>
   <data name="ImageConverter_Processing" xml:space="preserve">
-    <value>Processing...</value>
+    <value>प्रोसेस हो रहा है...</value>
   </data>
   <data name="ImageConverter_Quality" xml:space="preserve">
-    <value>Quality (JPEG, WebP)</value>
+    <value>गुणवत्ता (JPEG, WebP)</value>
   </data>
   <data name="ImageConverter_OutputSize" xml:space="preserve">
-    <value>Output Size:</value>
+    <value>आउटपुट साइज़:</value>
   </data>
   <data name="ImageCompressor_Title" xml:space="preserve">
-    <value>Image Compressor</value>
+    <value>इमेज कंप्रेसर</value>
   </data>
   <data name="ImageCompressor_Description" xml:space="preserve">
-    <value>Compress JPG, PNG, and WebP images locally in your browser.</value>
+    <value>JPG, PNG, और WebP इमेज को अपने ब्राउज़र में स्थानीय रूप से कंप्रेस करें।</value>
   </data>
   <data name="ImageCompressor_Compressing" xml:space="preserve">
-    <value>Compressing...</value>
+    <value>कंप्रेस हो रहा है...</value>
   </data>
   <data name="ImageCompressor_Processing" xml:space="preserve">
-    <value>Processing...</value>
+    <value>प्रोसेस हो रहा है...</value>
   </data>
   <data name="ImageCompressor_Done" xml:space="preserve">
-    <value>Done!</value>
+    <value>हो गया!</value>
   </data>
   <data name="ImageCompressor_Download" xml:space="preserve">
-    <value>Download</value>
+    <value>डाउनलोड</value>
   </data>
   <data name="ImageCompressor_DragDrop" xml:space="preserve">
-    <value>Drop images here or click to select files</value>
+    <value>इमेज यहाँ ड्रॉप करें या फ़ाइलें चुनने के लिए क्लिक करें</value>
   </data>
   <data name="ImageResizer_Title" xml:space="preserve">
-    <value>Image Resizer</value>
+    <value>इमेज रिसाइज़र</value>
   </data>
   <data name="ImageResizer_Description" xml:space="preserve">
-    <value>Resize images with custom dimensions and aspect ratio locking.</value>
+    <value>कस्टम डाइमेंशन और एस्पेक्ट रेशियो लॉक के साथ इमेज रिसाइज़ करें।</value>
   </data>
   <data name="ImageResizer_OriginalInfo" xml:space="preserve">
-    <value>Original Image</value>
+    <value>मूल इमेज</value>
   </data>
   <data name="ImageResizer_Width" xml:space="preserve">
-    <value>Width (px)</value>
+    <value>चौड़ाई (px)</value>
   </data>
   <data name="ImageResizer_Height" xml:space="preserve">
-    <value>Height (px)</value>
+    <value>ऊँचाई (px)</value>
   </data>
   <data name="ImageResizer_LockAspectRatio" xml:space="preserve">
-    <value>Maintain Aspect Ratio</value>
+    <value>एस्पेक्ट रेशियो बनाए रखें</value>
   </data>
   <data name="ImageResizer_Resize" xml:space="preserve">
-    <value>Resize</value>
+    <value>रिसाइज़</value>
   </data>
   <data name="ImageResizer_Resizing" xml:space="preserve">
-    <value>Resizing...</value>
+    <value>रिसाइज़ हो रहा है...</value>
   </data>
   <data name="RegexTester_Title" xml:space="preserve">
-    <value>Regex Tester</value>
+    <value>रेगेक्स टेस्टर</value>
   </data>
   <data name="RegexTester_Description" xml:space="preserve">
-    <value>Test and debug regular expressions using the Rust regex engine (WASM) — all in your browser</value>
+    <value>Rust रेगेक्स इंजन (WASM) का उपयोग करके रेगुलर एक्सप्रेशन टेस्ट और डिबग करें — सब कुछ आपके ब्राउज़र में</value>
   </data>
   <data name="RegexTester_PatternLabel" xml:space="preserve">
-    <value>Pattern</value>
+    <value>पैटर्न</value>
   </data>
   <data name="RegexTester_PatternPlaceholder" xml:space="preserve">
-    <value>Enter regex pattern...</value>
+    <value>रेगेक्स पैटर्न दर्ज करें...</value>
   </data>
   <data name="RegexTester_TextLabel" xml:space="preserve">
-    <value>Test String</value>
+    <value>टेस्ट स्ट्रिंग</value>
   </data>
   <data name="RegexTester_TextPlaceholder" xml:space="preserve">
-    <value>Enter text to match against...</value>
+    <value>मैच करने के लिए टेक्स्ट दर्ज करें...</value>
   </data>
   <data name="RegexTester_FlagsLabel" xml:space="preserve">
-    <value>Flags</value>
+    <value>फ़्लैग्स</value>
   </data>
   <data name="RegexTester_MatchesLabel" xml:space="preserve">
-    <value>Matches</value>
+    <value>मैचेज़</value>
   </data>
   <data name="RegexTester_NoMatches" xml:space="preserve">
-    <value>No matches found</value>
+    <value>कोई मैच नहीं मिला</value>
   </data>
   <data name="RegexTester_ErrorTitle" xml:space="preserve">
-    <value>Regex Error</value>
+    <value>रेगेक्स त्रुटि</value>
   </data>
   <data name="RegexTester_ExamplesTitle" xml:space="preserve">
-    <value>Examples</value>
+    <value>उदाहरण</value>
   </data>
   <data name="RegexTester_Instructions" xml:space="preserve">
-    <value>Enter a Rust-flavor regular expression and test string below. Matches will be highlighted.</value>
+    <value>एक Rust-फ्लेवर रेगुलर एक्सप्रेशन और टेस्ट स्ट्रिंग नीचे दर्ज करें। मैचेज़ हाइलाइट किए जाएंगे।</value>
   </data>
   <data name="QrCodeGenerator_Title" xml:space="preserve">
     <value>QR कोड जनरेटर</value>
@@ -1381,76 +1381,76 @@
     <value>सामग्री</value>
   </data>
   <data name="QrCodeGenerator_ContentPlaceholder" xml:space="preserve">
-    <value>Enter text or URL to encode...</value>
+    <value>एनकोड करने के लिए टेक्स्ट या URL दर्ज करें...</value>
   </data>
   <data name="QrCodeGenerator_ColorsSection" xml:space="preserve">
-    <value>Colors</value>
+    <value>रंग</value>
   </data>
   <data name="QrCodeGenerator_ForegroundColor" xml:space="preserve">
-    <value>QR Code Color</value>
+    <value>QR कोड रंग</value>
   </data>
   <data name="QrCodeGenerator_BackgroundColor" xml:space="preserve">
-    <value>Background Color</value>
+    <value>बैकग्राउंड रंग</value>
   </data>
   <data name="QrCodeGenerator_OptionsSection" xml:space="preserve">
-    <value>Options</value>
+    <value>विकल्प</value>
   </data>
   <data name="QrCodeGenerator_StyleLabel" xml:space="preserve">
-    <value>Style</value>
+    <value>स्टाइल</value>
   </data>
   <data name="QrCodeGenerator_StyleSquare" xml:space="preserve">
-    <value>Square</value>
+    <value>स्क्वायर</value>
   </data>
   <data name="QrCodeGenerator_StyleDots" xml:space="preserve">
-    <value>Dots</value>
+    <value>डॉट्स</value>
   </data>
   <data name="QrCodeGenerator_StyleRounded" xml:space="preserve">
-    <value>Rounded</value>
+    <value>राउंडेड</value>
   </data>
   <data name="QrCodeGenerator_ErrorCorrectionLabel" xml:space="preserve">
-    <value>Error Correction Level</value>
+    <value>एरर करेक्शन लेवल</value>
   </data>
   <data name="QrCodeGenerator_SizeLabel" xml:space="preserve">
-    <value>Image Size</value>
+    <value>इमेज साइज़</value>
   </data>
   <data name="QrCodeGenerator_LogoSection" xml:space="preserve">
-    <value>Logo (optional)</value>
+    <value>लोगो (वैकल्पिक)</value>
   </data>
   <data name="QrCodeGenerator_LogoHint" xml:space="preserve">
-    <value>Add a logo to the center of your QR code. Use high error correction (Q or H) for best results.</value>
+    <value>अपने QR कोड के केंद्र में एक लोगो जोड़ें। सर्वोत्तम परिणामों के लिए उच्च एरर करेक्शन (Q या H) का उपयोग करें।</value>
   </data>
   <data name="QrCodeGenerator_LogoDropText" xml:space="preserve">
-    <value>Drop logo here or click to select</value>
+    <value>लोगो यहाँ ड्रॉप करें या चुनने के लिए क्लिक करें</value>
   </data>
   <data name="QrCodeGenerator_LogoRemove" xml:space="preserve">
-    <value>Remove logo</value>
+    <value>लोगो हटाएँ</value>
   </data>
   <data name="QrCodeGenerator_Generate" xml:space="preserve">
     <value>QR कोड जनरेट करें</value>
   </data>
   <data name="QrCodeGenerator_Generating" xml:space="preserve">
-    <value>Generating...</value>
+    <value>जनरेट हो रहा है...</value>
   </data>
   <data name="QrCodeGenerator_PreviewSection" xml:space="preserve">
-    <value>Preview</value>
+    <value>पूर्वावलोकन</value>
   </data>
   <data name="QrCodeGenerator_PreviewPlaceholder" xml:space="preserve">
-    <value>Your QR code will appear here</value>
+    <value>आपका QR कोड यहाँ दिखाई देगा</value>
   </data>
   <data name="QrScanner_Title" xml:space="preserve">
-    <value>QR Code Scanner</value>
+    <value>QR कोड स्कैनर</value>
   </data>
   <data name="QrScanner_Description" xml:space="preserve">
-    <value>Scan QR codes from images directly in your browser without uploading to any server.</value>
+    <value>किसी भी सर्वर पर अपलोड किए बिना सीधे अपने ब्राउज़र में इमेज से QR कोड स्कैन करें।</value>
   </data>
   <data name="QrScanner_DropZone" xml:space="preserve">
-    <value>Drag &amp; drop an image with a QR code here</value>
+    <value>QR कोड वाली इमेज को यहाँ ड्रैग एंड ड्रॉप करें</value>
   </data>
   <data name="QrScanner_ResultLabel" xml:space="preserve">
-    <value>Scanned Content</value>
+    <value>स्कैन की गई सामग्री</value>
   </data>
   <data name="QrScanner_ErrorReading" xml:space="preserve">
-    <value>Error reading text from the image.</value>
+    <value>इमेज से टेक्स्ट पढ़ने में त्रुटि।</value>
   </data>
   <data name="Nav_QrScanner" xml:space="preserve">
     <value>QR कोड स्कैनर</value>
@@ -1465,49 +1465,49 @@
     <value>UUID v4 और v7 पहचानकर्ता जनरेट करें।</value>
   </data>
   <data name="UuidGenerator_VersionLabel" xml:space="preserve">
-    <value>UUID Version</value>
+    <value>UUID वर्जन</value>
   </data>
   <data name="UuidGenerator_Version4" xml:space="preserve">
-    <value>Version 4 (Random)</value>
+    <value>वर्जन 4 (रैंडम)</value>
   </data>
   <data name="UuidGenerator_Version7" xml:space="preserve">
-    <value>Version 7 (Timestamp-based)</value>
+    <value>वर्जन 7 (टाइमस्टैम्प-आधारित)</value>
   </data>
   <data name="UuidGenerator_FormatLabel" xml:space="preserve">
-    <value>Format</value>
+    <value>प्रारूप</value>
   </data>
   <data name="UuidGenerator_FormatHyphenated" xml:space="preserve">
-    <value>Hyphenated (8-4-4-4-12)</value>
+    <value>हाइफ़नेटेड (8-4-4-4-12)</value>
   </data>
   <data name="UuidGenerator_FormatPlain" xml:space="preserve">
-    <value>Plain (no hyphens)</value>
+    <value>प्लेन (बिना हाइफ़न)</value>
   </data>
   <data name="UuidGenerator_FormatBraces" xml:space="preserve">
-    <value>Braces {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}</value>
+    <value>ब्रैसेस {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}</value>
   </data>
   <data name="UuidGenerator_FormatUrn" xml:space="preserve">
     <value>URN (urn:uuid:...)</value>
   </data>
   <data name="UuidGenerator_CaseLabel" xml:space="preserve">
-    <value>Case</value>
+    <value>केस</value>
   </data>
   <data name="UuidGenerator_CaseUpper" xml:space="preserve">
-    <value>UPPERCASE</value>
+    <value>अपरकेस</value>
   </data>
   <data name="UuidGenerator_CaseLower" xml:space="preserve">
-    <value>lowercase</value>
+    <value>लोअरकेस</value>
   </data>
   <data name="UuidGenerator_CountLabel" xml:space="preserve">
-    <value>Number of UUIDs</value>
+    <value>UUIDs की संख्या</value>
   </data>
   <data name="UuidGenerator_Generate" xml:space="preserve">
     <value>जनरेट करें</value>
   </data>
   <data name="UuidGenerator_GenerateOne" xml:space="preserve">
-    <value>Generate One</value>
+    <value>एक जनरेट करें</value>
   </data>
   <data name="UuidGenerator_GenerateBatch" xml:space="preserve">
-    <value>Generate Batch</value>
+    <value>बैच जनरेट करें</value>
   </data>
   <data name="UuidGenerator_OutputLabel" xml:space="preserve">
     <value>जनरेट किए गए UUIDs</value>
@@ -1576,307 +1576,307 @@
     <value>रंग कनवर्टर</value>
   </data>
   <data name="ColorConverter_Title" xml:space="preserve">
-    <value>Color Converter</value>
+    <value>रंग कनवर्टर</value>
   </data>
   <data name="ColorConverter_Description" xml:space="preserve">
-    <value>Convert colors between HEX, RGB, HSL, and CMYK formats with color picker and shades palette — all in your browser</value>
+    <value>रंग पिकर और शेड्स पैलेट के साथ HEX, RGB, HSL, और CMYK प्रारूपों के बीच रंग कन्वर्ट करें — सब कुछ आपके ब्राउज़र में</value>
   </data>
   <data name="ColorConverter_ColorPicker" xml:space="preserve">
-    <value>Color Picker</value>
+    <value>रंग पिकर</value>
   </data>
   <data name="ColorConverter_InputFormat" xml:space="preserve">
-    <value>Input Format</value>
+    <value>इनपुट प्रारूप</value>
   </data>
   <data name="ColorConverter_ManualInput" xml:space="preserve">
-    <value>Manual Input</value>
+    <value>मैन्युअल इनपुट</value>
   </data>
   <data name="ColorConverter_InputHint" xml:space="preserve">
-    <value>Examples: #3b82f6, rgb(59, 130, 246), hsl(217, 91%, 60%), cmyk(76%, 47%, 0%, 4%)</value>
+    <value>उदाहरण: #3b82f6, rgb(59, 130, 246), hsl(217, 91%, 60%), cmyk(76%, 47%, 0%, 4%)</value>
   </data>
   <data name="ColorConverter_Convert" xml:space="preserve">
-    <value>Convert</value>
+    <value>कन्वर्ट</value>
   </data>
   <data name="ColorConverter_Clear" xml:space="preserve">
-    <value>Clear</value>
+    <value>साफ़ करें</value>
   </data>
   <data name="ColorConverter_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>कॉपी</value>
   </data>
   <data name="ColorConverter_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>कॉपी हो गया!</value>
   </data>
   <data name="ColorConverter_ConvertedFormats" xml:space="preserve">
-    <value>Converted Formats</value>
+    <value>कन्वर्ट किए गए प्रारूप</value>
   </data>
   <data name="ColorConverter_ShadesPalette" xml:space="preserve">
-    <value>Shades Palette</value>
+    <value>शेड्स पैलेट</value>
   </data>
   <data name="ColorConverter_ContrastChecker" xml:space="preserve">
-    <value>Contrast Checker</value>
+    <value>कंट्रास्ट चेकर</value>
   </data>
   <data name="ColorConverter_ForegroundColor" xml:space="preserve">
-    <value>Foreground Color</value>
+    <value>फोरग्राउंड रंग</value>
   </data>
   <data name="ColorConverter_BackgroundColor" xml:space="preserve">
-    <value>Background Color</value>
+    <value>बैकग्राउंड रंग</value>
   </data>
   <data name="ColorConverter_ContrastRatio" xml:space="preserve">
-    <value>Contrast Ratio</value>
+    <value>कंट्रास्ट रेशियो</value>
   </data>
   <data name="ColorConverter_WCAGCompliance" xml:space="preserve">
-    <value>WCAG Compliance</value>
+    <value>WCAG अनुपालन</value>
   </data>
   <data name="ColorConverter_WCAG_AA_Normal" xml:space="preserve">
-    <value>AA Normal Text (4.5:1)</value>
+    <value>AA सामान्य टेक्स्ट (4.5:1)</value>
   </data>
   <data name="ColorConverter_WCAG_AA_Large" xml:space="preserve">
-    <value>AA Large Text (3:1)</value>
+    <value>AA बड़ा टेक्स्ट (3:1)</value>
   </data>
   <data name="ColorConverter_WCAG_AAA_Normal" xml:space="preserve">
-    <value>AAA Normal Text (7:1)</value>
+    <value>AAA सामान्य टेक्स्ट (7:1)</value>
   </data>
   <data name="ColorConverter_WCAG_AAA_Large" xml:space="preserve">
-    <value>AAA Large Text (4.5:1)</value>
+    <value>AAA बड़ा टेक्स्ट (4.5:1)</value>
   </data>
   <data name="ColorConverter_Pass" xml:space="preserve">
-    <value>Pass</value>
+    <value>पास</value>
   </data>
   <data name="ColorConverter_Fail" xml:space="preserve">
-    <value>Fail</value>
+    <value>फेल</value>
   </data>
   <data name="ColorConverter_PreviewText" xml:space="preserve">
-    <value>Sample Text</value>
+    <value>नमूना टेक्स्ट</value>
   </data>
   <data name="Nav_MarkdownPreview" xml:space="preserve">
     <value>मार्कडाउन पूर्वावलोकन</value>
   </data>
   <data name="MarkdownPreview_Title" xml:space="preserve">
-    <value>Markdown Preview</value>
+    <value>मार्कडाउन पूर्वावलोकन</value>
   </data>
   <data name="MarkdownPreview_Description" xml:space="preserve">
-    <value>Live markdown editor with real-time HTML preview, split-view, and syntax highlighting — all in your browser</value>
+    <value>लाइव मार्कडाउन एडिटर रियल-टाइम HTML पूर्वावलोकन, स्प्लिट-व्यू, और सिंटैक्स हाइलाइटिंग के साथ — सब कुछ आपके ब्राउज़र में</value>
   </data>
   <data name="MarkdownPreview_EditorLabel" xml:space="preserve">
-    <value>Markdown Editor</value>
+    <value>मार्कडाउन एडिटर</value>
   </data>
   <data name="MarkdownPreview_EditorPlaceholder" xml:space="preserve">
-    <value>Type your markdown here...</value>
+    <value>अपना मार्कडाउन यहाँ टाइप करें...</value>
   </data>
   <data name="MarkdownPreview_PreviewLabel" xml:space="preserve">
-    <value>Preview</value>
+    <value>पूर्वावलोकन</value>
   </data>
   <data name="MarkdownPreview_Bold" xml:space="preserve">
-    <value>Bold</value>
+    <value>बोल्ड</value>
   </data>
   <data name="MarkdownPreview_Italic" xml:space="preserve">
-    <value>Italic</value>
+    <value>इटैलिक</value>
   </data>
   <data name="MarkdownPreview_Heading" xml:space="preserve">
-    <value>Heading</value>
+    <value>हैडिंग</value>
   </data>
   <data name="MarkdownPreview_Link" xml:space="preserve">
-    <value>Link</value>
+    <value>लिंक</value>
   </data>
   <data name="MarkdownPreview_Image" xml:space="preserve">
-    <value>Image</value>
+    <value>इमेज</value>
   </data>
   <data name="MarkdownPreview_Code" xml:space="preserve">
-    <value>Code</value>
+    <value>कोड</value>
   </data>
   <data name="MarkdownPreview_List" xml:space="preserve">
-    <value>List</value>
+    <value>लिस्ट</value>
   </data>
   <data name="MarkdownPreview_Clear" xml:space="preserve">
-    <value>Clear</value>
+    <value>साफ़ करें</value>
   </data>
   <data name="MarkdownPreview_SyncScroll" xml:space="preserve">
-    <value>Sync Scroll</value>
+    <value>सिंक स्क्रॉल</value>
   </data>
   <data name="MarkdownPreview_CopyHTML" xml:space="preserve">
-    <value>Copy HTML</value>
+    <value>HTML कॉपी करें</value>
   </data>
   <data name="MarkdownPreview_CopyMarkdown" xml:space="preserve">
-    <value>Copy Markdown</value>
+    <value>मार्कडाउन कॉपी करें</value>
   </data>
   <data name="MarkdownPreview_Download" xml:space="preserve">
-    <value>Download HTML</value>
+    <value>HTML डाउनलोड करें</value>
   </data>
   <data name="Nav_TextDiffViewer" xml:space="preserve">
     <value>टेक्स्ट डिफ व्यूअर</value>
   </data>
   <data name="TextDiffViewer_Title" xml:space="preserve">
-    <value>Text Diff Viewer</value>
+    <value>टेक्स्ट डिफ व्यूअर</value>
   </data>
   <data name="TextDiffViewer_Description" xml:space="preserve">
-    <value>Compare two text files or code snippets side-by-side with a visual diff viewer, similar to Git diff. Highlight changes, additions, and deletions in a readable format.</value>
+    <value>दो टेक्स्ट फ़ाइलों या कोड स्निपेट्स की साइड-बाय-साइड तुलना करें, Git डिफ की तरह। परिवर्तनों, जोड़ों और हटाने को एक पठनीय प्रारूप में हाइलाइट करें।</value>
   </data>
   <data name="TextDiffViewer_OriginalLabel" xml:space="preserve">
-    <value>Original Text</value>
+    <value>मूल टेक्स्ट</value>
   </data>
   <data name="TextDiffViewer_OriginalPlaceholder" xml:space="preserve">
-    <value>Paste or type original text here, or upload a file below...</value>
+    <value>मूल टेक्स्ट यहाँ पेस्ट या टाइप करें, या नीचे फ़ाइल अपलोड करें...</value>
   </data>
   <data name="TextDiffViewer_ModifiedLabel" xml:space="preserve">
-    <value>Modified Text</value>
+    <value>संशोधित टेक्स्ट</value>
   </data>
   <data name="TextDiffViewer_ModifiedPlaceholder" xml:space="preserve">
-    <value>Paste or type modified text here, or upload a file below...</value>
+    <value>संशोधित टेक्स्ट यहाँ पेस्ट या टाइप करें, या नीचे फ़ाइल अपलोड करें...</value>
   </data>
   <data name="TextDiffViewer_CompareButton" xml:space="preserve">
-    <value>Compare</value>
+    <value>तुलना करें</value>
   </data>
   <data name="TextDiffViewer_ClearButton" xml:space="preserve">
-    <value>Clear</value>
+    <value>साफ़ करें</value>
   </data>
   <data name="TextDiffViewer_LineByLine" xml:space="preserve">
-    <value>Line by Line</value>
+    <value>लाइन बाय लाइन</value>
   </data>
   <data name="TextDiffViewer_SideBySide" xml:space="preserve">
-    <value>Side by Side</value>
+    <value>साइड बाय साइड</value>
   </data>
   <data name="TextDiffViewer_ErrorMessage" xml:space="preserve">
-    <value>Please enter text in both fields to compare.</value>
+    <value>कृपया तुलना करने के लिए दोनों फ़ील्ड्स में टेक्स्ट दर्ज करें।</value>
   </data>
   <data name="TextDiffViewer_ChooseOriginalFile" xml:space="preserve">
-    <value>📁 Choose original file</value>
+    <value>📁 मूल फ़ाइल चुनें</value>
   </data>
   <data name="TextDiffViewer_ChooseModifiedFile" xml:space="preserve">
-    <value>📁 Choose modified file</value>
+    <value>📁 संशोधित फ़ाइल चुनें</value>
   </data>
   <data name="DaisyUIDemo_Title" xml:space="preserve">
-    <value>DaisyUI Components Demo</value>
+    <value>DaisyUI घटक डेमो</value>
   </data>
   <data name="DaisyUIDemo_Description" xml:space="preserve">
-    <value>Test page showcasing various DaisyUI components and themes</value>
+    <value>विभिन्न DaisyUI घटकों और थीम्स दिखाने वाला टेस्ट पेज</value>
   </data>
   <data name="DaisyUIDemo_Buttons" xml:space="preserve">
-    <value>Buttons</value>
+    <value>बटन</value>
   </data>
   <data name="DaisyUIDemo_Forms" xml:space="preserve">
-    <value>Forms</value>
+    <value>फ़ॉर्म</value>
   </data>
   <data name="DaisyUIDemo_Cards" xml:space="preserve">
-    <value>Cards</value>
+    <value>कार्ड</value>
   </data>
   <data name="DaisyUIDemo_Alerts" xml:space="preserve">
-    <value>Alerts</value>
+    <value>अलर्ट</value>
   </data>
   <data name="DaisyUIDemo_Modals" xml:space="preserve">
-    <value>Modals</value>
+    <value>मॉडल</value>
   </data>
   <data name="DaisyUIDemo_ThemeSelector" xml:space="preserve">
-    <value>Select Theme</value>
+    <value>थीम चुनें</value>
   </data>
   <data name="DaisyUIDemo_ClickMe" xml:space="preserve">
-    <value>Click me</value>
+    <value>मुझे क्लिक करें</value>
   </data>
   <data name="DaisyUIDemo_CardTitle" xml:space="preserve">
-    <value>Card Title</value>
+    <value>कार्ड शीर्षक</value>
   </data>
   <data name="DaisyUIDemo_CardDescription" xml:space="preserve">
-    <value>This is a beautiful DaisyUI card component with Tailwind CSS styling.</value>
+    <value>यह Tailwind CSS स्टाइलिंग के साथ एक सुंदर DaisyUI कार्ड घटक है।</value>
   </data>
   <data name="DaisyUIDemo_LearnMore" xml:space="preserve">
-    <value>Learn More</value>
+    <value>और जानें</value>
   </data>
   <data name="DaisyUIDemo_SuccessAlert" xml:space="preserve">
-    <value>Success! Your operation completed successfully.</value>
+    <value>सफल! आपका ऑपरेशन सफलतापूर्वक पूरा हुआ।</value>
   </data>
   <data name="DaisyUIDemo_InfoAlert" xml:space="preserve">
-    <value>Info: This is an informational message.</value>
+    <value>जानकारी: यह एक सूचनात्मक संदेश है।</value>
   </data>
   <data name="DaisyUIDemo_WarningAlert" xml:space="preserve">
-    <value>Warning! Please check your input.</value>
+    <value>चेतावनी! कृपया अपना इनपुट जाँचें।</value>
   </data>
   <data name="DaisyUIDemo_ErrorAlert" xml:space="preserve">
-    <value>Error! Something went wrong.</value>
+    <value>त्रुटि! कुछ गड़बड़ हुई।</value>
   </data>
   <data name="DaisyUIDemo_OpenModal" xml:space="preserve">
-    <value>Open Modal</value>
+    <value>मॉडल खोलें</value>
   </data>
   <data name="DaisyUIDemo_ModalTitle" xml:space="preserve">
-    <value>Hello from DaisyUI Modal!</value>
+    <value>DaisyUI मॉडल से नमस्ते!</value>
   </data>
   <data name="DaisyUIDemo_ModalBody" xml:space="preserve">
-    <value>This is a modal dialog built with DaisyUI components. Press ESC key or click outside to close.</value>
+    <value>यह DaisyUI घटकों से बना एक मॉडल डायलॉग है। बंद करने के लिए ESC कुंजी दबाएँ या बाहर क्लिक करें।</value>
   </data>
   <data name="DaisyUIDemo_Close" xml:space="preserve">
-    <value>Close</value>
+    <value>बंद करें</value>
   </data>
   <data name="DaisyUIDemo_EmailLabel" xml:space="preserve">
-    <value>Email</value>
+    <value>ईमेल</value>
   </data>
   <data name="DaisyUIDemo_PasswordLabel" xml:space="preserve">
-    <value>Password</value>
+    <value>पासवर्ड</value>
   </data>
   <data name="DaisyUIDemo_Submit" xml:space="preserve">
-    <value>Submit</value>
+    <value>सबमिट</value>
   </data>
   <data name="HmacCalculator_Title" xml:space="preserve">
-    <value>HMAC Calculator</value>
+    <value>HMAC कैलकुलेटर</value>
   </data>
   <data name="HmacCalculator_Description" xml:space="preserve">
-    <value>Generate HMAC hashes using SHA-256 and SHA-512 with custom keys and messages — all in your browser</value>
+    <value>कस्टम कीज़ और संदेशों के साथ SHA-256 और SHA-512 का उपयोग करके HMAC हैश जनरेट करें — सब कुछ आपके ब्राउज़र में</value>
   </data>
   <data name="HmacCalculator_KeyLabel" xml:space="preserve">
-    <value>Secret Key</value>
+    <value>सीक्रेट की</value>
   </data>
   <data name="HmacCalculator_KeyPlaceholder" xml:space="preserve">
-    <value>Enter your secret key...</value>
+    <value>अपनी सीक्रेट की दर्ज करें...</value>
   </data>
   <data name="HmacCalculator_MessageLabel" xml:space="preserve">
-    <value>Message</value>
+    <value>संदेश</value>
   </data>
   <data name="HmacCalculator_MessagePlaceholder" xml:space="preserve">
-    <value>Enter message to hash...</value>
+    <value>हैश करने के लिए संदेश दर्ज करें...</value>
   </data>
   <data name="HmacCalculator_AlgorithmLabel" xml:space="preserve">
-    <value>Algorithm</value>
+    <value>एल्गोरिदम</value>
   </data>
   <data name="HmacCalculator_Calculate" xml:space="preserve">
-    <value>Calculate HMAC</value>
+    <value>HMAC गणना करें</value>
   </data>
   <data name="HmacCalculator_Clear" xml:space="preserve">
-    <value>Clear</value>
+    <value>साफ़ करें</value>
   </data>
   <data name="HmacCalculator_OutputLabel" xml:space="preserve">
-    <value>HMAC Result</value>
+    <value>HMAC परिणाम</value>
   </data>
   <data name="HmacCalculator_Copy" xml:space="preserve">
-    <value>Copy</value>
+    <value>कॉपी</value>
   </data>
   <data name="HmacCalculator_Copied" xml:space="preserve">
-    <value>Copied!</value>
+    <value>कॉपी हो गया!</value>
   </data>
   <data name="YamlBeautifierValidator_Title" xml:space="preserve">
-    <value>YAML Beautifier/Validator</value>
+    <value>YAML फॉर्मेटर/वैलिडेटर</value>
   </data>
   <data name="YamlBeautifierValidator_Description" xml:space="preserve">
-    <value>Format and validate YAML with error highlighting</value>
+    <value>YAML को एरर हाइलाइटिंग के साथ फॉर्मेट और वैलिडेट करें</value>
   </data>
   <data name="YamlBeautifierValidator_InputLabel" xml:space="preserve">
-    <value>YAML Input</value>
+    <value>YAML इनपुट</value>
   </data>
   <data name="YamlBeautifierValidator_InputPlaceholder" xml:space="preserve">
-    <value>Enter YAML content here...</value>
+    <value>YAML सामग्री यहाँ दर्ज करें...</value>
   </data>
   <data name="YamlBeautifierValidator_Format" xml:space="preserve">
-    <value>Format</value>
+    <value>फॉर्मेट</value>
   </data>
   <data name="YamlBeautifierValidator_Validate" xml:space="preserve">
-    <value>Validate</value>
+    <value>वैलिडेट</value>
   </data>
   <data name="YamlBeautifierValidator_Clear" xml:space="preserve">
-    <value>Clear</value>
+    <value>साफ़ करें</value>
   </data>
   <data name="YamlBeautifierValidator_OutputLabel" xml:space="preserve">
-    <value>Output</value>
+    <value>आउटपुट</value>
   </data>
   <data name="YamlBeautifierValidator_Valid" xml:space="preserve">
-    <value>YAML is valid</value>
+    <value>YAML वैलिड है</value>
   </data>
   <data name="YamlBeautifierValidator_Invalid" xml:space="preserve">
-    <value>YAML is invalid</value>
+    <value>YAML अमान्य है</value>
   </data>
   <data name="Category_Images" xml:space="preserve">
     <value>इमेजेस</value>

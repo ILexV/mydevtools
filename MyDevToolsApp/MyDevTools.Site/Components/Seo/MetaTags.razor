@@ -70,14 +70,9 @@
 
     private string GetCanonicalUrl()
     {
-        if (string.IsNullOrEmpty(CurrentUrl)) return CurrentUrl!;
-        
-        if (IsHomePage && !string.IsNullOrEmpty(Lang))
-        {
-            var baseUri = new Uri(CurrentUrl);
-            return $"{baseUri.Scheme}://{baseUri.Authority}/";
-        }
-        return CurrentUrl;
+        // Always return the current URL as canonical (self-referencing) for all pages including language versions of Home.
+        // This ensures /ru points to /ru, /en to /en, eliminating conflicts with hreflang tags.
+        return CurrentUrl ?? "";
     }
 
     private string GetAlternateUrl(string culture)

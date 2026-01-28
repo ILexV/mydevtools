@@ -1,6 +1,8 @@
 @page "/{lang}/hash-calculator"
 @using MyDevTools.Site.Resources
+@using MyDevTools.Site.Components.Seo
 @using System.Text.Json
+@using MyDevTools.Site.Components.Layout
 @inject NavigationManager Navigation
 
 <MetaTags Title="@AppStrings.HashCalculator_Title" 
@@ -110,13 +112,20 @@
     </div>
 
     <script type="application/json" id="hash-algorithms-data">
-        @((MarkupString)JsonSerializer.Serialize(SupportedHashAlgorithms.Select(x => new { label = x.Key, id = x.Value })))
+        @((MarkupString)AlgorithmsJson)
     </script>
 </ToolLayout>
 
 @code {
     [Parameter]
     public string Lang { get; set; } = "en";
+
+    private string AlgorithmsJson { get; set; } = "[]";
+
+    protected override void OnInitialized()
+    {
+        AlgorithmsJson = JsonSerializer.Serialize(SupportedHashAlgorithms.Select(x => new { label = x.Key, id = x.Value }));
+    }
 
     private static readonly IReadOnlyDictionary<string, string> SupportedHashAlgorithms =
         new Dictionary<string, string>

@@ -1,14 +1,17 @@
+@using Microsoft.AspNetCore.Components.Web
 @inject MyDevTools.Site.Services.ILocalizationService LocalizationService
 @inject NavigationManager Navigation
 
-@* Language-specific versions *@
-@foreach (var culture in LocalizationService.SupportedCultures)
-{
-    <link rel="alternate" hreflang="@culture" href="@GetAlternateUrl(culture)" />
-}
+<HeadContent>
+    @* Language-specific versions *@
+    @foreach (var culture in LocalizationService.SupportedCultures)
+    {
+        <link rel="alternate" hreflang="@culture" href="@GetAlternateUrl(culture)" />
+    }
 
-@* x-default points to root URL for home, or /en/{tool} for tools *@
-<link rel="alternate" hreflang="x-default" href="@GetDefaultUrl()" />
+    @* x-default points to root URL for home, or /en/{tool} for tools *@
+    <link rel="alternate" hreflang="x-default" href="@GetDefaultUrl()" />
+</HeadContent>
 
 @code {
     /// <summary>

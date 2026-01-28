@@ -1,8 +1,15 @@
 @page "/{lang}/image-compressor"
 @using MyDevTools.Site.Components.Layout
+@using MyDevTools.Site.Components.Seo
 @inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
 
 @using MyDevTools.Site.Resources
+
+<MetaTags Title="@AppStrings.ImageCompressor_Title" 
+          Description="@AppStrings.ImageCompressor_Description" 
+          CurrentUrl="@Navigation.Uri" />
+
 <ToolLayout Title="@AppStrings.ImageCompressor_Title" Description="@AppStrings.ImageCompressor_Description">
     <div id="image-compressor-root" class="max-w-4xl mx-auto space-y-8 p-4"
          data-compressing="@AppStrings.ImageCompressor_Compressing"

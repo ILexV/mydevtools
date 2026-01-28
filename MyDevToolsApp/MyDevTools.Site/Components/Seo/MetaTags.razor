@@ -75,7 +75,7 @@
         if (IsHomePage && !string.IsNullOrEmpty(Lang))
         {
             var baseUri = new Uri(CurrentUrl);
-            return $"{baseUri.Scheme}://{baseUri.Host}/";
+            return $"{baseUri.Scheme}://{baseUri.Authority}/";
         }
         return CurrentUrl;
     }
@@ -88,7 +88,7 @@
         // If it's home page (IsHomePage=true), ToolPath should be empty, so we get /en, /ru etc.
         // If ToolPath is present, we get /en/tool
         
-        return $"{baseUri.Scheme}://{baseUri.Host}/{culture}{path}";
+        return $"{baseUri.Scheme}://{baseUri.Authority}/{culture}{path}";
     }
 
     private string GetDefaultUrl()
@@ -98,11 +98,11 @@
         // For home page: x-default points to root /
         if (IsHomePage || string.IsNullOrEmpty(ToolPath))
         {
-            return $"{baseUri.Scheme}://{baseUri.Host}/";
+            return $"{baseUri.Scheme}://{baseUri.Authority}/";
         }
         
         // For tool pages: x-default points to /en/{tool}
-        return $"{baseUri.Scheme}://{baseUri.Host}/en/{ToolPath}";
+        return $"{baseUri.Scheme}://{baseUri.Authority}/en/{ToolPath}";
     }
 
     private string GenerateJsonLd()

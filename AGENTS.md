@@ -12,6 +12,14 @@ This document provides essential information for AI coding agents working on MyD
 
 **Core Principle**: ALL user data processing happens in the browser via WASM. The server only handles SSR and static file serving.
 
+## Agent Workflow Rules
+
+**Browser Verification:**
+When the user asks to "open", "look at", "check", or "verify" the site:
+- **MUST** use the **Playwright MCP tools** (`playwright_browser_navigate`, `playwright_browser_screenshot`, etc.) to actually render the page.
+- **DO NOT** rely solely on `curl` or string matching for visual verification or JS functionality.
+- **ALWAYS** ensure the server is running (e.g., `dotnet run ... &`) before navigating.
+
 ## Build, Test & Run Commands
 
 ### .NET/Blazor Application

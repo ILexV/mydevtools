@@ -5,14 +5,9 @@
 <ToolLayout Title="@AppStrings.RegexTester_Title" Description="@AppStrings.RegexTester_Description">
     <MetaTags Title="@AppStrings.RegexTester_Title" 
               Description="@AppStrings.RegexTester_Description" 
-              CurrentUrl="@Navigation.Uri" />
-
-    <HreflangLinks ToolPath="regex-tester" />
-
-    <JsonLdTool ToolName="@AppStrings.RegexTester_Title" 
-                Description="@AppStrings.RegexTester_Description" 
-                CurrentUrl="@Navigation.Uri"
-                SupportedAlgorithms="@_empty" />
+              CurrentUrl="@Navigation.Uri"
+              ToolPath="regex-tester"
+              SupportedAlgorithms="@_empty" />
 
     <div id="regex-tester-root"
          data-loading="@AppStrings.Common_Loading"

@@ -2,6 +2,7 @@ using MyDevTools.Site.Components;
 using MyDevTools.Site.Middleware;
 using MyDevTools.Site.Services;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.HttpOverrides;
 using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +30,13 @@ var localizationOptions = new RequestLocalizationOptions
 localizationOptions.RequestCultureProviders.Insert(0, new RouteDataRequestCultureProvider());
 
 var app = builder.Build();
+
+// Configure Forwarded Headers for Nginx/Proxy
+// This ensures correct scheme (https) and remote IP are used when running behind a reverse proxy
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())

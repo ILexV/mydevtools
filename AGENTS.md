@@ -113,13 +113,14 @@ using System.Text.Json;
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
-<!-- SEO Components -->
-<MetaTags Title="@AppStrings.Tool_Title" Description="@AppStrings.Tool_Description" CurrentUrl="@Navigation.Uri" />
-<HreflangLinks ToolPath="tool-name" />
-<JsonLdTool ToolName="@AppStrings.Tool_Title" Description="@AppStrings.Tool_Description" CurrentUrl="@Navigation.Uri" />
-
 <!-- Tool Layout -->
 <ToolLayout Title="@AppStrings.Tool_Title" Description="@AppStrings.Tool_Description">
+    <!-- SEO Component (MUST be inside ToolLayout) -->
+    <MetaTags Title="@AppStrings.Tool_Title" 
+              Description="@AppStrings.Tool_Description" 
+              CurrentUrl="@Navigation.Uri"
+              ToolPath="tool-name" />
+
     <!-- Tool content -->
 </ToolLayout>
 
@@ -132,120 +133,36 @@ using System.Text.Json;
 }
 ```
 
-**XML Comments:**
-- Add XML documentation (`/// <summary>`) for:
-  - All public classes and interfaces
-  - Component parameters (`[Parameter]`)
-  - Service methods
-- Place `@code` block XML comments INSIDE the block, not before directives
+## SEO & Metadata Rules (Blazor SSR)
 
-**Services:**
-- Register services in `Program.cs`
-- Use dependency injection via `@inject` in components
-- Prefer scoped services for per-request state
+**CRITICAL RULE:** Components that use `<HeadContent>` (like `<MetaTags>`, `<title>`, `<meta>`, `<link>`) **MUST** be placed **INSIDE** the `<ToolLayout>` component's content block when used on tool pages.
 
-### Rust/WASM
+If placed outside `<ToolLayout>`, the metadata will **NOT** be rendered in the final HTML due to Blazor SSR limitations with nested layouts.
 
-**Naming Conventions:**
-- snake_case for functions, variables, modules
-- PascalCase for types, enums, traits
-- SCREAMING_SNAKE_CASE for constants
-
-**Module Structure:**
-```rust
-use wasm_bindgen::prelude::*;
-
-#[wasm_bindgen]
-pub fn exported_function(input: &[u8]) -> Vec<u8> {
-    // Implementation
-}
-
-// Private helper functions
-fn internal_helper(data: &str) -> String {
-    // Implementation
-}
-```
-
-**Cargo.toml Requirements:**
-```toml
-[lib]
-crate-type = ["cdylib", "rlib"]  # Both for WASM and native tests
-
-[dependencies]
-wasm-bindgen = "0.2"
-```
-
-**Error Handling:**
-- Use `Result<T, E>` for fallible operations
-- Convert errors to strings for WASM boundary: `.map_err(|e| e.to_string())?`
-- Use `#[wasm_bindgen]` return type: `Result<JsValue, JsValue>` when needed
-
-**Testing:**
-- Write unit tests for all logic functions
-- Keep tests native (no wasm-bindgen-test unless necessary)
-- Use `#[cfg(test)]` for test modules
-
-### JavaScript (Client-Side)
-
-**Placement:**
-- Embed JavaScript in `<script>` tags within `.razor` files
-- Keep JavaScript close to the component it serves
-
-**WASM Loading Pattern:**
-```javascript
-let wasmModulePromise = null;
-
-async function getWasm() {
-    if (!wasmModulePromise) {
-        wasmModulePromise = import('/wasm/domain/domain.js').then(async (m) => {
-            await m.default();
-            return m;
-        });
-    }
-    return wasmModulePromise;
-}
-```
-
-**Event Handling with Blazor SSR Enhanced Navigation:**
-```javascript
-// Use event delegation for persistent handlers
-document.addEventListener('click', (e) => {
-    if (e.target.closest('#my-button')) {
-        handleClick(e);
-    }
-});
-
-// OR reinitialize on navigation
-function init() {
-    // Setup handlers
-}
-document.addEventListener('DOMContentLoaded', init);
-document.addEventListener('enhancedload', init);
-```
-
-### Localization
-
-**REQUIRED: Use Strongly-Typed Resources**
+### ✅ Correct Usage
 ```razor
-@using MyDevTools.Site.Resources
-
-<!-- ✅ CORRECT -->
-<h1>@AppStrings.Tool_Title</h1>
-<button>@AppStrings.Tool_Action</button>
-
-<!-- ❌ WRONG: Magic strings -->
-<h1>@L["Tool_Title"]</h1>
+<ToolLayout ...>
+    <MetaTags Title="..." Description="..." ToolPath="..." />
+    <!-- Content -->
+</ToolLayout>
 ```
 
-**Adding New Translations:**
-1. Open `Resources/AppStrings.resx` in Visual Studio
-2. Add key (e.g., `MyTool_Title`) with English value
-3. Visual Studio auto-generates `AppStrings.Designer.cs`
-4. Add translations in `AppStrings.ru.resx` and `AppStrings.es.resx`
+### ❌ Incorrect Usage (Metadata will vanish)
+```razor
+<MetaTags ... /> <!-- ❌ Outside layout -->
+<ToolLayout ...>
+    <!-- Content -->
+</ToolLayout>
+```
 
-**Naming Convention for Resource Keys:**
-- `ToolName_Element`: e.g., `HashCalculator_Title`, `JsonBeautifier_Description`
-- `Common_Element`: for shared strings: `Common_Loading`, `Common_Error`
+### The Consolidated `MetaTags` Component
+Use `Components/Seo/MetaTags.razor` for all SEO needs. It handles:
+- Title, Description, Keywords
+- Open Graph & Twitter Cards
+- Hreflang links (`ToolPath` parameter)
+- JSON-LD Structured Data (`ToolPath` or `SupportedAlgorithms`)
+
+**Do NOT use** `HreflangLinks` or `JsonLdTool` separately; they have been integrated into `MetaTags`.
 
 ## Architecture Rules
 

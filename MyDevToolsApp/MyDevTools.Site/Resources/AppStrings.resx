@@ -1,5 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -58,16 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  
-  <!-- Common -->
   <data name="AppName" xml:space="preserve">
     <value>MyDevTools</value>
   </data>
   <data name="AppTagline" xml:space="preserve">
     <value>Privacy-first developer tools, where all data stays in your browser</value>
   </data>
-  
-  <!-- Navigation -->
   <data name="Nav_Home" xml:space="preserve">
     <value>Home</value>
   </data>
@@ -92,8 +147,6 @@
   <data name="Nav_AeadFile" xml:space="preserve">
     <value>AEAD File</value>
   </data>
-  
-  <!-- Home Page -->
   <data name="Home_Title" xml:space="preserve">
     <value>Developer Tools</value>
   </data>
@@ -154,8 +207,6 @@
   <data name="Nav_Utilities" xml:space="preserve">
     <value>Utilities</value>
   </data>
-  
-  <!-- PWA -->
   <data name="PWA_InstallTitle" xml:space="preserve">
     <value>Install MyDevTools</value>
   </data>
@@ -183,8 +234,6 @@
   <data name="PWA_Installed" xml:space="preserve">
     <value>App installed successfully!</value>
   </data>
-  
-  <!-- Hash Calculator -->
   <data name="HashCalculator_Title" xml:space="preserve">
     <value>Hash Calculator</value>
   </data>
@@ -221,14 +270,12 @@
   <data name="HashCalculator_Copied" xml:space="preserve">
     <value>Copied!</value>
   </data>
-  
   <data name="Common_Download" xml:space="preserve">
     <value>Download</value>
   </data>
   <data name="ImageConverter_TargetFormatLabel" xml:space="preserve">
     <value>Target Format</value>
   </data>
-
   <data name="HashCalculator_AlgorithmsTitle" xml:space="preserve">
     <value>Algorithms</value>
   </data>
@@ -247,8 +294,6 @@
   <data name="HashCalculator_SelectAtLeastOneAlgorithm" xml:space="preserve">
     <value>Select at least one algorithm.</value>
   </data>
-  
-  <!-- Common Labels -->
   <data name="Common_Input" xml:space="preserve">
     <value>Input</value>
   </data>
@@ -276,8 +321,6 @@
   <data name="Common_ClearFile" xml:space="preserve">
     <value>Clear file</value>
   </data>
-  
-  <!-- Theme -->
   <data name="Theme_Light" xml:space="preserve">
     <value>Light</value>
   </data>
@@ -287,8 +330,6 @@
   <data name="Theme_Toggle" xml:space="preserve">
     <value>Toggle theme</value>
   </data>
-
-  <!-- URL Encoder -->
   <data name="UrlEncoder_Title" xml:space="preserve">
     <value>URL Encoder / Decoder</value>
   </data>
@@ -352,8 +393,6 @@
   <data name="UrlEncoder_LinkBase64" xml:space="preserve">
     <value>Base64</value>
   </data>
-
-  <!-- Hex Encoder -->
   <data name="HexEncoder_Title" xml:space="preserve">
     <value>Hex Encoder / Decoder</value>
   </data>
@@ -450,8 +489,6 @@
   <data name="HexEncoder_Download" xml:space="preserve">
     <value>Download</value>
   </data>
-
-  <!-- Base64 Encoder/Decoder -->
   <data name="Base64Encoder_Title" xml:space="preserve">
     <value>Base64 Encoder / Decoder</value>
   </data>
@@ -473,7 +510,6 @@
   <data name="Base64Encoder_LinkUrl" xml:space="preserve">
     <value>URL</value>
   </data>
-
   <data name="Base64Encoder_InputTextLabel" xml:space="preserve">
     <value>Input (text)</value>
   </data>
@@ -486,7 +522,6 @@
   <data name="Base64Encoder_FileHint" xml:space="preserve">
     <value>If a file is selected, it will be used instead of the text input.</value>
   </data>
-
   <data name="Base64Encoder_CharsetLabel" xml:space="preserve">
     <value>Text charset</value>
   </data>
@@ -535,7 +570,6 @@
   <data name="Base64Encoder_OutputModeFull" xml:space="preserve">
     <value>Render full output (may be slow)</value>
   </data>
-
   <data name="Base64Encoder_ActionEncode" xml:space="preserve">
     <value>Encode</value>
   </data>
@@ -560,19 +594,15 @@
   <data name="Base64Encoder_Download" xml:space="preserve">
     <value>Download</value>
   </data>
-
   <data name="Base64Encoder_FileProgressTitle" xml:space="preserve">
     <value>Processing file...</value>
   </data>
   <data name="Base64Encoder_Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
-
   <data name="Nav_Base32Encoder" xml:space="preserve">
     <value>Base32</value>
   </data>
-
-  <!-- Base32 Encoder/Decoder -->
   <data name="Base32Encoder_Title" xml:space="preserve">
     <value>Base32 Encoder / Decoder</value>
   </data>
@@ -594,7 +624,6 @@
   <data name="Base32Encoder_LinkUrl" xml:space="preserve">
     <value>URL</value>
   </data>
-
   <data name="Base32Encoder_InputTextLabel" xml:space="preserve">
     <value>Input (text)</value>
   </data>
@@ -607,7 +636,6 @@
   <data name="Base32Encoder_FileHint" xml:space="preserve">
     <value>If a file is selected, it will be used instead of the text input.</value>
   </data>
-
   <data name="Base32Encoder_CharsetLabel" xml:space="preserve">
     <value>Text charset</value>
   </data>
@@ -623,7 +651,6 @@
   <data name="Base32Encoder_AlphabetZBase32" xml:space="preserve">
     <value>z-base-32</value>
   </data>
-
   <data name="Base32Encoder_PaddingLabel" xml:space="preserve">
     <value>Padding</value>
   </data>
@@ -636,7 +663,6 @@
   <data name="Base32Encoder_PaddingNone" xml:space="preserve">
     <value>No padding</value>
   </data>
-
   <data name="Base32Encoder_CaseLabel" xml:space="preserve">
     <value>Letter case</value>
   </data>
@@ -649,14 +675,12 @@
   <data name="Base32Encoder_CaseLower" xml:space="preserve">
     <value>Lowercase</value>
   </data>
-
   <data name="Base32Encoder_DecodeOptionsLabel" xml:space="preserve">
     <value>Decode options</value>
   </data>
   <data name="Base32Encoder_AllowWhitespace" xml:space="preserve">
     <value>Allow whitespace/newlines</value>
   </data>
-
   <data name="Base32Encoder_OutputModeLabel" xml:space="preserve">
     <value>File output</value>
   </data>
@@ -666,7 +690,6 @@
   <data name="Base32Encoder_OutputModeFull" xml:space="preserve">
     <value>Render full output (may be slow)</value>
   </data>
-
   <data name="Base32Encoder_ActionEncode" xml:space="preserve">
     <value>Encode</value>
   </data>
@@ -697,12 +720,9 @@
   <data name="Base32Encoder_Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
-
   <data name="Nav_Base58Encoder" xml:space="preserve">
     <value>Base58</value>
   </data>
-
-  <!-- Base58 Encoder/Decoder -->
   <data name="Base58Encoder_Title" xml:space="preserve">
     <value>Base58 Encoder / Decoder</value>
   </data>
@@ -724,7 +744,6 @@
   <data name="Base58Encoder_LinkUrl" xml:space="preserve">
     <value>URL</value>
   </data>
-
   <data name="Base58Encoder_InputTextLabel" xml:space="preserve">
     <value>Input (text)</value>
   </data>
@@ -737,7 +756,6 @@
   <data name="Base58Encoder_FileHint" xml:space="preserve">
     <value>If a file is selected, it will be used instead of the text input.</value>
   </data>
-
   <data name="Base58Encoder_CharsetLabel" xml:space="preserve">
     <value>Text charset</value>
   </data>
@@ -753,14 +771,12 @@
   <data name="Base58Encoder_AlphabetRipple" xml:space="preserve">
     <value>Ripple</value>
   </data>
-
   <data name="Base58Encoder_DecodeOptionsLabel" xml:space="preserve">
     <value>Decode options</value>
   </data>
   <data name="Base58Encoder_AllowWhitespace" xml:space="preserve">
     <value>Allow whitespace/newlines</value>
   </data>
-
   <data name="Base58Encoder_OutputModeLabel" xml:space="preserve">
     <value>File output</value>
   </data>
@@ -770,7 +786,6 @@
   <data name="Base58Encoder_OutputModeFull" xml:space="preserve">
     <value>Render full output (may be slow)</value>
   </data>
-
   <data name="Base58Encoder_ActionEncode" xml:space="preserve">
     <value>Encode</value>
   </data>
@@ -807,8 +822,6 @@
   <data name="Base58Encoder_FileSizeLimitDecode" xml:space="preserve">
     <value>Base58 decoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.</value>
   </data>
-  
-  <!-- Cryptography UI -->
   <data name="OpenSsh_Title" xml:space="preserve">
     <value>OpenSSH Keys</value>
   </data>
@@ -872,7 +885,6 @@
   <data name="OpenSsh_WarningsTitle" xml:space="preserve">
     <value>Warnings</value>
   </data>
-
   <data name="X509_Title" xml:space="preserve">
     <value>X.509 Certificates</value>
   </data>
@@ -924,7 +936,6 @@
   <data name="X509_WarningsTitle" xml:space="preserve">
     <value>Warnings</value>
   </data>
-
   <data name="Aead_Title" xml:space="preserve">
     <value>AEAD File Encrypt/Decrypt</value>
   </data>
@@ -982,8 +993,6 @@
   <data name="Nav_JsonBeautifier" xml:space="preserve">
     <value>JSON Beautifier</value>
   </data>
-
-  <!-- JSON Beautifier -->
   <data name="JsonBeautifier_Title" xml:space="preserve">
     <value>JSON Beautifier</value>
   </data>
@@ -1041,8 +1050,6 @@
   <data name="Nav_XmlBeautifier" xml:space="preserve">
     <value>XML Beautifier</value>
   </data>
-
-  <!-- XML Beautifier -->
   <data name="XmlBeautifier_Title" xml:space="preserve">
     <value>XML Beautifier</value>
   </data>
@@ -1085,12 +1092,9 @@
   <data name="XmlBeautifier_CompactMode" xml:space="preserve">
     <value>Compact mode (minify)</value>
   </data>
-
   <data name="Nav_PasswordGenerator" xml:space="preserve">
     <value>Password Generator</value>
   </data>
-
-  <!-- Password Generator -->
   <data name="PasswordGenerator_Title" xml:space="preserve">
     <value>Password Generator</value>
   </data>
@@ -1178,7 +1182,6 @@
   <data name="TextCaseConverter_UpperCase" xml:space="preserve">
     <value>UPPER CASE</value>
   </data>
-  <!-- Date Converter -->
   <data name="DateConverter_Title" xml:space="preserve">
     <value>Date Converter</value>
   </data>
@@ -1251,7 +1254,6 @@
   <data name="DateConverter_CustomFormatPlaceholder" xml:space="preserve">
     <value>Enter format (e.g. dd/MM/yyyy)</value>
   </data>
-  <!-- JWT Debugger -->
   <data name="JwtDecoder_Title" xml:space="preserve">
     <value>JWT Decoder</value>
   </data>
@@ -1366,7 +1368,6 @@
   <data name="ImageCompressor_DragDrop" xml:space="preserve">
     <value>Drop images here or click to select files</value>
   </data>
-  
   <data name="ImageResizer_Title" xml:space="preserve">
     <value>Image Resizer</value>
   </data>
@@ -1391,8 +1392,6 @@
   <data name="ImageResizer_Resizing" xml:space="preserve">
     <value>Resizing...</value>
   </data>
-
-  <!-- Regex Tester -->
   <data name="RegexTester_Title" xml:space="preserve">
     <value>Regex Tester</value>
   </data>
@@ -1429,8 +1428,6 @@
   <data name="RegexTester_Instructions" xml:space="preserve">
     <value>Enter a Rust-flavor regular expression and test string below. Matches will be highlighted.</value>
   </data>
-
-  <!-- QR Code Generator -->
   <data name="QrCodeGenerator_Title" xml:space="preserve">
     <value>QR Code Generator</value>
   </data>
@@ -1512,12 +1509,9 @@
   <data name="QrScanner_ErrorReading" xml:space="preserve">
     <value>Error reading text from the image.</value>
   </data>
-  
   <data name="Nav_QrScanner" xml:space="preserve">
     <value>QR Scanner</value>
   </data>
-  
-  <!-- UUID Generator -->
   <data name="Nav_UuidGenerator" xml:space="preserve">
     <value>UUID Generator</value>
   </data>
@@ -1593,7 +1587,6 @@
   <data name="UuidGenerator_Copied" xml:space="preserve">
     <value>Copied!</value>
   </data>
-
   <data name="LoremIpsumGenerator_Title" xml:space="preserve">
     <value>Lorem Ipsum Generator</value>
   </data>
@@ -1636,8 +1629,6 @@
   <data name="LoremIpsumGenerator_Copied" xml:space="preserve">
     <value>Copied!</value>
   </data>
-
-  <!-- Color Converter -->
   <data name="Nav_ColorConverter" xml:space="preserve">
     <value>Color Converter</value>
   </data>
@@ -1713,8 +1704,6 @@
   <data name="ColorConverter_PreviewText" xml:space="preserve">
     <value>Sample Text</value>
   </data>
-
-  <!-- Markdown Preview -->
   <data name="Nav_MarkdownPreview" xml:space="preserve">
     <value>Markdown Preview</value>
   </data>
@@ -1769,8 +1758,6 @@
   <data name="MarkdownPreview_Download" xml:space="preserve">
     <value>Download HTML</value>
   </data>
-  
-  <!-- Text Diff Viewer -->
   <data name="Nav_TextDiffViewer" xml:space="preserve">
     <value>Text Diff Viewer</value>
   </data>
@@ -1813,147 +1800,75 @@
   <data name="TextDiffViewer_ChooseModifiedFile" xml:space="preserve">
     <value>📁 Choose modified file</value>
   </data>
-  <data name="DaisyUIDemo_Title" xml:space="preserve">
-    <value>DaisyUI Components Demo</value>
-  </data>
-  <data name="DaisyUIDemo_Description" xml:space="preserve">
-    <value>Test page showcasing various DaisyUI components and themes</value>
-  </data>
-  <data name="DaisyUIDemo_Buttons" xml:space="preserve">
-    <value>Buttons</value>
-  </data>
-  <data name="DaisyUIDemo_Forms" xml:space="preserve">
-    <value>Forms</value>
-  </data>
-  <data name="DaisyUIDemo_Cards" xml:space="preserve">
-    <value>Cards</value>
-  </data>
   <data name="DaisyUIDemo_Alerts" xml:space="preserve">
     <value>Alerts</value>
   </data>
-  <data name="DaisyUIDemo_Modals" xml:space="preserve">
-    <value>Modals</value>
-  </data>
-  <data name="DaisyUIDemo_ThemeSelector" xml:space="preserve">
-    <value>Select Theme</value>
-  </data>
-  <data name="DaisyUIDemo_ClickMe" xml:space="preserve">
-    <value>Click me</value>
-  </data>
-  <data name="DaisyUIDemo_CardTitle" xml:space="preserve">
-    <value>Card Title</value>
-  </data>
-  <data name="DaisyUIDemo_CardDescription" xml:space="preserve">
-    <value>This is a beautiful DaisyUI card component with Tailwind CSS styling.</value>
-  </data>
-  <data name="DaisyUIDemo_LearnMore" xml:space="preserve">
-    <value>Learn More</value>
-  </data>
-  <data name="DaisyUIDemo_SuccessAlert" xml:space="preserve">
-    <value>Success! Your operation completed successfully.</value>
-  </data>
-  <data name="DaisyUIDemo_InfoAlert" xml:space="preserve">
-    <value>Info: This is an informational message.</value>
-  </data>
-  <data name="DaisyUIDemo_WarningAlert" xml:space="preserve">
-    <value>Warning! Please check your input.</value>
-  </data>
-  <data name="DaisyUIDemo_ErrorAlert" xml:space="preserve">
-    <value>Error! Something went wrong.</value>
-  </data>
-  <data name="DaisyUIDemo_OpenModal" xml:space="preserve">
-    <value>Open Modal</value>
-  </data>
-  <data name="DaisyUIDemo_ModalTitle" xml:space="preserve">
-    <value>Hello from DaisyUI Modal!</value>
-  </data>
-  <data name="DaisyUIDemo_ModalBody" xml:space="preserve">
-    <value>This is a modal dialog built with DaisyUI components. Press ESC key or click outside to close.</value>
-  </data>
-  <data name="DaisyUIDemo_Close" xml:space="preserve">
-    <value>Close</value>
-  </data>
-  <data name="DaisyUIDemo_EmailLabel" xml:space="preserve">
-    <value>Email</value>
-  </data>
-  <data name="DaisyUIDemo_PasswordLabel" xml:space="preserve">
-    <value>Password</value>
-  </data>
-   <data name="DaisyUIDemo_Submit" xml:space="preserve">
-    <value>Submit</value>
-   </data>
-   
-   <!-- HMAC Calculator -->
-   <data name="HmacCalculator_Title" xml:space="preserve">
+  <data name="HmacCalculator_Title" xml:space="preserve">
     <value>HMAC Calculator</value>
-   </data>
-   <data name="HmacCalculator_Description" xml:space="preserve">
+  </data>
+  <data name="HmacCalculator_Description" xml:space="preserve">
     <value>Generate HMAC hashes using SHA-256 and SHA-512 with custom keys and messages — all in your browser</value>
-   </data>
-   <data name="HmacCalculator_KeyLabel" xml:space="preserve">
+  </data>
+  <data name="HmacCalculator_KeyLabel" xml:space="preserve">
     <value>Secret Key</value>
-   </data>
-   <data name="HmacCalculator_KeyPlaceholder" xml:space="preserve">
+  </data>
+  <data name="HmacCalculator_KeyPlaceholder" xml:space="preserve">
     <value>Enter your secret key...</value>
-   </data>
-   <data name="HmacCalculator_MessageLabel" xml:space="preserve">
+  </data>
+  <data name="HmacCalculator_MessageLabel" xml:space="preserve">
     <value>Message</value>
-   </data>
-   <data name="HmacCalculator_MessagePlaceholder" xml:space="preserve">
+  </data>
+  <data name="HmacCalculator_MessagePlaceholder" xml:space="preserve">
     <value>Enter message to hash...</value>
-   </data>
-   <data name="HmacCalculator_AlgorithmLabel" xml:space="preserve">
+  </data>
+  <data name="HmacCalculator_AlgorithmLabel" xml:space="preserve">
     <value>Algorithm</value>
-   </data>
-   <data name="HmacCalculator_Calculate" xml:space="preserve">
+  </data>
+  <data name="HmacCalculator_Calculate" xml:space="preserve">
     <value>Calculate HMAC</value>
-   </data>
-   <data name="HmacCalculator_Clear" xml:space="preserve">
+  </data>
+  <data name="HmacCalculator_Clear" xml:space="preserve">
     <value>Clear</value>
-   </data>
-   <data name="HmacCalculator_OutputLabel" xml:space="preserve">
+  </data>
+  <data name="HmacCalculator_OutputLabel" xml:space="preserve">
     <value>HMAC Result</value>
-   </data>
-   <data name="HmacCalculator_Copy" xml:space="preserve">
+  </data>
+  <data name="HmacCalculator_Copy" xml:space="preserve">
     <value>Copy</value>
-   </data>
-    <data name="HmacCalculator_Copied" xml:space="preserve">
+  </data>
+  <data name="HmacCalculator_Copied" xml:space="preserve">
     <value>Copied!</value>
-   </data>
-   
-   <!-- YAML Beautifier/Validator -->
-   <data name="YamlBeautifierValidator_Title" xml:space="preserve">
+  </data>
+  <data name="YamlBeautifierValidator_Title" xml:space="preserve">
     <value>YAML Beautifier/Validator</value>
-   </data>
-   <data name="YamlBeautifierValidator_Description" xml:space="preserve">
+  </data>
+  <data name="YamlBeautifierValidator_Description" xml:space="preserve">
     <value>Format and validate YAML with error highlighting</value>
-   </data>
-   <data name="YamlBeautifierValidator_InputLabel" xml:space="preserve">
+  </data>
+  <data name="YamlBeautifierValidator_InputLabel" xml:space="preserve">
     <value>YAML Input</value>
-   </data>
-   <data name="YamlBeautifierValidator_InputPlaceholder" xml:space="preserve">
+  </data>
+  <data name="YamlBeautifierValidator_InputPlaceholder" xml:space="preserve">
     <value>Enter YAML content here...</value>
-   </data>
-   <data name="YamlBeautifierValidator_Format" xml:space="preserve">
+  </data>
+  <data name="YamlBeautifierValidator_Format" xml:space="preserve">
     <value>Format</value>
-   </data>
-   <data name="YamlBeautifierValidator_Validate" xml:space="preserve">
+  </data>
+  <data name="YamlBeautifierValidator_Validate" xml:space="preserve">
     <value>Validate</value>
-   </data>
-   <data name="YamlBeautifierValidator_Clear" xml:space="preserve">
+  </data>
+  <data name="YamlBeautifierValidator_Clear" xml:space="preserve">
     <value>Clear</value>
-   </data>
-   <data name="YamlBeautifierValidator_OutputLabel" xml:space="preserve">
+  </data>
+  <data name="YamlBeautifierValidator_OutputLabel" xml:space="preserve">
     <value>Output</value>
-   </data>
-   <data name="YamlBeautifierValidator_Valid" xml:space="preserve">
+  </data>
+  <data name="YamlBeautifierValidator_Valid" xml:space="preserve">
     <value>YAML is valid</value>
-   </data>
-   <data name="YamlBeautifierValidator_Invalid" xml:space="preserve">
+  </data>
+  <data name="YamlBeautifierValidator_Invalid" xml:space="preserve">
     <value>YAML is invalid</value>
-   </data>
-   
-   <!-- Tool Categories -->
+  </data>
   <data name="Category_Images" xml:space="preserve">
     <value>Images</value>
   </data>

@@ -1,5 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -58,8 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  
-  <!-- Common -->
   <data name="AppName" xml:space="preserve">
     <value>MyDevTools</value>
   </data>
@@ -1743,74 +1800,8 @@
   <data name="TextDiffViewer_ChooseModifiedFile" xml:space="preserve">
     <value>📁 変更されたファイルを選択</value>
   </data>
-  <data name="DaisyUIDemo_Title" xml:space="preserve">
-    <value>DaisyUI コンポーネントデモ</value>
-  </data>
-  <data name="DaisyUIDemo_Description" xml:space="preserve">
-    <value>さまざまな DaisyUI コンポーネントとテーマを紹介するテストページ</value>
-  </data>
-  <data name="DaisyUIDemo_Buttons" xml:space="preserve">
-    <value>ボタン</value>
-  </data>
-  <data name="DaisyUIDemo_Forms" xml:space="preserve">
-    <value>フォーム</value>
-  </data>
-  <data name="DaisyUIDemo_Cards" xml:space="preserve">
-    <value>カード</value>
-  </data>
   <data name="DaisyUIDemo_Alerts" xml:space="preserve">
     <value>アラート</value>
-  </data>
-  <data name="DaisyUIDemo_Modals" xml:space="preserve">
-    <value>モーダル</value>
-  </data>
-  <data name="DaisyUIDemo_ThemeSelector" xml:space="preserve">
-    <value>テーマを選択</value>
-  </data>
-  <data name="DaisyUIDemo_ClickMe" xml:space="preserve">
-    <value>クリックしてください</value>
-  </data>
-  <data name="DaisyUIDemo_CardTitle" xml:space="preserve">
-    <value>カードタイトル</value>
-  </data>
-  <data name="DaisyUIDemo_CardDescription" xml:space="preserve">
-    <value>これは Tailwind CSS スタイリングによる美しい DaisyUI カードコンポーネントです。</value>
-  </data>
-  <data name="DaisyUIDemo_LearnMore" xml:space="preserve">
-    <value>詳細</value>
-  </data>
-  <data name="DaisyUIDemo_SuccessAlert" xml:space="preserve">
-    <value>成功！操作が正常に完了しました。</value>
-  </data>
-  <data name="DaisyUIDemo_InfoAlert" xml:space="preserve">
-    <value>情報：これは情報メッセージです。</value>
-  </data>
-  <data name="DaisyUIDemo_WarningAlert" xml:space="preserve">
-    <value>警告！入力内容を確認してください。</value>
-  </data>
-  <data name="DaisyUIDemo_ErrorAlert" xml:space="preserve">
-    <value>エラー！問題が発生しました。</value>
-  </data>
-  <data name="DaisyUIDemo_OpenModal" xml:space="preserve">
-    <value>モーダルを開く</value>
-  </data>
-  <data name="DaisyUIDemo_ModalTitle" xml:space="preserve">
-    <value>DaisyUI モーダルからのご挨拶！</value>
-  </data>
-  <data name="DaisyUIDemo_ModalBody" xml:space="preserve">
-    <value>これは DaisyUI コンポーネントで構築されたモーダルダイアログです。ESCキーを押すか、外側をクリックして閉じます。</value>
-  </data>
-  <data name="DaisyUIDemo_Close" xml:space="preserve">
-    <value>閉じる</value>
-  </data>
-  <data name="DaisyUIDemo_EmailLabel" xml:space="preserve">
-    <value>メール</value>
-  </data>
-  <data name="DaisyUIDemo_PasswordLabel" xml:space="preserve">
-    <value>パスワード</value>
-  </data>
-  <data name="DaisyUIDemo_Submit" xml:space="preserve">
-    <value>送信</value>
   </data>
   <data name="HmacCalculator_Title" xml:space="preserve">
     <value>HMAC 計算機</value>

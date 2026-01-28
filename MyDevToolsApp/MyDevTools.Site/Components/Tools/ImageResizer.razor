@@ -2,17 +2,17 @@
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
-<MetaTags Title="@AppStrings.ImageResizer_Title" 
-          Description="@AppStrings.ImageResizer_Description" 
-          CurrentUrl="@Navigation.Uri" />
-
-<HreflangLinks ToolPath="image-resizer" />
-
-<JsonLdTool ToolName="@AppStrings.ImageResizer_Title" 
-            Description="@AppStrings.ImageResizer_Description" 
-            CurrentUrl="@Navigation.Uri" />
-
 <ToolLayout Title="@AppStrings.ImageResizer_Title" Description="@AppStrings.ImageResizer_Description">
+    <MetaTags Title="@AppStrings.ImageResizer_Title" 
+              Description="@AppStrings.ImageResizer_Description" 
+              CurrentUrl="@Navigation.Uri" />
+
+    <HreflangLinks ToolPath="image-resizer" />
+
+    <JsonLdTool ToolName="@AppStrings.ImageResizer_Title" 
+                Description="@AppStrings.ImageResizer_Description" 
+                CurrentUrl="@Navigation.Uri" />
+
     <div id="image-resizer-root" class="max-w-4xl mx-auto">
         
         <div id="ir-error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" style="display: none;" role="alert"></div>

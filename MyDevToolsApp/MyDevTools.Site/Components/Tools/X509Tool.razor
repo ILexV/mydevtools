@@ -2,17 +2,12 @@
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
-<MetaTags Title="@AppStrings.X509_Title"
-          Description="@AppStrings.X509_Description"
-          CurrentUrl="@Navigation.Uri" />
-
-<HreflangLinks ToolPath="x509" />
-
-<JsonLdTool ToolName="@AppStrings.X509_Title"
-            Description="@AppStrings.X509_Description"
-            CurrentUrl="@Navigation.Uri" />
-
 <ToolLayout Title="@AppStrings.X509_Title" Description="@AppStrings.X509_Description">
+    <MetaTags Title="@AppStrings.X509_Title"
+              Description="@AppStrings.X509_Description"
+              CurrentUrl="@Navigation.Uri"
+              ToolPath="x509" />
+
     <div id="x509-root"
          data-loading="@AppStrings.Common_Loading"
          data-error="@AppStrings.Common_Error"

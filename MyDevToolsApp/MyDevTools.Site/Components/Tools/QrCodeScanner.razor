@@ -3,11 +3,11 @@
 @using MyDevTools.Site.Components.Seo
 @inject NavigationManager Navigation
 
-<MetaTags Title="@AppStrings.QrScanner_Title" 
-          Description="@AppStrings.QrScanner_Description" 
-          CurrentUrl="@Navigation.Uri" />
-
 <ToolLayout Title="@AppStrings.QrScanner_Title" Description="@AppStrings.QrScanner_Description">
+    <MetaTags Title="@AppStrings.QrScanner_Title" 
+              Description="@AppStrings.QrScanner_Description" 
+              CurrentUrl="@Navigation.Uri" />
+
     <div id="qr-scanner-tool-root" class="w-full max-w-3xl mx-auto space-y-6">
         
         <!-- Drop Zone -->

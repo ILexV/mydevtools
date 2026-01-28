@@ -2,17 +2,17 @@
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
-<MetaTags Title="@AppStrings.TextCaseConverter_Title" 
-          Description="@AppStrings.TextCaseConverter_Description" 
-          CurrentUrl="@Navigation.Uri" />
-
-<HreflangLinks ToolPath="text-case-converter" />
-
-<JsonLdTool ToolName="@AppStrings.TextCaseConverter_Title" 
-            Description="@AppStrings.TextCaseConverter_Description" 
-            CurrentUrl="@Navigation.Uri" />
-
 <ToolLayout Title="@AppStrings.TextCaseConverter_Title" Description="@AppStrings.TextCaseConverter_Description">
+    <MetaTags Title="@AppStrings.TextCaseConverter_Title" 
+              Description="@AppStrings.TextCaseConverter_Description" 
+              CurrentUrl="@Navigation.Uri" />
+
+    <HreflangLinks ToolPath="text-case-converter" />
+
+    <JsonLdTool ToolName="@AppStrings.TextCaseConverter_Title" 
+                Description="@AppStrings.TextCaseConverter_Description" 
+                CurrentUrl="@Navigation.Uri" />
+
     <div id="text-case-converter-root"
          data-copied="@AppStrings.TextCaseConverter_Copied"
          data-input-placeholder="@AppStrings.TextCaseConverter_InputPlaceholder"

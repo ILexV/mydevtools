@@ -5,18 +5,13 @@
 @using MyDevTools.Site.Components.Layout
 @inject NavigationManager Navigation
 
-<MetaTags Title="@AppStrings.HashCalculator_Title" 
-          Description="@AppStrings.HashCalculator_Description" 
-          CurrentUrl="@Navigation.Uri" />
-
-<HreflangLinks ToolPath="hash-calculator" />
-
-<JsonLdTool ToolName="@AppStrings.HashCalculator_Title" 
-            Description="@AppStrings.HashCalculator_Description" 
-            CurrentUrl="@Navigation.Uri"
-            SupportedAlgorithms="@SupportedHashAlgorithms" />
-
 <ToolLayout Title="@AppStrings.HashCalculator_Title" Description="@AppStrings.HashCalculator_Description">
+    <MetaTags Title="@AppStrings.HashCalculator_Title" 
+              Description="@AppStrings.HashCalculator_Description" 
+              CurrentUrl="@Navigation.Uri"
+              ToolPath="hash-calculator"
+              SupportedAlgorithms="@SupportedHashAlgorithms" />
+
     <div id="hash-calculator-root"
          data-loading="@AppStrings.Common_Loading"
          data-error="@AppStrings.Common_Error"

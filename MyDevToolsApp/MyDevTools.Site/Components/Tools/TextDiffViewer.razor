@@ -2,22 +2,17 @@
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
-<MetaTags Title="@AppStrings.TextDiffViewer_Title" 
-          Description="@AppStrings.TextDiffViewer_Description" 
-          CurrentUrl="@Navigation.Uri" />
-
-<HreflangLinks ToolPath="text-diff-viewer" />
-
-<JsonLdTool ToolName="@AppStrings.TextDiffViewer_Title" 
-            Description="@AppStrings.TextDiffViewer_Description" 
-            CurrentUrl="@Navigation.Uri" />
-
-<!-- Load Diff Dependencies -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.1/styles/github.min.css" />
-<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/diff2html/bundles/css/diff2html.min.css" />
-<link href="/tools/text-diff-viewer.css" rel="stylesheet" />
-
 <ToolLayout Title="@AppStrings.TextDiffViewer_Title" Description="@AppStrings.TextDiffViewer_Description">
+    <MetaTags Title="@AppStrings.TextDiffViewer_Title" 
+              Description="@AppStrings.TextDiffViewer_Description" 
+              CurrentUrl="@Navigation.Uri" />
+
+    <HreflangLinks ToolPath="text-diff-viewer" />
+
+    <JsonLdTool ToolName="@AppStrings.TextDiffViewer_Title" 
+                Description="@AppStrings.TextDiffViewer_Description" 
+                CurrentUrl="@Navigation.Uri" />
+
     <div id="text-diff-viewer-root"
          data-error-msg="@AppStrings.TextDiffViewer_ErrorMessage"
          data-loading-msg="@AppStrings.Common_Loading"

@@ -2,17 +2,12 @@
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
-<MetaTags Title="@AppStrings.OpenSsh_Title"
-          Description="@AppStrings.OpenSsh_Description"
-          CurrentUrl="@Navigation.Uri" />
-
-<HreflangLinks ToolPath="openssh-keys" />
-
-<JsonLdTool ToolName="@AppStrings.OpenSsh_Title"
-            Description="@AppStrings.OpenSsh_Description"
-            CurrentUrl="@Navigation.Uri" />
-
 <ToolLayout Title="@AppStrings.OpenSsh_Title" Description="@AppStrings.OpenSsh_Description">
+    <MetaTags Title="@AppStrings.OpenSsh_Title"
+              Description="@AppStrings.OpenSsh_Description"
+              CurrentUrl="@Navigation.Uri"
+              ToolPath="openssh-keys" />
+
     <div id="openssh-keys-root"
          data-loading="@AppStrings.Common_Loading"
          data-error="@AppStrings.Common_Error"

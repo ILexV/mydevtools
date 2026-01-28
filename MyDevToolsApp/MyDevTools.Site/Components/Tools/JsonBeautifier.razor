@@ -3,17 +3,17 @@
 @using System.Text.Json
 @inject NavigationManager Navigation
 
-<MetaTags Title="@AppStrings.JsonBeautifier_Title" 
-          Description="@AppStrings.JsonBeautifier_Description" 
-          CurrentUrl="@Navigation.Uri" />
-
-<HreflangLinks ToolPath="json-beautifier" />
-
-<JsonLdTool ToolName="@AppStrings.JsonBeautifier_Title" 
-            Description="@AppStrings.JsonBeautifier_Description" 
-            CurrentUrl="@Navigation.Uri" />
-
 <ToolLayout Title="@AppStrings.JsonBeautifier_Title" Description="@AppStrings.JsonBeautifier_Description">
+    <MetaTags Title="@AppStrings.JsonBeautifier_Title" 
+              Description="@AppStrings.JsonBeautifier_Description" 
+              CurrentUrl="@Navigation.Uri" />
+
+    <HreflangLinks ToolPath="json-beautifier" />
+
+    <JsonLdTool ToolName="@AppStrings.JsonBeautifier_Title" 
+                Description="@AppStrings.JsonBeautifier_Description" 
+                CurrentUrl="@Navigation.Uri" />
+
     <div id="json-beautifier-root"
          data-error-invalid-json="@AppStrings.JsonBeautifier_ErrorInvalidJson"
          data-copied="@AppStrings.JsonBeautifier_Copied"

@@ -2,17 +2,17 @@
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
-<MetaTags Title="@AppStrings.XmlBeautifier_Title" 
-          Description="@AppStrings.XmlBeautifier_Description" 
-          CurrentUrl="@Navigation.Uri" />
-
-<HreflangLinks ToolPath="xml-beautifier" />
-
-<JsonLdTool ToolName="@AppStrings.XmlBeautifier_Title" 
-            Description="@AppStrings.XmlBeautifier_Description" 
-            CurrentUrl="@Navigation.Uri" />
-
 <ToolLayout Title="@AppStrings.XmlBeautifier_Title" Description="@AppStrings.XmlBeautifier_Description">
+    <MetaTags Title="@AppStrings.XmlBeautifier_Title" 
+              Description="@AppStrings.XmlBeautifier_Description" 
+              CurrentUrl="@Navigation.Uri" />
+
+    <HreflangLinks ToolPath="xml-beautifier" />
+
+    <JsonLdTool ToolName="@AppStrings.XmlBeautifier_Title" 
+                Description="@AppStrings.XmlBeautifier_Description" 
+                CurrentUrl="@Navigation.Uri" />
+
     <div id="xml-beautifier-root"
          data-error-invalid-xml="@AppStrings.XmlBeautifier_ErrorInvalidXml"
          data-copied="@AppStrings.XmlBeautifier_Copied"

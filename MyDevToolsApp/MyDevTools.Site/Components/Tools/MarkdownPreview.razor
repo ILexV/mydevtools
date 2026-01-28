@@ -2,17 +2,17 @@
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
-<MetaTags Title="@AppStrings.MarkdownPreview_Title"
-          Description="@AppStrings.MarkdownPreview_Description"
-          CurrentUrl="@Navigation.Uri" />
-
-<HreflangLinks ToolPath="markdown-preview" />
-
-<JsonLdTool ToolName="@AppStrings.MarkdownPreview_Title"
-            Description="@AppStrings.MarkdownPreview_Description"
-            CurrentUrl="@Navigation.Uri" />
-
 <ToolLayout Title="@AppStrings.MarkdownPreview_Title" Description="@AppStrings.MarkdownPreview_Description">
+    <MetaTags Title="@AppStrings.MarkdownPreview_Title"
+              Description="@AppStrings.MarkdownPreview_Description"
+              CurrentUrl="@Navigation.Uri" />
+
+    <HreflangLinks ToolPath="markdown-preview" />
+
+    <JsonLdTool ToolName="@AppStrings.MarkdownPreview_Title"
+                Description="@AppStrings.MarkdownPreview_Description"
+                CurrentUrl="@Navigation.Uri" />
+
     <div id="markdown-preview-root" class="flex flex-col h-full">
         <!-- Toolbar -->
         <div class="flex flex-wrap items-center justify-between gap-2 p-2 mb-4 rounded-lg bg-base-200 border border-base-300">

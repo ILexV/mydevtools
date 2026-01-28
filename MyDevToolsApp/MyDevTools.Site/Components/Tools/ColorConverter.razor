@@ -2,18 +2,18 @@
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
-<MetaTags Title="@AppStrings.ColorConverter_Title"
-          Description="@AppStrings.ColorConverter_Description"
-          CurrentUrl="@Navigation.Uri" />
-
-<HreflangLinks ToolPath="color-converter" />
-
-<JsonLdTool ToolName="@AppStrings.ColorConverter_Title"
-            Description="@AppStrings.ColorConverter_Description"
-            CurrentUrl="@Navigation.Uri" />
-
 <ToolLayout Title="@AppStrings.ColorConverter_Title" Description="@AppStrings.ColorConverter_Description">
-    <div id="color-converter-root" 
+    <MetaTags Title="@AppStrings.ColorConverter_Title"
+              Description="@AppStrings.ColorConverter_Description"
+              CurrentUrl="@Navigation.Uri" />
+
+    <HreflangLinks ToolPath="color-converter" />
+
+    <JsonLdTool ToolName="@AppStrings.ColorConverter_Title"
+                Description="@AppStrings.ColorConverter_Description"
+                CurrentUrl="@Navigation.Uri" />
+
+    <div id="color-converter-root"
          data-copied="@AppStrings.ColorConverter_Copied"
          data-pass="@AppStrings.ColorConverter_Pass"
          data-fail="@AppStrings.ColorConverter_Fail">

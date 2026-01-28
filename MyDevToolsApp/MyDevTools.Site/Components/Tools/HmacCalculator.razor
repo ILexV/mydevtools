@@ -2,17 +2,12 @@
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
-<MetaTags Title="@AppStrings.HmacCalculator_Title"
-          Description="@AppStrings.HmacCalculator_Description"
-          CurrentUrl="@Navigation.Uri" />
-
-<HreflangLinks ToolPath="hmac-calculator" />
-
-<JsonLdTool ToolName="@AppStrings.HmacCalculator_Title"
-            Description="@AppStrings.HmacCalculator_Description"
-            CurrentUrl="@Navigation.Uri" />
-
 <ToolLayout Title="@AppStrings.HmacCalculator_Title" Description="@AppStrings.HmacCalculator_Description">
+    <MetaTags Title="@AppStrings.HmacCalculator_Title"
+              Description="@AppStrings.HmacCalculator_Description"
+              CurrentUrl="@Navigation.Uri"
+              ToolPath="hmac-calculator" />
+
     <div id="hmac-calculator-root"
          data-loading="@AppStrings.Common_Loading"
          data-error="@AppStrings.Common_Error"

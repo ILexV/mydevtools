@@ -2,17 +2,17 @@
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
-<MetaTags Title="@AppStrings.DateConverter_Title"
-          Description="@AppStrings.DateConverter_Description"
-          CurrentUrl="@Navigation.Uri" />
+<ToolLayout Title="@AppStrings.DateConverter_Title" Description="@AppStrings.DateConverter_Description">
+    <MetaTags Title="@AppStrings.DateConverter_Title"
+              Description="@AppStrings.DateConverter_Description"
+              CurrentUrl="@Navigation.Uri" />
 
-<HreflangLinks ToolPath="date-converter" />
+    <HreflangLinks ToolPath="date-converter" />
 
-<JsonLdTool ToolName="@AppStrings.DateConverter_Title"
+    <JsonLdTool ToolName="@AppStrings.DateConverter_Title"
             Description="@AppStrings.DateConverter_Description"
             CurrentUrl="@Navigation.Uri" />
 
-<ToolLayout Title="@AppStrings.DateConverter_Title" Description="@AppStrings.DateConverter_Description">
     <div id="date-converter-root"
          data-error-invalid="@AppStrings.DateConverter_Error_Invalid"
          data-copied="@AppStrings.DateConverter_Copied"

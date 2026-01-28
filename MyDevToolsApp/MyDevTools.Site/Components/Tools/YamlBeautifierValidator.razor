@@ -2,19 +2,17 @@
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
-<MetaTags Title="@AppStrings.YamlBeautifierValidator_Title"
-          Description="@AppStrings.YamlBeautifierValidator_Description"
-          CurrentUrl="@Navigation.Uri" />
-
-<HreflangLinks ToolPath="yaml-beautifier-validator" />
-
-<JsonLdTool ToolName="@AppStrings.YamlBeautifierValidator_Title"
-            Description="@AppStrings.YamlBeautifierValidator_Description"
-            CurrentUrl="@Navigation.Uri" />
-
-<link href="/tools/yaml-beautifier.css" rel="stylesheet" />
-
 <ToolLayout Title="@AppStrings.YamlBeautifierValidator_Title" Description="@AppStrings.YamlBeautifierValidator_Description">
+    <MetaTags Title="@AppStrings.YamlBeautifierValidator_Title"
+              Description="@AppStrings.YamlBeautifierValidator_Description"
+              CurrentUrl="@Navigation.Uri" />
+
+    <HreflangLinks ToolPath="yaml-beautifier-validator" />
+
+    <JsonLdTool ToolName="@AppStrings.YamlBeautifierValidator_Title"
+                Description="@AppStrings.YamlBeautifierValidator_Description"
+                CurrentUrl="@Navigation.Uri" />
+
     <div id="yaml-beautifier-validator-root"
          data-loading="@AppStrings.Common_Loading"
          data-error="@AppStrings.Common_Error"

@@ -6,11 +6,11 @@
 
 @using MyDevTools.Site.Resources
 
-<MetaTags Title="@AppStrings.ImageCompressor_Title" 
-          Description="@AppStrings.ImageCompressor_Description" 
-          CurrentUrl="@Navigation.Uri" />
-
 <ToolLayout Title="@AppStrings.ImageCompressor_Title" Description="@AppStrings.ImageCompressor_Description">
+    <MetaTags Title="@AppStrings.ImageCompressor_Title" 
+              Description="@AppStrings.ImageCompressor_Description" 
+              CurrentUrl="@Navigation.Uri" />
+
     <div id="image-compressor-root" class="max-w-4xl mx-auto space-y-8 p-4"
          data-compressing="@AppStrings.ImageCompressor_Compressing"
          data-processing="@AppStrings.ImageCompressor_Processing"

@@ -45,7 +45,6 @@
 
     // Capture install prompt
     window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('[PWA] beforeinstallprompt event fired');
         e.preventDefault();
         deferredPrompt = e;
         showInstallPrompt();
@@ -53,7 +52,6 @@
 
     // Handle app installed
     window.addEventListener('appinstalled', () => {
-        console.log('[PWA] App installed');
         deferredPrompt = null;
         hideInstallPrompt();
 

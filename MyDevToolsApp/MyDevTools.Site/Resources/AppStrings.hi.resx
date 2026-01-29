@@ -189,9 +189,6 @@
   <data name="Home_Launch" xml:space="preserve">
     <value>लॉन्च</value>
   </data>
-  <data name="Home_DevelopmentNotice" xml:space="preserve">
-    <value>यह साइट वर्तमान में सक्रिय विकास के अधीन है। कार्यक्षमता और डिज़ाइन में सुधार किया जा रहा है।</value>
-  </data>
   <data name="Home_Favorites" xml:space="preserve">
     <value>पसंदीदा</value>
   </data>

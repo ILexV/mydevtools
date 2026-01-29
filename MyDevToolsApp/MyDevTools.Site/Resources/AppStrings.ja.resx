@@ -189,9 +189,6 @@
   <data name="Home_Launch" xml:space="preserve">
     <value>起動</value>
   </data>
-  <data name="Home_DevelopmentNotice" xml:space="preserve">
-    <value>このサイトは現在開発中です。機能とデザインは順次改善されます。</value>
-  </data>
   <data name="Home_Favorites" xml:space="preserve">
     <value>お気に入り</value>
   </data>

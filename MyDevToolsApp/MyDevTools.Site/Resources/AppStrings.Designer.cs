@@ -2428,15 +2428,6 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This site is currently under active development. Functionality and design are being improved..
-        /// </summary>
-        public static string Home_DevelopmentNotice {
-            get {
-                return ResourceManager.GetString("Home_DevelopmentNotice", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Explore Utilities.
         /// </summary>
         public static string Home_ExploreUtilities {

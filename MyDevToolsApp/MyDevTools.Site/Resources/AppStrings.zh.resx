@@ -189,9 +189,6 @@
   <data name="Home_Launch" xml:space="preserve">
     <value>启动</value>
   </data>
-  <data name="Home_DevelopmentNotice" xml:space="preserve">
-    <value>本网站目前正在积极开发中。功能和设计正在改进。</value>
-  </data>
   <data name="Home_Favorites" xml:space="preserve">
     <value>收藏夹</value>
   </data>

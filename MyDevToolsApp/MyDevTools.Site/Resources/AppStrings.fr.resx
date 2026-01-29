@@ -189,9 +189,6 @@
   <data name="Home_Launch" xml:space="preserve">
     <value>Lancer</value>
   </data>
-  <data name="Home_DevelopmentNotice" xml:space="preserve">
-    <value>Ce site est actuellement en développement actif. Les fonctionnalités et le design sont en cours d'amélioration.</value>
-  </data>
   <data name="Home_Favorites" xml:space="preserve">
     <value>Favoris</value>
   </data>

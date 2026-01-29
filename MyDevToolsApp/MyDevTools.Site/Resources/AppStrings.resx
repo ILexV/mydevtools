@@ -148,10 +148,10 @@
     <value>AEAD File</value>
   </data>
   <data name="Home_Title" xml:space="preserve">
-    <value>Developer Tools</value>
+    <value>Online Developer Tools — MyDevTools (All in Browser)</value>
   </data>
   <data name="Home_Subtitle" xml:space="preserve">
-    <value>Privacy-first tools for developers. All processing happens in your browser.</value>
+    <value>Online privacy-first tools for developers. All processing happens in your browser.</value>
   </data>
   <data name="Home_FeaturePrivacyTitle" xml:space="preserve">
     <value>Privacy First</value>

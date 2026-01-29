@@ -148,10 +148,10 @@
     <value>AEAD फ़ाइल</value>
   </data>
   <data name="Home_Title" xml:space="preserve">
-    <value>डेवलपर टूल्स</value>
+    <value>ऑनलाइन डेवलपर टूल्स — MyDevTools (सभी ब्राउज़र में)</value>
   </data>
   <data name="Home_Subtitle" xml:space="preserve">
-    <value>डेवलपर्स के लिए गोपनीयता-प्रथम टूल्स। सारा प्रोसेसिंग आपके ब्राउज़र में होता है।</value>
+    <value>डेवलपर्स के लिए गोपनीयता-प्रथम ऑनलाइन टूल्स। सभी प्रोसेसिंग आपके ब्राउज़र में होती है।</value>
   </data>
   <data name="Home_FeaturePrivacyTitle" xml:space="preserve">
     <value>गोपनीयता पहले</value>

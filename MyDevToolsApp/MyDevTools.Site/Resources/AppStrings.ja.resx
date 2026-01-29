@@ -148,10 +148,10 @@
     <value>AEAD ファイル</value>
   </data>
   <data name="Home_Title" xml:space="preserve">
-    <value>開発者ツール</value>
+    <value>オンライン開発者ツール — MyDevTools (すべてブラウザで)</value>
   </data>
   <data name="Home_Subtitle" xml:space="preserve">
-    <value>プライバシーを第一に考えた開発者向けツール。すべての処理はブラウザ上で行われます。</value>
+    <value>プライバシー優先のオンライン開発者ツール。すべての処理はブラウザ内で行われます。</value>
   </data>
   <data name="Home_FeaturePrivacyTitle" xml:space="preserve">
     <value>プライバシー第一</value>

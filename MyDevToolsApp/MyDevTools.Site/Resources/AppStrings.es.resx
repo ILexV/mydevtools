@@ -148,10 +148,10 @@
     <value>Archivo AEAD</value>
   </data>
   <data name="Home_Title" xml:space="preserve">
-    <value>Herramientas para Desarrolladores</value>
+    <value>Herramientas para desarrolladores en línea — MyDevTools (Todo en el navegador)</value>
   </data>
   <data name="Home_Subtitle" xml:space="preserve">
-    <value>Herramientas para desarrolladores que priorizan la privacidad. Todo el procesamiento ocurre en tu navegador.</value>
+    <value>Herramientas en línea para desarrolladores con prioridad en la privacidad. Todo el procesamiento ocurre en su navegador.</value>
   </data>
   <data name="Home_FeaturePrivacyTitle" xml:space="preserve">
     <value>Privacidad Primero</value>

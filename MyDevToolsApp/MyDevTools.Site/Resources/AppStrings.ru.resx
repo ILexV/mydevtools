@@ -148,10 +148,10 @@
     <value>AEAD файл</value>
   </data>
   <data name="Home_Title" xml:space="preserve">
-    <value>Инструменты для разработчиков</value>
+    <value>Онлайн инструменты для разработчиков — MyDevTools (всё в браузере)</value>
   </data>
   <data name="Home_Subtitle" xml:space="preserve">
-    <value>Инструменты для разработчиков с приоритетом конфиденциальности. Вся обработка происходит в вашем браузере.</value>
+    <value>Онлайн инструменты для разработчиков с приоритетом конфиденциальности. Вся обработка происходит в вашем браузере.</value>
   </data>
   <data name="Home_FeaturePrivacyTitle" xml:space="preserve">
     <value>Конфиденциальность</value>

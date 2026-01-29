@@ -1911,4 +1911,13 @@
   <data name="Home_SeoContent_P2" xml:space="preserve">
     <value>Unser zentrales Versprechen ist Datenschutz. Im Gegensatz zu anderen Online-Diensten verarbeitet MyDevTools alles lokal in Ihrem Browser mithilfe von WebAssembly. Ihre sensiblen Daten – Passwörter, Verschlüsselungsschlüssel oder private Dateien – verlassen niemals Ihr Gerät. Genießen Sie native Leistung und völlige Sicherheit mit unserer sicheren, serverlosen Architektur.</value>
   </data>
+  <data name="Home_SeoContent_Bullet_Speed" xml:space="preserve">
+    <value>Geschwindigkeit: Sofortige lokale Verarbeitung</value>
+  </data>
+  <data name="Home_SeoContent_Bullet_Security" xml:space="preserve">
+    <value>Sicherheit: Keine Protokolle, Daten verlassen nie Ihr Gerät</value>
+  </data>
+  <data name="Home_SeoContent_Bullet_Convenience" xml:space="preserve">
+    <value>Komfort: Alle Tools an einem Ort</value>
+  </data>
 </root>

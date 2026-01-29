@@ -1911,4 +1911,13 @@
   <data name="Home_SeoContent_P2" xml:space="preserve">
     <value>हमारा मुख्य वादा गोपनीयता है। अन्य ऑनलाइन सेवाओं के विपरीत, MyDevTools WebAssembly का उपयोग करके आपके ब्राउज़र में स्थानीय रूप से सब कुछ संसाधित करता है। आपका संवेदनशील डेटा - पासवर्ड, एन्क्रिप्शन कुंजी, या निजी फ़ाइलें - कभी भी आपके डिवाइस से बाहर नहीं जाता है। हमारे सुरक्षित, सर्वर रहित आर्किटेक्चर के साथ मूल-समान प्रदर्शन और पूर्ण मन की शांति का आनंद लें।</value>
   </data>
+  <data name="Home_SeoContent_Bullet_Speed" xml:space="preserve">
+    <value>गति: ब्राउज़र में तत्काल स्थानीय प्रसंस्करण</value>
+  </data>
+  <data name="Home_SeoContent_Bullet_Security" xml:space="preserve">
+    <value>सुरक्षा: कोई लॉग नहीं, डेटा कभी भी आपके डिवाइस को नहीं छोड़ता</value>
+  </data>
+  <data name="Home_SeoContent_Bullet_Convenience" xml:space="preserve">
+    <value>सुविधा: सभी उपकरण एक ही स्थान पर</value>
+  </data>
 </root>

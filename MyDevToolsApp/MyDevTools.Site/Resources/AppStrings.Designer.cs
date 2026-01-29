@@ -232,7 +232,7 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Privacy-first developer tools, where all data stays in your browser.
+        ///   Looks up a localized string similar to Developer tools with no server data upload.
         /// </summary>
         public static string AppTagline {
             get {
@@ -1951,7 +1951,7 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Calculate hashes using selected algorithms (MD5, SHA-1, SHA-256 and more) for text or files — all in your browser.
+        ///   Looks up a localized string similar to Calculate hashes using selected algorithms (MD5, SHA-1, SHA-256 and more) for text or files — computations happen locally.
         /// </summary>
         public static string HashCalculator_Description {
             get {
@@ -2563,6 +2563,33 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convenience: All tools in one place.
+        /// </summary>
+        public static string Home_SeoContent_Bullet_Convenience {
+            get {
+                return ResourceManager.GetString("Home_SeoContent_Bullet_Convenience", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Security: No logs, data never leaves your device.
+        /// </summary>
+        public static string Home_SeoContent_Bullet_Security {
+            get {
+                return ResourceManager.GetString("Home_SeoContent_Bullet_Security", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Speed: Instant local processing in browser.
+        /// </summary>
+        public static string Home_SeoContent_Bullet_Speed {
+            get {
+                return ResourceManager.GetString("Home_SeoContent_Bullet_Speed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to MyDevTools is a suite of free online developer tools designed to streamline your daily workflow. From JSON formatting and Base64 encoding to UUID generation and image processing, our platform supports frontend and backend engineers, QA testers, and system administrators with fast, reliable utilities—no installation required..
         /// </summary>
         public static string Home_SeoContent_P1 {
@@ -2878,7 +2905,7 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Format and beautify JSON strings with customizable indentation and options — all in your browser.
+        ///   Looks up a localized string similar to Format and beautify JSON strings with customizable indentation and options — secure and private.
         /// </summary>
         public static string JsonBeautifier_Description {
             get {
@@ -4732,7 +4759,7 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Encode and decode URL-encoded text (percent-encoding) with selectable modes and charsets — all in your browser.
+        ///   Looks up a localized string similar to Encode and decode URL-encoded text (percent-encoding) with selectable modes and charsets — data never leaves your device.
         /// </summary>
         public static string UrlEncoder_Description {
             get {

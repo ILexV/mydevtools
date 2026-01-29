@@ -1911,4 +1911,13 @@
   <data name="Home_SeoContent_P2" xml:space="preserve">
     <value>我们的核心承诺是隐私。与其他在线服务不同，MyDevTools 使用 WebAssembly 在您的浏览器中本地处理所有内容。您的敏感数据——密码、加密密钥或私有文件——永远不会离开您的设备。通过我们安全的无服务器架构，享受类似原生的性能和完全的安心。</value>
   </data>
+  <data name="Home_SeoContent_Bullet_Speed" xml:space="preserve">
+    <value>速度：浏览器内即时本地处理</value>
+  </data>
+  <data name="Home_SeoContent_Bullet_Security" xml:space="preserve">
+    <value>安全：无日志，数据从不离开您的设备</value>
+  </data>
+  <data name="Home_SeoContent_Bullet_Convenience" xml:space="preserve">
+    <value>便捷：所有工具尽在一处</value>
+  </data>
 </root>

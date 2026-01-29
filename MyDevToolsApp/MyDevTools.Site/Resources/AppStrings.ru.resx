@@ -1911,4 +1911,13 @@
   <data name="Home_SeoContent_P2" xml:space="preserve">
     <value>Главное преимущество MyDevTools — абсолютная конфиденциальность. В отличие от многих аналогов, все наши инструменты работают локально в вашем браузере. Ваши данные, будь то пароли, ключи шифрования или чувствительные документы, никогда не отправляются на сервер. Мы используем WebAssembly для обеспечения высокой производительности и безопасности, предоставляя вам мощные возможности прямо в окне браузера.</value>
   </data>
+  <data name="Home_SeoContent_Bullet_Speed" xml:space="preserve">
+    <value>Скорость: Мгновенная работа локально в браузере</value>
+  </data>
+  <data name="Home_SeoContent_Bullet_Security" xml:space="preserve">
+    <value>Безопасность: Никаких логов, данные не покидают устройство</value>
+  </data>
+  <data name="Home_SeoContent_Bullet_Convenience" xml:space="preserve">
+    <value>Удобство: Все необходимые инструменты в одном месте</value>
+  </data>
 </root>

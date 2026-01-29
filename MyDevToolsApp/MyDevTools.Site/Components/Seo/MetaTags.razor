@@ -6,127 +6,121 @@
 @inject NavigationManager Navigation
 
 <HeadContent>
-    @* --- Basic Meta Tags --- *@
-    <title>@Title</title>
-    @((MarkupString)$"<meta name=\"description\" content=\"{WebUtility.HtmlEncode(Description)}\" />")
-    @((MarkupString)$"<meta name=\"keywords\" content=\"{WebUtility.HtmlEncode(Keywords)}\" />")
-    
-    @* --- Open Graph --- *@
-    @((MarkupString)$"<meta property=\"og:title\" content=\"{WebUtility.HtmlEncode(Title)}\" />")
-    @((MarkupString)$"<meta property=\"og:description\" content=\"{WebUtility.HtmlEncode(Description)}\" />")
-    @((MarkupString)$"<meta property=\"og:image\" content=\"{GetImageUrl()}\" />")
-    <meta property="og:type" content="website" />
-    @if (!string.IsNullOrEmpty(CurrentUrl))
-    {
-        <meta property="og:url" content="@CurrentUrl" />
-    }
-    
-    @* --- Twitter Card --- *@
-    <meta name="twitter:card" content="summary" />
-    @((MarkupString)$"<meta name=\"twitter:title\" content=\"{WebUtility.HtmlEncode(Title)}\" />")
-    @((MarkupString)$"<meta name=\"twitter:description\" content=\"{WebUtility.HtmlEncode(Description)}\" />")
-    @((MarkupString)$"<meta name=\"twitter:image\" content=\"{GetImageUrl()}\" />")
-    
-    @* --- Robots --- *@
-    <meta name="robots" content="index, follow" />
-    
-    @if (!string.IsNullOrEmpty(CurrentUrl))
-    {
-        <link rel="canonical" href="@GetCanonicalUrl()" />
-    }
+  @* --- Basic Meta Tags --- *@
+  <title>@Title</title>
+  @((MarkupString)$"<meta name=\"description\" content=\"{WebUtility.HtmlEncode(Description)}\" />")
+  @((MarkupString)$"<meta name=\"keywords\" content=\"{WebUtility.HtmlEncode(Keywords)}\" />")
 
-    @* --- Hreflang Links --- *@
-    @foreach (var culture in LocalizationService.SupportedCultures)
-    {
-        <link rel="alternate" hreflang="@culture" href="@GetAlternateUrl(culture)" />
-    }
-    <link rel="alternate" hreflang="x-default" href="@GetDefaultUrl()" />
+  @* --- Open Graph --- *@
+  @((MarkupString)$"<meta property=\"og:title\" content=\"{WebUtility.HtmlEncode(Title)}\" />")
+  @((MarkupString)$"<meta property=\"og:description\" content=\"{WebUtility.HtmlEncode(Description)}\" />")
+  @((MarkupString)$"<meta property=\"og:image\" content=\"{GetImageUrl()}\" />")
+  <meta property="og:type" content="website" />
+  @if (!string.IsNullOrEmpty(CurrentUrl))
+  {
+    <meta property="og:url" content="@CurrentUrl" />
+  }
 
-    @* --- JSON-LD --- *@
-    @((MarkupString)$"<script type=\"application/ld+json\">{GenerateJsonLd()}</script>")
+  @* --- Twitter Card --- *@
+  <meta name="twitter:card" content="summary" />
+  @((MarkupString)$"<meta name=\"twitter:title\" content=\"{WebUtility.HtmlEncode(Title)}\" />")
+  @((MarkupString)$"<meta name=\"twitter:description\" content=\"{WebUtility.HtmlEncode(Description)}\" />")
+  @((MarkupString)$"<meta name=\"twitter:image\" content=\"{GetImageUrl()}\" />")
+
+  @* --- Robots --- *@
+  <meta name="robots" content="index, follow" />
+
+  @if (!string.IsNullOrEmpty(CurrentUrl))
+  {
+    <link rel="canonical" href="@GetCanonicalUrl()" />
+  }
+
+  @* --- Hreflang Links --- *@
+  @foreach (var culture in LocalizationService.SupportedCultures)
+  {
+    <link rel="alternate" hreflang="@culture" href="@GetAlternateUrl(culture)" />
+  }
+  <link rel="alternate" hreflang="x-default" href="@GetDefaultUrl()" />
+
+  @* --- JSON-LD --- *@
+  @((MarkupString)$"<script type=\"application/ld+json\">{GenerateJsonLd()}</script>")
 </HeadContent>
 
 @code {
-    [Parameter, EditorRequired] public string Title { get; set; } = default!;
-    [Parameter, EditorRequired] public string Description { get; set; } = default!;
-    [Parameter] public string Keywords { get; set; } = "developer tools, privacy, hash, json, xml, base64";
-    [Parameter] public string? CurrentUrl { get; set; }
-    [Parameter] public bool IsHomePage { get; set; } = false;
-    [Parameter] public string? Lang { get; set; }
-    
-    /// <summary>
-    /// Optional tool path (e.g., "hash-calculator") for Hreflang generation.
-    /// If null/empty and IsHomePage is false, assumes root or manual handling needed.
-    /// </summary>
-    [Parameter] public string? ToolPath { get; set; }
+  [Parameter, EditorRequired] public string Title { get; set; } = default!;
+  [Parameter, EditorRequired] public string Description { get; set; } = default!;
+  [Parameter] public string Keywords { get; set; } = "developer tools, privacy, hash, json, xml, base64";
+  [Parameter] public string? CurrentUrl { get; set; }
+  [Parameter] public bool IsHomePage { get; set; } = false;
+  [Parameter] public string? Lang { get; set; }
 
-    /// <summary>
-    /// Optional supported algorithms for Hash/HMAC tools JSON-LD.
-    /// </summary>
-    [Parameter] public IReadOnlyDictionary<string, string>? SupportedAlgorithms { get; set; }
+  /// <summary>
+  /// Optional tool path (e.g., "hash-calculator") for Hreflang generation.
+  /// If null/empty and IsHomePage is false, assumes root or manual handling needed.
+  /// </summary>
+  [Parameter] public string? ToolPath { get; set; }
 
-    /// <summary>
-    /// Site Name for Home Page JSON-LD.
-    /// </summary>
-    [Parameter] public string? SiteName { get; set; }
+  /// <summary>
+  /// Optional supported algorithms for Hash/HMAC tools JSON-LD.
+  /// </summary>
+  [Parameter] public IReadOnlyDictionary<string, string>? SupportedAlgorithms { get; set; }
 
-    /// <summary>
-    /// Optional image URL for Open Graph and Twitter Card.
-    /// If null/empty, defaults to hero_logo.png.
-    /// Should be relative path (e.g. "images/tool-preview.png").
-    /// </summary>
-    [Parameter] public string? ImageUrl { get; set; }
+  /// <summary>
+  /// Site Name for Home Page JSON-LD.
+  /// </summary>
+  [Parameter] public string? SiteName { get; set; }
 
-    private string GetCanonicalUrl()
+  /// <summary>
+  /// Optional image URL for Open Graph and Twitter Card.
+  /// If null/empty, defaults to hero_logo.png.
+  /// Should be relative path (e.g. "images/tool-preview.png").
+  /// </summary>
+  [Parameter] public string? ImageUrl { get; set; }
+
+  private string GetCanonicalUrl()
+  {
+    // Always return the current URL as canonical (self-referencing) for all pages including language versions of Home.
+    // This ensures /ru points to /ru, /en to /en, eliminating conflicts with hreflang tags.
+    return CurrentUrl ?? "";
+  }
+
+  private string GetAlternateUrl(string culture)
+  {
+    var baseUri = new Uri(Navigation.BaseUri);
+    var path = string.IsNullOrEmpty(ToolPath) ? "" : $"{ToolPath}";
+
+    // Ensure consistent trailing slash for language root pages
+    // If ToolPath is empty (Home Page), we want /en/ not /en
+    var segment = string.IsNullOrEmpty(path) ? $"{culture}/" : $"{culture}/{path}";
+
+    return $"{baseUri.Scheme}://{baseUri.Authority}/{segment}";
+  }
+
+  private string GetDefaultUrl()
+  {
+    var baseUri = new Uri(Navigation.BaseUri);
+
+    // For home page: x-default points to root /
+    if (IsHomePage || string.IsNullOrEmpty(ToolPath))
     {
-        // Always return the current URL as canonical (self-referencing) for all pages including language versions of Home.
-        // This ensures /ru points to /ru, /en to /en, eliminating conflicts with hreflang tags.
-        return CurrentUrl ?? "";
+      return $"{baseUri.Scheme}://{baseUri.Authority}/";
     }
 
-    private string GetAlternateUrl(string culture)
-    {
-        var baseUri = new Uri(Navigation.BaseUri);
-        var path = string.IsNullOrEmpty(ToolPath) ? "" : $"{ToolPath}";
-        
-        // Ensure consistent trailing slash for language root pages
-        // If ToolPath is empty (Home Page), we want /en/ not /en
-        var segment = string.IsNullOrEmpty(path) ? $"{culture}/" : $"{culture}/{path}";
-        
-        return $"{baseUri.Scheme}://{baseUri.Authority}/{segment}";
-    }
+    // For tool pages: x-default points to /en/{tool}
+    return $"{baseUri.Scheme}://{baseUri.Authority}/en/{ToolPath}";
+  }
 
-    private string GetDefaultUrl()
-    {
-        var baseUri = new Uri(Navigation.BaseUri);
-        
-        // For home page: x-default points to root /
-        if (IsHomePage || string.IsNullOrEmpty(ToolPath))
-        {
-            return $"{baseUri.Scheme}://{baseUri.Authority}/";
-        }
-        
-        // For tool pages: x-default points to /en/{tool}
-        return $"{baseUri.Scheme}://{baseUri.Authority}/en/{ToolPath}";
-    }
+  private string GetImageUrl()
+  {
+    return $"https://mydevtools.app/hero_logo.webp";
+  }
 
-    private string GetImageUrl()
+  private string GenerateJsonLd()
+  {
+    if (IsHomePage)
     {
-        var relativePath = !string.IsNullOrEmpty(ImageUrl) ? ImageUrl : "hero_logo.webp";
-        
-        // Ensure relative path doesn't start with / if we are combining
-        if (relativePath.StartsWith("/")) relativePath = relativePath.Substring(1);
-        
-        var baseUri = new Uri(Navigation.BaseUri);
-        return $"{baseUri.Scheme}://{baseUri.Authority}/{relativePath}";
-    }
-
-    private string GenerateJsonLd()
-    {
-        if (IsHomePage)
-        {
-            var siteUrl = CurrentUrl ?? Navigation.BaseUri;
-            var schemas = new List<object>
+      var siteUrl = CurrentUrl ?? Navigation.BaseUri;
+      var schemas = new List<object>
             {
                 new Dictionary<string, object?>
                 {
@@ -160,48 +154,48 @@
                     }
                 }
             };
-            return JsonSerializer.Serialize(schemas, JsonOptions);
-        }
-
-        var jsonLd = new Dictionary<string, object?>
-        {
-            ["@context"] = "https://schema.org",
-            ["@type"] = "SoftwareApplication",
-            ["name"] = Title,
-            ["description"] = Description,
-            ["applicationCategory"] = "DeveloperApplication",
-            ["isAccessibleForFree"] = true,
-            ["offers"] = new Dictionary<string, object?>
-            {
-                ["@type"] = "Offer",
-                ["price"] = "0",
-                ["priceCurrency"] = "USD"
-            }
-        };
-
-        if (!string.IsNullOrWhiteSpace(CurrentUrl))
-        {
-            jsonLd["url"] = CurrentUrl;
-        }
-
-        if (SupportedAlgorithms is { Count: > 0 })
-        {
-            jsonLd["additionalProperty"] = SupportedAlgorithms
-                .Select(kvp => new Dictionary<string, object?>
-                {
-                    ["@type"] = "PropertyValue",
-                    ["name"] = kvp.Key,
-                    ["value"] = kvp.Value
-                })
-                .ToArray();
-        }
-
-        return JsonSerializer.Serialize(jsonLd, JsonOptions);
+      return JsonSerializer.Serialize(schemas, JsonOptions);
     }
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    var jsonLd = new Dictionary<string, object?>
     {
-        WriteIndented = true,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+      ["@context"] = "https://schema.org",
+      ["@type"] = "SoftwareApplication",
+      ["name"] = Title,
+      ["description"] = Description,
+      ["applicationCategory"] = "DeveloperApplication",
+      ["isAccessibleForFree"] = true,
+      ["offers"] = new Dictionary<string, object?>
+      {
+        ["@type"] = "Offer",
+        ["price"] = "0",
+        ["priceCurrency"] = "USD"
+      }
     };
+
+    if (!string.IsNullOrWhiteSpace(CurrentUrl))
+    {
+      jsonLd["url"] = CurrentUrl;
+    }
+
+    if (SupportedAlgorithms is { Count: > 0 })
+    {
+      jsonLd["additionalProperty"] = SupportedAlgorithms
+          .Select(kvp => new Dictionary<string, object?>
+          {
+            ["@type"] = "PropertyValue",
+            ["name"] = kvp.Key,
+            ["value"] = kvp.Value
+          })
+          .ToArray();
+    }
+
+    return JsonSerializer.Serialize(jsonLd, JsonOptions);
+  }
+
+  private static readonly JsonSerializerOptions JsonOptions = new()
+  {
+    WriteIndented = true,
+    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+  };
 }

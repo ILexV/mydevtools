@@ -1902,4 +1902,13 @@
   <data name="Category_QrCodes" xml:space="preserve">
     <value>二维码</value>
   </data>
+  <data name="Home_SeoContent_Title" xml:space="preserve">
+    <value>为何选择 MyDevTools？</value>
+  </data>
+  <data name="Home_SeoContent_P1" xml:space="preserve">
+    <value>MyDevTools 是一套免费的在线开发者工具，旨在简化您的日常工作流程。从 JSON 格式化和 Base64 编码到 UUID 生成和图像处理，我们的平台为前端和后端工程师、QA 测试人员和系统管理员提供快速、可靠的实用程序——无需安装。</value>
+  </data>
+  <data name="Home_SeoContent_P2" xml:space="preserve">
+    <value>我们的核心承诺是隐私。与其他在线服务不同，MyDevTools 使用 WebAssembly 在您的浏览器中本地处理所有内容。您的敏感数据——密码、加密密钥或私有文件——永远不会离开您的设备。通过我们安全的无服务器架构，享受类似原生的性能和完全的安心。</value>
+  </data>
 </root>

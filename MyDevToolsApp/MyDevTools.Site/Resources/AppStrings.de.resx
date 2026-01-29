@@ -1902,4 +1902,13 @@
   <data name="Category_QrCodes" xml:space="preserve">
     <value>QR-Codes</value>
   </data>
+  <data name="Home_SeoContent_Title" xml:space="preserve">
+    <value>Warum MyDevTools wählen?</value>
+  </data>
+  <data name="Home_SeoContent_P1" xml:space="preserve">
+    <value>MyDevTools ist eine Suite kostenloser Online-Entwicklertools, die Ihren täglichen Arbeitsablauf optimieren sollen. Von JSON-Formatierung und Base64-Codierung bis hin zu UUID-Erstellung und Bildverarbeitung unterstützt unsere Plattform Frontend- und Backend-Ingenieure, QA-Tester und Systemadministratoren mit schnellen, zuverlässigen Dienstprogrammen – keine Installation erforderlich.</value>
+  </data>
+  <data name="Home_SeoContent_P2" xml:space="preserve">
+    <value>Unser zentrales Versprechen ist Datenschutz. Im Gegensatz zu anderen Online-Diensten verarbeitet MyDevTools alles lokal in Ihrem Browser mithilfe von WebAssembly. Ihre sensiblen Daten – Passwörter, Verschlüsselungsschlüssel oder private Dateien – verlassen niemals Ihr Gerät. Genießen Sie native Leistung und völlige Sicherheit mit unserer sicheren, serverlosen Architektur.</value>
+  </data>
 </root>

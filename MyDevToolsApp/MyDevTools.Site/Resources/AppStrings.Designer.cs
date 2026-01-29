@@ -2563,7 +2563,34 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Privacy-first tools for developers. All processing happens in your browser..
+        ///   Looks up a localized string similar to MyDevTools is a suite of free online developer tools designed to streamline your daily workflow. From JSON formatting and Base64 encoding to UUID generation and image processing, our platform supports frontend and backend engineers, QA testers, and system administrators with fast, reliable utilities—no installation required..
+        /// </summary>
+        public static string Home_SeoContent_P1 {
+            get {
+                return ResourceManager.GetString("Home_SeoContent_P1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Our core promise is privacy. Unlike other online services, MyDevTools processes everything locally in your browser using WebAssembly. Your sensitive data—passwords, encryption keys, or private files—never leaves your device. Enjoy native-like performance and complete peace of mind with our secure, serverless architecture..
+        /// </summary>
+        public static string Home_SeoContent_P2 {
+            get {
+                return ResourceManager.GetString("Home_SeoContent_P2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Why Choose MyDevTools?.
+        /// </summary>
+        public static string Home_SeoContent_Title {
+            get {
+                return ResourceManager.GetString("Home_SeoContent_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Online privacy-first tools for developers. All processing happens in your browser..
         /// </summary>
         public static string Home_Subtitle {
             get {
@@ -2572,7 +2599,7 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Developer Tools.
+        ///   Looks up a localized string similar to Online Developer Tools — MyDevTools (All in Browser).
         /// </summary>
         public static string Home_Title {
             get {

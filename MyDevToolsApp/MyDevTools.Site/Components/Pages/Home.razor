@@ -65,12 +65,22 @@
   @* All Tools Section *@
   <div id="tools">
     <h2 class="text-2xl font-bold mb-4">@AppStrings.Home_FeaturedTools</h2>
+    
+    @* Table of Contents (Anchors) *@
+    <div class="flex flex-wrap gap-2 mb-6">
+      @foreach(var category in GetToolsByCategory()) {
+          @if(category.Tools.Any()) {
+             <a href="#@category.Slug" class="btn btn-sm btn-outline btn-neutral rounded-full">@category.Name</a>
+          }
+      }
+    </div>
+
     <div class="space-y-6">
       @foreach (var category in GetToolsByCategory())
       {
         @if (category.Tools.Any())
         {
-          <div class="divider text-lg divider-info font-semibold text-success">@category.Name</div>
+          <div id="@category.Slug" class="scroll-mt-24 divider text-lg divider-info font-semibold text-success">@category.Name</div>
 
           <div class="tools-grid">
             @foreach (var tool in category.Tools)
@@ -155,28 +165,28 @@
 
     return new List<ToolCategory>
         {
-            new(AppStrings.Category_Images, new[]
+            new("images", AppStrings.Category_Images, new[]
             {
                 tools.First(t => t.Slug == "image-converter"),
                 tools.First(t => t.Slug == "image-compressor"),
                 tools.First(t => t.Slug == "image-resizer")
             }),
-            new(AppStrings.Category_ColorsAndDesign, new[]
+            new("design", AppStrings.Category_ColorsAndDesign, new[]
             {
                 tools.First(t => t.Slug == "color-converter"),
                 tools.First(t => t.Slug == "markdown-preview")
             }),
-            new(AppStrings.Category_HashingAndSecurity, new[]
+            new("hashing", AppStrings.Category_HashingAndSecurity, new[]
             {
                 tools.First(t => t.Slug == "hash-calculator"),
                 tools.First(t => t.Slug == "password-generator")
             }),
-            new(AppStrings.Category_Generators, new[]
+            new("generators", AppStrings.Category_Generators, new[]
             {
                 tools.First(t => t.Slug == "uuid-generator"),
                 tools.First(t => t.Slug == "lorem-ipsum-generator")
             }),
-            new(AppStrings.Category_Encoding, new[]
+            new("encoding", AppStrings.Category_Encoding, new[]
             {
                 tools.First(t => t.Slug == "base64-encoder"),
                 tools.First(t => t.Slug == "base32-encoder"),
@@ -184,38 +194,38 @@
                 tools.First(t => t.Slug == "hex-encoder"),
                 tools.First(t => t.Slug == "url-encoder")
             }),
-            new(AppStrings.Category_StructuredData, new[]
+            new("structured-data", AppStrings.Category_StructuredData, new[]
             {
                 tools.First(t => t.Slug == "json-beautifier"),
                 tools.First(t => t.Slug == "xml-beautifier"),
                 tools.First(t => t.Slug == "yaml-beautifier-validator")
             }),
-            new(AppStrings.Category_TextTools, new[]
+            new("text", AppStrings.Category_TextTools, new[]
             {
                 tools.First(t => t.Slug == "text-case-converter"),
                 tools.First(t => t.Slug == "text-diff-viewer")
             }),
-            new(AppStrings.Category_Cryptography, new[]
+            new("cryptography", AppStrings.Category_Cryptography, new[]
             {
                 tools.First(t => t.Slug == "hmac-calculator"),
                 tools.First(t => t.Slug == "aead-file"),
                 tools.First(t => t.Slug == "openssh-keys"),
                 tools.First(t => t.Slug == "x509")
             }),
-            new(AppStrings.Category_DateTime, new[]
+            new("datetime", AppStrings.Category_DateTime, new[]
             {
                 tools.First(t => t.Slug == "date-converter")
             }),
-            new(AppStrings.Category_JwtAndTokens, new[]
+            new("jwt", AppStrings.Category_JwtAndTokens, new[]
             {
                 tools.First(t => t.Slug == "jwt-decoder"),
                 tools.First(t => t.Slug == "jwt-encoder")
             }),
-            new(AppStrings.Category_Regex, new[]
+            new("regex", AppStrings.Category_Regex, new[]
             {
                 tools.First(t => t.Slug == "regex-tester")
             }),
-            new(AppStrings.Category_QrCodes, new[]
+            new("qrcode", AppStrings.Category_QrCodes, new[]
             {
                 tools.First(t => t.Slug == "qr-code-generator"),
                 tools.First(t => t.Slug == "qr-scanner")
@@ -224,5 +234,5 @@
   }
 
   private record ToolInfo(string Slug, string Icon, string Title, string Description);
-  private record ToolCategory(string Name, IEnumerable<ToolInfo> Tools);
+  private record ToolCategory(string Slug, string Name, IEnumerable<ToolInfo> Tools);
 }

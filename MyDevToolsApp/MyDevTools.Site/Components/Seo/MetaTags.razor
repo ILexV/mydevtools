@@ -111,7 +111,7 @@
 
     private string GetImageUrl()
     {
-        var relativePath = !string.IsNullOrEmpty(ImageUrl) ? ImageUrl : "hero_logo.png";
+        var relativePath = !string.IsNullOrEmpty(ImageUrl) ? ImageUrl : "hero_logo.webp";
         
         // Ensure relative path doesn't start with / if we are combining
         if (relativePath.StartsWith("/")) relativePath = relativePath.Substring(1);
@@ -124,15 +124,42 @@
     {
         if (IsHomePage)
         {
-             var siteJson = new Dictionary<string, object?>
+            var siteUrl = CurrentUrl ?? Navigation.BaseUri;
+            var schemas = new List<object>
             {
-                ["@context"] = "https://schema.org",
-                ["@type"] = "WebSite",
-                ["name"] = SiteName ?? "MyDevTools",
-                ["url"] = CurrentUrl ?? Navigation.BaseUri,
-                ["description"] = Description
+                new Dictionary<string, object?>
+                {
+                    ["@context"] = "https://schema.org",
+                    ["@type"] = "WebSite",
+                    ["name"] = SiteName ?? "MyDevTools",
+                    ["url"] = siteUrl,
+                    ["description"] = Description
+                },
+                new Dictionary<string, object?>
+                {
+                    ["@context"] = "https://schema.org",
+                    ["@type"] = "Organization",
+                    ["name"] = SiteName ?? "MyDevTools",
+                    ["url"] = siteUrl,
+                    ["logo"] = GetImageUrl()
+                },
+                new Dictionary<string, object?>
+                {
+                    ["@context"] = "https://schema.org",
+                    ["@type"] = "BreadcrumbList",
+                    ["itemListElement"] = new[]
+                    {
+                        new Dictionary<string, object?>
+                        {
+                            ["@type"] = "ListItem",
+                            ["position"] = 1,
+                            ["name"] = SiteName ?? "MyDevTools",
+                            ["item"] = siteUrl
+                        }
+                    }
+                }
             };
-             return JsonSerializer.Serialize(siteJson, JsonOptions);
+            return JsonSerializer.Serialize(schemas, JsonOptions);
         }
 
         var jsonLd = new Dictionary<string, object?>

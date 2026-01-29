@@ -18,7 +18,7 @@
   <meta property="og:type" content="website" />
   @if (!string.IsNullOrEmpty(CurrentUrl))
   {
-    <meta property="og:url" content="@CurrentUrl" />
+    <meta property="og:url" content="@CurrentUrl.Replace("http://", "https://")" />
   }
 
   @* --- Twitter Card --- *@
@@ -119,7 +119,7 @@
   {
     if (IsHomePage)
     {
-      var siteUrl = CurrentUrl ?? Navigation.BaseUri;
+      var siteUrl = (CurrentUrl ?? Navigation.BaseUri).Replace("http://", "https://");
       var schemas = new List<object>
             {
                 new Dictionary<string, object?>

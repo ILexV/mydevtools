@@ -1,5 +1,7 @@
 @page "/{lang}/qr-code-generator"
+@using MyDevTools.Site.Components.Layout
 @using MyDevTools.Site.Resources
+@using MyDevTools.Site.Components.Seo
 @inject NavigationManager Navigation
 
 <ToolLayout Title="@AppStrings.QrCodeGenerator_Title" Description="@AppStrings.QrCodeGenerator_Description">
@@ -11,7 +13,10 @@
     <div id="qr-generator-root" class="max-w-5xl mx-auto">
         
         @* Error Alert *@
-        <div id="qr-error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" hidden role="alert"></div>
+        <div id="qr-error" class="alert alert-error mb-4 hidden" role="alert">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span id="qr-error-text"></span>
+        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             
@@ -19,164 +24,144 @@
             <div class="space-y-4">
                 
                 @* Content Input *@
-                <div class="p-6 rounded-xl shadow-sm" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
-                    <label for="qr-content" class="block text-sm font-medium mb-2" style="color: var(--text-primary);">
-                        @AppStrings.QrCodeGenerator_ContentLabel
-                    </label>
-                    <textarea id="qr-content" 
-                              class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                              style="background-color: var(--bg-primary); color: var(--text-primary); border-color: var(--border-color);"
-                              rows="3"
-                              placeholder="@AppStrings.QrCodeGenerator_ContentPlaceholder"></textarea>
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body p-4 sm:p-6">
+                        <label for="qr-content" class="label font-semibold">@AppStrings.QrCodeGenerator_ContentLabel</label>
+                        <textarea id="qr-content" 
+                                  class="textarea textarea-bordered w-full resize-none font-mono text-base"
+                                  rows="3"
+                                  placeholder="@AppStrings.QrCodeGenerator_ContentPlaceholder"></textarea>
+                    </div>
                 </div>
 
                 @* Colors *@
-                <div class="p-6 rounded-xl shadow-sm" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
-                    <h3 class="text-sm font-medium mb-4" style="color: var(--text-primary);">@AppStrings.QrCodeGenerator_ColorsSection</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="qr-fg-color" class="block text-xs mb-1" style="color: var(--text-secondary);">
-                                @AppStrings.QrCodeGenerator_ForegroundColor
-                            </label>
-                            <div class="flex items-center gap-2">
-                                <input type="color" id="qr-fg-color" value="#000000" 
-                                       class="w-12 h-12 rounded cursor-pointer border-0 flex-shrink-0" 
-                                       style="min-width: 48px; min-height: 48px;" />
-                                <input type="text" id="qr-fg-color-text" value="#000000" 
-                                       class="flex-1 px-3 py-2 rounded-lg text-sm font-mono border"
-                                       style="background-color: var(--bg-primary); color: var(--text-primary); border-color: var(--border-color);" />
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body p-4 sm:p-6">
+                        <h3 class="card-title text-base mb-4">@AppStrings.QrCodeGenerator_ColorsSection</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="form-control">
+                                <label for="qr-fg-color" class="label text-xs">@AppStrings.QrCodeGenerator_ForegroundColor</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="color" id="qr-fg-color" value="#000000" class="w-12 h-12 rounded cursor-pointer border-0 p-0 overflow-hidden" />
+                                    <input type="text" id="qr-fg-color-text" value="#000000" class="input input-bordered w-full font-mono text-sm uppercase" maxlength="7" />
+                                </div>
                             </div>
-                        </div>
-                        <div>
-                            <label for="qr-bg-color" class="block text-xs mb-1" style="color: var(--text-secondary);">
-                                @AppStrings.QrCodeGenerator_BackgroundColor
-                            </label>
-                            <div class="flex items-center gap-2">
-                                <input type="color" id="qr-bg-color" value="#FFFFFF" 
-                                       class="w-12 h-12 rounded cursor-pointer border-0 flex-shrink-0" 
-                                       style="min-width: 48px; min-height: 48px;" />
-                                <input type="text" id="qr-bg-color-text" value="#FFFFFF" 
-                                       class="flex-1 px-3 py-2 rounded-lg text-sm font-mono border"
-                                       style="background-color: var(--bg-primary); color: var(--text-primary); border-color: var(--border-color);" />
+                            <div class="form-control">
+                                <label for="qr-bg-color" class="label text-xs">@AppStrings.QrCodeGenerator_BackgroundColor</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="color" id="qr-bg-color" value="#FFFFFF" class="w-12 h-12 rounded cursor-pointer border-0 p-0 overflow-hidden" />
+                                    <input type="text" id="qr-bg-color-text" value="#FFFFFF" class="input input-bordered w-full font-mono text-sm uppercase" maxlength="7" />
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 @* Style & Options *@
-                <div class="p-6 rounded-xl shadow-sm" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
-                    <h3 class="text-sm font-medium mb-4" style="color: var(--text-primary);">@AppStrings.QrCodeGenerator_OptionsSection</h3>
-                    
-                    @* Style *@
-                    <div class="mb-4">
-                        <label class="block text-xs mb-2" style="color: var(--text-secondary);">
-                            @AppStrings.QrCodeGenerator_StyleLabel
-                        </label>
-                        <div class="flex gap-2">
-                            <button type="button" class="qr-style-btn active flex-1 py-2 px-3 rounded-lg border text-sm transition-all"
-                                    data-style="square"
-                                    style="border-color: var(--border-color);">
-                                @AppStrings.QrCodeGenerator_StyleSquare
-                            </button>
-                            <button type="button" class="qr-style-btn flex-1 py-2 px-3 rounded-lg border text-sm transition-all"
-                                    data-style="dots"
-                                    style="border-color: var(--border-color);">
-                                @AppStrings.QrCodeGenerator_StyleDots
-                            </button>
-                            <button type="button" class="qr-style-btn flex-1 py-2 px-3 rounded-lg border text-sm transition-all"
-                                    data-style="rounded"
-                                    style="border-color: var(--border-color);">
-                                @AppStrings.QrCodeGenerator_StyleRounded
-                            </button>
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body p-4 sm:p-6">
+                        <h3 class="card-title text-base mb-4">@AppStrings.QrCodeGenerator_OptionsSection</h3>
+                        
+                        @* Style *@
+                        <div class="form-control mb-4">
+                            <label class="label text-xs">@AppStrings.QrCodeGenerator_StyleLabel</label>
+                            <div class="join w-full">
+                                <button type="button" class="join-item btn btn-outline btn-sm flex-1 qr-style-btn btn-active" data-style="square">@AppStrings.QrCodeGenerator_StyleSquare</button>
+                                <button type="button" class="join-item btn btn-outline btn-sm flex-1 qr-style-btn" data-style="dots">@AppStrings.QrCodeGenerator_StyleDots</button>
+                                <button type="button" class="join-item btn btn-outline btn-sm flex-1 qr-style-btn" data-style="rounded">@AppStrings.QrCodeGenerator_StyleRounded</button>
+                            </div>
                         </div>
-                    </div>
 
-                    @* Error Correction *@
-                    <div class="mb-4">
-                        <label for="qr-ec-level" class="block text-xs mb-2" style="color: var(--text-secondary);">
-                            @AppStrings.QrCodeGenerator_ErrorCorrectionLabel
-                        </label>
-                        <select id="qr-ec-level" 
-                                class="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                style="background-color: var(--bg-primary); color: var(--text-primary); border-color: var(--border-color);">
-                            <option value="L">L - 7%</option>
-                            <option value="M" selected>M - 15%</option>
-                            <option value="Q">Q - 25%</option>
-                            <option value="H">H - 30%</option>
-                        </select>
-                    </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            @* Error Correction *@
+                            <div class="form-control">
+                                <label for="qr-ec-level" class="label text-xs">@AppStrings.QrCodeGenerator_ErrorCorrectionLabel</label>
+                                <select id="qr-ec-level" class="select select-bordered w-full select-sm">
+                                    <option value="L">L - 7%</option>
+                                    <option value="M" selected>M - 15%</option>
+                                    <option value="Q">Q - 25%</option>
+                                    <option value="H">H - 30%</option>
+                                </select>
+                            </div>
 
-                    @* Size *@
-                    <div>
-                        <label for="qr-size" class="block text-xs mb-2" style="color: var(--text-secondary);">
-                            @AppStrings.QrCodeGenerator_SizeLabel
-                        </label>
-                        <select id="qr-size" 
-                                class="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                style="background-color: var(--bg-primary); color: var(--text-primary); border-color: var(--border-color);">
-                            <option value="256">256 × 256</option>
-                            <option value="512" selected>512 × 512</option>
-                            <option value="1024">1024 × 1024</option>
-                            <option value="2048">2048 × 2048</option>
-                        </select>
+                            @* Size *@
+                            <div class="form-control">
+                                <label for="qr-size" class="label text-xs">@AppStrings.QrCodeGenerator_SizeLabel</label>
+                                <select id="qr-size" class="select select-bordered w-full select-sm">
+                                    <option value="256">256 × 256</option>
+                                    <option value="512" selected>512 × 512</option>
+                                    <option value="1024">1024 × 1024</option>
+                                    <option value="2048">2048 × 2048</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 @* Logo Upload *@
-                <div class="p-6 rounded-xl shadow-sm" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
-                    <h3 class="text-sm font-medium mb-3" style="color: var(--text-primary);">@AppStrings.QrCodeGenerator_LogoSection</h3>
-                    <p class="text-xs mb-3" style="color: var(--text-secondary);">@AppStrings.QrCodeGenerator_LogoHint</p>
-                    
-                    <FileDropZone
-                        Id="qr-logo-drop-zone"
-                        InputId="qr-logo-input"
-                        IconSvg='<svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>'
-                        Description="@AppStrings.QrCodeGenerator_LogoDropText"
-                        Accept="image/png,image/jpeg,image/webp"
-                        ShowPreview="true"
-                        ShowClearButton="true" />
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body p-4 sm:p-6">
+                        <h3 class="card-title text-base mb-2">@AppStrings.QrCodeGenerator_LogoSection</h3>
+                        
+                        <div class="form-control">
+                            <FileDropZone
+                                Id="qr-logo-drop-zone"
+                                InputId="qr-logo-input"
+                                IconSvg='<svg class="w-12 h-12 text-base-content/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>'
+                                Description="@AppStrings.QrCodeGenerator_LogoDropText"
+                                Accept="image/png,image/jpeg,image/webp"
+                                ShowPreview="true"
+                                ShowClearButton="true" />
+                        </div>
+                    </div>
                 </div>
 
                 @* Generate Button *@
                 <button id="qr-generate-btn" 
-                        class="w-full btn btn-primary py-4 rounded-xl font-semibold text-white shadow-md hover:shadow-lg transition-all"
+                        class="btn btn-primary btn-lg w-full shadow-lg"
                         data-generating="@AppStrings.QrCodeGenerator_Generating"
                         data-generate="@AppStrings.QrCodeGenerator_Generate">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z" />
+                    </svg>
                     @AppStrings.QrCodeGenerator_Generate
                 </button>
             </div>
 
             @* Right Column: Preview *@
-            <div class="p-6 rounded-xl shadow-sm" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
-                <h3 class="text-sm font-medium mb-4" style="color: var(--text-primary);">@AppStrings.QrCodeGenerator_PreviewSection</h3>
-                
-                <div id="qr-preview-container" 
-                     class="aspect-square rounded-lg mb-4 flex items-center justify-center"
-                     style="background-color: var(--bg-primary); border: 1px solid var(--border-color);">
-                    <span id="qr-preview-placeholder" class="text-sm" style="color: var(--text-secondary);">
-                        @AppStrings.QrCodeGenerator_PreviewPlaceholder
-                    </span>
-                    <img id="qr-preview-img" class="hidden max-w-full max-h-full rounded" alt="QR Code Preview" />
-                </div>
+            <div class="card bg-base-100 shadow-xl lg:sticky lg:top-4">
+                <div class="card-body p-4 sm:p-6 text-center">
+                    <h3 class="card-title text-base justify-center mb-4">@AppStrings.QrCodeGenerator_PreviewSection</h3>
+                    
+                    <div id="qr-preview-container" 
+                         class="aspect-square rounded-xl bg-base-200 border-2 border-dashed border-base-300 flex items-center justify-center p-4 mb-4 overflow-hidden relative">
+                        <span id="qr-preview-placeholder" class="text-base-content/50 text-sm">
+                            @AppStrings.QrCodeGenerator_PreviewPlaceholder
+                        </span>
+                        <img id="qr-preview-img" class="hidden max-w-full max-h-full object-contain shadow-sm rounded-lg" alt="QR Code" />
+                        
+                        <div id="qr-loading-overlay" class="absolute inset-0 bg-base-100/70 flex items-center justify-center hidden">
+                            <span class="loading loading-spinner loading-lg text-primary"></span>
+                        </div>
+                    </div>
 
-                <div class="flex gap-3">
-                    <a id="qr-download-png" class="flex-1 btn btn-success py-3 rounded-lg flex items-center justify-center gap-2 font-semibold text-white shadow-md hover:shadow-lg transition-all" hidden>
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                        </svg>
-                        PNG
-                    </a>
-                    <a id="qr-download-svg" class="flex-1 btn py-3 rounded-lg flex items-center justify-center gap-2 font-semibold shadow-md hover:shadow-lg transition-all" 
-                       style="background-color: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color);" hidden>
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                        </svg>
-                        SVG
-                    </a>
+                    <div class="flex gap-3 justify-center">
+                        <a id="qr-download-png" class="btn btn-success text-white shadow-md hidden min-w-[120px]">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            PNG
+                        </a>
+                        <a id="qr-download-svg" class="btn btn-outline shadow-md hidden min-w-[120px]">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            SVG
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    
+    <script src="/tools/qr-code-generator.js"></script>
 </ToolLayout>
 
 @code {

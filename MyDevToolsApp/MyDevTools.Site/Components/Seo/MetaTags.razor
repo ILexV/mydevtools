@@ -103,11 +103,11 @@
     // For home page: x-default points to root /
     if (IsHomePage || string.IsNullOrEmpty(ToolPath))
     {
-      return $"{baseUri.Scheme}://{baseUri.Authority}/";
+      return $"https://{baseUri.Authority}/";
     }
 
     // For tool pages: x-default points to /en/{tool}
-    return $"{baseUri.Scheme}://{baseUri.Authority}/en/{ToolPath}";
+    return $"https://{baseUri.Authority}/en/{ToolPath}";
   }
 
   private string GetImageUrl()

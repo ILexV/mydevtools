@@ -121,7 +121,7 @@
     <value>MyDevTools</value>
   </data>
   <data name="AppTagline" xml:space="preserve">
-    <value>Privacy-first developer tools, where all data stays in your browser</value>
+    <value>Developer tools with no server data upload</value>
   </data>
   <data name="Nav_Home" xml:space="preserve">
     <value>Home</value>
@@ -235,7 +235,7 @@
     <value>Hash Calculator</value>
   </data>
   <data name="HashCalculator_Description" xml:space="preserve">
-    <value>Calculate hashes using selected algorithms (MD5, SHA-1, SHA-256 and more) for text or files — all in your browser</value>
+    <value>Calculate hashes using selected algorithms (MD5, SHA-1, SHA-256 and more) for text or files — computations happen locally</value>
   </data>
   <data name="HashCalculator_InputLabel" xml:space="preserve">
     <value>Input Text</value>
@@ -331,7 +331,7 @@
     <value>URL Encoder / Decoder</value>
   </data>
   <data name="UrlEncoder_Description" xml:space="preserve">
-    <value>Encode and decode URL-encoded text (percent-encoding) with selectable modes and charsets — all in your browser</value>
+    <value>Encode and decode URL-encoded text (percent-encoding) with selectable modes and charsets — data never leaves your device</value>
   </data>
   <data name="UrlEncoder_InputLabel" xml:space="preserve">
     <value>Input</value>
@@ -994,7 +994,7 @@
     <value>JSON Beautifier</value>
   </data>
   <data name="JsonBeautifier_Description" xml:space="preserve">
-    <value>Format and beautify JSON strings with customizable indentation and options — all in your browser</value>
+    <value>Format and beautify JSON strings with customizable indentation and options — secure and private</value>
   </data>
   <data name="JsonBeautifier_InputLabel" xml:space="preserve">
     <value>Input JSON</value>

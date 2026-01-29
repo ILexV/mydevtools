@@ -121,7 +121,7 @@
     <value>MyDevTools</value>
   </data>
   <data name="AppTagline" xml:space="preserve">
-    <value>Инструменты для разработчиков с приоритетом конфиденциальности, все данные остаются в вашем браузере</value>
+    <value>Инструменты для разработчиков без отправки данных на сервер</value>
   </data>
   <data name="Nav_Home" xml:space="preserve">
     <value>Главная</value>
@@ -235,7 +235,7 @@
     <value>Калькулятор хэшей</value>
   </data>
   <data name="HashCalculator_Description" xml:space="preserve">
-    <value>Вычисляйте хэши по выбранным алгоритмам (MD5, SHA-1, SHA-256 и другие) для текста или файлов — всё прямо в браузере</value>
+    <value>Вычисляйте хэши по выбранным алгоритмам (MD5, SHA-1, SHA-256 и другие) для текста или файлов — вычисления происходят локально</value>
   </data>
   <data name="HashCalculator_InputLabel" xml:space="preserve">
     <value>Входной текст</value>
@@ -331,7 +331,7 @@
     <value>URL кодирование / декодирование</value>
   </data>
   <data name="UrlEncoder_Description" xml:space="preserve">
-    <value>Кодируйте и декодируйте URL-строки (percent-encoding) с выбором режима и кодировки текста — всё в вашем браузере</value>
+    <value>Кодируйте и декодируйте URL-строки (percent-encoding) с выбором режима и кодировки текста — данные не покидают ваше устройство</value>
   </data>
   <data name="UrlEncoder_InputLabel" xml:space="preserve">
     <value>Ввод</value>
@@ -994,7 +994,7 @@
     <value>JSON Beautifier</value>
   </data>
   <data name="JsonBeautifier_Description" xml:space="preserve">
-    <value>Форматирование и украшение JSON-строк с настраиваемыми отступами и опциями — всё в вашем браузере</value>
+    <value>Форматирование и украшение JSON-строк с настраиваемыми отступами и опциями — безопасно и приватно</value>
   </data>
   <data name="JsonBeautifier_InputLabel" xml:space="preserve">
     <value>Входной JSON</value>

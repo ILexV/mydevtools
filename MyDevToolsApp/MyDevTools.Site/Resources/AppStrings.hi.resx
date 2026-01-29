@@ -121,7 +121,7 @@
     <value>MyDevTools</value>
   </data>
   <data name="AppTagline" xml:space="preserve">
-    <value>गोपनीयता-प्रथम डेवलपर टूल्स, जहाँ सारा डेटा आपके ब्राउज़र में रहता है</value>
+    <value>सरवर पर डेटा भेजे बिना डेवलपर टूल्स</value>
   </data>
   <data name="Nav_Home" xml:space="preserve">
     <value>होम</value>
@@ -235,7 +235,7 @@
     <value>हैश कैलकुलेटर</value>
   </data>
   <data name="HashCalculator_Description" xml:space="preserve">
-    <value>टेक्स्ट या फ़ाइलों के लिए चयनित एल्गोरिदम (MD5, SHA-1, SHA-256 आदि) का उपयोग करके हैश की गणना करें — सब कुछ आपके ब्राउज़र में</value>
+    <value>टेक्स्ट या फ़ाइलों के लिए चयनित एल्गोरिदम (MD5, SHA-1, SHA-256 आदि) का उपयोग करके हैश की गणना करें — गणनाएं स्थानीय रूप से होती हैं</value>
   </data>
   <data name="HashCalculator_InputLabel" xml:space="preserve">
     <value>इनपुट टेक्स्ट</value>
@@ -331,7 +331,7 @@
     <value>URL एनकोडर / डिकोडर</value>
   </data>
   <data name="UrlEncoder_Description" xml:space="preserve">
-    <value>चयनित मोड और वर्णसेट के साथ URL-एनकोडेड टेक्स्ट (प्रतिशत-एनकोडिंग) को एनकोड और डिकोड करें</value>
+    <value>चयनित मोड और वर्णसेट के साथ URL-एनकोडेड टेक्स्ट (प्रतिशत-एनकोडिंग) को एनकोड और डिकोड करें — डेटा कभी भी आपके डिवाइस को नहीं छोड़ता</value>
   </data>
   <data name="UrlEncoder_InputLabel" xml:space="preserve">
     <value>इनपुट</value>
@@ -994,7 +994,7 @@
     <value>JSON फॉर्मेटेर</value>
   </data>
   <data name="JsonBeautifier_Description" xml:space="preserve">
-    <value>JSON स्ट्रिंग्स को फॉर्मेट और सुंदर बनाएं।</value>
+    <value>JSON स्ट्रिंग्स को फॉर्मेट और सुंदर बनाएं — सुरक्षित और निजी।</value>
   </data>
   <data name="JsonBeautifier_InputLabel" xml:space="preserve">
     <value>इनपुट JSON</value>

@@ -121,7 +121,7 @@
     <value>MyDevTools</value>
   </data>
   <data name="AppTagline" xml:space="preserve">
-    <value>プライバシー重視の開発者ツール、すべてのデータはブラウザ内に留まります</value>
+    <value>サーバーにデータを送信しない開発者ツール</value>
   </data>
   <data name="Nav_Home" xml:space="preserve">
     <value>ホーム</value>
@@ -235,7 +235,7 @@
     <value>ハッシュ計算機</value>
   </data>
   <data name="HashCalculator_Description" xml:space="preserve">
-    <value>選択したアルゴリズム（MD5, SHA-1, SHA-256 など）を使用して、テキストやファイルのハッシュを計算 — すべてブラウザ内で実行</value>
+    <value>選択したアルゴリズム（MD5, SHA-1, SHA-256 など）を使用して、テキストやファイルのハッシュを計算 — 計算はローカルで行われます</value>
   </data>
   <data name="HashCalculator_InputLabel" xml:space="preserve">
     <value>入力テキスト</value>
@@ -331,7 +331,7 @@
     <value>URL エンコーダー / デコーダー</value>
   </data>
   <data name="UrlEncoder_Description" xml:space="preserve">
-    <value>選択可能なモードと文字セットで URL エンコード（パーセントエンコーディング）テキストをエンコードおよびデコードします</value>
+    <value>選択可能なモードと文字セットで URL エンコード（パーセントエンコーディング）テキストをエンコードおよびデコードします — データがデバイスから出ることはありません</value>
   </data>
   <data name="UrlEncoder_InputLabel" xml:space="preserve">
     <value>入力</value>
@@ -994,7 +994,7 @@
     <value>JSON フォーマッター</value>
   </data>
   <data name="JsonBeautifier_Description" xml:space="preserve">
-    <value>JSON 文字列を整形し、カスタマイズ可能なインデントで見やすくします。</value>
+    <value>JSON 文字列を整形し、カスタマイズ可能なインデントで見やすくします — 安全でプライベート。</value>
   </data>
   <data name="JsonBeautifier_InputLabel" xml:space="preserve">
     <value>入力 JSON</value>

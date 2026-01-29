@@ -121,7 +121,7 @@
     <value>MyDevTools</value>
   </data>
   <data name="AppTagline" xml:space="preserve">
-    <value>Datenschutzorientierte Entwicklertools – alle Daten bleiben in Ihrem Browser</value>
+    <value>Entwicklertools ohne Datenübertragung an den Server</value>
   </data>
   <data name="Nav_Home" xml:space="preserve">
     <value>Startseite</value>
@@ -235,7 +235,7 @@
     <value>Hash-Rechner</value>
   </data>
   <data name="HashCalculator_Description" xml:space="preserve">
-    <value>Berechnen Sie Hashes mit ausgewählten Algorithmen (MD5, SHA-1, SHA-256 und mehr) für Text oder Dateien – alles in Ihrem Browser</value>
+    <value>Berechnen Sie Hashes mit ausgewählten Algorithmen (MD5, SHA-1, SHA-256 und mehr) für Text oder Dateien – Berechnungen erfolgen lokal</value>
   </data>
   <data name="HashCalculator_InputLabel" xml:space="preserve">
     <value>Eingabetext</value>
@@ -331,7 +331,7 @@
     <value>URL Encoder / Decoder</value>
   </data>
   <data name="UrlEncoder_Description" xml:space="preserve">
-    <value>URL-kodierten Text (Prozentkodierung) mit wählbaren Modi und Zeichensätzen kodieren und dekodieren</value>
+    <value>URL-kodierten Text (Prozentkodierung) mit wählbaren Modi und Zeichensätzen kodieren und dekodieren – Daten verlassen nie Ihr Gerät</value>
   </data>
   <data name="UrlEncoder_InputLabel" xml:space="preserve">
     <value>Eingabe</value>
@@ -994,7 +994,7 @@
     <value>JSON Formatter</value>
   </data>
   <data name="JsonBeautifier_Description" xml:space="preserve">
-    <value>JSON-Strings formatieren und verschönern mit anpassbarer Einrückung.</value>
+    <value>JSON-Strings formatieren und verschönern mit anpassbarer Einrückung – sicher und privat.</value>
   </data>
   <data name="JsonBeautifier_InputLabel" xml:space="preserve">
     <value>Eingabe JSON</value>

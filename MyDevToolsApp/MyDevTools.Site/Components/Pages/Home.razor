@@ -70,7 +70,7 @@
     <div class="flex flex-wrap gap-2 mb-6">
       @foreach(var category in GetToolsByCategory()) {
           @if(category.Tools.Any()) {
-             <a href="#@category.Slug" class="btn btn-sm btn-outline btn-neutral rounded-full">@category.Name</a>
+             <a href="/@Lang#@category.Slug" class="btn btn-sm btn-outline btn-neutral rounded-full">@category.Name</a>
           }
       }
     </div>

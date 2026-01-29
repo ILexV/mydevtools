@@ -121,7 +121,7 @@
     <value>MyDevTools</value>
   </data>
   <data name="AppTagline" xml:space="preserve">
-    <value>Ferramentas de desenvolvimento focadas na privacidade, onde todos os dados permanecem no seu navegador</value>
+    <value>Ferramentas de desenvolvedor sem envio de dados para o servidor</value>
   </data>
   <data name="Nav_Home" xml:space="preserve">
     <value>Início</value>
@@ -235,7 +235,7 @@
     <value>Calculadora de Hash</value>
   </data>
   <data name="HashCalculator_Description" xml:space="preserve">
-    <value>Calcule hashes usando algoritmos selecionados (MD5, SHA-1, SHA-256 e mais) para texto ou arquivos — tudo no navegador</value>
+    <value>Calcule hashes usando algoritmos selecionados (MD5, SHA-1, SHA-256 e mais) para texto ou arquivos — cálculos feitos localmente</value>
   </data>
   <data name="HashCalculator_InputLabel" xml:space="preserve">
     <value>Texto de Entrada</value>
@@ -331,7 +331,7 @@
     <value>Codificador / Decodificador URL</value>
   </data>
   <data name="UrlEncoder_Description" xml:space="preserve">
-    <value>Codifique e decodifique texto URL (percent-encoding) com modos e conjuntos de caracteres selecionáveis</value>
+    <value>Codifique e decodifique texto URL (percent-encoding) com modos e conjuntos de caracteres selecionáveis — os dados nunca saem do seu dispositivo</value>
   </data>
   <data name="UrlEncoder_InputLabel" xml:space="preserve">
     <value>Entrada</value>
@@ -994,7 +994,7 @@
     <value>Formatador JSON</value>
   </data>
   <data name="JsonBeautifier_Description" xml:space="preserve">
-    <value>Formate e embeleze strings JSON com indentação personalizável.</value>
+    <value>Formate e embeleze strings JSON com indentação personalizável — seguro e privado.</value>
   </data>
   <data name="JsonBeautifier_InputLabel" xml:space="preserve">
     <value>JSON de entrada</value>

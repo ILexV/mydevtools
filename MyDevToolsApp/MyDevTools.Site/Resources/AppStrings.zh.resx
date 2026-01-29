@@ -121,7 +121,7 @@
     <value>MyDevTools</value>
   </data>
   <data name="AppTagline" xml:space="preserve">
-    <value>隐私优先的开发者工具，所有数据都保留在您的浏览器中</value>
+    <value>无需向服务器发送数据的开发者工具</value>
   </data>
   <data name="Nav_Home" xml:space="preserve">
     <value>首页</value>
@@ -235,7 +235,7 @@
     <value>哈希计算器</value>
   </data>
   <data name="HashCalculator_Description" xml:space="preserve">
-    <value>使用选定的算法（MD5、SHA-1、SHA-256 等）计算文本或文件的哈希值 — 全部在您的浏览器中</value>
+    <value>使用选定的算法（MD5、SHA-1、SHA-256 等）计算文本或文件的哈希值 — 计算在本地进行</value>
   </data>
   <data name="HashCalculator_InputLabel" xml:space="preserve">
     <value>输入文本</value>
@@ -331,7 +331,7 @@
     <value>URL 编码 / 解码</value>
   </data>
   <data name="UrlEncoder_Description" xml:space="preserve">
-    <value>编码和解码 URL 编码文本（百分比编码），支持可选模式和字符集 — 全部在您的浏览器中</value>
+    <value>编码和解码 URL 编码文本（百分比编码），支持可选模式和字符集 — 数据从未离开您的设备</value>
   </data>
   <data name="UrlEncoder_InputLabel" xml:space="preserve">
     <value>输入</value>
@@ -994,7 +994,7 @@
     <value>JSON 格式化</value>
   </data>
   <data name="JsonBeautifier_Description" xml:space="preserve">
-    <value>格式化和美化 JSON 字符串，支持自定义缩进。</value>
+    <value>格式化和美化 JSON 字符串，支持自定义缩进 — 安全且私密。</value>
   </data>
   <data name="JsonBeautifier_InputLabel" xml:space="preserve">
     <value>输入 JSON</value>

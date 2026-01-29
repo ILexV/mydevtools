@@ -121,7 +121,7 @@
     <value>MyDevTools</value>
   </data>
   <data name="AppTagline" xml:space="preserve">
-    <value>모든 데이터가 브라우저에 유지되는 개인 정보 보호 중심의 개발자 도구</value>
+    <value>서버로 데이터를 전송하지 않는 개발자 도구</value>
   </data>
   <data name="Nav_Home" xml:space="preserve">
     <value>홈</value>
@@ -235,7 +235,7 @@
     <value>해시 계산기</value>
   </data>
   <data name="HashCalculator_Description" xml:space="preserve">
-    <value>텍스트 또는 파일에 대해 선택한 알고리즘(MD5, SHA-1, SHA-256 등)을 사용하여 해시를 계산합니다 — 모두 브라우저에서 수행됩니다.</value>
+    <value>텍스트 또는 파일에 대해 선택한 알고리즘(MD5, SHA-1, SHA-256 등)을 사용하여 해시를 계산합니다 — 계산은 로컬에서 수행됩니다.</value>
   </data>
   <data name="HashCalculator_InputLabel" xml:space="preserve">
     <value>입력 텍스트</value>
@@ -331,7 +331,7 @@
     <value>URL 인코더 / 디코더</value>
   </data>
   <data name="UrlEncoder_Description" xml:space="preserve">
-    <value>선택 가능한 모드와 문자셋으로 URL 인코딩(퍼센트 인코딩) 텍스트를 인코딩 및 디코딩합니다.</value>
+    <value>선택 가능한 모드와 문자셋으로 URL 인코딩(퍼센트 인코딩) 텍스트를 인코딩 및 디코딩합니다 — 데이터는 장치를 떠나지 않습니다.</value>
   </data>
   <data name="UrlEncoder_InputLabel" xml:space="preserve">
     <value>입력</value>
@@ -994,7 +994,7 @@
     <value>JSON 포맷터</value>
   </data>
   <data name="JsonBeautifier_Description" xml:space="preserve">
-    <value>JSON 문자열을 포맷하고 보기 좋게 만듭니다.</value>
+    <value>JSON 문자열을 포맷하고 보기 좋게 만듭니다 — 안전하고 비공개적.</value>
   </data>
   <data name="JsonBeautifier_InputLabel" xml:space="preserve">
     <value>입력 JSON</value>

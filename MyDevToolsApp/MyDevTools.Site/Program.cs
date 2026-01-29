@@ -59,6 +59,22 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
+// Force charset=utf-8 for text/html responses
+app.Use(async (context, next) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        if (context.Response.ContentType != null &&
+            context.Response.ContentType.StartsWith("text/html", StringComparison.OrdinalIgnoreCase) &&
+            !context.Response.ContentType.Contains("charset", StringComparison.OrdinalIgnoreCase))
+        {
+            context.Response.ContentType += "; charset=utf-8";
+        }
+        return Task.CompletedTask;
+    });
+    await next();
+});
+
 // Handle HEAD requests from bots/crawlers FIRST
 app.UseMiddleware<HeadRequestMiddleware>();
 

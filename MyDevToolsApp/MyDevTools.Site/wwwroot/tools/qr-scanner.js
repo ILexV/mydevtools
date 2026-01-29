@@ -1,9 +1,6 @@
+/* global document, window, Uint8Array, navigator, MutationObserver */
 
 (function () {
-  // Prevent double initialization
-  if (window.__qrScannerInitialized) return;
-  window.__qrScannerInitialized = true;
-
   const initializedRoots = new WeakSet();
   let wasmModule = null;
 
@@ -29,44 +26,12 @@
     const resultSection = root.querySelector('#result-section');
     const resultText = root.querySelector('#result-text');
     const errorMessage = root.querySelector('#error-message');
+    const errorText = root.querySelector('#error-message-text') || errorMessage; // fallback
     const copyBtn = root.querySelector('#copy-btn');
     const linkAction = root.querySelector('#link-action');
     const openLinkBtn = root.querySelector('#open-link-btn');
 
-    // Drag and drop handlers
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropZone.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
-    });
-
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
-    });
-
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
-
-      if (e.dataTransfer.files.length > 0) {
-        handleFile(e.dataTransfer.files[0]);
-      }
-    });
-
-    fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) {
-        handleFile(e.target.files[0]);
-        fileInput.value = ''; // Reset
-      }
-    });
-
-    // Copy button
-    copyBtn.addEventListener('click', () => {
-      if (resultText.value) {
-        navigator.clipboard.writeText(resultText.value);
-        // Simple feedback could be added here
-      }
-    });
-
+    // Handle File Processing
     async function handleFile(file) {
       // Reset UI
       errorMessage.classList.add('hidden');
@@ -114,21 +79,73 @@
     }
 
     function showError(msg) {
-      errorMessage.textContent = msg;
-      errorMessage.classList.remove('hidden');
+        if (errorText) errorText.textContent = msg;
+        else errorMessage.textContent = msg;
+        errorMessage.classList.remove('hidden');
+        errorMessage.style.display = 'flex';
+    }
+
+    // Event Listeners
+    if (dropZone) {
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            // Optional: visual cue
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files.length > 0) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+    }
+
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+                // Don't clear value immediately if we want to allow re-selecting same file? 
+                // Usually better to clear so change event fires again if user picks same file after error
+                fileInput.value = ''; 
+            }
+        });
+    }
+
+    if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+            if (resultText.value) {
+                try {
+                    await navigator.clipboard.writeText(resultText.value);
+                    
+                    // Visual feedback
+                    const originalHTML = copyBtn.innerHTML;
+                    copyBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-success">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                    `;
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalHTML;
+                    }, 1500);
+                } catch (e) {
+                    console.error("Copy failed", e);
+                }
+            }
+        });
     }
   }
 
   // Initialize on load and DOM changes
-  const observer = new MutationObserver((mutations) => {
-    const root = document.getElementById('qr-scanner-tool-root');
-    if (root) initTool(root);
-  });
+  function checkAndInit() {
+      const root = document.getElementById('qr-scanner-tool-root');
+      if (root) initTool(root);
+  }
 
+  document.addEventListener('DOMContentLoaded', checkAndInit);
+  document.addEventListener('enhancedload', checkAndInit);
+
+  // Fallback for dynamic updates if enhancedload doesn't catch it
+  const observer = new MutationObserver(() => checkAndInit());
   observer.observe(document.body, { childList: true, subtree: true });
-
-  // Initial check
-  const root = document.getElementById('qr-scanner-tool-root');
-  if (root) initTool(root);
 
 })();

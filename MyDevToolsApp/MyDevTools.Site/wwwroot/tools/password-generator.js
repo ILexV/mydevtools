@@ -1,7 +1,9 @@
-/* global document, window */
+/* global document, window, navigator, localStorage */
 
 (function () {
     let cryptoWasmModulePromise = null;
+    const initializedRoots = new WeakSet();
+    const SETTINGS_KEY = 'mydevtools.tools.password-generator.settings.v1';
 
     async function getCryptoWasm() {
         if (!cryptoWasmModulePromise) {
@@ -30,18 +32,16 @@
             resultInput: document.getElementById('pg-result'),
             copyBtn: document.getElementById('pg-copy-btn'),
             historyList: document.getElementById('pg-history-list'),
+            historyEmpty: document.getElementById('pg-history-empty'),
             clearHistoryBtn: document.getElementById('pg-clear-history-btn')
         };
     }
 
     function getStrings(root) {
         return {
-            copied: root.dataset.copied || 'Copied!',
-            error: root.dataset.error || 'Error'
+            copied: root.dataset.copied || 'Copied!'
         };
     }
-
-    const SETTINGS_KEY = 'mydevtools.tools.password-generator.settings.v1';
 
     function loadSettings() {
         try {
@@ -87,7 +87,7 @@
     }
 
     async function generatePassword() {
-        saveSettings(); // Save whenever we generate (state is stable)
+        saveSettings();
         const els = getElements();
         if (!els) return;
 
@@ -115,13 +115,15 @@
         const els = getElements();
         if (!els) return;
 
+        els.historyEmpty.classList.add('hidden');
+
         const row = document.createElement('tr');
         row.innerHTML = `
             <td class="font-mono text-base break-all align-middle py-2 history-pass">${escapeHtml(password)}</td>
-            <td class="text-right align-top py-2">
+            <td class="text-right align-top py-2 w-12">
                 <button class="btn btn-ghost btn-xs btn-copy-history" title="Copy">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m2 4h6a2 2 0 012 2v6a2 2 0 01-2 2h-6a2 2 0 01-2-2v-6a2 2 0 012-2z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
                     </svg>
                 </button>
             </td>
@@ -143,6 +145,35 @@
             .replaceAll('>', '&gt;')
             .replaceAll('"', '&quot;')
             .replaceAll("'", '&#039;');
+    }
+
+    async function copyToClipboard(button, text, copiedText) {
+        try {
+            await navigator.clipboard.writeText(text);
+            
+            const originalContent = button.innerHTML;
+            const originalClass = button.className; // Save full class list
+            
+            // Temporary Success State
+            button.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-success">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+            `;
+            if (copiedText) {
+                button.innerHTML += `<span class="ml-2 text-success">${copiedText}</span>`;
+            }
+            
+            // We don't remove existing classes, just add success visual if needed, 
+            // but innerHTML replacement usually handles the visual cue.
+            
+            setTimeout(() => {
+                button.innerHTML = originalContent;
+                button.className = originalClass;
+            }, 1000);
+        } catch (err) {
+            console.error('Failed to copy', err);
+        }
     }
 
     function bindDelegatedHandlersOnce() {
@@ -183,7 +214,7 @@
                 ev.preventDefault();
                 const els = getElements();
                 if (els && els.resultInput.value) {
-                    await copyToClipboard(copyBtn, els.resultInput.value);
+                    await copyToClipboard(copyBtn, els.resultInput.value, getStrings(els.root).copied);
                 }
                 return;
             }
@@ -191,12 +222,11 @@
             const historyCopyBtn = target.closest('.btn-copy-history');
             if (historyCopyBtn) {
                 ev.preventDefault();
-                // Find closest tr, then find .history-pass
                 const tr = historyCopyBtn.closest('tr');
                 if (tr) {
                     const passEl = tr.querySelector('.history-pass');
                     if (passEl) {
-                        await copyToClipboard(historyCopyBtn, passEl.textContent);
+                        await copyToClipboard(historyCopyBtn, passEl.textContent, null); // No text for small button
                     }
                 }
                 return;
@@ -206,48 +236,32 @@
             if (clearHistoryBtn) {
                 ev.preventDefault();
                 const els = getElements();
-                if (els) els.historyList.innerHTML = '';
+                if (els) {
+                    els.historyList.innerHTML = '';
+                    els.historyEmpty.classList.remove('hidden');
+                }
                 return;
             }
         });
     }
 
-    async function copyToClipboard(button, text) {
-        try {
-            await navigator.clipboard.writeText(text);
-            const original = button.textContent;
-            // If button has icon, we might need to handle it differently, but here we assume text or unicode icon
-            button.classList.add('copied-state');
-            // button.textContent = 'Copied!'; // Optional: change text if needed
-            
-            setTimeout(() => {
-                button.classList.remove('copied-state');
-                // button.textContent = original;
-            }, 1000);
-        } catch (err) {
-            console.error('Failed to copy', err);
-        }
-    }
-
-    const initializedRoots = new WeakSet();
-
-    function initIfPresent() {
+    function init() {
         const els = getElements();
         if (!els) return;
         if (initializedRoots.has(els.root)) return;
 
         initializedRoots.add(els.root);
         loadSettings();
+        
+        // Generate initial password if empty
+        if (!els.resultInput.value) {
+            generatePassword();
+        }
     }
 
     bindDelegatedHandlersOnce();
-    initIfPresent();
-
-    try {
-        const observer = new MutationObserver(() => initIfPresent());
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-    } catch {
-        // ignore
-    }
+    
+    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('enhancedload', init);
 
 })();

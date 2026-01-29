@@ -39,6 +39,7 @@
             previewContainer: document.getElementById('ir-preview-container'),
             downloadBtn: document.getElementById('ir-download-btn'),
             errorEl: document.getElementById('ir-error'),
+            errorText: document.getElementById('ir-error-text'),
             originalInfo: document.getElementById('ir-original-info'),
             formatSelect: document.getElementById('ir-format-select'),
             settingsPanel: document.getElementById('ir-settings-panel'),
@@ -52,14 +53,18 @@
     let currentObjectUrl = null;
 
     function showError(els, msg) {
-        els.errorEl.textContent = msg;
-        els.errorEl.hidden = false;
-        els.outputSection.hidden = true;
+        if (!els.errorEl) return;
+        if (els.errorText) els.errorText.textContent = msg;
+        els.errorEl.classList.remove('hidden');
+        els.errorEl.style.display = 'flex';
+        els.outputSection.classList.add('hidden');
+        els.outputSection.style.display = 'none';
     }
 
     function clearError(els) {
-        els.errorEl.textContent = '';
-        els.errorEl.hidden = true;
+        if (!els.errorEl) return;
+        els.errorEl.classList.add('hidden');
+        els.errorEl.style.display = 'none';
     }
 
     async function handleFileSelect(file) {
@@ -74,12 +79,14 @@
         currentFile = file;
         clearError(els);
         els.resizeBtn.disabled = true;
-        els.outputSection.hidden = true;
+        els.outputSection.classList.add('hidden');
+        els.outputSection.style.display = 'none';
 
-        // Show settings panel immediately so user sees something is happening
-        if (els.settingsPanel) els.settingsPanel.hidden = false;
+        if (els.settingsPanel) {
+            els.settingsPanel.classList.remove('hidden');
+            els.settingsPanel.style.display = 'block';
+        }
 
-        // Load image to get dimensions
         const img = new Image();
         const url = URL.createObjectURL(file);
 
@@ -97,7 +104,7 @@
             if (['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
                 els.formatSelect.value = ext === 'jpg' ? 'jpeg' : ext;
             } else {
-                els.formatSelect.value = 'png'; // Default
+                els.formatSelect.value = 'png';
             }
 
             els.resizeBtn.disabled = false;
@@ -153,7 +160,6 @@
             const buffer = await currentFile.arrayBuffer();
             const bytes = new Uint8Array(buffer);
 
-            // fn resize_image(input_data: &[u8], width: u32, height: u32, format_str: &str)
             const resultBytes = wasmModule.resize_image(bytes, width, height, format);
 
             const mimeType = format === 'jpeg' || format === 'jpg' ? 'image/jpeg' : `image/${format}`;
@@ -166,16 +172,14 @@
             els.previewContainer.innerHTML = '';
             const img = document.createElement('img');
             img.src = currentObjectUrl;
-            img.className = 'img-fluid border rounded';
-            img.style.maxHeight = '400px';
+            img.className = 'max-w-full max-h-full rounded shadow-sm';
+            img.style.objectFit = 'contain';
             els.previewContainer.appendChild(img);
 
-            // Show size info
             if (els.outputInfo) {
                 els.outputInfo.textContent = `${width}x${height}, ${formatBytes(blob.size)}`;
             }
 
-            // Setup Download
             const originalName = currentFile.name;
             const dotIdx = originalName.lastIndexOf('.');
             const base = dotIdx !== -1 ? originalName.substring(0, dotIdx) : originalName;
@@ -185,15 +189,13 @@
                 const a = document.createElement('a');
                 a.href = currentObjectUrl;
                 a.download = `${base}_${width}x${height}.${ext}`;
-                document.body.click(); // Focus fix
+                document.body.appendChild(a);
                 a.click();
+                document.body.removeChild(a);
             };
 
-            // For simple link usage if we want
-            els.downloadBtn.href = currentObjectUrl;
-            els.downloadBtn.download = `${base}_${width}x${height}.${ext}`;
-
-            els.outputSection.hidden = false;
+            els.outputSection.classList.remove('hidden');
+            els.outputSection.style.display = 'block';
 
         } catch (err) {
             console.error(err);
@@ -204,13 +206,10 @@
         }
     }
 
-    function init() {
+    function bindDelegatedHandlersOnce() {
         if (window.__imageResizerBound) return;
         window.__imageResizerBound = true;
 
-        const getRoot = () => document.getElementById('image-resizer-root');
-
-        // Delegated events
         document.addEventListener('change', (e) => {
             if (e.target.id === 'ir-input-file') {
                 if (e.target.files && e.target.files[0]) {
@@ -225,22 +224,17 @@
         });
 
         document.addEventListener('click', (e) => {
-            if (e.target.id === 'ir-resize-btn') {
+            const resizeBtn = e.target.closest('#ir-resize-btn');
+            if (resizeBtn) {
+                e.preventDefault();
                 performResize();
             }
         });
 
-        // Drag and drop
         document.addEventListener('dragover', (e) => {
             if (e.target.closest('#ir-drop-zone')) {
                 e.preventDefault();
-                e.target.closest('#ir-drop-zone').classList.add('drag-over');
-            }
-        });
-
-        document.addEventListener('dragleave', (e) => {
-            if (e.target.closest('#ir-drop-zone')) {
-                e.target.closest('#ir-drop-zone').classList.remove('drag-over');
+                // optional: visual feedback
             }
         });
 
@@ -248,7 +242,6 @@
             const drop = e.target.closest('#ir-drop-zone');
             if (drop) {
                 e.preventDefault();
-                drop.classList.remove('drag-over');
                 if (e.dataTransfer.files && e.dataTransfer.files[0]) {
                     handleFileSelect(e.dataTransfer.files[0]);
                 }
@@ -256,14 +249,13 @@
         });
     }
 
-    init();
+    bindDelegatedHandlersOnce();
 
-    // Observer for Blazor navigation
-    const observer = new MutationObserver(() => {
-        if (document.getElementById('image-resizer-root') && !window.__imageResizerBound) {
-            init();
-        }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
+    function init() {
+        // Initialization if needed
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('enhancedload', init);
 
 })();

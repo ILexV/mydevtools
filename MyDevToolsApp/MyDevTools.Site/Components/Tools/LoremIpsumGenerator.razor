@@ -2,23 +2,28 @@
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 
-<ToolLayout Title="@AppStrings.LoremIpsumGenerator_Title" Description="@AppStrings.LoremIpsumGenerator_Description">
-    <MetaTags Title="@AppStrings.LoremIpsumGenerator_Title"
-              Description="@AppStrings.LoremIpsumGenerator_Description"
-              CurrentUrl="@Navigation.Uri"
-              ToolPath="lorem-ipsum-generator" />
+<MetaTags Title="@AppStrings.LoremIpsumGenerator_Title"
+          Description="@AppStrings.LoremIpsumGenerator_Description"
+          CurrentUrl="@Navigation.Uri"
+          ToolPath="lorem-ipsum-generator" />
 
+<ToolLayout Title="@AppStrings.LoremIpsumGenerator_Title" Description="@AppStrings.LoremIpsumGenerator_Description">
     <div id="lorem-ipsum-root" class="grid grid-cols-1 lg:grid-cols-3 gap-6" data-copied="@AppStrings.LoremIpsumGenerator_Copied">
         
         <!-- Controls -->
-        <div class="card bg-base-200 shadow-xl h-fit lg:col-span-1">
-            <div class="card-body">
-                <h2 class="card-title text-base opacity-70 mb-4">Settings</h2>
+        <div class="card bg-base-100 shadow-xl h-fit lg:col-span-1">
+            <div class="card-body p-4 sm:p-6">
+                <h2 class="card-title text-base opacity-70 mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                    </svg>
+                    Settings
+                </h2>
                 
                 <!-- Count & Type -->
                 <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-semibold">@AppStrings.LoremIpsumGenerator_GenerateTypeLabel</span>
+                    <label class="label text-sm font-semibold">
+                        @AppStrings.LoremIpsumGenerator_GenerateTypeLabel
                     </label>
                     <div class="join w-full">
                         <input class="input input-bordered join-item w-20 text-center" type="number" id="count" min="1" max="500" value="5" />
@@ -32,9 +37,9 @@
                 </div>
 
                 <!-- Format -->
-                <div class="form-control w-full mt-2">
-                    <label class="label">
-                        <span class="label-text font-semibold">Format</span>
+                <div class="form-control w-full mt-4">
+                    <label class="label text-sm font-semibold">
+                        Format
                     </label>
                     <select id="output-format" class="select select-bordered w-full">
                         <option value="plain">Plain Text</option>
@@ -43,44 +48,44 @@
                     </select>
                 </div>
 
-                <div class="divider my-4">Options</div>
+                <div class="divider my-4 text-xs opacity-50">OPTIONS</div>
 
                 <!-- Checkboxes -->
                 <div class="form-control">
-                    <label class="label cursor-pointer justify-start gap-3 py-1">
+                    <label class="label cursor-pointer justify-start gap-3 py-1 hover:bg-base-200 rounded transition-colors px-2">
                         <input type="checkbox" id="start-classic" checked class="checkbox checkbox-sm checkbox-primary" />
                         <span class="label-text">@AppStrings.LoremIpsumGenerator_StartWithClassic</span>
                     </label>
                 </div>
 
                 <!-- Rich Options -->
-                <div id="rich-options" class="space-y-1 transition-all duration-300 overflow-hidden">
+                <div id="rich-options" class="space-y-1">
                     <div class="form-control">
-                        <label class="label cursor-pointer justify-start gap-3 py-1">
+                        <label class="label cursor-pointer justify-start gap-3 py-1 hover:bg-base-200 rounded transition-colors px-2">
                             <input type="checkbox" id="include-headers" class="checkbox checkbox-sm" />
                             <span class="label-text">Include Headers</span>
                         </label>
                     </div>
                     <div class="form-control">
-                        <label class="label cursor-pointer justify-start gap-3 py-1">
+                        <label class="label cursor-pointer justify-start gap-3 py-1 hover:bg-base-200 rounded transition-colors px-2">
                             <input type="checkbox" id="include-lists" class="checkbox checkbox-sm" />
                             <span class="label-text">Include Lists</span>
                         </label>
                     </div>
                     <div class="form-control">
-                        <label class="label cursor-pointer justify-start gap-3 py-1">
+                        <label class="label cursor-pointer justify-start gap-3 py-1 hover:bg-base-200 rounded transition-colors px-2">
                             <input type="checkbox" id="include-formatting" class="checkbox checkbox-sm" />
                             <span class="label-text">Bold & Italic</span>
                         </label>
                     </div>
                     <div class="form-control">
-                        <label class="label cursor-pointer justify-start gap-3 py-1">
+                        <label class="label cursor-pointer justify-start gap-3 py-1 hover:bg-base-200 rounded transition-colors px-2">
                             <input type="checkbox" id="include-links" class="checkbox checkbox-sm" />
                             <span class="label-text">Include Links</span>
                         </label>
                     </div>
                     <div class="form-control">
-                        <label class="label cursor-pointer justify-start gap-3 py-1">
+                        <label class="label cursor-pointer justify-start gap-3 py-1 hover:bg-base-200 rounded transition-colors px-2">
                             <input type="checkbox" id="include-code" class="checkbox checkbox-sm" />
                             <span class="label-text">Code Blocks</span>
                         </label>
@@ -88,7 +93,7 @@
                 </div>
 
                 <div class="card-actions mt-6">
-                    <button id="generate-btn" class="btn btn-primary w-full">
+                    <button id="generate-btn" class="btn btn-primary w-full shadow-md">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
                         @AppStrings.LoremIpsumGenerator_GenerateButton
                     </button>
@@ -97,8 +102,8 @@
         </div>
 
         <!-- Output -->
-        <div class="card bg-base-200 shadow-xl h-fit lg:col-span-2">
-            <div class="card-body">
+        <div class="card bg-base-100 shadow-xl h-full lg:col-span-2">
+            <div class="card-body p-4 sm:p-6">
                 <div class="flex justify-between items-center mb-2">
                     <h2 class="card-title text-base opacity-70">@AppStrings.LoremIpsumGenerator_OutputLabel</h2>
                     <div class="flex gap-2">
@@ -113,311 +118,17 @@
                     </div>
                 </div>
                 
-                <textarea id="output" class="textarea textarea-bordered w-full h-[600px] font-mono text-sm leading-relaxed" readonly></textarea>
+                <textarea id="output" class="textarea textarea-bordered w-full h-[600px] font-mono text-sm leading-relaxed bg-base-200 focus:bg-base-100 transition-colors" readonly></textarea>
                 
-                <div class="text-xs opacity-50 mt-2 text-right" id="stats">
-                    
+                <div class="text-xs opacity-50 mt-2 text-right font-mono" id="stats">
+                    0 words, 0 characters
                 </div>
             </div>
         </div>
 
     </div>
-
-    <script>
-        (function() {
-            'use strict';
-
-            const loremWords = [
-                'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit',
-                'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore',
-                'magna', 'aliqua', 'enim', 'ad', 'minim', 'veniam', 'quis', 'nostrud',
-                'exercitation', 'ullamco', 'laboris', 'nisi', 'aliquip', 'ex', 'ea', 'commodo',
-                'consequat', 'duis', 'aute', 'irure', 'in', 'reprehenderit', 'voluptate',
-                'velit', 'esse', 'cillum', 'fugiat', 'nulla', 'pariatur', 'excepteur', 'sint',
-                'occaecat', 'cupidatat', 'non', 'proident', 'sunt', 'culpa', 'qui', 'officia',
-                'deserunt', 'mollit', 'anim', 'id', 'est', 'laborum', 'vivamus', 'suspendisse',
-                'potenti', 'nullam', 'ac', 'tortor', 'vitae', 'purus', 'faucibus', 'ornare',
-                'luctus', 'cum', 'sociis', 'natoque', 'penatibus', 'magnis', 'dis', 'parturient',
-                'montes', 'nascetur', 'ridiculus', 'mus', 'donec', 'quam', 'felis', 'ultricies',
-                'nec', 'pellentesque', 'eu', 'pretium', 'sem', 'nulla', 'consequat', 'massa',
-                'quis', 'enim', 'etiam', 'rhoncus', 'mauris', 'erat', 'volutpat', 'maecenas',
-                'tempus', 'tellus', 'eget', 'condimentum', 'nibh', 'pulvinar', 'sapien', 'ligula',
-                'venenatis', 'lacus', 'vel', 'scelerisque', 'nisl', 'consectetur', 'pede',
-                'metus', 'mollis', 'justo', 'iaculis', 'porttitor', 'lacinia', 'posuere',
-                'cubilia', 'curae', 'proin', 'blandit', 'odio', 'sodales', 'tincidunt',
-                'integer', 'ante', 'dapibus', 'augue', 'facilisis', 'gravida', 'neque',
-                'convallis', 'morbi', 'vestibulum', 'velit', 'id', 'pretium', 'iaculis',
-                'diam', 'erat', 'fermentum', 'justo', 'nec', 'sagittis', 'aliquam',
-                'malesuada', 'bibendum', 'arcu', 'elementum', 'cursus', 'turpis', 'massa',
-                'tincidunt', 'dui', 'tempus', 'viverra', 'accumsan', 'tortor', 'urna',
-                'habitant', 'tristique', 'senectus', 'netus', 'fames', 'nisl', 'suscipit',
-                'adipiscing', 'bibendum', 'est', 'ultricies', 'integer', 'quis', 'auctor'
-            ];
-
-            const classicStart = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.';
-
-            // Elements
-            const els = {
-                generateBtn: document.getElementById('generate-btn'),
-                copyBtn: document.getElementById('copy-btn'),
-                downloadBtn: document.getElementById('download-btn'),
-                output: document.getElementById('output'),
-                type: document.getElementById('generate-type'),
-                count: document.getElementById('count'),
-                format: document.getElementById('output-format'),
-                startClassic: document.getElementById('start-classic'),
-                richOptions: document.getElementById('rich-options'),
-                stats: document.getElementById('stats'),
-                checkboxes: {
-                    headers: document.getElementById('include-headers'),
-                    lists: document.getElementById('include-lists'),
-                    formatting: document.getElementById('include-formatting'),
-                    links: document.getElementById('include-links'),
-                    code: document.getElementById('include-code')
-                }
-            };
-
-            // Helper functions
-            function getRandomWord() {
-                return loremWords[Math.floor(Math.random() * loremWords.length)];
-            }
-
-            function capitalize(str) {
-                return str.charAt(0).toUpperCase() + str.slice(1);
-            }
-
-            function generateSentence(min = 5, max = 15) {
-                const count = Math.floor(Math.random() * (max - min + 1)) + min;
-                const words = [];
-                for (let i = 0; i < count; i++) words.push(getRandomWord());
-                return capitalize(words.join(' ')) + '.';
-            }
-
-            function generateParagraph(min = 3, max = 7) {
-                const count = Math.floor(Math.random() * (max - min + 1)) + min;
-                const sentences = [];
-                for (let i = 0; i < count; i++) sentences.push(generateSentence());
-                return sentences.join(' ');
-            }
-
-            function formatRichText(text, format, options) {
-                const words = text.split(' ');
-                
-                // Bold/Italic
-                if (options.formatting) {
-                    for (let i = 0; i < words.length; i++) {
-                        if (Math.random() < 0.05) { // 5% chance
-                            const type = Math.random() > 0.5 ? 'strong' : 'em';
-                            if (format === 'html') {
-                                words[i] = `<${type}>${words[i]}</${type}>`;
-                            } else if (format === 'markdown') {
-                                const wrap = type === 'strong' ? '**' : '*';
-                                words[i] = `${wrap}${words[i]}${wrap}`;
-                            }
-                        }
-                    }
-                }
-
-                // Links
-                if (options.links) {
-                    for (let i = 0; i < words.length; i++) {
-                        if (Math.random() < 0.03 && !words[i].includes('<') && !words[i].includes('*')) {
-                            if (format === 'html') {
-                                words[i] = `<a href="#">${words[i]}</a>`;
-                            } else if (format === 'markdown') {
-                                words[i] = `[${words[i]}](#)`;
-                            }
-                        }
-                    }
-                }
-
-                return words.join(' ');
-            }
-
-            function generate() {
-                const type = els.type.value;
-                const count = parseInt(els.count.value) || 5;
-                const format = els.format.value;
-                const startClassic = els.startClassic.checked;
-                const options = {
-                    headers: els.checkboxes.headers.checked,
-                    lists: els.checkboxes.lists.checked,
-                    formatting: els.checkboxes.formatting.checked,
-                    links: els.checkboxes.links.checked,
-                    code: els.checkboxes.code.checked
-                };
-
-                // Update UI visibility
-                const showRich = (type === 'paragraphs') && (format === 'html' || format === 'markdown');
-                els.richOptions.style.display = showRich ? 'block' : 'none';
-                // Also show formatting/links for sentences/words if HTML/MD? Maybe just paragraphs for simplicity layout-wise.
-                // Let's allow formatting for all text types if HTML/MD.
-                if (format === 'plain') {
-                    els.richOptions.style.display = 'none';
-                } else if (type !== 'paragraphs') {
-                    // Only show formatting/links for non-paragraphs
-                    Array.from(els.richOptions.children).forEach(child => {
-                        const input = child.querySelector('input');
-                        if (input && (input.id === 'include-formatting' || input.id === 'include-links')) {
-                            child.style.display = 'block';
-                        } else {
-                            child.style.display = 'none';
-                        }
-                    });
-                    els.richOptions.style.display = 'block';
-                } else {
-                    // Show all for paragraphs
-                    Array.from(els.richOptions.children).forEach(c => c.style.display = 'block');
-                }
-
-                let items = [];
-                let rawText = '';
-
-                // Generator Core
-                if (type === 'words') {
-                    let words = [];
-                    if (startClassic) {
-                        words = classicStart.replace('.', '').toLowerCase().replace(',', '').split(' ');
-                    }
-                    while (words.length < count) {
-                        words.push(getRandomWord());
-                    }
-                    words = words.slice(0, count);
-                    rawText = words.join(' ');
-                    
-                    if (format !== 'plain') {
-                        rawText = formatRichText(rawText, format, options);
-                    }
-                    items.push(rawText);
-                } else if (type === 'sentences') {
-                    let c = count;
-                    if (startClassic) {
-                        items.push(classicStart);
-                        c--;
-                    }
-                    for (let i = 0; i < c; i++) {
-                        let sent = generateSentence();
-                        if (format !== 'plain') sent = formatRichText(sent, format, options);
-                        items.push(sent);
-                    }
-                } else if (type === 'list-items') {
-                    let c = count;
-                    for (let i = 0; i < c; i++) {
-                        let sent = generateSentence(3, 8).replace('.', ''); // shorter sentences
-                        if (format !== 'plain') sent = formatRichText(sent, format, options);
-                        items.push(sent);
-                    }
-                } else { // paragraphs
-                    let c = count;
-                    if (startClassic) {
-                        let p = classicStart + ' ' + generateParagraph();
-                        if (format !== 'plain') p = formatRichText(p, format, options);
-                        items.push(p);
-                        c--;
-                    }
-                    
-                    for (let i = 0; i < c; i++) {
-                        let p = generateParagraph();
-                        if (format !== 'plain') p = formatRichText(p, format, options);
-                        items.push(p);
-
-                        // Inject headers/lists/code occasionally if allowed
-                        if (format !== 'plain' && i < c - 1) { // not after last
-                            if (options.headers && Math.random() < 0.2) {
-                                const h = generateSentence(3, 6).replace('.', '');
-                                items.push({ type: 'header', content: h });
-                            }
-                            if (options.lists && Math.random() < 0.15) {
-                                const lItems = [];
-                                for(let j=0; j<3; j++) lItems.push(generateSentence(2,5).replace('.',''));
-                                items.push({ type: 'list', content: lItems });
-                            }
-                            if (options.code && Math.random() < 0.1) {
-                                items.push({ type: 'code', content: 'console.log("Lorem ipsum");' });
-                            }
-                        }
-                    }
-                }
-
-                // Output Formatting
-                let outputText = '';
-                
-                if (type === 'list-items') {
-                    if (format === 'html') {
-                        outputText = '<ul>\n' + items.map(i => `  <li>${i}</li>`).join('\n') + '\n</ul>';
-                    } else if (format === 'markdown') {
-                        outputText = items.map(i => `- ${i}`).join('\n');
-                    } else {
-                        outputText = items.join('\n');
-                    }
-                } else if (type === 'paragraphs') {
-                    if (format === 'plain') {
-                        outputText = items.join('\n\n');
-                    } else {
-                        // HTML/MD
-                        outputText = items.map(item => {
-                            if (typeof item === 'string') {
-                                return format === 'html' ? `<p>${item}</p>` : `${item}`; // MD paragraphs just text separated by newline
-                            } else {
-                                // Special blocks
-                                if (item.type === 'header') {
-                                    return format === 'html' ? `<h2>${item.content}</h2>` : `## ${item.content}`;
-                                } else if (item.type === 'list') {
-                                    if (format === 'html') {
-                                        return `<ul>\n${item.content.map(li => `  <li>${li}</li>`).join('\n')}\n</ul>`;
-                                    } else {
-                                        return item.content.map(li => `- ${li}`).join('\n');
-                                    }
-                                } else if (item.type === 'code') {
-                                    return format === 'html' ? `<pre><code>${item.content}</code></pre>` : "```javascript\n" + item.content + "\n```";
-                                }
-                            }
-                            return '';
-                        }).join('\n\n');
-                    }
-                } else {
-                    outputText = items.join(type === 'words' ? ' ' : ' ');
-                }
-
-                els.output.value = outputText;
-                
-                // Stats
-                const wordCount = outputText.split(/\s+/).filter(w => w.length > 0).length;
-                const charCount = outputText.length;
-                els.stats.textContent = `${wordCount} words, ${charCount} characters`;
-            }
-
-            // Events
-            els.generateBtn.addEventListener('click', generate);
-            
-            [els.type, els.format, els.count, els.startClassic, ...Object.values(els.checkboxes)].forEach(el => {
-                el.addEventListener('change', generate);
-                el.addEventListener('input', generate);
-            });
-
-            els.copyBtn.addEventListener('click', () => {
-                els.output.select();
-                document.execCommand('copy');
-                const original = els.copyBtn.innerHTML;
-                els.copyBtn.innerText = 'Copied!';
-                setTimeout(() => els.copyBtn.innerHTML = original, 2000);
-            });
-
-            els.downloadBtn.addEventListener('click', () => {
-                const blob = new Blob([els.output.value], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'lorem-ipsum.txt';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            });
-
-            // Init
-            generate();
-        })();
-    </script>
+    
+    <script src="/tools/lorem-ipsum-generator.js"></script>
 </ToolLayout>
 
 @code {

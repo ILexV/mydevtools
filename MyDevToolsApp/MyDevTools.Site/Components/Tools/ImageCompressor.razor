@@ -11,77 +11,104 @@
               Description="@AppStrings.ImageCompressor_Description" 
               CurrentUrl="@Navigation.Uri" />
 
-    <div id="image-compressor-root" class="max-w-4xl mx-auto space-y-8 p-4"
+    <div id="image-compressor-root" class="max-w-5xl mx-auto space-y-8"
          data-compressing="@AppStrings.ImageCompressor_Compressing"
          data-processing="@AppStrings.ImageCompressor_Processing"
          data-done="@AppStrings.ImageCompressor_Done"
          data-error="@AppStrings.Common_Error"
          data-download="@AppStrings.ImageCompressor_Download">
         
-        <!-- Drag & Drop Zone -->
-        <div class="upload-box">
-            <FileDropZone
-                Id="drop-zone-wrapper"
-                InputId="fileInput"
-                IconSvg='<span style="font-size: 3rem;">🖼️</span>'
-                Description="@AppStrings.ImageCompressor_DragDrop"
-                Accept="image/png, image/jpeg, image/webp"
-                AllowMultiple="true" />
-        </div>
+        <!-- Input & Settings Card -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body p-4 sm:p-6">
+                <h2 class="card-title text-primary flex items-center gap-2 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                    </svg>
+                    Input & Compression
+                </h2>
 
-        <!-- Controls -->
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-800">
-            <h4 class="font-semibold text-lg mb-4 text-gray-800 dark:text-gray-100">Compression Settings</h4>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Quality Slider -->
-                <div>
-                    <label for="quality" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Quality: <span id="quality-value" class="font-bold text-blue-600 dark:text-blue-400">80%</span>
-                    </label>
-                    <input type="range" id="quality" min="1" max="100" value="80" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700" />
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Lower quality = smaller file size</p>
+                <!-- Drag & Drop Zone -->
+                <div class="upload-box mb-6">
+                    <FileDropZone
+                        Id="drop-zone-wrapper"
+                        InputId="fileInput"
+                        IconSvg='<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>'
+                        Description="@AppStrings.ImageCompressor_DragDrop"
+                        Accept="image/png, image/jpeg, image/webp"
+                        AllowMultiple="true" />
                 </div>
 
-                <!-- Format Selection -->
-                <div>
-                    <label for="format" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output Format</label>
-                    <select id="format" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                        <option value="original" selected>Keep Original Format</option>
-                        <option value="jpeg">JPEG</option>
-                        <option value="png">PNG</option>
-                        <option value="webp">WebP</option>
-                    </select>
+                <!-- Settings -->
+                <div class="bg-base-200 rounded-xl p-4 sm:p-6">
+                    <h4 class="font-semibold text-sm opacity-70 uppercase mb-4">Compression Settings</h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Quality Slider -->
+                        <div class="form-control w-full">
+                            <label for="quality" class="label">
+                                <span class="label-text font-semibold">Quality</span>
+                                <span id="quality-value" class="badge badge-primary font-mono font-bold">80%</span>
+                            </label>
+                            <input type="range" id="quality" min="1" max="100" value="80" class="range range-primary range-sm" />
+                            <label class="label">
+                                <span class="label-text-alt opacity-60">Lower quality = smaller file size</span>
+                            </label>
+                        </div>
+
+                        <!-- Format Selection -->
+                        <div class="form-control w-full">
+                            <label for="format" class="label">
+                                <span class="label-text font-semibold">Output Format</span>
+                            </label>
+                            <select id="format" class="select select-bordered w-full">
+                                <option value="original" selected>Keep Original Format</option>
+                                <option value="jpeg">JPEG</option>
+                                <option value="png">PNG</option>
+                                <option value="webp">WebP</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- File List & Actions -->
-        <div>
-            <div class="file-list-container hidden mb-6 overflow-x-auto bg-base-100 rounded-box shadow">
-                <table class="table w-full">
-                    <thead>
-                        <tr>
-                            <th>Preview</th>
-                            <th>Name</th>
-                            <th>Original Size</th>
-                            <th>Status / Result</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="file-list">
-                        <!-- Items injected by JS -->
-                    </tbody>
-                </table>
-            </div>
+        <div class="card bg-base-100 shadow-xl hidden file-list-container">
+            <div class="card-body p-4 sm:p-6">
+                <h3 class="card-title text-base opacity-70 mb-4">Files to Process</h3>
+                
+                <div class="overflow-x-auto rounded-lg border border-base-200 mb-6">
+                    <table class="table w-full">
+                        <thead class="bg-base-200">
+                            <tr>
+                                <th>Preview</th>
+                                <th>Name</th>
+                                <th>Original Size</th>
+                                <th>Status / Result</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="file-list">
+                            <!-- Items injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
 
-            <div class="flex gap-4">
-                <button id="compressBtn" class="hidden w-full md:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors shadow-md">
-                    Compress Images
-                </button>
-                <button id="downloadAllBtn" class="hidden w-full md:w-auto px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-lg transition-colors shadow-md dark:bg-gray-700 dark:hover:bg-gray-600">
-                    Download All (ZIP)
-                </button> 
+                <div class="flex flex-wrap gap-4 justify-end">
+                    <button id="compressBtn" class="btn btn-primary w-full sm:w-auto shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3" />
+                        </svg>
+                        Compress Images
+                    </button>
+                    <button id="downloadAllBtn" class="btn btn-neutral w-full sm:w-auto shadow-md hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                        </svg>
+                        Download All (ZIP)
+                    </button> 
+                </div>
             </div>
         </div>
 
@@ -91,11 +118,14 @@
 @code {
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Import module for its side effects (loading the script)
-        await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./tools/image-compressor.js?v=" + DateTime.Now.Ticks);
-        
-        // The script registers window.initImageCompressor, so we call it globally
-        await JSRuntime.InvokeVoidAsync("initImageCompressor", "image-compressor-root");
+        if (firstRender)
+        {
+            // Import module for its side effects (loading the script)
+            await JSRuntime.InvokeAsync<IJSObjectReference>("import", "/tools/image-compressor.js?v=" + DateTime.Now.Ticks);
+            
+            // The script registers window.initImageCompressor, so we call it globally
+            await JSRuntime.InvokeVoidAsync("initImageCompressor", "image-compressor-root");
+        }
     }
 
     [Parameter]

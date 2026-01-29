@@ -85,6 +85,13 @@ public class SitemapMiddleware
                     foreach (var lang in supportedCultures)
                     {
                         var path = template.Replace("{lang}", lang);
+                        
+                        // Append trailing slash for language root pages to match Canonical/Hreflang
+                        if (isHomePage && !path.EndsWith("/"))
+                        {
+                            path += "/";
+                        }
+
                         var fullUrl = $"{baseUrl}{path}";
 
                         // Home pages have higher priority and update more frequently

@@ -87,12 +87,13 @@
     private string GetAlternateUrl(string culture)
     {
         var baseUri = new Uri(Navigation.BaseUri);
-        var path = string.IsNullOrEmpty(ToolPath) ? "" : $"/{ToolPath}";
+        var path = string.IsNullOrEmpty(ToolPath) ? "" : $"{ToolPath}";
         
-        // If it's home page (IsHomePage=true), ToolPath should be empty, so we get /en, /ru etc.
-        // If ToolPath is present, we get /en/tool
+        // Ensure consistent trailing slash for language root pages
+        // If ToolPath is empty (Home Page), we want /en/ not /en
+        var segment = string.IsNullOrEmpty(path) ? $"{culture}/" : $"{culture}/{path}";
         
-        return $"{baseUri.Scheme}://{baseUri.Authority}/{culture}{path}";
+        return $"{baseUri.Scheme}://{baseUri.Authority}/{segment}";
     }
 
     private string GetDefaultUrl()

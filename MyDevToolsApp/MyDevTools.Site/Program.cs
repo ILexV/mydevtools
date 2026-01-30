@@ -21,7 +21,33 @@ builder.Services.Configure<WebEncoderOptions>(options =>
 
 builder.Services.AddRazorComponents();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddMemoryCache();
+
+// Configure memory cache with size limit (100 MB)
+builder.Services.AddMemoryCache(options =>
+{
+    options.SizeLimit = 100 * 1024 * 1024; // 100 MB
+});
+
+// Add response caching
+builder.Services.AddResponseCaching();
+
+// Add response compression (gzip and brotli)
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+});
+
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = System.IO.Compression.CompressionLevel.Fastest;
+});
+
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProviderOptions>(options =>
+{
+    options.Level = System.IO.Compression.CompressionLevel.Fastest;
+});
 
 // Localization
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -74,6 +100,16 @@ app.Use(async (context, next) =>
     });
     await next();
 });
+
+// Response compression (gzip/brotli) - must be before caching
+app.UseResponseCompression();
+
+// Serve static files from memory (reduces disk I/O)
+app.UseMiddleware<MemoryStaticFileMiddleware>();
+
+// Response caching middleware (before localization)
+app.UseResponseCaching();
+app.UseMiddleware<ResponseCachingMiddleware>();
 
 // Handle HEAD requests from bots/crawlers FIRST
 app.UseMiddleware<HeadRequestMiddleware>();

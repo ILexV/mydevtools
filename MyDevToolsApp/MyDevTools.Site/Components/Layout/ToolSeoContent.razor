@@ -1,0 +1,184 @@
+@using MyDevTools.Site.Resources
+@using Microsoft.AspNetCore.Components
+
+<div class="mt-8 space-y-8">
+    <!-- Block 1: Extended Description -->
+    <article class="prose prose-lg max-w-none">
+        <!-- Introduction -->
+        @if (!string.IsNullOrEmpty(Introduction))
+        {
+            <section class="mb-6">
+                <p class="text-base-content/80 leading-relaxed">@Introduction</p>
+            </section>
+        }
+
+        <!-- Detailed Description -->
+        @if (!string.IsNullOrEmpty(DetailedDescription))
+        {
+            <section class="mb-6">
+                <h2 class="text-2xl font-bold mb-4">@DetailedDescriptionTitle</h2>
+                <div class="text-base-content/80 leading-relaxed space-y-4">
+                    @((MarkupString)ConvertMarkdownToHtml(DetailedDescription))
+                </div>
+            </section>
+        }
+
+        <!-- Practical Examples -->
+        @if (!string.IsNullOrEmpty(Examples))
+        {
+            <section class="mb-6">
+                <h2 class="text-2xl font-bold mb-4">@ExamplesTitle</h2>
+                <div class="text-base-content/80 leading-relaxed space-y-4">
+                    @((MarkupString)ConvertMarkdownToHtml(Examples))
+                </div>
+            </section>
+        }
+    </article>
+
+    <!-- Block 2: How to Use -->
+    @if (!string.IsNullOrEmpty(HowToSteps))
+    {
+        <article class="card bg-base-200 shadow-lg">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-4">@HowToTitle</h2>
+                <div class="prose max-w-none">
+                    <div class="text-base-content/80 leading-relaxed space-y-4">
+                        @((MarkupString)ConvertMarkdownToHtml(HowToSteps))
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Tips))
+                {
+                    <div class="mt-6">
+                        <h3 class="text-xl font-semibold mb-3">@TipsTitle</h3>
+                        <div class="text-base-content/80 leading-relaxed">
+                            @((MarkupString)ConvertMarkdownToHtml(Tips))
+                        </div>
+                    </div>
+                }
+            </div>
+        </article>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Introduction paragraph (150-200 words)
+    /// </summary>
+    [Parameter]
+    public string? Introduction { get; set; }
+
+    /// <summary>
+    /// Detailed functionality description (300-400 words)
+    /// </summary>
+    [Parameter]
+    public string? DetailedDescription { get; set; }
+
+    /// <summary>
+    /// Title for the detailed description section
+    /// </summary>
+    [Parameter]
+    public string DetailedDescriptionTitle { get; set; } = "Detailed Functionality";
+
+    /// <summary>
+    /// Practical examples (200-300 words)
+    /// </summary>
+    [Parameter]
+    public string? Examples { get; set; }
+
+    /// <summary>
+    /// Title for the examples section
+    /// </summary>
+    [Parameter]
+    public string ExamplesTitle { get; set; } = "Practical Examples";
+
+    /// <summary>
+    /// Title for the "How to Use" section
+    /// </summary>
+    [Parameter]
+    public string HowToTitle { get; set; } = "How to Use";
+
+    /// <summary>
+    /// Step-by-step instructions
+    /// </summary>
+    [Parameter]
+    public string? HowToSteps { get; set; }
+
+    /// <summary>
+    /// Title for the tips section
+    /// </summary>
+    [Parameter]
+    public string TipsTitle { get; set; } = "Tips and Best Practices";
+
+    /// <summary>
+    /// Best practices and tips
+    /// </summary>
+    [Parameter]
+    public string? Tips { get; set; }
+
+    /// <summary>
+    /// Converts basic Markdown syntax to HTML
+    /// </summary>
+    private string ConvertMarkdownToHtml(string markdown)
+    {
+        if (string.IsNullOrEmpty(markdown))
+            return string.Empty;
+
+        var html = markdown;
+
+        // Convert headings (### to h3, ## to h2, # to h1)
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"^### (.+)$", "<h3 class=\"text-lg font-semibold mt-4 mb-2\">$1</h3>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"^## (.+)$", "<h2 class=\"text-xl font-bold mt-6 mb-3\">$1</h2>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"^# (.+)$", "<h1 class=\"text-2xl font-bold mt-8 mb-4\">$1</h1>", System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        // Convert bold text (**text** to <strong>)
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"\*\*(.+?)\*\*", "<strong class=\"font-semibold\">$1</strong>");
+
+        // Convert bullet points (- item to <li>)
+        var lines = html.Split('\n');
+        var result = new System.Text.StringBuilder();
+        bool inList = false;
+
+        foreach (var line in lines)
+        {
+            var trimmedLine = line.Trim();
+            
+            if (trimmedLine.StartsWith("- "))
+            {
+                if (!inList)
+                {
+                    result.AppendLine("<ul class=\"list-disc list-inside space-y-1 my-2\">");
+                    inList = true;
+                }
+                result.AppendLine($"<li>{trimmedLine.Substring(2)}</li>");
+            }
+            else
+            {
+                if (inList)
+                {
+                    result.AppendLine("</ul>");
+                    inList = false;
+                }
+                
+                // Add paragraph tags for non-empty lines that aren't headings
+                if (!string.IsNullOrWhiteSpace(trimmedLine) && 
+                    !trimmedLine.StartsWith("<h") && 
+                    !trimmedLine.StartsWith("</"))
+                {
+                    result.AppendLine($"<p class=\"mb-3\">{line}</p>");
+                }
+                else
+                {
+                    result.AppendLine(line);
+                }
+            }
+        }
+
+        if (inList)
+        {
+            result.AppendLine("</ul>");
+        }
+
+        return result.ToString();
+    }
+}

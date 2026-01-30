@@ -1,4 +1,4 @@
-<select class="select select-bordered select-sm" onchange="location.href=this.value" value="@GetLanguageUrl(CurrentLanguage)" aria-label="Select language">
+<select class="select select-bordered select-sm" onchange="location.href=this.value" aria-label="Select language">
     @foreach (var lang in SupportedLanguages)
     {
         <option value="@GetLanguageUrl(lang)" selected="@(lang == CurrentLanguage)">@GetLanguageName(lang)</option>

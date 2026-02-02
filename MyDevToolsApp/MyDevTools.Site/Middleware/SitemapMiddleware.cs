@@ -37,7 +37,8 @@ public class SitemapMiddleware
 
             // Cache for 24 hours
             var cacheEntryOptions = new MemoryCacheEntryOptions()
-                .SetAbsoluteExpiration(TimeSpan.FromHours(24));
+                .SetAbsoluteExpiration(TimeSpan.FromHours(24))
+                .SetSize(sitemap.Length * 2); // Size in bytes (approximate for UTF-16)
 
             _cache.Set("sitemap_xml", sitemap, cacheEntryOptions);
 

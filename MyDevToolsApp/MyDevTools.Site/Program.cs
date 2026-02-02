@@ -85,6 +85,9 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
+// Sitemap must be served before any response manipulation to avoid conflicts
+app.UseMiddleware<SitemapMiddleware>();
+
 // Force charset=utf-8 for text/html responses
 app.Use(async (context, next) =>
 {
@@ -115,7 +118,6 @@ app.UseMiddleware<ResponseCachingMiddleware>();
 app.UseMiddleware<HeadRequestMiddleware>();
 
 // Use custom culture redirect middleware
-app.UseMiddleware<SitemapMiddleware>();
 app.UseMiddleware<CultureRedirectMiddleware>();
 
 // Then use request localization

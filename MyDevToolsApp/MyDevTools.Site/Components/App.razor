@@ -75,10 +75,12 @@
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#1a1a2e" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <link rel="apple-touch-icon" href="/favicon.png" />
     
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="icon" type="image/png" href="/favicon.png" />
+    @* Favicon: all formats for maximum compatibility with browsers and search bots *@
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+    <link rel="icon" href="/favicon.png" type="image/png" sizes="192x192" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/favicon.png" sizes="180x180" />
     
     <HeadOutlet />
 </head>

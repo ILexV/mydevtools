@@ -78,7 +78,10 @@ public class SitemapMiddleware
 
                 // Only consider routes that follow the /{lang}/ pattern
                 // We assume tool pages are defined like "/{lang}/tool-name"
-                if (template.Contains("{lang}"))
+                // Exclude error pages from sitemap
+                if (template.Contains("{lang}") && 
+                    !template.Contains("not-found", StringComparison.OrdinalIgnoreCase) &&
+                    !template.Contains("error", StringComparison.OrdinalIgnoreCase))
                 {
                     // Determine if this is the home page
                     bool isHomePage = template == "/{lang}";

@@ -1,6 +1,7 @@
 @page "/not-found"
 @page "/{lang}/not-found"
 @layout MainLayout
+@using Microsoft.AspNetCore.Http
 @inject NavigationManager Navigation
 
 <PageTitle>Not Found</PageTitle>
@@ -20,6 +21,18 @@
 </div>
 
 @code {
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
     [Parameter]
     public string? Lang { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (HttpContext != null && !HttpContext.Response.HasStarted)
+        {
+            HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+            HttpContext.Response.Headers["X-Robots-Tag"] = "noindex";
+        }
+    }
 }

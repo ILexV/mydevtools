@@ -67,6 +67,7 @@ pwsh ./wasm/build.ps1 -Domains @('hash')
     ```
 *   Add SEO components (`MetaTags`, `JsonLdTool`, `HreflangLinks`).
 *   Implement logic in a corresponding JS file in `wwwroot/tools/`.
+*   **SEO Optimization (HEAD requests):** Add the new tool's slug to the `ToolSlugs` array in `Middleware/HeadRequestMiddleware.cs`. This ensures search engines receive a `200 OK` for `HEAD` requests to the new tool.
 
 ### 3. Localization
 *   **NEVER** use hardcoded strings in UI.

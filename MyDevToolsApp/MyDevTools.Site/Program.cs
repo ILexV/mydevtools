@@ -114,7 +114,7 @@ app.UseMiddleware<MemoryStaticFileMiddleware>();
 app.UseResponseCaching();
 app.UseMiddleware<ResponseCachingMiddleware>();
 
-// Handle HEAD requests from bots/crawlers FIRST
+// Handle HEAD requests from bots/crawlers
 app.UseMiddleware<HeadRequestMiddleware>();
 
 // Use custom culture redirect middleware

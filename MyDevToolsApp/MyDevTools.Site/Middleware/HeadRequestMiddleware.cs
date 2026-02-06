@@ -10,12 +10,19 @@ public class HeadRequestMiddleware
 {
     private readonly RequestDelegate _next;
     
-    // Whitelist of known valid path patterns
-    private static readonly string[] KnownValidPaths = new[]
-    {
-        "/", "/en", "/en/", "/ru", "/ru/", "/es", "/es/",
-        "/sitemap.xml", "/robots.txt"
-    };
+    // Whitelist of supported languages
+    private static readonly string[] SupportedLanguages = ["en", "ru", "es", "de", "pt", "zh", "fr", "ja", "ko", "hi"];
+
+    // Whitelist of tool slugs (extracted from Home.razor)
+    private static readonly string[] ToolSlugs = 
+    [
+        "image-converter", "image-compressor", "image-resizer", "color-converter", "markdown-preview",
+        "hash-calculator", "password-generator", "uuid-generator", "lorem-ipsum-generator", "base64-encoder",
+        "json-beautifier", "text-case-converter", "text-diff-viewer", "aead-file", "openssh-keys", "x509",
+        "url-encoder", "xml-beautifier", "hex-encoder", "base32-encoder", "base58-encoder", "date-converter",
+        "jwt-decoder", "jwt-encoder", "regex-tester", "qr-code-generator", "hmac-calculator", 
+        "yaml-beautifier-validator", "qr-scanner"
+    ];
 
     public HeadRequestMiddleware(RequestDelegate next)
     {
@@ -31,32 +38,29 @@ public class HeadRequestMiddleware
         {
             var path = context.Request.Path.Value ?? "/";
             var isBot = BotDetectionHelper.IsBot(context);
-            
-            // For bots requesting known valid paths, return 200 OK immediately
+
+            // For bots/crawlers, if we KNOW the path is valid, return 200 OK immediately
+            // This satisfies search engines and avoids heavy processing
             if (isBot && IsKnownValidPath(path))
             {
                 context.Response.StatusCode = 200;
                 context.Response.Headers.ContentType = "text/html; charset=utf-8";
                 return;
             }
-            
-            // Otherwise, convert HEAD to GET and discard body
+
+            // For all other cases (or non-bot HEAD requests), convert to GET
+            // and capture the response without the body
             context.Request.Method = HttpMethods.Get;
-            
-            // Capture the response body stream
             var originalBodyStream = context.Response.Body;
+            using var replacementBodyStream = new MemoryStream();
+            context.Response.Body = replacementBodyStream;
             
             try
             {
-                // Use a null stream to discard the body
-                using var nullStream = Stream.Null;
-                context.Response.Body = nullStream;
-                
                 await _next(context);
             }
             finally
             {
-                // Restore original method and body stream
                 context.Request.Method = originalMethod;
                 context.Response.Body = originalBodyStream;
             }
@@ -66,26 +70,34 @@ public class HeadRequestMiddleware
             await _next(context);
         }
     }
-    
+
     private static bool IsKnownValidPath(string path)
     {
-        // Check exact matches
-        if (KnownValidPaths.Contains(path, StringComparer.OrdinalIgnoreCase))
+        if (string.IsNullOrEmpty(path) || path == "/") return true;
+
+        var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        
+        // Match /sitemap.xml or /robots.txt
+        if (segments.Length == 1 && (segments[0].Equals("sitemap.xml", StringComparison.OrdinalIgnoreCase) || 
+                                     segments[0].Equals("robots.txt", StringComparison.OrdinalIgnoreCase)))
         {
             return true;
         }
-        
-        // Check if path matches pattern /{lang}/tool-name
-        var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
         if (segments.Length >= 1)
         {
-            var lang = segments[0];
-            // If first segment is a supported language, it's likely a valid path
-            if (lang.Equals("en", StringComparison.OrdinalIgnoreCase) ||
-                lang.Equals("ru", StringComparison.OrdinalIgnoreCase) ||
-                lang.Equals("es", StringComparison.OrdinalIgnoreCase))
+            var lang = segments[0].ToLowerInvariant();
+            if (SupportedLanguages.Contains(lang))
             {
-                return true;
+                // Path is just /{lang}/
+                if (segments.Length == 1) return true;
+
+                // Path is /{lang}/{tool-slug}
+                if (segments.Length == 2)
+                {
+                    var slug = segments[1].ToLowerInvariant();
+                    return ToolSlugs.Contains(slug);
+                }
             }
         }
         

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using MyDevTools.Site.Services;
 using System.Globalization;
 
@@ -13,6 +14,17 @@ public class CultureRedirectMiddleware
     private readonly RequestDelegate _next;
     private readonly ILocalizationService _localizationService;
 
+    // Whitelist of tool slugs (mirrors Home.razor)
+    private static readonly HashSet<string> ToolSlugs =
+    [
+        "image-converter", "image-compressor", "image-resizer", "color-converter", "markdown-preview",
+        "hash-calculator", "password-generator", "uuid-generator", "lorem-ipsum-generator", "base64-encoder",
+        "json-beautifier", "text-case-converter", "text-diff-viewer", "aead-file", "openssh-keys", "x509",
+        "url-encoder", "xml-beautifier", "hex-encoder", "base32-encoder", "base58-encoder", "date-converter",
+        "jwt-decoder", "jwt-encoder", "regex-tester", "qr-code-generator", "hmac-calculator",
+        "yaml-beautifier-validator", "qr-scanner"
+    ];
+
     public CultureRedirectMiddleware(RequestDelegate next, ILocalizationService localizationService)
     {
         _next = next;
@@ -22,6 +34,10 @@ public class CultureRedirectMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
         var path = context.Request.Path.Value ?? "/";
+        if (path.EndsWith("/", StringComparison.Ordinal) && path.Length > 1)
+        {
+            path = path.TrimEnd('/');
+        }
         
         // Skip static files, already localized paths, and error pages
         if (path.StartsWith("/_") || 
@@ -39,6 +55,14 @@ public class CultureRedirectMiddleware
         
         if (cultureFromPath == null)
         {
+            if (!IsValidPathWithoutCulture(path))
+            {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                context.Request.Path = "/not-found";
+                await _next(context);
+                return;
+            }
+
             // Detect if this is a bot request
             var isBot = BotDetectionHelper.IsBot(context);
             var defaultCulture = _localizationService.DefaultCulture;
@@ -105,6 +129,21 @@ public class CultureRedirectMiddleware
         context.Items["Culture"] = cultureFromPath;
 
         await _next(context);
+    }
+
+    private static bool IsValidPathWithoutCulture(string path)
+    {
+        if (string.IsNullOrEmpty(path) || path == "/") return true;
+
+        var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (segments.Length == 1)
+        {
+            var slug = segments[0].ToLowerInvariant();
+            if (slug is "sitemap.xml" or "robots.txt") return true;
+            return ToolSlugs.Contains(slug);
+        }
+
+        return false;
     }
 
     private string GetBrowserCulture(HttpContext context)

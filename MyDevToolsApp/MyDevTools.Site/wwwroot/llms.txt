@@ -1,93 +1,87 @@
-# MyDevTools - Developer Tools Platform
+# MyDevTools - Privacy-First Developer Tools
 
 ## Overview
-MyDevTools is a web-based developer tools platform that prioritizes user privacy and data confidentiality. All tools operate entirely in the browser using WebAssembly (WASM) and Rust, ensuring that no data is sent to external servers. Complete data processing occurs locally on the user's machine.
+MyDevTools is a web-based developer tools platform built for privacy and speed. All processing runs locally in the browser using WebAssembly (WASM) and Rust. No user data is sent to servers.
 
 ## Core Mission
-Provide essential developer utilities with privacy-first architecture. All operations are performed in-browser using modern web technologies (WASM/Rust), making tools fast, secure, and completely transparent.
+Provide fast, reliable developer utilities with a strict privacy-first architecture and transparent client-side processing.
 
 ## Key Features
-- **100% Browser-Based Processing**: All tools run using WebAssembly and Rust compiled to web assembly
-- **Zero Server Transmission**: No data leaves your browser - everything stays local
-- **Privacy-Focused**: Complete confidentiality for sensitive data processing
-- **Instant Access**: No installation or server dependencies required
-- **Full Feature Control**: Customizable options and parameters for each tool
+- **100% Browser-Based Processing**: All tools run in the browser via WASM and Rust
+- **Zero Server Transmission**: No user data is uploaded or logged
+- **Privacy-Focused**: Safe handling for sensitive data and files
+- **Instant Access**: No installs, no accounts, no setup
+- **Full Control**: Clear, configurable options per tool
 
 ## Available Tools
 
 ### Encoding & Decoding
-- **Base64 Encoder/Decoder**: Encode and decode Base64 for text and files in-browser
-- **Base32 Encoder/Decoder**: Base32 encoding/decoding with full browser processing
-- **Base58 Encoder/Decoder**: Base58 text and file encoding/decoding
-- **Hex Encoder/Decoder**: Encode/decode hexadecimal data with customizable settings
-- **URL Encoder/Decoder**: URL percent-encoding with multiple encoding mode options
+- **Base64 Encoder/Decoder**: Text and file Base64 processing
+- **Base32 Encoder/Decoder**: Base32 encoding/decoding in-browser
+- **Base58 Encoder/Decoder**: Base58 text and file processing
+- **Hex Encoder/Decoder**: Hex encoding/decoding for text and files
+- **URL Encoder/Decoder**: URL percent-encoding and decoding
 
-### Data Formatting & Beautification
-- **JSON Beautifier**: Format and pretty-print JSON with customizable indentation and options
-- **XML Beautifier**: Format and beautify XML with adjustable whitespace and formatting parameters
-- **Case Converter**: Convert text between multiple formats (uppercase, lowercase, camelCase, snake_case, kebab-case, etc.)
+### Data Formatting & Text
+- **JSON Beautifier**: Pretty-print JSON with configurable formatting
+- **XML Beautifier**: Format and beautify XML
+- **YAML Beautifier/Validator**: YAML formatting and validation
+- **Case Converter**: Convert text between common cases
+- **Text Diff Viewer**: Compare and highlight text differences
+- **Regex Tester**: Test patterns with live match preview
+- **Markdown Preview**: Render Markdown locally
 
 ### Cryptography & Security
-- **Hash Calculator**: Calculate hashes using MD5, SHA-1, SHA-256 and other algorithms for text and files
-- **OpenSSH Keys**: Generate, import, and convert OpenSSH keys directly in browser
-- **X.509 Certificates**: Create self-signed certificates, CSR generation, and PEM/DER conversion
-- **AEAD File Encryption/Decryption**: Local file encryption with AEAD using browser-native processing
+- **Hash Calculator**: MD5, SHA family, and more for text and files
+- **HMAC Calculator**: HMAC generation for common algorithms
+- **OpenSSH Keys**: Generate and convert SSH keys locally
+- **X.509 Certificates**: CSR generation and certificate helpers
+- **AEAD File Encryption/Decryption**: Encrypt/decrypt files in-browser
+- **JWT Decoder/Encoder**: Decode and create JWTs locally
 
-### Image Processing
-- **Image Converter**: Convert images between multiple formats (PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA) securely in-browser
+### Images
+- **Image Converter**: Convert between common image formats locally
+- **Image Compressor**: Reduce image file size in-browser
+- **Image Resizer**: Resize images without uploads
+- **Color Converter**: Convert between color formats
+- **QR Code Generator**: Generate QR codes locally
+- **QR Scanner**: Scan QR codes using local processing
 
 ### Utilities
-- **Password Generator**: Create secure, random passwords locally with customizable algorithms (MD5, SHA-1, SHA-256)
-- **Hash Calculator**: Hash text or files using various cryptographic algorithms
+- **Password Generator**: Generate secure passwords locally
+- **UUID Generator**: Create UUIDs in-browser
+- **Lorem Ipsum Generator**: Generate placeholder text
+- **Date Converter**: Convert between date/time formats
 
 ## Technology Stack
-- **Frontend**: Modern web technologies with responsive design
-- **Backend**: WebAssembly (WASM) compiled Rust for processing
-- **Privacy Model**: Client-side only processing with zero server involvement
-- **Architecture**: Single Page Application (SPA) pattern
+- **Frontend**: Blazor SSR, Tailwind CSS, Vite
+- **Processing**: Rust compiled to WebAssembly (WASM)
+- **Runtime**: .NET
+- **Architecture**: SSR for HTML, client-side WASM for processing
 
 ## Use Cases
-- Developers needing secure, local data processing
-- Teams handling sensitive configuration and credentials
-- Privacy-conscious users requiring data confidentiality
-- CI/CD pipeline integration without external dependencies
-- Secure development workflows with audit requirements
-- Offline-capable development tools
+- Secure local processing for sensitive data
+- Quick, zero-install developer utilities
+- Offline-capable workflows (where supported by the browser)
 
 ## Interface & Accessibility
-- **Responsive Design**: Works seamlessly across desktop, tablet, and mobile browsers
-- **Internationalization**: Russian language support with multi-language capability
-- **Dark Mode**: Built-in dark mode toggle for accessibility
-- **Starred Tools**: Users can bookmark favorite tools for quick access
+- **Responsive Design**: Desktop, tablet, and mobile
+- **Internationalization**: Multiple languages (EN, RU, ES, DE, PT, ZH, FR, JA, KO, HI)
+- **Dark Mode**: Theme toggle
+- **Favorites**: Save commonly used tools
 
 ## Data Privacy Policy
-- All processing occurs locally within your browser
-- No data is transmitted to servers
-- No cookies or tracking for tool functionality
-- User can inspect browser developer tools to verify local-only processing
-- Complete user control over all operations and data
+- All processing occurs locally in the browser
+- No uploads, no server-side processing
+- No tracking required for tool usage
 
 ## Browser Compatibility
 - Modern browsers with WebAssembly support (Chrome, Firefox, Safari, Edge)
-- Works online and offline
-- No plugins or extensions required
-- Native browser functionality only
-
-## Target Audience
-- Software developers and engineers
-- DevOps and system administrators
-- Security professionals
-- System architects
-- IT teams requiring secure local processing
-- Privacy-conscious technical users
-- Organizations with strict data confidentiality requirements
 
 ## Contact & Support
-- Website: https://mydevtools.app/ru
-- Platform: Web-based, accessible from any modern browser
-- Language: Russian interface available
+- Website: https://mydevtools.app/
 
 ---
 
-**Last Updated**: January 2026
+**Last Updated**: February 2026
 **Platform Status**: Active and maintained

@@ -79,8 +79,8 @@ public class MemoryStaticFileMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // Only handle GET requests
-        if (context.Request.Method != HttpMethods.Get)
+        // Only handle GET/HEAD requests
+        if (context.Request.Method != HttpMethods.Get && context.Request.Method != HttpMethods.Head)
         {
             await _next(context);
             return;
@@ -120,6 +120,13 @@ public class MemoryStaticFileMiddleware
                 ifModifiedDate >= file.LastModified)
             {
                 context.Response.StatusCode = 304; // Not Modified
+                return;
+            }
+
+            context.Response.ContentLength = file.Content.Length;
+
+            if (context.Request.Method == HttpMethods.Head)
+            {
                 return;
             }
 

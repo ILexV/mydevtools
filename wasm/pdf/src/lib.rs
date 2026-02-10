@@ -1,7 +1,9 @@
+use lopdf::content::Content;
 use lopdf::{Document, Object, ObjectId};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::io::Cursor;
+use ttf_parser::Face;
 use wasm_bindgen::prelude::*;
 
 // Helper to log to console
@@ -357,4 +359,828 @@ fn strip_jpeg_metadata(data: &[u8]) -> Option<Vec<u8>> {
     } else {
         None
     }
+}
+
+#[wasm_bindgen]
+pub fn extract_text(data: js_sys::Uint8Array) -> Result<String, JsValue> {
+    console_log!("Starting text extraction from PDF");
+
+    let bytes = data.to_vec();
+    let cursor = Cursor::new(bytes);
+
+    let doc = Document::load_from(cursor)
+        .map_err(|e| JsValue::from_str(&format!("Failed to load PDF: {:?}", e)))?;
+
+    // Get all page numbers (sorted)
+    let mut page_numbers: Vec<u32> = doc.get_pages().keys().cloned().collect();
+    page_numbers.sort();
+
+    // We'll implement our own extraction that respects ToUnicode CMaps for CID/Identity fonts.
+    let mut out_parts: Vec<String> = Vec::new();
+
+    // Helper: parse ToUnicode CMap stream bytes into a mapping of byte-sequence -> String
+    fn parse_cmap(cmap_bytes: &[u8]) -> HashMap<Vec<u8>, String> {
+        let mut map: HashMap<Vec<u8>, String> = HashMap::new();
+        let text = String::from_utf8_lossy(cmap_bytes).to_string();
+
+        // Simple helper to decode hex like "00E0" -> Vec<u8>
+        let hex_to_bytes = |hex: &str| -> Option<Vec<u8>> {
+            let mut out = Vec::new();
+            let mut s = hex.trim();
+            // strip optional <>
+            if s.starts_with('<') && s.ends_with('>') {
+                s = &s[1..s.len() - 1];
+            }
+            if s.len() % 2 != 0 {
+                return None;
+            }
+            for i in (0..s.len()).step_by(2) {
+                if let Ok(byte) = u8::from_str_radix(&s[i..i + 2], 16) {
+                    out.push(byte);
+                } else {
+                    return None;
+                }
+            }
+            Some(out)
+        };
+
+        // Parse beginbfchar ... endbfchar blocks
+        let mut pos = 0usize;
+        while let Some(beg) = text[pos..].find("beginbfchar") {
+            let start = pos + beg + "beginbfchar".len();
+            if let Some(end_rel) = text[start..].find("endbfchar") {
+                let block = &text[start..start + end_rel];
+                // find all pairs of <hex> <hex>
+                let mut idx = 0usize;
+                while let Some(a) = block[idx..].find('<') {
+                    let a0 = idx + a;
+                    if let Some(a1_rel) = block[a0..].find('>') {
+                        let a1 = a0 + a1_rel;
+                        let left = &block[a0..=a1];
+                        // find next '<' for right
+                        if let Some(b) = block[a1 + 1..].find('<') {
+                            let b0 = a1 + 1 + b;
+                            if let Some(b1_rel) = block[b0..].find('>') {
+                                let b1 = b0 + b1_rel;
+                                let right = &block[b0..=b1];
+                                if let (Some(left_b), Some(right_b)) =
+                                    (hex_to_bytes(left), hex_to_bytes(right))
+                                {
+                                    // decode right bytes as UTF-16BE if length %2 == 0
+                                    let decoded = if right_b.len() % 2 == 0 {
+                                        let mut u16s = Vec::new();
+                                        for i in (0..right_b.len()).step_by(2) {
+                                            let hi =
+                                                (right_b[i] as u16) << 8 | (right_b[i + 1] as u16);
+                                            u16s.push(hi);
+                                        }
+                                        String::from_utf16_lossy(&u16s)
+                                    } else {
+                                        // fallback: Latin1
+                                        right_b.iter().map(|&c| c as char).collect()
+                                    };
+                                    map.insert(left_b, decoded);
+                                }
+                                idx = b1 + 1;
+                                continue;
+                            }
+                        }
+                    }
+                    break;
+                }
+                pos = start + end_rel;
+            } else {
+                break;
+            }
+        }
+
+        // Parse beginbfrange ... endbfrange blocks (simple cases)
+        pos = 0;
+        while let Some(beg) = text[pos..].find("beginbfrange") {
+            let start = pos + beg + "beginbfrange".len();
+            if let Some(end_rel) = text[start..].find("endbfrange") {
+                let block = &text[start..start + end_rel];
+                // scan lines for patterns
+                for line in block.lines() {
+                    let line = line.trim();
+                    if !line.starts_with('<') {
+                        continue;
+                    }
+                    // tokenize by whitespace
+                    let toks: Vec<&str> = line.split_whitespace().collect();
+                    if toks.len() >= 3 {
+                        // start, end, target
+                        if let (Some(start_b), Some(end_b)) =
+                            (hex_to_bytes(toks[0]), hex_to_bytes(toks[1]))
+                        {
+                            // convert start/end to integer
+                            let start_val =
+                                start_b.iter().fold(0u32, |acc, &b| (acc << 8) | (b as u32));
+                            let end_val =
+                                end_b.iter().fold(0u32, |acc, &b| (acc << 8) | (b as u32));
+                            let target = toks[2];
+                            if target.starts_with('<') && target.ends_with('>') {
+                                if let Some(target_b) = hex_to_bytes(target) {
+                                    // interpret target_b as UTF-16BE or as a codepoint
+                                    if target_b.len() % 2 == 0 && target_b.len() <= 4 {
+                                        // treat as UTF-16BE (or single 32-bit) and increment
+                                        let mut first_code = 0u32;
+                                        if target_b.len() == 2 {
+                                            first_code =
+                                                ((target_b[0] as u32) << 8) | (target_b[1] as u32);
+                                        } else if target_b.len() == 4 {
+                                            first_code = ((target_b[0] as u32) << 24)
+                                                | ((target_b[1] as u32) << 16)
+                                                | ((target_b[2] as u32) << 8)
+                                                | (target_b[3] as u32);
+                                        }
+                                        for i in start_val..=end_val {
+                                            let cid = i;
+                                            let mut key = Vec::new();
+                                            // reconstruct cid as same byte-length as start_b
+                                            for shift in (0..start_b.len()).rev() {
+                                                let shift_bits = (shift * 8) as u32;
+                                                let byte = ((cid >> shift_bits) & 0xFF) as u8;
+                                                key.push(byte);
+                                            }
+                                            let codepoint = first_code + (i - start_val);
+                                            if let Some(ch) = std::char::from_u32(codepoint) {
+                                                map.insert(key, ch.to_string());
+                                            } else {
+                                                // attempt UTF-16 decode
+                                                map.insert(key, String::new());
+                                            }
+                                        }
+                                    }
+                                }
+                            } else if target.starts_with('[') {
+                                // array form: <s> <e> [ <u1> <u2> ... ]
+                                // extract entries between [ ]
+                                if let Some(start_br) = line.find('[') {
+                                    if let Some(end_br) = line.find(']') {
+                                        let inside = &line[start_br + 1..end_br];
+                                        let mut entries: Vec<Vec<u8>> = Vec::new();
+                                        for token in inside.split_whitespace() {
+                                            if let Some(b) = hex_to_bytes(token) {
+                                                entries.push(b);
+                                            }
+                                        }
+                                        let mut idx_e = 0usize;
+                                        for i in start_val..=end_val {
+                                            if idx_e >= entries.len() {
+                                                break;
+                                            }
+                                            let key_val = i;
+                                            let mut key = Vec::new();
+                                            for shift in (0..start_b.len()).rev() {
+                                                let shift_bits = (shift * 8) as u32;
+                                                let byte = ((key_val >> shift_bits) & 0xFF) as u8;
+                                                key.push(byte);
+                                            }
+                                            let right_b = &entries[idx_e];
+                                            let decoded = if right_b.len() % 2 == 0 {
+                                                let mut u16s = Vec::new();
+                                                for j in (0..right_b.len()).step_by(2) {
+                                                    let hi = (right_b[j] as u16) << 8
+                                                        | (right_b[j + 1] as u16);
+                                                    u16s.push(hi);
+                                                }
+                                                String::from_utf16_lossy(&u16s)
+                                            } else {
+                                                right_b.iter().map(|&c| c as char).collect()
+                                            };
+                                            map.insert(key, decoded);
+                                            idx_e += 1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                pos = start + end_rel;
+            } else {
+                break;
+            }
+        }
+
+        // Parse begincidchar ... endcidchar (maps to CMap forms that sometimes appear)
+        pos = 0;
+        while let Some(beg) = text[pos..].find("begincidchar") {
+            let start = pos + beg + "begincidchar".len();
+            if let Some(end_rel) = text[start..].find("endcidchar") {
+                let block = &text[start..start + end_rel];
+                for line in block.lines() {
+                    let line = line.trim();
+                    if line.is_empty() {
+                        continue;
+                    }
+                    // expecting "<hex> <hex>" or "<hex> n"
+                    let toks: Vec<&str> = line.split_whitespace().collect();
+                    if toks.len() >= 2 {
+                        let left = toks[0];
+                        let right = toks[1];
+                        if let Some(left_b) = hex_to_bytes(left) {
+                            if right.starts_with('<') && right.ends_with('>') {
+                                if let Some(right_b) = hex_to_bytes(right) {
+                                    let decoded = if right_b.len() % 2 == 0 {
+                                        let mut u16s = Vec::new();
+                                        for i in (0..right_b.len()).step_by(2) {
+                                            u16s.push(
+                                                ((right_b[i] as u16) << 8)
+                                                    | (right_b[i + 1] as u16),
+                                            );
+                                        }
+                                        String::from_utf16_lossy(&u16s)
+                                    } else {
+                                        right_b.iter().map(|&c| c as char).collect()
+                                    };
+                                    map.insert(left_b, decoded);
+                                }
+                            } else {
+                                // right side is likely a CID number; nothing to map to Unicode here
+                            }
+                        }
+                    }
+                }
+                pos = start + end_rel;
+            } else {
+                break;
+            }
+        }
+
+        // Parse begincidrange ... endcidrange (simple numeric ranges or array targets)
+        pos = 0;
+        while let Some(beg) = text[pos..].find("begincidrange") {
+            let start = pos + beg + "begincidrange".len();
+            if let Some(end_rel) = text[start..].find("endcidrange") {
+                let block = &text[start..start + end_rel];
+                for line in block.lines() {
+                    let line = line.trim();
+                    if !line.starts_with('<') {
+                        continue;
+                    }
+                    let toks: Vec<&str> = line.split_whitespace().collect();
+                    if toks.len() >= 3 {
+                        if let (Some(start_b), Some(end_b)) =
+                            (hex_to_bytes(toks[0]), hex_to_bytes(toks[1]))
+                        {
+                            let start_val =
+                                start_b.iter().fold(0u32, |acc, &b| (acc << 8) | b as u32);
+                            let end_val = end_b.iter().fold(0u32, |acc, &b| (acc << 8) | b as u32);
+                            let target = toks[2];
+                            if target.starts_with('<') && target.ends_with('>') {
+                                if let Some(target_b) = hex_to_bytes(target) {
+                                    let mut first_code = 0u32;
+                                    if target_b.len() == 2 {
+                                        first_code =
+                                            ((target_b[0] as u32) << 8) | target_b[1] as u32;
+                                    } else if target_b.len() == 4 {
+                                        first_code = ((target_b[0] as u32) << 24)
+                                            | ((target_b[1] as u32) << 16)
+                                            | ((target_b[2] as u32) << 8)
+                                            | (target_b[3] as u32);
+                                    }
+                                    for i in start_val..=end_val {
+                                        let mut key = Vec::new();
+                                        for shift in (0..start_b.len()).rev() {
+                                            let shift_bits = (shift * 8) as u32;
+                                            let byte = ((i >> shift_bits) & 0xFF) as u8;
+                                            key.push(byte);
+                                        }
+                                        let codepoint = first_code + (i - start_val);
+                                        if let Some(ch) = std::char::from_u32(codepoint) {
+                                            map.insert(key, ch.to_string());
+                                        } else {
+                                            map.insert(key, String::new());
+                                        }
+                                    }
+                                }
+                            } else if target.starts_with('[') {
+                                if let Some(start_br) = line.find('[') {
+                                    if let Some(end_br) = line.find(']') {
+                                        let inside = &line[start_br + 1..end_br];
+                                        let mut entries: Vec<Vec<u8>> = Vec::new();
+                                        for token in inside.split_whitespace() {
+                                            if let Some(b) = hex_to_bytes(token) {
+                                                entries.push(b);
+                                            }
+                                        }
+                                        let mut idx_e = 0usize;
+                                        for i in start_val..=end_val {
+                                            if idx_e >= entries.len() {
+                                                break;
+                                            }
+                                            let mut key = Vec::new();
+                                            for shift in (0..start_b.len()).rev() {
+                                                let shift_bits = (shift * 8) as u32;
+                                                let byte = ((i >> shift_bits) & 0xFF) as u8;
+                                                key.push(byte);
+                                            }
+                                            let right_b = &entries[idx_e];
+                                            let decoded = if right_b.len() % 2 == 0 {
+                                                let mut u16s = Vec::new();
+                                                for j in (0..right_b.len()).step_by(2) {
+                                                    u16s.push(
+                                                        ((right_b[j] as u16) << 8)
+                                                            | (right_b[j + 1] as u16),
+                                                    );
+                                                }
+                                                String::from_utf16_lossy(&u16s)
+                                            } else {
+                                                right_b.iter().map(|&c| c as char).collect()
+                                            };
+                                            map.insert(key, decoded);
+                                            idx_e += 1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                pos = start + end_rel;
+            } else {
+                break;
+            }
+        }
+
+        map
+    }
+
+    // Helper: build mapping gid->unicode from embedded TTF 'cmap' table
+    fn cmap_from_truetype_gid_map(font_bytes: &[u8]) -> Option<HashMap<u16, String>> {
+        // Parse TrueType face and build gid->unicode map by probing Unicode codepoints.
+        // Use Face::number_of_glyphs() as an early-exit condition to avoid scanning unnecessarily.
+        if let Ok(face) = Face::parse(font_bytes, 0) {
+            let mut map: HashMap<u16, String> = HashMap::new();
+            let glyph_count = face.number_of_glyphs() as usize;
+            console_log!("Parsing TrueType cmap: glyph_count={}", glyph_count);
+
+            // Scan Unicode scalar range, stopping when we've discovered mappings for all glyphs
+            // or when we've exhausted codepoints. This is robust across formats (4/12) and
+            // handles non-BMP mappings as well.
+            for codepoint in 0u32..=0x10FFFFu32 {
+                if let Some(ch) = std::char::from_u32(codepoint) {
+                    if let Some(gid) = face.glyph_index(ch) {
+                        let gid_u16 = gid.0;
+                        map.entry(gid_u16).or_insert_with(|| ch.to_string());
+                        if glyph_count > 0 && map.len() >= glyph_count {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            console_log!(" TrueType cmap built: entries={}", map.len());
+            if !map.is_empty() {
+                return Some(map);
+            }
+        }
+        None
+    }
+
+    // Convert a gid->unicode map into a byte-keyed map assuming identity CID==GID
+    fn make_map_from_gid_map_identity(gid_map: &HashMap<u16, String>) -> HashMap<Vec<u8>, String> {
+        let mut out: HashMap<Vec<u8>, String> = HashMap::new();
+        for (&gid, v) in gid_map.iter() {
+            if gid <= 0xFF {
+                out.insert(vec![gid as u8], v.clone());
+            }
+            out.insert(vec![(gid >> 8) as u8, (gid & 0xFF) as u8], v.clone());
+        }
+        out
+    }
+
+    // Build final mapping for CID fonts using CIDToGIDMap stream if provided
+    fn make_map_from_gid_map_with_cidtogid(
+        gid_map: &HashMap<u16, String>,
+        cidtogid: Option<&[u8]>,
+    ) -> HashMap<Vec<u8>, String> {
+        let mut out: HashMap<Vec<u8>, String> = HashMap::new();
+        if let Some(bytes) = cidtogid {
+            // bytes should be sequence of u16 big-endian entries
+            let count = bytes.len() / 2;
+            for cid in 0..count {
+                let hi = bytes[cid * 2] as u16;
+                let lo = bytes[cid * 2 + 1] as u16;
+                let gid = (hi << 8) | lo;
+                if let Some(u) = gid_map.get(&gid) {
+                    // key length: if cid <= 0xFF use 1 byte, else 2 bytes big-endian
+                    if cid <= 0xFF {
+                        out.insert(vec![cid as u8], u.clone());
+                    }
+                    out.insert(
+                        vec![(cid as u16 >> 8) as u8, (cid as u16 & 0xFF) as u8],
+                        u.clone(),
+                    );
+                }
+            }
+        } else {
+            // identity: CID == GID
+            for (&gid, v) in gid_map.iter() {
+                let cid = gid as usize;
+                if cid <= 0xFF {
+                    out.insert(vec![cid as u8], v.clone());
+                }
+                out.insert(
+                    vec![(cid as u16 >> 8) as u8, (cid as u16 & 0xFF) as u8],
+                    v.clone(),
+                );
+            }
+        }
+        out
+    }
+
+    // For debugging: log that we are parsing a CMap (both to console and stdout when available)
+    fn log_cmap_info(font_key: &str, cmap: &HashMap<Vec<u8>, String>) {
+        if !cmap.is_empty() {
+            let sample: Vec<String> = cmap
+                .iter()
+                .take(10)
+                .map(|(k, v)| format!("{}->{}", hex::encode(k), v))
+                .collect();
+            console_log!(
+                "Font {}: CMap entries={}, sample={}",
+                font_key,
+                cmap.len(),
+                sample.join(", ")
+            );
+            // also print to stdout for native tests
+            println!(
+                "Font {}: CMap entries={} sample={} ",
+                font_key,
+                cmap.len(),
+                sample.join(", ")
+            );
+        } else {
+            console_log!("Font {}: empty CMap", font_key);
+            println!("Font {}: empty CMap", font_key);
+        }
+    }
+
+    // Helper: decode bytes using mapping (greedy match)
+    fn decode_with_map(bytes: &[u8], map: &HashMap<Vec<u8>, String>) -> String {
+        if map.is_empty() {
+            // fallback: Latin1 -> String
+            return bytes.iter().map(|&b| b as char).collect();
+        }
+        let mut out = String::new();
+        // compute max key len
+        let max_key_len = map.keys().map(|k| k.len()).max().unwrap_or(1);
+        let mut i = 0usize;
+        while i < bytes.len() {
+            let mut matched = false;
+            let max_try = std::cmp::min(max_key_len, bytes.len() - i);
+            for len in (1..=max_try).rev() {
+                let slice = &bytes[i..i + len];
+                if let Some(val) = map.get(slice) {
+                    out.push_str(val);
+                    i += len;
+                    matched = true;
+                    break;
+                }
+            }
+            if !matched {
+                // push replacement for single byte
+                out.push(bytes[i] as char);
+                i += 1;
+            }
+        }
+        out
+    }
+
+    for page_number in page_numbers {
+        // resolve page id
+        let pages = doc.get_pages();
+        if let Some(&page_id) = pages.get(&page_number) {
+            // collect font ToUnicode maps for this page
+            let mut font_maps: HashMap<String, HashMap<Vec<u8>, String>> = HashMap::new();
+
+            if let Ok(page_obj) = doc.get_object(page_id) {
+                if let Ok(page_dict) = page_obj.as_dict() {
+                    if let Ok(resources_ref) =
+                        page_dict.get(b"Resources").and_then(|r| r.as_reference())
+                    {
+                        if let Ok(resources_obj) = doc.get_object(resources_ref) {
+                            if let Ok(resources_dict) = resources_obj.as_dict() {
+                                if let Ok(fonts_obj) = resources_dict.get(b"Font") {
+                                    if let Ok(fonts_dict) = fonts_obj.as_dict() {
+                                        for (font_name, font_val) in fonts_dict.iter() {
+                                            // font_name is Vec<u8> like b"FAAAAH"
+                                            let font_key =
+                                                String::from_utf8_lossy(font_name).to_string();
+                                            console_log!("Found font resource: {}", font_key);
+                                            // try to log BaseFont/Encoding if available
+                                            if let Ok(font_ref_tmp) = font_val.as_reference() {
+                                                if let Ok(font_obj_tmp) =
+                                                    doc.get_object(font_ref_tmp)
+                                                {
+                                                    if let Ok(font_dict_tmp) =
+                                                        font_obj_tmp.as_dict()
+                                                    {
+                                                        let base = font_dict_tmp
+                                                            .get(b"BaseFont")
+                                                            .ok()
+                                                            .map(|o| format!("{:?}", o));
+                                                        let enc = font_dict_tmp
+                                                            .get(b"Encoding")
+                                                            .ok()
+                                                            .map(|o| format!("{:?}", o));
+                                                        console_log!(
+                                                            " Font {}: BaseFont={:?} Encoding={:?}",
+                                                            font_key,
+                                                            base,
+                                                            enc
+                                                        );
+                                                    }
+                                                }
+                                            }
+                                            // font_val is usually a Reference
+                                            if let Ok(font_ref) = font_val.as_reference() {
+                                                if let Ok(font_obj) = doc.get_object(font_ref) {
+                                                    if let Ok(font_dict) = font_obj.as_dict() {
+                                                        if let Ok(tu_ref_obj) =
+                                                            font_dict.get(b"ToUnicode")
+                                                        {
+                                                            if let Ok(tu_ref) =
+                                                                tu_ref_obj.as_reference()
+                                                            {
+                                                                if let Ok(tu_obj) =
+                                                                    doc.get_object(tu_ref)
+                                                                {
+                                                                    if let Object::Stream(stream) =
+                                                                        tu_obj
+                                                                    {
+                                                                        if let Ok(cmap_bytes) = stream.decompressed_content() {
+                                                                            let cmap = parse_cmap(&cmap_bytes);
+                                                                            if !cmap.is_empty() {
+                                                                                font_maps.insert(font_key.clone(), cmap);
+                                                                                if let Some(m) = font_maps.get(&font_key) {
+                                                                                    log_cmap_info(&font_key, m);
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        // If no ToUnicode map found yet for this font, try embedded TrueType FontFile2 in FontDescriptor
+                                                        if !font_maps.contains_key(&font_key) {
+                                                            if let Ok(fd_obj) =
+                                                                font_dict.get(b"FontDescriptor")
+                                                            {
+                                                                if let Ok(fd_ref) =
+                                                                    fd_obj.as_reference()
+                                                                {
+                                                                    if let Ok(fd) =
+                                                                        doc.get_object(fd_ref)
+                                                                    {
+                                                                        if let Ok(fd_dict) =
+                                                                            fd.as_dict()
+                                                                        {
+                                                                            // Look for FontFile2 (TrueType)
+                                                                            if let Ok(ff2_obj) =
+                                                                                fd_dict.get(
+                                                                                    b"FontFile2",
+                                                                                )
+                                                                            {
+                                                                                if let Ok(ff2_ref) = ff2_obj.as_reference() {
+                                                                                    if let Ok(ff2_stream_obj) = doc.get_object(ff2_ref) {
+                                                                                        if let Object::Stream(stream) = ff2_stream_obj {
+                                                                                            if let Ok(font_bytes) = stream.decompressed_content() {
+                                                                                                if let Some(gid_map) = cmap_from_truetype_gid_map(&font_bytes) {
+                                                                                                    // attempt to read CIDToGIDMap from the parent font dictionary
+                                                                                                    let cidtogid = font_dict.get(b"CIDToGIDMap");
+                                                                                                    let mut cidtogid_bytes: Option<Vec<u8>> = None;
+                                                                                                    if let Ok(Object::Stream(s)) = cidtogid.and_then(|o| o.as_reference().and_then(|r| doc.get_object(r))) {
+                                                                                                        if let Ok(b) = s.decompressed_content() {
+                                                                                                            cidtogid_bytes = Some(b);
+                                                                                                        }
+                                                                                                    }
+                                                                                                    let cidtogid_ref = cidtogid_bytes.as_deref();
+                                                                                                    let tt_map = make_map_from_gid_map_with_cidtogid(&gid_map, cidtogid_ref);
+                                                                                                    if !tt_map.is_empty() {
+                                                                                                        console_log!("Font {}: built cmap from embedded TrueType (FontFile2), entries={}", font_key, tt_map.len());
+                                                                                                        font_maps.insert(font_key.clone(), tt_map);
+                                                                                                    }
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        // Also check DescendantFonts (Type0)
+                                                        if let Ok(desc) =
+                                                            font_dict.get(b"DescendantFonts")
+                                                        {
+                                                            if let Ok(arr) = desc.as_array() {
+                                                                for el in arr.iter() {
+                                                                    if let Ok(dref) =
+                                                                        el.as_reference()
+                                                                    {
+                                                                        if let Ok(dobj) =
+                                                                            doc.get_object(dref)
+                                                                        {
+                                                                            if let Ok(ddict) =
+                                                                                dobj.as_dict()
+                                                                            {
+                                                                                // 1) Descendant ToUnicode
+                                                                                if let Ok(
+                                                                                    tu_ref_obj,
+                                                                                ) = ddict.get(
+                                                                                    b"ToUnicode",
+                                                                                ) {
+                                                                                    if let Ok(tu_ref) = tu_ref_obj.as_reference() {
+                                                                                        if let Ok(tu_obj) = doc.get_object(tu_ref) {
+                                                                                            if let Object::Stream(stream) = tu_obj {
+                                                                                                 if let Ok(cmap_bytes) = stream.decompressed_content() {
+                                                                                                     let cmap = parse_cmap(&cmap_bytes);
+                                                                                                     if !cmap.is_empty() {
+                                                                                                         font_maps.insert(font_key.clone(), cmap);
+                                                                                                         if let Some(m) = font_maps.get(&font_key) {
+                                                                                                             log_cmap_info(&font_key, m);
+                                                                                                         }
+                                                                                                         continue;
+                                                                                                     }
+                                                                                                 }
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+
+                                                                                // 2) Descendant FontFile2 (TrueType) fallback
+                                                                                if !font_maps
+                                                                                    .contains_key(
+                                                                                        &font_key,
+                                                                                    )
+                                                                                {
+                                                                                    if let Ok(dd_fd_obj) = ddict.get(b"FontDescriptor") {
+                                                                                        if let Ok(dd_fd_ref) = dd_fd_obj.as_reference() {
+                                                                                            if let Ok(dd_fd) = doc.get_object(dd_fd_ref) {
+                                                                                                if let Ok(dd_fd_dict) = dd_fd.as_dict() {
+                                                                                                    if let Ok(ff2_obj) = dd_fd_dict.get(b"FontFile2") {
+                                                                                                        if let Ok(ff2_ref) = ff2_obj.as_reference() {
+                                                                                                            if let Ok(ff2_stream_obj) = doc.get_object(ff2_ref) {
+                                                                                                                if let Object::Stream(stream) = ff2_stream_obj {
+                                                                                                                    if let Ok(font_bytes) = stream.decompressed_content() {
+                                                                                                                        if let Some(gid_map) = cmap_from_truetype_gid_map(&font_bytes) {
+                                                                                                                            // CIDToGIDMap may be on descendant dict or parent
+                                                                                                                            let cidtogid_obj = ddict.get(b"CIDToGIDMap").or_else(|_| font_dict.get(b"CIDToGIDMap"));
+                                                                                                                            let mut cidtogid_bytes: Option<Vec<u8>> = None;
+                                                                                                                            if let Ok(obj) = cidtogid_obj {
+                                                                                                                                if let Ok(Object::Stream(s)) = obj.as_reference().and_then(|r| doc.get_object(r)) {
+                                                                                                                                    if let Ok(b) = s.decompressed_content() {
+                                                                                                                                        cidtogid_bytes = Some(b);
+                                                                                                                                    }
+                                                                                                                                } else if let Ok(name) = obj.as_name() {
+                                                                                                                                    // Name 'Identity' means identity mapping
+                                                                                                                                    let nm = String::from_utf8_lossy(name);
+                                                                                                                                    if nm != "Identity" {
+                                                                                                                                        // unknown name: ignore
+                                                                                                                                    }
+                                                                                                                                }
+                                                                                                                            }
+                                                                                                                             let cidtogid_ref = cidtogid_bytes.as_deref();
+                                                                                                                             let tt_map = make_map_from_gid_map_with_cidtogid(&gid_map, cidtogid_ref);
+                                                                                                                             if !tt_map.is_empty() {
+                                                                                                                                 console_log!("Font {}: built cmap from descendant TrueType (FontFile2), entries={}", font_key, tt_map.len());
+                                                                                                                                 log_cmap_info(&font_key, &tt_map);
+                                                                                                                                 font_maps.insert(font_key.clone(), tt_map);
+                                                                                                                             }
+                                                                                                                        }
+                                                                                                                    }
+                                                                                                                }
+                                                                                                            }
+                                                                                                        }
+                                                                                                    }
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Extract content streams for the page
+            // Contents may be Reference or Array
+            if let Ok(page_obj) = doc.get_object(page_id) {
+                if let Ok(page_dict) = page_obj.as_dict() {
+                    if let Ok(contents_obj) = page_dict.get(b"Contents") {
+                        // gather bytes from one or more streams
+                        let mut content_bytes: Vec<u8> = Vec::new();
+                        if let Ok(content_ref) = contents_obj.as_reference() {
+                            if let Ok(cobj) = doc.get_object(content_ref) {
+                                if let Object::Stream(stream) = cobj {
+                                    if let Ok(bts) = stream.decompressed_content() {
+                                        content_bytes.extend_from_slice(&bts);
+                                    }
+                                }
+                            }
+                        } else if let Ok(arr) = contents_obj.as_array() {
+                            for el in arr.iter() {
+                                if let Ok(cref) = el.as_reference() {
+                                    if let Ok(cobj) = doc.get_object(cref) {
+                                        if let Object::Stream(stream) = cobj {
+                                            if let Ok(bts) = stream.decompressed_content() {
+                                                content_bytes.extend_from_slice(&bts);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if !content_bytes.is_empty() {
+                            if let Ok(content) = Content::decode(&content_bytes) {
+                                let mut current_font: Option<String> = None;
+                                let mut page_text = String::new();
+                                for op in content.operations.iter() {
+                                    match op.operator.as_ref() {
+                                        "Tf" => {
+                                            // set font resource
+                                            if !op.operands.is_empty() {
+                                                if let Ok(name) = op.operands[0].as_name() {
+                                                    current_font = Some(
+                                                        String::from_utf8_lossy(name).to_string(),
+                                                    );
+                                                }
+                                            }
+                                        }
+                                        "Tj" => {
+                                            if !op.operands.is_empty() {
+                                                let font_map = current_font
+                                                    .as_ref()
+                                                    .and_then(|f| font_maps.get(f));
+                                                if let Ok(bytes) = op.operands[0].as_str() {
+                                                    // lopdf returns &Vec<u8> via as_str()
+                                                    let b = bytes.to_vec();
+                                                    let s = if let Some(m) = font_map {
+                                                        decode_with_map(&b, m)
+                                                    } else {
+                                                        bytes.iter().map(|&c| c as char).collect()
+                                                    };
+                                                    page_text.push_str(&s);
+                                                }
+                                            }
+                                        }
+                                        "TJ" => {
+                                            // array of strings and numbers
+                                            if !op.operands.is_empty() {
+                                                if let Ok(arr) = op.operands[0].as_array() {
+                                                    let font_map = current_font
+                                                        .as_ref()
+                                                        .and_then(|f| font_maps.get(f));
+                                                    for el in arr.iter() {
+                                                        if let Ok(sbytes) = el.as_str() {
+                                                            let b = sbytes.to_vec();
+                                                            let s = if let Some(m) = font_map {
+                                                                decode_with_map(&b, m)
+                                                            } else {
+                                                                sbytes
+                                                                    .iter()
+                                                                    .map(|&c| c as char)
+                                                                    .collect()
+                                                            };
+                                                            page_text.push_str(&s);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        "\n" | "'" | "\"" | "Ts" | _ => {}
+                                    }
+                                }
+                                out_parts.push(page_text);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    let final_text = out_parts.join("\n\n");
+    console_log!("Text extraction completed, {} characters", final_text.len());
+    Ok(final_text)
 }

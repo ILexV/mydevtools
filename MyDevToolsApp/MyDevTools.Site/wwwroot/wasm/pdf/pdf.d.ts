@@ -3,6 +3,8 @@
 
 export function compress_pdf(data: Uint8Array): Uint8Array;
 
+export function extract_text(data: Uint8Array): string;
+
 export function merge_pdfs(files: Uint8Array[]): Uint8Array;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
@@ -11,6 +13,7 @@ export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly merge_pdfs: (a: number, b: number) => [number, number, number, number];
     readonly compress_pdf: (a: any) => [number, number, number, number];
+    readonly extract_text: (a: any) => [number, number, number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __externref_table_dealloc: (a: number) => void;
     readonly __wbindgen_free: (a: number, b: number, c: number) => void;

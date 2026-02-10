@@ -13,3 +13,5 @@ js-sys = "0.3"
 web-sys = { version = "0.3", features = ["console"] }
 sha2 = "0.10"
 flate2 = "1.0"
+hex = "0.4"
+ttf-parser = "0.19"

@@ -2992,4 +2992,47 @@ Una vez comprimidos, haga clic en el botón "Descargar" junto a cada archivo par
 - Los archivos no se suben a ningún servidor
 - Soporta el procesamiento de múltiples archivos a la vez</value>
   </data>
+  <data name="PdfToText_Title" xml:space="preserve">
+    <value>PDF a Texto</value>
+  </data>
+  <data name="PdfToText_Description" xml:space="preserve">
+    <value>Extrae todo el texto de documentos PDF fácilmente en tu navegador.</value>
+  </data>
+  <data name="PdfToText_ExtractButton" xml:space="preserve">
+    <value>Extraer texto</value>
+  </data>
+  <data name="Nav_PdfToText" xml:space="preserve">
+    <value>PDF a Texto</value>
+  </data>
+  <data name="PdfToText_Seo_Introduction" xml:space="preserve">
+    <value>El convertidor de PDF a Texto es una herramienta centrada en la privacidad que te permite extraer contenido de texto de any archivo PDF directamente en tu navegador.</value>
+  </data>
+  <data name="PdfToText_Seo_DetailedDescription" xml:space="preserve">
+    <value>Esta herramienta utiliza la tecnología WebAssembly para analizar las estructuras de PDF y extraer texto sin cargar tus archivos a ningún servidor. Admite documentos PDF estándar basados en texto y maneja varias codificaciones de caracteres para garantizar una extracción precisa.
+
+Puedes cargar múltiples archivos PDF y procesarlos en lote. Cada archivo se convertirá en un archivo de texto plano (.txt) que puedes descargar y usar para tus necesidades.</value>
+  </data>
+  <data name="PdfToText_Seo_Examples" xml:space="preserve">
+    <value>**Ejemplo 1**: Extraer contenido de un PDF de un artículo de investigación para analizarlo en un editor de texto.
+
+**Ejemplo 2**: Obtener rápidamente el texto de una factura o recibo en PDF.
+
+**Ejemplo 3**: Convertir un libro electrónico PDF grande en un archivo de texto simple para facilitar la lectura en dispositivos de baja potencia.</value>
+  </data>
+  <data name="PdfToText_Seo_HowToSteps" xml:space="preserve">
+    <value>### Paso 1: Cargar archivos PDF
+Arrastra y suelta tus documentos PDF en la herramienta o haz clic en el área de carga para seleccionarlos.
+
+### Paso 2: Iniciar extracción
+Haz clic en el botón "Extraer texto" para comenzar a procesar todos los archivos cargados.
+
+### Paso 3: Descargar archivos de texto
+Una vez completada la extracción, haz clic en el icono "Descargar" junto a cada archivo para guardar el documento .txt resultante.</value>
+  </data>
+  <data name="PdfToText_Seo_Tips" xml:space="preserve">
+    <value>- Funciona completamente en el navegador para una máxima privacidad
+- Procesamiento rápido y eficiente usando Rust/WASM
+- Admite el procesamiento por lotes de múltiples archivos
+- No se requiere registro ni carga al servidor</value>
+  </data>
 </root>

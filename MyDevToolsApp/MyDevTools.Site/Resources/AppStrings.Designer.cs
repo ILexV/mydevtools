@@ -4664,6 +4664,15 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to PDF to Text.
+        /// </summary>
+        public static string Nav_PdfToText {
+            get {
+                return ResourceManager.GetString("Nav_PdfToText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to QR Scanner.
         /// </summary>
         public static string Nav_QrScanner {
@@ -5191,7 +5200,7 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Download Compressed PDF.
+        ///   Looks up a localized string similar to Download.
         /// </summary>
         public static string PdfCompressor_DownloadButton {
             get {
@@ -5279,7 +5288,7 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Download Merged PDF.
+        ///   Looks up a localized string similar to Download.
         /// </summary>
         public static string PdfMerger_DownloadButton {
             get {
@@ -5381,6 +5390,94 @@ namespace MyDevTools.Site.Resources {
         public static string PdfMerger_Title {
             get {
                 return ResourceManager.GetString("PdfMerger_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extract all text from PDF documents easily in your browser..
+        /// </summary>
+        public static string PdfToText_Description {
+            get {
+                return ResourceManager.GetString("PdfToText_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extract Text.
+        /// </summary>
+        public static string PdfToText_ExtractButton {
+            get {
+                return ResourceManager.GetString("PdfToText_ExtractButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This tool uses WebAssembly technology to parse PDF structures and extract text without uploading your files to any server. It supports standard text-based PDF documents and handles various character encodings to ensure accurate extraction.
+        ///
+        ///You can upload multiple PDF files and process them in a batch. Each file will be converted to a plain text (.txt) file that you can download and use for your needs..
+        /// </summary>
+        public static string PdfToText_Seo_DetailedDescription {
+            get {
+                return ResourceManager.GetString("PdfToText_Seo_DetailedDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to **Example 1**: Extract content from a research paper PDF for analysis in a text editor.
+        ///
+        ///**Example 2**: Quickly get text from a PDF invoice or receipt.
+        ///
+        ///**Example 3**: Convert a large PDF ebook into a simple text file for easier reading on low-power devices..
+        /// </summary>
+        public static string PdfToText_Seo_Examples {
+            get {
+                return ResourceManager.GetString("PdfToText_Seo_Examples", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ### Step 1: Upload PDF Files
+        ///Drag and drop your PDF documents into the tool or click the upload area to select them.
+        ///
+        ///### Step 2: Start Extraction
+        ///Click the &quot;Extract Text&quot; button to begin processing all loaded files.
+        ///
+        ///### Step 3: Download Text Files
+        ///Once the extraction is complete, click the &quot;Download&quot; icon next to each file to save the resulting .txt document..
+        /// </summary>
+        public static string PdfToText_Seo_HowToSteps {
+            get {
+                return ResourceManager.GetString("PdfToText_Seo_HowToSteps", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The PDF to Text converter is a privacy-first tool that allows you to extract text content from any PDF file directly in your browser..
+        /// </summary>
+        public static string PdfToText_Seo_Introduction {
+            get {
+                return ResourceManager.GetString("PdfToText_Seo_Introduction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to - Works completely in the browser for maximum privacy
+        ///- Fast and efficient processing using Rust/WASM
+        ///- Supports batch processing of multiple files
+        ///- No registration or server upload required.
+        /// </summary>
+        public static string PdfToText_Seo_Tips {
+            get {
+                return ResourceManager.GetString("PdfToText_Seo_Tips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PDF to Text.
+        /// </summary>
+        public static string PdfToText_Title {
+            get {
+                return ResourceManager.GetString("PdfToText_Title", resourceCulture);
             }
         }
         

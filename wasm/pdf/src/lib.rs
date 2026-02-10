@@ -1192,6 +1192,82 @@ pub fn extract_text(data: js_sys::Uint8Array) -> Result<String, JsValue> {
                             if let Ok(content) = Content::decode(&content_bytes) {
                                 let mut current_font: Option<String> = None;
                                 let mut page_text = String::new();
+                                // Track which fonts we've already attempted heuristics for on this page
+                                let mut heuristics_tried: std::collections::HashSet<String> =
+                                    std::collections::HashSet::new();
+
+                                // helper: score cyrillic characters in a string
+                                fn score_cyrillic(s: &str) -> usize {
+                                    s.chars()
+                                        .filter(|&ch| {
+                                            let c = ch as u32;
+                                            (c >= 0x0400 && c <= 0x04FF)
+                                                || (c >= 0x0500 && c <= 0x052F)
+                                                || (c >= 0x2DE0 && c <= 0x2DFF)
+                                                || (c >= 0xA640 && c <= 0xA69F)
+                                        })
+                                        .count()
+                                }
+
+                                // helper: generate candidate maps (swap, promote, demote)
+                                fn generate_candidates(
+                                    orig: &HashMap<Vec<u8>, String>,
+                                ) -> Vec<HashMap<Vec<u8>, String>> {
+                                    let mut v: Vec<HashMap<Vec<u8>, String>> = Vec::new();
+                                    // original
+                                    v.push(orig.clone());
+                                    // swapped 2-byte keys
+                                    let mut swapped: HashMap<Vec<u8>, String> = HashMap::new();
+                                    for (k, val) in orig.iter() {
+                                        if k.len() == 2 {
+                                            let nk = vec![k[1], k[0]];
+                                            swapped.insert(nk, val.clone());
+                                        }
+                                    }
+                                    if !swapped.is_empty() {
+                                        v.push(swapped);
+                                    }
+                                    // demote: for keys of len 2 with leading 0x00, add 1-byte key
+                                    let mut demoted: HashMap<Vec<u8>, String> = HashMap::new();
+                                    for (k, val) in orig.iter() {
+                                        if k.len() == 2 && k[0] == 0x00 {
+                                            demoted.insert(vec![k[1]], val.clone());
+                                        }
+                                    }
+                                    if !demoted.is_empty() {
+                                        v.push(demoted);
+                                    }
+                                    // promote: for 1-byte keys, add 2-byte 0x00 prefix
+                                    let mut promoted: HashMap<Vec<u8>, String> = HashMap::new();
+                                    for (k, val) in orig.iter() {
+                                        if k.len() == 1 {
+                                            promoted.insert(vec![0x00, k[0]], val.clone());
+                                        }
+                                    }
+                                    if !promoted.is_empty() {
+                                        v.push(promoted);
+                                    }
+                                    v
+                                }
+
+                                // helper: pick best candidate map by decoding sample and scoring Cyrillic
+                                fn pick_best_map_for_sample(
+                                    orig_map: &HashMap<Vec<u8>, String>,
+                                    sample_bytes: &[u8],
+                                ) -> HashMap<Vec<u8>, String> {
+                                    let candidates = generate_candidates(orig_map);
+                                    let mut best_score = 0usize;
+                                    let mut best_map = orig_map.clone();
+                                    for cm in candidates.into_iter() {
+                                        let decoded = decode_with_map(sample_bytes, &cm);
+                                        let sc = score_cyrillic(&decoded);
+                                        if sc > best_score {
+                                            best_score = sc;
+                                            best_map = cm;
+                                        }
+                                    }
+                                    best_map
+                                }
                                 for op in content.operations.iter() {
                                     match op.operator.as_ref() {
                                         "Tf" => {
@@ -1206,12 +1282,52 @@ pub fn extract_text(data: js_sys::Uint8Array) -> Result<String, JsValue> {
                                         }
                                         "Tj" => {
                                             if !op.operands.is_empty() {
-                                                let font_map = current_font
-                                                    .as_ref()
-                                                    .and_then(|f| font_maps.get(f));
                                                 if let Ok(bytes) = op.operands[0].as_str() {
                                                     // lopdf returns &Vec<u8> via as_str()
                                                     let b = bytes.to_vec();
+                                                    if let Some(font_name) = current_font.as_ref() {
+                                                        // if we have a map for this font, consider heuristics
+                                                        if let Some(orig_map) =
+                                                            font_maps.get(font_name)
+                                                        {
+                                                            if !heuristics_tried.contains(font_name)
+                                                            {
+                                                                // quick initial decode and score
+                                                                let decoded =
+                                                                    decode_with_map(&b, orig_map);
+                                                                let score =
+                                                                    score_cyrillic(&decoded);
+                                                                if score < 3 {
+                                                                    let best =
+                                                                        pick_best_map_for_sample(
+                                                                            orig_map, &b,
+                                                                        );
+                                                                    // if improved, replace
+                                                                    let new_score = score_cyrillic(
+                                                                        &decode_with_map(&b, &best),
+                                                                    );
+                                                                    console_log!(
+                                                                        "Heuristic for font {}: initial_score={} best_score={} selected_map_len={} ",
+                                                                        font_name,
+                                                                        score,
+                                                                        new_score,
+                                                                        best.len()
+                                                                    );
+                                                                    if best != *orig_map {
+                                                                        font_maps.insert(
+                                                                            font_name.clone(),
+                                                                            best,
+                                                                        );
+                                                                    }
+                                                                }
+                                                                heuristics_tried
+                                                                    .insert(font_name.clone());
+                                                            }
+                                                        }
+                                                    }
+                                                    let font_map = current_font
+                                                        .as_ref()
+                                                        .and_then(|f| font_maps.get(f));
                                                     let s = if let Some(m) = font_map {
                                                         debug_decode_with_map(
                                                             &b,
@@ -1238,6 +1354,49 @@ pub fn extract_text(data: js_sys::Uint8Array) -> Result<String, JsValue> {
                                                     for el in arr.iter() {
                                                         if let Ok(sbytes) = el.as_str() {
                                                             let b = sbytes.to_vec();
+                                                            if let Some(font_name) =
+                                                                current_font.as_ref()
+                                                            {
+                                                                if let Some(orig_map) =
+                                                                    font_maps.get(font_name)
+                                                                {
+                                                                    if !heuristics_tried
+                                                                        .contains(font_name)
+                                                                    {
+                                                                        let decoded =
+                                                                            decode_with_map(
+                                                                                &b, orig_map,
+                                                                            );
+                                                                        let score = score_cyrillic(
+                                                                            &decoded,
+                                                                        );
+                                                                        if score < 3 {
+                                                                            let best = pick_best_map_for_sample(orig_map, &b);
+                                                                            let new_score = score_cyrillic(&decode_with_map(&b, &best));
+                                                                            console_log!(
+                                                                                "Heuristic for font {}: initial_score={} best_score={} selected_map_len={} ",
+                                                                                font_name,
+                                                                                score,
+                                                                                new_score,
+                                                                                best.len()
+                                                                            );
+                                                                            if best != *orig_map {
+                                                                                font_maps.insert(
+                                                                                    font_name
+                                                                                        .clone(),
+                                                                                    best,
+                                                                                );
+                                                                            }
+                                                                        }
+                                                                        heuristics_tried.insert(
+                                                                            font_name.clone(),
+                                                                        );
+                                                                    }
+                                                                }
+                                                            }
+                                                            let font_map = current_font
+                                                                .as_ref()
+                                                                .and_then(|f| font_maps.get(f));
                                                             let s = if let Some(m) = font_map {
                                                                 debug_decode_with_map(
                                                                     &b,

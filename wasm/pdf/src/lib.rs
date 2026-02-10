@@ -850,6 +850,83 @@ pub fn extract_text(data: js_sys::Uint8Array) -> Result<String, JsValue> {
         out
     }
 
+    // Debug variant: decode and log some match attempts for diagnosis
+    fn debug_decode_with_map(
+        bytes: &[u8],
+        map: &HashMap<Vec<u8>, String>,
+        font_key: &str,
+        operator: &str,
+    ) -> String {
+        if map.is_empty() {
+            return bytes.iter().map(|&b| b as char).collect();
+        }
+        let mut out = String::new();
+        let max_key_len = map.keys().map(|k| k.len()).max().unwrap_or(1);
+        let mut i = 0usize;
+        let mut logged_matches: Vec<String> = Vec::new();
+        while i < bytes.len() {
+            let mut matched = false;
+            let max_try = std::cmp::min(max_key_len, bytes.len() - i);
+            for len in (1..=max_try).rev() {
+                let slice = &bytes[i..i + len];
+                if let Some(val) = map.get(slice) {
+                    // capture a few sample matches for logging
+                    if logged_matches.len() < 8 {
+                        logged_matches.push(format!("{}->{}", hex::encode(slice), val));
+                    }
+                    out.push_str(val);
+                    i += len;
+                    matched = true;
+                    break;
+                }
+            }
+            if !matched {
+                // no match: append replacement char
+                if logged_matches.len() < 8 {
+                    logged_matches.push(format!("{}->(no-match)", hex::encode(&bytes[i..i + 1])));
+                }
+                out.push(bytes[i] as char);
+                i += 1;
+            }
+        }
+
+        // Log a concise diagnostic line for this operation
+        let sample_hex = hex::encode(bytes);
+        let map_sample: Vec<String> = map
+            .iter()
+            .take(6)
+            .map(|(k, v)| format!("{}->{}", hex::encode(k), v))
+            .collect();
+        let truncated = if out.len() > 128 {
+            out[..128].to_string() + "..."
+        } else {
+            out.clone()
+        };
+        console_log!(
+            "Op {} on font {}: bytes={} map_len={} max_key_len={} matches=[{}] decoded_sample='{}'",
+            operator,
+            font_key,
+            sample_hex,
+            map.len(),
+            max_key_len,
+            logged_matches.join(", "),
+            truncated
+        );
+        // also print to stdout for native runs
+        println!(
+            "Op {} on font {}: bytes={} map_len={} max_key_len={} matches=[{}] decoded_sample='{}'",
+            operator,
+            font_key,
+            sample_hex,
+            map.len(),
+            max_key_len,
+            logged_matches.join(", "),
+            truncated
+        );
+
+        out
+    }
+
     for page_number in page_numbers {
         // resolve page id
         let pages = doc.get_pages();
@@ -1136,7 +1213,14 @@ pub fn extract_text(data: js_sys::Uint8Array) -> Result<String, JsValue> {
                                                     // lopdf returns &Vec<u8> via as_str()
                                                     let b = bytes.to_vec();
                                                     let s = if let Some(m) = font_map {
-                                                        decode_with_map(&b, m)
+                                                        debug_decode_with_map(
+                                                            &b,
+                                                            m,
+                                                            current_font
+                                                                .as_ref()
+                                                                .unwrap_or(&"".to_string()),
+                                                            "Tj",
+                                                        )
                                                     } else {
                                                         bytes.iter().map(|&c| c as char).collect()
                                                     };
@@ -1155,7 +1239,14 @@ pub fn extract_text(data: js_sys::Uint8Array) -> Result<String, JsValue> {
                                                         if let Ok(sbytes) = el.as_str() {
                                                             let b = sbytes.to_vec();
                                                             let s = if let Some(m) = font_map {
-                                                                decode_with_map(&b, m)
+                                                                debug_decode_with_map(
+                                                                    &b,
+                                                                    m,
+                                                                    current_font
+                                                                        .as_ref()
+                                                                        .unwrap_or(&"".to_string()),
+                                                                    "TJ",
+                                                                )
                                                             } else {
                                                                 sbytes
                                                                     .iter()

@@ -2890,7 +2890,38 @@ Cliquez sur le bouton d'action pour traiter votre entrée et copiez les résulta
 - Vos préférences sont enregistrées localement dans votre navigateur
 - Les fichiers volumineux sont pris en charge avec suivi de la progression</value>
   </data>
+  <!-- SEO Content: PDF Merger (fr) -->
+  <data name="PdfMerger_Seo_Introduction" xml:space="preserve">
+    <value>Le PDF Merger est un outil en ligne axé sur la confidentialité, conçu pour les développeurs. Tout le traitement s'effectue localement dans votre navigateur via WebAssembly, garantissant que vos PDF ne quittent jamais votre appareil.</value>
+  </data>
+  <data name="PdfMerger_Seo_DetailedDescription" xml:space="preserve">
+    <value>Cet outil offre des fonctionnalités complètes pour fusionner plusieurs documents PDF en un seul fichier. Conçu avec des technologies web modernes et propulsé par WebAssembly compilé en Rust, il permet une manipulation rapide et sécurisée des PDF directement dans votre navigateur.
 
+L'interface est conçue pour la simplicité et l'efficacité. Vous pouvez facilement télécharger plusieurs fichiers PDF, les réorganiser et les fusionner en un seul document. Toutes les opérations sont effectuées côté client, garantissant une confidentialité totale pour vos documents sensibles.</value>
+  </data>
+  <data name="PdfMerger_Seo_Examples" xml:space="preserve">
+    <value>**Exemple 1** : Fusionnez plusieurs rapports PDF en un seul document complet pour un partage facilité.
+
+**Exemple 2** : Combinez plusieurs pages PDF numérisées en un seul fichier.
+
+**Exemple 3** : Organisez vos documents PDF en fusionnant les fichiers associés en un seul PDF cohérent.</value>
+  </data>
+  <data name="PdfMerger_Seo_HowToSteps" xml:space="preserve">
+    <value>### Étape 1 : Télécharger des fichiers PDF
+Cliquez sur le bouton de téléchargement ou glissez-déposez plusieurs fichiers PDF dans l'outil.
+
+### Étape 2 : Organiser l'ordre
+Glissez-déposez les fichiers pour les organiser dans l'ordre souhaité pour le PDF fusionné final.
+
+### Étape 3 : Fusionner et télécharger
+Cliquez sur le bouton "Fusionner PDF" pour traiter vos fichiers localement et télécharger le document résultant.</value>
+  </data>
+  <data name="PdfMerger_Seo_Tips" xml:space="preserve">
+    <value>- Tout le traitement se fait dans votre navigateur pour une confidentialité maximale
+- L'outil fonctionne hors ligne après le chargement initial de la page
+- Vos fichiers ne sont jamais téléchargés sur un serveur
+- Prend en charge les fichiers PDF volumineux avec un traitement rapide</value>
+  </data>
   <data name="PdfMerger_Title" xml:space="preserve">
     <value>Fusionner PDF</value>
   </data>

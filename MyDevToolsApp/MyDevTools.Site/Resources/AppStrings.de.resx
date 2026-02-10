@@ -2890,7 +2890,38 @@ Klicken Sie auf die Aktionstaste, um Ihre Eingabe zu verarbeiten, und kopieren S
 - Ihre Einstellungen werden lokal in Ihrem Browser gespeichert
 - Große Dateien werden mit Fortschrittsverfolgung unterstützt</value>
   </data>
+  <!-- SEO Content: PDF Merger (de) -->
+  <data name="PdfMerger_Seo_Introduction" xml:space="preserve">
+    <value>Der PDF Merger ist ein datenschutzorientiertes Online-Tool für Entwickler. Die gesamte Verarbeitung erfolgt lokal in Ihrem Browser mittels WebAssembly, sodass Ihre PDFs Ihr Gerät nie verlassen.</value>
+  </data>
+  <data name="PdfMerger_Seo_DetailedDescription" xml:space="preserve">
+    <value>Dieses Tool bietet umfassende Funktionen zum Zusammenführen mehrerer PDF-Dokumente in einer einzigen Datei. Es basiert auf modernen Webtechnologien und nutzt in Rust kompiliertes WebAssembly für eine schnelle und sichere PDF-Bearbeitung direkt in Ihrem Browser.
 
+Die Benutzeroberfläche ist auf Einfachheit und Effizienz ausgelegt. Sie können problemlos mehrere PDF-Dateien hochladen, die Reihenfolge ändern und sie zu einem Dokument zusammenfügen. Alle Vorgänge werden clientseitig ausgeführt, was absolute Privatsphäre für Ihre sensiblen Dokumente garantiert.</value>
+  </data>
+  <data name="PdfMerger_Seo_Examples" xml:space="preserve">
+    <value>**Beispiel 1**: Führen Sie mehrere PDF-Berichte zu einem einzigen umfassenden Dokument zusammen, um das Teilen zu erleichtern.
+
+**Beispiel 2**: Kombinieren Sie mehrere gescannte PDF-Seiten in einer Datei.
+
+**Beispiel 3**: Organisieren Sie Ihre PDF-Dokumente, indem Sie zusammengehörige Dateien zu einem konsistenten PDF zusammenführen.</value>
+  </data>
+  <data name="PdfMerger_Seo_HowToSteps" xml:space="preserve">
+    <value>### Schritt 1: PDF-Dateien hochladen
+Klicken Sie auf die Schaltfläche zum Hochladen oder ziehen Sie mehrere PDF-Dateien per Drag-and-Drop in das Tool.
+
+### Schritt 2: Reihenfolge festlegen
+Verschieben Sie die Dateien per Drag-and-Drop, um sie in der gewünschten Reihenfolge für das fertige PDF anzuordnen.
+
+### Schritt 3: Zusammenführen und Herunterladen
+Klicken Sie auf die Schaltfläche „PDF zusammenführen“, um Ihre Dateien lokal zu verarbeiten und das fertige Dokument herunterzuladen.</value>
+  </data>
+  <data name="PdfMerger_Seo_Tips" xml:space="preserve">
+    <value>- Die gesamte Verarbeitung erfolgt in Ihrem Browser für maximale Privatsphäre
+- Das Tool funktioniert nach dem ersten Laden der Seite offline
+- Ihre Dateien werden niemals auf einen Server hochgeladen
+- Unterstützt große PDF-Dateien mit schneller Verarbeitung</value>
+  </data>
   <data name="PdfMerger_Title" xml:space="preserve">
     <value>PDF Zusammenfügen</value>
   </data>

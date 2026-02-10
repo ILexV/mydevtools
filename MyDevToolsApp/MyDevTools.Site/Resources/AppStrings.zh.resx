@@ -2890,7 +2890,38 @@
 - 您的偏好设置本地保存在浏览器中
 - 支持带进度跟踪的大文件</value>
   </data>
+  <!-- SEO Content: PDF Merger (zh) -->
+  <data name="PdfMerger_Seo_Introduction" xml:space="preserve">
+    <value>PDF Merger 是一款专为开发者设计的隐私优先在线工具。所有处理过程均通过 WebAssembly 在您的浏览器本地进行，确保您的 PDF 文件永远不会离开您的设备。</value>
+  </data>
+  <data name="PdfMerger_Seo_DetailedDescription" xml:space="preserve">
+    <value>该工具提供了将多个 PDF 文档合并为单个文件的全面功能。它采用现代 Web 技术构建，并由 Rust 编译的 WebAssembly 提供支持，可直接在浏览器中实现快速、安全的 PDF 操作。
 
+界面设计简洁高效。您可以轻松上传多个 PDF 文件、重新排序并将它们合并为一个文档。所有操作均在客户端执行，保证了您敏感文档的完全隐私。</value>
+  </data>
+  <data name="PdfMerger_Seo_Examples" xml:space="preserve">
+    <value>**示例 1**：将多个 PDF 报告合并为一个综合文档，以便于共享。
+
+**示例 2**：将多个扫描的 PDF 页面组合成一个文件。
+
+**示例 3**：通过将相关文件合并为一个连贯的 PDF 来整理您的 PDF 文档。</value>
+  </data>
+  <data name="PdfMerger_Seo_HowToSteps" xml:space="preserve">
+    <value>### 第 1 步：上传 PDF 文件
+点击上传按钮或将多个 PDF 文件拖放到工具中。
+
+### 第 2 步：排列顺序
+拖放文件以按最终合并 PDF 所需的顺序排列它们。
+
+### 第 3 步：合并并下载
+点击“合并 PDF”按钮在本地处理您的文件并下载生成的文档。</value>
+  </data>
+  <data name="PdfMerger_Seo_Tips" xml:space="preserve">
+    <value>- 所有处理均在浏览器中进行，以实现最大程度的隐私保护
+- 初始页面加载后，该工具可离线工作
+- 您的文件永远不会被上传到任何服务器
+- 支持大尺寸 PDF 文件且处理速度快</value>
+  </data>
   <data name="PdfMerger_Title" xml:space="preserve">
     <value>PDF 合并</value>
   </data>

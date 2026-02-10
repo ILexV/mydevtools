@@ -5200,6 +5200,67 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This tool provides comprehensive functionality for merging multiple PDF documents into a single file. Built with modern web technologies and powered by Rust-compiled WebAssembly, it delivers fast and secure PDF manipulation directly in your browser.
+        ///
+        ///The interface is designed for simplicity and efficiency. You can easily upload multiple PDF files, reorder them, and merge them into one document. All operations are performed client-side, guaranteeing complete privacy for your sensitive documents..
+        /// </summary>
+        public static string PdfMerger_Seo_DetailedDescription {
+            get {
+                return ResourceManager.GetString("PdfMerger_Seo_DetailedDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to **Example 1**: Merge multiple PDF reports into a single comprehensive document for easier sharing.
+        ///
+        ///**Example 2**: Combine several scanned PDF pages into one file.
+        ///
+        ///**Example 3**: Organise your PDF documents by merging related files into one cohesive PDF..
+        /// </summary>
+        public static string PdfMerger_Seo_Examples {
+            get {
+                return ResourceManager.GetString("PdfMerger_Seo_Examples", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ### Step 1: Upload PDF Files
+        ///Click the upload button or drag and drop multiple PDF files into the tool.
+        ///
+        ///### Step 2: Arrange Order
+        ///Drag and drop the files to arrange them in the desired order for the final merged PDF.
+        ///
+        ///### Step 3: Merge and Download
+        ///Click the &quot;Merge PDF&quot; button to process your files locally and download the resulting document..
+        /// </summary>
+        public static string PdfMerger_Seo_HowToSteps {
+            get {
+                return ResourceManager.GetString("PdfMerger_Seo_HowToSteps", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The PDF Merger is a privacy-first online tool designed for developers. All processing happens locally in your browser using WebAssembly, ensuring your PDFs never leave your device..
+        /// </summary>
+        public static string PdfMerger_Seo_Introduction {
+            get {
+                return ResourceManager.GetString("PdfMerger_Seo_Introduction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to - All processing happens in your browser for maximum privacy
+        ///- The tool works offline after initial page load
+        ///- Your files are never uploaded to any server
+        ///- Supports large PDF files with fast processing.
+        /// </summary>
+        public static string PdfMerger_Seo_Tips {
+            get {
+                return ResourceManager.GetString("PdfMerger_Seo_Tips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to PDFs merged successfully!.
         /// </summary>
         public static string PdfMerger_Success {

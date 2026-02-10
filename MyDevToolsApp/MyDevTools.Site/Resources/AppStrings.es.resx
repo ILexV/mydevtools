@@ -2890,7 +2890,38 @@ Haga clic en el botón de acción para procesar su entrada y copie los resultado
 - Sus preferencias se guardan localmente en su navegador
 - Se admiten archivos grandes con seguimiento de progreso</value>
   </data>
+  <!-- SEO Content: PDF Merger (es) -->
+  <data name="PdfMerger_Seo_Introduction" xml:space="preserve">
+    <value>El PDF Merger es una herramienta en línea que prioriza la privacidad, diseñada para desarrolladores. Todo el procesamiento ocurre localmente en su navegador utilizando WebAssembly, lo que garantiza que sus archivos PDF nunca salgan de su dispositivo.</value>
+  </data>
+  <data name="PdfMerger_Seo_DetailedDescription" xml:space="preserve">
+    <value>Esta herramienta proporciona una funcionalidad integral para combinar múltiples documentos PDF en un solo archivo. Construida con tecnologías web modernas y potenciada por WebAssembly compilado en Rust, ofrece una manipulación de PDF rápida y segura directamente en su navegador.
 
+La interfaz está diseñada para ofrecer simplicidad y eficiencia. Puede cargar fácilmente varios archivos PDF, reordenarlos y combinarlos en un solo documento. Todas las operaciones se realizan en el lado del cliente, garantizando la total privacidad de sus documentos confidenciales.</value>
+  </data>
+  <data name="PdfMerger_Seo_Examples" xml:space="preserve">
+    <value>**Ejemplo 1**: Combine varios informes PDF en un solo documento completo para facilitar el intercambio.
+
+**Ejemplo 2**: Combine varias páginas PDF escaneadas en un solo archivo.
+
+**Ejemplo 3**: Organice sus documentos PDF combinando archivos relacionados en un solo PDF coherente.</value>
+  </data>
+  <data name="PdfMerger_Seo_HowToSteps" xml:space="preserve">
+    <value>### Paso 1: Subir archivos PDF
+Haga clic en el botón de carga o arrastre y suelte varios archivos PDF en la herramienta.
+
+### Paso 2: Organizar el orden
+Arrastre y suelte los archivos para organizarlos en el orden deseado para el PDF combinado final.
+
+### Paso 3: Combinar y descargar
+Haga clic en el botón "Combinar PDF" para procesar sus archivos localmente y descargar el documento resultante.</value>
+  </data>
+  <data name="PdfMerger_Seo_Tips" xml:space="preserve">
+    <value>- Todo el procesamiento ocurre en su navegador para una máxima privacidad
+- La herramienta funciona fuera de línea después de la carga inicial de la página
+- Sus archivos nunca se suben a ningún servidor
+- Soporta archivos PDF grandes con procesamiento rápido</value>
+  </data>
   <data name="PdfMerger_Title" xml:space="preserve">
     <value>Unir PDF</value>
   </data>

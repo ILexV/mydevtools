@@ -28,11 +28,10 @@
         if (!root) return null;
         return {
             root,
-            fileInput: root.querySelector('#pdf-input-files'),
+            fileInput: root.querySelector('#pdf-compress-input'),
             fileListContainer: root.querySelector('.file-list-container'),
             fileList: root.querySelector('.file-list'),
-            mergeBtn: root.querySelector('#pdf-merge-btn'),
-            downloadBtn: root.querySelector('#pdf-download-btn'),
+            compressBtn: root.querySelector('#pdf-compress-btn'),
             errorAlert: root.querySelector('#pdf-error'),
             errorText: root.querySelector('#pdf-error-text')
         };
@@ -42,8 +41,9 @@
         return {
             loading: root.dataset.loading || 'Loading...',
             error: root.dataset.error || 'Error',
-            processing: root.dataset.processing || 'Merging...',
-            done: root.dataset.done || 'Merged!'
+            processing: root.dataset.processing || 'Compressing...',
+            done: root.dataset.done || 'Done!',
+            download: root.dataset.download || 'Download'
         };
     }
 
@@ -81,13 +81,31 @@
 
         state.files.forEach((item, index) => {
             const tr = document.createElement('tr');
+            const savings = item.compressedSize ? Math.round((1 - item.compressedSize / item.file.size) * 100) : null;
+            
             tr.innerHTML = `
                 <th class="w-12">${index + 1}</th>
                 <td class="max-w-0 w-full">
                     <div class="truncate font-medium" title="${escapeHtml(item.file.name)}">${escapeHtml(item.file.name)}</div>
                 </td>
                 <td class="text-sm opacity-70 whitespace-nowrap text-right px-4">${formatBytes(item.file.size)}</td>
-                <td class="status text-sm whitespace-nowrap px-4 text-center">Ready</td>
+                <td class="text-sm whitespace-nowrap text-right px-4">
+                    ${item.compressedSize ? `
+                        <div class="flex flex-col">
+                            <span class="font-bold text-success">${formatBytes(item.compressedSize)}</span>
+                            <span class="text-xs opacity-60">Saved ${savings}%</span>
+                        </div>
+                    ` : '<span class="opacity-50">—</span>'}
+                </td>
+                <td class="status text-sm whitespace-nowrap px-4 text-center">
+                    ${item.url ? `
+                        <a href="${item.url}" download="compressed_${item.file.name}" class="btn btn-success btn-sm btn-circle text-white" title="${getStrings(root).download}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                        </a>
+                    ` : 'Ready'}
+                </td>
                 <td class="w-12 text-center">
                     <button type="button" class="btn btn-ghost btn-xs btn-circle text-error remove-file-btn" data-index="${index}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -98,100 +116,83 @@
             `;
             els.fileList.appendChild(tr);
         });
-        
-        // Hide download button if it was shown from previous merge
-        els.downloadBtn.classList.add('hidden');
-        els.mergeBtn.classList.remove('hidden');
     }
 
-    async function handleMerge(root) {
+    async function handleCompress(root) {
         const els = getElements(root);
         const state = getState(root);
         const strings = getStrings(root);
 
         if (!els || state.files.length === 0) return;
 
-        els.mergeBtn.disabled = true;
-        const originalBtnText = els.mergeBtn.innerHTML;
-        els.mergeBtn.innerHTML = `<span class="loading loading-spinner"></span> ${strings.processing}`;
+        els.compressBtn.disabled = true;
+        const originalBtnText = els.compressBtn.innerHTML;
+        els.compressBtn.innerHTML = `<span class="loading loading-spinner"></span> ${strings.processing}`;
         els.errorAlert.classList.add('hidden');
-        
-        // Hide download button during processing
-        els.downloadBtn.classList.add('hidden');
 
         try {
             const wasm = await ensureWasm();
             
-            // Read all files
-            const fileBuffers = await Promise.all(state.files.map(async (item) => {
-                const buffer = await item.file.arrayBuffer();
-                return new Uint8Array(buffer);
-            }));
+            for (let i = 0; i < state.files.length; i++) {
+                const item = state.files[i];
+                if (item.compressedSize) continue; // Skip already compressed
 
-            // Process
-            const mergedPdf = wasm.merge_pdfs(fileBuffers);
-            
-            const blob = new Blob([mergedPdf], { type: 'application/pdf' });
-            const url = URL.createObjectURL(blob);
-            
-            // Setup download
-            els.downloadBtn.href = url;
-            els.downloadBtn.classList.remove('hidden');
-            els.mergeBtn.classList.add('hidden'); // Hide merge button after success to encourage download or reset?
-            // Actually, keep merge button hidden, show download. 
-            // If user adds more files, merge button comes back (handled in renderFileList).
-            
-            // Update status in table
-            const statusCells = els.fileList.querySelectorAll('.status');
-            statusCells.forEach(cell => cell.innerHTML = `<span class="text-success">${strings.done}</span>`);
+                // Update status in table for current file
+                const rows = els.fileList.querySelectorAll('tr');
+                if (rows[i]) {
+                    const statusCell = rows[i].querySelector('.status');
+                    statusCell.innerHTML = `<span class="loading loading-spinner loading-xs"></span>`;
+                }
+
+                const buffer = await item.file.arrayBuffer();
+                const compressedData = wasm.compress_pdf(new Uint8Array(buffer));
+                
+                item.compressedSize = compressedData.length;
+                const blob = new Blob([compressedData], { type: 'application/pdf' });
+                item.url = URL.createObjectURL(blob);
+            }
+
+            renderFileList(root);
 
         } catch (err) {
             console.error(err);
             els.errorText.textContent = err.message || strings.error;
             els.errorAlert.classList.remove('hidden');
-            els.mergeBtn.disabled = false;
-            els.mergeBtn.innerHTML = originalBtnText;
         } finally {
-            if (els.downloadBtn.classList.contains('hidden')) {
-                 // If failed, re-enable merge button
-                 els.mergeBtn.disabled = false;
-                 els.mergeBtn.innerHTML = originalBtnText;
-            } else {
-                // Success state
-                els.mergeBtn.innerHTML = originalBtnText;
-                els.mergeBtn.disabled = false;
-            }
+            els.compressBtn.disabled = false;
+            els.compressBtn.innerHTML = originalBtnText;
         }
     }
 
     function bindDelegatedHandlersOnce() {
-        if (window.__pdfMergerDelegatedHandlersBound) return;
-        window.__pdfMergerDelegatedHandlersBound = true;
+        if (window.__pdfCompressorDelegatedHandlersBound) return;
+        window.__pdfCompressorDelegatedHandlersBound = true;
 
-        const getRoot = (target) => target.closest('#pdf-merger-root');
+        const getRoot = (target) => target.closest('#pdf-compressor-root');
 
         document.addEventListener('click', (ev) => {
             const target = ev.target;
             const root = getRoot(target);
             if (!root) return;
 
-            // Merge button
-            const mergeBtn = target.closest('#pdf-merge-btn');
-            if (mergeBtn) {
+            const compressBtn = target.closest('#pdf-compress-btn');
+            if (compressBtn) {
                 ev.preventDefault();
-                if (!mergeBtn.disabled) {
-                    handleMerge(root);
+                if (!compressBtn.disabled) {
+                    handleCompress(root);
                 }
                 return;
             }
 
-            // Remove file button
             const removeBtn = target.closest('.remove-file-btn');
             if (removeBtn) {
                 ev.preventDefault();
                 const index = parseInt(removeBtn.dataset.index);
                 const state = getState(root);
                 if (!isNaN(index) && state.files[index]) {
+                    if (state.files[index].url) {
+                        URL.revokeObjectURL(state.files[index].url);
+                    }
                     state.files.splice(index, 1);
                     renderFileList(root);
                 }
@@ -204,7 +205,7 @@
             const root = getRoot(target);
             if (!root) return;
 
-            if (target.matches('#pdf-input-files')) {
+            if (target.matches('#pdf-compress-input')) {
                 if (target.files && target.files.length > 0) {
                     const state = getState(root);
                     const newFiles = Array.from(target.files).map(f => ({ file: f }));
@@ -215,7 +216,6 @@
             }
         });
         
-        // Drag and drop visual feedback (optional but good)
         document.addEventListener('dragover', (ev) => {
              const dropZone = ev.target.closest('.upload-box');
              if (dropZone) {
@@ -239,7 +239,6 @@
                  const root = getRoot(ev.target);
                  if (root && ev.dataTransfer.files.length > 0) {
                      const state = getState(root);
-                     // Filter PDFs
                      const newFiles = Array.from(ev.dataTransfer.files)
                         .filter(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'))
                         .map(f => ({ file: f }));
@@ -254,11 +253,10 @@
     }
 
     function initIfPresent() {
-        if (window.__pdfMergerDelegatedHandlersBound) return;
+        if (window.__pdfCompressorDelegatedHandlersBound) return;
         bindDelegatedHandlersOnce();
         
-        // Preload WASM if on page
-        if (document.getElementById('pdf-merger-root')) {
+        if (document.getElementById('pdf-compressor-root')) {
             ensureWasm();
         }
     }

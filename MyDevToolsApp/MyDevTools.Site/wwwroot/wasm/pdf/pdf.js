@@ -1,6 +1,20 @@
 /* @ts-self-types="./pdf.d.ts" */
 
 /**
+ * @param {Uint8Array} data
+ * @returns {Uint8Array}
+ */
+export function compress_pdf(data) {
+    const ret = wasm.compress_pdf(data);
+    if (ret[3]) {
+        throw takeFromExternrefTable0(ret[2]);
+    }
+    var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v1;
+}
+
+/**
  * @param {Uint8Array[]} files
  * @returns {Uint8Array}
  */

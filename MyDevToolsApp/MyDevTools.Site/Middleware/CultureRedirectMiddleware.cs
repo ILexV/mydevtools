@@ -22,8 +22,9 @@ public class CultureRedirectMiddleware
         "json-beautifier", "text-case-converter", "text-diff-viewer", "aead-file", "openssh-keys", "x509",
         "url-encoder", "xml-beautifier", "hex-encoder", "base32-encoder", "base58-encoder", "date-converter",
         "jwt-decoder", "jwt-encoder", "regex-tester", "qr-code-generator", "hmac-calculator",
-        "yaml-beautifier-validator", "qr-scanner"
+        "yaml-beautifier-validator", "qr-scanner", "pdf-merger", "pdf-compressor"
     ];
+
 
     public CultureRedirectMiddleware(RequestDelegate next, ILocalizationService localizationService)
     {

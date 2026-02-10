@@ -2938,12 +2938,58 @@
     <value>PDFが正常に結合されました！</value>
   </data>
   <data name="PdfMerger_DownloadButton" xml:space="preserve">
-    <value>結合されたPDFをダウンロード</value>
+    <value>ダウンロード</value>
+  </data>
+  <data name="PdfCompressor_DownloadButton" xml:space="preserve">
+    <value>ダウンロード</value>
   </data>
   <data name="Nav_PdfMerger" xml:space="preserve">
     <value>PDF 結合</value>
   </data>
   <data name="Category_PdfTools" xml:space="preserve">
     <value>PDF ツール</value>
+  </data>
+  <data name="PdfCompressor_Title" xml:space="preserve">
+    <value>PDF 圧縮</value>
+  </data>
+  <data name="PdfCompressor_Description" xml:space="preserve">
+    <value>品質を維持しながら PDF ファイルを圧縮してファイルサイズを削減します。</value>
+  </data>
+  <data name="PdfCompressor_CompressButton" xml:space="preserve">
+    <value>PDF を圧縮</value>
+  </data>
+  <data name="Nav_PdfCompressor" xml:space="preserve">
+    <value>PDF 圧縮</value>
+  </data>
+  <data name="PdfCompressor_Seo_Introduction" xml:space="preserve">
+    <value>PDF 圧縮は、開発者向けに設計されたプライバシー優先のオンラインツールです。すべての処理は WebAssembly を使用してブラウザ内でローカルに行われるため、ドキュメントがデバイスから外部に出ることはありません。</value>
+  </data>
+  <data name="PdfCompressor_Seo_DetailedDescription" xml:space="preserve">
+    <value>このツールは、内部ストリームの最適化とオブジェクトストリーム（PDF 1.5+）の活用により、効率的な PDF 圧縮を提供します。Rust でコンパイルされた WebAssembly で構築されており、サーバーへのアップロードなしでブラウザ上で直接高速なパフォーマンスを実現します。
+
+インターフェースでは、複数の PDF ファイルを同時に処理できます。各ファイルは個別に最適化され、未圧縮データに Flate 圧縮を適用し、コンテンツの整合性を維持しながらファイルサイズを最小限にするようドキュメント構造を再構成します。</value>
+  </data>
+  <data name="PdfCompressor_Seo_Examples" xml:space="preserve">
+    <value>**例 1**: メールの送信前に、大きな PDF レポートのサイズを削減します。
+
+**例 2**: スキャンした PDF ドキュメントを最適化して、ストレージ容量を節約します。
+
+**例 3**: PDF ファイルをできるだけ小さくして、高速にロードできるように Web 公開の準備をします。</value>
+  </data>
+  <data name="PdfCompressor_Seo_HowToSteps" xml:space="preserve">
+    <value>### ステップ 1: PDF ファイルをアップロードする
+PDF ファイルをツールにドラッグ＆ドロップするか、アップロード領域をクリックして選択します。
+
+### ステップ 2: 圧縮を開始する
+[PDF を圧縮] ボタンをクリックして、読み込まれたすべてのファイルの最適化プロセスを開始します。
+
+### ステップ 3: 結果をダウンロードする
+圧縮が完了したら、各ファイルの横にある [ダウンロード] ボタンをクリックして最適化されたバージョンを保存します。</value>
+  </data>
+  <data name="PdfCompressor_Seo_Tips" xml:space="preserve">
+    <value>- 最大限のセキュリティを確保するため、すべての処理はクライアント側で行われます
+- 初回ロード後はオフラインで動作します
+- ファイルがサーバーにアップロードされることはありません
+- 複数のファイルの同時処理をサポートしています</value>
   </data>
 </root>

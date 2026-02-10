@@ -1643,8 +1643,10 @@ dependencies = [
 name = "pdf_tools"
 version = "0.1.0"
 dependencies = [
+ "flate2",
  "js-sys",
  "lopdf",
+ "sha2",
  "wasm-bindgen",
  "web-sys",
 ]

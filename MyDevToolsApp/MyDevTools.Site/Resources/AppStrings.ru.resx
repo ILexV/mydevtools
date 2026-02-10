@@ -2938,12 +2938,58 @@
     <value>PDF успешно объединены!</value>
   </data>
   <data name="PdfMerger_DownloadButton" xml:space="preserve">
-    <value>Скачать объединенный PDF</value>
+    <value>Скачать</value>
+  </data>
+  <data name="PdfCompressor_DownloadButton" xml:space="preserve">
+    <value>Скачать</value>
   </data>
   <data name="Nav_PdfMerger" xml:space="preserve">
     <value>Объединение PDF</value>
   </data>
   <data name="Category_PdfTools" xml:space="preserve">
     <value>Инструменты PDF</value>
+  </data>
+  <data name="PdfCompressor_Title" xml:space="preserve">
+    <value>Сжатие PDF</value>
+  </data>
+  <data name="PdfCompressor_Description" xml:space="preserve">
+    <value>Сжимайте файлы PDF для уменьшения размера с сохранением качества.</value>
+  </data>
+  <data name="PdfCompressor_CompressButton" xml:space="preserve">
+    <value>Сжать PDF</value>
+  </data>
+  <data name="Nav_PdfCompressor" xml:space="preserve">
+    <value>Сжатие PDF</value>
+  </data>
+  <data name="PdfCompressor_Seo_Introduction" xml:space="preserve">
+    <value>Сжатие PDF — это ориентированный на конфиденциальность онлайн-инструмент для разработчиков. Вся обработка происходит локально в вашем браузере с использованием WebAssembly, гарантируя, что ваши документы никогда не покинут ваше устройство.</value>
+  </data>
+  <data name="PdfCompressor_Seo_DetailedDescription" xml:space="preserve">
+    <value>Этот инструмент обеспечивает эффективное сжатие PDF путем оптимизации внутренних потоков и использования потоков объектов (PDF 1.5+). Созданный с использованием WebAssembly, скомпилированного из Rust, он обеспечивает высокую производительность прямо в вашем браузере без загрузки на сервер.
+
+Интерфейс позволяет обрабатывать несколько PDF-файлов одновременно. Каждый файл оптимизируется индивидуально, применяя сжатие Flate к несжатым данным и реорганизуя структуру документа для минимального размера файла при сохранении целостности содержимого.</value>
+  </data>
+  <data name="PdfCompressor_Seo_Examples" xml:space="preserve">
+    <value>**Пример 1**: Уменьшение размера больших отчетов PDF перед отправкой по электронной почте.
+
+**Пример 2**: Оптимизация отсканированных документов PDF для экономии места на диске.
+
+**Пример 3**: Подготовка PDF-файлов для публикации в Интернете, обеспечивающая их минимальный размер для быстрой загрузки.</value>
+  </data>
+  <data name="PdfCompressor_Seo_HowToSteps" xml:space="preserve">
+    <value>### Шаг 1: Загрузите PDF-файлы
+Перетащите файлы PDF в инструмент или нажмите на область загрузки, чтобы выбрать их.
+
+### Шаг 2: Начните сжатие
+Нажмите кнопку «Сжать PDF», чтобы начать процесс оптимизации для всех загруженных файлов.
+
+### Шаг 3: Скачайте результаты
+После завершения сжатия нажмите кнопку «Скачать» рядом с каждым файлом, чтобы сохранить оптимизированную версию.</value>
+  </data>
+  <data name="PdfCompressor_Seo_Tips" xml:space="preserve">
+    <value>- Вся обработка выполняется на стороне клиента для максимальной безопасности
+- Инструмент работает в автономном режиме после первоначальной загрузки
+- Файлы не загружаются ни на какой сервер
+- Поддерживает одновременную обработку нескольких файлов</value>
   </data>
 </root>

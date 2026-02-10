@@ -2938,12 +2938,58 @@
     <value>PDF सफलतापूर्वक मिला दिए गए!</value>
   </data>
   <data name="PdfMerger_DownloadButton" xml:space="preserve">
-    <value>विलयित PDF डाउनलोड करें</value>
+    <value>डाउनलोड</value>
+  </data>
+  <data name="PdfCompressor_DownloadButton" xml:space="preserve">
+    <value>डाउनलोड</value>
   </data>
   <data name="Nav_PdfMerger" xml:space="preserve">
     <value>PDF विलय</value>
   </data>
   <data name="Category_PdfTools" xml:space="preserve">
     <value>PDF उपकरण</value>
+  </data>
+  <data name="PdfCompressor_Title" xml:space="preserve">
+    <value>PDF कंप्रेसर</value>
+  </data>
+  <data name="PdfCompressor_Description" xml:space="preserve">
+    <value>गुणवत्ता बनाए रखते हुए फ़ाइल का आकार कम करने के लिए PDF फ़ाइलों को कंप्रेस करें।</value>
+  </data>
+  <data name="PdfCompressor_CompressButton" xml:space="preserve">
+    <value>PDF कंप्रेस करें</value>
+  </data>
+  <data name="Nav_PdfCompressor" xml:space="preserve">
+    <value>PDF कंप्रेसर</value>
+  </data>
+  <data name="PdfCompressor_Seo_Introduction" xml:space="preserve">
+    <value>PDF कंप्रेसर एक गोपनीयता-प्रथम ऑनलाइन टूल है जिसे डेवलपर्स के लिए डिज़ाइन किया गया है। सभी प्रोसेसिंग WebAssembly का उपयोग करके आपके ब्राउज़र में स्थानीय रूप से होती है, जिससे यह सुनिश्चित होता है कि आपके दस्तावेज़ कभी भी आपके डिवाइस से बाहर नहीं जाते हैं।</value>
+  </data>
+  <data name="PdfCompressor_Seo_DetailedDescription" xml:space="preserve">
+    <value>यह टूल आंतरिक स्ट्रीम को अनुकूलित करके और ऑब्जेक्ट स्ट्रीम (PDF 1.5+) का उपयोग करके कुशल PDF कंप्रेशन प्रदान करता है। Rust-कंपाइल्ड WebAssembly के साथ निर्मित, यह बिना किसी सर्वर अपलोड के सीधे आपके ब्राउज़र में तेज़ प्रदर्शन प्रदान करता है।
+
+इंटरफ़ेस आपको एक साथ कई PDF फ़ाइलों को संसाधित करने की अनुमति देता है। प्रत्येक फ़ाइल को व्यक्तिगत रूप से अनुकूलित किया जाता है, अनकंप्रेस्ड डेटा पर Flate कंप्रेशन लागू किया जाता है और सामग्री की अखंडता को बनाए रखते हुए न्यूनतम फ़ाइल आकार के लिए दस्तावेज़ संरचना को पुनर्गठित किया जाता है।</value>
+  </data>
+  <data name="PdfCompressor_Seo_Examples" xml:space="preserve">
+    <value>**उदाहरण 1**: ईमेल के माध्यम से भेजने से पहले बड़ी PDF रिपोर्टों का आकार कम करें।
+
+**उदाहरण 2**: स्टोरेज स्पेस बचाने के लिए स्कैन किए गए PDF दस्तावेज़ों को ऑप्टिमाइज़ करें।
+
+**उदाहरण 3**: तेज़ लोडिंग के लिए PDF फ़ाइलों को यथासंभव छोटा सुनिश्चित करके वेब प्रकाशन के लिए तैयार करें।</value>
+  </data>
+  <data name="PdfCompressor_Seo_HowToSteps" xml:space="preserve">
+    <value>### चरण 1: PDF फ़ाइलें अपलोड करें
+अपनी PDF फ़ाइलों को टूल में ड्रैग और ड्रॉप करें या उन्हें चुनने के लिए अपलोड क्षेत्र पर क्लिक करें।
+
+### चरण 2: कंप्रेशन शुरू करें
+सभी लोड की गई फ़ाइलों के लिए अनुकूलन प्रक्रिया शुरू करने के लिए "PDF कंप्रेस करें" बटन पर क्लिक करें।
+
+### चरण 3: परिणाम डाउनलोड करें
+एक बार कंप्रेस होने के बाद, ऑप्टिमाइज़्ड वर्शन को सेव करने के लिए प्रत्येक फ़ाइल के बगल में "डाउनलोड" बटन पर क्लिक करें।</value>
+  </data>
+  <data name="PdfCompressor_Seo_Tips" xml:space="preserve">
+    <value>- अधिकतम सुरक्षा के लिए सभी प्रोसेसिंग क्लाइंट-साइड है
+- टूल प्रारंभिक लोड के बाद ऑफलाइन काम करता है
+- फ़ाइलें किसी भी सर्वर पर अपलोड नहीं की जाती हैं
+- एक साथ कई फ़ाइलों के प्रोसेसिंग का समर्थन करता है</value>
   </data>
 </root>

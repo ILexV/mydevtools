@@ -2938,12 +2938,58 @@ Clique no botão "Mesclar PDF" para processar os seus arquivos localmente e desc
     <value>PDFs combinados com sucesso!</value>
   </data>
   <data name="PdfMerger_DownloadButton" xml:space="preserve">
-    <value>Baixar PDF combinado</value>
+    <value>Baixar</value>
+  </data>
+  <data name="PdfCompressor_DownloadButton" xml:space="preserve">
+    <value>Baixar</value>
   </data>
   <data name="Nav_PdfMerger" xml:space="preserve">
     <value>Juntar PDF</value>
   </data>
   <data name="Category_PdfTools" xml:space="preserve">
     <value>Ferramentas PDF</value>
+  </data>
+  <data name="PdfCompressor_Title" xml:space="preserve">
+    <value>Compressor de PDF</value>
+  </data>
+  <data name="PdfCompressor_Description" xml:space="preserve">
+    <value>Comprima arquivos PDF para reduzir o tamanho mantendo a qualidade.</value>
+  </data>
+  <data name="PdfCompressor_CompressButton" xml:space="preserve">
+    <value>Comprimir PDF</value>
+  </data>
+  <data name="Nav_PdfCompressor" xml:space="preserve">
+    <value>Compressor de PDF</value>
+  </data>
+  <data name="PdfCompressor_Seo_Introduction" xml:space="preserve">
+    <value>O Compressor de PDF é uma ferramenta online focada na privacidade e projetada para desenvolvedores. Todo o processamento ocorre localmente no seu navegador usando WebAssembly, garantindo que os seus documentos nunca saiam do seu dispositivo.</value>
+  </data>
+  <data name="PdfCompressor_Seo_DetailedDescription" xml:space="preserve">
+    <value>Esta ferramenta oferece uma compressão de PDF eficiente através da otimização de fluxos internos e da utilização de fluxos de objetos (PDF 1.5+). Criada com WebAssembly compilado a partir de Rust, oferece um desempenho rápido diretamente no seu navegador, sem necessidade de carregar ficheiros para o servidor.
+
+A interface permite processar vários ficheiros PDF em simultâneo. Cada ficheiro é otimizado individualmente, aplicando compressão Flate a dados não comprimidos e reorganizando a estrutura do documento para um tamanho de ficheiro mínimo, preservando a integridade do conteúdo.</value>
+  </data>
+  <data name="PdfCompressor_Seo_Examples" xml:space="preserve">
+    <value>**Exemplo 1**: Reduza o tamanho de relatórios PDF grandes antes de os enviar por e-mail.
+
+**Exemplo 2**: Otimize documentos PDF digitalizados para poupar espaço de armazenamento.
+
+**Exemplo 3**: Prepare ficheiros PDF para publicação na web, garantindo que sejam o mais pequenos possível para um carregamento rápido.</value>
+  </data>
+  <data name="PdfCompressor_Seo_HowToSteps" xml:space="preserve">
+    <value>### Passo 1: Carregar Ficheiros PDF
+Arraste e solte os seus ficheiros PDF na ferramenta ou clique na área de carregamento para os selecionar.
+
+### Passo 2: Iniciar Compressão
+Clique no botão "Comprimir PDF" para iniciar o processo de otimização de todos os ficheiros carregados.
+
+### Passo 3: Descarregar Resultados
+Após a compressão, clique no botão "Descarregar" ao lado de cada ficheiro para guardar a versão otimizada.</value>
+  </data>
+  <data name="PdfCompressor_Seo_Tips" xml:space="preserve">
+    <value>- Todo o processamento é feito no cliente para máxima segurança
+- A ferramenta funciona offline após o carregamento inicial
+- Os ficheiros não são carregados para nenhum servidor
+- Suporta o processamento de múltiplos ficheiros em simultâneo</value>
   </data>
 </root>

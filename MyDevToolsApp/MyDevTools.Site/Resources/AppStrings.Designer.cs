@@ -4646,6 +4646,15 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to PDF Compressor.
+        /// </summary>
+        public static string Nav_PdfCompressor {
+            get {
+                return ResourceManager.GetString("Nav_PdfCompressor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to PDF Merger.
         /// </summary>
         public static string Nav_PdfMerger {
@@ -5160,6 +5169,103 @@ namespace MyDevTools.Site.Resources {
         public static string PasswordGenerator_UppercaseLabel {
             get {
                 return ResourceManager.GetString("PasswordGenerator_UppercaseLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Compress PDF.
+        /// </summary>
+        public static string PdfCompressor_CompressButton {
+            get {
+                return ResourceManager.GetString("PdfCompressor_CompressButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Compress PDF files to reduce file size while maintaining quality..
+        /// </summary>
+        public static string PdfCompressor_Description {
+            get {
+                return ResourceManager.GetString("PdfCompressor_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Download Compressed PDF.
+        /// </summary>
+        public static string PdfCompressor_DownloadButton {
+            get {
+                return ResourceManager.GetString("PdfCompressor_DownloadButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This tool provides efficient PDF compression by optimizing internal streams and utilizing Object Streams (PDF 1.5+). Built with Rust-compiled WebAssembly, it delivers fast performance directly in your browser without any server uploads.
+        ///
+        ///The interface allows you to process multiple PDF files simultaneously. Each file is optimized individually, applying Flate compression to uncompressed data and reorganizing the document structure for minimal file size while preserving content integrity..
+        /// </summary>
+        public static string PdfCompressor_Seo_DetailedDescription {
+            get {
+                return ResourceManager.GetString("PdfCompressor_Seo_DetailedDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to **Example 1**: Reduce the size of large PDF reports before sending them via email.
+        ///
+        ///**Example 2**: Optimize scanned PDF documents to save storage space.
+        ///
+        ///**Example 3**: Prepare PDF files for web publishing by ensuring they are as small as possible for fast loading..
+        /// </summary>
+        public static string PdfCompressor_Seo_Examples {
+            get {
+                return ResourceManager.GetString("PdfCompressor_Seo_Examples", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ### Step 1: Upload PDF Files
+        ///Drag and drop your PDF files into the tool or click the upload area to select them.
+        ///
+        ///### Step 2: Start Compression
+        ///Click the &quot;Compress PDF&quot; button to start the optimization process for all loaded files.
+        ///
+        ///### Step 3: Download Results
+        ///Once compressed, click the &quot;Download&quot; button next to each file to save the optimized version..
+        /// </summary>
+        public static string PdfCompressor_Seo_HowToSteps {
+            get {
+                return ResourceManager.GetString("PdfCompressor_Seo_HowToSteps", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The PDF Compressor is a privacy-first online tool designed for developers. All processing happens locally in your browser using WebAssembly, ensuring your documents never leave your device..
+        /// </summary>
+        public static string PdfCompressor_Seo_Introduction {
+            get {
+                return ResourceManager.GetString("PdfCompressor_Seo_Introduction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to - All processing is client-side for maximum security
+        ///- The tool works offline after initial load
+        ///- Files are not uploaded to any server
+        ///- Supports multiple files processing at once.
+        /// </summary>
+        public static string PdfCompressor_Seo_Tips {
+            get {
+                return ResourceManager.GetString("PdfCompressor_Seo_Tips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PDF Compressor.
+        /// </summary>
+        public static string PdfCompressor_Title {
+            get {
+                return ResourceManager.GetString("PdfCompressor_Title", resourceCulture);
             }
         }
         

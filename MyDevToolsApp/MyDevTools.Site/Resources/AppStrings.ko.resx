@@ -2938,12 +2938,58 @@
     <value>PDF가 성공적으로 병합되었습니다!</value>
   </data>
   <data name="PdfMerger_DownloadButton" xml:space="preserve">
-    <value>병합된 PDF 다운로드</value>
+    <value>다운로드</value>
+  </data>
+  <data name="PdfCompressor_DownloadButton" xml:space="preserve">
+    <value>다운로드</value>
   </data>
   <data name="Nav_PdfMerger" xml:space="preserve">
     <value>PDF 병합</value>
   </data>
   <data name="Category_PdfTools" xml:space="preserve">
     <value>PDF 도구</value>
+  </data>
+  <data name="PdfCompressor_Title" xml:space="preserve">
+    <value>PDF 압축기</value>
+  </data>
+  <data name="PdfCompressor_Description" xml:space="preserve">
+    <value>품질을 유지하면서 PDF 파일의 크기를 줄이기 위해 압축합니다.</value>
+  </data>
+  <data name="PdfCompressor_CompressButton" xml:space="preserve">
+    <value>PDF 압축</value>
+  </data>
+  <data name="Nav_PdfCompressor" xml:space="preserve">
+    <value>PDF 압축기</value>
+  </data>
+  <data name="PdfCompressor_Seo_Introduction" xml:space="preserve">
+    <value>PDF 압축기는 개발자를 위해 설계된 개인 정보 보호 우선 온라인 도구입니다. 모든 처리는 WebAssembly를 사용하여 브라우저에서 로컬로 이루어지므로 문서가 장치를 절대 떠나지 않습니다.</value>
+  </data>
+  <data name="PdfCompressor_Seo_DetailedDescription" xml:space="preserve">
+    <value>이 도구는 내부 스트림을 최적화하고 객체 스트림(PDF 1.5+)을 활용하여 효율적인 PDF 압축을 제공합니다. Rust로 컴파일된 WebAssembly로 구축되어 서버 업로드 없이 브라우저에서 직접 빠른 성능을 제공합니다.
+
+이 인터페이스를 통해 여러 PDF 파일을 동시에 처리할 수 있습니다. 각 파일은 개별적으로 최적화되며, 압축되지 않은 데이터에 Flate 압축을 적용하고 문서 구조를 재구성하여 내용의 무결성을 유지하면서 파일 크기를 최소화합니다.</value>
+  </data>
+  <data name="PdfCompressor_Seo_Examples" xml:space="preserve">
+    <value>**예시 1**: 이메일로 보내기 전에 대용량 PDF 보고서의 크기를 줄입니다.
+
+**예시 2**: 저장 공간을 절약하기 위해 스캔한 PDF 문서를 최적화합니다.
+
+**예시 3**: 빠른 로딩을 위해 PDF 파일을 최대한 작게 만들어 웹 게시를 준비합니다.</value>
+  </data>
+  <data name="PdfCompressor_Seo_HowToSteps" xml:space="preserve">
+    <value>### 1단계: PDF 파일 업로드
+PDF 파일을 도구로 드래그 앤 드롭하거나 업로드 영역을 클릭하여 선택합니다.
+
+### 2단계: 압축 시작
+"PDF 압축" 버튼을 클릭하여 로드된 모든 파일에 대한 최적화 프로세스를 시작합니다.
+
+### 3단계: 결과 다운로드
+압축이 완료되면 각 파일 옆의 "다운로드" 버튼을 클릭하여 최적화된 버전을 저장합니다.</value>
+  </data>
+  <data name="PdfCompressor_Seo_Tips" xml:space="preserve">
+    <value>- 보안 극대화를 위해 모든 처리는 클라이언트 측에서 이루어집니다
+- 초기 로드 후 도구는 오프라인으로 작동합니다
+- 파일은 서버에 업로드되지 않습니다
+- 여러 파일의 동시 처리를 지원합니다</value>
   </data>
 </root>

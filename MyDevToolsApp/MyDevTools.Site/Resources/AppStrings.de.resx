@@ -2938,12 +2938,58 @@ Klicken Sie auf die Schaltfläche „PDF zusammenführen“, um Ihre Dateien lok
     <value>PDFs erfolgreich zusammengeführt!</value>
   </data>
   <data name="PdfMerger_DownloadButton" xml:space="preserve">
-    <value>Zusammengeführtes PDF herunterladen</value>
+    <value>Herunterladen</value>
+  </data>
+  <data name="PdfCompressor_DownloadButton" xml:space="preserve">
+    <value>Herunterladen</value>
   </data>
   <data name="Nav_PdfMerger" xml:space="preserve">
     <value>PDF Zusammenfügen</value>
   </data>
   <data name="Category_PdfTools" xml:space="preserve">
     <value>PDF-Tools</value>
+  </data>
+  <data name="PdfCompressor_Title" xml:space="preserve">
+    <value>PDF Komprimierer</value>
+  </data>
+  <data name="PdfCompressor_Description" xml:space="preserve">
+    <value>Komprimieren Sie PDF-Dateien, um die Dateigröße bei gleichbleibender Qualität zu reduzieren.</value>
+  </data>
+  <data name="PdfCompressor_CompressButton" xml:space="preserve">
+    <value>PDF komprimieren</value>
+  </data>
+  <data name="Nav_PdfCompressor" xml:space="preserve">
+    <value>PDF Komprimierer</value>
+  </data>
+  <data name="PdfCompressor_Seo_Introduction" xml:space="preserve">
+    <value>Der PDF Komprimierer ist ein datenschutzorientiertes Online-Tool für Entwickler. Die gesamte Verarbeitung erfolgt lokal in Ihrem Browser mittels WebAssembly, sodass Ihre Dokumente Ihr Gerät nie verlassen.</value>
+  </data>
+  <data name="PdfCompressor_Seo_DetailedDescription" xml:space="preserve">
+    <value>Dieses Tool bietet eine effiziente PDF-Komprimierung durch die Optimierung interner Streams und die Nutzung von Objekt-Streams (PDF 1.5+). Entwickelt mit Rust-kompiliertem WebAssembly, bietet es schnelle Leistung direkt in Ihrem Browser ohne Server-Uploads.
+
+Die Benutzeroberfläche ermöglicht die gleichzeitige Verarbeitung mehrerer PDF-Dateien. Jede Datei wird einzeln optimiert, wobei eine Flate-Komprimierung auf unkomprimierte Daten angewendet und die Dokumentstruktur für eine minimale Dateigröße bei gleichzeitiger Wahrung der Inhaltsintegrität reorganisiert wird.</value>
+  </data>
+  <data name="PdfCompressor_Seo_Examples" xml:space="preserve">
+    <value>**Beispiel 1**: Reduzieren Sie die Größe großer PDF-Berichte, bevor Sie diese per E-Mail versenden.
+
+**Beispiel 2**: Optimieren Sie gescannte PDF-Dokumente, um Speicherplatz zu sparen.
+
+**Beispiel 3**: Bereiten Sie PDF-Dateien für die Web-Veröffentlichung vor, indem Sie sicherstellen, dass sie für schnelles Laden so klein wie möglich sind.</value>
+  </data>
+  <data name="PdfCompressor_Seo_HowToSteps" xml:space="preserve">
+    <value>### Schritt 1: PDF-Dateien hochladen
+Ziehen Sie Ihre PDF-Dateien per Drag-and-Drop in das Tool oder klicken Sie auf den Upload-Bereich, um sie auszuwählen.
+
+### Schritt 2: Komprimierung starten
+Klicken Sie auf die Schaltfläche „PDF komprimieren“, um den Optimierungsprozess für alle geladenen Dateien zu starten.
+
+### Schritt 3: Ergebnisse herunterladen
+Klicken Sie nach der Komprimierung auf die Schaltfläche „Herunterladen“ neben jeder Datei, um die optimierte Version zu speichern.</value>
+  </data>
+  <data name="PdfCompressor_Seo_Tips" xml:space="preserve">
+    <value>- Gesamte Verarbeitung erfolgt clientseitig für maximale Sicherheit
+- Tool arbeitet nach dem ersten Laden offline
+- Dateien werden auf keinen Server hochgeladen
+- Unterstützt die gleichzeitige Verarbeitung mehrerer Dateien</value>
   </data>
 </root>

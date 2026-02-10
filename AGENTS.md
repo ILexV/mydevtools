@@ -276,7 +276,9 @@ public string? Description { get; set; }
 - **DEVELOPMENT.md** - Detailed development guide
 - **ARCHITECTURE.md** - System architecture
 - **TOOL_DEVELOPMENT_GUIDE.md** - ⭐ **ВАЖНО!** Руководство по созданию инструментов (JavaScript, события, типичные проблемы)
+- **NEW_TOOL_INSTRUCTIONS.md** - ⭐ **БЫСТРЫЙ СТАРТ!** Чек-лист и 4 шага для создания нового инструмента
 - **LOCALIZATION_GUIDE.md** - Localization details
+
 - **WASM_INTEGRATION.md** - WASM integration patterns
 - **PROJECT_STRUCTURE.md** - Directory structure
 - **crypto-roadmap.md** - Cryptography feature roadmap

@@ -2891,4 +2891,28 @@ Cliquez sur le bouton d'action pour traiter votre entrée et copiez les résulta
 - Les fichiers volumineux sont pris en charge avec suivi de la progression</value>
   </data>
 
+  <data name="PdfMerger_Title" xml:space="preserve">
+    <value>Fusionner PDF</value>
+  </data>
+  <data name="PdfMerger_Description" xml:space="preserve">
+    <value>Fusionnez plusieurs fichiers PDF en un seul document efficacement dans votre navigateur.</value>
+  </data>
+  <data name="PdfMerger_DropZoneTitle" xml:space="preserve">
+    <value>Glissez et déposez des fichiers PDF ici</value>
+  </data>
+  <data name="PdfMerger_MergeButton" xml:space="preserve">
+    <value>Fusionner les PDF</value>
+  </data>
+  <data name="PdfMerger_Success" xml:space="preserve">
+    <value>PDF fusionnés avec succès !</value>
+  </data>
+  <data name="PdfMerger_DownloadButton" xml:space="preserve">
+    <value>Télécharger le PDF fusionné</value>
+  </data>
+  <data name="Nav_PdfMerger" xml:space="preserve">
+    <value>Fusionner PDF</value>
+  </data>
+  <data name="Category_PdfTools" xml:space="preserve">
+    <value>Outils PDF</value>
+  </data>
 </root>

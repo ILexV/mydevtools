@@ -2871,4 +2871,28 @@ Click the action button to process your input and copy the results to your clipb
 - Your preferences are saved locally in your browser
 - Large files are supported with progress tracking</value>
   </data>
+  <data name="PdfMerger_Title" xml:space="preserve">
+    <value>PDF Merger</value>
+  </data>
+  <data name="PdfMerger_Description" xml:space="preserve">
+    <value>Merge multiple PDF files into one document efficiently in your browser.</value>
+  </data>
+  <data name="PdfMerger_DropZoneTitle" xml:space="preserve">
+    <value>Drag and drop PDF files here</value>
+  </data>
+  <data name="PdfMerger_MergeButton" xml:space="preserve">
+    <value>Merge PDFs</value>
+  </data>
+  <data name="PdfMerger_Success" xml:space="preserve">
+    <value>PDFs merged successfully!</value>
+  </data>
+  <data name="PdfMerger_DownloadButton" xml:space="preserve">
+    <value>Download Merged PDF</value>
+  </data>
+  <data name="Nav_PdfMerger" xml:space="preserve">
+    <value>PDF Merger</value>
+  </data>
+  <data name="Category_PdfTools" xml:space="preserve">
+    <value>PDF Tools</value>
+  </data>
 </root>

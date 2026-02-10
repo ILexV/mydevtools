@@ -2891,4 +2891,28 @@
 - Поддерживаются большие файлы с отслеживанием прогресса</value>
   </data>
 
+  <data name="PdfMerger_Title" xml:space="preserve">
+    <value>Объединение PDF</value>
+  </data>
+  <data name="PdfMerger_Description" xml:space="preserve">
+    <value>Объединяйте несколько PDF-файлов в один документ прямо в браузере.</value>
+  </data>
+  <data name="PdfMerger_DropZoneTitle" xml:space="preserve">
+    <value>Перетащите PDF-файлы сюда</value>
+  </data>
+  <data name="PdfMerger_MergeButton" xml:space="preserve">
+    <value>Объединить PDF</value>
+  </data>
+  <data name="PdfMerger_Success" xml:space="preserve">
+    <value>PDF успешно объединены!</value>
+  </data>
+  <data name="PdfMerger_DownloadButton" xml:space="preserve">
+    <value>Скачать объединенный PDF</value>
+  </data>
+  <data name="Nav_PdfMerger" xml:space="preserve">
+    <value>Объединение PDF</value>
+  </data>
+  <data name="Category_PdfTools" xml:space="preserve">
+    <value>Инструменты PDF</value>
+  </data>
 </root>

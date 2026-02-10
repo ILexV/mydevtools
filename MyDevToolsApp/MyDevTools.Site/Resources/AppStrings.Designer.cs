@@ -1538,6 +1538,15 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to PDF Tools.
+        /// </summary>
+        public static string Category_PdfTools {
+            get {
+                return ResourceManager.GetString("Category_PdfTools", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to QR Codes.
         /// </summary>
         public static string Category_QrCodes {
@@ -4637,6 +4646,15 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to PDF Merger.
+        /// </summary>
+        public static string Nav_PdfMerger {
+            get {
+                return ResourceManager.GetString("Nav_PdfMerger", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to QR Scanner.
         /// </summary>
         public static string Nav_QrScanner {
@@ -5142,6 +5160,60 @@ namespace MyDevTools.Site.Resources {
         public static string PasswordGenerator_UppercaseLabel {
             get {
                 return ResourceManager.GetString("PasswordGenerator_UppercaseLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merge multiple PDF files into one document efficiently in your browser..
+        /// </summary>
+        public static string PdfMerger_Description {
+            get {
+                return ResourceManager.GetString("PdfMerger_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Download Merged PDF.
+        /// </summary>
+        public static string PdfMerger_DownloadButton {
+            get {
+                return ResourceManager.GetString("PdfMerger_DownloadButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Drag and drop PDF files here.
+        /// </summary>
+        public static string PdfMerger_DropZoneTitle {
+            get {
+                return ResourceManager.GetString("PdfMerger_DropZoneTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merge PDFs.
+        /// </summary>
+        public static string PdfMerger_MergeButton {
+            get {
+                return ResourceManager.GetString("PdfMerger_MergeButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PDFs merged successfully!.
+        /// </summary>
+        public static string PdfMerger_Success {
+            get {
+                return ResourceManager.GetString("PdfMerger_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PDF Merger.
+        /// </summary>
+        public static string PdfMerger_Title {
+            get {
+                return ResourceManager.GetString("PdfMerger_Title", resourceCulture);
             }
         }
         

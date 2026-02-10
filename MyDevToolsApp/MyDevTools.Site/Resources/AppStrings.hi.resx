@@ -2891,4 +2891,28 @@
 - प्रगति ट्रैकिंग के साथ बड़ी फ़ाइलें समर्थित हैं</value>
   </data>
 
+  <data name="PdfMerger_Title" xml:space="preserve">
+    <value>PDF विलय (Merger)</value>
+  </data>
+  <data name="PdfMerger_Description" xml:space="preserve">
+    <value>अपने ब्राउज़र में कई PDF फ़ाइलों को कुशलतापूर्वक एक दस्तावेज़ में मिलाएं।</value>
+  </data>
+  <data name="PdfMerger_DropZoneTitle" xml:space="preserve">
+    <value>PDF फ़ाइलों को यहाँ खींचें और छोड़ें</value>
+  </data>
+  <data name="PdfMerger_MergeButton" xml:space="preserve">
+    <value>PDF मिलाएं</value>
+  </data>
+  <data name="PdfMerger_Success" xml:space="preserve">
+    <value>PDF सफलतापूर्वक मिला दिए गए!</value>
+  </data>
+  <data name="PdfMerger_DownloadButton" xml:space="preserve">
+    <value>विलयित PDF डाउनलोड करें</value>
+  </data>
+  <data name="Nav_PdfMerger" xml:space="preserve">
+    <value>PDF विलय</value>
+  </data>
+  <data name="Category_PdfTools" xml:space="preserve">
+    <value>PDF उपकरण</value>
+  </data>
 </root>

@@ -2891,4 +2891,28 @@ Klicken Sie auf die Aktionstaste, um Ihre Eingabe zu verarbeiten, und kopieren S
 - Große Dateien werden mit Fortschrittsverfolgung unterstützt</value>
   </data>
 
+  <data name="PdfMerger_Title" xml:space="preserve">
+    <value>PDF Zusammenfügen</value>
+  </data>
+  <data name="PdfMerger_Description" xml:space="preserve">
+    <value>Fügen Sie mehrere PDF-Dateien effizient in Ihrem Browser zu einem Dokument zusammen.</value>
+  </data>
+  <data name="PdfMerger_DropZoneTitle" xml:space="preserve">
+    <value>PDF-Dateien hierher ziehen</value>
+  </data>
+  <data name="PdfMerger_MergeButton" xml:space="preserve">
+    <value>PDFs zusammenfügen</value>
+  </data>
+  <data name="PdfMerger_Success" xml:space="preserve">
+    <value>PDFs erfolgreich zusammengeführt!</value>
+  </data>
+  <data name="PdfMerger_DownloadButton" xml:space="preserve">
+    <value>Zusammengeführtes PDF herunterladen</value>
+  </data>
+  <data name="Nav_PdfMerger" xml:space="preserve">
+    <value>PDF Zusammenfügen</value>
+  </data>
+  <data name="Category_PdfTools" xml:space="preserve">
+    <value>PDF-Tools</value>
+  </data>
 </root>

@@ -2891,4 +2891,28 @@
 - 進行状況追跡機能付きで大きなファイルをサポートします</value>
   </data>
 
+  <data name="PdfMerger_Title" xml:space="preserve">
+    <value>PDF 結合</value>
+  </data>
+  <data name="PdfMerger_Description" xml:space="preserve">
+    <value>ブラウザで効率的に複数のPDFファイルを1つのドキュメントに結合します。</value>
+  </data>
+  <data name="PdfMerger_DropZoneTitle" xml:space="preserve">
+    <value>ここにPDFファイルをドラッグ＆ドロップ</value>
+  </data>
+  <data name="PdfMerger_MergeButton" xml:space="preserve">
+    <value>PDFを結合</value>
+  </data>
+  <data name="PdfMerger_Success" xml:space="preserve">
+    <value>PDFが正常に結合されました！</value>
+  </data>
+  <data name="PdfMerger_DownloadButton" xml:space="preserve">
+    <value>結合されたPDFをダウンロード</value>
+  </data>
+  <data name="Nav_PdfMerger" xml:space="preserve">
+    <value>PDF 結合</value>
+  </data>
+  <data name="Category_PdfTools" xml:space="preserve">
+    <value>PDF ツール</value>
+  </data>
 </root>

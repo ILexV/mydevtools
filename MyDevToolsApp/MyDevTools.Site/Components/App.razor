@@ -212,7 +212,12 @@
     {
         <script src="@Assets["tools/yaml-beautifier-validator.js"]"></script>
     }
+    @if (IsPdfMerger)
+    {
+        <script src="@Assets["tools/pdf-merger.js"]"></script>
+    }
 </body>
+
 
 </html>
 
@@ -244,6 +249,7 @@
     private bool IsQrCodeGenerator => CurrentPath.Contains("/qr-code-generator", StringComparison.OrdinalIgnoreCase);
     private bool IsHmacCalculator => CurrentPath.Contains("/hmac-calculator", StringComparison.OrdinalIgnoreCase);
     private bool IsYamlBeautifierValidator => CurrentPath.Contains("/yaml-beautifier-validator", StringComparison.OrdinalIgnoreCase);
+    private bool IsPdfMerger => CurrentPath.Contains("/pdf-merger", StringComparison.OrdinalIgnoreCase);
     
     // CodeMirror is needed for JSON, XML, and YAML beautifiers
     private bool NeedsCodeMirror => IsJsonBeautifier || IsXmlBeautifier || IsYamlBeautifierValidator;

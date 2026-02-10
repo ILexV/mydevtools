@@ -2891,4 +2891,28 @@ Haga clic en el botón de acción para procesar su entrada y copie los resultado
 - Se admiten archivos grandes con seguimiento de progreso</value>
   </data>
 
+  <data name="PdfMerger_Title" xml:space="preserve">
+    <value>Unir PDF</value>
+  </data>
+  <data name="PdfMerger_Description" xml:space="preserve">
+    <value>Combina múltiples archivos PDF en un solo documento eficientemente en tu navegador.</value>
+  </data>
+  <data name="PdfMerger_DropZoneTitle" xml:space="preserve">
+    <value>Arrastra y suelta archivos PDF aquí</value>
+  </data>
+  <data name="PdfMerger_MergeButton" xml:space="preserve">
+    <value>Unir PDFs</value>
+  </data>
+  <data name="PdfMerger_Success" xml:space="preserve">
+    <value>¡PDFs unidos con éxito!</value>
+  </data>
+  <data name="PdfMerger_DownloadButton" xml:space="preserve">
+    <value>Descargar PDF unido</value>
+  </data>
+  <data name="Nav_PdfMerger" xml:space="preserve">
+    <value>Unir PDF</value>
+  </data>
+  <data name="Category_PdfTools" xml:space="preserve">
+    <value>Herramientas PDF</value>
+  </data>
 </root>

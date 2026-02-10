@@ -2891,4 +2891,28 @@
 - 支持带进度跟踪的大文件</value>
   </data>
 
+  <data name="PdfMerger_Title" xml:space="preserve">
+    <value>PDF 合并</value>
+  </data>
+  <data name="PdfMerger_Description" xml:space="preserve">
+    <value>在浏览器中高效地将多个 PDF 文件合并为一个文档。</value>
+  </data>
+  <data name="PdfMerger_DropZoneTitle" xml:space="preserve">
+    <value>将 PDF 文件拖放到此处</value>
+  </data>
+  <data name="PdfMerger_MergeButton" xml:space="preserve">
+    <value>合并 PDF</value>
+  </data>
+  <data name="PdfMerger_Success" xml:space="preserve">
+    <value>PDF 合并成功！</value>
+  </data>
+  <data name="PdfMerger_DownloadButton" xml:space="preserve">
+    <value>下载合并后的 PDF</value>
+  </data>
+  <data name="Nav_PdfMerger" xml:space="preserve">
+    <value>PDF 合并</value>
+  </data>
+  <data name="Category_PdfTools" xml:space="preserve">
+    <value>PDF 工具</value>
+  </data>
 </root>

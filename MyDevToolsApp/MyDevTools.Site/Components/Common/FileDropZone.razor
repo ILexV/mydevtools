@@ -40,7 +40,7 @@ Usage Example 3 (With preview and clear button):
 *@
 
 <div id="@Id" class="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center transition-colors cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 relative" data-has-file="false">
-    <input type="file" id="@InputId" class="hidden" accept="@Accept" @(AllowMultiple ? "multiple" : "") />
+    <input type="file" id="@InputId" class="hidden" accept="@Accept" multiple="@AllowMultiple" />
     
     @if (ShowClearButton)
     {

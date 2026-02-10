@@ -2891,4 +2891,28 @@
 - 진행률 추적 기능이 있는 대용량 파일을 지원합니다</value>
   </data>
 
+  <data name="PdfMerger_Title" xml:space="preserve">
+    <value>PDF 병합</value>
+  </data>
+  <data name="PdfMerger_Description" xml:space="preserve">
+    <value>브라우저에서 여러 PDF 파일을 하나의 문서로 효율적으로 병합합니다.</value>
+  </data>
+  <data name="PdfMerger_DropZoneTitle" xml:space="preserve">
+    <value>PDF 파일을 여기로 드래그 앤 드롭하세요</value>
+  </data>
+  <data name="PdfMerger_MergeButton" xml:space="preserve">
+    <value>PDF 병합</value>
+  </data>
+  <data name="PdfMerger_Success" xml:space="preserve">
+    <value>PDF가 성공적으로 병합되었습니다!</value>
+  </data>
+  <data name="PdfMerger_DownloadButton" xml:space="preserve">
+    <value>병합된 PDF 다운로드</value>
+  </data>
+  <data name="Nav_PdfMerger" xml:space="preserve">
+    <value>PDF 병합</value>
+  </data>
+  <data name="Category_PdfTools" xml:space="preserve">
+    <value>PDF 도구</value>
+  </data>
 </root>

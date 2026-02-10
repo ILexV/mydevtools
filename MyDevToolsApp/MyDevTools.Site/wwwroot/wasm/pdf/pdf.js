@@ -1,4 +1,6 @@
-/* @ts-self-types="./pdf.d.ts" */
+ /* @ts-self-types="./pdf.d.ts" */
+ // Injected build marker to help debugging cache issues
+ console.log("WASM_BUILD_MARKER: sha256=9b9cd258b494e28cfa6759bb7d7d6a1f9f6b054a68bda5f4135d645fdb341f55");
 
 /**
  * @param {Uint8Array} data
@@ -231,9 +233,10 @@ async function __wbg_init(module_or_path) {
         }
     }
 
-    if (module_or_path === undefined) {
-        module_or_path = new URL('pdf_bg.wasm', import.meta.url);
-    }
+     if (module_or_path === undefined) {
+         // use a versioned URL to bypass stale service-worker or browser caches
+         module_or_path = new URL('pdf_bg.wasm?v=9b9cd258', import.meta.url);
+     }
     const imports = __wbg_get_imports();
 
     if (typeof module_or_path === 'string' || (typeof Request === 'function' && module_or_path instanceof Request) || (typeof URL === 'function' && module_or_path instanceof URL)) {

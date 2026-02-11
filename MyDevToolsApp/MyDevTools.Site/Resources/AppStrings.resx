@@ -2002,6 +2002,131 @@ Click the action button to process your input and copy the results to your clipb
 - Your preferences are saved locally in your browser
 - Large files are supported with progress tracking</value>
   </data>
+  <!-- HTML Entity Encoder -->
+  <data name="HtmlEntityEncoder_Title" xml:space="preserve">
+    <value>HTML Entity Encoder / Decoder</value>
+  </data>
+  <data name="HtmlEntityEncoder_Description" xml:space="preserve">
+    <value>Encode special characters to HTML entities and decode them back. Supports named, decimal, and hexadecimal formats.</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputTitle" xml:space="preserve">
+    <value>Input &amp; Settings</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputLabel" xml:space="preserve">
+    <value>Text to encode/decode</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputPlaceholder" xml:space="preserve">
+    <value>Type or paste your text here...</value>
+  </data>
+  <data name="HtmlEntityEncoder_OutputTitle" xml:space="preserve">
+    <value>Output</value>
+  </data>
+  <data name="HtmlEntityEncoder_SettingsTitle" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="HtmlEntityEncoder_ModeLabel" xml:space="preserve">
+    <value>Encode mode</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_All" xml:space="preserve">
+    <value>All characters (special + non-ASCII)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_SpecialChars" xml:space="preserve">
+    <value>Only special characters (&amp; &lt; &gt; " ')</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_NonAscii" xml:space="preserve">
+    <value>Only non-ASCII characters</value>
+  </data>
+  <data name="HtmlEntityEncoder_FormatLabel" xml:space="preserve">
+    <value>Entity format</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Named" xml:space="preserve">
+    <value>Named (&amp;amp;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Decimal" xml:space="preserve">
+    <value>Decimal (&amp;#38;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Hex" xml:space="preserve">
+    <value>Hexadecimal (&amp;#x26;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionEncode" xml:space="preserve">
+    <value>Encode to HTML</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionDecode" xml:space="preserve">
+    <value>Decode from HTML</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionSwap" xml:space="preserve">
+    <value>Swap</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionClear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copied" xml:space="preserve">
+    <value>Copied!</value>
+  </data>
+  <data name="HtmlEntityEncoder_OtherFormats" xml:space="preserve">
+    <value>Other formats:</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkUrl" xml:space="preserve">
+    <value>URL Encoder</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkBase64" xml:space="preserve">
+    <value>Base64</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkHex" xml:space="preserve">
+    <value>Hex</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkXml" xml:space="preserve">
+    <value>XML Beautifier</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Introduction" xml:space="preserve">
+    <value>The HTML Entity Encoder is a privacy-first online tool designed for developers and web designers. All processing happens locally in your browser, ensuring your data never leaves your device.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_DetailedDescription" xml:space="preserve">
+    <value>This tool provides comprehensive functionality for encoding special characters to HTML entities and decoding them back. It supports multiple formats including named entities (&amp;amp;), decimal numeric references (&amp;#38;), and hexadecimal references (&amp;#x26;).
+
+The interface is designed for efficiency and ease of use, with options to encode only special characters, only non-ASCII characters, or all characters. All operations are performed client-side, guaranteeing complete privacy and security for your sensitive data.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Examples" xml:space="preserve">
+    <value>**Example 1**: Encode HTML special characters for safe display in web pages.
+- Input: `&lt;div class="example"&gt;Hello &amp; Welcome!&lt;/div&gt;`
+- Output: `&amp;lt;div class=&amp;quot;example&amp;quot;&amp;gt;Hello &amp;amp; Welcome!&amp;lt;/div&amp;gt;`
+
+**Example 2**: Decode HTML entities back to readable text.
+- Input: `&amp;copy; 2024 Company &amp;amp; Partners`
+- Output: `© 2024 Company &amp; Partners`
+
+**Example 3**: Encode non-ASCII characters for maximum compatibility.
+- Input: `Café résumé naïve`
+- Output: `Caf&amp;#233; r&amp;#233;sum&amp;#233; na&amp;#239;ve`</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_HowToSteps" xml:space="preserve">
+    <value>### Step 1: Enter Your Text
+Type or paste the text you want to encode or decode into the input field.
+
+### Step 2: Configure Settings
+Select the encoding mode:
+- **Special characters only**: Encodes only &amp;, &lt;, &gt;, &quot;, and '
+- **Non-ASCII only**: Encodes only characters above 127 (extended Unicode)
+- **All characters**: Encodes both special and non-ASCII characters
+
+Choose the entity format:
+- **Named**: Uses entity names like &amp;amp;, &amp;lt;, &amp;gt;
+- **Decimal**: Uses decimal numbers like &amp;#38;, &amp;#60;, &amp;#62;
+- **Hexadecimal**: Uses hex numbers like &amp;#x26;, &amp;#x3C;, &amp;#x3E;
+
+### Step 3: Process and Copy
+Click "Encode to HTML" or "Decode from HTML" button, then copy the results to your clipboard.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Tips" xml:space="preserve">
+    <value>- All processing happens in your browser for maximum privacy
+- Use special characters mode for basic HTML escaping
+- Use non-ASCII mode when working with international text
+- Named entities are most readable; numeric entities support all Unicode characters
+- The tool automatically detects and handles both named and numeric entities when decoding</value>
+  </data>
   <!-- SEO Content: Hex Encoder -->
   <data name="HexEncoder_Seo_Introduction" xml:space="preserve">
     <value>The Hex Encoder is a privacy-first online tool designed for developers. All processing happens locally in your browser using WebAssembly, ensuring your data never leaves your device.</value>

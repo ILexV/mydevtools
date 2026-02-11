@@ -2000,6 +2000,132 @@
 - 진행률 추적 기능이 있는 대용량 파일을 지원합니다</value>
   </data>
 
+  <!-- HTML Entity Encoder (ko) -->
+  <data name="HtmlEntityEncoder_Title" xml:space="preserve">
+    <value>HTML 엔티티 인코더 / 디코더</value>
+  </data>
+  <data name="HtmlEntityEncoder_Description" xml:space="preserve">
+    <value>특수 문자를 HTML 엔티티로 인코딩하고 디코딩합니다. 명명된, 10진수, 16진수 형식을 지원합니다.</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputTitle" xml:space="preserve">
+    <value>입력 및 설정</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputLabel" xml:space="preserve">
+    <value>인코딩/디코딩할 텍스트</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputPlaceholder" xml:space="preserve">
+    <value>여기에 텍스트를 입력하거나 붙여넣으세요...</value>
+  </data>
+  <data name="HtmlEntityEncoder_OutputTitle" xml:space="preserve">
+    <value>출력</value>
+  </data>
+  <data name="HtmlEntityEncoder_SettingsTitle" xml:space="preserve">
+    <value>설정</value>
+  </data>
+  <data name="HtmlEntityEncoder_ModeLabel" xml:space="preserve">
+    <value>인코딩 모드</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_All" xml:space="preserve">
+    <value>모든 문자 (특수 문자 + 비 ASCII)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_SpecialChars" xml:space="preserve">
+    <value>특수 문자만 (&amp; &lt; &gt; " ')</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_NonAscii" xml:space="preserve">
+    <value>비 ASCII 문자만</value>
+  </data>
+  <data name="HtmlEntityEncoder_FormatLabel" xml:space="preserve">
+    <value>엔티티 형식</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Named" xml:space="preserve">
+    <value>명명된 (&amp;amp;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Decimal" xml:space="preserve">
+    <value>10진수 (&amp;#38;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Hex" xml:space="preserve">
+    <value>16진수 (&amp;#x26;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionEncode" xml:space="preserve">
+    <value>HTML로 인코딩</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionDecode" xml:space="preserve">
+    <value>HTML에서 디코딩</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionSwap" xml:space="preserve">
+    <value>교환</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionClear" xml:space="preserve">
+    <value>지우기</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copy" xml:space="preserve">
+    <value>복사</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copied" xml:space="preserve">
+    <value>복사됨!</value>
+  </data>
+  <data name="HtmlEntityEncoder_OtherFormats" xml:space="preserve">
+    <value>다른 형식:</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkUrl" xml:space="preserve">
+    <value>URL 인코더</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkBase64" xml:space="preserve">
+    <value>Base64</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkHex" xml:space="preserve">
+    <value>Hex</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkXml" xml:space="preserve">
+    <value>XML 뷰티파이어</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Introduction" xml:space="preserve">
+    <value>HTML 엔티티 인코더는 개발자와 웹 디자이너를 위한 개인정보 보호 중심 도구입니다. 모든 처리는 브라우저에서 로컬로 수행되며 데이터는 기기를 떠나지 않습니다.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_DetailedDescription" xml:space="preserve">
+    <value>이 도구는 특수 문자를 HTML 엔티티로 인코딩하고 디코딩하는 완전한 기능을 제공합니다. 명명된 엔티티 (&amp;amp;), 10진수 참조 (&amp;#38;), 16진수 참조 (&amp;#x26;) 등 여러 형식을 지원합니다.
+
+인터페이스는 효율성과 사용 편의성을 위해 설계되었으며 특수 문자만, 비 ASCII 문자만 또는 모든 문자를 인코딩하는 옵션이 있습니다. 모든 작업은 클라이언트 측에서 수행되어 데이터의 완전한 개인정보 보호와 보안을 보장합니다.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Examples" xml:space="preserve">
+    <value>**예제 1**: 웹 페이지에서 안전하게 표시하기 위한 HTML 특수 문자 인코딩.
+- 입력: `&lt;div class="example"&gt;Hello &amp; Welcome!&lt;/div&gt;`
+- 출력: `&amp;lt;div class=&amp;quot;example&amp;quot;&amp;gt;Hello &amp;amp; Welcome!&amp;lt;/div&amp;gt;`
+
+**예제 2**: HTML 엔티티를 읽을 수 있는 텍스트로 디코딩.
+- 입력: `&amp;copy; 2024 Company &amp;amp; Partners`
+- 출력: `© 2024 Company &amp; Partners`
+
+**예제 3**: 최대 호환성을 위한 비 ASCII 문자 인코딩.
+- 입력: `Café résumé naïve`
+- 출력: `Caf&amp;#233; r&amp;#233;sum&amp;#233; na&amp;#239;ve`</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_HowToSteps" xml:space="preserve">
+    <value>### 1단계: 텍스트 입력
+입력 필드에 인코딩하거나 디코딩할 텍스트를 입력하거나 붙여넣으세요.
+
+### 2단계: 설정 구성
+인코딩 모드를 선택하세요:
+- **특수 문자만**: &amp;, &lt;, &gt;, &quot;, '만 인코딩
+- **비 ASCII만**: 127보다 큰 문자만 인코딩 (확장 Unicode)
+- **모든 문자**: 특수 문자와 비 ASCII 문자 모두 인코딩
+
+엔티티 형식을 선택하세요:
+- **명명된**: &amp;amp;, &amp;lt;, &amp;gt; 등의 엔티티 이름 사용
+- **10진수**: &amp;#38;, &amp;#60;, &amp;#62; 등의 10진수 사용
+- **16진수**: &amp;#x26;, &amp;#x3C;, &amp;#x3E; 등의 16진수 사용
+
+### 3단계: 처리 및 복사
+"HTML로 인코딩" 또는 "HTML에서 디코딩" 버튼을 클릭한 후 결과를 클립보드에 복사하세요.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Tips" xml:space="preserve">
+    <value>- 모든 처리는 브라우저에서 수행되어 최대한의 개인정보 보호 제공
+- 기본 HTML 이스케이프에는 특수 문자 모드 사용
+- 국제 텍스트 작업 시 비 ASCII 모드 사용
+- 명명된 엔티티가 가장 읽기 쉬움. 숫자 엔티티는 모든 Unicode 문자 지원
+- 디코딩 시 도구는 자동으로 명명된 및 숫자 엔티티 모두를 감지하고 처리</value>
+  </data>
+
 <!-- SEO Content: Hex Encoder (ko) -->
   <data name="HexEncoder_Seo_Introduction" xml:space="preserve">
     <value>Hex Encoder 도구는 개발자를 위해 설계된 개인정보 보호 중심 온라인 도구입니다. 모든 처리는 WebAssembly를 사용하여 브라우저에서 로컬로 수행되므로 데이터가 장치를 벗어나지 않습니다.</value>

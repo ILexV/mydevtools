@@ -164,7 +164,8 @@
             new("yaml-beautifier-validator", "📄", AppStrings.YamlBeautifierValidator_Title, AppStrings.YamlBeautifierValidator_Description),
             new("qr-scanner", "📷", AppStrings.QrScanner_Title, AppStrings.QrScanner_Description),
             new("pdf-merger", "📑", AppStrings.PdfMerger_Title, AppStrings.PdfMerger_Description),
-            new("pdf-compressor", "📉", AppStrings.PdfCompressor_Title, AppStrings.PdfCompressor_Description)
+            new("pdf-compressor", "📉", AppStrings.PdfCompressor_Title, AppStrings.PdfCompressor_Description),
+            new("html-entity-encoder", "&lt;/&gt;", AppStrings.HtmlEntityEncoder_Title, AppStrings.HtmlEntityEncoder_Description)
         };
   }
 
@@ -201,7 +202,8 @@
                 tools.First(t => t.Slug == "base32-encoder"),
                 tools.First(t => t.Slug == "base58-encoder"),
                 tools.First(t => t.Slug == "hex-encoder"),
-                tools.First(t => t.Slug == "url-encoder")
+                tools.First(t => t.Slug == "url-encoder"),
+                tools.First(t => t.Slug == "html-entity-encoder")
             }),
             new("structured-data", AppStrings.Category_StructuredData, new[]
             {

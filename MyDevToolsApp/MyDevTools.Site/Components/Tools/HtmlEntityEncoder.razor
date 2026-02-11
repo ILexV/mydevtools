@@ -1,0 +1,143 @@
+@page "/{lang}/html-entity-encoder"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<ToolLayout Title="@AppStrings.HtmlEntityEncoder_Title" Description="@AppStrings.HtmlEntityEncoder_Description">
+    <MetaTags Title="@AppStrings.HtmlEntityEncoder_Title"
+              Description="@AppStrings.HtmlEntityEncoder_Description"
+              CurrentUrl="@Navigation.Uri"
+              ToolPath="html-entity-encoder" />
+
+    <div id="html-entity-encoder-root"
+         class="grid grid-cols-1 lg:grid-cols-2 gap-6"
+         data-error="@AppStrings.Common_Error"
+         data-copied="@AppStrings.HtmlEntityEncoder_Copied">
+
+        <!-- Input Card -->
+        <div class="card bg-base-200 shadow-xl h-fit">
+            <div class="card-body">
+                <h2 class="card-title text-base opacity-70 mb-4">@AppStrings.HtmlEntityEncoder_InputTitle</h2>
+
+                <!-- Text Input -->
+                <div class="form-control">
+                    <label class="label" for="html-input">
+                        <span class="label-text font-semibold">@AppStrings.HtmlEntityEncoder_InputLabel</span>
+                    </label>
+                    <textarea id="html-input" class="textarea textarea-bordered h-48 font-mono text-sm" placeholder="@AppStrings.HtmlEntityEncoder_InputPlaceholder"></textarea>
+                </div>
+
+                <!-- Settings -->
+                <div class="collapse collapse-arrow bg-base-100 border border-base-300 rounded-box mt-4">
+                    <input type="checkbox" checked /> 
+                    <div class="collapse-title font-medium text-sm">
+                        @AppStrings.HtmlEntityEncoder_SettingsTitle
+                    </div>
+                    <div class="collapse-content">
+                        <div class="grid grid-cols-1 gap-4 pt-2">
+                            <!-- Mode -->
+                            <div class="form-control w-full">
+                                <label class="label py-1" for="html-mode">
+                                    <span class="label-text text-xs">@AppStrings.HtmlEntityEncoder_ModeLabel</span>
+                                </label>
+                                <select id="html-mode" class="select select-bordered select-sm w-full">
+                                    <option value="all">@AppStrings.HtmlEntityEncoder_Mode_All</option>
+                                    <option value="specialchars">@AppStrings.HtmlEntityEncoder_Mode_SpecialChars</option>
+                                    <option value="nonascii">@AppStrings.HtmlEntityEncoder_Mode_NonAscii</option>
+                                </select>
+                            </div>
+
+                            <!-- Format -->
+                            <div class="form-control w-full">
+                                <label class="label py-1" for="html-format">
+                                    <span class="label-text text-xs">@AppStrings.HtmlEntityEncoder_FormatLabel</span>
+                                </label>
+                                <select id="html-format" class="select select-bordered select-sm w-full">
+                                    <option value="named">@AppStrings.HtmlEntityEncoder_Format_Named</option>
+                                    <option value="decimal">@AppStrings.HtmlEntityEncoder_Format_Decimal</option>
+                                    <option value="hex">@AppStrings.HtmlEntityEncoder_Format_Hex</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="card-actions mt-6 grid grid-cols-2 gap-4">
+                    <button class="btn btn-primary" id="html-encode-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                        @AppStrings.HtmlEntityEncoder_ActionEncode
+                    </button>
+                    <button class="btn btn-secondary" id="html-decode-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        @AppStrings.HtmlEntityEncoder_ActionDecode
+                    </button>
+                </div>
+                
+                <div class="flex justify-between mt-2">
+                     <button class="btn btn-ghost btn-sm text-error" id="html-clear-btn">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                         @AppStrings.HtmlEntityEncoder_ActionClear
+                     </button>
+                     <button class="btn btn-ghost btn-sm" id="html-swap-btn">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
+                         @AppStrings.HtmlEntityEncoder_ActionSwap
+                     </button>
+                </div>
+                
+                <div class="alert alert-error shadow-lg mt-4 hidden" id="html-error"></div>
+            </div>
+        </div>
+
+        <!-- Output Card -->
+        <div class="card bg-base-200 shadow-xl h-fit">
+            <div class="card-body">
+                <h2 class="card-title text-base opacity-70 mb-4">@AppStrings.HtmlEntityEncoder_OutputTitle</h2>
+                
+                <div class="form-control h-full">
+                    <textarea id="html-output" class="textarea textarea-bordered h-[500px] font-mono text-sm leading-relaxed" readonly></textarea>
+                </div>
+                
+                <div class="card-actions justify-between items-center mt-4">
+                    <div class="text-xs opacity-50"></div>
+                    <div class="flex gap-2">
+                        <button class="btn btn-ghost btn-sm" id="html-copy-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                            @AppStrings.HtmlEntityEncoder_Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Related Links -->
+        <div class="col-span-1 lg:col-span-2 mt-4">
+            <div class="flex flex-wrap gap-3 justify-center items-center opacity-70 text-sm">
+                <span class="font-bold">@AppStrings.HtmlEntityEncoder_OtherFormats</span>
+                <a class="link link-hover" href="/@Lang/url-encoder">@AppStrings.HtmlEntityEncoder_LinkUrl</a>
+                <span class="opacity-30">|</span>
+                <a class="link link-hover" href="/@Lang/base64-encoder">@AppStrings.HtmlEntityEncoder_LinkBase64</a>
+                <span class="opacity-30">|</span>
+                <a class="link link-hover" href="/@Lang/hex-encoder">@AppStrings.HtmlEntityEncoder_LinkHex</a>
+                <span class="opacity-30">|</span>
+                <a class="link link-hover" href="/@Lang/xml-beautifier">@AppStrings.HtmlEntityEncoder_LinkXml</a>
+            </div>
+        </div>
+
+    </div>
+
+    <ToolSeoContent 
+        Introduction="@AppStrings.HtmlEntityEncoder_Seo_Introduction"
+        DetailedDescription="@AppStrings.HtmlEntityEncoder_Seo_DetailedDescription"
+        DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
+        Examples="@AppStrings.HtmlEntityEncoder_Seo_Examples"
+        ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
+        HowToSteps="@AppStrings.HtmlEntityEncoder_Seo_HowToSteps"
+        HowToTitle="@AppStrings.Seo_HowToTitle"
+        Tips="@AppStrings.HtmlEntityEncoder_Seo_Tips"
+        TipsTitle="@AppStrings.Seo_TipsTitle" />
+</ToolLayout>
+
+@code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

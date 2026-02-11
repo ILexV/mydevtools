@@ -2000,6 +2000,132 @@
 - Поддерживаются большие файлы с отслеживанием прогресса</value>
   </data>
 
+  <!-- HTML Entity Encoder (ru) -->
+  <data name="HtmlEntityEncoder_Title" xml:space="preserve">
+    <value>HTML Entity Encoder / Decoder</value>
+  </data>
+  <data name="HtmlEntityEncoder_Description" xml:space="preserve">
+    <value>Кодируйте специальные символы в HTML-сущности и обратно. Поддерживает именованный, десятичный и шестнадцатеричный форматы.</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputTitle" xml:space="preserve">
+    <value>Ввод и настройки</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputLabel" xml:space="preserve">
+    <value>Текст для кодирования/декодирования</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputPlaceholder" xml:space="preserve">
+    <value>Введите или вставьте текст здесь...</value>
+  </data>
+  <data name="HtmlEntityEncoder_OutputTitle" xml:space="preserve">
+    <value>Результат</value>
+  </data>
+  <data name="HtmlEntityEncoder_SettingsTitle" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="HtmlEntityEncoder_ModeLabel" xml:space="preserve">
+    <value>Режим кодирования</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_All" xml:space="preserve">
+    <value>Все символы (специальные + не-ASCII)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_SpecialChars" xml:space="preserve">
+    <value>Только специальные символы (&amp; &lt; &gt; " ')</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_NonAscii" xml:space="preserve">
+    <value>Только не-ASCII символы</value>
+  </data>
+  <data name="HtmlEntityEncoder_FormatLabel" xml:space="preserve">
+    <value>Формат сущностей</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Named" xml:space="preserve">
+    <value>Именованный (&amp;amp;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Decimal" xml:space="preserve">
+    <value>Десятичный (&amp;#38;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Hex" xml:space="preserve">
+    <value>Шестнадцатеричный (&amp;#x26;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionEncode" xml:space="preserve">
+    <value>Закодировать в HTML</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionDecode" xml:space="preserve">
+    <value>Декодировать из HTML</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionSwap" xml:space="preserve">
+    <value>Поменять местами</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionClear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copied" xml:space="preserve">
+    <value>Скопировано!</value>
+  </data>
+  <data name="HtmlEntityEncoder_OtherFormats" xml:space="preserve">
+    <value>Другие форматы:</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkUrl" xml:space="preserve">
+    <value>URL Encoder</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkBase64" xml:space="preserve">
+    <value>Base64</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkHex" xml:space="preserve">
+    <value>Hex</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkXml" xml:space="preserve">
+    <value>XML Beautifier</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Introduction" xml:space="preserve">
+    <value>HTML Entity Encoder — это инструмент для разработчиков и веб-дизайнеров с приоритетом на конфиденциальность. Вся обработка выполняется локально в вашем браузере, данные никогда не покидают ваше устройство.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_DetailedDescription" xml:space="preserve">
+    <value>Этот инструмент предоставляет полноценный функционал для кодирования специальных символов в HTML-сущности и обратного декодирования. Поддерживаются несколько форматов: именованные сущности (&amp;amp;), десятичные числовые ссылки (&amp;#38;) и шестнадцатеричные ссылки (&amp;#x26;).
+
+Интерфейс разработан для эффективности и удобства использования с возможностью кодирования только специальных символов, только не-ASCII символов или всех символов. Все операции выполняются на стороне клиента, гарантируя полную приватность и безопасность ваших данных.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Examples" xml:space="preserve">
+    <value>**Пример 1**: Кодирование специальных HTML-символов для безопасного отображения на веб-страницах.
+- Ввод: `&lt;div class="example"&gt;Hello &amp; Welcome!&lt;/div&gt;`
+- Вывод: `&amp;lt;div class=&amp;quot;example&amp;quot;&amp;gt;Hello &amp;amp; Welcome!&amp;lt;/div&amp;gt;`
+
+**Пример 2**: Декодирование HTML-сущностей обратно в читаемый текст.
+- Ввод: `&amp;copy; 2024 Company &amp;amp; Partners`
+- Вывод: `© 2024 Company &amp; Partners`
+
+**Пример 3**: Кодирование не-ASCII символов для максимальной совместимости.
+- Ввод: `Кафе "Молоко"`
+- Вывод: `&#1050;&#1072;&#1092;&#1077; &quot;&#1052;&#1086;&#1083;&#1086;&#1082;&#1086;&quot;`</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_HowToSteps" xml:space="preserve">
+    <value>### Шаг 1: Введите текст
+Наберите или вставьте текст, который хотите закодировать или декодировать, в поле ввода.
+
+### Шаг 2: Настройте параметры
+Выберите режим кодирования:
+- **Только специальные символы**: Кодирует только &amp;, &lt;, &gt;, &quot; и '
+- **Только не-ASCII**: Кодирует только символы выше 127 (расширенный Unicode)
+- **Все символы**: Кодирует и специальные, и не-ASCII символы
+
+Выберите формат сущностей:
+- **Именованный**: Использует имена сущностей типа &amp;amp;, &amp;lt;, &amp;gt;
+- **Десятичный**: Использует десятичные числа типа &amp;#38;, &amp;#60;, &amp;#62;
+- **Шестнадцатеричный**: Использует шестнадцатеричные числа типа &amp;#x26;, &amp;#x3C;, &amp;#x3E;
+
+### Шаг 3: Обработайте и скопируйте
+Нажмите кнопку "Закодировать в HTML" или "Декодировать из HTML", затем скопируйте результат в буфер обмена.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Tips" xml:space="preserve">
+    <value>- Вся обработка происходит в вашем браузере для максимальной приватности
+- Используйте режим специальных символов для базового экранирования HTML
+- Используйте режим не-ASCII при работе с международным текстом
+- Именованные сущности наиболее читаемы; числовые поддерживают все символы Unicode
+- Инструмент автоматически определяет и обрабатывает как именованные, так и числовые сущности при декодировании</value>
+  </data>
+
 <!-- SEO Content: Hex Encoder (ru) -->
   <data name="HexEncoder_Seo_Introduction" xml:space="preserve">
     <value>Инструмент Hex Encoder — это онлайн-инструмент, ориентированный на конфиденциальность, разработанный для разработчиков. Вся обработка происходит локально в вашем браузере с использованием WebAssembly, гарантируя, что ваши данные никогда не покидают ваше устройство.</value>

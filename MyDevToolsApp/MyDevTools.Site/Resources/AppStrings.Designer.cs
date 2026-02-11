@@ -7577,5 +7577,284 @@ namespace MyDevTools.Site.Resources {
                 return ResourceManager.GetString("Search_Results", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to HTML Entity Encoder / Decoder.
+        /// </summary>
+        public static string HtmlEntityEncoder_Title {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encode special characters to HTML entities and decode them back.
+        /// </summary>
+        public static string HtmlEntityEncoder_Description {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Input &amp; Settings.
+        /// </summary>
+        public static string HtmlEntityEncoder_InputTitle {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_InputTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Text to encode/decode.
+        /// </summary>
+        public static string HtmlEntityEncoder_InputLabel {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_InputLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type or paste your text here....
+        /// </summary>
+        public static string HtmlEntityEncoder_InputPlaceholder {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_InputPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Output.
+        /// </summary>
+        public static string HtmlEntityEncoder_OutputTitle {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_OutputTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Settings.
+        /// </summary>
+        public static string HtmlEntityEncoder_SettingsTitle {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_SettingsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encode mode.
+        /// </summary>
+        public static string HtmlEntityEncoder_ModeLabel {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_ModeLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All characters (special + non-ASCII).
+        /// </summary>
+        public static string HtmlEntityEncoder_Mode_All {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_Mode_All", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only special characters (&amp; &lt; &gt; &quot; &apos;).
+        /// </summary>
+        public static string HtmlEntityEncoder_Mode_SpecialChars {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_Mode_SpecialChars", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only non-ASCII characters.
+        /// </summary>
+        public static string HtmlEntityEncoder_Mode_NonAscii {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_Mode_NonAscii", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Entity format.
+        /// </summary>
+        public static string HtmlEntityEncoder_FormatLabel {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_FormatLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Named (&amp;amp;).
+        /// </summary>
+        public static string HtmlEntityEncoder_Format_Named {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_Format_Named", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Decimal (&amp;#38;).
+        /// </summary>
+        public static string HtmlEntityEncoder_Format_Decimal {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_Format_Decimal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hexadecimal (&amp;#x26;).
+        /// </summary>
+        public static string HtmlEntityEncoder_Format_Hex {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_Format_Hex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encode to HTML.
+        /// </summary>
+        public static string HtmlEntityEncoder_ActionEncode {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_ActionEncode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Decode from HTML.
+        /// </summary>
+        public static string HtmlEntityEncoder_ActionDecode {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_ActionDecode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Swap.
+        /// </summary>
+        public static string HtmlEntityEncoder_ActionSwap {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_ActionSwap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear.
+        /// </summary>
+        public static string HtmlEntityEncoder_ActionClear {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_ActionClear", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy.
+        /// </summary>
+        public static string HtmlEntityEncoder_Copy {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_Copy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copied!.
+        /// </summary>
+        public static string HtmlEntityEncoder_Copied {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_Copied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Other formats:.
+        /// </summary>
+        public static string HtmlEntityEncoder_OtherFormats {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_OtherFormats", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to URL Encoder.
+        /// </summary>
+        public static string HtmlEntityEncoder_LinkUrl {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_LinkUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Base64.
+        /// </summary>
+        public static string HtmlEntityEncoder_LinkBase64 {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_LinkBase64", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hex.
+        /// </summary>
+        public static string HtmlEntityEncoder_LinkHex {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_LinkHex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to XML Beautifier.
+        /// </summary>
+        public static string HtmlEntityEncoder_LinkXml {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_LinkXml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Introduction.
+        /// </summary>
+        public static string HtmlEntityEncoder_Seo_Introduction {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_Seo_Introduction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Detailed Description.
+        /// </summary>
+        public static string HtmlEntityEncoder_Seo_DetailedDescription {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_Seo_DetailedDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Examples.
+        /// </summary>
+        public static string HtmlEntityEncoder_Seo_Examples {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_Seo_Examples", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to How to use.
+        /// </summary>
+        public static string HtmlEntityEncoder_Seo_HowToSteps {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_Seo_HowToSteps", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tips.
+        /// </summary>
+        public static string HtmlEntityEncoder_Seo_Tips {
+            get {
+                return ResourceManager.GetString("HtmlEntityEncoder_Seo_Tips", resourceCulture);
+            }
+        }
     }
 }

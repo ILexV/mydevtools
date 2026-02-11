@@ -2000,6 +2000,132 @@ Clique no botão de ação para processar sua entrada e copie os resultados para
 - Arquivos grandes são suportados com rastreamento de progresso</value>
   </data>
 
+  <!-- HTML Entity Encoder (pt) -->
+  <data name="HtmlEntityEncoder_Title" xml:space="preserve">
+    <value>HTML Entity Encoder / Decoder</value>
+  </data>
+  <data name="HtmlEntityEncoder_Description" xml:space="preserve">
+    <value>Codifique caracteres especiais em entidades HTML e vice-versa. Suporta formatos nomeados, decimais e hexadecimais.</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputTitle" xml:space="preserve">
+    <value>Entrada &amp; Configurações</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputLabel" xml:space="preserve">
+    <value>Texto para codificar/decodificar</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputPlaceholder" xml:space="preserve">
+    <value>Digite ou cole seu texto aqui...</value>
+  </data>
+  <data name="HtmlEntityEncoder_OutputTitle" xml:space="preserve">
+    <value>Resultado</value>
+  </data>
+  <data name="HtmlEntityEncoder_SettingsTitle" xml:space="preserve">
+    <value>Configurações</value>
+  </data>
+  <data name="HtmlEntityEncoder_ModeLabel" xml:space="preserve">
+    <value>Modo de codificação</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_All" xml:space="preserve">
+    <value>Todos os caracteres (especiais + não-ASCII)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_SpecialChars" xml:space="preserve">
+    <value>Apenas caracteres especiais (&amp; &lt; &gt; " ')</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_NonAscii" xml:space="preserve">
+    <value>Apenas caracteres não-ASCII</value>
+  </data>
+  <data name="HtmlEntityEncoder_FormatLabel" xml:space="preserve">
+    <value>Formato de entidades</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Named" xml:space="preserve">
+    <value>Nomeado (&amp;amp;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Decimal" xml:space="preserve">
+    <value>Decimal (&amp;#38;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Hex" xml:space="preserve">
+    <value>Hexadecimal (&amp;#x26;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionEncode" xml:space="preserve">
+    <value>Codificar para HTML</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionDecode" xml:space="preserve">
+    <value>Decodificar de HTML</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionSwap" xml:space="preserve">
+    <value>Trocar</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionClear" xml:space="preserve">
+    <value>Limpar</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copied" xml:space="preserve">
+    <value>Copiado!</value>
+  </data>
+  <data name="HtmlEntityEncoder_OtherFormats" xml:space="preserve">
+    <value>Outros formatos:</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkUrl" xml:space="preserve">
+    <value>URL Encoder</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkBase64" xml:space="preserve">
+    <value>Base64</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkHex" xml:space="preserve">
+    <value>Hex</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkXml" xml:space="preserve">
+    <value>XML Beautifier</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Introduction" xml:space="preserve">
+    <value>O HTML Entity Encoder é uma ferramenta focada em privacidade para desenvolvedores e designers web. Todo o processamento é feito localmente no seu navegador, os dados nunca saem do seu dispositivo.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_DetailedDescription" xml:space="preserve">
+    <value>Esta ferramenta fornece funcionalidade completa para codificar caracteres especiais em entidades HTML e decodificá-los. Suporta vários formatos: entidades nomeadas (&amp;amp;), referências numéricas decimais (&amp;#38;) e referências hexadecimais (&amp;#x26;).
+
+A interface é projetada para eficiência e facilidade de uso, com opções para codificar apenas caracteres especiais, apenas caracteres não-ASCII, ou todos os caracteres. Todas as operações são realizadas no lado do cliente, garantindo privacidade e segurança completas para seus dados.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Examples" xml:space="preserve">
+    <value>**Exemplo 1**: Codificação de caracteres HTML especiais para exibição segura em páginas web.
+- Entrada: `&lt;div class="example"&gt;Hello &amp; Welcome!&lt;/div&gt;`
+- Saída: `&amp;lt;div class=&amp;quot;example&amp;quot;&amp;gt;Hello &amp;amp; Welcome!&amp;lt;/div&amp;gt;`
+
+**Exemplo 2**: Decodificação de entidades HTML de volta para texto legível.
+- Entrada: `&amp;copy; 2024 Company &amp;amp; Partners`
+- Saída: `© 2024 Company &amp; Partners`
+
+**Exemplo 3**: Codificação de caracteres não-ASCII para máxima compatibilidade.
+- Entrada: `Café résumé naïve`
+- Saída: `Caf&amp;#233; r&amp;#233;sum&amp;#233; na&amp;#239;ve`</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_HowToSteps" xml:space="preserve">
+    <value>### Passo 1: Digite seu texto
+Digite ou cole o texto que deseja codificar ou decodificar no campo de entrada.
+
+### Passo 2: Configure as opções
+Selecione o modo de codificação:
+- **Apenas caracteres especiais**: Codifica apenas &amp;, &lt;, &gt;, &quot; e '
+- **Apenas não-ASCII**: Codifica apenas caracteres acima de 127 (Unicode estendido)
+- **Todos os caracteres**: Codifica caracteres especiais e não-ASCII
+
+Escolha o formato de entidades:
+- **Nomeado**: Usa nomes de entidades como &amp;amp;, &amp;lt;, &amp;gt;
+- **Decimal**: Usa números decimais como &amp;#38;, &amp;#60;, &amp;#62;
+- **Hexadecimal**: Usa números hexadecimais como &amp;#x26;, &amp;#x3C;, &amp;#x3E;
+
+### Passo 3: Processe e copie
+Clique no botão "Codificar para HTML" ou "Decodificar de HTML", depois copie o resultado para a área de transferência.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Tips" xml:space="preserve">
+    <value>- Todo o processamento acontece no seu navegador para máxima privacidade
+- Use o modo de caracteres especiais para escape HTML básico
+- Use o modo não-ASCII ao trabalhar com texto internacional
+- Entidades nomeadas são mais legíveis; numéricas suportam todos os caracteres Unicode
+- A ferramenta detecta e processa automaticamente entidades nomeadas e numéricas ao decodificar</value>
+  </data>
+
 <!-- SEO Content: Hex Encoder (pt) -->
   <data name="HexEncoder_Seo_Introduction" xml:space="preserve">
     <value>A ferramenta Hex Encoder é uma ferramenta online focada em privacidade projetada para desenvolvedores. Todo o processamento acontece localmente no seu navegador usando WebAssembly, garantindo que seus dados nunca saiam do seu dispositivo.</value>

@@ -221,6 +221,10 @@
     {
         <script src="@Assets["tools/pdf-compressor.js"]"></script>
     }
+    @if (IsHtmlEntityEncoder)
+    {
+        <script src="@Assets["tools/html-entity-encoder.js"]"></script>
+    }
 </body>
 
 
@@ -256,6 +260,7 @@
     private bool IsYamlBeautifierValidator => CurrentPath.Contains("/yaml-beautifier-validator", StringComparison.OrdinalIgnoreCase);
     private bool IsPdfMerger => CurrentPath.Contains("/pdf-merger", StringComparison.OrdinalIgnoreCase);
     private bool IsPdfCompressor => CurrentPath.Contains("/pdf-compressor", StringComparison.OrdinalIgnoreCase);
+    private bool IsHtmlEntityEncoder => CurrentPath.Contains("/html-entity-encoder", StringComparison.OrdinalIgnoreCase);
     
     // CodeMirror is needed for JSON, XML, and YAML beautifiers
     private bool NeedsCodeMirror => IsJsonBeautifier || IsXmlBeautifier || IsYamlBeautifierValidator;

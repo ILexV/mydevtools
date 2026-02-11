@@ -2992,4 +2992,26 @@
 - Файлы не загружаются ни на какой сервер
 - Поддерживает одновременную обработку нескольких файлов</value>
   </data>
+  <!-- Search Tool -->
+  <data name="Search_Placeholder" xml:space="preserve">
+    <value>Поиск инструментов...</value>
+  </data>
+  <data name="Search_Tooltip" xml:space="preserve">
+    <value>Поиск инструментов (Ctrl+K)</value>
+  </data>
+  <data name="Search_NoResults" xml:space="preserve">
+    <value>Инструменты не найдены</value>
+  </data>
+  <data name="Search_PopularTools" xml:space="preserve">
+    <value>Популярные инструменты</value>
+  </data>
+  <data name="Search_Navigate" xml:space="preserve">
+    <value>для навигации</value>
+  </data>
+  <data name="Search_Select" xml:space="preserve">
+    <value>для выбора</value>
+  </data>
+  <data name="Search_Results" xml:space="preserve">
+    <value>результатов</value>
+  </data>
 </root>

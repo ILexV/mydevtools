@@ -2992,4 +2992,26 @@ PDF ファイルをツールにドラッグ＆ドロップするか、アップ�
 - ファイルがサーバーにアップロードされることはありません
 - 複数のファイルの同時処理をサポートしています</value>
   </data>
+  <!-- Search Tool -->
+  <data name="Search_Placeholder" xml:space="preserve">
+    <value>ツールを検索...</value>
+  </data>
+  <data name="Search_Tooltip" xml:space="preserve">
+    <value>ツールを検索 (Ctrl+K)</value>
+  </data>
+  <data name="Search_NoResults" xml:space="preserve">
+    <value>ツールが見つかりません</value>
+  </data>
+  <data name="Search_PopularTools" xml:space="preserve">
+    <value>人気のツール</value>
+  </data>
+  <data name="Search_Navigate" xml:space="preserve">
+    <value>移動</value>
+  </data>
+  <data name="Search_Select" xml:space="preserve">
+    <value>選択</value>
+  </data>
+  <data name="Search_Results" xml:space="preserve">
+    <value>件の結果</value>
+  </data>
 </root>

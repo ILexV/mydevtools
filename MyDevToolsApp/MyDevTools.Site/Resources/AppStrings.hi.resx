@@ -2992,4 +2992,26 @@
 - फ़ाइलें किसी भी सर्वर पर अपलोड नहीं की जाती हैं
 - एक साथ कई फ़ाइलों के प्रोसेसिंग का समर्थन करता है</value>
   </data>
+  <!-- Search Tool -->
+  <data name="Search_Placeholder" xml:space="preserve">
+    <value>टूल खोजें...</value>
+  </data>
+  <data name="Search_Tooltip" xml:space="preserve">
+    <value>टूल खोजें (Ctrl+K)</value>
+  </data>
+  <data name="Search_NoResults" xml:space="preserve">
+    <value>कोई टूल नहीं मिला</value>
+  </data>
+  <data name="Search_PopularTools" xml:space="preserve">
+    <value>लोकप्रिय टूल्स</value>
+  </data>
+  <data name="Search_Navigate" xml:space="preserve">
+    <value>नेविगेट करने के लिए</value>
+  </data>
+  <data name="Search_Select" xml:space="preserve">
+    <value>चुनने के लिए</value>
+  </data>
+  <data name="Search_Results" xml:space="preserve">
+    <value>परिणाम</value>
+  </data>
 </root>

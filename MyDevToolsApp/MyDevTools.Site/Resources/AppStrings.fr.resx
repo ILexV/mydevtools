@@ -2992,4 +2992,26 @@ Une fois compressés, cliquez sur le bouton "Télécharger" à côté de chaque 
 - Les fichiers ne sont téléchargés sur aucun serveur
 - Prise en charge du traitement de plusieurs fichiers à la fois</value>
   </data>
+  <!-- Search Tool -->
+  <data name="Search_Placeholder" xml:space="preserve">
+    <value>Rechercher des outils...</value>
+  </data>
+  <data name="Search_Tooltip" xml:space="preserve">
+    <value>Rechercher des outils (Ctrl+K)</value>
+  </data>
+  <data name="Search_NoResults" xml:space="preserve">
+    <value>Aucun outil trouvé</value>
+  </data>
+  <data name="Search_PopularTools" xml:space="preserve">
+    <value>Outils populaires</value>
+  </data>
+  <data name="Search_Navigate" xml:space="preserve">
+    <value>pour naviguer</value>
+  </data>
+  <data name="Search_Select" xml:space="preserve">
+    <value>pour sélectionner</value>
+  </data>
+  <data name="Search_Results" xml:space="preserve">
+    <value>résultats</value>
+  </data>
 </root>

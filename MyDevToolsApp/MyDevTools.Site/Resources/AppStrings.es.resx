@@ -2992,4 +2992,26 @@ Una vez comprimidos, haga clic en el botón "Descargar" junto a cada archivo par
 - Los archivos no se suben a ningún servidor
 - Soporta el procesamiento de múltiples archivos a la vez</value>
   </data>
+  <!-- Search Tool -->
+  <data name="Search_Placeholder" xml:space="preserve">
+    <value>Buscar herramientas...</value>
+  </data>
+  <data name="Search_Tooltip" xml:space="preserve">
+    <value>Buscar herramientas (Ctrl+K)</value>
+  </data>
+  <data name="Search_NoResults" xml:space="preserve">
+    <value>No se encontraron herramientas</value>
+  </data>
+  <data name="Search_PopularTools" xml:space="preserve">
+    <value>Herramientas populares</value>
+  </data>
+  <data name="Search_Navigate" xml:space="preserve">
+    <value>para navegar</value>
+  </data>
+  <data name="Search_Select" xml:space="preserve">
+    <value>para seleccionar</value>
+  </data>
+  <data name="Search_Results" xml:space="preserve">
+    <value>resultados</value>
+  </data>
 </root>

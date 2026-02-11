@@ -7514,5 +7514,68 @@ namespace MyDevTools.Site.Resources {
                 return ResourceManager.GetString("YamlBeautifierValidator_Validate", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search tools....
+        /// </summary>
+        public static string Search_Placeholder {
+            get {
+                return ResourceManager.GetString("Search_Placeholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search tools (Ctrl+K).
+        /// </summary>
+        public static string Search_Tooltip {
+            get {
+                return ResourceManager.GetString("Search_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No tools found.
+        /// </summary>
+        public static string Search_NoResults {
+            get {
+                return ResourceManager.GetString("Search_NoResults", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Popular Tools.
+        /// </summary>
+        public static string Search_PopularTools {
+            get {
+                return ResourceManager.GetString("Search_PopularTools", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to to navigate.
+        /// </summary>
+        public static string Search_Navigate {
+            get {
+                return ResourceManager.GetString("Search_Navigate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to to select.
+        /// </summary>
+        public static string Search_Select {
+            get {
+                return ResourceManager.GetString("Search_Select", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to results.
+        /// </summary>
+        public static string Search_Results {
+            get {
+                return ResourceManager.GetString("Search_Results", resourceCulture);
+            }
+        }
     }
 }

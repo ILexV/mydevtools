@@ -2992,4 +2992,26 @@ Klicken Sie nach der Komprimierung auf die Schaltfläche „Herunterladen“ neb
 - Dateien werden auf keinen Server hochgeladen
 - Unterstützt die gleichzeitige Verarbeitung mehrerer Dateien</value>
   </data>
+  <!-- Search Tool -->
+  <data name="Search_Placeholder" xml:space="preserve">
+    <value>Tools suchen...</value>
+  </data>
+  <data name="Search_Tooltip" xml:space="preserve">
+    <value>Tools suchen (Ctrl+K)</value>
+  </data>
+  <data name="Search_NoResults" xml:space="preserve">
+    <value>Keine Tools gefunden</value>
+  </data>
+  <data name="Search_PopularTools" xml:space="preserve">
+    <value>Beliebte Tools</value>
+  </data>
+  <data name="Search_Navigate" xml:space="preserve">
+    <value>zum Navigieren</value>
+  </data>
+  <data name="Search_Select" xml:space="preserve">
+    <value>zum Auswählen</value>
+  </data>
+  <data name="Search_Results" xml:space="preserve">
+    <value>Ergebnisse</value>
+  </data>
 </root>

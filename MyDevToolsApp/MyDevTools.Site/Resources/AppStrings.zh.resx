@@ -2992,4 +2992,26 @@
 - 文件不会上传到任何服务器
 - 支持一次处理多个文件</value>
   </data>
+  <!-- Search Tool -->
+  <data name="Search_Placeholder" xml:space="preserve">
+    <value>搜索工具...</value>
+  </data>
+  <data name="Search_Tooltip" xml:space="preserve">
+    <value>搜索工具 (Ctrl+K)</value>
+  </data>
+  <data name="Search_NoResults" xml:space="preserve">
+    <value>未找到工具</value>
+  </data>
+  <data name="Search_PopularTools" xml:space="preserve">
+    <value>热门工具</value>
+  </data>
+  <data name="Search_Navigate" xml:space="preserve">
+    <value>导航</value>
+  </data>
+  <data name="Search_Select" xml:space="preserve">
+    <value>选择</value>
+  </data>
+  <data name="Search_Results" xml:space="preserve">
+    <value>个结果</value>
+  </data>
 </root>

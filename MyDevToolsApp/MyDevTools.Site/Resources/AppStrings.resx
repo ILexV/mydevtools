@@ -2974,4 +2974,26 @@ Once compressed, click the "Download" button next to each file to save the optim
 - Files are not uploaded to any server
 - Supports multiple files processing at once</value>
   </data>
+  <!-- Search Tool -->
+  <data name="Search_Placeholder" xml:space="preserve">
+    <value>Search tools...</value>
+  </data>
+  <data name="Search_Tooltip" xml:space="preserve">
+    <value>Search tools (Ctrl+K)</value>
+  </data>
+  <data name="Search_NoResults" xml:space="preserve">
+    <value>No tools found</value>
+  </data>
+  <data name="Search_PopularTools" xml:space="preserve">
+    <value>Popular Tools</value>
+  </data>
+  <data name="Search_Navigate" xml:space="preserve">
+    <value>to navigate</value>
+  </data>
+  <data name="Search_Select" xml:space="preserve">
+    <value>to select</value>
+  </data>
+  <data name="Search_Results" xml:space="preserve">
+    <value>results</value>
+  </data>
 </root>

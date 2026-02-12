@@ -165,7 +165,8 @@
             new("qr-scanner", "📷", AppStrings.QrScanner_Title, AppStrings.QrScanner_Description),
             new("pdf-merger", "📑", AppStrings.PdfMerger_Title, AppStrings.PdfMerger_Description),
             new("pdf-compressor", "📉", AppStrings.PdfCompressor_Title, AppStrings.PdfCompressor_Description),
-            new("html-entity-encoder", "&lt;/&gt;", AppStrings.HtmlEntityEncoder_Title, AppStrings.HtmlEntityEncoder_Description)
+            new("html-entity-encoder", "&lt;/&gt;", AppStrings.HtmlEntityEncoder_Title, AppStrings.HtmlEntityEncoder_Description),
+            new("unit-converter", "📏", AppStrings.UnitConverter_Title, AppStrings.UnitConverter_Description)
         };
   }
 
@@ -245,6 +246,10 @@
             {
                 tools.First(t => t.Slug == "pdf-merger"),
                 tools.First(t => t.Slug == "pdf-compressor")
+            }),
+            new("converters", AppStrings.Category_Converters, new[]
+            {
+                tools.First(t => t.Slug == "unit-converter")
             })
         };
   }

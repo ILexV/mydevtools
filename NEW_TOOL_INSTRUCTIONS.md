@@ -123,9 +123,31 @@
 
 ---
 
+## 6. Добавление в поисковую систему (`ToolSearch.razor`)
+
+Чтобы инструмент был доступен через поиск по сайту, добавьте его в массив `window.searchData.tools` в файле `MyDevToolsApp/MyDevTools.Site/Components/Common/ToolSearch.razor`:
+
+```javascript
+{ 
+    slug: 'your-tool-slug', 
+    icon: '🎯', 
+    title: '@AppStrings.YourTool_Title', 
+    description: '@AppStrings.YourTool_Description', 
+    keywords: ['keyword1', 'keyword2', 'keyword3'] 
+}
+```
+
+**Важно:** Убедитесь, что:
+- `slug` совпадает с slug из Home.razor
+- `icon` - подходящий emoji (или HTML entity для спецсимволов)
+- `keywords` содержат релевантные поисковые термины на английском языке
+
+---
+
 ## Чек-лист проверки:
 1. [ ] Плитка видна на главной.
 2. [ ] Переключение языков (RU/EN/ES...) меняет весь текст, включая SEO-блок.
 3. [ ] Клик по кнопкам работает после перехода на страницу с главной (без F5).
 4. [ ] WASM загружается и корректно обрабатывает данные.
 5. [ ] В консоли браузера нет ошибок `null reference` при поиске элементов.
+6. [ ] Инструмент находится через поиск (Ctrl+K) по названию и ключевым словам.

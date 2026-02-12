@@ -3140,4 +3140,85 @@
   <data name="Search_Results" xml:space="preserve">
     <value>परिणाम</value>
   </data>
+  <!-- Unit Converter -->
+  <data name="UnitConverter_Title" xml:space="preserve">
+    <value>यूनिट कनवर्टर</value>
+  </data>
+  <data name="UnitConverter_Description" xml:space="preserve">
+    <value>विभिन्न मापन इकाइयों के बीच परिवर्तित करें: लंबाई, वजन, तापमान और आयतन — सभी गणनाएं आपके ब्राउज़र में होती हैं</value>
+  </data>
+  <data name="UnitConverter_CategoryLabel" xml:space="preserve">
+    <value>श्रेणी</value>
+  </data>
+  <data name="UnitConverter_Category_Length" xml:space="preserve">
+    <value>लंबाई</value>
+  </data>
+  <data name="UnitConverter_Category_Weight" xml:space="preserve">
+    <value>वजन</value>
+  </data>
+  <data name="UnitConverter_Category_Temperature" xml:space="preserve">
+    <value>तापमान</value>
+  </data>
+  <data name="UnitConverter_Category_Volume" xml:space="preserve">
+    <value>आयतन</value>
+  </data>
+  <data name="UnitConverter_FromLabel" xml:space="preserve">
+    <value>से</value>
+  </data>
+  <data name="UnitConverter_ToLabel" xml:space="preserve">
+    <value>तक</value>
+  </data>
+  <data name="UnitConverter_Swap" xml:space="preserve">
+    <value>इकाइयां बदलें</value>
+  </data>
+  <data name="UnitConverter_Copied" xml:space="preserve">
+    <value>कॉपी किया गया!</value>
+  </data>
+  <data name="UnitConverter_QuickConversions" xml:space="preserve">
+    <value>त्वरित रूपांतरण</value>
+  </data>
+  <data name="UnitConverter_CommonConversions" xml:space="preserve">
+    <value>सामान्य रूपांतरण</value>
+  </data>
+  <data name="UnitConverter_Formula" xml:space="preserve">
+    <value>रूपांतरण सूत्र</value>
+  </data>
+  <data name="UnitConverter_Seo_Introduction" xml:space="preserve">
+    <value>यूनिट कनवर्टर विभिन्न मापन इकाइयों के बीच परिवर्तन के लिए एक ऑनलाइन टूल है। सभी गणनाएं आपके ब्राउज़र में स्थानीय रूप से होती हैं, यह सुनिश्चित करते हुए कि आपका डेटा कभी भी आपके डिवाइस को नहीं छोड़ता।</value>
+  </data>
+  <data name="UnitConverter_Seo_DetailedDescription" xml:space="preserve">
+    <value>यह टूल चार श्रेणियों में मीट्रिक और इंपीरियल इकाइयों के बीच रूपांतरण का समर्थन करता है: लंबाई (मीटर, किलोमीटर, मील, फीट, इंच), वजन (किलोग्राम, ग्राम, पाउंड, औंस), तापमान (सेल्सियस, फारेनहाइट, केल्विन) और आयतन (लीटर, गैलन, कप, तरल औंस)।
+
+आधुनिक वेब तकनीकों के साथ निर्मित, यह बिना सर्वर प्रोसेसिंग के तत्काल परिणाम प्रदान करता है। इंटरफ़ेस सहज है और इकाइयों के बीच तेजी से स्विचिंग, परिणाम कॉपी करना और सामान्य रूपांतरण जोड़े देखने का समर्थन करता है।</value>
+  </data>
+  <data name="UnitConverter_Seo_Examples" xml:space="preserve">
+    <value>**उदाहरण 1**: यात्रा योजना के लिए 5 किलोमीटर को मील में बदलें।
+
+**उदाहरण 2**: व्यंजनों के माप को कप से मिलीलीटर में बदलें।
+
+**उदाहरण 3**: शरीर के तापमान को फारेनहाइट से सेल्सियस में बदलें।</value>
+  </data>
+  <data name="UnitConverter_Seo_HowToSteps" xml:space="preserve">
+    <value>### चरण 1: श्रेणी चुनें
+वह मापन प्रकार चुनें जिसे आप बदलना चाहते हैं: लंबाई, वजन, तापमान या आयतन।
+
+### चरण 2: मान दर्ज करें
+"से" फ़ील्ड में वह मान दर्ज करें जिसे आप बदलना चाहते हैं।
+
+### चरण 3: इकाइयां चुनें
+ड्रॉपडाउन मेनू से स्रोत और लक्ष्य इकाइयां चुनें।
+
+### चरण 4: परिणाम देखें
+परिवर्तित मान स्वचालित रूप से "तक" फ़ील्ड में दिखाई देगा। परिणाम कॉपी करने के लिए कॉपी बटन पर क्लिक करें।</value>
+  </data>
+  <data name="UnitConverter_Seo_Tips" xml:space="preserve">
+    <value>- सभी गणनाएं आपके ब्राउज़र में होती हैं ताकि अधिकतम गोपनीयता सुनिश्चित हो सके
+- रूपांतरण दिशा को जल्दी से बदलने के लिए स्वैप बटन का उपयोग करें
+- त्वरित रूपांतरण बटन अन्य सभी इकाइयों में समकक्ष मान दिखाते हैं
+- सामान्य रूपांतरण साइडबार उपयोगी संदर्भ मान प्रदान करता है
+- पेज के प्रारंभिक लोड के बाद ऑफ़लाइन काम करता है</value>
+  </data>
+  <data name="Category_Converters" xml:space="preserve">
+    <value>कनवर्टर</value>
+  </data>
 </root>

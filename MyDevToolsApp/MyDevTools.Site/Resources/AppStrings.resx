@@ -3052,6 +3052,9 @@ Click the "Merge PDF" button to process your files locally and download the resu
   <data name="Category_PdfTools" xml:space="preserve">
     <value>PDF Tools</value>
   </data>
+  <data name="Category_Converters" xml:space="preserve">
+    <value>Converters</value>
+  </data>
   <data name="PdfCompressor_Title" xml:space="preserve">
     <value>PDF Compressor</value>
   </data>
@@ -3120,5 +3123,83 @@ Once compressed, click the "Download" button next to each file to save the optim
   </data>
   <data name="Search_Results" xml:space="preserve">
     <value>results</value>
+  </data>
+  <!-- Unit Converter -->
+  <data name="UnitConverter_Title" xml:space="preserve">
+    <value>Unit Converter</value>
+  </data>
+  <data name="UnitConverter_Description" xml:space="preserve">
+    <value>Convert between various units of measurement including length, weight, temperature, and volume — all processing happens in your browser</value>
+  </data>
+  <data name="UnitConverter_CategoryLabel" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="UnitConverter_Category_Length" xml:space="preserve">
+    <value>Length</value>
+  </data>
+  <data name="UnitConverter_Category_Weight" xml:space="preserve">
+    <value>Weight</value>
+  </data>
+  <data name="UnitConverter_Category_Temperature" xml:space="preserve">
+    <value>Temperature</value>
+  </data>
+  <data name="UnitConverter_Category_Volume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="UnitConverter_FromLabel" xml:space="preserve">
+    <value>From</value>
+  </data>
+  <data name="UnitConverter_ToLabel" xml:space="preserve">
+    <value>To</value>
+  </data>
+  <data name="UnitConverter_Swap" xml:space="preserve">
+    <value>Swap units</value>
+  </data>
+  <data name="UnitConverter_Copied" xml:space="preserve">
+    <value>Copied!</value>
+  </data>
+  <data name="UnitConverter_QuickConversions" xml:space="preserve">
+    <value>Quick Conversions</value>
+  </data>
+  <data name="UnitConverter_CommonConversions" xml:space="preserve">
+    <value>Common Conversions</value>
+  </data>
+  <data name="UnitConverter_Formula" xml:space="preserve">
+    <value>Conversion Formula</value>
+  </data>
+  <data name="UnitConverter_Seo_Introduction" xml:space="preserve">
+    <value>The Unit Converter is a privacy-first online tool for converting between various units of measurement. All calculations happen locally in your browser, ensuring your data never leaves your device.</value>
+  </data>
+  <data name="UnitConverter_Seo_DetailedDescription" xml:space="preserve">
+    <value>This tool supports conversion between metric and imperial units across four categories: Length (meters, kilometers, miles, feet, inches), Weight (kilograms, grams, pounds, ounces), Temperature (Celsius, Fahrenheit, Kelvin), and Volume (liters, gallons, cups, fluid ounces).
+
+Built with modern web technologies, it delivers instant results without any server processing. The interface is intuitive and supports quick swapping between units, copying results, and viewing common conversion pairs.</value>
+  </data>
+  <data name="UnitConverter_Seo_Examples" xml:space="preserve">
+    <value>**Example 1**: Convert 5 kilometers to miles for travel planning.
+
+**Example 2**: Convert recipe measurements from cups to milliliters.
+
+**Example 3**: Convert body temperature from Fahrenheit to Celsius.</value>
+  </data>
+  <data name="UnitConverter_Seo_HowToSteps" xml:space="preserve">
+    <value>### Step 1: Select Category
+Choose the type of measurement you want to convert: Length, Weight, Temperature, or Volume.
+
+### Step 2: Enter Value
+Type the value you want to convert in the "From" field.
+
+### Step 3: Select Units
+Choose the source and target units from the dropdown menus.
+
+### Step 4: View Result
+The converted value appears automatically in the "To" field. Click the copy button to copy the result.</value>
+  </data>
+  <data name="UnitConverter_Seo_Tips" xml:space="preserve">
+    <value>- All calculations happen in your browser for maximum privacy
+- Use the swap button to quickly reverse the conversion direction
+- Quick conversion buttons show equivalent values in all other units
+- Common conversions sidebar provides handy reference values
+- Works offline after initial page load</value>
   </data>
 </root>

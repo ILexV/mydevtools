@@ -3140,4 +3140,85 @@ Une fois compressés, cliquez sur le bouton "Télécharger" à côté de chaque 
   <data name="Search_Results" xml:space="preserve">
     <value>résultats</value>
   </data>
+  <!-- Unit Converter -->
+  <data name="UnitConverter_Title" xml:space="preserve">
+    <value>Convertisseur d'Unités</value>
+  </data>
+  <data name="UnitConverter_Description" xml:space="preserve">
+    <value>Convertissez entre différentes unités de mesure : longueur, poids, température et volume — tous les calculs se font dans votre navigateur</value>
+  </data>
+  <data name="UnitConverter_CategoryLabel" xml:space="preserve">
+    <value>Catégorie</value>
+  </data>
+  <data name="UnitConverter_Category_Length" xml:space="preserve">
+    <value>Longueur</value>
+  </data>
+  <data name="UnitConverter_Category_Weight" xml:space="preserve">
+    <value>Poids</value>
+  </data>
+  <data name="UnitConverter_Category_Temperature" xml:space="preserve">
+    <value>Température</value>
+  </data>
+  <data name="UnitConverter_Category_Volume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="UnitConverter_FromLabel" xml:space="preserve">
+    <value>De</value>
+  </data>
+  <data name="UnitConverter_ToLabel" xml:space="preserve">
+    <value>Vers</value>
+  </data>
+  <data name="UnitConverter_Swap" xml:space="preserve">
+    <value>Échanger les unités</value>
+  </data>
+  <data name="UnitConverter_Copied" xml:space="preserve">
+    <value>Copié !</value>
+  </data>
+  <data name="UnitConverter_QuickConversions" xml:space="preserve">
+    <value>Conversions Rapides</value>
+  </data>
+  <data name="UnitConverter_CommonConversions" xml:space="preserve">
+    <value>Conversions Courantes</value>
+  </data>
+  <data name="UnitConverter_Formula" xml:space="preserve">
+    <value>Formule de Conversion</value>
+  </data>
+  <data name="UnitConverter_Seo_Introduction" xml:space="preserve">
+    <value>Le Convertisseur d'Unités est un outil en ligne pour convertir entre différentes unités de mesure. Tous les calculs se font localement dans votre navigateur, garantissant que vos données ne quittent jamais votre appareil.</value>
+  </data>
+  <data name="UnitConverter_Seo_DetailedDescription" xml:space="preserve">
+    <value>Cet outil prend en charge la conversion entre unités métriques et impériales dans quatre catégories : Longueur (mètres, kilomètres, miles, pieds, pouces), Poids (kilogrammes, grammes, livres, onces), Température (Celsius, Fahrenheit, Kelvin) et Volume (litres, gallons, tasses, onces liquides).
+
+Construit avec des technologies web modernes, il fournit des résultats instantanés sans traitement sur serveur. L'interface est intuitive et prend en charge le changement rapide entre unités, la copie des résultats et l'affichage des paires de conversion communes.</value>
+  </data>
+  <data name="UnitConverter_Seo_Examples" xml:space="preserve">
+    <value>**Exemple 1** : Convertissez 5 kilomètres en miles pour la planification de voyage.
+
+**Exemple 2** : Convertissez les mesures de recettes de tasses en millilitres.
+
+**Exemple 3** : Convertissez la température corporelle de Fahrenheit en Celsius.</value>
+  </data>
+  <data name="UnitConverter_Seo_HowToSteps" xml:space="preserve">
+    <value>### Étape 1 : Sélectionnez la Catégorie
+Choisissez le type de mesure que vous voulez convertir : Longueur, Poids, Température ou Volume.
+
+### Étape 2 : Entrez la Valeur
+Tapez la valeur à convertir dans le champ "De".
+
+### Étape 3 : Sélectionnez les Unités
+Choisissez les unités source et cible dans les menus déroulants.
+
+### Étape 4 : Voyez le Résultat
+La valeur convertie apparaît automatiquement dans le champ "Vers". Cliquez sur le bouton de copie pour copier le résultat.</value>
+  </data>
+  <data name="UnitConverter_Seo_Tips" xml:space="preserve">
+    <value>- Tous les calculs se font dans votre navigateur pour une confidentialité maximale
+- Utilisez le bouton d'échange pour changer rapidement la direction de la conversion
+- Les boutons de conversion rapide affichent les valeurs équivalentes dans toutes les autres unités
+- Le panneau latéral des conversions courantes fournit des valeurs de référence utiles
+- Fonctionne hors ligne après le chargement initial de la page</value>
+  </data>
+  <data name="Category_Converters" xml:space="preserve">
+    <value>Convertisseurs</value>
+  </data>
 </root>

@@ -3140,4 +3140,85 @@ Klicken Sie nach der Komprimierung auf die Schaltfläche „Herunterladen“ neb
   <data name="Search_Results" xml:space="preserve">
     <value>Ergebnisse</value>
   </data>
+  <!-- Unit Converter -->
+  <data name="UnitConverter_Title" xml:space="preserve">
+    <value>Einheitenumrechner</value>
+  </data>
+  <data name="UnitConverter_Description" xml:space="preserve">
+    <value>Konvertiere zwischen verschiedenen Maßeinheiten: Länge, Gewicht, Temperatur und Volumen — alle Berechnungen erfolgen in deinem Browser</value>
+  </data>
+  <data name="UnitConverter_CategoryLabel" xml:space="preserve">
+    <value>Kategorie</value>
+  </data>
+  <data name="UnitConverter_Category_Length" xml:space="preserve">
+    <value>Länge</value>
+  </data>
+  <data name="UnitConverter_Category_Weight" xml:space="preserve">
+    <value>Gewicht</value>
+  </data>
+  <data name="UnitConverter_Category_Temperature" xml:space="preserve">
+    <value>Temperatur</value>
+  </data>
+  <data name="UnitConverter_Category_Volume" xml:space="preserve">
+    <value>Volumen</value>
+  </data>
+  <data name="UnitConverter_FromLabel" xml:space="preserve">
+    <value>Von</value>
+  </data>
+  <data name="UnitConverter_ToLabel" xml:space="preserve">
+    <value>Nach</value>
+  </data>
+  <data name="UnitConverter_Swap" xml:space="preserve">
+    <value>Einheiten tauschen</value>
+  </data>
+  <data name="UnitConverter_Copied" xml:space="preserve">
+    <value>Kopiert!</value>
+  </data>
+  <data name="UnitConverter_QuickConversions" xml:space="preserve">
+    <value>Schnelle Umrechnungen</value>
+  </data>
+  <data name="UnitConverter_CommonConversions" xml:space="preserve">
+    <value>Häufige Umrechnungen</value>
+  </data>
+  <data name="UnitConverter_Formula" xml:space="preserve">
+    <value>Umrechnungsformel</value>
+  </data>
+  <data name="UnitConverter_Seo_Introduction" xml:space="preserve">
+    <value>Der Einheitenumrechner ist ein Online-Tool zum Konvertieren zwischen verschiedenen Maßeinheiten. Alle Berechnungen erfolgen lokal in deinem Browser, sodass deine Daten dein Gerät nie verlassen.</value>
+  </data>
+  <data name="UnitConverter_Seo_DetailedDescription" xml:space="preserve">
+    <value>Dieses Tool unterstützt die Konvertierung zwischen metrischen und imperialen Einheiten in vier Kategorien: Länge (Meter, Kilometer, Meilen, Fuß, Zoll), Gewicht (Kilogramm, Gramm, Pfund, Unzen), Temperatur (Celsius, Fahrenheit, Kelvin) und Volumen (Liter, Gallonen, Tassen, Flüssigunzen).
+
+Mit modernen Webtechnologien gebaut, liefert es sofortige Ergebnisse ohne Serververarbeitung. Die Oberfläche ist intuitiv und unterstützt schnelles Wechseln zwischen Einheiten, Kopieren von Ergebnissen und Anzeigen häufiger Umrechnungspaare.</value>
+  </data>
+  <data name="UnitConverter_Seo_Examples" xml:space="preserve">
+    <value>**Beispiel 1**: Konvertiere 5 Kilometer in Meilen für Reiseplanung.
+
+**Beispiel 2**: Konvertiere Rezeptmaße von Tassen in Milliliter.
+
+**Beispiel 3**: Konvertiere Körpertemperatur von Fahrenheit in Celsius.</value>
+  </data>
+  <data name="UnitConverter_Seo_HowToSteps" xml:space="preserve">
+    <value>### Schritt 1: Wähle die Kategorie
+Wähle die Art der Messung, die du konvertieren möchtest: Länge, Gewicht, Temperatur oder Volumen.
+
+### Schritt 2: Gib den Wert ein
+Gib den zu konvertierenden Wert in das Feld "Von" ein.
+
+### Schritt 3: Wähle die Einheiten
+Wähle die Ausgangs- und Zieleinheiten aus den Dropdown-Menüs.
+
+### Schritt 4: Sieh das Ergebnis
+Der konvertierte Wert erscheint automatisch im Feld "Nach". Klicke auf die Kopieren-Schaltfläche, um das Ergebnis zu kopieren.</value>
+  </data>
+  <data name="UnitConverter_Seo_Tips" xml:space="preserve">
+    <value>- Alle Berechnungen erfolgen in deinem Browser für maximale Privatsphäre
+- Verwende die Tausch-Schaltfläche, um schnell die Umrechnungsrichtung zu ändern
+- Die Schaltflächen für schnelle Umrechnungen zeigen äquivalente Werte in allen anderen Einheiten
+- Die Seitenleiste mit häufigen Umrechnungen bietet nützliche Referenzwerte
+- Funktioniert offline nach dem ersten Laden der Seite</value>
+  </data>
+  <data name="Category_Converters" xml:space="preserve">
+    <value>Konverter</value>
+  </data>
 </root>

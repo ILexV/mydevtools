@@ -3140,4 +3140,85 @@ Após a compressão, clique no botão "Descarregar" ao lado de cada ficheiro par
   <data name="Search_Results" xml:space="preserve">
     <value>resultados</value>
   </data>
+  <!-- Unit Converter -->
+  <data name="UnitConverter_Title" xml:space="preserve">
+    <value>Conversor de Unidades</value>
+  </data>
+  <data name="UnitConverter_Description" xml:space="preserve">
+    <value>Converta entre várias unidades de medida: comprimento, peso, temperatura e volume — todos os cálculos ocorrem no seu navegador</value>
+  </data>
+  <data name="UnitConverter_CategoryLabel" xml:space="preserve">
+    <value>Categoria</value>
+  </data>
+  <data name="UnitConverter_Category_Length" xml:space="preserve">
+    <value>Comprimento</value>
+  </data>
+  <data name="UnitConverter_Category_Weight" xml:space="preserve">
+    <value>Peso</value>
+  </data>
+  <data name="UnitConverter_Category_Temperature" xml:space="preserve">
+    <value>Temperatura</value>
+  </data>
+  <data name="UnitConverter_Category_Volume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="UnitConverter_FromLabel" xml:space="preserve">
+    <value>De</value>
+  </data>
+  <data name="UnitConverter_ToLabel" xml:space="preserve">
+    <value>Para</value>
+  </data>
+  <data name="UnitConverter_Swap" xml:space="preserve">
+    <value>Trocar unidades</value>
+  </data>
+  <data name="UnitConverter_Copied" xml:space="preserve">
+    <value>Copiado!</value>
+  </data>
+  <data name="UnitConverter_QuickConversions" xml:space="preserve">
+    <value>Conversões Rápidas</value>
+  </data>
+  <data name="UnitConverter_CommonConversions" xml:space="preserve">
+    <value>Conversões Comuns</value>
+  </data>
+  <data name="UnitConverter_Formula" xml:space="preserve">
+    <value>Fórmula de Conversão</value>
+  </data>
+  <data name="UnitConverter_Seo_Introduction" xml:space="preserve">
+    <value>O Conversor de Unidades é uma ferramenta online para converter entre várias unidades de medida. Todos os cálculos ocorrem localmente no seu navegador, garantindo que seus dados nunca saiam do seu dispositivo.</value>
+  </data>
+  <data name="UnitConverter_Seo_DetailedDescription" xml:space="preserve">
+    <value>Esta ferramenta suporta conversão entre unidades métricas e imperiais em quatro categorias: Comprimento (metros, quilômetros, milhas, pés, polegadas), Peso (quilogramas, gramas, libras, onças), Temperatura (Celsius, Fahrenheit, Kelvin) e Volume (litros, galões, xícaras, onças fluidas).
+
+Construída com tecnologias web modernas, fornece resultados instantâneos sem processamento no servidor. A interface é intuitiva e suporta troca rápida entre unidades, copiar resultados e visualizar pares de conversão comuns.</value>
+  </data>
+  <data name="UnitConverter_Seo_Examples" xml:space="preserve">
+    <value>**Exemplo 1**: Converta 5 quilômetros para milhas para planejamento de viagem.
+
+**Exemplo 2**: Converta medidas de receitas de xícaras para mililitros.
+
+**Exemplo 3**: Converta temperatura corporal de Fahrenheit para Celsius.</value>
+  </data>
+  <data name="UnitConverter_Seo_HowToSteps" xml:space="preserve">
+    <value>### Passo 1: Selecione a Categoria
+Escolha o tipo de medida que deseja converter: Comprimento, Peso, Temperatura ou Volume.
+
+### Passo 2: Digite o Valor
+Digite o valor que deseja converter no campo "De".
+
+### Passo 3: Selecione as Unidades
+Escolha as unidades de origem e destino nos menus suspensos.
+
+### Passo 4: Veja o Resultado
+O valor convertido aparecerá automaticamente no campo "Para". Clique no botão de copiar para copiar o resultado.</value>
+  </data>
+  <data name="UnitConverter_Seo_Tips" xml:space="preserve">
+    <value>- Todos os cálculos ocorrem no seu navegador para máxima privacidade
+- Use o botão de troca para mudar rapidamente a direção da conversão
+- Os botões de conversão rápida mostram valores equivalentes em todas as outras unidades
+- O painel lateral de conversões comuns fornece valores de referência úteis
+- Funciona offline após o carregamento inicial da página</value>
+  </data>
+  <data name="Category_Converters" xml:space="preserve">
+    <value>Conversores</value>
+  </data>
 </root>

@@ -3140,4 +3140,85 @@ PDF 파일을 도구로 드래그 앤 드롭하거나 업로드 영역을 클릭
   <data name="Search_Results" xml:space="preserve">
     <value>개 결과</value>
   </data>
+  <!-- Unit Converter -->
+  <data name="UnitConverter_Title" xml:space="preserve">
+    <value>단위 변환기</value>
+  </data>
+  <data name="UnitConverter_Description" xml:space="preserve">
+    <value>길이, 무게, 온도, 부피 등 다양한 단위를 변환 — 모든 계산은 브라우저에서 수행됩니다</value>
+  </data>
+  <data name="UnitConverter_CategoryLabel" xml:space="preserve">
+    <value>카테고리</value>
+  </data>
+  <data name="UnitConverter_Category_Length" xml:space="preserve">
+    <value>길이</value>
+  </data>
+  <data name="UnitConverter_Category_Weight" xml:space="preserve">
+    <value>무게</value>
+  </data>
+  <data name="UnitConverter_Category_Temperature" xml:space="preserve">
+    <value>온도</value>
+  </data>
+  <data name="UnitConverter_Category_Volume" xml:space="preserve">
+    <value>부피</value>
+  </data>
+  <data name="UnitConverter_FromLabel" xml:space="preserve">
+    <value>변환 전</value>
+  </data>
+  <data name="UnitConverter_ToLabel" xml:space="preserve">
+    <value>변환 후</value>
+  </data>
+  <data name="UnitConverter_Swap" xml:space="preserve">
+    <value>단위 교체</value>
+  </data>
+  <data name="UnitConverter_Copied" xml:space="preserve">
+    <value>복사됨!</value>
+  </data>
+  <data name="UnitConverter_QuickConversions" xml:space="preserve">
+    <value>빠른 변환</value>
+  </data>
+  <data name="UnitConverter_CommonConversions" xml:space="preserve">
+    <value>일반적인 변환</value>
+  </data>
+  <data name="UnitConverter_Formula" xml:space="preserve">
+    <value>변환 공식</value>
+  </data>
+  <data name="UnitConverter_Seo_Introduction" xml:space="preserve">
+    <value>단위 변환기는 다양한 측정 단위 간 변환을 위한 온라인 도구입니다. 모든 계산은 브라우저에서 로컬로 수행되며, 데이터가 장치를 떠나지 않도록 보장합니다.</value>
+  </data>
+  <data name="UnitConverter_Seo_DetailedDescription" xml:space="preserve">
+    <value>이 도구는 4개 카테고리에서 미터법과 야드파운드법 단위 간 변환을 지원합니다: 길이(미터, 킬로미터, 마일, 피트, 인치), 무게(킬로그램, 그램, 파운드, 온스), 온도(섭씨, 화씨, 켈빈), 부피(리터, 갤런, 컵, 액량 온스).
+
+최신 웹 기술로 구축되어 서버 처리 없이 즉각적인 결과를 제공합니다. 인터페이스는 직관적이며 단위 간 빠른 전환, 결과 복사, 일반적인 변환 쌍 보기를 지원합니다.</value>
+  </data>
+  <data name="UnitConverter_Seo_Examples" xml:space="preserve">
+    <value>**예제 1**: 여행 계획을 위해 5킬로미터를 마일로 변환합니다.
+
+**예제 2**: 레시피의 컵을 밀리리터로 변환합니다.
+
+**예제 3**: 체온을 화씨에서 섭씨로 변환합니다.</value>
+  </data>
+  <data name="UnitConverter_Seo_HowToSteps" xml:space="preserve">
+    <value>### 1단계: 카테고리 선택
+변환하려는 측정 유형을 선택하세요: 길이, 무게, 온도 또는 부피.
+
+### 2단계: 값 입력
+"변환 전" 필드에 변환하려는 값을 입력하세요.
+
+### 3단계: 단위 선택
+드롭다운 메뉴에서 원본 단위와 대상 단위를 선택하세요.
+
+### 4단계: 결과 확인
+변환된 값이 자동으로 "변환 후" 필드에 표시됩니다. 복사 버튼을 클릭하여 결과를 복사하세요.</value>
+  </data>
+  <data name="UnitConverter_Seo_Tips" xml:space="preserve">
+    <value>- 모든 계산은 브라우저에서 수행되어 최대한의 개인정보 보호
+- 교체 버튼을 사용하여 변환 방향을 빠르게 변경하세요
+- 빠른 변환 버튼은 다른 모든 단위의 등가 값을 표시합니다
+- 일반적인 변환 사이드바에 유용한 참조 값이 제공됩니다
+- 페이지 초기 로드 후 오프라인에서 작동합니다</value>
+  </data>
+  <data name="Category_Converters" xml:space="preserve">
+    <value>변환기</value>
+  </data>
 </root>

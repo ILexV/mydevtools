@@ -3140,4 +3140,85 @@ Una vez comprimidos, haga clic en el botón "Descargar" junto a cada archivo par
   <data name="Search_Results" xml:space="preserve">
     <value>resultados</value>
   </data>
+  <!-- Unit Converter -->
+  <data name="UnitConverter_Title" xml:space="preserve">
+    <value>Conversor de Unidades</value>
+  </data>
+  <data name="UnitConverter_Description" xml:space="preserve">
+    <value>Convierte entre varias unidades de medida: longitud, peso, temperatura y volumen — todo el procesamiento ocurre en tu navegador</value>
+  </data>
+  <data name="UnitConverter_CategoryLabel" xml:space="preserve">
+    <value>Categoría</value>
+  </data>
+  <data name="UnitConverter_Category_Length" xml:space="preserve">
+    <value>Longitud</value>
+  </data>
+  <data name="UnitConverter_Category_Weight" xml:space="preserve">
+    <value>Peso</value>
+  </data>
+  <data name="UnitConverter_Category_Temperature" xml:space="preserve">
+    <value>Temperatura</value>
+  </data>
+  <data name="UnitConverter_Category_Volume" xml:space="preserve">
+    <value>Volumen</value>
+  </data>
+  <data name="UnitConverter_FromLabel" xml:space="preserve">
+    <value>De</value>
+  </data>
+  <data name="UnitConverter_ToLabel" xml:space="preserve">
+    <value>A</value>
+  </data>
+  <data name="UnitConverter_Swap" xml:space="preserve">
+    <value>Intercambiar unidades</value>
+  </data>
+  <data name="UnitConverter_Copied" xml:space="preserve">
+    <value>¡Copiado!</value>
+  </data>
+  <data name="UnitConverter_QuickConversions" xml:space="preserve">
+    <value>Conversiones Rápidas</value>
+  </data>
+  <data name="UnitConverter_CommonConversions" xml:space="preserve">
+    <value>Conversiones Comunes</value>
+  </data>
+  <data name="UnitConverter_Formula" xml:space="preserve">
+    <value>Fórmula de Conversión</value>
+  </data>
+  <data name="UnitConverter_Seo_Introduction" xml:space="preserve">
+    <value>El Conversor de Unidades es una herramienta en línea para convertir entre diversas unidades de medida. Todos los cálculos ocurren localmente en tu navegador, garantizando que tus datos nunca salgan de tu dispositivo.</value>
+  </data>
+  <data name="UnitConverter_Seo_DetailedDescription" xml:space="preserve">
+    <value>Esta herramienta soporta conversión entre unidades métricas e imperiales en cuatro categorías: Longitud (metros, kilómetros, millas, pies, pulgadas), Peso (kilogramos, gramos, libras, onzas), Temperatura (Celsius, Fahrenheit, Kelvin) y Volumen (litros, galones, tazas, onzas líquidas).
+
+Construida con tecnologías web modernas, proporciona resultados instantáneos sin procesamiento en servidor. La interfaz es intuitiva y soporta cambio rápido entre unidades, copiar resultados y ver pares de conversión comunes.</value>
+  </data>
+  <data name="UnitConverter_Seo_Examples" xml:space="preserve">
+    <value>**Ejemplo 1**: Convierte 5 kilómetros a millas para planificación de viajes.
+
+**Ejemplo 2**: Convierte medidas de recetas de tazas a mililitros.
+
+**Ejemplo 3**: Convierte temperatura corporal de Fahrenheit a Celsius.</value>
+  </data>
+  <data name="UnitConverter_Seo_HowToSteps" xml:space="preserve">
+    <value>### Paso 1: Selecciona la Categoría
+Elige el tipo de medida que quieres convertir: Longitud, Peso, Temperatura o Volumen.
+
+### Paso 2: Ingresa el Valor
+Escribe el valor que quieres convertir en el campo "De".
+
+### Paso 3: Selecciona las Unidades
+Elige las unidades de origen y destino de los menús desplegables.
+
+### Paso 4: Ver el Resultado
+El valor convertido aparecerá automáticamente en el campo "A". Haz clic en el botón de copiar para copiar el resultado.</value>
+  </data>
+  <data name="UnitConverter_Seo_Tips" xml:space="preserve">
+    <value>- Todos los cálculos ocurren en tu navegador para máxima privacidad
+- Usa el botón de intercambio para cambiar rápidamente la dirección de la conversión
+- Los botones de conversión rápida muestran valores equivalentes en todas las otras unidades
+- El panel lateral de conversiones comunes proporciona valores de referencia útiles
+- Funciona sin conexión después de la carga inicial de la página</value>
+  </data>
+  <data name="Category_Converters" xml:space="preserve">
+    <value>Conversores</value>
+  </data>
 </root>

@@ -3140,4 +3140,85 @@
   <data name="Search_Results" xml:space="preserve">
     <value>个结果</value>
   </data>
+  <!-- Unit Converter -->
+  <data name="UnitConverter_Title" xml:space="preserve">
+    <value>单位转换器</value>
+  </data>
+  <data name="UnitConverter_Description" xml:space="preserve">
+    <value>转换各种计量单位：长度、重量、温度和体积 — 所有计算都在您的浏览器中进行</value>
+  </data>
+  <data name="UnitConverter_CategoryLabel" xml:space="preserve">
+    <value>类别</value>
+  </data>
+  <data name="UnitConverter_Category_Length" xml:space="preserve">
+    <value>长度</value>
+  </data>
+  <data name="UnitConverter_Category_Weight" xml:space="preserve">
+    <value>重量</value>
+  </data>
+  <data name="UnitConverter_Category_Temperature" xml:space="preserve">
+    <value>温度</value>
+  </data>
+  <data name="UnitConverter_Category_Volume" xml:space="preserve">
+    <value>体积</value>
+  </data>
+  <data name="UnitConverter_FromLabel" xml:space="preserve">
+    <value>从</value>
+  </data>
+  <data name="UnitConverter_ToLabel" xml:space="preserve">
+    <value>到</value>
+  </data>
+  <data name="UnitConverter_Swap" xml:space="preserve">
+    <value>交换单位</value>
+  </data>
+  <data name="UnitConverter_Copied" xml:space="preserve">
+    <value>已复制！</value>
+  </data>
+  <data name="UnitConverter_QuickConversions" xml:space="preserve">
+    <value>快速转换</value>
+  </data>
+  <data name="UnitConverter_CommonConversions" xml:space="preserve">
+    <value>常用转换</value>
+  </data>
+  <data name="UnitConverter_Formula" xml:space="preserve">
+    <value>转换公式</value>
+  </data>
+  <data name="UnitConverter_Seo_Introduction" xml:space="preserve">
+    <value>单位转换器是一款用于转换各种计量单位的在线工具。所有计算都在您的浏览器本地进行，确保您的数据永远不会离开您的设备。</value>
+  </data>
+  <data name="UnitConverter_Seo_DetailedDescription" xml:space="preserve">
+    <value>该工具支持公制和英制单位在四个类别中的转换：长度（米、公里、英里、英尺、英寸）、重量（千克、克、磅、盎司）、温度（摄氏度、华氏度、开尔文）和体积（升、加仑、杯、液盎司）。
+
+采用现代网络技术构建，无需服务器处理即可提供即时结果。界面直观，支持快速切换单位、复制结果和查看常用转换对。</value>
+  </data>
+  <data name="UnitConverter_Seo_Examples" xml:space="preserve">
+    <value>**示例 1**：将5公里转换为英里用于旅行规划。
+
+**示例 2**：将食谱中的杯转换为毫升。
+
+**示例 3**：将体温从华氏度转换为摄氏度。</value>
+  </data>
+  <data name="UnitConverter_Seo_HowToSteps" xml:space="preserve">
+    <value>### 第1步：选择类别
+选择您要转换的测量类型：长度、重量、温度或体积。
+
+### 第2步：输入数值
+在"从"字段中输入要转换的数值。
+
+### 第3步：选择单位
+从下拉菜单中选择源单位和目标单位。
+
+### 第4步：查看结果
+转换后的值将自动显示在"到"字段中。点击复制按钮复制结果。</value>
+  </data>
+  <data name="UnitConverter_Seo_Tips" xml:space="preserve">
+    <value>- 所有计算都在您的浏览器中进行，确保最大隐私
+- 使用交换按钮快速改变转换方向
+- 快速转换按钮显示所有其他单位的等效值
+- 常用转换侧边栏提供有用的参考值
+- 页面初次加载后支持离线使用</value>
+  </data>
+  <data name="Category_Converters" xml:space="preserve">
+    <value>转换器</value>
+  </data>
 </root>

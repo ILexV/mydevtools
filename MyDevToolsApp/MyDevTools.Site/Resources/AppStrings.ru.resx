@@ -3140,4 +3140,85 @@
   <data name="Search_Results" xml:space="preserve">
     <value>результатов</value>
   </data>
+  <!-- Unit Converter -->
+  <data name="UnitConverter_Title" xml:space="preserve">
+    <value>Конвертер единиц</value>
+  </data>
+  <data name="UnitConverter_Description" xml:space="preserve">
+    <value>Конвертируйте между различными единицами измерения: длина, вес, температура и объем — все вычисления происходят в вашем браузере</value>
+  </data>
+  <data name="UnitConverter_CategoryLabel" xml:space="preserve">
+    <value>Категория</value>
+  </data>
+  <data name="UnitConverter_Category_Length" xml:space="preserve">
+    <value>Длина</value>
+  </data>
+  <data name="UnitConverter_Category_Weight" xml:space="preserve">
+    <value>Вес</value>
+  </data>
+  <data name="UnitConverter_Category_Temperature" xml:space="preserve">
+    <value>Температура</value>
+  </data>
+  <data name="UnitConverter_Category_Volume" xml:space="preserve">
+    <value>Объем</value>
+  </data>
+  <data name="UnitConverter_FromLabel" xml:space="preserve">
+    <value>Из</value>
+  </data>
+  <data name="UnitConverter_ToLabel" xml:space="preserve">
+    <value>В</value>
+  </data>
+  <data name="UnitConverter_Swap" xml:space="preserve">
+    <value>Поменять единицы</value>
+  </data>
+  <data name="UnitConverter_Copied" xml:space="preserve">
+    <value>Скопировано!</value>
+  </data>
+  <data name="UnitConverter_QuickConversions" xml:space="preserve">
+    <value>Быстрые конверсии</value>
+  </data>
+  <data name="UnitConverter_CommonConversions" xml:space="preserve">
+    <value>Частые конверсии</value>
+  </data>
+  <data name="UnitConverter_Formula" xml:space="preserve">
+    <value>Формула конверсии</value>
+  </data>
+  <data name="UnitConverter_Seo_Introduction" xml:space="preserve">
+    <value>Конвертер единиц — это онлайн-инструмент для конвертации между различными единицами измерения. Все вычисления происходят локально в вашем браузере, гарантируя, что ваши данные никогда не покидают ваше устройство.</value>
+  </data>
+  <data name="UnitConverter_Seo_DetailedDescription" xml:space="preserve">
+    <value>Этот инструмент поддерживает конвертацию между метрическими и имперскими единицами в четырех категориях: Длина (метры, километры, мили, футы, дюймы), Вес (килограммы, граммы, фунты, унции), Температура (Цельсий, Фаренгейт, Кельвин) и Объем (литры, галлоны, чашки, жидкие унции).
+
+Построенный на современных веб-технологиях, он мгновенно выдает результаты без обработки на сервере. Интерфейс интуитивно понятен и поддерживает быстрое переключение между единицами, копирование результатов и просмотр общих пар конверсии.</value>
+  </data>
+  <data name="UnitConverter_Seo_Examples" xml:space="preserve">
+    <value>**Пример 1**: Конвертируйте 5 километров в мили для планирования путешествия.
+
+**Пример 2**: Конвертируйте кулинарные меры из чашек в миллилитры.
+
+**Пример 3**: Конвертируйте температуру тела из Фаренгейта в Цельсий.</value>
+  </data>
+  <data name="UnitConverter_Seo_HowToSteps" xml:space="preserve">
+    <value>### Шаг 1: Выберите категорию
+Выберите тип измерения, который хотите конвертировать: Длина, Вес, Температура или Объем.
+
+### Шаг 2: Введите значение
+Введите значение для конвертации в поле «Из».
+
+### Шаг 3: Выберите единицы
+Выберите исходные и целевые единицы из выпадающих списков.
+
+### Шаг 4: Просмотрите результат
+Конвертированное значение появится автоматически в поле «В». Нажмите кнопку копирования, чтобы скопировать результат.</value>
+  </data>
+  <data name="UnitConverter_Seo_Tips" xml:space="preserve">
+    <value>- Все вычисления происходят в вашем браузере для максимальной конфиденциальности
+- Используйте кнопку обмена, чтобы быстро поменять направление конверсии
+- Кнопки быстрой конверсии показывают эквивалентные значения во всех других единицах
+- Боковая панель с частыми конверсиями предоставляет удобные справочные значения
+- Работает офлайн после первоначальной загрузки страницы</value>
+  </data>
+  <data name="Category_Converters" xml:space="preserve">
+    <value>Конвертеры</value>
+  </data>
 </root>

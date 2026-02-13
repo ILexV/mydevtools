@@ -2000,6 +2000,132 @@
 - 進行状況追跡機能付きで大きなファイルをサポートします</value>
   </data>
 
+  <!-- HTML Entity Encoder (ja) -->
+  <data name="HtmlEntityEncoder_Title" xml:space="preserve">
+    <value>HTML エンティティ エンコーダー / デコーダー</value>
+  </data>
+  <data name="HtmlEntityEncoder_Description" xml:space="preserve">
+    <value>特殊文字を HTML エンティティにエンコードし、デコードします。名前付き、10進数、16進数の形式をサポート。</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputTitle" xml:space="preserve">
+    <value>入力と設定</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputLabel" xml:space="preserve">
+    <value>エンコード/デコードするテキスト</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputPlaceholder" xml:space="preserve">
+    <value>ここにテキストを入力または貼り付け...</value>
+  </data>
+  <data name="HtmlEntityEncoder_OutputTitle" xml:space="preserve">
+    <value>出力</value>
+  </data>
+  <data name="HtmlEntityEncoder_SettingsTitle" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="HtmlEntityEncoder_ModeLabel" xml:space="preserve">
+    <value>エンコードモード</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_All" xml:space="preserve">
+    <value>すべての文字（特殊文字 + 非 ASCII）</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_SpecialChars" xml:space="preserve">
+    <value>特殊文字のみ (&amp; &lt; &gt; " ')</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_NonAscii" xml:space="preserve">
+    <value>非 ASCII 文字のみ</value>
+  </data>
+  <data name="HtmlEntityEncoder_FormatLabel" xml:space="preserve">
+    <value>エンティティ形式</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Named" xml:space="preserve">
+    <value>名前付き (&amp;amp;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Decimal" xml:space="preserve">
+    <value>10進数 (&amp;#38;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Hex" xml:space="preserve">
+    <value>16進数 (&amp;#x26;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionEncode" xml:space="preserve">
+    <value>HTML にエンコード</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionDecode" xml:space="preserve">
+    <value>HTML からデコード</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionSwap" xml:space="preserve">
+    <value>入れ替え</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionClear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copy" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copied" xml:space="preserve">
+    <value>コピーしました！</value>
+  </data>
+  <data name="HtmlEntityEncoder_OtherFormats" xml:space="preserve">
+    <value>その他の形式：</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkUrl" xml:space="preserve">
+    <value>URL エンコーダー</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkBase64" xml:space="preserve">
+    <value>Base64</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkHex" xml:space="preserve">
+    <value>Hex</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkXml" xml:space="preserve">
+    <value>XML ビューティファイア</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Introduction" xml:space="preserve">
+    <value>HTML エンティティ エンコーダーは、プライバシーを重視した開発者とウェブデザイナーのためのツールです。すべての処理はブラウザ内でローカルに行われ、データがデバイスを離れることはありません。</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_DetailedDescription" xml:space="preserve">
+    <value>このツールは、特殊文字を HTML エンティティにエンコードし、デコードする完全な機能を提供します。名前付きエンティティ (&amp;amp;)、10進数参照 (&amp;#38;)、16進数参照 (&amp;#x26;) など、複数の形式をサポートしています。
+
+インターフェースは効率性と使いやすさを重視して設計されており、特殊文字のみ、非 ASCII 文字のみ、またはすべての文字をエンコードするオプションがあります。すべての操作はクライアント側で実行され、データの完全なプライバシーとセキュリティを保証します。</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Examples" xml:space="preserve">
+    <value>**例 1**：ウェブページで安全に表示するための HTML 特殊文字のエンコード。
+- 入力：`&lt;div class="example"&gt;Hello &amp; Welcome!&lt;/div&gt;`
+- 出力：`&amp;lt;div class=&amp;quot;example&amp;quot;&amp;gt;Hello &amp;amp; Welcome!&amp;lt;/div&amp;gt;`
+
+**例 2**：HTML エンティティを読みやすいテキストにデコード。
+- 入力：`&amp;copy; 2024 Company &amp;amp; Partners`
+- 出力：`© 2024 Company &amp; Partners`
+
+**例 3**：最大の互換性のための非 ASCII 文字のエンコード。
+- 入力：`Café résumé naïve`
+- 出力：`Caf&amp;#233; r&amp;#233;sum&amp;#233; na&amp;#239;ve`</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_HowToSteps" xml:space="preserve">
+    <value>### ステップ 1：テキストを入力
+入力フィールドに、エンコードまたはデコードするテキストを入力または貼り付けます。
+
+### ステップ 2：設定を構成
+エンコードモードを選択：
+- **特殊文字のみ**：&amp;、&lt;、&gt;、&quot;、' のみをエンコード
+- **非 ASCII のみ**：127 より大きい文字のみをエンコード（拡張 Unicode）
+- **すべての文字**：特殊文字と非 ASCII 文字の両方をエンコード
+
+エンティティ形式を選択：
+- **名前付き**：&amp;amp;、&amp;lt;、&amp;gt; などのエンティティ名を使用
+- **10進数**：&amp;#38;、&amp;#60;、&amp;#62; などの10進数を使用
+- **16進数**：&amp;#x26;、&amp;#x3C;、&amp;#x3E; などの16進数を使用
+
+### ステップ 3：処理とコピー
+「HTML にエンコード」または「HTML からデコード」ボタンをクリックし、結果をクリップボードにコピーします。</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Tips" xml:space="preserve">
+    <value>- すべての処理はブラウザ内で行われ、最大限のプライバシーを確保
+- 基本的な HTML エスケープには特殊文字モードを使用
+- 国際的なテキストを扱う場合は非 ASCII モードを使用
+- 名前付きエンティティが最も読みやすい。数値エンティティはすべての Unicode 文字をサポート
+- デコード時にツールは自動的に名前付きと数値の両方のエンティティを検出して処理</value>
+  </data>
+
 <!-- SEO Content: Hex Encoder (ja) -->
   <data name="HexEncoder_Seo_Introduction" xml:space="preserve">
     <value>Hex Encoderツールは、開発者向けに設計されたプライバシー重視のオンラインツールです。すべての処理はWebAssemblyを使用してブラウザ内でローカルに行われ、データがデバイスから離れることはありません。</value>
@@ -2991,6 +3117,109 @@ PDF ファイルをツールにドラッグ＆ドロップするか、アップ�
 - 初回ロード後はオフラインで動作します
 - ファイルがサーバーにアップロードされることはありません
 - 複数のファイルの同時処理をサポートしています</value>
+  </data>
+  <!-- Search Tool -->
+  <data name="Search_Placeholder" xml:space="preserve">
+    <value>ツールを検索...</value>
+  </data>
+  <data name="Search_Tooltip" xml:space="preserve">
+    <value>ツールを検索 (Ctrl+K)</value>
+  </data>
+  <data name="Search_NoResults" xml:space="preserve">
+    <value>ツールが見つかりません</value>
+  </data>
+  <data name="Search_PopularTools" xml:space="preserve">
+    <value>人気のツール</value>
+  </data>
+  <data name="Search_Navigate" xml:space="preserve">
+    <value>移動</value>
+  </data>
+  <data name="Search_Select" xml:space="preserve">
+    <value>選択</value>
+  </data>
+  <data name="Search_Results" xml:space="preserve">
+    <value>件の結果</value>
+  </data>
+  <!-- Unit Converter -->
+  <data name="UnitConverter_Title" xml:space="preserve">
+    <value>単位変換ツール</value>
+  </data>
+  <data name="UnitConverter_Description" xml:space="preserve">
+    <value>長さ、重さ、温度、体積などの単位を変換 — すべての計算はブラウザ内で実行されます</value>
+  </data>
+  <data name="UnitConverter_CategoryLabel" xml:space="preserve">
+    <value>カテゴリー</value>
+  </data>
+  <data name="UnitConverter_Category_Length" xml:space="preserve">
+    <value>長さ</value>
+  </data>
+  <data name="UnitConverter_Category_Weight" xml:space="preserve">
+    <value>重さ</value>
+  </data>
+  <data name="UnitConverter_Category_Temperature" xml:space="preserve">
+    <value>温度</value>
+  </data>
+  <data name="UnitConverter_Category_Volume" xml:space="preserve">
+    <value>体積</value>
+  </data>
+  <data name="UnitConverter_FromLabel" xml:space="preserve">
+    <value>変換元</value>
+  </data>
+  <data name="UnitConverter_ToLabel" xml:space="preserve">
+    <value>変換先</value>
+  </data>
+  <data name="UnitConverter_Swap" xml:space="preserve">
+    <value>単位を入れ替え</value>
+  </data>
+  <data name="UnitConverter_Copied" xml:space="preserve">
+    <value>コピーしました！</value>
+  </data>
+  <data name="UnitConverter_QuickConversions" xml:space="preserve">
+    <value>クイック変換</value>
+  </data>
+  <data name="UnitConverter_CommonConversions" xml:space="preserve">
+    <value>一般的な変換</value>
+  </data>
+  <data name="UnitConverter_Formula" xml:space="preserve">
+    <value>変換式</value>
+  </data>
+  <data name="UnitConverter_Seo_Introduction" xml:space="preserve">
+    <value>単位変換ツールは、さまざまな単位間の変換を行うオンラインツールです。すべての計算はブラウザ内でローカルに実行され、データがデバイスから外部に送信されることはありません。</value>
+  </data>
+  <data name="UnitConverter_Seo_DetailedDescription" xml:space="preserve">
+    <value>このツールは、4つのカテゴリーでメートル法とヤード・ポンド法の単位変換をサポートします：長さ（メートル、キロメートル、マイル、フィート、インチ）、重さ（キログラム、グラム、ポンド、オンス）、温度（摂氏、華氏、ケルビン）、体積（リットル、ガロン、カップ、液量オンス）。
+
+最新のウェブ技術を使用して構築され、サーバー処理なしで即座に結果を表示します。インターフェースは直感的で、単位の迅速な切り替え、結果のコピー、一般的な変換ペアの表示をサポートしています。</value>
+  </data>
+  <data name="UnitConverter_Seo_Examples" xml:space="preserve">
+    <value>**例1**：旅行計画のために5キロメートルをマイルに変換します。
+
+**例2**：レシピのカップをミリリットルに変換します。
+
+**例3**：体温を華氏から摂氏に変換します。</value>
+  </data>
+  <data name="UnitConverter_Seo_HowToSteps" xml:space="preserve">
+    <value>### ステップ1：カテゴリーを選択
+変換したい測定タイプを選択します：長さ、重さ、温度、または体積。
+
+### ステップ2：数値を入力
+「変換元」フィールドに変換したい値を入力します。
+
+### ステップ3：単位を選択
+ドロップダウンメニューから元の単位と変換先の単位を選択します。
+
+### ステップ4：結果を確認
+変換された値が自動的に「変換先」フィールドに表示されます。コピーボタンをクリックして結果をコピーします。</value>
+  </data>
+  <data name="UnitConverter_Seo_Tips" xml:space="preserve">
+    <value>- すべての計算はブラウザ内で実行され、最大限のプライバシーを確保
+- 交換ボタンを使用して変換方向を素早く変更できます
+- クイック変換ボタンは、他のすべての単位での等価値を表示します
+- 一般的な変換サイドバーに便利な参照値が表示されます
+- ページの初回読み込み後はオフラインで動作します</value>
+  </data>
+  <data name="Category_Converters" xml:space="preserve">
+    <value>変換ツール</value>
   </data>
   <data name="PdfToText_Title" xml:space="preserve">
     <value>PDF テキスト変換</value>

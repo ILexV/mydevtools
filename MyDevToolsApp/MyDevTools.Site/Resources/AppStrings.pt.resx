@@ -2000,6 +2000,132 @@ Clique no botão de ação para processar sua entrada e copie os resultados para
 - Arquivos grandes são suportados com rastreamento de progresso</value>
   </data>
 
+  <!-- HTML Entity Encoder (pt) -->
+  <data name="HtmlEntityEncoder_Title" xml:space="preserve">
+    <value>HTML Entity Encoder / Decoder</value>
+  </data>
+  <data name="HtmlEntityEncoder_Description" xml:space="preserve">
+    <value>Codifique caracteres especiais em entidades HTML e vice-versa. Suporta formatos nomeados, decimais e hexadecimais.</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputTitle" xml:space="preserve">
+    <value>Entrada &amp; Configurações</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputLabel" xml:space="preserve">
+    <value>Texto para codificar/decodificar</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputPlaceholder" xml:space="preserve">
+    <value>Digite ou cole seu texto aqui...</value>
+  </data>
+  <data name="HtmlEntityEncoder_OutputTitle" xml:space="preserve">
+    <value>Resultado</value>
+  </data>
+  <data name="HtmlEntityEncoder_SettingsTitle" xml:space="preserve">
+    <value>Configurações</value>
+  </data>
+  <data name="HtmlEntityEncoder_ModeLabel" xml:space="preserve">
+    <value>Modo de codificação</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_All" xml:space="preserve">
+    <value>Todos os caracteres (especiais + não-ASCII)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_SpecialChars" xml:space="preserve">
+    <value>Apenas caracteres especiais (&amp; &lt; &gt; " ')</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_NonAscii" xml:space="preserve">
+    <value>Apenas caracteres não-ASCII</value>
+  </data>
+  <data name="HtmlEntityEncoder_FormatLabel" xml:space="preserve">
+    <value>Formato de entidades</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Named" xml:space="preserve">
+    <value>Nomeado (&amp;amp;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Decimal" xml:space="preserve">
+    <value>Decimal (&amp;#38;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Hex" xml:space="preserve">
+    <value>Hexadecimal (&amp;#x26;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionEncode" xml:space="preserve">
+    <value>Codificar para HTML</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionDecode" xml:space="preserve">
+    <value>Decodificar de HTML</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionSwap" xml:space="preserve">
+    <value>Trocar</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionClear" xml:space="preserve">
+    <value>Limpar</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copied" xml:space="preserve">
+    <value>Copiado!</value>
+  </data>
+  <data name="HtmlEntityEncoder_OtherFormats" xml:space="preserve">
+    <value>Outros formatos:</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkUrl" xml:space="preserve">
+    <value>URL Encoder</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkBase64" xml:space="preserve">
+    <value>Base64</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkHex" xml:space="preserve">
+    <value>Hex</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkXml" xml:space="preserve">
+    <value>XML Beautifier</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Introduction" xml:space="preserve">
+    <value>O HTML Entity Encoder é uma ferramenta focada em privacidade para desenvolvedores e designers web. Todo o processamento é feito localmente no seu navegador, os dados nunca saem do seu dispositivo.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_DetailedDescription" xml:space="preserve">
+    <value>Esta ferramenta fornece funcionalidade completa para codificar caracteres especiais em entidades HTML e decodificá-los. Suporta vários formatos: entidades nomeadas (&amp;amp;), referências numéricas decimais (&amp;#38;) e referências hexadecimais (&amp;#x26;).
+
+A interface é projetada para eficiência e facilidade de uso, com opções para codificar apenas caracteres especiais, apenas caracteres não-ASCII, ou todos os caracteres. Todas as operações são realizadas no lado do cliente, garantindo privacidade e segurança completas para seus dados.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Examples" xml:space="preserve">
+    <value>**Exemplo 1**: Codificação de caracteres HTML especiais para exibição segura em páginas web.
+- Entrada: `&lt;div class="example"&gt;Hello &amp; Welcome!&lt;/div&gt;`
+- Saída: `&amp;lt;div class=&amp;quot;example&amp;quot;&amp;gt;Hello &amp;amp; Welcome!&amp;lt;/div&amp;gt;`
+
+**Exemplo 2**: Decodificação de entidades HTML de volta para texto legível.
+- Entrada: `&amp;copy; 2024 Company &amp;amp; Partners`
+- Saída: `© 2024 Company &amp; Partners`
+
+**Exemplo 3**: Codificação de caracteres não-ASCII para máxima compatibilidade.
+- Entrada: `Café résumé naïve`
+- Saída: `Caf&amp;#233; r&amp;#233;sum&amp;#233; na&amp;#239;ve`</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_HowToSteps" xml:space="preserve">
+    <value>### Passo 1: Digite seu texto
+Digite ou cole o texto que deseja codificar ou decodificar no campo de entrada.
+
+### Passo 2: Configure as opções
+Selecione o modo de codificação:
+- **Apenas caracteres especiais**: Codifica apenas &amp;, &lt;, &gt;, &quot; e '
+- **Apenas não-ASCII**: Codifica apenas caracteres acima de 127 (Unicode estendido)
+- **Todos os caracteres**: Codifica caracteres especiais e não-ASCII
+
+Escolha o formato de entidades:
+- **Nomeado**: Usa nomes de entidades como &amp;amp;, &amp;lt;, &amp;gt;
+- **Decimal**: Usa números decimais como &amp;#38;, &amp;#60;, &amp;#62;
+- **Hexadecimal**: Usa números hexadecimais como &amp;#x26;, &amp;#x3C;, &amp;#x3E;
+
+### Passo 3: Processe e copie
+Clique no botão "Codificar para HTML" ou "Decodificar de HTML", depois copie o resultado para a área de transferência.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Tips" xml:space="preserve">
+    <value>- Todo o processamento acontece no seu navegador para máxima privacidade
+- Use o modo de caracteres especiais para escape HTML básico
+- Use o modo não-ASCII ao trabalhar com texto internacional
+- Entidades nomeadas são mais legíveis; numéricas suportam todos os caracteres Unicode
+- A ferramenta detecta e processa automaticamente entidades nomeadas e numéricas ao decodificar</value>
+  </data>
+
 <!-- SEO Content: Hex Encoder (pt) -->
   <data name="HexEncoder_Seo_Introduction" xml:space="preserve">
     <value>A ferramenta Hex Encoder é uma ferramenta online focada em privacidade projetada para desenvolvedores. Todo o processamento acontece localmente no seu navegador usando WebAssembly, garantindo que seus dados nunca saiam do seu dispositivo.</value>
@@ -2991,6 +3117,109 @@ Após a compressão, clique no botão "Descarregar" ao lado de cada ficheiro par
 - A ferramenta funciona offline após o carregamento inicial
 - Os ficheiros não são carregados para nenhum servidor
 - Suporta o processamento de múltiplos ficheiros em simultâneo</value>
+  </data>
+  <!-- Search Tool -->
+  <data name="Search_Placeholder" xml:space="preserve">
+    <value>Pesquisar ferramentas...</value>
+  </data>
+  <data name="Search_Tooltip" xml:space="preserve">
+    <value>Pesquisar ferramentas (Ctrl+K)</value>
+  </data>
+  <data name="Search_NoResults" xml:space="preserve">
+    <value>Nenhuma ferramenta encontrada</value>
+  </data>
+  <data name="Search_PopularTools" xml:space="preserve">
+    <value>Ferramentas populares</value>
+  </data>
+  <data name="Search_Navigate" xml:space="preserve">
+    <value>para navegar</value>
+  </data>
+  <data name="Search_Select" xml:space="preserve">
+    <value>para selecionar</value>
+  </data>
+  <data name="Search_Results" xml:space="preserve">
+    <value>resultados</value>
+  </data>
+  <!-- Unit Converter -->
+  <data name="UnitConverter_Title" xml:space="preserve">
+    <value>Conversor de Unidades</value>
+  </data>
+  <data name="UnitConverter_Description" xml:space="preserve">
+    <value>Converta entre várias unidades de medida: comprimento, peso, temperatura e volume — todos os cálculos ocorrem no seu navegador</value>
+  </data>
+  <data name="UnitConverter_CategoryLabel" xml:space="preserve">
+    <value>Categoria</value>
+  </data>
+  <data name="UnitConverter_Category_Length" xml:space="preserve">
+    <value>Comprimento</value>
+  </data>
+  <data name="UnitConverter_Category_Weight" xml:space="preserve">
+    <value>Peso</value>
+  </data>
+  <data name="UnitConverter_Category_Temperature" xml:space="preserve">
+    <value>Temperatura</value>
+  </data>
+  <data name="UnitConverter_Category_Volume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="UnitConverter_FromLabel" xml:space="preserve">
+    <value>De</value>
+  </data>
+  <data name="UnitConverter_ToLabel" xml:space="preserve">
+    <value>Para</value>
+  </data>
+  <data name="UnitConverter_Swap" xml:space="preserve">
+    <value>Trocar unidades</value>
+  </data>
+  <data name="UnitConverter_Copied" xml:space="preserve">
+    <value>Copiado!</value>
+  </data>
+  <data name="UnitConverter_QuickConversions" xml:space="preserve">
+    <value>Conversões Rápidas</value>
+  </data>
+  <data name="UnitConverter_CommonConversions" xml:space="preserve">
+    <value>Conversões Comuns</value>
+  </data>
+  <data name="UnitConverter_Formula" xml:space="preserve">
+    <value>Fórmula de Conversão</value>
+  </data>
+  <data name="UnitConverter_Seo_Introduction" xml:space="preserve">
+    <value>O Conversor de Unidades é uma ferramenta online para converter entre várias unidades de medida. Todos os cálculos ocorrem localmente no seu navegador, garantindo que seus dados nunca saiam do seu dispositivo.</value>
+  </data>
+  <data name="UnitConverter_Seo_DetailedDescription" xml:space="preserve">
+    <value>Esta ferramenta suporta conversão entre unidades métricas e imperiais em quatro categorias: Comprimento (metros, quilômetros, milhas, pés, polegadas), Peso (quilogramas, gramas, libras, onças), Temperatura (Celsius, Fahrenheit, Kelvin) e Volume (litros, galões, xícaras, onças fluidas).
+
+Construída com tecnologias web modernas, fornece resultados instantâneos sem processamento no servidor. A interface é intuitiva e suporta troca rápida entre unidades, copiar resultados e visualizar pares de conversão comuns.</value>
+  </data>
+  <data name="UnitConverter_Seo_Examples" xml:space="preserve">
+    <value>**Exemplo 1**: Converta 5 quilômetros para milhas para planejamento de viagem.
+
+**Exemplo 2**: Converta medidas de receitas de xícaras para mililitros.
+
+**Exemplo 3**: Converta temperatura corporal de Fahrenheit para Celsius.</value>
+  </data>
+  <data name="UnitConverter_Seo_HowToSteps" xml:space="preserve">
+    <value>### Passo 1: Selecione a Categoria
+Escolha o tipo de medida que deseja converter: Comprimento, Peso, Temperatura ou Volume.
+
+### Passo 2: Digite o Valor
+Digite o valor que deseja converter no campo "De".
+
+### Passo 3: Selecione as Unidades
+Escolha as unidades de origem e destino nos menus suspensos.
+
+### Passo 4: Veja o Resultado
+O valor convertido aparecerá automaticamente no campo "Para". Clique no botão de copiar para copiar o resultado.</value>
+  </data>
+  <data name="UnitConverter_Seo_Tips" xml:space="preserve">
+    <value>- Todos os cálculos ocorrem no seu navegador para máxima privacidade
+- Use o botão de troca para mudar rapidamente a direção da conversão
+- Os botões de conversão rápida mostram valores equivalentes em todas as outras unidades
+- O painel lateral de conversões comuns fornece valores de referência úteis
+- Funciona offline após o carregamento inicial da página</value>
+  </data>
+  <data name="Category_Converters" xml:space="preserve">
+    <value>Conversores</value>
   </data>
   <data name="PdfToText_Title" xml:space="preserve">
     <value>PDF para Texto</value>

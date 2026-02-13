@@ -2000,6 +2000,132 @@ Klicken Sie auf die Aktionstaste, um Ihre Eingabe zu verarbeiten, und kopieren S
 - Große Dateien werden mit Fortschrittsverfolgung unterstützt</value>
   </data>
 
+  <!-- HTML Entity Encoder (de) -->
+  <data name="HtmlEntityEncoder_Title" xml:space="preserve">
+    <value>HTML Entity Encoder / Decoder</value>
+  </data>
+  <data name="HtmlEntityEncoder_Description" xml:space="preserve">
+    <value>Kodieren Sie Sonderzeichen in HTML-Entities und zurück. Unterstützt benannte, dezimale und hexadezimale Formate.</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputTitle" xml:space="preserve">
+    <value>Eingabe &amp; Einstellungen</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputLabel" xml:space="preserve">
+    <value>Text zum Kodieren/Dekodieren</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputPlaceholder" xml:space="preserve">
+    <value>Geben Sie hier Ihren Text ein oder fügen Sie ihn ein...</value>
+  </data>
+  <data name="HtmlEntityEncoder_OutputTitle" xml:space="preserve">
+    <value>Ausgabe</value>
+  </data>
+  <data name="HtmlEntityEncoder_SettingsTitle" xml:space="preserve">
+    <value>Einstellungen</value>
+  </data>
+  <data name="HtmlEntityEncoder_ModeLabel" xml:space="preserve">
+    <value>Kodierungsmodus</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_All" xml:space="preserve">
+    <value>Alle Zeichen (Sonderzeichen + Nicht-ASCII)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_SpecialChars" xml:space="preserve">
+    <value>Nur Sonderzeichen (&amp; &lt; &gt; " ')</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_NonAscii" xml:space="preserve">
+    <value>Nur Nicht-ASCII-Zeichen</value>
+  </data>
+  <data name="HtmlEntityEncoder_FormatLabel" xml:space="preserve">
+    <value>Entity-Format</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Named" xml:space="preserve">
+    <value>Benannt (&amp;amp;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Decimal" xml:space="preserve">
+    <value>Dezimal (&amp;#38;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Hex" xml:space="preserve">
+    <value>Hexadezimal (&amp;#x26;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionEncode" xml:space="preserve">
+    <value>In HTML kodieren</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionDecode" xml:space="preserve">
+    <value>Aus HTML dekodieren</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionSwap" xml:space="preserve">
+    <value>Tauschen</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionClear" xml:space="preserve">
+    <value>Löschen</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copy" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copied" xml:space="preserve">
+    <value>Kopiert!</value>
+  </data>
+  <data name="HtmlEntityEncoder_OtherFormats" xml:space="preserve">
+    <value>Andere Formate:</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkUrl" xml:space="preserve">
+    <value>URL Encoder</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkBase64" xml:space="preserve">
+    <value>Base64</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkHex" xml:space="preserve">
+    <value>Hex</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkXml" xml:space="preserve">
+    <value>XML Beautifier</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Introduction" xml:space="preserve">
+    <value>Der HTML Entity Encoder ist ein datenschutzorientiertes Tool für Entwickler und Webdesigner. Die gesamte Verarbeitung erfolgt lokal in Ihrem Browser, Daten verlassen niemals Ihr Gerät.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_DetailedDescription" xml:space="preserve">
+    <value>Dieses Tool bietet umfassende Funktionalität zum Kodieren von Sonderzeichen in HTML-Entities und deren Rückwandlung. Es unterstützt mehrere Formate: benannte Entities (&amp;amp;), dezimale numerische Referenzen (&amp;#38;) und hexadezimale Referenzen (&amp;#x26;).
+
+Die Benutzeroberfläche ist auf Effizienz und Benutzerfreundlichkeit ausgelegt, mit Optionen zum Kodieren nur von Sonderzeichen, nur Nicht-ASCII-Zeichen oder aller Zeichen. Alle Operationen werden clientseitig durchgeführt und garantieren vollständigen Datenschutz und Sicherheit.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Examples" xml:space="preserve">
+    <value>**Beispiel 1**: Kodierung von HTML-Sonderzeichen zur sicheren Anzeige in Webseiten.
+- Eingabe: `&lt;div class="example"&gt;Hello &amp; Welcome!&lt;/div&gt;`
+- Ausgabe: `&amp;lt;div class=&amp;quot;example&amp;quot;&amp;gt;Hello &amp;amp; Welcome!&amp;lt;/div&amp;gt;`
+
+**Beispiel 2**: Dekodierung von HTML-Entities zurück in lesbaren Text.
+- Eingabe: `&amp;copy; 2024 Company &amp;amp; Partners`
+- Ausgabe: `© 2024 Company &amp; Partners`
+
+**Beispiel 3**: Kodierung von Nicht-ASCII-Zeichen für maximale Kompatibilität.
+- Eingabe: `Café résumé naïve`
+- Ausgabe: `Caf&amp;#233; r&amp;#233;sum&amp;#233; na&amp;#239;ve`</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_HowToSteps" xml:space="preserve">
+    <value>### Schritt 1: Text eingeben
+Geben Sie den Text, den Sie kodieren oder dekodieren möchten, in das Eingabefeld ein oder fügen Sie ihn ein.
+
+### Schritt 2: Einstellungen konfigurieren
+Wählen Sie den Kodierungsmodus:
+- **Nur Sonderzeichen**: Kodiert nur &amp;, &lt;, &gt;, &quot; und '
+- **Nur Nicht-ASCII**: Kodiert nur Zeichen über 127 (erweitertes Unicode)
+- **Alle Zeichen**: Kodiert Sonder- und Nicht-ASCII-Zeichen
+
+Wählen Sie das Entity-Format:
+- **Benannt**: Verwendet Entity-Namen wie &amp;amp;, &amp;lt;, &amp;gt;
+- **Dezimal**: Verwendet Dezimalzahlen wie &amp;#38;, &amp;#60;, &amp;#62;
+- **Hexadezimal**: Verwendet Hexadezimalzahlen wie &amp;#x26;, &amp;#x3C;, &amp;#x3E;
+
+### Schritt 3: Verarbeiten und kopieren
+Klicken Sie auf die Schaltfläche "In HTML kodieren" oder "Aus HTML dekodieren", dann kopieren Sie das Ergebnis in die Zwischenablage.</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Tips" xml:space="preserve">
+    <value>- Die gesamte Verarbeitung erfolgt in Ihrem Browser für maximalen Datenschutz
+- Verwenden Sie den Sonderzeichen-Modus für grundlegendes HTML-Escaping
+- Verwenden Sie den Nicht-ASCII-Modus bei der Arbeit mit internationalem Text
+- Benannte Entities sind am lesbarsten; numerische unterstützen alle Unicode-Zeichen
+- Das Tool erkennt und verarbeitet automatisch sowohl benannte als auch numerische Entities beim Dekodieren</value>
+  </data>
+
 <!-- SEO Content: Hex Encoder (de) -->
   <data name="HexEncoder_Seo_Introduction" xml:space="preserve">
     <value>Das Hex Encoder-Tool ist ein datenschutzorientiertes Online-Tool für Entwickler. Die gesamte Verarbeitung erfolgt lokal in Ihrem Browser mit WebAssembly und stellt sicher, dass Ihre Daten niemals Ihr Gerät verlassen.</value>
@@ -2991,6 +3117,109 @@ Klicken Sie nach der Komprimierung auf die Schaltfläche „Herunterladen“ neb
 - Tool arbeitet nach dem ersten Laden offline
 - Dateien werden auf keinen Server hochgeladen
 - Unterstützt die gleichzeitige Verarbeitung mehrerer Dateien</value>
+  </data>
+  <!-- Search Tool -->
+  <data name="Search_Placeholder" xml:space="preserve">
+    <value>Tools suchen...</value>
+  </data>
+  <data name="Search_Tooltip" xml:space="preserve">
+    <value>Tools suchen (Ctrl+K)</value>
+  </data>
+  <data name="Search_NoResults" xml:space="preserve">
+    <value>Keine Tools gefunden</value>
+  </data>
+  <data name="Search_PopularTools" xml:space="preserve">
+    <value>Beliebte Tools</value>
+  </data>
+  <data name="Search_Navigate" xml:space="preserve">
+    <value>zum Navigieren</value>
+  </data>
+  <data name="Search_Select" xml:space="preserve">
+    <value>zum Auswählen</value>
+  </data>
+  <data name="Search_Results" xml:space="preserve">
+    <value>Ergebnisse</value>
+  </data>
+  <!-- Unit Converter -->
+  <data name="UnitConverter_Title" xml:space="preserve">
+    <value>Einheitenumrechner</value>
+  </data>
+  <data name="UnitConverter_Description" xml:space="preserve">
+    <value>Konvertiere zwischen verschiedenen Maßeinheiten: Länge, Gewicht, Temperatur und Volumen — alle Berechnungen erfolgen in deinem Browser</value>
+  </data>
+  <data name="UnitConverter_CategoryLabel" xml:space="preserve">
+    <value>Kategorie</value>
+  </data>
+  <data name="UnitConverter_Category_Length" xml:space="preserve">
+    <value>Länge</value>
+  </data>
+  <data name="UnitConverter_Category_Weight" xml:space="preserve">
+    <value>Gewicht</value>
+  </data>
+  <data name="UnitConverter_Category_Temperature" xml:space="preserve">
+    <value>Temperatur</value>
+  </data>
+  <data name="UnitConverter_Category_Volume" xml:space="preserve">
+    <value>Volumen</value>
+  </data>
+  <data name="UnitConverter_FromLabel" xml:space="preserve">
+    <value>Von</value>
+  </data>
+  <data name="UnitConverter_ToLabel" xml:space="preserve">
+    <value>Nach</value>
+  </data>
+  <data name="UnitConverter_Swap" xml:space="preserve">
+    <value>Einheiten tauschen</value>
+  </data>
+  <data name="UnitConverter_Copied" xml:space="preserve">
+    <value>Kopiert!</value>
+  </data>
+  <data name="UnitConverter_QuickConversions" xml:space="preserve">
+    <value>Schnelle Umrechnungen</value>
+  </data>
+  <data name="UnitConverter_CommonConversions" xml:space="preserve">
+    <value>Häufige Umrechnungen</value>
+  </data>
+  <data name="UnitConverter_Formula" xml:space="preserve">
+    <value>Umrechnungsformel</value>
+  </data>
+  <data name="UnitConverter_Seo_Introduction" xml:space="preserve">
+    <value>Der Einheitenumrechner ist ein Online-Tool zum Konvertieren zwischen verschiedenen Maßeinheiten. Alle Berechnungen erfolgen lokal in deinem Browser, sodass deine Daten dein Gerät nie verlassen.</value>
+  </data>
+  <data name="UnitConverter_Seo_DetailedDescription" xml:space="preserve">
+    <value>Dieses Tool unterstützt die Konvertierung zwischen metrischen und imperialen Einheiten in vier Kategorien: Länge (Meter, Kilometer, Meilen, Fuß, Zoll), Gewicht (Kilogramm, Gramm, Pfund, Unzen), Temperatur (Celsius, Fahrenheit, Kelvin) und Volumen (Liter, Gallonen, Tassen, Flüssigunzen).
+
+Mit modernen Webtechnologien gebaut, liefert es sofortige Ergebnisse ohne Serververarbeitung. Die Oberfläche ist intuitiv und unterstützt schnelles Wechseln zwischen Einheiten, Kopieren von Ergebnissen und Anzeigen häufiger Umrechnungspaare.</value>
+  </data>
+  <data name="UnitConverter_Seo_Examples" xml:space="preserve">
+    <value>**Beispiel 1**: Konvertiere 5 Kilometer in Meilen für Reiseplanung.
+
+**Beispiel 2**: Konvertiere Rezeptmaße von Tassen in Milliliter.
+
+**Beispiel 3**: Konvertiere Körpertemperatur von Fahrenheit in Celsius.</value>
+  </data>
+  <data name="UnitConverter_Seo_HowToSteps" xml:space="preserve">
+    <value>### Schritt 1: Wähle die Kategorie
+Wähle die Art der Messung, die du konvertieren möchtest: Länge, Gewicht, Temperatur oder Volumen.
+
+### Schritt 2: Gib den Wert ein
+Gib den zu konvertierenden Wert in das Feld "Von" ein.
+
+### Schritt 3: Wähle die Einheiten
+Wähle die Ausgangs- und Zieleinheiten aus den Dropdown-Menüs.
+
+### Schritt 4: Sieh das Ergebnis
+Der konvertierte Wert erscheint automatisch im Feld "Nach". Klicke auf die Kopieren-Schaltfläche, um das Ergebnis zu kopieren.</value>
+  </data>
+  <data name="UnitConverter_Seo_Tips" xml:space="preserve">
+    <value>- Alle Berechnungen erfolgen in deinem Browser für maximale Privatsphäre
+- Verwende die Tausch-Schaltfläche, um schnell die Umrechnungsrichtung zu ändern
+- Die Schaltflächen für schnelle Umrechnungen zeigen äquivalente Werte in allen anderen Einheiten
+- Die Seitenleiste mit häufigen Umrechnungen bietet nützliche Referenzwerte
+- Funktioniert offline nach dem ersten Laden der Seite</value>
+  </data>
+  <data name="Category_Converters" xml:space="preserve">
+    <value>Konverter</value>
   </data>
   <data name="PdfToText_Title" xml:space="preserve">
     <value>PDF in Text</value>

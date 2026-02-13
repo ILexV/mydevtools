@@ -1,0 +1,84 @@
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+@* Search Button - triggers JS modal *@
+<button class="btn btn-ghost btn-sm gap-2 normal-case hidden md:flex" onclick="toolSearchModal.open()" title="@AppStrings.Search_Tooltip">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+    <span class="opacity-70">@AppStrings.Search_Placeholder</span>
+    <kbd class="kbd kbd-sm opacity-70">Ctrl K</kbd>
+</button>
+
+@* Mobile Search Button *@
+<button class="btn btn-ghost btn-circle md:hidden" onclick="toolSearchModal.open()" title="@AppStrings.Search_Tooltip">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+</button>
+
+@* Hidden data for JS *@
+<script>
+    window.searchData = window.searchData || {};
+    window.searchData.tools = [
+        { slug: 'image-converter', icon: '🖼️', title: '@AppStrings.ImageConverter_Title', description: '@AppStrings.ImageConverter_Description', keywords: ['image', 'convert', 'jpg', 'png', 'webp'] },
+        { slug: 'image-compressor', icon: '📉', title: '@AppStrings.ImageCompressor_Title', description: '@AppStrings.ImageCompressor_Description', keywords: ['image', 'compress', 'optimize', 'jpg', 'png'] },
+        { slug: 'image-resizer', icon: '📏', title: '@AppStrings.ImageResizer_Title', description: '@AppStrings.ImageResizer_Description', keywords: ['image', 'resize', 'scale', 'dimensions'] },
+        { slug: 'color-converter', icon: '🎨', title: '@AppStrings.ColorConverter_Title', description: '@AppStrings.ColorConverter_Description', keywords: ['color', 'hex', 'rgb', 'hsl', 'convert'] },
+        { slug: 'markdown-preview', icon: '📄', title: '@AppStrings.MarkdownPreview_Title', description: '@AppStrings.MarkdownPreview_Description', keywords: ['markdown', 'md', 'preview', 'html'] },
+        { slug: 'hash-calculator', icon: '🔐', title: '@AppStrings.HashCalculator_Title', description: '@AppStrings.HashCalculator_Description', keywords: ['hash', 'md5', 'sha256', 'checksum', 'file'] },
+        { slug: 'password-generator', icon: '🎲', title: '@AppStrings.PasswordGenerator_Title', description: '@AppStrings.PasswordGenerator_Description', keywords: ['password', 'generate', 'secure', 'random'] },
+        { slug: 'uuid-generator', icon: '🆔', title: '@AppStrings.UuidGenerator_Title', description: '@AppStrings.UuidGenerator_Description', keywords: ['uuid', 'guid', 'generate', 'id'] },
+        { slug: 'lorem-ipsum-generator', icon: '📝', title: '@AppStrings.LoremIpsumGenerator_Title', description: '@AppStrings.LoremIpsumGenerator_Description', keywords: ['lorem', 'ipsum', 'text', 'dummy', 'placeholder'] },
+        { slug: 'base64-encoder', icon: '🧬', title: '@AppStrings.Base64Encoder_Title', description: '@AppStrings.Base64Encoder_Description', keywords: ['base64', 'encode', 'decode', 'file'] },
+        { slug: 'json-beautifier', icon: '✨', title: '@AppStrings.JsonBeautifier_Title', description: '@AppStrings.JsonBeautifier_Description', keywords: ['json', 'format', 'beautify', 'minify', 'parse'] },
+        { slug: 'text-case-converter', icon: '🔠', title: '@AppStrings.TextCaseConverter_Title', description: '@AppStrings.TextCaseConverter_Description', keywords: ['text', 'case', 'upper', 'lower', 'camel', 'snake'] },
+        { slug: 'text-diff-viewer', icon: '📊', title: '@AppStrings.TextDiffViewer_Title', description: '@AppStrings.TextDiffViewer_Description', keywords: ['diff', 'compare', 'text', 'merge'] },
+        { slug: 'aead-file', icon: '🛡️', title: '@AppStrings.Aead_Title', description: '@AppStrings.Aead_Description', keywords: ['encrypt', 'decrypt', 'file', 'aes', 'chacha', 'security'] },
+        { slug: 'openssh-keys', icon: '🔑', title: '@AppStrings.OpenSsh_Title', description: '@AppStrings.OpenSsh_Description', keywords: ['ssh', 'key', 'openssh', 'generate', 'ed25519', 'rsa'] },
+        { slug: 'x509', icon: '📜', title: '@AppStrings.X509_Title', description: '@AppStrings.X509_Description', keywords: ['certificate', 'x509', 'csr', 'ssl', 'tls', 'pem'] },
+        { slug: 'url-encoder', icon: '🔗', title: '@AppStrings.UrlEncoder_Title', description: '@AppStrings.UrlEncoder_Description', keywords: ['url', 'encode', 'decode', 'percent'] },
+        { slug: 'xml-beautifier', icon: '🧷', title: '@AppStrings.XmlBeautifier_Title', description: '@AppStrings.XmlBeautifier_Description', keywords: ['xml', 'format', 'beautify', 'minify', 'parse'] },
+        { slug: 'hex-encoder', icon: '🧱', title: '@AppStrings.HexEncoder_Title', description: '@AppStrings.HexEncoder_Description', keywords: ['hex', 'encode', 'decode', 'binary'] },
+        { slug: 'base32-encoder', icon: '🧪', title: '@AppStrings.Base32Encoder_Title', description: '@AppStrings.Base32Encoder_Description', keywords: ['base32', 'encode', 'decode'] },
+        { slug: 'base58-encoder', icon: '🧿', title: '@AppStrings.Base58Encoder_Title', description: '@AppStrings.Base58Encoder_Description', keywords: ['base58', 'encode', 'decode', 'bitcoin'] },
+        { slug: 'date-converter', icon: '📅', title: '@AppStrings.DateConverter_Title', description: '@AppStrings.DateConverter_Description', keywords: ['date', 'time', 'timestamp', 'epoch', 'convert'] },
+        { slug: 'jwt-decoder', icon: '🔓', title: '@AppStrings.JwtDecoder_Title', description: '@AppStrings.JwtDecoder_Description', keywords: ['jwt', 'decode', 'token', 'json'] },
+        { slug: 'jwt-encoder', icon: '🔐', title: '@AppStrings.JwtEncoder_Title', description: '@AppStrings.JwtEncoder_Description', keywords: ['jwt', 'encode', 'token', 'sign'] },
+        { slug: 'regex-tester', icon: '🔍', title: '@AppStrings.RegexTester_Title', description: '@AppStrings.RegexTester_Description', keywords: ['regex', 'regular', 'expression', 'test', 'match'] },
+        { slug: 'qr-code-generator', icon: '📱', title: '@AppStrings.QrCodeGenerator_Title', description: '@AppStrings.QrCodeGenerator_Description', keywords: ['qr', 'code', 'generate', 'barcode'] },
+        { slug: 'hmac-calculator', icon: '🔐', title: '@AppStrings.HmacCalculator_Title', description: '@AppStrings.HmacCalculator_Description', keywords: ['hmac', 'hash', 'mac', 'signature'] },
+        { slug: 'yaml-beautifier-validator', icon: '📄', title: '@AppStrings.YamlBeautifierValidator_Title', description: '@AppStrings.YamlBeautifierValidator_Description', keywords: ['yaml', 'format', 'validate', 'parse'] },
+        { slug: 'qr-scanner', icon: '📷', title: '@AppStrings.QrScanner_Title', description: '@AppStrings.QrScanner_Description', keywords: ['qr', 'scan', 'camera', 'decode'] },
+        { slug: 'pdf-merger', icon: '📑', title: '@AppStrings.PdfMerger_Title', description: '@AppStrings.PdfMerger_Description', keywords: ['pdf', 'merge', 'combine', 'join'] },
+        { slug: 'pdf-compressor', icon: '📉', title: '@AppStrings.PdfCompressor_Title', description: '@AppStrings.PdfCompressor_Description', keywords: ['pdf', 'compress', 'optimize', 'reduce'] },
+        { slug: 'html-entity-encoder', icon: '&lt;/&gt;', title: '@AppStrings.HtmlEntityEncoder_Title', description: '@AppStrings.HtmlEntityEncoder_Description', keywords: ['html', 'entity', 'encode', 'decode', 'special characters'] },
+        { slug: 'unit-converter', icon: '📏', title: '@AppStrings.UnitConverter_Title', description: '@AppStrings.UnitConverter_Description', keywords: ['unit', 'convert', 'length', 'weight', 'temperature', 'volume', 'metric', 'imperial'] }
+    ];
+    window.searchData.lang = '@GetCurrentLanguage()';
+    window.searchData.strings = {
+        placeholder: '@AppStrings.Search_Placeholder',
+        noResults: '@AppStrings.Search_NoResults',
+        popularTools: '@AppStrings.Search_PopularTools',
+        navigate: '@AppStrings.Search_Navigate',
+        select: '@AppStrings.Search_Select',
+        results: '@AppStrings.Search_Results'
+    };
+</script>
+
+@code {
+    [Inject]
+    public ILocalizationService LocalizationService { get; set; } = default!;
+
+    private string GetCurrentLanguage()
+    {
+        var uri = new Uri(Navigation.Uri);
+        var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        
+        if (segments.Length > 0 && LocalizationService.IsCultureSupported(segments[0]))
+        {
+            return segments[0];
+        }
+        return "en";
+    }
+}

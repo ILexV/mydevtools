@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @using MyDevTools.Site.Resources
 @using MyDevTools.Site.Services
+@inject IJSRuntime JSRuntime
 
 <div class="min-h-screen flex flex-col bg-base-100">
     <!-- Navbar -->
@@ -14,8 +15,14 @@
             <ul class="menu menu-horizontal px-1">
                 <li><a href="/@CurrentLanguage/#tools" class="font-medium">@AppStrings.Nav_Utilities</a></li>
             </ul>
+            <div class="ml-4">
+                <ToolSearch />
+            </div>
         </div>
         <div class="navbar-end gap-2">
+            <div class="md:hidden">
+                <ToolSearch />
+            </div>
             <LanguageSwitcher CurrentLanguage="@CurrentLanguage" />
             <ThemeToggle />
         </div>

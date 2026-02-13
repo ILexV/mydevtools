@@ -2000,6 +2000,132 @@
 - प्रगति ट्रैकिंग के साथ बड़ी फ़ाइलें समर्थित हैं</value>
   </data>
 
+  <!-- HTML Entity Encoder (hi) -->
+  <data name="HtmlEntityEncoder_Title" xml:space="preserve">
+    <value>HTML Entity Encoder / Decoder</value>
+  </data>
+  <data name="HtmlEntityEncoder_Description" xml:space="preserve">
+    <value>विशेष वर्णों को HTML एंटिटी में एन्कोड करें और डीकोड करें। नामित, दशमलव और हेक्साडेसिमल प्रारूपों का समर्थन करता है।</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputTitle" xml:space="preserve">
+    <value>इनपुट और सेटिंग्स</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputLabel" xml:space="preserve">
+    <value>एन्कोड/डीकोड करने के लिए टेक्स्ट</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputPlaceholder" xml:space="preserve">
+    <value>यहां अपना टेक्स्ट टाइप या पेस्ट करें...</value>
+  </data>
+  <data name="HtmlEntityEncoder_OutputTitle" xml:space="preserve">
+    <value>आउटपुट</value>
+  </data>
+  <data name="HtmlEntityEncoder_SettingsTitle" xml:space="preserve">
+    <value>सेटिंग्स</value>
+  </data>
+  <data name="HtmlEntityEncoder_ModeLabel" xml:space="preserve">
+    <value>एन्कोडिंग मोड</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_All" xml:space="preserve">
+    <value>सभी वर्ण (विशेष + गैर-ASCII)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_SpecialChars" xml:space="preserve">
+    <value>केवल विशेष वर्ण (&amp; &lt; &gt; " ')</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_NonAscii" xml:space="preserve">
+    <value>केवल गैर-ASCII वर्ण</value>
+  </data>
+  <data name="HtmlEntityEncoder_FormatLabel" xml:space="preserve">
+    <value>एंटिटी प्रारूप</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Named" xml:space="preserve">
+    <value>नामित (&amp;amp;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Decimal" xml:space="preserve">
+    <value>दशमलव (&amp;#38;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Hex" xml:space="preserve">
+    <value>हेक्साडेसिमल (&amp;#x26;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionEncode" xml:space="preserve">
+    <value>HTML में एन्कोड करें</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionDecode" xml:space="preserve">
+    <value>HTML से डीकोड करें</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionSwap" xml:space="preserve">
+    <value>स्वैप करें</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionClear" xml:space="preserve">
+    <value>साफ करें</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copy" xml:space="preserve">
+    <value>कॉपी करें</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copied" xml:space="preserve">
+    <value>कॉपी हो गया!</value>
+  </data>
+  <data name="HtmlEntityEncoder_OtherFormats" xml:space="preserve">
+    <value>अन्य प्रारूप:</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkUrl" xml:space="preserve">
+    <value>URL एन्कोडर</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkBase64" xml:space="preserve">
+    <value>Base64</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkHex" xml:space="preserve">
+    <value>Hex</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkXml" xml:space="preserve">
+    <value>XML ब्यूटीफायर</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Introduction" xml:space="preserve">
+    <value>HTML Entity Encoder डेवलपर्स और वेब डिजाइनरों के लिए एक गोपनीयता-प्रथम टूल है। सभी प्रोसेसिंग आपके ब्राउज़र में स्थानीय रूप से होती है, डेटा कभी भी आपके डिवाइस को नहीं छोड़ता।</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_DetailedDescription" xml:space="preserve">
+    <value>यह टूल विशेष वर्णों को HTML एंटिटी में एन्कोड करने और उन्हें डीकोड करने के लिए पूर्ण कार्यक्षमता प्रदान करता है। यह कई प्रारूपों का समर्थन करता है: नामित एंटिटीज़ (&amp;amp;), दशमलव संख्यात्मक संदर्भ (&amp;#38;), और हेक्साडेसिमल संदर्भ (&amp;#x26;).
+
+इंटरफ़ेस को दक्षता और उपयोग में आसानी के लिए डिज़ाइन किया गया है, केवल विशेष वर्ण, केवल गैर-ASCII वर्ण, या सभी वर्णों को एन्कोड करने के विकल्प हैं। सभी संचालन क्लाइंट-साइड पर किए जाते हैं, आपके डेटा के लिए पूरी गोपनीयता और सुरक्षा की गारंटी देते हैं।</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Examples" xml:space="preserve">
+    <value>**उदाहरण 1**: वेब पेजों में सुरक्षित प्रदर्शन के लिए HTML विशेष वर्णों का एन्कोडिंग।
+- इनपुट: `&lt;div class="example"&gt;Hello &amp; Welcome!&lt;/div&gt;`
+- आउटपुट: `&amp;lt;div class=&amp;quot;example&amp;quot;&amp;gt;Hello &amp;amp; Welcome!&amp;lt;/div&amp;gt;`
+
+**उदाहरण 2**: HTML एंटिटीज़ को पठनीय टेक्स्ट में डीकोड करना।
+- इनपुट: `&amp;copy; 2024 Company &amp;amp; Partners`
+- आउटपुट: `© 2024 Company &amp; Partners`
+
+**उदाहरण 3**: अधिकतम संगतता के लिए गैर-ASCII वर्णों का एन्कोडिंग।
+- इनपुट: `Café résumé naïve`
+- आउटपुट: `Caf&amp;#233; r&amp;#233;sum&amp;#233; na&amp;#239;ve`</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_HowToSteps" xml:space="preserve">
+    <value>### चरण 1: अपना टेक्स्ट दर्ज करें
+इनपुट फ़ील्ड में वह टेक्स्ट टाइप या पेस्ट करें जिसे आप एन्कोड या डीकोड करना चाहते हैं।
+
+### चरण 2: सेटिंग्स कॉन्फ़िगर करें
+एन्कोडिंग मोड चुनें:
+- **केवल विशेष वर्ण**: केवल &amp;, &lt;, &gt;, &quot; और ' को एन्कोड करता है
+- **केवल गैर-ASCII**: केवल 127 से ऊपर के वर्णों को एन्कोड करता है (विस्तारित Unicode)
+- **सभी वर्ण**: विशेष और गैर-ASCII दोनों वर्णों को एन्कोड करता है
+
+एंटिटी प्रारूप चुनें:
+- **नामित**: &amp;amp;, &amp;lt;, &amp;gt; जैसे एंटिटी नामों का उपयोग करता है
+- **दशमलव**: &amp;#38;, &amp;#60;, &amp;#62; जैसे दशमलव संख्याओं का उपयोग करता है
+- **हेक्साडेसिमल**: &amp;#x26;, &amp;#x3C;, &amp;#x3E; जैसे हेक्साडेसिमल संख्याओं का उपयोग करता है
+
+### चरण 3: प्रोसेस और कॉपी करें
+"HTML में एन्कोड करें" या "HTML से डीकोड करें" बटन पर क्लिक करें, फिर परिणाम को क्लिपबोर्ड पर कॉपी करें।</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Tips" xml:space="preserve">
+    <value>- अधिकतम गोपनीयता के लिए सभी प्रोसेसिंग आपके ब्राउज़र में होती है
+- बुनियादी HTML एस्केपिंग के लिए विशेष वर्ण मोड का उपयोग करें
+- अंतर्राष्ट्रीय टेक्स्ट के साथ काम करते समय गैर-ASCII मोड का उपयोग करें
+- नामित एंटिटीज़ सबसे अधिक पठनीय हैं; संख्यात्मक सभी Unicode वर्णों का समर्थन करते हैं
+- डिकोडिंग के दौरान टूल स्वचालित रूप से नामित और संख्यात्मक दोनों एंटिटीज़ का पता लगाता और संसाधित करता है</value>
+  </data>
+
 <!-- SEO Content: Hex Encoder (hi) -->
   <data name="HexEncoder_Seo_Introduction" xml:space="preserve">
     <value>Hex Encoder टूल डेवलपर्स के लिए डिज़ाइन किया गया एक गोपनीयता-केंद्रित ऑनलाइन टूल है। सभी प्रोसेसिंग WebAssembly का उपयोग करके आपके ब्राउज़र में स्थानीय रूप से होती है, यह सुनिश्चित करते हुए कि आपका डेटा कभी भी आपके डिवाइस को नहीं छोड़ता।</value>
@@ -2991,6 +3117,109 @@
 - टूल प्रारंभिक लोड के बाद ऑफलाइन काम करता है
 - फ़ाइलें किसी भी सर्वर पर अपलोड नहीं की जाती हैं
 - एक साथ कई फ़ाइलों के प्रोसेसिंग का समर्थन करता है</value>
+  </data>
+  <!-- Search Tool -->
+  <data name="Search_Placeholder" xml:space="preserve">
+    <value>टूल खोजें...</value>
+  </data>
+  <data name="Search_Tooltip" xml:space="preserve">
+    <value>टूल खोजें (Ctrl+K)</value>
+  </data>
+  <data name="Search_NoResults" xml:space="preserve">
+    <value>कोई टूल नहीं मिला</value>
+  </data>
+  <data name="Search_PopularTools" xml:space="preserve">
+    <value>लोकप्रिय टूल्स</value>
+  </data>
+  <data name="Search_Navigate" xml:space="preserve">
+    <value>नेविगेट करने के लिए</value>
+  </data>
+  <data name="Search_Select" xml:space="preserve">
+    <value>चुनने के लिए</value>
+  </data>
+  <data name="Search_Results" xml:space="preserve">
+    <value>परिणाम</value>
+  </data>
+  <!-- Unit Converter -->
+  <data name="UnitConverter_Title" xml:space="preserve">
+    <value>यूनिट कनवर्टर</value>
+  </data>
+  <data name="UnitConverter_Description" xml:space="preserve">
+    <value>विभिन्न मापन इकाइयों के बीच परिवर्तित करें: लंबाई, वजन, तापमान और आयतन — सभी गणनाएं आपके ब्राउज़र में होती हैं</value>
+  </data>
+  <data name="UnitConverter_CategoryLabel" xml:space="preserve">
+    <value>श्रेणी</value>
+  </data>
+  <data name="UnitConverter_Category_Length" xml:space="preserve">
+    <value>लंबाई</value>
+  </data>
+  <data name="UnitConverter_Category_Weight" xml:space="preserve">
+    <value>वजन</value>
+  </data>
+  <data name="UnitConverter_Category_Temperature" xml:space="preserve">
+    <value>तापमान</value>
+  </data>
+  <data name="UnitConverter_Category_Volume" xml:space="preserve">
+    <value>आयतन</value>
+  </data>
+  <data name="UnitConverter_FromLabel" xml:space="preserve">
+    <value>से</value>
+  </data>
+  <data name="UnitConverter_ToLabel" xml:space="preserve">
+    <value>तक</value>
+  </data>
+  <data name="UnitConverter_Swap" xml:space="preserve">
+    <value>इकाइयां बदलें</value>
+  </data>
+  <data name="UnitConverter_Copied" xml:space="preserve">
+    <value>कॉपी किया गया!</value>
+  </data>
+  <data name="UnitConverter_QuickConversions" xml:space="preserve">
+    <value>त्वरित रूपांतरण</value>
+  </data>
+  <data name="UnitConverter_CommonConversions" xml:space="preserve">
+    <value>सामान्य रूपांतरण</value>
+  </data>
+  <data name="UnitConverter_Formula" xml:space="preserve">
+    <value>रूपांतरण सूत्र</value>
+  </data>
+  <data name="UnitConverter_Seo_Introduction" xml:space="preserve">
+    <value>यूनिट कनवर्टर विभिन्न मापन इकाइयों के बीच परिवर्तन के लिए एक ऑनलाइन टूल है। सभी गणनाएं आपके ब्राउज़र में स्थानीय रूप से होती हैं, यह सुनिश्चित करते हुए कि आपका डेटा कभी भी आपके डिवाइस को नहीं छोड़ता।</value>
+  </data>
+  <data name="UnitConverter_Seo_DetailedDescription" xml:space="preserve">
+    <value>यह टूल चार श्रेणियों में मीट्रिक और इंपीरियल इकाइयों के बीच रूपांतरण का समर्थन करता है: लंबाई (मीटर, किलोमीटर, मील, फीट, इंच), वजन (किलोग्राम, ग्राम, पाउंड, औंस), तापमान (सेल्सियस, फारेनहाइट, केल्विन) और आयतन (लीटर, गैलन, कप, तरल औंस)।
+
+आधुनिक वेब तकनीकों के साथ निर्मित, यह बिना सर्वर प्रोसेसिंग के तत्काल परिणाम प्रदान करता है। इंटरफ़ेस सहज है और इकाइयों के बीच तेजी से स्विचिंग, परिणाम कॉपी करना और सामान्य रूपांतरण जोड़े देखने का समर्थन करता है।</value>
+  </data>
+  <data name="UnitConverter_Seo_Examples" xml:space="preserve">
+    <value>**उदाहरण 1**: यात्रा योजना के लिए 5 किलोमीटर को मील में बदलें।
+
+**उदाहरण 2**: व्यंजनों के माप को कप से मिलीलीटर में बदलें।
+
+**उदाहरण 3**: शरीर के तापमान को फारेनहाइट से सेल्सियस में बदलें।</value>
+  </data>
+  <data name="UnitConverter_Seo_HowToSteps" xml:space="preserve">
+    <value>### चरण 1: श्रेणी चुनें
+वह मापन प्रकार चुनें जिसे आप बदलना चाहते हैं: लंबाई, वजन, तापमान या आयतन।
+
+### चरण 2: मान दर्ज करें
+"से" फ़ील्ड में वह मान दर्ज करें जिसे आप बदलना चाहते हैं।
+
+### चरण 3: इकाइयां चुनें
+ड्रॉपडाउन मेनू से स्रोत और लक्ष्य इकाइयां चुनें।
+
+### चरण 4: परिणाम देखें
+परिवर्तित मान स्वचालित रूप से "तक" फ़ील्ड में दिखाई देगा। परिणाम कॉपी करने के लिए कॉपी बटन पर क्लिक करें।</value>
+  </data>
+  <data name="UnitConverter_Seo_Tips" xml:space="preserve">
+    <value>- सभी गणनाएं आपके ब्राउज़र में होती हैं ताकि अधिकतम गोपनीयता सुनिश्चित हो सके
+- रूपांतरण दिशा को जल्दी से बदलने के लिए स्वैप बटन का उपयोग करें
+- त्वरित रूपांतरण बटन अन्य सभी इकाइयों में समकक्ष मान दिखाते हैं
+- सामान्य रूपांतरण साइडबार उपयोगी संदर्भ मान प्रदान करता है
+- पेज के प्रारंभिक लोड के बाद ऑफ़लाइन काम करता है</value>
+  </data>
+  <data name="Category_Converters" xml:space="preserve">
+    <value>कनवर्टर</value>
   </data>
   <data name="PdfToText_Title" xml:space="preserve">
     <value>PDF से टेक्स्ट</value>

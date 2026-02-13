@@ -1,0 +1,460 @@
+@page "/{lang}/unit-converter"
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<ToolLayout Title="@AppStrings.UnitConverter_Title" Description="@AppStrings.UnitConverter_Description">
+    <MetaTags Title="@AppStrings.UnitConverter_Title"
+              Description="@AppStrings.UnitConverter_Description"
+              CurrentUrl="@Navigation.Uri"
+              ToolPath="unit-converter" />
+
+    <div id="unit-converter-root"
+         data-copied="@AppStrings.UnitConverter_Copied"
+         data-length="@AppStrings.UnitConverter_Category_Length"
+         data-weight="@AppStrings.UnitConverter_Category_Weight"
+         data-temperature="@AppStrings.UnitConverter_Category_Temperature"
+         data-volume="@AppStrings.UnitConverter_Category_Volume">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Main Converter -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="card bg-base-200 shadow-xl">
+                    <div class="card-body">
+                        <!-- Category Selection -->
+                        <div class="form-control w-full mb-6">
+                            <label class="label" for="category-select">
+                                <span class="label-text font-semibold">@AppStrings.UnitConverter_CategoryLabel</span>
+                            </label>
+                            <select id="category-select" class="select select-bordered w-full">
+                                <option value="length">@AppStrings.UnitConverter_Category_Length</option>
+                                <option value="weight">@AppStrings.UnitConverter_Category_Weight</option>
+                                <option value="temperature">@AppStrings.UnitConverter_Category_Temperature</option>
+                                <option value="volume">@AppStrings.UnitConverter_Category_Volume</option>
+                            </select>
+                        </div>
+
+                        <!-- Conversion Area -->
+                        <div class="grid grid-cols-1 md:grid-cols-[1fr,auto,1fr] gap-4 items-start">
+                            <!-- From Unit -->
+                            <div class="space-y-2">
+                                <label class="label" for="from-unit">
+                                    <span class="label-text">@AppStrings.UnitConverter_FromLabel</span>
+                                </label>
+                                <select id="from-unit" class="select select-bordered w-full mb-2">
+                                    <!-- Options populated by JS -->
+                                </select>
+                                <input type="number" id="from-value" 
+                                       class="input input-bordered w-full font-mono text-lg" 
+                                       placeholder="0" step="any" />
+                            </div>
+
+                            <!-- Swap Button -->
+                            <div class="flex items-center justify-center md:pt-8">
+                                <button id="swap-btn" class="btn btn-circle btn-outline" type="button" title="@AppStrings.UnitConverter_Swap">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- To Unit -->
+                            <div class="space-y-2">
+                                <label class="label" for="to-unit">
+                                    <span class="label-text">@AppStrings.UnitConverter_ToLabel</span>
+                                </label>
+                                <select id="to-unit" class="select select-bordered w-full mb-2">
+                                    <!-- Options populated by JS -->
+                                </select>
+                                <div class="relative">
+                                    <input type="text" id="to-value" 
+                                           class="input input-bordered w-full font-mono text-lg bg-base-300" 
+                                           readonly />
+                                    <button id="copy-result-btn" class="btn btn-sm btn-ghost absolute right-2 top-1/2 -translate-y-1/2" type="button">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Convert Buttons -->
+                        <div class="mt-6">
+                            <label class="label">
+                                <span class="label-text font-semibold">@AppStrings.UnitConverter_QuickConversions</span>
+                            </label>
+                            <div id="quick-conversions" class="flex flex-wrap gap-2">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formula Display -->
+                <div class="card bg-base-200 shadow-xl">
+                    <div class="card-body">
+                        <h3 class="card-title text-base opacity-70">@AppStrings.UnitConverter_Formula</h3>
+                        <div id="formula-display" class="font-mono text-sm bg-base-300 p-4 rounded-lg">
+                            <!-- Formula shown here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Common Conversions Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="card bg-base-200 shadow-xl sticky top-4">
+                    <div class="card-body">
+                        <h3 class="card-title text-base opacity-70 mb-4">@AppStrings.UnitConverter_CommonConversions</h3>
+                        <div id="common-conversions" class="space-y-3">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <ToolSeoContent 
+        Introduction="@AppStrings.UnitConverter_Seo_Introduction"
+        DetailedDescription="@AppStrings.UnitConverter_Seo_DetailedDescription"
+        DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
+        Examples="@AppStrings.UnitConverter_Seo_Examples"
+        ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
+        HowToSteps="@AppStrings.UnitConverter_Seo_HowToSteps"
+        HowToTitle="@AppStrings.Seo_HowToTitle"
+        Tips="@AppStrings.UnitConverter_Seo_Tips"
+        TipsTitle="@AppStrings.Seo_TipsTitle" />
+</ToolLayout>
+
+<script>
+(function() {
+    'use strict';
+
+    const root = document.getElementById('unit-converter-root');
+    if (!root) return;
+
+    // Unit definitions with conversion factors to base units
+    const unitData = {
+        length: {
+            base: 'm',
+            units: {
+                'm': { name: 'Meters', factor: 1 },
+                'km': { name: 'Kilometers', factor: 1000 },
+                'cm': { name: 'Centimeters', factor: 0.01 },
+                'mm': { name: 'Millimeters', factor: 0.001 },
+                'mi': { name: 'Miles', factor: 1609.344 },
+                'yd': { name: 'Yards', factor: 0.9144 },
+                'ft': { name: 'Feet', factor: 0.3048 },
+                'in': { name: 'Inches', factor: 0.0254 },
+                'nm': { name: 'Nanometers', factor: 1e-9 },
+                'um': { name: 'Micrometers', factor: 1e-6 }
+            }
+        },
+        weight: {
+            base: 'kg',
+            units: {
+                'kg': { name: 'Kilograms', factor: 1 },
+                'g': { name: 'Grams', factor: 0.001 },
+                'mg': { name: 'Milligrams', factor: 1e-6 },
+                'lb': { name: 'Pounds', factor: 0.45359237 },
+                'oz': { name: 'Ounces', factor: 0.02834952 },
+                'st': { name: 'Stone', factor: 6.350293 },
+                't': { name: 'Metric Tonnes', factor: 1000 },
+                'ton': { name: 'US Tons', factor: 907.185 }
+            }
+        },
+        temperature: {
+            units: {
+                'c': { name: 'Celsius (°C)' },
+                'f': { name: 'Fahrenheit (°F)' },
+                'k': { name: 'Kelvin (K)' }
+            }
+        },
+        volume: {
+            base: 'l',
+            units: {
+                'l': { name: 'Liters', factor: 1 },
+                'ml': { name: 'Milliliters', factor: 0.001 },
+                'm3': { name: 'Cubic Meters', factor: 1000 },
+                'gal': { name: 'Gallons (US)', factor: 3.78541 },
+                'qt': { name: 'Quarts (US)', factor: 0.946353 },
+                'pt': { name: 'Pints (US)', factor: 0.473176 },
+                'cup': { name: 'Cups (US)', factor: 0.236588 },
+                'floz': { name: 'Fluid Ounces (US)', factor: 0.0295735 },
+                'tbsp': { name: 'Tablespoons', factor: 0.0147868 },
+                'tsp': { name: 'Teaspoons', factor: 0.00492892 }
+            }
+        }
+    };
+
+    // Common conversions to display
+    const commonConversions = {
+        length: [
+            { from: 1, fromUnit: 'km', toUnit: 'mi' },
+            { from: 1, fromUnit: 'm', toUnit: 'ft' },
+            { from: 1, fromUnit: 'in', toUnit: 'cm' },
+            { from: 1, fromUnit: 'mi', toUnit: 'km' }
+        ],
+        weight: [
+            { from: 1, fromUnit: 'kg', toUnit: 'lb' },
+            { from: 1, fromUnit: 'lb', toUnit: 'kg' },
+            { from: 1, fromUnit: 'oz', toUnit: 'g' },
+            { from: 1, fromUnit: 'st', toUnit: 'kg' }
+        ],
+        temperature: [
+            { from: 0, fromUnit: 'c', toUnit: 'f' },
+            { from: 100, fromUnit: 'c', toUnit: 'f' },
+            { from: 32, fromUnit: 'f', toUnit: 'c' },
+            { from: 98.6, fromUnit: 'f', toUnit: 'c' }
+        ],
+        volume: [
+            { from: 1, fromUnit: 'gal', toUnit: 'l' },
+            { from: 1, fromUnit: 'l', toUnit: 'gal' },
+            { from: 1, fromUnit: 'cup', toUnit: 'ml' },
+            { from: 1, fromUnit: 'floz', toUnit: 'ml' }
+        ]
+    };
+
+    // DOM elements
+    const categorySelect = document.getElementById('category-select');
+    const fromUnitSelect = document.getElementById('from-unit');
+    const toUnitSelect = document.getElementById('to-unit');
+    const fromValueInput = document.getElementById('from-value');
+    const toValueInput = document.getElementById('to-value');
+    const swapBtn = document.getElementById('swap-btn');
+    const copyResultBtn = document.getElementById('copy-result-btn');
+    const formulaDisplay = document.getElementById('formula-display');
+    const quickConversionsDiv = document.getElementById('quick-conversions');
+    const commonConversionsDiv = document.getElementById('common-conversions');
+
+    let currentCategory = 'length';
+
+    // Initialize unit selects for a category
+    function populateUnitSelects(category) {
+        const data = unitData[category];
+        const units = data.units;
+        
+        fromUnitSelect.innerHTML = '';
+        toUnitSelect.innerHTML = '';
+
+        Object.entries(units).forEach(([key, unit]) => {
+            const fromOption = document.createElement('option');
+            fromOption.value = key;
+            fromOption.textContent = unit.name;
+            fromUnitSelect.appendChild(fromOption);
+
+            const toOption = document.createElement('option');
+            toOption.value = key;
+            toOption.textContent = unit.name;
+            toUnitSelect.appendChild(toOption);
+        });
+
+        // Set default selections (different units)
+        const unitKeys = Object.keys(units);
+        fromUnitSelect.value = unitKeys[0];
+        toUnitSelect.value = unitKeys[1] || unitKeys[0];
+    }
+
+    // Convert value based on category
+    function convertValue(value, fromUnit, toUnit, category) {
+        if (category === 'temperature') {
+            return convertTemperature(value, fromUnit, toUnit);
+        }
+
+        const data = unitData[category];
+        const fromFactor = data.units[fromUnit].factor;
+        const toFactor = data.units[toUnit].factor;
+        
+        // Convert to base unit, then to target unit
+        const baseValue = value * fromFactor;
+        return baseValue / toFactor;
+    }
+
+    // Temperature conversion (special case)
+    function convertTemperature(value, from, to) {
+        if (from === to) return value;
+
+        let celsius;
+        
+        // Convert to Celsius first
+        switch(from) {
+            case 'c': celsius = value; break;
+            case 'f': celsius = (value - 32) * 5/9; break;
+            case 'k': celsius = value - 273.15; break;
+        }
+
+        // Convert from Celsius to target
+        switch(to) {
+            case 'c': return celsius;
+            case 'f': return (celsius * 9/5) + 32;
+            case 'k': return celsius + 273.15;
+        }
+    }
+
+    // Format number for display
+    function formatNumber(num) {
+        if (Math.abs(num) < 0.000001 || Math.abs(num) > 1000000) {
+            return num.toExponential(6);
+        }
+        
+        // Remove trailing zeros after decimal
+        const formatted = parseFloat(num.toPrecision(10));
+        return formatted.toString();
+    }
+
+    // Update conversion result
+    function updateConversion() {
+        const value = parseFloat(fromValueInput.value);
+        const fromUnit = fromUnitSelect.value;
+        const toUnit = toUnitSelect.value;
+
+        if (isNaN(value)) {
+            toValueInput.value = '';
+            formulaDisplay.textContent = '';
+            return;
+        }
+
+        const result = convertValue(value, fromUnit, toUnit, currentCategory);
+        toValueInput.value = formatNumber(result);
+
+        // Update formula display
+        updateFormula(value, fromUnit, toUnit, result);
+        
+        // Update quick conversions
+        updateQuickConversions();
+    }
+
+    // Update formula display
+    function updateFormula(value, fromUnit, toUnit, result) {
+        const fromUnitName = unitData[currentCategory].units[fromUnit].name;
+        const toUnitName = unitData[currentCategory].units[toUnit].name;
+        
+        let formula = '';
+        
+        if (currentCategory === 'temperature') {
+            if (fromUnit === toUnit) {
+                formula = `${value} ${fromUnitName} = ${value} ${toUnitName}`;
+            } else {
+                formula = `${value} ${fromUnitName} → ${formatNumber(result)} ${toUnitName}`;
+            }
+        } else {
+            const data = unitData[currentCategory];
+            const fromFactor = data.units[fromUnit].factor;
+            const toFactor = data.units[toUnit].factor;
+            const ratio = fromFactor / toFactor;
+            
+            formula = `${value} × ${formatNumber(ratio)} = ${formatNumber(result)} ${toUnitName}`;
+        }
+        
+        formulaDisplay.textContent = formula;
+    }
+
+    // Update quick conversion buttons
+    function updateQuickConversions() {
+        const value = parseFloat(fromValueInput.value) || 1;
+        const fromUnit = fromUnitSelect.value;
+        const unitKeys = Object.keys(unitData[currentCategory].units);
+        
+        quickConversionsDiv.innerHTML = '';
+        
+        unitKeys.forEach(unit => {
+            if (unit === fromUnit) return;
+            
+            const result = convertValue(value, fromUnit, unit, currentCategory);
+            const unitName = unitData[currentCategory].units[unit].name;
+            
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-sm btn-outline';
+            btn.textContent = `${formatNumber(result)} ${unitName}`;
+            btn.onclick = () => {
+                toUnitSelect.value = unit;
+                updateConversion();
+            };
+            
+            quickConversionsDiv.appendChild(btn);
+        });
+    }
+
+    // Update common conversions sidebar
+    function updateCommonConversions() {
+        commonConversionsDiv.innerHTML = '';
+        
+        const conversions = commonConversions[currentCategory];
+        
+        conversions.forEach(conv => {
+            const result = convertValue(conv.from, conv.fromUnit, conv.toUnit, currentCategory);
+            const fromName = unitData[currentCategory].units[conv.fromUnit].name;
+            const toName = unitData[currentCategory].units[conv.toUnit].name;
+            
+            const div = document.createElement('div');
+            div.className = 'flex justify-between items-center p-2 bg-base-300 rounded cursor-pointer hover:bg-base-100 transition-colors';
+            div.innerHTML = `
+                <span class="font-mono text-sm">${conv.from} ${conv.fromUnit} = ${formatNumber(result)} ${conv.toUnit}</span>
+            `;
+            div.onclick = () => {
+                fromValueInput.value = conv.from;
+                fromUnitSelect.value = conv.fromUnit;
+                toUnitSelect.value = conv.toUnit;
+                updateConversion();
+            };
+            
+            commonConversionsDiv.appendChild(div);
+        });
+    }
+
+    // Swap units
+    function swapUnits() {
+        const temp = fromUnitSelect.value;
+        fromUnitSelect.value = toUnitSelect.value;
+        toUnitSelect.value = temp;
+        updateConversion();
+    }
+
+    // Copy result to clipboard
+    async function copyResult() {
+        const value = toValueInput.value;
+        if (!value) return;
+        
+        try {
+            await navigator.clipboard.writeText(value);
+            const originalHTML = copyResultBtn.innerHTML;
+            copyResultBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
+            setTimeout(() => {
+                copyResultBtn.innerHTML = originalHTML;
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+        }
+    }
+
+    // Event listeners
+    categorySelect.addEventListener('change', (e) => {
+        currentCategory = e.target.value;
+        populateUnitSelects(currentCategory);
+        fromValueInput.value = '1';
+        updateConversion();
+        updateCommonConversions();
+    });
+
+    fromUnitSelect.addEventListener('change', updateConversion);
+    toUnitSelect.addEventListener('change', updateConversion);
+    fromValueInput.addEventListener('input', updateConversion);
+    swapBtn.addEventListener('click', swapUnits);
+    copyResultBtn.addEventListener('click', copyResult);
+
+    // Initialize
+    populateUnitSelects(currentCategory);
+    fromValueInput.value = '1';
+    updateConversion();
+    updateCommonConversions();
+})();
+</script>
+
+@code {
+    /// <summary>
+    /// Language parameter from URL route
+    /// </summary>
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

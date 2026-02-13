@@ -2000,6 +2000,132 @@
 - 支持带进度跟踪的大文件</value>
   </data>
 
+  <!-- HTML Entity Encoder (zh) -->
+  <data name="HtmlEntityEncoder_Title" xml:space="preserve">
+    <value>HTML 实体编码器 / 解码器</value>
+  </data>
+  <data name="HtmlEntityEncoder_Description" xml:space="preserve">
+    <value>将特殊字符编码为 HTML 实体并解码。支持命名、十进制和十六进制格式。</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputTitle" xml:space="preserve">
+    <value>输入和设置</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputLabel" xml:space="preserve">
+    <value>要编码/解码的文本</value>
+  </data>
+  <data name="HtmlEntityEncoder_InputPlaceholder" xml:space="preserve">
+    <value>在此输入或粘贴您的文本...</value>
+  </data>
+  <data name="HtmlEntityEncoder_OutputTitle" xml:space="preserve">
+    <value>输出</value>
+  </data>
+  <data name="HtmlEntityEncoder_SettingsTitle" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="HtmlEntityEncoder_ModeLabel" xml:space="preserve">
+    <value>编码模式</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_All" xml:space="preserve">
+    <value>所有字符（特殊字符 + 非 ASCII）</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_SpecialChars" xml:space="preserve">
+    <value>仅特殊字符 (&amp; &lt; &gt; " ')</value>
+  </data>
+  <data name="HtmlEntityEncoder_Mode_NonAscii" xml:space="preserve">
+    <value>仅非 ASCII 字符</value>
+  </data>
+  <data name="HtmlEntityEncoder_FormatLabel" xml:space="preserve">
+    <value>实体格式</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Named" xml:space="preserve">
+    <value>命名 (&amp;amp;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Decimal" xml:space="preserve">
+    <value>十进制 (&amp;#38;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_Format_Hex" xml:space="preserve">
+    <value>十六进制 (&amp;#x26;)</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionEncode" xml:space="preserve">
+    <value>编码为 HTML</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionDecode" xml:space="preserve">
+    <value>从 HTML 解码</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionSwap" xml:space="preserve">
+    <value>交换</value>
+  </data>
+  <data name="HtmlEntityEncoder_ActionClear" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copy" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="HtmlEntityEncoder_Copied" xml:space="preserve">
+    <value>已复制！</value>
+  </data>
+  <data name="HtmlEntityEncoder_OtherFormats" xml:space="preserve">
+    <value>其他格式：</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkUrl" xml:space="preserve">
+    <value>URL 编码器</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkBase64" xml:space="preserve">
+    <value>Base64</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkHex" xml:space="preserve">
+    <value>Hex</value>
+  </data>
+  <data name="HtmlEntityEncoder_LinkXml" xml:space="preserve">
+    <value>XML 美化器</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Introduction" xml:space="preserve">
+    <value>HTML 实体编码器是一款面向开发人员和网页设计师的隐私优先工具。所有处理都在您的浏览器中本地完成，数据永远不会离开您的设备。</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_DetailedDescription" xml:space="preserve">
+    <value>此工具提供将特殊字符编码为 HTML 实体并解码的完整功能。它支持多种格式：命名实体 (&amp;amp;)、十进制数字引用 (&amp;#38;) 和十六进制引用 (&amp;#x26;)。
+
+界面设计注重效率和易用性，可选择仅编码特殊字符、仅非 ASCII 字符或所有字符。所有操作都在客户端执行，保证您数据的完全隐私和安全。</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Examples" xml:space="preserve">
+    <value>**示例 1**：编码 HTML 特殊字符以在网页中安全显示。
+- 输入：`&lt;div class="example"&gt;Hello &amp; Welcome!&lt;/div&gt;`
+- 输出：`&amp;lt;div class=&amp;quot;example&amp;quot;&amp;gt;Hello &amp;amp; Welcome!&amp;lt;/div&amp;gt;`
+
+**示例 2**：将 HTML 实体解码回可读文本。
+- 输入：`&amp;copy; 2024 Company &amp;amp; Partners`
+- 输出：`© 2024 Company &amp; Partners`
+
+**示例 3**：编码非 ASCII 字符以实现最大兼容性。
+- 输入：`Café résumé naïve`
+- 输出：`Caf&amp;#233; r&amp;#233;sum&amp;#233; na&amp;#239;ve`</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_HowToSteps" xml:space="preserve">
+    <value>### 步骤 1：输入您的文本
+在输入框中输入或粘贴您要编码或解码的文本。
+
+### 步骤 2：配置设置
+选择编码模式：
+- **仅特殊字符**：仅编码 &amp;、&lt;、&gt;、&quot; 和 '
+- **仅非 ASCII**：仅编码大于 127 的字符（扩展 Unicode）
+- **所有字符**：编码特殊字符和非 ASCII 字符
+
+选择实体格式：
+- **命名**：使用实体名称如 &amp;amp;、&amp;lt;、&amp;gt;
+- **十进制**：使用十进制数字如 &amp;#38;、&amp;#60;、&amp;#62;
+- **十六进制**：使用十六进制数字如 &amp;#x26;、&amp;#x3C;、&amp;#x3E;
+
+### 步骤 3：处理并复制
+点击"编码为 HTML"或"从 HTML 解码"按钮，然后将结果复制到剪贴板。</value>
+  </data>
+  <data name="HtmlEntityEncoder_Seo_Tips" xml:space="preserve">
+    <value>- 所有处理都在您的浏览器中进行，以确保最大隐私
+- 使用特殊字符模式进行基本的 HTML 转义
+- 处理国际文本时使用非 ASCII 模式
+- 命名实体最易读；数字实体支持所有 Unicode 字符
+- 解码时工具自动检测并处理命名和数字实体</value>
+  </data>
+
 <!-- SEO Content: Hex Encoder (zh) -->
   <data name="HexEncoder_Seo_Introduction" xml:space="preserve">
     <value>Hex Encoder工具是为开发人员设计的注重隐私的在线工具。所有处理都使用WebAssembly在您的浏览器中本地进行，确保您的数据永远不会离开您的设备。</value>
@@ -2991,6 +3117,109 @@
 - 初始加载后，该工具可离线工作
 - 文件不会上传到任何服务器
 - 支持一次处理多个文件</value>
+  </data>
+  <!-- Search Tool -->
+  <data name="Search_Placeholder" xml:space="preserve">
+    <value>搜索工具...</value>
+  </data>
+  <data name="Search_Tooltip" xml:space="preserve">
+    <value>搜索工具 (Ctrl+K)</value>
+  </data>
+  <data name="Search_NoResults" xml:space="preserve">
+    <value>未找到工具</value>
+  </data>
+  <data name="Search_PopularTools" xml:space="preserve">
+    <value>热门工具</value>
+  </data>
+  <data name="Search_Navigate" xml:space="preserve">
+    <value>导航</value>
+  </data>
+  <data name="Search_Select" xml:space="preserve">
+    <value>选择</value>
+  </data>
+  <data name="Search_Results" xml:space="preserve">
+    <value>个结果</value>
+  </data>
+  <!-- Unit Converter -->
+  <data name="UnitConverter_Title" xml:space="preserve">
+    <value>单位转换器</value>
+  </data>
+  <data name="UnitConverter_Description" xml:space="preserve">
+    <value>转换各种计量单位：长度、重量、温度和体积 — 所有计算都在您的浏览器中进行</value>
+  </data>
+  <data name="UnitConverter_CategoryLabel" xml:space="preserve">
+    <value>类别</value>
+  </data>
+  <data name="UnitConverter_Category_Length" xml:space="preserve">
+    <value>长度</value>
+  </data>
+  <data name="UnitConverter_Category_Weight" xml:space="preserve">
+    <value>重量</value>
+  </data>
+  <data name="UnitConverter_Category_Temperature" xml:space="preserve">
+    <value>温度</value>
+  </data>
+  <data name="UnitConverter_Category_Volume" xml:space="preserve">
+    <value>体积</value>
+  </data>
+  <data name="UnitConverter_FromLabel" xml:space="preserve">
+    <value>从</value>
+  </data>
+  <data name="UnitConverter_ToLabel" xml:space="preserve">
+    <value>到</value>
+  </data>
+  <data name="UnitConverter_Swap" xml:space="preserve">
+    <value>交换单位</value>
+  </data>
+  <data name="UnitConverter_Copied" xml:space="preserve">
+    <value>已复制！</value>
+  </data>
+  <data name="UnitConverter_QuickConversions" xml:space="preserve">
+    <value>快速转换</value>
+  </data>
+  <data name="UnitConverter_CommonConversions" xml:space="preserve">
+    <value>常用转换</value>
+  </data>
+  <data name="UnitConverter_Formula" xml:space="preserve">
+    <value>转换公式</value>
+  </data>
+  <data name="UnitConverter_Seo_Introduction" xml:space="preserve">
+    <value>单位转换器是一款用于转换各种计量单位的在线工具。所有计算都在您的浏览器本地进行，确保您的数据永远不会离开您的设备。</value>
+  </data>
+  <data name="UnitConverter_Seo_DetailedDescription" xml:space="preserve">
+    <value>该工具支持公制和英制单位在四个类别中的转换：长度（米、公里、英里、英尺、英寸）、重量（千克、克、磅、盎司）、温度（摄氏度、华氏度、开尔文）和体积（升、加仑、杯、液盎司）。
+
+采用现代网络技术构建，无需服务器处理即可提供即时结果。界面直观，支持快速切换单位、复制结果和查看常用转换对。</value>
+  </data>
+  <data name="UnitConverter_Seo_Examples" xml:space="preserve">
+    <value>**示例 1**：将5公里转换为英里用于旅行规划。
+
+**示例 2**：将食谱中的杯转换为毫升。
+
+**示例 3**：将体温从华氏度转换为摄氏度。</value>
+  </data>
+  <data name="UnitConverter_Seo_HowToSteps" xml:space="preserve">
+    <value>### 第1步：选择类别
+选择您要转换的测量类型：长度、重量、温度或体积。
+
+### 第2步：输入数值
+在"从"字段中输入要转换的数值。
+
+### 第3步：选择单位
+从下拉菜单中选择源单位和目标单位。
+
+### 第4步：查看结果
+转换后的值将自动显示在"到"字段中。点击复制按钮复制结果。</value>
+  </data>
+  <data name="UnitConverter_Seo_Tips" xml:space="preserve">
+    <value>- 所有计算都在您的浏览器中进行，确保最大隐私
+- 使用交换按钮快速改变转换方向
+- 快速转换按钮显示所有其他单位的等效值
+- 常用转换侧边栏提供有用的参考值
+- 页面初次加载后支持离线使用</value>
+  </data>
+  <data name="Category_Converters" xml:space="preserve">
+    <value>转换器</value>
   </data>
   <data name="PdfToText_Title" xml:space="preserve">
     <value>PDF 转文本</value>

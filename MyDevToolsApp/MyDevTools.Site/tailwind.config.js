@@ -3,6 +3,7 @@ export default {
   content: [
     './Components/**/*.{razor,html}',
     './wwwroot/**/*.html',
+    './wwwroot/**/*.js',
   ],
   theme: {
     extend: {},

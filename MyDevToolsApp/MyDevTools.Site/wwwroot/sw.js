@@ -1,5 +1,5 @@
 // Service Worker for MyDevTools PWA
-const CACHE_VERSION = 'v1.0.0-1771150760165';
+const CACHE_VERSION = 'v1.0.0-1771152212894';
 const CACHE_NAME = `mydevtools-${CACHE_VERSION}`;
 
 // Assets to cache on install

@@ -3221,4 +3221,47 @@ Der konvertierte Wert erscheint automatisch im Feld "Nach". Klicke auf die Kopie
   <data name="Category_Converters" xml:space="preserve">
     <value>Konverter</value>
   </data>
+  <data name="PdfToText_Title" xml:space="preserve">
+    <value>PDF in Text</value>
+  </data>
+  <data name="PdfToText_Description" xml:space="preserve">
+    <value>Extrahieren Sie mühelos sämtlichen Text aus PDF-Dokumenten direkt in Ihrem Browser.</value>
+  </data>
+  <data name="PdfToText_ExtractButton" xml:space="preserve">
+    <value>Text extrahieren</value>
+  </data>
+  <data name="Nav_PdfToText" xml:space="preserve">
+    <value>PDF in Text</value>
+  </data>
+  <data name="PdfToText_Seo_Introduction" xml:space="preserve">
+    <value>Der PDF-zu-Text-Konverter ist ein datenschutzorientiertes Tool, mit dem Sie Textinhalte aus jeder PDF-Datei direkt in Ihrem Browser extrahieren können.</value>
+  </data>
+  <data name="PdfToText_Seo_DetailedDescription" xml:space="preserve">
+    <value>Dieses Tool nutzt WebAssembly-Technologie, um PDF-Strukturen zu analysieren und Text zu extrahieren, ohne Ihre Dateien auf einen Server hochzuladen. Es unterstützt standardmäßige textbasierte PDF-Dokumente und verarbeitet verschiedene Zeichenkodierungen, um eine genaue Extraktion zu gewährleisten.
+
+Sie können mehrere PDF-Dateien hochladen und diese im Stapel verarbeiten. Jede Datei wird in eine reine Textdatei (.txt) umgewandelt, die Sie herunterladen und für Ihre Zwecke verwenden können.</value>
+  </data>
+  <data name="PdfToText_Seo_Examples" xml:space="preserve">
+    <value>**Beispiel 1**: Extrahieren von Inhalten aus einer Forschungsarbeit im PDF-Format zur Analyse in einem Texteditor.
+
+**Beispiel 2**: Schnelles Abrufen von Text aus einer PDF-Rechnung oder einem Beleg.
+
+**Beispiel 3**: Konvertieren eines großen PDF-E-Books in eine einfache Textdatei zum leichteren Lesen auf Geräten mit geringer Leistung.</value>
+  </data>
+  <data name="PdfToText_Seo_HowToSteps" xml:space="preserve">
+    <value>### Schritt 1: PDF-Dateien hochladen
+Ziehen Sie Ihre PDF-Dokumente per Drag-and-Drop in das Tool oder klicken Sie auf den Upload-Bereich, um sie auszuwählen.
+
+### Schritt 2: Extraktion starten
+Klicken Sie auf die Schaltfläche „Text extrahieren“, um mit der Verarbeitung aller geladenen Dateien zu beginnen.
+
+### Schritt 3: Textdateien herunterladen
+Sobald die Extraktion abgeschlossen ist, klicken Sie auf das „Download“-Symbol neben jeder Datei, um das resultierende .txt-Dokument zu speichern.</value>
+  </data>
+  <data name="PdfToText_Seo_Tips" xml:space="preserve">
+    <value>- Funktioniert vollständig im Browser für maximalen Datenschutz
+- Schnelle und effiziente Verarbeitung mit Rust/WASM
+- Unterstützt Stapelverarbeitung mehrerer Dateien
+- Keine Registrierung oder Server-Upload erforderlich</value>
+  </data>
 </root>

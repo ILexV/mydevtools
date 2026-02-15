@@ -3221,4 +3221,47 @@
   <data name="Category_Converters" xml:space="preserve">
     <value>转换器</value>
   </data>
+  <data name="PdfToText_Title" xml:space="preserve">
+    <value>PDF 转文本</value>
+  </data>
+  <data name="PdfToText_Description" xml:space="preserve">
+    <value>在浏览器中轻松提取 PDF 文档中的所有文本。</value>
+  </data>
+  <data name="PdfToText_ExtractButton" xml:space="preserve">
+    <value>提取文本</value>
+  </data>
+  <data name="Nav_PdfToText" xml:space="preserve">
+    <value>PDF 转文本</value>
+  </data>
+  <data name="PdfToText_Seo_Introduction" xml:space="preserve">
+    <value>PDF 转文本转换器是一款隐私优先的工具，可让您直接在浏览器中从任何 PDF 文件中提取文本内容。</value>
+  </data>
+  <data name="PdfToText_Seo_DetailedDescription" xml:space="preserve">
+    <value>本工具利用 WebAssembly 技术解析 PDF 结构并提取文本，无需将文件上传到任何服务器。它支持标准的基于文本的 PDF 文档，并处理各种字符编码以确保准确提取。
+
+您可以上传多个 PDF 文件并进行批量处理。每个文件都将转换为纯文本 (.txt) 文件，您可以下载并根据需要使用。</value>
+  </data>
+  <data name="PdfToText_Seo_Examples" xml:space="preserve">
+    <value>**示例 1**：从研究论文 PDF 中提取内容，以便在文本编辑器中进行分析。
+
+**示例 2**：快速从 PDF 发票或收据中获取文本。
+
+**示例 3**：将大型 PDF 电子书转换为简单的文本文件，以便在低功耗设备上更轻松地阅读。</value>
+  </data>
+  <data name="PdfToText_Seo_HowToSteps" xml:space="preserve">
+    <value>### 第 1 步：上传 PDF 文件
+将您的 PDF 文档拖放到工具中，或单击上传区域进行选择。
+
+### 第 2 步：开始提取
+单击“提取文本”按钮开始处理所有加载的文件。
+
+### 第 3 步：下载文本文件
+提取完成后，单击每个文件旁边的“下载”图标以保存生成的 .txt 文档。</value>
+  </data>
+  <data name="PdfToText_Seo_Tips" xml:space="preserve">
+    <value>- 完全在浏览器中运行，确保最高程度的隐私
+- 使用 Rust/WASM 进行快速高效的处理
+- 支持多个文件的批量处理
+- 无需注册或服务器上传</value>
+  </data>
 </root>

@@ -23,6 +23,7 @@ public class CultureRedirectMiddleware
         "url-encoder", "xml-beautifier", "hex-encoder", "base32-encoder", "base58-encoder", "date-converter",
         "jwt-decoder", "jwt-encoder", "regex-tester", "qr-code-generator", "hmac-calculator",
         "yaml-beautifier-validator", "qr-scanner", "pdf-merger", "pdf-compressor", "html-entity-encoder", "unit-converter"
+        , "pdf-to-text"
     ];
 
 

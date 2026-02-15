@@ -3205,8 +3205,8 @@ The converted value appears automatically in the "To" field. Click the copy butt
 - Common conversions sidebar provides handy reference values
 - Works offline after initial page load</value>
   </data>
-  <!-- New Design Keys (2026-02-13) -->
-  
+
+
   <!-- Hero Section -->
   <data name="Home_Badge_Private" xml:space="preserve">
     <value>100% Private</value>
@@ -3332,5 +3332,49 @@ The converted value appears automatically in the "To" field. Click the copy butt
   </data>
   <data name="Common_Search" xml:space="preserve">
     <value>Search</value>
+  </data>
+  <data name="PdfToText_Title" xml:space="preserve">
+    <value>PDF to Text</value>
+  </data>
+  <data name="PdfToText_Description" xml:space="preserve">
+    <value>Extract all text from PDF documents easily in your browser.</value>
+  </data>
+  <data name="PdfToText_ExtractButton" xml:space="preserve">
+    <value>Extract Text</value>
+  </data>
+  <data name="Nav_PdfToText" xml:space="preserve">
+    <value>PDF to Text</value>
+  </data>
+  <!-- SEO Content: PDF to Text -->
+  <data name="PdfToText_Seo_Introduction" xml:space="preserve">
+    <value>The PDF to Text converter is a privacy-first tool that allows you to extract text content from any PDF file directly in your browser.</value>
+  </data>
+  <data name="PdfToText_Seo_DetailedDescription" xml:space="preserve">
+    <value>This tool uses WebAssembly technology to parse PDF structures and extract text without uploading your files to any server. It supports standard text-based PDF documents and handles various character encodings to ensure accurate extraction.
+
+You can upload multiple PDF files and process them in a batch. Each file will be converted to a plain text (.txt) file that you can download and use for your needs.</value>
+  </data>
+  <data name="PdfToText_Seo_Examples" xml:space="preserve">
+    <value>**Example 1**: Extract content from a research paper PDF for analysis in a text editor.
+
+**Example 2**: Quickly get text from a PDF invoice or receipt.
+
+**Example 3**: Convert a large PDF ebook into a simple text file for easier reading on low-power devices.</value>
+  </data>
+  <data name="PdfToText_Seo_HowToSteps" xml:space="preserve">
+    <value>### Step 1: Upload PDF Files
+Drag and drop your PDF documents into the tool or click the upload area to select them.
+
+### Step 2: Start Extraction
+Click the "Extract Text" button to begin processing all loaded files.
+
+### Step 3: Download Text Files
+Once the extraction is complete, click the "Download" icon next to each file to save the resulting .txt document.</value>
+  </data>
+  <data name="PdfToText_Seo_Tips" xml:space="preserve">
+    <value>- Works completely in the browser for maximum privacy
+- Fast and efficient processing using Rust/WASM
+- Supports batch processing of multiple files
+- No registration or server upload required</value>
   </data>
 </root>

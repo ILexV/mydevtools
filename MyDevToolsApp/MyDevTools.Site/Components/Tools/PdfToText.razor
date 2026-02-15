@@ -1,0 +1,97 @@
+@page "/{lang}/pdf-to-text"
+@using MyDevTools.Site.Components.Layout
+@using MyDevTools.Site.Components.Common
+@using MyDevTools.Site.Components.Seo
+@using MyDevTools.Site.Resources
+@inject NavigationManager Navigation
+
+<ToolLayout Title="@AppStrings.PdfToText_Title" Description="@AppStrings.PdfToText_Description">
+    <MetaTags Title="@AppStrings.PdfToText_Title"
+              Description="@AppStrings.PdfToText_Description"
+              CurrentUrl="@Navigation.Uri"
+              ToolPath="pdf-to-text" />
+
+    <div id="pdf-to-text-root" class="max-w-5xl mx-auto space-y-8"
+         data-loading="@AppStrings.Common_Loading"
+         data-error="@AppStrings.Common_Error"
+         data-processing="Extracting..."
+         data-done="Extracted!"
+         data-download="Download TXT">
+
+        <!-- Input Card -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body p-4 sm:p-6">
+                <h2 class="card-title text-primary flex items-center gap-2 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                    @AppStrings.Common_Input
+                </h2>
+                
+                <div class="upload-box mb-6">
+                    <FileDropZone Id="pdf-to-text-drop-zone"
+                                  InputId="pdf-text-input"
+                                  IconSvg='<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>'
+                                  Description="@AppStrings.PdfMerger_DropZoneTitle"
+                                  Accept=".pdf"
+                                  ShowFileInfo="false" 
+                                  AllowMultiple="true" />
+                </div>
+            </div>
+        </div>
+
+        <!-- File List & Actions -->
+        <div class="card bg-base-100 shadow-xl hidden file-list-container">
+            <div class="card-body p-4 sm:p-6">
+                <h3 class="card-title text-base opacity-70 mb-4">Files to Process</h3>
+                
+                <div class="overflow-x-auto rounded-lg border border-base-200 mb-6">
+                    <table class="table w-full">
+                        <thead class="bg-base-200">
+                            <tr>
+                                <th class="w-12">#</th>
+                                <th>Name</th>
+                                <th class="text-right px-4">Size</th>
+                                <th class="text-center px-4">Status / Action</th>
+                                <th class="w-12"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="file-list">
+                            <!-- Items injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex flex-wrap gap-4 justify-end">
+                    <button id="pdf-extract-btn" class="btn btn-primary w-full sm:w-auto shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        @AppStrings.PdfToText_ExtractButton
+                    </button>
+                </div>
+                
+                <div class="alert alert-error shadow-lg text-sm mt-4 hidden" id="pdf-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span id="pdf-error-text">@AppStrings.Common_Error</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <ToolSeoContent 
+        Introduction="@AppStrings.PdfToText_Seo_Introduction"
+        DetailedDescription="@AppStrings.PdfToText_Seo_DetailedDescription"
+        DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
+        Examples="@AppStrings.PdfToText_Seo_Examples"
+        ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
+        HowToSteps="@AppStrings.PdfToText_Seo_HowToSteps"
+        HowToTitle="@AppStrings.Seo_HowToTitle"
+        Tips="@AppStrings.PdfToText_Seo_Tips"
+        TipsTitle="@AppStrings.Seo_TipsTitle" />
+</ToolLayout>
+
+@code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+}

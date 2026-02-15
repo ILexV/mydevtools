@@ -3221,4 +3221,47 @@ La valeur convertie apparaît automatiquement dans le champ "Vers". Cliquez sur 
   <data name="Category_Converters" xml:space="preserve">
     <value>Convertisseurs</value>
   </data>
+  <data name="PdfToText_Title" xml:space="preserve">
+    <value>PDF en Texte</value>
+  </data>
+  <data name="PdfToText_Description" xml:space="preserve">
+    <value>Extrayez facilement tout le texte des documents PDF dans votre navigateur.</value>
+  </data>
+  <data name="PdfToText_ExtractButton" xml:space="preserve">
+    <value>Extraire le texte</value>
+  </data>
+  <data name="Nav_PdfToText" xml:space="preserve">
+    <value>PDF en Texte</value>
+  </data>
+  <data name="PdfToText_Seo_Introduction" xml:space="preserve">
+    <value>Le convertisseur PDF en Texte est un outil respectueux de la vie privée qui vous permet d'extraire le contenu textuel de n'importe quel fichier PDF directement dans votre navigateur.</value>
+  </data>
+  <data name="PdfToText_Seo_DetailedDescription" xml:space="preserve">
+    <value>Cet outil utilise la technologie WebAssembly pour analyser les structures PDF et extraire le texte sans télécharger vos fichiers sur un serveur. Il prend en charge les documents PDF textuels standard et gère divers encodages de caractères pour garantir une extraction précise.
+
+Vous pouvez télécharger plusieurs fichiers PDF et les traiter par lots. Chaque fichier sera converti en un fichier texte brut (.txt) que vous pourrez télécharger et utiliser selon vos besoins.</value>
+  </data>
+  <data name="PdfToText_Seo_Examples" xml:space="preserve">
+    <value>**Exemple 1** : Extraire le contenu d'un article de recherche au format PDF pour l'analyser dans un éditeur de texte.
+
+**Exemple 2** : Obtenir rapidement le texte d'une facture ou d'un reçu au format PDF.
+
+**Exemple 3** : Convertir un volumineux livre électronique PDF en un simple fichier texte pour une lecture facilitée sur des appareils à faible puissance.</value>
+  </data>
+  <data name="PdfToText_Seo_HowToSteps" xml:space="preserve">
+    <value>### Étape 1 : Télécharger des fichiers PDF
+Glissez-déposez vos documents PDF dans l'outil ou cliquez sur la zone de téléchargement pour les sélectionner.
+
+### Étape 2 : Lancer l'extraction
+Cliquez sur le bouton « Extraire le texte » pour commencer le traitement de tous les fichiers chargés.
+
+### Étape 3 : Télécharger les fichiers texte
+Une fois l'extraction terminée, cliquez sur l'icône « Télécharger » à côté de chaque fichier pour enregistrer le document .txt résultant.</value>
+  </data>
+  <data name="PdfToText_Seo_Tips" xml:space="preserve">
+    <value>- Fonctionne entièrement dans le navigateur pour une confidentialité maximale
+- Traitement rapide et efficace utilisant Rust/WASM
+- Prend en charge le traitement par lots de plusieurs fichiers
+- Aucune inscription ni téléchargement sur serveur requis</value>
+  </data>
 </root>

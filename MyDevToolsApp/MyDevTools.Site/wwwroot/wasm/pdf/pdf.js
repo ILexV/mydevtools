@@ -15,6 +15,29 @@ export function compress_pdf(data) {
 }
 
 /**
+ * @param {Uint8Array} data
+ * @returns {string}
+ */
+export function extract_text(data) {
+    let deferred2_0;
+    let deferred2_1;
+    try {
+        const ret = wasm.extract_text(data);
+        var ptr1 = ret[0];
+        var len1 = ret[1];
+        if (ret[3]) {
+            ptr1 = 0; len1 = 0;
+            throw takeFromExternrefTable0(ret[2]);
+        }
+        deferred2_0 = ptr1;
+        deferred2_1 = len1;
+        return getStringFromWasm0(ptr1, len1);
+    } finally {
+        wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+    }
+}
+
+/**
  * @param {Uint8Array[]} files
  * @returns {Uint8Array}
  */
@@ -209,7 +232,10 @@ async function __wbg_init(module_or_path) {
     }
 
     if (module_or_path === undefined) {
-        module_or_path = new URL('pdf_bg.wasm', import.meta.url);
+        // use versioned wasm filename to bypass caches/service-workers
+        const wasmUrl = new URL('pdf_bg.wasm?v=9b9cd258b494e28c', import.meta.url);
+        console.log('WASM: loading', wasmUrl.href);
+        module_or_path = wasmUrl;
     }
     const imports = __wbg_get_imports();
 

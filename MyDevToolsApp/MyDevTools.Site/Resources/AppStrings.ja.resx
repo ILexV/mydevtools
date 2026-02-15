@@ -3221,4 +3221,47 @@ PDF ファイルをツールにドラッグ＆ドロップするか、アップ�
   <data name="Category_Converters" xml:space="preserve">
     <value>変換ツール</value>
   </data>
+  <data name="PdfToText_Title" xml:space="preserve">
+    <value>PDF テキスト変換</value>
+  </data>
+  <data name="PdfToText_Description" xml:space="preserve">
+    <value>ブラウザで簡単に PDF ドキュメントからすべてのテキストを抽出します。</value>
+  </data>
+  <data name="PdfToText_ExtractButton" xml:space="preserve">
+    <value>テキストを抽出</value>
+  </data>
+  <data name="Nav_PdfToText" xml:space="preserve">
+    <value>PDF テキスト変換</value>
+  </data>
+  <data name="PdfToText_Seo_Introduction" xml:space="preserve">
+    <value>PDF テキスト変換は、ブラウザで直接 PDF ファイルからテキスト内容を抽出できる、プライバシーを重視したツールです。</value>
+  </data>
+  <data name="PdfToText_Seo_DetailedDescription" xml:space="preserve">
+    <value>このツールは WebAssembly テクノロジーを使用して PDF 構造を解析し、サーバーにファイルをアップロードすることなくテキストを抽出します。標準的なテキストベースの PDF ドキュメントをサポートし、正確な抽出を保証するためにさまざまな文字エンコーディングを処理します。
+
+複数の PDF ファイルをアップロードして、バッチで処理できます。各ファイルはプレーンテキスト（.txt）ファイルに変換され、ダウンロードして必要に応じて使用できます。</value>
+  </data>
+  <data name="PdfToText_Seo_Examples" xml:space="preserve">
+    <value>**例 1**: テキストエディタで分析するために、研究論文の PDF から内容を抽出します。
+
+**例 2**: PDF の請求書や領収書から素早くテキストを取得します。
+
+**例 3**: 低電力デバイスで読みやすくするために、大きな PDF 電子書籍をシンプルなテキストファイルに変換します。</value>
+  </data>
+  <data name="PdfToText_Seo_HowToSteps" xml:space="preserve">
+    <value>### ステップ 1: PDF ファイルをアップロードする
+PDF ドキュメントをツールにドラッグ＆ドロップするか、アップロード領域をクリックして選択します。
+
+### ステップ 2: 抽出を開始する
+「テキストを抽出」ボタンをクリックして、ロードされたすべてのファイルの処理を開始します。
+
+### ステップ 3: テキストファイルをダウンロードする
+抽出が完了したら、各ファイルの横にある「ダウンロード」アイコンをクリックして、生成された .txt ドキュメントを保存します。</value>
+  </data>
+  <data name="PdfToText_Seo_Tips" xml:space="preserve">
+    <value>- プライバシーを最大限に保護するため、完全にブラウザ内で動作します
+- Rust/WASM を使用した高速で効率的な処理
+- 複数のファイルのバッチ処理をサポート
+- 登録やサーバーへのアップロードは不要</value>
+  </data>
 </root>

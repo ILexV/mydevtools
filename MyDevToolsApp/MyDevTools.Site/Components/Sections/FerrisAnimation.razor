@@ -1,0 +1,186 @@
+@using MyDevTools.Site.Resources
+@* Ferris Animation Component - Crab mascot with orbiting tool icons *@
+
+<div class="ferris-container" id="ferris-animation-root">
+    
+    @* Rotating dashed ring *@
+    <div class="ferris-orbit-ring">
+        <svg viewBox="0 0 400 400" class="w-full h-full">
+            <circle
+                cx="200"
+                cy="200"
+                r="160"
+                fill="none"
+                stroke="url(#ferrisToolRing)"
+                stroke-width="1"
+                stroke-dasharray="8 8"
+                opacity="0.4"
+            />
+            <defs>
+                <linearGradient id="ferrisToolRing" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#6366f1" />
+                    <stop offset="100%" stop-color="#a855f7" />
+                </linearGradient>
+            </defs>
+        </svg>
+    </div>
+
+    @* Orbiting tool icons *@
+    @* Code icon - top right *@
+    <div class="ferris-orbit-icon animate-float" style="left: 90%; top: 50%; animation-delay: 0s; background-color: rgba(59,130,246,0.13); border: 2px solid rgba(59,130,246,0.25);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+        </svg>
+    </div>
+    @* Lock icon *@
+    <div class="ferris-orbit-icon animate-float" style="left: 70%; top: 90%; animation-delay: 0.5s; background-color: rgba(16,185,129,0.13); border: 2px solid rgba(16,185,129,0.25);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+    </div>
+    @* Settings/Gear icon *@
+    <div class="ferris-orbit-icon animate-float" style="left: 90%; top: 22%; animation-delay: 1s; background-color: rgba(245,158,11,0.13); border: 2px solid rgba(245,158,11,0.25);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+    </div>
+    @* Zap icon - left *@
+    <div class="ferris-orbit-icon animate-float" style="left: 10%; top: 50%; animation-delay: 1.5s; background-color: rgba(239,68,68,0.13); border: 2px solid rgba(239,68,68,0.25);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+    </div>
+    @* Wrench icon *@
+    <div class="ferris-orbit-icon animate-float" style="left: 10%; top: 22%; animation-delay: 2s; background-color: rgba(139,92,246,0.13); border: 2px solid rgba(139,92,246,0.25);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
+    </div>
+    @* Shield icon - bottom left *@
+    <div class="ferris-orbit-icon animate-float" style="left: 30%; top: 90%; animation-delay: 2.5s; background-color: rgba(6,182,212,0.13); border: 2px solid rgba(6,182,212,0.25);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+    </div>
+
+    @* Center - Ferris Crab *@
+    <div class="ferris-center">
+        <div class="ferris-glow"></div>
+        <svg id="ferris-svg" viewBox="0 0 200 180" class="ferris-svg animate-float" style="cursor: pointer; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.2));">
+            <defs>
+                <radialGradient id="bodyGrad" cx="50%" cy="40%" r="60%">
+                    <stop offset="0%" stop-color="#ff7b4d" />
+                    <stop offset="50%" stop-color="#e55c2e" />
+                    <stop offset="100%" stop-color="#c4461b" />
+                </radialGradient>
+                <radialGradient id="shellGrad" cx="50%" cy="30%" r="70%">
+                    <stop offset="0%" stop-color="#ff9a7a" />
+                    <stop offset="40%" stop-color="#e55c2e" />
+                    <stop offset="100%" stop-color="#a83a15" />
+                </radialGradient>
+                <radialGradient id="eyeGrad" cx="30%" cy="30%" r="70%">
+                    <stop offset="0%" stop-color="#ffffff" />
+                    <stop offset="90%" stop-color="#e0e0e0" />
+                    <stop offset="100%" stop-color="#c0c0c0" />
+                </radialGradient>
+                <filter id="ferrisShadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
+                    <feOffset dx="0" dy="4" result="offsetblur" />
+                    <feComponentTransfer>
+                        <feFuncA type="linear" slope="0.3" />
+                    </feComponentTransfer>
+                    <feMerge>
+                        <feMergeNode />
+                        <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                </filter>
+            </defs>
+
+            @* Shadow under crab *@
+            <ellipse cx="100" cy="165" rx="50" ry="10" fill="rgba(0,0,0,0.15)" />
+
+            @* Back legs *@
+            <g class="ferris-legs-back">
+                <ellipse cx="45" cy="110" rx="8" ry="20" fill="url(#bodyGrad)" transform="rotate(-30 45 110)" style="animation: legKick 2s ease-in-out infinite; animation-delay: 0s; transform-origin: 45px 110px;" />
+                <ellipse cx="37" cy="125" rx="8" ry="20" fill="url(#bodyGrad)" transform="rotate(-40 37 125)" style="animation: legKick 2s ease-in-out infinite; animation-delay: 0.2s; transform-origin: 37px 125px;" />
+                <ellipse cx="29" cy="140" rx="8" ry="20" fill="url(#bodyGrad)" transform="rotate(-50 29 140)" style="animation: legKick 2s ease-in-out infinite; animation-delay: 0.4s; transform-origin: 29px 140px;" />
+                <ellipse cx="155" cy="110" rx="8" ry="20" fill="url(#bodyGrad)" transform="rotate(30 155 110)" style="animation: legKick 2s ease-in-out infinite; animation-delay: 0.1s; transform-origin: 155px 110px;" />
+                <ellipse cx="163" cy="125" rx="8" ry="20" fill="url(#bodyGrad)" transform="rotate(40 163 125)" style="animation: legKick 2s ease-in-out infinite; animation-delay: 0.3s; transform-origin: 163px 125px;" />
+                <ellipse cx="171" cy="140" rx="8" ry="20" fill="url(#bodyGrad)" transform="rotate(50 171 140)" style="animation: legKick 2s ease-in-out infinite; animation-delay: 0.5s; transform-origin: 171px 140px;" />
+            </g>
+
+            @* Left claw *@
+            <g id="ferris-left-claw" style="animation: clawIdle 3s ease-in-out infinite; transform-origin: 30px 80px;">
+                <ellipse cx="25" cy="85" rx="12" ry="25" fill="url(#bodyGrad)" transform="rotate(-30 25 85)" />
+                <path d="M 15 65 Q 5 45 20 35 Q 35 30 40 50 Q 45 65 30 70" fill="url(#shellGrad)" stroke="#a83a15" stroke-width="2" />
+                <circle cx="22" cy="45" r="4" fill="#333" />
+            </g>
+            @* Right claw *@
+            <g id="ferris-right-claw" style="animation: clawIdle 3s ease-in-out infinite reverse; transform-origin: 170px 80px;">
+                <ellipse cx="175" cy="85" rx="12" ry="25" fill="url(#bodyGrad)" transform="rotate(30 175 85)" />
+                <path d="M 185 65 Q 195 45 180 35 Q 165 30 160 50 Q 155 65 170 70" fill="url(#shellGrad)" stroke="#a83a15" stroke-width="2" />
+                <circle cx="178" cy="45" r="4" fill="#333" />
+            </g>
+
+            @* Main body (shell) *@
+            <ellipse cx="100" cy="100" rx="55" ry="45" fill="url(#shellGrad)" filter="url(#ferrisShadow)" />
+            @* Shell segments *@
+            <path d="M 60 85 Q 100 75 140 85" stroke="#a83a15" stroke-width="2" fill="none" opacity="0.5" />
+            <path d="M 55 100 Q 100 90 145 100" stroke="#a83a15" stroke-width="2" fill="none" opacity="0.5" />
+            <path d="M 60 115 Q 100 105 140 115" stroke="#a83a15" stroke-width="2" fill="none" opacity="0.5" />
+
+            @* Eyes *@
+            <g class="ferris-eyes">
+                <g id="ferris-left-eye">
+                    <ellipse cx="75" cy="65" rx="18" ry="22" fill="url(#eyeGrad)" stroke="#c4461b" stroke-width="2" />
+                    <circle id="ferris-left-pupil" cx="78" cy="62" r="10" fill="#333" />
+                    <circle id="ferris-left-highlight" cx="80" cy="58" r="4" fill="#fff" />
+                </g>
+                <g id="ferris-right-eye">
+                    <ellipse cx="125" cy="65" rx="18" ry="22" fill="url(#eyeGrad)" stroke="#c4461b" stroke-width="2" />
+                    <circle id="ferris-right-pupil" cx="122" cy="62" r="10" fill="#333" />
+                    <circle id="ferris-right-highlight" cx="120" cy="58" r="4" fill="#fff" />
+                </g>
+            </g>
+
+            @* Eyelids (blink animation) *@
+            <g class="ferris-eyelids" style="animation: blink 4s infinite;">
+                <ellipse cx="75" cy="45" rx="18" ry="8" fill="#e55c2e" />
+                <ellipse cx="125" cy="45" rx="18" ry="8" fill="#e55c2e" />
+            </g>
+
+            @* Mouth *@
+            <path d="M 85 125 Q 100 135 115 125" stroke="#a83a15" stroke-width="3" fill="none" stroke-linecap="round" />
+
+            @* Front legs *@
+            <g class="ferris-legs-front">
+                <ellipse cx="55" cy="130" rx="7" ry="18" fill="url(#bodyGrad)" transform="rotate(-20 55 130)" style="animation: legKick 1.5s ease-in-out infinite; animation-delay: 0s;" />
+                <ellipse cx="50" cy="140" rx="7" ry="18" fill="url(#bodyGrad)" transform="rotate(-25 50 140)" style="animation: legKick 1.5s ease-in-out infinite; animation-delay: 0.3s;" />
+                <ellipse cx="145" cy="130" rx="7" ry="18" fill="url(#bodyGrad)" transform="rotate(20 145 130)" style="animation: legKick 1.5s ease-in-out infinite; animation-delay: 0.15s;" />
+                <ellipse cx="150" cy="140" rx="7" ry="18" fill="url(#bodyGrad)" transform="rotate(25 150 140)" style="animation: legKick 1.5s ease-in-out infinite; animation-delay: 0.45s;" />
+            </g>
+
+            @* WASM badge *@
+            <g transform="translate(140, 140)">
+                <rect x="0" y="0" width="50" height="24" rx="12" fill="#654ff0" />
+                <text x="25" y="16" text-anchor="middle" fill="white" font-size="12" font-weight="bold" font-family="monospace">WASM</text>
+            </g>
+
+            @* Rust badge *@
+            <g transform="translate(10, 140)">
+                <rect x="0" y="0" width="45" height="24" rx="12" fill="#ce422b" />
+                <text x="22" y="16" text-anchor="middle" fill="white" font-size="10" font-weight="bold" font-family="monospace">Rust</text>
+            </g>
+        </svg>
+
+        @* Click hint *@
+        <div class="ferris-hint">
+            @AppStrings.Home_FerrisClickHint
+        </div>
+    </div>
+
+    @* Decorative pinging dots *@
+    <div class="ferris-ping" style="top: 10%; right: 10%; width: 1rem; height: 1rem; background: #6366f1; animation-duration: 3s;"></div>
+    <div class="ferris-ping" style="bottom: 20%; left: 10%; width: 0.75rem; height: 0.75rem; background: #a855f7; animation-duration: 2s; animation-delay: 1s;"></div>
+    <div class="ferris-ping" style="top: 33%; left: 5%; width: 0.5rem; height: 0.5rem; background: #10b981; animation-duration: 2.5s; animation-delay: 0.5s;"></div>
+</div>

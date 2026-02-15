@@ -3274,6 +3274,15 @@ namespace MyDevTools.Site.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Click me! 👋.
+        /// </summary>
+        public static string Home_FerrisClickHint {
+            get {
+                return ResourceManager.GetString("Home_FerrisClickHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Launch.
         /// </summary>
         public static string Home_Launch {
@@ -3459,6 +3468,15 @@ namespace MyDevTools.Site.Resources {
         public static string Home_Subtitle {
             get {
                 return ResourceManager.GetString("Home_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All tools work offline in your browser. Powered by.
+        /// </summary>
+        public static string Home_SubtitlePrefix {
+            get {
+                return ResourceManager.GetString("Home_SubtitlePrefix", resourceCulture);
             }
         }
         

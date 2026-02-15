@@ -3238,6 +3238,12 @@ The converted value appears automatically in the "To" field. Click the copy butt
   <data name="Home_Stat_Free" xml:space="preserve">
     <value>Free</value>
   </data>
+  <data name="Home_SubtitlePrefix" xml:space="preserve">
+    <value>All tools work offline in your browser. Powered by</value>
+  </data>
+  <data name="Home_FerrisClickHint" xml:space="preserve">
+    <value>Click me! 👋</value>
+  </data>
   
   <!-- Tools Section -->
   <data name="Home_AllTools" xml:space="preserve">

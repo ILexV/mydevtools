@@ -270,6 +270,73 @@ public string? Description { get; set; }
 </div>
 ```
 
+## Command Palette
+
+**Location:** `Components/Common/CommandPalette.razor`
+
+The Command Palette provides a quick way to search and navigate to tools:
+- **Keyboard shortcut:** `Ctrl+K` (or `Cmd+K` on Mac)
+- **Search:** Type to filter tools by name, description, or category
+- **Navigation:** Use arrow keys (↑/↓) to select, Enter to open
+- **Close:** Press ESC or click outside
+
+### Usage in Components
+
+Add to a page or layout:
+```razor
+@using MyDevTools.Site.Components.Common
+
+<CommandPalette @ref="commandPalette" Lang="@Lang" Tools="@toolsList" />
+
+@code {
+    private CommandPalette? commandPalette;
+    
+    private List<CommandPalette.ToolInfo> GetToolsForCommandPalette()
+    {
+        return new List<CommandPalette.ToolInfo>
+        {
+            new() 
+            { 
+                Slug = "json-beautifier",
+                Name = "JSON Beautifier",
+                Description = "Format and validate JSON",
+                Category = "Structured Data",
+                Icon = "✨",
+                IsPopular = true
+            }
+        };
+    }
+}
+```
+
+### Localization Keys Required
+- `CommandPalette_SearchPlaceholder` - "Search for a tool..."
+- `CommandPalette_TypeToSearch` - "Type to search..."
+- `CommandPalette_NoResults` - "No tools found"
+- `Badge_Popular` - "Popular"
+
+### Adding Search to Header
+
+Update `MainLayout.razor`:
+```razor
+<button class="btn btn-ghost btn-sm gap-2" 
+        data-command-palette-toggle
+        @onclick="ToggleCommandPalette">
+    <svg>...</svg>
+    <span>@AppStrings.Common_Search</span>
+    <kbd class="kbd kbd-sm">Ctrl K</kbd>
+</button>
+
+@code {
+    private async Task ToggleCommandPalette()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            window.dispatchEvent(new CustomEvent('toggleCommandPalette'));
+        ");
+    }
+}
+```
+
 ## Reference Documentation
 
 - **README.md** - Project overview and principles

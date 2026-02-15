@@ -1,0 +1,104 @@
+@using MyDevTools.Site.Resources
+@inject IJSRuntime JSRuntime
+
+<section id="tools" class="py-16">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">@AppStrings.Home_PopularTools</h2>
+            <p class="text-base-content/60 max-w-2xl mx-auto">
+                @AppStrings.Home_ToolsDescription
+            </p>
+        </div>
+
+        <div class="space-y-12">
+            @foreach (var category in Categories)
+            {
+                @if (category.Tools.Any())
+                {
+                    <div id="category-@category.Slug" class="scroll-mt-24">
+                        <div class="category-header">
+                            <div class="category-header-icon">
+                                @((MarkupString)category.Icon)
+                            </div>
+                            <h3 class="category-header-title">@category.Name</h3>
+                            <div class="category-header-line"></div>
+                            <span class="category-header-count">@category.Tools.Count() @(category.Tools.Count() == 1 ? "инструмент" : category.Tools.Count() % 10 == 1 && category.Tools.Count() % 100 != 11 ? "инструмент" : category.Tools.Count() % 10 >= 2 && category.Tools.Count() % 10 <= 4 && (category.Tools.Count() % 100 < 10 || category.Tools.Count() % 100 >= 20) ? "инструмента" : "инструментов")</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            @foreach (var tool in category.Tools)
+                            {
+                                <div class="tool-card card bg-base-200 group cursor-pointer"
+                                     data-tool-slug="@tool.Slug"
+                                     data-tool-name="@tool.Title"
+                                     data-tool-description="@tool.Description"
+                                     data-tool-category="@category.Name"
+                                     data-tool-icon="@tool.Icon">
+                                    <a href="/@Lang/@tool.Slug" class="block h-full">
+                                        <div class="card-body p-4 relative">
+                                            @if (IsPopular(tool.Slug))
+                                            {
+                                                <span class="badge badge-sm badge-primary absolute top-2 left-2">Popular</span>
+                                            }
+
+                                            <button class="favorite-btn btn btn-ghost btn-circle btn-sm absolute top-2 right-2"
+                                                    data-tool-slug="@tool.Slug"
+                                                    @onclick:stopPropagation
+                                                    @onclick:preventDefault>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                                </svg>
+                                            </button>
+
+                                            <div class="w-12 h-12 rounded-xl bg-base-300 flex items-center justify-center mb-3 mx-auto">
+                                                <span class="text-2xl">@tool.Icon</span>
+                                            </div>
+
+                                            <h4 class="card-title text-base text-center">@tool.Title</h4>
+                                            <p class="text-sm text-base-content/60 text-center">@tool.Description</p>
+                                        </div>
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter] public string Lang { get; set; } = "en";
+    [Parameter] public List<ToolCategory> Categories { get; set; } = new();
+
+    private HashSet<string> popularTools = new() { "json-beautifier", "base64-encoder", "password-generator" };
+
+    private bool IsPopular(string slug) => popularTools.Contains(slug);
+
+    public class ToolCategory
+    {
+        public string Slug { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public List<ToolInfo> Tools { get; set; } = new();
+    }
+
+    public class ToolInfo
+    {
+        public string Slug { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+
+        public ToolInfo() { }
+
+        public ToolInfo(string slug, string icon, string title, string description)
+        {
+            Slug = slug;
+            Icon = icon;
+            Title = title;
+            Description = description;
+        }
+    }
+}

@@ -8036,5 +8036,365 @@ namespace MyDevTools.Site.Resources {
                 return ResourceManager.GetString("Category_Converters", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 100% Private.
+        /// </summary>
+        public static string Home_Badge_Private {
+            get {
+                return ResourceManager.GetString("Home_Badge_Private", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fast.
+        /// </summary>
+        public static string Home_Badge_Fast {
+            get {
+                return ResourceManager.GetString("Home_Badge_Fast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 50+ Tools.
+        /// </summary>
+        public static string Home_Badge_ToolsCount {
+            get {
+                return ResourceManager.GetString("Home_Badge_ToolsCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Developer.
+        /// </summary>
+        public static string Home_TitlePrefix {
+            get {
+                return ResourceManager.GetString("Home_TitlePrefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tools.
+        /// </summary>
+        public static string Home_TitleSuffix {
+            get {
+                return ResourceManager.GetString("Home_TitleSuffix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start Using.
+        /// </summary>
+        public static string Home_CTA_Start {
+            get {
+                return ResourceManager.GetString("Home_CTA_Start", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Install PWA.
+        /// </summary>
+        public static string Home_CTA_PWA {
+            get {
+                return ResourceManager.GetString("Home_CTA_PWA", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tools.
+        /// </summary>
+        public static string Home_Stat_Tools {
+            get {
+                return ResourceManager.GetString("Home_Stat_Tools", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server Data.
+        /// </summary>
+        public static string Home_Stat_ServerData {
+            get {
+                return ResourceManager.GetString("Home_Stat_ServerData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Free.
+        /// </summary>
+        public static string Home_Stat_Free {
+            get {
+                return ResourceManager.GetString("Home_Stat_Free", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All Tools.
+        /// </summary>
+        public static string Home_AllTools {
+            get {
+                return ResourceManager.GetString("Home_AllTools", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Popular Tools.
+        /// </summary>
+        public static string Home_PopularTools {
+            get {
+                return ResourceManager.GetString("Home_PopularTools", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Choose from our collection of developer tools...
+        /// </summary>
+        public static string Home_ToolsDescription {
+            get {
+                return ResourceManager.GetString("Home_ToolsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All.
+        /// </summary>
+        public static string Category_All {
+            get {
+                return ResourceManager.GetString("Category_All", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Popular.
+        /// </summary>
+        public static string Badge_Popular {
+            get {
+                return ResourceManager.GetString("Badge_Popular", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open.
+        /// </summary>
+        public static string Common_Open {
+            get {
+                return ResourceManager.GetString("Common_Open", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to tool.
+        /// </summary>
+        public static string ToolsCount_Singular {
+            get {
+                return ResourceManager.GetString("ToolsCount_Singular", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to tools.
+        /// </summary>
+        public static string ToolsCount_Plural {
+            get {
+                return ResourceManager.GetString("ToolsCount_Plural", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recent.
+        /// </summary>
+        public static string Home_Recent {
+            get {
+                return ResourceManager.GetString("Home_Recent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear Recent.
+        /// </summary>
+        public static string Home_ClearRecent {
+            get {
+                return ResourceManager.GetString("Home_ClearRecent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Click the star on any tool...
+        /// </summary>
+        public static string Home_NoFavoritesDescription {
+            get {
+                return ResourceManager.GetString("Home_NoFavoritesDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View Tools.
+        /// </summary>
+        public static string Home_ViewTools {
+            get {
+                return ResourceManager.GetString("Home_ViewTools", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No recent tools.
+        /// </summary>
+        public static string Home_NoRecent {
+            get {
+                return ResourceManager.GetString("Home_NoRecent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tools you use will appear here.
+        /// </summary>
+        public static string Home_NoRecentDescription {
+            get {
+                return ResourceManager.GetString("Home_NoRecentDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Why Choose Us.
+        /// </summary>
+        public static string Home_WhyChoose {
+            get {
+                return ResourceManager.GetString("Home_WhyChoose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Why Developers Choose MyDevTools?.
+        /// </summary>
+        public static string Home_WhyChooseTitle {
+            get {
+                return ResourceManager.GetString("Home_WhyChooseTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to We created the tools we wanted to use ourselves...
+        /// </summary>
+        public static string Home_WhyChooseDescription {
+            get {
+                return ResourceManager.GetString("Home_WhyChooseDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Works Offline.
+        /// </summary>
+        public static string Home_FeatureOfflineTitle {
+            get {
+                return ResourceManager.GetString("Home_FeatureOfflineTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Install as PWA and use without internet connection.
+        /// </summary>
+        public static string Home_FeatureOfflineDescription {
+            get {
+                return ResourceManager.GetString("Home_FeatureOfflineDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PWA Application.
+        /// </summary>
+        public static string Home_FeaturePwaTitle {
+            get {
+                return ResourceManager.GetString("Home_FeaturePwaTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Install on your phone or computer for quick access.
+        /// </summary>
+        public static string Home_FeaturePwaDescription {
+            get {
+                return ResourceManager.GetString("Home_FeaturePwaDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Completely Free.
+        /// </summary>
+        public static string Home_FeatureFreeTitle {
+            get {
+                return ResourceManager.GetString("Home_FeatureFreeTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All tools are free. No hidden payments or subscriptions.
+        /// </summary>
+        public static string Home_FeatureFreeDescription {
+            get {
+                return ResourceManager.GetString("Home_FeatureFreeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ready to try?.
+        /// </summary>
+        public static string Home_ReadyToTry {
+            get {
+                return ResourceManager.GetString("Home_ReadyToTry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All tools are free and require no registration.
+        /// </summary>
+        public static string Home_ReadyToTryDescription {
+            get {
+                return ResourceManager.GetString("Home_ReadyToTryDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search for a tool....
+        /// </summary>
+        public static string CommandPalette_SearchPlaceholder {
+            get {
+                return ResourceManager.GetString("CommandPalette_SearchPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type to search....
+        /// </summary>
+        public static string CommandPalette_TypeToSearch {
+            get {
+                return ResourceManager.GetString("CommandPalette_TypeToSearch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No tools found.
+        /// </summary>
+        public static string CommandPalette_NoResults {
+            get {
+                return ResourceManager.GetString("CommandPalette_NoResults", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search.
+        /// </summary>
+        public static string Common_Search {
+            get {
+                return ResourceManager.GetString("Common_Search", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Features.
+        /// </summary>
+        public static string Nav_Features {
+            get {
+                return ResourceManager.GetString("Nav_Features", resourceCulture);
+            }
+        }
     }
 }

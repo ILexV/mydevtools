@@ -151,7 +151,7 @@
     <value>Online Developer Tools — MyDevTools (All in Browser)</value>
   </data>
   <data name="Home_Subtitle" xml:space="preserve">
-    <value>Online privacy-first tools for developers. All processing happens in your browser.</value>
+    <value>Online privacy-first tools. All processing happens locally in your browser via WebAssembly.</value>
   </data>
   <data name="Home_FeaturePrivacyTitle" xml:space="preserve">
     <value>Privacy First</value>
@@ -203,6 +203,9 @@
   </data>
   <data name="Nav_Utilities" xml:space="preserve">
     <value>Utilities</value>
+  </data>
+  <data name="Nav_Features" xml:space="preserve">
+    <value>Features</value>
   </data>
   <data name="PWA_InstallTitle" xml:space="preserve">
     <value>Install MyDevTools</value>
@@ -3201,5 +3204,133 @@ The converted value appears automatically in the "To" field. Click the copy butt
 - Quick conversion buttons show equivalent values in all other units
 - Common conversions sidebar provides handy reference values
 - Works offline after initial page load</value>
+  </data>
+  <!-- New Design Keys (2026-02-13) -->
+  
+  <!-- Hero Section -->
+  <data name="Home_Badge_Private" xml:space="preserve">
+    <value>100% Private</value>
+  </data>
+  <data name="Home_Badge_Fast" xml:space="preserve">
+    <value>Fast</value>
+  </data>
+  <data name="Home_Badge_ToolsCount" xml:space="preserve">
+    <value>50+ Tools</value>
+  </data>
+  <data name="Home_TitlePrefix" xml:space="preserve">
+    <value>Developer</value>
+  </data>
+  <data name="Home_TitleSuffix" xml:space="preserve">
+    <value>Tools</value>
+  </data>
+  <data name="Home_CTA_Start" xml:space="preserve">
+    <value>Start Using</value>
+  </data>
+  <data name="Home_CTA_PWA" xml:space="preserve">
+    <value>Install PWA</value>
+  </data>
+  <data name="Home_Stat_Tools" xml:space="preserve">
+    <value>Tools</value>
+  </data>
+  <data name="Home_Stat_ServerData" xml:space="preserve">
+    <value>Server Data</value>
+  </data>
+  <data name="Home_Stat_Free" xml:space="preserve">
+    <value>Free</value>
+  </data>
+  
+  <!-- Tools Section -->
+  <data name="Home_AllTools" xml:space="preserve">
+    <value>All Tools</value>
+  </data>
+  <data name="Home_PopularTools" xml:space="preserve">
+    <value>Popular Tools</value>
+  </data>
+  <data name="Home_ToolsDescription" xml:space="preserve">
+    <value>Choose from our collection of developer tools. All processing happens locally in your browser.</value>
+  </data>
+  <data name="Category_All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Badge_Popular" xml:space="preserve">
+    <value>Popular</value>
+  </data>
+  <data name="Common_Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="ToolsCount_Singular" xml:space="preserve">
+    <value>tool</value>
+  </data>
+  <data name="ToolsCount_Plural" xml:space="preserve">
+    <value>tools</value>
+  </data>
+  
+  <!-- Favorites Section -->
+  <data name="Home_Recent" xml:space="preserve">
+    <value>Recent</value>
+  </data>
+  <data name="Home_ClearRecent" xml:space="preserve">
+    <value>Clear Recent</value>
+  </data>
+  <data name="Home_NoFavoritesDescription" xml:space="preserve">
+    <value>Click the star on any tool to add it to your favorites for quick access.</value>
+  </data>
+  <data name="Home_ViewTools" xml:space="preserve">
+    <value>View Tools</value>
+  </data>
+  <data name="Home_NoRecent" xml:space="preserve">
+    <value>No recent tools</value>
+  </data>
+  <data name="Home_NoRecentDescription" xml:space="preserve">
+    <value>Tools you use will appear here.</value>
+  </data>
+  
+  <!-- Features Section -->
+  <data name="Home_WhyChoose" xml:space="preserve">
+    <value>Why Choose Us</value>
+  </data>
+  <data name="Home_WhyChooseTitle" xml:space="preserve">
+    <value>Why Developers Choose MyDevTools?</value>
+  </data>
+  <data name="Home_WhyChooseDescription" xml:space="preserve">
+    <value>We created the tools we wanted to use ourselves. Security, speed, and convenience are our top priorities.</value>
+  </data>
+  <data name="Home_FeatureOfflineTitle" xml:space="preserve">
+    <value>Works Offline</value>
+  </data>
+  <data name="Home_FeatureOfflineDescription" xml:space="preserve">
+    <value>Install as PWA and use without internet connection.</value>
+  </data>
+  <data name="Home_FeaturePwaTitle" xml:space="preserve">
+    <value>PWA Application</value>
+  </data>
+  <data name="Home_FeaturePwaDescription" xml:space="preserve">
+    <value>Install on your phone or computer for quick access.</value>
+  </data>
+  <data name="Home_FeatureFreeTitle" xml:space="preserve">
+    <value>Completely Free</value>
+  </data>
+  <data name="Home_FeatureFreeDescription" xml:space="preserve">
+    <value>All tools are free. No hidden payments or subscriptions.</value>
+  </data>
+  <data name="Home_ReadyToTry" xml:space="preserve">
+    <value>Ready to try?</value>
+  </data>
+  <data name="Home_ReadyToTryDescription" xml:space="preserve">
+    <value>All tools are free and require no registration</value>
+  </data>
+  
+  <!-- Command Palette -->
+  <data name="CommandPalette_SearchPlaceholder" xml:space="preserve">
+    <value>Search for a tool...</value>
+  </data>
+  <data name="CommandPalette_TypeToSearch" xml:space="preserve">
+    <value>Type to search...</value>
+  </data>
+  <data name="CommandPalette_NoResults" xml:space="preserve">
+    <value>No tools found</value>
+  </data>
+  <data name="Common_Search" xml:space="preserve">
+    <value>Search</value>
   </data>
 </root>

@@ -63,3 +63,4 @@ nunit-*.xml
 /wasm/target
 /nul
 /MyDevToolsApp/MyDevTools.Site/server.log
+/MyDevToolsApp/MyDevTools.Site/nul

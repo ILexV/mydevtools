@@ -1,0 +1,33 @@
+@using MyDevTools.Site.Resources
+
+<footer class="footer footer-center p-10 bg-base-200/50 border-t border-base-300/50 mt-16">
+    <div class="max-w-4xl">
+        
+        <div class="flex items-center justify-center gap-2 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 class="text-primary">
+                <rect x="4" y="4" width="16" height="16" rx="2"/>
+                <rect x="9" y="9" width="6" height="6"/>
+                <path d="M15 2v2"/>
+                <path d="M15 20v2"/>
+                <path d="M2 15h2"/>
+            </svg>
+            <span class="text-xl font-bold">@AppStrings.AppName</span>
+        </div>
+
+        
+        <p class="text-base-content/70 mb-6 max-w-md">
+            @AppStrings.Home_Subtitle
+        </p>
+
+        
+        <div class="border-t border-base-300/50 pt-6 w-full">
+            <p class="text-sm text-base-content/50">
+                &copy; @DateTime.UtcNow.Year MyDevTools.app - @AppStrings.AppTagline
+            </p>
+        </div>
+    </div>
+</footer>
+
+@code {
+}

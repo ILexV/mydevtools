@@ -1,0 +1,125 @@
+@using MyDevTools.Site.Resources
+
+<section id="features" class="py-20 relative overflow-hidden">
+    <div class="absolute inset-0 mesh-gradient opacity-50"></div>
+
+    <div class="container mx-auto px-4 relative z-10">
+        
+        <div class="text-center mb-16">
+            <div class="badge badge-outline mb-4">
+                @AppStrings.Home_WhyChoose
+            </div>
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">@AppStrings.Home_WhyChooseTitle</h2>
+            <p class="text-base-content/60 max-w-2xl mx-auto leading-relaxed">
+                @AppStrings.Home_WhyChooseDescription
+            </p>
+        </div>
+
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <div class="feature-card group card border bg-base-100 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <div class="card-body p-6">
+                    <div class="feature-icon bg-gradient-to-br from-indigo-500 to-purple-500 mb-5 shadow-lg group-hover:shadow-xl transition-shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">@AppStrings.Home_FeaturePrivacyTitle</h3>
+                    <p class="text-base-content/60 leading-relaxed">@AppStrings.Home_FeaturePrivacyDescription</p>
+                </div>
+            </div>
+
+            
+            <div class="feature-card group card border bg-base-100 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <div class="card-body p-6">
+                    <div class="feature-icon bg-gradient-to-br from-emerald-500 to-teal-500 mb-5 shadow-lg group-hover:shadow-xl transition-shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">@AppStrings.Home_FeatureWasmTitle</h3>
+                    <p class="text-base-content/60 leading-relaxed">@AppStrings.Home_FeatureWasmDescription</p>
+                </div>
+            </div>
+
+            
+            <div class="feature-card group card border bg-base-100 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <div class="card-body p-6">
+                    <div class="feature-icon bg-gradient-to-br from-amber-500 to-orange-500 mb-5 shadow-lg group-hover:shadow-xl transition-shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">@AppStrings.Home_FeatureAlgorithmsTitle</h3>
+                    <p class="text-base-content/60 leading-relaxed">@AppStrings.Home_FeatureAlgorithmsDescription</p>
+                </div>
+            </div>
+
+            
+            <div class="feature-card group card border bg-base-100 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <div class="card-body p-6">
+                    <div class="feature-icon bg-gradient-to-br from-rose-500 to-pink-500 mb-5 shadow-lg group-hover:shadow-xl transition-shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white">
+                            <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+                            <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+                            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                            <line x1="12" y1="20" x2="12.01" y2="20"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">@AppStrings.Home_FeatureOfflineTitle</h3>
+                    <p class="text-base-content/60 leading-relaxed">@AppStrings.Home_FeatureOfflineDescription</p>
+                </div>
+            </div>
+
+            
+            <div class="feature-card group card border bg-base-100 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <div class="card-body p-6">
+                    <div class="feature-icon bg-gradient-to-br from-cyan-500 to-blue-500 mb-5 shadow-lg group-hover:shadow-xl transition-shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white">
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                            <line x1="12" y1="18" x2="12.01" y2="18"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">@AppStrings.Home_FeaturePwaTitle</h3>
+                    <p class="text-base-content/60 leading-relaxed">@AppStrings.Home_FeaturePwaDescription</p>
+                </div>
+            </div>
+
+            
+            <div class="feature-card group card border bg-base-100 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <div class="card-body p-6">
+                    <div class="feature-icon bg-gradient-to-br from-violet-500 to-purple-500 mb-5 shadow-lg group-hover:shadow-xl transition-shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white">
+                            <polyline points="20 12 20 22 4 22 4 12"/>
+                            <rect x="2" y="7" width="20" height="5"/>
+                            <line x1="12" y1="22" x2="12" y2="7"/>
+                            <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5H11"/>
+                            <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5H13"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">@AppStrings.Home_FeatureFreeTitle</h3>
+                    <p class="text-base-content/60 leading-relaxed">@AppStrings.Home_FeatureFreeDescription</p>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="mt-16 text-center">
+            <div class="inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-6 p-6 rounded-2xl bg-gradient-to-r from-indigo-500/5 to-purple-500/5 border border-indigo-500/20">
+                <div class="text-center sm:text-left">
+                    <h4 class="font-semibold text-lg mb-1">@AppStrings.Home_ReadyToTry</h4>
+                    <p class="text-sm text-base-content/60">
+                        @AppStrings.Home_ReadyToTryDescription
+                    </p>
+                </div>
+                <a href="#tools" class="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium hover:from-indigo-700 hover:to-purple-700 transition-colors shadow-lg shadow-indigo-500/25 whitespace-nowrap">
+                    @AppStrings.Home_CTA_Start
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+}

@@ -47,7 +47,8 @@
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        showInstallPrompt();
+        // Don't show prompt automatically - user must click the button
+        console.log('[PWA] Install prompt captured, waiting for user action');
     });
 
     // Handle app installed

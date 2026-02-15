@@ -1,51 +1,168 @@
 @inherits LayoutComponentBase
 @using MyDevTools.Site.Resources
 @using MyDevTools.Site.Services
-@inject IJSRuntime JSRuntime
+@using MyDevTools.Site.Components.Common
+
+@* Type alias for CommandPalette ToolInfo *@
+@using ToolInfo = MyDevTools.Site.Components.Common.CommandPalette.ToolInfo
 
 <div class="min-h-screen flex flex-col bg-base-100">
-    <!-- Navbar -->
-    <div class="navbar bg-base-200 shadow-lg sticky top-0 z-50 border-b border-base-300">
-        <div class="navbar-start">
-            <a href="/@CurrentLanguage" class="btn btn-ghost text-xl font-bold" tabindex="-1">
-                @AppStrings.AppName
+    
+    <header class="sticky top-0 z-50 w-full">
+        <div class="glass border-b">
+            <div class="container mx-auto px-4 h-16 flex items-center justify-between">
+            
+            <a href="/@CurrentLanguage" class="flex items-center gap-2 group">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                    </svg>
+                </div>
+                <span class="font-bold text-lg bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    MyDevTools
+                </span>
             </a>
-        </div>
-        <div class="navbar-center hidden md:flex">
-            <ul class="menu menu-horizontal px-1">
-                <li><a href="/@CurrentLanguage/#tools" class="font-medium">@AppStrings.Nav_Utilities</a></li>
-            </ul>
-            <div class="ml-4">
-                <ToolSearch />
-            </div>
-        </div>
-        <div class="navbar-end gap-2">
-            <div class="md:hidden">
-                <ToolSearch />
-            </div>
-            <LanguageSwitcher CurrentLanguage="@CurrentLanguage" />
-            <ThemeToggle />
-        </div>
-    </div>
 
-    <!-- Main Content -->
-    <main class="flex-1 container mx-auto px-4 py-8 max-w-7xl">
+            
+            <nav class="hidden md:flex items-center gap-6">
+                <a href="/@CurrentLanguage/#tools" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                    @AppStrings.Nav_Utilities
+                </a>
+                <a href="/@CurrentLanguage/#features" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                    @AppStrings.Nav_Features
+                </a>
+            </nav>
+
+            
+            <div class="flex items-center gap-2">
+                
+                <button type="button"
+                        class="hidden md:flex h-9 items-center gap-2 rounded-md border border-gray-300 bg-white/70 px-3 text-sm text-gray-600 transition-colors hover:border-gray-400 hover:bg-gray-100 hover:text-gray-900 dark:border-gray-600 dark:bg-gray-800/70 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:bg-gray-700 dark:hover:text-white"
+                        style="background-color: rgba(255, 255, 255, 0.7) !important; color: rgb(75, 85, 99) !important;"
+                        onclick="window.commandPalette.toggle(); return false;"
+                        title="Search (Ctrl+K)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.3-4.3"/>
+                    </svg>
+                    <span>@AppStrings.Search_Placeholder</span>
+                    <kbd class="hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border border-base-content/20 bg-base-200/50 px-1.5 font-mono text-[10px] font-medium text-base-content/60">
+                        Ctrl K
+                    </kbd>
+                </button>
+
+                
+                <button type="button"
+                        class="btn btn-ghost btn-circle"
+                        onclick="toggleTheme(); return false;"
+                        title="Toggle Theme">
+                    <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="hidden">
+                        <circle cx="12" cy="12" r="4"/>
+                        <path d="M12 2v2"/>
+                        <path d="M12 20v2"/>
+                        <path d="m4.93 4.93 1.41 1.41"/>
+                        <path d="m17.66 17.66 1.41 1.41"/>
+                        <path d="M2 12h2"/>
+                        <path d="M20 12h2"/>
+                        <path d="m6.34 17.66-1.41 1.41"/>
+                        <path d="m19.07 4.93-1.41 1.41"/>
+                    </svg>
+                    <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+                    </svg>
+                </button>
+
+                
+                <button type="button"
+                        class="btn btn-ghost btn-circle md:hidden"
+                        onclick="window.commandPalette.toggle(); return false;"
+                        title="Search (Ctrl+K)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.3-4.3"/>
+                    </svg>
+                </button>
+
+                <LanguageSwitcher CurrentLanguage="@CurrentLanguage" />
+            </div>
+            </div>
+        </div>
+    </header>
+
+    
+    <main class="flex-1">
         @Body
     </main>
 
-    <!-- Footer -->
-    <footer class="footer footer-center p-10 bg-base-200 text-base-content border-t border-base-300 mt-16">
-        <div>
-            <p class="font-semibold">@AppStrings.AppTagline</p>
-            <p class="text-sm opacity-70">&copy; @DateTime.UtcNow.Year MyDevTools.app</p>
-        </div>
-    </footer>
+    
+    <Footer />
+
+    <CommandPalette Lang="@CurrentLanguage" Tools="@GetTools()" />
+
+    @* PWA Install Prompt - Subtle notification *@
+    <div id="pwa-install-prompt" class="alert shadow-md bg-base-200 border border-base-300 fixed bottom-4 left-4 right-4 z-50 max-w-2xl mx-auto" style="display: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-5 h-5 opacity-70">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <div class="text-sm">
+        <div class="font-medium">@AppStrings.PWA_InstallTitle</div>
+        <div class="text-xs opacity-70">@AppStrings.PWA_InstallDescription</div>
+      </div>
+      <div class="flex gap-2">
+        <button id="pwa-install-btn" class="btn btn-sm btn-primary">
+          @AppStrings.PWA_InstallButton
+        </button>
+        <button id="pwa-install-dismiss" class="btn btn-sm btn-ghost">
+          @AppStrings.PWA_InstallDismiss
+        </button>
+      </div>
+    </div>
+
+    <style>
+        /* Dark theme header fix */
+        [data-theme="dark"] .glass {
+            background-color: rgb(10, 10, 15) !important;
+            background-image: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+    </style>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const sunIcon = document.getElementById('theme-icon-sun');
+            const moonIcon = document.getElementById('theme-icon-moon');
+            if (theme === 'dark') {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            } else {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            }
+        }
+
+        // Initialize theme icon on page load
+        (function() {
+            const theme = document.documentElement.getAttribute('data-theme') || 'light';
+            updateThemeIcon(theme);
+        })();
+    </script>
 </div>
 
 @code {
     [Inject]
     public NavigationManager Navigation { get; set; } = default!;
-    
+
     [Inject]
     public ILocalizationService LocalizationService { get; set; } = default!;
 
@@ -53,14 +170,52 @@
 
     protected override void OnInitialized()
     {
-        // Extract language from URL
         var uri = new Uri(Navigation.Uri);
         var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        
+
         if (segments.Length > 0 && LocalizationService.IsCultureSupported(segments[0]))
         {
             CurrentLanguage = segments[0];
         }
     }
 
+    private List<ToolInfo> GetTools()
+    {
+        return new List<ToolInfo>
+        {
+            new() { Slug = "image-converter", Name = AppStrings.ImageConverter_Title, Description = AppStrings.ImageConverter_Description, Category = AppStrings.Category_Images, Icon = "🖼️" },
+            new() { Slug = "image-compressor", Name = AppStrings.ImageCompressor_Title, Description = AppStrings.ImageCompressor_Description, Category = AppStrings.Category_Images, Icon = "📉" },
+            new() { Slug = "image-resizer", Name = AppStrings.ImageResizer_Title, Description = AppStrings.ImageResizer_Description, Category = AppStrings.Category_Images, Icon = "📏" },
+            new() { Slug = "color-converter", Name = AppStrings.ColorConverter_Title, Description = AppStrings.ColorConverter_Description, Category = AppStrings.Category_ColorsAndDesign, Icon = "🎨" },
+            new() { Slug = "markdown-preview", Name = AppStrings.MarkdownPreview_Title, Description = AppStrings.MarkdownPreview_Description, Category = AppStrings.Category_ColorsAndDesign, Icon = "📄" },
+            new() { Slug = "hash-calculator", Name = AppStrings.HashCalculator_Title, Description = AppStrings.HashCalculator_Description, Category = AppStrings.Category_HashingAndSecurity, Icon = "🔐", IsPopular = true },
+            new() { Slug = "password-generator", Name = AppStrings.PasswordGenerator_Title, Description = AppStrings.PasswordGenerator_Description, Category = AppStrings.Category_Generators, Icon = "🎲", IsPopular = true },
+            new() { Slug = "uuid-generator", Name = AppStrings.UuidGenerator_Title, Description = AppStrings.UuidGenerator_Description, Category = AppStrings.Category_Generators, Icon = "🆔" },
+            new() { Slug = "lorem-ipsum-generator", Name = AppStrings.LoremIpsumGenerator_Title, Description = AppStrings.LoremIpsumGenerator_Description, Category = AppStrings.Category_Generators, Icon = "📝" },
+            new() { Slug = "base64-encoder", Name = AppStrings.Base64Encoder_Title, Description = AppStrings.Base64Encoder_Description, Category = AppStrings.Category_Encoding, Icon = "🧬", IsPopular = true },
+            new() { Slug = "json-beautifier", Name = AppStrings.JsonBeautifier_Title, Description = AppStrings.JsonBeautifier_Description, Category = AppStrings.Category_StructuredData, Icon = "✨", IsPopular = true },
+            new() { Slug = "text-case-converter", Name = AppStrings.TextCaseConverter_Title, Description = AppStrings.TextCaseConverter_Description, Category = AppStrings.Category_TextTools, Icon = "🔠" },
+            new() { Slug = "text-diff-viewer", Name = AppStrings.TextDiffViewer_Title, Description = AppStrings.TextDiffViewer_Description, Category = AppStrings.Category_TextTools, Icon = "📊" },
+            new() { Slug = "aead-file", Name = AppStrings.Aead_Title, Description = AppStrings.Aead_Description, Category = AppStrings.Category_Cryptography, Icon = "🛡️" },
+            new() { Slug = "openssh-keys", Name = AppStrings.OpenSsh_Title, Description = AppStrings.OpenSsh_Description, Category = AppStrings.Category_Cryptography, Icon = "🔑" },
+            new() { Slug = "x509", Name = AppStrings.X509_Title, Description = AppStrings.X509_Description, Category = AppStrings.Category_Cryptography, Icon = "📜" },
+            new() { Slug = "url-encoder", Name = AppStrings.UrlEncoder_Title, Description = AppStrings.UrlEncoder_Description, Category = AppStrings.Category_Encoding, Icon = "🔗" },
+            new() { Slug = "xml-beautifier", Name = AppStrings.XmlBeautifier_Title, Description = AppStrings.XmlBeautifier_Description, Category = AppStrings.Category_StructuredData, Icon = "🧷" },
+            new() { Slug = "hex-encoder", Name = AppStrings.HexEncoder_Title, Description = AppStrings.HexEncoder_Description, Category = AppStrings.Category_Encoding, Icon = "🧱" },
+            new() { Slug = "base32-encoder", Name = AppStrings.Base32Encoder_Title, Description = AppStrings.Base32Encoder_Description, Category = AppStrings.Category_Encoding, Icon = "🧪" },
+            new() { Slug = "base58-encoder", Name = AppStrings.Base58Encoder_Title, Description = AppStrings.Base58Encoder_Description, Category = AppStrings.Category_Encoding, Icon = "🧟" },
+            new() { Slug = "date-converter", Name = AppStrings.DateConverter_Title, Description = AppStrings.DateConverter_Description, Category = AppStrings.Category_DateTime, Icon = "📅" },
+            new() { Slug = "jwt-decoder", Name = AppStrings.JwtDecoder_Title, Description = AppStrings.JwtDecoder_Description, Category = AppStrings.Category_JwtAndTokens, Icon = "🔓" },
+            new() { Slug = "jwt-encoder", Name = AppStrings.JwtEncoder_Title, Description = AppStrings.JwtEncoder_Description, Category = AppStrings.Category_JwtAndTokens, Icon = "🔐" },
+            new() { Slug = "regex-tester", Name = AppStrings.RegexTester_Title, Description = AppStrings.RegexTester_Description, Category = AppStrings.Category_Regex, Icon = "🔍" },
+            new() { Slug = "qr-code-generator", Name = AppStrings.QrCodeGenerator_Title, Description = AppStrings.QrCodeGenerator_Description, Category = AppStrings.Category_QrCodes, Icon = "📱" },
+            new() { Slug = "hmac-calculator", Name = AppStrings.HmacCalculator_Title, Description = AppStrings.HmacCalculator_Description, Category = AppStrings.Category_HashingAndSecurity, Icon = "🔐" },
+            new() { Slug = "yaml-beautifier-validator", Name = AppStrings.YamlBeautifierValidator_Title, Description = AppStrings.YamlBeautifierValidator_Description, Category = AppStrings.Category_StructuredData, Icon = "📄" },
+            new() { Slug = "qr-scanner", Name = AppStrings.QrScanner_Title, Description = AppStrings.QrScanner_Description, Category = AppStrings.Category_QrCodes, Icon = "📷" },
+            new() { Slug = "pdf-merger", Name = AppStrings.PdfMerger_Title, Description = AppStrings.PdfMerger_Description, Category = AppStrings.Category_PdfTools, Icon = "📑" },
+            new() { Slug = "pdf-compressor", Name = AppStrings.PdfCompressor_Title, Description = AppStrings.PdfCompressor_Description, Category = AppStrings.Category_PdfTools, Icon = "📉" },
+            new() { Slug = "html-entity-encoder", Name = AppStrings.HtmlEntityEncoder_Title, Description = AppStrings.HtmlEntityEncoder_Description, Category = AppStrings.Category_Encoding, Icon = "</>" },
+            new() { Slug = "unit-converter", Name = AppStrings.UnitConverter_Title, Description = AppStrings.UnitConverter_Description, Category = AppStrings.Category_Converters, Icon = "📏" }
+        };
+    }
 }

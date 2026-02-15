@@ -1,6 +1,8 @@
 @using MyDevTools.Site.Resources
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
 
-<div class="w-full">
+<div class="w-full max-w-7xl mx-auto px-4">
     <div class="card bg-base-100 shadow-xl border border-base-300">
         <div class="card-body">
             <!-- Tool Header -->
@@ -60,4 +62,74 @@
     /// </summary>
     [Parameter]
     public bool ShowPrivacyNotice { get; set; } = true;
+
+    /// <summary>
+    /// The slug of the tool (e.g., "json-beautifier"). 
+    /// If not provided, will be extracted from URL.
+    /// </summary>
+    [Parameter]
+    public string? ToolSlug { get; set; }
+
+    /// <summary>
+    /// The icon of the tool (emoji or SVG).
+    /// </summary>
+    [Parameter]
+    public string? ToolIcon { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await AddToRecent();
+        }
+    }
+
+    private async Task AddToRecent()
+    {
+        try
+        {
+            // Get slug from parameter or extract from URL
+            var slug = ToolSlug ?? ExtractSlugFromUrl();
+            if (string.IsNullOrEmpty(slug)) return;
+
+            // Get icon, default to empty if not provided
+            var icon = ToolIcon ?? "";
+
+            // Call JavaScript to add to recent
+            await JSRuntime.InvokeVoidAsync("eval", $@"
+                if (window.MyDevToolsRecent && window.MyDevToolsRecent.addRecent) {{
+                    window.MyDevToolsRecent.addRecent('{slug}', '{Title.Replace("'", "\\'")}', '{icon}');
+                }}
+            ");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding to recent: {ex.Message}");
+        }
+    }
+
+    private string? ExtractSlugFromUrl()
+    {
+        // URL format: /{lang}/{tool-slug}
+        // Examples: /en/json-beautifier, /ru/base64-encoder
+        var uri = Navigation.Uri;
+        var path = Navigation.ToBaseRelativePath(uri);
+        
+        // Remove query string if any
+        var queryIndex = path.IndexOf('?');
+        if (queryIndex > 0)
+        {
+            path = path.Substring(0, queryIndex);
+        }
+        
+        // Split by '/' and get the last segment
+        var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (segments.Length >= 2)
+        {
+            // segments[0] is lang, segments[1] is tool slug
+            return segments[1];
+        }
+        
+        return null;
+    }
 }

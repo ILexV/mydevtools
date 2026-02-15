@@ -1,0 +1,127 @@
+@using MyDevTools.Site.Resources
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<section class="hero-section" id="hero-section">
+    
+    <div class="absolute inset-0"></div>
+    
+    <canvas id="hero-particle-canvas" class="hero-canvas"></canvas>
+    
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+            
+            <div class="space-y-8">
+                
+                <div class="flex flex-wrap gap-2">
+                    <span class="badge badge-emerald">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        @AppStrings.Home_Badge_Private
+                    </span>
+                    
+                    <span class="badge badge-amber">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        @AppStrings.Home_Badge_Fast
+                    </span>
+                    
+                    <span class="badge badge-indigo">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                        @AppStrings.Home_Badge_ToolsCount
+                    </span>
+                </div>
+
+                <div class="space-y-4">
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+                        <span class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent animate-gradient">
+                            @AppStrings.Home_TitlePrefix
+                        </span>
+                        <br />
+                        @AppStrings.Home_TitleSuffix
+                    </h1>
+                    <p class="text-lg md:text-xl text-base-content/70 max-w-lg">
+                        @AppStrings.Home_Subtitle
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-4">
+                    <a href="#tools" class="btn btn-primary btn-lg gap-2 shadow-lg shadow-indigo-500/25">
+                        @AppStrings.Home_CTA_Start
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </a>
+                    <button type="button" class="btn btn-outline btn-lg gap-2" onclick="(function(){ var el = document.getElementById('pwa-install-prompt'); if(el) el.style.display = 'flex'; })(); return false;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                        @AppStrings.Home_CTA_PWA
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap gap-8 pt-4">
+                    <div>
+                        <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">50+</div>
+                        <div class="text-sm text-base-content/60">@AppStrings.Home_Stat_Tools</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">0</div>
+                        <div class="text-sm text-base-content/60">@AppStrings.Home_Stat_ServerData</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">100%</div>
+                        <div class="text-sm text-base-content/60">@AppStrings.Home_Stat_Free</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hidden lg:block">
+                <OrbitingIcons />
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    private bool isDisposed = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !isDisposed)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("HeroAnimation.init");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to initialize hero animation: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task InstallPWA()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("PWA.showInstallPrompt");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to show PWA install prompt: {ex.Message}");
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (!isDisposed)
+        {
+            isDisposed = true;
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("HeroAnimation.destroy");
+            }
+            catch
+            {
+            }
+        }
+    }
+}

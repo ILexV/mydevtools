@@ -1,0 +1,54 @@
+@using MyDevTools.Site.Resources
+
+@{
+    // Serialize tools to JSON for JavaScript
+    var toolsJson = System.Text.Json.JsonSerializer.Serialize(Tools.Select(t => new { 
+        slug = t.Slug, 
+        name = t.Name, 
+        description = t.Description, 
+        category = t.Category, 
+        icon = t.Icon,
+        isPopular = t.IsPopular 
+    }));
+}
+
+<div class="command-palette-overlay" id="command-palette-overlay"></div>
+
+<div class="command-palette-modal" id="command-palette-modal" data-lang="@Lang" data-tools="@toolsJson">
+    <div class="command-palette-header">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.3-4.3"/>
+        </svg>
+        
+        <input type="text" 
+               id="command-palette-input"
+               class="command-palette-input" 
+               placeholder="@AppStrings.CommandPalette_SearchPlaceholder"
+               autocomplete="off"
+               autocorrect="off"
+               autocapitalize="off"
+               spellcheck="false" />
+        
+        <kbd class="kbd kbd-sm">ESC</kbd>
+    </div>
+
+    <div class="command-palette-list" id="command-palette-list">
+        <!-- Content will be populated by JavaScript -->
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Lang { get; set; } = "en";
+    [Parameter] public List<ToolInfo> Tools { get; set; } = new();
+
+    public class ToolInfo
+    {
+        public string Slug { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public bool IsPopular { get; set; }
+    }
+}

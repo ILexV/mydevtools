@@ -1,0 +1,91 @@
+@* Orbiting Icons Component - Matches new design exactly *@
+
+<div class="orbit-container">
+    
+    <div class="orbit-center">
+        <div class="orbit-center-icon">
+            @* CPU Icon *@
+            <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                <rect x="4" y="4" width="16" height="16" rx="2"/>
+                <rect x="9" y="9" width="6" height="6"/>
+                <path d="M15 2v2"/>
+                <path d="M15 20v2"/>
+                <path d="M2 15h2"/>
+                <path d="M2 9h2"/>
+                <path d="M20 15h2"/>
+                <path d="M20 9h2"/>
+                <path d="M9 2v2"/>
+                <path d="M9 20v2"/>
+            </svg>
+        </div>
+    </div>
+
+    @* Code2 icon - Blue/Cyan gradient *@
+    <div class="orbit-item" style="transform: translate(calc(-50% + 140px), calc(-50% + 0px)); animation-delay: 0s;">
+        <div class="orbit-item-icon bg-gradient-blue-cyan">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                <polyline points="16 18 22 12 16 6"/>
+                <polyline points="8 6 2 12 8 18"/>
+            </svg>
+        </div>
+    </div>
+
+    @* Lock icon - Emerald/Teal gradient *@
+    <div class="orbit-item" style="transform: translate(calc(-50% + 70px), calc(-50% + 121px)); animation-delay: 0.5s;">
+        <div class="orbit-item-icon bg-gradient-emerald-teal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+        </div>
+    </div>
+
+    @* Shield icon - Amber/Orange gradient *@
+    <div class="orbit-item" style="transform: translate(calc(-50% - 70px), calc(-50% + 121px)); animation-delay: 1s;">
+        <div class="orbit-item-icon bg-gradient-amber-orange">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+        </div>
+    </div>
+
+    @* Zap icon - Rose/Pink gradient *@
+    <div class="orbit-item" style="transform: translate(calc(-50% - 140px), calc(-50% + 0px)); animation-delay: 1.5s;">
+        <div class="orbit-item-icon bg-gradient-rose-pink">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+        </div>
+    </div>
+
+    @* Wrench icon - Violet/Purple gradient *@
+    <div class="orbit-item" style="transform: translate(calc(-50% - 70px), calc(-50% - 121px)); animation-delay: 2s;">
+        <div class="orbit-item-icon bg-gradient-violet-purple">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+        </div>
+    </div>
+
+    @* Download icon - Cyan/Blue gradient *@
+    <div class="orbit-item" style="transform: translate(calc(-50% + 70px), calc(-50% - 121px)); animation-delay: 2.5s;">
+        <div class="orbit-item-icon bg-gradient-cyan-blue">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" x2="12" y1="15" y2="3"/>
+            </svg>
+        </div>
+    </div>
+
+    @* Connection circle with dashed line and spin animation *@
+    <svg class="orbit-connection-ring" viewBox="0 0 400 400">
+        <defs>
+            <linearGradient id="orbitGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#6366f1" />
+                <stop offset="100%" stop-color="#a855f7" />
+            </linearGradient>
+        </defs>
+        <circle cx="200" cy="200" r="140" fill="none" stroke="url(#orbitGradient)" stroke-width="1" stroke-dasharray="8 8" opacity="0.3" />
+    </svg>
+</div>

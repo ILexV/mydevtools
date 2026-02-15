@@ -45,6 +45,7 @@
     <link rel="preload" href="@Assets["app.css"]" as="style" />
     
     <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="@Assets["css/home-custom.css"]" />
     
     @* CodeMirror CSS - only for pages that need it *@
     @if (NeedsCodeMirror)
@@ -106,12 +107,13 @@
     <Routes />
     
     @* Core scripts - always loaded *@
+    <script src="@Assets["js/commandPalette.js"]"></script>
+    <script src="@Assets["js/heroAnimation.js"]"></script>
     <script src="@Assets["file-drop.js"]"></script>
     <script src="@Assets["tools/file-processing.js"]"></script>
     <script src="@Assets["theme.js"]"></script>
     <script src="@Assets["favorites.js"]"></script>
     <script src="@Assets["pwa.js"]"></script>
-    <script src="@Assets["js/toolSearch.js"]"></script>
     
     @* CodeMirror - only for JSON/XML beautifiers *@
     @if (NeedsCodeMirror)

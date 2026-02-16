@@ -1,12 +1,13 @@
 @using MyDevTools.Site.Resources
 @inject IJSRuntime JSRuntime
+@inject MyDevTools.Site.Services.IJsonLocalizationService JsonLocalization
 
 <section id="tools" class="py-16">
     <div class="container mx-auto px-4">
         <div class="text-center mb-12">
-            <h2 class="text-3xl md:text-4xl font-bold mb-4">@AppStrings.Home_PopularTools</h2>
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">@T("PopularTools")</h2>
             <p class="text-base-content/60 max-w-2xl mx-auto">
-                @AppStrings.Home_ToolsDescription
+                @T("ToolsDescription")
             </p>
         </div>
 
@@ -71,6 +72,8 @@
 @code {
     [Parameter] public string Lang { get; set; } = "en";
     [Parameter] public List<ToolCategory> Categories { get; set; } = new();
+
+    private string T(string key) => JsonLocalization.Get(Lang, "home", key);
 
     private HashSet<string> popularTools = new() { "json-beautifier", "base64-encoder", "password-generator" };
 

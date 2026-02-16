@@ -1,4 +1,5 @@
 @using MyDevTools.Site.Resources
+@inject MyDevTools.Site.Services.IJsonLocalizationService JsonLocalization
 
 <section id="favorites-section" class="py-12" data-lang="@Lang">
     <div class="container mx-auto px-4">
@@ -10,33 +11,33 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                         </svg>
-                        <span class="ml-2">@AppStrings.Home_Favorites</span>
+                        <span class="ml-2">@T("Favorites")</span>
                     </button>
                     <button id="fav-tab-recent" class="btn btn-ghost" data-tab="recent">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"/>
                             <polyline points="12 6 12 12 16 14"/>
                         </svg>
-                        <span class="ml-2">@AppStrings.Home_Recent</span>
+                        <span class="ml-2">@T("Recent")</span>
                     </button>
                 </div>
 
                 <!-- Favorites Content -->
-                <div id="favorites-content" class="favorites-tab-content" data-strings-no-favorites="@AppStrings.Home_NoFavorites" data-strings-no-favorites-desc="@AppStrings.Home_NoFavoritesDescription" data-strings-view-tools="@AppStrings.Home_ViewTools">
+                <div id="favorites-content" class="favorites-tab-content"      data-strings-no-favorites="@T("NoFavorites")" data-strings-no-favorites-desc="@T("NoFavoritesDescription")" data-strings-view-tools="@T("ViewTools")">
                     <div id="favorites-empty" class="flex flex-col items-center justify-center py-12 text-center">
                         <div class="w-16 h-16 rounded-full bg-base-300 flex items-center justify-center mb-4">
                             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-base-content/50">
                                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold mb-2">@AppStrings.Home_NoFavorites</h3>
-                        <p class="text-base-content/60 max-w-md mx-auto mb-6">@AppStrings.Home_NoFavoritesDescription</p>
+                        <h3 class="text-lg font-semibold mb-2">@T("NoFavorites")</h3>
+                        <p class="text-base-content/60 max-w-md mx-auto mb-6">@T("NoFavoritesDescription")</p>
                         <a href="#tools" class="btn btn-outline">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-2">
                                 <line x1="12" y1="5" x2="12" y2="19"/>
                                 <line x1="5" y1="12" x2="19" y2="12"/>
                             </svg>
-                            @AppStrings.Home_ViewTools
+                            @T("ViewTools")
                         </a>
                     </div>
                     <div id="favorites-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 hidden">
@@ -45,7 +46,7 @@
                 </div>
 
                 <!-- Recent Content -->
-                <div id="recent-content" class="favorites-tab-content hidden" data-strings-no-recent="@AppStrings.Home_NoRecent" data-strings-no-recent-desc="@AppStrings.Home_NoRecentDescription" data-strings-clear-recent="@AppStrings.Home_ClearRecent">
+                <div id="recent-content" class="favorites-tab-content hidden" data-strings-no-recent="@T("NoRecent")" data-strings-no-recent-desc="@T("NoRecentDescription")" data-strings-clear-recent="@T("ClearRecent")">
                     <div id="recent-empty" class="flex flex-col items-center justify-center py-12 text-center">
                         <div class="w-16 h-16 rounded-full bg-base-300 flex items-center justify-center mb-4">
                             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-base-content/50">
@@ -53,14 +54,14 @@
                                 <polyline points="12 6 12 12 16 14"/>
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold mb-2">@AppStrings.Home_NoRecent</h3>
-                        <p class="text-base-content/60 max-w-md mx-auto mb-6">@AppStrings.Home_NoRecentDescription</p>
+                        <h3 class="text-lg font-semibold mb-2">@T("NoRecent")</h3>
+                        <p class="text-base-content/60 max-w-md mx-auto mb-6">@T("NoRecentDescription")</p>
                         <a href="#tools" class="btn btn-outline">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-2">
                                 <line x1="12" y1="5" x2="12" y2="19"/>
                                 <line x1="5" y1="12" x2="19" y2="12"/>
                             </svg>
-                            @AppStrings.Home_ViewTools
+                            @T("ViewTools")
                         </a>
                     </div>
                     <div id="recent-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 hidden">
@@ -73,7 +74,7 @@
                                 <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
                                 <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
                             </svg>
-                            @AppStrings.Home_ClearRecent
+                            @T("ClearRecent")
                         </button>
                     </div>
                 </div>
@@ -85,4 +86,6 @@
 
 @code {
     [Parameter] public string Lang { get; set; } = "en";
+
+    private string T(string key) => JsonLocalization.Get(Lang, "home", key);
 }

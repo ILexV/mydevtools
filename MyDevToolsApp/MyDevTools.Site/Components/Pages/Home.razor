@@ -4,21 +4,22 @@
 @using MyDevTools.Site.Components.Sections
 @using MyDevTools.Site.Components.Common
 @inject NavigationManager Navigation
+@inherits ToolComponentBase
 
 @* Type aliases for section components *@
 @using ToolCategory = MyDevTools.Site.Components.Sections.ToolsSection.ToolCategory
 @using ToolInfo = MyDevTools.Site.Components.Sections.ToolsSection.ToolInfo
 
-<MetaTags Title="@AppStrings.Home_Title"
-          Description="@AppStrings.Home_Subtitle"
+<MetaTags Title="@T("Title")"
+          Description="@T("Subtitle")"
           CurrentUrl="@Navigation.Uri"
           IsHomePage="true"
           Lang="@Lang"
-          SiteName="@AppStrings.AppName"/>
+          SiteName="@T("AppName")"/>
 
 <div id="home-page-root">
     
-    <HeroSection />
+    <HeroSection Lang="@Lang" />
 
     
     <FavoritesSection Lang="@Lang" />
@@ -31,46 +32,48 @@
 </div>
 
 @code {
-    [Parameter]
-    public string Lang { get; set; } = "en";
+    protected override string LocalizationNamespace { get; set; } = "home";
+
+    private string GetToolTitle(string slug) => JsonLocalization.Get(Lang, $"tools/{slug}", "Title");
+    private string GetToolDescription(string slug) => JsonLocalization.Get(Lang, $"tools/{slug}", "Description");
 
     private List<ToolInfo> GetTools()
     {
         return new List<ToolInfo>
         {
-            new("image-converter", "🖼️", AppStrings.ImageConverter_Title, AppStrings.ImageConverter_Description),
-            new("image-compressor", "📉", AppStrings.ImageCompressor_Title, AppStrings.ImageCompressor_Description),
-            new("image-resizer", "📏", AppStrings.ImageResizer_Title, AppStrings.ImageResizer_Description),
-            new("color-converter", "🎨", AppStrings.ColorConverter_Title, AppStrings.ColorConverter_Description),
-            new("markdown-preview", "📄", AppStrings.MarkdownPreview_Title, AppStrings.MarkdownPreview_Description),
-            new("hash-calculator", "🔐", AppStrings.HashCalculator_Title, AppStrings.HashCalculator_Description),
-            new("password-generator", "🎲", AppStrings.PasswordGenerator_Title, AppStrings.PasswordGenerator_Description),
-            new("uuid-generator", "🆔", AppStrings.UuidGenerator_Title, AppStrings.UuidGenerator_Description),
-            new("lorem-ipsum-generator", "📝", AppStrings.LoremIpsumGenerator_Title, AppStrings.LoremIpsumGenerator_Description),
-            new("base64-encoder", "🧬", AppStrings.Base64Encoder_Title, AppStrings.Base64Encoder_Description),
-            new("json-beautifier", "✨", AppStrings.JsonBeautifier_Title, AppStrings.JsonBeautifier_Description),
-            new("text-case-converter", "🔠", AppStrings.TextCaseConverter_Title, AppStrings.TextCaseConverter_Description),
-            new("text-diff-viewer", "📊", AppStrings.TextDiffViewer_Title, AppStrings.TextDiffViewer_Description),
-            new("aead-file", "🛡️", AppStrings.Aead_Title, AppStrings.Aead_Description),
-            new("openssh-keys", "🔑", AppStrings.OpenSsh_Title, AppStrings.OpenSsh_Description),
-            new("x509", "📜", AppStrings.X509_Title, AppStrings.X509_Description),
-            new("url-encoder", "🔗", AppStrings.UrlEncoder_Title, AppStrings.UrlEncoder_Description),
-            new("xml-beautifier", "🧷", AppStrings.XmlBeautifier_Title, AppStrings.XmlBeautifier_Description),
-            new("hex-encoder", "🧱", AppStrings.HexEncoder_Title, AppStrings.HexEncoder_Description),
-            new("base32-encoder", "🧪", AppStrings.Base32Encoder_Title, AppStrings.Base32Encoder_Description),
-            new("base58-encoder", "🧿", AppStrings.Base58Encoder_Title, AppStrings.Base58Encoder_Description),
-            new("date-converter", "📅", AppStrings.DateConverter_Title, AppStrings.DateConverter_Description),
-            new("jwt-decoder", "🔓", AppStrings.JwtDecoder_Title, AppStrings.JwtDecoder_Description),
-            new("jwt-encoder", "🔐", AppStrings.JwtEncoder_Title, AppStrings.JwtEncoder_Description),
-            new("regex-tester", "🔍", AppStrings.RegexTester_Title, AppStrings.RegexTester_Description),
-            new("qr-code-generator", "📱", AppStrings.QrCodeGenerator_Title, AppStrings.QrCodeGenerator_Description),
-            new("hmac-calculator", "🔐", AppStrings.HmacCalculator_Title, AppStrings.HmacCalculator_Description),
-            new("yaml-beautifier-validator", "📄", AppStrings.YamlBeautifierValidator_Title, AppStrings.YamlBeautifierValidator_Description),
-            new("qr-scanner", "📷", AppStrings.QrScanner_Title, AppStrings.QrScanner_Description),
-            new("pdf-merger", "📑", AppStrings.PdfMerger_Title, AppStrings.PdfMerger_Description),
-            new("pdf-compressor", "📉", AppStrings.PdfCompressor_Title, AppStrings.PdfCompressor_Description),
-            new("html-entity-encoder", "</>", AppStrings.HtmlEntityEncoder_Title, AppStrings.HtmlEntityEncoder_Description),
-            new("unit-converter", "📏", AppStrings.UnitConverter_Title, AppStrings.UnitConverter_Description)
+            new("image-converter", "🖼️", GetToolTitle("image-converter"), GetToolDescription("image-converter")),
+            new("image-compressor", "📉", GetToolTitle("image-compressor"), GetToolDescription("image-compressor")),
+            new("image-resizer", "📏", GetToolTitle("image-resizer"), GetToolDescription("image-resizer")),
+            new("color-converter", "🎨", GetToolTitle("color-converter"), GetToolDescription("color-converter")),
+            new("markdown-preview", "📄", GetToolTitle("markdown-preview"), GetToolDescription("markdown-preview")),
+            new("hash-calculator", "🔐", GetToolTitle("hash-calculator"), GetToolDescription("hash-calculator")),
+            new("password-generator", "🎲", GetToolTitle("password-generator"), GetToolDescription("password-generator")),
+            new("uuid-generator", "🆔", GetToolTitle("uuid-generator"), GetToolDescription("uuid-generator")),
+            new("lorem-ipsum-generator", "📝", GetToolTitle("lorem-ipsum-generator"), GetToolDescription("lorem-ipsum-generator")),
+            new("base64-encoder", "🧬", GetToolTitle("base64-encoder"), GetToolDescription("base64-encoder")),
+            new("json-beautifier", "✨", GetToolTitle("json-beautifier"), GetToolDescription("json-beautifier")),
+            new("text-case-converter", "🔠", GetToolTitle("text-case-converter"), GetToolDescription("text-case-converter")),
+            new("text-diff-viewer", "📊", GetToolTitle("text-diff-viewer"), GetToolDescription("text-diff-viewer")),
+            new("aead-file", "🛡️", GetToolTitle("aead-file"), GetToolDescription("aead-file")),
+            new("openssh-keys", "🔑", GetToolTitle("openssh-keys"), GetToolDescription("openssh-keys")),
+            new("x509", "📜", GetToolTitle("x509"), GetToolDescription("x509")),
+            new("url-encoder", "🔗", GetToolTitle("url-encoder"), GetToolDescription("url-encoder")),
+            new("xml-beautifier", "🧷", GetToolTitle("xml-beautifier"), GetToolDescription("xml-beautifier")),
+            new("hex-encoder", "🧱", GetToolTitle("hex-encoder"), GetToolDescription("hex-encoder")),
+            new("base32-encoder", "🧪", GetToolTitle("base32-encoder"), GetToolDescription("base32-encoder")),
+            new("base58-encoder", "🧿", GetToolTitle("base58-encoder"), GetToolDescription("base58-encoder")),
+            new("date-converter", "📅", GetToolTitle("date-converter"), GetToolDescription("date-converter")),
+            new("jwt-decoder", "🔓", GetToolTitle("jwt-decoder"), GetToolDescription("jwt-decoder")),
+            new("jwt-encoder", "🔐", GetToolTitle("jwt-encoder"), GetToolDescription("jwt-encoder")),
+            new("regex-tester", "🔍", GetToolTitle("regex-tester"), GetToolDescription("regex-tester")),
+            new("qr-code-generator", "📱", GetToolTitle("qr-code-generator"), GetToolDescription("qr-code-generator")),
+            new("hmac-calculator", "🔐", GetToolTitle("hmac-calculator"), GetToolDescription("hmac-calculator")),
+            new("yaml-beautifier-validator", "📄", GetToolTitle("yaml-beautifier-validator"), GetToolDescription("yaml-beautifier-validator")),
+            new("qr-scanner", "📷", GetToolTitle("qr-scanner"), GetToolDescription("qr-scanner")),
+            new("pdf-merger", "📑", GetToolTitle("pdf-merger"), GetToolDescription("pdf-merger")),
+            new("pdf-compressor", "📉", GetToolTitle("pdf-compressor"), GetToolDescription("pdf-compressor")),
+            new("html-entity-encoder", "</>", GetToolTitle("html-entity-encoder"), GetToolDescription("html-entity-encoder")),
+            new("unit-converter", "📏", GetToolTitle("unit-converter"), GetToolDescription("unit-converter"))
         };
     }
 
@@ -83,7 +86,7 @@
             new()
             {
                 Slug = "images",
-                Name = AppStrings.Category_Images,
+                Name = T("Category_Images"),
                 Icon = GetCategoryIcon("images"),
                 Tools = tools.Where(t => new[] { "image-converter", "image-compressor", "image-resizer" }.Contains(t.Slug))
                           .Select(t => new ToolInfo 
@@ -97,7 +100,7 @@
             new()
             {
                 Slug = "design",
-                Name = AppStrings.Category_ColorsAndDesign,
+                Name = T("Category_ColorsAndDesign"),
                 Icon = GetCategoryIcon("design"),
                 Tools = tools.Where(t => new[] { "color-converter", "markdown-preview" }.Contains(t.Slug))
                           .Select(t => new ToolInfo 
@@ -111,7 +114,7 @@
             new()
             {
                 Slug = "hashing",
-                Name = AppStrings.Category_HashingAndSecurity,
+                Name = T("Category_HashingAndSecurity"),
                 Icon = GetCategoryIcon("hashing"),
                 Tools = tools.Where(t => new[] { "hash-calculator", "password-generator" }.Contains(t.Slug))
                           .Select(t => new ToolInfo 
@@ -125,7 +128,7 @@
             new()
             {
                 Slug = "encoding",
-                Name = AppStrings.Category_Encoding,
+                Name = T("Category_Encoding"),
                 Icon = GetCategoryIcon("encoding"),
                 Tools = tools.Where(t => new[] { "base64-encoder", "base32-encoder", "base58-encoder", "hex-encoder", "url-encoder", "html-entity-encoder" }.Contains(t.Slug))
                           .Select(t => new ToolInfo 
@@ -139,7 +142,7 @@
             new()
             {
                 Slug = "structured-data",
-                Name = AppStrings.Category_StructuredData,
+                Name = T("Category_StructuredData"),
                 Icon = GetCategoryIcon("structured-data"),
                 Tools = tools.Where(t => new[] { "json-beautifier", "xml-beautifier", "yaml-beautifier-validator" }.Contains(t.Slug))
                           .Select(t => new ToolInfo 
@@ -153,7 +156,7 @@
             new()
             {
                 Slug = "text",
-                Name = AppStrings.Category_TextTools,
+                Name = T("Category_TextTools"),
                 Icon = GetCategoryIcon("text"),
                 Tools = tools.Where(t => new[] { "text-case-converter", "text-diff-viewer" }.Contains(t.Slug))
                           .Select(t => new ToolInfo 
@@ -167,7 +170,7 @@
             new()
             {
                 Slug = "cryptography",
-                Name = AppStrings.Category_Cryptography,
+                Name = T("Category_Cryptography"),
                 Icon = GetCategoryIcon("cryptography"),
                 Tools = tools.Where(t => new[] { "hmac-calculator", "aead-file", "openssh-keys", "x509" }.Contains(t.Slug))
                           .Select(t => new ToolInfo 
@@ -181,7 +184,7 @@
             new()
             {
                 Slug = "jwt",
-                Name = AppStrings.Category_JwtAndTokens,
+                Name = T("Category_JwtAndTokens"),
                 Icon = GetCategoryIcon("jwt"),
                 Tools = tools.Where(t => new[] { "jwt-decoder", "jwt-encoder" }.Contains(t.Slug))
                           .Select(t => new ToolInfo 
@@ -195,7 +198,7 @@
             new()
             {
                 Slug = "regex",
-                Name = AppStrings.Category_Regex,
+                Name = T("Category_Regex"),
                 Icon = GetCategoryIcon("regex"),
                 Tools = tools.Where(t => t.Slug == "regex-tester")
                           .Select(t => new ToolInfo 
@@ -209,7 +212,7 @@
             new()
             {
                 Slug = "qrcode",
-                Name = AppStrings.Category_QrCodes,
+                Name = T("Category_QrCodes"),
                 Icon = GetCategoryIcon("qrcode"),
                 Tools = tools.Where(t => new[] { "qr-code-generator", "qr-scanner" }.Contains(t.Slug))
                           .Select(t => new ToolInfo 
@@ -223,7 +226,7 @@
             new()
             {
                 Slug = "pdf",
-                Name = AppStrings.Category_PdfTools,
+                Name = T("Category_PdfTools"),
                 Icon = GetCategoryIcon("pdf"),
                 Tools = tools.Where(t => new[] { "pdf-merger", "pdf-compressor" }.Contains(t.Slug))
                           .Select(t => new ToolInfo 
@@ -237,7 +240,7 @@
             new()
             {
                 Slug = "converters",
-                Name = AppStrings.Category_Converters,
+                Name = T("Category_Converters"),
                 Icon = GetCategoryIcon("converters"),
                 Tools = tools.Where(t => t.Slug == "unit-converter")
                           .Select(t => new ToolInfo 

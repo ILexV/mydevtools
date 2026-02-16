@@ -1,13 +1,11 @@
 @page "/{lang}/pdf-to-text"
-@using MyDevTools.Site.Components.Layout
-@using MyDevTools.Site.Components.Common
-@using MyDevTools.Site.Components.Seo
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
+@inherits ToolComponentBase
 
-<ToolLayout Title="@AppStrings.PdfToText_Title" Description="@AppStrings.PdfToText_Description">
-    <MetaTags Title="@AppStrings.PdfToText_Title"
-              Description="@AppStrings.PdfToText_Description"
+<ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")"
+              Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
               ToolPath="pdf-to-text" />
 
@@ -32,7 +30,7 @@
                     <FileDropZone Id="pdf-to-text-drop-zone"
                                   InputId="pdf-text-input"
                                   IconSvg='<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>'
-                                  Description="@AppStrings.PdfMerger_DropZoneTitle"
+                                  Description="@T("DropZoneTitle")"
                                   Accept=".pdf"
                                   ShowFileInfo="false" 
                                   AllowMultiple="true" />
@@ -67,7 +65,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        @AppStrings.PdfToText_ExtractButton
+                        @T("ExtractButton")
                     </button>
                 </div>
                 
@@ -80,18 +78,17 @@
     </div>
 
     <ToolSeoContent 
-        Introduction="@AppStrings.PdfToText_Seo_Introduction"
-        DetailedDescription="@AppStrings.PdfToText_Seo_DetailedDescription"
+        Introduction="@T("Seo_Introduction")"
+        DetailedDescription="@T("Seo_DetailedDescription")"
         DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
-        Examples="@AppStrings.PdfToText_Seo_Examples"
+        Examples="@T("Seo_Examples")"
         ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
-        HowToSteps="@AppStrings.PdfToText_Seo_HowToSteps"
+        HowToSteps="@T("Seo_HowToSteps")"
         HowToTitle="@AppStrings.Seo_HowToTitle"
-        Tips="@AppStrings.PdfToText_Seo_Tips"
+        Tips="@T("Seo_Tips")"
         TipsTitle="@AppStrings.Seo_TipsTitle" />
 </ToolLayout>
 
 @code {
-    [Parameter]
-    public string Lang { get; set; } = "en";
+    protected override string LocalizationNamespace { get; set; } = "tools/pdf-to-text";
 }

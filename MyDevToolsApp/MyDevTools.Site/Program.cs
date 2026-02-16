@@ -52,6 +52,7 @@ builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.GzipCompress
 // Localization
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
+builder.Services.AddSingleton<IJsonLocalizationService, JsonLocalizationService>();
 builder.Services.AddScoped<ICryptographyInteropService, CryptographyInteropService>();
 
 // Configure supported cultures

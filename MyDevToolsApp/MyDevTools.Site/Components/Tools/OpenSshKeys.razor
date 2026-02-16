@@ -1,20 +1,21 @@
 @page "/{lang}/openssh-keys"
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
+@inherits ToolComponentBase
 
-<ToolLayout Title="@AppStrings.OpenSsh_Title" Description="@AppStrings.OpenSsh_Description">
-    <MetaTags Title="@AppStrings.OpenSsh_Title"
-              Description="@AppStrings.OpenSsh_Description"
+<ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")"
+              Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
               ToolPath="openssh-keys" />
 
     <div id="openssh-keys-root"
          data-loading="@AppStrings.Common_Loading"
          data-error="@AppStrings.Common_Error"
-         data-copy="@AppStrings.OpenSsh_Copy"
-         data-copied="@AppStrings.OpenSsh_Copied"
-         data-download="@AppStrings.OpenSsh_Download"
-         data-warnings-title="@AppStrings.OpenSsh_WarningsTitle"
+         data-copy="@T("Copy")"
+         data-copied="@T("Copied")"
+         data-download="@T("Download")"
+         data-warnings-title="@T("WarningsTitle")"
          class="max-w-5xl mx-auto space-y-8">
 
         <!-- Generate Section -->
@@ -24,12 +25,12 @@
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
                     </svg>
-                    @AppStrings.OpenSsh_GenerateSectionTitle
+                    @T("GenerateSectionTitle")
                 </h2>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div class="form-control w-full">
-                        <label class="label font-semibold" for="openssh-algorithm">@AppStrings.OpenSsh_AlgorithmLabel</label>
+                        <label class="label font-semibold" for="openssh-algorithm">@T("AlgorithmLabel")</label>
                         <select id="openssh-algorithm" class="select select-bordered w-full">
                             <option value="ed25519" selected>Ed25519 (Recommended)</option>
                             <option value="ecdsa-p256">ECDSA P-256</option>
@@ -40,7 +41,7 @@
                     </div>
                     
                     <div class="form-control w-full">
-                        <label class="label font-semibold" for="openssh-key-size">@AppStrings.OpenSsh_KeySizeLabel</label>
+                        <label class="label font-semibold" for="openssh-key-size">@T("KeySizeLabel")</label>
                         <select id="openssh-key-size" class="select select-bordered w-full" disabled>
                             <option value="default">Default</option>
                             <option value="3072">3072</option>
@@ -49,14 +50,14 @@
                     </div>
 
                     <div class="form-control w-full">
-                        <label class="label font-semibold" for="openssh-passphrase">@AppStrings.OpenSsh_PassphraseLabel</label>
+                        <label class="label font-semibold" for="openssh-passphrase">@T("PassphraseLabel")</label>
                         <input id="openssh-passphrase" type="password" autocomplete="new-password" class="input input-bordered w-full" placeholder="Optional" />
                     </div>
                 </div>
 
                 <div class="card-actions justify-end mt-4">
                     <button class="btn btn-primary" id="openssh-generate-btn" type="button">
-                        @AppStrings.OpenSsh_GenerateButton
+                        @T("GenerateButton")
                     </button>
                 </div>
             </div>
@@ -69,17 +70,17 @@
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
                     </svg>
-                    @AppStrings.OpenSsh_ImportSectionTitle
+                    @T("ImportSectionTitle")
                 </h2>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="form-control w-full">
-                        <label class="label font-semibold" for="openssh-import-text">@AppStrings.OpenSsh_ImportLabel</label>
-                        <textarea id="openssh-import-text" rows="6" placeholder="@AppStrings.OpenSsh_ImportPlaceholder" class="textarea textarea-bordered w-full font-mono text-sm leading-relaxed"></textarea>
+                        <label class="label font-semibold" for="openssh-import-text">@T("ImportLabel")</label>
+                        <textarea id="openssh-import-text" rows="6" placeholder="@T("ImportPlaceholder")" class="textarea textarea-bordered w-full font-mono text-sm leading-relaxed"></textarea>
                     </div>
 
                     <div class="form-control w-full">
-                        <label class="label font-semibold" for="openssh-import-file">@AppStrings.OpenSsh_ImportFileLabel</label>
+                        <label class="label font-semibold" for="openssh-import-file">@T("ImportFileLabel")</label>
                         <div class="flex items-center justify-center w-full h-full max-h-48">
                             <label for="openssh-import-file" class="flex flex-col items-center justify-center w-full h-full border-2 border-dashed border-base-content/20 rounded-lg cursor-pointer hover:bg-base-200 transition-colors p-4">
                                 <div class="flex flex-col items-center justify-center text-center">
@@ -96,8 +97,8 @@
                 </div>
 
                 <div class="card-actions justify-end mt-4 gap-2">
-                    <button class="btn btn-secondary" id="openssh-import-btn" type="button">@AppStrings.OpenSsh_ImportButton</button>
-                    <button class="btn btn-outline" id="openssh-convert-btn" type="button">@AppStrings.OpenSsh_ConvertButton</button>
+                    <button class="btn btn-secondary" id="openssh-import-btn" type="button">@T("ImportButton")</button>
+                    <button class="btn btn-outline" id="openssh-convert-btn" type="button">@T("ConvertButton")</button>
                 </div>
             </div>
         </div>
@@ -107,11 +108,11 @@
             <!-- Public Key -->
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body p-4 sm:p-6">
-                    <h3 class="card-title text-base">@AppStrings.OpenSsh_PublicKeyLabel</h3>
+                    <h3 class="card-title text-base">@T("PublicKeyLabel")</h3>
                     <textarea id="openssh-public-key" rows="8" readonly class="textarea textarea-bordered w-full font-mono text-sm leading-relaxed bg-base-200 text-base-content/70"></textarea>
                     <div class="card-actions justify-end mt-2">
-                        <button class="btn btn-sm btn-ghost" id="openssh-public-copy" type="button">@AppStrings.OpenSsh_Copy</button>
-                        <button class="btn btn-sm btn-ghost" id="openssh-public-download" type="button">@AppStrings.OpenSsh_Download</button>
+                        <button class="btn btn-sm btn-ghost" id="openssh-public-copy" type="button">@T("Copy")</button>
+                        <button class="btn btn-sm btn-ghost" id="openssh-public-download" type="button">@T("Download")</button>
                     </div>
                 </div>
             </div>
@@ -119,11 +120,11 @@
             <!-- Private Key -->
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body p-4 sm:p-6">
-                    <h3 class="card-title text-base">@AppStrings.OpenSsh_PrivateKeyLabel</h3>
+                    <h3 class="card-title text-base">@T("PrivateKeyLabel")</h3>
                     <textarea id="openssh-private-key" rows="8" readonly class="textarea textarea-bordered w-full font-mono text-sm leading-relaxed bg-base-200 text-base-content/70"></textarea>
                     <div class="card-actions justify-end mt-2">
-                        <button class="btn btn-sm btn-ghost" id="openssh-private-copy" type="button">@AppStrings.OpenSsh_Copy</button>
-                        <button class="btn btn-sm btn-ghost" id="openssh-private-download" type="button">@AppStrings.OpenSsh_Download</button>
+                        <button class="btn btn-sm btn-ghost" id="openssh-private-copy" type="button">@T("Copy")</button>
+                        <button class="btn btn-sm btn-ghost" id="openssh-private-download" type="button">@T("Download")</button>
                     </div>
                 </div>
             </div>
@@ -139,18 +140,17 @@
     <script src="/tools/openssh-keys.js"></script>
 
     <ToolSeoContent 
-        Introduction="@AppStrings.OpenSshKeys_Seo_Introduction"
-        DetailedDescription="@AppStrings.OpenSshKeys_Seo_DetailedDescription"
+        Introduction="@T("Seo_Introduction")"
+        DetailedDescription="@T("Seo_DetailedDescription")"
         DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
-        Examples="@AppStrings.OpenSshKeys_Seo_Examples"
+        Examples="@T("Seo_Examples")"
         ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
-        HowToSteps="@AppStrings.OpenSshKeys_Seo_HowToSteps"
+        HowToSteps="@T("Seo_HowToSteps")"
         HowToTitle="@AppStrings.Seo_HowToTitle"
-        Tips="@AppStrings.OpenSshKeys_Seo_Tips"
+        Tips="@T("Seo_Tips")"
         TipsTitle="@AppStrings.Seo_TipsTitle" />
 </ToolLayout>
 
 @code {
-    [Parameter]
-    public string Lang { get; set; } = "en";
+    protected override string LocalizationNamespace { get; set; } = "tools/openssh-keys";
 }

@@ -1,18 +1,19 @@
 @page "/{lang}/xml-beautifier"
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
+@inherits ToolComponentBase
 
-<ToolLayout Title="@AppStrings.XmlBeautifier_Title" Description="@AppStrings.XmlBeautifier_Description">
-    <MetaTags Title="@AppStrings.XmlBeautifier_Title" 
-              Description="@AppStrings.XmlBeautifier_Description" 
+<ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")" 
+              Description="@T("Description")" 
               CurrentUrl="@Navigation.Uri"
               ToolPath="xml-beautifier" />
 
     <div id="xml-beautifier-root"
-         data-error-invalid-xml="@AppStrings.XmlBeautifier_ErrorInvalidXml"
-         data-copied="@AppStrings.XmlBeautifier_Copied"
-         data-copy-button="@AppStrings.XmlBeautifier_CopyButton"
-         data-input-placeholder="@AppStrings.XmlBeautifier_InputPlaceholder">
+         data-error-invalid-xml="@T("ErrorInvalidXml")"
+         data-copied="@T("Copied")"
+         data-copy-button="@T("CopyButton")"
+         data-input-placeholder="@T("InputPlaceholder")">
         
         <div class="card bg-base-200 shadow-xl">
             <div class="card-body p-4">
@@ -34,30 +35,30 @@
 
                         <!-- Settings -->
                         <select id="xml-indent-select" class="select select-bordered select-sm">
-                            <option value="2">@AppStrings.XmlBeautifier_Indent2Spaces</option>
-                            <option value="4" selected>@AppStrings.XmlBeautifier_Indent4Spaces</option>
-                            <option value="tab">@AppStrings.XmlBeautifier_IndentTab</option>
+                            <option value="2">@T("Indent2Spaces")</option>
+                            <option value="4" selected>@T("Indent4Spaces")</option>
+                            <option value="tab">@T("IndentTab")</option>
                         </select>
                         
                         <div class="flex items-center gap-4 px-2">
                             <label class="cursor-pointer label p-0 gap-2">
                                 <input type="checkbox" id="xml-compact-mode" class="checkbox checkbox-sm checkbox-primary" />
-                                <span class="label-text text-sm">@AppStrings.XmlBeautifier_CompactMode</span>
+                                <span class="label-text text-sm">@T("CompactMode")</span>
                             </label>
                         </div>
                     </div>
 
                     <!-- Main Actions -->
                     <div class="flex flex-wrap gap-2">
-                        <button class="btn btn-sm btn-primary" id="xml-format-btn" title="@AppStrings.XmlBeautifier_FormatButton">
+                        <button class="btn btn-sm btn-primary" id="xml-format-btn" title="@T("FormatButton")">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                             Format
                         </button>
-                        <button class="btn btn-sm btn-ghost" id="xml-copy-btn" title="@AppStrings.XmlBeautifier_CopyButton">
+                        <button class="btn btn-sm btn-ghost" id="xml-copy-btn" title="@T("CopyButton")">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
                             Copy
                         </button>
-                        <button class="btn btn-sm btn-ghost text-error" id="xml-clear-btn" title="@AppStrings.XmlBeautifier_ClearButton">
+                        <button class="btn btn-sm btn-ghost text-error" id="xml-clear-btn" title="@T("ClearButton")">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
                     </div>
@@ -72,18 +73,17 @@
     </div>
 
     <ToolSeoContent 
-        Introduction="@AppStrings.XmlBeautifier_Seo_Introduction"
-        DetailedDescription="@AppStrings.XmlBeautifier_Seo_DetailedDescription"
+        Introduction="@T("Seo_Introduction")"
+        DetailedDescription="@T("Seo_DetailedDescription")"
         DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
-        Examples="@AppStrings.XmlBeautifier_Seo_Examples"
+        Examples="@T("Seo_Examples")"
         ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
-        HowToSteps="@AppStrings.XmlBeautifier_Seo_HowToSteps"
+        HowToSteps="@T("Seo_HowToSteps")"
         HowToTitle="@AppStrings.Seo_HowToTitle"
-        Tips="@AppStrings.XmlBeautifier_Seo_Tips"
+        Tips="@T("Seo_Tips")"
         TipsTitle="@AppStrings.Seo_TipsTitle" />
 </ToolLayout>
 
 @code {
-    [Parameter]
-    public string Lang { get; set; } = "en";
+    protected override string LocalizationNamespace { get; set; } = "tools/xml-beautifier";
 }

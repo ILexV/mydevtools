@@ -1,22 +1,23 @@
 @page "/{lang}/aead-file"
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
+@inherits ToolComponentBase
 
-<ToolLayout Title="@AppStrings.Aead_Title" Description="@AppStrings.Aead_Description">
-    <MetaTags Title="@AppStrings.Aead_Title"
-              Description="@AppStrings.Aead_Description"
+<ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")"
+              Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
               ToolPath="aead-file" />
 
     <div id="aead-root"
          data-loading="@AppStrings.Common_Loading"
          data-error="@AppStrings.Common_Error"
-         data-file-progress-title="@AppStrings.Aead_FileProgressTitle"
-         data-cancel="@AppStrings.Aead_Cancel"
-         data-copy="@AppStrings.Aead_Copy"
-         data-copied="@AppStrings.Aead_Copied"
-         data-download="@AppStrings.Aead_Download"
-         data-warnings-title="@AppStrings.Aead_WarningsTitle"
+         data-file-progress-title="@T("FileProgressTitle")"
+         data-cancel="@T("Cancel")"
+         data-copy="@T("Copy")"
+         data-copied="@T("Copied")"
+         data-download="@T("Download")"
+         data-warnings-title="@T("WarningsTitle")"
          class="max-w-5xl mx-auto">
 
 
@@ -28,12 +29,12 @@
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
                         </svg>
-                        @AppStrings.Aead_EncryptSectionTitle
+                        @T("EncryptSectionTitle")
                     </h2>
 
                     <!-- Encrypt File Input -->
                     <div class="form-control w-full mb-4">
-                        <label class="label font-semibold" for="aead-input-file">@AppStrings.Aead_FileLabel</label>
+                        <label class="label font-semibold" for="aead-input-file">@T("FileLabel")</label>
                         <div class="flex items-center justify-center w-full">
                             <label for="aead-input-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-base-content/20 rounded-lg cursor-pointer hover:bg-base-200 transition-colors">
                                 <div class="flex flex-col items-center justify-center pt-5 pb-6">
@@ -50,7 +51,7 @@
 
                     <!-- Algorithm -->
                     <div class="form-control w-full mb-4">
-                        <label class="label font-semibold" for="aead-algorithm">@AppStrings.Aead_AlgorithmLabel</label>
+                        <label class="label font-semibold" for="aead-algorithm">@T("AlgorithmLabel")</label>
                         <select id="aead-algorithm" class="select select-bordered w-full">
                             <option value="aes-256-gcm">AES-256-GCM (Standard)</option>
                             <option value="chacha20-poly1305">ChaCha20-Poly1305 (Fast)</option>
@@ -60,7 +61,7 @@
 
                     <!-- Password -->
                     <div class="form-control w-full mb-6">
-                        <label class="label font-semibold" for="aead-password">@AppStrings.Aead_PasswordLabel</label>
+                        <label class="label font-semibold" for="aead-password">@T("PasswordLabel")</label>
                         <div class="join w-full">
                             <input id="aead-password" type="password" autocomplete="new-password" class="input input-bordered join-item w-full" placeholder="••••••••" />
                             <button class="btn btn-square join-item" type="button" onclick="const p = document.getElementById('aead-password'); p.type = p.type === 'password' ? 'text' : 'password';">
@@ -73,7 +74,7 @@
                     </div>
 
                     <button class="btn btn-primary w-full" id="aead-encrypt-btn" type="button">
-                        @AppStrings.Aead_EncryptButton
+                        @T("EncryptButton")
                     </button>
                 </div>
             </div>
@@ -85,12 +86,12 @@
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
                         </svg>
-                        @AppStrings.Aead_DecryptSectionTitle
+                        @T("DecryptSectionTitle")
                     </h2>
 
                     <!-- Decrypt File Input -->
                     <div class="form-control w-full mb-4">
-                        <label class="label font-semibold" for="aead-decrypt-file">@AppStrings.Aead_FileLabel</label>
+                        <label class="label font-semibold" for="aead-decrypt-file">@T("FileLabel")</label>
                         <div class="flex items-center justify-center w-full">
                             <label for="aead-decrypt-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-base-content/20 rounded-lg cursor-pointer hover:bg-base-200 transition-colors">
                                 <div class="flex flex-col items-center justify-center pt-5 pb-6">
@@ -112,7 +113,7 @@
                     </div>
 
                     <button class="btn btn-secondary w-full" id="aead-decrypt-btn" type="button">
-                        @AppStrings.Aead_DecryptButton
+                        @T("DecryptButton")
                     </button>
                 </div>
             </div>
@@ -121,14 +122,14 @@
         <!-- Output Section (Full Width) -->
         <div class="card bg-base-100 shadow-xl mt-6">
             <div class="card-body p-4 sm:p-6" id="aead-output-section">
-                <h3 class="text-lg font-semibold mb-4">@AppStrings.Aead_OutputLabel</h3>
+                <h3 class="text-lg font-semibold mb-4">@T("OutputLabel")</h3>
                 
                 <div class="space-y-4">
                     <!-- Progress (dynamically injected) -->
                     
                     <!-- Header Info -->
                     <div class="form-control w-full">
-                        <label class="label font-semibold" for="aead-header">@AppStrings.Aead_HeaderLabel</label>
+                        <label class="label font-semibold" for="aead-header">@T("HeaderLabel")</label>
                         <textarea id="aead-header" rows="3" readonly class="textarea textarea-bordered font-mono text-sm bg-base-200 text-base-content/70"></textarea>
                     </div>
 
@@ -141,7 +142,7 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-1">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                                 </svg>
-                                @AppStrings.Aead_Download
+                                @T("Download")
                             </button>
                         </div>
                     </div>
@@ -158,18 +159,17 @@
     <script src="/tools/aead-file.js"></script>
 
     <ToolSeoContent 
-        Introduction="@AppStrings.AeadFileCrypto_Seo_Introduction"
-        DetailedDescription="@AppStrings.AeadFileCrypto_Seo_DetailedDescription"
+        Introduction="@T("Seo_Introduction")"
+        DetailedDescription="@T("Seo_DetailedDescription")"
         DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
-        Examples="@AppStrings.AeadFileCrypto_Seo_Examples"
+        Examples="@T("Seo_Examples")"
         ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
-        HowToSteps="@AppStrings.AeadFileCrypto_Seo_HowToSteps"
+        HowToSteps="@T("Seo_HowToSteps")"
         HowToTitle="@AppStrings.Seo_HowToTitle"
-        Tips="@AppStrings.AeadFileCrypto_Seo_Tips"
+        Tips="@T("Seo_Tips")"
         TipsTitle="@AppStrings.Seo_TipsTitle" />
 </ToolLayout>
 
 @code {
-    [Parameter]
-    public string Lang { get; set; } = "en";
+    protected override string LocalizationNamespace { get; set; } = "tools/aead-file";
 }

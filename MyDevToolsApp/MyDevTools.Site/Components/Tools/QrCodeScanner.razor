@@ -2,10 +2,11 @@
 @using MyDevTools.Site.Resources
 @using MyDevTools.Site.Components.Seo
 @inject NavigationManager Navigation
+@inherits ToolComponentBase
 
-<ToolLayout Title="@AppStrings.QrScanner_Title" Description="@AppStrings.QrScanner_Description">
-    <MetaTags Title="@AppStrings.QrScanner_Title" 
-              Description="@AppStrings.QrScanner_Description" 
+<ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")" 
+              Description="@T("Description")" 
               CurrentUrl="@Navigation.Uri"
               ToolPath="qr-scanner" />
 
@@ -20,14 +21,14 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
                     </svg>
-                    @AppStrings.QrScanner_DropZone
+                    @T("DropZone")
                 </h2>
 
                 <FileDropZone 
                     Id="drop-zone" 
                     InputId="file-input"
                     IconSvg="@CameraIconSvg"
-                    Description="@AppStrings.QrScanner_DropZone"
+                    Description="@T("DropZone")"
                     Accept="image/*"
                     ShowFileInfo="true"
                     ShowPreview="true"
@@ -39,7 +40,7 @@
         <div id="result-section" class="card bg-base-100 shadow-xl hidden">
             <div class="card-body p-4 sm:p-6">
                 <h3 class="card-title text-secondary mb-4">
-                    @AppStrings.QrScanner_ResultLabel
+                    @T("ResultLabel")
                 </h3>
                 
                 <div class="relative">
@@ -75,22 +76,21 @@
     </div>
 
     <ToolSeoContent 
-        Introduction="@AppStrings.QrCodeScanner_Seo_Introduction"
-        DetailedDescription="@AppStrings.QrCodeScanner_Seo_DetailedDescription"
+        Introduction="@T("Seo_Introduction")"
+        DetailedDescription="@T("Seo_DetailedDescription")"
         DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
-        Examples="@AppStrings.QrCodeScanner_Seo_Examples"
+        Examples="@T("Seo_Examples")"
         ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
-        HowToSteps="@AppStrings.QrCodeScanner_Seo_HowToSteps"
+        HowToSteps="@T("Seo_HowToSteps")"
         HowToTitle="@AppStrings.Seo_HowToTitle"
-        Tips="@AppStrings.QrCodeScanner_Seo_Tips"
+        Tips="@T("Seo_Tips")"
         TipsTitle="@AppStrings.Seo_TipsTitle" />
 </ToolLayout>
 
 <script src="/tools/qr-scanner.js"></script>
 
 @code {
-    [Parameter]
-    public string? Lang { get; set; }
+    protected override string LocalizationNamespace { get; set; } = "tools/qr-scanner";
 
     private const string CameraIconSvg = @"<svg class=""w-12 h-12 text-gray-400"" fill=""none"" stroke=""currentColor"" viewBox=""0 0 24 24"">
     <path stroke-linecap=""round"" stroke-linejoin=""round"" stroke-width=""2"" d=""M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"" />

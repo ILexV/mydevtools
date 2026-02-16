@@ -1,10 +1,11 @@
 @page "/{lang}/image-resizer"
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
+@inherits ToolComponentBase
 
-<ToolLayout Title="@AppStrings.ImageResizer_Title" Description="@AppStrings.ImageResizer_Description">
-    <MetaTags Title="@AppStrings.ImageResizer_Title" 
-              Description="@AppStrings.ImageResizer_Description" 
+<ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")" 
+              Description="@T("Description")" 
               CurrentUrl="@Navigation.Uri"
               ToolPath="image-resizer" />
 
@@ -43,20 +44,20 @@
                         <div class="divider text-sm font-semibold opacity-50">SETTINGS</div>
 
                         <div class="flex items-center justify-between text-sm bg-base-200 p-3 rounded-lg">
-                             <span class="font-bold opacity-70 uppercase text-xs">@AppStrings.ImageResizer_OriginalInfo</span>
+                             <span class="font-bold opacity-70 uppercase text-xs">@T("OriginalInfo")</span>
                              <span id="ir-original-info" class="font-mono font-semibold"></span>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div class="form-control">
                                 <label for="ir-width" class="label">
-                                    <span class="label-text font-semibold">@AppStrings.ImageResizer_Width</span>
+                                    <span class="label-text font-semibold">@T("Width")</span>
                                 </label>
                                 <input type="number" id="ir-width" class="input input-bordered w-full" placeholder="px" />
                             </div>
                             <div class="form-control">
                                 <label for="ir-height" class="label">
-                                    <span class="label-text font-semibold">@AppStrings.ImageResizer_Height</span>
+                                    <span class="label-text font-semibold">@T("Height")</span>
                                 </label>
                                 <input type="number" id="ir-height" class="input input-bordered w-full" placeholder="px" />
                             </div>
@@ -65,13 +66,13 @@
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3 bg-base-200/50 p-2 rounded hover:bg-base-200 transition-colors">
                                 <input type="checkbox" id="ir-lock-ratio" class="checkbox checkbox-primary checkbox-sm" checked>
-                                <span class="label-text">@AppStrings.ImageResizer_LockAspectRatio</span>
+                                <span class="label-text">@T("LockAspectRatio")</span>
                             </label>
                         </div>
 
                         <div class="form-control w-full">
                             <label for="ir-format-select" class="label">
-                                <span class="label-text font-semibold">@AppStrings.ImageConverter_TargetFormatLabel</span>
+                                <span class="label-text font-semibold">@T("TargetFormatLabel")</span>
                             </label>
                             <select id="ir-format-select" class="select select-bordered w-full">
                                 <option value="jpeg">JPEG</option>
@@ -83,10 +84,10 @@
                         <button id="ir-resize-btn" 
                                 class="btn btn-primary w-full mt-4 shadow-md" 
                                 disabled
-                                data-processing="@AppStrings.ImageResizer_Resizing" 
-                                data-original="@AppStrings.ImageResizer_Resize">
+                                data-processing="@T("Resizing")" 
+                                data-original="@T("Resize")">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
-                            @AppStrings.ImageResizer_Resize
+                            @T("Resize")
                         </button>
                     </div>
                 </div>
@@ -132,14 +133,14 @@
     <script src="/tools/image-resizer.js"></script>
 
     <ToolSeoContent 
-        Introduction="@AppStrings.ImageResizer_Seo_Introduction"
-        DetailedDescription="@AppStrings.ImageResizer_Seo_DetailedDescription"
+        Introduction="@T("Seo_Introduction")"
+        DetailedDescription="@T("Seo_DetailedDescription")"
         DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
-        Examples="@AppStrings.ImageResizer_Seo_Examples"
+        Examples="@T("Seo_Examples")"
         ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
-        HowToSteps="@AppStrings.ImageResizer_Seo_HowToSteps"
+        HowToSteps="@T("Seo_HowToSteps")"
         HowToTitle="@AppStrings.Seo_HowToTitle"
-        Tips="@AppStrings.ImageResizer_Seo_Tips"
+        Tips="@T("Seo_Tips")"
         TipsTitle="@AppStrings.Seo_TipsTitle" />
 </ToolLayout>
 
@@ -154,6 +155,5 @@
 </style>
 
 @code {
-    [Parameter]
-    public string Lang { get; set; } = "en";
+    protected override string LocalizationNamespace { get; set; } = "tools/image-resizer";
 }

@@ -1,0 +1,14 @@
+{
+  "DownloadButton": "Herunterladen",
+  "Title": "PDF Zusammenfügen",
+  "Description": "Fügen Sie mehrere PDF-Dateien effizient in Ihrem Browser zu einem Dokument zusammen.",
+  "CompressButton": "PDF komprimieren",
+  "Seo_Introduction": "Der PDF Merger ist ein datenschutzorientiertes Online-Tool für Entwickler. Die gesamte Verarbeitung erfolgt lokal in Ihrem Browser mittels WebAssembly, sodass Ihre PDFs Ihr Gerät nie verlassen.",
+  "Seo_DetailedDescription": "Dieses Tool bietet umfassende Funktionen zum Zusammenführen mehrerer PDF-Dokumente in einer einzigen Datei. Es basiert auf modernen Webtechnologien und nutzt in Rust kompiliertes WebAssembly für eine schnelle und sichere PDF-Bearbeitung direkt in Ihrem Browser.\n\nDie Benutzeroberfläche ist auf Einfachheit und Effizienz ausgelegt. Sie können problemlos mehrere PDF-Dateien hochladen, die Reihenfolge ändern und sie zu einem Dokument zusammenfügen. Alle Vorgänge werden clientseitig ausgeführt, was absolute Privatsphäre für Ihre sensiblen Dokumente garantiert.",
+  "Seo_Examples": "**Beispiel 1**: Führen Sie mehrere PDF-Berichte zu einem einzigen umfassenden Dokument zusammen, um das Teilen zu erleichtern.\n\n**Beispiel 2**: Kombinieren Sie mehrere gescannte PDF-Seiten in einer Datei.\n\n**Beispiel 3**: Organisieren Sie Ihre PDF-Dokumente, indem Sie zusammengehörige Dateien zu einem konsistenten PDF zusammenführen.",
+  "Seo_HowToSteps": "### Schritt 1: PDF-Dateien hochladen\nKlicken Sie auf die Schaltfläche zum Hochladen oder ziehen Sie mehrere PDF-Dateien per Drag-and-Drop in das Tool.\n\n### Schritt 2: Reihenfolge festlegen\nVerschieben Sie die Dateien per Drag-and-Drop, um sie in der gewünschten Reihenfolge für das fertige PDF anzuordnen.\n\n### Schritt 3: Zusammenführen und Herunterladen\nKlicken Sie auf die Schaltfläche „PDF zusammenführen“, um Ihre Dateien lokal zu verarbeiten und das fertige Dokument herunterzuladen.",
+  "Seo_Tips": "- Die gesamte Verarbeitung erfolgt in Ihrem Browser für maximale Privatsphäre\n- Das Tool funktioniert nach dem ersten Laden der Seite offline\n- Ihre Dateien werden niemals auf einen Server hochgeladen\n- Unterstützt große PDF-Dateien mit schneller Verarbeitung",
+  "DropZoneTitle": "PDF-Dateien hierher ziehen",
+  "MergeButton": "PDFs zusammenfügen",
+  "Success": "PDFs erfolgreich zusammengeführt!"
+}

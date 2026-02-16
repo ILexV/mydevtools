@@ -1,19 +1,20 @@
 @page "/{lang}/unit-converter"
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
+@inherits ToolComponentBase
 
-<ToolLayout Title="@AppStrings.UnitConverter_Title" Description="@AppStrings.UnitConverter_Description">
-    <MetaTags Title="@AppStrings.UnitConverter_Title"
-              Description="@AppStrings.UnitConverter_Description"
+<ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")"
+              Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
               ToolPath="unit-converter" />
 
     <div id="unit-converter-root"
-         data-copied="@AppStrings.UnitConverter_Copied"
-         data-length="@AppStrings.UnitConverter_Category_Length"
-         data-weight="@AppStrings.UnitConverter_Category_Weight"
-         data-temperature="@AppStrings.UnitConverter_Category_Temperature"
-         data-volume="@AppStrings.UnitConverter_Category_Volume">
+         data-copied="@T("Copied")"
+         data-length="@T("Category_Length")"
+         data-weight="@T("Category_Weight")"
+         data-temperature="@T("Category_Temperature")"
+         data-volume="@T("Category_Volume")">
         
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Main Converter -->
@@ -23,13 +24,13 @@
                         <!-- Category Selection -->
                         <div class="form-control w-full mb-6">
                             <label class="label" for="category-select">
-                                <span class="label-text font-semibold">@AppStrings.UnitConverter_CategoryLabel</span>
+                                <span class="label-text font-semibold">@T("CategoryLabel")</span>
                             </label>
                             <select id="category-select" class="select select-bordered w-full">
-                                <option value="length">@AppStrings.UnitConverter_Category_Length</option>
-                                <option value="weight">@AppStrings.UnitConverter_Category_Weight</option>
-                                <option value="temperature">@AppStrings.UnitConverter_Category_Temperature</option>
-                                <option value="volume">@AppStrings.UnitConverter_Category_Volume</option>
+                                <option value="length">@T("Category_Length")</option>
+                                <option value="weight">@T("Category_Weight")</option>
+                                <option value="temperature">@T("Category_Temperature")</option>
+                                <option value="volume">@T("Category_Volume")</option>
                             </select>
                         </div>
 
@@ -38,7 +39,7 @@
                             <!-- From Unit -->
                             <div class="space-y-2">
                                 <label class="label" for="from-unit">
-                                    <span class="label-text">@AppStrings.UnitConverter_FromLabel</span>
+                                    <span class="label-text">@T("FromLabel")</span>
                                 </label>
                                 <select id="from-unit" class="select select-bordered w-full mb-2">
                                     <!-- Options populated by JS -->
@@ -50,7 +51,7 @@
 
                             <!-- Swap Button -->
                             <div class="flex items-center justify-center md:pt-8">
-                                <button id="swap-btn" class="btn btn-circle btn-outline" type="button" title="@AppStrings.UnitConverter_Swap">
+                                <button id="swap-btn" class="btn btn-circle btn-outline" type="button" title="@T("Swap")">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                                     </svg>
@@ -60,7 +61,7 @@
                             <!-- To Unit -->
                             <div class="space-y-2">
                                 <label class="label" for="to-unit">
-                                    <span class="label-text">@AppStrings.UnitConverter_ToLabel</span>
+                                    <span class="label-text">@T("ToLabel")</span>
                                 </label>
                                 <select id="to-unit" class="select select-bordered w-full mb-2">
                                     <!-- Options populated by JS -->
@@ -81,7 +82,7 @@
                         <!-- Quick Convert Buttons -->
                         <div class="mt-6">
                             <label class="label">
-                                <span class="label-text font-semibold">@AppStrings.UnitConverter_QuickConversions</span>
+                                <span class="label-text font-semibold">@T("QuickConversions")</span>
                             </label>
                             <div id="quick-conversions" class="flex flex-wrap gap-2">
                                 <!-- Populated by JS -->
@@ -93,7 +94,7 @@
                 <!-- Formula Display -->
                 <div class="card bg-base-200 shadow-xl">
                     <div class="card-body">
-                        <h3 class="card-title text-base opacity-70">@AppStrings.UnitConverter_Formula</h3>
+                        <h3 class="card-title text-base opacity-70">@T("Formula")</h3>
                         <div id="formula-display" class="font-mono text-sm bg-base-300 p-4 rounded-lg">
                             <!-- Formula shown here -->
                         </div>
@@ -105,7 +106,7 @@
             <div class="lg:col-span-1">
                 <div class="card bg-base-200 shadow-xl sticky top-4">
                     <div class="card-body">
-                        <h3 class="card-title text-base opacity-70 mb-4">@AppStrings.UnitConverter_CommonConversions</h3>
+                        <h3 class="card-title text-base opacity-70 mb-4">@T("CommonConversions")</h3>
                         <div id="common-conversions" class="space-y-3">
                             <!-- Populated by JS -->
                         </div>
@@ -116,14 +117,14 @@
     </div>
 
     <ToolSeoContent 
-        Introduction="@AppStrings.UnitConverter_Seo_Introduction"
-        DetailedDescription="@AppStrings.UnitConverter_Seo_DetailedDescription"
+        Introduction="@T("Seo_Introduction")"
+        DetailedDescription="@T("Seo_DetailedDescription")"
         DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
-        Examples="@AppStrings.UnitConverter_Seo_Examples"
+        Examples="@T("Seo_Examples")"
         ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
-        HowToSteps="@AppStrings.UnitConverter_Seo_HowToSteps"
+        HowToSteps="@T("Seo_HowToSteps")"
         HowToTitle="@AppStrings.Seo_HowToTitle"
-        Tips="@AppStrings.UnitConverter_Seo_Tips"
+        Tips="@T("Seo_Tips")"
         TipsTitle="@AppStrings.Seo_TipsTitle" />
 </ToolLayout>
 
@@ -452,9 +453,5 @@
 </script>
 
 @code {
-    /// <summary>
-    /// Language parameter from URL route
-    /// </summary>
-    [Parameter]
-    public string Lang { get; set; } = "en";
+    protected override string LocalizationNamespace { get; set; } = "tools/unit-converter";
 }

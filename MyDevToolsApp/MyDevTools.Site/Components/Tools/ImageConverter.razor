@@ -1,17 +1,16 @@
 @page "/{lang}/image-converter"
-@using MyDevTools.Site.Components.Layout
-@using MyDevTools.Site.Components.Common
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
+@inherits ToolComponentBase
 
-<ToolLayout Title="@AppStrings.ImageConverter_Title" Description="@AppStrings.ImageConverter_Description">
-    <MetaTags Title="@AppStrings.ImageConverter_Title"
-              Description="@AppStrings.ImageConverter_Description"
+<ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")"
+              Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
               ToolPath="image-converter" />
 
     <div id="image-converter-root"
-         data-loading="@AppStrings.ImageConverter_Processing"
+         data-loading="@T("Processing")"
          data-error="@AppStrings.Common_Error">
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -26,7 +25,7 @@
                     
                     <FileDropZone InputId="ic-input-file"
                                   IconSvg='<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>'
-                                  Description="@AppStrings.ImageConverter_DragDrop"
+                                  Description="@T("DragDrop")"
                                   Accept="image/*"
                                   ShowFileInfo="true"
                                   ShowPreview="true"
@@ -35,7 +34,7 @@
                     <div class="divider">Settings</div>
 
                     <div class="form-control w-full">
-                        <label class="label" for="ic-format-select"><span class="label-text font-semibold">@AppStrings.ImageConverter_SelectFormat</span></label>
+                        <label class="label" for="ic-format-select"><span class="label-text font-semibold">@T("TargetFormatLabel")</span></label>
                         <select id="ic-format-select" class="select select-bordered w-full">
                             <option value="png">PNG (Lossless)</option>
                             <option value="jpeg">JPEG (Web)</option>
@@ -50,7 +49,7 @@
 
                     <div class="form-control w-full mt-4" id="ic-quality-container" hidden>
                         <label class="label" for="ic-quality">
-                            <span class="label-text font-semibold">@AppStrings.ImageConverter_Quality</span>
+                            <span class="label-text font-semibold">@T("Quality")</span>
                             <span class="label-text-alt font-mono font-bold" id="ic-quality-value">90</span>
                         </label>
                         <input type="range" id="ic-quality" min="1" max="100" value="90" class="range range-primary range-sm" />
@@ -63,7 +62,7 @@
                     <div class="card-actions mt-6">
                         <button class="btn btn-primary w-full" id="ic-convert-btn" type="button" disabled>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                            @AppStrings.ImageConverter_Convert
+                            @T("Convert")
                         </button>
                     </div>
 
@@ -99,7 +98,7 @@
                     <div class="card-actions mt-6">
                          <button class="btn btn-success w-full text-white" id="ic-download-btn" type="button">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                             @AppStrings.ImageConverter_Download
+                             @T("Download")
                          </button>
                     </div>
                 </div>
@@ -108,18 +107,17 @@
     </div>
 
     <ToolSeoContent 
-        Introduction="@AppStrings.ImageConverter_Seo_Introduction"
-        DetailedDescription="@AppStrings.ImageConverter_Seo_DetailedDescription"
+        Introduction="@T("Seo_Introduction")"
+        DetailedDescription="@T("Seo_DetailedDescription")"
         DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
-        Examples="@AppStrings.ImageConverter_Seo_Examples"
+        Examples="@T("Seo_Examples")"
         ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
-        HowToSteps="@AppStrings.ImageConverter_Seo_HowToSteps"
+        HowToSteps="@T("Seo_HowToSteps")"
         HowToTitle="@AppStrings.Seo_HowToTitle"
-        Tips="@AppStrings.ImageConverter_Seo_Tips"
+        Tips="@T("Seo_Tips")"
         TipsTitle="@AppStrings.Seo_TipsTitle" />
 </ToolLayout>
 
 @code {
-    [Parameter]
-    public string Lang { get; set; } = "en";
+    protected override string LocalizationNamespace { get; set; } = "tools/image-converter";
 }

@@ -1,17 +1,18 @@
 @page "/{lang}/color-converter"
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
+@inherits ToolComponentBase
 
-<ToolLayout Title="@AppStrings.ColorConverter_Title" Description="@AppStrings.ColorConverter_Description">
-    <MetaTags Title="@AppStrings.ColorConverter_Title"
-              Description="@AppStrings.ColorConverter_Description"
+<ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")"
+              Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
               ToolPath="color-converter" />
 
     <div id="color-converter-root"
-         data-copied="@AppStrings.ColorConverter_Copied"
-         data-pass="@AppStrings.ColorConverter_Pass"
-         data-fail="@AppStrings.ColorConverter_Fail">
+         data-copied="@T("Copied")"
+         data-pass="@T("Pass")"
+         data-fail="@T("Fail")">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Color Input Section -->
             <div class="card bg-base-200 shadow-xl">
@@ -19,7 +20,7 @@
                     <div class="space-y-4">
                         <!-- Color Picker -->
                         <div class="form-control w-full">
-                            <label class="label" for="color-picker"><span class="label-text font-semibold">@AppStrings.ColorConverter_ColorPicker</span></label>
+                            <label class="label" for="color-picker"><span class="label-text font-semibold">@T("ColorPicker")</span></label>
                             <div class="flex items-center gap-4">
                                 <input type="color" id="color-picker" value="#3b82f6" 
                                        class="w-24 h-16 cursor-pointer rounded-box border-base-300 shadow-sm p-1 bg-base-100" />
@@ -41,18 +42,18 @@
 
                             <!-- Manual Input -->
                             <div class="form-control col-span-2">
-                                <label class="label" for="color-input"><span class="label-text">@AppStrings.ColorConverter_ManualInput</span></label>
+                                <label class="label" for="color-input"><span class="label-text">@T("ManualInput")</span></label>
                                 <input type="text" id="color-input" placeholder="#3b82f6" class="input input-bordered w-full font-mono" />
                             </div>
                         </div>
-                        <p class="text-xs text-base-content/60 px-1">@AppStrings.ColorConverter_InputHint</p>
+                        <p class="text-xs text-base-content/60 px-1">@T("InputHint")</p>
 
                         <div class="flex flex-wrap gap-2 pt-2">
                             <button class="btn btn-primary flex-1" id="convert-btn" type="button">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                                @AppStrings.ColorConverter_Convert
+                                @T("Convert")
                             </button>
-                            <button class="btn btn-ghost" id="clear-btn" type="button">@AppStrings.ColorConverter_Clear</button>
+                            <button class="btn btn-ghost" id="clear-btn" type="button">@T("Clear")</button>
                         </div>
 
                         <div class="alert alert-error shadow-lg text-sm mt-2 hidden" id="color-error">
@@ -66,14 +67,14 @@
             <!-- Output Section -->
             <div class="card bg-base-200 shadow-xl">
                 <div class="card-body">
-                    <h3 class="card-title text-base opacity-70 mb-4">@AppStrings.ColorConverter_ConvertedFormats</h3>
+                    <h3 class="card-title text-base opacity-70 mb-4">@T("ConvertedFormats")</h3>
                     <div class="space-y-4" id="color-outputs">
                         <!-- HEX -->
                         <div class="form-control">
                             <label class="label"><span class="label-text font-semibold text-xs uppercase text-base-content/70">HEX</span></label>
                             <div class="join w-full">
                                 <input type="text" id="output-hex" readonly class="input input-bordered join-item w-full font-mono" />
-                                <button class="btn btn-neutral join-item copy-btn" data-target="output-hex" type="button">@AppStrings.ColorConverter_Copy</button>
+                                <button class="btn btn-neutral join-item copy-btn" data-target="output-hex" type="button">@T("Copy")</button>
                             </div>
                         </div>
 
@@ -82,7 +83,7 @@
                             <label class="label"><span class="label-text font-semibold text-xs uppercase text-base-content/70">RGB</span></label>
                             <div class="join w-full">
                                 <input type="text" id="output-rgb" readonly class="input input-bordered join-item w-full font-mono" />
-                                <button class="btn btn-neutral join-item copy-btn" data-target="output-rgb" type="button">@AppStrings.ColorConverter_Copy</button>
+                                <button class="btn btn-neutral join-item copy-btn" data-target="output-rgb" type="button">@T("Copy")</button>
                             </div>
                         </div>
 
@@ -91,7 +92,7 @@
                             <label class="label"><span class="label-text font-semibold text-xs uppercase text-base-content/70">HSL</span></label>
                             <div class="join w-full">
                                 <input type="text" id="output-hsl" readonly class="input input-bordered join-item w-full font-mono" />
-                                <button class="btn btn-neutral join-item copy-btn" data-target="output-hsl" type="button">@AppStrings.ColorConverter_Copy</button>
+                                <button class="btn btn-neutral join-item copy-btn" data-target="output-hsl" type="button">@T("Copy")</button>
                             </div>
                         </div>
 
@@ -100,7 +101,7 @@
                             <label class="label"><span class="label-text font-semibold text-xs uppercase text-base-content/70">CMYK</span></label>
                             <div class="join w-full">
                                 <input type="text" id="output-cmyk" readonly class="input input-bordered join-item w-full font-mono" />
-                                <button class="btn btn-neutral join-item copy-btn" data-target="output-cmyk" type="button">@AppStrings.ColorConverter_Copy</button>
+                                <button class="btn btn-neutral join-item copy-btn" data-target="output-cmyk" type="button">@T("Copy")</button>
                             </div>
                         </div>
                     </div>
@@ -110,7 +111,7 @@
 
         <!-- Shades Palette -->
         <div style="margin-top: 2rem;">
-            <h3 style="margin-bottom: 1rem;">@AppStrings.ColorConverter_ShadesPalette</h3>
+            <h3 style="margin-bottom: 1rem;">@T("ShadesPalette")</h3>
             <div id="shades-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem;">
                 <!-- Shades will be dynamically generated -->
             </div>
@@ -119,13 +120,13 @@
         <!-- Contrast Checker -->
         <div class="card bg-base-200 shadow-xl mt-8">
             <div class="card-body">
-                <h3 class="card-title mb-4">@AppStrings.ColorConverter_ContrastChecker</h3>
+                <h3 class="card-title mb-4">@T("ContrastChecker")</h3>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div class="space-y-6">
                         <div class="grid grid-cols-2 gap-4">
                             <!-- Foreground Color -->
                             <div class="form-control">
-                                <label class="label" for="contrast-fg-color"><span class="label-text">@AppStrings.ColorConverter_ForegroundColor</span></label>
+                                <label class="label" for="contrast-fg-color"><span class="label-text">@T("ForegroundColor")</span></label>
                                 <div class="flex gap-2">
                                     <input type="color" id="contrast-fg-color" value="#000000" 
                                            class="w-12 h-12 rounded-lg cursor-pointer border border-base-300 p-0 bg-base-100 shadow-sm" />
@@ -135,7 +136,7 @@
 
                             <!-- Background Color -->
                             <div class="form-control">
-                                <label class="label" for="contrast-bg-color"><span class="label-text">@AppStrings.ColorConverter_BackgroundColor</span></label>
+                                <label class="label" for="contrast-bg-color"><span class="label-text">@T("BackgroundColor")</span></label>
                                 <div class="flex gap-2">
                                     <input type="color" id="contrast-bg-color" value="#ffffff" 
                                            class="w-12 h-12 rounded-lg cursor-pointer border border-base-300 p-0 bg-base-100 shadow-sm" />
@@ -146,7 +147,7 @@
 
                         <!-- Preview -->
                         <div class="form-control w-full">
-                            <label class="label"><span class="label-text">@AppStrings.ColorConverter_PreviewText</span></label>
+                            <label class="label"><span class="label-text">@T("PreviewText")</span></label>
                             <div id="contrast-preview" class="rounded-box p-8 text-center shadow-inner border border-base-300 transition-colors duration-200">
                                 <p class="text-base font-normal m-0 opacity-90">The quick brown fox jumps over the lazy dog</p>
                                 <p class="text-2xl font-bold mt-4 opacity-100">Large Text Example</p>
@@ -157,7 +158,7 @@
                     <div class="space-y-6">
                         <!-- Contrast Ratio -->
                         <div class="text-center p-4 bg-base-100 rounded-box border border-base-300 shadow-sm">
-                            <label class="label justify-center pb-0"><span class="label-text font-semibold uppercase tracking-wider text-xs">@AppStrings.ColorConverter_ContrastRatio</span></label>
+                            <label class="label justify-center pb-0"><span class="label-text font-semibold uppercase tracking-wider text-xs">@T("ContrastRatio")</span></label>
                             <div id="contrast-ratio" class="text-5xl font-black font-mono my-2 text-primary">
                                 21:1
                             </div>
@@ -165,23 +166,23 @@
 
                         <!-- WCAG Compliance -->
                         <div>
-                            <label class="label"><span class="label-text font-semibold">@AppStrings.ColorConverter_WCAGCompliance</span></label>
+                            <label class="label"><span class="label-text font-semibold">@T("WCAGCompliance")</span></label>
                             <div class="grid grid-cols-1 gap-3">
                                 <div class="flex justify-between items-center p-3 bg-base-100 rounded-lg border border-base-300">
-                                    <span class="wcag-label text-sm font-medium">@AppStrings.ColorConverter_WCAG_AA_Normal</span>
-                                    <span class="badge" id="wcag-aa-normal">@AppStrings.ColorConverter_Pass</span>
+                                    <span class="wcag-label text-sm font-medium">@T("WCAG_AA_Normal")</span>
+                                    <span class="badge" id="wcag-aa-normal">@T("pass")</span>
                                 </div>
                                 <div class="flex justify-between items-center p-3 bg-base-100 rounded-lg border border-base-300">
-                                    <span class="wcag-label text-sm font-medium">@AppStrings.ColorConverter_WCAG_AA_Large</span>
-                                    <span class="badge" id="wcag-aa-large">@AppStrings.ColorConverter_Pass</span>
+                                    <span class="wcag-label text-sm font-medium">@T("WCAG_AA_Large")</span>
+                                    <span class="badge" id="wcag-aa-large">@T("pass")</span>
                                 </div>
                                 <div class="flex justify-between items-center p-3 bg-base-100 rounded-lg border border-base-300">
-                                    <span class="wcag-label text-sm font-medium">@AppStrings.ColorConverter_WCAG_AAA_Normal</span>
-                                    <span class="badge" id="wcag-aaa-normal">@AppStrings.ColorConverter_Pass</span>
+                                    <span class="wcag-label text-sm font-medium">@T("WCAG_AAA_Normal")</span>
+                                    <span class="badge" id="wcag-aaa-normal">@T("pass")</span>
                                 </div>
                                 <div class="flex justify-between items-center p-3 bg-base-100 rounded-lg border border-base-300">
-                                    <span class="wcag-label text-sm font-medium">@AppStrings.ColorConverter_WCAG_AAA_Large</span>
-                                    <span class="badge" id="wcag-aaa-large">@AppStrings.ColorConverter_Pass</span>
+                                    <span class="wcag-label text-sm font-medium">@T("WCAG_AAA_Large")</span>
+                                    <span class="badge" id="wcag-aaa-large">@T("pass")</span>
                                 </div>
                             </div>
                         </div>
@@ -192,14 +193,14 @@
     </div>
 
     <ToolSeoContent 
-        Introduction="@AppStrings.ColorConverter_Seo_Introduction"
-        DetailedDescription="@AppStrings.ColorConverter_Seo_DetailedDescription"
+        Introduction="@T("Seo_Introduction")"
+        DetailedDescription="@T("Seo_DetailedDescription")"
         DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
-        Examples="@AppStrings.ColorConverter_Seo_Examples"
+        Examples="@T("Seo_Examples")"
         ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
-        HowToSteps="@AppStrings.ColorConverter_Seo_HowToSteps"
+        HowToSteps="@T("Seo_HowToSteps")"
         HowToTitle="@AppStrings.Seo_HowToTitle"
-        Tips="@AppStrings.ColorConverter_Seo_Tips"
+        Tips="@T("Seo_Tips")"
         TipsTitle="@AppStrings.Seo_TipsTitle" />
 </ToolLayout>
 
@@ -598,9 +599,5 @@
 </style>
 
 @code {
-    /// <summary>
-    /// Language parameter from URL route
-    /// </summary>
-    [Parameter]
-    public string Lang { get; set; } = "en";
+    protected override string LocalizationNamespace { get; set; } = "tools/color-converter";
 }

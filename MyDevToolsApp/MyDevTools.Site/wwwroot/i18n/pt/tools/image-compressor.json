@@ -1,0 +1,14 @@
+{
+  "Title": "Compressor de Imagem",
+  "Description": "Comprima imagens JPG, PNG e WebP localmente no seu navegador.",
+  "Compressing": "Comprimindo...",
+  "Processing": "Processando...",
+  "Done": "Concluído!",
+  "Download": "Baixar",
+  "DragDrop": "Solte imagens aqui ou clique para selecionar arquivos",
+  "Seo_Introduction": "A ferramenta Image Compressor é uma ferramenta online focada em privacidade projetada para desenvolvedores. Todo o processamento acontece localmente no seu navegador usando WebAssembly, garantindo que seus dados nunca saiam do seu dispositivo.",
+  "Seo_DetailedDescription": "Esta ferramenta fornece funcionalidade abrangente para operações de image compressor. Construída com tecnologias web modernas e alimentada por WebAssembly compilado do Rust, oferece desempenho nativo diretamente no seu navegador.\n\nA interface é projetada para eficiência e facilidade de uso, com suporte para entrada de texto e processamento de arquivos. Todas as operações são realizadas no lado do cliente, garantindo privacidade e segurança completas para seus dados sensíveis.",
+  "Seo_Examples": "**Exemplo 1**: Use Image Compressor para conversões rápidas no seu fluxo de trabalho de desenvolvimento.\n\n**Exemplo 2**: Processe arquivos diretamente sem enviá-los para nenhum servidor, mantendo privacidade completa.\n\n**Exemplo 3**: Integre a ferramenta em suas tarefas diárias de desenvolvimento para melhorar a produtividade.",
+  "Seo_HowToSteps": "### Passo 1: Prepare sua entrada\nDigite seus dados no campo de entrada ou carregue um arquivo do seu dispositivo.\n\n### Passo 2: Configure as opções\nAjuste as configurações da ferramenta de acordo com suas necessidades.\n\n### Passo 3: Processe e copie os resultados\nClique no botão de ação para processar sua entrada e copie os resultados para a área de transferência.",
+  "Seo_Tips": "- Todo o processamento acontece no seu navegador para máxima privacidade\n- A ferramenta funciona offline após o carregamento inicial da página\n- Suas preferências são salvas localmente no seu navegador\n- Arquivos grandes são suportados com rastreamento de progresso"
+}

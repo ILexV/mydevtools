@@ -1,0 +1,10 @@
+{
+  "Title": "PDF to Text",
+  "Description": "Extract all text from PDF documents easily in your browser.",
+  "ExtractButton": "Extract Text",
+  "Seo_Introduction": "The PDF to Text converter is a privacy-first tool that allows you to extract text content from any PDF file directly in your browser.",
+  "Seo_DetailedDescription": "This tool uses WebAssembly technology to parse PDF structures and extract text without uploading your files to any server. It supports standard text-based PDF documents and handles various character encodings to ensure accurate extraction.\n\nYou can upload multiple PDF files and process them in a batch. Each file will be converted to a plain text (.txt) file that you can download and use for your needs.",
+  "Seo_Examples": "**Example 1**: Extract content from a research paper PDF for analysis in a text editor.\n\n**Example 2**: Quickly get text from a PDF invoice or receipt.\n\n**Example 3**: Convert a large PDF ebook into a simple text file for easier reading on low-power devices.",
+  "Seo_HowToSteps": "### Step 1: Upload PDF Files\nDrag and drop your PDF documents into the tool or click the upload area to select them.\n\n### Step 2: Start Extraction\nClick the \"Extract Text\" button to begin processing all loaded files.\n\n### Step 3: Download Text Files\nOnce the extraction is complete, click the \"Download\" icon next to each file to save the resulting .txt document.",
+  "Seo_Tips": "- Works completely in the browser for maximum privacy\n- Fast and efficient processing using Rust/WASM\n- Supports batch processing of multiple files\n- No registration or server upload required"
+}

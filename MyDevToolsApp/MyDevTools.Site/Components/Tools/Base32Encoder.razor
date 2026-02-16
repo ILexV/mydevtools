@@ -1,10 +1,11 @@
 @page "/{lang}/base32-encoder"
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
+@inherits ToolComponentBase
 
-<ToolLayout Title="@AppStrings.Base32Encoder_Title" Description="@AppStrings.Base32Encoder_Description">
-    <MetaTags Title="@AppStrings.Base32Encoder_Title"
-              Description="@AppStrings.Base32Encoder_Description"
+<ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")"
+              Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
               ToolPath="base32-encoder" />
 
@@ -12,10 +13,10 @@
          class="grid grid-cols-1 lg:grid-cols-2 gap-6"
          data-loading="@AppStrings.Common_Loading"
          data-error="@AppStrings.Common_Error"
-         data-file-progress-title="@AppStrings.Base32Encoder_FileProgressTitle"
-         data-cancel="@AppStrings.Base32Encoder_Cancel"
-         data-copy="@AppStrings.Base32Encoder_Copy"
-         data-copied="@AppStrings.Base32Encoder_Copied">
+         data-file-progress-title="@T("FileProgressTitle")"
+         data-cancel="@T("Cancel")"
+         data-copy="@T("Copy")"
+         data-copied="@T("Copied")">
 
         <!-- Input & Settings Card -->
         <div class="card bg-base-200 shadow-xl h-fit">
@@ -25,9 +26,9 @@
                 <!-- Text Input -->
                 <div class="form-control">
                     <label class="label" for="b32-input-text">
-                        <span class="label-text font-semibold">@AppStrings.Base32Encoder_InputTextLabel</span>
+                        <span class="label-text font-semibold">@T("InputTextLabel")</span>
                     </label>
-                    <textarea id="b32-input-text" class="textarea textarea-bordered h-48 font-mono text-sm" placeholder="@AppStrings.Base32Encoder_InputTextPlaceholder"></textarea>
+                    <textarea id="b32-input-text" class="textarea textarea-bordered h-48 font-mono text-sm" placeholder="@T("InputTextPlaceholder")"></textarea>
                 </div>
 
                 <!-- File Input -->
@@ -42,10 +43,10 @@
                         Accept="*/*"
                         ShowFileInfo="true"
                         ShowClearButton="true" />
-                    @if (!string.IsNullOrWhiteSpace(AppStrings.Base32Encoder_FileHint))
+                    @if (!string.IsNullOrWhiteSpace(T("FileHint")))
                     {
                         <label class="label pb-0">
-                            <span class="label-text-alt opacity-70">@AppStrings.Base32Encoder_FileHint</span>
+                            <span class="label-text-alt opacity-70">@T("FileHint")</span>
                         </label>
                     }
                 </div>
@@ -61,7 +62,7 @@
                             <!-- Charset -->
                             <div class="form-control w-full">
                                 <label class="label py-1" for="b32-charset">
-                                    <span class="label-text text-xs">@AppStrings.Base32Encoder_CharsetLabel</span>
+                                    <span class="label-text text-xs">@T("CharsetLabel")</span>
                                 </label>
                                 <select id="b32-charset" class="select select-bordered select-sm w-full">
                                     <option value="utf-8">UTF-8</option>
@@ -75,47 +76,47 @@
                             <!-- Alphabet -->
                             <div class="form-control w-full">
                                 <label class="label py-1" for="b32-alphabet">
-                                    <span class="label-text text-xs">@AppStrings.Base32Encoder_AlphabetLabel</span>
+                                    <span class="label-text text-xs">@T("AlphabetLabel")</span>
                                 </label>
                                 <select id="b32-alphabet" class="select select-bordered select-sm w-full">
-                                    <option value="rfc4648">@AppStrings.Base32Encoder_AlphabetRfc4648</option>
-                                    <option value="crockford">@AppStrings.Base32Encoder_AlphabetCrockford</option>
-                                    <option value="zbase32">@AppStrings.Base32Encoder_AlphabetZBase32</option>
+                                    <option value="rfc4648">@T("AlphabetRfc4648")</option>
+                                    <option value="crockford">@T("AlphabetCrockford")</option>
+                                    <option value="zbase32">@T("AlphabetZBase32")</option>
                                 </select>
                             </div>
 
                             <!-- Padding -->
                             <div class="form-control w-full">
                                 <label class="label py-1" for="b32-padding">
-                                    <span class="label-text text-xs">@AppStrings.Base32Encoder_PaddingLabel</span>
+                                    <span class="label-text text-xs">@T("PaddingLabel")</span>
                                 </label>
                                 <select id="b32-padding" class="select select-bordered select-sm w-full">
-                                    <option value="required">@AppStrings.Base32Encoder_PaddingRequired</option>
-                                    <option value="optional">@AppStrings.Base32Encoder_PaddingOptional</option>
-                                    <option value="none">@AppStrings.Base32Encoder_PaddingNone</option>
+                                    <option value="required">@T("PaddingRequired")</option>
+                                    <option value="optional">@T("PaddingOptional")</option>
+                                    <option value="none">@T("PaddingNone")</option>
                                 </select>
                             </div>
 
                             <!-- Case -->
                             <div class="form-control w-full">
                                 <label class="label py-1" for="b32-case">
-                                    <span class="label-text text-xs">@AppStrings.Base32Encoder_CaseLabel</span>
+                                    <span class="label-text text-xs">@T("CaseLabel")</span>
                                 </label>
                                 <select id="b32-case" class="select select-bordered select-sm w-full">
-                                    <option value="auto">@AppStrings.Base32Encoder_CaseAuto</option>
-                                    <option value="upper">@AppStrings.Base32Encoder_CaseUpper</option>
-                                    <option value="lower">@AppStrings.Base32Encoder_CaseLower</option>
+                                    <option value="auto">@T("CaseAuto")</option>
+                                    <option value="upper">@T("CaseUpper")</option>
+                                    <option value="lower">@T("CaseLower")</option>
                                 </select>
                             </div>
                             
                             <!-- Output Mode -->
                             <div class="form-control w-full md:col-span-2">
                                 <label class="label py-1" for="b32-output-mode">
-                                    <span class="label-text text-xs">@AppStrings.Base32Encoder_OutputModeLabel</span>
+                                    <span class="label-text text-xs">@T("OutputModeLabel")</span>
                                 </label>
                                 <select id="b32-output-mode" class="select select-bordered select-sm w-full">
-                                    <option value="preview">@AppStrings.Base32Encoder_OutputModePreview</option>
-                                    <option value="full">@AppStrings.Base32Encoder_OutputModeFull</option>
+                                    <option value="preview">@T("OutputModePreview")</option>
+                                    <option value="full">@T("OutputModeFull")</option>
                                 </select>
                             </div>
 
@@ -123,7 +124,7 @@
                             <div class="form-control md:col-span-2">
                                 <label class="label cursor-pointer justify-start gap-3">
                                     <input id="b32-allow-whitespace" type="checkbox" class="checkbox checkbox-sm checkbox-primary" checked />
-                                    <span class="label-text text-sm">@AppStrings.Base32Encoder_AllowWhitespace</span>
+                                    <span class="label-text text-sm">@T("AllowWhitespace")</span>
                                 </label>
                             </div>
                         </div>
@@ -134,22 +135,22 @@
                 <div class="card-actions mt-6 grid grid-cols-2 gap-4">
                     <button class="btn btn-primary" id="b32-encode-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-                        @AppStrings.Base32Encoder_ActionEncode
+                        @T("ActionEncode")
                     </button>
                     <button class="btn btn-secondary" id="b32-decode-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-                        @AppStrings.Base32Encoder_ActionDecode
+                        @T("ActionDecode")
                     </button>
                 </div>
                 
                 <div class="flex justify-between mt-2">
                      <button class="btn btn-ghost btn-sm text-error" id="b32-clear-btn">
                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                         @AppStrings.Base32Encoder_ActionClear
+                         @T("ActionClear")
                      </button>
                      <button class="btn btn-ghost btn-sm" id="b32-swap-btn">
                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
-                         @AppStrings.Base32Encoder_ActionSwap
+                         @T("ActionSwap")
                      </button>
                 </div>
                 
@@ -173,11 +174,11 @@
                     <div class="flex gap-2">
                         <button class="btn btn-ghost btn-sm" id="b32-copy-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
-                            @AppStrings.Base32Encoder_Copy
+                            @T("Copy")
                         </button>
                         <button class="btn btn-ghost btn-sm" id="b32-download-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                            @AppStrings.Base32Encoder_Download
+                            @T("Download")
                         </button>
                     </div>
                 </div>
@@ -187,32 +188,31 @@
         <!-- Related Links -->
         <div class="col-span-1 lg:col-span-2 mt-4">
             <div class="flex flex-wrap gap-3 justify-center items-center opacity-70 text-sm">
-                <span class="font-bold">@AppStrings.Base32Encoder_OtherFormats</span>
-                <a class="link link-hover" href="/@Lang/hex-encoder">@AppStrings.Base32Encoder_LinkHex</a>
+                <span class="font-bold">@T("OtherFormats")</span>
+                <a class="link link-hover" href="/@Lang/hex-encoder">@T("LinkHex")</a>
                 <span class="opacity-30">|</span>
-                <a class="link link-hover" href="/@Lang/base64-encoder">@AppStrings.Base32Encoder_LinkBase64</a>
+                <a class="link link-hover" href="/@Lang/base64-encoder">@T("LinkBase64")</a>
                 <span class="opacity-30">|</span>
-                <a class="link link-hover" href="/@Lang/base58-encoder">@AppStrings.Base32Encoder_LinkBase58</a>
+                <a class="link link-hover" href="/@Lang/base58-encoder">@T("LinkBase58")</a>
                 <span class="opacity-30">|</span>
-                <a class="link link-hover" href="/@Lang/url-encoder">@AppStrings.Base32Encoder_LinkUrl</a>
+                <a class="link link-hover" href="/@Lang/url-encoder">@T("LinkUrl")</a>
             </div>
         </div>
 
     </div>
 
     <ToolSeoContent 
-        Introduction="@AppStrings.Base32Encoder_Seo_Introduction"
-        DetailedDescription="@AppStrings.Base32Encoder_Seo_DetailedDescription"
+        Introduction="@T("Seo_Introduction")"
+        DetailedDescription="@T("Seo_DetailedDescription")"
         DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
-        Examples="@AppStrings.Base32Encoder_Seo_Examples"
+        Examples="@T("Seo_Examples")"
         ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
-        HowToSteps="@AppStrings.Base32Encoder_Seo_HowToSteps"
+        HowToSteps="@T("Seo_HowToSteps")"
         HowToTitle="@AppStrings.Seo_HowToTitle"
-        Tips="@AppStrings.Base32Encoder_Seo_Tips"
+        Tips="@T("Seo_Tips")"
         TipsTitle="@AppStrings.Seo_TipsTitle" />
 </ToolLayout>
 
 @code {
-    [Parameter]
-    public string Lang { get; set; } = "en";
+    protected override string LocalizationNamespace { get; set; } = "tools/base32-encoder";
 }

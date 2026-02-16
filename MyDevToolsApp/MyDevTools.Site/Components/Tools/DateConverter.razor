@@ -1,16 +1,17 @@
 @page "/{lang}/date-converter"
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
+@inherits ToolComponentBase
 
-<ToolLayout Title="@AppStrings.DateConverter_Title" Description="@AppStrings.DateConverter_Description">
-    <MetaTags Title="@AppStrings.DateConverter_Title"
-              Description="@AppStrings.DateConverter_Description"
+<ToolLayout Title="@T("title")" Description="@T("description")">
+    <MetaTags Title="@T("title")"
+              Description="@T("description")"
               CurrentUrl="@Navigation.Uri"
               ToolPath="date-converter" />
 
     <div id="date-converter-root"
-         data-error-invalid="@AppStrings.DateConverter_Error_Invalid"
-         data-copied="@AppStrings.DateConverter_Copied"
+         data-error-invalid="@T("errorInvalid")"
+         data-copied="@T("copied")"
          class="max-w-5xl mx-auto">
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -22,24 +23,24 @@
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
-                        @AppStrings.DateConverter_InputLabel
+                        @T("inputLabel")
                     </h2>
 
                     <div class="form-control w-full">
                         <label class="label font-semibold" for="date-input-type">
-                            @AppStrings.DateConverter_InputTypeLabel
+                            @T("inputTypeLabel")
                         </label>
                         <select id="date-input-type" class="select select-bordered w-full">
-                            <option value="auto">@AppStrings.DateConverter_InputType_Auto</option>
-                            <option value="unix-sec">@AppStrings.DateConverter_InputType_UnixSec</option>
-                            <option value="unix-ms">@AppStrings.DateConverter_InputType_UnixMs</option>
-                            <option value="iso">@AppStrings.DateConverter_InputType_ISO</option>
+                            <option value="auto">@T("inputTypeAuto")</option>
+                            <option value="unix-sec">@T("inputTypeUnixSec")</option>
+                            <option value="unix-ms">@T("inputTypeUnixMs")</option>
+                            <option value="iso">@T("inputTypeIso")</option>
                         </select>
                     </div>
 
                     <div class="form-control w-full mt-4">
                         <label class="label font-semibold" for="date-input">
-                            @AppStrings.DateConverter_InputLabel
+                            @T("inputLabel")
                         </label>
                         <textarea id="date-input" rows="4" class="textarea textarea-bordered w-full font-mono text-lg" placeholder="1735689600 or 2025-01-01T00:00:00Z"></textarea>
                     </div>
@@ -49,13 +50,13 @@
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-1">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                             </svg>
-                            @AppStrings.DateConverter_ActionCurrentTime
+                            @T("actionCurrentTime")
                         </button>
                         <button class="btn btn-primary" id="date-convert-btn" type="button">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-1">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                             </svg>
-                            @AppStrings.DateConverter_ActionConvert
+                            @T("actionConvert")
                         </button>
                     </div>
                     
@@ -73,28 +74,28 @@
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
-                        @AppStrings.DateConverter_OutputLabel
+                        @T("outputLabel")
                     </h2>
 
                     <div class="form-control w-full">
                         <label class="label font-semibold" for="date-output-format">
-                            @AppStrings.DateConverter_OutputFormatLabel
+                            @T("outputFormatLabel")
                         </label>
                         <select id="date-output-format" class="select select-bordered w-full">
-                            <option value="iso">@AppStrings.DateConverter_Format_ISO</option>
-                            <option value="euro">@AppStrings.DateConverter_Format_European</option>
-                            <option value="utc">@AppStrings.DateConverter_Format_UTC</option>
-                            <option value="local">@AppStrings.DateConverter_Format_Local</option>
-                            <option value="rfc">@AppStrings.DateConverter_Format_RFC</option>
-                            <option value="unix-sec">@AppStrings.DateConverter_Format_UnixSec</option>
-                            <option value="unix-ms">@AppStrings.DateConverter_Format_UnixMs</option>
-                            <option value="custom">@AppStrings.DateConverter_Format_Custom</option>
+                            <option value="iso">@T("formatIso")</option>
+                            <option value="euro">@T("formatEuropean")</option>
+                            <option value="utc">@T("formatUtc")</option>
+                            <option value="local">@T("formatLocal")</option>
+                            <option value="rfc">@T("formatRfc")</option>
+                            <option value="unix-sec">@T("formatUnixSec")</option>
+                            <option value="unix-ms">@T("formatUnixMs")</option>
+                            <option value="custom">@T("formatCustom")</option>
                         </select>
                     </div>
 
                     <div id="date-custom-fmt-container" class="form-control w-full mt-4 hidden">
                         <label class="label font-semibold" for="date-output-custom-fmt">Custom Format</label>
-                        <input id="date-output-custom-fmt" type="text" class="input input-bordered w-full font-mono" placeholder="@AppStrings.DateConverter_CustomFormatPlaceholder" value="dd.MM.yyyy HH:mm:ss" />
+                        <input id="date-output-custom-fmt" type="text" class="input input-bordered w-full font-mono" placeholder="@T("customFormatPlaceholder")" value="dd.MM.yyyy HH:mm:ss" />
                         <label class="label">
                             <span class="label-text-alt opacity-70">Use: yyyy, MM, dd, HH, mm, ss, SSS</span>
                         </label>
@@ -106,7 +107,7 @@
                         </label>
                         <div class="relative">
                             <textarea id="date-output" rows="4" readonly class="textarea textarea-bordered w-full font-mono text-lg pr-12 bg-base-200 text-base-content/70"></textarea>
-                            <button class="btn btn-sm btn-ghost absolute right-2 top-2" id="date-copy-btn" title="@AppStrings.DateConverter_Copy">
+                            <button class="btn btn-sm btn-ghost absolute right-2 top-2" id="date-copy-btn" title="@T("copy")">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
                                 </svg>
@@ -121,18 +122,17 @@
     <script src="/tools/date-converter.js"></script>
 
     <ToolSeoContent 
-        Introduction="@AppStrings.DateConverter_Seo_Introduction"
-        DetailedDescription="@AppStrings.DateConverter_Seo_DetailedDescription"
+        Introduction="@T("seoIntroduction")"
+        DetailedDescription="@T("seoDetailedDescription")"
         DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
-        Examples="@AppStrings.DateConverter_Seo_Examples"
+        Examples="@T("seoExamples")"
         ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
-        HowToSteps="@AppStrings.DateConverter_Seo_HowToSteps"
+        HowToSteps="@T("seoHowToSteps")"
         HowToTitle="@AppStrings.Seo_HowToTitle"
-        Tips="@AppStrings.DateConverter_Seo_Tips"
+        Tips="@T("seoTips")"
         TipsTitle="@AppStrings.Seo_TipsTitle" />
 </ToolLayout>
 
 @code {
-    [Parameter]
-    public string Lang { get; set; } = "en";
+    protected override string LocalizationNamespace { get; set; } = "tools/date-converter";
 }

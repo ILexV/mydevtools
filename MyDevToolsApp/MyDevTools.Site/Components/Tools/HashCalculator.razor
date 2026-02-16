@@ -4,10 +4,11 @@
 @using System.Text.Json
 @using MyDevTools.Site.Components.Layout
 @inject NavigationManager Navigation
+@inherits ToolComponentBase
 
-<ToolLayout Title="@AppStrings.HashCalculator_Title" Description="@AppStrings.HashCalculator_Description">
-    <MetaTags Title="@AppStrings.HashCalculator_Title" 
-              Description="@AppStrings.HashCalculator_Description" 
+<ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")" 
+              Description="@T("Description")" 
               CurrentUrl="@Navigation.Uri"
               ToolPath="hash-calculator"
               SupportedAlgorithms="@SupportedHashAlgorithms" />
@@ -15,34 +16,34 @@
     <div id="hash-calculator-root"
          data-loading="@AppStrings.Common_Loading"
          data-error="@AppStrings.Common_Error"
-         data-calculate="@AppStrings.HashCalculator_Calculate"
-         data-file-progress-title="@AppStrings.HashCalculator_FileProgressTitle"
-         data-cancel="@AppStrings.HashCalculator_Cancel"
-         data-copy="@AppStrings.HashCalculator_Copy"
-         data-copied="@AppStrings.HashCalculator_Copied"
-         data-algorithms-title="@AppStrings.HashCalculator_AlgorithmsTitle"
-         data-algorithms-selected="@AppStrings.HashCalculator_AlgorithmsSelected"
-         data-algorithms-available="@AppStrings.HashCalculator_AlgorithmsAvailable"
-         data-algorithms-search="@AppStrings.HashCalculator_AlgorithmsSearchPlaceholder"
-         data-algorithms-reset="@AppStrings.HashCalculator_AlgorithmsReset"
-         data-algorithms-select-one="@AppStrings.HashCalculator_SelectAtLeastOneAlgorithm"
+         data-calculate="@T("Calculate")"
+         data-file-progress-title="@T("FileProgressTitle")"
+         data-cancel="@T("Cancel")"
+         data-copy="@T("Copy")"
+         data-copied="@T("Copied")"
+         data-algorithms-title="@T("AlgorithmsTitle")"
+         data-algorithms-selected="@T("AlgorithmsSelected")"
+         data-algorithms-available="@T("AlgorithmsAvailable")"
+         data-algorithms-search="@T("AlgorithmsSearchPlaceholder")"
+         data-algorithms-reset="@T("AlgorithmsReset")"
+         data-algorithms-select-one="@T("SelectAtLeastOneAlgorithm")"
          data-canceled="Canceled">
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="space-y-4 lg:col-span-2">
                 <div class="form-control w-full">
                     <label class="label" for="input-text">
-                        <span class="label-text font-semibold">@AppStrings.HashCalculator_InputLabel</span>
+                        <span class="label-text font-semibold">@T("InputLabel")</span>
                     </label>
                     <textarea id="input-text" 
                               class="textarea textarea-bordered w-full font-mono"
-                              placeholder="@AppStrings.HashCalculator_InputPlaceholder"
+                              placeholder="@T("InputPlaceholder")"
                               rows="10"></textarea>
                 </div>
 
                 <div class="form-control w-full">
                     <label class="label" for="input-file">
-                        <span class="label-text font-semibold">@AppStrings.HashCalculator_FileLabel</span>
+                        <span class="label-text font-semibold">@T("FileLabel")</span>
                     </label>
                     <FileDropZone
                         Id="hash-drop-zone"
@@ -52,20 +53,20 @@
                         Accept="*/*"
                         ShowFileInfo="true"
                         ShowClearButton="true" />
-                    @if (!string.IsNullOrWhiteSpace(AppStrings.HashCalculator_FileHint))
+                    @if (!string.IsNullOrWhiteSpace(T("FileHint")))
                     {
                         <label class="label">
-                            <span class="label-text-alt opacity-70">@AppStrings.HashCalculator_FileHint</span>
+                            <span class="label-text-alt opacity-70">@T("FileHint")</span>
                         </label>
                     }
                 </div>
                 
                 <div class="flex flex-wrap gap-2">
                     <button class="btn btn-primary" id="calculate-btn">
-                        @AppStrings.HashCalculator_Calculate
+                        @T("Calculate")
                     </button>
                     <button class="btn btn-secondary" id="clear-btn">
-                        @AppStrings.HashCalculator_Clear
+                        @T("Clear")
                     </button>
                 </div>
 
@@ -111,20 +112,19 @@
     </script>
 
     <ToolSeoContent 
-        Introduction="@AppStrings.HashCalculator_Seo_Introduction"
-        DetailedDescription="@AppStrings.HashCalculator_Seo_DetailedDescription"
+        Introduction="@T("Seo_Introduction")"
+        DetailedDescription="@T("Seo_DetailedDescription")"
         DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
-        Examples="@AppStrings.HashCalculator_Seo_Examples"
+        Examples="@T("Seo_Examples")"
         ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
-        HowToSteps="@AppStrings.HashCalculator_Seo_HowToSteps"
+        HowToSteps="@T("Seo_HowToSteps")"
         HowToTitle="@AppStrings.Seo_HowToTitle"
-        Tips="@AppStrings.HashCalculator_Seo_Tips"
+        Tips="@T("Seo_Tips")"
         TipsTitle="@AppStrings.Seo_TipsTitle" />
 </ToolLayout>
 
 @code {
-    [Parameter]
-    public string Lang { get; set; } = "en";
+    protected override string LocalizationNamespace { get; set; } = "tools/hash-calculator";
 
     private string AlgorithmsJson { get; set; } = "[]";
 

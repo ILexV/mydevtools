@@ -1,22 +1,20 @@
 @page "/{lang}/image-compressor"
-@using MyDevTools.Site.Components.Layout
-@using MyDevTools.Site.Components.Seo
-@inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
+@inherits ToolComponentBase
 
 @using MyDevTools.Site.Resources
 
-<ToolLayout Title="@AppStrings.ImageCompressor_Title" Description="@AppStrings.ImageCompressor_Description">
-    <MetaTags Title="@AppStrings.ImageCompressor_Title" 
-              Description="@AppStrings.ImageCompressor_Description" 
+<ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")" 
+              Description="@T("Description")" 
               CurrentUrl="@Navigation.Uri" />
 
     <div id="image-compressor-root" class="max-w-5xl mx-auto space-y-8"
-         data-compressing="@AppStrings.ImageCompressor_Compressing"
-         data-processing="@AppStrings.ImageCompressor_Processing"
-         data-done="@AppStrings.ImageCompressor_Done"
+         data-compressing="@T("Compressing")"
+         data-processing="@T("Processing")"
+         data-done="@T("Done")"
          data-error="@AppStrings.Common_Error"
-         data-download="@AppStrings.ImageCompressor_Download">
+         data-download="@T("Download")">
         
         <!-- Input & Settings Card -->
         <div class="card bg-base-100 shadow-xl">
@@ -34,7 +32,7 @@
                         Id="drop-zone-wrapper"
                         InputId="fileInput"
                         IconSvg='<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>'
-                        Description="@AppStrings.ImageCompressor_DragDrop"
+                        Description="@T("DragDrop")"
                         Accept="image/png, image/jpeg, image/webp"
                         AllowMultiple="true" />
                 </div>
@@ -115,30 +113,19 @@
     </div>
 
     <ToolSeoContent 
-        Introduction="@AppStrings.ImageCompressor_Seo_Introduction"
-        DetailedDescription="@AppStrings.ImageCompressor_Seo_DetailedDescription"
+        Introduction="@T("Seo_Introduction")"
+        DetailedDescription="@T("Seo_DetailedDescription")"
         DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
-        Examples="@AppStrings.ImageCompressor_Seo_Examples"
+        Examples="@T("Seo_Examples")"
         ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
-        HowToSteps="@AppStrings.ImageCompressor_Seo_HowToSteps"
+        HowToSteps="@T("Seo_HowToSteps")"
         HowToTitle="@AppStrings.Seo_HowToTitle"
-        Tips="@AppStrings.ImageCompressor_Seo_Tips"
+        Tips="@T("Seo_Tips")"
         TipsTitle="@AppStrings.Seo_TipsTitle" />
 </ToolLayout>
 
-@code {
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            // Import module for its side effects (loading the script)
-            await JSRuntime.InvokeAsync<IJSObjectReference>("import", "/tools/image-compressor.js?v=" + DateTime.Now.Ticks);
-            
-            // The script registers window.initImageCompressor, so we call it globally
-            await JSRuntime.InvokeVoidAsync("initImageCompressor", "image-compressor-root");
-        }
-    }
+<script src="/tools/image-compressor.js"></script>
 
-    [Parameter]
-    public string Lang { get; set; } = "en";
+@code {
+    protected override string LocalizationNamespace { get; set; } = "tools/image-compressor";
 }

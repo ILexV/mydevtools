@@ -1,10 +1,11 @@
 @page "/{lang}/markdown-preview"
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
+@inherits ToolComponentBase
 
-<ToolLayout Title="@AppStrings.MarkdownPreview_Title" Description="@AppStrings.MarkdownPreview_Description">
-    <MetaTags Title="@AppStrings.MarkdownPreview_Title"
-              Description="@AppStrings.MarkdownPreview_Description"
+<ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")"
+              Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
               ToolPath="markdown-preview" />
 
@@ -13,41 +14,41 @@
         <div class="flex flex-wrap items-center justify-between gap-2 p-2 mb-4 rounded-lg bg-base-200 border border-base-300">
             <div class="flex flex-wrap gap-1">
                 <div class="join">
-                    <button class="btn btn-sm btn-ghost join-item" id="md-bold" type="button" title="@AppStrings.MarkdownPreview_Bold">
+                    <button class="btn btn-sm btn-ghost join-item" id="md-bold" type="button" title="@T("Bold")">
                         <strong class="text-lg">B</strong>
                     </button>
-                    <button class="btn btn-sm btn-ghost join-item" id="md-italic" type="button" title="@AppStrings.MarkdownPreview_Italic">
+                    <button class="btn btn-sm btn-ghost join-item" id="md-italic" type="button" title="@T("Italic")">
                         <em class="text-lg">I</em>
                     </button>
-                    <button class="btn btn-sm btn-ghost join-item" id="md-heading" type="button" title="@AppStrings.MarkdownPreview_Heading">
+                    <button class="btn btn-sm btn-ghost join-item" id="md-heading" type="button" title="@T("Heading")">
                         <span class="text-lg font-bold">H</span>
                     </button>
                 </div>
                 <div class="join">
-                    <button class="btn btn-sm btn-ghost join-item" id="md-link" type="button" title="@AppStrings.MarkdownPreview_Link">
+                    <button class="btn btn-sm btn-ghost join-item" id="md-link" type="button" title="@T("Link")">
                         🔗
                     </button>
-                    <button class="btn btn-sm btn-ghost join-item" id="md-image" type="button" title="@AppStrings.MarkdownPreview_Image">
+                    <button class="btn btn-sm btn-ghost join-item" id="md-image" type="button" title="@T("Image")">
                         🖼️
                     </button>
                 </div>
                 <div class="join">
-                    <button class="btn btn-sm btn-ghost join-item" id="md-code" type="button" title="@AppStrings.MarkdownPreview_Code">
+                    <button class="btn btn-sm btn-ghost join-item" id="md-code" type="button" title="@T("Code")">
                         &lt;/&gt;
                     </button>
-                    <button class="btn btn-sm btn-ghost join-item" id="md-list" type="button" title="@AppStrings.MarkdownPreview_List">
+                    <button class="btn btn-sm btn-ghost join-item" id="md-list" type="button" title="@T("List")">
                         ≡
                     </button>
                 </div>
             </div>
             <div>
                 <label class="label cursor-pointer gap-2 border border-base-300 rounded-lg px-2 hover:bg-base-200 transition-colors">
-                    <span class="label-text text-xs font-semibold">@AppStrings.MarkdownPreview_SyncScroll</span>
+                    <span class="label-text text-xs font-semibold">@T("SyncScroll")</span>
                     <input type="checkbox" class="toggle toggle-xs toggle-primary" id="md-sync-scroll" checked />
                 </label>
             </div>
             <div>
-                <button class="btn btn-sm btn-error btn-outline" id="md-clear" type="button">@AppStrings.MarkdownPreview_Clear</button>
+                <button class="btn btn-sm btn-error btn-outline" id="md-clear" type="button">@T("Clear")</button>
             </div>
         </div>
 
@@ -56,18 +57,18 @@
             <!-- Editor Section -->
             <div class="flex flex-col h-full min-h-0">
                 <label class="label pt-0" for="markdown-input">
-                    <span class="label-text font-bold">@AppStrings.MarkdownPreview_EditorLabel</span>
+                    <span class="label-text font-bold">@T("EditorLabel")</span>
                 </label>
                 <textarea id="markdown-input" 
                           class="textarea textarea-bordered flex-1 min-h-0 w-full font-mono resize-none text-base leading-normal p-4"
-                          placeholder="@AppStrings.MarkdownPreview_EditorPlaceholder"
+                          placeholder="@T("EditorPlaceholder")"
                           spellcheck="false"></textarea>
             </div>
 
             <!-- Preview Section -->
             <div class="flex flex-col h-full min-h-0">
                 <label class="label pt-0">
-                    <span class="label-text font-bold">@AppStrings.MarkdownPreview_PreviewLabel</span>
+                    <span class="label-text font-bold">@T("PreviewLabel")</span>
                 </label>
                 <div id="markdown-output" class="prose prose-sm max-w-none flex-1 min-h-0 w-full border border-base-300 rounded-lg p-6 overflow-y-auto bg-base-100 shadow-sm"></div>
             </div>
@@ -76,13 +77,13 @@
         <!-- Actions -->
         <div class="flex flex-wrap gap-2 justify-end">
             <button class="btn btn-neutral" id="md-copy-html" type="button">
-                @AppStrings.MarkdownPreview_CopyHTML
+                @T("CopyHTML")
             </button>
             <button class="btn btn-neutral" id="md-copy-md" type="button">
-                @AppStrings.MarkdownPreview_CopyMarkdown
+                @T("CopyMarkdown")
             </button>
             <button class="btn btn-primary" id="md-download" type="button">
-                @AppStrings.MarkdownPreview_Download
+                @T("Download")
             </button>
         </div>
 
@@ -93,14 +94,14 @@
     </div>
 
     <ToolSeoContent 
-        Introduction="@AppStrings.MarkdownPreview_Seo_Introduction"
-        DetailedDescription="@AppStrings.MarkdownPreview_Seo_DetailedDescription"
+        Introduction="@T("Seo_Introduction")"
+        DetailedDescription="@T("Seo_DetailedDescription")"
         DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
-        Examples="@AppStrings.MarkdownPreview_Seo_Examples"
+        Examples="@T("Seo_Examples")"
         ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
-        HowToSteps="@AppStrings.MarkdownPreview_Seo_HowToSteps"
+        HowToSteps="@T("Seo_HowToSteps")"
         HowToTitle="@AppStrings.Seo_HowToTitle"
-        Tips="@AppStrings.MarkdownPreview_Seo_Tips"
+        Tips="@T("Seo_Tips")"
         TipsTitle="@AppStrings.Seo_TipsTitle" />
 </ToolLayout>
 
@@ -109,9 +110,5 @@
 <script src="/js/markdown-preview.js"></script>
 
 @code {
-    /// <summary>
-    /// Language parameter from URL route
-    /// </summary>
-    [Parameter]
-    public string Lang { get; set; } = "en";
+    protected override string LocalizationNamespace { get; set; } = "tools/markdown-preview";
 }

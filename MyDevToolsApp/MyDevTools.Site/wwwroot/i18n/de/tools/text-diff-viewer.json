@@ -1,0 +1,20 @@
+{
+  "Title": "Text-Vergleich",
+  "Description": "Vergleichen Sie zwei Textdateien oder Code-Snippets nebeneinander mit einem visuellen Diff-Viewer, ähnlich wie Git diff. Heben Sie Änderungen, Hinzufügungen und Löschungen in einem lesbaren Format hervor.",
+  "OriginalLabel": "Originaltext",
+  "OriginalPlaceholder": "Originaltext hier einfügen oder eingeben, oder Datei unten hochladen...",
+  "ModifiedLabel": "Geänderter Text",
+  "ModifiedPlaceholder": "Geänderten Text hier einfügen oder eingeben, oder Datei unten hochladen...",
+  "CompareButton": "Vergleichen",
+  "ClearButton": "Löschen",
+  "LineByLine": "Zeile für Zeile",
+  "SideBySide": "Nebeneinander",
+  "ErrorMessage": "Bitte geben Sie Text in beide Felder ein, um zu vergleichen.",
+  "ChooseOriginalFile": "\uD83D\uDCC1 Originaldatei auswählen",
+  "ChooseModifiedFile": "\uD83D\uDCC1 Geänderte Datei auswählen",
+  "Seo_Introduction": "Das Text Diff Viewer-Tool ist ein datenschutzorientiertes Online-Tool für Entwickler. Die gesamte Verarbeitung erfolgt lokal in Ihrem Browser mit WebAssembly und stellt sicher, dass Ihre Daten niemals Ihr Gerät verlassen.",
+  "Seo_DetailedDescription": "Dieses Tool bietet umfassende Funktionalität für text diff viewer-Operationen. Gebaut mit modernen Webtechnologien und angetrieben von Rust-kompiliertem WebAssembly, liefert es native Leistung direkt in Ihrem Browser.\n\nDie Benutzeroberfläche ist auf Effizienz und Benutzerfreundlichkeit ausgelegt, mit Unterstützung sowohl für Texteingabe als auch für Dateiverarbeitung. Alle Operationen werden clientseitig durchgeführt und garantieren vollständige Privatsphäre und Sicherheit für Ihre sensiblen Daten.",
+  "Seo_Examples": "**Beispiel 1**: Verwenden Sie Text Diff Viewer für schnelle Konvertierungen in Ihrem Entwicklungsworkflow.\n\n**Beispiel 2**: Verarbeiten Sie Dateien direkt, ohne sie auf einen Server hochzuladen, und wahren Sie vollständige Privatsphäre.\n\n**Beispiel 3**: Integrieren Sie das Tool in Ihre täglichen Entwicklungsaufgaben für verbesserte Produktivität.",
+  "Seo_HowToSteps": "### Schritt 1: Bereiten Sie Ihre Eingabe vor\nGeben Sie Ihre Daten in das Eingabefeld ein oder laden Sie eine Datei von Ihrem Gerät hoch.\n\n### Schritt 2: Konfigurieren Sie die Optionen\nPassen Sie die Tool-Einstellungen an Ihre Bedürfnisse an.\n\n### Schritt 3: Verarbeiten und kopieren Sie die Ergebnisse\nKlicken Sie auf die Aktionstaste, um Ihre Eingabe zu verarbeiten, und kopieren Sie die Ergebnisse in die Zwischenablage.",
+  "Seo_Tips": "- Die gesamte Verarbeitung erfolgt in Ihrem Browser für maximale Privatsphäre\n- Das Tool funktioniert offline nach dem ersten Laden der Seite\n- Ihre Einstellungen werden lokal in Ihrem Browser gespeichert\n- Große Dateien werden mit Fortschrittsverfolgung unterstützt"
+}

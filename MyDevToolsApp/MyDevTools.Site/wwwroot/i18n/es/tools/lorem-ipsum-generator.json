@@ -1,0 +1,21 @@
+{
+  "Title": "Generador de Lorem Ipsum",
+  "Description": "Genera texto de marcador de posición para maquetas y diseños, completamente en tu navegador.",
+  "GenerateTypeLabel": "Generar por",
+  "Paragraphs": "Párrafos",
+  "Sentences": "Oraciones",
+  "Words": "Palabras",
+  "CountLabel": "Cantidad",
+  "StartWithClassic": "Comenzar con \"Lorem ipsum dolor sit amet...\"",
+  "WrapParagraphs": "Envolver párrafos con etiquetas <p>",
+  "GenerateButton": "Generar",
+  "OutputLabel": "Texto generado",
+  "CopyButton": "Copiar",
+  "DownloadButton": "Descargar como TXT",
+  "Copied": "¡Copiado!",
+  "Seo_Introduction": "La herramienta Lorem Ipsum Generator es una herramienta en línea centrada en la privacidad diseñada para desarrolladores. Todo el procesamiento ocurre localmente en su navegador usando WebAssembly, asegurando que sus datos nunca salgan de su dispositivo.",
+  "Seo_DetailedDescription": "Esta herramienta proporciona funcionalidad integral para operaciones de lorem ipsum generator. Construida con tecnologías web modernas y potenciada por WebAssembly compilado desde Rust, ofrece rendimiento nativo directamente en su navegador.\n\nLa interfaz está diseñada para eficiencia y facilidad de uso, con soporte tanto para entrada de texto como para procesamiento de archivos. Todas las operaciones se realizan del lado del cliente, garantizando privacidad y seguridad completas para sus datos sensibles.",
+  "Seo_Examples": "**Ejemplo 1**: Use Lorem Ipsum Generator para conversiones rápidas en su flujo de trabajo de desarrollo.\n\n**Ejemplo 2**: Procese archivos directamente sin subirlos a ningún servidor, manteniendo privacidad completa.\n\n**Ejemplo 3**: Integre la herramienta en sus tareas diarias de desarrollo para mejorar la productividad.",
+  "Seo_HowToSteps": "### Paso 1: Prepare su entrada\nIngrese sus datos en el campo de entrada o cargue un archivo desde su dispositivo.\n\n### Paso 2: Configure las opciones\nAjuste la configuración de la herramienta según sus necesidades.\n\n### Paso 3: Procese y copie los resultados\nHaga clic en el botón de acción para procesar su entrada y copie los resultados al portapapeles.",
+  "Seo_Tips": "- Todo el procesamiento ocurre en su navegador para máxima privacidad\n- La herramienta funciona sin conexión después de la carga inicial de la página\n- Sus preferencias se guardan localmente en su navegador\n- Se admiten archivos grandes con seguimiento de progreso"
+}

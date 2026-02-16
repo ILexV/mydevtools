@@ -1,0 +1,21 @@
+{
+  "Title": "Conversor de Unidades",
+  "Description": "Convierte entre varias unidades de medida: longitud, peso, temperatura y volumen — todo el procesamiento ocurre en tu navegador",
+  "CategoryLabel": "Categoría",
+  "Category_Length": "Longitud",
+  "Category_Weight": "Peso",
+  "Category_Temperature": "Temperatura",
+  "Category_Volume": "Volumen",
+  "FromLabel": "De",
+  "ToLabel": "A",
+  "Swap": "Intercambiar unidades",
+  "Copied": "¡Copiado!",
+  "QuickConversions": "Conversiones Rápidas",
+  "CommonConversions": "Conversiones Comunes",
+  "Formula": "Fórmula de Conversión",
+  "Seo_Introduction": "El Conversor de Unidades es una herramienta en línea para convertir entre diversas unidades de medida. Todos los cálculos ocurren localmente en tu navegador, garantizando que tus datos nunca salgan de tu dispositivo.",
+  "Seo_DetailedDescription": "Esta herramienta soporta conversión entre unidades métricas e imperiales en cuatro categorías: Longitud (metros, kilómetros, millas, pies, pulgadas), Peso (kilogramos, gramos, libras, onzas), Temperatura (Celsius, Fahrenheit, Kelvin) y Volumen (litros, galones, tazas, onzas líquidas).\n\nConstruida con tecnologías web modernas, proporciona resultados instantáneos sin procesamiento en servidor. La interfaz es intuitiva y soporta cambio rápido entre unidades, copiar resultados y ver pares de conversión comunes.",
+  "Seo_Examples": "**Ejemplo 1**: Convierte 5 kilómetros a millas para planificación de viajes.\n\n**Ejemplo 2**: Convierte medidas de recetas de tazas a mililitros.\n\n**Ejemplo 3**: Convierte temperatura corporal de Fahrenheit a Celsius.",
+  "Seo_HowToSteps": "### Paso 1: Selecciona la Categoría\nElige el tipo de medida que quieres convertir: Longitud, Peso, Temperatura o Volumen.\n\n### Paso 2: Ingresa el Valor\nEscribe el valor que quieres convertir en el campo \"De\".\n\n### Paso 3: Selecciona las Unidades\nElige las unidades de origen y destino de los menús desplegables.\n\n### Paso 4: Ver el Resultado\nEl valor convertido aparecerá automáticamente en el campo \"A\". Haz clic en el botón de copiar para copiar el resultado.",
+  "Seo_Tips": "- Todos los cálculos ocurren en tu navegador para máxima privacidad\n- Usa el botón de intercambio para cambiar rápidamente la dirección de la conversión\n- Los botones de conversión rápida muestran valores equivalentes en todas las otras unidades\n- El panel lateral de conversiones comunes proporciona valores de referencia útiles\n- Funciona sin conexión después de la carga inicial de la página"
+}

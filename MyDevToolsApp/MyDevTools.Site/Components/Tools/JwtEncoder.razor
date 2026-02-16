@@ -1,29 +1,30 @@
 @page "/{lang}/jwt-encoder"
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
+@inherits ToolComponentBase
 
-<ToolLayout Title="@AppStrings.JwtEncoder_Title" Description="@AppStrings.JwtEncoder_Description">
-    <MetaTags Title="@AppStrings.JwtEncoder_Title"
-              Description="@AppStrings.JwtEncoder_Description"
+<ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")"
+              Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
               ToolPath="jwt-encoder" />
 
     <div class="alert alert-info mb-6 shadow-sm">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        <span>@AppStrings.JwtEncoder_LinkToDecoder → <a href="/@Lang/jwt-decoder" class="link link-hover font-bold">@AppStrings.JwtDecoder_Title</a></span>
+        <span>@T("LinkToDecoder") → <a href="/@Lang/jwt-decoder" class="link link-hover font-bold">@T("DecoderTitle")</a></span>
     </div>
 
     <div id="jwt-encoder-root" class="flex flex-col gap-6"
          data-loading="@AppStrings.Common_Loading"
          data-error="@AppStrings.Common_Error"
-         data-copy="@AppStrings.HashCalculator_Copy"
-         data-copied="@AppStrings.HashCalculator_Copied">
+         data-copy="@T("Copy")"
+         data-copied="@T("Copied")">
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Header (JSON) -->
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body p-4 sm:p-6">
-                    <h3 class="card-title text-secondary text-base mb-2">@AppStrings.JwtEncoder_HeaderLabel</h3>
+                    <h3 class="card-title text-secondary text-base mb-2">@T("HeaderLabel")</h3>
                     <textarea id="jwt-header-input" class="textarea textarea-bordered w-full font-mono min-h-[250px] text-sm bg-base-200 focus:bg-base-100 transition-colors" spellcheck="false">{"alg":"HS256","typ":"JWT"}</textarea>
                     <div class="alert alert-error mt-2 hidden text-xs py-2" id="jwt-header-error"></div>
                 </div>
@@ -32,7 +33,7 @@
             <!-- Payload (JSON) -->
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body p-4 sm:p-6">
-                    <h3 class="card-title text-accent text-base mb-2">@AppStrings.JwtEncoder_PayloadLabel</h3>
+                    <h3 class="card-title text-accent text-base mb-2">@T("PayloadLabel")</h3>
                     <textarea id="jwt-payload-input" class="textarea textarea-bordered w-full font-mono min-h-[250px] text-sm bg-base-200 focus:bg-base-100 transition-colors" spellcheck="false">{"sub":"1234567890","name":"John Doe","iat":1516239022}</textarea>
                     <div class="alert alert-error mt-2 hidden text-xs py-2" id="jwt-payload-error"></div>
                 </div>
@@ -54,7 +55,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="form-control w-full">
                         <label class="label font-semibold" for="jwt-algorithm-select">
-                            @AppStrings.JwtEncoder_AlgorithmLabel
+                            @T("AlgorithmLabel")
                         </label>
                         <select id="jwt-algorithm-select" class="select select-bordered w-full">
                             <option value="HS256" selected>HS256</option>
@@ -65,9 +66,9 @@
 
                     <div class="form-control w-full md:col-span-2">
                         <label class="label font-semibold" for="jwt-secret-input">
-                            @AppStrings.JwtEncoder_SecretLabel
+                            @T("SecretLabel")
                         </label>
-                        <textarea id="jwt-secret-input" class="textarea textarea-bordered w-full font-mono min-h-[80px]" placeholder="@AppStrings.JwtEncoder_SecretPlaceholder" spellcheck="false"></textarea>
+                        <textarea id="jwt-secret-input" class="textarea textarea-bordered w-full font-mono min-h-[80px]" placeholder="@T("SecretPlaceholder")" spellcheck="false"></textarea>
                     </div>
                 </div>
             </div>
@@ -77,12 +78,12 @@
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body p-4 sm:p-6">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="card-title text-primary text-base">@AppStrings.JwtEncoder_EncodedLabel</h3>
+                    <h3 class="card-title text-primary text-base">@T("EncodedLabel")</h3>
                     <button id="copy-jwt-btn" class="btn btn-sm btn-ghost" disabled>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-1">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
                         </svg>
-                        @AppStrings.HashCalculator_Copy
+                        @T("Copy")
                     </button>
                 </div>
                 <textarea id="jwt-encoded-output" class="textarea textarea-bordered w-full font-mono min-h-[150px] text-lg leading-relaxed break-all bg-base-200 text-base-content/80" spellcheck="false" readonly></textarea>
@@ -98,18 +99,17 @@
     <script src="/tools/jwt-encoder.js"></script>
 
     <ToolSeoContent 
-        Introduction="@AppStrings.JwtEncoder_Seo_Introduction"
-        DetailedDescription="@AppStrings.JwtEncoder_Seo_DetailedDescription"
+        Introduction="@T("Seo_Introduction")"
+        DetailedDescription="@T("Seo_DetailedDescription")"
         DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
-        Examples="@AppStrings.JwtEncoder_Seo_Examples"
+        Examples="@T("Seo_Examples")"
         ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
-        HowToSteps="@AppStrings.JwtEncoder_Seo_HowToSteps"
+        HowToSteps="@T("Seo_HowToSteps")"
         HowToTitle="@AppStrings.Seo_HowToTitle"
-        Tips="@AppStrings.JwtEncoder_Seo_Tips"
+        Tips="@T("Seo_Tips")"
         TipsTitle="@AppStrings.Seo_TipsTitle" />
 </ToolLayout>
 
 @code {
-    [Parameter]
-    public string Lang { get; set; } = "en";
+    protected override string LocalizationNamespace { get; set; } = "tools/jwt-decoder";
 }

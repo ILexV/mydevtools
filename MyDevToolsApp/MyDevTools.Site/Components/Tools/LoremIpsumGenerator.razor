@@ -1,14 +1,15 @@
 @page "/{lang}/lorem-ipsum-generator"
 @using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
+@inherits ToolComponentBase
 
-<MetaTags Title="@AppStrings.LoremIpsumGenerator_Title"
-          Description="@AppStrings.LoremIpsumGenerator_Description"
+<MetaTags Title="@T("title")"
+          Description="@T("description")"
           CurrentUrl="@Navigation.Uri"
           ToolPath="lorem-ipsum-generator" />
 
-<ToolLayout Title="@AppStrings.LoremIpsumGenerator_Title" Description="@AppStrings.LoremIpsumGenerator_Description">
-    <div id="lorem-ipsum-root" class="grid grid-cols-1 lg:grid-cols-3 gap-6" data-copied="@AppStrings.LoremIpsumGenerator_Copied">
+<ToolLayout Title="@T("title")" Description="@T("description")">
+    <div id="lorem-ipsum-root" class="grid grid-cols-1 lg:grid-cols-3 gap-6" data-copied="@T("copied")">
         
         <!-- Controls -->
         <div class="card bg-base-100 shadow-xl h-fit lg:col-span-1">
@@ -23,14 +24,14 @@
                 <!-- Count & Type -->
                 <div class="form-control">
                     <label class="label text-sm font-semibold">
-                        @AppStrings.LoremIpsumGenerator_GenerateTypeLabel
+                        @T("generateTypeLabel")
                     </label>
                     <div class="join w-full">
                         <input class="input input-bordered join-item w-20 text-center" type="number" id="count" min="1" max="500" value="5" />
                         <select id="generate-type" class="select select-bordered join-item flex-1">
-                            <option value="paragraphs">@AppStrings.LoremIpsumGenerator_Paragraphs</option>
-                            <option value="sentences">@AppStrings.LoremIpsumGenerator_Sentences</option>
-                            <option value="words">@AppStrings.LoremIpsumGenerator_Words</option>
+                            <option value="paragraphs">@T("paragraphs")</option>
+                            <option value="sentences">@T("sentences")</option>
+                            <option value="words">@T("words")</option>
                             <option value="list-items">List Items</option>
                         </select>
                     </div>
@@ -54,7 +55,7 @@
                 <div class="form-control">
                     <label class="label cursor-pointer justify-start gap-3 py-1 hover:bg-base-200 rounded transition-colors px-2">
                         <input type="checkbox" id="start-classic" checked class="checkbox checkbox-sm checkbox-primary" />
-                        <span class="label-text">@AppStrings.LoremIpsumGenerator_StartWithClassic</span>
+                        <span class="label-text">@T("startWithClassic")</span>
                     </label>
                 </div>
 
@@ -95,7 +96,7 @@
                 <div class="card-actions mt-6">
                     <button id="generate-btn" class="btn btn-primary w-full shadow-md">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
-                        @AppStrings.LoremIpsumGenerator_GenerateButton
+                        @T("generateButton")
                     </button>
                 </div>
             </div>
@@ -105,13 +106,13 @@
         <div class="card bg-base-100 shadow-xl h-full lg:col-span-2">
             <div class="card-body p-4 sm:p-6">
                 <div class="flex justify-between items-center mb-2">
-                    <h2 class="card-title text-base opacity-70">@AppStrings.LoremIpsumGenerator_OutputLabel</h2>
+                    <h2 class="card-title text-base opacity-70">@T("outputLabel")</h2>
                     <div class="flex gap-2">
-                        <button id="copy-btn" class="btn btn-sm btn-ghost" title="@AppStrings.LoremIpsumGenerator_CopyButton">
+                        <button id="copy-btn" class="btn btn-sm btn-ghost" title="@T("copyButton")">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
                             Copy
                         </button>
-                        <button id="download-btn" class="btn btn-sm btn-ghost" title="@AppStrings.LoremIpsumGenerator_DownloadButton">
+                        <button id="download-btn" class="btn btn-sm btn-ghost" title="@T("downloadButton")">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                             Download
                         </button>
@@ -131,18 +132,17 @@
     <script src="/tools/lorem-ipsum-generator.js"></script>
 
     <ToolSeoContent 
-        Introduction="@AppStrings.LoremIpsumGenerator_Seo_Introduction"
-        DetailedDescription="@AppStrings.LoremIpsumGenerator_Seo_DetailedDescription"
+        Introduction="@T("seoIntroduction")"
+        DetailedDescription="@T("seoDetailedDescription")"
         DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
-        Examples="@AppStrings.LoremIpsumGenerator_Seo_Examples"
+        Examples="@T("seoExamples")"
         ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
-        HowToSteps="@AppStrings.LoremIpsumGenerator_Seo_HowToSteps"
+        HowToSteps="@T("seoHowToSteps")"
         HowToTitle="@AppStrings.Seo_HowToTitle"
-        Tips="@AppStrings.LoremIpsumGenerator_Seo_Tips"
+        Tips="@T("seoTips")"
         TipsTitle="@AppStrings.Seo_TipsTitle" />
 </ToolLayout>
 
 @code {
-    [Parameter]
-    public string Lang { get; set; } = "en";
+    protected override string LocalizationNamespace { get; set; } = "tools/lorem-ipsum-generator";
 }

@@ -1,0 +1,21 @@
+{
+  "Title": "Convertisseur d'Unités",
+  "Description": "Convertissez entre différentes unités de mesure : longueur, poids, température et volume — tous les calculs se font dans votre navigateur",
+  "CategoryLabel": "Catégorie",
+  "Category_Length": "Longueur",
+  "Category_Weight": "Poids",
+  "Category_Temperature": "Température",
+  "Category_Volume": "Volume",
+  "FromLabel": "De",
+  "ToLabel": "Vers",
+  "Swap": "Échanger les unités",
+  "Copied": "Copié !",
+  "QuickConversions": "Conversions Rapides",
+  "CommonConversions": "Conversions Courantes",
+  "Formula": "Formule de Conversion",
+  "Seo_Introduction": "Le Convertisseur d'Unités est un outil en ligne pour convertir entre différentes unités de mesure. Tous les calculs se font localement dans votre navigateur, garantissant que vos données ne quittent jamais votre appareil.",
+  "Seo_DetailedDescription": "Cet outil prend en charge la conversion entre unités métriques et impériales dans quatre catégories : Longueur (mètres, kilomètres, miles, pieds, pouces), Poids (kilogrammes, grammes, livres, onces), Température (Celsius, Fahrenheit, Kelvin) et Volume (litres, gallons, tasses, onces liquides).\n\nConstruit avec des technologies web modernes, il fournit des résultats instantanés sans traitement sur serveur. L'interface est intuitive et prend en charge le changement rapide entre unités, la copie des résultats et l'affichage des paires de conversion communes.",
+  "Seo_Examples": "**Exemple 1** : Convertissez 5 kilomètres en miles pour la planification de voyage.\n\n**Exemple 2** : Convertissez les mesures de recettes de tasses en millilitres.\n\n**Exemple 3** : Convertissez la température corporelle de Fahrenheit en Celsius.",
+  "Seo_HowToSteps": "### Étape 1 : Sélectionnez la Catégorie\nChoisissez le type de mesure que vous voulez convertir : Longueur, Poids, Température ou Volume.\n\n### Étape 2 : Entrez la Valeur\nTapez la valeur à convertir dans le champ \"De\".\n\n### Étape 3 : Sélectionnez les Unités\nChoisissez les unités source et cible dans les menus déroulants.\n\n### Étape 4 : Voyez le Résultat\nLa valeur convertie apparaît automatiquement dans le champ \"Vers\". Cliquez sur le bouton de copie pour copier le résultat.",
+  "Seo_Tips": "- Tous les calculs se font dans votre navigateur pour une confidentialité maximale\n- Utilisez le bouton d'échange pour changer rapidement la direction de la conversion\n- Les boutons de conversion rapide affichent les valeurs équivalentes dans toutes les autres unités\n- Le panneau latéral des conversions courantes fournit des valeurs de référence utiles\n- Fonctionne hors ligne après le chargement initial de la page"
+}

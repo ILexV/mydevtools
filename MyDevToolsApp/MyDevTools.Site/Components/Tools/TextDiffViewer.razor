@@ -1,5 +1,4 @@
 @page "/{lang}/text-diff-viewer"
-@using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -11,7 +10,7 @@
 
     <div id="text-diff-viewer-root"
          data-error-msg="@T("ErrorMessage")"
-         data-loading-msg="@AppStrings.Common_Loading"
+         data-loading-msg="@TCommon("Common_Loading")"
          class="max-w-6xl mx-auto">
         
         <!-- Controls & Input Area -->
@@ -104,13 +103,13 @@
     <ToolSeoContent 
         Introduction="@T("Seo_Introduction")"
         DetailedDescription="@T("Seo_DetailedDescription")"
-        DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
+        DetailedDescriptionTitle="@TCommon("Seo_DetailedDescriptionTitle")"
         Examples="@T("Seo_Examples")"
-        ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
+        ExamplesTitle="@TCommon("Seo_ExamplesTitle")"
         HowToSteps="@T("Seo_HowToSteps")"
-        HowToTitle="@AppStrings.Seo_HowToTitle"
+        HowToTitle="@TCommon("Seo_HowToTitle")"
         Tips="@T("Seo_Tips")"
-        TipsTitle="@AppStrings.Seo_TipsTitle" />
+        TipsTitle="@TCommon("Seo_TipsTitle")" />
 </ToolLayout>
 
 @code {

@@ -1,5 +1,4 @@
 @page "/{lang}/x509"
-@using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -10,8 +9,8 @@
               ToolPath="x509" />
 
     <div id="x509-root"
-         data-loading="@AppStrings.Common_Loading"
-         data-error="@AppStrings.Common_Error"
+         data-loading="@TCommon("Common_Loading")"
+         data-error="@TCommon("Common_Error")"
          data-copy="@T("Copy")"
          data-copied="@T("Copied")"
          data-download="@T("Download")"
@@ -124,13 +123,13 @@
     <ToolSeoContent 
         Introduction="@T("Seo_Introduction")"
         DetailedDescription="@T("Seo_DetailedDescription")"
-        DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
+        DetailedDescriptionTitle="@TCommon("Seo_DetailedDescriptionTitle")"
         Examples="@T("Seo_Examples")"
-        ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
+        ExamplesTitle="@TCommon("Seo_ExamplesTitle")"
         HowToSteps="@T("Seo_HowToSteps")"
-        HowToTitle="@AppStrings.Seo_HowToTitle"
+        HowToTitle="@TCommon("Seo_HowToTitle")"
         Tips="@T("Seo_Tips")"
-        TipsTitle="@AppStrings.Seo_TipsTitle" />
+        TipsTitle="@TCommon("Seo_TipsTitle")" />
 </ToolLayout>
 
 @code {

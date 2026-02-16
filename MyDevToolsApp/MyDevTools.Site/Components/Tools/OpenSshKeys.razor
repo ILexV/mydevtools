@@ -1,5 +1,4 @@
 @page "/{lang}/openssh-keys"
-@using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -10,8 +9,8 @@
               ToolPath="openssh-keys" />
 
     <div id="openssh-keys-root"
-         data-loading="@AppStrings.Common_Loading"
-         data-error="@AppStrings.Common_Error"
+         data-loading="@TCommon("Common_Loading")"
+         data-error="@TCommon("Common_Error")"
          data-copy="@T("Copy")"
          data-copied="@T("Copied")"
          data-download="@T("Download")"
@@ -87,8 +86,8 @@
                                     <svg class="w-8 h-8 mb-2 text-base-content/50" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
                                     </svg>
-                                    <p class="mb-2 text-sm text-base-content/70"><span class="font-semibold">@AppStrings.Common_FileChooseButton</span></p>
-                                    <p class="text-xs text-base-content/50" id="openssh-import-file-name">@AppStrings.Common_FileDropSubtitle</p>
+                                    <p class="mb-2 text-sm text-base-content/70"><span class="font-semibold">@TCommon("Common_FileChooseButton")</span></p>
+                                    <p class="text-xs text-base-content/50" id="openssh-import-file-name">@TCommon("Common_FileDropSubtitle")</p>
                                 </div>
                                 <input id="openssh-import-file" type="file" class="hidden" />
                             </label>
@@ -142,13 +141,13 @@
     <ToolSeoContent 
         Introduction="@T("Seo_Introduction")"
         DetailedDescription="@T("Seo_DetailedDescription")"
-        DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
+        DetailedDescriptionTitle="@TCommon("Seo_DetailedDescriptionTitle")"
         Examples="@T("Seo_Examples")"
-        ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
+        ExamplesTitle="@TCommon("Seo_ExamplesTitle")"
         HowToSteps="@T("Seo_HowToSteps")"
-        HowToTitle="@AppStrings.Seo_HowToTitle"
+        HowToTitle="@TCommon("Seo_HowToTitle")"
         Tips="@T("Seo_Tips")"
-        TipsTitle="@AppStrings.Seo_TipsTitle" />
+        TipsTitle="@TCommon("Seo_TipsTitle")" />
 </ToolLayout>
 
 @code {

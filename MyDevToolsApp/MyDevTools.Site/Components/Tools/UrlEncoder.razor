@@ -1,5 +1,4 @@
 @page "/{lang}/url-encoder"
-@using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -11,7 +10,7 @@
 
     <div id="url-encoder-root"
          class="grid grid-cols-1 lg:grid-cols-2 gap-6"
-         data-error="@AppStrings.Common_Error"
+         data-error="@TCommon("Common_Error")"
          data-copied="@T("Copied")">
 
         <!-- Input & Settings Card -->
@@ -131,13 +130,13 @@
     <ToolSeoContent 
         Introduction="@T("Seo_Introduction")"
         DetailedDescription="@T("Seo_DetailedDescription")"
-        DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
+        DetailedDescriptionTitle="@TCommon("Seo_DetailedDescriptionTitle")"
         Examples="@T("Seo_Examples")"
-        ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
+        ExamplesTitle="@TCommon("Seo_ExamplesTitle")"
         HowToSteps="@T("Seo_HowToSteps")"
-        HowToTitle="@AppStrings.Seo_HowToTitle"
+        HowToTitle="@TCommon("Seo_HowToTitle")"
         Tips="@T("Seo_Tips")"
-        TipsTitle="@AppStrings.Seo_TipsTitle" />
+        TipsTitle="@TCommon("Seo_TipsTitle")" />
 </ToolLayout>
 
 @code {

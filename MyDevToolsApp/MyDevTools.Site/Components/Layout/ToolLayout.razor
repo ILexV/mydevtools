@@ -1,6 +1,6 @@
-@using MyDevTools.Site.Resources
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
+@inject IJsonLocalizationService JsonLocalization
 
 <div class="w-full max-w-7xl mx-auto px-4">
     <div class="card bg-base-100 shadow-xl border border-base-300">
@@ -26,7 +26,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
                     </svg>
-                    <span>@AppStrings.Home_NoDataSent</span>
+                    <span>@TCommon("NoDataSent")</span>
                 </div>
             }
         </div>
@@ -38,7 +38,7 @@
     /// Universal SSR-compatible layout for all developer tools.
     /// All data processing happens client-side via WASM.
     /// </summary>
-    
+
     /// <summary>
     /// The title of the tool.
     /// </summary>
@@ -64,7 +64,7 @@
     public bool ShowPrivacyNotice { get; set; } = true;
 
     /// <summary>
-    /// The slug of the tool (e.g., "json-beautifier"). 
+    /// The slug of the tool (e.g., "json-beautifier").
     /// If not provided, will be extracted from URL.
     /// </summary>
     [Parameter]
@@ -75,6 +75,19 @@
     /// </summary>
     [Parameter]
     public string? ToolIcon { get; set; }
+
+    private string GetLanguageFromUrl()
+    {
+        var uri = new Uri(Navigation.Uri);
+        var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        return segments.Length > 0 ? segments[0] : "en";
+    }
+
+    private string TCommon(string key)
+    {
+        var lang = GetLanguageFromUrl();
+        return JsonLocalization.Get(lang, "common", key);
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

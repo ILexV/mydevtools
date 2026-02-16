@@ -1,5 +1,4 @@
 @page "/{lang}/date-converter"
-@using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -124,13 +123,13 @@
     <ToolSeoContent 
         Introduction="@T("seoIntroduction")"
         DetailedDescription="@T("seoDetailedDescription")"
-        DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
+        DetailedDescriptionTitle="@TCommon("Seo_DetailedDescriptionTitle")"
         Examples="@T("seoExamples")"
-        ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
+        ExamplesTitle="@TCommon("Seo_ExamplesTitle")"
         HowToSteps="@T("seoHowToSteps")"
-        HowToTitle="@AppStrings.Seo_HowToTitle"
+        HowToTitle="@TCommon("Seo_HowToTitle")"
         Tips="@T("seoTips")"
-        TipsTitle="@AppStrings.Seo_TipsTitle" />
+        TipsTitle="@TCommon("Seo_TipsTitle")" />
 </ToolLayout>
 
 @code {

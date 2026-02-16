@@ -35,4 +35,12 @@ public abstract class ToolComponentBase : ComponentBase
     {
         return JsonLocalization.GetAll(Lang, LocalizationNamespace);
     }
+    
+    /// <summary>
+    /// Gets a common localized string by key (from common.json).
+    /// </summary>
+    protected string TCommon(string key)
+    {
+        return JsonLocalization.Get(Lang, "common", key);
+    }
 }

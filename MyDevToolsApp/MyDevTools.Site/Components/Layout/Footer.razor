@@ -1,8 +1,9 @@
-@using MyDevTools.Site.Resources
+@inject IJsonLocalizationService JsonLocalization
+@inject NavigationManager Navigation
 
 <footer class="footer footer-center p-10 bg-base-200/50 border-t border-base-300/50 mt-16">
     <div class="max-w-4xl">
-        
+
         <div class="flex items-center justify-center gap-2 mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                  class="text-primary">
@@ -12,22 +13,53 @@
                 <path d="M15 20v2"/>
                 <path d="M2 15h2"/>
             </svg>
-            <span class="text-xl font-bold">@AppStrings.AppName</span>
+            <span class="text-xl font-bold">@GetCommonString("AppName")</span>
         </div>
 
-        
+
         <p class="text-base-content/70 mb-6 max-w-md">
-            @AppStrings.Home_Subtitle
+            @GetSubtitle()
         </p>
 
-        
+
         <div class="border-t border-base-300/50 pt-6 w-full">
             <p class="text-sm text-base-content/50">
-                &copy; @DateTime.UtcNow.Year MyDevTools.app - @AppStrings.AppTagline
+                &copy; @DateTime.UtcNow.Year MyDevTools.app - @GetCommonString("AppTagline")
             </p>
         </div>
     </div>
 </footer>
 
 @code {
+    [Parameter]
+    public string Lang { get; set; } = "en";
+
+    private string GetLanguage()
+    {
+        if (!string.IsNullOrEmpty(Lang) && Lang != "en")
+            return Lang;
+
+        var uri = new Uri(Navigation.Uri);
+        var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        return segments.Length > 0 ? segments[0] : "en";
+    }
+
+    private string GetCommonString(string key)
+    {
+        var lang = GetLanguage();
+        return JsonLocalization.Get(lang, "common", key);
+    }
+
+    private string GetSubtitle()
+    {
+        var lang = GetLanguage();
+        // Try to get Subtitle from home.json first, fallback to common.json
+        var subtitle = JsonLocalization.Get(lang, "home", "Subtitle");
+        if (string.IsNullOrEmpty(subtitle) || subtitle == "Subtitle")
+        {
+            // Fallback to common.json
+            return GetCommonString("AppTagline");
+        }
+        return subtitle;
+    }
 }

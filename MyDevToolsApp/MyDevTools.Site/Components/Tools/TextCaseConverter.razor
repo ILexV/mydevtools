@@ -1,5 +1,4 @@
 @page "/{lang}/text-case-converter"
-@using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -20,7 +19,7 @@
                 <!-- Toolbar with Copy/Clear -->
                 <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
                     <div class="flex items-center gap-2">
-                        <span class="text-sm font-semibold opacity-70">@AppStrings.Common_Input / @AppStrings.Common_Output</span>
+                        <span class="text-sm font-semibold opacity-70">@TCommon("Common_Input") / @TCommon("Common_Output")</span>
                     </div>
                     <div class="join">
                         <button type="button" class="btn btn-sm btn-ghost join-item text-error" id="tcc-clear-btn" title="@T("ClearButton")">
@@ -81,13 +80,13 @@
     <ToolSeoContent 
         Introduction="@T("Seo_Introduction")"
         DetailedDescription="@T("Seo_DetailedDescription")"
-        DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
+        DetailedDescriptionTitle="@TCommon("Seo_DetailedDescriptionTitle")"
         Examples="@T("Seo_Examples")"
-        ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
+        ExamplesTitle="@TCommon("Seo_ExamplesTitle")"
         HowToSteps="@T("Seo_HowToSteps")"
-        HowToTitle="@AppStrings.Seo_HowToTitle"
+        HowToTitle="@TCommon("Seo_HowToTitle")"
         Tips="@T("Seo_Tips")"
-        TipsTitle="@AppStrings.Seo_TipsTitle" />
+        TipsTitle="@TCommon("Seo_TipsTitle")" />
 </ToolLayout>
 
 @code {

@@ -1,14 +1,14 @@
-@using MyDevTools.Site.Resources
+@inject IJsonLocalizationService JsonLocalization
 
 @{
     // Serialize tools to JSON for JavaScript
-    var toolsJson = System.Text.Json.JsonSerializer.Serialize(Tools.Select(t => new { 
-        slug = t.Slug, 
-        name = t.Name, 
-        description = t.Description, 
-        category = t.Category, 
+    var toolsJson = System.Text.Json.JsonSerializer.Serialize(Tools.Select(t => new {
+        slug = t.Slug,
+        name = t.Name,
+        description = t.Description,
+        category = t.Category,
         icon = t.Icon,
-        isPopular = t.IsPopular 
+        isPopular = t.IsPopular
     }));
 }
 
@@ -20,16 +20,16 @@
             <circle cx="11" cy="11" r="8"/>
             <path d="m21 21-4.3-4.3"/>
         </svg>
-        
-        <input type="text" 
+
+        <input type="text"
                id="command-palette-input"
-               class="command-palette-input" 
-               placeholder="@AppStrings.CommandPalette_SearchPlaceholder"
+               class="command-palette-input"
+               placeholder='@GetCommonString("CommandPalette_SearchPlaceholder")'
                autocomplete="off"
                autocorrect="off"
                autocapitalize="off"
                spellcheck="false" />
-        
+
         <kbd class="kbd kbd-sm">ESC</kbd>
     </div>
 
@@ -41,6 +41,8 @@
 @code {
     [Parameter] public string Lang { get; set; } = "en";
     [Parameter] public List<ToolInfo> Tools { get; set; } = new();
+
+    private string GetCommonString(string key) => JsonLocalization.Get(Lang, "common", key);
 
     public class ToolInfo
     {

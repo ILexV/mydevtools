@@ -1,4 +1,5 @@
-@using MyDevTools.Site.Resources
+@inject IJsonLocalizationService JsonLocalization
+@inject NavigationManager Navigation
 @* Ferris Animation Component - Crab mascot with orbiting tool icons *@
 
 <div class="ferris-container" id="ferris-animation-root">
@@ -175,9 +176,24 @@
 
         @* Click hint *@
         <div class="ferris-hint">
-            @AppStrings.Home_FerrisClickHint
+            @GetHomeString("FerrisClickHint")
         </div>
     </div>
+
+@code {
+    private string GetLanguage()
+    {
+        var uri = new Uri(Navigation.Uri);
+        var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        return segments.Length > 0 ? segments[0] : "en";
+    }
+
+    private string GetHomeString(string key)
+    {
+        var lang = GetLanguage();
+        return JsonLocalization.Get(lang, "home", key);
+    }
+}
 
     @* Decorative pinging dots *@
     <div class="ferris-ping" style="top: 10%; right: 10%; width: 1rem; height: 1rem; background: #6366f1; animation-duration: 3s;"></div>

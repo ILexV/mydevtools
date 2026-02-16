@@ -1,5 +1,4 @@
 @page "/{lang}/hmac-calculator"
-@using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -10,8 +9,8 @@
               ToolPath="hmac-calculator" />
 
     <div id="hmac-calculator-root"
-         data-loading="@AppStrings.Common_Loading"
-         data-error="@AppStrings.Common_Error"
+         data-loading="@TCommon("Common_Loading")"
+         data-error="@TCommon("Common_Error")"
          data-copy="@T("Copy")"
          data-copied="@T("Copied")"
          class="max-w-4xl mx-auto">
@@ -110,13 +109,13 @@
     <ToolSeoContent 
         Introduction="@T("Seo_Introduction")"
         DetailedDescription="@T("Seo_DetailedDescription")"
-        DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
+        DetailedDescriptionTitle="@TCommon("Seo_DetailedDescriptionTitle")"
         Examples="@T("Seo_Examples")"
-        ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
+        ExamplesTitle="@TCommon("Seo_ExamplesTitle")"
         HowToSteps="@T("Seo_HowToSteps")"
-        HowToTitle="@AppStrings.Seo_HowToTitle"
+        HowToTitle="@TCommon("Seo_HowToTitle")"
         Tips="@T("Seo_Tips")"
-        TipsTitle="@AppStrings.Seo_TipsTitle" />
+        TipsTitle="@TCommon("Seo_TipsTitle")" />
 </ToolLayout>
 
 @code {

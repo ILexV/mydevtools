@@ -1,5 +1,4 @@
 @page "/{lang}/base58-encoder"
-@using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -11,8 +10,8 @@
 
     <div id="base58-encoder-root"
          class="grid grid-cols-1 lg:grid-cols-2 gap-6"
-         data-loading="@AppStrings.Common_Loading"
-         data-error="@AppStrings.Common_Error"
+         data-loading="@TCommon("Common_Loading")"
+         data-error="@TCommon("Common_Error")"
          data-file-progress-title="@T("FileProgressTitle")"
          data-cancel="@T("Cancel")"
          data-copy="@T("Copy")"
@@ -41,7 +40,7 @@
                         Id="b58-drop-zone"
                         InputId="b58-input-file"
                         IconSvg='<svg class="w-10 h-10 text-base-content/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>'
-                        Description="@AppStrings.Common_FileDropTitle"
+                        Description="@TCommon("Common_FileDropTitle")"
                         Accept="*/*"
                         ShowFileInfo="true"
                         ShowClearButton="true" />
@@ -182,13 +181,13 @@
     <ToolSeoContent 
         Introduction="@T("Seo_Introduction")"
         DetailedDescription="@T("Seo_DetailedDescription")"
-        DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
+        DetailedDescriptionTitle="@TCommon("Seo_DetailedDescriptionTitle")"
         Examples="@T("Seo_Examples")"
-        ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
+        ExamplesTitle="@TCommon("Seo_ExamplesTitle")"
         HowToSteps="@T("Seo_HowToSteps")"
-        HowToTitle="@AppStrings.Seo_HowToTitle"
+        HowToTitle="@TCommon("Seo_HowToTitle")"
         Tips="@T("Seo_Tips")"
-        TipsTitle="@AppStrings.Seo_TipsTitle" />
+        TipsTitle="@TCommon("Seo_TipsTitle")" />
 </ToolLayout>
 
 @code {

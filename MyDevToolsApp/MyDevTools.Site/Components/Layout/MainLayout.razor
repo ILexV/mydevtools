@@ -1,7 +1,5 @@
 @inherits LayoutComponentBase
-@using MyDevTools.Site.Resources
-@using MyDevTools.Site.Services
-@using MyDevTools.Site.Components.Common
+@inject IJsonLocalizationService JsonLocalization
 
 @* Type alias for CommandPalette ToolInfo *@
 @using ToolInfo = MyDevTools.Site.Components.Common.CommandPalette.ToolInfo
@@ -26,10 +24,10 @@
             
             <nav class="hidden md:flex items-center gap-6">
                 <a href="/@CurrentLanguage/#tools" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                    @AppStrings.Nav_Utilities
+                    @GetCommonString("Nav_Utilities")
                 </a>
                 <a href="/@CurrentLanguage/#features" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                    @AppStrings.Nav_Features
+                    @GetCommonString("Nav_Features")
                 </a>
             </nav>
 
@@ -45,7 +43,7 @@
                         <circle cx="11" cy="11" r="8"/>
                         <path d="m21 21-4.3-4.3"/>
                     </svg>
-                    <span>@AppStrings.Search_Placeholder</span>
+                    <span>@GetCommonString("Search_Placeholder")</span>
                     <kbd class="hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border border-base-content/20 bg-base-200/50 px-1.5 font-mono text-[10px] font-medium text-base-content/60">
                         Ctrl K
                     </kbd>
@@ -105,15 +103,15 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
       </svg>
       <div class="text-sm">
-        <div class="font-medium">@AppStrings.PWA_InstallTitle</div>
-        <div class="text-xs opacity-70">@AppStrings.PWA_InstallDescription</div>
+        <div class="font-medium">@GetCommonString("PWA_InstallTitle")</div>
+        <div class="text-xs opacity-70">@GetCommonString("PWA_InstallDescription")</div>
       </div>
       <div class="flex gap-2">
         <button id="pwa-install-btn" class="btn btn-sm btn-primary">
-          @AppStrings.PWA_InstallButton
+          @GetCommonString("PWA_InstallButton")
         </button>
         <button id="pwa-install-dismiss" class="btn btn-sm btn-ghost">
-          @AppStrings.PWA_InstallDismiss
+          @GetCommonString("PWA_InstallDismiss")
         </button>
       </div>
     </div>
@@ -168,6 +166,10 @@
 
     private string CurrentLanguage { get; set; } = "en";
 
+    private string GetCommonString(string key) => JsonLocalization.Get(CurrentLanguage, "common", key);
+    private string GetToolTitle(string slug) => JsonLocalization.Get(CurrentLanguage, $"tools/{slug}", "Title");
+    private string GetToolDescription(string slug) => JsonLocalization.Get(CurrentLanguage, $"tools/{slug}", "Description");
+
     protected override void OnInitialized()
     {
         var uri = new Uri(Navigation.Uri);
@@ -183,39 +185,39 @@
     {
         return new List<ToolInfo>
         {
-            new() { Slug = "image-converter", Name = AppStrings.ImageConverter_Title, Description = AppStrings.ImageConverter_Description, Category = AppStrings.Category_Images, Icon = "🖼️" },
-            new() { Slug = "image-compressor", Name = AppStrings.ImageCompressor_Title, Description = AppStrings.ImageCompressor_Description, Category = AppStrings.Category_Images, Icon = "📉" },
-            new() { Slug = "image-resizer", Name = AppStrings.ImageResizer_Title, Description = AppStrings.ImageResizer_Description, Category = AppStrings.Category_Images, Icon = "📏" },
-            new() { Slug = "color-converter", Name = AppStrings.ColorConverter_Title, Description = AppStrings.ColorConverter_Description, Category = AppStrings.Category_ColorsAndDesign, Icon = "🎨" },
-            new() { Slug = "markdown-preview", Name = AppStrings.MarkdownPreview_Title, Description = AppStrings.MarkdownPreview_Description, Category = AppStrings.Category_ColorsAndDesign, Icon = "📄" },
-            new() { Slug = "hash-calculator", Name = AppStrings.HashCalculator_Title, Description = AppStrings.HashCalculator_Description, Category = AppStrings.Category_HashingAndSecurity, Icon = "🔐", IsPopular = true },
-            new() { Slug = "password-generator", Name = AppStrings.PasswordGenerator_Title, Description = AppStrings.PasswordGenerator_Description, Category = AppStrings.Category_Generators, Icon = "🎲", IsPopular = true },
-            new() { Slug = "uuid-generator", Name = AppStrings.UuidGenerator_Title, Description = AppStrings.UuidGenerator_Description, Category = AppStrings.Category_Generators, Icon = "🆔" },
-            new() { Slug = "lorem-ipsum-generator", Name = AppStrings.LoremIpsumGenerator_Title, Description = AppStrings.LoremIpsumGenerator_Description, Category = AppStrings.Category_Generators, Icon = "📝" },
-            new() { Slug = "base64-encoder", Name = AppStrings.Base64Encoder_Title, Description = AppStrings.Base64Encoder_Description, Category = AppStrings.Category_Encoding, Icon = "🧬", IsPopular = true },
-            new() { Slug = "json-beautifier", Name = AppStrings.JsonBeautifier_Title, Description = AppStrings.JsonBeautifier_Description, Category = AppStrings.Category_StructuredData, Icon = "✨", IsPopular = true },
-            new() { Slug = "text-case-converter", Name = AppStrings.TextCaseConverter_Title, Description = AppStrings.TextCaseConverter_Description, Category = AppStrings.Category_TextTools, Icon = "🔠" },
-            new() { Slug = "text-diff-viewer", Name = AppStrings.TextDiffViewer_Title, Description = AppStrings.TextDiffViewer_Description, Category = AppStrings.Category_TextTools, Icon = "📊" },
-            new() { Slug = "aead-file", Name = AppStrings.Aead_Title, Description = AppStrings.Aead_Description, Category = AppStrings.Category_Cryptography, Icon = "🛡️" },
-            new() { Slug = "openssh-keys", Name = AppStrings.OpenSsh_Title, Description = AppStrings.OpenSsh_Description, Category = AppStrings.Category_Cryptography, Icon = "🔑" },
-            new() { Slug = "x509", Name = AppStrings.X509_Title, Description = AppStrings.X509_Description, Category = AppStrings.Category_Cryptography, Icon = "📜" },
-            new() { Slug = "url-encoder", Name = AppStrings.UrlEncoder_Title, Description = AppStrings.UrlEncoder_Description, Category = AppStrings.Category_Encoding, Icon = "🔗" },
-            new() { Slug = "xml-beautifier", Name = AppStrings.XmlBeautifier_Title, Description = AppStrings.XmlBeautifier_Description, Category = AppStrings.Category_StructuredData, Icon = "🧷" },
-            new() { Slug = "hex-encoder", Name = AppStrings.HexEncoder_Title, Description = AppStrings.HexEncoder_Description, Category = AppStrings.Category_Encoding, Icon = "🧱" },
-            new() { Slug = "base32-encoder", Name = AppStrings.Base32Encoder_Title, Description = AppStrings.Base32Encoder_Description, Category = AppStrings.Category_Encoding, Icon = "🧪" },
-            new() { Slug = "base58-encoder", Name = AppStrings.Base58Encoder_Title, Description = AppStrings.Base58Encoder_Description, Category = AppStrings.Category_Encoding, Icon = "🧟" },
-            new() { Slug = "date-converter", Name = AppStrings.DateConverter_Title, Description = AppStrings.DateConverter_Description, Category = AppStrings.Category_DateTime, Icon = "📅" },
-            new() { Slug = "jwt-decoder", Name = AppStrings.JwtDecoder_Title, Description = AppStrings.JwtDecoder_Description, Category = AppStrings.Category_JwtAndTokens, Icon = "🔓" },
-            new() { Slug = "jwt-encoder", Name = AppStrings.JwtEncoder_Title, Description = AppStrings.JwtEncoder_Description, Category = AppStrings.Category_JwtAndTokens, Icon = "🔐" },
-            new() { Slug = "regex-tester", Name = AppStrings.RegexTester_Title, Description = AppStrings.RegexTester_Description, Category = AppStrings.Category_Regex, Icon = "🔍" },
-            new() { Slug = "qr-code-generator", Name = AppStrings.QrCodeGenerator_Title, Description = AppStrings.QrCodeGenerator_Description, Category = AppStrings.Category_QrCodes, Icon = "📱" },
-            new() { Slug = "hmac-calculator", Name = AppStrings.HmacCalculator_Title, Description = AppStrings.HmacCalculator_Description, Category = AppStrings.Category_HashingAndSecurity, Icon = "🔐" },
-            new() { Slug = "yaml-beautifier-validator", Name = AppStrings.YamlBeautifierValidator_Title, Description = AppStrings.YamlBeautifierValidator_Description, Category = AppStrings.Category_StructuredData, Icon = "📄" },
-            new() { Slug = "qr-scanner", Name = AppStrings.QrScanner_Title, Description = AppStrings.QrScanner_Description, Category = AppStrings.Category_QrCodes, Icon = "📷" },
-            new() { Slug = "pdf-merger", Name = AppStrings.PdfMerger_Title, Description = AppStrings.PdfMerger_Description, Category = AppStrings.Category_PdfTools, Icon = "📑" },
-            new() { Slug = "pdf-compressor", Name = AppStrings.PdfCompressor_Title, Description = AppStrings.PdfCompressor_Description, Category = AppStrings.Category_PdfTools, Icon = "📉" },
-            new() { Slug = "html-entity-encoder", Name = AppStrings.HtmlEntityEncoder_Title, Description = AppStrings.HtmlEntityEncoder_Description, Category = AppStrings.Category_Encoding, Icon = "</>" },
-            new() { Slug = "unit-converter", Name = AppStrings.UnitConverter_Title, Description = AppStrings.UnitConverter_Description, Category = AppStrings.Category_Converters, Icon = "📏" }
+            new() { Slug = "image-converter", Name = GetToolTitle("image-converter"), Description = GetToolDescription("image-converter"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "Images"), Icon = "🖼️" },
+            new() { Slug = "image-compressor", Name = GetToolTitle("image-compressor"), Description = GetToolDescription("image-compressor"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "Images"), Icon = "📉" },
+            new() { Slug = "image-resizer", Name = GetToolTitle("image-resizer"), Description = GetToolDescription("image-resizer"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "Images"), Icon = "📏" },
+            new() { Slug = "color-converter", Name = GetToolTitle("color-converter"), Description = GetToolDescription("color-converter"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "ColorsAndDesign"), Icon = "🎨" },
+            new() { Slug = "markdown-preview", Name = GetToolTitle("markdown-preview"), Description = GetToolDescription("markdown-preview"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "ColorsAndDesign"), Icon = "📄" },
+            new() { Slug = "hash-calculator", Name = GetToolTitle("hash-calculator"), Description = GetToolDescription("hash-calculator"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "HashingAndSecurity"), Icon = "🔐", IsPopular = true },
+            new() { Slug = "password-generator", Name = GetToolTitle("password-generator"), Description = GetToolDescription("password-generator"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "Generators"), Icon = "🎲", IsPopular = true },
+            new() { Slug = "uuid-generator", Name = GetToolTitle("uuid-generator"), Description = GetToolDescription("uuid-generator"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "Generators"), Icon = "🆔" },
+            new() { Slug = "lorem-ipsum-generator", Name = GetToolTitle("lorem-ipsum-generator"), Description = GetToolDescription("lorem-ipsum-generator"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "Generators"), Icon = "📝" },
+            new() { Slug = "base64-encoder", Name = GetToolTitle("base64-encoder"), Description = GetToolDescription("base64-encoder"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "Encoding"), Icon = "🧬", IsPopular = true },
+            new() { Slug = "json-beautifier", Name = GetToolTitle("json-beautifier"), Description = GetToolDescription("json-beautifier"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "StructuredData"), Icon = "✨", IsPopular = true },
+            new() { Slug = "text-case-converter", Name = GetToolTitle("text-case-converter"), Description = GetToolDescription("text-case-converter"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "TextTools"), Icon = "🔠" },
+            new() { Slug = "text-diff-viewer", Name = GetToolTitle("text-diff-viewer"), Description = GetToolDescription("text-diff-viewer"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "TextTools"), Icon = "📊" },
+            new() { Slug = "aead-file", Name = GetToolTitle("aead-file"), Description = GetToolDescription("aead-file"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "Cryptography"), Icon = "🛡️" },
+            new() { Slug = "openssh-keys", Name = GetToolTitle("openssh-keys"), Description = GetToolDescription("openssh-keys"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "Cryptography"), Icon = "🔑" },
+            new() { Slug = "x509", Name = GetToolTitle("x509"), Description = GetToolDescription("x509"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "Cryptography"), Icon = "📜" },
+            new() { Slug = "url-encoder", Name = GetToolTitle("url-encoder"), Description = GetToolDescription("url-encoder"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "Encoding"), Icon = "🔗" },
+            new() { Slug = "xml-beautifier", Name = GetToolTitle("xml-beautifier"), Description = GetToolDescription("xml-beautifier"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "StructuredData"), Icon = "🧷" },
+            new() { Slug = "hex-encoder", Name = GetToolTitle("hex-encoder"), Description = GetToolDescription("hex-encoder"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "Encoding"), Icon = "🧱" },
+            new() { Slug = "base32-encoder", Name = GetToolTitle("base32-encoder"), Description = GetToolDescription("base32-encoder"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "Encoding"), Icon = "🧪" },
+            new() { Slug = "base58-encoder", Name = GetToolTitle("base58-encoder"), Description = GetToolDescription("base58-encoder"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "Encoding"), Icon = "🧟" },
+            new() { Slug = "date-converter", Name = GetToolTitle("date-converter"), Description = GetToolDescription("date-converter"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "DateTime"), Icon = "📅" },
+            new() { Slug = "jwt-decoder", Name = GetToolTitle("jwt-decoder"), Description = GetToolDescription("jwt-decoder"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "JwtAndTokens"), Icon = "🔓" },
+            new() { Slug = "jwt-encoder", Name = GetToolTitle("jwt-encoder"), Description = GetToolDescription("jwt-encoder"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "JwtAndTokens"), Icon = "🔐" },
+            new() { Slug = "regex-tester", Name = GetToolTitle("regex-tester"), Description = GetToolDescription("regex-tester"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "Regex"), Icon = "🔍" },
+            new() { Slug = "qr-code-generator", Name = GetToolTitle("qr-code-generator"), Description = GetToolDescription("qr-code-generator"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "QrCodes"), Icon = "📱" },
+            new() { Slug = "hmac-calculator", Name = GetToolTitle("hmac-calculator"), Description = GetToolDescription("hmac-calculator"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "HashingAndSecurity"), Icon = "🔐" },
+            new() { Slug = "yaml-beautifier-validator", Name = GetToolTitle("yaml-beautifier-validator"), Description = GetToolDescription("yaml-beautifier-validator"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "StructuredData"), Icon = "📄" },
+            new() { Slug = "qr-scanner", Name = GetToolTitle("qr-scanner"), Description = GetToolDescription("qr-scanner"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "QrCodes"), Icon = "📷" },
+            new() { Slug = "pdf-merger", Name = GetToolTitle("pdf-merger"), Description = GetToolDescription("pdf-merger"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "PdfTools"), Icon = "📑" },
+            new() { Slug = "pdf-compressor", Name = GetToolTitle("pdf-compressor"), Description = GetToolDescription("pdf-compressor"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "PdfTools"), Icon = "📉" },
+            new() { Slug = "html-entity-encoder", Name = GetToolTitle("html-entity-encoder"), Description = GetToolDescription("html-entity-encoder"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "Encoding"), Icon = "</>" },
+            new() { Slug = "unit-converter", Name = GetToolTitle("unit-converter"), Description = GetToolDescription("unit-converter"), Category = JsonLocalization.Get(CurrentLanguage, "categories", "Converters"), Icon = "📏" }
         };
     }
 }

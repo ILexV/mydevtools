@@ -2,7 +2,6 @@
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
-@using MyDevTools.Site.Resources
 
 <ToolLayout Title="@T("Title")" Description="@T("Description")">
     <MetaTags Title="@T("Title")" 
@@ -13,7 +12,7 @@
          data-compressing="@T("Compressing")"
          data-processing="@T("Processing")"
          data-done="@T("Done")"
-         data-error="@AppStrings.Common_Error"
+         data-error="@TCommon("Common_Error")"
          data-download="@T("Download")">
         
         <!-- Input & Settings Card -->
@@ -115,13 +114,13 @@
     <ToolSeoContent 
         Introduction="@T("Seo_Introduction")"
         DetailedDescription="@T("Seo_DetailedDescription")"
-        DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
+        DetailedDescriptionTitle="@TCommon("Seo_DetailedDescriptionTitle")"
         Examples="@T("Seo_Examples")"
-        ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
+        ExamplesTitle="@TCommon("Seo_ExamplesTitle")"
         HowToSteps="@T("Seo_HowToSteps")"
-        HowToTitle="@AppStrings.Seo_HowToTitle"
+        HowToTitle="@TCommon("Seo_HowToTitle")"
         Tips="@T("Seo_Tips")"
-        TipsTitle="@AppStrings.Seo_TipsTitle" />
+        TipsTitle="@TCommon("Seo_TipsTitle")" />
 </ToolLayout>
 
 <script src="/tools/image-compressor.js"></script>

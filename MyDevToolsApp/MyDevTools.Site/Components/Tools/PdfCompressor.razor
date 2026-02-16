@@ -1,8 +1,4 @@
 @page "/{lang}/pdf-compressor"
-@using MyDevTools.Site.Components.Layout
-@using MyDevTools.Site.Components.Common
-@using MyDevTools.Site.Components.Seo
-@using MyDevTools.Site.Resources
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -13,8 +9,8 @@
               ToolPath="pdf-compressor" />
 
     <div id="pdf-compressor-root" class="max-w-5xl mx-auto space-y-8"
-         data-loading="@AppStrings.Common_Loading"
-         data-error="@AppStrings.Common_Error"
+         data-loading="@TCommon("Common_Loading")"
+         data-error="@TCommon("Common_Error")"
          data-processing="Compressing..."
          data-done="Compressed!"
          data-download="@T("DownloadButton")">
@@ -26,7 +22,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5l-6-6" />
                     </svg>
-                    @AppStrings.Common_Input
+                    @TCommon("Common_Input")
                 </h2>
                 
                 <div class="upload-box mb-6">
@@ -75,7 +71,7 @@
                 
                 <div class="alert alert-error shadow-lg text-sm mt-4 hidden" id="pdf-error">
                     <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <span id="pdf-error-text">@AppStrings.Common_Error</span>
+                    <span id="pdf-error-text">@TCommon("Common_Error")</span>
                 </div>
             </div>
         </div>
@@ -84,13 +80,13 @@
     <ToolSeoContent 
         Introduction="@T("Seo_Introduction")"
         DetailedDescription="@T("Seo_DetailedDescription")"
-        DetailedDescriptionTitle="@AppStrings.Seo_DetailedDescriptionTitle"
+        DetailedDescriptionTitle="@TCommon("Seo_DetailedDescriptionTitle")"
         Examples="@T("Seo_Examples")"
-        ExamplesTitle="@AppStrings.Seo_ExamplesTitle"
+        ExamplesTitle="@TCommon("Seo_ExamplesTitle")"
         HowToSteps="@T("Seo_HowToSteps")"
-        HowToTitle="@AppStrings.Seo_HowToTitle"
+        HowToTitle="@TCommon("Seo_HowToTitle")"
         Tips="@T("Seo_Tips")"
-        TipsTitle="@AppStrings.Seo_TipsTitle" />
+        TipsTitle="@TCommon("Seo_TipsTitle")" />
 </ToolLayout>
 
 @code {

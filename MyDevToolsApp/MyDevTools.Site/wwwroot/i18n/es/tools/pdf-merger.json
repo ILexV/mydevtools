@@ -1,0 +1,13 @@
+{
+  "Title": "Unir PDF",
+  "Description": "Combina múltiples archivos PDF en un solo documento eficientemente en tu navegador.",
+  "DropZoneTitle": "Arrastra y suelta archivos PDF aquí",
+  "MergeButton": "Unir PDFs",
+  "Success": "¡PDFs unidos con éxito!",
+  "DownloadButton": "Descargar",
+  "Seo_Introduction": "El PDF Merger es una herramienta en línea que prioriza la privacidad, diseñada para desarrolladores. Todo el procesamiento ocurre localmente en su navegador utilizando WebAssembly, lo que garantiza que sus archivos PDF nunca salgan de su dispositivo.",
+  "Seo_DetailedDescription": "Esta herramienta proporciona una funcionalidad integral para combinar múltiples documentos PDF en un solo archivo. Construida con tecnologías web modernas y potenciada por WebAssembly compilado en Rust, ofrece una manipulación de PDF rápida y segura directamente en su navegador.\r\n\r\nLa interfaz está diseñada para ofrecer simplicidad y eficiencia. Puede cargar fácilmente varios archivos PDF, reordenarlos y combinarlos en un solo documento. Todas las operaciones se realizan en el lado del cliente, garantizando la total privacidad de sus documentos confidenciales.",
+  "Seo_Examples": "**Ejemplo 1**: Combine varios informes PDF en un solo documento completo para facilitar el intercambio.\r\n\r\n**Ejemplo 2**: Combine varias páginas PDF escaneadas en un solo archivo.\r\n\r\n**Ejemplo 3**: Organice sus documentos PDF combinando archivos relacionados en un solo PDF coherente.",
+  "Seo_HowToSteps": "### Paso 1: Subir archivos PDF\r\nHaga clic en el botón de carga o arrastre y suelte varios archivos PDF en la herramienta.\r\n\r\n### Paso 2: Organizar el orden\r\nArrastre y suelte los archivos para organizarlos en el orden deseado para el PDF combinado final.\r\n\r\n### Paso 3: Combinar y descargar\r\nHaga clic en el botón \"Combinar PDF\" para procesar sus archivos localmente y descargar el documento resultante.",
+  "Seo_Tips": "- Todo el procesamiento ocurre en su navegador para una máxima privacidad\r\n- La herramienta funciona fuera de línea después de la carga inicial de la página\r\n- Sus archivos nunca se suben a ningún servidor\r\n- Soporta archivos PDF grandes con procesamiento rápido"
+}

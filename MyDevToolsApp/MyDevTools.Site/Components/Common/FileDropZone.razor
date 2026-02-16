@@ -1,6 +1,7 @@
-@using MyDevTools.Site.Resources
+@inject IJsonLocalizationService JsonLocalization
+@inject NavigationManager Navigation
 
-@* 
+@*
 FileDropZone Component - Reusable file drop zone with customizable icon and description
 
 Features:
@@ -13,26 +14,26 @@ Features:
 - Localization support
 
 Usage Example 1 (Simple):
-<FileDropZone 
-    Id="drop-zone" 
+<FileDropZone
+    Id="drop-zone"
     InputId="file-input"
     Description="Drag & drop an image here"
     Accept="image/*" />
 
 Usage Example 2 (With file info):
-<FileDropZone 
-    Id="drop-zone" 
+<FileDropZone
+    Id="drop-zone"
     InputId="file-input"
     Description="Drag & drop an image here"
     Accept="image/*"
     ShowFileInfo="true" />
 
 Usage Example 3 (With preview and clear button):
-<FileDropZone 
-    Id="drop-zone" 
+<FileDropZone
+    Id="drop-zone"
     InputId="file-input"
     IconSvg='<span style="font-size: 3rem;">🖼️</span>'
-    Description="@AppStrings.ImageConverter_DragDrop"
+    Description="Drag and drop a file here"
     Accept="image/*"
     ShowFileInfo="true"
     ShowPreview="true"
@@ -41,13 +42,13 @@ Usage Example 3 (With preview and clear button):
 
 <div id="@Id" class="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center transition-colors cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 relative" data-has-file="false">
     <input type="file" id="@InputId" class="hidden" accept="@Accept" multiple="@AllowMultiple" />
-    
+
     @if (ShowClearButton)
     {
-        <button type="button" 
+        <button type="button"
                 class="file-drop-clear-btn btn btn-ghost btn-circle btn-sm absolute top-2 right-2 opacity-0 pointer-events-none transition-opacity"
-                aria-label="@AppStrings.Common_ClearFile"
-                title="@AppStrings.Common_ClearFile">
+                aria-label='@GetCommonString("Common_ClearFile")'
+                title='@GetCommonString("Common_ClearFile")'>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -66,7 +67,7 @@ Usage Example 3 (With preview and clear button):
         </div>
         
         <button type="button" class="file-drop-choose-btn px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
-            @ButtonText
+            @GetButtonText()
         </button>
     </div>
     
@@ -96,7 +97,7 @@ Usage Example 3 (With preview and clear button):
                 }
                 
                 <button type="button" class="file-drop-change-btn px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
-                    @ChangeButtonText
+                    @GetChangeButtonText()
                 </button>
             </div>
         </div>
@@ -135,13 +136,13 @@ Usage Example 3 (With preview and clear button):
     /// Button text (localized by default to "Choose file")
     /// </summary>
     [Parameter]
-    public string ButtonText { get; set; } = AppStrings.Common_FileChooseButton;
+    public string? ButtonText { get; set; }
 
     /// <summary>
     /// Button text when file is selected (localized by default to "Choose another file")
     /// </summary>
     [Parameter]
-    public string ChangeButtonText { get; set; } = AppStrings.Common_FileChangeButton;
+    public string? ChangeButtonText { get; set; }
 
     /// <summary>
     /// Accepted file types (e.g., "image/*", ".pdf", ".csv", etc.)
@@ -177,4 +178,20 @@ Usage Example 3 (With preview and clear button):
     /// </summary>
     [Parameter]
     public bool ShowClearButton { get; set; } = false;
+
+    private string GetLanguage()
+    {
+        var uri = new Uri(Navigation.Uri);
+        var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        return segments.Length > 0 ? segments[0] : "en";
+    }
+
+    private string GetCommonString(string key)
+    {
+        var lang = GetLanguage();
+        return JsonLocalization.Get(lang, "common", key);
+    }
+
+    private string GetButtonText() => ButtonText ?? GetCommonString("Common_FileChooseButton");
+    private string GetChangeButtonText() => ChangeButtonText ?? GetCommonString("Common_FileChangeButton");
 }

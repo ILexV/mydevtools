@@ -314,34 +314,86 @@ async function processLargeFile(file, onProgress) {
 
 ## 🌍 Локализация
 
-### Добавление новых строк
+Проект использует **JSON-based локализацию** (ранее .resx файлы). Все переводы находятся в `wwwroot/i18n/{lang}/`.
 
-1. **Откройте `Resources/AppStrings.resx`** в Visual Studio
-2. **Добавьте ключ** (например, `MyTool_ButtonLabel`)
-3. **Добавьте значение** на английском
-4. **Visual Studio автоматически обновит `AppStrings.Designer.cs`**
-5. **Добавьте переводы:**
-   - `Resources/AppStrings.ru.resx` — русский перевод
-   - `Resources/AppStrings.es.resx` — испанский перевод
+### Структура JSON локализации
+
+```
+wwwroot/i18n/
+├── en/
+│   ├── common.json              # Общие строки
+│   ├── home.json                # Главная страница
+│   └── tools/
+│       ├── hash-calculator.json
+│       └── ...
+├── ru/
+│   └── ...
+└── [es, de, pt, zh, fr, ja, ko, hi]/
+    └── ...
+```
 
 ### Использование в Razor
 
 ```razor
-@using MyDevTools.Site.Resources
+@inherits ToolComponentBase
 
-<!-- Правильно: compile-time безопасность -->
-<h1>@AppStrings.MyTool_Title</h1>
-<button>@AppStrings.MyTool_Button</button>
+@* Tool-specific keys (from tools/{slug}.json) *@
+<h1>@T("Title")</h1>
+<button>@T("ActionButton")</button>
 
-<!-- Неправильно: магические строки -->
-<h1>@L["MyTool_Title"]</h1>
+@* Common keys (from common.json) *@
+<span>@TCommon("Common_Loading")</span>
 ```
 
-### Проверка локализации
+### Валидация локализации
+
+**⚠️ ВАЖНО:** Всегда запускайте валидатор после изменения локализации:
+
+```bash
+cd MyDevToolsApp/Tools/LocalizationValidator
+dotnet run
+```
+
+Валидатор проверяет:
+- ✅ Синтаксис всех JSON файлов
+- ✅ Наличие всех ключей во всех 10 языках
+- ✅ Соответствие между Razor компонентами и JSON
+- ✅ Отсутствие пустых значений
+
+При обнаружении ошибок, валидатор выведет блоки `<LLM_FIX>` с конкретными инструкциями для исправления.
+
+### Дополнительные опции валидатора:
+
+```bash
+# Подробный вывод
+dotnet run --verbose
+
+# Проверка конкретных языков
+dotnet run --lang ru,es,de
+
+# Только инструменты (skip common/home)
+dotnet run --scope tools
+
+# JSON формат
+dotnet run --format json
+```
+
+### Добавление новых строк
+
+1. **Откройте соответствующий JSON файл** (например, `wwwroot/i18n/en/tools/my-tool.json`)
+2. **Добавьте ключ и значение** на английском
+3. **Добавьте переводы** в соответствующие файлы для других языков
+4. **Запустите валидатор** для проверки:
+   ```bash
+   dotnet run --project MyDevToolsApp/Tools/LocalizationValidator
+   ```
+5. **Исправьте все ошибки** по инструкциям из `<LLM_FIX>` блоков
+
+### Проверка локализации вручную
 
 1. Откройте `/en/your-tool` — должен быть английский
 2. Откройте `/ru/your-tool` — должен быть русский
-3. Откройте `/es/your-tool` — должен быть испанский
+3. Проверьте все 10 языков
 4. Используйте переключатель языков в header
 
 **См. также:** `LOCALIZATION_GUIDE.md` для детальных инструкций

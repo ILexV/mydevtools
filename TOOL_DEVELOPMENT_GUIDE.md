@@ -527,6 +527,81 @@ if (path.StartsWith("/_") ||
 
 ---
 
+## Валидация локализации
+
+После добавления или изменения локализации обязательно запустите **LocalizationValidator**:
+
+```bash
+cd MyDevToolsApp/Tools/LocalizationValidator
+dotnet run
+```
+
+### Что проверяет валидатор:
+
+1. **Структура JSON**: Валидность синтаксиса, отсутствие дубликатов ключей
+2. **Кросс-языковая целостность**: Все ключи из `en` существуют в других языках
+3. **Razor coverage**: Все вызовы `T()` и `TCommon()` в Razor файлах имеют соответствующие ключи в JSON
+4. **Пустые значения**: Нет пустых строк в переводах
+
+### Формат вывода ошибок:
+
+При обнаружении проблем валидатор выводит:
+
+```
+[MissingKeys] Missing translation keys
+--------------------------------------------------
+File: wwwroot/i18n/ru/tools/my-tool.json
+Language: ru
+Message: Missing 3 keys in ru/tools/my-tool.json
+Keys: Title, Description, ActionButton
+
+<LLM_FIX>
+{
+  "Action": "add_keys",
+  "Target": ".../ru/tools/my-tool.json",
+  "Source": ".../en/tools/my-tool.json",
+  "Keys": {
+    "Title": "My Tool",
+    "Description": "Description...",
+    "ActionButton": "Process"
+  },
+  "Instructions": "Add missing keys to ru/tools/my-tool.json"
+}
+</LLM_FIX>
+```
+
+### Дополнительные опции:
+
+```bash
+# Подробный вывод с прогрессом
+dotnet run --verbose
+
+# Проверка только конкретных языков
+dotnet run --lang ru,es,de
+
+# Проверка только инструментов (skip common/home)
+dotnet run --scope tools
+
+# Вывод в JSON для автоматизации
+dotnet run --format json
+```
+
+### Типичные ошибки и решения:
+
+**1. MissingKeys в Razor компоненте:**
+- Вы используете `T("NewKey")` в Razor, но забыли добавить его в JSON
+- Решение: Добавьте ключ во все языковые файлы инструмента
+
+**2. RazorKeyNotFound:**
+- Razor файл использует ключ, которого нет в JSON файле языка
+- Решение: Проверьте, что JSON файл синхронизирован с базовым (en)
+
+**3. EmptyValue:**
+- Значение в JSON пустое или состоит только из пробелов
+- Решение: Заполните перевод
+
+---
+
 ## Чеклист перед коммитом
 
 - [ ] **UI протестирован в браузере (Playwright/Chrome)**
@@ -537,7 +612,8 @@ if (path.StartsWith("/_") ||
 - [ ] Включены SEO компоненты: `MetaTags`, `HreflangLinks`, `JsonLdTool`
 - [ ] Используется компонент `ToolLayout`
 - [ ] Все данные обрабатываются на клиенте (WASM или JavaScript)
-- [ ] Локализация работает на всех языках (en, ru, es)
+- [ ] **Валидация локализации проходит без ошибок** (`dotnet run` в LocalizationValidator)
+- [ ] Локализация работает на всех языках (en, ru, es, de, pt, zh, fr, ja, ko, hi)
 - [ ] CSS классы, используемые в `querySelector`, существуют в HTML
 - [ ] Внешние библиотеки подключены локально (не через CDN)
 

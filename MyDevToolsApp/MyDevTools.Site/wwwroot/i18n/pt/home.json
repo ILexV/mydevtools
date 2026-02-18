@@ -56,7 +56,7 @@
   "FeaturePwaTitle": "Aplicativo PWA",
   "PopularTools": "Ferramentas Populares",
   "WhyChooseTitle": "Por que desenvolvedores escolhem MyDevTools?",
-  "TitleSuffix": "Ferramentas",
+  "TitleSuffix": "para desenvolvedores",
   "FerrisClickHint": "Clique em mim! 👋",
   "ReadyToTryDescription": "Todas as ferramentas são gratuitas e não requerem registro",
   "ClearRecent": "Limpar Recentes",
@@ -69,7 +69,7 @@
   "Stat_Tools": "Ferramentas",
   "Badge_ToolsCount": "50+ Ferramentas",
   "ViewTools": "Ver Ferramentas",
-  "TitlePrefix": "Desenvolvedor",
+  "TitlePrefix": "Ferramentas",
   "Stat_Free": "Grátis",
   "NoRecentDescription": "As ferramentas que você usar aparecerão aqui."
 }

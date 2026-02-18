@@ -9,9 +9,9 @@
             <div class="badge badge-outline mb-4">
                 @T("WhyChoose")
             </div>
-            <h2 class="text-3xl md:text-4xl font-bold mb-4">@T("WhyChoose")Title</h2>
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">@T("WhyChooseTitle")</h2>
             <p class="text-base-content/60 max-w-2xl mx-auto leading-relaxed">
-                @T("WhyChoose")Description
+                @T("WhyChooseDescription")
             </p>
         </div>
 
@@ -110,7 +110,7 @@
                 <div class="text-center sm:text-left">
                     <h4 class="font-semibold text-lg mb-1">@T("ReadyToTry")</h4>
                     <p class="text-sm text-base-content/60">
-                        @T("ReadyToTry")Description
+                        @T("ReadyToTryDescription")
                     </p>
                 </div>
                 <a href="#tools" class="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium hover:from-indigo-700 hover:to-purple-700 transition-colors shadow-lg shadow-indigo-500/25 whitespace-nowrap">
@@ -122,5 +122,8 @@
 </section>
 
 @code {
-    private string T(string key) => JsonLocalization.Get("en", "home", key);
+    [Parameter]
+    public string Lang { get; set; } = "en";
+
+    private string T(string key) => JsonLocalization.Get(Lang, "home", key);
 }

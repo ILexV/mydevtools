@@ -56,7 +56,7 @@
   "FeaturePwaTitle": "PWA Приложение",
   "PopularTools": "Популярные",
   "WhyChooseTitle": "Почему разработчики выбирают MyDevTools?",
-  "TitleSuffix": "Инструменты",
+  "TitleSuffix": "разработчика",
   "FerrisClickHint": "Кликни меня! 👋",
   "ReadyToTryDescription": "Все инструменты бесплатны и не требуют регистрации",
   "ClearRecent": "Очистить",
@@ -69,7 +69,7 @@
   "Stat_Tools": "Инструментов",
   "Badge_ToolsCount": "50+ Инструментов",
   "ViewTools": "Смотреть инструменты",
-  "TitlePrefix": "Разработчик",
+  "TitlePrefix": "Инструменты",
   "Stat_Free": "Бесплатно",
   "NoRecentDescription": "Здесь появятся инструменты, которые вы используете."
 }

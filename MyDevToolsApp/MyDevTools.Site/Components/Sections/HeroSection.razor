@@ -1,6 +1,4 @@
-@inject IJSRuntime JSRuntime
 @inject MyDevTools.Site.Services.IJsonLocalizationService JsonLocalization
-@implements IAsyncDisposable
 
 <section class="hero-section" id="hero-section">
     
@@ -110,49 +108,5 @@
     [Parameter]
     public string Lang { get; set; } = "en";
 
-    private bool isDisposed = false;
-
     private string T(string key) => JsonLocalization.Get(Lang, "home", key);
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender && !isDisposed)
-        {
-            try
-            {
-                await JSRuntime.InvokeVoidAsync("HeroAnimation.init");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to initialize hero animation: {ex.Message}");
-            }
-        }
-    }
-
-    private async Task InstallPWA()
-    {
-        try
-        {
-            await JSRuntime.InvokeVoidAsync("PWA.showInstallPrompt");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Failed to show PWA install prompt: {ex.Message}");
-        }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (!isDisposed)
-        {
-            isDisposed = true;
-            try
-            {
-                await JSRuntime.InvokeVoidAsync("HeroAnimation.destroy");
-            }
-            catch
-            {
-            }
-        }
-    }
 }

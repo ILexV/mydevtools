@@ -1,6 +1,7 @@
 {
   "Title": "PDF in Text",
   "Description": "Extrahieren Sie mühelos sämtlichen Text aus PDF-Dokumenten direkt in Ihrem Browser.",
+  "DropZoneTitle": "PDF hochladen",
   "ExtractButton": "Text extrahieren",
   "Seo_Introduction": "Der PDF-zu-Text-Konverter ist ein datenschutzorientiertes Tool, mit dem Sie Textinhalte aus jeder PDF-Datei direkt in Ihrem Browser extrahieren können.",
   "Seo_DetailedDescription": "Dieses Tool nutzt WebAssembly-Technologie, um PDF-Strukturen zu analysieren und Text zu extrahieren, ohne Ihre Dateien auf einen Server hochzuladen. Es unterstützt standardmäßige textbasierte PDF-Dokumente und verarbeitet verschiedene Zeichenkodierungen, um eine genaue Extraktion zu gewährleisten.\n\nSie können mehrere PDF-Dateien hochladen und diese im Stapel verarbeiten. Jede Datei wird in eine reine Textdatei (.txt) umgewandelt, die Sie herunterladen und für Ihre Zwecke verwenden können.",

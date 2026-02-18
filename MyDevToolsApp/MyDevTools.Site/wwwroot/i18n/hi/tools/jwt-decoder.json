@@ -20,5 +20,9 @@
   "PayloadLabel": "पेलोड (JSON)",
   "AlgorithmLabel": "एल्गोरिदम",
   "GenerateButton": "JWT जनरेट करें",
-  "LinkToDecoder": "JWT डिकोड करने की आवश्यकता है? JWT डिकोडर आज़माएँ"
+  "LinkToDecoder": "JWT डिकोड करना है? JWT डिकोडर आज़माएं",
+  "EncoderTitle": "JWT एनकोडर",
+  "DecoderTitle": "JWT डिकोडर",
+  "Copy": "कॉपी करें",
+  "Copied": "कॉपी किया गया!"
 }

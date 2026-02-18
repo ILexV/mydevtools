@@ -20,5 +20,9 @@
   "PayloadLabel": "Payload (JSON)",
   "AlgorithmLabel": "Algorithm",
   "GenerateButton": "Generate JWT",
-  "LinkToDecoder": "Need to decode a JWT? Try the JWT Decoder"
+  "LinkToDecoder": "Need to decode a JWT? Try the JWT Decoder",
+  "EncoderTitle": "JWT Encoder",
+  "DecoderTitle": "JWT Decoder",
+  "Copy": "Copy",
+  "Copied": "Copied!"
 }

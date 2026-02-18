@@ -1,6 +1,7 @@
 {
   "Title": "PDF 텍스트 추출",
   "Description": "브라우저에서 간편하게 PDF 문서의 모든 텍스트를 추출하세요.",
+  "DropZoneTitle": "PDF 업로드",
   "ExtractButton": "텍스트 추출",
   "Seo_Introduction": "PDF 텍스트 변환기는 브라우저에서 직접 PDF 파일의 텍스트 내용을 추출할 수 있는 개인 정보 보호 우선 도구입니다.",
   "Seo_DetailedDescription": "이 도구는 WebAssembly 기술을 사용하여 서버에 파일을 업로드하지 않고도 PDF 구조를 분석하고 텍스트를 추출합니다. 표준 텍스트 기반 PDF 문서를 지원하며 정확한 추출을 위해 다양한 문자 인코딩을 처리합니다.\n\n여러 PDF 파일을 업로드하여 일괄 처리할 수 있습니다. 각 파일은 일반 텍스트(.txt) 파일로 변환되어 다운로드하여 필요에 따라 사용할 수 있습니다.",

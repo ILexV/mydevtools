@@ -1,6 +1,7 @@
 {
   "Title": "PDF en Texte",
   "Description": "Extrayez facilement tout le texte des documents PDF dans votre navigateur.",
+  "DropZoneTitle": "Télécharger PDF",
   "ExtractButton": "Extraire le texte",
   "Seo_Introduction": "Le convertisseur PDF en Texte est un outil respectueux de la vie privée qui vous permet d'extraire le contenu textuel de n'importe quel fichier PDF directement dans votre navigateur.",
   "Seo_DetailedDescription": "Cet outil utilise la technologie WebAssembly pour analyser les structures PDF et extraire le texte sans télécharger vos fichiers sur un serveur. Il prend en charge les documents PDF textuels standard et gère divers encodages de caractères pour garantir une extraction précise.\n\nVous pouvez télécharger plusieurs fichiers PDF et les traiter par lots. Chaque fichier sera converti en un fichier texte brut (.txt) que vous pourrez télécharger et utiliser selon vos besoins.",

@@ -38,9 +38,4 @@
   "PWA_UpdateAvailableDescription": "नया संस्करण उपलब्ध है। अपडेट करने के लिए रिफ्रेश करें।",
   "PWA_UpdateButton": "अभी अपडेट करें",
   "PWA_UpdateDismiss": "बाद में",
-  "PWA_Installed": "ऐप सफलतापूर्वक इंस्टॉल हो गया!",
-  "Common_Copy": "कॉपी करें",
-  "Nav_Home": "होम",
-  "Nav_Tools": "टूल्स",
-  "Theme_Toggle": "थीम बदलें"
-}
+  "PWA_Installed": "ऐप सफलतापूर्वक इंस्टॉल हो गया!"

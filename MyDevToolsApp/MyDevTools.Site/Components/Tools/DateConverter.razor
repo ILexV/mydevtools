@@ -2,15 +2,15 @@
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
-<ToolLayout Title="@T("title")" Description="@T("description")">
-    <MetaTags Title="@T("title")"
-              Description="@T("description")"
+<ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")"
+              Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
               ToolPath="date-converter" />
 
     <div id="date-converter-root"
-         data-error-invalid="@T("errorInvalid")"
-         data-copied="@T("copied")"
+         data-error-invalid="@T("Error_Invalid")"
+         data-copied="@T("Copied")"
          class="max-w-5xl mx-auto">
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -22,24 +22,24 @@
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
-                        @T("inputLabel")
+                        @T("InputLabel")
                     </h2>
 
                     <div class="form-control w-full">
                         <label class="label font-semibold" for="date-input-type">
-                            @T("inputTypeLabel")
+                            @T("InputTypeLabel")
                         </label>
                         <select id="date-input-type" class="select select-bordered w-full">
-                            <option value="auto">@T("inputTypeAuto")</option>
-                            <option value="unix-sec">@T("inputTypeUnixSec")</option>
-                            <option value="unix-ms">@T("inputTypeUnixMs")</option>
-                            <option value="iso">@T("inputTypeIso")</option>
+                            <option value="auto">@T("InputType_Auto")</option>
+                            <option value="unix-sec">@T("InputType_UnixSec")</option>
+                            <option value="unix-ms">@T("InputType_UnixMs")</option>
+                            <option value="iso">@T("InputType_ISO")</option>
                         </select>
                     </div>
 
                     <div class="form-control w-full mt-4">
                         <label class="label font-semibold" for="date-input">
-                            @T("inputLabel")
+                            @T("InputLabel")
                         </label>
                         <textarea id="date-input" rows="4" class="textarea textarea-bordered w-full font-mono text-lg" placeholder="1735689600 or 2025-01-01T00:00:00Z"></textarea>
                     </div>
@@ -49,13 +49,13 @@
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-1">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                             </svg>
-                            @T("actionCurrentTime")
+                            @T("ActionCurrentTime")
                         </button>
                         <button class="btn btn-primary" id="date-convert-btn" type="button">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-1">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                             </svg>
-                            @T("actionConvert")
+                            @T("ActionConvert")
                         </button>
                     </div>
                     
@@ -73,28 +73,28 @@
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
-                        @T("outputLabel")
+                        @T("OutputLabel")
                     </h2>
 
                     <div class="form-control w-full">
                         <label class="label font-semibold" for="date-output-format">
-                            @T("outputFormatLabel")
+                            @T("OutputFormatLabel")
                         </label>
                         <select id="date-output-format" class="select select-bordered w-full">
-                            <option value="iso">@T("formatIso")</option>
-                            <option value="euro">@T("formatEuropean")</option>
-                            <option value="utc">@T("formatUtc")</option>
-                            <option value="local">@T("formatLocal")</option>
-                            <option value="rfc">@T("formatRfc")</option>
-                            <option value="unix-sec">@T("formatUnixSec")</option>
-                            <option value="unix-ms">@T("formatUnixMs")</option>
-                            <option value="custom">@T("formatCustom")</option>
+                            <option value="iso">@T("Format_ISO")</option>
+                            <option value="euro">@T("Format_European")</option>
+                            <option value="utc">@T("Format_UTC")</option>
+                            <option value="local">@T("Format_Local")</option>
+                            <option value="rfc">@T("Format_RFC")</option>
+                            <option value="unix-sec">@T("Format_UnixSec")</option>
+                            <option value="unix-ms">@T("Format_UnixMs")</option>
+                            <option value="custom">@T("Format_Custom")</option>
                         </select>
                     </div>
 
                     <div id="date-custom-fmt-container" class="form-control w-full mt-4 hidden">
                         <label class="label font-semibold" for="date-output-custom-fmt">Custom Format</label>
-                        <input id="date-output-custom-fmt" type="text" class="input input-bordered w-full font-mono" placeholder="@T("customFormatPlaceholder")" value="dd.MM.yyyy HH:mm:ss" />
+                        <input id="date-output-custom-fmt" type="text" class="input input-bordered w-full font-mono" placeholder="@T("CustomFormatPlaceholder")" value="dd.MM.yyyy HH:mm:ss" />
                         <label class="label">
                             <span class="label-text-alt opacity-70">Use: yyyy, MM, dd, HH, mm, ss, SSS</span>
                         </label>
@@ -106,7 +106,7 @@
                         </label>
                         <div class="relative">
                             <textarea id="date-output" rows="4" readonly class="textarea textarea-bordered w-full font-mono text-lg pr-12 bg-base-200 text-base-content/70"></textarea>
-                            <button class="btn btn-sm btn-ghost absolute right-2 top-2" id="date-copy-btn" title="@T("copy")">
+                            <button class="btn btn-sm btn-ghost absolute right-2 top-2" id="date-copy-btn" title="@T("Copy")">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
                                 </svg>
@@ -121,14 +121,14 @@
     <script src="/tools/date-converter.js"></script>
 
     <ToolSeoContent 
-        Introduction="@T("seoIntroduction")"
-        DetailedDescription="@T("seoDetailedDescription")"
+        Introduction="@T("Seo_Introduction")"
+        DetailedDescription="@T("Seo_DetailedDescription")"
         DetailedDescriptionTitle="@TCommon("Seo_DetailedDescriptionTitle")"
-        Examples="@T("seoExamples")"
+        Examples="@T("Seo_Examples")"
         ExamplesTitle="@TCommon("Seo_ExamplesTitle")"
-        HowToSteps="@T("seoHowToSteps")"
+        HowToSteps="@T("Seo_HowToSteps")"
         HowToTitle="@TCommon("Seo_HowToTitle")"
-        Tips="@T("seoTips")"
+        Tips="@T("Seo_Tips")"
         TipsTitle="@TCommon("Seo_TipsTitle")" />
 </ToolLayout>
 

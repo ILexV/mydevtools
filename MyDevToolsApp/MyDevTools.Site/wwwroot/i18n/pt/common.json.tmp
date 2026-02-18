@@ -38,9 +38,4 @@
   "PWA_UpdateAvailableDescription": "Uma nova versão está disponível. Atualize para ver as novidades.",
   "PWA_UpdateButton": "Atualizar Agora",
   "PWA_UpdateDismiss": "Mais tarde",
-  "PWA_Installed": "App instalado com sucesso!",
-  "Common_Copy": "Copiar",
-  "Nav_Home": "Início",
-  "Nav_Tools": "Ferramentas",
-  "Theme_Toggle": "Alternar tema"
-}
+  "PWA_Installed": "App instalado com sucesso!"

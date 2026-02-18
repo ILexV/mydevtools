@@ -38,9 +38,4 @@
   "PWA_UpdateAvailableDescription": "新版本可用。刷新以更新。",
   "PWA_UpdateButton": "立即更新",
   "PWA_UpdateDismiss": "稍后",
-  "PWA_Installed": "应用安装成功！",
-  "Common_Copy": "复制",
-  "Nav_Home": "首页",
-  "Nav_Tools": "工具",
-  "Theme_Toggle": "切换主题"
-}
+  "PWA_Installed": "应用安装成功！"

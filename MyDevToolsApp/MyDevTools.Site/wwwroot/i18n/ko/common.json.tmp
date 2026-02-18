@@ -38,9 +38,4 @@
   "PWA_UpdateAvailableDescription": "새 버전을 사용할 수 있습니다. 새로고침하여 업데이트하세요.",
   "PWA_UpdateButton": "지금 업데이트",
   "PWA_UpdateDismiss": "나중에",
-  "PWA_Installed": "앱이 성공적으로 설치되었습니다!",
-  "Common_Copy": "복사",
-  "Nav_Home": "홈",
-  "Nav_Tools": "도구",
-  "Theme_Toggle": "테마 변경"
-}
+  "PWA_Installed": "앱이 성공적으로 설치되었습니다!"

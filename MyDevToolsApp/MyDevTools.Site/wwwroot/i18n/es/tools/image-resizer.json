@@ -2,6 +2,7 @@
   "Title": "Redimensionar Imagen",
   "Description": "Redimensiona imágenes con dimensiones personalizadas y bloqueo de relación de aspecto.",
   "OriginalInfo": "Imagen Original",
+  "TargetFormatLabel": "Formato",
   "Width": "Ancho (px)",
   "Height": "Alto (px)",
   "LockAspectRatio": "Mantener relación de aspecto",

@@ -1,6 +1,7 @@
 {
   "Title": "PDF a Texto",
   "Description": "Extrae todo el texto de documentos PDF fácilmente en tu navegador.",
+  "DropZoneTitle": "Subir PDF",
   "ExtractButton": "Extraer texto",
   "Seo_Introduction": "El convertidor de PDF a Texto es una herramienta centrada en la privacidad que te permite extraer contenido de texto de any archivo PDF directamente en tu navegador.",
   "Seo_DetailedDescription": "Esta herramienta utiliza la tecnología WebAssembly para analizar las estructuras de PDF y extraer texto sin cargar tus archivos a ningún servidor. Admite documentos PDF estándar basados en texto y maneja varias codificaciones de caracteres para garantizar una extracción precisa.\n\nPuedes cargar múltiples archivos PDF y procesarlos en lote. Cada archivo se convertirá en un archivo de texto plano (.txt) que puedes descargar y usar para tus necesidades.",

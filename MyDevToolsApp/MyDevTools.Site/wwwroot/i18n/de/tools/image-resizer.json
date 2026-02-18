@@ -2,6 +2,7 @@
   "Title": "Bildgrößenänderung",
   "Description": "Bilder mit benutzerdefinierten Abmessungen und gesperrtem Seitenverhältnis skalieren.",
   "OriginalInfo": "Originalbild",
+  "TargetFormatLabel": "Format",
   "Width": "Breite (px)",
   "Height": "Höhe (px)",
   "LockAspectRatio": "Seitenverhältnis beibehalten",

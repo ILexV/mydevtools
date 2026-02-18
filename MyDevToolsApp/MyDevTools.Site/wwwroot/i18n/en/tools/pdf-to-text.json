@@ -1,6 +1,7 @@
 {
   "Title": "PDF to Text",
   "Description": "Extract all text from PDF documents easily in your browser.",
+  "DropZoneTitle": "Upload PDF",
   "ExtractButton": "Extract Text",
   "Seo_Introduction": "The PDF to Text converter is a privacy-first tool that allows you to extract text content from any PDF file directly in your browser.",
   "Seo_DetailedDescription": "This tool uses WebAssembly technology to parse PDF structures and extract text without uploading your files to any server. It supports standard text-based PDF documents and handles various character encodings to ensure accurate extraction.\n\nYou can upload multiple PDF files and process them in a batch. Each file will be converted to a plain text (.txt) file that you can download and use for your needs.",

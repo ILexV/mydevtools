@@ -20,5 +20,9 @@
   "PayloadLabel": "ペイロード (JSON)",
   "AlgorithmLabel": "アルゴリズム",
   "GenerateButton": "JWT を生成",
-  "LinkToDecoder": "JWT をデコードする必要がありますか？ JWT デコーダーをお試しください"
+  "LinkToDecoder": "JWTをデコードする必要がありますか？JWTデコーダーをお試しください",
+  "EncoderTitle": "JWTエンコーダー",
+  "DecoderTitle": "JWTデコーダー",
+  "Copy": "コピー",
+  "Copied": "コピーしました!"
 }

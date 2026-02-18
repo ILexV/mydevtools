@@ -20,5 +20,9 @@
   "PayloadLabel": "载荷 (JSON)",
   "AlgorithmLabel": "算法",
   "GenerateButton": "生成 JWT",
-  "LinkToDecoder": "需要解码 JWT？试试 JWT 解码器"
+  "LinkToDecoder": "需要解码 JWT？尝试 JWT 解码器",
+  "EncoderTitle": "JWT 编码器",
+  "DecoderTitle": "JWT 解码器",
+  "Copy": "复制",
+  "Copied": "已复制!"
 }

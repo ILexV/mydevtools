@@ -20,5 +20,9 @@
   "PayloadLabel": "페이로드 (JSON)",
   "AlgorithmLabel": "알고리즘",
   "GenerateButton": "JWT 생성",
-  "LinkToDecoder": "JWT를 디코딩해야 하나요? JWT 디코더를 사용해보세요"
+  "LinkToDecoder": "JWT를 디코딩해야 합니까? JWT 디코더를 사용해 보세요",
+  "EncoderTitle": "JWT 인코더",
+  "DecoderTitle": "JWT 디코더",
+  "Copy": "복사",
+  "Copied": "복사됨!"
 }

@@ -2,6 +2,7 @@
   "Title": "图像缩放器",
   "Description": "使用自定义尺寸和锁定宽高比缩放图像。",
   "OriginalInfo": "原始图像",
+  "TargetFormatLabel": "格式",
   "Width": "宽度 (像素)",
   "Height": "高度 (像素)",
   "LockAspectRatio": "保持宽高比",

@@ -1,6 +1,7 @@
 {
   "Title": "PDF 转文本",
   "Description": "在浏览器中轻松提取 PDF 文档中的所有文本。",
+  "DropZoneTitle": "上传 PDF",
   "ExtractButton": "提取文本",
   "Seo_Introduction": "PDF 转文本转换器是一款隐私优先的工具，可让您直接在浏览器中从任何 PDF 文件中提取文本内容。",
   "Seo_DetailedDescription": "本工具利用 WebAssembly 技术解析 PDF 结构并提取文本，无需将文件上传到任何服务器。它支持标准的基于文本的 PDF 文档，并处理各种字符编码以确保准确提取。\n\n您可以上传多个 PDF 文件并进行批量处理。每个文件都将转换为纯文本 (.txt) 文件，您可以下载并根据需要使用。",

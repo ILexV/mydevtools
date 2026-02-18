@@ -2,6 +2,7 @@
   "Title": "画像リサイザー",
   "Description": "カスタムサイズとアスペクト比ロックで画像をリサイズします。",
   "OriginalInfo": "元の画像",
+  "TargetFormatLabel": "フォーマット",
   "Width": "幅 (px)",
   "Height": "高さ (px)",
   "LockAspectRatio": "アスペクト比を維持",

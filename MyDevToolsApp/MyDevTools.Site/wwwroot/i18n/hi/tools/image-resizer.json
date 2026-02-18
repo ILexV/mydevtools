@@ -2,6 +2,7 @@
   "Title": "इमेज रिसाइज़र",
   "Description": "कस्टम डाइमेंशन और एस्पेक्ट रेशियो लॉक के साथ इमेज रिसाइज़ करें।",
   "OriginalInfo": "मूल इमेज",
+  "TargetFormatLabel": "फॉर्मेट",
   "Width": "चौड़ाई (px)",
   "Height": "ऊँचाई (px)",
   "LockAspectRatio": "एस्पेक्ट रेशियो बनाए रखें",

@@ -20,5 +20,9 @@
   "PayloadLabel": "Полезная нагрузка (JSON)",
   "AlgorithmLabel": "Алгоритм",
   "GenerateButton": "Сгенерировать JWT",
-  "LinkToDecoder": "Нужно декодировать JWT? Попробуйте Декодер JWT"
+  "LinkToDecoder": "Нужно декодировать JWT? Попробуйте JWT Декодер",
+  "EncoderTitle": "JWT Кодировщик",
+  "DecoderTitle": "JWT Декодер",
+  "Copy": "Копировать",
+  "Copied": "Скопировано!"
 }

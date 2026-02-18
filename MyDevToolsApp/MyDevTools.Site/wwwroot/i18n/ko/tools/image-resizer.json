@@ -2,6 +2,7 @@
   "Title": "이미지 크기 조정기",
   "Description": "사용자 정의 치수와 종횡비 잠금으로 이미지 크기 조정",
   "OriginalInfo": "원본 이미지",
+  "TargetFormatLabel": "형식",
   "Width": "너비 (픽셀)",
   "Height": "높이 (픽셀)",
   "LockAspectRatio": "종횡비 유지",

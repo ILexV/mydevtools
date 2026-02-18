@@ -2,6 +2,7 @@
   "Title": "Redimensionneur d'images",
   "Description": "Redimensionnez des images avec des dimensions personnalisées et verrouillage du ratio d'aspect.",
   "OriginalInfo": "Image originale",
+  "TargetFormatLabel": "Format",
   "Width": "Largeur (px)",
   "Height": "Hauteur (px)",
   "LockAspectRatio": "Conserver le ratio d'aspect",

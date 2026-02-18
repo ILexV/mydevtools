@@ -2,6 +2,7 @@
   "Title": "Redimensionador de Imagem",
   "Description": "Redimensione imagens com dimensões personalizadas e bloqueio de proporção.",
   "OriginalInfo": "Imagem Original",
+  "TargetFormatLabel": "Formato",
   "Width": "Largura (px)",
   "Height": "Altura (px)",
   "LockAspectRatio": "Manter Proporção",

@@ -71,7 +71,8 @@
             new("pdf-merger", "📑", GetToolTitle("pdf-merger"), GetToolDescription("pdf-merger")),
             new("pdf-compressor", "📉", GetToolTitle("pdf-compressor"), GetToolDescription("pdf-compressor")),
             new("html-entity-encoder", "</>", GetToolTitle("html-entity-encoder"), GetToolDescription("html-entity-encoder")),
-            new("unit-converter", "📏", GetToolTitle("unit-converter"), GetToolDescription("unit-converter"))
+            new("unit-converter", "📏", GetToolTitle("unit-converter"), GetToolDescription("unit-converter")),
+            new("ip-subnet-calculator", "🌐", GetToolTitle("ip-subnet-calculator"), GetToolDescription("ip-subnet-calculator"))
         };
     }
 
@@ -240,7 +241,7 @@
                 Slug = "converters",
                 Name = T("Category_Converters"),
                 Icon = GetCategoryIcon("converters"),
-                Tools = tools.Where(t => t.Slug == "unit-converter")
+                Tools = tools.Where(t => new[] { "unit-converter", "ip-subnet-calculator" }.Contains(t.Slug))
                           .Select(t => new ToolInfo 
                           { 
                               Slug = t.Slug, 

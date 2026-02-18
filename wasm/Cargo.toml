@@ -11,5 +11,5 @@ members = [
   "image_tools",
   "regex_tool",
   "qrcode",
-  "pdf",
+  "pdf", "ipcalc",
 ]

@@ -1,0 +1,159 @@
+@page "/{lang}/ip-subnet-calculator"
+@inject NavigationManager Navigation
+@inherits ToolComponentBase
+
+<ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")" 
+              Description="@T("Description")" 
+              CurrentUrl="@Navigation.Uri"
+              ToolPath="ip-subnet-calculator" />
+
+    <div id="ip-calc-root"
+         data-loading="@TCommon("Common_Loading")"
+         data-error="@TCommon("Common_Error")"
+         data-calculate="@T("Calculate")"
+         data-error-invalid-format="@T("Error_InvalidFormat")"
+         data-label-address="@T("Address")"
+         data-label-netmask="@T("Netmask")"
+         data-label-wildcard="@T("Wildcard")"
+         data-label-network="@T("Network")"
+         data-label-broadcast="@T("Broadcast")"
+         data-label-host-min="@T("HostMin")"
+         data-label-host-max="@T("HostMax")"
+         data-label-hosts="@T("Hosts")"
+         data-label-usable="@T("UsableHosts")"
+         data-label-class="@T("Class")"
+         data-label-binary="@T("Binary")"
+         data-copied="@T("Copied")">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Input Section -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title">@T("InputLabel")</h2>
+                    <div class="form-control">
+                        <div class="flex gap-2">
+                            <input id="cidr-input" 
+                                   type="text" 
+                                   placeholder="192.168.1.1/24" 
+                                   class="input input-bordered flex-1 font-mono text-lg" 
+                                   autofocus />
+                            <button id="calculate-btn" class="btn btn-primary">
+                                @T("Calculate")
+                            </button>
+                        </div>
+                        <label class="label">
+                            <span class="label-text-alt text-error hidden" id="input-error"></span>
+                        </label>
+                    </div>
+                    <div class="flex gap-2 mt-2">
+                        <button class="btn btn-xs btn-outline" data-example="192.168.0.1/24">Example 1</button>
+                        <button class="btn btn-xs btn-outline" data-example="10.0.0.0/8">Example 2</button>
+                        <button class="btn btn-xs btn-outline" data-example="172.16.0.1 255.240.0.0">Example 3</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="card bg-base-100 shadow-xl" id="result-card" style="display:none;">
+                <div class="card-body p-0 md:p-6">
+                    <div class="overflow-x-auto">
+                        <table class="table table-compact w-full font-mono">
+                            <tbody>
+                                <tr>
+                                    <th class="w-32">@T("Address")</th>
+                                    <td><span id="res-ip"></span></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <th>@T("Netmask")</th>
+                                    <td><span id="res-netmask"></span></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <th>@T("Wildcard")</th>
+                                    <td><span id="res-wildcard"></span></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <th>@T("Network")</th>
+                                    <td><span id="res-network"></span> <span id="res-prefix" class="text-gray-500"></span></td>
+                                    <td class="text-right">
+                                        <button class="btn btn-ghost btn-xs copy-btn" data-target="res-network">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>@T("Broadcast")</th>
+                                    <td><span id="res-broadcast"></span></td>
+                                    <td class="text-right">
+                                        <button class="btn btn-ghost btn-xs copy-btn" data-target="res-broadcast">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>@T("HostMin")</th>
+                                    <td><span id="res-host-min"></span></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <th>@T("HostMax")</th>
+                                    <td><span id="res-host-max"></span></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <th>@T("Hosts")</th>
+                                    <td>
+                                        <span id="res-usable-hosts" class="font-bold"></span> 
+                                        <span class="text-xs text-gray-500">(@T("Total"): <span id="res-total-hosts"></span>)</span>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <th>@T("Class")</th>
+                                    <td>
+                                        <span id="res-class"></span> 
+                                        <span id="res-private" class="badge badge-warning badge-sm hidden">Private</span>
+                                        <span id="res-public" class="badge badge-success badge-sm hidden">Public</span>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="divider"></div>
+                    
+                    <div class="bg-base-300 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+                        <div class="flex gap-4">
+                            <span class="text-gray-500 w-16">IP:</span>
+                            <span id="res-ip-binary"></span>
+                        </div>
+                        <div class="flex gap-4">
+                            <span class="text-gray-500 w-16">Mask:</span>
+                            <span id="res-mask-binary"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <ToolSeoContent 
+        Introduction="@T("Seo_Introduction")"
+        DetailedDescription="@T("Seo_DetailedDescription")"
+        DetailedDescriptionTitle="@TCommon("Seo_DetailedDescriptionTitle")"
+        Examples="@T("Seo_Examples")"
+        ExamplesTitle="@TCommon("Seo_ExamplesTitle")"
+        HowToSteps="@T("Seo_HowToSteps")"
+        HowToTitle="@TCommon("Seo_HowToTitle")"
+        Tips="@T("Seo_Tips")"
+        TipsTitle="@TCommon("Seo_TipsTitle")" />
+
+</ToolLayout>
+
+@code {
+    protected override string LocalizationNamespace { get; set; } = "tools/ip-subnet-calculator";
+}

@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Http
 @using System.Globalization
 @* Removed IHttpContextAccessor injection in favor of CascadingParameter *@
 
@@ -229,6 +229,10 @@
     {
         <script src="@Assets["tools/pdf-to-text.js"]"></script>
     }
+    @if (IsIpSubnetCalculator)
+    {
+        <script src="@Assets["tools/ip-subnet-calculator.js"]"></script>
+    }
 </body>
 
 
@@ -266,6 +270,7 @@
     private bool IsPdfCompressor => CurrentPath.Contains("/pdf-compressor", StringComparison.OrdinalIgnoreCase);
     private bool IsHtmlEntityEncoder => CurrentPath.Contains("/html-entity-encoder", StringComparison.OrdinalIgnoreCase);
     private bool IsPdfToText => CurrentPath.Contains("/pdf-to-text", StringComparison.OrdinalIgnoreCase);
+    private bool IsIpSubnetCalculator => CurrentPath.Contains("/ip-subnet-calculator", StringComparison.OrdinalIgnoreCase);
     
     // CodeMirror is needed for JSON, XML, and YAML beautifiers
     private bool NeedsCodeMirror => IsJsonBeautifier || IsXmlBeautifier || IsYamlBeautifierValidator;

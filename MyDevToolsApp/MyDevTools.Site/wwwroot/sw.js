@@ -1,5 +1,5 @@
 // Service Worker for MyDevTools PWA
-const CACHE_VERSION = 'v1.0.0-1771435098848';
+const CACHE_VERSION = 'v1.0.0-1771438187636';
 const CACHE_NAME = `mydevtools-${CACHE_VERSION}`;
 
 // Assets to cache on install
@@ -23,7 +23,7 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => cache.addAll(STATIC_ASSETS))
-            .then(() => self.skipWaiting())
+            // .then(() => self.skipWaiting()) // Don't skip waiting automatically!
     );
 });
 
@@ -44,7 +44,8 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - Cache First, fallback to Network
+// This is faster for navigation and offline support
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
@@ -69,89 +70,95 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    event.respondWith(
-        caches.match(request)
-            .then((cachedResponse) => {
-                if (cachedResponse) {
-                    // Return cached response and update cache in background
+    // Network-first strategy for HTML pages to ensure fresh content
+    // Cache-first strategy for static assets (CSS, JS, Images, Fonts)
+    const isHtml = request.headers.get('accept')?.includes('text/html');
+    
+    if (isHtml) {
+        // Stale-While-Revalidate for HTML
+        // Return cached version immediately if available, then update cache in background
+        event.respondWith(
+            caches.open(CACHE_NAME).then((cache) => {
+                return cache.match(request).then((cachedResponse) => {
                     const fetchPromise = fetch(request)
                         .then((networkResponse) => {
-                            if (networkResponse && networkResponse.status === 200) {
-                                const responseToCache = networkResponse.clone();
-                                caches.open(CACHE_NAME).then((cache) => {
-                                    cache.put(request, responseToCache);
-                                });
+                            // Update cache with new version
+                            if (networkResponse.ok) {
+                                cache.put(request, networkResponse.clone());
                             }
                             return networkResponse;
                         })
                         .catch(() => {
-                            // Network failed, cached version is still valid
-                            return cachedResponse;
+                            // If network fails and no cache, return offline page
+                            if (!cachedResponse) {
+                                return createOfflineResponse();
+                            }
                         });
 
-                    return cachedResponse;
-                }
-
-                // Not in cache, fetch from network
-                return fetch(request)
-                    .then((networkResponse) => {
-                        // Cache successful responses
-                        if (networkResponse && networkResponse.status === 200) {
-                            const responseToCache = networkResponse.clone();
-                            caches.open(CACHE_NAME).then((cache) => {
-                                cache.put(request, responseToCache);
-                            });
+                    // Return cached response immediately if available
+                    // If not, wait for network
+                    return cachedResponse || fetchPromise;
+                });
+            })
+        );
+    } else {
+        // Cache-First for static assets
+        event.respondWith(
+            caches.open(CACHE_NAME).then((cache) => {
+                return cache.match(request).then((cachedResponse) => {
+                    if (cachedResponse) {
+                        return cachedResponse;
+                    }
+                    return fetch(request).then((networkResponse) => {
+                        if (networkResponse.ok) {
+                            cache.put(request, networkResponse.clone());
                         }
                         return networkResponse;
-                    })
-                    .catch(() => {
-
-                        // Return offline page for HTML requests
-                        const acceptHeader = request.headers.get('accept');
-                        if (acceptHeader && acceptHeader.includes('text/html')) {
-                            return new Response(
-                                `<!DOCTYPE html>
-                <html>
-                <head>
-                  <meta charset="utf-8">
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                  <title>Offline - MyDevTools</title>
-                  <style>
-                    body {
-                      font-family: system-ui, -apple-system, sans-serif;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      min-height: 100vh;
-                      margin: 0;
-                      background: #1a1a2e;
-                      color: #fff;
-                      text-align: center;
-                      padding: 20px;
-                    }
-                    h1 { font-size: 2rem; margin-bottom: 1rem; }
-                    p { font-size: 1.1rem; opacity: 0.8; }
-                  </style>
-                </head>
-                <body>
-                  <div>
-                    <h1>📡 You're Offline</h1>
-                    <p>This page is not available offline.</p>
-                    <p>Please check your internet connection.</p>
-                  </div>
-                </body>
-                </html>`,
-                                {
-                                    headers: { 'Content-Type': 'text/html' }
-                                }
-                            );
-                        }
-
-                        throw error;
                     });
+                });
             })
-    );
+        );
+    }
 });
+
+function createOfflineResponse() {
+    return new Response(
+        `<!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Offline - MyDevTools</title>
+          <style>
+            body {
+              font-family: system-ui, -apple-system, sans-serif;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              min-height: 100vh;
+              margin: 0;
+              background: #1a1a2e;
+              color: #fff;
+              text-align: center;
+              padding: 20px;
+            }
+            h1 { font-size: 2rem; margin-bottom: 1rem; }
+            p { font-size: 1.1rem; opacity: 0.8; }
+          </style>
+        </head>
+        <body>
+          <div>
+            <h1>📡 You're Offline</h1>
+            <p>This page is not available offline.</p>
+            <p>Please check your internet connection.</p>
+          </div>
+        </body>
+        </html>`,
+        {
+            headers: { 'Content-Type': 'text/html' }
+        }
+    );
+}
 
 // Message event - handle commands from the page
 self.addEventListener('message', (event) => {

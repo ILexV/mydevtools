@@ -26,4 +26,9 @@ public interface IJsonLocalizationService
     /// Checks if a localization exists for the specified namespace.
     /// </summary>
     bool HasNamespace(string lang, string @namespace);
+
+    /// <summary>
+    /// Initializes the service by preloading all localization files.
+    /// </summary>
+    Task InitializeAsync();
 }

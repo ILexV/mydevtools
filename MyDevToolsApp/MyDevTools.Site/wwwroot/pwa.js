@@ -37,8 +37,9 @@
 
             // Handle controller change (new SW activated)
             navigator.serviceWorker.addEventListener('controllerchange', () => {
-                console.log('[PWA] Controller changed, reloading page');
-                window.location.reload();
+                console.log('[PWA] Controller changed');
+                // Don't reload automatically, it disrupts user experience
+                // window.location.reload(); 
             });
         });
     }

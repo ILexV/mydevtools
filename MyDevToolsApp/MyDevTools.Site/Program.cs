@@ -128,6 +128,10 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>();
 
+// Initialize localization service
+var localizationService = app.Services.GetRequiredService<IJsonLocalizationService>();
+await localizationService.InitializeAsync();
+
 app.Run();
 
 /// <summary>

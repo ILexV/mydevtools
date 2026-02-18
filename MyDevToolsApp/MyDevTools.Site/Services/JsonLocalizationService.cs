@@ -24,6 +24,65 @@ public class JsonLocalizationService : IJsonLocalizationService
         _environment = environment;
         _logger = logger;
     }
+
+    public async Task InitializeAsync()
+    {
+        _logger.LogInformation("Initializing JSON localization service...");
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        
+        var i18nPath = Path.Combine(_environment.WebRootPath, "i18n");
+        if (!Directory.Exists(i18nPath))
+        {
+            _logger.LogWarning("Localization directory not found: {Path}", i18nPath);
+            return;
+        }
+
+        var files = Directory.GetFiles(i18nPath, "*.json", SearchOption.AllDirectories);
+        
+        // Parallel processing of files
+        var tasks = files.Select(async filePath => 
+        {
+            try 
+            {
+                var relativePath = Path.GetRelativePath(i18nPath, filePath);
+                var parts = relativePath.Split(Path.DirectorySeparatorChar);
+                
+                if (parts.Length < 2) return; 
+                
+                var lang = parts[0];
+                
+                // Construct namespace: join parts after lang with forward slash, remove extension
+                // e.g. "en/tools/json-beautifier.json" -> "tools/json-beautifier"
+                var relativeNamespacePath = string.Join("/", parts.Skip(1));
+                // Remove .json extension
+                if (relativeNamespacePath.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                {
+                    relativeNamespacePath = relativeNamespacePath.Substring(0, relativeNamespacePath.Length - 5);
+                }
+                
+                var json = await File.ReadAllTextAsync(filePath);
+                var values = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+                
+                if (values != null)
+                {
+                    var readonlyValues = values.AsReadOnly();
+                    
+                    var langCache = _cache.GetOrAdd(lang, _ => new ConcurrentDictionary<string, IReadOnlyDictionary<string, string>>());
+                    langCache[relativeNamespacePath] = readonlyValues;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to preload localization file: {Path}", filePath);
+            }
+        });
+
+        await Task.WhenAll(tasks);
+        
+        sw.Stop();
+        _logger.LogInformation("Localization initialized in {Elapsed}ms. Cache size: {Count} languages.", 
+            sw.ElapsedMilliseconds, _cache.Count);
+    }
     
     public string Get(string lang, string @namespace, string key)
     {

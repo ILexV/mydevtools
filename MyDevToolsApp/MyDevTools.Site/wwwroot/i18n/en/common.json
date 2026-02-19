@@ -38,6 +38,13 @@
   "CommandPalette_SearchPlaceholder": "Search for a tool...",
   "CommandPalette_TypeToSearch": "Type to search...",
   "CommandPalette_NoResults": "No tools found",
+  "CommandPalette_FavoritesTitle": "Favorites",
+  "CommandPalette_RecentTitle": "Recent",
+  "CommandPalette_PopularTitle": "Popular",
+  
+  "Badge_Popular": "Popular",
+  "Badge_Recent": "Recent",
+  "Badge_Favorite": "Favorite",
   
   "PWA_InstallTitle": "Install MyDevTools",
   "PWA_InstallDescription": "Install this app for quick access and offline use",

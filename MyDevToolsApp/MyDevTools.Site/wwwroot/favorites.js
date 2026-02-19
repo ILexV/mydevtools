@@ -628,15 +628,120 @@
     
     // Also run on navigation (for Blazor enhanced nav)
     let lastPath = window.location.pathname;
+    let pathCheckTimer;
     const observer = new MutationObserver(() => {
-        const currentPath = window.location.pathname;
-        if (currentPath !== lastPath) {
-            lastPath = currentPath;
-            setTimeout(autoAddToRecent, 100);
-        }
+        clearTimeout(pathCheckTimer);
+        pathCheckTimer = setTimeout(() => {
+            const currentPath = window.location.pathname;
+            if (currentPath !== lastPath) {
+                lastPath = currentPath;
+                autoAddToRecent();
+            }
+        }, 300); // Debounce 300ms
     });
     
     if (document.body) {
-        observer.observe(document.body, { childList: true, subtree: true });
+        observer.observe(document.body, { childList: true, subtree: false }); // Only direct children, not subtree
+    }
+})();
+
+// ========================================
+// ADD RECENT/FAVORITE BADGES TO TOOL CARDS
+// ========================================
+(function() {
+    'use strict';
+    
+    const POPULAR_SLUGS = ['json-beautifier', 'base64-encoder', 'password-generator'];
+    
+    function addBadgesToToolCards() {
+        // Get recent and favorites from localStorage
+        const favorites = (window.MyDevToolsFavorites?.getFavorites) ? window.MyDevToolsFavorites.getFavorites() : [];
+        const recentItems = (window.MyDevToolsRecent?.getRecent) ? window.MyDevToolsRecent.getRecent() : [];
+        const recentSlugs = recentItems.map(r => r.slug);
+        
+        // Find all tool cards
+        const toolCards = document.querySelectorAll('.tool-card[data-tool-slug]');
+        
+        toolCards.forEach(card => {
+            const slug = card.dataset.toolSlug;
+            if (!slug) return;
+            
+            const cardBody = card.querySelector('.card-body');
+            if (!cardBody) return;
+            
+            // Remove existing recent/favorite badges (not popular, as it's rendered server-side)
+            const existingBadges = cardBody.querySelectorAll('.tool-status-badge');
+            existingBadges.forEach(b => b.remove());
+            
+            // Determine which badge to show (priority: favorite > recent, popular is already rendered)
+            let badgeHtml = '';
+            
+            if (favorites.includes(slug)) {
+                // Show favorite badge
+                badgeHtml = `
+                    <span class="tool-status-badge badge badge-sm badge-accent gap-1 absolute top-2 left-2" title="Favorite" style="margin-top: 30px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                    </span>
+                `;
+            } else if (recentSlugs.includes(slug) && !POPULAR_SLUGS.includes(slug)) {
+                // Show recent badge only if not popular (popular badge is shown server-side)
+                badgeHtml = `
+                    <span class="tool-status-badge badge badge-sm badge-info gap-1 absolute top-2 left-2" title="Recent" style="margin-top: 30px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </span>
+                `;
+            }
+            
+            if (badgeHtml) {
+                cardBody.insertAdjacentHTML('afterbegin', badgeHtml);
+            }
+        });
+    }
+    
+    // Run on page load
+    function init() {
+        if (typeof window.MyDevToolsFavorites === 'undefined' || typeof window.MyDevToolsRecent === 'undefined') {
+            setTimeout(init, 100);
+            return;
+        }
+        
+        addBadgesToToolCards();
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        setTimeout(init, 100);
+    }
+    
+    // Update badges when favorites/recent change
+    window.addEventListener('favoritesChanged', addBadgesToToolCards);
+    window.addEventListener('recentChanged', addBadgesToToolCards);
+    
+    // Re-run when navigating (for Blazor enhanced navigation)
+    let badgeUpdateTimer;
+    let lastToolsHtml = '';
+    const badgeObserver = new MutationObserver(() => {
+        clearTimeout(badgeUpdateTimer);
+        badgeUpdateTimer = setTimeout(() => {
+            const toolsSection = document.getElementById('tools');
+            if (toolsSection) {
+                const currentHtml = toolsSection.innerHTML;
+                // Only update if tools section actually changed (not just our badge insertion)
+                if (currentHtml !== lastToolsHtml && !currentHtml.includes('tool-status-badge')) {
+                    lastToolsHtml = currentHtml;
+                    addBadgesToToolCards();
+                }
+            }
+        }, 300); // Debounce 300ms
+    });
+    
+    if (document.body) {
+        badgeObserver.observe(document.body, { childList: true, subtree: false }); // Only direct children, not subtree
     }
 })();

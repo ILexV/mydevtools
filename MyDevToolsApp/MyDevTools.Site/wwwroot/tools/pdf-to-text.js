@@ -7,8 +7,10 @@
 
     async function ensureWasm() {
         if (!wasmInitPromise) {
-            wasmInitPromise = import('/wasm/pdf/pdf.js?v=' + Date.now()).then(async (m) => {
-                await m.default();
+            const cacheBust = (window.__pdfWasmVersion || 'winansi-fallback-2026-02-19-2') + '-' + Date.now();
+            wasmInitPromise = import('/wasm/pdf/pdf.js?v=' + cacheBust).then(async (m) => {
+                // Pass WASM file URL with cache-busting to avoid browser caching
+                await m.default({ module_or_path: '/wasm/pdf/pdf_tools_bg.wasm?v=' + cacheBust });
                 pdfWasmModule = m;
                 return m;
             });

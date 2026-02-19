@@ -8,4 +8,10 @@
     <RootNamespace>LocalizationValidator</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Update="exceptions.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

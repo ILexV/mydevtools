@@ -1,7 +1,7 @@
 {
   "Title": "Base64 编码 / 解码",
   "Description": "为文本和文件进行 Base64 编码和解码 — 全部在您的浏览器中。",
-  "OtherFormats": "Other formats:",
+  "OtherFormats": "其他格式：",
   "LinkHex": "Hex",
   "LinkBase32": "Base32",
   "LinkBase58": "Base58",

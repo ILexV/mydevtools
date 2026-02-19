@@ -27,7 +27,7 @@ public class Program
         
         try
         {
-            Console.WriteLine("Localization Validator v1.0");
+            Console.WriteLine("Localization Validator v1.1");
             Console.WriteLine("==========================");
             Console.WriteLine();
             
@@ -608,6 +608,9 @@ Examples:
     
     private static void ValidateValues(string i18nPath)
     {
+        // Load exceptions once
+        var exceptions = LoadExceptions();
+        
         foreach (var lang in _targetLanguages!)
         {
             var langPath = Path.Combine(i18nPath, lang);
@@ -617,12 +620,20 @@ Examples:
             if (_scope == "all" || _scope == "common")
             {
                 ValidateEmptyValues(Path.Combine(langPath, "common.json"), lang, "common.json");
+                if (lang != BaseLanguage)
+                {
+                    ValidateDuplicatesWithEnglish(i18nPath, lang, "common.json", exceptions);
+                }
             }
             
             // Check home.json
             if (_scope == "all" || _scope == "home")
             {
                 ValidateEmptyValues(Path.Combine(langPath, "home.json"), lang, "home.json");
+                if (lang != BaseLanguage)
+                {
+                    ValidateDuplicatesWithEnglish(i18nPath, lang, "home.json", exceptions);
+                }
             }
             
             // Check tool files
@@ -635,6 +646,10 @@ Examples:
                     {
                         var fileName = Path.GetFileName(file);
                         ValidateEmptyValues(file, lang, fileName);
+                        if (lang != BaseLanguage)
+                        {
+                            ValidateDuplicatesWithEnglish(i18nPath, lang, $"tools/{fileName}", exceptions);
+                        }
                     }
                 }
             }
@@ -666,6 +681,164 @@ Examples:
                     Message = $"Empty values found in {lang}/{fileName}",
                     Keys = emptyKeys.ToArray(),
                     Suggestion = $"Fill empty values in {lang}/{fileName}"
+                });
+            }
+        }
+        catch
+        {
+            // Already handled in structure validation
+        }
+    }
+    
+    private static Dictionary<string, List<string>> LoadExceptions()
+    {
+        var exceptions = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        
+        var validatorDir = AppContext.BaseDirectory;
+        var exceptionsPath = Path.Combine(validatorDir, "exceptions.json");
+        
+        // Also check in the project directory for development
+        var currentDir = Directory.GetCurrentDirectory();
+        var devExceptionsPath = Path.Combine(currentDir, "exceptions.json");
+        
+        if (File.Exists(devExceptionsPath))
+        {
+            exceptionsPath = devExceptionsPath;
+        }
+        
+        if (!File.Exists(exceptionsPath))
+        {
+            if (_verbose) Console.WriteLine($"  No exceptions file found at {exceptionsPath}");
+            return exceptions;
+        }
+        
+        try
+        {
+            var json = File.ReadAllText(exceptionsPath);
+            var doc = JsonSerializer.Deserialize<JsonDocument>(json);
+            if (doc == null) return exceptions;
+            
+            if (doc.RootElement.TryGetProperty("exceptions", out var exceptionsElement))
+            {
+                foreach (var property in exceptionsElement.EnumerateObject())
+                {
+                    var fileName = property.Name;
+                    var keys = new List<string>();
+                    
+                    foreach (var keyElement in property.Value.EnumerateArray())
+                    {
+                        if (keyElement.ValueKind == JsonValueKind.String)
+                        {
+                            keys.Add(keyElement.GetString()!);
+                        }
+                    }
+                    
+                    exceptions[fileName] = keys;
+                }
+            }
+            
+            if (_verbose) Console.WriteLine($"  Loaded {exceptions.Count} exception entries from {exceptionsPath}");
+        }
+        catch (Exception ex)
+        {
+            if (_verbose) Console.WriteLine($"  Failed to load exceptions: {ex.Message}");
+        }
+        
+        return exceptions;
+    }
+    
+    private static void ValidateDuplicatesWithEnglish(string i18nPath, string lang, string relativeFilePath, Dictionary<string, List<string>> exceptions)
+    {
+        var englishFilePath = Path.Combine(i18nPath, BaseLanguage, relativeFilePath);
+        var targetFilePath = Path.Combine(i18nPath, lang, relativeFilePath);
+        
+        if (!File.Exists(englishFilePath) || !File.Exists(targetFilePath)) return;
+        
+        try
+        {
+            var englishJson = File.ReadAllText(englishFilePath);
+            var targetJson = File.ReadAllText(targetFilePath);
+            
+            var englishData = JsonSerializer.Deserialize<Dictionary<string, string>>(englishJson);
+            var targetData = JsonSerializer.Deserialize<Dictionary<string, string>>(targetJson);
+            
+            if (englishData == null || targetData == null) return;
+            
+            // Get exceptions for this file
+            var fileName = Path.GetFileName(relativeFilePath);
+            var exceptionKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            
+            if (exceptions.ContainsKey(fileName))
+            {
+                foreach (var key in exceptions[fileName])
+                {
+                    exceptionKeys.Add(key);
+                }
+            }
+            
+            // Also check for "tools/" prefix in exceptions key
+            if (exceptions.ContainsKey(relativeFilePath))
+            {
+                foreach (var key in exceptions[relativeFilePath])
+                {
+                    exceptionKeys.Add(key);
+                }
+            }
+            
+            // Also check for language-specific exceptions (e.g., "de/tools/file.json")
+            var langSpecificPath = $"{lang}/{relativeFilePath}";
+            if (exceptions.ContainsKey(langSpecificPath))
+            {
+                foreach (var key in exceptions[langSpecificPath])
+                {
+                    exceptionKeys.Add(key);
+                }
+            }
+            
+            var duplicateKeys = new List<string>();
+            var duplicateValues = new Dictionary<string, string>();
+            
+            foreach (var kvp in targetData)
+            {
+                var key = kvp.Key;
+                var targetValue = kvp.Value;
+                
+                // Skip if key is in exceptions
+                if (exceptionKeys.Contains(key)) continue;
+                
+                // Skip if value is empty (already reported by EmptyValue check)
+                if (string.IsNullOrWhiteSpace(targetValue)) continue;
+                
+                // Skip if value is too short
+                if (targetValue.Length < 3) continue;
+                
+                // Check if english has this key
+                if (englishData.TryGetValue(key, out var englishValue))
+                {
+                    // Skip if english value is empty
+                    if (string.IsNullOrWhiteSpace(englishValue)) continue;
+                    
+                    // Case-insensitive comparison
+                    if (string.Equals(targetValue, englishValue, StringComparison.OrdinalIgnoreCase))
+                    {
+                        duplicateKeys.Add(key);
+                        duplicateValues[key] = targetValue;
+                    }
+                }
+            }
+            
+            if (duplicateKeys.Any())
+            {
+                AddError(new ValidationError
+                {
+                    Type = ErrorType.DuplicateWithEnglish,
+                    Language = lang,
+                    FilePath = targetFilePath,
+                    ReferenceFile = englishFilePath,
+                    Message = $"Values identical to English found in {lang}/{relativeFilePath}",
+                    Keys = duplicateKeys.ToArray(),
+                    KeyValues = duplicateValues,
+                    Suggestion = $"Translate values to {lang} or add to exceptions.json if they shouldn't be translated"
                 });
             }
         }
@@ -769,6 +942,7 @@ Examples:
                 ErrorType.DuplicateKeys => "remove_duplicates",
                 ErrorType.InvalidJson => "fix_json",
                 ErrorType.MissingDirectory => "create_directory",
+                ErrorType.DuplicateWithEnglish => "translate_values",
                 _ => "manual_review"
             },
             Target = error.FilePath,
@@ -822,6 +996,7 @@ Examples:
             ErrorType.RazorKeyNotFound => "Keys used in Razor not found in JSON",
             ErrorType.RazorCommonKeyNotFound => "TCommon() keys not found in common.json",
             ErrorType.RazorKeyMissingFile => "Razor references missing JSON file",
+            ErrorType.DuplicateWithEnglish => "Values identical to English (needs translation)",
             _ => "Unknown error"
         };
     }
@@ -843,7 +1018,8 @@ public enum ErrorType
     MissingDirectory,
     RazorKeyNotFound,
     RazorCommonKeyNotFound,
-    RazorKeyMissingFile
+    RazorKeyMissingFile,
+    DuplicateWithEnglish
 }
 
 public class ValidationError

@@ -1,0 +1,1644 @@
+{
+  "exceptions": {
+    "common.json": [
+      "AppName",
+      "JSON",
+      "URL",
+      "Base64",
+      "Base16",
+      "Hex",
+      "JWT",
+      "JWT_Token",
+      "JWT_Header",
+      "JWT_Payload",
+      "JWT_Signature",
+      "HMAC",
+      "RSA",
+      "ECDSA",
+      "PEM",
+      "DER",
+      "PKCS",
+      "X509",
+      "MD5",
+      "SHA1",
+      "SHA256",
+      "SHA512",
+      "SHA3",
+      "BLAKE2b",
+      "BLAKE2s",
+      "BLAKE3",
+      "CRC32",
+      "Adler32",
+      "RIPEMD160",
+      "Whirlpool",
+      "AES",
+      "DES",
+      "3DES",
+      "Blowfish",
+      "ChaCha20",
+      "ECB",
+      "CBC",
+      "GCM",
+      "CTR",
+      "OFB",
+      "CFB",
+      "PBKDF2",
+      "Argon2",
+      "scrypt",
+      "bcrypt",
+      "UTF8",
+      "UTF16",
+      "ASCII",
+      "Latin1",
+      "ISO-8859-1",
+      "Windows-1252",
+      "UTF32",
+      "LE",
+      "BE",
+      "BOM",
+      "HTML",
+      "XML",
+      "CSV",
+      "TSV",
+      "SQL",
+      "Markdown",
+      "LaTeX",
+      "YAML",
+      "TOML",
+      "INI",
+      "RegEx",
+      "Regex",
+      "CSS",
+      "SCSS",
+      "SASS",
+      "Less",
+      "Stylus",
+      "GraphQL",
+      "OAuth",
+      "OIDC",
+      "SAML",
+      "LDAP",
+      "NoSQL",
+      "CRUD",
+      "REST",
+      "SOAP",
+      "gRPC",
+      "WebSocket",
+      "WebRTC",
+      "WebAssembly",
+      "WASM",
+      "PWA",
+      "SPA",
+      "SSR",
+      "CSR",
+      "SEO",
+      "CORS",
+      "CSRF",
+      "XSS",
+      "SQL_Injection",
+      "HTTPS",
+      "TLS",
+      "SSL",
+      "SSH",
+      "SFTP",
+      "SCP",
+      "FTP",
+      "FTPS",
+      "SMTP",
+      "SMTPS",
+      "IMAP",
+      "IMAPS",
+      "POP3",
+      "POP3S",
+      "DNS",
+      "DoH",
+      "DoT",
+      "DHCP",
+      "ARP",
+      "ICMP",
+      "TCP",
+      "UDP",
+      "HTTP",
+      "HTTP2",
+      "HTTP3",
+      "QUIC",
+      "IP",
+      "IPv4",
+      "IPv6",
+      "MAC",
+      "MAC_Address",
+      "UUID",
+      "GUID",
+      "ULID",
+      "NanoID",
+      "CUID",
+      "Snowflake",
+      "Lorem_Ipsum",
+      "Lorem",
+      "Ipsum",
+      "KB",
+      "MB",
+      "GB",
+      "TB",
+      "PB",
+      "KiB",
+      "MiB",
+      "GiB",
+      "TiB",
+      "PiB",
+      "ms",
+      "s",
+      "min",
+      "h",
+      "d",
+      "w",
+      "mo",
+      "y",
+      "px",
+      "em",
+      "rem",
+      "vh",
+      "vw",
+      "vmin",
+      "vmax",
+      "pt",
+      "pc",
+      "in",
+      "cm",
+      "mm",
+      "Q",
+      "dpi",
+      "dpcm",
+      "dppx",
+      "x",
+      "Hz",
+      "kHz",
+      "deg",
+      "grad",
+      "rad",
+      "turn",
+      "FR",
+      "fr",
+      "GP",
+      "gp",
+      "XP",
+      "xp",
+      "LVL",
+      "lvl",
+      "HP",
+      "hp",
+      "MP",
+      "mp",
+      "SP",
+      "sp",
+      "AP",
+      "ap",
+      "DP",
+      "dp",
+      "AC",
+      "ac",
+      "DC",
+      "dc",
+      "AC_DC",
+      "V",
+      "A",
+      "W",
+      "J",
+      "N",
+      "Pa",
+      "bar",
+      "atm",
+      "psi",
+      "mmHg",
+      "Torr",
+      "cal",
+      "kcal",
+      "eV",
+      "erg",
+      "Wh",
+      "kWh",
+      "MWh",
+      "GWh",
+      "TWh",
+      "Ah",
+      "mAh",
+      "Ω",
+      "Ohm",
+      "F",
+      "H",
+      "S",
+      "Wb",
+      "T",
+      "Gy",
+      "Sv",
+      "Bq",
+      "Ci",
+      "R",
+      "rem",
+      "rad",
+      "sr",
+      "lm",
+      "lx",
+      "cd",
+      "kat",
+      "mol",
+      "Da",
+      "u",
+      "e",
+      "a0",
+      "hbar",
+      "NA",
+      "kB",
+      "R",
+      "G",
+      "g",
+      "c",
+      "h",
+      "me",
+      "mp",
+      "mn",
+      "mμ",
+      "α",
+      "μ0",
+      "ε0",
+      "ke",
+      "μB",
+      "μN",
+      "a",
+      "re",
+      "σ",
+      "L",
+      "b",
+      "F",
+      "Badge_Popular",
+      "Link",
+      "Flags",
+      "FlagsLabel"
+    ],
+    "home.json": [
+      "AppName",
+      "JSON",
+      "Base64",
+      "JWT",
+      "RegEx",
+      "QR",
+      "UUID",
+      "Hash",
+      "Category_JwtAndTokens",
+      "Category_Volume"
+    ],
+    "tools/base64.json": [
+      "Base64",
+      "URL",
+      "UTF8",
+      "ASCII",
+      "LinkHex",
+      "LinkBase32",
+      "LinkBase58",
+      "LinkUrl",
+      "AlphabetUrlSafe"
+    ],
+    "tools/hash.json": [
+      "MD5",
+      "SHA1",
+      "SHA256",
+      "SHA512",
+      "SHA3",
+      "BLAKE2b",
+      "BLAKE2s",
+      "BLAKE3",
+      "CRC32",
+      "Adler32",
+      "RIPEMD160",
+      "Whirlpool"
+    ],
+    "tools/hex.json": [
+      "Hex",
+      "Base16",
+      "LinkUrl",
+      "LinkBase32",
+      "LinkBase58",
+      "LinkBase64",
+      "OtherFormats",
+      "InputTextLabel"
+    ],
+    "tools/jwt-decoder.json": [
+      "JWT",
+      "JWT_Token",
+      "JWT_Header",
+      "JWT_Payload",
+      "JWT_Signature",
+      "Base64",
+      "Base64URL",
+      "JSON",
+      "DecodedHeaderLabel",
+      "DecodedPayloadLabel",
+      "HeaderLabel",
+      "PayloadLabel"
+    ],
+    "tools/jwt-encoder.json": [
+      "PayloadLabel"
+    ],
+    "tools/uuid-generator.json": [
+      "UUID",
+      "GUID",
+      "UUID_v1",
+      "UUID_v3",
+      "UUID_v4",
+      "UUID_v5",
+      "UUID_v7",
+      "UUID_v8"
+    ],
+    "tools/ulid-generator.json": [
+      "ULID"
+    ],
+    "tools/nanoid-generator.json": [
+      "NanoID"
+    ],
+    "tools/cuid-generator.json": [
+      "CUID",
+      "CUID2"
+    ],
+    "tools/snowflake-generator.json": [
+      "Snowflake"
+    ],
+    "tools/password-generator.json": [
+      "ASCII"
+    ],
+    "tools/lorem-ipsum.json": [
+      "Lorem_Ipsum",
+      "Lorem",
+      "Ipsum"
+    ],
+    "tools/regex-tester.json": [
+      "RegEx",
+      "Regex",
+      "FlagsLabel"
+    ],
+    "tools/qrcode-generator.json": [
+      "QR",
+      "QR_Code"
+    ],
+    "tools/html-entities.json": [
+      "HTML",
+      "HTML_Entities"
+    ],
+    "tools/url-encoder.json": [
+      "URL",
+      "URL_Encoding",
+      "UTF8",
+      "LinkHex",
+      "LinkBase32",
+      "LinkBase58",
+      "LinkBase64",
+      "Mode_Form"
+    ],
+    "tools/html-encoder.json": [
+      "HTML",
+      "HTML_Encoding"
+    ],
+    "tools/json-beautifier.json": [
+      "JSON"
+    ],
+    "tools/json-minifier.json": [
+      "JSON"
+    ],
+    "tools/json-to-yaml.json": [
+      "JSON",
+      "YAML"
+    ],
+    "tools/yaml-to-json.json": [
+      "JSON",
+      "YAML"
+    ],
+    "tools/json-to-xml.json": [
+      "JSON",
+      "XML"
+    ],
+    "tools/xml-to-json.json": [
+      "JSON",
+      "XML"
+    ],
+    "tools/xml-beautifier.json": [
+      "XML"
+    ],
+    "tools/xml-minifier.json": [
+      "XML"
+    ],
+    "tools/xml-to-yaml.json": [
+      "XML",
+      "YAML"
+    ],
+    "tools/yaml-to-xml.json": [
+      "XML",
+      "YAML"
+    ],
+    "tools/yaml-beautifier.json": [
+      "YAML"
+    ],
+    "tools/yaml-minifier.json": [
+      "YAML"
+    ],
+    "tools/text-case-converter.json": [
+      "JSON",
+      "camelCase",
+      "PascalCase",
+      "snake_case",
+      "kebab-case",
+      "CONSTANT_CASE",
+      "dot.case",
+      "path/case",
+      "Title Case",
+      "Sentence case"
+    ],
+    "tools/text-sorter.json": [
+      "JSON",
+      "CSV",
+      "TSV"
+    ],
+    "tools/text-diff.json": [
+      "JSON"
+    ],
+    "tools/text-statistics.json": [
+      "JSON"
+    ],
+    "tools/markdown-to-html.json": [
+      "Markdown",
+      "HTML"
+    ],
+    "tools/html-to-markdown.json": [
+      "Markdown",
+      "HTML"
+    ],
+    "tools/csv-to-json.json": [
+      "CSV",
+      "JSON"
+    ],
+    "tools/json-to-csv.json": [
+      "CSV",
+      "JSON"
+    ],
+    "tools/sql-formatter.json": [
+      "SQL"
+    ],
+    "tools/encryption.json": [
+      "AES",
+      "DES",
+      "3DES",
+      "Blowfish",
+      "ChaCha20",
+      "ECB",
+      "CBC",
+      "GCM",
+      "CTR",
+      "OFB",
+      "CFB",
+      "PBKDF2",
+      "Argon2",
+      "scrypt",
+      "bcrypt",
+      "Base64",
+      "Hex",
+      "PEM",
+      "DER",
+      "PKCS1",
+      "PKCS8",
+      "X509",
+      "HMAC"
+    ],
+    "tools/key-generator.json": [
+      "AES",
+      "RSA",
+      "ECDSA",
+      "PEM",
+      "DER",
+      "PKCS1",
+      "PKCS8",
+      "Base64",
+      "Hex"
+    ],
+    "tools/certificate-viewer.json": [
+      "PEM",
+      "DER",
+      "X509",
+      "PKCS7",
+      "PKCS12",
+      "Base64",
+      "Hex",
+      "RSA",
+      "ECDSA",
+      "SHA256",
+      "SHA384",
+      "SHA512",
+      "MD5",
+      "Subject",
+      "Issuer",
+      "Serial",
+      "Fingerprint",
+      "CN",
+      "OU",
+      "O",
+      "L",
+      "ST",
+      "C",
+      "SAN",
+      "KeyUsage",
+      "ExtendedKeyUsage"
+    ],
+    "tools/rsa-key-generator.json": [
+      "RSA",
+      "PEM",
+      "DER",
+      "PKCS1",
+      "PKCS8",
+      "Base64"
+    ],
+    "tools/ecdsa-key-generator.json": [
+      "ECDSA",
+      "ECC",
+      "PEM",
+      "DER",
+      "PKCS1",
+      "PKCS8",
+      "Base64",
+      "P-256",
+      "P-384",
+      "P-521",
+      "secp256k1",
+      "secp384r1",
+      "secp521r1"
+    ],
+    "tools/eddsa-key-generator.json": [
+      "EdDSA",
+      "Ed25519",
+      "Ed448",
+      "PEM",
+      "DER",
+      "PKCS8",
+      "Base64"
+    ],
+    "tools/hmac-generator.json": [
+      "HMAC",
+      "MD5",
+      "SHA1",
+      "SHA256",
+      "SHA384",
+      "SHA512",
+      "SHA3-256",
+      "SHA3-384",
+      "SHA3-512",
+      "Base64",
+      "Hex"
+    ],
+    "tools/checksum.json": [
+      "CRC32",
+      "Adler32",
+      "MD5",
+      "SHA1",
+      "SHA256"
+    ],
+    "tools/file-hash.json": [
+      "MD5",
+      "SHA1",
+      "SHA256",
+      "SHA512",
+      "SHA3",
+      "BLAKE2b",
+      "BLAKE2s",
+      "BLAKE3"
+    ],
+    "tools/text-hash.json": [
+      "MD5",
+      "SHA1",
+      "SHA256",
+      "SHA512",
+      "SHA3",
+      "BLAKE2b",
+      "BLAKE2s",
+      "BLAKE3",
+      "CRC32",
+      "Adler32",
+      "RIPEMD160",
+      "Whirlpool",
+      "Base64",
+      "Hex",
+      "UTF8"
+    ],
+    "tools/string-escape.json": [
+      "JSON",
+      "HTML",
+      "XML",
+      "URL",
+      "Unicode",
+      "UTF8"
+    ],
+    "tools/string-unescape.json": [
+      "JSON",
+      "HTML",
+      "XML",
+      "URL",
+      "Unicode",
+      "UTF8"
+    ],
+    "tools/line-ending-converter.json": [
+      "CRLF",
+      "LF",
+      "CR",
+      "Windows",
+      "Unix",
+      "Mac"
+    ],
+    "tools/whitespace-remover.json": [
+      "JSON",
+      "HTML",
+      "XML"
+    ],
+    "tools/duplicate-line-remover.json": [
+      "JSON",
+      "CSV"
+    ],
+    "tools/empty-line-remover.json": [
+      "JSON"
+    ],
+    "tools/base32.json": [
+      "Base32",
+      "LinkHex",
+      "LinkBase64",
+      "LinkBase58",
+      "LinkUrl",
+      "LinkBase32",
+      "AlphabetRfc4648",
+      "AlphabetCrockford",
+      "AlphabetZBase32",
+      "CaseAuto"
+    ],
+    "tools/base58.json": [
+      "Base58",
+      "LinkHex",
+      "LinkBase32",
+      "LinkBase64",
+      "LinkUrl",
+      "AlphabetBitcoin",
+      "AlphabetFlickr",
+      "AlphabetRipple"
+    ],
+    "tools/base85.json": [
+      "Base85",
+      "Ascii85",
+      "Z85"
+    ],
+    "tools/punycode.json": [
+      "Punycode",
+      "IDN",
+      "Unicode",
+      "ASCII"
+    ],
+    "tools/quoted-printable.json": [
+      "Quoted-Printable",
+      "QP"
+    ],
+    "tools/binary.json": [
+      "Binary",
+      "Base2"
+    ],
+    "tools/octal.json": [
+      "Octal",
+      "Base8"
+    ],
+    "tools/decimal.json": [
+      "Decimal",
+      "Base10"
+    ],
+    "tools/character-encoding.json": [
+      "UTF8",
+      "UTF16",
+      "UTF16LE",
+      "UTF16BE",
+      "UTF32",
+      "UTF32LE",
+      "UTF32BE",
+      "ASCII",
+      "Latin1",
+      "ISO-8859-1",
+      "Windows-1252",
+      "MacRoman",
+      "BOM"
+    ],
+    "tools/number-base-converter.json": [
+      "Binary",
+      "Octal",
+      "Decimal",
+      "Hex",
+      "Base2",
+      "Base8",
+      "Base10",
+      "Base16",
+      "Base32",
+      "Base36",
+      "Base58",
+      "Base64",
+      "Base85"
+    ],
+    "tools/unit-converter.json": [
+      "m",
+      "km",
+      "cm",
+      "mm",
+      "μm",
+      "nm",
+      "mi",
+      "yd",
+      "ft",
+      "in",
+      "nmi",
+      "kg",
+      "g",
+      "mg",
+      "μg",
+      "t",
+      "lb",
+      "oz",
+      "st",
+      "°C",
+      "°F",
+      "K",
+      "°R",
+      "m²",
+      "km²",
+      "cm²",
+      "mm²",
+      "ha",
+      "ac",
+      "ft²",
+      "in²",
+      "m³",
+      "l",
+      "ml",
+      "cm³",
+      "mm³",
+      "gal",
+      "qt",
+      "pt",
+      "cup",
+      "fl oz",
+      "tbsp",
+      "tsp",
+      "bbl",
+      "m/s",
+      "km/h",
+      "mph",
+      "kn",
+      "ft/s",
+      "Pa",
+      "kPa",
+      "MPa",
+      "bar",
+      "mbar",
+      "psi",
+      "atm",
+      "Torr",
+      "mmHg",
+      "J",
+      "kJ",
+      "MJ",
+      "cal",
+      "kcal",
+      "Wh",
+      "kWh",
+      "eV",
+      "BTU",
+      "ft⋅lb",
+      "W",
+      "kW",
+      "MW",
+      "hp",
+      "PS",
+      "V",
+      "mV",
+      "kV",
+      "A",
+      "mA",
+      "μA",
+      "Ω",
+      "kΩ",
+      "MΩ",
+      "F",
+      "μF",
+      "nF",
+      "pF",
+      "Hz",
+      "kHz",
+      "MHz",
+      "GHz",
+      "THz",
+      "b",
+      "B",
+      "KB",
+      "KiB",
+      "MB",
+      "MiB",
+      "GB",
+      "GiB",
+      "TB",
+      "TiB",
+      "PB",
+      "PiB",
+      "EB",
+      "EiB",
+      "px",
+      "em",
+      "rem",
+      "pt",
+      "pc",
+      "%",
+      "vw",
+      "vh",
+      "vmin",
+      "vmax",
+      "ex",
+      "ch",
+      "deg",
+      "grad",
+      "rad",
+      "turn",
+      "s",
+      "ms",
+      "min",
+      "h",
+      "d",
+      "w",
+      "mo",
+      "y",
+      "fps",
+      "Category_Volume"
+    ],
+    "tools/color-converter.json": [
+      "RGB",
+      "RGBA",
+      "HEX",
+      "HSL",
+      "HSV",
+      "HSB",
+      "CMYK",
+      "LAB",
+      "LCH",
+      "XYZ",
+      "YUV",
+      "YCbCr"
+    ],
+    "tools/timestamp.json": [
+      "Unix",
+      "ISO8601",
+      "RFC3339",
+      "UTC",
+      "GMT",
+      "ms"
+    ],
+    "tools/cron-parser.json": [
+      "Cron",
+      "Crontab"
+    ],
+    "tools/text-to-slug.json": [
+      "Slug",
+      "URL",
+      "SEO"
+    ],
+    "tools/text-truncate.json": [
+      "JSON"
+    ],
+    "tools/text-reverse.json": [
+      "JSON"
+    ],
+    "tools/text-rot13.json": [
+      "ROT13"
+    ],
+    "tools/text-caesar-cipher.json": [
+      "Caesar",
+      "ROT13"
+    ],
+    "tools/text-morse-code.json": [
+      "Morse",
+      "SOS"
+    ],
+    "tools/text-nato-phonetic.json": [
+      "NATO",
+      "ICAO",
+      "ITU",
+      "IMO",
+      "FAA"
+    ],
+    "tools/text-levenshtein.json": [
+      "Levenshtein"
+    ],
+    "tools/text-soundex.json": [
+      "Soundex"
+    ],
+    "tools/text-metaphone.json": [
+      "Metaphone",
+      "Double Metaphone"
+    ],
+    "tools/text-pig-latin.json": [
+      "Pig Latin"
+    ],
+    "tools/ip-subnet.json": [
+      "IP",
+      "IPv4",
+      "IPv6",
+      "CIDR",
+      "Subnet",
+      "Netmask",
+      "Wildcard",
+      "Network",
+      "Broadcast",
+      "Gateway",
+      "Usable",
+      "Host",
+      "First",
+      "Last",
+      "Total"
+    ],
+    "tools/mac-address.json": [
+      "MAC",
+      "MAC_Address",
+      "OUI"
+    ],
+    "tools/port-scanner.json": [
+      "TCP",
+      "UDP",
+      "HTTP",
+      "HTTPS",
+      "SSH",
+      "FTP",
+      "SMTP",
+      "DNS",
+      "Telnet"
+    ],
+    "tools/http-status.json": [
+      "HTTP",
+      "1xx",
+      "2xx",
+      "3xx",
+      "4xx",
+      "5xx"
+    ],
+    "tools/user-agent-parser.json": [
+      "User-Agent",
+      "UA"
+    ],
+    "tools/jwt-generator.json": [
+      "JWT",
+      "HS256",
+      "HS384",
+      "HS512",
+      "RS256",
+      "RS384",
+      "RS512",
+      "ES256",
+      "ES384",
+      "ES512",
+      "PS256",
+      "PS384",
+      "PS512",
+      "EdDSA",
+      "Base64",
+      "JSON"
+    ],
+    "tools/jwt-verifier.json": [
+      "JWT",
+      "HMAC",
+      "RSA",
+      "ECDSA",
+      "Base64",
+      "JSON"
+    ],
+    "tools/bcrypt-generator.json": [
+      "bcrypt"
+    ],
+    "tools/bcrypt-checker.json": [
+      "bcrypt"
+    ],
+    "tools/argon2-generator.json": [
+      "Argon2",
+      "Argon2d",
+      "Argon2i",
+      "Argon2id"
+    ],
+    "tools/scrypt-generator.json": [
+      "scrypt"
+    ],
+    "tools/pbkdf2-generator.json": [
+      "PBKDF2"
+    ],
+    "tools/hkdf-generator.json": [
+      "HKDF"
+    ],
+    "tools/totp-generator.json": [
+      "TOTP",
+      "2FA",
+      "MFA",
+      "OTP",
+      "HOTP",
+      "Base32"
+    ],
+    "tools/base64-image.json": [
+      "Base64",
+      "Data URI",
+      "Data URL"
+    ],
+    "tools/image-to-base64.json": [
+      "Base64",
+      "Data URI",
+      "Data URL"
+    ],
+    "tools/svg-optimizer.json": [
+      "SVG"
+    ],
+    "tools/svg-to-png.json": [
+      "SVG",
+      "PNG"
+    ],
+    "tools/svg-to-jpeg.json": [
+      "SVG",
+      "JPEG",
+      "JPG"
+    ],
+    "tools/chmod-calculator.json": [
+      "chmod",
+      "777",
+      "755",
+      "644"
+    ],
+    "tools/chown-calculator.json": [
+      "chown"
+    ],
+    "tools/permission-converter.json": [
+      "chmod",
+      "chown",
+      "777",
+      "755",
+      "644"
+    ],
+    "tools/docker-compose-validator.json": [
+      "Docker",
+      "Docker Compose",
+      "YAML"
+    ],
+    "tools/dockerfile-validator.json": [
+      "Docker",
+      "Dockerfile"
+    ],
+    "tools/kubernetes-validator.json": [
+      "Kubernetes",
+      "K8s",
+      "YAML"
+    ],
+    "tools/nginx-config-validator.json": [
+      "Nginx"
+    ],
+    "tools/apache-config-validator.json": [
+      "Apache",
+      "httpd",
+      ".htaccess"
+    ],
+    "tools/gitignore-validator.json": [
+      ".gitignore"
+    ],
+    "tools/editorconfig-validator.json": [
+      ".editorconfig"
+    ],
+    "tools/eslintrc-validator.json": [
+      "ESLint",
+      ".eslintrc"
+    ],
+    "tools/prettierrc-validator.json": [
+      "Prettier",
+      ".prettierrc"
+    ],
+    "tools/tsconfig-validator.json": [
+      "TypeScript",
+      "tsconfig.json"
+    ],
+    "tools/packagejson-validator.json": [
+      "package.json",
+      "npm"
+    ],
+    "tools/openapi-validator.json": [
+      "OpenAPI",
+      "Swagger",
+      "YAML",
+      "JSON"
+    ],
+    "tools/graphql-schema-validator.json": [
+      "GraphQL",
+      "SDL"
+    ],
+    "tools/terraform-validator.json": [
+      "Terraform",
+      "HCL"
+    ],
+    "tools/ansible-validator.json": [
+      "Ansible",
+      "YAML"
+    ],
+    "tools/vimrc-validator.json": [
+      "Vim",
+      ".vimrc"
+    ],
+    "tools/ssh-config-validator.json": [
+      "SSH",
+      ".ssh/config"
+    ],
+    "tools/hosts-file-validator.json": [
+      "hosts"
+    ],
+    "tools/ini-validator.json": [
+      "INI"
+    ],
+    "tools/toml-validator.json": [
+      "TOML"
+    ],
+    "tools/csv-validator.json": [
+      "CSV"
+    ],
+    "tools/tsv-validator.json": [
+      "TSV"
+    ],
+    "tools/markdown-table-to-csv.json": [
+      "Markdown",
+      "CSV"
+    ],
+    "tools/csv-to-markdown-table.json": [
+      "CSV",
+      "Markdown"
+    ],
+    "tools/sql-to-json.json": [
+      "SQL",
+      "JSON"
+    ],
+    "tools/json-to-sql.json": [
+      "JSON",
+      "SQL"
+    ],
+    "tools/sql-to-csv.json": [
+      "SQL",
+      "CSV"
+    ],
+    "tools/csv-to-sql.json": [
+      "CSV",
+      "SQL"
+    ],
+    "tools/sql-to-yaml.json": [
+      "SQL",
+      "YAML"
+    ],
+    "tools/yaml-to-sql.json": [
+      "YAML",
+      "SQL"
+    ],
+    "tools/sql-to-xml.json": [
+      "SQL",
+      "XML"
+    ],
+    "tools/xml-to-sql.json": [
+      "XML",
+      "SQL"
+    ],
+    "tools/graphql-to-json.json": [
+      "GraphQL",
+      "JSON"
+    ],
+    "tools/json-to-graphql.json": [
+      "JSON",
+      "GraphQL"
+    ],
+    "tools/html-to-jsx.json": [
+      "HTML",
+      "JSX",
+      "React"
+    ],
+    "tools/jsx-to-html.json": [
+      "JSX",
+      "HTML",
+      "React"
+    ],
+    "tools/css-to-scss.json": [
+      "CSS",
+      "SCSS",
+      "SASS"
+    ],
+    "tools/scss-to-css.json": [
+      "SCSS",
+      "SASS",
+      "CSS"
+    ],
+    "tools/less-to-css.json": [
+      "Less",
+      "CSS"
+    ],
+    "tools/stylus-to-css.json": [
+      "Stylus",
+      "CSS"
+    ],
+    "tools/css-minifier.json": [
+      "CSS"
+    ],
+    "tools/js-minifier.json": [
+      "JS",
+      "JavaScript"
+    ],
+    "tools/html-minifier.json": [
+      "HTML"
+    ],
+    "tools/js-obfuscator.json": [
+      "JS",
+      "JavaScript"
+    ],
+    "tools/js-deobfuscator.json": [
+      "JS",
+      "JavaScript"
+    ],
+    "tools/js-formatter.json": [
+      "JS",
+      "JavaScript"
+    ],
+    "tools/ts-to-js.json": [
+      "TypeScript",
+      "TS",
+      "JS",
+      "JavaScript"
+    ],
+    "tools/js-to-ts.json": [
+      "JS",
+      "JavaScript",
+      "TypeScript",
+      "TS"
+    ],
+    "tools/coffee-to-js.json": [
+      "CoffeeScript",
+      "JS",
+      "JavaScript"
+    ],
+    "tools/livescript-to-js.json": [
+      "LiveScript",
+      "JS",
+      "JavaScript"
+    ],
+    "tools/flow-to-ts.json": [
+      "Flow",
+      "TypeScript",
+      "TS"
+    ],
+    "tools/prop-types-to-ts.json": [
+      "PropTypes",
+      "TypeScript",
+      "TS"
+    ],
+    "tools/python-formatter.json": [
+      "Python",
+      "PEP8"
+    ],
+    "tools/python-to-js.json": [
+      "Python",
+      "JS",
+      "JavaScript"
+    ],
+    "tools/js-to-python.json": [
+      "JS",
+      "JavaScript",
+      "Python"
+    ],
+    "tools/rust-formatter.json": [
+      "Rust",
+      "rustfmt"
+    ],
+    "tools/go-formatter.json": [
+      "Go",
+      "gofmt"
+    ],
+    "tools/php-formatter.json": [
+      "PHP"
+    ],
+    "tools/ruby-formatter.json": [
+      "Ruby"
+    ],
+    "tools/java-formatter.json": [
+      "Java"
+    ],
+    "tools/kotlin-formatter.json": [
+      "Kotlin"
+    ],
+    "tools/scala-formatter.json": [
+      "Scala"
+    ],
+    "tools/swift-formatter.json": [
+      "Swift"
+    ],
+    "tools/c-formatter.json": [
+      "C"
+    ],
+    "tools/cpp-formatter.json": [
+      "C++",
+      "CPP"
+    ],
+    "tools/csharp-formatter.json": [
+      "C#",
+      "CSharp"
+    ],
+    "tools/fsharp-formatter.json": [
+      "F#",
+      "FSharp"
+    ],
+    "tools/vbnet-formatter.json": [
+      "VB.NET",
+      "Visual Basic"
+    ],
+    "tools/objective-c-formatter.json": [
+      "Objective-C"
+    ],
+    "tools/perl-formatter.json": [
+      "Perl"
+    ],
+    "tools/lua-formatter.json": [
+      "Lua"
+    ],
+    "tools/r-formatter.json": [
+      "R"
+    ],
+    "tools/matlab-formatter.json": [
+      "MATLAB"
+    ],
+    "tools/shell-formatter.json": [
+      "Shell",
+      "Bash",
+      "sh"
+    ],
+    "tools/powershell-formatter.json": [
+      "PowerShell",
+      "PS"
+    ],
+    "tools/sql-formatter.json": [
+      "SQL"
+    ],
+    "tools/plsql-formatter.json": [
+      "PL/SQL"
+    ],
+    "tools/tsql-formatter.json": [
+      "T-SQL",
+      "Transact-SQL"
+    ],
+    "tools/mysql-formatter.json": [
+      "MySQL"
+    ],
+    "tools/postgresql-formatter.json": [
+      "PostgreSQL",
+      "Postgres"
+    ],
+    "tools/sqlite-formatter.json": [
+      "SQLite"
+    ],
+    "tools/oracle-formatter.json": [
+      "Oracle"
+    ],
+    "tools/mongodb-formatter.json": [
+      "MongoDB"
+    ],
+    "tools/cassandra-formatter.json": [
+      "Cassandra",
+      "CQL"
+    ],
+    "tools/redis-formatter.json": [
+      "Redis"
+    ],
+    "tools/elasticsearch-formatter.json": [
+      "Elasticsearch"
+    ],
+    "tools/solr-formatter.json": [
+      "Solr"
+    ],
+    "tools/sparql-formatter.json": [
+      "SPARQL"
+    ],
+    "tools/regex-formatter.json": [
+      "RegEx",
+      "Regex"
+    ],
+    "tools/awk-formatter.json": [
+      "AWK"
+    ],
+    "tools/sed-formatter.json": [
+      "sed"
+    ],
+    "tools/awk-to-perl.json": [
+      "AWK",
+      "Perl"
+    ],
+    "tools/perl-to-awk.json": [
+      "Perl",
+      "AWK"
+    ],
+    "tools/sed-to-perl.json": [
+      "sed",
+      "Perl"
+    ],
+    "tools/perl-to-sed.json": [
+      "Perl",
+      "sed"
+    ],
+    "tools/vim-to-emacs.json": [
+      "Vim",
+      "Emacs"
+    ],
+    "tools/emacs-to-vim.json": [
+      "Emacs",
+      "Vim"
+    ],
+    "tools/sublime-to-vscode.json": [
+      "Sublime Text",
+      "VS Code"
+    ],
+    "tools/vscode-to-sublime.json": [
+      "VS Code",
+      "Sublime Text"
+    ],
+    "tools/intellij-to-vscode.json": [
+      "IntelliJ",
+      "VS Code"
+    ],
+    "tools/vscode-to-intellij.json": [
+      "VS Code",
+      "IntelliJ"
+    ],
+    "es/common.json": [
+      "Common_Error",
+      "Badge_Popular"
+    ],
+    "de/common.json": [
+      "Common_Open",
+      "Common_Search",
+      "Nav_Features"
+    ],
+    "de/tools/aead-file.json": [
+      "HeaderLabel"
+    ],
+    "de/tools/base32-encoder.json": [
+      "AlphabetLabel",
+      "PaddingLabel",
+      "PaddingOptional"
+    ],
+    "de/tools/base58-encoder.json": [
+      "AlphabetLabel"
+    ],
+    "de/tools/base64-encoder.json": [
+      "AlphabetLabel",
+      "AlphabetStandard",
+      "PaddingLabel",
+      "PaddingOptional"
+    ],
+    "de/tools/image-resizer.json": [
+      "TargetFormatLabel"
+    ],
+    "de/tools/jwt-encoder.json": [
+      "HeaderLabel",
+      "PayloadLabel",
+      "SecretLabel"
+    ],
+    "de/tools/lorem-ipsum-generator.json": [
+      "Title"
+    ],
+    "de/tools/markdown-preview.json": [
+      "Link",
+      "Code"
+    ],
+    "de/tools/openssh-keys.json": [
+      "PassphraseLabel"
+    ],
+    "de/tools/qr-code-generator.json": [
+      "LogoSection"
+    ],
+    "de/tools/regex-tester.json": [
+      "FlagsLabel"
+    ],
+    "de/tools/uuid-generator.json": [
+      "Title",
+      "FormatLabel"
+    ],
+    "fr/home.json": [
+      "Category_Images"
+    ],
+    "fr/tools/base32-encoder.json": [
+      "AlphabetLabel"
+    ],
+    "fr/tools/base58-encoder.json": [
+      "AlphabetLabel"
+    ],
+    "fr/tools/base64-encoder.json": [
+      "AlphabetLabel",
+      "AlphabetStandard"
+    ],
+    "fr/tools/hmac-calculator.json": [
+      "MessageLabel"
+    ],
+    "fr/tools/image-resizer.json": [
+      "TargetFormatLabel"
+    ],
+    "fr/tools/markdown-preview.json": [
+      "Image",
+      "Code"
+    ],
+    "fr/tools/qr-code-generator.json": [
+      "OptionsSection",
+      "StyleLabel"
+    ],
+    "fr/tools/url-encoder.json": [
+      "ModeLabel"
+    ],
+    "fr/tools/uuid-generator.json": [
+      "FormatLabel"
+    ],
+    "tools/base32-encoder.json": [
+      "Base32",
+      "LinkHex",
+      "LinkBase64",
+      "LinkBase58",
+      "LinkUrl",
+      "LinkBase32",
+      "AlphabetRfc4648",
+      "AlphabetCrockford",
+      "AlphabetZBase32",
+      "CaseAuto"
+    ],
+    "tools/base58-encoder.json": [
+      "Base58",
+      "LinkHex",
+      "LinkBase32",
+      "LinkBase64",
+      "LinkUrl",
+      "AlphabetBitcoin",
+      "AlphabetFlickr",
+      "AlphabetRipple"
+    ],
+    "tools/base64-encoder.json": [
+      "Base64",
+      "URL",
+      "UTF8",
+      "ASCII",
+      "LinkHex",
+      "LinkBase32",
+      "LinkBase58",
+      "LinkUrl",
+      "AlphabetUrlSafe"
+    ],
+    "tools/hex-encoder.json": [
+      "Hex",
+      "Base16",
+      "LinkUrl",
+      "LinkBase32",
+      "LinkBase58",
+      "LinkBase64",
+      "OtherFormats",
+      "InputTextLabel"
+    ],
+    "tools/html-entity-encoder.json": [
+      "HTML",
+      "HTML_Entities",
+      "Title",
+      "LinkUrl",
+      "LinkBase64",
+      "LinkHex",
+      "LinkXml",
+      "Format_Decimal",
+      "Format_Hex"
+    ],
+    "tools/date-converter.json": [
+      "Format_ISO",
+      "Format_RFC"
+    ],
+    "tools/ip-subnet-calculator.json": [
+      "Broadcast",
+      "Hosts",
+      "Total"
+    ],
+    "tools/json-beautifier.json": [
+      "IndentTab"
+    ],
+    "tools/markdown-preview.json": [
+      "SyncScroll",
+      "Link"
+    ],
+    "tools/text-case-converter.json": [
+      "KebabCase",
+      "SnakeCase",
+      "CamelCase"
+    ],
+    "tools/uuid-generator.json": [
+      "FormatUrn"
+    ],
+    "tools/x509.json": [
+      "SubjectLabel",
+      "CsrSectionTitle"
+    ],
+    "tools/xml-beautifier.json": [
+      "IndentTab"
+    ]
+  }
+}

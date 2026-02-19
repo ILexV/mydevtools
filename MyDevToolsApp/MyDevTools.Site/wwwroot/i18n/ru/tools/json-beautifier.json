@@ -1,5 +1,5 @@
 {
-  "Title": "JSON Beautifier",
+  "Title": "Форматирование JSON",
   "Description": "Форматирование и украшение JSON-строк с настраиваемыми отступами и опциями — безопасно и приватно",
   "InputLabel": "Входной JSON",
   "InputPlaceholder": "Вставьте ваш JSON здесь...",

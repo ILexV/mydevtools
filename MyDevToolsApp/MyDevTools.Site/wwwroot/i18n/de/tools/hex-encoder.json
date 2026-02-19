@@ -1,7 +1,7 @@
 {
-  "Title": "Hex Encoder / Decoder",
+  "Title": "Hex Kodierer / Dekodierer",
   "Description": "Hex für Text oder Dateien kodieren und dekodieren – alles in Ihrem Browser",
-  "OtherFormats": "Other formats:",
+  "OtherFormats": "Andere Formate:",
   "LinkUrl": "URL",
   "LinkBase32": "Base32",
   "LinkBase58": "Base58",

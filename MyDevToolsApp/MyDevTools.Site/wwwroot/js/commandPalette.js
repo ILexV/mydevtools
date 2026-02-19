@@ -87,9 +87,11 @@
         overlay.classList.add('open');
         modal.classList.add('open');
         
-        // Focus input
+        // Focus input after animation completes
         searchInput.value = '';
-        searchInput.focus();
+        setTimeout(() => {
+            searchInput.focus();
+        }, 50);
         
         // Show default tools (favorites, recent, popular)
         if (tools.length > 0) {

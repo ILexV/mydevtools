@@ -1,6 +1,6 @@
 @inject MyDevTools.Site.Services.IJsonLocalizationService JsonLocalization
 
-<section id="tools" class="py-16">
+<section id="tools" class="py-16" data-badge-popular="@TCommon("Badge_Popular")" data-badge-recent="@TCommon("Badge_Recent")">
     <div class="container mx-auto px-4">
         <div class="text-center mb-12">
             <h2 class="text-3xl md:text-4xl font-bold mb-4">@T("PopularTools")</h2>
@@ -35,14 +35,10 @@
                                      data-tool-icon="@tool.Icon">
                                     <a href="/@Lang/@tool.Slug" class="block h-full">
                                         <div class="card-body p-4 relative">
-                                            @if (IsPopular(tool.Slug))
-                                            {
-                                                <span class="badge badge-sm badge-warning gap-1 absolute top-2 left-2" title="Popular">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                                        <path d="M8.128 19.825a1.586 1.586 0 0 1-1.643-.117 1.543 1.543 0 0 1-.53-.662 1.515 1.515 0 0 1-.096-.837l.736-4.247-3.13-3a1.514 1.514 0 0 1-.39-1.569c.09-.271.254-.513.475-.698.22-.185.49-.306.776-.35L8.66 7.73l1.925-3.862c.128-.26.328-.48.577-.633a1.584 1.584 0 0 1 1.662 0c.25.153.45.373.577.633l1.925 3.847 4.334.615c.29.042.562.162.785.348.224.186.39.43.48.704a1.514 1.514 0 0 1-.404 1.58l-3.13 3 .736 4.247c.047.282.014.572-.096.837-.111.265-.294.494-.53.662a1.582 1.582 0 0 1-1.643.117l-3.865-2-3.865 2z"/>
-                                                    </svg>
-                                                </span>
-                                            }
+@if (IsPopular(tool.Slug))
+{
+    <span class="absolute top-2 left-2 text-lg" title="@TCommon("Badge_Popular")">🔥</span>
+}
 
                                             <button class="favorite-btn btn btn-ghost btn-circle btn-sm absolute top-2 right-2"
                                                     data-tool-slug="@tool.Slug"
@@ -76,6 +72,7 @@
     [Parameter] public List<ToolCategory> Categories { get; set; } = new();
 
     private string T(string key) => JsonLocalization.Get(Lang, "home", key);
+    private string TCommon(string key) => JsonLocalization.Get(Lang, "common", key);
 
     private HashSet<string> popularTools = new() { "json-beautifier", "base64-encoder", "password-generator" };
 

@@ -659,6 +659,10 @@
         const recentItems = (window.MyDevToolsRecent?.getRecent) ? window.MyDevToolsRecent.getRecent() : [];
         const recentSlugs = recentItems.map(r => r.slug);
         
+        // Get localized strings from data attributes
+        const toolsSection = document.getElementById('tools');
+        const recentTitle = toolsSection?.dataset.badgeRecent || 'Recent';
+        
         // Find all tool cards
         const toolCards = document.querySelectorAll('.tool-card[data-tool-slug]');
         
@@ -673,28 +677,13 @@
             const existingBadges = cardBody.querySelectorAll('.tool-status-badge');
             existingBadges.forEach(b => b.remove());
             
-            // Determine which badge to show (priority: favorite > recent, popular is already rendered)
+            // Determine which badge to show (priority: recent, popular is already rendered)
+            // Note: favorite badge is not shown here as it has its own button on the right side
             let badgeHtml = '';
             
-            if (favorites.includes(slug)) {
-                // Show favorite badge
-                badgeHtml = `
-                    <span class="tool-status-badge badge badge-sm badge-accent gap-1 absolute top-2 left-2" title="Favorite" style="margin-top: 30px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                        </svg>
-                    </span>
-                `;
-            } else if (recentSlugs.includes(slug) && !POPULAR_SLUGS.includes(slug)) {
+            if (recentSlugs.includes(slug) && !POPULAR_SLUGS.includes(slug)) {
                 // Show recent badge only if not popular (popular badge is shown server-side)
-                badgeHtml = `
-                    <span class="tool-status-badge badge badge-sm badge-info gap-1 absolute top-2 left-2" title="Recent" style="margin-top: 30px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <polyline points="12 6 12 12 16 14"/>
-                        </svg>
-                    </span>
-                `;
+                badgeHtml = `<span class="tool-status-badge absolute top-2 left-2 text-lg" title="${recentTitle}">🕐</span>`;
             }
             
             if (badgeHtml) {

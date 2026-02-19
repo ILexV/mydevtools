@@ -84,35 +84,55 @@
             return;
         }
 
+        // Check if prompt is available
+        if (!deferredPrompt) {
+            console.log('[PWA] Install prompt not available yet. Try installing from browser menu.');
+            // Show the prompt anyway, user can dismiss it
+            // The install button will be disabled if deferredPrompt is null
+        }
+
         prompt.style.display = 'block';
 
         // Handle install button click
         const installBtn = document.getElementById('pwa-install-btn');
         if (installBtn) {
-            installBtn.addEventListener('click', async () => {
-                if (!deferredPrompt) return;
-
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log('[PWA] User choice:', outcome);
-
-                if (outcome === 'dismissed') {
-                    localStorage.setItem('pwa-install-dismissed', 'true');
-                }
-
-                deferredPrompt = null;
-                hideInstallPrompt();
-            });
+            // Remove existing listener to avoid duplicates
+            installBtn.removeEventListener('click', handleInstallClick);
+            installBtn.addEventListener('click', handleInstallClick);
+            // Disable button if prompt not available
+            installBtn.disabled = !deferredPrompt;
         }
 
         // Handle dismiss button
         const dismissBtn = document.getElementById('pwa-install-dismiss');
         if (dismissBtn) {
-            dismissBtn.addEventListener('click', () => {
-                localStorage.setItem('pwa-install-dismissed', 'true');
-                hideInstallPrompt();
-            });
+            // Remove existing listener to avoid duplicates
+            dismissBtn.removeEventListener('click', handleDismissClick);
+            dismissBtn.addEventListener('click', handleDismissClick);
         }
+    }
+
+    async function handleInstallClick() {
+        if (!deferredPrompt) {
+            console.log('[PWA] Install prompt not available');
+            return;
+        }
+
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('[PWA] User choice:', outcome);
+
+        if (outcome === 'dismissed') {
+            localStorage.setItem('pwa-install-dismissed', 'true');
+        }
+
+        deferredPrompt = null;
+        hideInstallPrompt();
+    }
+
+    function handleDismissClick() {
+        localStorage.setItem('pwa-install-dismissed', 'true');
+        hideInstallPrompt();
     }
 
     // Hide install prompt

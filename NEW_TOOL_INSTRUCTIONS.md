@@ -150,24 +150,43 @@ dotnet run --scope tools                # Только инструменты (�
 
 ---
 
-## 7. Добавление в поисковую систему (`ToolSearch.razor`)
+## 7. Добавление в Command Palette (поиск по сайту)
 
-Чтобы инструмент был доступен через поиск по сайту, добавьте его в массив `window.searchData.tools` в файле `MyDevToolsApp/MyDevTools.Site/Components/Common/ToolSearch.razor`:
+Чтобы инструмент был доступен через поиск по сайту (Ctrl+K), добавьте его в метод `GetTools()` в файле `MyDevToolsApp/MyDevTools.Site/Components/Layout/MainLayout.razor`:
 
-```javascript
-{ 
-    slug: 'your-tool-slug', 
-    icon: '🎯', 
-    title: '@AppStrings.YourTool_Title', 
-    description: '@AppStrings.YourTool_Description', 
-    keywords: ['keyword1', 'keyword2', 'keyword3'] 
+
+
+```csharp
+
+new() { 
+
+    Slug = "your-tool-slug", 
+
+    Name = GetToolTitle("your-tool-slug"), 
+
+    Description = GetToolDescription("your-tool-slug"), 
+
+    Category = JsonLocalization.Get(CurrentLanguage, "categories", "CategoryName"), 
+
+    Icon = "🎯",
+
+    IsPopular = true  // Опционально: добавляет бейдж "Popular"
+
 }
+
 ```
 
+
+
 **Важно:** Убедитесь, что:
-- `slug` совпадает с slug из Home.razor
-- `icon` - подходящий emoji (или HTML entity для спецсимволов)
-- `keywords` содержат релевантные поисковые термины на английском языке
+
+- `Slug` совпадает с slug из Home.razor
+
+- `Icon` - подходящий emoji (или HTML entity для спецсимволов)
+
+- `Category` соответствует одной из существующих категорий (Images, Encoding, StructuredData, и т.д.)
+
+
 
 ---
 

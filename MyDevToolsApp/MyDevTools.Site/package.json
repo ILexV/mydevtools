@@ -21,6 +21,7 @@
     "vite": "^6.0.0"
   },
   "dependencies": {
+    "cron-parser": "^5.5.0",
     "marked": "^11.1.1"
   }
 }

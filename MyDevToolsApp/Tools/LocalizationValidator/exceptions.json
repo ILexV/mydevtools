@@ -896,7 +896,14 @@
     ],
     "tools/cron-parser.json": [
       "Cron",
-      "Crontab"
+      "Crontab",
+      "InputPlaceholder",
+      "PresetYearly",
+      "PresetMonthly",
+      "PresetWeekly",
+      "PresetDaily",
+      "PresetHourly",
+      "PresetReboot"
     ],
     "tools/text-to-slug.json": [
       "Slug",
@@ -1476,6 +1483,18 @@
       "Common_Open",
       "Common_Search",
       "Nav_Features"
+    ],
+    "de/tools/cron-parser.json": [
+      "TabParser",
+      "TabGenerator",
+      "PartMinute",
+      "MinuteLabel",
+      "ScheduleInMonths"
+    ],
+    "fr/tools/cron-parser.json": [
+      "PartMinute",
+      "MinuteLabel",
+      "DescriptionLabel"
     ],
     "de/tools/aead-file.json": [
       "HeaderLabel"

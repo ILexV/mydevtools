@@ -229,6 +229,10 @@
     {
         <script src="@Assets["tools/pdf-to-text.js"]"></script>
     }
+    @if (IsCronParser)
+    {
+        <script src="@Assets["tools/cron-parser.js"]"></script>
+    }
     @if (IsIpSubnetCalculator)
     {
         <script src="@Assets["tools/ip-subnet-calculator.js"]"></script>
@@ -271,6 +275,7 @@
     private bool IsHtmlEntityEncoder => CurrentPath.Contains("/html-entity-encoder", StringComparison.OrdinalIgnoreCase);
     private bool IsPdfToText => CurrentPath.Contains("/pdf-to-text", StringComparison.OrdinalIgnoreCase);
     private bool IsIpSubnetCalculator => CurrentPath.Contains("/ip-subnet-calculator", StringComparison.OrdinalIgnoreCase);
+    private bool IsCronParser => CurrentPath.Contains("/cron-parser", StringComparison.OrdinalIgnoreCase);
     
     // CodeMirror is needed for JSON, XML, and YAML beautifiers
     private bool NeedsCodeMirror => IsJsonBeautifier || IsXmlBeautifier || IsYamlBeautifierValidator;

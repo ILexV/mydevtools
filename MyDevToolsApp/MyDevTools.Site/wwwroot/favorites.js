@@ -609,7 +609,8 @@
             'pdf-merger': { name: 'PDF Merger', icon: '📑' },
             'pdf-compressor': { name: 'PDF Compressor', icon: '📉' },
             'html-entity-encoder': { name: 'HTML Entities', icon: '</>' },
-            'unit-converter': { name: 'Unit Converter', icon: '📏' }
+            'unit-converter': { name: 'Unit Converter', icon: '📏' },
+            'cron-parser': { name: 'Cron Parser', icon: '📅' }
         };
         
         const tool = TOOLS_REGISTRY[slug];

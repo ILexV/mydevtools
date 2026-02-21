@@ -267,7 +267,7 @@
         return desc.join(' ').replace(/of every hour every/g, 'every').replace(/at hour every/g, 'every');
     }
 
-    // OPTIMIZED: Parse fields once outside loop, use adaptive step size
+    // Get next execution times
     function getNextExecutions(expression, count = 5, root) {
         if (expression === '@reboot') {
             return ['Runs when system restarts'];
@@ -282,7 +282,7 @@
 
         const [minuteField, hourField, dayField, monthField, weekdayField] = parts;
 
-        // KEY OPTIMIZATION: Parse fields once outside the loop
+        // Parse fields once outside the loop
         const minuteVals = parseCronField(minuteField, 0, 59);
         const hourVals = parseCronField(hourField, 0, 23);
         const dayVals = parseCronField(dayField, 1, 31);
@@ -292,24 +292,11 @@
         const now = new Date();
         const executions = [];
         
-        // Adaptive step size based on specificity
-        let stepMinutes = 1;
-        if (minuteField !== '*') {
-            stepMinutes = 60; // If minute is fixed, check hourly
-        }
-        if (hourField !== '*' && !hourField.includes('/') && !hourField.includes(',')) {
-            stepMinutes = 24 * 60; // If hour is fixed too, check daily
-        }
-        if (dayField !== '*' && dayField !== '?' && dayField !== 'L' && 
-            !dayField.includes('/') && !dayField.includes(',')) {
-            stepMinutes = 31 * 24 * 60; // If day is fixed too, check monthly
-        }
-        
         let checkDate = new Date(now);
         checkDate.setSeconds(0, 0);
         
-        const maxAttempts = 100000;
-        const maxTimeMs = 100;
+        const maxAttempts = 1000000;
+        const maxTimeMs = 500;
         const startTime = Date.now();
         
         for (let attempts = 0; attempts < maxAttempts && executions.length < count; attempts++) {
@@ -334,14 +321,20 @@
                 }
             }
 
-            checkDate.setMinutes(checkDate.getMinutes() + stepMinutes);
+            // Increment by 1 minute
+            checkDate.setMinutes(checkDate.getMinutes() + 1);
         }
 
         return executions;
     }
 
     function formatDate(date) {
-        return date.toLocaleString('en-US', {
+        // Get language from URL (e.g., /ru/, /en/) or default to en
+        const pathLang = window.location.pathname.split("/")[1];
+        const lang = ["ru", "es", "de", "pt", "zh", "fr", "ja", "ko", "hi"].includes(pathLang) ? pathLang : "en";
+        const locale = lang === "zh" ? "zh-CN" : lang;
+        return date.toLocaleString(locale, {
+            hour12: false,
             weekday: 'short',
             year: 'numeric',
             month: 'short',

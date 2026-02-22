@@ -73,7 +73,8 @@
             new("html-entity-encoder", "</>", GetToolTitle("html-entity-encoder"), GetToolDescription("html-entity-encoder")),
             new("unit-converter", "📏", GetToolTitle("unit-converter"), GetToolDescription("unit-converter")),
             new("ip-subnet-calculator", "🌐", GetToolTitle("ip-subnet-calculator"), GetToolDescription("ip-subnet-calculator")),
-            new("cron-parser", "📅", GetToolTitle("cron-parser"), GetToolDescription("cron-parser"))
+            new("cron-parser", "📅", GetToolTitle("cron-parser"), GetToolDescription("cron-parser")),
+            new("cron-generator", "📅", GetToolTitle("cron-generator"), GetToolDescription("cron-generator"))
         };
     }
 
@@ -144,7 +145,7 @@
                 Slug = "structured-data",
                 Name = T("Category_StructuredData"),
                 Icon = GetCategoryIcon("structured-data"),
-                Tools = tools.Where(t => new[] { "json-beautifier", "xml-beautifier", "yaml-beautifier-validator", "cron-parser" }.Contains(t.Slug))
+                Tools = tools.Where(t => new[] { "json-beautifier", "xml-beautifier", "yaml-beautifier-validator", "cron-parser", "cron-generator" }.Contains(t.Slug))
                           .Select(t => new ToolInfo 
                           { 
                               Slug = t.Slug, 

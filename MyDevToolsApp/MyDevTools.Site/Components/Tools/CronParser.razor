@@ -8,15 +8,16 @@
               CurrentUrl="@Navigation.Uri"
               ToolPath="cron-parser" />
 
+    <div class="alert alert-info mb-6 shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>@T("LinkToGenerator") → <a href="/@Lang/cron-generator" class="link link-hover font-bold">@T("GeneratorTitle")</a></span>
+    </div>
+
     <div id="cron-parser-root"
          data-tool-name="@T("Title")"
          data-tool-icon="📅"
          data-loading="@TCommon("Common_Loading")"
          data-error="@TCommon("Common_Error")"
-         data-tab-parser="@T("TabParser")"
-         data-tab-generator="@T("TabGenerator")"
-         data-copy="@T("Copy")"
-         data-copied="@T("Copied")"
          data-schedule-reboot="@T("ScheduleReboot")"
          data-schedule-yearly="@T("ScheduleYearly")"
          data-schedule-monthly="@T("ScheduleMonthly")"
@@ -42,13 +43,7 @@
           data-months="@T("MonthNames")"
           data-weekdays="@T("WeekdayNames")">
 
-        <!-- Tabs -->
-        <div class="tabs tabs-boxed justify-center mb-6">
-            <button class="tab tab-active" id="cron-tab-parser" data-tab="parser">@T("TabParser")</button>
-            <button class="tab" id="cron-tab-generator" data-tab="generator">@T("TabGenerator")</button>
-        </div>
-
-        <!-- Parser Tab Content -->
+        <!-- Parser Panel -->
         <div id="cron-parser-panel" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Input Section -->
             <div class="card bg-base-200 shadow-xl h-fit">
@@ -162,122 +157,6 @@
                                 <div class="font-mono font-bold text-primary" id="cron-part-weekday">*</div>
                                 <div class="opacity-60 mt-1">@T("PartWeekday")</div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Generator Tab Content (Hidden by default) -->
-        <div id="cron-generator-panel" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Generator Input -->
-            <div class="card bg-base-200 shadow-xl h-fit">
-                <div class="card-body">
-                    <h2 class="card-title text-base opacity-70 mb-4">@T("GeneratorTitle")</h2>
-
-                    <!-- Minute -->
-                    <div class="form-control">
-                        <label class="label py-1" for="cron-gen-minute">
-                            <span class="label-text font-semibold">@T("MinuteLabel")</span>
-                        </label>
-                        <input id="cron-gen-minute" type="text" class="input input-bordered font-mono" value="0" placeholder="0-59, *, */5, 1,2,3" />
-                        <label class="label py-0">
-                            <span class="label-text-alt text-xs opacity-60">@T("FieldHintExamples")</span>
-                        </label>
-                    </div>
-
-                    <!-- Hour -->
-                    <div class="form-control mt-3">
-                        <label class="label py-1" for="cron-gen-hour">
-                            <span class="label-text font-semibold">@T("HourLabel")</span>
-                        </label>
-                        <input id="cron-gen-hour" type="text" class="input input-bordered font-mono" value="*" placeholder="0-23, *, */2" />
-                    </div>
-
-                    <!-- Day of Month -->
-                    <div class="form-control mt-3">
-                        <label class="label py-1" for="cron-gen-day">
-                            <span class="label-text font-semibold">@T("DayLabel")</span>
-                        </label>
-                        <input id="cron-gen-day" type="text" class="input input-bordered font-mono" value="*" placeholder="1-31, *, L, 1-15" />
-                    </div>
-
-                    <!-- Month -->
-                    <div class="form-control mt-3">
-                        <label class="label py-1" for="cron-gen-month">
-                            <span class="label-text font-semibold">@T("MonthLabel")</span>
-                        </label>
-                        <input id="cron-gen-month" type="text" class="input input-bordered font-mono" value="*" placeholder="1-12, *, JAN-DEC" />
-                    </div>
-
-                    <!-- Day of Week -->
-                    <div class="form-control mt-3">
-                        <label class="label py-1" for="cron-gen-weekday">
-                            <span class="label-text font-semibold">@T("WeekdayLabel")</span>
-                        </label>
-                        <input id="cron-gen-weekday" type="text" class="input input-bordered font-mono" value="*" placeholder="0-6, *, 1-5, MON-FRI" />
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="card-actions mt-6">
-                        <button class="btn btn-primary w-full" id="cron-generate-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                            </svg>
-                            @T("ActionGenerate")
-                        </button>
-                    </div>
-
-                    <!-- Error -->
-                    <div class="alert alert-error mt-4 hidden" id="cron-gen-error"></div>
-                </div>
-            </div>
-
-            <!-- Generator Output -->
-            <div class="card bg-base-200 shadow-xl h-fit">
-                <div class="card-body">
-                    <h2 class="card-title text-base opacity-70 mb-4">@T("GeneratedExpressionLabel")</h2>
-
-                    <!-- Generated Expression -->
-                    <div class="form-control">
-                        <div class="relative">
-                            <input id="cron-generated" type="text" class="input input-bordered font-mono text-lg w-full pr-12" readonly />
-                            <button class="btn btn-ghost btn-sm absolute right-2 top-1/2 -translate-y-1/2" id="cron-copy-generated-btn" title="@T("Copy")">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Description -->
-                    <div class="form-control mt-4">
-                        <label class="label py-1">
-                            <span class="label-text font-semibold">@T("DescriptionLabel")</span>
-                        </label>
-                        <div id="cron-gen-description" class="p-4 bg-base-100 rounded-lg min-h-[3rem] text-base-content/80">
-                            @T("GenerateToSeeResult")
-                        </div>
-                    </div>
-
-                    <!-- Next Executions Preview -->
-                    <div class="form-control mt-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="label py-1">
-                                <span class="label-text font-semibold">@T("NextExecutionsPreviewLabel")</span>
-                            </label>
-                            <select id="cron-gen-date-format" class="select select-bordered select-sm w-auto text-xs">
-                                <option value="locale">@T("DateFormatLocale")</option>
-                                <option value="locale-12h">@T("DateFormatLocale12h")</option>
-                                <option value="full-month">@T("DateFormatFullMonth")</option>
-                                <option value="iso">@T("DateFormatISO")</option>
-                                <option value="compact">@T("DateFormatCompact")</option>
-                                <option value="american">@T("DateFormatAmerican")</option>
-                                <option value="verbose">@T("DateFormatVerbose")</option>
-                            </select>
-                        </div>
-                        <div id="cron-gen-next-executions" class="space-y-2">
-                            <!-- Dynamically populated -->
                         </div>
                     </div>
                 </div>

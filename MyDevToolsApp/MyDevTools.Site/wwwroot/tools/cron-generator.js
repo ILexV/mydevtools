@@ -387,24 +387,22 @@
         }
     }
 
-    function getParserElements() {
-        const root = document.getElementById('cron-parser-root');
+    function getGeneratorElements() {
+        const root = document.getElementById('cron-generator-root');
         if (!root) return null;
 
         return {
             root,
-            input: document.getElementById('cron-input'),
-            humanReadable: document.getElementById('cron-human-readable'),
-            nextExecutions: document.getElementById('cron-next-executions'),
-            error: document.getElementById('cron-error'),
-            parts: {
-                minute: document.getElementById('cron-part-minute'),
-                hour: document.getElementById('cron-part-hour'),
-                day: document.getElementById('cron-part-day'),
-                month: document.getElementById('cron-part-month'),
-                weekday: document.getElementById('cron-part-weekday'),
-            },
-            dateFormat: document.getElementById('cron-date-format')
+            minute: document.getElementById('cron-gen-minute'),
+            hour: document.getElementById('cron-gen-hour'),
+            day: document.getElementById('cron-gen-day'),
+            month: document.getElementById('cron-gen-month'),
+            weekday: document.getElementById('cron-gen-weekday'),
+            output: document.getElementById('cron-generated'),
+            description: document.getElementById('cron-gen-description'),
+            nextExecutions: document.getElementById('cron-gen-next-executions'),
+            dateFormat: document.getElementById('cron-gen-date-format'),
+            error: document.getElementById('cron-gen-error')
         };
     }
 
@@ -418,38 +416,31 @@
         }
     }
 
-    function parseAction() {
-        const els = getParserElements();
+    function generateAction() {
+        const els = getGeneratorElements();
         if (!els) return;
 
-        const expression = els.input.value.trim();
-        if (!expression) {
-            setError(els.error, '');
-            return;
-        }
+        const minute = els.minute.value.trim() || '*';
+        const hour = els.hour.value.trim() || '*';
+        const day = els.day.value.trim() || '*';
+        const month = els.month.value.trim() || '*';
+        const weekday = els.weekday.value.trim() || '*';
+
+        const expression = `${minute} ${hour} ${day} ${month} ${weekday}`;
 
         const validation = validateCron(expression, els.root);
         if (!validation.valid) {
             setError(els.error, `Invalid expression: ${validation.error}`);
-            els.humanReadable.textContent = '';
+            els.output.value = '';
+            els.description.textContent = '';
             els.nextExecutions.innerHTML = '';
             return;
         }
 
         setError(els.error, '');
 
-        els.humanReadable.textContent = getHumanReadable(expression, els.root);
-
-        let parts = expression;
-        if (expression.startsWith('@') && PRESETS[expression]) {
-            parts = PRESETS[expression];
-        }
-        const [m, h, d, mo, w] = parts.split(/\s+/);
-        if (els.parts.minute) els.parts.minute.textContent = m || '*';
-        if (els.parts.hour) els.parts.hour.textContent = h || '*';
-        if (els.parts.day) els.parts.day.textContent = d || '*';
-        if (els.parts.month) els.parts.month.textContent = mo || '*';
-        if (els.parts.weekday) els.parts.weekday.textContent = w || '*';
+        els.output.value = expression;
+        els.description.textContent = getHumanReadable(expression, els.root);
 
         const currentFormat = els.dateFormat ? els.dateFormat.value : getSavedDateFormat();
         const nextExecs = getNextExecutions(expression, 5, els.root);
@@ -461,101 +452,71 @@
         }).join('');
     }
 
-    function clearAction() {
-        const els = getParserElements();
+    function copyAction(btn) {
+        const els = getGeneratorElements();
         if (!els) return;
 
-        els.input.value = '';
-        els.humanReadable.textContent = 'Enter a cron expression to see the description';
-        els.nextExecutions.innerHTML = '';
-        setError(els.error, '');
-        
-        if (els.parts.minute) els.parts.minute.textContent = '*';
-        if (els.parts.hour) els.parts.hour.textContent = '*';
-        if (els.parts.day) els.parts.day.textContent = '*';
-        if (els.parts.month) els.parts.month.textContent = '*';
-        if (els.parts.weekday) els.parts.weekday.textContent = '*';
-    }
+        const text = els.output.value;
+        if (!text) return;
 
-    function applyPreset(preset) {
-        const els = getParserElements();
-        if (!els) return;
-
-        els.input.value = preset;
-        parseAction();
+        navigator.clipboard.writeText(text).then(() => {
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-success">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+            `;
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+            }, 1500);
+        });
     }
 
     function bindDelegatedHandlersOnce() {
-        if (window.__mydevtools_cron_parser_bound) return;
-        window.__mydevtools_cron_parser_bound = true;
+        if (window.__mydevtools_cron_generator_bound) return;
+        window.__mydevtools_cron_generator_bound = true;
 
         document.addEventListener('click', (ev) => {
             const target = ev.target;
             if (!(target instanceof HTMLElement)) return;
 
-            const presetBtn = target.closest('[data-preset]');
-            if (presetBtn) {
-                applyPreset(presetBtn.dataset.preset);
+            const generateBtn = target.closest('#cron-generate-btn');
+            if (generateBtn) {
+                generateAction();
                 return;
             }
 
-            const parseBtn = target.closest('#cron-parse-btn');
-            if (parseBtn) {
-                parseAction();
+            const copyBtn = target.closest('#cron-copy-generated-btn');
+            if (copyBtn) {
+                copyAction(copyBtn);
                 return;
-            }
-
-            const clearBtn = target.closest('#cron-clear-btn');
-            if (clearBtn) {
-                clearAction();
-                return;
-            }
-        });
-
-        document.addEventListener('input', (ev) => {
-            const target = ev.target;
-            if (target.id === 'cron-input') {
-                clearTimeout(window._cronParseTimeout);
-                window._cronParseTimeout = setTimeout(parseAction, 300);
-            }
-        });
-
-        document.addEventListener('keypress', (ev) => {
-            if (ev.target.id === 'cron-input' && ev.key === 'Enter') {
-                parseAction();
             }
         });
 
         // Date format change handler
         document.addEventListener("change", (ev) => {
             const target = ev.target;
-            if (target.id === "cron-date-format") {
+            if (target.id === 'cron-gen-date-format') {
                 saveDateFormat(target.value);
                 // Re-render dates if we have results
-                const els = getParserElements();
-                if (els && els.input && els.input.value.trim()) {
-                    parseAction();
+                const genEls = getGeneratorElements();
+                if (genEls && genEls.output && genEls.output.value.trim()) {
+                    generateAction();
                 }
             }
         });
     }
 
     function init() {
-        const root = document.getElementById('cron-parser-root');
+        const root = document.getElementById('cron-generator-root');
         if (!root || initializedRoots.has(root)) return;
         initializedRoots.add(root);
 
-        const input = document.getElementById('cron-input');
-
         // Restore saved date format
-        const dateFormatSelect = document.getElementById("cron-date-format");
-        if (dateFormatSelect) {
+        const genDateFormatSelect = document.getElementById("cron-gen-date-format");
+        if (genDateFormatSelect) {
             const savedFormat = getSavedDateFormat();
-            dateFormatSelect.value = savedFormat;
-        }
-
-        if (input && input.value) {
-            parseAction();
+            genDateFormatSelect.value = savedFormat;
         }
     }
 

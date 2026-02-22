@@ -175,6 +175,11 @@
             name: { en: 'Unit Converter', ru: 'Конвертер единиц', es: 'Conversor de Unidades', de: 'Einheiten-Konverter', pt: 'Conversor de Unidades', zh: '单位转换器', fr: 'Convertisseur d\'Unités', ja: '単位変換', ko: '단위 변환기', hi: 'यूनिट कनवर्टर' },
             icon: '📏', 
             popular: false 
+        },
+        'cron-parser': { 
+            name: { en: 'Cron Parser', ru: 'Парсер Cron-выражений', es: 'Analizador Cron', de: 'Cron-Parser', pt: 'Analisador Cron', zh: 'Cron解析器', fr: 'Analyseur Cron', ja: 'Cronパーサー', ko: 'Cron 파서', hi: 'क्रॉन पार्सर' }, 
+            icon: '📅', 
+            popular: false 
         }
     };
 

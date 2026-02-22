@@ -903,7 +903,8 @@
       "PresetWeekly",
       "PresetDaily",
       "PresetHourly",
-      "PresetReboot"
+      "PresetReboot",
+      "DateFormatISO"
     ],
     "tools/text-to-slug.json": [
       "Slug",
@@ -1658,6 +1659,7 @@
     ],
     "tools/xml-beautifier.json": [
       "IndentTab"
+      ,"DateFormatISO"
     ]
   }
 }

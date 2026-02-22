@@ -328,20 +328,63 @@
         return executions;
     }
 
-    function formatDate(date) {
-        // Get language from URL (e.g., /ru/, /en/) or default to en
+    const DATE_FORMAT_KEY = 'cron-date-format';
+
+    function getSavedDateFormat() {
+        try {
+            return localStorage.getItem(DATE_FORMAT_KEY) || 'locale';
+        } catch (e) {
+            return 'locale';
+        }
+    }
+
+    function saveDateFormat(format) {
+        try {
+            localStorage.setItem(DATE_FORMAT_KEY, format);
+        } catch (e) {
+            console.error('Failed to save date format:', e);
+        }
+    }
+
+    function formatDate(date, format) {
         const pathLang = window.location.pathname.split("/")[1];
         const lang = ["ru", "es", "de", "pt", "zh", "fr", "ja", "ko", "hi"].includes(pathLang) ? pathLang : "en";
         const locale = lang === "zh" ? "zh-CN" : lang;
-        return date.toLocaleString(locale, {
-            hour12: false,
-            weekday: 'short',
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        switch(format) {
+            case 'iso':
+                return date.toISOString().slice(0, 19).replace('T', ' ');
+            case 'compact':
+                return date.toLocaleString(locale, {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+                });
+            case 'american':
+                return date.toLocaleString('en-US', {
+                    month: '2-digit', day: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                });
+            case 'full-month':
+                return date.toLocaleString(locale, {
+                    weekday: 'short', year: 'numeric', month: 'long', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+                });
+            case 'verbose':
+                return date.toLocaleString(locale, {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+                });
+            case 'locale-12h':
+                return date.toLocaleString(locale, {
+                    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                });
+            case 'locale':
+            default:
+                return date.toLocaleString(locale, {
+                    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+                });
+        }
     }
 
     function getParserElements() {
@@ -359,7 +402,8 @@
                 hour: document.getElementById('cron-part-hour'),
                 day: document.getElementById('cron-part-day'),
                 month: document.getElementById('cron-part-month'),
-                weekday: document.getElementById('cron-part-weekday')
+                weekday: document.getElementById('cron-part-weekday'),
+            dateFormat: document.getElementById('cron-date-format')
             }
         };
     }
@@ -378,6 +422,7 @@
             output: document.getElementById('cron-generated'),
             description: document.getElementById('cron-gen-description'),
             nextExecutions: document.getElementById('cron-gen-next-executions'),
+            dateFormat: document.getElementById('cron-gen-date-format'),
             error: document.getElementById('cron-gen-error')
         };
     }
@@ -425,12 +470,13 @@
         if (els.parts.month) els.parts.month.textContent = mo || '*';
         if (els.parts.weekday) els.parts.weekday.textContent = w || '*';
 
+        const currentFormat = els.dateFormat ? els.dateFormat.value : getSavedDateFormat();
         const nextExecs = getNextExecutions(expression, 5, els.root);
         els.nextExecutions.innerHTML = nextExecs.map((date, idx) => {
             if (typeof date === 'string') {
                 return `<div class="p-2 bg-base-100 rounded text-sm">${date}</div>`;
             }
-            return `<div class="p-2 bg-base-100 rounded text-sm font-mono">${idx + 1}. ${formatDate(date)}</div>`;
+            return `<div class="p-2 bg-base-100 rounded text-sm font-mono">${idx + 1}. ${formatDate(date, currentFormat)}</div>`;
         }).join('');
     }
 
@@ -460,12 +506,13 @@
         els.output.value = expression;
         els.description.textContent = getHumanReadable(expression, els.root);
 
+        const currentFormat = els.dateFormat ? els.dateFormat.value : getSavedDateFormat();
         const nextExecs = getNextExecutions(expression, 5, els.root);
         els.nextExecutions.innerHTML = nextExecs.map((date, idx) => {
             if (typeof date === 'string') {
                 return `<div class="p-2 bg-base-100 rounded text-sm">${date}</div>`;
             }
-            return `<div class="p-2 bg-base-100 rounded text-sm font-mono">${idx + 1}. ${formatDate(date)}</div>`;
+            return `<div class="p-2 bg-base-100 rounded text-sm font-mono">${idx + 1}. ${formatDate(date, currentFormat)}</div>`;
         }).join('');
     }
 
@@ -596,6 +643,27 @@
                 parseAction();
             }
         });
+
+        // Date format change handler
+        document.addEventListener("change", (ev) => {
+            const target = ev.target;
+            if (target.id === "cron-date-format") {
+                saveDateFormat(target.value);
+                // Re-render dates if we have results
+                const els = getParserElements();
+                if (els && els.input && els.input.value.trim()) {
+                    parseAction();
+                }
+            }
+            if (target.id === 'cron-gen-date-format') {
+                saveDateFormat(target.value);
+                // Re-render dates if we have results
+                const genEls = getGeneratorElements();
+                if (genEls && genEls.output && genEls.output.value.trim()) {
+                    generateAction();
+                }
+            }
+        });
     }
 
     function init() {
@@ -604,6 +672,19 @@
         initializedRoots.add(root);
 
         const input = document.getElementById('cron-input');
+
+        // Restore saved date format
+        const dateFormatSelect = document.getElementById("cron-date-format");
+        if (dateFormatSelect) {
+            const savedFormat = getSavedDateFormat();
+            dateFormatSelect.value = savedFormat;
+        }
+        // Restore saved date format for generator
+        const genDateFormatSelect = document.getElementById("cron-gen-date-format");
+        if (genDateFormatSelect) {
+            const savedFormat = getSavedDateFormat();
+            genDateFormatSelect.value = savedFormat;
+        }
         if (input && input.value) {
             parseAction();
         }

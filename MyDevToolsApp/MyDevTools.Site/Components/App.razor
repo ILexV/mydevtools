@@ -241,6 +241,10 @@
     {
         <script src="@Assets["tools/ip-subnet-calculator.js"]"></script>
     }
+    @if (IsWordCounter)
+    {
+        <script src="@Assets["tools/word-counter.js"]"></script>
+    }
 </body>
 
 
@@ -281,6 +285,7 @@
     private bool IsIpSubnetCalculator => CurrentPath.Contains("/ip-subnet-calculator", StringComparison.OrdinalIgnoreCase);
     private bool IsCronParser => CurrentPath.Contains("/cron-parser", StringComparison.OrdinalIgnoreCase);
     private bool IsCronGenerator => CurrentPath.Contains("/cron-generator", StringComparison.OrdinalIgnoreCase);
+    private bool IsWordCounter => CurrentPath.Contains("/word-counter", StringComparison.OrdinalIgnoreCase);
     
     // CodeMirror is needed for JSON, XML, and YAML beautifiers
     private bool NeedsCodeMirror => IsJsonBeautifier || IsXmlBeautifier || IsYamlBeautifierValidator;

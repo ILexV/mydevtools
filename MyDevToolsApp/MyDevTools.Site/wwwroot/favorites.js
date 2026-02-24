@@ -180,6 +180,16 @@
             name: { en: 'Cron Parser', ru: 'Парсер Cron-выражений', es: 'Analizador Cron', de: 'Cron-Parser', pt: 'Analisador Cron', zh: 'Cron解析器', fr: 'Analyseur Cron', ja: 'Cronパーサー', ko: 'Cron 파서', hi: 'क्रॉन पार्सर' }, 
             icon: '📅', 
             popular: false 
+        },
+        'cron-generator': {
+            name: { en: 'Cron Generator', ru: 'Генератор Cron-выражений', es: 'Generador Cron', de: 'Cron-Generator', pt: 'Gerador Cron', zh: 'Cron生成器', fr: 'Générateur Cron', ja: 'Cronジェネレータ', ko: 'Cron 생성기', hi: 'क्रॉन जनरेटर' },
+            icon: '📅',
+            popular: false
+        },
+        'word-counter': {
+            name: { en: 'Word Counter', ru: 'Счетчик слов', es: 'Contador de Palabras', de: 'Wortzähler', pt: 'Contador de Palavras', zh: '字数统计', fr: 'Compteur de Mots', ja: '文字カウンター', ko: '단어 카운터', hi: 'शब्द गणक' },
+            icon: '📊',
+            popular: false
         }
     };
 
@@ -615,7 +625,9 @@
             'pdf-compressor': { name: 'PDF Compressor', icon: '📉' },
             'html-entity-encoder': { name: 'HTML Entities', icon: '</>' },
             'unit-converter': { name: 'Unit Converter', icon: '📏' },
-            'cron-parser': { name: 'Cron Parser', icon: '📅' }
+            'cron-parser': { name: 'Cron Parser', icon: '📅' },
+            'cron-generator': { name: 'Cron Generator', icon: '📅' },
+            'word-counter': { name: 'Word Counter', icon: '📊' }
         };
         
         const tool = TOOLS_REGISTRY[slug];

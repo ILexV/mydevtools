@@ -1,14 +1,14 @@
 {
-  "DownloadButton": "Descargar",
-  "Title": "Unir PDF",
-  "Description": "Combina múltiples archivos PDF en un solo documento eficientemente en tu navegador.",
-  "CompressButton": "Comprimir PDF",
-  "Seo_Introduction": "El PDF Merger es una herramienta en línea que prioriza la privacidad, diseñada para desarrolladores. Todo el procesamiento ocurre localmente en su navegador utilizando WebAssembly, lo que garantiza que sus archivos PDF nunca salgan de su dispositivo.",
-  "Seo_DetailedDescription": "Esta herramienta proporciona una funcionalidad integral para combinar múltiples documentos PDF en un solo archivo. Construida con tecnologías web modernas y potenciada por WebAssembly compilado en Rust, ofrece una manipulación de PDF rápida y segura directamente en su navegador.\n\nLa interfaz está diseñada para ofrecer simplicidad y eficiencia. Puede cargar fácilmente varios archivos PDF, reordenarlos y combinarlos en un solo documento. Todas las operaciones se realizan en el lado del cliente, garantizando la total privacidad de sus documentos confidenciales.",
-  "Seo_Examples": "**Ejemplo 1**: Combine varios informes PDF en un solo documento completo para facilitar el intercambio.\n\n**Ejemplo 2**: Combine varias páginas PDF escaneadas en un solo archivo.\n\n**Ejemplo 3**: Organice sus documentos PDF combinando archivos relacionados en un solo PDF coherente.",
-  "Seo_HowToSteps": "### Paso 1: Subir archivos PDF\nHaga clic en el botón de carga o arrastre y suelte varios archivos PDF en la herramienta.\n\n### Paso 2: Organizar el orden\nArrastre y suelte los archivos para organizarlos en el orden deseado para el PDF combinado final.\n\n### Paso 3: Combinar y descargar\nHaga clic en el botón \"Combinar PDF\" para procesar sus archivos localmente y descargar el documento resultante.",
-  "Seo_Tips": "- Todo el procesamiento ocurre en su navegador para una máxima privacidad\n- La herramienta funciona fuera de línea después de la carga inicial de la página\n- Sus archivos nunca se suben a ningún servidor\n- Soporta archivos PDF grandes con procesamiento rápido",
+  "Title": "Compresor de PDF",
+  "Description": "Comprime archivos PDF para reducir su tamaño directamente en tu navegador sin necesidad de subirlos.",
   "DropZoneTitle": "Arrastra y suelta archivos PDF aquí",
-  "MergeButton": "Unir PDFs",
-  "Success": "¡PDFs unidos con éxito!"
+  "CompressButton": "Comprimir PDFs",
+  "DownloadButton": "Descargar",
+  "ProcessingText": "Comprimiendo...",
+  "DoneText": "¡Comprimido!",
+  "Seo_Introduction": "El Compresor de PDF es una herramienta en línea que prioriza la privacidad, diseñada para desarrolladores y usuarios en general. Todo el procesamiento ocurre localmente en su navegador utilizando WebAssembly, garantizando que sus archivos PDF nunca salgan de su dispositivo.",
+  "Seo_DetailedDescription": "Esta herramienta proporciona compresión rápida y eficiente de archivos PDF directamente en el navegador. Construida con tecnologías web modernas y potenciada por WebAssembly compilado en Rust, reduce el tamaño de los archivos sin requerir ninguna carga al servidor.\n\nLa interfaz está diseñada para ofrecer simplicidad y eficiencia. Puede cargar uno o varios archivos PDF, comprimirlos con un solo clic y descargar los resultados de inmediato. Todas las operaciones se realizan en el lado del cliente, garantizando la total privacidad de sus documentos.",
+  "Seo_Examples": "**Ejemplo 1**: Comprima un informe PDF grande antes de enviarlo por correo electrónico para reducir el tamaño del adjunto.\n\n**Ejemplo 2**: Reduzca el tamaño de documentos PDF escaneados para facilitar su almacenamiento y distribución.\n\n**Ejemplo 3**: Comprima varios archivos PDF a la vez para ahorrar espacio de almacenamiento.",
+  "Seo_HowToSteps": "### Paso 1: Subir archivos PDF\nHaga clic en el botón de carga o arrastre y suelte uno o más archivos PDF en la herramienta.\n\n### Paso 2: Comprimir\nHaga clic en el botón \"Comprimir PDFs\" para procesar sus archivos localmente en el navegador.\n\n### Paso 3: Descargar\nDescargue cada archivo comprimido individualmente una vez que el procesamiento haya concluido.",
+  "Seo_Tips": "- Todo el procesamiento ocurre en su navegador para una máxima privacidad\n- La herramienta funciona fuera de línea después de la carga inicial de la página\n- Sus archivos nunca se suben a ningún servidor\n- Soporta varios archivos PDF en una sola sesión"
 }

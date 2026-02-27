@@ -1,14 +1,14 @@
 {
-  "DownloadButton": "Télécharger",
-  "Title": "Fusionner PDF",
-  "Description": "Fusionnez plusieurs fichiers PDF en un seul document efficacement dans votre navigateur.",
-  "CompressButton": "Compresser le PDF",
-  "Seo_Introduction": "Le PDF Merger est un outil en ligne axé sur la confidentialité, conçu pour les développeurs. Tout le traitement s'effectue localement dans votre navigateur via WebAssembly, garantissant que vos PDF ne quittent jamais votre appareil.",
-  "Seo_DetailedDescription": "Cet outil offre des fonctionnalités complètes pour fusionner plusieurs documents PDF en un seul fichier. Conçu avec des technologies web modernes et propulsé par WebAssembly compilé en Rust, il permet une manipulation rapide et sécurisée des PDF directement dans votre navigateur.\n\nL'interface est conçue pour la simplicité et l'efficacité. Vous pouvez facilement télécharger plusieurs fichiers PDF, les réorganiser et les fusionner en un seul document. Toutes les opérations sont effectuées côté client, garantissant une confidentialité totale pour vos documents sensibles.",
-  "Seo_Examples": "**Exemple 1** : Fusionnez plusieurs rapports PDF en un seul document complet pour un partage facilité.\n\n**Exemple 2** : Combinez plusieurs pages PDF numérisées en un seul fichier.\n\n**Exemple 3** : Organisez vos documents PDF en fusionnant les fichiers associés en un seul PDF cohérent.",
-  "Seo_HowToSteps": "### Étape 1 : Télécharger des fichiers PDF\nCliquez sur le bouton de téléchargement ou glissez-déposez plusieurs fichiers PDF dans l'outil.\n\n### Étape 2 : Organiser l'ordre\nGlissez-déposez les fichiers pour les organiser dans l'ordre souhaité pour le PDF fusionné final.\n\n### Étape 3 : Fusionner et télécharger\nCliquez sur le bouton \"Fusionner PDF\" pour traiter vos fichiers localement et télécharger le document résultant.",
-  "Seo_Tips": "- Tout le traitement se fait dans votre navigateur pour une confidentialité maximale\n- L'outil fonctionne hors ligne après le chargement initial de la page\n- Vos fichiers ne sont jamais téléchargés sur un serveur\n- Prend en charge les fichiers PDF volumineux avec un traitement rapide",
+  "Title": "Compresseur PDF",
+  "Description": "Compressez des fichiers PDF pour réduire leur taille directement dans votre navigateur, sans aucun upload.",
   "DropZoneTitle": "Glissez et déposez des fichiers PDF ici",
-  "MergeButton": "Fusionner les PDF",
-  "Success": "PDF fusionnés avec succès !"
+  "CompressButton": "Compresser les PDF",
+  "DownloadButton": "Télécharger",
+  "ProcessingText": "Compression en cours...",
+  "DoneText": "Compressé !",
+  "Seo_Introduction": "Le Compresseur PDF est un outil en ligne axé sur la confidentialité, conçu pour les développeurs et les utilisateurs du quotidien. Tout le traitement s'effectue localement dans votre navigateur via WebAssembly, garantissant que vos PDF ne quittent jamais votre appareil.",
+  "Seo_DetailedDescription": "Cet outil offre une compression rapide et efficace des fichiers PDF directement dans le navigateur. Conçu avec des technologies web modernes et propulsé par WebAssembly compilé en Rust, il réduit la taille des fichiers sans nécessiter d'upload vers un serveur.\n\nL'interface est conçue pour la simplicité et l'efficacité. Vous pouvez télécharger un ou plusieurs fichiers PDF, les compresser en un seul clic et télécharger les résultats immédiatement. Toutes les opérations sont effectuées côté client, garantissant une confidentialité totale pour vos documents.",
+  "Seo_Examples": "**Exemple 1** : Compressez un grand rapport PDF avant de l'envoyer par e-mail pour réduire la taille de la pièce jointe.\n\n**Exemple 2** : Réduisez la taille de documents PDF numérisés pour un stockage et un partage plus faciles.\n\n**Exemple 3** : Compressez plusieurs fichiers PDF en même temps pour économiser de l'espace de stockage.",
+  "Seo_HowToSteps": "### Étape 1 : Télécharger des fichiers PDF\nCliquez sur le bouton de téléchargement ou glissez-déposez un ou plusieurs fichiers PDF dans l'outil.\n\n### Étape 2 : Compresser\nCliquez sur le bouton \"Compresser les PDF\" pour traiter vos fichiers localement dans le navigateur.\n\n### Étape 3 : Télécharger\nTéléchargez chaque fichier compressé individuellement une fois le traitement terminé.",
+  "Seo_Tips": "- Tout le traitement se fait dans votre navigateur pour une confidentialité maximale\n- L'outil fonctionne hors ligne après le chargement initial de la page\n- Vos fichiers ne sont jamais téléchargés sur un serveur\n- Prend en charge plusieurs fichiers PDF en une seule session"
 }

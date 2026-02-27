@@ -69,12 +69,14 @@
 
     // Show install prompt
     function showInstallPrompt() {
-        const prompt = document.getElementById('pwa-install-prompt');
-        if (!prompt) return;
-
         // Check if already installed
         if (window.matchMedia('(display-mode: standalone)').matches) {
             console.log('[PWA] App already installed');
+            return;
+        }
+
+        // Only proceed if browser install prompt is available
+        if (!deferredPrompt) {
             return;
         }
 
@@ -84,46 +86,43 @@
             return;
         }
 
-        // Only show prompt if browser supports it
-        if (!deferredPrompt) {
-            return;
-        }
+        const prompt = document.getElementById('pwa-install-prompt');
+        if (!prompt) return;
 
         prompt.style.display = 'block';
 
-        // Handle install button click
+        // Use .onclick to avoid listener accumulation on repeated calls
         const installBtn = document.getElementById('pwa-install-btn');
         if (installBtn) {
-            // Remove existing listener to avoid duplicates
-            installBtn.removeEventListener('click', handleInstallClick);
-            installBtn.addEventListener('click', handleInstallClick);
+            installBtn.onclick = handleInstallClick;
         }
 
-        // Handle dismiss button
         const dismissBtn = document.getElementById('pwa-install-dismiss');
         if (dismissBtn) {
-            // Remove existing listener to avoid duplicates
-            dismissBtn.removeEventListener('click', handleDismissClick);
-            dismissBtn.addEventListener('click', handleDismissClick);
+            dismissBtn.onclick = handleDismissClick;
         }
     }
 
-    async function handleInstallClick() {
+    function handleInstallClick() {
         if (!deferredPrompt) {
             console.log('[PWA] Install prompt not available');
             return;
         }
 
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log('[PWA] User choice:', outcome);
-
-        if (outcome === 'dismissed') {
-            localStorage.setItem('pwa-install-dismissed', 'true');
-        }
-
+        // Call prompt() synchronously within the user gesture handler.
+        // Moving it into an async context or awaiting anything before this call
+        // causes NotAllowedError in Chrome because the user gesture token is consumed.
+        const promptEvent = deferredPrompt;
         deferredPrompt = null;
         hideInstallPrompt();
+
+        promptEvent.prompt();
+        promptEvent.userChoice.then(({ outcome }) => {
+            console.log('[PWA] User choice:', outcome);
+            if (outcome === 'dismissed') {
+                localStorage.setItem('pwa-install-dismissed', 'true');
+            }
+        });
     }
 
     function handleDismissClick() {

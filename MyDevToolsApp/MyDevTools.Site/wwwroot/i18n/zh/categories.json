@@ -1,0 +1,16 @@
+{
+  "Images": "图片",
+  "ColorsAndDesign": "颜色与设计",
+  "HashingAndSecurity": "哈希与安全",
+  "Generators": "生成器",
+  "Encoding": "编码",
+  "StructuredData": "结构化数据",
+  "TextTools": "文本工具",
+  "Cryptography": "密码学",
+  "DateTime": "日期与时间",
+  "JwtAndTokens": "JWT与令牌",
+  "Regex": "正则表达式",
+  "QrCodes": "二维码",
+  "PdfTools": "PDF工具",
+  "Converters": "转换器"
+}

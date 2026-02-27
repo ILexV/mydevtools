@@ -128,7 +128,7 @@ public class ResponseCachingMiddleware
                     Size = bodyBytes.Length
                 });
 
-                _logger.LogInformation("Cache MISS - Cached {Path} (Size: {Size} bytes)", path, bodyBytes.Length);
+                _logger.LogDebug("Cache MISS - Cached {Path} (Size: {Size} bytes)", path, bodyBytes.Length);
             }
 
             // Copy the response back to the original stream

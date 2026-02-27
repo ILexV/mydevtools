@@ -1658,8 +1658,17 @@
       "CsrSectionTitle"
     ],
     "tools/xml-beautifier.json": [
-      "IndentTab"
-      ,"DateFormatISO"
+      "IndentTab",
+      "DateFormatISO"
+    ],
+    "tools/cron-generator.json": [
+      "DateFormatISO",
+      "MinuteLabel",
+      "DescriptionLabel",
+      "ScheduleInMonths"
+    ],
+    "tools/word-counter.json": [
+      "Minutes"
     ]
   }
 }

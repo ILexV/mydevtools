@@ -1,0 +1,118 @@
+@page "/{lang}/json-to-typescript"
+@inject NavigationManager Navigation
+@inherits ToolComponentBase
+
+<ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")" 
+              Description="@T("Description")" 
+              CurrentUrl="@Navigation.Uri"
+              ToolPath="json-to-typescript" />
+
+    <div id="json-to-typescript-root"
+         data-error-invalid-json="@T("ErrorInvalidJson")"
+         data-copied="@T("Copied")"
+         data-copy-button="@T("CopyButton")"
+         data-input-placeholder="@T("InputPlaceholder")"
+         data-output-placeholder="@T("OutputPlaceholder")">
+
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body p-4">
+
+                <!-- Toolbar -->
+                <div class="flex flex-wrap gap-4 items-center justify-between mb-4">
+                    <!-- Options -->
+                    <div class="flex flex-wrap gap-4 items-center">
+                        <!-- Root interface name -->
+                        <div class="flex items-center gap-2">
+                            <label class="label-text text-sm font-medium" for="jtt-root-name">@T("RootInterfaceNameLabel")</label>
+                            <input type="text" id="jtt-root-name" class="input input-bordered input-sm w-32"
+                                   placeholder="@T("RootInterfaceNamePlaceholder")" value="Root" maxlength="64" />
+                        </div>
+
+                        <!-- Checkboxes -->
+                        <div class="flex flex-wrap items-center gap-4 px-2">
+                            <label class="cursor-pointer label p-0 gap-2">
+                                <input type="checkbox" id="jtt-export" class="checkbox checkbox-sm checkbox-primary" />
+                                <span class="label-text text-sm">@T("ExportKeyword")</span>
+                            </label>
+                            <label class="cursor-pointer label p-0 gap-2">
+                                <input type="checkbox" id="jtt-optional" class="checkbox checkbox-sm checkbox-primary" checked />
+                                <span class="label-text text-sm">@T("OptionalFields")</span>
+                            </label>
+                            <label class="cursor-pointer label p-0 gap-2">
+                                <input type="checkbox" id="jtt-use-type" class="checkbox checkbox-sm checkbox-primary" />
+                                <span class="label-text text-sm">@T("UseTypeAlias")</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex flex-wrap gap-2">
+                        <button class="btn btn-sm btn-primary" id="jtt-convert-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            @T("ConvertButton")
+                        </button>
+                        <button class="btn btn-sm btn-ghost" id="jtt-copy-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                            </svg>
+                            @T("CopyButton")
+                        </button>
+                        <button class="btn btn-sm btn-ghost" id="jtt-download-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            @T("DownloadButton")
+                        </button>
+                        <button class="btn btn-sm btn-ghost text-error" id="jtt-clear-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Error message -->
+                <div id="jtt-error" class="alert alert-error mb-4 hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span id="jtt-error-text"></span>
+                </div>
+
+                <!-- Split pane: Input / Output -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <!-- Input -->
+                    <div class="flex flex-col gap-1">
+                        <label class="label-text text-sm font-medium">@T("InputLabel")</label>
+                        <div id="jtt-input" class="rounded-box border border-base-300 overflow-hidden bg-base-100"></div>
+                    </div>
+
+                    <!-- Output -->
+                    <div class="flex flex-col gap-1">
+                        <label class="label-text text-sm font-medium">@T("OutputLabel")</label>
+                        <div id="jtt-output" class="rounded-box border border-base-300 overflow-hidden bg-base-100"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <ToolSeoContent 
+        Introduction="@T("Seo_Introduction")"
+        DetailedDescription="@T("Seo_DetailedDescription")"
+        DetailedDescriptionTitle="@TCommon("Seo_DetailedDescriptionTitle")"
+        Examples="@T("Seo_Examples")"
+        ExamplesTitle="@TCommon("Seo_ExamplesTitle")"
+        HowToSteps="@T("Seo_HowToSteps")"
+        HowToTitle="@TCommon("Seo_HowToTitle")"
+        Tips="@T("Seo_Tips")"
+        TipsTitle="@TCommon("Seo_TipsTitle")" />
+</ToolLayout>
+
+@code {
+    protected override string LocalizationNamespace { get; set; } = "tools/json-to-typescript";
+}

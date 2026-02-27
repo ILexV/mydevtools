@@ -1669,6 +1669,9 @@
     ],
     "tools/word-counter.json": [
       "Minutes"
+    ],
+    "tools/json-to-typescript.json": [
+      "RootInterfaceNamePlaceholder"
     ]
   }
 }

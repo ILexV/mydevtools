@@ -84,11 +84,9 @@
             return;
         }
 
-        // Check if prompt is available
+        // Only show prompt if browser supports it
         if (!deferredPrompt) {
-            console.log('[PWA] Install prompt not available yet. Try installing from browser menu.');
-            // Show the prompt anyway, user can dismiss it
-            // The install button will be disabled if deferredPrompt is null
+            return;
         }
 
         prompt.style.display = 'block';
@@ -99,8 +97,6 @@
             // Remove existing listener to avoid duplicates
             installBtn.removeEventListener('click', handleInstallClick);
             installBtn.addEventListener('click', handleInstallClick);
-            // Disable button if prompt not available
-            installBtn.disabled = !deferredPrompt;
         }
 
         // Handle dismiss button

@@ -18,7 +18,7 @@ public class CultureRedirectMiddleware
     [
         "image-converter", "image-compressor", "image-resizer", "color-converter", "markdown-preview",
         "hash-calculator", "password-generator", "uuid-generator", "lorem-ipsum-generator", "base64-encoder",
-        "json-beautifier", "text-case-converter", "text-diff-viewer", "aead-file", "openssh-keys", "x509",
+        "json-beautifier", "json-to-typescript", "text-case-converter", "text-diff-viewer", "aead-file", "openssh-keys", "x509",
         "url-encoder", "xml-beautifier", "hex-encoder", "base32-encoder", "base58-encoder", "date-converter",
         "jwt-decoder", "jwt-encoder", "regex-tester", "qr-code-generator", "hmac-calculator",
         "yaml-beautifier-validator", "qr-scanner", "pdf-merger", "pdf-compressor", "html-entity-encoder", "unit-converter"

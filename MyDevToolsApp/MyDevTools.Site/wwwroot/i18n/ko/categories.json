@@ -1,0 +1,16 @@
+{
+  "Images": "이미지",
+  "ColorsAndDesign": "색상 및 디자인",
+  "HashingAndSecurity": "해싱 및 보안",
+  "Generators": "생성기",
+  "Encoding": "인코딩",
+  "StructuredData": "구조화된 데이터",
+  "TextTools": "텍스트 도구",
+  "Cryptography": "암호화",
+  "DateTime": "날짜 및 시간",
+  "JwtAndTokens": "JWT 및 토큰",
+  "Regex": "정규 표현식",
+  "QrCodes": "QR 코드",
+  "PdfTools": "PDF 도구",
+  "Converters": "변환기"
+}

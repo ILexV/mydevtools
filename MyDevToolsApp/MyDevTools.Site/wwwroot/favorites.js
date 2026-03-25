@@ -66,6 +66,11 @@
             icon: '✨', 
             popular: true 
         },
+        'json-to-typescript': { 
+            name: { en: 'JSON to TypeScript', ru: 'JSON в TypeScript', es: 'JSON a TypeScript', de: 'JSON zu TypeScript', pt: 'JSON para TypeScript', zh: 'JSON转TypeScript', fr: 'JSON vers TypeScript', ja: 'JSON→TypeScript', ko: 'JSON→TypeScript', hi: 'JSON से TypeScript' },
+            icon: '🔧', 
+            popular: false 
+        },
         'text-case-converter': { 
             name: { en: 'Text Case Converter', ru: 'Конвертер регистра', es: 'Conversor de Texto', de: 'Textkonverter', pt: 'Conversor de Texto', zh: '文本大小写转换器', fr: 'Convertisseur de Casse', ja: 'テキスト変換', ko: '텍스트 변환기', hi: 'टेक्स्ट केस कनवर्टर' },
             icon: '🔠', 
@@ -603,6 +608,7 @@
             'lorem-ipsum-generator': { name: 'Lorem Ipsum', icon: '📝' },
             'base64-encoder': { name: 'Base64 Encoder', icon: '🧬' },
             'json-beautifier': { name: 'JSON Beautifier', icon: '✨' },
+            'json-to-typescript': { name: 'JSON to TypeScript', icon: '🔧' },
             'text-case-converter': { name: 'Text Case Converter', icon: '🔠' },
             'text-diff-viewer': { name: 'Text Diff', icon: '📊' },
             'aead-file': { name: 'AEAD Encryption', icon: '🛡️' },

@@ -14,6 +14,8 @@ const STATIC_ASSETS = [
     '/pwa.js',
     '/favicon.png',
     '/favicon.ico',
+    '/android-chrome-192x192.png',
+    '/android-chrome-512x512.png',
     '/hero_logo.webp',
     '/manifest.json'
 ];

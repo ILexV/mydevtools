@@ -1,0 +1,16 @@
+{
+  "Images": "चित्र",
+  "ColorsAndDesign": "रंग और डिज़ाइन",
+  "HashingAndSecurity": "हैशिंग और सुरक्षा",
+  "Generators": "जनरेटर",
+  "Encoding": "एन्कोडिंग",
+  "StructuredData": "संरचित डेटा",
+  "TextTools": "टेक्स्ट टूल्स",
+  "Cryptography": "क्रिप्टोग्राफी",
+  "DateTime": "दिनांक और समय",
+  "JwtAndTokens": "JWT और टोकन",
+  "Regex": "रेगुलर एक्सप्रेशन",
+  "QrCodes": "QR कोड",
+  "PdfTools": "PDF टूल्स",
+  "Converters": "कनवर्टर"
+}

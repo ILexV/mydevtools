@@ -50,6 +50,7 @@
             new("lorem-ipsum-generator", "📝", GetToolTitle("lorem-ipsum-generator"), GetToolDescription("lorem-ipsum-generator")),
             new("base64-encoder", "🧬", GetToolTitle("base64-encoder"), GetToolDescription("base64-encoder")),
             new("json-beautifier", "✨", GetToolTitle("json-beautifier"), GetToolDescription("json-beautifier")),
+            new("json-to-typescript", "🔷", GetToolTitle("json-to-typescript"), GetToolDescription("json-to-typescript")),
             new("text-case-converter", "🔠", GetToolTitle("text-case-converter"), GetToolDescription("text-case-converter")),
             new("text-diff-viewer", "📊", GetToolTitle("text-diff-viewer"), GetToolDescription("text-diff-viewer")),
             new("aead-file", "🛡️", GetToolTitle("aead-file"), GetToolDescription("aead-file")),
@@ -146,7 +147,7 @@
                 Slug = "structured-data",
                 Name = T("Category_StructuredData"),
                 Icon = GetCategoryIcon("structured-data"),
-                Tools = tools.Where(t => new[] { "json-beautifier", "xml-beautifier", "yaml-beautifier-validator", "cron-parser", "cron-generator" }.Contains(t.Slug))
+                Tools = tools.Where(t => new[] { "json-beautifier", "json-to-typescript", "xml-beautifier", "yaml-beautifier-validator", "cron-parser", "cron-generator" }.Contains(t.Slug))
                           .Select(t => new ToolInfo 
                           { 
                               Slug = t.Slug, 

@@ -56,6 +56,10 @@
     {
         <link rel="stylesheet" href="@Assets["tools/json-beautifier.css"]" />
     }
+    @if (IsJsonToTypeScript)
+    {
+        <link rel="stylesheet" href="@Assets["tools/json-to-typescript.css"]" />
+    }
     @if (IsXmlBeautifier)
     {
         <link rel="stylesheet" href="@Assets["tools/xml-beautifier.css"]" />
@@ -245,6 +249,10 @@
     {
         <script src="@Assets["tools/word-counter.js"]"></script>
     }
+    @if (IsJsonToTypeScript)
+    {
+        <script src="@Assets["tools/json-to-typescript.js"]"></script>
+    }
 </body>
 
 
@@ -286,9 +294,10 @@
     private bool IsCronParser => CurrentPath.Contains("/cron-parser", StringComparison.OrdinalIgnoreCase);
     private bool IsCronGenerator => CurrentPath.Contains("/cron-generator", StringComparison.OrdinalIgnoreCase);
     private bool IsWordCounter => CurrentPath.Contains("/word-counter", StringComparison.OrdinalIgnoreCase);
+    private bool IsJsonToTypeScript => CurrentPath.Contains("/json-to-typescript", StringComparison.OrdinalIgnoreCase);
     
-    // CodeMirror is needed for JSON, XML, and YAML beautifiers
-    private bool NeedsCodeMirror => IsJsonBeautifier || IsXmlBeautifier || IsYamlBeautifierValidator;
+    // CodeMirror is needed for JSON, XML, and YAML beautifiers + JSON to TypeScript converter
+    private bool NeedsCodeMirror => IsJsonBeautifier || IsXmlBeautifier || IsYamlBeautifierValidator || IsJsonToTypeScript;
     
     private string? InitialTheme
     {

@@ -16,19 +16,16 @@
       "purpose": "any"
     },
     {
-      "src": "/hero_logo.webp",
-      "sizes": "512x512",
-      "type": "image/webp",
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any"
-    }
-  ],
-  "screenshots": [
+    },
     {
-      "src": "/hero_logo.webp",
+      "src": "/android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/webp",
-      "form_factor": "wide",
-      "label": "MyDevTools Home Screen"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "categories": [

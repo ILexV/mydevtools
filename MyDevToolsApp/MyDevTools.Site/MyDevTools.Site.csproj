@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -12,20 +12,6 @@
     <None Include="..\..\TASKS.md" Link="TASKS.md" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Resources\AppStrings.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>AppStrings.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Resources\AppStrings.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>AppStrings.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
 
   <Target Name="BuildCss" BeforeTargets="Build" Condition="'$(Configuration)' == 'Debug'">
     <Exec Command="npm run build" WorkingDirectory="$(ProjectDir)" />

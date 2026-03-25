@@ -1,0 +1,144 @@
+/* JSON to TypeScript Converter — CodeMirror styles */
+
+/* ── Editors ────────────────────────────────────────────────────────────── */
+
+#jtt-input,
+#jtt-output {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#jtt-input .CodeMirror,
+#jtt-output .CodeMirror {
+    height: 700px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    background-color: #ffffff;
+    color: #24292e;
+}
+
+#jtt-input .CodeMirror-gutters,
+#jtt-output .CodeMirror-gutters {
+    background-color: #f6f8fa;
+    border-right: 1px solid #e1e4e8;
+}
+
+#jtt-input .CodeMirror-linenumber,
+#jtt-output .CodeMirror-linenumber {
+    color: #959da5;
+}
+
+#jtt-input .CodeMirror-cursor {
+    border-left: 2px solid #24292e;
+}
+
+#jtt-input .CodeMirror-selected,
+#jtt-output .CodeMirror-selected {
+    background-color: #c8e1ff;
+}
+
+/* Error state */
+#jtt-input.json-error {
+    border-color: #dc3545;
+}
+
+#jtt-input.json-error .CodeMirror {
+    background-color: #fff5f5;
+}
+
+/* ── Dark theme ──────────────────────────────────────────────────────────── */
+
+[data-theme="dark"] #jtt-input,
+[data-theme="dark"] #jtt-output {
+    border-color: #555;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] #jtt-input .CodeMirror,
+[data-theme="dark"] #jtt-output .CodeMirror {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+}
+
+[data-theme="dark"] #jtt-input .CodeMirror-gutters,
+[data-theme="dark"] #jtt-output .CodeMirror-gutters {
+    background-color: #252526;
+    border-right: 1px solid #3e3e42;
+}
+
+[data-theme="dark"] #jtt-input .CodeMirror-linenumber,
+[data-theme="dark"] #jtt-output .CodeMirror-linenumber {
+    color: #858585;
+}
+
+[data-theme="dark"] #jtt-input .CodeMirror-cursor {
+    border-left: 2px solid #d4d4d4;
+}
+
+[data-theme="dark"] #jtt-input .CodeMirror-selected,
+[data-theme="dark"] #jtt-output .CodeMirror-selected {
+    background-color: #264f78;
+}
+
+[data-theme="dark"] #jtt-input .CodeMirror-activeline-background,
+[data-theme="dark"] #jtt-output .CodeMirror-activeline-background {
+    background-color: #2a2a2a;
+}
+
+[data-theme="dark"] #jtt-input.json-error {
+    border-color: #dc3545;
+}
+
+[data-theme="dark"] #jtt-input.json-error .CodeMirror {
+    background-color: #3d1f1f;
+}
+
+/* ── Syntax highlighting (light) ─────────────────────────────────────────── */
+
+/* JSON input */
+#jtt-input .cm-s-default .cm-string      { color: #032f62; }
+#jtt-input .cm-s-default .cm-string-2    { color: #032f62; }
+#jtt-input .cm-s-default .cm-number      { color: #005cc5; }
+#jtt-input .cm-s-default .cm-atom       { color: #005cc5; }
+#jtt-input .cm-s-default .cm-keyword    { color: #d73a49; }
+#jtt-input .cm-s-default .cm-property   { color: #6f42c1; }
+
+/* TypeScript output — interface/type keywords, types, properties */
+#jtt-output .cm-s-default .cm-keyword   { color: #d73a49; }   /* interface, type, export */
+#jtt-output .cm-s-default .cm-def       { color: #6f42c1; }   /* interface/type name (Root, User) */
+#jtt-output .cm-s-default .cm-type      { color: #005cc5; }   /* primitive types: string, number, boolean */
+#jtt-output .cm-s-default .cm-variable  { color: #24292e; }   /* fallback identifiers */
+#jtt-output .cm-s-default .cm-variable-2 { color: #24292e; }
+#jtt-output .cm-s-default .cm-property  { color: #005cc5; }   /* property keys */
+#jtt-output .cm-s-default .cm-string    { color: #032f62; }
+#jtt-output .cm-s-default .cm-number    { color: #005cc5; }
+#jtt-output .cm-s-default .cm-atom      { color: #005cc5; }   /* null, true, false */
+#jtt-output .cm-s-default .cm-operator  { color: #d73a49; }   /* : | & */
+#jtt-output .cm-s-default .cm-comment   { color: #6a737d; }
+#jtt-output .cm-s-default .cm-punctuation { color: #24292e; }
+
+/* ── Syntax highlighting (dark) ──────────────────────────────────────────── */
+
+/* JSON input — dark */
+[data-theme="dark"] #jtt-input .cm-s-default .cm-string    { color: #ce9178; }
+[data-theme="dark"] #jtt-input .cm-s-default .cm-string-2  { color: #ce9178; }
+[data-theme="dark"] #jtt-input .cm-s-default .cm-number    { color: #b5cea8; }
+[data-theme="dark"] #jtt-input .cm-s-default .cm-atom      { color: #569cd6; }
+[data-theme="dark"] #jtt-input .cm-s-default .cm-keyword   { color: #c586c0; }
+[data-theme="dark"] #jtt-input .cm-s-default .cm-property  { color: #9cdcfe; }
+
+/* TypeScript output — dark */
+[data-theme="dark"] #jtt-output .cm-s-default .cm-keyword   { color: #569cd6; }   /* interface, type, export */
+[data-theme="dark"] #jtt-output .cm-s-default .cm-def       { color: #4ec9b0; }   /* interface/type name (Root, User) */
+[data-theme="dark"] #jtt-output .cm-s-default .cm-type      { color: #4fc1ff; }   /* primitive types: string, number, boolean */
+[data-theme="dark"] #jtt-output .cm-s-default .cm-variable  { color: #d4d4d4; }   /* fallback identifiers */
+[data-theme="dark"] #jtt-output .cm-s-default .cm-variable-2 { color: #d4d4d4; }
+[data-theme="dark"] #jtt-output .cm-s-default .cm-property  { color: #9cdcfe; }   /* property keys */
+[data-theme="dark"] #jtt-output .cm-s-default .cm-string    { color: #ce9178; }
+[data-theme="dark"] #jtt-output .cm-s-default .cm-number    { color: #b5cea8; }
+[data-theme="dark"] #jtt-output .cm-s-default .cm-atom      { color: #569cd6; }   /* null, true, false */
+[data-theme="dark"] #jtt-output .cm-s-default .cm-operator  { color: #d4d4d4; }   /* : | & */
+[data-theme="dark"] #jtt-output .cm-s-default .cm-comment   { color: #6a9955; }
+[data-theme="dark"] #jtt-output .cm-s-default .cm-punctuation { color: #d4d4d4; }

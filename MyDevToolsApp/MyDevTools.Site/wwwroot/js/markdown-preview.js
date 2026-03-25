@@ -51,7 +51,7 @@
 '```\n\n' +
 '### Example Table\n\n' +
 '| Feature | Supported |\n' +
-'|---------|-----------|\\n' +
+'|---------|-----------|\n' +
 '| Headers | ✅ |\n' +
 '| Lists   | ✅ |\n' +
 '| Links   | ✅ |\n' +

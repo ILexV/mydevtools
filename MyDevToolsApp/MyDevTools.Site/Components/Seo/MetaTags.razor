@@ -79,8 +79,9 @@
   private string GetCanonicalUrl()
   {
     // Always return the current URL as canonical (self-referencing) for all pages including language versions of Home.
-    // This ensures /ru points to /ru, /en to /en, eliminating conflicts with hreflang tags.
-    return CurrentUrl ?? "";
+    // This ensures /ru/ points to /ru/, /en/ to /en/, eliminating conflicts with hreflang tags.
+    // Normalize http:// → https:// to ensure canonical always uses the secure scheme.
+    return (CurrentUrl ?? "").Replace("http://", "https://");
   }
 
   private string GetAlternateUrl(string culture)

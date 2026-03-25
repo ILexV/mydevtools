@@ -126,6 +126,17 @@ public class CultureRedirectMiddleware
             return;
         }
 
+        // Redirect /{lang} (no trailing slash) → /{lang}/ (permanent 301)
+        // This ensures a single canonical URL for language home pages and eliminates
+        // duplicate content that causes Google Search Console canonical mismatch warnings.
+        var originalPath = context.Request.Path.Value ?? "/";
+        if (originalPath.Equals($"/{cultureFromPath}", StringComparison.OrdinalIgnoreCase))
+        {
+            var queryString = context.Request.QueryString;
+            context.Response.Redirect($"/{cultureFromPath}/" + queryString, permanent: true);
+            return;
+        }
+
         // Set culture for the request using Items (will be picked up by RequestLocalizationMiddleware)
         context.Items["Culture"] = cultureFromPath;
 

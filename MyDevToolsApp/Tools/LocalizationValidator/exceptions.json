@@ -1606,7 +1606,11 @@
       "LinkBase32",
       "LinkBase58",
       "LinkUrl",
-      "AlphabetUrlSafe"
+      "AlphabetUrlSafe",
+      "StatsChars",
+      "StatsBytes",
+      "StatsRatio",
+      "StatsImage"
     ],
     "tools/hex-encoder.json": [
       "Hex",

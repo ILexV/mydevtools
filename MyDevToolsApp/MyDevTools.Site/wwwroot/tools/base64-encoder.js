@@ -324,8 +324,247 @@
             fileProgressTitle: root.dataset.fileProgressTitle || 'Processing file...',
             cancel: root.dataset.cancel || 'Cancel',
             copy: root.dataset.copy || 'Copy',
-            copied: root.dataset.copied || 'Copied!'
+            copied: root.dataset.copied || 'Copied!',
+            imageDetected: root.dataset.imageDetected || 'Detected image: {type}',
+            binaryDetected: root.dataset.binaryDetected || 'Detected binary file: {type} — ready to download',
+            statsChars: root.dataset.statsChars || '{n} chars',
+            statsBytes: root.dataset.statsBytes || '{n} bytes',
+            statsRatio: root.dataset.statsRatio || 'ratio {r}×',
+            statsEncoded: root.dataset.statsEncoded || '→ {size} encoded',
+            statsDecoded: root.dataset.statsDecoded || '→ {size} decoded',
+            statsImage: root.dataset.statsImage || '→ {size} • {w}×{h} px',
+            copyBase64: root.dataset.copyBase64 || 'Copy Base64'
         };
+    }
+
+    /**
+     * Detect file type from raw bytes using magic byte signatures.
+     * Returns { type: 'image'|'binary'|'text', mime, ext, label }
+     */
+    function detectFileType(bytes) {
+        if (!bytes || bytes.length < 4) return { type: 'text', mime: 'text/plain', ext: 'txt', label: 'Text' };
+
+        const b = bytes;
+
+        // PNG: 89 50 4E 47 0D 0A 1A 0A
+        if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47) {
+            return { type: 'image', mime: 'image/png', ext: 'png', label: 'PNG' };
+        }
+        // JPEG: FF D8 FF
+        if (b[0] === 0xFF && b[1] === 0xD8 && b[2] === 0xFF) {
+            return { type: 'image', mime: 'image/jpeg', ext: 'jpg', label: 'JPEG' };
+        }
+        // GIF: 47 49 46 38
+        if (b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x38) {
+            return { type: 'image', mime: 'image/gif', ext: 'gif', label: 'GIF' };
+        }
+        // WebP: RIFF????WEBP
+        if (b.length >= 12 && b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 &&
+            b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) {
+            return { type: 'image', mime: 'image/webp', ext: 'webp', label: 'WebP' };
+        }
+        // BMP: 42 4D
+        if (b[0] === 0x42 && b[1] === 0x4D) {
+            return { type: 'image', mime: 'image/bmp', ext: 'bmp', label: 'BMP' };
+        }
+        // ICO: 00 00 01 00
+        if (b[0] === 0x00 && b[1] === 0x00 && b[2] === 0x01 && b[3] === 0x00) {
+            return { type: 'image', mime: 'image/x-icon', ext: 'ico', label: 'ICO' };
+        }
+        // TIFF: 49 49 2A 00 (little-endian) or 4D 4D 00 2A (big-endian)
+        if ((b[0] === 0x49 && b[1] === 0x49 && b[2] === 0x2A && b[3] === 0x00) ||
+            (b[0] === 0x4D && b[1] === 0x4D && b[2] === 0x00 && b[3] === 0x2A)) {
+            return { type: 'image', mime: 'image/tiff', ext: 'tiff', label: 'TIFF' };
+        }
+        // SVG: starts with '<svg' or '<?xml' (text-based but is an image)
+        // Check first 64 bytes as text
+        if (bytes.length >= 4) {
+            const head = new TextDecoder('latin1').decode(bytes.subarray(0, Math.min(64, bytes.length)));
+            const trimmed = head.trimStart();
+            if (trimmed.startsWith('<svg') || (trimmed.startsWith('<?xml') && trimmed.includes('svg'))) {
+                return { type: 'image', mime: 'image/svg+xml', ext: 'svg', label: 'SVG' };
+            }
+        }
+
+        // PDF: 25 50 44 46
+        if (b[0] === 0x25 && b[1] === 0x50 && b[2] === 0x44 && b[3] === 0x46) {
+            return { type: 'binary', mime: 'application/pdf', ext: 'pdf', label: 'PDF' };
+        }
+        // ZIP / DOCX / XLSX / JAR: 50 4B 03 04
+        if (b[0] === 0x50 && b[1] === 0x4B && b[2] === 0x03 && b[3] === 0x04) {
+            return { type: 'binary', mime: 'application/zip', ext: 'zip', label: 'ZIP' };
+        }
+        // GZIP: 1F 8B
+        if (b[0] === 0x1F && b[1] === 0x8B) {
+            return { type: 'binary', mime: 'application/gzip', ext: 'gz', label: 'GZIP' };
+        }
+        // ELF (Linux binary): 7F 45 4C 46
+        if (b[0] === 0x7F && b[1] === 0x45 && b[2] === 0x4C && b[3] === 0x46) {
+            return { type: 'binary', mime: 'application/octet-stream', ext: 'elf', label: 'ELF Binary' };
+        }
+        // Windows PE: 4D 5A
+        if (b[0] === 0x4D && b[1] === 0x5A) {
+            return { type: 'binary', mime: 'application/octet-stream', ext: 'exe', label: 'PE Binary' };
+        }
+        // MP3: FF FB or FF F3 or FF F2 or ID3 (49 44 33)
+        if ((b[0] === 0xFF && (b[1] === 0xFB || b[1] === 0xF3 || b[1] === 0xF2)) ||
+            (b[0] === 0x49 && b[1] === 0x44 && b[2] === 0x33)) {
+            return { type: 'binary', mime: 'audio/mpeg', ext: 'mp3', label: 'MP3' };
+        }
+        // MP4 / MOV: ftyp at offset 4
+        if (bytes.length >= 8 && b[4] === 0x66 && b[5] === 0x74 && b[6] === 0x79 && b[7] === 0x70) {
+            return { type: 'binary', mime: 'video/mp4', ext: 'mp4', label: 'MP4/MOV' };
+        }
+
+        // Fallback: check if it looks like valid UTF-8 text
+        try {
+            const decoded = new TextDecoder('utf-8', { fatal: true }).decode(bytes.subarray(0, Math.min(512, bytes.length)));
+            // Count non-printable chars (excluding common whitespace)
+            let nonPrintable = 0;
+            for (let i = 0; i < decoded.length; i++) {
+                const code = decoded.charCodeAt(i);
+                if (code < 0x09 || (code > 0x0D && code < 0x20)) nonPrintable++;
+            }
+            if (nonPrintable / decoded.length < 0.1) {
+                return { type: 'text', mime: 'text/plain', ext: 'txt', label: 'Text' };
+            }
+        } catch {
+            // not valid UTF-8
+        }
+
+        return { type: 'binary', mime: 'application/octet-stream', ext: 'bin', label: 'Binary' };
+    }
+
+    let currentPreviewUrl = null;
+    // Tracks current output mode: 'text' | 'image' | 'binary'
+    let currentOutputMode = 'text';
+
+    function clearMediaPreview() {
+        const imagePreview = document.getElementById('b64-image-preview');
+        const binaryInfo = document.getElementById('b64-binary-info');
+        if (imagePreview) {
+            imagePreview.classList.add('hidden');
+            imagePreview.classList.remove('flex');
+            const img = imagePreview.querySelector('img');
+            if (img) img.src = '';
+        }
+        if (binaryInfo) {
+            binaryInfo.classList.add('hidden');
+            binaryInfo.classList.remove('flex');
+        }
+        if (currentPreviewUrl) {
+            URL.revokeObjectURL(currentPreviewUrl);
+            currentPreviewUrl = null;
+        }
+        currentOutputMode = 'text';
+        updateCopyBtn();
+    }
+
+    function showImagePreview(bytes, fileInfo, strings) {
+        const imagePreview = document.getElementById('b64-image-preview');
+        const output = document.getElementById('b64-output');
+        if (!imagePreview) return;
+
+        clearMediaPreview();
+
+        const blob = new Blob([bytes], { type: fileInfo.mime });
+        currentPreviewUrl = URL.createObjectURL(blob);
+
+        const img = imagePreview.querySelector('img');
+        const label = imagePreview.querySelector('.b64-preview-label');
+
+        if (img) img.src = currentPreviewUrl;
+        if (label) {
+            label.textContent = strings.imageDetected.replace('{type}', fileInfo.label);
+        }
+
+        imagePreview.classList.remove('hidden');
+        imagePreview.classList.add('flex');
+        if (output) {
+            output.classList.add('hidden');
+            output.classList.remove('block', 'flex');
+        }
+        currentOutputMode = 'image';
+        updateCopyBtn();
+    }
+
+    function showBinaryInfo(fileInfo, strings) {
+        const binaryInfo = document.getElementById('b64-binary-info');
+        const output = document.getElementById('b64-output');
+        if (!binaryInfo) return;
+
+        clearMediaPreview();
+
+        const label = binaryInfo.querySelector('.b64-binary-label');
+        if (label) {
+            label.textContent = strings.binaryDetected.replace('{type}', fileInfo.label);
+        }
+
+        binaryInfo.classList.remove('hidden');
+        binaryInfo.classList.add('flex');
+        if (output) {
+            output.classList.add('hidden');
+            output.classList.remove('block', 'flex');
+        }
+        currentOutputMode = 'binary';
+        updateCopyBtn();
+    }
+
+    function showTextOutput(text) {
+        clearMediaPreview();
+        const output = document.getElementById('b64-output');
+        if (!output) return;
+        output.classList.remove('hidden');
+        output.value = text;
+        currentOutputMode = 'text';
+        updateCopyBtn();
+    }
+
+    function updateCopyBtn() {
+        const root = document.getElementById('base64-encoder-root');
+        const copyBtn = document.getElementById('b64-copy-btn');
+        if (!copyBtn) return;
+        const strings = root ? getStrings(root) : {};
+        if (currentOutputMode === 'image' || currentOutputMode === 'binary') {
+            // Show "Copy Base64" label — copies the input value back
+            const labelSpan = copyBtn.querySelector('.b64-copy-label');
+            if (labelSpan) labelSpan.textContent = strings.copyBase64 || 'Copy Base64';
+        } else {
+            const labelSpan = copyBtn.querySelector('.b64-copy-label');
+            if (labelSpan) labelSpan.textContent = strings.copy || 'Copy';
+        }
+    }
+
+    function updateInputCounter(els) {
+        const counter = document.getElementById('b64-input-counter');
+        if (!counter) return;
+        const text = (els && els.inputText) ? els.inputText.value : '';
+        const chars = text.length;
+        // Approximate byte count for UTF-8 (fast estimate: count multi-byte chars)
+        let bytes = 0;
+        for (let i = 0; i < text.length; i++) {
+            const code = text.charCodeAt(i);
+            if (code < 0x80) bytes += 1;
+            else if (code < 0x800) bytes += 2;
+            else if (code < 0xD800 || code >= 0xE000) bytes += 3;
+            else { bytes += 4; i++; } // surrogate pair
+        }
+        if (chars === 0) {
+            counter.textContent = '';
+            return;
+        }
+        if (bytes === chars) {
+            counter.textContent = `${chars.toLocaleString()} chars • ${formatBytes(bytes)}`;
+        } else {
+            counter.textContent = `${chars.toLocaleString()} chars • ${formatBytes(bytes)} (UTF-8)`;
+        }
+    }
+
+    function updateOutputStats(info) {
+        const statsEl = document.getElementById('b64-output-stats');
+        if (!statsEl) return;
+        if (!info) { statsEl.textContent = ''; return; }
+        statsEl.textContent = info;
     }
 
     function setError(els, message, index) {
@@ -368,6 +607,10 @@
         const els = getElements();
         if (!els) return;
         clearError(els);
+        clearMediaPreview();
+        updateOutputStats(null);
+        // Always show the output textarea for encode results
+        if (els.output) els.output.classList.remove('hidden');
 
         const strings = getStrings(els.root);
         const file = els.inputFile.files && els.inputFile.files.length > 0 ? els.inputFile.files[0] : null;
@@ -417,6 +660,10 @@
                 if (!els2) return;
                 els2.output.value = result.text;
                 setLastDownload(els2.root, result.blob, `${file.name}.b64`);
+                // Stats: input file size → encoded size
+                const encodedSize = result.blob.size;
+                const ratio = file.size > 0 ? (encodedSize / file.size).toFixed(2) : '—';
+                updateOutputStats(`${formatBytes(file.size)} → ${formatBytes(encodedSize)} encoded • ratio ${ratio}×`);
             } else {
                 const text = els.inputText.value || '';
                 const enc = await encodeTextToBytes(text, charset);
@@ -428,6 +675,11 @@
                 const out = await encodeBytesToBase64(enc.bytes, alphabetName, paddingMode, wrap);
                 els.output.value = out;
                 setLastDownload(els.root, new Blob([out], { type: 'text/plain' }), 'text.b64');
+                // Stats: input bytes → encoded chars, ratio
+                const inputBytes = enc.bytes.length;
+                const encodedChars = out.length;
+                const ratio = inputBytes > 0 ? (encodedChars / inputBytes).toFixed(2) : '—';
+                updateOutputStats(`${formatBytes(inputBytes)} → ${encodedChars.toLocaleString()} chars encoded • ratio ${ratio}×`);
             }
         } catch (err) {
             const isAbort = err && err.name === 'AbortError';
@@ -446,6 +698,7 @@
         const els = getElements();
         if (!els) return;
         clearError(els);
+        updateOutputStats(null);
 
         const strings = getStrings(els.root);
         const file = els.inputFile.files && els.inputFile.files.length > 0 ? els.inputFile.files[0] : null;
@@ -502,6 +755,7 @@
                 if (!els2) return;
                 els2.output.value = `Decoded ${file.name} → ${file.name}.bin`;
                 setLastDownload(els2.root, decoded.blob, `${file.name}.bin`);
+                updateOutputStats(`${formatBytes(file.size)} (b64) → ${formatBytes(decoded.blob.size)} decoded`);
             } else {
                 const input = els.inputText.value || '';
                 const parsed = await decodeBase64ToBytes(input, alphabetName, paddingMode, allowWhitespace);
@@ -510,14 +764,42 @@
                     return;
                 }
 
-                const text = await decodeBytesToText(parsed.bytes, charset);
-                if (!text.ok) {
-                    setError(els, `${text.error.message} (byte ${text.error.byteIndex})`, null);
-                    return;
-                }
+                const strings = getStrings(els.root);
+                const fileInfo = detectFileType(parsed.bytes);
 
-                els.output.value = text.text;
-                setLastDownload(els.root, new Blob([parsed.bytes], { type: 'application/octet-stream' }), 'decoded.bin');
+                if (fileInfo.type === 'image') {
+                    showImagePreview(parsed.bytes, fileInfo, strings);
+                    setLastDownload(els.root, new Blob([parsed.bytes], { type: fileInfo.mime }), `decoded.${fileInfo.ext}`);
+                    // Show image dimensions once loaded
+                    const img = document.querySelector('#b64-image-preview img');
+                    if (img) {
+                        const onLoad = () => {
+                            updateOutputStats(`${formatBytes(parsed.bytes.length)} decoded • ${img.naturalWidth}×${img.naturalHeight} px`);
+                            img.removeEventListener('load', onLoad);
+                        };
+                        if (img.complete && img.naturalWidth) {
+                            updateOutputStats(`${formatBytes(parsed.bytes.length)} decoded • ${img.naturalWidth}×${img.naturalHeight} px`);
+                        } else {
+                            img.addEventListener('load', onLoad);
+                        }
+                    } else {
+                        updateOutputStats(`${formatBytes(parsed.bytes.length)} decoded`);
+                    }
+                } else if (fileInfo.type === 'binary') {
+                    showBinaryInfo(fileInfo, strings);
+                    setLastDownload(els.root, new Blob([parsed.bytes], { type: fileInfo.mime }), `decoded.${fileInfo.ext}`);
+                    updateOutputStats(`${formatBytes(parsed.bytes.length)} decoded • ${fileInfo.label}`);
+                } else {
+                    // text: try to decode as string
+                    const text = await decodeBytesToText(parsed.bytes, charset);
+                    if (!text.ok) {
+                        setError(els, `${text.error.message} (byte ${text.error.byteIndex})`, null);
+                        return;
+                    }
+                    showTextOutput(text.text);
+                    setLastDownload(els.root, new Blob([parsed.bytes], { type: 'application/octet-stream' }), 'decoded.bin');
+                    updateOutputStats(`${formatBytes(parsed.bytes.length)} decoded • ${text.text.length.toLocaleString()} chars`);
+                }
             }
         } catch (err) {
             const isAbort = err && err.name === 'AbortError';
@@ -536,9 +818,14 @@
         const els = getElements();
         if (!els) return;
         clearError(els);
+        clearMediaPreview();
+        if (els.output) els.output.classList.remove('hidden');
+        updateOutputStats(null);
+        updateInputCounter(els);
         const a = els.inputText.value;
         els.inputText.value = els.output.value;
         els.output.value = a;
+        updateInputCounter(els);
     }
 
     function clearAction() {
@@ -546,23 +833,35 @@
         if (!els) return;
         els.inputText.value = '';
         els.output.value = '';
+        els.output.classList.remove('hidden');
         els.inputFile.value = '';
         els.inputFile.dispatchEvent(new Event('change', { bubbles: true }));
         clearError(els);
+        clearMediaPreview();
         setLastDownload(els.root, null, null);
+        updateInputCounter(els);
+        updateOutputStats(null);
     }
 
     function copyOutputAction() {
         const els = getElements();
         if (!els) return;
 
-        const copiedLabel = els.root.dataset.copied || 'Copied!';
-        const original = els.copyBtn.textContent;
+        const root = els.root;
+        const strings = getStrings(root);
+        const copyBtn = document.getElementById('b64-copy-btn');
+        const labelSpan = copyBtn ? copyBtn.querySelector('.b64-copy-label') : null;
+        const originalLabel = labelSpan ? labelSpan.textContent : (strings.copy || 'Copy');
 
-        navigator.clipboard.writeText(els.output.value || '').then(() => {
-            els.copyBtn.textContent = copiedLabel;
+        // In image/binary mode copy the input base64 string
+        const textToCopy = (currentOutputMode === 'image' || currentOutputMode === 'binary')
+            ? (els.inputText.value || '')
+            : (els.output.value || '');
+
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            if (labelSpan) labelSpan.textContent = strings.copied || 'Copied!';
             setTimeout(() => {
-                els.copyBtn.textContent = original;
+                if (labelSpan) labelSpan.textContent = originalLabel;
             }, 1200);
         });
     }
@@ -614,7 +913,17 @@
                 els.inputText.value = '';
                 els.output.value = '';
                 clearError(els);
+                updateInputCounter(els);
+                updateOutputStats(null);
             }
+        });
+
+        document.addEventListener('input', (ev) => {
+            const target = ev.target;
+            if (!(target instanceof HTMLTextAreaElement)) return;
+            if (target.id !== 'b64-input-text') return;
+            const els = getElements();
+            if (els) updateInputCounter(els);
         });
     }
 

@@ -15,12 +15,21 @@
          data-file-progress-title="@T("FileProgressTitle")"
          data-cancel="@T("Cancel")"
          data-copy="@T("Copy")"
-         data-copied="@T("Copied")">
+         data-copied="@T("Copied")"
+         data-image-detected="@T("ImageDetected")"
+         data-binary-detected="@T("BinaryDetected")"
+         data-copy-base64="@T("CopyBase64")"
+         data-stats-chars="@T("StatsChars")"
+         data-stats-bytes="@T("StatsBytes")"
+         data-stats-ratio="@T("StatsRatio")"
+         data-stats-encoded="@T("StatsEncoded")"
+         data-stats-decoded="@T("StatsDecoded")"
+         data-stats-image="@T("StatsImage")">
 
         <!-- Input & Settings Card -->
         <div class="card bg-base-200 shadow-xl h-fit">
             <div class="card-body">
-                <h2 class="card-title text-base opacity-70 mb-4">Input & Settings</h2>
+                <h2 class="card-title text-base opacity-70 mb-4">@T("InputSettingsTitle")</h2>
 
                 <!-- Text Input -->
                 <div class="form-control">
@@ -28,6 +37,9 @@
                         <span class="label-text font-semibold">@T("InputTextLabel")</span>
                     </label>
                     <textarea id="b64-input-text" class="textarea textarea-bordered h-48 font-mono text-sm" placeholder="@T("InputTextPlaceholder")"></textarea>
+                    <div class="label pb-0">
+                        <span id="b64-input-counter" class="label-text-alt opacity-50 font-mono text-xs"></span>
+                    </div>
                 </div>
 
                 <!-- File Input -->
@@ -158,20 +170,33 @@
         <!-- Output Card -->
         <div class="card bg-base-200 shadow-xl h-fit">
             <div class="card-body" id="b64-output-section">
-                <h2 class="card-title text-base opacity-70 mb-4">Output</h2>
+                <h2 class="card-title text-base opacity-70 mb-4">@T("OutputTitle")</h2>
                 
                 <div class="form-control h-full">
                     <textarea id="b64-output" class="textarea textarea-bordered h-[500px] font-mono text-sm leading-relaxed" readonly></textarea>
+                    
+                    <!-- Image preview (shown when decoded content is an image) -->
+                    <div id="b64-image-preview" class="hidden flex-col items-center gap-3 py-4">
+                        <span class="b64-preview-label text-sm opacity-70 font-medium"></span>
+                        <img src="" alt="Decoded image preview" class="max-w-full max-h-[460px] rounded-lg border border-base-300 shadow" />
+                    </div>
+                    
+                    <!-- Binary file info (shown when decoded content is a non-image binary) -->
+                    <div id="b64-binary-info" class="hidden flex-col items-center justify-center gap-4 py-12 text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span class="b64-binary-label text-sm opacity-70 font-medium"></span>
+                        <p class="text-xs opacity-50">@T("BinaryDownloadHint")</p>
+                    </div>
                 </div>
                 
                 <div class="card-actions justify-between items-center mt-4">
-                    <div class="text-xs opacity-50">
-                        <!-- Stats could go here -->
-                    </div>
+                    <div class="text-xs opacity-50 font-mono" id="b64-output-stats"></div>
                     <div class="flex gap-2">
                         <button class="btn btn-ghost btn-sm" id="b64-copy-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
-                            @T("Copy")
+                            <span class="b64-copy-label">@T("Copy")</span>
                         </button>
                         <button class="btn btn-ghost btn-sm" id="b64-download-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>

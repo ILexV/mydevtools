@@ -1,4 +1,4 @@
-@page "/{lang}/base64-encoder"
+﻿@page "/{lang}/base64-encoder"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")"
               Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
-              ToolPath="base64-encoder" />
+              ToolPath="base64-encoder"
+              Keywords="@T("Keywords")"
+              Category="Encoding"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="base64-encoder-root"
          class="grid grid-cols-1 lg:grid-cols-2 gap-6"

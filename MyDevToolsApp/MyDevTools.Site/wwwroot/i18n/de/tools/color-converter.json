@@ -1,6 +1,7 @@
 {
   "Title": "Farbkonverter",
   "Description": "Farben zwischen HEX, RGB, HSL und CMYK konvertieren.",
+  "Keywords": "color converter, HEX to RGB, RGB to HSL, CMYK color, color picker online, CSS color converter, color code converter",
   "ColorPicker": "Farbauswahl",
   "InputFormat": "Eingabeformat",
   "ManualInput": "Manuelle Eingabe",

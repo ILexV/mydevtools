@@ -1,6 +1,7 @@
 {
   "Title": "마크다운 미리보기",
   "Description": "실시간 HTML 미리보기, 분할 보기 및 구문 강조 기능을 갖춘 라이브 마크다운 에디터 — 모두 브라우저에서",
+  "Keywords": "markdown preview, markdown editor, markdown to HTML, live markdown, markdown renderer, online markdown editor",
   "EditorLabel": "마크다운 에디터",
   "EditorPlaceholder": "마크다운을 여기에 입력하세요...",
   "PreviewLabel": "미리보기",

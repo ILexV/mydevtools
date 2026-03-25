@@ -1,6 +1,7 @@
 {
   "Title": "UUID/GUID 생성기",
   "Description": "브라우저에서 직접 UUID v4(무작위) 및 UUID v7(시간 기반) 식별자를 생성합니다. 모든 생성은 로컬에서 수행됩니다.",
+  "Keywords": "UUID generator, GUID generator, UUID v4, UUID v7, random UUID, UUID online, generate GUID, unique identifier",
   "VersionLabel": "UUID 버전",
   "Version4": "버전 4 (무작위)",
   "Version7": "버전 7 (시간 기반)",

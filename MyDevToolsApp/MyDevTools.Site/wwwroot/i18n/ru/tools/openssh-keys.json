@@ -1,6 +1,7 @@
 {
   "Title": "Ключи OpenSSH",
   "Description": "Генерация, импорт и конвертация OpenSSH‑ключей прямо в браузере.",
+  "Keywords": "OpenSSH key generator, SSH key pair, RSA key generation, Ed25519 key, ECDSA key, SSH public key, SSH private key, convert SSH key",
   "GenerateSectionTitle": "Генерация",
   "AlgorithmLabel": "Алгоритм",
   "KeySizeLabel": "Размер ключа",

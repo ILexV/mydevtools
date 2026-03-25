@@ -1,6 +1,7 @@
 {
   "Title": "Decodificador JWT",
   "Description": "Decodifica y verifica JSON Web Tokens (JWT) directamente en tu navegador.",
+  "Keywords": "JWT decoder, JSON Web Token, JWT verify, JWT parse, decode JWT online, JWT inspector, JWT header payload",
   "EncodedLabel": "JWT Generado",
   "EncodedPlaceholder": "Pega el JWT aquí...",
   "DecodedHeaderLabel": "Encabezado (Decoded)",

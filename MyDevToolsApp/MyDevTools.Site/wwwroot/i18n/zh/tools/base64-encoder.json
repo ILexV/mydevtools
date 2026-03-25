@@ -1,6 +1,7 @@
 {
   "Title": "Base64 编码 / 解码",
   "Description": "为文本和文件进行 Base64 编码和解码 — 全部在您的浏览器中。",
+  "Keywords": "Base64 encoder, Base64 decoder, Base64 encode online, Base64 decode online, Base64 file encoder, Base64 string converter",
   "OtherFormats": "其他格式：",
   "LinkHex": "Hex",
   "LinkBase32": "Base32",

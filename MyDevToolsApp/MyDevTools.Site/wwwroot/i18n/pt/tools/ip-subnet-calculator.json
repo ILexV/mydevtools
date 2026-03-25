@@ -1,6 +1,7 @@
 {
   "Title": "Calculadora de Sub-rede IP",
   "Description": "Calcule sub-redes IP, endereços de rede, broadcast e intervalos de hosts para redes IPv4. Suporta formatos CIDR e IP/Máscara.",
+  "Keywords": "IP subnet calculator, CIDR calculator, network calculator, subnet mask, IPv4 subnetting, network address, broadcast address",
   "InputLabel": "Endereço IP / CIDR",
   "Calculate": "Calcular",
   "Address": "Endereço",

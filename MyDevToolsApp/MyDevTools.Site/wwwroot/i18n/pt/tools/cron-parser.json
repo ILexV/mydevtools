@@ -1,6 +1,7 @@
 {
   "Title": "Analisador de Expressões Cron",
   "Description": "Analise, valide e compreenda expressões cron com explicações legíveis e próximos horários de execução",
+  "Keywords": "cron expression parser, cron validator, cron syntax, parse cron online, cron schedule, next cron run, cron job parser",
   "LinkToGenerator": "Precisa construir uma expressão cron? Tente o",
   "GeneratorTitle": "Gerador de Cron",
   "TabParser": "Analisador",

@@ -1,6 +1,7 @@
 {
   "Title": "Конвертер JSON в TypeScript",
   "Description": "Конвертируйте JSON-объекты в TypeScript-интерфейсы и псевдонимы типов мгновенно — приватно, всё работает в браузере",
+  "Keywords": "JSON to TypeScript, JSON to interface, TypeScript generator, JSON type generator, convert JSON to TypeScript, TypeScript interface from JSON",
   "InputLabel": "JSON",
   "InputPlaceholder": "Вставьте ваш JSON сюда...",
   "OutputLabel": "TypeScript",

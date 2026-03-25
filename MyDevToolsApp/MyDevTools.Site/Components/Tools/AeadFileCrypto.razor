@@ -1,4 +1,4 @@
-@page "/{lang}/aead-file"
+﻿@page "/{lang}/aead-file"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")"
               Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
-              ToolPath="aead-file" />
+              ToolPath="aead-file"
+              Keywords="@T("Keywords")"
+              Category="Cryptography"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="aead-root"
          data-loading="@TCommon("Common_Loading")"

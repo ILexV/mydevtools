@@ -1,6 +1,7 @@
 {
   "Title": "HTML Entity Encoder / Decoder",
   "Description": "Кодируйте специальные символы в HTML-сущности и обратно. Поддерживает именованный, десятичный и шестнадцатеричный форматы.",
+  "Keywords": "HTML entity encoder, HTML entity decoder, HTML escape, HTML unescape, HTML special characters, encode HTML online, HTML entities",
   "InputTitle": "Ввод и настройки",
   "InputLabel": "Текст для кодирования/декодирования",
   "InputPlaceholder": "Введите или вставьте текст здесь...",

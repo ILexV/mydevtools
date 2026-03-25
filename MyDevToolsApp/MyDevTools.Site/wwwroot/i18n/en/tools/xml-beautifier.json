@@ -1,6 +1,7 @@
 {
   "Title": "XML Beautifier",
   "Description": "Format and beautify XML with customizable indentation — all in your browser",
+  "Keywords": "XML beautifier, XML formatter, XML validator, pretty print XML, XML minifier, format XML online, XML editor",
   "InputLabel": "Input XML",
   "InputPlaceholder": "Paste your XML here...",
   "FormatButton": "Format",

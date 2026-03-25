@@ -1,6 +1,7 @@
 {
   "Title": "Hex кодирование / декодирование",
   "Description": "Кодируйте и декодируйте Hex для текста или файлов с настройками — всё в вашем браузере",
+  "Keywords": "hex encoder, hex decoder, hexadecimal converter, text to hex, hex to text, hex encoding online, hexadecimal online tool",
   "OtherFormats": "Другие форматы:",
   "LinkUrl": "URL",
   "LinkBase32": "Base32",

@@ -1,4 +1,4 @@
-@page "/{lang}/x509"
+﻿@page "/{lang}/x509"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")"
               Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
-              ToolPath="x509" />
+              ToolPath="x509"
+              Keywords="@T("Keywords")"
+              Category="Cryptography"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="x509-root"
          data-loading="@TCommon("Common_Loading")"

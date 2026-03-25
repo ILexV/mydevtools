@@ -1,6 +1,7 @@
 {
   "Title": "Калькулятор хэшей",
   "Description": "Вычисляйте хэши по выбранным алгоритмам (MD5, SHA-1, SHA-256 и другие) для текста или файлов — вычисления происходят локально",
+  "Keywords": "hash calculator, MD5, SHA-256, SHA-512, SHA-3, BLAKE2, HMAC, checksum, file hash, cryptographic hash, online hash tool",
   "InputLabel": "Входной текст",
   "InputPlaceholder": "Введите текст для хэширования...",
   "FileLabel": "Файл (необязательно)",

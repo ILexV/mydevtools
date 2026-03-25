@@ -1,4 +1,4 @@
-@page "/{lang}/image-converter"
+﻿@page "/{lang}/image-converter"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")"
               Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
-              ToolPath="image-converter" />
+              ToolPath="image-converter"
+              Keywords="@T("Keywords")"
+              Category="Images"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="image-converter-root"
          data-loading="@T("Processing")"

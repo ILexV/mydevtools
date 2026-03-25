@@ -1,6 +1,7 @@
 {
   "Title": "Cron 表达式解析器",
   "Description": "解析、验证和理解 Cron 表达式，提供人类可读的说明和下次执行时间",
+  "Keywords": "cron expression parser, cron validator, cron syntax, parse cron online, cron schedule, next cron run, cron job parser",
   "LinkToGenerator": "需要构建 Cron 表达式？试试",
   "GeneratorTitle": "Cron 生成器",
   "TabParser": "解析器",

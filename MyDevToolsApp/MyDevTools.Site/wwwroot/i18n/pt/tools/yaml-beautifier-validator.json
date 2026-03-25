@@ -1,6 +1,7 @@
 {
   "Title": "Formatador/Validador YAML",
   "Description": "Formate e valide YAML com destaque de erros",
+  "Keywords": "YAML beautifier, YAML formatter, YAML validator, YAML linter, format YAML online, YAML syntax checker, YAML editor",
   "InputLabel": "Entrada YAML",
   "InputPlaceholder": "Digite conteúdo YAML aqui...",
   "Format": "Formatar",

@@ -1,6 +1,7 @@
 {
   "Title": "Calculadora de Hash",
   "Description": "Calcule hashes usando algoritmos selecionados (MD5, SHA-1, SHA-256 e mais) para texto ou arquivos — cálculos feitos localmente",
+  "Keywords": "hash calculator, MD5, SHA-256, SHA-512, SHA-3, BLAKE2, HMAC, checksum, file hash, cryptographic hash, online hash tool",
   "InputLabel": "Texto de Entrada",
   "InputPlaceholder": "Digite o texto para hash...",
   "FileLabel": "Arquivo (opcional)",

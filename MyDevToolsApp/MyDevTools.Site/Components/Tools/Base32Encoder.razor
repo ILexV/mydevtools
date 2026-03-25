@@ -1,4 +1,4 @@
-@page "/{lang}/base32-encoder"
+﻿@page "/{lang}/base32-encoder"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")"
               Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
-              ToolPath="base32-encoder" />
+              ToolPath="base32-encoder"
+              Keywords="@T("Keywords")"
+              Category="Encoding"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="base32-encoder-root"
          class="grid grid-cols-1 lg:grid-cols-2 gap-6"

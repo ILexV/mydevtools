@@ -1,6 +1,7 @@
 {
   "Title": "Visor de diferencias de texto",
   "Description": "Compare dos archivos de texto o fragmentos de código lado a lado con un visor de diferencias visual, similar a Git diff. Resalta cambios, adiciones y eliminaciones en un formato legible.",
+  "Keywords": "text diff, diff viewer, compare text, file diff, side by side diff, code diff, text comparison tool, diff checker",
   "OriginalLabel": "Texto original",
   "OriginalPlaceholder": "Pegue o escriba el texto original aquí, o cargue un archivo abajo...",
   "ModifiedLabel": "Texto modificado",
@@ -10,8 +11,8 @@
   "LineByLine": "Línea por línea",
   "SideBySide": "Lado a lado",
   "ErrorMessage": "Por favor, ingrese texto en ambos campos para comparar.",
-  "ChooseOriginalFile": "\uD83D\uDCC1 Elegir archivo original",
-  "ChooseModifiedFile": "\uD83D\uDCC1 Elegir archivo modificado",
+  "ChooseOriginalFile": "📁 Elegir archivo original",
+  "ChooseModifiedFile": "📁 Elegir archivo modificado",
   "Seo_Introduction": "La herramienta Text Diff Viewer es una herramienta en línea centrada en la privacidad diseñada para desarrolladores. Todo el procesamiento ocurre localmente en su navegador usando WebAssembly, asegurando que sus datos nunca salgan de su dispositivo.",
   "Seo_DetailedDescription": "Esta herramienta proporciona funcionalidad integral para operaciones de text diff viewer. Construida con tecnologías web modernas y potenciada por WebAssembly compilado desde Rust, ofrece rendimiento nativo directamente en su navegador.\n\nLa interfaz está diseñada para eficiencia y facilidad de uso, con soporte tanto para entrada de texto como para procesamiento de archivos. Todas las operaciones se realizan del lado del cliente, garantizando privacidad y seguridad completas para sus datos sensibles.",
   "Seo_Examples": "**Ejemplo 1**: Use Text Diff Viewer para conversiones rápidas en su flujo de trabajo de desarrollo.\n\n**Ejemplo 2**: Procese archivos directamente sin subirlos a ningún servidor, manteniendo privacidad completa.\n\n**Ejemplo 3**: Integre la herramienta en sus tareas diarias de desarrollo para mejorar la productividad.",

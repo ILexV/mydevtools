@@ -1,6 +1,7 @@
 {
   "Title": "Генератор Cron-выражений",
   "Description": "Создавайте cron-выражения визуально из отдельных полей времени с понятным описанием и временем следующих запусков",
+  "Keywords": "cron expression generator, cron builder, cron schedule builder, generate cron, cron syntax helper, cron job scheduler",
   "LinkToParser": "Нужно распарсить cron-выражение? Попробуйте",
   "ParserTitle": "Парсер Cron",
   "GeneratorTitle": "Создать выражение",

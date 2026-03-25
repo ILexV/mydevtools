@@ -1,6 +1,7 @@
 {
   "Title": "Datumsrechner",
   "Description": "Konvertieren Sie zwischen Unix-Zeitstempeln und lesbaren Datumsangaben.",
+  "Keywords": "date converter, Unix timestamp, epoch converter, ISO 8601, RFC 2822, timestamp to date, date to timestamp, online date tool",
   "InputLabel": "Datum / Zeitstempel",
   "OutputLabel": "Konvertiertes Datum",
   "ActionConvert": "Konvertieren",

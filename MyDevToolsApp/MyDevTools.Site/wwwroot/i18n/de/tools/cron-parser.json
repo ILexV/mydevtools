@@ -1,6 +1,7 @@
 {
   "Title": "Cron-Ausdruck Parser",
   "Description": "Parsen, validieren und verstehen Sie Cron-Ausdrücke mit menschenlesbaren Erklärungen und nächsten Ausführungszeiten",
+  "Keywords": "cron expression parser, cron validator, cron syntax, parse cron online, cron schedule, next cron run, cron job parser",
   "LinkToGenerator": "Müssen Sie einen Cron-Ausdruck erstellen? Probieren Sie den",
   "GeneratorTitle": "Cron-Generator",
   "TabParser": "Parser",

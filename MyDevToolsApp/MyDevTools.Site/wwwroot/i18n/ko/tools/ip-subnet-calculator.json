@@ -1,6 +1,7 @@
 {
   "Title": "IP 서브넷 계산기",
   "Description": "IPv4 네트워크에 대한 IP 서브넷, 네트워크 주소, 브로드캐스트 및 호스트 범위를 계산합니다. CIDR 및 IP/마스크 형식을 지원합니다.",
+  "Keywords": "IP subnet calculator, CIDR calculator, network calculator, subnet mask, IPv4 subnetting, network address, broadcast address",
   "InputLabel": "IP 주소 / CIDR",
   "Calculate": "계산",
   "Address": "주소",

@@ -1,4 +1,4 @@
-@page "/{lang}/regex-tester"
+﻿@page "/{lang}/regex-tester"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -7,7 +7,10 @@
               Description="@T("Description")" 
               CurrentUrl="@Navigation.Uri"
               ToolPath="regex-tester"
-              SupportedAlgorithms="@_empty" />
+              Keywords="@T("Keywords")"
+              SupportedAlgorithms="@_empty"
+              Category="Text"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="regex-tester-root"
          data-loading="@TCommon("Common_Loading")"

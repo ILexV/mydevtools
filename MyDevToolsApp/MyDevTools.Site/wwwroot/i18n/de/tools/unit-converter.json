@@ -1,6 +1,7 @@
 {
   "Title": "Einheitenumrechner",
   "Description": "Konvertiere zwischen verschiedenen Maßeinheiten: Länge, Gewicht, Temperatur und Volumen — alle Berechnungen erfolgen in deinem Browser",
+  "Keywords": "unit converter, length converter, weight converter, temperature converter, metric imperial, online unit conversion, measurement converter",
   "CategoryLabel": "Kategorie",
   "Category_Length": "Länge",
   "Category_Weight": "Gewicht",

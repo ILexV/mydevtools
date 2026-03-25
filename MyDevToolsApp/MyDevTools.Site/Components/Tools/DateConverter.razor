@@ -1,4 +1,4 @@
-@page "/{lang}/date-converter"
+﻿@page "/{lang}/date-converter"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")"
               Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
-              ToolPath="date-converter" />
+              ToolPath="date-converter"
+              Keywords="@T("Keywords")"
+              Category="Converters"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="date-converter-root"
          data-error-invalid="@T("Error_Invalid")"

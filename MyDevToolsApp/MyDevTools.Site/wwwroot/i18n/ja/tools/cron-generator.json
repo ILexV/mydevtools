@@ -1,6 +1,7 @@
 {
   "Title": "Cron 式ジェネレーター",
   "Description": "個別の時間フィールドから視覚的に Cron 式を構築し、人間が読める説明と次回実行時刻を提供",
+  "Keywords": "cron expression generator, cron builder, cron schedule builder, generate cron, cron syntax helper, cron job scheduler",
   "LinkToParser": "Cron 式を解析する必要がありますか？",
   "ParserTitle": "Cron パーサー",
   "GeneratorTitle": "式の構築",

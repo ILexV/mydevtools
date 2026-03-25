@@ -1,4 +1,4 @@
-@page "/{lang}/image-resizer"
+﻿@page "/{lang}/image-resizer"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")" 
               Description="@T("Description")" 
               CurrentUrl="@Navigation.Uri"
-              ToolPath="image-resizer" />
+              ToolPath="image-resizer"
+              Keywords="@T("Keywords")"
+              Category="Images"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="image-resizer-root" class="max-w-5xl mx-auto">
         

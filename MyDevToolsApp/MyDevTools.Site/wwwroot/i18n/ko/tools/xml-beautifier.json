@@ -1,6 +1,7 @@
 {
   "Title": "XML 포맷터",
   "Description": "사용자 정의 가능한 들여쓰기로 XML 포맷 및 정리 — 모두 브라우저에서",
+  "Keywords": "XML beautifier, XML formatter, XML validator, pretty print XML, XML minifier, format XML online, XML editor",
   "InputLabel": "입력 XML",
   "InputPlaceholder": "XML을 여기에 붙여넣으세요...",
   "FormatButton": "포맷",

@@ -1,6 +1,7 @@
 {
   "Title": "HTML Entity Encoder / Decoder",
   "Description": "Encode special characters to HTML entities and decode them back. Supports named, decimal, and hexadecimal formats.",
+  "Keywords": "HTML entity encoder, HTML entity decoder, HTML escape, HTML unescape, HTML special characters, encode HTML online, HTML entities",
   "InputTitle": "Input & Settings",
   "InputLabel": "Text to encode/decode",
   "InputPlaceholder": "Type or paste your text here...",

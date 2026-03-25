@@ -1,6 +1,7 @@
 {
   "Title": "QRコード生成",
   "Description": "色やロゴ付きのカスタムQRコードを作成します。",
+  "Keywords": "QR code generator, create QR code, custom QR code, QR code with logo, QR code color, online QR generator, free QR code",
   "ContentLabel": "内容",
   "ContentPlaceholder": "エンコードするテキストまたは URL を入力...",
   "ColorsSection": "色",

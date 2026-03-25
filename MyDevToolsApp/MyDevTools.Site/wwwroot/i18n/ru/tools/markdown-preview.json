@@ -1,6 +1,7 @@
 {
   "Title": "Markdown превью",
   "Description": "Живой редактор markdown с превью HTML в реальном времени, split-view и подсветкой синтаксиса — всё в вашем браузере",
+  "Keywords": "markdown preview, markdown editor, markdown to HTML, live markdown, markdown renderer, online markdown editor",
   "EditorLabel": "Редактор Markdown",
   "EditorPlaceholder": "Введите ваш markdown здесь...",
   "PreviewLabel": "Превью",

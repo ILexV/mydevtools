@@ -1,6 +1,7 @@
 {
   "Title": "날짜 변환기",
   "Description": "Unix 타임스탬프와 읽을 수 있는 날짜 간 변환.",
+  "Keywords": "date converter, Unix timestamp, epoch converter, ISO 8601, RFC 2822, timestamp to date, date to timestamp, online date tool",
   "InputLabel": "날짜 / 타임스탬프",
   "OutputLabel": "변환된 날짜",
   "ActionConvert": "변환",

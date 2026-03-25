@@ -1,6 +1,7 @@
 {
   "Title": "Compresseur d'images",
   "Description": "Compressez des images JPG, PNG et WebP localement dans votre navigateur.",
+  "Keywords": "image compressor, compress image online, JPG compressor, PNG compressor, WebP compressor, reduce image size, image optimization",
   "Compressing": "Compression en cours...",
   "Processing": "Traitement en cours...",
   "Done": "Terminé !",

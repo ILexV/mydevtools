@@ -1,6 +1,7 @@
 {
   "Title": "URL Kodierer / Dekodierer",
   "Description": "URL-kodierten Text (Prozentkodierung) mit wählbaren Modi und Zeichensätzen kodieren und dekodieren – Daten verlassen nie Ihr Gerät",
+  "Keywords": "URL encoder, URL decoder, percent encoding, URL encode online, URL decode online, URI encoder, query string encoder",
   "InputLabel": "Eingabe",
   "InputPlaceholder": "Text oder URL-kodierte Zeichenfolge eingeben...",
   "OutputLabel": "Ausgabe",

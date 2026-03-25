@@ -1,6 +1,7 @@
 {
   "Title": "AEAD 文件加密/解密",
   "Description": "使用 AEAD 在本地加密和解密文件。",
+  "Keywords": "AEAD encryption, file encryption, AES-GCM, ChaCha20-Poly1305, encrypt file online, decrypt file, authenticated encryption, secure file",
   "EncryptSectionTitle": "加密",
   "DecryptSectionTitle": "解密",
   "FileLabel": "文件",

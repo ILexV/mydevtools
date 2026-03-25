@@ -1,6 +1,7 @@
 {
   "Title": "URL кодирование / декодирование",
   "Description": "Кодируйте и декодируйте URL-строки (percent-encoding) с выбором режима и кодировки текста — данные не покидают ваше устройство",
+  "Keywords": "URL encoder, URL decoder, percent encoding, URL encode online, URL decode online, URI encoder, query string encoder",
   "InputLabel": "Ввод",
   "InputPlaceholder": "Введите текст или URL-кодированную строку...",
   "OutputLabel": "Вывод",

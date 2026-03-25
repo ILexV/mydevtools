@@ -1,6 +1,7 @@
 {
   "Title": "JWT एन्कोडर",
   "Description": "अपने ब्राउज़र में सीधे JSON वेब टोकन (JWT) बनाएं और साइन करें। कस्टम सीक्रेट की के साथ HS256, HS384 और HS512 एल्गोरिदम का समर्थन करता है।",
+  "Keywords": "JWT encoder, JWT generator, JSON Web Token creator, sign JWT, HS256, HS384, HS512, JWT online tool",
   "LinkToDecoder": "टोकन डिकोड करना चाहते हैं?",
   "DecoderTitle": "JWT डिकोडर पर जाएं",
   "HeaderLabel": "हेडर",

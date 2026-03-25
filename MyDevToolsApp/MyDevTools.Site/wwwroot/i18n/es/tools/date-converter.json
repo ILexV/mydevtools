@@ -1,6 +1,7 @@
 {
   "Title": "Convertidor de Fechas",
   "Description": "Convierta entre marcas de tiempo Unix y fechas legibles (ISO 8601, RFC 2822): todo en su navegador",
+  "Keywords": "date converter, Unix timestamp, epoch converter, ISO 8601, RFC 2822, timestamp to date, date to timestamp, online date tool",
   "InputLabel": "Entrada (Fecha / Timestamp)",
   "OutputLabel": "Resultado",
   "ActionConvert": "Convertir",

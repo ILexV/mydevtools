@@ -1,6 +1,7 @@
 {
   "Title": "XML 格式化",
   "Description": "使用可自定义的缩进格式化和美化 XML — 全部在您的浏览器中",
+  "Keywords": "XML beautifier, XML formatter, XML validator, pretty print XML, XML minifier, format XML online, XML editor",
   "InputLabel": "输入 XML",
   "InputPlaceholder": "在此处粘贴您的 XML...",
   "FormatButton": "格式化",

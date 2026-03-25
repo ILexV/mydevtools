@@ -1,6 +1,7 @@
 {
   "Title": "Форматирование XML",
   "Description": "Форматирование и украшение XML с настраиваемыми отступами — всё в вашем браузере",
+  "Keywords": "XML beautifier, XML formatter, XML validator, pretty print XML, XML minifier, format XML online, XML editor",
   "InputLabel": "Входной XML",
   "InputPlaceholder": "Вставьте ваш XML здесь...",
   "FormatButton": "Форматировать",

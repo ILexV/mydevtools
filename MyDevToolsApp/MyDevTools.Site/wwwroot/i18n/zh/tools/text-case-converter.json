@@ -1,6 +1,7 @@
 {
   "AlternatingCase": "交替大小写",
   "CamelCase": "驼峰式",
+  "Keywords": "text case converter, camelCase, snake_case, UPPER CASE, lower case, Title Case, kebab-case, sentence case, text transform",
   "ClearButton": "清除",
   "Copied": "已复制！",
   "CopyButton": "复制",

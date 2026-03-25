@@ -1,6 +1,7 @@
 {
   "Title": "JSON 格式化",
   "Description": "格式化和美化 JSON 字符串，支持自定义缩进 — 安全且私密。",
+  "Keywords": "JSON beautifier, JSON formatter, JSON validator, JSON minifier, pretty print JSON, format JSON online, JSON editor, JSON parser",
   "InputLabel": "输入 JSON",
   "InputPlaceholder": "在此处粘贴您的 JSON...",
   "FormatButton": "格式化",

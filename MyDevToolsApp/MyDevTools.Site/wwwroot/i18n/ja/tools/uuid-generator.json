@@ -1,6 +1,7 @@
 {
   "Title": "UUID/GUID ジェネレーター",
   "Description": "UUID v4（ランダム）および UUID v7（時間ベース）識別子をブラウザで直接生成します。すべての生成はローカルで行われます。",
+  "Keywords": "UUID generator, GUID generator, UUID v4, UUID v7, random UUID, UUID online, generate GUID, unique identifier",
   "VersionLabel": "UUID バージョン",
   "Version4": "バージョン 4 (ランダム)",
   "Version7": "バージョン 7 (時間ベース)",

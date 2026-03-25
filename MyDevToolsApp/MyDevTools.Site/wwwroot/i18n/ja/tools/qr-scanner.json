@@ -1,6 +1,7 @@
 {
   "Title": "QRコードスキャナー",
   "Description": "画像からQRコードをスキャンし、サーバーにアップロードせずにブラウザ内で直接読み取ります。",
+  "Keywords": "QR code scanner, QR code reader, scan QR code online, decode QR code, QR code from image, QR code decoder",
   "DropZone": "QRコードを含む画像をここにドラッグ＆ドロップ",
   "ResultLabel": "スキャンした内容",
   "ErrorReading": "画像からテキストを読み取る際にエラーが発生しました。",

@@ -1,6 +1,7 @@
 {
   "Title": "Cron अभिव्यक्ति जनरेटर",
   "Description": "व्यक्तिगत समय क्षेत्रों से दृश्य रूप से Cron अभिव्यक्तियां बनाएं मानव-पठनीय स्पष्टीकरण और अगले निष्पादन समय के साथ",
+  "Keywords": "cron expression generator, cron builder, cron schedule builder, generate cron, cron syntax helper, cron job scheduler",
   "LinkToParser": "क्या आपको Cron अभिव्यक्ति पार्स करने की आवश्यकता है?",
   "ParserTitle": "Cron पार्सर",
   "GeneratorTitle": "अभिव्यक्ति बनाएं",

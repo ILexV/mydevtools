@@ -1,6 +1,7 @@
 {
   "Title": "OpenSSH 密钥",
   "Description": "在您的浏览器中生成、导入和转换 OpenSSH 密钥。",
+  "Keywords": "OpenSSH key generator, SSH key pair, RSA key generation, Ed25519 key, ECDSA key, SSH public key, SSH private key, convert SSH key",
   "GenerateSectionTitle": "生成",
   "AlgorithmLabel": "算法",
   "KeySizeLabel": "密钥大小",

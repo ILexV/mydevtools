@@ -1,6 +1,7 @@
 {
   "Title": "Генератор UUID/GUID",
   "Description": "Генерация идентификаторов UUID v4 (случайные) и UUID v7 (на основе времени) прямо в браузере. Вся генерация происходит локально.",
+  "Keywords": "UUID generator, GUID generator, UUID v4, UUID v7, random UUID, UUID online, generate GUID, unique identifier",
   "VersionLabel": "Версия UUID",
   "Version4": "Версия 4 (Случайный)",
   "Version7": "Версия 7 (По времени)",

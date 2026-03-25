@@ -1,6 +1,7 @@
 {
   "Title": "JWT 解码器",
   "Description": "直接在您的浏览器中解码和验证 JSON Web Tokens (JWT)。",
+  "Keywords": "JWT decoder, JSON Web Token, JWT verify, JWT parse, decode JWT online, JWT inspector, JWT header payload",
   "EncodedLabel": "生成的 JWT",
   "EncodedPlaceholder": "在此处粘贴 JWT...",
   "DecodedHeaderLabel": "头部",

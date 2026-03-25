@@ -1,6 +1,7 @@
 {
   "Title": "Probador de Regex",
   "Description": "Pruebe y depure expresiones regulares (Rust/WASM) — todo en su navegador",
+  "Keywords": "regex tester, regular expression tester, regex online, regex debugger, regex validator, test regex, regex match, regex replace",
   "PatternLabel": "Patrón",
   "PatternPlaceholder": "Ingresar expresión regular...",
   "TextLabel": "Texto de prueba",

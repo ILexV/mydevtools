@@ -1,6 +1,7 @@
 {
   "Title": "AEAD Datei-Verschlüsselung",
   "Description": "Dateien lokal mit AEAD verschlüsseln und entschlüsseln.",
+  "Keywords": "AEAD encryption, file encryption, AES-GCM, ChaCha20-Poly1305, encrypt file online, decrypt file, authenticated encryption, secure file",
   "EncryptSectionTitle": "Verschlüsseln",
   "DecryptSectionTitle": "Entschlüsseln",
   "FileLabel": "Datei",

@@ -1,6 +1,7 @@
 {
   "Title": "QR Code Generator",
   "Description": "Create custom QR codes with colors, styles and logos — all in your browser",
+  "Keywords": "QR code generator, create QR code, custom QR code, QR code with logo, QR code color, online QR generator, free QR code",
   "ContentLabel": "Content",
   "ContentPlaceholder": "Enter text or URL to encode...",
   "ColorsSection": "Colors",

@@ -1,6 +1,7 @@
 {
   "Title": "Base58 인코더 / 디코더",
   "Description": "텍스트 및 파일에 대한 Base58 인코딩 및 디코딩 — 모두 브라우저에서",
+  "Keywords": "Base58 encoder, Base58 decoder, Base58 encoding, Bitcoin Base58, Base58Check, Base58 online converter",
   "OtherFormats": "다른 형식:",
   "LinkHex": "Hex",
   "LinkBase32": "Base32",

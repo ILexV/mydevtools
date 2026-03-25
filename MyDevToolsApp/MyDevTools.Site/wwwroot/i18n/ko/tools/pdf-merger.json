@@ -1,6 +1,7 @@
 {
   "Title": "PDF 병합",
   "Description": "브라우저에서 여러 PDF 파일을 하나의 문서로 효율적으로 병합합니다.",
+  "Keywords": "PDF merger, merge PDF files, combine PDF, join PDF online, PDF combiner, merge PDF documents, free PDF merger",
   "DropZoneTitle": "PDF 파일을 여기로 드래그 앤 드롭하세요",
   "MergeButton": "PDF 병합",
   "Success": "PDF가 성공적으로 병합되었습니다!",

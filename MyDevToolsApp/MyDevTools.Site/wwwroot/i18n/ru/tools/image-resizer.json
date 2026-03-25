@@ -1,6 +1,7 @@
 {
   "Title": "Изменение размера",
   "Description": "Изменяйте размер изображений с блокировкой пропорций.",
+  "Keywords": "image resizer, resize image online, change image dimensions, scale image, aspect ratio, image resize tool, photo resizer",
   "OriginalInfo": "Исходное изображение",
   "TargetFormatLabel": "Формат",
   "Width": "Ширина (px)",

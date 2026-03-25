@@ -1,6 +1,7 @@
 {
   "Title": "Encodeur Base58",
   "Description": "Encoder et décoder Base58 pour du texte et des fichiers — tout dans votre navigateur.",
+  "Keywords": "Base58 encoder, Base58 decoder, Base58 encoding, Bitcoin Base58, Base58Check, Base58 online converter",
   "OtherFormats": "Autres formats :",
   "LinkHex": "Hex",
   "LinkBase32": "Base32",

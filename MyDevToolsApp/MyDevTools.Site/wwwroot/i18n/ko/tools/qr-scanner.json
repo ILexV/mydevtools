@@ -1,6 +1,7 @@
 {
   "Title": "QR 코드 스캐너",
   "Description": "서버에 업로드하지 않고 브라우저에서 직접 이미지에서 QR 코드 스캔",
+  "Keywords": "QR code scanner, QR code reader, scan QR code online, decode QR code, QR code from image, QR code decoder",
   "DropZone": "QR 코드가 있는 이미지를 여기로 드래그 앤 드롭",
   "ResultLabel": "스캔된 내용",
   "ErrorReading": "이미지에서 텍스트를 읽는 중 오류가 발생했습니다.",

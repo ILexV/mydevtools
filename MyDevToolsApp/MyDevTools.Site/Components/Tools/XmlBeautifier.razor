@@ -1,4 +1,4 @@
-@page "/{lang}/xml-beautifier"
+﻿@page "/{lang}/xml-beautifier"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")" 
               Description="@T("Description")" 
               CurrentUrl="@Navigation.Uri"
-              ToolPath="xml-beautifier" />
+              ToolPath="xml-beautifier"
+              Keywords="@T("Keywords")"
+              Category="Structured Data"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="xml-beautifier-root"
          data-error-invalid-xml="@T("ErrorInvalidXml")"

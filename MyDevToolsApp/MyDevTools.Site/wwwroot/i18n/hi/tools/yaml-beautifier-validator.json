@@ -1,6 +1,7 @@
 {
   "Title": "YAML फॉर्मेटर/वैलिडेटर",
   "Description": "YAML को एरर हाइलाइटिंग के साथ फॉर्मेट और वैलिडेट करें",
+  "Keywords": "YAML beautifier, YAML formatter, YAML validator, YAML linter, format YAML online, YAML syntax checker, YAML editor",
   "InputLabel": "YAML इनपुट",
   "InputPlaceholder": "YAML सामग्री यहाँ दर्ज करें...",
   "Format": "फॉर्मेट",

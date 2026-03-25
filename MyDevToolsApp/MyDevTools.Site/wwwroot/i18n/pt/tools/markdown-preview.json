@@ -1,6 +1,7 @@
 {
   "Title": "Visualizador Markdown",
   "Description": "Editor Markdown ao vivo com pré-visualização HTML em tempo real, visão dividida e realce de sintaxe — tudo no seu navegador",
+  "Keywords": "markdown preview, markdown editor, markdown to HTML, live markdown, markdown renderer, online markdown editor",
   "EditorLabel": "Editor Markdown",
   "EditorPlaceholder": "Digite seu markdown aqui...",
   "PreviewLabel": "Pré-visualização",

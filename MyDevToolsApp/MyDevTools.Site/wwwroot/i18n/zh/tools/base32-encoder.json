@@ -1,6 +1,7 @@
 {
   "Title": "Base32 编码器 / 解码器",
   "Description": "为文本和文件进行 Base32 编码和解码 — 全部在您的浏览器中。",
+  "Keywords": "Base32 encoder, Base32 decoder, Base32 encoding online, Base32 decode, RFC 4648, Base32 file converter",
   "OtherFormats": "其他格式：",
   "LinkHex": "Hex",
   "LinkBase64": "Base64",

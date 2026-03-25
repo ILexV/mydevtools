@@ -1,6 +1,7 @@
 {
   "Title": "YAML ビューティファイア/バリデータ",
   "Description": "エラーハイライト付きで YAML をフォーマットおよび検証します",
+  "Keywords": "YAML beautifier, YAML formatter, YAML validator, YAML linter, format YAML online, YAML syntax checker, YAML editor",
   "InputLabel": "YAML 入力",
   "InputPlaceholder": "YAML コンテンツをここに入力...",
   "Format": "フォーマット",

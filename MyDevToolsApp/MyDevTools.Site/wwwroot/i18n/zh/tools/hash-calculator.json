@@ -1,6 +1,7 @@
 {
   "Title": "哈希计算器",
   "Description": "使用选定的算法（MD5、SHA-1、SHA-256 等）计算文本或文件的哈希值 — 计算在本地进行",
+  "Keywords": "hash calculator, MD5, SHA-256, SHA-512, SHA-3, BLAKE2, HMAC, checksum, file hash, cryptographic hash, online hash tool",
   "InputLabel": "输入文本",
   "InputPlaceholder": "输入要哈希的文本...",
   "FileLabel": "文件（可选）",

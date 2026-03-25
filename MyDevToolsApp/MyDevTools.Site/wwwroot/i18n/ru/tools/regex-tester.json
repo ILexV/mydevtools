@@ -1,6 +1,7 @@
 {
   "Title": "Тестер Regex",
   "Description": "Тестирование и отладка регулярных выражений (Rust/WASM) — прямо в браузере",
+  "Keywords": "regex tester, regular expression tester, regex online, regex debugger, regex validator, test regex, regex match, regex replace",
   "PatternLabel": "Шаблон",
   "PatternPlaceholder": "Введите выражение...",
   "TextLabel": "Текст",

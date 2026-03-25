@@ -1,6 +1,7 @@
 {
   "Title": "二维码生成器",
   "Description": "创建带有颜色和徽标的自定义二维码。",
+  "Keywords": "QR code generator, create QR code, custom QR code, QR code with logo, QR code color, online QR generator, free QR code",
   "ContentLabel": "内容",
   "ContentPlaceholder": "输入要编码的文本或 URL...",
   "ColorsSection": "颜色",

@@ -1,6 +1,7 @@
 {
   "Title": "OpenSSH कीज़",
   "Description": "अपने ब्राउज़र में OpenSSH कीज़ जनरेट, इम्पोर्ट और कन्वर्ट करें।",
+  "Keywords": "OpenSSH key generator, SSH key pair, RSA key generation, Ed25519 key, ECDSA key, SSH public key, SSH private key, convert SSH key",
   "GenerateSectionTitle": "जनरेट",
   "AlgorithmLabel": "एल्गोरिदम",
   "KeySizeLabel": "की साइज़",

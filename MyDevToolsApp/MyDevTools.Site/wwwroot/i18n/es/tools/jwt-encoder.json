@@ -1,6 +1,7 @@
 {
   "Title": "Codificador JWT",
   "Description": "Crea y firma JSON Web Tokens (JWT) directamente en tu navegador. Soporta los algoritmos HS256, HS384 y HS512 con claves secretas personalizadas.",
+  "Keywords": "JWT encoder, JWT generator, JSON Web Token creator, sign JWT, HS256, HS384, HS512, JWT online tool",
   "LinkToDecoder": "¿Necesitas decodificar un token?",
   "DecoderTitle": "Ir al Decodificador JWT",
   "HeaderLabel": "Encabezado",

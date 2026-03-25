@@ -1,6 +1,7 @@
 {
   "Title": "X.509 证书",
   "Description": "创建自签名证书、CSR 并解析 PEM/DER。",
+  "Keywords": "X.509 certificate, self-signed certificate, CSR generator, PEM parser, DER parser, SSL certificate, TLS certificate, certificate tool",
   "SelfSignedSectionTitle": "自签名",
   "SubjectLabel": "主题 (CN)",
   "ValidityDaysLabel": "有效期（天）",

@@ -1,6 +1,7 @@
 {
   "Title": "HMAC 計算機",
   "Description": "SHA-256 および SHA-512 を使用して、カスタムキーとメッセージで HMAC ハッシュを生成します — すべてブラウザ内で",
+  "Keywords": "HMAC calculator, HMAC SHA-256, HMAC SHA-512, message authentication code, HMAC online, keyed hash, API signature",
   "KeyLabel": "シークレットキー",
   "KeyPlaceholder": "シークレットキーを入力...",
   "MessageLabel": "メッセージ",

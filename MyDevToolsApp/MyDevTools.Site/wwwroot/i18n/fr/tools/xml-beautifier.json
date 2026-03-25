@@ -1,6 +1,7 @@
 {
   "Title": "Embellisseur XML",
   "Description": "Formatez et embellissez le XML avec une indentation personnalisable — tout dans votre navigateur",
+  "Keywords": "XML beautifier, XML formatter, XML validator, pretty print XML, XML minifier, format XML online, XML editor",
   "InputLabel": "XML d'entrée",
   "InputPlaceholder": "Collez votre XML ici...",
   "FormatButton": "Formater",

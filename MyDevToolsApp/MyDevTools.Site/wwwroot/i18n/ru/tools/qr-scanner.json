@@ -1,6 +1,7 @@
 {
   "Title": "Сканер QR-кодов",
   "Description": "Сканируйте QR-коды из изображений прямо в браузере, без отправки на сервер.",
+  "Keywords": "QR code scanner, QR code reader, scan QR code online, decode QR code, QR code from image, QR code decoder",
   "DropZone": "Перетащите изображение с QR-кодом сюда",
   "ResultLabel": "Результат сканирования",
   "ErrorReading": "Ошибка чтения текста из изображения.",

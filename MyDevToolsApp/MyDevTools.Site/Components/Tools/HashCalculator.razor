@@ -1,4 +1,4 @@
-@page "/{lang}/hash-calculator"
+﻿@page "/{lang}/hash-calculator"
 @using System.Text.Json
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
@@ -8,7 +8,10 @@
               Description="@T("Description")" 
               CurrentUrl="@Navigation.Uri"
               ToolPath="hash-calculator"
-              SupportedAlgorithms="@SupportedHashAlgorithms" />
+              Keywords="@T("Keywords")"
+              SupportedAlgorithms="@SupportedHashAlgorithms"
+              Category="Hashing"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="hash-calculator-root"
          data-loading="@TCommon("Common_Loading")"

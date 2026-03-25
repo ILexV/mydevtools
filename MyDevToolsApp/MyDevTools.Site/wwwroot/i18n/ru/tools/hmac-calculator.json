@@ -1,6 +1,7 @@
 {
   "Title": "Калькулятор HMAC",
   "Description": "Вычислите HMAC с SHA-256 и SHA-512 — все в вашем браузере",
+  "Keywords": "HMAC calculator, HMAC SHA-256, HMAC SHA-512, message authentication code, HMAC online, keyed hash, API signature",
   "KeyLabel": "Ключ",
   "KeyPlaceholder": "Введите ключ HMAC (например, секретный ключ)...",
   "MessageLabel": "Сообщение",

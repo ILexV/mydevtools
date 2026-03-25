@@ -1,6 +1,7 @@
 {
   "Title": "PDF Merger",
   "Description": "Merge multiple PDF files into one document efficiently in your browser.",
+  "Keywords": "PDF merger, merge PDF files, combine PDF, join PDF online, PDF combiner, merge PDF documents, free PDF merger",
   "DropZoneTitle": "Drag and drop PDF files here",
   "MergeButton": "Merge PDFs",
   "Success": "PDFs merged successfully!",

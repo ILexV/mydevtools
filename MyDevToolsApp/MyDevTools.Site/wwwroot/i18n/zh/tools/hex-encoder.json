@@ -1,6 +1,7 @@
 {
   "Title": "Hex 编码 / 解码",
   "Description": "为文本或文件进行 Hex 编码和解码 — 全部在您的浏览器中",
+  "Keywords": "hex encoder, hex decoder, hexadecimal converter, text to hex, hex to text, hex encoding online, hexadecimal online tool",
   "OtherFormats": "Other formats:",
   "LinkUrl": "URL",
   "LinkBase32": "Base32",

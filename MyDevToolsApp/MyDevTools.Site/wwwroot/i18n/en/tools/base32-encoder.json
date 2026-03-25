@@ -1,6 +1,7 @@
 {
   "Title": "Base32 Encoder / Decoder",
   "Description": "Encode and decode Base32 for text and files — all in your browser.",
+  "Keywords": "Base32 encoder, Base32 decoder, Base32 encoding online, Base32 decode, RFC 4648, Base32 file converter",
   "OtherFormats": "Other formats:",
   "LinkHex": "Hex",
   "LinkBase64": "Base64",

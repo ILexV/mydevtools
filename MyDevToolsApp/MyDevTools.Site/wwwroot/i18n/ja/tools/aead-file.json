@@ -1,6 +1,7 @@
 {
   "Title": "AEAD ファイル暗号化/復号化",
   "Description": "AEAD を使用してファイルをローカルで暗号化および復号化します。",
+  "Keywords": "AEAD encryption, file encryption, AES-GCM, ChaCha20-Poly1305, encrypt file online, decrypt file, authenticated encryption, secure file",
   "EncryptSectionTitle": "暗号化",
   "DecryptSectionTitle": "復号化",
   "FileLabel": "ファイル",

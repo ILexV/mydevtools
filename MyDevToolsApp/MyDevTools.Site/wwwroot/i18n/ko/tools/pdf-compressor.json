@@ -1,6 +1,7 @@
 {
   "Title": "PDF 압축",
   "Description": "업로드 없이 브라우저에서 직접 PDF 파일을 압축하여 크기를 줄입니다.",
+  "Keywords": "PDF compressor, compress PDF, reduce PDF size, PDF optimizer, shrink PDF, PDF file size reducer, online PDF compression",
   "DropZoneTitle": "PDF 파일을 여기로 드래그 앤 드롭하세요",
   "CompressButton": "PDF 압축",
   "DownloadButton": "다운로드",

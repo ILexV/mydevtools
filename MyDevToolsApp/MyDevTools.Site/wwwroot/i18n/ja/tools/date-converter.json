@@ -1,6 +1,7 @@
 {
   "Title": "日付変換",
   "Description": "Unix タイムスタンプと読みやすい日付形式を変換します。",
+  "Keywords": "date converter, Unix timestamp, epoch converter, ISO 8601, RFC 2822, timestamp to date, date to timestamp, online date tool",
   "InputLabel": "日付 / タイムスタンプ",
   "OutputLabel": "変換後の日付",
   "ActionConvert": "変換",

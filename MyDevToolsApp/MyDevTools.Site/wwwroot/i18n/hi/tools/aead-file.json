@@ -1,6 +1,7 @@
 {
   "Title": "AEAD फ़ाइल एन्क्रिप्ट/डिक्रिप्ट",
   "Description": "AEAD के साथ फ़ाइलों को स्थानीय रूप से एन्क्रिप्ट और डिक्रिप्ट करें।",
+  "Keywords": "AEAD encryption, file encryption, AES-GCM, ChaCha20-Poly1305, encrypt file online, decrypt file, authenticated encryption, secure file",
   "EncryptSectionTitle": "एन्क्रिप्ट",
   "DecryptSectionTitle": "डिक्रिप्ट",
   "FileLabel": "फ़ाइल",

@@ -1,6 +1,7 @@
 {
   "Title": "Clés OpenSSH",
   "Description": "Générez, importez et convertissez des clés OpenSSH dans votre navigateur.",
+  "Keywords": "OpenSSH key generator, SSH key pair, RSA key generation, Ed25519 key, ECDSA key, SSH public key, SSH private key, convert SSH key",
   "GenerateSectionTitle": "Générer",
   "AlgorithmLabel": "Algorithme",
   "KeySizeLabel": "Taille de la clé",

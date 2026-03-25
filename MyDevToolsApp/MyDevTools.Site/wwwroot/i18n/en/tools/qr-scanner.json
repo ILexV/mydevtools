@@ -1,6 +1,7 @@
 {
   "Title": "QR Code Scanner",
   "Description": "Scan QR codes from images directly in your browser without uploading to any server.",
+  "Keywords": "QR code scanner, QR code reader, scan QR code online, decode QR code, QR code from image, QR code decoder",
   "DropZone": "Drag & drop an image with a QR code here",
   "ResultLabel": "Scanned Content",
   "ErrorReading": "Error reading text from the image.",

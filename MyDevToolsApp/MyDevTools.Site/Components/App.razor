@@ -42,6 +42,10 @@
     
     @* Preload critical resources *@
     <link rel="preload" href="@Assets["app.css"]" as="style" />
+    @if (IsHomePage)
+    {
+        <link rel="preload" href="/hero_logo.webp" as="image" type="image/webp" />
+    }
     
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["css/home-custom.css"]" />
@@ -203,8 +207,14 @@
         <script type="module" src="@Assets["tools/regex-tester.js"]"></script>
     }
 
-    <script type="module" src="tools/image-compressor.js"></script>
-    <script type="module" src="tools/image-resizer.js"></script>
+    @if (IsImageCompressor)
+    {
+        <script type="module" src="@Assets["tools/image-compressor.js"]"></script>
+    }
+    @if (IsImageResizer)
+    {
+        <script type="module" src="@Assets["tools/image-resizer.js"]"></script>
+    }
     @if (IsQrCodeGenerator)
     {
         <script type="module" src="@Assets["tools/qr-code-generator.js"]"></script>
@@ -265,6 +275,7 @@
     private string CurrentPath => HttpContext?.Request.Path.Value ?? "";
     
     // Tool page checks
+    private bool IsHomePage => System.Text.RegularExpressions.Regex.IsMatch(CurrentPath, @"^/[a-z]{2}/?$", System.Text.RegularExpressions.RegexOptions.IgnoreCase) || CurrentPath == "/";
     private bool IsImageConverter => CurrentPath.Contains("/image-converter", StringComparison.OrdinalIgnoreCase);
     private bool IsJsonBeautifier => CurrentPath.Contains("/json-beautifier", StringComparison.OrdinalIgnoreCase);
     private bool IsXmlBeautifier => CurrentPath.Contains("/xml-beautifier", StringComparison.OrdinalIgnoreCase);
@@ -295,6 +306,8 @@
     private bool IsCronGenerator => CurrentPath.Contains("/cron-generator", StringComparison.OrdinalIgnoreCase);
     private bool IsWordCounter => CurrentPath.Contains("/word-counter", StringComparison.OrdinalIgnoreCase);
     private bool IsJsonToTypeScript => CurrentPath.Contains("/json-to-typescript", StringComparison.OrdinalIgnoreCase);
+    private bool IsImageCompressor => CurrentPath.Contains("/image-compressor", StringComparison.OrdinalIgnoreCase);
+    private bool IsImageResizer => CurrentPath.Contains("/image-resizer", StringComparison.OrdinalIgnoreCase);
     
     // CodeMirror is needed for JSON, XML, and YAML beautifiers + JSON to TypeScript converter
     private bool NeedsCodeMirror => IsJsonBeautifier || IsXmlBeautifier || IsYamlBeautifierValidator || IsJsonToTypeScript;

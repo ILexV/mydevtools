@@ -1,4 +1,4 @@
-@page "/{lang}/text-case-converter"
+﻿@page "/{lang}/text-case-converter"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")" 
               Description="@T("Description")" 
               CurrentUrl="@Navigation.Uri"
-              ToolPath="text-case-converter" />
+              ToolPath="text-case-converter"
+              Keywords="@T("Keywords")"
+              Category="Text"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="text-case-converter-root"
          data-copied="@T("Copied")"

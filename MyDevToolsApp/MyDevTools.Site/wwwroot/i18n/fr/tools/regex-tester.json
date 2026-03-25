@@ -1,6 +1,7 @@
 {
   "Title": "Testeur Regex",
   "Description": "Testez et déboguez des expressions régulières en utilisant le moteur regex Rust (WASM) — tout dans votre navigateur",
+  "Keywords": "regex tester, regular expression tester, regex online, regex debugger, regex validator, test regex, regex match, regex replace",
   "PatternLabel": "Modèle",
   "PatternPlaceholder": "Entrez un modèle regex...",
   "TextLabel": "Chaîne de test",

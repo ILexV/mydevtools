@@ -1,6 +1,7 @@
 {
   "Title": "16進数エンコーダー / デコーダー",
   "Description": "テキストまたはファイルの16進数エンコード・デコード — すべてブラウザ内で実行",
+  "Keywords": "hex encoder, hex decoder, hexadecimal converter, text to hex, hex to text, hex encoding online, hexadecimal online tool",
   "OtherFormats": "その他のフォーマット:",
   "LinkUrl": "URL",
   "LinkBase32": "Base32",

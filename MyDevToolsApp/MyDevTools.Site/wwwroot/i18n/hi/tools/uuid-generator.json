@@ -1,6 +1,7 @@
 {
   "Title": "UUID/GUID जेनरेटर",
   "Description": "सीधे अपने ब्राउज़र में UUID v4 (यादृच्छिक) और UUID v7 (समय-आधारित) पहचानकर्ता उत्पन्न करें। सभी निर्माण स्थानीय रूप से होता है।",
+  "Keywords": "UUID generator, GUID generator, UUID v4, UUID v7, random UUID, UUID online, generate GUID, unique identifier",
   "VersionLabel": "UUID संस्करण",
   "Version4": "संस्करण 4 (यादृच्छिक)",
   "Version7": "संस्करण 7 (समय-आधारित)",

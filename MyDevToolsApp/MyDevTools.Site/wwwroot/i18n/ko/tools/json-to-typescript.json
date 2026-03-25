@@ -1,6 +1,7 @@
 {
   "Title": "JSON → TypeScript 변환기",
   "Description": "JSON 객체를 TypeScript 인터페이스 및 타입 별칭으로 즉시 변환 — 개인 정보 보호, 브라우저에서 완전히 실행",
+  "Keywords": "JSON to TypeScript, JSON to interface, TypeScript generator, JSON type generator, convert JSON to TypeScript, TypeScript interface from JSON",
   "InputLabel": "JSON 입력",
   "InputPlaceholder": "JSON을 여기에 붙여넣기...",
   "OutputLabel": "TypeScript 출력",

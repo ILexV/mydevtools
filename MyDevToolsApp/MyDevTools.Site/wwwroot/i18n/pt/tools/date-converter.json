@@ -1,6 +1,7 @@
 {
   "Title": "Conversor de Data",
   "Description": "Converta entre timestamps Unix e datas legíveis.",
+  "Keywords": "date converter, Unix timestamp, epoch converter, ISO 8601, RFC 2822, timestamp to date, date to timestamp, online date tool",
   "InputLabel": "Data / Timestamp",
   "OutputLabel": "Data Convertida",
   "ActionConvert": "Converter",

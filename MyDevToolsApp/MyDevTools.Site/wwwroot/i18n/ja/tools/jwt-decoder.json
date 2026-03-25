@@ -1,6 +1,7 @@
 {
   "Title": "JWT デコーダー",
   "Description": "JSON Web Tokens (JWT) をブラウザ内で直接デコードおよび検証します。",
+  "Keywords": "JWT decoder, JSON Web Token, JWT verify, JWT parse, decode JWT online, JWT inspector, JWT header payload",
   "EncodedLabel": "生成された JWT",
   "EncodedPlaceholder": "JWT をここに貼り付け...",
   "DecodedHeaderLabel": "ヘッダー",

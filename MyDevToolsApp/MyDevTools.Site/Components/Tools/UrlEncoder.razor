@@ -1,4 +1,4 @@
-@page "/{lang}/url-encoder"
+﻿@page "/{lang}/url-encoder"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")"
               Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
-              ToolPath="url-encoder" />
+              ToolPath="url-encoder"
+              Keywords="@T("Keywords")"
+              Category="Encoding"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="url-encoder-root"
          class="grid grid-cols-1 lg:grid-cols-2 gap-6"

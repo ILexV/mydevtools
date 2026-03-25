@@ -1,6 +1,7 @@
 {
   "Title": "X.509 प्रमाणपत्र",
   "Description": "स्व-हस्ताक्षरित प्रमाणपत्र, CSR बनाएँ, और PEM/DER पार्स करें।",
+  "Keywords": "X.509 certificate, self-signed certificate, CSR generator, PEM parser, DER parser, SSL certificate, TLS certificate, certificate tool",
   "SelfSignedSectionTitle": "स्व-हस्ताक्षरित",
   "SubjectLabel": "सब्जेक्ट (CN)",
   "ValidityDaysLabel": "वैधता (दिन)",

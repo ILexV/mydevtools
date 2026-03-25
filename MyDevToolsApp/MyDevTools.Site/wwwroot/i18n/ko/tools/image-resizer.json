@@ -1,6 +1,7 @@
 {
   "Title": "이미지 크기 조정기",
   "Description": "사용자 정의 치수와 종횡비 잠금으로 이미지 크기 조정",
+  "Keywords": "image resizer, resize image online, change image dimensions, scale image, aspect ratio, image resize tool, photo resizer",
   "OriginalInfo": "원본 이미지",
   "TargetFormatLabel": "형식",
   "Width": "너비 (픽셀)",

@@ -1,6 +1,7 @@
 {
   "Title": "IPサブネット計算機",
   "Description": "IPv4ネットワークのIPサブネット、ネットワークアドレス、ブロードキャスト、ホスト範囲を計算します。CIDRおよびIP/マスク形式をサポートしています。",
+  "Keywords": "IP subnet calculator, CIDR calculator, network calculator, subnet mask, IPv4 subnetting, network address, broadcast address",
   "InputLabel": "IPアドレス / CIDR",
   "Calculate": "計算する",
   "Address": "アドレス",

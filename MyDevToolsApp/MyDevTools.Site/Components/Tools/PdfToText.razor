@@ -1,4 +1,4 @@
-@page "/{lang}/pdf-to-text"
+﻿@page "/{lang}/pdf-to-text"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")"
               Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
-              ToolPath="pdf-to-text" />
+              ToolPath="pdf-to-text"
+              Keywords="@T("Keywords")"
+              Category="PDF"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="pdf-to-text-root" class="max-w-5xl mx-auto space-y-8"
          data-loading="@TCommon("Common_Loading")"

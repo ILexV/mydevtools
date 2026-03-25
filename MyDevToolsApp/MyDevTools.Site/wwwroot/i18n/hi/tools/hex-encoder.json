@@ -1,6 +1,7 @@
 {
   "Title": "Hex एनकोडर / डिकोडर",
   "Description": "टेक्स्ट या फ़ाइलों के लिए Hex को एनकोड और डिकोड करें — सब कुछ आपके ब्राउज़र में",
+  "Keywords": "hex encoder, hex decoder, hexadecimal converter, text to hex, hex to text, hex encoding online, hexadecimal online tool",
   "OtherFormats": "अन्य प्रारूप:",
   "LinkUrl": "URL",
   "LinkBase32": "Base32",

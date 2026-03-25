@@ -1,6 +1,7 @@
 {
   "Title": "XML फॉर्मेटेर",
   "Description": "XML को फॉर्मेट और सुंदर बनाएं — सब कुछ आपके ब्राउज़र में",
+  "Keywords": "XML beautifier, XML formatter, XML validator, pretty print XML, XML minifier, format XML online, XML editor",
   "InputLabel": "इनपुट XML",
   "InputPlaceholder": "अपना XML यहाँ पेस्ट करें...",
   "FormatButton": "फॉर्मेट",

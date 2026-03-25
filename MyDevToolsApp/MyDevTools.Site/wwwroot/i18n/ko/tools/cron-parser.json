@@ -1,6 +1,7 @@
 {
   "Title": "Cron 표현식 파서",
   "Description": "Cron 표현식을 분석, 검증 및 이해하고 사람이 읽을 수 있는 설명과 다음 실행 시간을 제공합니다",
+  "Keywords": "cron expression parser, cron validator, cron syntax, parse cron online, cron schedule, next cron run, cron job parser",
   "LinkToGenerator": "Cron 표현식을 구축해야 합니까?",
   "GeneratorTitle": "Cron 생성기",
   "TabParser": "파서",

@@ -1,6 +1,7 @@
 {
   "Title": "Word / Character Counter",
   "Description": "Count words, characters, lines, paragraphs, and sentences. Get reading and speaking time estimates for your text.",
+  "Keywords": "word counter, character counter, text statistics, word count online, reading time calculator, character count, line counter",
   "InputPlaceholder": "Type or paste your text here to count words, characters, and more...",
   "ClearButton": "Clear",
   "CopyButton": "Copy",

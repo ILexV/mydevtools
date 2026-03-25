@@ -1,6 +1,7 @@
 {
   "Title": "OpenSSH 키",
   "Description": "브라우저에서 OpenSSH 키 생성, 가져오기 및 변환",
+  "Keywords": "OpenSSH key generator, SSH key pair, RSA key generation, Ed25519 key, ECDSA key, SSH public key, SSH private key, convert SSH key",
   "GenerateSectionTitle": "생성",
   "AlgorithmLabel": "알고리즘",
   "KeySizeLabel": "키 크기",

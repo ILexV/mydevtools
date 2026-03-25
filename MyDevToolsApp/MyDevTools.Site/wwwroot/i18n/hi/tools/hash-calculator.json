@@ -1,6 +1,7 @@
 {
   "Title": "हैश कैलकुलेटर",
   "Description": "टेक्स्ट या फ़ाइलों के लिए चयनित एल्गोरिदम (MD5, SHA-1, SHA-256 आदि) का उपयोग करके हैश की गणना करें — गणनाएं स्थानीय रूप से होती हैं",
+  "Keywords": "hash calculator, MD5, SHA-256, SHA-512, SHA-3, BLAKE2, HMAC, checksum, file hash, cryptographic hash, online hash tool",
   "InputLabel": "इनपुट टेक्स्ट",
   "InputPlaceholder": "हैश करने के लिए टेक्स्ट दर्ज करें...",
   "FileLabel": "फ़ाइल (वैकल्पिक)",

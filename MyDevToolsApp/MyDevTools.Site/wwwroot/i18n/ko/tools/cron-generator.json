@@ -1,6 +1,7 @@
 {
   "Title": "Cron 표현식 생성기",
   "Description": "개별 시간 필드에서 시각적으로 Cron 표현식을 구축하고 사람이 읽을 수 있는 설명과 다음 실행 시간을 제공합니다",
+  "Keywords": "cron expression generator, cron builder, cron schedule builder, generate cron, cron syntax helper, cron job scheduler",
   "LinkToParser": "Cron 표현식을 분석해야 합니까?",
   "ParserTitle": "Cron 파서",
   "GeneratorTitle": "표현식 구축",

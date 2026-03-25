@@ -1,4 +1,4 @@
-@page "/{lang}/ip-subnet-calculator"
+﻿@page "/{lang}/ip-subnet-calculator"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")" 
               Description="@T("Description")" 
               CurrentUrl="@Navigation.Uri"
-              ToolPath="ip-subnet-calculator" />
+              ToolPath="ip-subnet-calculator"
+              Keywords="@T("Keywords")"
+              Category="Network"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="ip-calc-root"
          data-loading="@TCommon("Common_Loading")"

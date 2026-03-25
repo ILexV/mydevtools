@@ -1,6 +1,7 @@
 {
   "Title": "QR 코드 생성기",
   "Description": "색상과 로고가 있는 맞춤형 QR 코드를 만듭니다.",
+  "Keywords": "QR code generator, create QR code, custom QR code, QR code with logo, QR code color, online QR generator, free QR code",
   "ContentLabel": "내용",
   "ContentPlaceholder": "인코딩할 텍스트 또는 URL 입력...",
   "ColorsSection": "색상",

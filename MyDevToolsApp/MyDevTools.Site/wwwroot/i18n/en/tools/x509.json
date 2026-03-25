@@ -1,6 +1,7 @@
 {
   "Title": "X.509 Certificates",
   "Description": "Create self-signed certificates, CSRs, and parse PEM/DER.",
+  "Keywords": "X.509 certificate, self-signed certificate, CSR generator, PEM parser, DER parser, SSL certificate, TLS certificate, certificate tool",
   "SelfSignedSectionTitle": "Self-signed",
   "SubjectLabel": "Subject (CN)",
   "ValidityDaysLabel": "Validity (days)",

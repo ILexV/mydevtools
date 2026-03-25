@@ -1,6 +1,7 @@
 {
   "TargetFormatLabel": "目标格式",
   "Title": "图像转换器",
+  "Keywords": "image converter, convert image online, PNG to JPEG, WEBP converter, image format converter, BMP to PNG, ICO converter, TIFF converter",
   "Description": "在浏览器中安全地在格式之间转换图像 (PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA)。",
   "SelectFormat": "选择输出格式",
   "Convert": "转换",

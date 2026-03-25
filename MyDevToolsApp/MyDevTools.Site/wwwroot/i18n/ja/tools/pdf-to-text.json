@@ -1,6 +1,7 @@
 {
   "Title": "PDF テキスト変換",
   "Description": "ブラウザで簡単に PDF ドキュメントからすべてのテキストを抽出します。",
+  "Keywords": "PDF to text, extract text from PDF, PDF text extractor, convert PDF to text, PDF reader online, PDF content extractor",
   "DropZoneTitle": "PDFをアップロード",
   "ExtractButton": "テキストを抽出",
   "Seo_Introduction": "PDF テキスト変換は、ブラウザで直接 PDF ファイルからテキスト内容を抽出できる、プライバシーを重視したツールです。",

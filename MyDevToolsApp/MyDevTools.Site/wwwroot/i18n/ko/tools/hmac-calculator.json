@@ -1,6 +1,7 @@
 {
   "Title": "HMAC 계산기",
   "Description": "사용자 정의 키와 메시지를 사용하여 SHA-256 및 SHA-512로 HMAC 해시 생성 — 모두 브라우저에서",
+  "Keywords": "HMAC calculator, HMAC SHA-256, HMAC SHA-512, message authentication code, HMAC online, keyed hash, API signature",
   "KeyLabel": "시크릿 키",
   "KeyPlaceholder": "시크릿 키 입력...",
   "MessageLabel": "메시지",

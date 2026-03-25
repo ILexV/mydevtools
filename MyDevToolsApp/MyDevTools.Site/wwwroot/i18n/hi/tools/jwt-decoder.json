@@ -1,6 +1,7 @@
 {
   "Title": "JWT डिकोडर",
   "Description": "JSON Web Tokens (JWT) को सीधे अपने ब्राउज़र में डिकोड और सत्यापित करें।",
+  "Keywords": "JWT decoder, JSON Web Token, JWT verify, JWT parse, decode JWT online, JWT inspector, JWT header payload",
   "EncodedLabel": "जनरेट किया गया JWT",
   "EncodedPlaceholder": "JWT यहाँ पेस्ट करें...",
   "DecodedHeaderLabel": "हेडर",

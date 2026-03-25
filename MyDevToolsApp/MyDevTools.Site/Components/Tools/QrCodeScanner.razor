@@ -1,4 +1,4 @@
-@page "/{lang}/qr-scanner"
+﻿@page "/{lang}/qr-scanner"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")" 
               Description="@T("Description")" 
               CurrentUrl="@Navigation.Uri"
-              ToolPath="qr-scanner" />
+              ToolPath="qr-scanner"
+              Keywords="@T("Keywords")"
+              Category="Generators"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="qr-scanner-tool-root" class="max-w-4xl mx-auto space-y-6">
         

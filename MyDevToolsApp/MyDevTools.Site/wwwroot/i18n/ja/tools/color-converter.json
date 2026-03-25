@@ -1,6 +1,7 @@
 {
   "Title": "カラーコンバーター",
   "Description": "HEX、RGB、HSL、CMYK 形式間で色を変換し、カラーピッカーとシェードパレットを備えています — すべてブラウザ内で",
+  "Keywords": "color converter, HEX to RGB, RGB to HSL, CMYK color, color picker online, CSS color converter, color code converter",
   "ColorPicker": "カラーピッカー",
   "InputFormat": "入力フォーマット",
   "ManualInput": "手動入力",

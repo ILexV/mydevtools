@@ -1,6 +1,7 @@
 {
   "Title": "색상 변환기",
   "Description": "색상 선택기와 색조 팔레트를 사용하여 HEX, RGB, HSL, CMYK 형식 간 색상 변환 — 모두 브라우저에서",
+  "Keywords": "color converter, HEX to RGB, RGB to HSL, CMYK color, color picker online, CSS color converter, color code converter",
   "ColorPicker": "색상 선택기",
   "InputFormat": "입력 형식",
   "ManualInput": "수동 입력",

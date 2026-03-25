@@ -1,6 +1,7 @@
 {
   "Title": "Base58 エンコーダー / デコーダー",
   "Description": "テキストとファイルの Base58 エンコード・デコード — すべてブラウザ内で実行。",
+  "Keywords": "Base58 encoder, Base58 decoder, Base58 encoding, Bitcoin Base58, Base58Check, Base58 online converter",
   "OtherFormats": "その他のフォーマット:",
   "LinkHex": "16進数",
   "LinkBase32": "Base32",

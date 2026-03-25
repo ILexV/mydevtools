@@ -1,6 +1,7 @@
 {
   "Title": "Cron अभिव्यक्ति पार्सर",
   "Description": "Cron अभिव्यक्तियों को पार्स, सत्यापित और समझें मानव-पठनीय स्पष्टीकरण और अगले निष्पादन समय के साथ",
+  "Keywords": "cron expression parser, cron validator, cron syntax, parse cron online, cron schedule, next cron run, cron job parser",
   "LinkToGenerator": "क्या आपको Cron अभिव्यक्ति बनाने की आवश्यकता है?",
   "GeneratorTitle": "Cron जनरेटर",
   "TabParser": "पार्सर",

@@ -1,6 +1,7 @@
 {
   "Title": "二维码扫描器",
   "Description": "直接在浏览器中从图像扫描二维码，无需上传到任何服务器。",
+  "Keywords": "QR code scanner, QR code reader, scan QR code online, decode QR code, QR code from image, QR code decoder",
   "DropZone": "拖放带有二维码的图像到此处",
   "ResultLabel": "扫描到的内容",
   "ErrorReading": "从图像读取文本时出错。",

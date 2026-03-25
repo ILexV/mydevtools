@@ -1,4 +1,4 @@
-@page "/{lang}/uuid-generator"
+﻿@page "/{lang}/uuid-generator"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -8,7 +8,10 @@
         Title="@T("Title")" 
         Description="@T("Description")" 
         CurrentUrl="@Navigation.Uri" 
-        ToolPath="uuid-generator" />
+        ToolPath="uuid-generator"
+              Keywords="@T("Keywords")"
+              Category="Generators"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="uuid-generator-root" data-copied="@T("Copied")">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

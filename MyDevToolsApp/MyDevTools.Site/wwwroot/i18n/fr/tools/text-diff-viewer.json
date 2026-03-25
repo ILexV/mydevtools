@@ -1,6 +1,7 @@
 {
   "Title": "Comparateur de Texte",
   "Description": "Comparez deux fichiers texte ou extraits de code côte à côte avec un visualiseur de diff, similaire à Git diff. Mettez en évidence les modifications, ajouts et suppressions dans un format lisible.",
+  "Keywords": "text diff, diff viewer, compare text, file diff, side by side diff, code diff, text comparison tool, diff checker",
   "OriginalLabel": "Texte original",
   "OriginalPlaceholder": "Collez ou tapez le texte original ici, ou téléchargez un fichier ci-dessous...",
   "ModifiedLabel": "Texte modifié",
@@ -10,8 +11,8 @@
   "LineByLine": "Ligne par ligne",
   "SideBySide": "Côte à côte",
   "ErrorMessage": "Veuillez saisir du texte dans les deux champs pour comparer.",
-  "ChooseOriginalFile": "\uD83D\uDCC1 Choisir le fichier original",
-  "ChooseModifiedFile": "\uD83D\uDCC1 Choisir le fichier modifié",
+  "ChooseOriginalFile": "📁 Choisir le fichier original",
+  "ChooseModifiedFile": "📁 Choisir le fichier modifié",
   "Seo_Introduction": "L'outil Text Diff Viewer est un outil en ligne axé sur la confidentialité conçu pour les développeurs. Tout le traitement se fait localement dans votre navigateur en utilisant WebAssembly, garantissant que vos données ne quittent jamais votre appareil.",
   "Seo_DetailedDescription": "Cet outil fournit des fonctionnalités complètes pour les opérations text diff viewer. Construit avec des technologies web modernes et alimenté par WebAssembly compilé depuis Rust, il offre des performances natives directement dans votre navigateur.\n\nL'interface est conçue pour l'efficacité et la facilité d'utilisation, avec prise en charge de la saisie de texte et du traitement de fichiers. Toutes les opérations sont effectuées côté client, garantissant une confidentialité et une sécurité complètes pour vos données sensibles.",
   "Seo_Examples": "**Exemple 1** : Utilisez Text Diff Viewer pour des conversions rapides dans votre flux de travail de développement.\n\n**Exemple 2** : Traitez les fichiers directement sans les télécharger sur un serveur, en maintenant une confidentialité complète.\n\n**Exemple 3** : Intégrez l'outil dans vos tâches de développement quotidiennes pour améliorer la productivité.",

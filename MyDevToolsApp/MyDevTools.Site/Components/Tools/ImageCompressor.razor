@@ -1,4 +1,4 @@
-@page "/{lang}/image-compressor"
+﻿@page "/{lang}/image-compressor"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,11 @@
 <ToolLayout Title="@T("Title")" Description="@T("Description")">
     <MetaTags Title="@T("Title")" 
               Description="@T("Description")" 
-              CurrentUrl="@Navigation.Uri" />
+              CurrentUrl="@Navigation.Uri"
+              ToolPath="image-compressor"
+              Keywords="@T("Keywords")"
+              Category="Images"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="image-compressor-root" class="max-w-5xl mx-auto space-y-8"
          data-compressing="@T("Compressing")"

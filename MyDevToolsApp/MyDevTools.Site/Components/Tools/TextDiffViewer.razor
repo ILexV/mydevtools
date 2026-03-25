@@ -1,4 +1,4 @@
-@page "/{lang}/text-diff-viewer"
+﻿@page "/{lang}/text-diff-viewer"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")" 
               Description="@T("Description")" 
               CurrentUrl="@Navigation.Uri"
-              ToolPath="text-diff-viewer" />
+              ToolPath="text-diff-viewer"
+              Keywords="@T("Keywords")"
+              Category="Text"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="text-diff-viewer-root"
          data-error-msg="@T("ErrorMessage")"

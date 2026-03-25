@@ -14,6 +14,7 @@
   "Title": "Text Case Converter",
   "TitleCase": "Title Case",
   "UpperCase": "UPPER CASE",
+  "Keywords": "text case converter, camelCase, snake_case, UPPER CASE, lower case, Title Case, kebab-case, sentence case, text transform",
   "Seo_Introduction": "The Text Case Converter is a privacy-first online tool designed for developers. All processing happens locally in your browser using WebAssembly, ensuring your data never leaves your device.",
   "Seo_DetailedDescription": "This tool provides comprehensive functionality for text case converter operations. Built with modern web technologies and powered by Rust-compiled WebAssembly, it delivers native-like performance directly in your browser.\n\nThe interface is designed for efficiency and ease of use, with support for both text input and file processing. All operations are performed client-side, guaranteeing complete privacy and security for your sensitive data.",
   "Seo_Examples": "**Example 1**: Use the Text Case Converter for quick conversions and transformations in your development workflow.\n\n**Example 2**: Process files directly without uploading them to any server, maintaining complete privacy.\n\n**Example 3**: Integrate the tool into your daily development tasks for improved productivity.",

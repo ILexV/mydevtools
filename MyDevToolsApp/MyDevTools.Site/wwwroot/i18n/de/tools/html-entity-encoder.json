@@ -1,6 +1,7 @@
 {
   "Title": "HTML Entity Encoder / Decoder",
   "Description": "Kodieren Sie Sonderzeichen in HTML-Entities und zurück. Unterstützt benannte, dezimale und hexadezimale Formate.",
+  "Keywords": "HTML entity encoder, HTML entity decoder, HTML escape, HTML unescape, HTML special characters, encode HTML online, HTML entities",
   "InputTitle": "Eingabe & Einstellungen",
   "InputLabel": "Text zum Kodieren/Dekodieren",
   "InputPlaceholder": "Geben Sie hier Ihren Text ein oder fügen Sie ihn ein...",

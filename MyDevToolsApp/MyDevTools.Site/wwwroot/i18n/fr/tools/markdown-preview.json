@@ -1,6 +1,7 @@
 {
   "Title": "Aperçu Markdown",
   "Description": "Éditeur Markdown en direct avec aperçu HTML en temps réel, vue partagée et coloration syntaxique — tout dans votre navigateur",
+  "Keywords": "markdown preview, markdown editor, markdown to HTML, live markdown, markdown renderer, online markdown editor",
   "EditorLabel": "Éditeur Markdown",
   "EditorPlaceholder": "Tapez votre markdown ici...",
   "PreviewLabel": "Aperçu",

@@ -1,6 +1,7 @@
 {
   "Title": "YAML 格式化/验证器",
   "Description": "格式化和验证 YAML，带有错误高亮",
+  "Keywords": "YAML beautifier, YAML formatter, YAML validator, YAML linter, format YAML online, YAML syntax checker, YAML editor",
   "InputLabel": "YAML 输入",
   "InputPlaceholder": "在此处输入 YAML 内容...",
   "Format": "格式化",

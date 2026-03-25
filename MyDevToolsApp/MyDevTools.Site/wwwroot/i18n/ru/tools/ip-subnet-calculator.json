@@ -1,6 +1,7 @@
 {
   "Title": "IP Калькулятор Подсетей",
   "Description": "Калькулятор IPv4 подсетей: расчет адреса сети, широковещательного адреса, маски и диапазона хостов. Поддержка CIDR.",
+  "Keywords": "IP subnet calculator, CIDR calculator, network calculator, subnet mask, IPv4 subnetting, network address, broadcast address",
   "InputLabel": "IP адрес / CIDR",
   "Calculate": "Рассчитать",
   "Address": "Адрес",

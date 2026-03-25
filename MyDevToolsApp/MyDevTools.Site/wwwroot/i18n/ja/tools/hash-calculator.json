@@ -1,6 +1,7 @@
 {
   "Title": "ハッシュ計算機",
   "Description": "選択したアルゴリズム（MD5, SHA-1, SHA-256 など）を使用して、テキストやファイルのハッシュを計算 — 計算はローカルで行われます",
+  "Keywords": "hash calculator, MD5, SHA-256, SHA-512, SHA-3, BLAKE2, HMAC, checksum, file hash, cryptographic hash, online hash tool",
   "InputLabel": "入力テキスト",
   "InputPlaceholder": "ハッシュ化するテキストを入力...",
   "FileLabel": "ファイル（任意）",

@@ -1,6 +1,7 @@
 {
   "Title": "XML フォーマッター",
   "Description": "カスタマイズ可能なインデントで XML を整形 — すべてブラウザ内で実行",
+  "Keywords": "XML beautifier, XML formatter, XML validator, pretty print XML, XML minifier, format XML online, XML editor",
   "InputLabel": "入力 XML",
   "InputPlaceholder": "XML をここに貼り付け...",
   "FormatButton": "フォーマット",

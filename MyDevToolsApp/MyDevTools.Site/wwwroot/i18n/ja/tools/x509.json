@@ -1,6 +1,7 @@
 {
   "Title": "X.509 証明書",
   "Description": "自己署名証明書、CSR の作成、PEM/DER の解析を行います。",
+  "Keywords": "X.509 certificate, self-signed certificate, CSR generator, PEM parser, DER parser, SSL certificate, TLS certificate, certificate tool",
   "SelfSignedSectionTitle": "自己署名",
   "SubjectLabel": "サブジェクト (CN)",
   "ValidityDaysLabel": "有効期間 (日)",

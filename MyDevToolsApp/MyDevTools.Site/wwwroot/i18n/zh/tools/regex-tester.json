@@ -1,6 +1,7 @@
 {
   "Title": "正则表达式测试器",
   "Description": "使用 Rust 正则表达式引擎 (WASM) 测试和调试正则表达式 — 全部在您的浏览器中",
+  "Keywords": "regex tester, regular expression tester, regex online, regex debugger, regex validator, test regex, regex match, regex replace",
   "PatternLabel": "模式",
   "PatternPlaceholder": "输入正则表达式模式...",
   "TextLabel": "测试字符串",

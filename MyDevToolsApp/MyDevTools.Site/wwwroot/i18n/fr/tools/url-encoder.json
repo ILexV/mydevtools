@@ -1,6 +1,7 @@
 {
   "Title": "Encodeur / Décodeur URL",
   "Description": "Encoder et décoder du texte URL (encodage en pourcentage) avec des modes et des jeux de caractères sélectionnables — les données ne quittent jamais votre appareil",
+  "Keywords": "URL encoder, URL decoder, percent encoding, URL encode online, URL decode online, URI encoder, query string encoder",
   "InputLabel": "Entrée",
   "InputPlaceholder": "Entrez du texte ou une chaîne encodée URL...",
   "OutputLabel": "Sortie",

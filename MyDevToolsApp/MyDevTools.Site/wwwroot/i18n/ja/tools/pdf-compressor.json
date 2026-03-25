@@ -1,6 +1,7 @@
 {
   "Title": "PDF 圧縮",
   "Description": "アップロード不要で、ブラウザ内で直接 PDF ファイルを圧縮してサイズを削減します。",
+  "Keywords": "PDF compressor, compress PDF, reduce PDF size, PDF optimizer, shrink PDF, PDF file size reducer, online PDF compression",
   "DropZoneTitle": "ここに PDF ファイルをドラッグ＆ドロップ",
   "CompressButton": "PDF を圧縮",
   "DownloadButton": "ダウンロード",

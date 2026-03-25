@@ -1,6 +1,7 @@
 {
   "Title": "JSON フォーマッター",
   "Description": "JSON 文字列を整形し、カスタマイズ可能なインデントで見やすくします — 安全でプライベート。",
+  "Keywords": "JSON beautifier, JSON formatter, JSON validator, JSON minifier, pretty print JSON, format JSON online, JSON editor, JSON parser",
   "InputLabel": "入力 JSON",
   "InputPlaceholder": "JSON をここに貼り付け...",
   "FormatButton": "整形",

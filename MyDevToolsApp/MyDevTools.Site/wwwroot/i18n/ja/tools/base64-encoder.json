@@ -1,6 +1,7 @@
 {
   "Title": "Base64 エンコーダー / デコーダー",
   "Description": "テキストとファイルの Base64 エンコード・デコード — すべてブラウザ内で実行。",
+  "Keywords": "Base64 encoder, Base64 decoder, Base64 encode online, Base64 decode online, Base64 file encoder, Base64 string converter",
   "OtherFormats": "その他のフォーマット:",
   "LinkHex": "16進数",
   "LinkBase32": "Base32",

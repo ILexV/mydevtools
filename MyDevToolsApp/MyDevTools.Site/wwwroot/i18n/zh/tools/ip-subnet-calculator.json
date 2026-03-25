@@ -1,6 +1,7 @@
 {
   "Title": "IP子网计算器",
   "Description": "计算IPv4网络的IP子网、网络地址、广播地址和主机范围。支持CIDR和IP/掩码格式。",
+  "Keywords": "IP subnet calculator, CIDR calculator, network calculator, subnet mask, IPv4 subnetting, network address, broadcast address",
   "InputLabel": "IP地址 / CIDR",
   "Calculate": "计算",
   "Address": "地址",

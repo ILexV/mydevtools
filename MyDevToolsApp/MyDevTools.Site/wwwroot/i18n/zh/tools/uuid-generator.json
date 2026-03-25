@@ -1,6 +1,7 @@
 {
   "Title": "UUID/GUID 生成器",
   "Description": "直接在浏览器中生成 UUID v4（随机）和 UUID v7（基于时间）标识符。所有生成都在本地进行。",
+  "Keywords": "UUID generator, GUID generator, UUID v4, UUID v7, random UUID, UUID online, generate GUID, unique identifier",
   "VersionLabel": "UUID 版本",
   "Version4": "版本 4 (随机)",
   "Version7": "版本 7 (基于时间)",

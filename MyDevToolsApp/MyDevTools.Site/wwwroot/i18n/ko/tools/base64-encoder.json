@@ -1,6 +1,7 @@
 {
   "Title": "Base64 인코더 / 디코더",
   "Description": "브라우저에서 직접 텍스트 및 파일에 대해 Base64 인코딩 및 디코딩 수행",
+  "Keywords": "Base64 encoder, Base64 decoder, Base64 encode online, Base64 decode online, Base64 file encoder, Base64 string converter",
   "OtherFormats": "다른 형식:",
   "LinkHex": "Hex",
   "LinkBase32": "Base32",

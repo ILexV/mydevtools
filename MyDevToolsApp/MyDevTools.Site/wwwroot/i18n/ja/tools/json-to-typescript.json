@@ -1,6 +1,7 @@
 {
   "Title": "JSON → TypeScript コンバーター",
   "Description": "JSONオブジェクトをTypeScriptのインターフェースや型エイリアスに即座に変換 — プライベート、すべてブラウザ上で動作",
+  "Keywords": "JSON to TypeScript, JSON to interface, TypeScript generator, JSON type generator, convert JSON to TypeScript, TypeScript interface from JSON",
   "InputLabel": "JSON 入力",
   "InputPlaceholder": "JSONをここに貼り付け...",
   "OutputLabel": "TypeScript 出力",

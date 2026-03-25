@@ -1,6 +1,7 @@
 {
   "Title": "HTML エンティティ エンコーダー / デコーダー",
   "Description": "特殊文字を HTML エンティティにエンコードし、デコードします。名前付き、10進数、16進数の形式をサポート。",
+  "Keywords": "HTML entity encoder, HTML entity decoder, HTML escape, HTML unescape, HTML special characters, encode HTML online, HTML entities",
   "InputTitle": "入力と設定",
   "InputLabel": "エンコード/デコードするテキスト",
   "InputPlaceholder": "ここにテキストを入力または貼り付け...",

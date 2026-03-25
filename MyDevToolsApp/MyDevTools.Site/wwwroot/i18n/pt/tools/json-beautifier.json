@@ -1,6 +1,7 @@
 {
   "Title": "Formatador JSON",
   "Description": "Formate e embeleze strings JSON com indentação personalizável — seguro e privado.",
+  "Keywords": "JSON beautifier, JSON formatter, JSON validator, JSON minifier, pretty print JSON, format JSON online, JSON editor, JSON parser",
   "InputLabel": "JSON de entrada",
   "InputPlaceholder": "Cole seu JSON aqui...",
   "FormatButton": "Formatar",

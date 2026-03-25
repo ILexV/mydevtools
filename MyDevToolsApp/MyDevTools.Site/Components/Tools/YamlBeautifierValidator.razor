@@ -1,4 +1,4 @@
-@page "/{lang}/yaml-beautifier-validator"
+﻿@page "/{lang}/yaml-beautifier-validator"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")"
               Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
-              ToolPath="yaml-beautifier-validator" />
+              ToolPath="yaml-beautifier-validator"
+              Keywords="@T("Keywords")"
+              Category="Structured Data"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="yaml-beautifier-validator-root"
          data-loading="@TCommon("Common_Loading")"

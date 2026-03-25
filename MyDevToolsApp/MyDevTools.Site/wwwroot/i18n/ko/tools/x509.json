@@ -1,6 +1,7 @@
 {
   "Title": "X.509 인증서",
   "Description": "자체 서명 인증서 생성, CSR 생성 및 PEM/DER 파싱",
+  "Keywords": "X.509 certificate, self-signed certificate, CSR generator, PEM parser, DER parser, SSL certificate, TLS certificate, certificate tool",
   "SelfSignedSectionTitle": "자체 서명",
   "SubjectLabel": "주체 (CN)",
   "ValidityDaysLabel": "유효 기간 (일)",

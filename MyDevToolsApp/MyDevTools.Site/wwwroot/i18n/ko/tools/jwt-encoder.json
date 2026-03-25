@@ -1,6 +1,7 @@
 {
   "Title": "JWT 인코더",
   "Description": "브라우저에서 직접 JSON 웹 토큰(JWT)을 생성하고 서명하세요. 사용자 지정 비밀 키를 사용한 HS256, HS384, HS512 알고리즘을 지원합니다.",
+  "Keywords": "JWT encoder, JWT generator, JSON Web Token creator, sign JWT, HS256, HS384, HS512, JWT online tool",
   "LinkToDecoder": "토큰을 디코딩해야 하나요?",
   "DecoderTitle": "JWT 디코더로 이동",
   "HeaderLabel": "헤더",

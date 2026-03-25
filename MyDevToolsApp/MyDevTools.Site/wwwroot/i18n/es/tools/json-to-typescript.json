@@ -1,6 +1,7 @@
 {
   "Title": "Convertidor JSON a TypeScript",
   "Description": "Convierte objetos JSON en interfaces y alias de tipo TypeScript al instante — privado, funciona completamente en tu navegador",
+  "Keywords": "JSON to TypeScript, JSON to interface, TypeScript generator, JSON type generator, convert JSON to TypeScript, TypeScript interface from JSON",
   "InputLabel": "Entrada JSON",
   "InputPlaceholder": "Pega tu JSON aquí...",
   "OutputLabel": "Salida TypeScript",

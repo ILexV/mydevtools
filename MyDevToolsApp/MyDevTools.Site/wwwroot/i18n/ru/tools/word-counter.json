@@ -1,6 +1,7 @@
 {
   "Title": "Счетчик слов и символов",
   "Description": "Подсчитывайте слова, символы, строки, абзацы и предложения. Получайте оценку времени чтения и произнесения текста.",
+  "Keywords": "word counter, character counter, text statistics, word count online, reading time calculator, character count, line counter",
   "InputPlaceholder": "Введите или вставьте текст здесь для подсчета слов, символов и других параметров...",
   "ClearButton": "Очистить",
   "CopyButton": "Копировать",

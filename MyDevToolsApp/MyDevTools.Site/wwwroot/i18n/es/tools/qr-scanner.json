@@ -1,6 +1,7 @@
 {
   "Title": "Escáner de Códigos QR",
   "Description": "Escanea códigos QR desde imágenes directamente en tu navegador sin subirlos a ningún servidor.",
+  "Keywords": "QR code scanner, QR code reader, scan QR code online, decode QR code, QR code from image, QR code decoder",
   "DropZone": "Arrastra y suelta una imagen con un código QR aquí",
   "ResultLabel": "Contenido Escaneado",
   "ErrorReading": "Error al leer el texto de la imagen.",

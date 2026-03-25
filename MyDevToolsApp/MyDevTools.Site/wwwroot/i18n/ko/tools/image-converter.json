@@ -1,6 +1,7 @@
 {
   "TargetFormatLabel": "대상 형식",
   "Title": "이미지 변환기",
+  "Keywords": "image converter, convert image online, PNG to JPEG, WEBP converter, image format converter, BMP to PNG, ICO converter, TIFF converter",
   "Description": "브라우저에서 안전하게 이미지를 형식(PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA) 간 변환",
   "SelectFormat": "출력 형식 선택",
   "Convert": "변환",

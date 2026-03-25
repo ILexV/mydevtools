@@ -1,6 +1,7 @@
 {
   "Title": "Calculateur HMAC",
   "Description": "Générez des hachages HMAC en utilisant SHA-256 et SHA-512 avec des clés et messages personnalisés — tout dans votre navigateur",
+  "Keywords": "HMAC calculator, HMAC SHA-256, HMAC SHA-512, message authentication code, HMAC online, keyed hash, API signature",
   "KeyLabel": "Clé secrète",
   "KeyPlaceholder": "Entrez votre clé secrète...",
   "MessageLabel": "Message",

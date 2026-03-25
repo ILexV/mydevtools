@@ -1,6 +1,7 @@
 {
   "Title": "Bildgrößenänderung",
   "Description": "Bilder mit benutzerdefinierten Abmessungen und gesperrtem Seitenverhältnis skalieren.",
+  "Keywords": "image resizer, resize image online, change image dimensions, scale image, aspect ratio, image resize tool, photo resizer",
   "OriginalInfo": "Originalbild",
   "TargetFormatLabel": "Format",
   "Width": "Breite (px)",

@@ -1,6 +1,7 @@
 {
   "Title": "Text Diff Viewer",
   "Description": "Compare two text files or code snippets side-by-side with a visual diff viewer, similar to Git diff. Highlight changes, additions, and deletions in a readable format.",
+  "Keywords": "text diff, diff viewer, compare text, file diff, side by side diff, code diff, text comparison tool, diff checker",
   "OriginalLabel": "Original Text",
   "OriginalPlaceholder": "Paste or type original text here, or upload a file below...",
   "ModifiedLabel": "Modified Text",

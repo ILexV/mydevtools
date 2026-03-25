@@ -1,6 +1,7 @@
 {
   "Title": "Criptografar/Descriptografar Arquivo AEAD",
   "Description": "Criptografe e descriptografe arquivos localmente com AEAD.",
+  "Keywords": "AEAD encryption, file encryption, AES-GCM, ChaCha20-Poly1305, encrypt file online, decrypt file, authenticated encryption, secure file",
   "EncryptSectionTitle": "Criptografar",
   "DecryptSectionTitle": "Descriptografar",
   "FileLabel": "Arquivo",

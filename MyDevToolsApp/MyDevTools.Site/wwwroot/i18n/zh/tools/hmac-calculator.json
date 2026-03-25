@@ -1,6 +1,7 @@
 {
   "Title": "HMAC 计算器",
   "Description": "使用自定义密钥和消息生成 SHA-256 和 SHA-512 的 HMAC 哈希值 — 全部在您的浏览器中",
+  "Keywords": "HMAC calculator, HMAC SHA-256, HMAC SHA-512, message authentication code, HMAC online, keyed hash, API signature",
   "KeyLabel": "密钥",
   "KeyPlaceholder": "输入您的密钥...",
   "MessageLabel": "消息",

@@ -1,6 +1,7 @@
 {
   "Title": "Base64 кодер / декодер",
   "Description": "Кодирование и декодирование Base64 для текста и файлов — полностью в вашем браузере.",
+  "Keywords": "Base64 encoder, Base64 decoder, Base64 encode online, Base64 decode online, Base64 file encoder, Base64 string converter",
   "OtherFormats": "Другие форматы:",
   "LinkHex": "Hex",
   "LinkBase32": "Base32",

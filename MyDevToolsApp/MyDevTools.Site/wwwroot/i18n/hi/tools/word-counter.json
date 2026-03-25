@@ -1,6 +1,7 @@
 {
   "Title": "शब्द/अक्षर काउंटर",
   "Description": "शब्द, अक्षर, पंक्तियाँ, पैराग्राफ और वाक्यों की गणना करें। अपने टेक्स्ट के लिए पढ़ने और बोलने का समय अनुमान प्राप्त करें।",
+  "Keywords": "word counter, character counter, text statistics, word count online, reading time calculator, character count, line counter",
   "InputPlaceholder": "शब्द, अक्षर आदि की गणना के लिए यहाँ टेक्स्ट टाइप या पेस्ट करें...",
   "ClearButton": "साफ़ करें",
   "CopyButton": "कॉपी",

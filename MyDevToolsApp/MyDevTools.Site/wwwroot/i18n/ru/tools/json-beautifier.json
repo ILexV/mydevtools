@@ -1,6 +1,7 @@
 {
   "Title": "Форматирование JSON",
   "Description": "Форматирование и украшение JSON-строк с настраиваемыми отступами и опциями — безопасно и приватно",
+  "Keywords": "JSON beautifier, JSON formatter, JSON validator, JSON minifier, pretty print JSON, format JSON online, JSON editor, JSON parser",
   "InputLabel": "Входной JSON",
   "InputPlaceholder": "Вставьте ваш JSON здесь...",
   "FormatButton": "Форматировать",

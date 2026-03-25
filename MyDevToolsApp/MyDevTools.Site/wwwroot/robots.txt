@@ -21,7 +21,7 @@ User-agent: Claude-Web
 Allow: /
 Crawl-delay: 0
 
-User-agent: Gemini
+User-agent: Google-Extended
 Allow: /
 Crawl-delay: 0
 

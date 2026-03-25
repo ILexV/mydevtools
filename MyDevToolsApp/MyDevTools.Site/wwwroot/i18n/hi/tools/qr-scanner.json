@@ -1,6 +1,7 @@
 {
   "Title": "QR कोड स्कैनर",
   "Description": "किसी भी सर्वर पर अपलोड किए बिना सीधे अपने ब्राउज़र में इमेज से QR कोड स्कैन करें।",
+  "Keywords": "QR code scanner, QR code reader, scan QR code online, decode QR code, QR code from image, QR code decoder",
   "DropZone": "QR कोड वाली इमेज को यहाँ ड्रैग एंड ड्रॉप करें",
   "ResultLabel": "स्कैन की गई सामग्री",
   "ErrorReading": "इमेज से टेक्स्ट पढ़ने में त्रुटि।",

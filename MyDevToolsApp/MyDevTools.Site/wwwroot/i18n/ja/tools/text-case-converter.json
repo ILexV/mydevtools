@@ -1,6 +1,7 @@
 {
   "AlternatingCase": "交互ケース",
   "CamelCase": "キャメルケース",
+  "Keywords": "text case converter, camelCase, snake_case, UPPER CASE, lower case, Title Case, kebab-case, sentence case, text transform",
   "ClearButton": "クリア",
   "Copied": "コピーしました！",
   "CopyButton": "コピー",

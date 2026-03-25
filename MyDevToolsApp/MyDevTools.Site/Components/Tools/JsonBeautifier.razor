@@ -1,4 +1,4 @@
-@page "/{lang}/json-beautifier"
+﻿@page "/{lang}/json-beautifier"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")" 
               Description="@T("Description")" 
               CurrentUrl="@Navigation.Uri"
-              ToolPath="json-beautifier" />
+              ToolPath="json-beautifier"
+              Keywords="@T("Keywords")"
+              Category="Structured Data"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="json-beautifier-root"
          data-error-invalid-json="@T("ErrorInvalidJson")"

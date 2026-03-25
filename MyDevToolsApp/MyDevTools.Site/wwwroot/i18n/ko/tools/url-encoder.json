@@ -1,6 +1,7 @@
 {
   "Title": "URL 인코더 / 디코더",
   "Description": "선택 가능한 모드와 문자셋으로 URL 인코딩(퍼센트 인코딩) 텍스트를 인코딩 및 디코딩합니다 — 데이터는 장치를 떠나지 않습니다.",
+  "Keywords": "URL encoder, URL decoder, percent encoding, URL encode online, URL decode online, URI encoder, query string encoder",
   "InputLabel": "입력",
   "InputPlaceholder": "텍스트 또는 URL 인코딩 문자열 입력...",
   "OutputLabel": "출력",

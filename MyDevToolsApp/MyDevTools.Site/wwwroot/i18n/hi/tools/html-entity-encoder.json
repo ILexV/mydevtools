@@ -1,6 +1,7 @@
 {
   "Title": "HTML Entity Encoder / Decoder",
   "Description": "विशेष वर्णों को HTML एंटिटी में एन्कोड करें और डीकोड करें। नामित, दशमलव और हेक्साडेसिमल प्रारूपों का समर्थन करता है।",
+  "Keywords": "HTML entity encoder, HTML entity decoder, HTML escape, HTML unescape, HTML special characters, encode HTML online, HTML entities",
   "InputTitle": "इनपुट और सेटिंग्स",
   "InputLabel": "एन्कोड/डीकोड करने के लिए टेक्स्ट",
   "InputPlaceholder": "यहां अपना टेक्स्ट टाइप या पेस्ट करें...",

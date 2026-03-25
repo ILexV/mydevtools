@@ -1,6 +1,7 @@
 {
   "Title": "Cron-Ausdruck Generator",
   "Description": "Erstellen Sie Cron-Ausdrücke visuell aus einzelnen Zeitfeldern mit menschenlesbaren Erklärungen und nächsten Ausführungszeiten",
+  "Keywords": "cron expression generator, cron builder, cron schedule builder, generate cron, cron syntax helper, cron job scheduler",
   "LinkToParser": "Müssen Sie einen Cron-Ausdruck parsen? Probieren Sie den",
   "ParserTitle": "Cron-Parser",
   "GeneratorTitle": "Ausdruck erstellen",

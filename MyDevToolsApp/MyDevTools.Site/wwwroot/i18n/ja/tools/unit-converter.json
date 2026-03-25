@@ -1,6 +1,7 @@
 {
   "Title": "単位変換ツール",
   "Description": "長さ、重さ、温度、体積などの単位を変換 — すべての計算はブラウザ内で実行されます",
+  "Keywords": "unit converter, length converter, weight converter, temperature converter, metric imperial, online unit conversion, measurement converter",
   "CategoryLabel": "カテゴリー",
   "Category_Length": "長さ",
   "Category_Weight": "重さ",

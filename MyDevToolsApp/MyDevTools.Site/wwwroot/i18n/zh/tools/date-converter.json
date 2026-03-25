@@ -1,6 +1,7 @@
 {
   "Title": "日期转换器",
   "Description": "在 Unix 时间戳和可读日期之间进行转换。",
+  "Keywords": "date converter, Unix timestamp, epoch converter, ISO 8601, RFC 2822, timestamp to date, date to timestamp, online date tool",
   "InputLabel": "日期 / 时间戳",
   "OutputLabel": "转换后的日期",
   "ActionConvert": "转换",

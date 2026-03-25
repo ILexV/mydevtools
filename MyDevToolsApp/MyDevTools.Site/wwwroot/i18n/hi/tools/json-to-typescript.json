@@ -1,6 +1,7 @@
 {
   "Title": "JSON से TypeScript कनवर्टर",
   "Description": "JSON ऑब्जेक्ट को TypeScript इंटरफेस और टाइप एलियास में तुरंत बदलें — निजी, पूरी तरह ब्राउज़र में चलता है",
+  "Keywords": "JSON to TypeScript, JSON to interface, TypeScript generator, JSON type generator, convert JSON to TypeScript, TypeScript interface from JSON",
   "InputLabel": "JSON इनपुट",
   "InputPlaceholder": "यहाँ JSON पेस्ट करें...",
   "OutputLabel": "TypeScript आउटपुट",

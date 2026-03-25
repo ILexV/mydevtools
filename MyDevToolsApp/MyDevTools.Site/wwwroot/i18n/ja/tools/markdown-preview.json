@@ -1,6 +1,7 @@
 {
   "Title": "Markdown プレビュー",
   "Description": "ライブ Markdown エディターとリアルタイム HTML プレビュー、分割ビュー、シンタックスハイライト — すべてブラウザ内で",
+  "Keywords": "markdown preview, markdown editor, markdown to HTML, live markdown, markdown renderer, online markdown editor",
   "EditorLabel": "Markdown エディター",
   "EditorPlaceholder": "Markdown をここに入力...",
   "PreviewLabel": "プレビュー",

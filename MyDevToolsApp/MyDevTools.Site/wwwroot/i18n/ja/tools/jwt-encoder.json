@@ -1,6 +1,7 @@
 {
   "Title": "JWTエンコーダー",
   "Description": "ブラウザで直接JSON Web Token（JWT）を作成・署名します。HS256、HS384、HS512アルゴリズムに対応し、カスタム秘密鍵で署名できます。",
+  "Keywords": "JWT encoder, JWT generator, JSON Web Token creator, sign JWT, HS256, HS384, HS512, JWT online tool",
   "LinkToDecoder": "トークンをデコードしますか？",
   "DecoderTitle": "JWTデコーダーへ移動",
   "HeaderLabel": "ヘッダー",

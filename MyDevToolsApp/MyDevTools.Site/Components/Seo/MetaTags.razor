@@ -19,9 +19,17 @@
   {
     <meta property="og:url" content="@CurrentUrl.Replace("http://", "https://")" />
   }
+  @((MarkupString)$"<meta property=\"og:locale\" content=\"{GetOgLocale()}\" />")
+  @foreach (var culture in LocalizationService.SupportedCultures)
+  {
+    if (culture != GetCurrentCulture())
+    {
+      @((MarkupString)$"<meta property=\"og:locale:alternate\" content=\"{GetOgLocaleForCulture(culture)}\" />")
+    }
+  }
 
   @* --- Twitter Card --- *@
-  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:card" content="summary_large_image" />
   @((MarkupString)$"<meta name=\"twitter:title\" content=\"{WebUtility.HtmlEncode(Title)}\" />")
   @((MarkupString)$"<meta name=\"twitter:description\" content=\"{WebUtility.HtmlEncode(Description)}\" />")
   @((MarkupString)$"<meta name=\"twitter:image\" content=\"{GetImageUrl()}\" />")
@@ -37,7 +45,7 @@
   @* --- Hreflang Links --- *@
   @foreach (var culture in LocalizationService.SupportedCultures)
   {
-    <link rel="alternate" hreflang="@culture" href="@GetAlternateUrl(culture)" />
+    <link rel="alternate" hreflang="@GetHreflangCode(culture)" href="@GetAlternateUrl(culture)" />
   }
   <link rel="alternate" hreflang="x-default" href="@GetDefaultUrl()" />
 
@@ -48,7 +56,7 @@
 @code {
   [Parameter, EditorRequired] public string Title { get; set; } = default!;
   [Parameter, EditorRequired] public string Description { get; set; } = default!;
-  [Parameter] public string Keywords { get; set; } = "developer tools, privacy, hash, json, xml, base64";
+  [Parameter] public string Keywords { get; set; } = "developer tools, privacy, browser tools, web tools";
   [Parameter] public string? CurrentUrl { get; set; }
   [Parameter] public bool IsHomePage { get; set; } = false;
   [Parameter] public string? Lang { get; set; }
@@ -71,18 +79,63 @@
 
   /// <summary>
   /// Optional image URL for Open Graph and Twitter Card.
-  /// If null/empty, defaults to hero_logo.png.
-  /// Should be relative path (e.g. "images/tool-preview.png").
+  /// If null/empty, defaults to hero_logo.webp.
+  /// Should be an absolute URL (e.g. "https://mydevtools.app/images/tool-preview.webp").
   /// </summary>
   [Parameter] public string? ImageUrl { get; set; }
 
+  /// <summary>
+  /// Optional category name for BreadcrumbList JSON-LD (e.g. "Encoding").
+  /// If provided, breadcrumb will be: Home > Category > Tool.
+  /// </summary>
+  [Parameter] public string? Category { get; set; }
+
+  /// <summary>
+  /// Optional how-to steps text (Seo_HowToSteps). Used to generate HowTo JSON-LD.
+  /// Format: "### Step 1: Title\nBody\n\n### Step 2: Title\nBody"
+  /// </summary>
+  [Parameter] public string? HowToSteps { get; set; }
+
   private string GetCanonicalUrl()
   {
-    // Always return the current URL as canonical (self-referencing) for all pages including language versions of Home.
-    // This ensures /ru/ points to /ru/, /en/ to /en/, eliminating conflicts with hreflang tags.
-    // Normalize http:// → https:// to ensure canonical always uses the secure scheme.
     return (CurrentUrl ?? "").Replace("http://", "https://");
   }
+
+  private string GetCurrentCulture()
+  {
+    if (!string.IsNullOrEmpty(Lang)) return Lang;
+    var uri = new Uri(Navigation.Uri);
+    var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+    return segments.Length > 0 && LocalizationService.IsCultureSupported(segments[0])
+        ? segments[0]
+        : "en";
+  }
+
+  private string GetOgLocale()
+  {
+    return GetOgLocaleForCulture(GetCurrentCulture());
+  }
+
+  private static string GetOgLocaleForCulture(string culture) => culture switch
+  {
+    "en" => "en_US",
+    "ru" => "ru_RU",
+    "es" => "es_ES",
+    "de" => "de_DE",
+    "pt" => "pt_BR",
+    "zh" => "zh_CN",
+    "fr" => "fr_FR",
+    "ja" => "ja_JP",
+    "ko" => "ko_KR",
+    "hi" => "hi_IN",
+    _ => "en_US"
+  };
+
+  private static string GetHreflangCode(string culture) => culture switch
+  {
+    "zh" => "zh-Hans",
+    _ => culture
+  };
 
   private string GetAlternateUrl(string culture)
   {
@@ -90,29 +143,33 @@
     var path = string.IsNullOrEmpty(ToolPath) ? "" : $"{ToolPath}";
 
     // Ensure consistent trailing slash for language root pages
-    // If ToolPath is empty (Home Page), we want /en/ not /en
     var segment = string.IsNullOrEmpty(path) ? $"{culture}/" : $"{culture}/{path}";
 
-    return $"{baseUri.Scheme}://{baseUri.Authority}/{segment}";
+    return $"https://{baseUri.Authority}/{segment}";
   }
 
   private string GetDefaultUrl()
   {
     var baseUri = new Uri(Navigation.BaseUri);
 
-    // For home page: x-default points to root /
     if (IsHomePage || string.IsNullOrEmpty(ToolPath))
     {
       return $"https://{baseUri.Authority}/";
     }
 
-    // For tool pages: x-default points to /en/{tool}
     return $"https://{baseUri.Authority}/en/{ToolPath}";
   }
 
   private string GetImageUrl()
   {
-    return $"https://mydevtools.app/hero_logo.webp";
+    if (!string.IsNullOrEmpty(ImageUrl))
+      return ImageUrl;
+    return "https://mydevtools.app/hero_logo.webp";
+  }
+
+  private string GetToolUrl()
+  {
+    return (CurrentUrl ?? Navigation.Uri).Replace("http://", "https://");
   }
 
   private string GenerateJsonLd()
@@ -120,50 +177,70 @@
     if (IsHomePage)
     {
       var siteUrl = (CurrentUrl ?? Navigation.BaseUri).Replace("http://", "https://");
+      var baseUri = new Uri(Navigation.BaseUri);
+      var searchUrl = $"https://{baseUri.Authority}/{{lang}}/";
+
       var schemas = new List<object>
+      {
+        new Dictionary<string, object?>
+        {
+          ["@context"] = "https://schema.org",
+          ["@type"] = "WebSite",
+          ["name"] = SiteName ?? "MyDevTools",
+          ["url"] = siteUrl,
+          ["description"] = Description,
+          ["potentialAction"] = new Dictionary<string, object?>
+          {
+            ["@type"] = "SearchAction",
+            ["target"] = new Dictionary<string, object?>
             {
-                new Dictionary<string, object?>
-                {
-                    ["@context"] = "https://schema.org",
-                    ["@type"] = "WebSite",
-                    ["name"] = SiteName ?? "MyDevTools",
-                    ["url"] = siteUrl,
-                    ["description"] = Description
-                },
-                new Dictionary<string, object?>
-                {
-                    ["@context"] = "https://schema.org",
-                    ["@type"] = "Organization",
-                    ["name"] = SiteName ?? "MyDevTools",
-                    ["url"] = siteUrl,
-                    ["logo"] = GetImageUrl()
-                },
-                new Dictionary<string, object?>
-                {
-                    ["@context"] = "https://schema.org",
-                    ["@type"] = "BreadcrumbList",
-                    ["itemListElement"] = new[]
-                    {
-                        new Dictionary<string, object?>
-                        {
-                            ["@type"] = "ListItem",
-                            ["position"] = 1,
-                            ["name"] = SiteName ?? "MyDevTools",
-                            ["item"] = siteUrl
-                        }
-                    }
-                }
-            };
+              ["@type"] = "EntryPoint",
+              ["urlTemplate"] = $"https://{baseUri.Authority}/en/{{search_term_string}}"
+            },
+            ["query-input"] = "required name=search_term_string"
+          }
+        },
+        new Dictionary<string, object?>
+        {
+          ["@context"] = "https://schema.org",
+          ["@type"] = "Organization",
+          ["name"] = SiteName ?? "MyDevTools",
+          ["url"] = siteUrl,
+          ["logo"] = GetImageUrl()
+        },
+        new Dictionary<string, object?>
+        {
+          ["@context"] = "https://schema.org",
+          ["@type"] = "BreadcrumbList",
+          ["itemListElement"] = new[]
+          {
+            new Dictionary<string, object?>
+            {
+              ["@type"] = "ListItem",
+              ["position"] = 1,
+              ["name"] = SiteName ?? "MyDevTools",
+              ["item"] = siteUrl
+            }
+          }
+        }
+      };
       return JsonSerializer.Serialize(schemas, JsonOptions);
     }
 
-    var jsonLd = new Dictionary<string, object?>
+    // --- Tool page ---
+    var toolUrl = GetToolUrl();
+    var schemas2 = new List<object>();
+
+    // SoftwareApplication schema
+    var appSchema = new Dictionary<string, object?>
     {
       ["@context"] = "https://schema.org",
       ["@type"] = "SoftwareApplication",
       ["name"] = Title,
       ["description"] = Description,
+      ["url"] = toolUrl,
       ["applicationCategory"] = "DeveloperApplication",
+      ["operatingSystem"] = "Web Browser",
       ["isAccessibleForFree"] = true,
       ["offers"] = new Dictionary<string, object?>
       {
@@ -173,14 +250,9 @@
       }
     };
 
-    if (!string.IsNullOrWhiteSpace(CurrentUrl))
-    {
-      jsonLd["url"] = CurrentUrl;
-    }
-
     if (SupportedAlgorithms is { Count: > 0 })
     {
-      jsonLd["additionalProperty"] = SupportedAlgorithms
+      appSchema["additionalProperty"] = SupportedAlgorithms
           .Select(kvp => new Dictionary<string, object?>
           {
             ["@type"] = "PropertyValue",
@@ -190,7 +262,105 @@
           .ToArray();
     }
 
-    return JsonSerializer.Serialize(jsonLd, JsonOptions);
+    schemas2.Add(appSchema);
+
+    // BreadcrumbList for tool pages
+    var baseUri2 = new Uri(Navigation.BaseUri);
+    var homeUrl = $"https://{baseUri2.Authority}/{GetCurrentCulture()}/";
+    var breadcrumbItems = new List<Dictionary<string, object?>>();
+    breadcrumbItems.Add(new Dictionary<string, object?>
+    {
+      ["@type"] = "ListItem",
+      ["position"] = 1,
+      ["name"] = "Home",
+      ["item"] = homeUrl
+    });
+
+    if (!string.IsNullOrEmpty(Category))
+    {
+      breadcrumbItems.Add(new Dictionary<string, object?>
+      {
+        ["@type"] = "ListItem",
+        ["position"] = 2,
+        ["name"] = Category,
+        ["item"] = homeUrl
+      });
+      breadcrumbItems.Add(new Dictionary<string, object?>
+      {
+        ["@type"] = "ListItem",
+        ["position"] = 3,
+        ["name"] = Title,
+        ["item"] = toolUrl
+      });
+    }
+    else
+    {
+      breadcrumbItems.Add(new Dictionary<string, object?>
+      {
+        ["@type"] = "ListItem",
+        ["position"] = 2,
+        ["name"] = Title,
+        ["item"] = toolUrl
+      });
+    }
+
+    schemas2.Add(new Dictionary<string, object?>
+    {
+      ["@context"] = "https://schema.org",
+      ["@type"] = "BreadcrumbList",
+      ["itemListElement"] = breadcrumbItems.ToArray()
+    });
+
+    // HowTo schema — parse Seo_HowToSteps markdown
+    if (!string.IsNullOrWhiteSpace(HowToSteps))
+    {
+      var steps = ParseHowToSteps(HowToSteps);
+      if (steps.Count > 0)
+      {
+        schemas2.Add(new Dictionary<string, object?>
+        {
+          ["@context"] = "https://schema.org",
+          ["@type"] = "HowTo",
+          ["name"] = Title,
+          ["description"] = Description,
+          ["step"] = steps.ToArray()
+        });
+      }
+    }
+
+    return JsonSerializer.Serialize(schemas2, JsonOptions);
+  }
+
+  /// <summary>
+  /// Parses "### Step N: Title\nBody" markdown into HowToStep objects.
+  /// </summary>
+  private static List<Dictionary<string, object?>> ParseHowToSteps(string howToText)
+  {
+    var steps = new List<Dictionary<string, object?>>();
+    // Split on "### Step " markers
+    var parts = System.Text.RegularExpressions.Regex.Split(howToText.Trim(), @"(?=###\s+Step\s+\d+)");
+    int position = 1;
+    foreach (var part in parts)
+    {
+      var trimmed = part.Trim();
+      if (string.IsNullOrEmpty(trimmed)) continue;
+
+      // Extract heading line and body
+      var lines = trimmed.Split('\n', 2);
+      var heading = lines[0].TrimStart('#').Trim();
+      // Remove "Step N: " prefix if present
+      heading = System.Text.RegularExpressions.Regex.Replace(heading, @"^Step\s+\d+:\s*", "").Trim();
+      var body = lines.Length > 1 ? lines[1].Trim() : "";
+
+      steps.Add(new Dictionary<string, object?>
+      {
+        ["@type"] = "HowToStep",
+        ["position"] = position++,
+        ["name"] = heading,
+        ["text"] = body
+      });
+    }
+    return steps;
   }
 
   private static readonly JsonSerializerOptions JsonOptions = new()

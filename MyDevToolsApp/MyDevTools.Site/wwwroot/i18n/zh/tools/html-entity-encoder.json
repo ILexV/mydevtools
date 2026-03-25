@@ -1,6 +1,7 @@
 {
   "Title": "HTML 实体编码器 / 解码器",
   "Description": "将特殊字符编码为 HTML 实体并解码。支持命名、十进制和十六进制格式。",
+  "Keywords": "HTML entity encoder, HTML entity decoder, HTML escape, HTML unescape, HTML special characters, encode HTML online, HTML entities",
   "InputTitle": "输入和设置",
   "InputLabel": "要编码/解码的文本",
   "InputPlaceholder": "在此输入或粘贴您的文本...",

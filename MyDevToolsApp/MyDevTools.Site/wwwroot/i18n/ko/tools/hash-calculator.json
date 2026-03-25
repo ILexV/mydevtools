@@ -1,6 +1,7 @@
 {
   "Title": "해시 계산기",
   "Description": "텍스트 또는 파일에 대해 선택한 알고리즘(MD5, SHA-1, SHA-256 등)을 사용하여 해시를 계산합니다 — 계산은 로컬에서 수행됩니다.",
+  "Keywords": "hash calculator, MD5, SHA-256, SHA-512, SHA-3, BLAKE2, HMAC, checksum, file hash, cryptographic hash, online hash tool",
   "InputLabel": "입력 텍스트",
   "InputPlaceholder": "해시할 텍스트 입력...",
   "FileLabel": "파일 (선택 사항)",

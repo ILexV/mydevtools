@@ -1,6 +1,7 @@
 {
   "Title": "JWT 编码器",
   "Description": "直接在浏览器中创建和签署 JSON Web 令牌 (JWT)。支持 HS256、HS384 和 HS512 算法，可使用自定义密钥。",
+  "Keywords": "JWT encoder, JWT generator, JSON Web Token creator, sign JWT, HS256, HS384, HS512, JWT online tool",
   "LinkToDecoder": "需要解码令牌？",
   "DecoderTitle": "前往 JWT 解码器",
   "HeaderLabel": "头部",

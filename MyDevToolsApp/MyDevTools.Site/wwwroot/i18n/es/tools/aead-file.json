@@ -1,6 +1,7 @@
 {
   "Title": "Cifrar/descifrar archivos AEAD",
   "Description": "Cifra y descifra archivos localmente con AEAD.",
+  "Keywords": "AEAD encryption, file encryption, AES-GCM, ChaCha20-Poly1305, encrypt file online, decrypt file, authenticated encryption, secure file",
   "EncryptSectionTitle": "Cifrar",
   "DecryptSectionTitle": "Descifrar",
   "FileLabel": "Archivo",

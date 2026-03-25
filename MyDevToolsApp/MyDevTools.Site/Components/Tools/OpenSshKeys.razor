@@ -1,4 +1,4 @@
-@page "/{lang}/openssh-keys"
+﻿@page "/{lang}/openssh-keys"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")"
               Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
-              ToolPath="openssh-keys" />
+              ToolPath="openssh-keys"
+              Keywords="@T("Keywords")"
+              Category="Cryptography"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="openssh-keys-root"
          data-loading="@TCommon("Common_Loading")"

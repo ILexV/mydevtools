@@ -1,6 +1,7 @@
 {
   "Title": "URL 编码 / 解码",
   "Description": "编码和解码 URL 编码文本（百分比编码），支持可选模式和字符集 — 数据从未离开您的设备",
+  "Keywords": "URL encoder, URL decoder, percent encoding, URL encode online, URL decode online, URI encoder, query string encoder",
   "InputLabel": "输入",
   "InputPlaceholder": "输入文本或 URL 编码字符串...",
   "OutputLabel": "输出",

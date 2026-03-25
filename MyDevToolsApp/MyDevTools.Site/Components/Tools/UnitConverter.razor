@@ -1,4 +1,4 @@
-@page "/{lang}/unit-converter"
+﻿@page "/{lang}/unit-converter"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")"
               Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
-              ToolPath="unit-converter" />
+              ToolPath="unit-converter"
+              Keywords="@T("Keywords")"
+              Category="Converters"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="unit-converter-root"
          data-copied="@T("Copied")"

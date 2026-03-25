@@ -1,6 +1,7 @@
 {
   "Title": "Redimensionador de Imagem",
   "Description": "Redimensione imagens com dimensões personalizadas e bloqueio de proporção.",
+  "Keywords": "image resizer, resize image online, change image dimensions, scale image, aspect ratio, image resize tool, photo resizer",
   "OriginalInfo": "Imagem Original",
   "TargetFormatLabel": "Formato",
   "Width": "Largura (px)",

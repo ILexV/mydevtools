@@ -1,6 +1,7 @@
 {
   "Title": "Hex 인코더 / 디코더",
   "Description": "브라우저에서 직접 텍스트 또는 파일에 대해 Hex 인코딩 및 디코딩 수행",
+  "Keywords": "hex encoder, hex decoder, hexadecimal converter, text to hex, hex to text, hex encoding online, hexadecimal online tool",
   "OtherFormats": "다른 형식:",
   "LinkUrl": "URL",
   "LinkBase32": "Base32",

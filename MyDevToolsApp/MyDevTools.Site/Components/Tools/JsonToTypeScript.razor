@@ -1,4 +1,4 @@
-@page "/{lang}/json-to-typescript"
+﻿@page "/{lang}/json-to-typescript"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")" 
               Description="@T("Description")" 
               CurrentUrl="@Navigation.Uri"
-              ToolPath="json-to-typescript" />
+              ToolPath="json-to-typescript"
+              Keywords="@T("Keywords")"
+              Category="Structured Data"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="json-to-typescript-root"
          data-error-invalid-json="@T("ErrorInvalidJson")"

@@ -1,6 +1,7 @@
 {
   "Title": "AEAD шифрование/дешифрование файлов",
   "Description": "Локальное шифрование и дешифрование файлов с AEAD.",
+  "Keywords": "AEAD encryption, file encryption, AES-GCM, ChaCha20-Poly1305, encrypt file online, decrypt file, authenticated encryption, secure file",
   "EncryptSectionTitle": "Шифрование",
   "DecryptSectionTitle": "Дешифрование",
   "FileLabel": "Файл",

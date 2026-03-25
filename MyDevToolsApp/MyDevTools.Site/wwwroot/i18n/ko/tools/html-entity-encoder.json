@@ -1,6 +1,7 @@
 {
   "Title": "HTML 엔티티 인코더 / 디코더",
   "Description": "특수 문자를 HTML 엔티티로 인코딩하고 디코딩합니다. 명명된, 10진수, 16진수 형식을 지원합니다.",
+  "Keywords": "HTML entity encoder, HTML entity decoder, HTML escape, HTML unescape, HTML special characters, encode HTML online, HTML entities",
   "InputTitle": "입력 및 설정",
   "InputLabel": "인코딩/디코딩할 텍스트",
   "InputPlaceholder": "여기에 텍스트를 입력하거나 붙여넣으세요...",

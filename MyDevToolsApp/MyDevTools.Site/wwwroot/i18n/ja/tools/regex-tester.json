@@ -1,6 +1,7 @@
 {
   "Title": "正規表現テスター",
   "Description": "Rust 正規表現エンジン (WASM) を使用して正規表現をテストおよびデバッグ — すべてブラウザ内で",
+  "Keywords": "regex tester, regular expression tester, regex online, regex debugger, regex validator, test regex, regex match, regex replace",
   "PatternLabel": "パターン",
   "PatternPlaceholder": "正規表現パターンを入力...",
   "TextLabel": "テスト文字列",

@@ -1,6 +1,7 @@
 {
   "Title": "IP-Subnetz-Rechner",
   "Description": "Berechnen Sie IP-Subnetze, Netzwerkadressen, Broadcasts und Host-Bereiche für IPv4-Netzwerke. Unterstützt CIDR- und IP/Maske-Formate.",
+  "Keywords": "IP subnet calculator, CIDR calculator, network calculator, subnet mask, IPv4 subnetting, network address, broadcast address",
   "InputLabel": "IP-Adresse / CIDR",
   "Calculate": "Berechnen",
   "Address": "Adresse",

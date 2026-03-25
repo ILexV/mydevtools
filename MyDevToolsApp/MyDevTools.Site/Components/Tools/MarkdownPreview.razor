@@ -1,4 +1,4 @@
-@page "/{lang}/markdown-preview"
+﻿@page "/{lang}/markdown-preview"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")"
               Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
-              ToolPath="markdown-preview" />
+              ToolPath="markdown-preview"
+              Keywords="@T("Keywords")"
+              Category="Text"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="markdown-preview-root" class="flex flex-col h-full">
         <!-- Toolbar -->

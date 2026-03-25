@@ -1,6 +1,7 @@
 {
   "Title": "HMAC कैलकुलेटर",
   "Description": "कस्टम कीज़ और संदेशों के साथ SHA-256 और SHA-512 का उपयोग करके HMAC हैश जनरेट करें — सब कुछ आपके ब्राउज़र में",
+  "Keywords": "HMAC calculator, HMAC SHA-256, HMAC SHA-512, message authentication code, HMAC online, keyed hash, API signature",
   "KeyLabel": "सीक्रेट की",
   "KeyPlaceholder": "अपनी सीक्रेट की दर्ज करें...",
   "MessageLabel": "संदेश",

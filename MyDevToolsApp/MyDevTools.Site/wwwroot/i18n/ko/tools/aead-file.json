@@ -1,6 +1,7 @@
 {
   "Title": "AEAD 파일 암호화/복호화",
   "Description": "AEAD로 로컬에서 파일 암호화 및 복호화",
+  "Keywords": "AEAD encryption, file encryption, AES-GCM, ChaCha20-Poly1305, encrypt file online, decrypt file, authenticated encryption, secure file",
   "EncryptSectionTitle": "암호화",
   "DecryptSectionTitle": "복호화",
   "FileLabel": "파일",

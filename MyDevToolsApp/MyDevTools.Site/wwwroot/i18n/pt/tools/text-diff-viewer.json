@@ -1,6 +1,7 @@
 {
   "Title": "Visualizador de Diferenças de Texto",
   "Description": "Compare dois arquivos de texto ou trechos de código lado a lado com um visualizador de diferenças, semelhante ao Git diff. Destaque alterações, adições e exclusões em um formato legível.",
+  "Keywords": "text diff, diff viewer, compare text, file diff, side by side diff, code diff, text comparison tool, diff checker",
   "OriginalLabel": "Texto Original",
   "OriginalPlaceholder": "Cole ou digite o texto original aqui, ou carregue um arquivo abaixo...",
   "ModifiedLabel": "Texto Modificado",
@@ -10,8 +11,8 @@
   "LineByLine": "Linha por Linha",
   "SideBySide": "Lado a Lado",
   "ErrorMessage": "Digite texto em ambos os campos para comparar.",
-  "ChooseOriginalFile": "\uD83D\uDCC1 Escolher arquivo original",
-  "ChooseModifiedFile": "\uD83D\uDCC1 Escolher arquivo modificado",
+  "ChooseOriginalFile": "📁 Escolher arquivo original",
+  "ChooseModifiedFile": "📁 Escolher arquivo modificado",
   "Seo_Introduction": "A ferramenta Text Diff Viewer é uma ferramenta online focada em privacidade projetada para desenvolvedores. Todo o processamento acontece localmente no seu navegador usando WebAssembly, garantindo que seus dados nunca saiam do seu dispositivo.",
   "Seo_DetailedDescription": "Esta ferramenta fornece funcionalidade abrangente para operações de text diff viewer. Construída com tecnologias web modernas e alimentada por WebAssembly compilado do Rust, oferece desempenho nativo diretamente no seu navegador.\n\nA interface é projetada para eficiência e facilidade de uso, com suporte para entrada de texto e processamento de arquivos. Todas as operações são realizadas no lado do cliente, garantindo privacidade e segurança completas para seus dados sensíveis.",
   "Seo_Examples": "**Exemplo 1**: Use Text Diff Viewer para conversões rápidas no seu fluxo de trabalho de desenvolvimento.\n\n**Exemplo 2**: Processe arquivos diretamente sem enviá-los para nenhum servidor, mantendo privacidade completa.\n\n**Exemplo 3**: Integre a ferramenta em suas tarefas diárias de desenvolvimento para melhorar a produtividade.",

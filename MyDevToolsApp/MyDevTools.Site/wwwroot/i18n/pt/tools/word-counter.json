@@ -1,6 +1,7 @@
 {
   "Title": "Contador de Palavras e Caracteres",
   "Description": "Conte palavras, caracteres, linhas, parágrafos e frases. Obtenha estimativas de tempo de leitura e fala para o seu texto.",
+  "Keywords": "word counter, character counter, text statistics, word count online, reading time calculator, character count, line counter",
   "InputPlaceholder": "Digite ou cole seu texto aqui para contar palavras, caracteres e mais...",
   "ClearButton": "Limpar",
   "CopyButton": "Copiar",

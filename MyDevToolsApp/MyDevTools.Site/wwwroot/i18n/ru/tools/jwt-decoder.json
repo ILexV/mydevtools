@@ -1,6 +1,7 @@
 {
   "Title": "JWT Декодер",
   "Description": "Декодирование и проверка JSON Web Tokens (JWT) прямо в вашем браузере.",
+  "Keywords": "JWT decoder, JSON Web Token, JWT verify, JWT parse, decode JWT online, JWT inspector, JWT header payload",
   "EncodedLabel": "Сгенерированный JWT",
   "EncodedPlaceholder": "Вставьте JWT сюда...",
   "DecodedHeaderLabel": "Заголовок (Decoded)",

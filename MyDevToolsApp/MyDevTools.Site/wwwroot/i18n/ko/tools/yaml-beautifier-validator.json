@@ -1,6 +1,7 @@
 {
   "Title": "YAML 포맷터/검증기",
   "Description": "오류 강조 표시 기능으로 YAML 포맷 및 검증",
+  "Keywords": "YAML beautifier, YAML formatter, YAML validator, YAML linter, format YAML online, YAML syntax checker, YAML editor",
   "InputLabel": "YAML 입력",
   "InputPlaceholder": "YAML 내용을 여기에 입력하세요...",
   "Format": "포맷",

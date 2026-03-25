@@ -1,4 +1,4 @@
-@page "/{lang}/word-counter"
+﻿@page "/{lang}/word-counter"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")" 
               Description="@T("Description")" 
               CurrentUrl="@Navigation.Uri"
-              ToolPath="word-counter" />
+              ToolPath="word-counter"
+              Keywords="@T("Keywords")"
+              Category="Text"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="word-counter-root"
          data-copied="@T("Copied")"

@@ -1,6 +1,7 @@
 {
   "Title": "Base64 Kodierer / Dekodierer",
   "Description": "Base64 für Text und Dateien kodieren und dekodieren – alles in Ihrem Browser.",
+  "Keywords": "Base64 encoder, Base64 decoder, Base64 encode online, Base64 decode online, Base64 file encoder, Base64 string converter",
   "OtherFormats": "Andere Formate:",
   "LinkHex": "Hex",
   "LinkBase32": "Base32",

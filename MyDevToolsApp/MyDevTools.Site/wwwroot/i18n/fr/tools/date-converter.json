@@ -1,6 +1,7 @@
 {
   "Title": "Convertisseur de Date",
   "Description": "Convertissez entre les horodatages Unix et les dates lisibles.",
+  "Keywords": "date converter, Unix timestamp, epoch converter, ISO 8601, RFC 2822, timestamp to date, date to timestamp, online date tool",
   "InputLabel": "Date / Horodatage",
   "OutputLabel": "Date Convertie",
   "ActionConvert": "Convertir",

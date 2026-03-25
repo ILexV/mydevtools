@@ -1,6 +1,7 @@
 {
   "Title": "PDF 結合",
   "Description": "ブラウザで効率的に複数のPDFファイルを1つのドキュメントに結合します。",
+  "Keywords": "PDF merger, merge PDF files, combine PDF, join PDF online, PDF combiner, merge PDF documents, free PDF merger",
   "DropZoneTitle": "ここにPDFファイルをドラッグ＆ドロップ",
   "MergeButton": "PDFを結合",
   "Success": "PDFが正常に結合されました！",

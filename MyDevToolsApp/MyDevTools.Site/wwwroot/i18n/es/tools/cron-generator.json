@@ -1,6 +1,7 @@
 {
   "Title": "Generador de Expresiones Cron",
   "Description": "Construya expresiones cron visualmente desde campos de tiempo individuales con explicaciones legibles y próximas horas de ejecución",
+  "Keywords": "cron expression generator, cron builder, cron schedule builder, generate cron, cron syntax helper, cron job scheduler",
   "LinkToParser": "¿Necesita analizar una expresión cron? Pruebe el",
   "ParserTitle": "Analizador de Cron",
   "GeneratorTitle": "Construir Expresión",

@@ -1,6 +1,7 @@
 {
   "Title": "Wort- und Zeichenzähler",
   "Description": "Zählen Sie Wörter, Zeichen, Zeilen, Absätze und Sätze. Erhalten Sie Schätzungen für Lese- und Sprechzeit für Ihren Text.",
+  "Keywords": "word counter, character counter, text statistics, word count online, reading time calculator, character count, line counter",
   "InputPlaceholder": "Geben Sie hier Ihren Text ein oder fügen Sie ihn ein, um Wörter, Zeichen und mehr zu zählen...",
   "ClearButton": "Löschen",
   "CopyButton": "Kopieren",

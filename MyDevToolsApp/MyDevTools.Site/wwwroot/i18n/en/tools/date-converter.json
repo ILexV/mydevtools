@@ -1,6 +1,7 @@
 {
   "Title": "Date Converter",
   "Description": "Convert between Unix timestamps and human-readable dates (ISO 8601, RFC 2822) — all in your browser",
+  "Keywords": "date converter, Unix timestamp, epoch converter, ISO 8601, RFC 2822, timestamp to date, date to timestamp, online date tool",
   "InputLabel": "Date / Timestamp input",
   "OutputLabel": "Converted Date",
   "ActionConvert": "Convert",

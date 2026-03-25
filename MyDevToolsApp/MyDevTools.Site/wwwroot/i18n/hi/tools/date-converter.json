@@ -1,6 +1,7 @@
 {
   "Title": "दिनांक कनवर्टर",
   "Description": "Unix टाइमस्टैम्प और पठनीय तिथियों के बीच कनवर्ट करें।",
+  "Keywords": "date converter, Unix timestamp, epoch converter, ISO 8601, RFC 2822, timestamp to date, date to timestamp, online date tool",
   "InputLabel": "दिनांक / टाइमस्टैम्प",
   "OutputLabel": "कनवर्ट की गई दिनांक",
   "ActionConvert": "कनवर्ट करें",

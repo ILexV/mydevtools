@@ -1,6 +1,7 @@
 {
   "Title": "Сжатие PDF",
   "Description": "Сжимайте PDF-файлы для уменьшения их размера прямо в браузере — без загрузки на сервер.",
+  "Keywords": "PDF compressor, compress PDF, reduce PDF size, PDF optimizer, shrink PDF, PDF file size reducer, online PDF compression",
   "DropZoneTitle": "Перетащите PDF-файлы сюда",
   "CompressButton": "Сжать PDF",
   "DownloadButton": "Скачать",

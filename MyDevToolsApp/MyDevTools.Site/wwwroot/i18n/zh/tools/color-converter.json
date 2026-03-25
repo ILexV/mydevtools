@@ -1,6 +1,7 @@
 {
   "Title": "颜色转换器",
   "Description": "在 HEX、RGB、HSL 和 CMYK 格式之间转换颜色，带有颜色选择器和调色板 — 全部在您的浏览器中",
+  "Keywords": "color converter, HEX to RGB, RGB to HSL, CMYK color, color picker online, CSS color converter, color code converter",
   "ColorPicker": "颜色选择器",
   "InputFormat": "输入格式",
   "ManualInput": "手动输入",

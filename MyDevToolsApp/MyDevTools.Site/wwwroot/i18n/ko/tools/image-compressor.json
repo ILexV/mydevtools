@@ -1,6 +1,7 @@
 {
   "Title": "이미지 압축기",
   "Description": "브라우저에서 로컬로 JPG, PNG, WebP 이미지 압축",
+  "Keywords": "image compressor, compress image online, JPG compressor, PNG compressor, WebP compressor, reduce image size, image optimization",
   "Compressing": "압축 중...",
   "Processing": "처리 중...",
   "Done": "완료!",

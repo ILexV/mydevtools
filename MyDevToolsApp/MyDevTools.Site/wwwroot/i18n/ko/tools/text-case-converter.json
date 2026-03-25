@@ -1,6 +1,7 @@
 {
   "AlternatingCase": "교차 대소문자",
   "CamelCase": "카멜 케이스",
+  "Keywords": "text case converter, camelCase, snake_case, UPPER CASE, lower case, Title Case, kebab-case, sentence case, text transform",
   "ClearButton": "지우기",
   "Copied": "복사됨!",
   "CopyButton": "복사",

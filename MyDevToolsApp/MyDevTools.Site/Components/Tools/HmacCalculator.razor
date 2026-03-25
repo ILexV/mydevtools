@@ -1,4 +1,4 @@
-@page "/{lang}/hmac-calculator"
+﻿@page "/{lang}/hmac-calculator"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
@@ -6,7 +6,10 @@
     <MetaTags Title="@T("Title")"
               Description="@T("Description")"
               CurrentUrl="@Navigation.Uri"
-              ToolPath="hmac-calculator" />
+              ToolPath="hmac-calculator"
+              Keywords="@T("Keywords")"
+              Category="Hashing"
+              HowToSteps="@T("Seo_HowToSteps")" />
 
     <div id="hmac-calculator-root"
          data-loading="@TCommon("Common_Loading")"

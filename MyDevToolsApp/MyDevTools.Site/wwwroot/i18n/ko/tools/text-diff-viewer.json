@@ -1,6 +1,7 @@
 {
   "Title": "텍스트 차이 뷰어",
   "Description": "Git diff와 유사한 시각적 차이 뷰어로 두 텍스트 파일 또는 코드 조각을 나란히 비교하세요. 읽기 쉬운 형식으로 변경, 추가 및 삭제 사항을 강조 표시합니다.",
+  "Keywords": "text diff, diff viewer, compare text, file diff, side by side diff, code diff, text comparison tool, diff checker",
   "OriginalLabel": "원본 텍스트",
   "OriginalPlaceholder": "원본 텍스트를 붙여넣거나 입력하거나 아래에서 파일 업로드...",
   "ModifiedLabel": "수정된 텍스트",
@@ -10,8 +11,8 @@
   "LineByLine": "줄 단위",
   "SideBySide": "나란히",
   "ErrorMessage": "비교하려면 두 필드 모두에 텍스트를 입력하세요.",
-  "ChooseOriginalFile": "\uD83D\uDCC1 원본 파일 선택",
-  "ChooseModifiedFile": "\uD83D\uDCC1 수정된 파일 선택",
+  "ChooseOriginalFile": "📁 원본 파일 선택",
+  "ChooseModifiedFile": "📁 수정된 파일 선택",
   "Seo_Introduction": "Text Diff Viewer 도구는 개발자를 위해 설계된 개인정보 보호 중심 온라인 도구입니다. 모든 처리는 WebAssembly를 사용하여 브라우저에서 로컬로 수행되므로 데이터가 장치를 벗어나지 않습니다.",
   "Seo_DetailedDescription": "이 도구는 text diff viewer 작업을 위한 포괄적인 기능을 제공합니다. 최신 웹 기술로 구축되고 Rust 컴파일된 WebAssembly로 구동되어 브라우저에서 직접 네이티브 수준의 성능을 제공합니다.\n\n인터페이스는 효율성과 사용 편의성을 위해 설계되었으며 텍스트 입력과 파일 처리를 모두 지원합니다. 모든 작업은 클라이언트 측에서 수행되어 민감한 데이터의 완전한 개인정보 보호와 보안을 보장합니다.",
   "Seo_Examples": "**예제 1**: 개발 워크플로에서 빠른 변환을 위해 Text Diff Viewer를 사용하세요.\n\n**예제 2**: 서버에 업로드하지 않고 직접 파일을 처리하여 완전한 개인정보를 유지하세요.\n\n**예제 3**: 생산성 향상을 위해 일상적인 개발 작업에 도구를 통합하세요.",

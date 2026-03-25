@@ -1,6 +1,7 @@
 {
   "Title": "URL エンコーダー / デコーダー",
   "Description": "選択可能なモードと文字セットで URL エンコード（パーセントエンコーディング）テキストをエンコードおよびデコードします — データがデバイスから出ることはありません",
+  "Keywords": "URL encoder, URL decoder, percent encoding, URL encode online, URL decode online, URI encoder, query string encoder",
   "InputLabel": "入力",
   "InputPlaceholder": "テキストまたは URL エンコードされた文字列を入力...",
   "OutputLabel": "出力",

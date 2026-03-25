@@ -1,6 +1,7 @@
 {
   "Title": "정규식 테스터",
   "Description": "Rust 정규식 엔진(WASM)을 사용하여 정규식 테스트 및 디버깅 — 모두 브라우저에서",
+  "Keywords": "regex tester, regular expression tester, regex online, regex debugger, regex validator, test regex, regex match, regex replace",
   "PatternLabel": "패턴",
   "PatternPlaceholder": "정규식 패턴 입력...",
   "TextLabel": "테스트 문자열",

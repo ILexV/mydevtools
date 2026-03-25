@@ -1,6 +1,7 @@
 {
   "Title": "Unit Converter",
   "Description": "Convert between various units of measurement including length, weight, temperature, and volume — all processing happens in your browser",
+  "Keywords": "unit converter, length converter, weight converter, temperature converter, metric imperial, online unit conversion, measurement converter",
   "CategoryLabel": "Category",
   "Category_Length": "Length",
   "Category_Weight": "Weight",

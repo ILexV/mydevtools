@@ -1,6 +1,7 @@
 {
   "Title": "単語・文字数カウンター",
   "Description": "単語数、文字数、行数、段落数、文数をカウントします。テキストの読み上げ時間と話す時間の推定を取得します。",
+  "Keywords": "word counter, character counter, text statistics, word count online, reading time calculator, character count, line counter",
   "InputPlaceholder": "ここにテキストを入力または貼り付けて、単語数、文字数などをカウントします...",
   "ClearButton": "クリア",
   "CopyButton": "コピー",

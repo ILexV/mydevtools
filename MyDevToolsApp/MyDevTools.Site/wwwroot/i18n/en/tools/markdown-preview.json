@@ -1,6 +1,7 @@
 {
   "Title": "Markdown Preview",
   "Description": "Live markdown editor with real-time HTML preview, split-view, and syntax highlighting — all in your browser",
+  "Keywords": "markdown preview, markdown editor, markdown to HTML, live markdown, markdown renderer, online markdown editor",
   "EditorLabel": "Markdown Editor",
   "EditorPlaceholder": "Type your markdown here...",
   "PreviewLabel": "Preview",

@@ -1,6 +1,7 @@
 {
   "Title": "UUID/GUID Generator",
   "Description": "Generieren Sie UUID v4 (zufällig) und UUID v7 (zeitbasiert) direkt in Ihrem Browser. Alle Generierung erfolgt lokal.",
+  "Keywords": "UUID generator, GUID generator, UUID v4, UUID v7, random UUID, UUID online, generate GUID, unique identifier",
   "VersionLabel": "UUID-Version",
   "Version4": "Version 4 (Zufällig)",
   "Version7": "Version 7 (Zeitbasiert)",

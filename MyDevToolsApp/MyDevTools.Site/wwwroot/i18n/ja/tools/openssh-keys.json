@@ -1,6 +1,7 @@
 {
   "Title": "OpenSSH 鍵",
   "Description": "ブラウザ内で OpenSSH 鍵を生成、インポート、変換します。",
+  "Keywords": "OpenSSH key generator, SSH key pair, RSA key generation, Ed25519 key, ECDSA key, SSH public key, SSH private key, convert SSH key",
   "GenerateSectionTitle": "生成",
   "AlgorithmLabel": "アルゴリズム",
   "KeySizeLabel": "鍵サイズ",

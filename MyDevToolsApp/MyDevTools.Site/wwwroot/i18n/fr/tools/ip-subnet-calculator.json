@@ -1,6 +1,7 @@
 {
   "Title": "Calculateur de Sous-réseau IP",
   "Description": "Calculez les sous-réseaux IP, les adresses réseau, de diffusion et les plages d'hôtes pour les réseaux IPv4. Prend en charge les formats CIDR et IP/Masque.",
+  "Keywords": "IP subnet calculator, CIDR calculator, network calculator, subnet mask, IPv4 subnetting, network address, broadcast address",
   "InputLabel": "Adresse IP / CIDR",
   "Calculate": "Calculer",
   "Address": "Adresse",

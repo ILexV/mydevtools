@@ -1,6 +1,7 @@
 {
   "Title": "Base32 кодер / декодер",
   "Description": "Кодирование и декодирование Base32 для текста и файлов — полностью в вашем браузере.",
+  "Keywords": "Base32 encoder, Base32 decoder, Base32 encoding online, Base32 decode, RFC 4648, Base32 file converter",
   "OtherFormats": "Другие форматы:",
   "LinkHex": "Hex",
   "LinkBase64": "Base64",

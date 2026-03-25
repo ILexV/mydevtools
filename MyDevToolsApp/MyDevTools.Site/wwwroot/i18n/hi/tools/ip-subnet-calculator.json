@@ -1,6 +1,7 @@
 {
   "Title": "IP सबनेट कैलकुलेटर",
   "Description": "IPv4 नेटवर्क के लिए IP सबनेट, नेटवर्क पते, ब्रॉडकास्ट और होस्ट रेंज की गणना करें। CIDR और IP/मास्क स्वरूपों का समर्थन करता है।",
+  "Keywords": "IP subnet calculator, CIDR calculator, network calculator, subnet mask, IPv4 subnetting, network address, broadcast address",
   "InputLabel": "IP पता / CIDR",
   "Calculate": "गणना करें",
   "Address": "पता",

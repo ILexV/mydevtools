@@ -1,6 +1,7 @@
 {
   "Title": "单词/字符计数器",
   "Description": "统计单词数、字符数、行数、段落数和句子数。获取文本的阅读和演讲时间估算。",
+  "Keywords": "word counter, character counter, text statistics, word count online, reading time calculator, character count, line counter",
   "InputPlaceholder": "在此输入或粘贴文本以统计单词数、字符数等...",
   "ClearButton": "清除",
   "CopyButton": "复制",

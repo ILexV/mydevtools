@@ -1,6 +1,7 @@
 {
   "Title": "JSON 포맷터",
   "Description": "JSON 문자열을 포맷하고 보기 좋게 만듭니다 — 안전하고 비공개적.",
+  "Keywords": "JSON beautifier, JSON formatter, JSON validator, JSON minifier, pretty print JSON, format JSON online, JSON editor, JSON parser",
   "InputLabel": "입력 JSON",
   "InputPlaceholder": "JSON을 여기에 붙여넣으세요...",
   "FormatButton": "포맷",

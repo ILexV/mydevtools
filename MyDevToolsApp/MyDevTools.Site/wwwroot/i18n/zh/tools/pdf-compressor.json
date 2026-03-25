@@ -1,6 +1,7 @@
 {
   "Title": "PDF 压缩",
   "Description": "直接在浏览器中压缩 PDF 文件以减小其大小，无需上传。",
+  "Keywords": "PDF compressor, compress PDF, reduce PDF size, PDF optimizer, shrink PDF, PDF file size reducer, online PDF compression",
   "DropZoneTitle": "将 PDF 文件拖放到此处",
   "CompressButton": "压缩 PDF",
   "DownloadButton": "下载",

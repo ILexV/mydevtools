@@ -1,6 +1,7 @@
 {
   "Title": "JWT 디코더",
   "Description": "브라우저에서 직접 JSON Web Tokens (JWT) 디코딩 및 검증",
+  "Keywords": "JWT decoder, JSON Web Token, JWT verify, JWT parse, decode JWT online, JWT inspector, JWT header payload",
   "EncodedLabel": "생성된 JWT",
   "EncodedPlaceholder": "JWT를 여기에 붙여넣으세요...",
   "DecodedHeaderLabel": "헤더",

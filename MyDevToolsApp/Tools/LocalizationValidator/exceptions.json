@@ -334,20 +334,16 @@
       "DecodedHeaderLabel",
       "DecodedPayloadLabel",
       "HeaderLabel",
-      "PayloadLabel"
+      "PayloadLabel",
+      "Keywords"
     ],
     "tools/jwt-encoder.json": [
-      "PayloadLabel"
+      "PayloadLabel",
+      "Keywords"
     ],
     "tools/uuid-generator.json": [
-      "UUID",
-      "GUID",
-      "UUID_v1",
-      "UUID_v3",
-      "UUID_v4",
-      "UUID_v5",
-      "UUID_v7",
-      "UUID_v8"
+      "FormatUrn",
+      "Keywords"
     ],
     "tools/ulid-generator.json": [
       "ULID"
@@ -363,7 +359,8 @@
       "Snowflake"
     ],
     "tools/password-generator.json": [
-      "ASCII"
+      "ASCII",
+      "Keywords"
     ],
     "tools/lorem-ipsum.json": [
       "Lorem_Ipsum",
@@ -373,7 +370,8 @@
     "tools/regex-tester.json": [
       "RegEx",
       "Regex",
-      "FlagsLabel"
+      "FlagsLabel",
+      "Keywords"
     ],
     "tools/qrcode-generator.json": [
       "QR",
@@ -391,14 +389,16 @@
       "LinkBase32",
       "LinkBase58",
       "LinkBase64",
-      "Mode_Form"
+      "Mode_Form",
+      "Keywords"
     ],
     "tools/html-encoder.json": [
       "HTML",
       "HTML_Encoding"
     ],
     "tools/json-beautifier.json": [
-      "JSON"
+      "IndentTab",
+      "Keywords"
     ],
     "tools/json-minifier.json": [
       "JSON"
@@ -420,7 +420,9 @@
       "XML"
     ],
     "tools/xml-beautifier.json": [
-      "XML"
+      "IndentTab",
+      "DateFormatISO",
+      "Keywords"
     ],
     "tools/xml-minifier.json": [
       "XML"
@@ -440,16 +442,10 @@
       "YAML"
     ],
     "tools/text-case-converter.json": [
-      "JSON",
-      "camelCase",
-      "PascalCase",
-      "snake_case",
-      "kebab-case",
-      "CONSTANT_CASE",
-      "dot.case",
-      "path/case",
-      "Title Case",
-      "Sentence case"
+      "KebabCase",
+      "SnakeCase",
+      "CamelCase",
+      "Keywords"
     ],
     "tools/text-sorter.json": [
       "JSON",
@@ -870,7 +866,8 @@
       "mo",
       "y",
       "fps",
-      "Category_Volume"
+      "Category_Volume",
+      "Keywords"
     ],
     "tools/color-converter.json": [
       "RGB",
@@ -884,7 +881,8 @@
       "LCH",
       "XYZ",
       "YUV",
-      "YCbCr"
+      "YCbCr",
+      "Keywords"
     ],
     "tools/timestamp.json": [
       "Unix",
@@ -904,7 +902,8 @@
       "PresetDaily",
       "PresetHourly",
       "PresetReboot",
-      "DateFormatISO"
+      "DateFormatISO",
+      "Keywords"
     ],
     "tools/text-to-slug.json": [
       "Slug",
@@ -1384,9 +1383,6 @@
       "PowerShell",
       "PS"
     ],
-    "tools/sql-formatter.json": [
-      "SQL"
-    ],
     "tools/plsql-formatter.json": [
       "PL/SQL"
     ],
@@ -1585,7 +1581,8 @@
       "AlphabetRfc4648",
       "AlphabetCrockford",
       "AlphabetZBase32",
-      "CaseAuto"
+      "CaseAuto",
+      "Keywords"
     ],
     "tools/base58-encoder.json": [
       "Base58",
@@ -1595,7 +1592,8 @@
       "LinkUrl",
       "AlphabetBitcoin",
       "AlphabetFlickr",
-      "AlphabetRipple"
+      "AlphabetRipple",
+      "Keywords"
     ],
     "tools/base64-encoder.json": [
       "Base64",
@@ -1610,7 +1608,8 @@
       "StatsChars",
       "StatsBytes",
       "StatsRatio",
-      "StatsImage"
+      "StatsImage",
+      "Keywords"
     ],
     "tools/hex-encoder.json": [
       "Hex",
@@ -1620,7 +1619,8 @@
       "LinkBase58",
       "LinkBase64",
       "OtherFormats",
-      "InputTextLabel"
+      "InputTextLabel",
+      "Keywords"
     ],
     "tools/html-entity-encoder.json": [
       "HTML",
@@ -1631,51 +1631,89 @@
       "LinkHex",
       "LinkXml",
       "Format_Decimal",
-      "Format_Hex"
+      "Format_Hex",
+      "Keywords"
     ],
     "tools/date-converter.json": [
       "Format_ISO",
-      "Format_RFC"
+      "Format_RFC",
+      "Keywords"
     ],
     "tools/ip-subnet-calculator.json": [
       "Broadcast",
       "Hosts",
-      "Total"
-    ],
-    "tools/json-beautifier.json": [
-      "IndentTab"
+      "Total",
+      "Keywords"
     ],
     "tools/markdown-preview.json": [
       "SyncScroll",
-      "Link"
-    ],
-    "tools/text-case-converter.json": [
-      "KebabCase",
-      "SnakeCase",
-      "CamelCase"
-    ],
-    "tools/uuid-generator.json": [
-      "FormatUrn"
+      "Link",
+      "Keywords"
     ],
     "tools/x509.json": [
       "SubjectLabel",
-      "CsrSectionTitle"
-    ],
-    "tools/xml-beautifier.json": [
-      "IndentTab",
-      "DateFormatISO"
+      "CsrSectionTitle",
+      "Keywords"
     ],
     "tools/cron-generator.json": [
       "DateFormatISO",
       "MinuteLabel",
       "DescriptionLabel",
-      "ScheduleInMonths"
+      "ScheduleInMonths",
+      "Keywords"
     ],
     "tools/word-counter.json": [
-      "Minutes"
+      "Minutes",
+      "Keywords"
     ],
     "tools/json-to-typescript.json": [
-      "RootInterfaceNamePlaceholder"
+      "RootInterfaceNamePlaceholder",
+      "Keywords"
+    ],
+    "tools/aead-file.json": [
+      "Keywords"
+    ],
+    "tools/hash-calculator.json": [
+      "Keywords"
+    ],
+    "tools/hmac-calculator.json": [
+      "Keywords"
+    ],
+    "tools/image-compressor.json": [
+      "Keywords"
+    ],
+    "tools/image-converter.json": [
+      "Keywords"
+    ],
+    "tools/image-resizer.json": [
+      "Keywords"
+    ],
+    "tools/lorem-ipsum-generator.json": [
+      "Keywords"
+    ],
+    "tools/openssh-keys.json": [
+      "Keywords"
+    ],
+    "tools/pdf-compressor.json": [
+      "Keywords"
+    ],
+    "tools/pdf-merger.json": [
+      "Keywords"
+    ],
+    "tools/pdf-to-text.json": [
+      "Keywords"
+    ],
+    "tools/qr-code-generator.json": [
+      "Keywords"
+    ],
+    "tools/qr-scanner.json": [
+      "Keywords"
+    ],
+    "tools/text-diff-viewer.json": [
+      "Keywords"
+    ],
+    "tools/yaml-beautifier-validator.json": [
+      "Keywords"
     ]
   }
 }

@@ -1,6 +1,7 @@
 {
   "Title": "Конвертер дат",
   "Description": "Преобразование timestamp и дат (ISO 8601, RFC 2822) — всё в вашем браузере",
+  "Keywords": "date converter, Unix timestamp, epoch converter, ISO 8601, RFC 2822, timestamp to date, date to timestamp, online date tool",
   "InputLabel": "Ввод (Дата / Timestamp)",
   "OutputLabel": "Результат",
   "ActionConvert": "Преобразовать",

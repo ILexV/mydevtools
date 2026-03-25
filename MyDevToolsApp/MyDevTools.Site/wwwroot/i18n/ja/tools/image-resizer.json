@@ -1,6 +1,7 @@
 {
   "Title": "画像リサイザー",
   "Description": "カスタムサイズとアスペクト比ロックで画像をリサイズします。",
+  "Keywords": "image resizer, resize image online, change image dimensions, scale image, aspect ratio, image resize tool, photo resizer",
   "OriginalInfo": "元の画像",
   "TargetFormatLabel": "フォーマット",
   "Width": "幅 (px)",

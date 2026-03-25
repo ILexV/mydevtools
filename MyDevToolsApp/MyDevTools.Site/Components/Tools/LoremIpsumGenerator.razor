@@ -1,13 +1,15 @@
-@page "/{lang}/lorem-ipsum-generator"
+﻿@page "/{lang}/lorem-ipsum-generator"
 @inject NavigationManager Navigation
 @inherits ToolComponentBase
 
-<MetaTags Title="@T("Title")"
-          Description="@T("Description")"
-          CurrentUrl="@Navigation.Uri"
-          ToolPath="lorem-ipsum-generator" />
-
 <ToolLayout Title="@T("Title")" Description="@T("Description")">
+    <MetaTags Title="@T("Title")"
+              Description="@T("Description")"
+              CurrentUrl="@Navigation.Uri"
+              ToolPath="lorem-ipsum-generator"
+              Keywords="@T("Keywords")"
+              Category="Generators"
+              HowToSteps="@T("Seo_HowToSteps")" />
     <div id="lorem-ipsum-root" class="grid grid-cols-1 lg:grid-cols-3 gap-6" data-copied="@T("Copied")">
         
         <!-- Controls -->

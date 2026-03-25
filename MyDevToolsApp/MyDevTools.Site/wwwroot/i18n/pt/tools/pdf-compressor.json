@@ -1,6 +1,7 @@
 {
   "Title": "Compressor de PDF",
   "Description": "Comprima arquivos PDF para reduzir o tamanho diretamente no seu navegador, sem necessidade de upload.",
+  "Keywords": "PDF compressor, compress PDF, reduce PDF size, PDF optimizer, shrink PDF, PDF file size reducer, online PDF compression",
   "DropZoneTitle": "Arraste e solte arquivos PDF aqui",
   "CompressButton": "Comprimir PDFs",
   "DownloadButton": "Baixar",

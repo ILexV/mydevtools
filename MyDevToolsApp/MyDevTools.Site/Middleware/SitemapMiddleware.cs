@@ -55,12 +55,14 @@ public class SitemapMiddleware
         var baseUrl = $"https://{context.Request.Host}";
         var ns = XNamespace.Get("http://www.sitemaps.org/schemas/sitemap/0.9");
         var supportedCultures = new[] { "en", "ru", "es", "de", "pt", "zh", "fr", "ja", "ko", "hi" };
+        var lastMod = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         var root = new XElement(ns + "urlset");
 
         // Add root page with highest priority
         root.Add(new XElement(ns + "url",
             new XElement(ns + "loc", baseUrl + "/"),
+            new XElement(ns + "lastmod", lastMod),
             new XElement(ns + "changefreq", "daily"),
             new XElement(ns + "priority", "1.0")
         ));
@@ -104,6 +106,7 @@ public class SitemapMiddleware
 
                         root.Add(new XElement(ns + "url",
                             new XElement(ns + "loc", fullUrl),
+                            new XElement(ns + "lastmod", lastMod),
                             new XElement(ns + "changefreq", changefreq),
                             new XElement(ns + "priority", priority)
                         ));

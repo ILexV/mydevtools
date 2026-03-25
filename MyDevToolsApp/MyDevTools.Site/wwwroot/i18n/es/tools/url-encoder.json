@@ -1,6 +1,7 @@
 {
   "Title": "Codificador / Decodificador URL",
   "Description": "Codifique y decodifique texto URL-encoded (percent-encoding) con modos y codificación de texto seleccionables — los datos nunca salen de su dispositivo",
+  "Keywords": "URL encoder, URL decoder, percent encoding, URL encode online, URL decode online, URI encoder, query string encoder",
   "InputLabel": "Entrada",
   "InputPlaceholder": "Ingrese texto o una cadena URL-encoded...",
   "OutputLabel": "Salida",

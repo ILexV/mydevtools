@@ -1,6 +1,7 @@
 {
   "Title": "URL एनकोडर / डिकोडर",
   "Description": "चयनित मोड और वर्णसेट के साथ URL-एनकोडेड टेक्स्ट (प्रतिशत-एनकोडिंग) को एनकोड और डिकोड करें — डेटा कभी भी आपके डिवाइस को नहीं छोड़ता",
+  "Keywords": "URL encoder, URL decoder, percent encoding, URL encode online, URL decode online, URI encoder, query string encoder",
   "InputLabel": "इनपुट",
   "InputPlaceholder": "टेक्स्ट या URL-एनकोडेड स्ट्रिंग दर्ज करें...",
   "OutputLabel": "आउटपुट",

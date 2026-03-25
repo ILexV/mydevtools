@@ -1,6 +1,7 @@
 {
   "Title": "Markdown 预览",
   "Description": "实时 Markdown 编辑器，带有实时 HTML 预览、分屏视图和语法高亮 — 全部在您的浏览器中",
+  "Keywords": "markdown preview, markdown editor, markdown to HTML, live markdown, markdown renderer, online markdown editor",
   "EditorLabel": "Markdown 编辑器",
   "EditorPlaceholder": "在此处输入您的 Markdown...",
   "PreviewLabel": "预览",

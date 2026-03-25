@@ -1,6 +1,7 @@
 {
   "Title": "Кодировщик JWT",
   "Description": "Создание и подпись JSON Web Tokens (JWT) прямо в браузере. Поддержка алгоритмов HS256, HS384 и HS512 с пользовательскими ключами.",
+  "Keywords": "JWT encoder, JWT generator, JSON Web Token creator, sign JWT, HS256, HS384, HS512, JWT online tool",
   "LinkToDecoder": "Нужно декодировать токен?",
   "DecoderTitle": "Перейти к декодеру JWT",
   "HeaderLabel": "Заголовок (Header)",

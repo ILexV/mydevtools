@@ -1,6 +1,7 @@
 {
   "Title": "Cron 表达式生成器",
   "Description": "从各个时间字段直观地构建 Cron 表达式，提供人类可读的说明和下次执行时间",
+  "Keywords": "cron expression generator, cron builder, cron schedule builder, generate cron, cron syntax helper, cron job scheduler",
   "LinkToParser": "需要解析 Cron 表达式？试试",
   "ParserTitle": "Cron 解析器",
   "GeneratorTitle": "构建表达式",

@@ -1,6 +1,7 @@
 {
   "Title": "Scanner QR",
   "Description": "Scannez des QR codes à partir d'images directement dans votre navigateur sans téléchargement vers aucun serveur.",
+  "Keywords": "QR code scanner, QR code reader, scan QR code online, decode QR code, QR code from image, QR code decoder",
   "DropZone": "Glissez-déposez une image avec un QR code ici",
   "ResultLabel": "Contenu scanné",
   "ErrorReading": "Erreur lors de la lecture du texte de l'image.",

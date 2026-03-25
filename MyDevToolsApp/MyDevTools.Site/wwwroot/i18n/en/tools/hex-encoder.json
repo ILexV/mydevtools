@@ -1,6 +1,7 @@
 {
   "Title": "Hex Encoder / Decoder",
   "Description": "Encode and decode Hex for text or files with configurable options — all in your browser",
+  "Keywords": "hex encoder, hex decoder, hexadecimal converter, text to hex, hex to text, hex encoding online, hexadecimal online tool",
   "OtherFormats": "Other formats:",
   "LinkUrl": "URL",
   "LinkBase32": "Base32",

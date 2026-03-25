@@ -1,6 +1,7 @@
 {
   "Title": "JSON फॉर्मेटेर",
   "Description": "JSON स्ट्रिंग्स को फॉर्मेट और सुंदर बनाएं — सुरक्षित और निजी।",
+  "Keywords": "JSON beautifier, JSON formatter, JSON validator, JSON minifier, pretty print JSON, format JSON online, JSON editor, JSON parser",
   "InputLabel": "इनपुट JSON",
   "InputPlaceholder": "अपना JSON यहाँ पेस्ट करें...",
   "FormatButton": "फॉर्मेट",

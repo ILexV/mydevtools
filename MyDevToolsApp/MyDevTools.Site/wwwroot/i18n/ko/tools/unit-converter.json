@@ -1,6 +1,7 @@
 {
   "Title": "단위 변환기",
   "Description": "길이, 무게, 온도, 부피 등 다양한 단위를 변환 — 모든 계산은 브라우저에서 수행됩니다",
+  "Keywords": "unit converter, length converter, weight converter, temperature converter, metric imperial, online unit conversion, measurement converter",
   "CategoryLabel": "카테고리",
   "Category_Length": "길이",
   "Category_Weight": "무게",

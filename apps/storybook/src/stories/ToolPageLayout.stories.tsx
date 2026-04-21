@@ -30,6 +30,7 @@ export const Default: Story = {
             Use compact settings in the sidebar for dense tool workflows.
           </ToolPanel>
         }
+        eyebrow="Developer tool"
         description="Shared page shell for future React-based tools with a clear header, action row, and content grid."
         hero={<Alert description="No data leaves the browser during processing." icon={<span aria-hidden="true">i</span>} title="Privacy-first by default" />}
         title="JSON Formatter"

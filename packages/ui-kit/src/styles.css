@@ -227,6 +227,7 @@ textarea {
   border-radius: 14px;
   background: transparent;
   color: var(--mdt-color-text-muted);
+  box-shadow: inset 0 0 0 1px transparent;
   cursor: pointer;
   transition: transform 140ms ease, border-color 140ms ease, background 140ms ease, color 140ms ease, box-shadow 140ms ease;
 }
@@ -292,6 +293,7 @@ textarea {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  line-height: 0;
 }
 
 .mdt-input {
@@ -310,6 +312,10 @@ textarea {
 
 .mdt-input:hover {
   border-color: var(--mdt-color-border-strong);
+}
+
+.mdt-input:focus-within {
+  box-shadow: var(--mdt-shadow-focus);
 }
 
 .mdt-input--invalid {
@@ -402,6 +408,13 @@ textarea {
   color: var(--mdt-color-text-muted);
 }
 
+.mdt-select__chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
 .mdt-select__control {
   width: 100%;
   min-width: 0;
@@ -420,16 +433,17 @@ textarea {
   border: 1px solid var(--mdt-color-border);
   border-radius: var(--mdt-radius-md);
   background: var(--mdt-color-surface-muted);
+  align-items: start;
 }
 
 .mdt-alert__icon {
   display: inline-flex;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 .mdt-alert__content {
@@ -520,6 +534,7 @@ textarea {
 }
 
 .mdt-field__error {
+  font-size: 0.9rem;
   color: var(--mdt-color-danger);
 }
 
@@ -540,6 +555,14 @@ textarea {
 .mdt-panel-card__body {
   display: grid;
   gap: 8px;
+}
+
+.mdt-panel-card__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mdt-color-primary);
 }
 
 .mdt-panel-card__title,
@@ -581,7 +604,11 @@ textarea {
 
 .mdt-tool-panel__title-wrap {
   display: grid;
-  gap: 6px;
+  gap: 2px;
+}
+
+.mdt-tool-panel .mdt-panel-card__body {
+  gap: 14px;
 }
 
 .mdt-file-drop-zone {
@@ -593,15 +620,27 @@ textarea {
   border: 1px dashed var(--mdt-color-border-strong);
   border-radius: var(--mdt-radius-lg);
   background: linear-gradient(180deg, rgba(102, 179, 255, 0.04), rgba(102, 179, 255, 0.01));
+  outline: none;
   cursor: pointer;
   transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease, transform 140ms ease;
 }
 
 .mdt-file-drop-zone:hover,
-.mdt-file-drop-zone--dragging {
+.mdt-file-drop-zone--dragging,
+.mdt-file-drop-zone:focus-visible {
   border-color: rgba(102, 179, 255, 0.48);
   box-shadow: var(--mdt-shadow-focus);
   transform: translateY(-1px);
+}
+
+.mdt-file-drop-zone--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.mdt-file-drop-zone--selected {
+  border-style: solid;
 }
 
 .mdt-file-drop-zone__input {
@@ -625,10 +664,11 @@ textarea {
   border-radius: 14px;
   background: rgba(102, 179, 255, 0.14);
   color: var(--mdt-color-primary);
-  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(102, 179, 255, 0.12);
 }
 
 .mdt-file-drop-zone__title {
+  font-size: 1rem;
   font-weight: 700;
 }
 
@@ -637,12 +677,25 @@ textarea {
   color: var(--mdt-color-text-muted);
 }
 
+.mdt-file-drop-zone__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
 .mdt-file-drop-zone__button {
   min-height: 38px;
   padding: 0 14px;
   border-radius: 999px;
   background: var(--mdt-color-surface-raised);
   color: var(--mdt-color-text);
+}
+
+.mdt-file-drop-zone__status {
+  font-family: var(--mdt-font-mono);
+  font-size: 0.85rem;
+  color: var(--mdt-color-primary);
 }
 
 .mdt-tool-page {
@@ -664,10 +717,34 @@ textarea {
   gap: 12px;
 }
 
+.mdt-tool-page__header {
+  align-items: end;
+}
+
+.mdt-tool-page__heading {
+  max-width: 72ch;
+}
+
+.mdt-tool-page__eyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mdt-color-primary);
+}
+
 .mdt-tool-page__actions {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 12px;
+}
+
+.mdt-tool-page__hero {
+  padding: 18px;
+  border: 1px solid var(--mdt-color-border);
+  border-radius: var(--mdt-radius-lg);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
 }
 
 .mdt-tool-page__grid--with-aside {
@@ -675,7 +752,17 @@ textarea {
   align-items: start;
 }
 
+@media (min-width: 901px) {
+  .mdt-tool-page__header {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
 @media (max-width: 900px) {
+  .mdt-tool-page__actions {
+    justify-content: flex-start;
+  }
+
   .mdt-tool-page__grid--with-aside {
     grid-template-columns: 1fr;
   }

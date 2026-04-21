@@ -8,6 +8,7 @@ type IconButtonSize = 'sm' | 'md' | 'lg'
 export type IconButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> & {
   ariaLabel: string
   icon: ReactNode
+  tooltip?: string
   variant?: IconButtonVariant
   size?: IconButtonSize
   selected?: boolean
@@ -32,6 +33,7 @@ export function IconButton({
   icon,
   selected = false,
   size = 'md',
+  tooltip,
   type = 'button',
   variant = 'ghost',
   ...props
@@ -41,6 +43,7 @@ export function IconButton({
       aria-label={ariaLabel}
       aria-pressed={selected || undefined}
       className={cn('mdt-icon-button', variantClassNames[variant], sizeClassNames[size], selected && 'mdt-icon-button--selected', className)}
+      title={tooltip ?? ariaLabel}
       type={type}
       {...props}
     >

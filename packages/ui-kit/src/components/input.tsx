@@ -18,10 +18,10 @@ export function Input({
   ...props
 }: InputProps) {
   return (
-    <label className={cn('mdt-input', invalid && 'mdt-input--invalid', disabled && 'mdt-input--disabled', className)}>
+    <div className={cn('mdt-input', invalid && 'mdt-input--invalid', disabled && 'mdt-input--disabled', className)}>
       {leadingIcon ? <span className="mdt-input__icon">{leadingIcon}</span> : null}
-      <input className="mdt-input__control" disabled={disabled} type={type} {...props} />
+      <input aria-invalid={invalid || undefined} className="mdt-input__control" disabled={disabled} type={type} {...props} />
       {trailingIcon ? <span className="mdt-input__icon">{trailingIcon}</span> : null}
-    </label>
+    </div>
   )
 }

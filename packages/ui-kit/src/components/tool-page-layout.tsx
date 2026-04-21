@@ -4,17 +4,19 @@ import { cn } from '../lib/cn'
 
 export type ToolPageLayoutProps = HTMLAttributes<HTMLDivElement> & {
   title: ReactNode
+  eyebrow?: ReactNode
   description?: ReactNode
   actions?: ReactNode
   aside?: ReactNode
   hero?: ReactNode
 }
 
-export function ToolPageLayout({ actions, aside, children, className, description, hero, title, ...props }: ToolPageLayoutProps) {
+export function ToolPageLayout({ actions, aside, children, className, description, eyebrow, hero, title, ...props }: ToolPageLayoutProps) {
   return (
     <div className={cn('mdt-tool-page', className)} {...props}>
       <header className="mdt-tool-page__header">
         <div className="mdt-tool-page__heading">
+          {eyebrow ? <div className="mdt-tool-page__eyebrow">{eyebrow}</div> : null}
           <div className="mdt-tool-page__title">{title}</div>
           {description ? <div className="mdt-tool-page__description">{description}</div> : null}
         </div>

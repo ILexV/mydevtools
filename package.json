@@ -1,0 +1,16 @@
+{
+  "name": "mydevtools-workspace",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "npm@11.12.1",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "storybook": "npm run storybook -w @mydevtools/storybook",
+    "storybook:build": "npm run build-storybook -w @mydevtools/storybook",
+    "ui-kit:build": "npm run build -w @mydevtools/ui-kit"
+  }
+}

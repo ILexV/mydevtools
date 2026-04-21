@@ -1,0 +1,275 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mdt-font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mdt-font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --mdt-radius-sm: 10px;
+  --mdt-radius-md: 16px;
+  --mdt-radius-lg: 22px;
+  --mdt-space-1: 4px;
+  --mdt-space-2: 8px;
+  --mdt-space-3: 12px;
+  --mdt-space-4: 16px;
+  --mdt-space-5: 20px;
+  --mdt-space-6: 24px;
+  --mdt-shadow-soft: 0 20px 50px rgba(0, 0, 0, 0.28);
+  --mdt-shadow-focus: 0 0 0 4px rgba(96, 165, 250, 0.22);
+  --mdt-color-bg: #0b1020;
+  --mdt-color-surface: rgba(17, 24, 39, 0.92);
+  --mdt-color-surface-muted: rgba(15, 23, 42, 0.72);
+  --mdt-color-surface-raised: rgba(22, 31, 53, 0.96);
+  --mdt-color-border: rgba(148, 163, 184, 0.18);
+  --mdt-color-border-strong: rgba(148, 163, 184, 0.28);
+  --mdt-color-text: #e5eefb;
+  --mdt-color-text-muted: #95a4bf;
+  --mdt-color-primary: #66b3ff;
+  --mdt-color-primary-strong: #3b82f6;
+  --mdt-color-secondary: #8b5cf6;
+  --mdt-color-success: #34d399;
+  --mdt-color-danger: #fb7185;
+  --mdt-color-input: rgba(9, 14, 28, 0.92);
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+  --mdt-color-bg: #f3f7fd;
+  --mdt-color-surface: rgba(255, 255, 255, 0.94);
+  --mdt-color-surface-muted: rgba(241, 245, 249, 0.96);
+  --mdt-color-surface-raised: rgba(255, 255, 255, 0.98);
+  --mdt-color-border: rgba(15, 23, 42, 0.1);
+  --mdt-color-border-strong: rgba(15, 23, 42, 0.18);
+  --mdt-color-text: #0f172a;
+  --mdt-color-text-muted: #475569;
+  --mdt-color-primary: #2563eb;
+  --mdt-color-primary-strong: #1d4ed8;
+  --mdt-color-secondary: #7c3aed;
+  --mdt-color-success: #059669;
+  --mdt-color-danger: #e11d48;
+  --mdt-color-input: rgba(248, 250, 252, 0.98);
+  --mdt-shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.08);
+  --mdt-shadow-focus: 0 0 0 4px rgba(37, 99, 235, 0.16);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--mdt-font-sans);
+  color: var(--mdt-color-text);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.mdt-card {
+  position: relative;
+  border-radius: var(--mdt-radius-lg);
+  background: var(--mdt-color-surface);
+  color: var(--mdt-color-text);
+  transition: border-color 160ms ease, transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.mdt-card--bordered {
+  border: 1px solid var(--mdt-color-border);
+}
+
+.mdt-card--default {
+  background: var(--mdt-color-surface);
+}
+
+.mdt-card--muted {
+  background: var(--mdt-color-surface-muted);
+}
+
+.mdt-card--raised {
+  background: var(--mdt-color-surface-raised);
+  box-shadow: var(--mdt-shadow-soft);
+}
+
+.mdt-card--interactive {
+  cursor: pointer;
+}
+
+.mdt-card--interactive:hover {
+  transform: translateY(-2px);
+  border-color: var(--mdt-color-border-strong);
+}
+
+.mdt-card--padding-none {
+  padding: 0;
+}
+
+.mdt-card--padding-sm {
+  padding: var(--mdt-space-4);
+}
+
+.mdt-card--padding-md {
+  padding: var(--mdt-space-5);
+}
+
+.mdt-card--padding-lg {
+  padding: var(--mdt-space-6);
+}
+
+.mdt-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mdt-space-2);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--mdt-color-surface-raised);
+  color: var(--mdt-color-text);
+  cursor: pointer;
+  font-weight: 600;
+  line-height: 1;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+
+.mdt-button:hover {
+  transform: translateY(-1px);
+}
+
+.mdt-button:focus-visible,
+.mdt-input:focus-within {
+  outline: none;
+  box-shadow: var(--mdt-shadow-focus);
+}
+
+.mdt-button:disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.mdt-button--sm {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 0.875rem;
+}
+
+.mdt-button--md {
+  min-height: 44px;
+  padding: 0 18px;
+  font-size: 0.9375rem;
+}
+
+.mdt-button--lg {
+  min-height: 52px;
+  padding: 0 22px;
+  font-size: 1rem;
+}
+
+.mdt-button--full-width {
+  width: 100%;
+}
+
+.mdt-button--primary {
+  background: linear-gradient(135deg, var(--mdt-color-primary-strong), var(--mdt-color-secondary));
+  color: #f8fbff;
+}
+
+.mdt-button--secondary {
+  background: rgba(102, 179, 255, 0.12);
+  border-color: rgba(102, 179, 255, 0.18);
+}
+
+.mdt-button--ghost {
+  background: transparent;
+  color: var(--mdt-color-text-muted);
+}
+
+.mdt-button--outline {
+  background: transparent;
+  border-color: var(--mdt-color-border-strong);
+}
+
+.mdt-button--danger {
+  background: rgba(251, 113, 133, 0.14);
+  border-color: rgba(251, 113, 133, 0.2);
+  color: var(--mdt-color-danger);
+}
+
+.mdt-button--success {
+  background: rgba(52, 211, 153, 0.14);
+  border-color: rgba(52, 211, 153, 0.2);
+  color: var(--mdt-color-success);
+}
+
+.mdt-button__icon,
+.mdt-input__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+}
+
+.mdt-button__spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 999px;
+  animation: mdt-spin 0.7s linear infinite;
+}
+
+.mdt-input {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mdt-space-3);
+  min-height: 48px;
+  width: 100%;
+  padding: 0 16px;
+  border: 1px solid var(--mdt-color-border);
+  border-radius: var(--mdt-radius-md);
+  background: var(--mdt-color-input);
+  color: var(--mdt-color-text);
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+
+.mdt-input:hover {
+  border-color: var(--mdt-color-border-strong);
+}
+
+.mdt-input--invalid {
+  border-color: rgba(251, 113, 133, 0.55);
+}
+
+.mdt-input--disabled {
+  opacity: 0.6;
+}
+
+.mdt-input__control {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: inherit;
+}
+
+.mdt-input__control::placeholder {
+  color: var(--mdt-color-text-muted);
+}
+
+.mdt-showcase-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.mdt-showcase-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+
+@keyframes mdt-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

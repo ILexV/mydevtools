@@ -64,3 +64,10 @@ nunit-*.xml
 /nul
 /MyDevToolsApp/MyDevTools.Site/server.log
 /MyDevToolsApp/MyDevTools.Site/nul
+node_modules/
+storybook-static/
+dist/
+coverage/
+*.tsbuildinfo
+.playwright-mcp/
+storybook-*.png

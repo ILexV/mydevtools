@@ -1,0 +1,16 @@
+:root {
+  --mdt-color-bg: #0b1020;
+  --mdt-color-surface: rgba(17, 24, 39, 0.92);
+  --mdt-color-surface-muted: rgba(15, 23, 42, 0.72);
+  --mdt-color-surface-raised: rgba(22, 31, 53, 0.96);
+  --mdt-color-border: rgba(148, 163, 184, 0.18);
+  --mdt-color-border-strong: rgba(148, 163, 184, 0.28);
+  --mdt-color-text: #e5eefb;
+  --mdt-color-text-muted: #95a4bf;
+  --mdt-color-primary: #66b3ff;
+  --mdt-color-primary-strong: #3b82f6;
+  --mdt-color-secondary: #8b5cf6;
+  --mdt-color-success: #34d399;
+  --mdt-color-danger: #fb7185;
+  --mdt-color-input: rgba(9, 14, 28, 0.92);
+}

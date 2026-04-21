@@ -378,6 +378,22 @@ textarea {
   appearance: none;
   background: transparent;
   color: inherit;
+  color-scheme: dark;
+}
+
+[data-theme='light'] .mdt-select__control {
+  color-scheme: light;
+}
+
+.mdt-select__control option,
+.mdt-select__control optgroup {
+  background: var(--mdt-color-surface-raised);
+  color: var(--mdt-color-text);
+  text-indent: 8px;
+}
+
+.mdt-select__control option:disabled {
+  color: var(--mdt-color-text-muted);
 }
 
 .mdt-alert {

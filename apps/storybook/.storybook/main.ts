@@ -1,6 +1,6 @@
-import type { StorybookConfig } from '@storybook/react-vite';
+import type { StorybookConfig } from '@storybook/react-vite'
 
-import path from 'node:path';
+import path from 'node:path'
 import { dirname } from "path"
 
 import { fileURLToPath } from "url"
@@ -17,8 +17,7 @@ const configDir = dirname(fileURLToPath(import.meta.url))
 
 const config: StorybookConfig = {
   "stories": [
-    "../src/**/*.mdx",
-    "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"
+    "../src/stories/**/*.stories.@(js|jsx|mjs|ts|tsx)"
   ],
   "addons": [
     getAbsolutePath('@storybook/addon-a11y'),
@@ -35,5 +34,6 @@ const config: StorybookConfig = {
 
     return config;
   }
-};
-export default config;
+}
+
+export default config

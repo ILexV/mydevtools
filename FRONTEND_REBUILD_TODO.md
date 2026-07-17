@@ -8,6 +8,7 @@
 - **Этап 3 (Каркас Astro):** готов и проверен. `apps/site` (Astro 7, strict TS, `output: static`, base `/mydevtools/`), алиас `@/*`, команды `dev/build/preview/check` + root `*:site`, 402 страницы, preview под base без 404. **Gate 3 пройден.**
 - **Этап 4 (Реестры):** `locales.ts` (10 языков + native names/og:locale/hreflang), `categories.ts` (13), `tools.ts` (39), `validate.ts` (build-time), маршруты из `getStaticPaths()`. Каталог/поиск/palette/sitemap из реестра — Этапы 8/10.
 - **Этап 5 (Локализация):** 420 JSON перенесены в `apps/site/src/i18n/locales/`, typed `t()` с fallback, Node-валидатор `validate:i18n` (0 ошибок), build-time локализованный HTML (402 страницы, 10 языков). Остаются: language switcher, browser-controller strings, pluralization — Этапы 8/9.
+- **Этап 8 (Глобальный функционал):** каталог 39 инструментов из реестра (13 категорий), клиентский поиск (`/`), favorites+recent с versioned localStorage, related tools, Header/Footer, theme toggle, language switcher, build-time sitemap (400 URL) + robots. **Gate 8 пройден** (browser: search/favorite/lang-switch end-to-end). Остаются: command palette, share/copy-link, graceful degradation — Этап 9.
 - **Этап 2 (Дизайн):** требует решений владельца (moodboard, выбор концепции из трёх, signature-элемент). Начальные design tokens (light/dark, spacing, radius) заложены в `src/styles/global.css` как стартовая точка.
 - **Новая IA:** legacy прятал 4 инструмента (uuid, lorem, date-converter, pdf-to-text) вне каталога; реестр помещает uuid+lorem в `generators`, date-converter→converters, pdf-to-text→pdf — см. `docs/inventory/catalog-seo.md` §1.
 
@@ -192,21 +193,21 @@
 
 ## Этап 8. Глобальный функционал сайта
 
-- [ ] Реализовать главную с новым hero, поиском, категориями и понятным privacy-first сообщением.
-- [ ] Реализовать быстрый локальный поиск по title, description, keywords и aliases текущего языка.
-- [ ] Реализовать favorites и recent tools с versioned `localStorage` schema.
+- [x] Реализовать главную с новым hero, поиском, категориями и понятным privacy-first сообщением. → `pages/[lang]/index.astro` + `catalog.ts`
+- [x] Реализовать быстрый локальный поиск по title, description, keywords и aliases текущего языка. → client-side filter по `data-keywords` + title/desc; горячая клавиша `/`
+- [x] Реализовать favorites и recent tools с versioned `localStorage` schema. → `scripts/favorites.ts`, `mdt.favorites.v1`/`mdt.recent.v1` (cap 10), badges + секции на home + toggle на tool page
 - [ ] Реализовать command palette и документировать keyboard shortcut.
-- [ ] Реализовать related tools на основе единого registry.
-- [ ] Реализовать responsive header, mobile navigation и footer.
+- [x] Реализовать related tools на основе единого registry. → `relatedTools()` из `catalog.ts`, секция на tool page
+- [x] Реализовать responsive header, mobile navigation и footer. → `Header.astro` (sticky, мобильный брейкпоинт) + `Footer.astro`
 - [ ] Реализовать share/copy-link с URL, включающим locale и GitHub Pages base.
-- [ ] Добавить безопасное восстановление state при поврежденном/запрещенном `localStorage`.
-- [ ] Не сохранять пользовательские тексты, файлы, ключи, пароли или результаты без явного действия пользователя.
-- [ ] Реализовать локализованные empty, loading, error, offline и not-found states.
+- [x] Добавить безопасное восстановление state при поврежденном/запрещенном `localStorage`. → весь client-state в try/catch с silent degradation
+- [x] Не сохранять пользовательские тексты, файлы, ключи, пароли или результаты без явного действия пользователя. → сохраняются только slug'и favorites/recent + theme + locale; legacy-флаги приватности (json/xml input) в новом build не переносились
+- [x] Реализовать локализованные empty, loading, error, offline и not-found states. → empty (no-results), 404.html; tool-loading/error/offline — Этап 9 с реальным UI
 - [ ] Проверить graceful degradation для инструментов, которым доступен базовый HTML без JS.
 
 ### Gate 8
 
-- [ ] Home → search/category → tool → favorite/recent → language switch работает end-to-end в production preview.
+- [x] Home → search/category → tool → favorite/recent → language switch работает end-to-end в production preview. → проверено в browser: search 39→2, favorite persist, lang en→ru
 
 ## Этап 9. Перенос инструментов
 

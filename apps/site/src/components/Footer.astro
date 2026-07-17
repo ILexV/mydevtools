@@ -1,0 +1,71 @@
+---
+/**
+ * Footer — site chrome. Brand, privacy-first reminder, locale links.
+ */
+import { LOCALES, type LocaleCode } from "@/registry/locales";
+import { localizedPath } from "@/lib/url";
+import { t } from "@/i18n/messages";
+
+interface Props {
+  locale: LocaleCode;
+}
+
+const { locale } = Astro.props as Props;
+const brand = t(locale, "common", "AppName");
+const privacy = t(locale, "home", "NoDataSent");
+const year = new Date().getUTCFullYear();
+---
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <strong>{brand}</strong>
+      <p class="privacy">{privacy}</p>
+    </div>
+    <nav class="footer-langs" aria-label="languages">
+      {LOCALES.map((l) => (
+        <a hreflang={l.bcp47} href={localizedPath(l.code)}>{l.nativeName}</a>
+      ))}
+    </nav>
+    <p class="copyright">© {year} {brand}</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--mdt-border);
+    background: var(--mdt-surface-muted);
+    margin-top: 4rem;
+  }
+  .footer-inner {
+    max-width: var(--mdt-content-max);
+    margin: 0 auto;
+    padding: 2rem 1.25rem;
+    display: grid;
+    gap: 1.25rem;
+  }
+  .footer-brand strong {
+    font-size: 1rem;
+  }
+  .privacy {
+    color: var(--mdt-text-muted);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+    max-width: 42ch;
+  }
+  .footer-langs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.9rem;
+  }
+  .footer-langs a {
+    color: var(--mdt-text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+  }
+  .footer-langs a:hover { color: var(--mdt-accent); }
+  .copyright {
+    color: var(--mdt-text-muted);
+    font-size: 0.8rem;
+  }
+</style>

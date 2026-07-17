@@ -37,19 +37,19 @@ export interface CategoryMeta {
 }
 
 export const CATEGORIES: readonly CategoryMeta[] = [
-  { id: "encoding", labelKey: "encoding", iconKey: "encoding", order: 10 },
-  { id: "structured-data", labelKey: "structured-data", iconKey: "structured-data", order: 20 },
-  { id: "text", labelKey: "text", iconKey: "text", order: 30 },
-  { id: "jwt", labelKey: "jwt", iconKey: "jwt", order: 40 },
-  { id: "regex", labelKey: "regex", iconKey: "regex", order: 50 },
-  { id: "hashing", labelKey: "hashing", iconKey: "hashing", order: 60 },
-  { id: "cryptography", labelKey: "cryptography", iconKey: "cryptography", order: 70 },
-  { id: "generators", labelKey: "generators", iconKey: "generators", order: 80 },
-  { id: "converters", labelKey: "converters", iconKey: "converters", order: 90 },
-  { id: "design", labelKey: "design", iconKey: "design", order: 100 },
-  { id: "images", labelKey: "images", iconKey: "images", order: 110 },
-  { id: "pdf", labelKey: "pdf", iconKey: "pdf", order: 120 },
-  { id: "qrcode", labelKey: "qrcode", iconKey: "qrcode", order: 130 },
+  { id: "encoding", labelKey: "Category_Encoding", iconKey: "encoding", order: 10 },
+  { id: "structured-data", labelKey: "Category_StructuredData", iconKey: "structured-data", order: 20 },
+  { id: "text", labelKey: "Category_TextTools", iconKey: "text", order: 30 },
+  { id: "jwt", labelKey: "Category_JwtAndTokens", iconKey: "jwt", order: 40 },
+  { id: "regex", labelKey: "Category_Regex", iconKey: "regex", order: 50 },
+  { id: "hashing", labelKey: "Category_HashingAndSecurity", iconKey: "hashing", order: 60 },
+  { id: "cryptography", labelKey: "Category_Cryptography", iconKey: "cryptography", order: 70 },
+  { id: "generators", labelKey: "Category_Generators", iconKey: "generators", order: 80 },
+  { id: "converters", labelKey: "Category_Converters", iconKey: "converters", order: 90 },
+  { id: "design", labelKey: "Category_ColorsAndDesign", iconKey: "design", order: 100 },
+  { id: "images", labelKey: "Category_Images", iconKey: "images", order: 110 },
+  { id: "pdf", labelKey: "Category_PdfTools", iconKey: "pdf", order: 120 },
+  { id: "qrcode", labelKey: "Category_QrCodes", iconKey: "qrcode", order: 130 },
 ] as const;
 
 export const CATEGORY_IDS: readonly CategoryId[] = CATEGORIES.map((c) => c.id);

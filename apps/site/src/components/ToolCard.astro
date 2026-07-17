@@ -1,0 +1,73 @@
+---
+/**
+ * ToolCard — a catalog tile linking to a tool route.
+ * Pure presentation; all data comes from the catalog layer.
+ * `data-keywords` feeds client-side search; the fav-slot span carries the slug
+ * so the favorites engine can render a star badge (read-only indicator here;
+ * toggling happens on the tool page).
+ */
+import type { CatalogTool } from "@/registry/catalog";
+import { categoryLabel } from "@/registry/catalog";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  tool: CatalogTool;
+  locale: LocaleCode;
+}
+
+const { tool, locale } = Astro.props as Props;
+const cat = categoryLabel(locale, tool.category);
+---
+
+<a class="tool-card" href={tool.href} data-tool-card data-slug={tool.slug} data-keywords={tool.keywords.join(" ")}>
+  <span class="card-cat">{cat}</span>
+  <span class="card-title">{tool.title}</span>
+  <span class="card-desc">{tool.description}</span>
+  <span class="card-fav" data-fav-slot data-slug={tool.slug} aria-hidden="true"></span>
+</a>
+
+<style>
+  .tool-card {
+    display: grid;
+    grid-template-areas: "cat fav" "title title" "desc desc";
+    gap: 0.25rem;
+    padding: 0.95rem 1rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    background: var(--mdt-surface-raised);
+    text-decoration: none;
+    color: var(--mdt-text);
+    transition: border-color 0.15s ease, transform 0.15s ease;
+    position: relative;
+    height: 100%;
+  }
+  .tool-card:hover {
+    border-color: var(--mdt-accent);
+    transform: translateY(-1px);
+  }
+  .card-cat {
+    grid-area: cat;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--mdt-accent);
+    font-weight: 600;
+  }
+  .card-fav { grid-area: fav; justify-self: end; display: inline-flex; }
+  .card-title {
+    grid-area: title;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+  }
+  .card-desc {
+    grid-area: desc;
+    color: var(--mdt-text-muted);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

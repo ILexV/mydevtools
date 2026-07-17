@@ -1,0 +1,169 @@
+---
+/**
+ * Header — site chrome on every BaseLayout page.
+ * Brand link to locale home, search trigger, theme toggle, language switcher.
+ * `path` is the in-locale path ("" for home, "<slug>" for a tool) so the
+ * language switcher preserves the current location across locales.
+ */
+import { LOCALES, type LocaleCode } from "@/registry/locales";
+import { localizedPath } from "@/lib/url";
+import { t } from "@/i18n/messages";
+
+interface Props {
+  locale: LocaleCode;
+  path?: string;
+}
+
+const { locale, path = "" } = Astro.props as Props;
+const brand = t(locale, "common", "AppName");
+const searchLabel = t(locale, "common", "Common_Search");
+const homeLabel = t(locale, "common", "Nav_Home");
+const toolsLabel = t(locale, "common", "Nav_Tools");
+const languageLabel = t(locale, "common", "Language");
+---
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href={localizedPath(locale)}>{brand}</a>
+
+    <nav class="primary-nav" aria-label="primary">
+      <a href={localizedPath(locale)}>{homeLabel}</a>
+      <a href={`${localizedPath(locale)}#catalog`}>{toolsLabel}</a>
+    </nav>
+
+    <div class="header-actions">
+      <button
+        type="button"
+        class="icon-btn"
+        data-search-open
+        aria-label={searchLabel}
+        title={searchLabel}
+      >
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+      </button>
+
+      <button type="button" class="icon-btn" data-theme-toggle aria-label="Toggle theme" title="Theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+      </button>
+
+      <details class="lang-switcher">
+        <summary aria-label={languageLabel}>{locale.toUpperCase()}</summary>
+        <div class="lang-list" role="menu">
+          {LOCALES.map((l) => (
+            <a
+              role="menuitem"
+              hreflang={l.bcp47}
+              href={localizedPath(l.code, path)}
+              aria-current={l.code === locale ? "true" : undefined}
+            >{l.nativeName}</a>
+          ))}
+        </div>
+      </details>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--mdt-surface) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--mdt-border);
+  }
+  .header-inner {
+    max-width: var(--mdt-content-max);
+    margin: 0 auto;
+    padding: 0.6rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .brand {
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+    color: var(--mdt-text);
+    text-decoration: none;
+    margin-right: auto;
+  }
+  .primary-nav {
+    display: none;
+    gap: 1rem;
+  }
+  .primary-nav a {
+    color: var(--mdt-text-muted);
+    text-decoration: none;
+    font-size: 0.92rem;
+  }
+  .primary-nav a:hover {
+    color: var(--mdt-text);
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-right: calc(-0.25rem);
+  }
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid transparent;
+    border-radius: var(--mdt-radius-sm);
+    background: transparent;
+    color: var(--mdt-text-muted);
+    cursor: pointer;
+  }
+  .icon-btn:hover {
+    background: var(--mdt-surface-muted);
+    color: var(--mdt-text);
+  }
+  :global([data-theme="dark"]) .icon-sun { display: none; }
+  :global([data-theme="light"]) .icon-moon { display: none; }
+  :global(:root:not([data-theme])) .icon-moon { display: none; }
+
+  .lang-switcher { position: relative; }
+  .lang-switcher summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 0.4rem 0.55rem;
+    border-radius: var(--mdt-radius-sm);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--mdt-text-muted);
+    letter-spacing: 0.03em;
+  }
+  .lang-switcher summary::-webkit-details-marker { display: none; }
+  .lang-switcher summary:hover { background: var(--mdt-surface-muted); color: var(--mdt-text); }
+  .lang-list {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.25rem);
+    min-width: 9rem;
+    background: var(--mdt-surface-raised);
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    padding: 0.3rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    display: grid;
+    gap: 0.1rem;
+  }
+  .lang-list a {
+    padding: 0.45rem 0.6rem;
+    border-radius: var(--mdt-radius-sm);
+    text-decoration: none;
+    color: var(--mdt-text);
+    font-size: 0.9rem;
+  }
+  .lang-list a:hover { background: var(--mdt-surface-muted); }
+  .lang-list a[aria-current="true"] { color: var(--mdt-accent); font-weight: 600; }
+
+  @media (min-width: 640px) {
+    .primary-nav { display: flex; }
+  }
+</style>

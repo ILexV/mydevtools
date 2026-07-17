@@ -1,16 +1,18 @@
 ---
 /**
- * `/{lang}/{slug}/` — tool page. All 39 × 10 routes generated from the tool
- * registry via `getStaticPaths`. The registry is validated at build entry so a
- * malformed entry fails the build before any page ships.
+ * `/{lang}/{slug}/` — tool page. All 39 × 10 routes from the tool registry
+ * (validated at build). Shows tool metadata, a favorite toggle (persists via
+ * the favorites engine), and related tools from the same category.
  *
- * Stage 9 swaps this placeholder body for real per-tool UI; routing, SEO and
- * localization wiring are exercised here so the pipeline is verifiable now.
+ * Stage 9 swaps the placeholder body for real per-tool UI; routing, SEO,
+ * localization, favorites and related-tools wiring are exercised here.
  */
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import ToolCard from "@/components/ToolCard.astro";
 import { LOCALES, type LocaleCode } from "@/registry/locales";
 import { TOOLS, resolveTool } from "@/registry/tools";
 import { assertRegistryValid } from "@/registry/validate";
+import { relatedTools, categoryLabel } from "@/registry/catalog";
 import { t } from "@/i18n/messages";
 
 assertRegistryValid();
@@ -28,29 +30,60 @@ interface Params {
 
 const { lang, slug } = Astro.params as Params;
 const resolved = resolveTool(slug);
-if (!resolved) {
-  // Should be unreachable: getStaticPaths only emits known slugs.
-  throw new Error(`Unknown tool slug in route: ${slug}`);
-}
+if (!resolved) throw new Error(`Unknown tool slug in route: ${slug}`);
 
 const { tool, namespace } = resolved;
-const title = t(lang, namespace, "Title") || tool.slug;
+const title = t(lang, namespace, "Title");
 const description = t(lang, namespace, "Description");
-const hasRealLocale = title !== "Title";
-const status = hasRealLocale ? "" : " (scaffold — real UI lands in Stage 9)";
+const catLabel = categoryLabel(lang, tool.category);
+const related = relatedTools(lang, slug);
+const favLabel = t(lang, "common", "Badge_Favorite");
+const relatedLabel = `${catLabel}`;
 ---
 
-<BaseLayout locale={lang} path={slug} title={`${title}${status}`} description={description} keywords={[tool.slug]}>
+<BaseLayout locale={lang} path={slug} title={title} description={description} keywords={[tool.slug]}>
+  <span data-visit-slug data-slug={slug} hidden></span>
   <main class="tool">
     <header class="tool-head">
-      <p class="tool-category">{tool.category}</p>
-      <h1>{tool.slug}</h1>
-      <p class="tool-desc">{hasRealLocale ? description : `Tool “${tool.slug}” — parity migration pending (Stage 9).`}</p>
+      <nav class="crumbs" aria-label="breadcrumb">
+        <a href={`/${lang}/`}>{t(lang, "common", "Nav_Home")}</a>
+        <span aria-hidden="true">/</span>
+        <span>{catLabel}</span>
+      </nav>
+      <div class="tool-title-row">
+        <h1>{title}</h1>
+        <button
+          type="button"
+          class="fav-toggle"
+          data-fav-toggle
+          data-slug={slug}
+          aria-pressed="false"
+          aria-label={favLabel}
+          title={favLabel}
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18.9 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+        </button>
+      </div>
+      <p class="tool-desc">{description}</p>
       <dl class="tool-meta">
         <div><dt>WASM</dt><dd>{tool.wasm ?? "pure JS"}</dd></div>
-        <div><dt>File input</dt><dd>{tool.capabilities.file ?? "—"}</dd></div>
+        <div><dt>File</dt><dd>{tool.capabilities.file ?? "—"}</dd></div>
       </dl>
+      <div class="tool-placeholder">
+        {t(lang, namespace, "Description")} — UI migration pending (Stage 9).
+      </div>
     </header>
+
+    {related.length > 0 && (
+      <section class="related">
+        <h2>{relatedLabel}</h2>
+        <div class="cat-grid">
+          {related.map((rel) => (
+            <ToolCard tool={rel} locale={lang} />
+          ))}
+        </div>
+      </section>
+    )}
   </main>
 </BaseLayout>
 
@@ -58,41 +91,52 @@ const status = hasRealLocale ? "" : " (scaffold — real UI lands in Stage 9)";
   .tool {
     max-width: var(--mdt-content-max);
     margin: 0 auto;
-    padding: clamp(1.5rem, 4vw, 3rem) 1.25rem;
+    padding: clamp(1.5rem, 4vw, 2.5rem) 1.25rem 2rem;
   }
-  .tool-head {
+  .crumbs {
     display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--mdt-text-muted);
+    margin-bottom: 0.75rem;
   }
-  .tool-category {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--mdt-accent);
-    font-weight: 600;
-  }
+  .crumbs a { color: var(--mdt-text-muted); text-decoration: none; }
+  .crumbs a:hover { color: var(--mdt-accent); }
+  .tool-title-row { display: flex; align-items: center; gap: 0.75rem; }
   h1 {
     font-size: clamp(1.6rem, 3.5vw, 2.4rem);
     letter-spacing: -0.02em;
-  }
-  .tool-desc {
-    color: var(--mdt-text-muted);
-    max-width: 60ch;
-  }
-  .tool-meta {
-    display: flex;
-    gap: 2rem;
-    margin-top: 0.5rem;
-  }
-  .tool-meta dt {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--mdt-text-muted);
-  }
-  .tool-meta dd {
-    font-family: var(--mdt-font-mono);
     margin: 0;
   }
+  .fav-toggle {
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text-muted);
+    cursor: pointer;
+  }
+  .fav-toggle:hover { border-color: var(--mdt-warning); color: var(--mdt-warning); }
+  .fav-toggle[aria-pressed="true"] { color: var(--mdt-warning); border-color: var(--mdt-warning); }
+  .fav-toggle[aria-pressed="true"] svg { fill: currentColor; }
+  .tool-desc { color: var(--mdt-text-muted); max-width: 65ch; margin-top: 0.6rem; }
+  .tool-meta { display: flex; gap: 2rem; margin-top: 0.75rem; }
+  .tool-meta dt { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--mdt-text-muted); }
+  .tool-meta dd { font-family: var(--mdt-font-mono); margin: 0; font-size: 0.9rem; }
+  .tool-placeholder {
+    margin-top: 1.5rem;
+    padding: 1.25rem;
+    border: 1px dashed var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    color: var(--mdt-text-muted);
+    font-size: 0.9rem;
+  }
+  .related { margin-top: 3rem; }
+  .related h2 { font-size: 1.1rem; margin-bottom: 0.75rem; }
+  .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.75rem; }
 </style>

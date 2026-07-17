@@ -1,0 +1,14 @@
+{
+  "Title": "Juntar PDF",
+  "Description": "Combine vários arquivos PDF em um único documento de forma eficiente no seu navegador.",
+  "Keywords": "PDF merger, merge PDF files, combine PDF, join PDF online, PDF combiner, merge PDF documents, free PDF merger",
+  "DropZoneTitle": "Arraste e solte arquivos PDF aqui",
+  "MergeButton": "Juntar PDFs",
+  "Success": "PDFs combinados com sucesso!",
+  "DownloadButton": "Baixar",
+  "Seo_Introduction": "O PDF Merger é uma ferramenta online focada na privacidade, projetada para desenvolvedores. Todo o processamento ocorre localmente no seu navegador usando WebAssembly, garantindo que os seus PDFs nunca saiam do seu dispositivo.",
+  "Seo_DetailedDescription": "Esta ferramenta fornece funcionalidades abrangentes para mesclar múltiplos documentos PDF num único arquivo. Construída com tecnologias web modernas e alimentada por WebAssembly compilado em Rust, oferece manipulação de PDF rápida e segura diretamente no seu navegador.\r\n\r\nA interface foi projetada para simplicidade e eficiência. Pode carregar facilmente múltiplos arquivos PDF, reordená-los e mesclá-los num único documento. Todas as operações são realizadas no lado do cliente, garantindo total privacidade para os seus documentos confidenciais.",
+  "Seo_Examples": "**Exemplo 1**: Mescle múltiplos relatórios PDF num único documento abrangente para facilitar a partilha.\r\n\r\n**Exemplo 2**: Combine várias páginas PDF digitalizadas num único arquivo.\r\n\r\n**Exemplo 3**: Organize os seus documentos PDF mesclando arquivos relacionados num único PDF coeso.",
+  "Seo_HowToSteps": "### Passo 1: Carregar arquivos PDF\r\nClique no botão de carregamento ou arraste e solte múltiplos arquivos PDF na ferramenta.\r\n\r\n### Passo 2: Organizar a ordem\r\nArraste e solte os arquivos para organizá-los na ordem desejada para o PDF mesclado final.\r\n\r\n### Passo 3: Mesclar e descarregar\r\nClique no botão \"Mesclar PDF\" para processar os seus arquivos localmente e descarregar o documento resultante.",
+  "Seo_Tips": "- Todo o processamento ocorre no seu navegador para máxima privacidade\r\n- A ferramenta funciona offline após o carregamento inicial da página\r\n- Os seus arquivos nunca são enviados para nenhum servidor\r\n- Suporta arquivos PDF grandes com processamento rápido"
+}

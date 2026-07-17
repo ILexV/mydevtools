@@ -1,0 +1,15 @@
+{
+  "Title": "PDF Komprimieren",
+  "Description": "Komprimieren Sie PDF-Dateien direkt im Browser, um ihre Größe zu reduzieren – kein Upload erforderlich.",
+  "Keywords": "PDF compressor, compress PDF, reduce PDF size, PDF optimizer, shrink PDF, PDF file size reducer, online PDF compression",
+  "DropZoneTitle": "PDF-Dateien hierher ziehen",
+  "CompressButton": "PDFs komprimieren",
+  "DownloadButton": "Herunterladen",
+  "ProcessingText": "Wird komprimiert...",
+  "DoneText": "Komprimiert!",
+  "Seo_Introduction": "Das PDF-Komprimierungstool ist ein datenschutzorientiertes Online-Tool für Entwickler und Alltagsnutzer. Die gesamte Verarbeitung erfolgt lokal in Ihrem Browser mittels WebAssembly, sodass Ihre PDFs Ihr Gerät nie verlassen.",
+  "Seo_DetailedDescription": "Dieses Tool bietet eine schnelle und effiziente Komprimierung von PDF-Dateien direkt im Browser. Es basiert auf modernen Webtechnologien und nutzt in Rust kompiliertes WebAssembly, um die Dateigröße ohne Server-Upload zu reduzieren.\n\nDie Benutzeroberfläche ist auf Einfachheit und Effizienz ausgelegt. Sie können eine oder mehrere PDF-Dateien hochladen, sie mit einem Klick komprimieren und die Ergebnisse sofort herunterladen. Alle Vorgänge werden clientseitig ausgeführt, was absolute Privatsphäre für Ihre Dokumente garantiert.",
+  "Seo_Examples": "**Beispiel 1**: Komprimieren Sie einen großen PDF-Bericht vor dem E-Mail-Versand, um die Anhangsgröße zu reduzieren.\n\n**Beispiel 2**: Reduzieren Sie die Größe gescannter PDF-Dokumente für einfacheres Speichern und Teilen.\n\n**Beispiel 3**: Komprimieren Sie mehrere PDF-Dateien auf einmal, um Speicherplatz zu sparen.",
+  "Seo_HowToSteps": "### Schritt 1: PDF-Dateien hochladen\nKlicken Sie auf die Schaltfläche zum Hochladen oder ziehen Sie eine oder mehrere PDF-Dateien per Drag-and-Drop in das Tool.\n\n### Schritt 2: Komprimieren\nKlicken Sie auf die Schaltfläche 'PDFs komprimieren', um Ihre Dateien lokal im Browser zu verarbeiten.\n\n### Schritt 3: Herunterladen\nLaden Sie jede komprimierte Datei einzeln herunter, sobald die Verarbeitung abgeschlossen ist.",
+  "Seo_Tips": "- Die gesamte Verarbeitung erfolgt in Ihrem Browser für maximale Privatsphäre\n- Das Tool funktioniert nach dem ersten Laden der Seite offline\n- Ihre Dateien werden niemals auf einen Server hochgeladen\n- Unterstützt mehrere PDF-Dateien in einer einzigen Sitzung"
+}

@@ -1,0 +1,22 @@
+{
+  "Title": "Conversor de Unidades",
+  "Description": "Converta entre várias unidades de medida: comprimento, peso, temperatura e volume — todos os cálculos ocorrem no seu navegador",
+  "Keywords": "unit converter, length converter, weight converter, temperature converter, metric imperial, online unit conversion, measurement converter",
+  "CategoryLabel": "Categoria",
+  "Category_Length": "Comprimento",
+  "Category_Weight": "Peso",
+  "Category_Temperature": "Temperatura",
+  "Category_Volume": "Volume",
+  "FromLabel": "De",
+  "ToLabel": "Para",
+  "Swap": "Trocar unidades",
+  "Copied": "Copiado!",
+  "QuickConversions": "Conversões Rápidas",
+  "CommonConversions": "Conversões Comuns",
+  "Formula": "Fórmula de Conversão",
+  "Seo_Introduction": "O Conversor de Unidades é uma ferramenta online para converter entre várias unidades de medida. Todos os cálculos ocorrem localmente no seu navegador, garantindo que seus dados nunca saiam do seu dispositivo.",
+  "Seo_DetailedDescription": "Esta ferramenta suporta conversão entre unidades métricas e imperiais em quatro categorias: Comprimento (metros, quilômetros, milhas, pés, polegadas), Peso (quilogramas, gramas, libras, onças), Temperatura (Celsius, Fahrenheit, Kelvin) e Volume (litros, galões, xícaras, onças fluidas).\n\nConstruída com tecnologias web modernas, fornece resultados instantâneos sem processamento no servidor. A interface é intuitiva e suporta troca rápida entre unidades, copiar resultados e visualizar pares de conversão comuns.",
+  "Seo_Examples": "**Exemplo 1**: Converta 5 quilômetros para milhas para planejamento de viagem.\n\n**Exemplo 2**: Converta medidas de receitas de xícaras para mililitros.\n\n**Exemplo 3**: Converta temperatura corporal de Fahrenheit para Celsius.",
+  "Seo_HowToSteps": "### Passo 1: Selecione a Categoria\nEscolha o tipo de medida que deseja converter: Comprimento, Peso, Temperatura ou Volume.\n\n### Passo 2: Digite o Valor\nDigite o valor que deseja converter no campo \"De\".\n\n### Passo 3: Selecione as Unidades\nEscolha as unidades de origem e destino nos menus suspensos.\n\n### Passo 4: Veja o Resultado\nO valor convertido aparecerá automaticamente no campo \"Para\". Clique no botão de copiar para copiar o resultado.",
+  "Seo_Tips": "- Todos os cálculos ocorrem no seu navegador para máxima privacidade\n- Use o botão de troca para mudar rapidamente a direção da conversão\n- Os botões de conversão rápida mostram valores equivalentes em todas as outras unidades\n- O painel lateral de conversões comuns fornece valores de referência úteis\n- Funciona offline após o carregamento inicial da página"
+}

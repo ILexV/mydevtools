@@ -1,0 +1,21 @@
+{
+  "name": "@mydevtools/site",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "New static Astro frontend for MyDevTools (GitHub Pages).",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "check": "astro check",
+    "validate:i18n": "node scripts/validate-i18n.mjs",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^7.1.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "Images": "Изображения",
+  "ColorsAndDesign": "Цвета и дизайн",
+  "HashingAndSecurity": "Хэши и безопасность",
+  "Generators": "Генераторы",
+  "Encoding": "Кодирование",
+  "StructuredData": "Структурированные данные",
+  "TextTools": "Текстовые инструменты",
+  "Cryptography": "Криптография",
+  "DateTime": "Дата и время",
+  "JwtAndTokens": "JWT и токены",
+  "Regex": "Регулярные выражения",
+  "QrCodes": "QR-коды",
+  "PdfTools": "PDF-инструменты",
+  "Converters": "Конвертеры"
+}

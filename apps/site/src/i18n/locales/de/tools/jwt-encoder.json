@@ -1,0 +1,20 @@
+{
+  "Title": "JWT Kodierer",
+  "Description": "Erstellen und signieren Sie JSON Web Tokens (JWT) direkt in Ihrem Browser. Unterstützt HS256, HS384 und HS512 Algorithmen mit benutzerdefinierten Secret-Keys.",
+  "Keywords": "JWT encoder, JWT generator, JSON Web Token creator, sign JWT, HS256, HS384, HS512, JWT online tool",
+  "LinkToDecoder": "Müssen Sie einen Token dekodieren?",
+  "DecoderTitle": "Zum JWT Dekodierer",
+  "HeaderLabel": "Header",
+  "PayloadLabel": "Payload",
+  "AlgorithmLabel": "Algorithmus",
+  "SecretLabel": "Secret Key",
+  "SecretPlaceholder": "ihr-256-bit-secret",
+  "EncodedLabel": "Kodierter Token",
+  "Copy": "Token kopieren",
+  "Copied": "Kopiert!",
+  "Seo_Introduction": "Der JWT Kodierer ist ein sicheres, clientseitiges Tool zum Generieren von JSON Web Tokens. Es ermöglicht Entwicklern, signierte Tokens für das Testen von Authentifizierungsabläufen, das Debuggen von API-Integrationen oder das Erlernen der JWT-Struktur zu erstellen.",
+  "Seo_DetailedDescription": "JSON Web Tokens (JWT) sind eine offene, industrielle Standardmethode RFC 7519 zur sicheren Darstellung von Claims zwischen zwei Parteien. Mit diesem Tool können Sie:\n\n- **Header & Payload definieren**: Passen Sie die JSON-Daten für beide Teile an.\n- **Tokens signieren**: Wenden Sie HMAC SHA-Signaturen (HS256, HS384, HS512) mit Ihrem eigenen Secret an.\n- **Echtzeit-Generierung**: Der Token wird sofort aktualisiert, während Sie tippen.\n- **Datenschutz**: Die gesamte Signierung erfolgt in Ihrem Browser über WebAssembly/JS. Ihre Secrets verlassen niemals Ihr Gerät.",
+  "Seo_Examples": "**Beispiel 1: Basis-User-Token**\nPayload: `{\"sub\": \"123\", \"name\": \"Alice\", \"admin\": true}`\nSecret: `mysecret`\n\n**Beispiel 2: Ablaufender Token**\nPayload: `{\"exp\": 1735689600}`\n(Setzt Ablaufzeit)",
+  "Seo_HowToSteps": "1. Bearbeiten Sie den **Header** JSON (die Standardwerte sind meist in Ordnung).\n2. Ändern Sie den **Payload** JSON mit Ihren Claims (Benutzer-ID, Rollen usw.).\n3. Wählen Sie einen Signier-**Algorithmus** (z.B. HS256).\n4. Geben Sie einen **Secret Key** ein, um den Token zu signieren.\n5. Kopieren Sie den generierten **kodierten Token**.",
+  "Seo_Tips": "- Verwenden Sie einen starken, langen Secret-Key für Produktions-Tokens.\n- Stellen Sie sicher, dass Ihr JSON gültig ist; das Tool warnt Sie, wenn die Syntax falsch ist.\n- Geben Sie niemals sensible Daten wie Passwörter in den Payload ein, da dieser von jedem dekodiert werden kann."
+}

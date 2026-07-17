@@ -1,0 +1,20 @@
+{
+  "Title": "Codificador JWT",
+  "Description": "Crie e assine Tokens Web JSON (JWT) diretamente no seu navegador. Suporta algoritmos HS256, HS384 e HS512 com chaves secretas personalizadas.",
+  "Keywords": "JWT encoder, JWT generator, JSON Web Token creator, sign JWT, HS256, HS384, HS512, JWT online tool",
+  "LinkToDecoder": "Precisa decodificar um token?",
+  "DecoderTitle": "Ir para o Decodificador JWT",
+  "HeaderLabel": "Cabeçalho",
+  "PayloadLabel": "Payload",
+  "AlgorithmLabel": "Algoritmo",
+  "SecretLabel": "Chave Secreta",
+  "SecretPlaceholder": "sua-chave-secreta-de-256-bits",
+  "EncodedLabel": "Token Codificado",
+  "Copy": "Copiar Token",
+  "Copied": "Copiado!",
+  "Seo_Introduction": "O Codificador JWT é uma ferramenta segura do lado do cliente para gerar Tokens Web JSON. Permite que desenvolvedores criem tokens assinados para testar fluxos de autenticação, depurar integrações de API ou aprender sobre a estrutura JWT.",
+  "Seo_DetailedDescription": "Tokens Web JSON (JWT) são um método padrão aberto da indústria RFC 7519 para representar declarações com segurança entre duas partes. Esta ferramenta permite que você:\n\n- **Defina Cabeçalho e Payload**: Personalize os dados JSON para ambas as partes.\n- **Assine Tokens**: Aplique assinaturas HMAC SHA (HS256, HS384, HS512) usando seu próprio segredo.\n- **Geração em Tempo Real**: O token é atualizado instantaneamente enquanto você digita.\n- **Privacidade**: Toda a assinatura acontece no seu navegador via WebAssembly/JS. Seus segredos nunca saem do seu dispositivo.",
+  "Seo_Examples": "**Exemplo 1: Token de Usuário Básico**\nPayload: `{\"sub\": \"123\", \"name\": \"Alice\", \"admin\": true}`\nSegredo: `meusegredo`\n\n**Exemplo 2: Token com Expiração**\nPayload: `{\"exp\": 1735689600}`\n(Define tempo de expiração)",
+  "Seo_HowToSteps": "1. Edite o JSON do **Cabeçalho** (geralmente os padrões estão bem).\n2. Modifique o JSON do **Payload** com suas declarações (ID do usuário, papéis, etc.).\n3. Selecione um **Algoritmo** de assinatura (ex: HS256).\n4. Digite uma **Chave Secreta** para assinar o token.\n5. Copie o **Token Codificado** gerado.",
+  "Seo_Tips": "- Use uma chave secreta forte e longa para tokens de produção.\n- Certifique-se de que seu JSON é válido; a ferramenta avisará se a sintaxe estiver incorreta.\n- Nunca coloque dados sensíveis como senhas no payload, pois ele pode ser decodificado por qualquer pessoa."
+}

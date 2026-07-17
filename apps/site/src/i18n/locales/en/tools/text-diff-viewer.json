@@ -1,0 +1,21 @@
+{
+  "Title": "Text Diff Viewer",
+  "Description": "Compare two text files or code snippets side-by-side with a visual diff viewer, similar to Git diff. Highlight changes, additions, and deletions in a readable format.",
+  "Keywords": "text diff, diff viewer, compare text, file diff, side by side diff, code diff, text comparison tool, diff checker",
+  "OriginalLabel": "Original Text",
+  "OriginalPlaceholder": "Paste or type original text here, or upload a file below...",
+  "ModifiedLabel": "Modified Text",
+  "ModifiedPlaceholder": "Paste or type modified text here, or upload a file below...",
+  "CompareButton": "Compare",
+  "ClearButton": "Clear",
+  "LineByLine": "Line by Line",
+  "SideBySide": "Side by Side",
+  "ErrorMessage": "Please enter text in both fields to compare.",
+  "ChooseOriginalFile": "\uD83D\uDCC1 Choose original file",
+  "ChooseModifiedFile": "\uD83D\uDCC1 Choose modified file",
+  "Seo_Introduction": "The Text Diff Viewer is a privacy-first online tool designed for developers. All processing happens locally in your browser using WebAssembly, ensuring your data never leaves your device.",
+  "Seo_DetailedDescription": "This tool provides comprehensive functionality for text diff viewer operations. Built with modern web technologies and powered by Rust-compiled WebAssembly, it delivers native-like performance directly in your browser.\n\nThe interface is designed for efficiency and ease of use, with support for both text input and file processing. All operations are performed client-side, guaranteeing complete privacy and security for your sensitive data.",
+  "Seo_Examples": "**Example 1**: Use the Text Diff Viewer for quick conversions and transformations in your development workflow.\n\n**Example 2**: Process files directly without uploading them to any server, maintaining complete privacy.\n\n**Example 3**: Integrate the tool into your daily development tasks for improved productivity.",
+  "Seo_HowToSteps": "### Step 1: Prepare Your Input\nEnter your data in the input field or upload a file from your device.\n\n### Step 2: Configure Options\nAdjust the tool settings according to your needs.\n\n### Step 3: Process and Copy Results\nClick the action button to process your input and copy the results to your clipboard.",
+  "Seo_Tips": "- All processing happens in your browser for maximum privacy\n- The tool works offline after initial page load\n- Your preferences are saved locally in your browser\n- Large files are supported with progress tracking"
+}

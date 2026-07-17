@@ -1,0 +1,23 @@
+{
+  "AlternatingCase": "Alternating Case",
+  "CamelCase": "Camel Case",
+  "ClearButton": "Clear",
+  "Copied": "Copied!",
+  "CopyButton": "Copy",
+  "Description": "Convert text between different letter cases: upper, lower, title, camel, snake, and more.",
+  "InputPlaceholder": "Type or paste your text here...",
+  "InverseCase": "Inverse Case",
+  "KebabCase": "Kebab Case",
+  "LowerCase": "lower case",
+  "SentenceCase": "Sentence case",
+  "SnakeCase": "Snake Case",
+  "Title": "Text Case Converter",
+  "TitleCase": "Title Case",
+  "UpperCase": "UPPER CASE",
+  "Keywords": "text case converter, camelCase, snake_case, UPPER CASE, lower case, Title Case, kebab-case, sentence case, text transform",
+  "Seo_Introduction": "The Text Case Converter is a privacy-first online tool designed for developers. All processing happens locally in your browser using WebAssembly, ensuring your data never leaves your device.",
+  "Seo_DetailedDescription": "This tool provides comprehensive functionality for text case converter operations. Built with modern web technologies and powered by Rust-compiled WebAssembly, it delivers native-like performance directly in your browser.\n\nThe interface is designed for efficiency and ease of use, with support for both text input and file processing. All operations are performed client-side, guaranteeing complete privacy and security for your sensitive data.",
+  "Seo_Examples": "**Example 1**: Use the Text Case Converter for quick conversions and transformations in your development workflow.\n\n**Example 2**: Process files directly without uploading them to any server, maintaining complete privacy.\n\n**Example 3**: Integrate the tool into your daily development tasks for improved productivity.",
+  "Seo_HowToSteps": "### Step 1: Prepare Your Input\nEnter your data in the input field or upload a file from your device.\n\n### Step 2: Configure Options\nAdjust the tool settings according to your needs.\n\n### Step 3: Process and Copy Results\nClick the action button to process your input and copy the results to your clipboard.",
+  "Seo_Tips": "- All processing happens in your browser for maximum privacy\n- The tool works offline after initial page load\n- Your preferences are saved locally in your browser\n- Large files are supported with progress tracking"
+}

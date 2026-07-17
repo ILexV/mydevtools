@@ -1,0 +1,107 @@
+---
+/**
+ * `/{lang}/` — localized home.
+ * Static path generated for every registered locale. The catalog, search and
+ * category browsing land here in Stage 8; for now it renders the hero shell so
+ * the route + localization pipeline is verifiable.
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { LOCALES, type LocaleCode } from "@/registry/locales";
+import { t } from "@/i18n/messages";
+
+export function getStaticPaths() {
+  return LOCALES.map((l) => ({ params: { lang: l.code } }));
+}
+
+interface Params {
+  lang: LocaleCode;
+}
+
+const { lang } = Astro.params as Params;
+const heroTitle = t(lang, "home", "Title");
+const heroSubtitle = t(lang, "home", "Subtitle");
+const heroCta = t(lang, "home", "CTA_Start");
+const privacyHint = t(lang, "home", "NoDataSent");
+const siteName = t(lang, "common", "AppName");
+---
+
+<BaseLayout locale={lang} title={siteName} description={heroSubtitle}>
+  <main class="home">
+    <section class="hero">
+      <span class="privacy-badge">{t(lang, "home", "NoDataSent")}</span>
+      <h1>{heroTitle}</h1>
+      <p class="hero-subtitle">{heroSubtitle}</p>
+      <p class="privacy-hint">{privacyHint}</p>
+      <a class="hero-cta" href="#catalog">{heroCta}</a>
+    </section>
+    <section id="catalog" class="catalog-placeholder">
+      <p>{t(lang, "home", "Category_All")}</p>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .home {
+    max-width: var(--mdt-content-max);
+    margin: 0 auto;
+    padding: clamp(2rem, 6vw, 5rem) 1.25rem;
+  }
+  .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .privacy-badge {
+    display: inline-block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    background: var(--mdt-surface-muted);
+    border: 1px solid var(--mdt-border);
+    color: var(--mdt-success);
+  }
+  h1 {
+    font-size: clamp(1.9rem, 4.5vw, 3.25rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    max-width: 18ch;
+  }
+  .hero-subtitle {
+    color: var(--mdt-text-muted);
+    font-size: 1.05rem;
+    max-width: 52ch;
+  }
+  .privacy-hint {
+    font-size: 0.9rem;
+    color: var(--mdt-text-muted);
+  }
+  .hero-cta {
+    margin-top: 0.5rem;
+    padding: 0.7rem 1.2rem;
+    border-radius: var(--mdt-radius);
+    background: var(--mdt-accent);
+    color: var(--mdt-accent-contrast);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .hero-cta:hover {
+    filter: brightness(1.05);
+  }
+  .catalog-placeholder {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--mdt-border);
+    color: var(--mdt-text-muted);
+  }
+  nav.lang {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+</style>

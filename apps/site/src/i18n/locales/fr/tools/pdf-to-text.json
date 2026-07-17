@@ -1,0 +1,12 @@
+{
+  "Title": "PDF en Texte",
+  "Description": "Extrayez facilement tout le texte des documents PDF dans votre navigateur.",
+  "Keywords": "PDF to text, extract text from PDF, PDF text extractor, convert PDF to text, PDF reader online, PDF content extractor",
+  "DropZoneTitle": "Télécharger PDF",
+  "ExtractButton": "Extraire le texte",
+  "Seo_Introduction": "Le convertisseur PDF en Texte est un outil respectueux de la vie privée qui vous permet d'extraire le contenu textuel de n'importe quel fichier PDF directement dans votre navigateur.",
+  "Seo_DetailedDescription": "Cet outil utilise la technologie WebAssembly pour analyser les structures PDF et extraire le texte sans télécharger vos fichiers sur un serveur. Il prend en charge les documents PDF textuels standard et gère divers encodages de caractères pour garantir une extraction précise.\n\nVous pouvez télécharger plusieurs fichiers PDF et les traiter par lots. Chaque fichier sera converti en un fichier texte brut (.txt) que vous pourrez télécharger et utiliser selon vos besoins.",
+  "Seo_Examples": "**Exemple 1** : Extraire le contenu d'un article de recherche au format PDF pour l'analyser dans un éditeur de texte.\n\n**Exemple 2** : Obtenir rapidement le texte d'une facture ou d'un reçu au format PDF.\n\n**Exemple 3** : Convertir un volumineux livre électronique PDF en un simple fichier texte pour une lecture facilitée sur des appareils à faible puissance.",
+  "Seo_HowToSteps": "### Étape 1 : Télécharger des fichiers PDF\nGlissez-déposez vos documents PDF dans l'outil ou cliquez sur la zone de téléchargement pour les sélectionner.\n\n### Étape 2 : Lancer l'extraction\nCliquez sur le bouton « Extraire le texte » pour commencer le traitement de tous les fichiers chargés.\n\n### Étape 3 : Télécharger les fichiers texte\nUne fois l'extraction terminée, cliquez sur l'icône « Télécharger » à côté de chaque fichier pour enregistrer le document .txt résultant.",
+  "Seo_Tips": "- Fonctionne entièrement dans le navigateur pour une confidentialité maximale\n- Traitement rapide et efficace utilisant Rust/WASM\n- Prend en charge le traitement par lots de plusieurs fichiers\n- Aucune inscription ni téléchargement sur serveur requis"
+}

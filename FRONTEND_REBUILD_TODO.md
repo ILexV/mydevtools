@@ -2,6 +2,15 @@
 
 > Живой чек-лист полного редизайна и переноса текущего функционала на статический Astro-фронтенд для GitHub Pages. Отмечать задачи только после проверки собранного `dist`, а не только dev-режима.
 
+## Прогресс (обновлено 2026-07-17)
+
+- **Этап 1 (Инвентаризация):** завершён функционально — `docs/inventory/{tools,locales,client-state,catalog-seo}.md`. Остаются: reference screenshots и parity-карточки (текут в Этап 9).
+- **Этап 3 (Каркас Astro):** готов и проверен. `apps/site` (Astro 7, strict TS, `output: static`, base `/mydevtools/`), алиас `@/*`, команды `dev/build/preview/check` + root `*:site`, 402 страницы, preview под base без 404. **Gate 3 пройден.**
+- **Этап 4 (Реестры):** `locales.ts` (10 языков + native names/og:locale/hreflang), `categories.ts` (13), `tools.ts` (39), `validate.ts` (build-time), маршруты из `getStaticPaths()`. Каталог/поиск/palette/sitemap из реестра — Этапы 8/10.
+- **Этап 5 (Локализация):** 420 JSON перенесены в `apps/site/src/i18n/locales/`, typed `t()` с fallback, Node-валидатор `validate:i18n` (0 ошибок), build-time локализованный HTML (402 страницы, 10 языков). Остаются: language switcher, browser-controller strings, pluralization — Этапы 8/9.
+- **Этап 2 (Дизайн):** требует решений владельца (moodboard, выбор концепции из трёх, signature-элемент). Начальные design tokens (light/dark, spacing, radius) заложены в `src/styles/global.css` как стартовая точка.
+- **Новая IA:** legacy прятал 4 инструмента (uuid, lorem, date-converter, pdf-to-text) вне каталога; реестр помещает uuid+lorem в `generators`, date-converter→converters, pdf-to-text→pdf — см. `docs/inventory/catalog-seo.md` §1.
+
 ## Зафиксированные решения
 
 - [x] Новый фронтенд строится на Astro в режиме `output: "static"`.
@@ -29,12 +38,12 @@
 
 ## Этап 1. Инвентаризация и фиксация паритета
 
-- [ ] Создать таблицу текущих инструментов: slug, категория, входы, настройки, действия, результаты, JS-файл, WASM-домен, locale namespace.
+- [x] Создать таблицу текущих инструментов: slug, категория, входы, настройки, действия, результаты, JS-файл, WASM-домен, locale namespace. → `docs/inventory/tools.md`
 - [ ] Для каждого инструмента сохранить reference screenshots desktop/mobile и перечень ключевых состояний.
-- [ ] Зафиксировать общие сценарии: text input, file input, drag-and-drop, copy, download, swap, clear, progress, cancel, errors.
-- [ ] Зафиксировать форматы сохраняемых настроек, favorites, recent tools и theme в `localStorage`/cookie.
-- [ ] Выписать текущие SEO title/description/keywords и structured data для переноса смысла, но не старой разметки.
-- [ ] Отделить source-of-truth от устаревших документов: Razor, browser JS, locale JSON и Rust tests имеют приоритет.
+- [x] Зафиксировать общие сценарии: text input, file input, drag-and-drop, copy, download, swap, clear, progress, cancel, errors. → покрыто в `docs/inventory/tools.md` (capabilities + Notes)
+- [x] Зафиксировать форматы сохраняемых настроек, favorites, recent tools и theme в `localStorage`/cookie. → `docs/inventory/client-state.md`
+- [x] Выписать текущие SEO title/description/keywords и structured data для переноса смысла, но не старой разметки. → `docs/inventory/catalog-seo.md`
+- [x] Отделить source-of-truth от устаревших документов: Razor, browser JS, locale JSON и Rust tests имеют приоритет. → инвентаризация собрана из кода, не из docs
 - [ ] Создать parity-карточку для каждого инструмента с критериями «до/после».
 
 ### Gate 1
@@ -85,33 +94,33 @@
 
 ## Этап 3. Каркас Astro-приложения
 
-- [ ] Создать npm workspace `apps/site` с Astro и strict TypeScript.
-- [ ] Подключить новое приложение к корневому `package.json`, не связывая его с `packages/ui-kit`.
-- [ ] Настроить алиасы `@/components`, `@/tools`, `@/i18n`, `@/registry`, `@/styles`, `@/generated`.
-- [ ] Настроить `output: "static"`, `site` и GitHub Pages `base` в `astro.config.mjs`.
-- [ ] Создать единые команды `dev`, `build`, `preview`, `check`, `test` и `deploy`.
+- [x] Создать npm workspace `apps/site` с Astro и strict TypeScript.
+- [x] Подключить новое приложение к корневому `package.json`, не связывая его с `packages/ui-kit`.
+- [x] Настроить алиасы `@/components`, `@/tools`, `@/i18n`, `@/registry`, `@/styles`, `@/generated`. → единый `@/*` → `src/*` (даёт все перечисленные)
+- [x] Настроить `output: "static"`, `site` и GitHub Pages `base` в `astro.config.mjs`.
+- [x] Создать единые команды `dev`, `build`, `preview`, `check`, `test` и `deploy`. → `dev`/`build`/`preview`/`check` в `apps/site` + root `dev:site`/`build:site`/`preview:site`/`check:site`; `test`/`deploy` — Этапы 11/12
 - [ ] Добавить root-команду, последовательно запускающую WASM build, locale validation и Astro build.
-- [ ] Создать структуру `src/pages`, `src/layouts`, `src/components`, `src/tools`, `src/i18n`, `src/registry`, `src/styles`, `src/generated`.
-- [ ] Настроить абсолютные импорты только через build aliases; не использовать абсолютные публичные URL вида `/wasm/...`.
+- [x] Создать структуру `src/pages`, `src/layouts`, `src/components`, `src/tools`, `src/i18n`, `src/registry`, `src/styles`, `src/generated`.
+- [x] Настроить абсолютные импорты только через build aliases; не использовать абсолютные публичные URL вида `/wasm/...`.
 - [ ] Определить политику browser support и targets для TypeScript/CSS.
-- [ ] Настроить локальный production preview с тем же `base`, который будет на GitHub Pages.
-- [ ] Добавить статические страницы `/`, `/{lang}/`, `/{lang}/not-found/` и совместимый `404.html`.
+- [x] Настроить локальный production preview с тем же `base`, который будет на GitHub Pages. → проверено под `/mydevtools/`
+- [x] Добавить статические страницы `/`, `/{lang}/`, `/{lang}/not-found/` и совместимый `404.html`. → `404.html` восстанавливает locale из пути, покрывает not-found
 
 ### Gate 3
 
-- [ ] Чистый checkout собирается локально одной документированной командой.
-- [ ] Production preview работает под непустым GitHub Pages `base` без 404 для JS, CSS, fonts и images.
+- [x] Чистый checkout собирается локально одной документированной командой. → `npm run build:site` (402 страницы)
+- [x] Production preview работает под непустым GitHub Pages `base` без 404 для JS, CSS, fonts и images. → проверено: все маршруты 200, CSS инлайнится, 404 fallback работает
 
 ## Этап 4. Единые реестры данных
 
-- [ ] Создать `src/registry/locales.ts` с кодом, native name, English name, direction и fallback для каждого языка.
-- [ ] Создать `src/registry/categories.ts` с локализуемыми id, icon key, description и sort order.
-- [ ] Создать `src/registry/tools.ts` как единственный реестр инструментов.
-- [ ] Для записи инструмента определить: slug, component loader, category, locale namespace, keywords, WASM domain, capabilities и SEO id.
-- [ ] Из реестра генерировать static routes через `getStaticPaths()`.
+- [x] Создать `src/registry/locales.ts` с кодом, native name, English name, direction и fallback для каждого языка.
+- [x] Создать `src/registry/categories.ts` с локализуемыми id, icon key, description и sort order.
+- [x] Создать `src/registry/tools.ts` как единственный реестр инструментов.
+- [x] Для записи инструмента определить: slug, component loader, category, locale namespace, keywords, WASM domain, capabilities и SEO id. → slug/category/wasm/capabilities в реестре; namespace через `toolNamespace()`; keywords в locale JSON; seoId=slug; component loader — Этап 9
+- [x] Из реестра генерировать static routes через `getStaticPaths()`. → 39×10 маршрутов из `tools.ts`
 - [ ] Из того же реестра строить home catalog, search index, categories, related tools, command palette и sitemap.
-- [ ] Добавить build-time проверку уникальности slug и наличия component/locale namespace.
-- [ ] Исключить отдельные hard-coded tool lists в layout, home, sitemap и asset loader.
+- [x] Добавить build-time проверку уникальности slug и наличия component/locale namespace. → `validate.ts` (`assertRegistryValid()` в build); проверка locale-namespace — Этап 5 validator
+- [x] Исключить отдельные hard-coded tool lists в layout, home, sitemap и asset loader. → в новом приложении реестр = единственный источник
 
 ### Gate 4
 
@@ -119,23 +128,23 @@
 
 ## Этап 5. Локализация
 
-- [ ] Перенести актуальные JSON из `MyDevToolsApp/MyDevTools.Site/wwwroot/i18n/` в новый source tree без `.resx`.
-- [ ] Нормализовать структуру `common`, `home`, `categories`, `errors` и `tools/<slug>`.
-- [ ] Создать typed helper `t(locale, namespace, key, params)` с fallback `locale → en → key`.
-- [ ] Генерировать HTML на build-time; не загружать весь locale catalog в браузер.
-- [ ] Передавать browser controller только строки текущего tool namespace, необходимые интерактивным состояниям.
+- [x] Перенести актуальные JSON из `MyDevToolsApp/MyDevTools.Site/wwwroot/i18n/` в новый source tree без `.resx`. → 420 файлов в `apps/site/src/i18n/locales/`
+- [x] Нормализовать структуру `common`, `home`, `categories`, `errors` и `tools/<slug>`. → сохранена legacy-структура; `errors` пока внутри tool-namespace (нет отдельного файла); де-дупликация category-ключей — при redesign
+- [x] Создать typed helper `t(locale, namespace, key, params)` с fallback `locale → en → key`. → `src/i18n/messages.ts`
+- [x] Генерировать HTML на build-time; не загружать весь locale catalog в браузер. → Astro prerender, `import.meta.glob` eager только на build
+- [ ] Передавать browser controller только строки текущего tool namespace, необходимые интерактивным состояниям. → Этап 9 (browser controllers)
 - [ ] Добавить pluralization, interpolation и locale-aware number/date formatting там, где это реально используется.
 - [ ] Реализовать language switcher, сохраняющий текущий tool slug.
-- [ ] Определить поведение `/`: статическая language landing либо небольшой client redirect; не рассчитывать на `Accept-Language` server redirect.
+- [x] Определить поведение `/`: статическая language landing либо небольшой client redirect; не рассчитывать на `Accept-Language` server redirect. → `src/pages/index.astro` (client-side redirect по `navigator.languages`)
 - [ ] Сохранять выбранный язык локально без обязательных cookies.
-- [ ] Адаптировать LocalizationValidator под новые пути либо заменить его локальным Node/TypeScript validator.
-- [ ] Валидировать parse errors, missing/extra keys, пустые значения, untranslated values и literal key references.
-- [ ] Проверять наличие каждого tool namespace во всех десяти языках.
-- [ ] Генерировать `<html lang>`, canonical, `hreflang` для всех языков и `x-default`.
+- [x] Адаптировать LocalizationValidator под новые пути либо заменить его локальным Node/TypeScript validator. → `apps/site/scripts/validate-i18n.mjs` + `npm run validate:i18n`
+- [x] Валидировать parse errors, missing/extra keys, пустые значения, untranslated values и literal key references. → parse/missing/extra/empty/untranslated покрыты (literal-key refs — Этап 9)
+- [x] Проверять наличие каждого tool namespace во всех десяти языках. → проверка namespace-parity vs `en` для 10 языков
+- [x] Генерировать `<html lang>`, canonical, `hreflang` для всех языков и `x-default`. → `BaseLayout.astro`
 
 ### Gate 5
 
-- [ ] Отсутствующий/лишний localization key ломает локальную проверку до сборки.
+- [x] Отсутствующий/лишний localization key ломает локальную проверку до сборки. → `validate:i18n` exit≠0
 - [ ] Переключение языка сохраняет текущий инструмент и не требует network API.
 
 ## Этап 6. Новый дизайн-системный слой

@@ -1,0 +1,122 @@
+/* ============================================================================
+   global.css — design-token foundation + base layer.
+   Layers (Stage 6 will expand): reset → tokens → base → (components, tools later).
+   ========================================================================== */
+
+@layer reset, tokens, base, components, tools;
+
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  * {
+    margin: 0;
+  }
+  html,
+  body {
+    height: 100%;
+  }
+  body {
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  img,
+  picture,
+  svg,
+  video {
+    display: block;
+    max-width: 100%;
+  }
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+}
+
+@layer tokens {
+  :root,
+  :root[data-theme="light"] {
+    /* surfaces */
+    --mdt-surface: #ffffff;
+    --mdt-surface-muted: #f6f7f9;
+    --mdt-surface-raised: #ffffff;
+    /* text */
+    --mdt-text: #11151c;
+    --mdt-text-muted: #5a6573;
+    /* borders / lines */
+    --mdt-border: #e3e6eb;
+    /* accents */
+    --mdt-accent: #2f6df0;
+    --mdt-accent-contrast: #ffffff;
+    /* status */
+    --mdt-success: #1a9d58;
+    --mdt-warning: #c47700;
+    --mdt-danger: #d93b3b;
+    --mdt-focus-ring: #2f6df0;
+    /* typography */
+    --mdt-font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mdt-font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    /* scale */
+    --mdt-radius: 10px;
+    --mdt-radius-sm: 6px;
+    --mdt-space: 4px;
+    --mdt-content-max: 72rem;
+  }
+
+  :root[data-theme="dark"] {
+    --mdt-surface: #0e1116;
+    --mdt-surface-muted: #161a21;
+    --mdt-surface-raised: #1b2029;
+    --mdt-text: #e7ebf1;
+    --mdt-text-muted: #9aa4b2;
+    --mdt-border: #283039;
+    --mdt-accent: #6f9dff;
+    --mdt-accent-contrast: #0b1322;
+    --mdt-success: #3ccb83;
+    --mdt-warning: #e0a93a;
+    --mdt-danger: #ff6b6b;
+    --mdt-focus-ring: #6f9dff;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+      /* Defensive: theme script always sets data-theme, but keep a sane default. */
+      color-scheme: dark;
+    }
+  }
+}
+
+@layer base {
+  body {
+    background: var(--mdt-surface);
+    color: var(--mdt-text);
+    font-family: var(--mdt-font-sans);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--mdt-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--mdt-radius-sm);
+  }
+
+  a {
+    color: var(--mdt-accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

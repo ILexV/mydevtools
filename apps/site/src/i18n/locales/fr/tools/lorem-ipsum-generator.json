@@ -1,0 +1,22 @@
+{
+  "Title": "Générateur Lorem Ipsum",
+  "Description": "Générez du texte de remplissage pour vos maquettes et designs — entièrement dans votre navigateur.",
+  "Keywords": "lorem ipsum generator, placeholder text, dummy text generator, lorem ipsum online, filler text, fake text generator",
+  "GenerateTypeLabel": "Générer par",
+  "Paragraphs": "Paragraphes",
+  "Sentences": "Phrases",
+  "Words": "Mots",
+  "CountLabel": "Nombre",
+  "StartWithClassic": "Commencer par \"Lorem ipsum dolor sit amet...\"",
+  "WrapParagraphs": "Entourer les paragraphes de balises <p>",
+  "GenerateButton": "Générer",
+  "OutputLabel": "Texte Généré",
+  "CopyButton": "Copier",
+  "DownloadButton": "Télécharger en TXT",
+  "Copied": "Copié !",
+  "Seo_Introduction": "L'outil Lorem Ipsum Generator est un outil en ligne axé sur la confidentialité conçu pour les développeurs. Tout le traitement se fait localement dans votre navigateur en utilisant WebAssembly, garantissant que vos données ne quittent jamais votre appareil.",
+  "Seo_DetailedDescription": "Cet outil fournit des fonctionnalités complètes pour les opérations lorem ipsum generator. Construit avec des technologies web modernes et alimenté par WebAssembly compilé depuis Rust, il offre des performances natives directement dans votre navigateur.\n\nL'interface est conçue pour l'efficacité et la facilité d'utilisation, avec prise en charge de la saisie de texte et du traitement de fichiers. Toutes les opérations sont effectuées côté client, garantissant une confidentialité et une sécurité complètes pour vos données sensibles.",
+  "Seo_Examples": "**Exemple 1** : Utilisez Lorem Ipsum Generator pour des conversions rapides dans votre flux de travail de développement.\n\n**Exemple 2** : Traitez les fichiers directement sans les télécharger sur un serveur, en maintenant une confidentialité complète.\n\n**Exemple 3** : Intégrez l'outil dans vos tâches de développement quotidiennes pour améliorer la productivité.",
+  "Seo_HowToSteps": "### Étape 1 : Préparez votre entrée\nEntrez vos données dans le champ de saisie ou téléchargez un fichier depuis votre appareil.\n\n### Étape 2 : Configurez les options\nAjustez les paramètres de l'outil selon vos besoins.\n\n### Étape 3 : Traitez et copiez les résultats\nCliquez sur le bouton d'action pour traiter votre entrée et copiez les résultats dans le presse-papiers.",
+  "Seo_Tips": "- Tout le traitement se fait dans votre navigateur pour une confidentialité maximale\n- L'outil fonctionne hors ligne après le chargement initial de la page\n- Vos préférences sont enregistrées localement dans votre navigateur\n- Les fichiers volumineux sont pris en charge avec suivi de la progression"
+}

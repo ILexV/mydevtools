@@ -1,0 +1,20 @@
+{
+  "Title": "JWT 编码器",
+  "Description": "直接在浏览器中创建和签署 JSON Web 令牌 (JWT)。支持 HS256、HS384 和 HS512 算法，可使用自定义密钥。",
+  "Keywords": "JWT encoder, JWT generator, JSON Web Token creator, sign JWT, HS256, HS384, HS512, JWT online tool",
+  "LinkToDecoder": "需要解码令牌？",
+  "DecoderTitle": "前往 JWT 解码器",
+  "HeaderLabel": "头部",
+  "PayloadLabel": "载荷",
+  "AlgorithmLabel": "算法",
+  "SecretLabel": "密钥",
+  "SecretPlaceholder": "您的256位密钥",
+  "EncodedLabel": "已编码令牌",
+  "Copy": "复制令牌",
+  "Copied": "已复制！",
+  "Seo_Introduction": "JWT 编码器是一个安全的客户端工具，用于生成 JSON Web 令牌。它允许开发人员创建签名令牌以测试身份验证流程、调试 API 集成或了解 JWT 结构。",
+  "Seo_DetailedDescription": "JSON Web 令牌 (JWT) 是一种开放的行业标准 RFC 7519 方法，用于在双方之间安全地表示声明。此工具允许您：\n\n- **定义头部和载荷**：为两部分自定义 JSON 数据。\n- **签署令牌**：使用您自己的密钥应用 HMAC SHA 签名（HS256、HS384、HS512）。\n- **实时生成**：令牌会随着您输入而即时更新。\n- **隐私**：所有签名都在浏览器中通过 WebAssembly/JS 进行。您的密钥永远不会离开您的设备。",
+  "Seo_Examples": "**示例 1：基本用户令牌**\n载荷：`{\"sub\": \"123\", \"name\": \"Alice\", \"admin\": true}`\n密钥：`mysecret`\n\n**示例 2：过期令牌**\n载荷：`{\"exp\": 1735689600}`\n（设置过期时间）",
+  "Seo_HowToSteps": "1. 编辑 **头部** JSON（通常默认设置即可）。\n2. 使用您的声明（用户 ID、角色等）修改 **载荷** JSON。\n3. 选择签名 **算法**（例如 HS256）。\n4. 输入 **密钥** 以签署令牌。\n5. 复制生成的 **已编码令牌**。",
+  "Seo_Tips": "- 为生产令牌使用强且长的密钥。\n- 确保您的 JSON 有效；如果语法不正确，工具会警告您。\n- 切勿在载荷中放入敏感数据（如密码），因为它可以被任何人解码。"
+}

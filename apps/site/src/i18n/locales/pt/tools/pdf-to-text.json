@@ -1,0 +1,12 @@
+{
+  "Title": "PDF para Texto",
+  "Description": "Extraia todo o texto de documentos PDF facilmente no seu navegador.",
+  "Keywords": "PDF to text, extract text from PDF, PDF text extractor, convert PDF to text, PDF reader online, PDF content extractor",
+  "DropZoneTitle": "Enviar PDF",
+  "ExtractButton": "Extrair Texto",
+  "Seo_Introduction": "O conversor de PDF para Texto é uma ferramenta que prioriza a privacidade e permite extrair conteúdo de texto de qualquer arquivo PDF diretamente no seu navegador.",
+  "Seo_DetailedDescription": "Esta ferramenta utiliza a tecnologia WebAssembly para analisar estruturas de PDF e extrair texto sem enviar seus arquivos para nenhum servidor. Suporta documentos PDF padrão baseados em texto e lida com várias codificações de caracteres para garantir uma extração precisa.\n\nVocê pode enviar vários arquivos PDF e processá-los em lote. Cada arquivo será convertido em um arquivo de texto simples (.txt) que você pode baixar e usar para suas necessidades.",
+  "Seo_Examples": "**Exemplo 1**: Extrair conteúdo de um artigo de pesquisa em PDF para análise em um editor de texto.\n\n**Exemplo 2**: Obter rapidamente o texto de uma fatura ou recibo em PDF.\n\n**Exemplo 3**: Converter um grande ebook em PDF num ficheiro de texto simples para facilitar a leitura em dispositivos de baixo consumo.",
+  "Seo_HowToSteps": "### Passo 1: Carregar Arquivos PDF\nArraste e solte seus documentos PDF na ferramenta ou clique na área de upload para selecioná-los.\n\n### Passo 2: Iniciar Extração\nClique no botão \"Extrair Texto\" para iniciar o processamento de todos os arquivos carregados.\n\n### Passo 3: Baixar Arquivos de Texto\nAssim que a extração estiver concluída, clique no ícone \"Baixar\" ao lado de cada arquivo para salvar o documento .txt resultante.",
+  "Seo_Tips": "- Funciona completamente no navegador para máxima privacidade\n- Processamento rápido e eficiente usando Rust/WASM\n- Suporta processamento em lote de vários arquivos\n- Não é necessário registro ou upload para o servidor"
+}

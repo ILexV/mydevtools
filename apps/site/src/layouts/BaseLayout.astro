@@ -1,0 +1,59 @@
+---
+import type { LocaleCode, LocaleMeta } from "@/registry/locales";
+import { LOCALES } from "@/registry/locales";
+import { absoluteUrl, localizedPath } from "@/lib/url";
+import { t } from "@/i18n/messages";
+import "@/styles/global.css";
+
+interface Props {
+  locale: LocaleCode;
+  path?: string;
+  title: string;
+  description: string;
+  keywords?: string[];
+}
+
+const { locale, path = "", title, description, keywords = [] } = Astro.props as Props;
+const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
+const canonical = absoluteUrl(localizedPath(locale, path).replace(/\/+$/, ""));
+const siteName = t(locale, "common", "AppName");
+const fullTitle = title === siteName ? title : `${title} — ${siteName}`;
+---
+
+<!doctype html>
+<html lang={meta.bcp47} dir={meta.dir}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    {keywords.length > 0 && <meta name="keywords" content={keywords.join(", ")} />}
+    <link rel="canonical" href={canonical} />
+
+    {LOCALES.map((l) => (
+      <link rel="alternate" hreflang={l.bcp47} href={absoluteUrl(localizedPath(l.code, path).replace(/\/+$/, ""))} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={absoluteUrl(localizedPath("en", path).replace(/\/+$/, ""))} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:locale" content={meta.ogLocale} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          if (!stored) {
+            stored = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          }
+          document.documentElement.setAttribute("data-theme", stored === "dark" ? "dark" : "light");
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

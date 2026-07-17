@@ -1,0 +1,14 @@
+{
+  "Title": "Fusionner PDF",
+  "Description": "Fusionnez plusieurs fichiers PDF en un seul document efficacement dans votre navigateur.",
+  "Keywords": "PDF merger, merge PDF files, combine PDF, join PDF online, PDF combiner, merge PDF documents, free PDF merger",
+  "DropZoneTitle": "Glissez et déposez des fichiers PDF ici",
+  "MergeButton": "Fusionner les PDF",
+  "Success": "PDF fusionnés avec succès !",
+  "DownloadButton": "Télécharger",
+  "Seo_Introduction": "Le PDF Merger est un outil en ligne axé sur la confidentialité, conçu pour les développeurs. Tout le traitement s'effectue localement dans votre navigateur via WebAssembly, garantissant que vos PDF ne quittent jamais votre appareil.",
+  "Seo_DetailedDescription": "Cet outil offre des fonctionnalités complètes pour fusionner plusieurs documents PDF en un seul fichier. Conçu avec des technologies web modernes et propulsé par WebAssembly compilé en Rust, il permet une manipulation rapide et sécurisée des PDF directement dans votre navigateur.\r\n\r\nL'interface est conçue pour la simplicité et l'efficacité. Vous pouvez facilement télécharger plusieurs fichiers PDF, les réorganiser et les fusionner en un seul document. Toutes les opérations sont effectuées côté client, garantissant une confidentialité totale pour vos documents sensibles.",
+  "Seo_Examples": "**Exemple 1** : Fusionnez plusieurs rapports PDF en un seul document complet pour un partage facilité.\r\n\r\n**Exemple 2** : Combinez plusieurs pages PDF numérisées en un seul fichier.\r\n\r\n**Exemple 3** : Organisez vos documents PDF en fusionnant les fichiers associés en un seul PDF cohérent.",
+  "Seo_HowToSteps": "### Étape 1 : Télécharger des fichiers PDF\r\nCliquez sur le bouton de téléchargement ou glissez-déposez plusieurs fichiers PDF dans l'outil.\r\n\r\n### Étape 2 : Organiser l'ordre\r\nGlissez-déposez les fichiers pour les organiser dans l'ordre souhaité pour le PDF fusionné final.\r\n\r\n### Étape 3 : Fusionner et télécharger\r\nCliquez sur le bouton \"Fusionner PDF\" pour traiter vos fichiers localement et télécharger le document résultant.",
+  "Seo_Tips": "- Tout le traitement se fait dans votre navigateur pour une confidentialité maximale\r\n- L'outil fonctionne hors ligne après le chargement initial de la page\r\n- Vos fichiers ne sont jamais téléchargés sur un serveur\r\n- Prend en charge les fichiers PDF volumineux avec un traitement rapide"
+}

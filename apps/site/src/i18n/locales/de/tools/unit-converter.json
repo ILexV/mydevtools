@@ -1,0 +1,22 @@
+{
+  "Title": "Einheitenumrechner",
+  "Description": "Konvertiere zwischen verschiedenen Maßeinheiten: Länge, Gewicht, Temperatur und Volumen — alle Berechnungen erfolgen in deinem Browser",
+  "Keywords": "unit converter, length converter, weight converter, temperature converter, metric imperial, online unit conversion, measurement converter",
+  "CategoryLabel": "Kategorie",
+  "Category_Length": "Länge",
+  "Category_Weight": "Gewicht",
+  "Category_Temperature": "Temperatur",
+  "Category_Volume": "Volumen",
+  "FromLabel": "Von",
+  "ToLabel": "Nach",
+  "Swap": "Einheiten tauschen",
+  "Copied": "Kopiert!",
+  "QuickConversions": "Schnelle Umrechnungen",
+  "CommonConversions": "Häufige Umrechnungen",
+  "Formula": "Umrechnungsformel",
+  "Seo_Introduction": "Der Einheitenumrechner ist ein Online-Tool zum Konvertieren zwischen verschiedenen Maßeinheiten. Alle Berechnungen erfolgen lokal in deinem Browser, sodass deine Daten dein Gerät nie verlassen.",
+  "Seo_DetailedDescription": "Dieses Tool unterstützt die Konvertierung zwischen metrischen und imperialen Einheiten in vier Kategorien: Länge (Meter, Kilometer, Meilen, Fuß, Zoll), Gewicht (Kilogramm, Gramm, Pfund, Unzen), Temperatur (Celsius, Fahrenheit, Kelvin) und Volumen (Liter, Gallonen, Tassen, Flüssigunzen).\n\nMit modernen Webtechnologien gebaut, liefert es sofortige Ergebnisse ohne Serververarbeitung. Die Oberfläche ist intuitiv und unterstützt schnelles Wechseln zwischen Einheiten, Kopieren von Ergebnissen und Anzeigen häufiger Umrechnungspaare.",
+  "Seo_Examples": "**Beispiel 1**: Konvertiere 5 Kilometer in Meilen für Reiseplanung.\n\n**Beispiel 2**: Konvertiere Rezeptmaße von Tassen in Milliliter.\n\n**Beispiel 3**: Konvertiere Körpertemperatur von Fahrenheit in Celsius.",
+  "Seo_HowToSteps": "### Schritt 1: Wähle die Kategorie\nWähle die Art der Messung, die du konvertieren möchtest: Länge, Gewicht, Temperatur oder Volumen.\n\n### Schritt 2: Gib den Wert ein\nGib den zu konvertierenden Wert in das Feld \"Von\" ein.\n\n### Schritt 3: Wähle die Einheiten\nWähle die Ausgangs- und Zieleinheiten aus den Dropdown-Menüs.\n\n### Schritt 4: Sieh das Ergebnis\nDer konvertierte Wert erscheint automatisch im Feld \"Nach\". Klicke auf die Kopieren-Schaltfläche, um das Ergebnis zu kopieren.",
+  "Seo_Tips": "- Alle Berechnungen erfolgen in deinem Browser für maximale Privatsphäre\n- Verwende die Tausch-Schaltfläche, um schnell die Umrechnungsrichtung zu ändern\n- Die Schaltflächen für schnelle Umrechnungen zeigen äquivalente Werte in allen anderen Einheiten\n- Die Seitenleiste mit häufigen Umrechnungen bietet nützliche Referenzwerte\n- Funktioniert offline nach dem ersten Laden der Seite"
+}

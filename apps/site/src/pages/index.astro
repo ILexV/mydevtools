@@ -1,0 +1,50 @@
+---
+/**
+ * `/` — static language landing.
+ *
+ * GitHub Pages has no server, so we cannot rely on `Accept-Language` redirects.
+ * Strategy: render a tiny landing that picks `navigator.language` (matched
+ * against supported locales, falling back to `en`) and redirects client-side.
+ * A visible link list keeps it usable without JS.
+ */
+import { LOCALES, DEFAULT_LOCALE } from "@/registry/locales";
+import { localizedPath } from "@/lib/url";
+
+const supported = LOCALES.map((l) => l.code);
+const defaultUrl = localizedPath(DEFAULT_LOCALE);
+// Inline script: pick best locale client-side, then redirect. Tiny and
+// dependency-free so first paint → redirect is immediate. Relative URL works
+// under the GitHub Pages base (current dir is already `/mydevtools/`).
+const detectScript = `(function(){try{
+var S=${JSON.stringify(supported)};
+var langs=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language])||[];
+var pick="en";
+for(var i=0;i<langs.length;i++){var c=String(langs[i]||"").toLowerCase().split("-")[0];if(S.indexOf(c)!==-1){pick=c;break;}}
+var saved=localStorage.getItem("locale");if(saved&&S.indexOf(saved)!==-1)pick=saved;
+location.replace(pick+"/");
+}catch(e){location.replace("en/");}})();`;
+---
+
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MyDevTools</title>
+    <meta http-equiv="refresh" content={`0; url=${defaultUrl}`} />
+    <link rel="canonical" href={new URL(defaultUrl, Astro.site).toString()} />
+    <script is:inline set:html={detectScript} />
+    <noscript>
+      <meta http-equiv="refresh" content={`0; url=${defaultUrl}`} />
+    </noscript>
+  </head>
+  <body>
+    <p style="font-family: system-ui, sans-serif; padding: 2rem">
+      <a href={defaultUrl}>MyDevTools →</a>
+      &nbsp;·&nbsp;
+      {LOCALES.map((l) => (
+        <a href={localizedPath(l.code)} hreflang={l.bcp47}>{l.nativeName}</a>
+      ))}
+    </p>
+  </body>
+</html>

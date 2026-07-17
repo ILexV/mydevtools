@@ -1,0 +1,98 @@
+---
+/**
+ * `/{lang}/{slug}/` — tool page. All 39 × 10 routes generated from the tool
+ * registry via `getStaticPaths`. The registry is validated at build entry so a
+ * malformed entry fails the build before any page ships.
+ *
+ * Stage 9 swaps this placeholder body for real per-tool UI; routing, SEO and
+ * localization wiring are exercised here so the pipeline is verifiable now.
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { LOCALES, type LocaleCode } from "@/registry/locales";
+import { TOOLS, resolveTool } from "@/registry/tools";
+import { assertRegistryValid } from "@/registry/validate";
+import { t } from "@/i18n/messages";
+
+assertRegistryValid();
+
+export function getStaticPaths() {
+  return LOCALES.flatMap((locale) =>
+    TOOLS.map((tool) => ({ params: { lang: locale.code, slug: tool.slug } })),
+  );
+}
+
+interface Params {
+  lang: LocaleCode;
+  slug: string;
+}
+
+const { lang, slug } = Astro.params as Params;
+const resolved = resolveTool(slug);
+if (!resolved) {
+  // Should be unreachable: getStaticPaths only emits known slugs.
+  throw new Error(`Unknown tool slug in route: ${slug}`);
+}
+
+const { tool, namespace } = resolved;
+const title = t(lang, namespace, "Title") || tool.slug;
+const description = t(lang, namespace, "Description");
+const hasRealLocale = title !== "Title";
+const status = hasRealLocale ? "" : " (scaffold — real UI lands in Stage 9)";
+---
+
+<BaseLayout locale={lang} path={slug} title={`${title}${status}`} description={description} keywords={[tool.slug]}>
+  <main class="tool">
+    <header class="tool-head">
+      <p class="tool-category">{tool.category}</p>
+      <h1>{tool.slug}</h1>
+      <p class="tool-desc">{hasRealLocale ? description : `Tool “${tool.slug}” — parity migration pending (Stage 9).`}</p>
+      <dl class="tool-meta">
+        <div><dt>WASM</dt><dd>{tool.wasm ?? "pure JS"}</dd></div>
+        <div><dt>File input</dt><dd>{tool.capabilities.file ?? "—"}</dd></div>
+      </dl>
+    </header>
+  </main>
+</BaseLayout>
+
+<style>
+  .tool {
+    max-width: var(--mdt-content-max);
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 3rem) 1.25rem;
+  }
+  .tool-head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .tool-category {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--mdt-accent);
+    font-weight: 600;
+  }
+  h1 {
+    font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+    letter-spacing: -0.02em;
+  }
+  .tool-desc {
+    color: var(--mdt-text-muted);
+    max-width: 60ch;
+  }
+  .tool-meta {
+    display: flex;
+    gap: 2rem;
+    margin-top: 0.5rem;
+  }
+  .tool-meta dt {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--mdt-text-muted);
+  }
+  .tool-meta dd {
+    font-family: var(--mdt-font-mono);
+    margin: 0;
+  }
+</style>

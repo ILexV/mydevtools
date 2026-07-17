@@ -1,0 +1,44 @@
+---
+/**
+ * `404.html` — GitHub Pages fallback for any unmatched URL.
+ * Lives at the repo root of the deployed `dist`; GitHub Pages serves it for
+ * every path that has no matching static file (including deep `/{lang}/{tool}/`
+ * links after a hard refresh on a stale deploy).
+ *
+ * No server, so we attempt to recover the intended locale from the URL path and
+ * fall back to the default language landing.
+ */
+import { LOCALES, DEFAULT_LOCALE } from "@/registry/locales";
+import { localizedPath } from "@/lib/url";
+
+
+const codes = LOCALES.map((l) => l.code);
+const defaultUrl = localizedPath(DEFAULT_LOCALE);
+const recoverScript = `(function(){try{
+var S=${JSON.stringify(codes)};
+var parts=location.pathname.replace(/^\\/$|\\/$/,"").split("/").filter(Boolean);
+var seg=parts.map(function(p){return p.toLowerCase();});
+var pick="en";
+for(var i=0;i<seg.length;i++){var c=seg[i];if(S.indexOf(c)!==-1){pick=c;break;}}
+var saved=localStorage.getItem("locale");if(saved&&S.indexOf(saved)!==-1)pick=saved;
+location.replace(pick+"/");
+}catch(e){location.replace("en/");}})();`;
+---
+
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Page not found — MyDevTools</title>
+    <meta name="robots" content="noindex" />
+    <script is:inline set:html={recoverScript} />
+    <noscript><meta http-equiv="refresh" content={`0; url=${defaultUrl}`} /></noscript>
+  </head>
+  <body>
+    <main style="font-family: system-ui, sans-serif; max-width: 28rem; margin: 12vh auto; padding: 1.5rem; text-align: center;">
+      <h1 style="font-size: 1.5rem;">404</h1>
+      <p style="color:#5a6573;">This page doesn’t exist. <a href={defaultUrl}>Go home →</a></p>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "Images": "Imágenes",
+  "ColorsAndDesign": "Colores y diseño",
+  "HashingAndSecurity": "Hash y seguridad",
+  "Generators": "Generadores",
+  "Encoding": "Codificación",
+  "StructuredData": "Datos estructurados",
+  "TextTools": "Herramientas de texto",
+  "Cryptography": "Criptografía",
+  "DateTime": "Fecha y hora",
+  "JwtAndTokens": "JWT y tokens",
+  "Regex": "Expresiones regulares",
+  "QrCodes": "Códigos QR",
+  "PdfTools": "Herramientas PDF",
+  "Converters": "Convertidores"
+}

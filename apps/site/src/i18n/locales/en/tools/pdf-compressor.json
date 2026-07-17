@@ -1,0 +1,15 @@
+{
+  "Title": "PDF Compressor",
+  "Description": "Compress PDF files to reduce their size directly in your browser with no uploads required.",
+  "Keywords": "PDF compressor, compress PDF, reduce PDF size, PDF optimizer, shrink PDF, PDF file size reducer, online PDF compression",
+  "DropZoneTitle": "Drag and drop PDF files here",
+  "CompressButton": "Compress PDFs",
+  "DownloadButton": "Download",
+  "ProcessingText": "Compressing...",
+  "DoneText": "Compressed!",
+  "Seo_Introduction": "The PDF Compressor is a privacy-first online tool designed for developers and everyday users. All processing happens locally in your browser using WebAssembly, ensuring your PDFs never leave your device.",
+  "Seo_DetailedDescription": "This tool provides fast and efficient compression of PDF files directly in your browser. Built with modern web technologies and powered by Rust-compiled WebAssembly, it reduces file size without requiring any server uploads.\n\nThe interface is designed for simplicity and efficiency. You can upload one or multiple PDF files, compress them in a single click, and download the results immediately. All operations are performed client-side, guaranteeing complete privacy for your sensitive documents.",
+  "Seo_Examples": "**Example 1**: Compress a large PDF report before emailing it to reduce attachment size.\n\n**Example 2**: Reduce the size of scanned PDF documents for easier storage and sharing.\n\n**Example 3**: Batch-compress multiple PDF files at once to save storage space.",
+  "Seo_HowToSteps": "### Step 1: Upload PDF Files\nClick the upload button or drag and drop one or more PDF files into the tool.\n\n### Step 2: Compress\nClick the \"Compress PDFs\" button to process your files locally in the browser.\n\n### Step 3: Download\nDownload each compressed file individually once processing is complete.",
+  "Seo_Tips": "- All processing happens in your browser for maximum privacy\n- The tool works offline after initial page load\n- Your files are never uploaded to any server\n- Supports multiple PDF files in a single session"
+}

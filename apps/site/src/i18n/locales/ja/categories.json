@@ -1,0 +1,16 @@
+{
+  "Images": "画像",
+  "ColorsAndDesign": "カラーとデザイン",
+  "HashingAndSecurity": "ハッシュとセキュリティ",
+  "Generators": "ジェネレーター",
+  "Encoding": "エンコーディング",
+  "StructuredData": "構造化データ",
+  "TextTools": "テキストツール",
+  "Cryptography": "暗号",
+  "DateTime": "日付と時刻",
+  "JwtAndTokens": "JWTとトークン",
+  "Regex": "正規表現",
+  "QrCodes": "QRコード",
+  "PdfTools": "PDFツール",
+  "Converters": "コンバーター"
+}

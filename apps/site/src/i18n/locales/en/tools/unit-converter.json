@@ -1,0 +1,22 @@
+{
+  "Title": "Unit Converter",
+  "Description": "Convert between various units of measurement including length, weight, temperature, and volume — all processing happens in your browser",
+  "Keywords": "unit converter, length converter, weight converter, temperature converter, metric imperial, online unit conversion, measurement converter",
+  "CategoryLabel": "Category",
+  "Category_Length": "Length",
+  "Category_Weight": "Weight",
+  "Category_Temperature": "Temperature",
+  "Category_Volume": "Volume",
+  "FromLabel": "From",
+  "ToLabel": "To",
+  "Swap": "Swap units",
+  "Copied": "Copied!",
+  "QuickConversions": "Quick Conversions",
+  "CommonConversions": "Common Conversions",
+  "Formula": "Conversion Formula",
+  "Seo_Introduction": "The Unit Converter is a privacy-first online tool for converting between various units of measurement. All calculations happen locally in your browser, ensuring your data never leaves your device.",
+  "Seo_DetailedDescription": "This tool supports conversion between metric and imperial units across four categories: Length (meters, kilometers, miles, feet, inches), Weight (kilograms, grams, pounds, ounces), Temperature (Celsius, Fahrenheit, Kelvin), and Volume (liters, gallons, cups, fluid ounces).\n\nBuilt with modern web technologies, it delivers instant results without any server processing. The interface is intuitive and supports quick swapping between units, copying results, and viewing common conversion pairs.",
+  "Seo_Examples": "**Example 1**: Convert 5 kilometers to miles for travel planning.\n\n**Example 2**: Convert recipe measurements from cups to milliliters.\n\n**Example 3**: Convert body temperature from Fahrenheit to Celsius.",
+  "Seo_HowToSteps": "### Step 1: Select Category\nChoose the type of measurement you want to convert: Length, Weight, Temperature, or Volume.\n\n### Step 2: Enter Value\nType the value you want to convert in the \"From\" field.\n\n### Step 3: Select Units\nChoose the source and target units from the dropdown menus.\n\n### Step 4: View Result\nThe converted value appears automatically in the \"To\" field. Click the copy button to copy the result.",
+  "Seo_Tips": "- All calculations happen in your browser for maximum privacy\n- Use the swap button to quickly reverse the conversion direction\n- Quick conversion buttons show equivalent values in all other units\n- Common conversions sidebar provides handy reference values\n- Works offline after initial page load"
+}

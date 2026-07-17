@@ -1,0 +1,22 @@
+{
+  "Title": "单位转换器",
+  "Description": "转换各种计量单位：长度、重量、温度和体积 — 所有计算都在您的浏览器中进行",
+  "Keywords": "unit converter, length converter, weight converter, temperature converter, metric imperial, online unit conversion, measurement converter",
+  "CategoryLabel": "类别",
+  "Category_Length": "长度",
+  "Category_Weight": "重量",
+  "Category_Temperature": "温度",
+  "Category_Volume": "体积",
+  "FromLabel": "从",
+  "ToLabel": "到",
+  "Swap": "交换单位",
+  "Copied": "已复制！",
+  "QuickConversions": "快速转换",
+  "CommonConversions": "常用转换",
+  "Formula": "转换公式",
+  "Seo_Introduction": "单位转换器是一款用于转换各种计量单位的在线工具。所有计算都在您的浏览器本地进行，确保您的数据永远不会离开您的设备。",
+  "Seo_DetailedDescription": "该工具支持公制和英制单位在四个类别中的转换：长度（米、公里、英里、英尺、英寸）、重量（千克、克、磅、盎司）、温度（摄氏度、华氏度、开尔文）和体积（升、加仑、杯、液盎司）。\n\n采用现代网络技术构建，无需服务器处理即可提供即时结果。界面直观，支持快速切换单位、复制结果和查看常用转换对。",
+  "Seo_Examples": "**示例 1**：将5公里转换为英里用于旅行规划。\n\n**示例 2**：将食谱中的杯转换为毫升。\n\n**示例 3**：将体温从华氏度转换为摄氏度。",
+  "Seo_HowToSteps": "### 第1步：选择类别\n选择您要转换的测量类型：长度、重量、温度或体积。\n\n### 第2步：输入数值\n在\"从\"字段中输入要转换的数值。\n\n### 第3步：选择单位\n从下拉菜单中选择源单位和目标单位。\n\n### 第4步：查看结果\n转换后的值将自动显示在\"到\"字段中。点击复制按钮复制结果。",
+  "Seo_Tips": "- 所有计算都在您的浏览器中进行，确保最大隐私\n- 使用交换按钮快速改变转换方向\n- 快速转换按钮显示所有其他单位的等效值\n- 常用转换侧边栏提供有用的参考值\n- 页面初次加载后支持离线使用"
+}

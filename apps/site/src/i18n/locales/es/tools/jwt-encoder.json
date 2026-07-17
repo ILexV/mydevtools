@@ -1,0 +1,20 @@
+{
+  "Title": "Codificador JWT",
+  "Description": "Crea y firma JSON Web Tokens (JWT) directamente en tu navegador. Soporta los algoritmos HS256, HS384 y HS512 con claves secretas personalizadas.",
+  "Keywords": "JWT encoder, JWT generator, JSON Web Token creator, sign JWT, HS256, HS384, HS512, JWT online tool",
+  "LinkToDecoder": "¿Necesitas decodificar un token?",
+  "DecoderTitle": "Ir al Decodificador JWT",
+  "HeaderLabel": "Encabezado",
+  "PayloadLabel": "Carga útil",
+  "AlgorithmLabel": "Algoritmo",
+  "SecretLabel": "Clave secreta",
+  "SecretPlaceholder": "tu-secreto-de-256-bits",
+  "EncodedLabel": "Token codificado",
+  "Copy": "Copiar token",
+  "Copied": "¡Copiado!",
+  "Seo_Introduction": "El Codificador JWT es una herramienta segura del lado del cliente para generar JSON Web Tokens. Permite a los desarrolladores crear tokens firmados para probar flujos de autenticación, depurar integraciones de API o aprender sobre la estructura JWT.",
+  "Seo_DetailedDescription": "Los JSON Web Tokens (JWT) son un método abierto y estándar de la industria RFC 7519 para representar reclamaciones de forma segura entre dos partes. Esta herramienta te permite:\n\n- **Definir Encabezado y Carga útil**: Personaliza los datos JSON para ambas partes.\n- **Firmar Tokens**: Aplica firmas HMAC SHA (HS256, HS384, HS512) usando tu propio secreto.\n- **Generación en tiempo real**: El token se actualiza instantáneamente mientras escribes.\n- **Privacidad**: Todo el firmado ocurre en tu navegador mediante WebAssembly/JS. Tus secretos nunca salen de tu dispositivo.",
+  "Seo_Examples": "**Ejemplo 1: Token de usuario básico**\nCarga útil: `{\"sub\": \"123\", \"name\": \"Alice\", \"admin\": true}`\nSecreto: `mysecret`\n\n**Ejemplo 2: Token con expiración**\nCarga útil: `{\"exp\": 1735689600}`\n(Establece tiempo de expiración)",
+  "Seo_HowToSteps": "1. Edita el JSON del **Encabezado** (generalmente los valores predeterminados están bien).\n2. Modifica el JSON de la **Carga útil** con tus reclamaciones (ID de usuario, roles, etc.).\n3. Selecciona un **Algoritmo** de firma (ej. HS256).\n4. Ingresa una **Clave secreta** para firmar el token.\n5. Copia el **Token codificado** generado.",
+  "Seo_Tips": "- Usa una clave secreta fuerte y larga para tokens de producción.\n- Asegúrate de que tu JSON sea válido; la herramienta te advertirá si la sintaxis es incorrecta.\n- Nunca pongas datos sensibles como contraseñas en la carga útil, ya que pueden ser decodificados por cualquiera."
+}

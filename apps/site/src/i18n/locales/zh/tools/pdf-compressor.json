@@ -1,0 +1,15 @@
+{
+  "Title": "PDF 压缩",
+  "Description": "直接在浏览器中压缩 PDF 文件以减小其大小，无需上传。",
+  "Keywords": "PDF compressor, compress PDF, reduce PDF size, PDF optimizer, shrink PDF, PDF file size reducer, online PDF compression",
+  "DropZoneTitle": "将 PDF 文件拖放到此处",
+  "CompressButton": "压缩 PDF",
+  "DownloadButton": "下载",
+  "ProcessingText": "压缩中...",
+  "DoneText": "已压缩！",
+  "Seo_Introduction": "PDF 压缩工具是一款专为开发者和普通用户设计的隐私优先在线工具。所有处理过程均通过 WebAssembly 在您的浏览器本地进行，确保您的 PDF 文件永远不会离开您的设备。",
+  "Seo_DetailedDescription": "该工具提供了直接在浏览器中快速高效压缩 PDF 文件的功能。它采用现代 Web 技术构建，并由 Rust 编译的 WebAssembly 提供支持，无需上传到服务器即可减小文件大小。\n\n界面设计简洁高效。您可以上传一个或多个 PDF 文件，一键压缩，然后立即下载结果。所有操作均在客户端执行，保证了您文档的完全隐私。",
+  "Seo_Examples": "**示例 1**：在通过电子邮件发送前压缩大型 PDF 报告，以减小附件大小。\n\n**示例 2**：减小扫描 PDF 文档的大小，以便于存储和共享。\n\n**示例 3**：一次批量压缩多个 PDF 文件以节省存储空间。",
+  "Seo_HowToSteps": "### 第 1 步：上传 PDF 文件\n点击上传按钮或将一个或多个 PDF 文件拖放到工具中。\n\n### 第 2 步：压缩\n点击'压缩 PDF'按钮在浏览器本地处理您的文件。\n\n### 第 3 步：下载\n处理完成后，逐一下载每个压缩文件。",
+  "Seo_Tips": "- 所有处理均在浏览器中进行，以实现最大程度的隐私保护\n- 初始页面加载后，该工具可离线工作\n- 您的文件永远不会被上传到任何服务器\n- 单次会话中支持多个 PDF 文件"
+}

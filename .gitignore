@@ -71,3 +71,4 @@ coverage/
 *.tsbuildinfo
 .playwright-mcp/
 storybook-*.png
+graphify-out/

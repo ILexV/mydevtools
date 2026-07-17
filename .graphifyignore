@@ -1,0 +1,18 @@
+# Grafit/Graphify code graph is built locally without an external semantic LLM.
+# Documentation and binary media require an LLM extraction backend, so keep
+# this graph focused on source, manifests, localization data, and dependencies.
+*.md
+*.mdx
+*.qmd
+*.txt
+*.rst
+*.html
+*.yaml
+*.yml
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.svg
+*.ico

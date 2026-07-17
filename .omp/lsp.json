@@ -1,0 +1,22 @@
+{
+  "servers": {
+    "typescript-language-server": {
+      "command": "typescript-language-server",
+      "args": ["--stdio"],
+      "fileTypes": [".ts", ".tsx", ".js", ".jsx", ".mts", ".cts", ".mjs", ".cjs"],
+      "rootMarkers": ["tsconfig.json", "jsconfig.json", "package.json"]
+    },
+    "vscode-html-language-server": {
+      "command": "vscode-html-language-server",
+      "args": ["--stdio"],
+      "fileTypes": [".html", ".htm", ".astro"],
+      "rootMarkers": ["package.json"]
+    },
+    "vscode-css-language-server": {
+      "command": "vscode-css-language-server",
+      "args": ["--stdio"],
+      "fileTypes": [".css", ".scss", ".less"],
+      "rootMarkers": ["package.json"]
+    }
+  }
+}

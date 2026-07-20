@@ -1,7 +1,8 @@
 # build output
 dist/
-# generated types
+# generated types + wasm-bindgen output (built via wasm/build.ps1)
 .astro/
+src/generated/
 # dependencies
 node_modules/
 # logs

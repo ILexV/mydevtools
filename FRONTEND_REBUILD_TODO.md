@@ -9,6 +9,7 @@
 - **Этап 4 (Реестры):** `locales.ts` (10 языков + native names/og:locale/hreflang), `categories.ts` (13), `tools.ts` (39), `validate.ts` (build-time), маршруты из `getStaticPaths()`. Каталог/поиск/palette/sitemap из реестра — Этапы 8/10.
 - **Этап 5 (Локализация):** 420 JSON перенесены в `apps/site/src/i18n/locales/`, typed `t()` с fallback, Node-валидатор `validate:i18n` (0 ошибок), build-time локализованный HTML (402 страницы, 10 языков). Остаются: language switcher, browser-controller strings, pluralization — Этапы 8/9.
 - **Этап 8 (Глобальный функционал):** каталог 39 инструментов из реестра (13 категорий), клиентский поиск (`/`), favorites+recent с versioned localStorage, related tools, Header/Footer, theme toggle, language switcher, build-time sitemap (400 URL) + robots. **Gate 8 пройден** (browser: search/favorite/lang-switch end-to-end). Остаются: command palette, share/copy-link, graceful degradation — Этап 9.
+- **Этап 7 (WASM runtime):** `build.ps1 -WasmOutRoot` → `apps/site/src/generated/wasm/`; Web Worker + протокол (start/progress/result/error/cancel), chunked 1 MiB file reading, typed `WasmError`, без SharedArrayBuffer; wasm грузится только на hash-странице. **Gate 7 пройден** (browser: 150MB файл, progress, cancel, UI не блокируется). Первый инструмент **hash-calculator** перенесён (Stage 9).
 - **Этап 2 (Дизайн):** требует решений владельца (moodboard, выбор концепции из трёх, signature-элемент). Начальные design tokens (light/dark, spacing, radius) заложены в `src/styles/global.css` как стартовая точка.
 - **Новая IA:** legacy прятал 4 инструмента (uuid, lorem, date-converter, pdf-to-text) вне каталога; реестр помещает uuid+lorem в `generators`, date-converter→converters, pdf-to-text→pdf — см. `docs/inventory/catalog-seo.md` §1.
 
@@ -172,24 +173,24 @@
 
 ## Этап 7. WASM и browser runtime
 
-- [ ] Изменить `wasm/build.ps1`, чтобы target-директория нового фронтенда передавалась параметром.
-- [ ] Генерировать wasm-bindgen output в `apps/site/src/generated/wasm/<domain>/` либо другое одно зафиксированное generated-место.
-- [ ] Не редактировать wasm-bindgen output вручную и не смешивать legacy/новые имена артефактов.
-- [ ] Закрепить совместимые версии Rust `wasm-bindgen` dependency и `wasm-bindgen-cli`.
-- [ ] Создать статическую карту lazy loaders вместо runtime-путей `import('/wasm/' + domain)`.
-- [ ] Кешировать Promise инициализации каждого WASM-домена.
-- [ ] Нормализовать ошибки WASM в typed browser errors и локализованные UI messages.
-- [ ] Вынести тяжелые hash/crypto/image/PDF операции в Web Workers.
-- [ ] Создать общий protocol Worker messages: start, progress, result, error, cancel.
-- [ ] Сохранить chunked file reading и cancellation без буферизации больших файлов целиком, где это поддерживается.
-- [ ] Не использовать обязательные WASM threads/`SharedArrayBuffer`, поскольку GitHub Pages не позволяет настроить COOP/COEP headers.
-- [ ] Проверить `application/wasm`, относительные URLs и lazy chunks в production `dist`.
-- [ ] Запретить preload всех WASM-доменов на главной странице.
+- [x] Изменить `wasm/build.ps1`, чтобы target-директория нового фронтенда передавалась параметром. → `-WasmOutRoot` (по умолчанию legacy wwwroot)
+- [x] Генерировать wasm-bindgen output в `apps/site/src/generated/wasm/<domain>/` либо другое одно зафиксированное generated-место. → `apps/site/src/generated/wasm/hash/` (gitignored)
+- [x] Не редактировать wasm-bindgen output вручную и не смешивать legacy/новые имена артефактов. → generated/ изолирован от legacy wwwroot/wasm
+- [x] Закрепить совместимые версии Rust `wasm-bindgen` dependency и `wasm-bindgen-cli`. → crate `wasm-bindgen = "0.2"`, CLI 0.2.108 (patch-совместимы); сборка прошла
+- [x] Создать статическую карту lazy loaders вместо runtime-путей `import('/wasm/' + domain)`. → static import в `hash.worker.ts` (+ Vite `new Worker(new URL(...))`)
+- [x] Кешировать Promise инициализации каждого WASM-домена. → `ensureReady()` кеширует `init()` в worker
+- [x] Нормализовать ошибки WASM в typed browser errors и локализованные UI messages. → `WasmError` (code: invalid-algorithm/init-failed/aborted/.../unknown)
+- [x] Вынести тяжелые hash/crypto/image/PDF операции в Web Workers. → `hash.worker.ts` (hash domain); паттерн для остальных доменов зафиксирован
+- [x] Создать общий protocol Worker messages: start, progress, result, error, cancel. → `worker-protocol.ts`
+- [x] Сохранить chunked file reading и cancellation без буферизации больших файлов целиком, где это поддерживается. → 1 MiB chunks + `file.slice().arrayBuffer()` + cooperative cancel
+- [x] Не использовать обязательные WASM threads/`SharedArrayBuffer`, поскольку GitHub Pages не позволяет настроить COOP/COEP headers. → File через structured clone, без SharedArrayBuffer
+- [x] Проверить `application/wasm`, относительные URLs и lazy chunks в production `dist`. → `_astro/hash_bg-*.wasm` + `_astro/hash.worker-*.js` под base
+- [x] Запретить preload всех WASM-доменов на главной странице. → wasm/worker грузятся только на hash-странице (network-проверка: home = 0 запросов)
 
 ### Gate 7
 
-- [ ] Эталонный Hash Calculator обрабатывает text и большой файл, показывает progress/cancel и не блокирует UI.
-- [ ] Network показывает загрузку только hash WASM на странице hash tool и корректные URL под Pages `base`.
+- [x] Эталонный Hash Calculator обрабатывает text и большой файл, показывает progress/cancel и не блокирует UI. → проверено в browser: MD5/SHA-1/SHA-256 корректны, 150MB файл с progress, UI отзывчив, cancel чистый
+- [x] Network показывает загрузку только hash WASM на странице hash tool и корректные URL под Pages `base`. → home: 0 wasm/worker запросов; hash page: `_astro/hash_bg-*.wasm`
 
 ## Этап 8. Глобальный функционал сайта
 
@@ -239,7 +240,7 @@
 
 ### Криптография и безопасность
 
-- [ ] `hash-calculator`
+- [x] `hash-calculator` → `tools/HashCalculator.astro` + worker; проверен в browser (text+file, progress/cancel)
 - [ ] `hmac-calculator`
 - [ ] `aead-file`
 - [ ] `password-generator`

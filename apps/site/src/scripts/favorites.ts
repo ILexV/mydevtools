@@ -20,8 +20,6 @@ const FAV_KEY = "mdt.favorites.v1";
 const RECENT_KEY = "mdt.recent.v1";
 const RECENT_CAP = 10;
 
-type SafeStorage = { items: string[] } | null;
-type RecentStore = { items: { slug: string; ts: number }[] } | null;
 
 function readJSON<T>(key: string): T | null {
   try {

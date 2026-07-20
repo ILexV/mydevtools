@@ -3,18 +3,28 @@ param(
     [ValidateSet('Debug', 'Release')]
     [string]$Configuration = 'Release',
 
-    [string[]]$Domains = @('hash', 'encoding', 'cryptography', 'structured_data', 'password', 'text_tools', 'image_tools', 'regex_tool', 'qrcode', 'pdf')
+    [string[]]$Domains = @('hash', 'encoding', 'cryptography', 'structured_data', 'password', 'text_tools', 'image_tools', 'regex_tool', 'qrcode', 'pdf'),
+
+    # Output root for wasm-bindgen artifacts. Defaults to the legacy Blazor
+    # wwwroot. For the new Astro frontend pass a path, e.g.
+    #   -WasmOutRoot 'apps/site/src/generated/wasm'
+    # Relative paths resolve against the repo root.
+    [string]$WasmOutRoot = ''
 )
 
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $siteWwwroot = Join-Path $repoRoot 'MyDevToolsApp\MyDevTools.Site\wwwroot'
-$wasmOutRoot = Join-Path $siteWwwroot 'wasm'
-
-if (-not (Test-Path $siteWwwroot)) {
-    throw "Expected wwwroot at: $siteWwwroot"
+if ([string]::IsNullOrWhiteSpace($WasmOutRoot)) {
+    # Legacy default: Blazor site wwwroot/wasm.
+    $wasmOutRoot = Join-Path $siteWwwroot 'wasm'
+    if (-not (Test-Path $siteWwwroot)) { throw "Expected wwwroot at: $siteWwwroot" }
+} else {
+    # Explicit target (e.g. new Astro frontend). Relative → repo root.
+    $wasmOutRoot = if ([System.IO.Path]::IsPathRooted($WasmOutRoot)) { $WasmOutRoot } else { Join-Path $repoRoot $WasmOutRoot }
 }
+Write-Host "WASM output root: $wasmOutRoot" -ForegroundColor DarkGray
 
 function Get-CrateNameFromCargoToml {
     param(

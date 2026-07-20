@@ -9,8 +9,8 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "dev:site": "npm run dev -w @mydevtools/site",
     "build:site": "npm run build -w @mydevtools/site",
+    "build:wasm": "pwsh wasm/build.ps1 -Configuration Release -WasmOutRoot apps/site/src/generated/wasm",
     "preview:site": "npm run preview -w @mydevtools/site",
     "check:site": "npm run check -w @mydevtools/site",
     "validate:i18n": "npm run validate:i18n -w @mydevtools/site",

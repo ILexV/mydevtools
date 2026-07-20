@@ -14,6 +14,7 @@ import { TOOLS, resolveTool } from "@/registry/tools";
 import { assertRegistryValid } from "@/registry/validate";
 import { relatedTools, categoryLabel } from "@/registry/catalog";
 import { t } from "@/i18n/messages";
+import HashCalculator from "@/tools/HashCalculator.astro";
 
 assertRegistryValid();
 
@@ -69,9 +70,13 @@ const relatedLabel = `${catLabel}`;
         <div><dt>WASM</dt><dd>{tool.wasm ?? "pure JS"}</dd></div>
         <div><dt>File</dt><dd>{tool.capabilities.file ?? "—"}</dd></div>
       </dl>
-      <div class="tool-placeholder">
-        {t(lang, namespace, "Description")} — UI migration pending (Stage 9).
-      </div>
+      {slug === "hash-calculator" ? (
+        <HashCalculator lang={lang} />
+      ) : (
+        <div class="tool-placeholder">
+          {t(lang, namespace, "Description")} — UI migration pending (Stage 9).
+        </div>
+      )}
     </header>
 
     {related.length > 0 && (

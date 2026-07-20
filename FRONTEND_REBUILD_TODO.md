@@ -231,7 +231,7 @@
 
 ### Текст и разработка
 
-- [ ] `word-counter`
+- [x] `word-counter` → pure JS, live stats (words/chars/lines/paras/sentences/reading&speaking); проверен
 - [ ] `text-case-converter`
 - [ ] `text-diff-viewer`
 - [ ] `markdown-preview`
@@ -244,7 +244,7 @@
 - [ ] `hmac-calculator`
 - [ ] `aead-file`
 - [ ] `password-generator`
-- [ ] `uuid-generator`
+- [x] `uuid-generator` → pure JS (Web Crypto), v4/v7, 4 формата, batch ≤100, copy-all/download; проверен
 - [ ] `openssh-keys`
 - [ ] `x509`
 
@@ -253,7 +253,7 @@
 - [ ] `cron-generator`
 - [ ] `cron-parser`
 - [ ] `date-converter`
-- [ ] `color-converter`
+- [x] `color-converter` → pure JS, hex/rgb/hsl/cmyk + 9 shades + WCAG AA/AAA contrast; проверен
 - [ ] `unit-converter`
 - [ ] `ip-subnet-calculator`
 

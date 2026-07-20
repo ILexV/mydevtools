@@ -1,0 +1,104 @@
+---
+/**
+ * Color Converter tool (pure JS). Picker + manual hex → HEX/RGB/HSL/CMYK with
+ * per-format copy, shades palette, and a WCAG AA/AAA contrast checker.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/color-converter";
+const s = {
+  colorPicker: t(lang, ns, "ColorPicker"),
+  manualInput: t(lang, ns, "ManualInput"),
+  inputHint: t(lang, ns, "InputHint"),
+  convert: t(lang, ns, "Convert"),
+  clear: t(lang, ns, "Clear"),
+  copy: t(lang, ns, "Copy"),
+  copied: t(lang, ns, "Copied"),
+  convertedFormats: t(lang, ns, "ConvertedFormats"),
+  shadesPalette: t(lang, ns, "ShadesPalette"),
+  contrastChecker: t(lang, ns, "ContrastChecker"),
+  foreground: t(lang, ns, "ForegroundColor"),
+  background: t(lang, ns, "BackgroundColor"),
+  ratio: t(lang, ns, "ContrastRatio"),
+  aaNormal: t(lang, ns, "WCAG_AA_Normal"),
+  aaLarge: t(lang, ns, "WCAG_AA_Large"),
+  aaaNormal: t(lang, ns, "WCAG_AAA_Normal"),
+  aaaLarge: t(lang, ns, "WCAG_AAA_Large"),
+  pass: t(lang, ns, "Pass"),
+  fail: t(lang, ns, "Fail"),
+  previewText: t(lang, ns, "PreviewText"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="color-tool" data-color-tool>
+  <div class="color-input-row">
+    <label class="picker-wrap">
+      <span class="field-label">{s.colorPicker}</span>
+      <input type="color" data-color-picker value="#2f6df0" aria-label={s.colorPicker} />
+    </label>
+    <label class="hex-wrap">
+      <span class="field-label">{s.manualInput}</span>
+      <input type="text" data-color-hex value="#2f6df0" spellcheck="false" autocomplete="off" />
+      <span class="hex-hint">{s.inputHint}</span>
+    </label>
+  </div>
+
+  <section class="formats">
+    <h2>{s.convertedFormats}</h2>
+    <div class="format-list" data-color-formats></div>
+  </section>
+
+  <section class="shades">
+    <h2>{s.shadesPalette}</h2>
+    <div class="shade-strip" data-color-shades></div>
+  </section>
+
+  <section class="contrast">
+    <h2>{s.contrastChecker}</h2>
+    <div class="contrast-grid">
+      <label><span class="field-label">{s.foreground}</span><input type="color" data-color-fg value="#2f6df0" /></label>
+      <label><span class="field-label">{s.background}</span><input type="color" data-color-bg value="#ffffff" /></label>
+      <div class="ratio-box">
+        <span class="field-label">{s.ratio}</span>
+        <strong data-color-ratio>—</strong>
+        <div class="wcag-badges" data-color-wcag></div>
+      </div>
+      <div class="preview" data-color-preview><span>{s.previewText}</span></div>
+    </div>
+  </section>
+</div>
+
+<script is:inline type="application/json" data-color-strings set:html={stringsJson} />
+<script>import "@/tools/color-converter.client.ts";</script>
+
+<style>
+  .color-input-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; margin-bottom: 1.5rem; }
+  .field-label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
+  .picker-wrap input[type="color"] { width: 4.5rem; height: 2.6rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); cursor: pointer; background: none; padding: 0; }
+  .hex-wrap input[type="text"] { font-family: var(--mdt-font-mono); font-size: 0.95rem; padding: 0.5rem 0.7rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-raised); color: var(--mdt-text); width: 9rem; }
+  .hex-hint { display: block; font-size: 0.75rem; color: var(--mdt-text-muted); margin-top: 0.3rem; }
+  .formats, .shades, .contrast { margin-bottom: 1.75rem; }
+  .formats h2, .shades h2, .contrast h2 { font-size: 1rem; margin-bottom: 0.7rem; }
+  .format-list { display: grid; gap: 0.5rem; }
+  .format-row { display: grid; grid-template-columns: 4rem 1fr auto; align-items: center; gap: 0.6rem; padding: 0.5rem 0.7rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-raised); }
+  .format-name { font-size: 0.78rem; font-weight: 600; color: var(--mdt-text-muted); }
+  .format-val { font-family: var(--mdt-font-mono); font-size: 0.88rem; word-break: break-all; }
+  .copy-btn { padding: 0.3rem 0.65rem; font-size: 0.8rem; }
+  .shade-strip { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+  .swatch { width: 2.4rem; height: 2.4rem; border-radius: var(--mdt-radius-sm); border: 1px solid var(--mdt-border); cursor: pointer; position: relative; }
+  .swatch span { position: absolute; bottom: -1.1rem; left: 0; right: 0; text-align: center; font-size: 0.65rem; color: var(--mdt-text-muted); }
+  .contrast-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: 1rem; align-items: end; }
+  .contrast-grid input[type="color"] { width: 100%; height: 2.4rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); cursor: pointer; padding: 0; background: none; }
+  .ratio-box strong { display: block; font-family: var(--mdt-font-mono); font-size: 1.4rem; }
+  .wcag-badges { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem; }
+  .badge { font-size: 0.7rem; padding: 0.15rem 0.45rem; border-radius: var(--mdt-radius-sm); border: 1px solid var(--mdt-border); }
+  .badge.pass { background: color-mix(in srgb, var(--mdt-success) 16%, transparent); color: var(--mdt-success); border-color: var(--mdt-success); }
+  .badge.fail { background: color-mix(in srgb, var(--mdt-danger) 14%, transparent); color: var(--mdt-danger); border-color: var(--mdt-danger); }
+  .preview { padding: 0.9rem; border-radius: var(--mdt-radius-sm); border: 1px solid var(--mdt-border); min-height: 2.4rem; display: flex; align-items: center; }
+</style>

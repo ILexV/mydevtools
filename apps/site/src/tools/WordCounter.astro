@@ -1,0 +1,80 @@
+---
+/**
+ * Word Counter tool (pure JS). Live stats: words, chars w/ & w/o spaces,
+ * lines, paragraphs, sentences, reading & speaking time. Updates on input.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/word-counter";
+const s = {
+  inputPlaceholder: t(lang, ns, "InputPlaceholder"),
+  clear: t(lang, ns, "ClearButton"),
+  copy: t(lang, ns, "CopyButton"),
+  paste: t(lang, ns, "PasteButton"),
+  copied: t(lang, ns, "Copied"),
+  statistics: t(lang, ns, "Statistics"),
+  words: t(lang, ns, "Words"),
+  wordsDesc: t(lang, ns, "WordsDesc"),
+  charsSpaces: t(lang, ns, "CharactersWithSpaces"),
+  charsNoSpaces: t(lang, ns, "CharactersWithoutSpaces"),
+  lines: t(lang, ns, "Lines"),
+  paragraphs: t(lang, ns, "Paragraphs"),
+  sentences: t(lang, ns, "Sentences"),
+  estimatedTime: t(lang, ns, "EstimatedTime"),
+  readingTime: t(lang, ns, "ReadingTime"),
+  speakingTime: t(lang, ns, "SpeakingTime"),
+  minutes: t(lang, ns, "Minutes"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="wc-tool" data-wc-tool>
+  <div class="wc-grid">
+    <div class="wc-input">
+      <textarea data-wc-textarea rows="14" placeholder={s.inputPlaceholder}></textarea>
+      <div class="wc-actions">
+        <button type="button" class="ghost-btn" data-wc-paste>{s.paste}</button>
+        <button type="button" class="ghost-btn" data-wc-copy>{s.copy}</button>
+        <button type="button" class="ghost-btn" data-wc-clear>{s.clear}</button>
+      </div>
+    </div>
+    <aside class="wc-stats" aria-label={s.statistics}>
+      <h2>{s.statistics}</h2>
+      <dl>
+        <div><dt>{s.words}</dt><dd data-wc-words>0</dd><p class="desc">{s.wordsDesc}</p></div>
+        <div><dt>{s.charsSpaces}</dt><dd data-wc-chars-spaces>0</dd></div>
+        <div><dt>{s.charsNoSpaces}</dt><dd data-wc-chars-nospaces>0</dd></div>
+        <div><dt>{s.lines}</dt><dd data-wc-lines>0</dd></div>
+        <div><dt>{s.paragraphs}</dt><dd data-wc-paragraphs>0</dd></div>
+        <div><dt>{s.sentences}</dt><dd data-wc-sentences>0</dd></div>
+        <div><dt>{s.readingTime}</dt><dd data-wc-reading>0 {s.minutes}</dd></div>
+        <div><dt>{s.speakingTime}</dt><dd data-wc-speaking>0 {s.minutes}</dd></div>
+      </dl>
+    </aside>
+  </div>
+</div>
+
+<script is:inline type="application/json" data-wc-strings set:html={stringsJson} />
+<script>import "@/tools/word-counter.client.ts";</script>
+
+<style>
+  .wc-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+  @media (min-width: 820px) { .wc-grid { grid-template-columns: 1.6fr 1fr; } }
+  .wc-input textarea { width: 100%; resize: vertical; padding: 0.75rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); color: var(--mdt-text); font-size: 0.95rem; }
+  .wc-input textarea:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  .wc-actions { display: flex; gap: 0.5rem; margin-top: 0.6rem; flex-wrap: wrap; }
+  .ghost-btn { padding: 0.5rem 0.9rem; border-radius: var(--mdt-radius-sm); border: 1px solid var(--mdt-border); background: var(--mdt-surface-raised); color: var(--mdt-text); cursor: pointer; font-size: 0.85rem; }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .wc-stats { border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); padding: 1rem 1.1rem; background: var(--mdt-surface-muted); align-self: start; }
+  .wc-stats h2 { font-size: 0.95rem; margin-bottom: 0.6rem; color: var(--mdt-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .wc-stats dl { display: grid; gap: 0.5rem; }
+  .wc-stats dl > div { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0.5rem; }
+  .wc-stats dt { font-size: 0.85rem; color: var(--mdt-text-muted); }
+  .wc-stats dd { margin: 0; font-family: var(--mdt-font-mono); font-size: 1.05rem; font-weight: 600; color: var(--mdt-text); }
+  .wc-stats .desc { grid-column: 1 / -1; font-size: 0.76rem; color: var(--mdt-text-muted); margin: 0; }
+</style>

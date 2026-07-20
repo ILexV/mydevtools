@@ -1,0 +1,96 @@
+---
+/**
+ * UUID Generator tool (pure JS, Web Crypto). v4/v7, format, case, batch ≤100,
+ * per-row copy, copy-all, download .txt, clear. Strings via JSON island.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/uuid-generator";
+const s = {
+  versionLabel: t(lang, ns, "VersionLabel"),
+  v4: t(lang, ns, "Version4"),
+  v7: t(lang, ns, "Version7"),
+  formatLabel: t(lang, ns, "FormatLabel"),
+  fHyphenated: t(lang, ns, "FormatHyphenated"),
+  fPlain: t(lang, ns, "FormatPlain"),
+  fBraces: t(lang, ns, "FormatBraces"),
+  fUrn: t(lang, ns, "FormatUrn"),
+  caseLabel: t(lang, ns, "CaseLabel"),
+  cUpper: t(lang, ns, "CaseUpper"),
+  cLower: t(lang, ns, "CaseLower"),
+  countLabel: t(lang, ns, "CountLabel"),
+  generate: t(lang, ns, "Generate"),
+  copyAll: t(lang, ns, "CopyAll"),
+  download: t(lang, ns, "Download"),
+  clear: t(lang, ns, "Clear"),
+  copy: t(lang, ns, "Copy"),
+  copied: t(lang, ns, "Copied"),
+  outputPlaceholder: t(lang, ns, "OutputPlaceholder"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="uuid-tool" data-uuid-tool>
+  <div class="uuid-controls">
+    <fieldset class="control-group">
+      <legend>{s.versionLabel}</legend>
+      <label class="radio"><input type="radio" name="uuid-version" value="v4" data-uuid-version checked /> {s.v4}</label>
+      <label class="radio"><input type="radio" name="uuid-version" value="v7" data-uuid-version /> {s.v7}</label>
+    </fieldset>
+    <fieldset class="control-group">
+      <legend>{s.formatLabel}</legend>
+      <label class="radio"><input type="radio" name="uuid-format" value="hyphenated" data-uuid-format checked /> {s.fHyphenated}</label>
+      <label class="radio"><input type="radio" name="uuid-format" value="plain" data-uuid-format /> {s.fPlain}</label>
+      <label class="radio"><input type="radio" name="uuid-format" value="braces" data-uuid-format /> {s.fBraces}</label>
+      <label class="radio"><input type="radio" name="uuid-format" value="urn" data-uuid-format /> {s.fUrn}</label>
+    </fieldset>
+    <fieldset class="control-group">
+      <legend>{s.caseLabel}</legend>
+      <label class="radio"><input type="radio" name="uuid-case" value="lower" data-uuid-case checked /> {s.cLower}</label>
+      <label class="radio"><input type="radio" name="uuid-case" value="upper" data-uuid-case /> {s.cUpper}</label>
+    </fieldset>
+    <div class="control-group">
+      <label class="count-row" for="uuid-count">{s.countLabel} <span data-uuid-count-val>1</span></label>
+      <input id="uuid-count" type="range" min="1" max="100" value="1" data-uuid-count />
+    </div>
+  </div>
+  <ol class="uuid-list" data-uuid-list data-placeholder={s.outputPlaceholder}></ol>
+
+  <div class="uuid-actions">
+    <button type="button" class="primary-btn" data-uuid-generate>{s.generate}</button>
+    <button type="button" class="ghost-btn" data-uuid-copyall hidden>{s.copyAll}</button>
+    <button type="button" class="ghost-btn" data-uuid-download hidden>{s.download}</button>
+    <button type="button" class="ghost-btn" data-uuid-clear hidden>{s.clear}</button>
+  </div>
+
+</div>
+
+<script is:inline type="application/json" data-uuid-strings set:html={stringsJson} />
+<script>import "@/tools/uuid-generator.client.ts";</script>
+
+<style>
+  .uuid-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+  .control-group { border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); padding: 0.6rem 0.75rem; min-width: 0; }
+  .control-group legend { font-size: 0.78rem; font-weight: 600; color: var(--mdt-text-muted); padding: 0 0.3rem; }
+  .radio { display: flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0; font-size: 0.88rem; cursor: pointer; }
+  .radio input { accent-color: var(--mdt-accent); }
+  .count-row { display: block; font-size: 0.82rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.4rem; }
+  .count-row span { color: var(--mdt-accent); font-family: var(--mdt-font-mono); }
+  input[type="range"] { width: 100%; accent-color: var(--mdt-accent); }
+  .uuid-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .primary-btn, .ghost-btn { padding: 0.6rem 1.1rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .ghost-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .uuid-list { display: grid; gap: 0.4rem; list-style: none; padding: 0; }
+  .uuid-list:empty::before { content: attr(data-placeholder); color: var(--mdt-text-muted); font-size: 0.88rem; }
+  .uuid-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-raised); }
+  .uuid-val { font-family: var(--mdt-font-mono); font-size: 0.85rem; word-break: break-all; }
+  .copy-btn { padding: 0.3rem 0.65rem; font-size: 0.8rem; }
+</style>

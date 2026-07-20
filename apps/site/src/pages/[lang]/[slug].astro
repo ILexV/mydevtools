@@ -1,11 +1,11 @@
 ---
 /**
  * `/{lang}/{slug}/` — tool page. All 39 × 10 routes from the tool registry
- * (validated at build). Shows tool metadata, a favorite toggle (persists via
- * the favorites engine), and related tools from the same category.
+ * (validated at build). Dispatches to a per-tool component via `TOOL_COMPONENTS`;
+ * slugs without an entry yet show a Stage-9 placeholder. Header chrome, favorite
+ * toggle and related tools are shared by every tool.
  *
- * Stage 9 swaps the placeholder body for real per-tool UI; routing, SEO,
- * localization, favorites and related-tools wiring are exercised here.
+ * Adding a migrated tool = create `src/tools/<Name>.astro` + register it below.
  */
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import ToolCard from "@/components/ToolCard.astro";
@@ -15,6 +15,9 @@ import { assertRegistryValid } from "@/registry/validate";
 import { relatedTools, categoryLabel } from "@/registry/catalog";
 import { t } from "@/i18n/messages";
 import HashCalculator from "@/tools/HashCalculator.astro";
+import UuidGenerator from "@/tools/UuidGenerator.astro";
+import WordCounter from "@/tools/WordCounter.astro";
+import ColorConverter from "@/tools/ColorConverter.astro";
 
 assertRegistryValid();
 
@@ -40,6 +43,15 @@ const catLabel = categoryLabel(lang, tool.category);
 const related = relatedTools(lang, slug);
 const favLabel = t(lang, "common", "Badge_Favorite");
 const relatedLabel = `${catLabel}`;
+
+// Migrated tools render their own component; others show a placeholder.
+const TOOL_COMPONENTS: Record<string, any> = {
+  "hash-calculator": HashCalculator,
+  "uuid-generator": UuidGenerator,
+  "word-counter": WordCounter,
+  "color-converter": ColorConverter,
+};
+const ActiveTool = TOOL_COMPONENTS[slug];
 ---
 
 <BaseLayout locale={lang} path={slug} title={title} description={description} keywords={[tool.slug]}>
@@ -66,12 +78,8 @@ const relatedLabel = `${catLabel}`;
         </button>
       </div>
       <p class="tool-desc">{description}</p>
-      <dl class="tool-meta">
-        <div><dt>WASM</dt><dd>{tool.wasm ?? "pure JS"}</dd></div>
-        <div><dt>File</dt><dd>{tool.capabilities.file ?? "—"}</dd></div>
-      </dl>
-      {slug === "hash-calculator" ? (
-        <HashCalculator lang={lang} />
+      {ActiveTool ? (
+        <div class="tool-body"><ActiveTool lang={lang} /></div>
       ) : (
         <div class="tool-placeholder">
           {t(lang, namespace, "Description")} — UI migration pending (Stage 9).
@@ -130,9 +138,7 @@ const relatedLabel = `${catLabel}`;
   .fav-toggle[aria-pressed="true"] { color: var(--mdt-warning); border-color: var(--mdt-warning); }
   .fav-toggle[aria-pressed="true"] svg { fill: currentColor; }
   .tool-desc { color: var(--mdt-text-muted); max-width: 65ch; margin-top: 0.6rem; }
-  .tool-meta { display: flex; gap: 2rem; margin-top: 0.75rem; }
-  .tool-meta dt { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--mdt-text-muted); }
-  .tool-meta dd { font-family: var(--mdt-font-mono); margin: 0; font-size: 0.9rem; }
+  .tool-body { margin-top: 1.75rem; }
   .tool-placeholder {
     margin-top: 1.5rem;
     padding: 1.25rem;

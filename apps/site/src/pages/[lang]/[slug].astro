@@ -18,6 +18,11 @@ import HashCalculator from "@/tools/HashCalculator.astro";
 import UuidGenerator from "@/tools/UuidGenerator.astro";
 import WordCounter from "@/tools/WordCounter.astro";
 import ColorConverter from "@/tools/ColorConverter.astro";
+import LoremIpsumGenerator from "@/tools/LoremIpsumGenerator.astro";
+import TextCaseConverter from "@/tools/TextCaseConverter.astro";
+import UnitConverter from "@/tools/UnitConverter.astro";
+import DateConverter from "@/tools/DateConverter.astro";
+import HtmlEntityEncoder from "@/tools/HtmlEntityEncoder.astro";
 
 assertRegistryValid();
 
@@ -50,6 +55,11 @@ const TOOL_COMPONENTS: Record<string, any> = {
   "uuid-generator": UuidGenerator,
   "word-counter": WordCounter,
   "color-converter": ColorConverter,
+  "lorem-ipsum-generator": LoremIpsumGenerator,
+  "text-case-converter": TextCaseConverter,
+  "unit-converter": UnitConverter,
+  "date-converter": DateConverter,
+  "html-entity-encoder": HtmlEntityEncoder,
 };
 const ActiveTool = TOOL_COMPONENTS[slug];
 ---

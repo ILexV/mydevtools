@@ -1,0 +1,139 @@
+---
+/**
+ * HTML Entity Encoder/Decoder tool (pure JS). Input + mode/format settings →
+ * encode or decode; swap, clear, copy. Named/decimal/hex formats ×
+ * special-chars / non-ASCII / all modes. Mirrors the legacy tool.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/html-entity-encoder";
+const s = {
+  inputTitle: t(lang, ns, "InputTitle"),
+  inputLabel: t(lang, ns, "InputLabel"),
+  inputPlaceholder: t(lang, ns, "InputPlaceholder"),
+  outputTitle: t(lang, ns, "OutputTitle"),
+  settingsTitle: t(lang, ns, "SettingsTitle"),
+  modeLabel: t(lang, ns, "ModeLabel"),
+  modeAll: t(lang, ns, "Mode_All"),
+  modeSpecialChars: t(lang, ns, "Mode_SpecialChars"),
+  modeNonAscii: t(lang, ns, "Mode_NonAscii"),
+  formatLabel: t(lang, ns, "FormatLabel"),
+  formatNamed: t(lang, ns, "Format_Named"),
+  formatDecimal: t(lang, ns, "Format_Decimal"),
+  formatHex: t(lang, ns, "Format_Hex"),
+  actionEncode: t(lang, ns, "ActionEncode"),
+  actionDecode: t(lang, ns, "ActionDecode"),
+  actionSwap: t(lang, ns, "ActionSwap"),
+  actionClear: t(lang, ns, "ActionClear"),
+  copy: t(lang, ns, "Copy"),
+  copied: t(lang, ns, "Copied"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="ent-tool" data-ent-tool>
+  <div class="ent-grid">
+    <section class="ent-panel">
+      <header class="ent-head"><h2>{s.inputTitle}</h2></header>
+
+      <label class="ent-field">
+        <span class="field-label">{s.inputLabel}</span>
+        <textarea data-ent-input rows="10" spellcheck="false" placeholder={s.inputPlaceholder}></textarea>
+      </label>
+
+      <fieldset class="ent-settings">
+        <legend>{s.settingsTitle}</legend>
+        <label class="ent-select">
+          <span class="field-label">{s.modeLabel}</span>
+          <select data-ent-mode>
+            <option value="specialchars" selected>{s.modeSpecialChars}</option>
+            <option value="nonascii">{s.modeNonAscii}</option>
+            <option value="all">{s.modeAll}</option>
+          </select>
+        </label>
+        <label class="ent-select">
+          <span class="field-label">{s.formatLabel}</span>
+          <select data-ent-format>
+            <option value="named" selected>{s.formatNamed}</option>
+            <option value="decimal">{s.formatDecimal}</option>
+            <option value="hex">{s.formatHex}</option>
+          </select>
+        </label>
+      </fieldset>
+
+      <div class="ent-actions">
+        <button type="button" class="primary-btn" data-ent-encode>{s.actionEncode}</button>
+        <button type="button" class="ghost-btn" data-ent-decode>{s.actionDecode}</button>
+        <button type="button" class="ghost-btn" data-ent-swap>{s.actionSwap}</button>
+        <button type="button" class="ghost-btn" data-ent-clear>{s.actionClear}</button>
+      </div>
+    </section>
+
+    <section class="ent-panel">
+      <header class="ent-head">
+        <h2>{s.outputTitle}</h2>
+        <button type="button" class="ghost-btn" data-ent-copy>{s.copy}</button>
+      </header>
+      <textarea data-ent-output rows="10" spellcheck="false" readonly></textarea>
+    </section>
+  </div>
+</div>
+
+<script is:inline type="application/json" data-ent-strings set:html={stringsJson} />
+<script>import "@/tools/html-entity-encoder.client.ts";</script>
+
+<style>
+  .ent-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+  @media (min-width: 880px) { .ent-grid { grid-template-columns: 1fr 1fr; } }
+  .ent-panel { display: flex; flex-direction: column; gap: 0.9rem; }
+  .ent-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  .ent-head h2 { font-size: 1rem; margin: 0; color: var(--mdt-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .field-label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
+  .ent-field textarea,
+  .ent-panel > textarea {
+    width: 100%;
+    resize: vertical;
+    padding: 0.75rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text);
+    font-family: var(--mdt-font-mono);
+    font-size: 0.9rem;
+  }
+  .ent-field textarea:focus,
+  .ent-panel > textarea:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  .ent-settings { border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); padding: 0.9rem 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; margin: 0; }
+  .ent-settings legend { font-size: 0.78rem; font-weight: 600; color: var(--mdt-text-muted); padding: 0 0.4rem; }
+  .ent-select select {
+    width: 100%;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text);
+    font-size: 0.88rem;
+  }
+  .ent-select select:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  .ent-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .primary-btn,
+  .ghost-btn {
+    padding: 0.5rem 0.95rem;
+    border-radius: var(--mdt-radius-sm);
+    border: 1px solid var(--mdt-border);
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text);
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); border-color: var(--mdt-accent); font-weight: 600; }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .primary-btn:focus-visible,
+  .ghost-btn:focus-visible { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+</style>

@@ -1,0 +1,148 @@
+---
+/**
+ * Date Converter tool (pure JS). Convert between Unix timestamps (sec/ms),
+ * ISO 8601 strings, and human-readable formats (ISO/European/UTC/Local/RFC
+ * 2822/Unix sec/ms/Custom). Custom-format tokens: yyyy MM dd HH mm ss SSS.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/date-converter";
+const s = {
+  inputLabel: t(lang, ns, "InputLabel"),
+  outputLabel: t(lang, ns, "OutputLabel"),
+  actionConvert: t(lang, ns, "ActionConvert"),
+  actionCurrentTime: t(lang, ns, "ActionCurrentTime"),
+  inputTypeLabel: t(lang, ns, "InputTypeLabel"),
+  inputTypeAuto: t(lang, ns, "InputType_Auto"),
+  inputTypeUnixSec: t(lang, ns, "InputType_UnixSec"),
+  inputTypeUnixMs: t(lang, ns, "InputType_UnixMs"),
+  inputTypeIso: t(lang, ns, "InputType_ISO"),
+  outputFormatLabel: t(lang, ns, "OutputFormatLabel"),
+  formatIso: t(lang, ns, "Format_ISO"),
+  formatRfc: t(lang, ns, "Format_RFC"),
+  formatUnixSec: t(lang, ns, "Format_UnixSec"),
+  formatUnixMs: t(lang, ns, "Format_UnixMs"),
+  formatUtc: t(lang, ns, "Format_UTC"),
+  formatLocal: t(lang, ns, "Format_Local"),
+  formatEuropean: t(lang, ns, "Format_European"),
+  formatCustom: t(lang, ns, "Format_Custom"),
+  customFormatPlaceholder: t(lang, ns, "CustomFormatPlaceholder"),
+  copy: t(lang, ns, "Copy"),
+  copied: t(lang, ns, "Copied"),
+  errorInvalid: t(lang, ns, "Error_Invalid"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="date-tool" data-date-tool>
+  <label class="date-field">
+    <span class="field-label">{s.inputLabel}</span>
+    <textarea data-date-input rows="3" spellcheck="false" autocomplete="off"></textarea>
+  </label>
+
+  <label class="date-field">
+    <span class="field-label">{s.inputTypeLabel}</span>
+    <select data-date-input-type>
+      <option value="auto">{s.inputTypeAuto}</option>
+      <option value="unix-sec">{s.inputTypeUnixSec}</option>
+      <option value="unix-ms">{s.inputTypeUnixMs}</option>
+      <option value="iso">{s.inputTypeIso}</option>
+    </select>
+  </label>
+
+  <label class="date-field">
+    <span class="field-label">{s.outputFormatLabel}</span>
+    <select data-date-output-format>
+      <option value="iso">{s.formatIso}</option>
+      <option value="euro">{s.formatEuropean}</option>
+      <option value="utc">{s.formatUtc}</option>
+      <option value="local">{s.formatLocal}</option>
+      <option value="rfc">{s.formatRfc}</option>
+      <option value="unix-sec">{s.formatUnixSec}</option>
+      <option value="unix-ms">{s.formatUnixMs}</option>
+      <option value="custom">{s.formatCustom}</option>
+    </select>
+  </label>
+
+  <label class="date-field date-custom-wrap" data-date-custom-wrap hidden>
+    <span class="field-label">{s.formatCustom}</span>
+    <input type="text" data-date-custom placeholder={s.customFormatPlaceholder} spellcheck="false" autocomplete="off" />
+  </label>
+
+  <label class="date-field">
+    <span class="field-label">{s.outputLabel}</span>
+    <textarea data-date-output rows="3" readonly></textarea>
+  </label>
+
+  <div class="date-actions">
+    <button type="button" class="primary-btn" data-date-convert>{s.actionConvert}</button>
+    <button type="button" class="ghost-btn" data-date-now>{s.actionCurrentTime}</button>
+    <button type="button" class="ghost-btn" data-date-copy>{s.copy}</button>
+  </div>
+
+  <p class="date-error" data-date-error role="alert" hidden>
+    <span data-date-error-text></span>
+  </p>
+</div>
+
+<script is:inline type="application/json" data-date-strings set:html={stringsJson} />
+<script>import "@/tools/date-converter.client.ts";</script>
+
+<style>
+  .date-tool { display: grid; gap: 1rem; }
+  .date-field { display: grid; gap: 0.35rem; }
+  .field-label { font-size: 0.78rem; font-weight: 600; color: var(--mdt-text-muted); }
+  .date-field textarea,
+  .date-field select,
+  .date-field input[type="text"] {
+    width: 100%;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text);
+    font-size: 0.92rem;
+    font-family: var(--mdt-font-mono);
+  }
+  .date-field textarea { resize: vertical; font-family: var(--mdt-font-mono); }
+  .date-field textarea:focus,
+  .date-field select:focus,
+  .date-field input[type="text"]:focus {
+    outline: 2px solid var(--mdt-focus-ring);
+    outline-offset: 1px;
+  }
+  .date-field textarea[readonly] { background: var(--mdt-surface-muted); }
+  .date-custom-wrap[hidden] { display: none; }
+  .date-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.25rem; }
+  .primary-btn,
+  .ghost-btn {
+    padding: 0.5rem 0.95rem;
+    border-radius: var(--mdt-radius-sm);
+    border: 1px solid var(--mdt-border);
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); border-color: var(--mdt-accent); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .primary-btn:focus-visible,
+  .ghost-btn:focus-visible { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  .date-error {
+    margin: 0;
+    padding: 0.55rem 0.75rem;
+    border-radius: var(--mdt-radius-sm);
+    border: 1px solid var(--mdt-danger);
+    background: color-mix(in srgb, var(--mdt-danger) 12%, transparent);
+    color: var(--mdt-danger);
+    font-size: 0.85rem;
+  }
+  .date-error[hidden] { display: none; }
+</style>

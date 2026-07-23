@@ -1,0 +1,80 @@
+---
+/**
+ * Text Case Converter tool (pure JS). Applies a case transform in-place to the
+ * textarea: sentence, lower, upper, title, alternating, inverse, camel, snake,
+ * kebab. Actions: clear, copy.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/text-case-converter";
+const s = {
+  inputPlaceholder: t(lang, ns, "InputPlaceholder"),
+  clear: t(lang, ns, "ClearButton"),
+  copy: t(lang, ns, "CopyButton"),
+  copied: t(lang, ns, "Copied"),
+  sentence: t(lang, ns, "SentenceCase"),
+  lower: t(lang, ns, "LowerCase"),
+  upper: t(lang, ns, "UpperCase"),
+  title: t(lang, ns, "TitleCase"),
+  alternating: t(lang, ns, "AlternatingCase"),
+  inverse: t(lang, ns, "InverseCase"),
+  camel: t(lang, ns, "CamelCase"),
+  snake: t(lang, ns, "SnakeCase"),
+  kebab: t(lang, ns, "KebabCase"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="tcc-tool" data-tcc-tool>
+  <div class="tcc-actions">
+    <button type="button" class="ghost-btn" data-tcc-copy>{s.copy}</button>
+    <button type="button" class="ghost-btn danger" data-tcc-clear>{s.clear}</button>
+  </div>
+
+  <textarea data-tcc-textarea rows="12" placeholder={s.inputPlaceholder}></textarea>
+
+  <div class="tcc-grid">
+    <button type="button" data-tcc-case="sentence">{s.sentence}</button>
+    <button type="button" data-tcc-case="lower">{s.lower}</button>
+    <button type="button" data-tcc-case="upper">{s.upper}</button>
+    <button type="button" data-tcc-case="title">{s.title}</button>
+    <button type="button" data-tcc-case="alternating">{s.alternating}</button>
+    <button type="button" data-tcc-case="inverse">{s.inverse}</button>
+    <button type="button" data-tcc-case="camel">{s.camel}</button>
+    <button type="button" data-tcc-case="snake">{s.snake}</button>
+    <button type="button" data-tcc-case="kebab">{s.kebab}</button>
+  </div>
+</div>
+
+<script is:inline type="application/json" data-tcc-strings set:html={stringsJson} />
+<script>import "@/tools/text-case-converter.client.ts";</script>
+
+<style>
+  .tcc-tool { display: flex; flex-direction: column; gap: 1rem; }
+  .tcc-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+  .tcc-tool textarea {
+    width: 100%; resize: vertical; padding: 0.75rem;
+    border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius);
+    background: var(--mdt-surface-raised); color: var(--mdt-text);
+    font-family: var(--mdt-font-mono); font-size: 0.95rem; line-height: 1.5;
+  }
+  .tcc-tool textarea:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  .tcc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+  @media (min-width: 560px) { .tcc-grid { grid-template-columns: repeat(3, 1fr); } }
+  .tcc-grid button, .ghost-btn {
+    padding: 0.5rem 0.85rem; border-radius: var(--mdt-radius-sm);
+    border: 1px solid var(--mdt-border); background: var(--mdt-surface-raised);
+    color: var(--mdt-text); cursor: pointer; font-size: 0.85rem;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .tcc-grid button:hover, .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .tcc-grid button:focus-visible, .ghost-btn:focus-visible {
+    outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px;
+  }
+  .ghost-btn.danger:hover { border-color: var(--mdt-danger); }
+</style>

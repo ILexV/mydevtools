@@ -221,7 +221,7 @@
 - [ ] `base64-encoder`
 - [ ] `hex-encoder`
 - [ ] `url-encoder`
-- [ ] `html-entity-encoder`
+- [x] `html-entity-encoder` → pure JS (36 round-trips parity), 3 режима × 3 формата; проверен
 - [ ] `json-beautifier`
 - [ ] `json-to-typescript`
 - [ ] `xml-beautifier`
@@ -232,10 +232,10 @@
 ### Текст и разработка
 
 - [x] `word-counter` → pure JS, live stats (words/chars/lines/paras/sentences/reading&speaking); проверен
-- [ ] `text-case-converter`
+- [x] `text-case-converter` → pure JS (927 differential tests vs legacy WASM, 0 расхождений); проверен
 - [ ] `text-diff-viewer`
 - [ ] `markdown-preview`
-- [ ] `lorem-ipsum-generator`
+- [x] `lorem-ipsum-generator` → plain/html/md, start-classic quirk сохранён; проверен
 - [ ] `regex-tester`
 
 ### Криптография и безопасность
@@ -252,9 +252,9 @@
 
 - [ ] `cron-generator`
 - [ ] `cron-parser`
-- [ ] `date-converter`
+- [x] `date-converter` → unix-sec/ms/ISO parse, custom format tokens; проверен
 - [x] `color-converter` → pure JS, hex/rgb/hsl/cmyk + 9 shades + WCAG AA/AAA contrast; проверен
-- [ ] `unit-converter`
+- [x] `unit-converter` → live convert, 4 категории, quick/common conversions; проверен
 - [ ] `ip-subnet-calculator`
 
 ### Изображения, PDF и QR

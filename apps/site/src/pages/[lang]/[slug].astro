@@ -28,6 +28,12 @@ import Base32Encoder from "@/tools/Base32Encoder.astro";
 import Base58Encoder from "@/tools/Base58Encoder.astro";
 import HexEncoder from "@/tools/HexEncoder.astro";
 import UrlEncoder from "@/tools/UrlEncoder.astro";
+import HmacCalculator from "@/tools/HmacCalculator.astro";
+import JwtDecoder from "@/tools/JwtDecoder.astro";
+import JwtEncoder from "@/tools/JwtEncoder.astro";
+import PasswordGenerator from "@/tools/PasswordGenerator.astro";
+import OpenSshKeys from "@/tools/OpenSshKeys.astro";
+import X509Tool from "@/tools/X509Tool.astro";
 
 assertRegistryValid();
 
@@ -70,6 +76,12 @@ const TOOL_COMPONENTS: Record<string, any> = {
   "base58-encoder": Base58Encoder,
   "hex-encoder": HexEncoder,
   "url-encoder": UrlEncoder,
+  "hmac-calculator": HmacCalculator,
+  "jwt-decoder": JwtDecoder,
+  "jwt-encoder": JwtEncoder,
+  "password-generator": PasswordGenerator,
+  "openssh-keys": OpenSshKeys,
+  "x509": X509Tool,
 };
 const ActiveTool = TOOL_COMPONENTS[slug];
 ---

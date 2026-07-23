@@ -16,5 +16,7 @@
   "Seo_DetailedDescription": "JSON Web Tokens (JWT) are an open, industry standard RFC 7519 method for representing claims securely between two parties. This tool allows you to:\n\n- **Define Header & Payload**: Customize the JSON data for both parts.\n- **Sign Tokens**: Apply HMAC SHA signatures (HS256, HS384, HS512) using your own secret.\n- **Real-time Generation**: The token updates instantly as you type.\n- **Privacy**: All signing happens in your browser via WebAssembly/JS. Your secrets never leave your device.",
   "Seo_Examples": "**Example 1: Basic User Token**\nPayload: `{\"sub\": \"123\", \"name\": \"Alice\", \"admin\": true}`\nSecret: `mysecret`\n\n**Example 2: Expiring Token**\nPayload: `{\"exp\": 1735689600}`\n(Sets expiration time)",
   "Seo_HowToSteps": "1. Edit the **Header** JSON (usually defaults are fine).\n2. Modify the **Payload** JSON with your claims (user ID, roles, etc.).\n3. Select a signing **Algorithm** (e.g., HS256).\n4. Enter a **Secret Key** to sign the token.\n5. Copy the generated **Encoded Token**.",
-  "Seo_Tips": "- Use a strong, long secret key for production tokens.\n- Ensure your JSON is valid; the tool will warn you if syntax is incorrect.\n- Never put sensitive data like passwords in the payload, as it can be decoded by anyone."
+  "Seo_Tips": "- Use a strong, long secret key for production tokens.\n- Ensure your JSON is valid; the tool will warn you if syntax is incorrect.\n- Never put sensitive data like passwords in the payload, as it can be decoded by anyone.",
+  "InvalidJson": "Invalid JSON",
+  "EncodeFailed": "Failed to generate JWT: {msg}"
 }

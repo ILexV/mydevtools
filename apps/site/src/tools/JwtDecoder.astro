@@ -1,0 +1,87 @@
+---
+/**
+ * JWT Decoder (cryptography WASM domain). Paste a token → live-decodes header
+ * and payload as pretty JSON, shows the algorithm badge, and verifies the
+ * signature against an optional secret (alg auto-detected from the header,
+ * HS256/HS384/HS512 — legacy parity).
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/jwt-decoder";
+const s = {
+  encodedLabel: t(lang, ns, "EncodedLabel"),
+  encodedPlaceholder: t(lang, ns, "EncodedPlaceholder"),
+  decodedHeaderLabel: t(lang, ns, "DecodedHeaderLabel"),
+  decodedPayloadLabel: t(lang, ns, "DecodedPayloadLabel"),
+  signatureLabel: t(lang, ns, "SignatureLabel"),
+  secretLabel: t(lang, ns, "SecretLabel"),
+  secretPlaceholder: t(lang, ns, "SecretPlaceholder"),
+  signatureVerified: t(lang, ns, "SignatureVerified"),
+  signatureInvalid: t(lang, ns, "SignatureInvalid"),
+  linkToEncoder: t(lang, ns, "LinkToEncoder"),
+  encoderTitle: t(lang, ns, "EncoderTitle"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="jwtd-tool" data-jwtd-tool>
+  <p class="jwtd-link-note">
+    {s.linkToEncoder} → <a href={`/${lang}/jwt-encoder`}>{s.encoderTitle}</a>
+  </p>
+
+  <section class="jwtd-input">
+    <label class="field-label" for="jwtd-encoded">{s.encodedLabel}</label>
+    <textarea id="jwtd-encoded" data-jwtd-encoded rows="6" placeholder={s.encodedPlaceholder} spellcheck="false"></textarea>
+    <p class="jwtd-error" data-jwtd-error role="alert" hidden></p>
+  </section>
+
+  <div class="jwtd-grid">
+    <section>
+      <span class="field-label">{s.decodedHeaderLabel}</span>
+      <textarea data-jwtd-header rows="8" readonly spellcheck="false"></textarea>
+    </section>
+    <section>
+      <span class="field-label">{s.decodedPayloadLabel}</span>
+      <textarea data-jwtd-payload rows="8" readonly spellcheck="false"></textarea>
+    </section>
+  </div>
+
+  <section class="jwtd-signature">
+    <div class="jwtd-sig-head">
+      <span class="field-label">{s.signatureLabel}</span>
+      <span class="jwtd-alg-badge" data-jwtd-alg>ALG</span>
+    </div>
+    <label class="field-label" for="jwtd-secret">{s.secretLabel}</label>
+    <textarea id="jwtd-secret" data-jwtd-secret rows="3" placeholder={s.secretPlaceholder} spellcheck="false"></textarea>
+    <div class="jwtd-sig-status" data-jwtd-status hidden></div>
+  </section>
+</div>
+
+<script is:inline type="application/json" data-jwtd-strings set:html={stringsJson} />
+<script>import "@/tools/jwt-decoder.client.ts";</script>
+
+<style>
+  .jwtd-tool { display: flex; flex-direction: column; gap: 1.25rem; }
+  .jwtd-link-note { padding: 0.7rem 0.9rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-muted); font-size: 0.88rem; }
+  .jwtd-link-note a { color: var(--mdt-accent); font-weight: 600; }
+  .field-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
+  textarea { width: 100%; resize: vertical; padding: 0.7rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); color: var(--mdt-text); font-family: var(--mdt-font-mono); font-size: 0.88rem; overflow-wrap: anywhere; }
+  textarea:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  textarea[readonly] { background: var(--mdt-surface-muted); color: var(--mdt-text-muted); }
+  .jwtd-error { margin-top: 0.6rem; padding: 0.7rem 0.9rem; border: 1px solid var(--mdt-danger); border-radius: var(--mdt-radius-sm); color: var(--mdt-danger); background: color-mix(in srgb, var(--mdt-danger) 8%, transparent); font-size: 0.88rem; }
+  .jwtd-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+  @media (min-width: 900px) { .jwtd-grid { grid-template-columns: 1fr 1fr; } }
+  .jwtd-signature { border: 1px solid var(--mdt-border); border-top: 3px solid var(--mdt-accent); border-radius: var(--mdt-radius); padding: 1rem; }
+  .jwtd-sig-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.9rem; }
+  .jwtd-sig-head .field-label { margin-bottom: 0; }
+  .jwtd-alg-badge { padding: 0.2rem 0.6rem; border: 1px solid var(--mdt-border); border-radius: 999px; font-family: var(--mdt-font-mono); font-size: 0.78rem; color: var(--mdt-text-muted); }
+  .jwtd-sig-status { margin-top: 0.9rem; padding: 0.7rem 0.9rem; border-radius: var(--mdt-radius-sm); font-weight: 700; text-align: center; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+  .jwtd-sig-status svg { width: 1.25rem; height: 1.25rem; flex-shrink: 0; }
+  .jwtd-sig-status.is-valid { color: var(--mdt-success); border: 1px solid color-mix(in srgb, var(--mdt-success) 25%, transparent); background: color-mix(in srgb, var(--mdt-success) 10%, transparent); }
+  .jwtd-sig-status.is-invalid { color: var(--mdt-danger); border: 1px solid color-mix(in srgb, var(--mdt-danger) 25%, transparent); background: color-mix(in srgb, var(--mdt-danger) 10%, transparent); }
+</style>

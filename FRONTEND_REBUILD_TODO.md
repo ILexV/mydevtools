@@ -226,8 +226,8 @@
 - [ ] `json-to-typescript`
 - [ ] `xml-beautifier`
 - [ ] `yaml-beautifier-validator`
-- [ ] `jwt-decoder`
-- [ ] `jwt-encoder`
+- [x] `jwt-decoder` → live decode + verify HS*, alg-badge, race-guard; проверен
+- [x] `jwt-encoder` → live sign, header/payload JSON валидация, HS256/384/512; проверен
 
 ### Текст и разработка
 
@@ -241,12 +241,12 @@
 ### Криптография и безопасность
 
 - [x] `hash-calculator` → `tools/HashCalculator.astro` + worker; проверен в browser (text+file, progress/cancel)
-- [ ] `hmac-calculator`
+- [x] `hmac-calculator` → live HMAC-SHA256/512 (text key, hex out); reference-вектор совпал; проверен
 - [ ] `aead-file`
-- [ ] `password-generator`
+- [x] `password-generator` → length 4–128 + charsets + special-chars, history 10, localStorage parity; проверен
 - [x] `uuid-generator` → pure JS (Web Crypto), v4/v7, 4 формата, batch ≤100, copy-all/download; проверен
-- [ ] `openssh-keys`
-- [ ] `x509`
+- [x] `openssh-keys` → generate ed25519/p256/p384/rsa-3072/4096, import 4 формата, convert; legacy-баг passphrase→comment починен; проверен
+- [x] `x509` → parse PEM/DER + warnings, self-signed, CSR; проверен
 
 ### Конвертеры, дата и сеть
 

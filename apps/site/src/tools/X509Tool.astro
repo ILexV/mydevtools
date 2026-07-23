@@ -1,0 +1,141 @@
+---
+/**
+ * X.509 certificate tool (cryptography WASM domain). Self-signed certificate /
+ * CSR generation (subject CN + validity days field, parity with legacy), PEM or
+ * Base64-DER parsing to a pretty JSON summary, validity warnings, copy/download.
+ * Behavior lives in `x509.client.ts` (crypto-client helpers, main-thread WASM).
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/x509";
+const s = {
+  selfSignedSectionTitle: t(lang, ns, "SelfSignedSectionTitle"),
+  subjectLabel: t(lang, ns, "SubjectLabel"),
+  subjectHint: t(lang, ns, "SubjectHint"),
+  validityDaysLabel: t(lang, ns, "ValidityDaysLabel"),
+  generateSelfSigned: t(lang, ns, "GenerateSelfSigned"),
+  generateCsr: t(lang, ns, "GenerateCsr"),
+  parseSectionTitle: t(lang, ns, "ParseSectionTitle"),
+  parseLabel: t(lang, ns, "ParseLabel"),
+  parsePlaceholder: t(lang, ns, "ParsePlaceholder"),
+  parseButton: t(lang, ns, "ParseButton"),
+  outputLabel: t(lang, ns, "OutputLabel"),
+  copy: t(lang, ns, "Copy"),
+  copied: t(lang, ns, "Copied"),
+  download: t(lang, ns, "Download"),
+  warningsTitle: t(lang, ns, "WarningsTitle"),
+  invalidFormat: t(lang, ns, "InvalidFormat"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="x509-tool" data-x509-tool>
+  <section class="x509-section">
+    <h2 class="x509-heading">{s.selfSignedSectionTitle}</h2>
+    <div class="x509-gen-grid">
+      <div class="x509-field">
+        <label class="field-label" for="x509-subject">{s.subjectLabel}</label>
+        <input
+          id="x509-subject"
+          type="text"
+          data-x509-subject
+          placeholder="CN=example.com,O=My Org,C=US"
+        />
+        <span class="field-hint">{s.subjectHint}</span>
+      </div>
+      <div class="x509-field">
+        <label class="field-label" for="x509-validity">{s.validityDaysLabel}</label>
+        <input id="x509-validity" type="number" min="1" value="365" data-x509-validity />
+      </div>
+    </div>
+    <div class="x509-actions">
+      <button type="button" class="ghost-btn" data-x509-generate-csr>{s.generateCsr}</button>
+      <button type="button" class="primary-btn" data-x509-generate-selfsigned>{s.generateSelfSigned}</button>
+    </div>
+  </section>
+
+  <section class="x509-section">
+    <h2 class="x509-heading">{s.parseSectionTitle}</h2>
+    <label class="field-label" for="x509-parse-input">{s.parseLabel}</label>
+    <textarea id="x509-parse-input" data-x509-parse-input rows="6" placeholder={s.parsePlaceholder}></textarea>
+    <div class="x509-actions">
+      <button type="button" class="primary-btn" data-x509-parse>{s.parseButton}</button>
+    </div>
+  </section>
+
+  <section class="x509-section">
+    <h2 class="x509-heading">{s.outputLabel}</h2>
+    <textarea data-x509-output rows="12" readonly></textarea>
+    <div class="x509-actions">
+      <button type="button" class="ghost-btn" data-x509-copy>{s.copy}</button>
+      <button type="button" class="ghost-btn" data-x509-download>{s.download}</button>
+    </div>
+    <div class="x509-warnings" data-x509-warnings role="alert" hidden>
+      <span data-x509-warnings-text></span>
+    </div>
+  </section>
+</div>
+
+<script is:inline type="application/json" data-x509-strings set:html={stringsJson} />
+<script>import "@/tools/x509.client.ts";</script>
+
+<style>
+  .x509-section {
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    background: var(--mdt-surface-raised);
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  .x509-heading { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.9rem; }
+  .x509-gen-grid { display: grid; grid-template-columns: 1fr; gap: 0.9rem; }
+  @media (min-width: 768px) { .x509-gen-grid { grid-template-columns: 1fr 1fr; } }
+  .field-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
+  .field-hint { display: block; font-size: 0.75rem; color: var(--mdt-text-muted); margin-top: 0.25rem; opacity: 0.8; }
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text);
+    font-size: 0.88rem;
+  }
+  input[type="text"] { font-family: var(--mdt-font-mono); }
+  input:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  textarea {
+    width: 100%;
+    resize: vertical;
+    padding: 0.7rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text);
+    font-family: var(--mdt-font-mono);
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+  textarea:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  textarea[readonly] { background: var(--mdt-surface-muted); }
+  .x509-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: flex-end; margin-top: 0.9rem; }
+  .primary-btn, .ghost-btn { padding: 0.55rem 1.1rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer; border: 1px solid transparent; font-size: 0.88rem; }
+  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .ghost-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .x509-warnings {
+    margin-top: 0.9rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--mdt-danger);
+    border-radius: var(--mdt-radius-sm);
+    color: var(--mdt-danger);
+    background: color-mix(in srgb, var(--mdt-danger) 8%, transparent);
+    font-size: 0.88rem;
+    word-break: break-word;
+  }
+</style>

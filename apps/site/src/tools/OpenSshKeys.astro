@@ -1,0 +1,167 @@
+---
+/**
+ * OpenSSH Keys (cryptography WASM domain). Generate (ed25519 / ecdsa-p256 /
+ * ecdsa-p384 / rsa with bits), import (OpenSSH public/private, SPKI PEM,
+ * PKCS#8 PEM) and convert between formats. Passphrase field is shared by all
+ * actions per legacy parity. Warnings from WASM render raw; copy buttons use
+ * the 1200ms label swap.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/openssh-keys";
+const s = {
+  generateSectionTitle: t(lang, ns, "GenerateSectionTitle"),
+  algorithmLabel: t(lang, ns, "AlgorithmLabel"),
+  keySizeLabel: t(lang, ns, "KeySizeLabel"),
+  passphraseLabel: t(lang, ns, "PassphraseLabel"),
+  generateButton: t(lang, ns, "GenerateButton"),
+  importSectionTitle: t(lang, ns, "ImportSectionTitle"),
+  importLabel: t(lang, ns, "ImportLabel"),
+  importPlaceholder: t(lang, ns, "ImportPlaceholder"),
+  importFileLabel: t(lang, ns, "ImportFileLabel"),
+  importFileHint: t(lang, ns, "ImportFileHint"),
+  importButton: t(lang, ns, "ImportButton"),
+  convertButton: t(lang, ns, "ConvertButton"),
+  publicKeyLabel: t(lang, ns, "PublicKeyLabel"),
+  privateKeyLabel: t(lang, ns, "PrivateKeyLabel"),
+  copy: t(lang, ns, "Copy"),
+  copied: t(lang, ns, "Copied"),
+  download: t(lang, ns, "Download"),
+  warningsTitle: t(lang, ns, "WarningsTitle"),
+  commentLabel: t(lang, ns, "CommentLabel"),
+  errorUnsupportedFormat: t(lang, ns, "ErrorUnsupportedFormat"),
+  error: t(lang, "common", "Common_Error"),
+  fileChooseButton: t(lang, "common", "Common_FileChooseButton"),
+  fileDropSubtitle: t(lang, "common", "Common_FileDropSubtitle"),
+};
+const clientStrings = {
+  copy: s.copy,
+  copied: s.copied,
+  warningsTitle: s.warningsTitle,
+  error: s.error,
+  unsupportedFormat: s.errorUnsupportedFormat,
+  algorithmLabel: s.algorithmLabel,
+  commentLabel: s.commentLabel,
+  fileDropSubtitle: s.fileDropSubtitle,
+};
+const stringsJson = JSON.stringify(clientStrings);
+---
+
+<div class="ssh-tool" data-ssh-tool>
+  <section class="ssh-section">
+    <h2 class="ssh-title">{s.generateSectionTitle}</h2>
+    <div class="ssh-gen-grid">
+      <label class="ssh-field">
+        <span class="field-label">{s.algorithmLabel}</span>
+        <select data-ssh-algorithm>
+          <option value="ed25519" selected>Ed25519 (Recommended)</option>
+          <option value="ecdsa-p256">ECDSA P-256</option>
+          <option value="ecdsa-p384">ECDSA P-384</option>
+          <option value="rsa-3072">RSA 3072</option>
+          <option value="rsa-4096">RSA 4096</option>
+        </select>
+      </label>
+      <label class="ssh-field">
+        <span class="field-label">{s.keySizeLabel}</span>
+        <select data-ssh-keysize disabled>
+          <option value="default">Default</option>
+          <option value="3072">3072</option>
+          <option value="4096">4096</option>
+        </select>
+      </label>
+      <label class="ssh-field">
+        <span class="field-label">{s.passphraseLabel}</span>
+        <input data-ssh-passphrase type="password" autocomplete="new-password" placeholder="Optional" />
+      </label>
+    </div>
+    <div class="ssh-actions">
+      <button type="button" class="primary-btn" data-ssh-generate>{s.generateButton}</button>
+    </div>
+  </section>
+
+  <section class="ssh-section">
+    <h2 class="ssh-title">{s.importSectionTitle}</h2>
+    <div class="ssh-import-grid">
+      <div class="ssh-field">
+        <label class="field-label" for="ssh-import-text">{s.importLabel}</label>
+        <textarea id="ssh-import-text" data-ssh-import rows="6" placeholder={s.importPlaceholder}></textarea>
+      </div>
+      <div class="ssh-field">
+        <span class="field-label">{s.importFileLabel}</span>
+        <label class="ssh-drop">
+          <input type="file" data-ssh-importfile hidden />
+          <span class="ssh-drop-title">{s.fileChooseButton}</span>
+          <span class="ssh-drop-sub" data-ssh-importfilename>{s.fileDropSubtitle}</span>
+        </label>
+      </div>
+    </div>
+    <p class="file-hint">{s.importFileHint}</p>
+    <div class="ssh-actions">
+      <button type="button" class="primary-btn" data-ssh-import>{s.importButton}</button>
+      <button type="button" class="ghost-btn" data-ssh-convert>{s.convertButton}</button>
+    </div>
+  </section>
+
+  <div class="ssh-output-grid">
+    <section class="ssh-output">
+      <span class="field-label">{s.publicKeyLabel}</span>
+      <textarea data-ssh-public rows="8" readonly></textarea>
+      <div class="ssh-actions">
+        <button type="button" class="ghost-btn" data-ssh-public-copy>{s.copy}</button>
+        <button type="button" class="ghost-btn" data-ssh-public-download>{s.download}</button>
+      </div>
+    </section>
+    <section class="ssh-output">
+      <span class="field-label">{s.privateKeyLabel}</span>
+      <textarea data-ssh-private rows="8" readonly></textarea>
+      <div class="ssh-actions">
+        <button type="button" class="ghost-btn" data-ssh-private-copy>{s.copy}</button>
+        <button type="button" class="ghost-btn" data-ssh-private-download>{s.download}</button>
+      </div>
+    </section>
+  </div>
+
+  <p class="ssh-info" data-ssh-info hidden></p>
+  <p class="ssh-warnings" data-ssh-warnings role="alert" hidden></p>
+</div>
+
+<script is:inline type="application/json" data-ssh-strings set:html={stringsJson} />
+<script>import "@/tools/openssh-keys.client.ts";</script>
+
+<style>
+  .ssh-section { margin-bottom: 1.5rem; }
+  .ssh-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.8rem; color: var(--mdt-text); }
+  .ssh-gen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.7rem; }
+  .ssh-field select, .ssh-field input { width: 100%; padding: 0.45rem 0.5rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-raised); color: var(--mdt-text); }
+  .ssh-field select:disabled { opacity: 0.5; cursor: not-allowed; }
+  .field-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
+  textarea { width: 100%; resize: vertical; padding: 0.7rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); color: var(--mdt-text); font-family: var(--mdt-font-mono); font-size: 0.85rem; line-height: 1.5; }
+  textarea:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  textarea[readonly] { background: var(--mdt-surface-muted); color: var(--mdt-text-muted); }
+  .ssh-import-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+  @media (min-width: 900px) { .ssh-import-grid { grid-template-columns: 1fr 1fr; } }
+  .ssh-drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem; min-height: 7rem; padding: 1rem; border: 2px dashed var(--mdt-border); border-radius: var(--mdt-radius); cursor: pointer; text-align: center; }
+  .ssh-drop:hover { border-color: var(--mdt-accent); background: var(--mdt-surface-muted); }
+  .ssh-drop-title { font-size: 0.88rem; font-weight: 600; color: var(--mdt-text); }
+  .ssh-drop-sub { font-size: 0.78rem; color: var(--mdt-text-muted); }
+  .ssh-drop-sub.file-selected { color: var(--mdt-accent); font-weight: 600; }
+  .file-hint { font-size: 0.78rem; color: var(--mdt-text-muted); margin-top: 0.5rem; }
+  .ssh-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: flex-end; margin-top: 0.8rem; }
+  .primary-btn, .ghost-btn { padding: 0.6rem 1.1rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .ghost-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .ghost-btn.copied { color: var(--mdt-success, var(--mdt-accent)); }
+  .ssh-output-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; margin-bottom: 1rem; }
+  @media (min-width: 900px) { .ssh-output-grid { grid-template-columns: 1fr 1fr; } }
+  .ssh-output .ssh-actions { margin-top: 0.5rem; }
+  .ssh-info { padding: 0.6rem 0.9rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-muted); font-size: 0.85rem; color: var(--mdt-text); font-family: var(--mdt-font-mono); }
+  .ssh-warnings { padding: 0.7rem 0.9rem; border: 1px solid var(--mdt-danger); border-radius: var(--mdt-radius-sm); color: var(--mdt-danger); background: color-mix(in srgb, var(--mdt-danger) 8%, transparent); font-size: 0.88rem; word-break: break-word; }
+</style>

@@ -1,0 +1,108 @@
+---
+/**
+ * JWT Encoder (crypto WASM domain). Live-signs header+payload JSON with an
+ * HMAC secret (HS256/HS384/HS512) as you type — legacy parity: no sign
+ * button, token regenerates on every input/change; the selected algorithm is
+ * forced into the header object for signing without rewriting the textarea.
+ */
+import { t } from "@/i18n/messages";
+import { localizedPath } from "@/lib/url";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/jwt-encoder";
+const s = {
+  linkToDecoder: t(lang, ns, "LinkToDecoder"),
+  decoderTitle: t(lang, ns, "DecoderTitle"),
+  headerLabel: t(lang, ns, "HeaderLabel"),
+  payloadLabel: t(lang, ns, "PayloadLabel"),
+  algorithmLabel: t(lang, ns, "AlgorithmLabel"),
+  secretLabel: t(lang, ns, "SecretLabel"),
+  secretPlaceholder: t(lang, ns, "SecretPlaceholder"),
+  encodedLabel: t(lang, ns, "EncodedLabel"),
+  copy: t(lang, ns, "Copy"),
+  copied: t(lang, ns, "Copied"),
+  invalidJson: t(lang, ns, "InvalidJson"),
+  encodeFailed: t(lang, ns, "EncodeFailed"),
+};
+const stringsJson = JSON.stringify(s);
+const defaultHeader = '{"alg":"HS256","typ":"JWT"}';
+const defaultPayload = '{"sub":"1234567890","name":"John Doe","iat":1516239022}';
+const decoderUrl = localizedPath(lang, "jwt-decoder");
+---
+
+<div class="jwte-tool" data-jwte-tool>
+  <p class="jwte-linkbox">
+    {s.linkToDecoder} → <a href={decoderUrl}>{s.decoderTitle}</a>
+  </p>
+
+  <div class="jwte-grid">
+    <section class="jwte-card">
+      <span class="field-label">{s.headerLabel}</span>
+      <textarea data-jwte-header rows="10" spellcheck="false">{defaultHeader}</textarea>
+      <p class="jwte-field-error" data-jwte-header-error role="alert" hidden></p>
+    </section>
+
+    <section class="jwte-card">
+      <span class="field-label">{s.payloadLabel}</span>
+      <textarea data-jwte-payload rows="10" spellcheck="false">{defaultPayload}</textarea>
+      <p class="jwte-field-error" data-jwte-payload-error role="alert" hidden></p>
+    </section>
+  </div>
+
+  <section class="jwte-card jwte-signature">
+    <span class="field-label">Signature</span>
+    <div class="jwte-sig-grid">
+      <label class="jwte-setting">
+        <span class="field-label">{s.algorithmLabel}</span>
+        <select data-jwte-algorithm>
+          <option value="HS256" selected>HS256</option>
+          <option value="HS384">HS384</option>
+          <option value="HS512">HS512</option>
+        </select>
+      </label>
+      <label class="jwte-setting jwte-secret">
+        <span class="field-label">{s.secretLabel}</span>
+        <textarea data-jwte-secret rows="3" placeholder={s.secretPlaceholder} spellcheck="false"></textarea>
+      </label>
+    </div>
+  </section>
+
+  <section class="jwte-card">
+    <div class="jwte-output-head">
+      <span class="field-label">{s.encodedLabel}</span>
+      <button type="button" class="ghost-btn" data-jwte-copy disabled>{s.copy}</button>
+    </div>
+    <textarea data-jwte-output rows="6" readonly spellcheck="false"></textarea>
+    <p class="jwte-error" data-jwte-error role="alert" hidden></p>
+  </section>
+</div>
+
+<script is:inline type="application/json" data-jwte-strings set:html={stringsJson} />
+<script>import "@/tools/jwt-encoder.client.ts";</script>
+
+<style>
+  .jwte-tool { display: flex; flex-direction: column; gap: 1.25rem; }
+  .jwte-linkbox { padding: 0.7rem 0.9rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-muted); font-size: 0.9rem; }
+  .jwte-linkbox a { color: var(--mdt-accent); font-weight: 600; }
+  .jwte-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+  @media (min-width: 900px) { .jwte-grid { grid-template-columns: 1fr 1fr; } }
+  .jwte-card { display: flex; flex-direction: column; }
+  .jwte-signature { border-top: 3px solid var(--mdt-accent); padding-top: 0.75rem; }
+  .field-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
+  textarea { width: 100%; resize: vertical; padding: 0.7rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); color: var(--mdt-text); font-family: var(--mdt-font-mono); font-size: 0.88rem; }
+  textarea:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  textarea[readonly] { word-break: break-all; }
+  .jwte-sig-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+  @media (min-width: 900px) { .jwte-sig-grid { grid-template-columns: 1fr 2fr; } }
+  .jwte-setting select { width: 100%; padding: 0.45rem 0.5rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-raised); color: var(--mdt-text); }
+  .jwte-field-error { margin-top: 0.4rem; padding: 0.4rem 0.6rem; border: 1px solid var(--mdt-danger); border-radius: var(--mdt-radius-sm); color: var(--mdt-danger); background: color-mix(in srgb, var(--mdt-danger) 8%, transparent); font-size: 0.78rem; }
+  .jwte-output-head { display: flex; justify-content: space-between; align-items: baseline; }
+  .ghost-btn { padding: 0.45rem 0.9rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer; background: var(--mdt-surface-raised); border: 1px solid var(--mdt-border); color: var(--mdt-text); font-size: 0.85rem; }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .ghost-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .jwte-error { margin-top: 0.7rem; padding: 0.7rem 0.9rem; border: 1px solid var(--mdt-danger); border-radius: var(--mdt-radius-sm); color: var(--mdt-danger); background: color-mix(in srgb, var(--mdt-danger) 8%, transparent); font-size: 0.88rem; }
+</style>

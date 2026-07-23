@@ -216,11 +216,11 @@
 
 ### Кодирование и структурированные данные
 
-- [ ] `base32-encoder`
-- [ ] `base58-encoder`
-- [ ] `base64-encoder`
-- [ ] `hex-encoder`
-- [ ] `url-encoder`
+- [x] `base32-encoder` → encoding WASM, file+progress+cancel, preview/full; проверен
+- [x] `base58-encoder` → encoding WASM (починен баг: Flickr/Ripple алфавиты); 3 алфавита проверены
+- [x] `base64-encoder` → encoding WASM, file+progress+cancel, image-preview/binary-detect; проверен
+- [x] `hex-encoder` → encoding WASM, 0x/separators/whitespace; проверен
+- [x] `url-encoder` → encoding WASM, component/uri/form; round-trip по всем charset; проверен
 - [x] `html-entity-encoder` → pure JS (36 round-trips parity), 3 режима × 3 формата; проверен
 - [ ] `json-beautifier`
 - [ ] `json-to-typescript`

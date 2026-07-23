@@ -33,6 +33,8 @@
   "Cancel": "Cancel",
   "FileSizeLimitEncode": "Base58 encoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.",
   "FileSizeLimitDecode": "Base58 decoding is limited to {0} due to algorithmic complexity. Your file is {1}. Please use Base64 or Hex encoding for larger files.",
+  "FileDecoded": "Decoded {0} → {1}",
+  "PreviewTruncated": "(preview truncated, use Download for full output)",
   "Seo_Introduction": "The Base58 Encoder is a privacy-first online tool designed for developers. All processing happens locally in your browser using WebAssembly, ensuring your data never leaves your device.",
   "Seo_DetailedDescription": "This tool provides comprehensive functionality for base58 encoder operations. Built with modern web technologies and powered by Rust-compiled WebAssembly, it delivers native-like performance directly in your browser.\n\nThe interface is designed for efficiency and ease of use, with support for both text input and file processing. All operations are performed client-side, guaranteeing complete privacy and security for your sensitive data.",
   "Seo_Examples": "**Example 1**: Use the Base58 Encoder for quick conversions and transformations in your development workflow.\n\n**Example 2**: Process files directly without uploading them to any server, maintaining complete privacy.\n\n**Example 3**: Integrate the tool into your daily development tasks for improved productivity.",

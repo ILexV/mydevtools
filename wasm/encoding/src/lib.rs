@@ -562,23 +562,23 @@ enum Base58Alphabet {
     Ripple,
 }
 
-fn base58_encode_bytes(bytes: &[u8], alphabet: Base58Alphabet) -> String {
-    match alphabet {
-        Base58Alphabet::Bitcoin => bs58::encode(bytes).into_string(),
-        Base58Alphabet::Flickr => {
-            // Flickr uses same alphabet as Bitcoin
-            bs58::encode(bytes).into_string()
-        }
-        Base58Alphabet::Ripple => {
-            // Ripple uses same alphabet as Bitcoin
-            bs58::encode(bytes).into_string()
-        }
+fn base58_alphabet(alpha: Base58Alphabet) -> &'static bs58::Alphabet {
+    match alpha {
+        Base58Alphabet::Bitcoin => bs58::Alphabet::BITCOIN,
+        Base58Alphabet::Flickr => bs58::Alphabet::FLICKR,
+        Base58Alphabet::Ripple => bs58::Alphabet::RIPPLE,
     }
+}
+
+fn base58_encode_bytes(bytes: &[u8], alphabet: Base58Alphabet) -> String {
+    bs58::encode(bytes)
+        .with_alphabet(base58_alphabet(alphabet))
+        .into_string()
 }
 
 fn base58_decode_string(
     input: &str,
-    _alphabet: Base58Alphabet,
+    alphabet: Base58Alphabet,
     allow_whitespace: bool,
 ) -> Result<Vec<u8>, String> {
     let mut cleaned = input.to_string();
@@ -590,6 +590,7 @@ fn base58_decode_string(
     }
 
     bs58::decode(&cleaned)
+        .with_alphabet(base58_alphabet(alphabet))
         .into_vec()
         .map_err(|e| format!("Base58 decode error: {}", e))
 }
@@ -960,6 +961,23 @@ mod tests {
         let encoded = base58_encode_bytes(bytes, Base58Alphabet::Bitcoin);
         let decoded = base58_decode_string(&encoded, Base58Alphabet::Bitcoin, false).unwrap();
         assert_eq!(decoded, bytes);
+    }
+
+    #[test]
+    fn test_base58_alphabets_are_distinct() {
+        // Regression: Flickr and Ripple were incorrectly mapped to the Bitcoin alphabet.
+        let bytes = b"Hello World";
+        let btc = base58_encode_bytes(bytes, Base58Alphabet::Bitcoin);
+        let fl = base58_encode_bytes(bytes, Base58Alphabet::Flickr);
+        let rip = base58_encode_bytes(bytes, Base58Alphabet::Ripple);
+        assert_ne!(btc, fl);
+        assert_ne!(btc, rip);
+        assert_ne!(fl, rip);
+        // Each alphabet round-trips against itself.
+        for alpha in [Base58Alphabet::Bitcoin, Base58Alphabet::Flickr, Base58Alphabet::Ripple] {
+            let enc = base58_encode_bytes(bytes, alpha);
+            assert_eq!(base58_decode_string(&enc, alpha, false).unwrap(), bytes);
+        }
     }
 
     // ============================================================================

@@ -1,0 +1,167 @@
+---
+/**
+ * URL Encoder / Decoder tool. Percent-encoding with selectable mode
+ * (component / uri / form) and text charset. Text-only (no file input,
+ * no download — legacy parity). Behavior lives in `url-encoder.client.ts`,
+ * which calls the main-thread `encoding-client` (one-shot WASM ops).
+ *
+ * Locale strings for the tool namespace are embedded as a JSON island.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+
+const { lang } = Astro.props as Props;
+const ns = "tools/url-encoder";
+
+const strings = {
+  inputLabel: t(lang, ns, "InputLabel"),
+  inputPlaceholder: t(lang, ns, "InputPlaceholder"),
+  outputLabel: t(lang, ns, "OutputLabel"),
+  modeLabel: t(lang, ns, "ModeLabel"),
+  modeComponent: t(lang, ns, "Mode_Component"),
+  modeUri: t(lang, ns, "Mode_Uri"),
+  modeForm: t(lang, ns, "Mode_Form"),
+  charsetLabel: t(lang, ns, "CharsetLabel"),
+  encode: t(lang, ns, "ActionEncode"),
+  decode: t(lang, ns, "ActionDecode"),
+  swap: t(lang, ns, "ActionSwap"),
+  clear: t(lang, ns, "ActionClear"),
+  copy: t(lang, ns, "Copy"),
+  copied: t(lang, ns, "Copied"),
+  error: t(lang, "common", "Common_Error"),
+};
+const stringsJson = JSON.stringify(strings);
+---
+
+<div class="url-tool" data-url-tool>
+  <div class="url-grid">
+    <section class="url-input">
+      <label class="field-label" for="url-textarea">{strings.inputLabel}</label>
+      <textarea id="url-textarea" data-url-input rows="8" placeholder={strings.inputPlaceholder}></textarea>
+
+      <div class="settings">
+        <div class="setting">
+          <label class="field-label" for="url-mode">{strings.modeLabel}</label>
+          <select id="url-mode" data-url-mode>
+            <option value="component">{strings.modeComponent}</option>
+            <option value="uri">{strings.modeUri}</option>
+            <option value="form">{strings.modeForm}</option>
+          </select>
+        </div>
+        <div class="setting">
+          <label class="field-label" for="url-charset">{strings.charsetLabel}</label>
+          <select id="url-charset" data-url-charset>
+            <option value="utf-8">UTF-8</option>
+            <option value="utf-16le">UTF-16LE</option>
+            <option value="utf-16be">UTF-16BE</option>
+            <option value="latin1">ISO-8859-1 (Latin-1)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="url-actions">
+        <button type="button" class="primary-btn" data-url-encode>{strings.encode}</button>
+        <button type="button" class="secondary-btn" data-url-decode>{strings.decode}</button>
+        <button type="button" class="ghost-btn" data-url-swap>{strings.swap}</button>
+        <button type="button" class="ghost-btn" data-url-clear>{strings.clear}</button>
+      </div>
+    </section>
+
+    <section class="url-output">
+      <label class="field-label" for="url-output-textarea">{strings.outputLabel}</label>
+      <textarea id="url-output-textarea" data-url-output rows="14" readonly></textarea>
+      <div class="output-actions">
+        <button type="button" class="ghost-btn" data-url-copy>{strings.copy}</button>
+      </div>
+    </section>
+  </div>
+
+  <p class="url-error" data-url-error role="alert" hidden></p>
+</div>
+
+<script is:inline type="application/json" data-url-strings set:html={stringsJson} />
+<script>
+  import "@/tools/url-encoder.client.ts";
+</script>
+
+<style>
+  .url-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  @media (min-width: 900px) {
+    .url-grid { grid-template-columns: 1fr 1fr; }
+  }
+  .field-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--mdt-text-muted);
+    margin-bottom: 0.4rem;
+  }
+  .url-tool textarea {
+    width: 100%;
+    resize: vertical;
+    padding: 0.7rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text);
+    font-family: var(--mdt-font-mono);
+    font-size: 0.9rem;
+  }
+  .url-tool textarea:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+
+  .settings {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-top: 0.9rem;
+  }
+  @media (min-width: 640px) {
+    .settings { grid-template-columns: 1fr 1fr; }
+  }
+  .url-tool select {
+    width: 100%;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text);
+    font-size: 0.88rem;
+  }
+
+  .url-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1rem; }
+  .primary-btn, .secondary-btn, .ghost-btn {
+    padding: 0.65rem 1.2rem;
+    border-radius: var(--mdt-radius);
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .primary-btn:disabled, .secondary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .secondary-btn { background: var(--mdt-surface-muted); border-color: var(--mdt-border); color: var(--mdt-text); }
+  .secondary-btn:hover { border-color: var(--mdt-accent); }
+  .ghost-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+
+  .url-output { display: flex; flex-direction: column; }
+  .output-actions { display: flex; justify-content: flex-end; margin-top: 0.75rem; }
+
+  .url-error {
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--mdt-danger);
+    border-radius: var(--mdt-radius-sm);
+    color: var(--mdt-danger);
+    background: color-mix(in srgb, var(--mdt-danger) 8%, transparent);
+    font-size: 0.88rem;
+  }
+</style>

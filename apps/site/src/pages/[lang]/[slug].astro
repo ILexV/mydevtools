@@ -23,6 +23,11 @@ import TextCaseConverter from "@/tools/TextCaseConverter.astro";
 import UnitConverter from "@/tools/UnitConverter.astro";
 import DateConverter from "@/tools/DateConverter.astro";
 import HtmlEntityEncoder from "@/tools/HtmlEntityEncoder.astro";
+import Base64Encoder from "@/tools/Base64Encoder.astro";
+import Base32Encoder from "@/tools/Base32Encoder.astro";
+import Base58Encoder from "@/tools/Base58Encoder.astro";
+import HexEncoder from "@/tools/HexEncoder.astro";
+import UrlEncoder from "@/tools/UrlEncoder.astro";
 
 assertRegistryValid();
 
@@ -60,6 +65,11 @@ const TOOL_COMPONENTS: Record<string, any> = {
   "unit-converter": UnitConverter,
   "date-converter": DateConverter,
   "html-entity-encoder": HtmlEntityEncoder,
+  "base64-encoder": Base64Encoder,
+  "base32-encoder": Base32Encoder,
+  "base58-encoder": Base58Encoder,
+  "hex-encoder": HexEncoder,
+  "url-encoder": UrlEncoder,
 };
 const ActiveTool = TOOL_COMPONENTS[slug];
 ---

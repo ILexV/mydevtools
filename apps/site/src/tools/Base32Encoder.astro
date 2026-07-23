@@ -1,0 +1,275 @@
+---
+/**
+ * Base32 Encoder / Decoder tool UI. Static shell; behavior lives in
+ * `base32-encoder.client.ts`, which calls the shared `encoding-client`
+ * (one-shot text ops) and `encoding-file-client` (worker-backed file ops with
+ * progress + cancel).
+ *
+ * Locale strings for the tool namespace are embedded as a JSON island so the
+ * browser controller gets only its own strings.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+
+const { lang } = Astro.props as Props;
+const ns = "tools/base32-encoder";
+
+const s = {
+  inputTextLabel: t(lang, ns, "InputTextLabel"),
+  inputTextPlaceholder: t(lang, ns, "InputTextPlaceholder"),
+  inputFileLabel: t(lang, ns, "InputFileLabel"),
+  fileHint: t(lang, ns, "FileHint"),
+  charsetLabel: t(lang, ns, "CharsetLabel"),
+  alphabetLabel: t(lang, ns, "AlphabetLabel"),
+  alphabetRfc4648: t(lang, ns, "AlphabetRfc4648"),
+  alphabetCrockford: t(lang, ns, "AlphabetCrockford"),
+  alphabetZBase32: t(lang, ns, "AlphabetZBase32"),
+  paddingLabel: t(lang, ns, "PaddingLabel"),
+  paddingRequired: t(lang, ns, "PaddingRequired"),
+  paddingOptional: t(lang, ns, "PaddingOptional"),
+  paddingNone: t(lang, ns, "PaddingNone"),
+  caseLabel: t(lang, ns, "CaseLabel"),
+  caseAuto: t(lang, ns, "CaseAuto"),
+  caseUpper: t(lang, ns, "CaseUpper"),
+  caseLower: t(lang, ns, "CaseLower"),
+  allowWhitespace: t(lang, ns, "AllowWhitespace"),
+  outputModeLabel: t(lang, ns, "OutputModeLabel"),
+  outputModePreview: t(lang, ns, "OutputModePreview"),
+  outputModeFull: t(lang, ns, "OutputModeFull"),
+  actionEncode: t(lang, ns, "ActionEncode"),
+  actionDecode: t(lang, ns, "ActionDecode"),
+  actionSwap: t(lang, ns, "ActionSwap"),
+  actionClear: t(lang, ns, "ActionClear"),
+  outputLabel: t(lang, ns, "OutputLabel"),
+  copy: t(lang, ns, "Copy"),
+  copied: t(lang, ns, "Copied"),
+  download: t(lang, ns, "Download"),
+  fileProgressTitle: t(lang, ns, "FileProgressTitle"),
+  cancel: t(lang, ns, "Cancel"),
+  error: t(lang, "common", "Common_Error"),
+  clearFile: t(lang, "common", "Common_ClearFile"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="b32-tool" data-b32-tool>
+  <div class="b32-grid">
+    <section class="b32-input">
+      <label class="field-label" for="b32-input-text">{s.inputTextLabel}</label>
+      <textarea id="b32-input-text" data-b32-input rows="8" placeholder={s.inputTextPlaceholder}></textarea>
+
+      <div class="file-row">
+        <label class="file-btn">
+          <input type="file" data-b32-file hidden />
+          {s.inputFileLabel}
+        </label>
+        <span class="file-name" data-b32-filename></span>
+        <button type="button" class="link-btn" data-b32-file-clear hidden>{s.clearFile}</button>
+      </div>
+      <p class="file-hint">{s.fileHint}</p>
+
+      <div class="settings-grid">
+        <div class="setting">
+          <label class="field-label" for="b32-charset">{s.charsetLabel}</label>
+          <select id="b32-charset" data-b32-charset>
+            <option value="utf-8">UTF-8</option>
+            <option value="utf-16le">UTF-16LE</option>
+            <option value="utf-16be">UTF-16BE</option>
+            <option value="ascii">ASCII</option>
+            <option value="latin1">ISO-8859-1 (Latin-1)</option>
+          </select>
+        </div>
+
+        <div class="setting">
+          <label class="field-label" for="b32-alphabet">{s.alphabetLabel}</label>
+          <select id="b32-alphabet" data-b32-alphabet>
+            <option value="rfc4648">{s.alphabetRfc4648}</option>
+            <option value="crockford">{s.alphabetCrockford}</option>
+            <option value="zbase32">{s.alphabetZBase32}</option>
+          </select>
+        </div>
+
+        <div class="setting">
+          <label class="field-label" for="b32-padding">{s.paddingLabel}</label>
+          <select id="b32-padding" data-b32-padding>
+            <option value="required">{s.paddingRequired}</option>
+            <option value="optional">{s.paddingOptional}</option>
+            <option value="none">{s.paddingNone}</option>
+          </select>
+        </div>
+
+        <div class="setting">
+          <label class="field-label" for="b32-case">{s.caseLabel}</label>
+          <select id="b32-case" data-b32-case>
+            <option value="auto">{s.caseAuto}</option>
+            <option value="upper">{s.caseUpper}</option>
+            <option value="lower">{s.caseLower}</option>
+          </select>
+        </div>
+
+        <div class="setting setting-wide">
+          <label class="field-label" for="b32-output-mode">{s.outputModeLabel}</label>
+          <select id="b32-output-mode" data-b32-output-mode>
+            <option value="preview">{s.outputModePreview}</option>
+            <option value="full">{s.outputModeFull}</option>
+          </select>
+        </div>
+
+        <label class="check-row setting-wide">
+          <input type="checkbox" data-b32-allow-whitespace checked />
+          <span>{s.allowWhitespace}</span>
+        </label>
+      </div>
+
+      <div class="b32-actions">
+        <button type="button" class="primary-btn" data-b32-encode>{s.actionEncode}</button>
+        <button type="button" class="ghost-btn" data-b32-decode>{s.actionDecode}</button>
+        <button type="button" class="ghost-btn" data-b32-swap>{s.actionSwap}</button>
+        <button type="button" class="ghost-btn" data-b32-clear>{s.actionClear}</button>
+      </div>
+
+      <p class="b32-error" data-b32-error role="alert" hidden></p>
+    </section>
+
+    <section class="b32-output">
+      <label class="field-label" for="b32-output">{s.outputLabel}</label>
+      <textarea id="b32-output" data-b32-output rows="18" readonly></textarea>
+
+      <div class="b32-progress" data-b32-progress hidden>
+        <div class="progress-head">
+          <span class="progress-title" data-b32-progress-title>{s.fileProgressTitle}</span>
+          <button type="button" class="ghost-btn small-btn" data-b32-cancel>{s.cancel}</button>
+        </div>
+        <div class="progress-track"><div class="progress-fill" data-b32-progress-fill></div></div>
+        <span class="progress-label" data-b32-progress-label></span>
+      </div>
+
+      <div class="output-actions">
+        <button type="button" class="ghost-btn" data-b32-copy>{s.copy}</button>
+        <button type="button" class="ghost-btn" data-b32-download disabled>{s.download}</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script is:inline type="application/json" data-b32-strings set:html={stringsJson} />
+<script>
+  import "@/tools/base32-encoder.client.ts";
+</script>
+
+<style>
+  .b32-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  @media (min-width: 900px) {
+    .b32-grid { grid-template-columns: 1fr 1fr; }
+  }
+  .field-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--mdt-text-muted);
+    margin-bottom: 0.4rem;
+  }
+  .b32-input textarea,
+  .b32-output textarea {
+    width: 100%;
+    resize: vertical;
+    padding: 0.7rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text);
+    font-family: var(--mdt-font-mono);
+    font-size: 0.9rem;
+  }
+  .b32-input textarea:focus,
+  .b32-output textarea:focus {
+    outline: 2px solid var(--mdt-focus-ring);
+    outline-offset: 1px;
+  }
+  .file-row { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap; }
+  .file-btn {
+    display: inline-flex;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    cursor: pointer;
+    font-size: 0.88rem;
+  }
+  .file-btn:hover { border-color: var(--mdt-accent); }
+  .file-name { font-size: 0.85rem; color: var(--mdt-text-muted); font-family: var(--mdt-font-mono); word-break: break-all; }
+  .file-hint { font-size: 0.8rem; color: var(--mdt-text-muted); margin-top: 0.4rem; }
+
+  .settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding: 0.9rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    background: var(--mdt-surface-muted);
+  }
+  .setting-wide { grid-column: 1 / -1; }
+  .setting select {
+    width: 100%;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text);
+    font-size: 0.88rem;
+  }
+  .check-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  .check-row input { accent-color: var(--mdt-accent); }
+
+  .b32-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1rem; }
+  .primary-btn, .ghost-btn {
+    padding: 0.65rem 1.2rem;
+    border-radius: var(--mdt-radius);
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .ghost-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .ghost-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .small-btn { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
+  .link-btn { background: none; border: none; color: var(--mdt-accent); cursor: pointer; font-size: 0.82rem; padding: 0; }
+
+  .b32-error {
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--mdt-danger);
+    border-radius: var(--mdt-radius-sm);
+    color: var(--mdt-danger);
+    background: color-mix(in srgb, var(--mdt-danger) 8%, transparent);
+    font-size: 0.88rem;
+    margin-top: 1rem;
+  }
+
+  .b32-output { display: flex; flex-direction: column; }
+  .b32-progress { margin-top: 0.75rem; }
+  .progress-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+  .progress-title { font-size: 0.85rem; font-weight: 600; color: var(--mdt-text-muted); }
+  .progress-track { height: 0.5rem; background: var(--mdt-surface-muted); border-radius: 999px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--mdt-accent); width: 0%; transition: width 0.12s linear; }
+  .progress-label { display: block; font-size: 0.8rem; color: var(--mdt-text-muted); margin-top: 0.35rem; font-family: var(--mdt-font-mono); }
+
+  .output-actions { display: flex; gap: 0.6rem; margin-top: 0.75rem; justify-content: flex-end; }
+</style>

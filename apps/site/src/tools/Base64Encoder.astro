@@ -1,0 +1,184 @@
+---
+/**
+ * Base64 Encoder/Decoder (encoding WASM domain). Text + file, encode/decode
+ * (shared textarea), settings (charset/alphabet/padding/line-wrap), decode
+ * options (allow-whitespace), swap/clear/copy/download. File ops via the
+ * encoding worker (progress + cancel). Decode detects images (preview) and
+ * binaries (info + download) per legacy parity.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/base64-encoder";
+const s = {
+  inputTextLabel: t(lang, ns, "InputTextLabel"),
+  inputTextPlaceholder: t(lang, ns, "InputTextPlaceholder"),
+  inputFileLabel: t(lang, ns, "InputFileLabel"),
+  fileHint: t(lang, ns, "FileHint"),
+  charsetLabel: t(lang, ns, "CharsetLabel"),
+  alphabetLabel: t(lang, ns, "AlphabetLabel"),
+  alphabetStandard: t(lang, ns, "AlphabetStandard"),
+  alphabetUrlSafe: t(lang, ns, "AlphabetUrlSafe"),
+  paddingLabel: t(lang, ns, "PaddingLabel"),
+  paddingRequired: t(lang, ns, "PaddingRequired"),
+  paddingOptional: t(lang, ns, "PaddingOptional"),
+  paddingNone: t(lang, ns, "PaddingNone"),
+  lineWrapLabel: t(lang, ns, "LineWrapLabel"),
+  lineWrapNone: t(lang, ns, "LineWrapNone"),
+  lineWrap76: t(lang, ns, "LineWrap76"),
+  decodeOptionsLabel: t(lang, ns, "DecodeOptionsLabel"),
+  allowWhitespace: t(lang, ns, "AllowWhitespace"),
+  outputModeLabel: t(lang, ns, "OutputModeLabel"),
+  outputModePreview: t(lang, ns, "OutputModePreview"),
+  outputModeFull: t(lang, ns, "OutputModeFull"),
+  actionEncode: t(lang, ns, "ActionEncode"),
+  actionDecode: t(lang, ns, "ActionDecode"),
+  actionSwap: t(lang, ns, "ActionSwap"),
+  actionClear: t(lang, ns, "ActionClear"),
+  outputLabel: t(lang, ns, "OutputLabel"),
+  copy: t(lang, ns, "Copy"),
+  copied: t(lang, ns, "Copied"),
+  download: t(lang, ns, "Download"),
+  fileProgressTitle: t(lang, ns, "FileProgressTitle"),
+  cancel: t(lang, ns, "Cancel"),
+  imageDetected: t(lang, ns, "ImageDetected"),
+  binaryDetected: t(lang, ns, "BinaryDetected"),
+  binaryDownloadHint: t(lang, ns, "BinaryDownloadHint"),
+  statsChars: t(lang, ns, "StatsChars"),
+  statsBytes: t(lang, ns, "StatsBytes"),
+  statsEncoded: t(lang, ns, "StatsEncoded"),
+  statsDecoded: t(lang, ns, "StatsDecoded"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="b64-tool" data-b64-tool>
+  <div class="b64-grid">
+    <section class="b64-input">
+      <label class="field-label" for="b64-textarea">{s.inputTextLabel}</label>
+      <textarea id="b64-textarea" data-b64-textarea rows="8" placeholder={s.inputTextPlaceholder}></textarea>
+      <div class="file-row">
+        <label class="file-btn">
+          <input type="file" data-b64-file hidden />
+          {s.inputFileLabel}
+        </label>
+        <span class="file-name" data-b64-filename></span>
+        <button type="button" class="link-btn" data-b64-clearfile hidden>{s.actionClear}</button>
+      </div>
+      <p class="file-hint">{s.fileHint}</p>
+
+      <div class="settings">
+        <label class="setting">
+          <span class="field-label">{s.charsetLabel}</span>
+          <select data-b64-charset>
+            <option value="utf-8">UTF-8</option>
+            <option value="utf-16le">UTF-16 LE</option>
+            <option value="utf-16be">UTF-16 BE</option>
+            <option value="latin1">Latin-1</option>
+          </select>
+        </label>
+        <label class="setting">
+          <span class="field-label">{s.alphabetLabel}</span>
+          <select data-b64-alphabet>
+            <option value="standard">{s.alphabetStandard}</option>
+            <option value="urlsafe">{s.alphabetUrlSafe}</option>
+          </select>
+        </label>
+        <label class="setting">
+          <span class="field-label">{s.paddingLabel}</span>
+          <select data-b64-padding>
+            <option value="required">{s.paddingRequired}</option>
+            <option value="optional">{s.paddingOptional}</option>
+            <option value="none">{s.paddingNone}</option>
+          </select>
+        </label>
+        <label class="setting">
+          <span class="field-label">{s.lineWrapLabel}</span>
+          <select data-b64-linewrap>
+            <option value="none">{s.lineWrapNone}</option>
+            <option value="76">{s.lineWrap76}</option>
+          </select>
+        </label>
+        <label class="setting">
+          <span class="field-label">{s.outputModeLabel}</span>
+          <select data-b64-outputmode>
+            <option value="preview">{s.outputModePreview}</option>
+            <option value="full">{s.outputModeFull}</option>
+          </select>
+        </label>
+      </div>
+      <fieldset class="decode-options">
+        <legend>{s.decodeOptionsLabel}</legend>
+        <label class="check"><input type="checkbox" data-b64-allowws checked /> {s.allowWhitespace}</label>
+      </fieldset>
+    </section>
+
+    <section class="b64-output">
+      <div class="output-head">
+        <span class="field-label">{s.outputLabel}</span>
+        <span class="output-stats" data-b64-stats></span>
+      </div>
+      <textarea data-b64-output rows="8" readonly></textarea>
+      <div class="detect-panel" data-b64-detect hidden></div>
+    </section>
+  </div>
+
+  <div class="b64-actions">
+    <button type="button" class="primary-btn" data-b64-encode>{s.actionEncode}</button>
+    <button type="button" class="primary-btn" data-b64-decode>{s.actionDecode}</button>
+    <button type="button" class="ghost-btn" data-b64-swap>{s.actionSwap}</button>
+    <button type="button" class="ghost-btn" data-b64-clear>{s.actionClear}</button>
+    <button type="button" class="ghost-btn" data-b64-copy>{s.copy}</button>
+    <button type="button" class="ghost-btn" data-b64-download>{s.download}</button>
+    <button type="button" class="ghost-btn" data-b64-cancel hidden>{s.cancel}</button>
+  </div>
+
+  <div class="b64-progress" data-b64-progress hidden>
+    <div class="progress-track"><div class="progress-fill" data-b64-progress-fill></div></div>
+    <span class="progress-label" data-b64-progress-label></span>
+  </div>
+
+  <p class="b64-error" data-b64-error role="alert" hidden></p>
+</div>
+
+<script is:inline type="application/json" data-b64-strings set:html={stringsJson} />
+<script>import "@/tools/base64-encoder.client.ts";</script>
+
+<style>
+  .b64-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+  @media (min-width: 900px) { .b64-grid { grid-template-columns: 1fr 1fr; } }
+  .field-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
+  textarea { width: 100%; resize: vertical; padding: 0.7rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); color: var(--mdt-text); font-family: var(--mdt-font-mono); font-size: 0.88rem; }
+  textarea:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  .file-row { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.7rem; flex-wrap: wrap; }
+  .file-btn { display: inline-flex; padding: 0.5rem 0.9rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); cursor: pointer; font-size: 0.85rem; }
+  .file-btn:hover { border-color: var(--mdt-accent); }
+  .file-name { font-size: 0.82rem; color: var(--mdt-text-muted); font-family: var(--mdt-font-mono); }
+  .file-hint { font-size: 0.78rem; color: var(--mdt-text-muted); margin-top: 0.3rem; }
+  .settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0.7rem; margin-top: 0.9rem; }
+  .setting select { width: 100%; padding: 0.45rem 0.5rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-raised); color: var(--mdt-text); }
+  .decode-options { border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); padding: 0.5rem 0.7rem; margin-top: 0.7rem; }
+  .decode-options legend { font-size: 0.78rem; font-weight: 600; color: var(--mdt-text-muted); padding: 0 0.3rem; }
+  .check { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; }
+  .output-head { display: flex; justify-content: space-between; align-items: baseline; }
+  .output-stats { font-size: 0.78rem; color: var(--mdt-text-muted); font-family: var(--mdt-font-mono); }
+  .detect-panel { margin-top: 0.6rem; padding: 0.6rem 0.75rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-muted); font-size: 0.85rem; }
+  .detect-panel img { max-width: 100%; max-height: 14rem; margin-top: 0.5rem; border-radius: var(--mdt-radius-sm); }
+  .b64-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .primary-btn, .ghost-btn { padding: 0.6rem 1.1rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .ghost-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .link-btn { background: none; border: none; color: var(--mdt-accent); cursor: pointer; font-size: 0.82rem; }
+  .b64-progress { margin-bottom: 1rem; }
+  .progress-track { height: 0.5rem; background: var(--mdt-surface-muted); border-radius: 999px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--mdt-accent); width: 0%; transition: width 0.12s linear; }
+  .progress-label { display: block; font-size: 0.8rem; color: var(--mdt-text-muted); margin-top: 0.3rem; font-family: var(--mdt-font-mono); }
+  .b64-error { padding: 0.7rem 0.9rem; border: 1px solid var(--mdt-danger); border-radius: var(--mdt-radius-sm); color: var(--mdt-danger); background: color-mix(in srgb, var(--mdt-danger) 8%, transparent); font-size: 0.88rem; }
+</style>

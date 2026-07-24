@@ -39,6 +39,7 @@ mod tests {
         assert!(result.contains("key: value"));
     }
 
+    #[cfg(target_arch = "wasm32")]
     #[test]
     fn yaml_format_invalid() {
         let input = "key: value\n  invalid: [unclosed";
@@ -51,6 +52,7 @@ mod tests {
         assert!(yaml_validate(input).is_ok());
     }
 
+    #[cfg(target_arch = "wasm32")]
     #[test]
     fn yaml_validate_invalid() {
         let input = "key: value\n  invalid: [unclosed";

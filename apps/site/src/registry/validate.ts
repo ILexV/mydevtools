@@ -7,9 +7,9 @@
  * i18n validator (Stage 5), not here — this module only checks the registry's
  * own internal consistency.
  */
-import { TOOLS, type Tool, type WasmDomain } from "./tools";
-import { CATEGORIES, type CategoryId } from "./categories";
-import { LOCALES } from "./locales";
+import { TOOLS, type Tool, type WasmDomain } from "./tools.ts";
+import { CATEGORIES, type CategoryId } from "./categories.ts";
+import { LOCALES } from "./locales.ts";
 
 const KNOWN_CATEGORIES: Record<CategoryId, true> = Object.fromEntries(
   CATEGORIES.map((c) => [c.id, true] as const),

@@ -1346,6 +1346,7 @@ dependencies = [
  "ctr",
  "ed25519-dalek",
  "getrandom 0.2.17",
+ "hex",
  "hmac",
  "num-bigint-dig",
  "p256",

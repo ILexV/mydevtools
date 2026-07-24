@@ -1,10 +1,12 @@
 /**
  * Base-aware URL helpers for GitHub Pages.
  *
- * All internal links/assets MUST go through these so the production build works
- * under a non-empty `base` (`/mydevtools/`). Never hardcode `/foo` paths.
+ * Thin Vite-binding over the pure helpers in `urlPath.ts`. All internal links
+ * and assets MUST go through these so the production build works under a
+ * non-empty `base` (`/mydevtools/`). Never hardcode `/foo` paths.
  */
 import type { LocaleCode } from "@/registry/locales";
+import { joinBase, localizedPathFor, absoluteUrlFor } from "@/lib/urlPath";
 
 /** Resolved at build time from `astro.config` `base`. Always has leading+trailing slash. */
 export const BASE_URL: string = import.meta.env.BASE_URL?.endsWith("/")
@@ -13,8 +15,7 @@ export const BASE_URL: string = import.meta.env.BASE_URL?.endsWith("/")
 
 /** Join a path onto the configured base. Accepts with or without leading slash. */
 export function withBase(path: string): string {
-  const normalized = path.startsWith("/") ? path.slice(1) : path;
-  return `${BASE_URL}${normalized}`;
+  return joinBase(BASE_URL, path);
 }
 
 /**
@@ -22,9 +23,7 @@ export function withBase(path: string): string {
  * `/mydevtools/ru/hash-calculator/`. Empty `path` → the locale home.
  */
 export function localizedPath(lang: LocaleCode, path = ""): string {
-  const trimmed = path.replace(/^\/+|\/+$/g, "");
-  const middle = trimmed ? `${lang}/${trimmed}` : lang;
-  return `${BASE_URL}${middle}/`;
+  return localizedPathFor(BASE_URL, lang, path);
 }
 
 /**
@@ -33,5 +32,5 @@ export function localizedPath(lang: LocaleCode, path = ""): string {
  * `import.meta.env.SITE`; does NOT add the base a second time.
  */
 export function absoluteUrl(basePath: string): string {
-  return new URL(basePath, import.meta.env.SITE).toString();
+  return absoluteUrlFor(import.meta.env.SITE, basePath);
 }

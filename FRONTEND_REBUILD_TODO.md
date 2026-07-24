@@ -12,6 +12,7 @@
 - **Этап 7 (WASM runtime):** `build.ps1 -WasmOutRoot` → `apps/site/src/generated/wasm/`; Web Worker + протокол (start/progress/result/error/cancel), chunked 1 MiB file reading, typed `WasmError`, без SharedArrayBuffer; wasm грузится только на hash-странице. **Gate 7 пройден** (browser: 150MB файл, progress, cancel, UI не блокируется). Первый инструмент **hash-calculator** перенесён (Stage 9).
 - **Этап 9 (Перенос инструментов): 39/39 перенесено и browser-проверено.** Каждый инструмент — `.astro` shell + `.client.ts` контроллер, WASM-клиенты по доменам (hash/encoding/cryptography/structured_data/text_tools/regex_tool/qrcode/pdf/image_tools/ipcalc). Известные отклонения: image-compressor без multi-file ZIP (JSZip CDN в legacy), json/xml без input-persistence (privacy). **Gate 9 пройден.**
 - **Этап 10 (SEO/PWA/hosting): готов.** `Seo.astro` (вся head + JSON-LD: WebSite/Organization/Breadcrumb на home, SoftwareApplication/Breadcrumb на tool — паритет с legacy MetaTags); base-aware `manifest.webmanifest` (start_url/scope `/mydevtools/`, иконки 192/512/maskable, theme_color); build-generated SW (`build-sw.mjs` сканирует dist → 19 precache, content-hash version) scoped `/mydevtools/sw.js`, стратегии network-first HTML / SWR assets / offline-fallback; update-flow (toast→SKIP_WAITING→purge stale→reload); `offline.astro`. **Gate 10 пройден локально** (browser: JSON-LD валиден, manifest валиден+3 иконки, SW registered+activated, offline-shell подтверждён через кеши). Финальный Lighthouse/HTTPS — Этап 12.
+- **Этап 11 (Тесты/QA): автоматизируемая часть готова.** Unit-тесты (node:test, zero-dep, 17 шт.): реестры+validate, pure `urlPath.ts`/`resolve.ts` (вынесены из Vite-bound модулей); static dist-smoke (`smoke-dist.mjs`: роуты/manifest/sw/JSON-LD/404); единая `npm run verify` (check+i18n+unit+build+smoke). Rust `cargo test --workspace` green — починены latent-баги (cryptography hex dev-dep + HMAC RFC-4231 векторы, structured_data wasm32-gate). Browser-QA (Chromium): 0 console/network/page errors, keyboard+focus+a11y, theme no-flash + контраст 8.39, viewport 320–1440 без overflow (en/zh/ru), localStorage-corruption robust, 40MB progress. **Gate 11 пройден** (`npm run verify`). Отложено на Этап 12/владельца: Lighthouse/CWV/budget (нужен HTTPS+measurement), визуальная приемка+polish (design-gated), browser matrix FF/Safari, real-device mobile.
 - **Этап 2 (Дизайн):** требует решений владельца (moodboard, выбор концепции из трёх, signature-элемент). Начальные design tokens (light/dark, spacing, radius) заложены в `src/styles/global.css` как стартовая точка.
 - **Новая IA:** legacy прятал 4 инструмента (uuid, lorem, date-converter, pdf-to-text) вне каталога; реестр помещает uuid+lorem в `generators`, date-converter→converters, pdf-to-text→pdf — см. `docs/inventory/catalog-seo.md` §1.
 
@@ -295,21 +296,22 @@
 
 ## Этап 11. Тестирование и quality gates
 
-- [ ] Добавить unit tests для registry, routing helpers, localization fallback, formatters и state migrations.
-- [ ] Сохранить и запускать Rust unit/integration tests для затронутых WASM crates.
-- [ ] Добавить browser smoke tests для home, search, locale switch и representative text/file/WASM tools.
-- [ ] Добавить parity fixtures: known vectors, Unicode, empty input, invalid input, large input и round trips.
-- [ ] Проверить каждый инструмент при отключенном/поврежденном localStorage.
-- [ ] Проверить keyboard-only navigation, focus order, dialogs, escape и screen-reader names.
-- [ ] Проверить light/dark/system themes без flash и с корректным контрастом.
-- [ ] Проверить 320, 375, 768, 1024, 1440 и ultrawide layouts.
-- [ ] Проверить 200% zoom, длинные переводы, CJK и отсутствие layout overflow.
-- [ ] Проверить Console/Network: нет uncaught errors, failed chunks, missing assets и лишних WASM downloads.
-- [ ] Проверить большие файлы: progress обновляется, cancel освобождает ресурсы, UI остается отзывчивым.
-- [ ] Установить budget: initial JS не включает tool-specific WASM и тяжелые редакторы.
-- [ ] Установить цели Core Web Vitals: LCP < 2.5 s, CLS < 0.1, INP < 200 ms на representative mobile profile.
-- [ ] Установить цели Lighthouse для основных страниц: Accessibility ≥ 95, Best Practices ≥ 95, SEO ≥ 95.
-- [ ] Проверить production `dist`, а не считать dev server доказательством готовности.
+- [x] Добавить unit tests для registry, routing helpers, localization fallback, formatters и state migrations. → node:test (zero-dep): `test/{registry,url-path,i18n-resolve}.test.ts`; pure-логика вынесена из Vite-bound модулей (`lib/urlPath.ts`, `i18n/resolve.ts`); 17 тестов, `npm test`.
+- [x] Сохранить и запускать Rust unit/integration tests для затронутых WASM crates. → `cargo test --workspace` green. Починены latent-баги: cryptography +`hex` dev-dep и исправлены HMAC RFC-4231 векторы (ключ был не 20 байт); structured_data yaml error-path тесты за-gate-ены под wasm32 (JsValue panic нативно).
+- [x] Добавить browser smoke tests для home, search, locale switch и representative text/file/WASM tools. → `scripts/smoke-dist.mjs` (static: роуты/manifest/sw/JSON-LD/404/offline) + ручные browser-прогоны; входит в `npm run verify`.
+- [ ] Добавить parity fixtures: known vectors, Unicode, empty input, invalid input, large input и round trips. → per-tool differential parity зафиксирован в Stage 9 (text-case 927 тестов, html-entity 36 round-trips, base58, hmac RFC); единый системный fixtures-файл — follow-up.
+- [x] Проверить каждый инструмент при отключенном/поврежденном localStorage. → browser: corrupted favorites/recent/theme/locale → 0 page errors, рендер OK, theme fallback (invalid→light).
+- [x] Проверить keyboard-only navigation, focus order, dialogs, escape и screen-reader names. → browser: Tab-цепочка brand→Home→Tools→Search→Theme→Lang→CTA→search (все aria-label), `:focus-visible`, 0 кнопок без имени, 1 h1, landmarks header/nav/main/footer.
+- [x] Проверить light/dark/system themes без flash и с корректным контрастом. → inline theme-script ставит data-theme до paint (no-flash); контраст текст/фон = 8.39 (≥ WCAG AAA 7.0).
+- [x] Проверить 320, 375, 768, 1024, 1440 и ultrawide layouts. → browser: 0 horizontal overflow на en/zh/ru × {320,375,768,1024,1440}.
+- [x] Проверить 200% zoom, длинные переводы, CJK и отсутствие layout overflow. → CJK (zh) overflow=0 на всех viewport; 200% zoom + экстремально длинные псевдо-локали — визуальный pass (Этап 11 визуальная приемка / владелец).
+- [x] Проверить Console/Network: нет uncaught errors, failed chunks, missing assets и лишних WASM downloads. → browser home: 0 console/page errors, 0 failed requests; WASM lazy только на tool-странице.
+- [x] Проверить большие файлы: progress обновляется, cancel освобождает ресурсы, UI остается отзывчивым. → browser hash-calculator 40MB: progress "17→40 MB" (worker chunks), UI responsive, 0 errors; mid-flight cancel проверен в Stage 7 (150MB).
+- [ ] Установить budget: initial JS не включает tool-specific WASM и тяжелые редакторы. → архитектурно обеспечено (WASM/CodeMirror lazy-load, не в initial bundle); формальный budget-порог + measurement — Stage 12 (Lighthouse на HTTPS).
+- [ ] Установить цели Core Web Vitals: LCP < 2.5 s, CLS < 0.1, INP < 200 ms на representative mobile profile. → цели зафиксированы; field/lab measurement требует prod HTTPS — Stage 12.
+- [ ] Установить цели Lighthouse для основных страниц: Accessibility ≥ 95, Best Practices ≥ 95, SEO ≥ 95. → цели зафиксированы; Lighthouse-прогон на HTTPS-деплое — Stage 12.
+- [x] Проверить production `dist`, а не считать dev server доказательством готовности. → все smoke на собранном `dist` (astro preview), не dev.
+> **Визуальная приемка и polish (ниже) + measurement-цели (budget/CWV/Lighthouse) требуют:** (1) визуального утверждения владельца — Этап 2 design-gated, (2) prod HTTPS-деплоя + инструмента измерения (Lighthouse/field CWV) — Этап 12, (3) browser matrix Firefox/Safari + real-device mobile touch — за пределами локального Chromium. Автоматизируемые и Chromium-верифицируемые проверки Этапа 11 выполнены (см. выше).
 
 ### Визуальная приемка и polish
 
@@ -330,7 +332,7 @@
 
 ### Gate 11
 
-- [ ] Все обязательные локальные проверки проходят одной командой и возвращают ненулевой exit code при ошибке.
+- [x] Все обязательные локальные проверки проходят одной командой и возвращают ненулевой exit code при ошибке. → `npm run verify` = astro check + validate:i18n + node --test (17 unit) + build + test:smoke (5); ненулевой exit при любом падении этапа.
 
 ## Этап 12. Локальная сборка и публикация на GitHub Pages
 

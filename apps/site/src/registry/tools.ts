@@ -20,8 +20,8 @@
  * worker dispatch, file-flow patterns). Sourced from the inventory in
  * `docs/inventory-tools.md`.
  */
-import type { CategoryId } from "./categories";
-import type { LocaleCode } from "./locales";
+import type { CategoryId } from "./categories.ts";
+import type { LocaleCode } from "./locales.ts";
 
 /** Rust/WASM crate domain, or `null` for pure-JS tools. Mirrors `wasm/Cargo.toml`. */
 export type WasmDomain =

@@ -1,0 +1,172 @@
+---
+/**
+ * AEAD File Encrypt/Decrypt (cryptography WASM domain). Two panels (encrypt
+ * with algorithm + shared password, decrypt) plus a full-width output section
+ * (progress + cancel, header hex, result, download). Streaming chunked WASM
+ * ops via aead-file-client (legacy parity).
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/aead-file";
+const s = {
+  encryptSectionTitle: t(lang, ns, "EncryptSectionTitle"),
+  decryptSectionTitle: t(lang, ns, "DecryptSectionTitle"),
+  fileLabel: t(lang, ns, "FileLabel"),
+  fileHint: t(lang, ns, "FileHint"),
+  algorithmLabel: t(lang, ns, "AlgorithmLabel"),
+  passwordLabel: t(lang, ns, "PasswordLabel"),
+  encryptButton: t(lang, ns, "EncryptButton"),
+  decryptButton: t(lang, ns, "DecryptButton"),
+  headerLabel: t(lang, ns, "HeaderLabel"),
+  outputLabel: t(lang, ns, "OutputLabel"),
+  resultLabel: t(lang, ns, "ResultLabel"),
+  download: t(lang, ns, "Download"),
+  fileProgressTitle: t(lang, ns, "FileProgressTitle"),
+  cancel: t(lang, ns, "Cancel"),
+  sharedPasswordNote: t(lang, ns, "SharedPasswordNote"),
+  errorSelectFileToEncrypt: t(lang, ns, "ErrorSelectFileToEncrypt"),
+  errorSelectFileToDecrypt: t(lang, ns, "ErrorSelectFileToDecrypt"),
+  errorPasswordRequired: t(lang, ns, "ErrorPasswordRequired"),
+  errorOperationCanceled: t(lang, ns, "ErrorOperationCanceled"),
+  fileChoose: t(lang, "common", "Common_FileChooseButton"),
+  fileDropSubtitle: t(lang, "common", "Common_FileDropSubtitle"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="aead-tool" data-aead-tool>
+  <div class="aead-grid">
+    <section class="aead-panel">
+      <h2 class="aead-panel-title">{s.encryptSectionTitle}</h2>
+
+      <span class="field-label">{s.fileLabel}</span>
+      <div class="file-row">
+        <label class="file-btn">
+          <input type="file" data-aead-enc-file hidden />
+          {s.fileChoose}
+        </label>
+        <span class="file-name" data-aead-enc-filename>{s.fileDropSubtitle}</span>
+      </div>
+      <p class="file-hint">{s.fileHint}</p>
+
+      <label class="setting">
+        <span class="field-label">{s.algorithmLabel}</span>
+        <select data-aead-algorithm>
+          <option value="aes-256-gcm">AES-256-GCM (Standard)</option>
+          <option value="chacha20-poly1305">ChaCha20-Poly1305 (Fast)</option>
+          <option value="xchacha20-poly1305">XChaCha20-Poly1305 (Extended Nonce)</option>
+        </select>
+      </label>
+
+      <span class="field-label" id="aead-password-label">{s.passwordLabel}</span>
+      <div class="password-row">
+        <input
+          type="password"
+          data-aead-password
+          autocomplete="new-password"
+          placeholder="••••••••"
+          aria-labelledby="aead-password-label"
+        />
+        <button type="button" class="ghost-btn eye-btn" data-aead-toggle-password aria-label={s.passwordLabel}>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" height="18" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          </svg>
+        </button>
+      </div>
+
+      <button type="button" class="primary-btn aead-action" data-aead-encrypt>{s.encryptButton}</button>
+    </section>
+
+    <section class="aead-panel">
+      <h2 class="aead-panel-title">{s.decryptSectionTitle}</h2>
+
+      <span class="field-label">{s.fileLabel}</span>
+      <div class="file-row">
+        <label class="file-btn">
+          <input type="file" data-aead-dec-file hidden />
+          {s.fileChoose}
+        </label>
+        <span class="file-name" data-aead-dec-filename>{s.fileDropSubtitle}</span>
+      </div>
+
+      <p class="aead-note">{s.sharedPasswordNote}</p>
+
+      <button type="button" class="primary-btn aead-action" data-aead-decrypt>{s.decryptButton}</button>
+    </section>
+  </div>
+
+  <section class="aead-output">
+    <h3 class="aead-output-title">{s.outputLabel}</h3>
+
+    <div class="aead-progress" data-aead-progress hidden>
+      <div class="progress-head">
+        <span class="progress-title" data-aead-progress-title>{s.fileProgressTitle}</span>
+        <button type="button" class="link-btn" data-aead-cancel>{s.cancel}</button>
+      </div>
+      <div class="progress-file" data-aead-progress-file></div>
+      <div class="progress-track"><div class="progress-fill" data-aead-progress-fill></div></div>
+      <div class="progress-stats" data-aead-progress-stats></div>
+    </div>
+
+    <label class="field-label" for="aead-header">{s.headerLabel}</label>
+    <textarea id="aead-header" data-aead-header rows="3" readonly></textarea>
+
+    <label class="field-label" for="aead-result">{s.resultLabel}</label>
+    <div class="result-row">
+      <input id="aead-result" type="text" data-aead-result readonly />
+      <button type="button" class="ghost-btn" data-aead-download disabled>{s.download}</button>
+    </div>
+
+    <p class="aead-error" data-aead-error role="alert" hidden></p>
+  </section>
+</div>
+
+<script is:inline type="application/json" data-aead-strings set:html={stringsJson} />
+<script>import "@/tools/aead-file.client.ts";</script>
+
+<style>
+  .aead-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+  @media (min-width: 900px) { .aead-grid { grid-template-columns: 1fr 1fr; } }
+  .aead-panel { padding: 1rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); }
+  .aead-panel-title { margin: 0 0 0.9rem; font-size: 1.05rem; font-weight: 700; color: var(--mdt-accent); }
+  .field-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
+  .file-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .file-btn { display: inline-flex; padding: 0.5rem 0.9rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); cursor: pointer; font-size: 0.85rem; }
+  .file-btn:hover { border-color: var(--mdt-accent); }
+  .file-name { font-size: 0.82rem; color: var(--mdt-text-muted); font-family: var(--mdt-font-mono); overflow-wrap: anywhere; }
+  .file-hint { font-size: 0.78rem; color: var(--mdt-text-muted); margin-top: 0.3rem; }
+  .setting { display: block; margin-top: 0.9rem; }
+  .setting select { width: 100%; padding: 0.45rem 0.5rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-raised); color: var(--mdt-text); }
+  .password-row { display: flex; gap: 0.4rem; margin-top: 0.2rem; }
+  .password-row input { flex: 1; padding: 0.5rem 0.6rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-raised); color: var(--mdt-text); }
+  .password-row input:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  .eye-btn { display: inline-flex; align-items: center; padding: 0.5rem 0.6rem; }
+  .aead-action { width: 100%; margin-top: 1rem; }
+  .aead-note { margin-top: 0.9rem; padding: 0.5rem 0.7rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-muted); font-size: 0.78rem; color: var(--mdt-text-muted); }
+  .aead-output { padding: 1rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); }
+  .aead-output-title { margin: 0 0 0.9rem; font-size: 1rem; font-weight: 700; }
+  .aead-progress { margin-bottom: 1rem; padding: 0.8rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-muted); }
+  .progress-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+  .progress-title { font-weight: 700; font-size: 0.88rem; }
+  .progress-file { font-size: 0.78rem; color: var(--mdt-text-muted); margin-bottom: 0.5rem; font-family: var(--mdt-font-mono); overflow-wrap: anywhere; }
+  .progress-track { height: 0.5rem; background: var(--mdt-surface-raised); border-radius: 999px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--mdt-accent); width: 0%; transition: width 0.12s linear; }
+  .progress-stats { font-size: 0.78rem; color: var(--mdt-text-muted); margin-top: 0.35rem; text-align: right; font-family: var(--mdt-font-mono); }
+  textarea { width: 100%; resize: vertical; padding: 0.7rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-muted); color: var(--mdt-text); font-family: var(--mdt-font-mono); font-size: 0.85rem; }
+  .result-row { display: flex; gap: 0.5rem; }
+  .result-row input { flex: 1; padding: 0.5rem 0.6rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-muted); color: var(--mdt-text); font-family: var(--mdt-font-mono); font-size: 0.85rem; }
+  .primary-btn, .ghost-btn { padding: 0.6rem 1.1rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .primary-btn:disabled, .ghost-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .ghost-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .link-btn { background: none; border: none; color: var(--mdt-danger); cursor: pointer; font-size: 0.82rem; font-weight: 600; }
+  .aead-error { margin-top: 0.8rem; padding: 0.7rem 0.9rem; border: 1px solid var(--mdt-danger); border-radius: var(--mdt-radius-sm); color: var(--mdt-danger); background: color-mix(in srgb, var(--mdt-danger) 8%, transparent); font-size: 0.88rem; }
+</style>

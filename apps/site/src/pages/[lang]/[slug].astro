@@ -44,6 +44,9 @@ import TextDiffViewer from "@/tools/TextDiffViewer.astro";
 import MarkdownPreview from "@/tools/MarkdownPreview.astro";
 import RegexTester from "@/tools/RegexTester.astro";
 import IpSubnetCalculator from "@/tools/IpSubnetCalculator.astro";
+import QrCodeGenerator from "@/tools/QrCodeGenerator.astro";
+import QrCodeScanner from "@/tools/QrCodeScanner.astro";
+import AeadFileCrypto from "@/tools/AeadFileCrypto.astro";
 
 assertRegistryValid();
 
@@ -102,6 +105,9 @@ const TOOL_COMPONENTS: Record<string, any> = {
   "markdown-preview": MarkdownPreview,
   "regex-tester": RegexTester,
   "ip-subnet-calculator": IpSubnetCalculator,
+  "qr-code-generator": QrCodeGenerator,
+  "qr-scanner": QrCodeScanner,
+  "aead-file": AeadFileCrypto,
 };
 const ActiveTool = TOOL_COMPONENTS[slug];
 ---

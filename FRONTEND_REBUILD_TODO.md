@@ -242,7 +242,7 @@
 
 - [x] `hash-calculator` → `tools/HashCalculator.astro` + worker; проверен в browser (text+file, progress/cancel)
 - [x] `hmac-calculator` → live HMAC-SHA256/512 (text key, hex out); reference-вектор совпал; проверен
-- [ ] `aead-file`
+- [x] `aead-file` → cryptography stream WASM, 1 MiB chunks, Argon2id 64MiB/3/1, progress+ETA+cancel, header hex; round-trip проверен
 - [x] `password-generator` → length 4–128 + charsets + special-chars, history 10, localStorage parity; проверен
 - [x] `uuid-generator` → pure JS (Web Crypto), v4/v7, 4 формата, batch ≤100, copy-all/download; проверен
 - [x] `openssh-keys` → generate ed25519/p256/p384/rsa-3072/4096, import 4 формата, convert; legacy-баг passphrase→comment починен; проверен
@@ -265,8 +265,8 @@
 - [ ] `pdf-compressor`
 - [ ] `pdf-merger`
 - [ ] `pdf-to-text`
-- [ ] `qr-code-generator`
-- [ ] `qr-scanner`
+- [x] `qr-code-generator` → qrcode WASM PNG/SVG, colors/style/ec/size, logo upload; проверен
+- [x] `qr-scanner` → qrcode WASM decode, drag-drop upload, URL→open-link; round-trip через generator проверен
 
 ### Gate 9
 

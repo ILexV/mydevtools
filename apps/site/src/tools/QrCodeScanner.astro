@@ -1,0 +1,144 @@
+---
+/**
+ * QR Code Scanner (qrcode WASM domain). Upload/drag-drop an image, decode via
+ * `qrDecode`, show the decoded text with copy; URL results get an open-link
+ * action. Image preview + file info + clear per legacy FileDropZone parity.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/qr-scanner";
+const s = {
+  dropZone: t(lang, ns, "DropZone"),
+  chooseFile: t(lang, "common", "Common_FileChooseButton"),
+  changeFile: t(lang, "common", "Common_FileChangeButton"),
+  clearFile: t(lang, "common", "Common_ClearFile"),
+  resultLabel: t(lang, ns, "ResultLabel"),
+  copy: t(lang, "common", "Common_Copy"),
+  copied: t(lang, ns, "Copied"),
+  openLink: t(lang, ns, "OpenLink"),
+  previewAlt: t(lang, ns, "PreviewAlt"),
+  errorNotImage: t(lang, ns, "ErrorNotImage"),
+  errorNoQr: t(lang, ns, "ErrorNoQr"),
+  errorReading: t(lang, ns, "ErrorReading"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="qrs-tool" data-qrs-tool>
+  <div class="qrs-drop" data-qrs-dropzone>
+    <input type="file" accept="image/*" data-qrs-file hidden />
+    <button type="button" class="qrs-clear" data-qrs-clear aria-label={s.clearFile} title={s.clearFile} hidden>
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+
+    <div class="qrs-empty" data-qrs-empty>
+      <svg class="qrs-icon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+      <p class="qrs-drop-text">{s.dropZone}</p>
+      <button type="button" class="primary-btn" data-qrs-choose>{s.chooseFile}</button>
+    </div>
+
+    <div class="qrs-selected" data-qrs-selected hidden>
+      <img class="qrs-preview" data-qrs-preview alt={s.previewAlt} />
+      <div class="qrs-fileinfo">
+        <span class="qrs-filename" data-qrs-filename></span>
+        <span class="qrs-filesize" data-qrs-filesize></span>
+      </div>
+      <button type="button" class="primary-btn" data-qrs-change>{s.changeFile}</button>
+    </div>
+  </div>
+
+  <section class="qrs-result" data-qrs-result hidden>
+    <span class="field-label">{s.resultLabel}</span>
+    <div class="qrs-output-wrap">
+      <textarea data-qrs-output rows="5" readonly></textarea>
+      <button type="button" class="ghost-btn qrs-copy" data-qrs-copy>{s.copy}</button>
+    </div>
+    <div class="qrs-link" data-qrs-linkwrap hidden>
+      <a class="qrs-open-link" data-qrs-openlink href="#" target="_blank" rel="noopener noreferrer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+        </svg>
+        {s.openLink}
+      </a>
+    </div>
+  </section>
+
+  <p class="qrs-error" data-qrs-error role="alert" hidden></p>
+</div>
+
+<script is:inline type="application/json" data-qrs-strings set:html={stringsJson} />
+<script>import "@/tools/qr-code-scanner.client.ts";</script>
+
+<style>
+  .qrs-tool { max-width: 48rem; margin: 0 auto; }
+  .qrs-drop {
+    position: relative;
+    border: 2px dashed var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    padding: 2.25rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+  .qrs-drop:hover { border-color: var(--mdt-accent); }
+  .qrs-drop.qrs-dragover { border-color: var(--mdt-accent); background: color-mix(in srgb, var(--mdt-accent) 8%, transparent); }
+  .qrs-clear {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--mdt-text-muted);
+    cursor: pointer;
+  }
+  .qrs-clear:hover { color: var(--mdt-danger); background: var(--mdt-surface-muted); }
+  .qrs-empty, .qrs-selected { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; }
+  .qrs-icon { width: 3rem; height: 3rem; color: var(--mdt-text-muted); }
+  .qrs-drop-text { font-size: 1.05rem; font-weight: 500; margin: 0; }
+  .qrs-preview { max-width: 16rem; max-height: 12rem; object-fit: contain; border-radius: var(--mdt-radius-sm); box-shadow: 0 1px 4px rgb(0 0 0 / 0.15); }
+  .qrs-fileinfo { display: flex; flex-direction: column; gap: 0.15rem; }
+  .qrs-filename { font-weight: 500; overflow-wrap: anywhere; }
+  .qrs-filesize { font-size: 0.82rem; color: var(--mdt-text-muted); font-family: var(--mdt-font-mono); }
+  .primary-btn, .ghost-btn { padding: 0.55rem 1rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .ghost-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .qrs-result { margin-top: 1.25rem; }
+  .field-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
+  .qrs-output-wrap { position: relative; }
+  textarea { width: 100%; resize: vertical; padding: 0.7rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); color: var(--mdt-text); font-family: var(--mdt-font-mono); font-size: 0.88rem; }
+  textarea:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  .qrs-copy { position: absolute; top: 0.5rem; right: 0.5rem; padding: 0.3rem 0.65rem; font-size: 0.8rem; }
+  .qrs-link { margin-top: 0.9rem; }
+  .qrs-open-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1rem;
+    border-radius: var(--mdt-radius);
+    background: var(--mdt-success);
+    color: var(--mdt-accent-contrast);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .qrs-open-link:hover { filter: brightness(1.05); }
+  .qrs-error { margin-top: 1rem; padding: 0.7rem 0.9rem; border: 1px solid var(--mdt-danger); border-radius: var(--mdt-radius-sm); color: var(--mdt-danger); background: color-mix(in srgb, var(--mdt-danger) 8%, transparent); font-size: 0.88rem; }
+</style>

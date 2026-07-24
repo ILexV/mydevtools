@@ -1,0 +1,152 @@
+---
+/**
+ * Text Diff Viewer. Two inputs (paste text or load a file per side), a unified
+ * diff built with vendored jsdiff and rendered by vendored diff2html-ui (both
+ * loaded on demand by the client). View modes: side-by-side (default) /
+ * line-by-line. Actions: compare, clear. Large diffs are capped via
+ * diffMaxChanges / diffMaxLineLength (legacy parity).
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/text-diff-viewer";
+
+const originalLabel = t(lang, ns, "OriginalLabel");
+const modifiedLabel = t(lang, ns, "ModifiedLabel");
+const chooseOriginal = t(lang, ns, "ChooseOriginalFile");
+const chooseModified = t(lang, ns, "ChooseModifiedFile");
+const chooseFile = t(lang, "common", "Common_FileChooseButton");
+const lineByLine = t(lang, ns, "LineByLine");
+const sideBySide = t(lang, ns, "SideBySide");
+
+const stringsJson = JSON.stringify({
+  loading: t(lang, "common", "Common_Loading"),
+  errorEmpty: t(lang, ns, "ErrorMessage"),
+  errorLibLoad: t(lang, ns, "LibraryLoadError"),
+});
+---
+
+<div class="diff-tool" data-diff-tool>
+  <div class="diff-grid">
+    <div class="diff-field">
+      <div class="diff-field-head">
+        <span class="diff-field-label">{originalLabel}</span>
+        <button type="button" class="ghost-btn small" data-diff-load="original" title={chooseOriginal} aria-label={chooseOriginal}>
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
+          {chooseFile}
+        </button>
+        <input type="file" data-diff-file="original" hidden />
+      </div>
+      <textarea data-diff-text="original" rows="14" placeholder={t(lang, ns, "OriginalPlaceholder")} aria-label={originalLabel}></textarea>
+    </div>
+
+    <div class="diff-field">
+      <div class="diff-field-head">
+        <span class="diff-field-label">{modifiedLabel}</span>
+        <button type="button" class="ghost-btn small" data-diff-load="modified" title={chooseModified} aria-label={chooseModified}>
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
+          {chooseFile}
+        </button>
+        <input type="file" data-diff-file="modified" hidden />
+      </div>
+      <textarea data-diff-text="modified" rows="14" placeholder={t(lang, ns, "ModifiedPlaceholder")} aria-label={modifiedLabel}></textarea>
+    </div>
+  </div>
+
+  <div class="diff-bar">
+    <div class="diff-actions">
+      <button type="button" class="primary-btn" data-diff-compare>{t(lang, ns, "CompareButton")}</button>
+      <button type="button" class="ghost-btn" data-diff-clear>{t(lang, ns, "ClearButton")}</button>
+    </div>
+    <div class="diff-modes">
+      <label class="diff-mode">
+        <input type="radio" name="diff-view-mode" value="line-by-line" data-diff-mode />
+        <span>{lineByLine}</span>
+      </label>
+      <label class="diff-mode">
+        <input type="radio" name="diff-view-mode" value="side-by-side" data-diff-mode checked />
+        <span>{sideBySide}</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="diff-output" data-diff-output hidden></div>
+</div>
+
+<script is:inline type="application/json" data-diff-strings set:html={stringsJson} />
+<script>import "@/tools/text-diff-viewer.client.ts";</script>
+
+<style>
+  .diff-tool { display: flex; flex-direction: column; gap: 1rem; }
+  .diff-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+  @media (min-width: 900px) { .diff-grid { grid-template-columns: 1fr 1fr; } }
+
+  .diff-field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .diff-field-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  .diff-field-label { font-weight: 600; font-size: 0.95rem; }
+
+  .diff-field textarea {
+    width: 100%; resize: vertical; padding: 0.75rem;
+    border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius);
+    background: var(--mdt-surface-raised); color: var(--mdt-text);
+    font-family: var(--mdt-font-mono); font-size: 0.85rem; line-height: 1.5;
+    min-height: 14rem;
+  }
+  .diff-field textarea:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+
+  .diff-bar {
+    display: flex; flex-wrap: wrap; align-items: center;
+    justify-content: space-between; gap: 0.75rem;
+  }
+  .diff-actions { display: flex; gap: 0.5rem; }
+
+  .primary-btn, .ghost-btn {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.5rem 0.85rem; border-radius: var(--mdt-radius-sm);
+    border: 1px solid var(--mdt-border); background: var(--mdt-surface-raised);
+    color: var(--mdt-text); cursor: pointer; font-size: 0.85rem;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .primary-btn { background: var(--mdt-accent); border-color: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .primary-btn:hover { filter: brightness(1.08); }
+  .ghost-btn.small { padding: 0.25rem 0.6rem; font-size: 0.78rem; }
+  .primary-btn:focus-visible, .ghost-btn:focus-visible {
+    outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px;
+  }
+
+  .diff-modes {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0.4rem 0.85rem; border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface-muted); border: 1px solid var(--mdt-border);
+  }
+  .diff-mode { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.85rem; }
+  .diff-mode input { accent-color: var(--mdt-accent); cursor: pointer; }
+  .diff-mode input:focus-visible { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+
+  .diff-output {
+    border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius);
+    background: var(--mdt-surface); color: var(--mdt-text);
+    overflow-x: auto; min-height: 100px;
+    font-size: 0.82rem;
+  }
+  .diff-output[hidden] { display: none; }
+
+  /* Runtime-created DOM (client) → global selectors scoped under .diff-tool */
+  .diff-tool :global(.diff-alert) {
+    padding: 0.9rem 1rem; font-size: 0.88rem;
+  }
+  .diff-tool :global(.diff-alert-info) { color: var(--mdt-text-muted); }
+  .diff-tool :global(.diff-alert-error) {
+    color: var(--mdt-danger);
+    background: color-mix(in srgb, var(--mdt-danger) 8%, transparent);
+  }
+  .diff-tool :global(.d2h-file-header) { font-family: var(--mdt-font-mono); }
+  .diff-tool :global(.d2h-code-line), .diff-tool :global(.d2h-code-side-line) {
+    font-family: var(--mdt-font-mono);
+  }
+</style>

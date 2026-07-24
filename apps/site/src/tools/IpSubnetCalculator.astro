@@ -1,0 +1,282 @@
+---
+/**
+ * IP Subnet Calculator tool (ipcalc WASM domain). Accepts CIDR
+ * (192.168.1.1/24) or "IP mask" (192.168.1.1 255.255.255.0) input and renders
+ * the full legacy results table: address/netmask/wildcard, network + prefix,
+ * broadcast, host range, usable/total hosts, class + private/public badge, and
+ * the binary IP/mask view. Calculate on button click or Enter; example buttons
+ * fill + run; copy buttons on network/broadcast with transient feedback.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/ip-subnet-calculator";
+const s = {
+  inputLabel: t(lang, ns, "InputLabel"),
+  calculate: t(lang, ns, "Calculate"),
+  address: t(lang, ns, "Address"),
+  netmask: t(lang, ns, "Netmask"),
+  wildcard: t(lang, ns, "Wildcard"),
+  network: t(lang, ns, "Network"),
+  broadcast: t(lang, ns, "Broadcast"),
+  hostMin: t(lang, ns, "HostMin"),
+  hostMax: t(lang, ns, "HostMax"),
+  hosts: t(lang, ns, "Hosts"),
+  total: t(lang, ns, "Total"),
+  classLabel: t(lang, ns, "Class"),
+  privateLabel: t(lang, ns, "Private"),
+  publicLabel: t(lang, ns, "Public"),
+  copied: t(lang, ns, "Copied"),
+  errorInvalidFormat: t(lang, ns, "Error_InvalidFormat"),
+};
+const stringsJson = JSON.stringify(s);
+const copyIcon =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>';
+---
+
+<div class="ip-tool" data-ip-tool>
+  <div class="ip-grid">
+    <section class="ip-card">
+      <label class="field-label" for="ip-cidr-input">{s.inputLabel}</label>
+      <div class="ip-input-row">
+        <input
+          id="ip-cidr-input"
+          type="text"
+          data-ip-input
+          placeholder="192.168.1.1/24"
+          autocomplete="off"
+          spellcheck="false"
+          autofocus
+        />
+        <button type="button" class="primary-btn" data-ip-calculate>{s.calculate}</button>
+      </div>
+      <p class="ip-error" data-ip-error role="alert" hidden></p>
+      <div class="ip-examples">
+        <button type="button" class="ghost-btn" data-ip-example="192.168.0.1/24">Example 1</button>
+        <button type="button" class="ghost-btn" data-ip-example="10.0.0.0/8">Example 2</button>
+        <button type="button" class="ghost-btn" data-ip-example="172.16.0.1 255.240.0.0">Example 3</button>
+      </div>
+    </section>
+
+    <section class="ip-card ip-results" data-ip-results hidden>
+      <table class="ip-table">
+        <tbody>
+          <tr>
+            <th>{s.address}</th>
+            <td><span data-ip-value="ip"></span></td>
+            <td></td>
+          </tr>
+          <tr>
+            <th>{s.netmask}</th>
+            <td><span data-ip-value="netmask"></span></td>
+            <td></td>
+          </tr>
+          <tr>
+            <th>{s.wildcard}</th>
+            <td><span data-ip-value="wildcard"></span></td>
+            <td></td>
+          </tr>
+          <tr>
+            <th>{s.network}</th>
+            <td>
+              <span data-ip-value="network"></span>
+              <span class="ip-dim" data-ip-value="prefix"></span>
+            </td>
+            <td class="ip-copy-cell">
+              <button type="button" class="ip-copy" data-ip-copy="network" set:html={copyIcon} />
+            </td>
+          </tr>
+          <tr>
+            <th>{s.broadcast}</th>
+            <td><span data-ip-value="broadcast"></span></td>
+            <td class="ip-copy-cell">
+              <button type="button" class="ip-copy" data-ip-copy="broadcast" set:html={copyIcon} />
+            </td>
+          </tr>
+          <tr>
+            <th>{s.hostMin}</th>
+            <td><span data-ip-value="hostMin"></span></td>
+            <td></td>
+          </tr>
+          <tr>
+            <th>{s.hostMax}</th>
+            <td><span data-ip-value="hostMax"></span></td>
+            <td></td>
+          </tr>
+          <tr>
+            <th>{s.hosts}</th>
+            <td>
+              <strong data-ip-value="usableHosts"></strong>
+              <span class="ip-dim ip-total">({s.total}: <span data-ip-value="totalHosts"></span>)</span>
+            </td>
+            <td></td>
+          </tr>
+          <tr>
+            <th>{s.classLabel}</th>
+            <td>
+              <span data-ip-value="class"></span>
+              <span class="ip-badge ip-badge-private" data-ip-badge="private" hidden>{s.privateLabel}</span>
+              <span class="ip-badge ip-badge-public" data-ip-badge="public" hidden>{s.publicLabel}</span>
+            </td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="ip-binary">
+        <div class="ip-binary-row">
+          <span class="ip-binary-label">IP:</span>
+          <span data-ip-value="ipBinary"></span>
+        </div>
+        <div class="ip-binary-row">
+          <span class="ip-binary-label">Mask:</span>
+          <span data-ip-value="maskBinary"></span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script is:inline type="application/json" data-ip-strings set:html={stringsJson} />
+<script>
+  import "@/tools/ip-subnet-calculator.client.ts";
+</script>
+
+<style>
+  .ip-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  @media (min-width: 900px) {
+    .ip-grid { grid-template-columns: 1fr 1.2fr; }
+  }
+  .ip-card {
+    padding: 1.25rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    background: var(--mdt-surface-raised);
+  }
+  .ip-results[hidden] { display: none; }
+
+  .field-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--mdt-text-muted);
+    margin-bottom: 0.4rem;
+  }
+  .ip-input-row { display: flex; gap: 0.6rem; }
+  .ip-input-row input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    background: var(--mdt-surface-muted);
+    color: var(--mdt-text);
+    font-family: var(--mdt-font-mono);
+    font-size: 1rem;
+  }
+  .ip-input-row input:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+
+  .primary-btn, .ghost-btn {
+    padding: 0.65rem 1.2rem;
+    border-radius: var(--mdt-radius);
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .ghost-btn {
+    background: var(--mdt-surface-raised);
+    border-color: var(--mdt-border);
+    color: var(--mdt-text);
+    padding: 0.35rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+
+  .ip-error {
+    margin: 0.5rem 0 0;
+    color: var(--mdt-danger);
+    font-size: 0.85rem;
+  }
+  .ip-examples { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.9rem; }
+
+  .ip-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mdt-font-mono);
+    font-size: 0.9rem;
+  }
+  .ip-table th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--mdt-text-muted);
+    white-space: nowrap;
+    width: 8rem;
+    padding: 0.45rem 0.5rem 0.45rem 0;
+  }
+  .ip-table td { padding: 0.45rem 0; word-break: break-all; }
+  .ip-table tr + tr th, .ip-table tr + tr td { border-top: 1px solid var(--mdt-border); }
+  .ip-dim { color: var(--mdt-text-muted); }
+  .ip-total { font-size: 0.78rem; }
+
+  .ip-copy-cell { text-align: right; width: 2.5rem; }
+  .ip-copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.9rem;
+    min-height: 1.9rem;
+    padding: 0.3rem;
+    border: none;
+    border-radius: var(--mdt-radius-sm);
+    background: transparent;
+    color: var(--mdt-text-muted);
+    cursor: pointer;
+  }
+  .ip-copy:hover { color: var(--mdt-accent); background: var(--mdt-surface-muted); }
+  .ip-copy:focus-visible { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  .ip-copied { font-size: 0.75rem; color: var(--mdt-success, var(--mdt-accent)); font-family: var(--mdt-font-sans); }
+
+  .ip-badge {
+    display: inline-block;
+    margin-left: 0.4rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: var(--mdt-font-sans);
+    vertical-align: middle;
+  }
+  .ip-badge-private {
+    background: color-mix(in srgb, var(--mdt-warning, #d97706) 16%, transparent);
+    color: var(--mdt-warning, #d97706);
+  }
+  .ip-badge-public {
+    background: color-mix(in srgb, var(--mdt-success, #16a34a) 16%, transparent);
+    color: var(--mdt-success, #16a34a);
+  }
+
+  .ip-binary {
+    margin-top: 1rem;
+    padding: 0.9rem 1rem;
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface-muted);
+    font-family: var(--mdt-font-mono);
+    font-size: 0.82rem;
+    overflow-x: auto;
+  }
+  .ip-binary-row { display: flex; gap: 1rem; white-space: nowrap; }
+  .ip-binary-row + .ip-binary-row { margin-top: 0.35rem; }
+  .ip-binary-label { color: var(--mdt-text-muted); width: 3rem; flex: none; }
+</style>

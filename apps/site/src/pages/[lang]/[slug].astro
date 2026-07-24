@@ -40,6 +40,10 @@ import XmlBeautifier from "@/tools/XmlBeautifier.astro";
 import YamlBeautifierValidator from "@/tools/YamlBeautifierValidator.astro";
 import CronGenerator from "@/tools/CronGenerator.astro";
 import CronParser from "@/tools/CronParser.astro";
+import TextDiffViewer from "@/tools/TextDiffViewer.astro";
+import MarkdownPreview from "@/tools/MarkdownPreview.astro";
+import RegexTester from "@/tools/RegexTester.astro";
+import IpSubnetCalculator from "@/tools/IpSubnetCalculator.astro";
 
 assertRegistryValid();
 
@@ -94,6 +98,10 @@ const TOOL_COMPONENTS: Record<string, any> = {
   "yaml-beautifier-validator": YamlBeautifierValidator,
   "cron-generator": CronGenerator,
   "cron-parser": CronParser,
+  "text-diff-viewer": TextDiffViewer,
+  "markdown-preview": MarkdownPreview,
+  "regex-tester": RegexTester,
+  "ip-subnet-calculator": IpSubnetCalculator,
 };
 const ActiveTool = TOOL_COMPONENTS[slug];
 ---

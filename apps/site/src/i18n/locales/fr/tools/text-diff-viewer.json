@@ -11,6 +11,7 @@
   "LineByLine": "Ligne par ligne",
   "SideBySide": "Côte à côte",
   "ErrorMessage": "Veuillez saisir du texte dans les deux champs pour comparer.",
+  "LibraryLoadError": "La bibliothèque de l'outil de comparaison n'a pas pu être chargée. Veuillez actualiser la page.",
   "ChooseOriginalFile": "📁 Choisir le fichier original",
   "ChooseModifiedFile": "📁 Choisir le fichier modifié",
   "Seo_Introduction": "L'outil Text Diff Viewer est un outil en ligne axé sur la confidentialité conçu pour les développeurs. Tout le traitement se fait localement dans votre navigateur en utilisant WebAssembly, garantissant que vos données ne quittent jamais votre appareil.",

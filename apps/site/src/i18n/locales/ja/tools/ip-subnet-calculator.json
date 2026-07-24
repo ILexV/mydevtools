@@ -15,6 +15,8 @@
   "UsableHosts": "使用可能",
   "Total": "合計",
   "Class": "クラス",
+  "Private": "プライベート",
+  "Public": "パブリック",
   "Binary": "バイナリ",
   "Copied": "コピーしました！",
   "Error_InvalidFormat": "無効なIP形式です。CIDR (192.168.1.1/24) または IP マスク (192.168.1.1 255.255.255.0) を使用してください。",

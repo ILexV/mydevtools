@@ -11,6 +11,7 @@
   "LineByLine": "Linha por Linha",
   "SideBySide": "Lado a Lado",
   "ErrorMessage": "Digite texto em ambos os campos para comparar.",
+  "LibraryLoadError": "Não foi possível carregar a biblioteca do visualizador de diferenças. Atualize a página.",
   "ChooseOriginalFile": "📁 Escolher arquivo original",
   "ChooseModifiedFile": "📁 Escolher arquivo modificado",
   "Seo_Introduction": "A ferramenta Text Diff Viewer é uma ferramenta online focada em privacidade projetada para desenvolvedores. Todo o processamento acontece localmente no seu navegador usando WebAssembly, garantindo que seus dados nunca saiam do seu dispositivo.",

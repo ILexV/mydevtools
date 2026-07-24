@@ -11,6 +11,7 @@
   "LineByLine": "逐行比较",
   "SideBySide": "并排比较",
   "ErrorMessage": "请在两个字段中输入文本以进行比较。",
+  "LibraryLoadError": "差异查看器库加载失败。请刷新页面。",
   "ChooseOriginalFile": "📁 选择原始文件",
   "ChooseModifiedFile": "📁 选择修改后的文件",
   "Seo_Introduction": "Text Diff Viewer工具是为开发人员设计的注重隐私的在线工具。所有处理都使用WebAssembly在您的浏览器中本地进行，确保您的数据永远不会离开您的设备。",

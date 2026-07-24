@@ -11,6 +11,7 @@
   "LineByLine": "行ごと",
   "SideBySide": "横に並べて",
   "ErrorMessage": "比較するには両方のフィールドにテキストを入力してください。",
+  "LibraryLoadError": "差分ビューアのライブラリを読み込めませんでした。ページを更新してください。",
   "ChooseOriginalFile": "📁 元のファイルを選択",
   "ChooseModifiedFile": "📁 変更されたファイルを選択",
   "Seo_Introduction": "Text Diff Viewerツールは、開発者向けに設計されたプライバシー重視のオンラインツールです。すべての処理はWebAssemblyを使用してブラウザ内でローカルに行われ、データがデバイスから離れることはありません。",

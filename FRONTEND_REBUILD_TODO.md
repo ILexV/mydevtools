@@ -233,10 +233,10 @@
 
 - [x] `word-counter` → pure JS, live stats (words/chars/lines/paras/sentences/reading&speaking); проверен
 - [x] `text-case-converter` → pure JS (927 differential tests vs legacy WASM, 0 расхождений); проверен
-- [ ] `text-diff-viewer`
-- [ ] `markdown-preview`
+- [x] `text-diff-viewer` → jsdiff+diff2html vendored (CDN убран), side-by-side/line-by-line, file load, dark-scheme; проверен
+- [x] `markdown-preview` → marked vendored, live preview, toolbar-insert, sync-scroll, copy html/md, download standalone; проверен
 - [x] `lorem-ipsum-generator` → plain/html/md, start-classic quirk сохранён; проверен
-- [ ] `regex-tester`
+- [x] `regex-tester` → regex_tool WASM, 5 flags, backdrop-подсветка, matches+groups, saved patterns (localStorage), examples, cheatsheet; проверен
 
 ### Криптография и безопасность
 
@@ -255,7 +255,7 @@
 - [x] `date-converter` → unix-sec/ms/ISO parse, custom format tokens; проверен
 - [x] `color-converter` → pure JS, hex/rgb/hsl/cmyk + 9 shades + WCAG AA/AAA contrast; проверен
 - [x] `unit-converter` → live convert, 4 категории, quick/common conversions; проверен
-- [ ] `ip-subnet-calculator`
+- [x] `ip-subnet-calculator` → ipcalc WASM, CIDR + 'IP mask', таблица + binary view, examples; проверен
 
 ### Изображения, PDF и QR
 

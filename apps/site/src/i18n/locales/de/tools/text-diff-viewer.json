@@ -11,6 +11,7 @@
   "LineByLine": "Zeile für Zeile",
   "SideBySide": "Nebeneinander",
   "ErrorMessage": "Bitte geben Sie Text in beide Felder ein, um zu vergleichen.",
+  "LibraryLoadError": "Die Diff-Viewer-Bibliothek konnte nicht geladen werden. Bitte laden Sie die Seite neu.",
   "ChooseOriginalFile": "📁 Originaldatei auswählen",
   "ChooseModifiedFile": "📁 Geänderte Datei auswählen",
   "Seo_Introduction": "Das Text Diff Viewer-Tool ist ein datenschutzorientiertes Online-Tool für Entwickler. Die gesamte Verarbeitung erfolgt lokal in Ihrem Browser mit WebAssembly und stellt sicher, dass Ihre Daten niemals Ihr Gerät verlassen.",

@@ -15,6 +15,8 @@
   "UsableHosts": "Utilizables",
   "Total": "Total",
   "Class": "Clase",
+  "Private": "Privada",
+  "Public": "Pública",
   "Binary": "Binario",
   "Copied": "¡Copiado!",
   "Error_InvalidFormat": "Formato de IP inválido. Usa CIDR (192.168.1.1/24) o Máscara IP (192.168.1.1 255.255.255.0).",

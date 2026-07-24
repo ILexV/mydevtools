@@ -11,6 +11,7 @@
   "LineByLine": "줄 단위",
   "SideBySide": "나란히",
   "ErrorMessage": "비교하려면 두 필드 모두에 텍스트를 입력하세요.",
+  "LibraryLoadError": "차이 뷰어 라이브러리를 불러오지 못했습니다. 페이지를 새로 고침해 주세요.",
   "ChooseOriginalFile": "📁 원본 파일 선택",
   "ChooseModifiedFile": "📁 수정된 파일 선택",
   "Seo_Introduction": "Text Diff Viewer 도구는 개발자를 위해 설계된 개인정보 보호 중심 온라인 도구입니다. 모든 처리는 WebAssembly를 사용하여 브라우저에서 로컬로 수행되므로 데이터가 장치를 벗어나지 않습니다.",

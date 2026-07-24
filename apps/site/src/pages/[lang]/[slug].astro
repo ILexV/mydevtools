@@ -50,6 +50,9 @@ import AeadFileCrypto from "@/tools/AeadFileCrypto.astro";
 import ImageCompressor from "@/tools/ImageCompressor.astro";
 import ImageConverter from "@/tools/ImageConverter.astro";
 import ImageResizer from "@/tools/ImageResizer.astro";
+import PdfCompressor from "@/tools/PdfCompressor.astro";
+import PdfMerger from "@/tools/PdfMerger.astro";
+import PdfToText from "@/tools/PdfToText.astro";
 
 assertRegistryValid();
 
@@ -114,6 +117,9 @@ const TOOL_COMPONENTS: Record<string, any> = {
   "image-compressor": ImageCompressor,
   "image-converter": ImageConverter,
   "image-resizer": ImageResizer,
+  "pdf-compressor": PdfCompressor,
+  "pdf-merger": PdfMerger,
+  "pdf-to-text": PdfToText,
 };
 const ActiveTool = TOOL_COMPONENTS[slug];
 ---

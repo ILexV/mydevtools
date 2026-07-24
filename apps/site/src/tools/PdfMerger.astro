@@ -1,0 +1,158 @@
+---
+/**
+ * PDF Merger (pdf WASM domain). Upload/drag-drop multiple PDFs — files are
+ * appended in selection order (merge order = list order; no dedup, no reorder
+ * — legacy parity), with per-file remove and clear-all. Merge runs via
+ * `mergePdfs` once ≥2 files are selected; on success the merge button hides
+ * (legacy parity), per-file statuses flip to the success string, and the
+ * result offers the merged size plus a `merged.pdf` download (legacy
+ * filename). Non-PDF picks are rejected with a localized message; WASM
+ * errors surface their message.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/pdf-merger";
+const s = {
+  dropZone: t(lang, ns, "DropZoneTitle"),
+  chooseFiles: t(lang, ns, "ChooseFiles"),
+  addFiles: t(lang, ns, "AddFiles"),
+  clearAll: t(lang, ns, "ClearAll"),
+  colName: t(lang, ns, "ColName"),
+  colSize: t(lang, ns, "ColSize"),
+  colStatus: t(lang, ns, "ColStatus"),
+  statusReady: t(lang, ns, "StatusReady"),
+  removeFile: t(lang, ns, "RemoveFile"),
+  merge: t(lang, ns, "MergeButton"),
+  merging: t(lang, ns, "Merging"),
+  success: t(lang, ns, "Success"),
+  resultLabel: t(lang, ns, "ResultLabel"),
+  resultName: "merged.pdf",
+  minFilesHint: t(lang, ns, "MinFilesHint"),
+  download: t(lang, ns, "DownloadButton"),
+  errorNotPdf: t(lang, ns, "ErrorNotPdf"),
+  errorMerge: t(lang, ns, "ErrorMerge"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="pdfm-tool" data-pdfm-tool>
+  <div class="pdfm-drop" data-pdfm-dropzone>
+    <input type="file" accept=".pdf,application/pdf" multiple data-pdfm-file hidden />
+    <div class="pdfm-empty">
+      <svg class="pdfm-icon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+      </svg>
+      <p class="pdfm-drop-text">{s.dropZone}</p>
+      <button type="button" class="primary-btn" data-pdfm-choose>{s.chooseFiles}</button>
+    </div>
+  </div>
+
+  <section class="pdfm-list" data-pdfm-list hidden>
+    <div class="pdfm-row pdfm-head">
+      <span class="pdfm-col-index" aria-hidden="true">#</span>
+      <span>{s.colName}</span>
+      <span class="pdfm-col-size">{s.colSize}</span>
+      <span class="pdfm-col-status">{s.colStatus}</span>
+      <span class="pdfm-col-action" aria-hidden="true"></span>
+    </div>
+    <ul class="pdfm-items" data-pdfm-items></ul>
+
+    <p class="pdfm-hint" data-pdfm-hint>{s.minFilesHint}</p>
+
+    <div class="pdfm-actions">
+      <button type="button" class="ghost-btn" data-pdfm-add>{s.addFiles}</button>
+      <button type="button" class="ghost-btn" data-pdfm-clear>{s.clearAll}</button>
+      <button type="button" class="primary-btn" data-pdfm-merge disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+        </svg>
+        <span data-pdfm-merge-label>{s.merge}</span>
+      </button>
+    </div>
+  </section>
+
+  <section class="pdfm-result" data-pdfm-result hidden>
+    <span class="field-label">{s.resultLabel}</span>
+    <p class="pdfm-result-meta">
+      <span class="pdfm-result-name">{s.resultName}</span>
+      <span class="pdfm-meta-size" data-pdfm-result-size></span>
+    </p>
+    <button type="button" class="primary-btn pdfm-download" data-pdfm-download>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+      </svg>
+      {s.download}
+    </button>
+  </section>
+
+  <p class="pdfm-error" data-pdfm-error role="alert" hidden></p>
+</div>
+
+<script is:inline type="application/json" data-pdfm-strings set:html={stringsJson} />
+<script>import "@/tools/pdf-merger.client.ts";</script>
+
+<style>
+  .pdfm-tool { max-width: 48rem; margin: 0 auto; }
+  .pdfm-drop {
+    border: 2px dashed var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    padding: 2.25rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+  .pdfm-drop:hover { border-color: var(--mdt-accent); }
+  .pdfm-drop.pdfm-dragover { border-color: var(--mdt-accent); background: color-mix(in srgb, var(--mdt-accent) 8%, transparent); }
+  .pdfm-empty { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; }
+  .pdfm-icon { width: 3rem; height: 3rem; color: var(--mdt-text-muted); }
+  .pdfm-drop-text { font-size: 1.05rem; font-weight: 500; margin: 0; }
+  .primary-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; padding: 0.55rem 1rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer; border: 1px solid transparent; background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .primary-btn:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
+  .ghost-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; padding: 0.55rem 1rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer; border: 1px solid var(--mdt-border); background: transparent; color: var(--mdt-text); }
+  .ghost-btn:hover { background: var(--mdt-surface-muted); }
+  .pdfm-list { margin-top: 1.25rem; }
+  .pdfm-row {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr) 6rem minmax(0, 8rem) 2rem;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.45rem 0.5rem;
+  }
+  .pdfm-head { font-size: 0.8rem; font-weight: 600; color: var(--mdt-text-muted); border-bottom: 1px solid var(--mdt-border); }
+  .pdfm-items { list-style: none; margin: 0; padding: 0; }
+  .pdfm-items .pdfm-row + .pdfm-row { border-top: 1px solid var(--mdt-border); }
+  .pdfm-col-index { color: var(--mdt-text-muted); font-size: 0.82rem; }
+  .pdfm-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pdfm-size, .pdfm-col-size { font-size: 0.82rem; color: var(--mdt-text-muted); font-family: var(--mdt-font-mono); text-align: right; }
+  .pdfm-status { font-size: 0.82rem; color: var(--mdt-text-muted); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pdfm-status.pdfm-status-done { color: var(--mdt-success); font-weight: 600; }
+  .pdfm-col-status { text-align: center; }
+  .pdfm-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--mdt-text-muted);
+    cursor: pointer;
+  }
+  .pdfm-remove:hover { color: var(--mdt-danger); background: var(--mdt-surface-muted); }
+  .pdfm-hint { margin: 0.6rem 0 0; font-size: 0.8rem; color: var(--mdt-text-muted); }
+  .pdfm-actions { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: flex-end; }
+  .field-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
+  .pdfm-result { margin-top: 1.25rem; }
+  .pdfm-result-meta { margin: 0.2rem 0 0; font-size: 0.85rem; color: var(--mdt-text-muted); display: flex; gap: 0.5rem; align-items: baseline; }
+  .pdfm-result-name { font-weight: 500; color: var(--mdt-text); }
+  .pdfm-meta-size { font-family: var(--mdt-font-mono); font-weight: 600; color: var(--mdt-text); }
+  .pdfm-download { margin-top: 0.9rem; width: 100%; background: var(--mdt-success); }
+  .pdfm-error { margin-top: 1rem; padding: 0.7rem 0.9rem; border: 1px solid var(--mdt-danger); border-radius: var(--mdt-radius-sm); color: var(--mdt-danger); background: color-mix(in srgb, var(--mdt-danger) 8%, transparent); font-size: 0.88rem; }
+</style>

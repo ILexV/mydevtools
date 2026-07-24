@@ -1,0 +1,156 @@
+---
+/**
+ * PDF to Text (pdf WASM domain). Upload/drag-drop one or more PDFs (legacy
+ * parity: batch list), extract text from all of them via `extractText`, then
+ * download each result as `<name>.txt` (legacy filename pattern). Per-file
+ * status flows Ready → extracting spinner → download button; files can be
+ * removed individually. WASM errors surface their message (legacy parity);
+ * non-PDF drops are rejected with a localized message.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/pdf-to-text";
+const s = {
+  dropZone: t(lang, ns, "DropZoneTitle"),
+  dropSubtitle: t(lang, "common", "Common_FileDropSubtitle"),
+  chooseFile: t(lang, "common", "Common_FileChooseButton"),
+  filesHeading: t(lang, ns, "FilesToProcess"),
+  colName: t(lang, ns, "ColName"),
+  colSize: t(lang, ns, "ColSize"),
+  colStatus: t(lang, ns, "ColStatus"),
+  extract: t(lang, ns, "ExtractButton"),
+  processing: t(lang, ns, "Processing"),
+  ready: t(lang, ns, "Ready"),
+  downloadTxt: t(lang, ns, "DownloadTxt"),
+  removeFile: t(lang, ns, "RemoveFile"),
+  errorNotPdf: t(lang, ns, "ErrorNotPdf"),
+  errorExtraction: t(lang, ns, "ErrorExtraction"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="pdft-tool" data-pdft-tool>
+  <div class="pdft-drop" data-pdft-dropzone>
+    <input type="file" accept=".pdf" multiple data-pdft-file hidden />
+    <div class="pdft-empty">
+      <svg class="pdft-icon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <p class="pdft-drop-text">{s.dropZone}</p>
+      <p class="pdft-drop-sub">{s.dropSubtitle}</p>
+      <button type="button" class="primary-btn" data-pdft-choose>{s.chooseFile}</button>
+    </div>
+  </div>
+
+  <section class="pdft-files" data-pdft-files hidden>
+    <h3 class="pdft-files-title">{s.filesHeading}</h3>
+    <div class="pdft-table-wrap">
+      <table class="pdft-table">
+        <thead>
+          <tr>
+            <th class="pdft-col-index" scope="col">#</th>
+            <th scope="col">{s.colName}</th>
+            <th class="pdft-col-size" scope="col">{s.colSize}</th>
+            <th class="pdft-col-status" scope="col">{s.colStatus}</th>
+            <th class="pdft-col-remove" scope="col"><span class="pdft-sr">{s.removeFile}</span></th>
+          </tr>
+        </thead>
+        <tbody data-pdft-list></tbody>
+      </table>
+    </div>
+    <div class="pdft-actions">
+      <button type="button" class="primary-btn pdft-extract" data-pdft-extract disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span data-pdft-extract-label>{s.extract}</span>
+      </button>
+    </div>
+  </section>
+
+  <p class="pdft-error" data-pdft-error role="alert" hidden></p>
+</div>
+
+<script is:inline type="application/json" data-pdft-strings set:html={stringsJson} />
+<script>import "@/tools/pdf-to-text.client.ts";</script>
+
+<style>
+  .pdft-tool { max-width: 48rem; margin: 0 auto; }
+  .pdft-drop {
+    position: relative;
+    border: 2px dashed var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    padding: 2.25rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+  .pdft-drop:hover { border-color: var(--mdt-accent); }
+  .pdft-drop.pdft-dragover { border-color: var(--mdt-accent); background: color-mix(in srgb, var(--mdt-accent) 8%, transparent); }
+  .pdft-empty { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; }
+  .pdft-icon { width: 3rem; height: 3rem; color: var(--mdt-text-muted); }
+  .pdft-drop-text { font-size: 1.05rem; font-weight: 500; margin: 0; }
+  .pdft-drop-sub { font-size: 0.82rem; color: var(--mdt-text-muted); margin: 0; }
+  .primary-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; padding: 0.55rem 1rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer; border: 1px solid transparent; background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .primary-btn:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
+  .pdft-files { margin-top: 1.25rem; }
+  .pdft-files-title { font-size: 1rem; font-weight: 600; margin: 0 0 0.75rem; }
+  .pdft-table-wrap { overflow-x: auto; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); }
+  .pdft-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .pdft-table th { text-align: left; padding: 0.55rem 0.75rem; background: var(--mdt-surface-muted); font-size: 0.78rem; font-weight: 600; color: var(--mdt-text-muted); }
+  .pdft-table td { padding: 0.5rem 0.75rem; border-top: 1px solid var(--mdt-border); vertical-align: middle; }
+  .pdft-col-index, .pdft-cell-index { width: 2.5rem; color: var(--mdt-text-muted); }
+  .pdft-col-size, .pdft-cell-size { text-align: right; white-space: nowrap; }
+  .pdft-cell-size { font-family: var(--mdt-font-mono); font-size: 0.82rem; color: var(--mdt-text-muted); }
+  .pdft-col-status, .pdft-cell-status { text-align: center; white-space: nowrap; }
+  .pdft-col-remove, .pdft-cell-remove { width: 2.5rem; text-align: center; }
+  .pdft-cell-name { max-width: 0; width: 100%; }
+  .pdft-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  .pdft-ready { font-size: 0.82rem; color: var(--mdt-text-muted); }
+  .pdft-download {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 999px;
+    background: var(--mdt-success);
+    color: var(--mdt-accent-contrast);
+  }
+  .pdft-download:hover { filter: brightness(1.05); }
+  .pdft-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--mdt-text-muted);
+    cursor: pointer;
+  }
+  .pdft-remove:hover { color: var(--mdt-danger); background: var(--mdt-surface-muted); }
+  .pdft-remove:disabled { opacity: 0.45; cursor: not-allowed; }
+  .pdft-remove:disabled:hover { color: var(--mdt-text-muted); background: transparent; }
+  .pdft-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid var(--mdt-border);
+    border-top-color: var(--mdt-accent);
+    border-radius: 999px;
+    animation: pdft-spin 0.7s linear infinite;
+    vertical-align: middle;
+  }
+  @keyframes pdft-spin { to { transform: rotate(360deg); } }
+  .pdft-actions { margin-top: 1rem; display: flex; justify-content: flex-end; }
+  .pdft-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .pdft-error { margin-top: 1rem; padding: 0.7rem 0.9rem; border: 1px solid var(--mdt-danger); border-radius: var(--mdt-radius-sm); color: var(--mdt-danger); background: color-mix(in srgb, var(--mdt-danger) 8%, transparent); font-size: 0.88rem; }
+</style>

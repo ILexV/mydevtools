@@ -1,0 +1,149 @@
+---
+/**
+ * PDF Compressor (pdf WASM domain). Upload/drag-drop one or more PDFs
+ * (legacy parity: files accumulate in a list), compress them all with
+ * `compressPdf`, then download each result as `compressed_<name>.pdf`
+ * (legacy parity). Per-row original → compressed size with a "Saved N%"
+ * line (shown even when negative — legacy parity). Non-PDF files are
+ * rejected with a localized message.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/pdf-compressor";
+const s = {
+  dropZone: t(lang, ns, "DropZoneTitle"),
+  chooseFile: t(lang, "common", "Common_FileChooseButton"),
+  filesToProcess: t(lang, ns, "FilesToProcess"),
+  tableName: t(lang, ns, "TableName"),
+  tableOriginalSize: t(lang, ns, "TableOriginalSize"),
+  tableCompressedSize: t(lang, ns, "TableCompressedSize"),
+  tableStatus: t(lang, ns, "TableStatus"),
+  statusReady: t(lang, ns, "StatusReady"),
+  savedPercent: t(lang, ns, "SavedPercent"),
+  compress: t(lang, ns, "CompressButton"),
+  processing: t(lang, ns, "ProcessingText"),
+  download: t(lang, ns, "DownloadButton"),
+  removeFile: t(lang, ns, "RemoveFile"),
+  errorNotPdf: t(lang, ns, "ErrorNotPdf"),
+  error: t(lang, "common", "Common_Error"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="pdfc-tool" data-pdfc-tool>
+  <div class="pdfc-drop" data-pdfc-dropzone>
+    <input type="file" accept=".pdf" multiple data-pdfc-file hidden />
+    <div class="pdfc-empty">
+      <svg class="pdfc-icon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+      </svg>
+      <p class="pdfc-drop-text">{s.dropZone}</p>
+      <button type="button" class="primary-btn" data-pdfc-choose>{s.chooseFile}</button>
+    </div>
+  </div>
+
+  <section class="pdfc-list" data-pdfc-list hidden>
+    <span class="field-label">{s.filesToProcess}</span>
+    <div class="pdfc-table-wrap">
+      <table class="pdfc-table">
+        <thead>
+          <tr>
+            <th class="pdfc-col-index">#</th>
+            <th>{s.tableName}</th>
+            <th class="pdfc-col-num">{s.tableOriginalSize}</th>
+            <th class="pdfc-col-num">{s.tableCompressedSize}</th>
+            <th class="pdfc-col-status">{s.tableStatus}</th>
+            <th class="pdfc-col-remove"><span class="visually-hidden">{s.removeFile}</span></th>
+          </tr>
+        </thead>
+        <tbody data-pdfc-tbody></tbody>
+      </table>
+    </div>
+    <button type="button" class="primary-btn pdfc-compress" data-pdfc-compress>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+      </svg>
+      <span data-pdfc-compress-label>{s.compress}</span>
+    </button>
+  </section>
+
+  <p class="pdfc-error" data-pdfc-error role="alert" hidden></p>
+</div>
+
+<script is:inline type="application/json" data-pdfc-strings set:html={stringsJson} />
+<script>import "@/tools/pdf-compressor.client.ts";</script>
+
+<style>
+  .pdfc-tool { max-width: 48rem; margin: 0 auto; }
+  .pdfc-drop {
+    position: relative;
+    border: 2px dashed var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    padding: 2.25rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+  .pdfc-drop:hover { border-color: var(--mdt-accent); }
+  .pdfc-drop.pdfc-dragover { border-color: var(--mdt-accent); background: color-mix(in srgb, var(--mdt-accent) 8%, transparent); }
+  .pdfc-empty { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; }
+  .pdfc-icon { width: 3rem; height: 3rem; color: var(--mdt-text-muted); }
+  .pdfc-drop-text { font-size: 1.05rem; font-weight: 500; margin: 0; }
+  .primary-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; padding: 0.55rem 1rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer; border: 1px solid transparent; background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .primary-btn:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
+  .field-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .pdfc-list { margin-top: 1.25rem; }
+  .pdfc-table-wrap { overflow-x: auto; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); }
+  .pdfc-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  .pdfc-table th, .pdfc-table td { padding: 0.5rem 0.75rem; text-align: left; }
+  .pdfc-table thead th { background: var(--mdt-surface-muted); font-size: 0.75rem; font-weight: 600; color: var(--mdt-text-muted); white-space: nowrap; }
+  .pdfc-table tbody tr + tr { border-top: 1px solid var(--mdt-border); }
+  .pdfc-col-index { width: 2.5rem; }
+  .pdfc-col-num { text-align: right; white-space: nowrap; }
+  .pdfc-col-status { text-align: center; white-space: nowrap; }
+  .pdfc-col-remove { width: 2.5rem; }
+  .pdfc-cell-num { text-align: right; white-space: nowrap; font-family: var(--mdt-font-mono); font-size: 0.82rem; color: var(--mdt-text-muted); }
+  .pdfc-cell-status { text-align: center; white-space: nowrap; }
+  .pdfc-cell-remove { text-align: center; }
+  .pdfc-name { max-width: 16rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  .pdfc-compressed { display: flex; flex-direction: column; align-items: flex-end; }
+  .pdfc-compressed-size { font-family: var(--mdt-font-mono); font-size: 0.82rem; font-weight: 700; color: var(--mdt-success); }
+  .pdfc-saved { font-size: 0.72rem; color: var(--mdt-text-muted); }
+  .pdfc-pending { color: var(--mdt-text-muted); opacity: 0.6; }
+  .pdfc-ready { font-size: 0.82rem; color: var(--mdt-text-muted); }
+  .pdfc-spinner { display: inline-block; width: 1rem; height: 1rem; border: 2px solid var(--mdt-border); border-top-color: var(--mdt-accent); border-radius: 999px; animation: pdfc-spin 0.7s linear infinite; }
+  @keyframes pdfc-spin { to { transform: rotate(360deg); } }
+  .pdfc-download {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 999px;
+    background: var(--mdt-success);
+    color: var(--mdt-accent-contrast);
+  }
+  .pdfc-download:hover { filter: brightness(1.05); }
+  .pdfc-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--mdt-text-muted);
+    cursor: pointer;
+  }
+  .pdfc-remove:hover { color: var(--mdt-danger); background: var(--mdt-surface-muted); }
+  .pdfc-compress { margin-top: 1rem; width: 100%; }
+  .pdfc-error { margin-top: 1rem; padding: 0.7rem 0.9rem; border: 1px solid var(--mdt-danger); border-radius: var(--mdt-radius-sm); color: var(--mdt-danger); background: color-mix(in srgb, var(--mdt-danger) 8%, transparent); font-size: 0.88rem; }
+</style>

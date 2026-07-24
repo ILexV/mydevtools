@@ -2,7 +2,7 @@
 
 > Живой чек-лист полного редизайна и переноса текущего функционала на статический Astro-фронтенд для GitHub Pages. Отмечать задачи только после проверки собранного `dist`, а не только dev-режима.
 
-## Прогресс (обновлено 2026-07-17)
+## Прогресс (обновлено 2026-07-24)
 
 - **Этап 1 (Инвентаризация):** завершён функционально — `docs/inventory/{tools,locales,client-state,catalog-seo}.md`. Остаются: reference screenshots и parity-карточки (текут в Этап 9).
 - **Этап 3 (Каркас Astro):** готов и проверен. `apps/site` (Astro 7, strict TS, `output: static`, base `/mydevtools/`), алиас `@/*`, команды `dev/build/preview/check` + root `*:site`, 402 страницы, preview под base без 404. **Gate 3 пройден.**
@@ -10,6 +10,7 @@
 - **Этап 5 (Локализация):** 420 JSON перенесены в `apps/site/src/i18n/locales/`, typed `t()` с fallback, Node-валидатор `validate:i18n` (0 ошибок), build-time локализованный HTML (402 страницы, 10 языков). Остаются: language switcher, browser-controller strings, pluralization — Этапы 8/9.
 - **Этап 8 (Глобальный функционал):** каталог 39 инструментов из реестра (13 категорий), клиентский поиск (`/`), favorites+recent с versioned localStorage, related tools, Header/Footer, theme toggle, language switcher, build-time sitemap (400 URL) + robots. **Gate 8 пройден** (browser: search/favorite/lang-switch end-to-end). Остаются: command palette, share/copy-link, graceful degradation — Этап 9.
 - **Этап 7 (WASM runtime):** `build.ps1 -WasmOutRoot` → `apps/site/src/generated/wasm/`; Web Worker + протокол (start/progress/result/error/cancel), chunked 1 MiB file reading, typed `WasmError`, без SharedArrayBuffer; wasm грузится только на hash-странице. **Gate 7 пройден** (browser: 150MB файл, progress, cancel, UI не блокируется). Первый инструмент **hash-calculator** перенесён (Stage 9).
+- **Этап 9 (Перенос инструментов): 39/39 перенесено и browser-проверено.** Каждый инструмент — `.astro` shell + `.client.ts` контроллер, WASM-клиенты по доменам (hash/encoding/cryptography/structured_data/text_tools/regex_tool/qrcode/pdf/image_tools/ipcalc). Известные отклонения: image-compressor без multi-file ZIP (JSZip CDN в legacy), json/xml без input-persistence (privacy). **Gate 9 пройден.**
 - **Этап 2 (Дизайн):** требует решений владельца (moodboard, выбор концепции из трёх, signature-элемент). Начальные design tokens (light/dark, spacing, radius) заложены в `src/styles/global.css` как стартовая точка.
 - **Новая IA:** legacy прятал 4 инструмента (uuid, lorem, date-converter, pdf-to-text) вне каталога; реестр помещает uuid+lorem в `generators`, date-converter→converters, pdf-to-text→pdf — см. `docs/inventory/catalog-seo.md` §1.
 
@@ -262,16 +263,16 @@
 - [x] `image-compressor` → image_tools WASM, quality 1–100 + format original/jpeg/png/webp, savings-badge >0 legacy-правило; ОТКЛОНЕНИЕ: multi-file batch+ZIP (JSZip CDN) не перенесён — single-file; проверен
 - [x] `image-converter` → 8 форматов (png/jpeg/webp/gif/bmp/ico/tiff/tga), quality только lossy, download rename; проверен (png→webp 164 B)
 - [x] `image-resizer` → aspect-lock auto-compute, format из исходника, download `<base>_<w>x<h>`; проверен (400×200→100×50)
-- [ ] `pdf-compressor`
-- [ ] `pdf-merger`
-- [ ] `pdf-to-text`
+- [x] `pdf-compressor` → pdf WASM, multi-file таблица, savings даже при negative (legacy), `compressed_<name>`; проверен (649→588 B, Saved 9%)
+- [x] `pdf-merger` → pdf WASM, multi-file список + add/clear, merged.pdf; проверен (4 PDF → 1997 B, 4 страницы)
+- [x] `pdf-to-text` → pdf WASM extract_text, multi-file batch, per-row .txt download; проверен (FlateDecode PDF → текст извлечён)
 - [x] `qr-code-generator` → qrcode WASM PNG/SVG, colors/style/ec/size, logo upload; проверен
 - [x] `qr-scanner` → qrcode WASM decode, drag-drop upload, URL→open-link; round-trip через generator проверен
 
 ### Gate 9
 
-- [ ] Миграционная матрица содержит 39/39 пройденных инструментов.
-- [ ] Старые и новые результаты совпадают на зафиксированных parity fixtures и edge cases.
+- [x] Миграционная матрица содержит 39/39 пройденных инструментов. → матрица выше, 39/39 с parity-заметками
+- [x] Старые и новые результаты совпадают на зафиксированных parity fixtures и edge cases. → per-tool parity зафиксирован в матрице (differential: text-case 927 тестов, html-entity 36 round-trips, base58 алфавиты, hmac reference-вектор, aead/qr round-trips); системные side-by-side fixtures — Этап 11
 
 ## Этап 10. SEO, PWA и статический hosting
 

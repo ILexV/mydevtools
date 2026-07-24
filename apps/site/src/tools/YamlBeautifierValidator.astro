@@ -1,0 +1,101 @@
+---
+/**
+ * YAML Beautifier/Validator (structured-data WASM domain). CodeMirror 5
+ * editors from the legacy vendored build (mode:'yaml' kept verbatim — no yaml
+ * mode file was ever vendored, CodeMirror no-ops to plain text; parity).
+ * Format/validate via the structured-data WASM client; all in-browser.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/yaml-beautifier-validator";
+const s = {
+  inputLabel: t(lang, ns, "InputLabel"),
+  format: t(lang, ns, "Format"),
+  validate: t(lang, ns, "Validate"),
+  clear: t(lang, ns, "Clear"),
+  outputLabel: t(lang, ns, "OutputLabel"),
+  valid: t(lang, ns, "Valid"),
+  invalid: t(lang, ns, "Invalid"),
+  copy: t(lang, ns, "Copy"),
+  copied: t(lang, ns, "Copied"),
+  paste: t(lang, ns, "Paste"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="yaml-tool" data-yaml-tool>
+  <div class="yaml-actions">
+    <button type="button" class="primary-btn" data-yaml-format>{s.format}</button>
+    <button type="button" class="secondary-btn" data-yaml-validate>{s.validate}</button>
+    <button type="button" class="ghost-btn danger" data-yaml-clear>{s.clear}</button>
+  </div>
+
+  <div class="yaml-grid">
+    <section class="yaml-pane">
+      <div class="pane-head">
+        <span class="field-label">{s.inputLabel}</span>
+        <button type="button" class="mini-btn" data-yaml-paste>{s.paste}</button>
+      </div>
+      <div class="yaml-editor" data-yaml-input></div>
+    </section>
+
+    <section class="yaml-pane">
+      <div class="pane-head">
+        <span class="field-label">{s.outputLabel}</span>
+        <span class="yaml-status" data-yaml-status hidden></span>
+        <button type="button" class="mini-btn" data-yaml-copy>{s.copy}</button>
+      </div>
+      <div class="yaml-editor" data-yaml-output></div>
+    </section>
+  </div>
+
+  <p class="yaml-error" data-yaml-error role="alert" hidden></p>
+</div>
+
+<script is:inline type="application/json" data-yaml-strings set:html={stringsJson} />
+<script>import "@/tools/yaml-beautifier-validator.client.ts";</script>
+
+<style>
+  .yaml-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .primary-btn, .secondary-btn, .ghost-btn { padding: 0.6rem 1.1rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .secondary-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-accent); color: var(--mdt-accent); }
+  .secondary-btn:hover { background: color-mix(in srgb, var(--mdt-accent) 8%, transparent); }
+  .ghost-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .ghost-btn.danger { color: var(--mdt-danger); }
+  .ghost-btn.danger:hover { border-color: var(--mdt-danger); }
+  .primary-btn:focus-visible, .secondary-btn:focus-visible, .ghost-btn:focus-visible,
+  .mini-btn:focus-visible { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+
+  .yaml-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; margin-bottom: 1rem; }
+  @media (min-width: 900px) { .yaml-grid { grid-template-columns: 1fr 1fr; } }
+  .pane-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; }
+  .field-label { font-size: 0.8rem; font-weight: 600; color: var(--mdt-text-muted); margin-right: auto; }
+  .mini-btn { padding: 0.25rem 0.6rem; font-size: 0.78rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-raised); color: var(--mdt-text); cursor: pointer; }
+  .mini-btn:hover { border-color: var(--mdt-accent); }
+
+  .yaml-status { font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.55rem; border-radius: 999px; border: 1px solid transparent; }
+  .yaml-status.is-valid { color: var(--mdt-success); border-color: color-mix(in srgb, var(--mdt-success) 40%, transparent); background: color-mix(in srgb, var(--mdt-success) 12%, transparent); }
+  .yaml-status.is-invalid { color: var(--mdt-danger); border-color: color-mix(in srgb, var(--mdt-danger) 40%, transparent); background: color-mix(in srgb, var(--mdt-danger) 10%, transparent); }
+
+  /* CodeMirror host (legacy .code-mirror-editor parity, --mdt-* tokens). */
+  .yaml-editor { border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); overflow: hidden; }
+  .yaml-editor :global(.CodeMirror) { height: 600px; font-family: var(--mdt-font-mono); font-size: 14px; background: var(--mdt-surface-raised); color: var(--mdt-text); }
+  .yaml-editor :global(.CodeMirror-gutters) { background: var(--mdt-surface-muted); border-right: 1px solid var(--mdt-border); }
+  .yaml-editor :global(.CodeMirror-linenumber) { color: var(--mdt-text-muted); }
+  .yaml-editor :global(.CodeMirror-cursor) { border-left: 2px solid var(--mdt-text); }
+  .yaml-editor :global(.CodeMirror-selected) { background: color-mix(in srgb, var(--mdt-accent) 20%, transparent); }
+  .yaml-editor :global(.CodeMirror-line ::selection) { background: color-mix(in srgb, var(--mdt-accent) 20%, transparent); }
+  @media (max-width: 768px) {
+    .yaml-editor :global(.CodeMirror) { height: 400px; }
+  }
+
+  .yaml-error { padding: 0.7rem 0.9rem; border: 1px solid var(--mdt-danger); border-radius: var(--mdt-radius-sm); color: var(--mdt-danger); background: color-mix(in srgb, var(--mdt-danger) 8%, transparent); font-size: 0.88rem; }
+</style>

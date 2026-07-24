@@ -6,6 +6,8 @@
   "InputPlaceholder": "अपना XML यहाँ पेस्ट करें...",
   "FormatButton": "फॉर्मेट",
   "ClearButton": "साफ़ करें",
+  "OpenButton": "खोलें",
+  "SaveButton": "सहेजें",
   "CopyButton": "कॉपी",
   "Copied": "कॉपी हो गया!",
   "ErrorInvalidXml": "अमान्य XML। कृपया अपना इनपुट जाँचें।",

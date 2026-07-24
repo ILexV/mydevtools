@@ -6,6 +6,8 @@
   "InputPlaceholder": "Вставьте ваш XML здесь...",
   "FormatButton": "Форматировать",
   "ClearButton": "Очистить",
+  "OpenButton": "Открыть",
+  "SaveButton": "Сохранить",
   "CopyButton": "Копировать",
   "Copied": "Скопировано!",
   "ErrorInvalidXml": "Неверный XML. Проверьте введённые данные.",

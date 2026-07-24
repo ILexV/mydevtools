@@ -222,10 +222,10 @@
 - [x] `hex-encoder` → encoding WASM, 0x/separators/whitespace; проверен
 - [x] `url-encoder` → encoding WASM, component/uri/form; round-trip по всем charset; проверен
 - [x] `html-entity-encoder` → pure JS (36 round-trips parity), 3 режима × 3 формата; проверен
-- [ ] `json-beautifier`
-- [ ] `json-to-typescript`
-- [ ] `xml-beautifier`
-- [ ] `yaml-beautifier-validator`
+- [x] `json-beautifier` → CodeMirror 5 (vendored loader), format/sort/minify 2/4/tab, open/save/drag-drop; input-persistence НЕ перенесена (privacy); проверен
+- [x] `json-to-typescript` → CodeMirror ×2, type inference (interfaces/arrays/optional), опции root/export/optional/type; проверен
+- [x] `xml-beautifier` → CodeMirror, format/minify/validate, open/save; input-persistence НЕ перенесена (privacy); проверен
+- [x] `yaml-beautifier-validator` → structured_data WASM format/validate, valid-badge, mode:'yaml' parity; проверен
 - [x] `jwt-decoder` → live decode + verify HS*, alg-badge, race-guard; проверен
 - [x] `jwt-encoder` → live sign, header/payload JSON валидация, HS256/384/512; проверен
 
@@ -250,8 +250,8 @@
 
 ### Конвертеры, дата и сеть
 
-- [ ] `cron-generator`
-- [ ] `cron-parser`
+- [x] `cron-generator` → builder 5 полей + presets, human-readable, next-runs, date-format; проверен
+- [x] `cron-parser` → parse 5-field + presets, breakdown по полям, human-readable, next-runs; проверен
 - [x] `date-converter` → unix-sec/ms/ISO parse, custom format tokens; проверен
 - [x] `color-converter` → pure JS, hex/rgb/hsl/cmyk + 9 shades + WCAG AA/AAA contrast; проверен
 - [x] `unit-converter` → live convert, 4 категории, quick/common conversions; проверен

@@ -1,0 +1,326 @@
+---
+/**
+ * Cron Expression Parser (pure JS). Parses a 5-field cron expression (or an
+ * @preset like @daily/@reboot) into validation, a human-readable description,
+ * the next 5 execution times (local time, selectable date format persisted in
+ * localStorage), and a per-field breakdown. Live parsing on input (300ms
+ * debounce), quick presets, copy description. All logic in
+ * `cron-parser.client.ts`, ported from legacy `tools/cron-parser.js`.
+ */
+import { t } from "@/i18n/messages";
+import { localizedPath } from "@/lib/url";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/cron-parser";
+const s = {
+  linkToGenerator: t(lang, ns, "LinkToGenerator"),
+  generatorTitle: t(lang, ns, "GeneratorTitle"),
+  inputLabel: t(lang, ns, "InputLabel"),
+  inputPlaceholder: t(lang, ns, "InputPlaceholder"),
+  presetsLabel: t(lang, ns, "PresetsLabel"),
+  presetEveryHour: t(lang, ns, "PresetEveryHour"),
+  presetEvery6Hours: t(lang, ns, "PresetEvery6Hours"),
+  presetDaily2AM: t(lang, ns, "PresetDaily2AM"),
+  presetWeekdays9AM: t(lang, ns, "PresetWeekdays9AM"),
+  presetHourAt0Title: t(lang, ns, "PresetHourAt0Title"),
+  presetEvery6HoursTitle: t(lang, ns, "PresetEvery6HoursTitle"),
+  presetDaily2AMTitle: t(lang, ns, "PresetDaily2AMTitle"),
+  presetWeekdays9AMTitle: t(lang, ns, "PresetWeekdays9AMTitle"),
+  presetWeekly: t(lang, ns, "PresetWeekly"),
+  presetDaily: t(lang, ns, "PresetDaily"),
+  presetHourly: t(lang, ns, "PresetHourly"),
+  presetReboot: t(lang, ns, "PresetReboot"),
+  presetMonthly: t(lang, ns, "PresetMonthly"),
+  presetYearly: t(lang, ns, "PresetYearly"),
+  actionParse: t(lang, ns, "ActionParse"),
+  actionClear: t(lang, ns, "ActionClear"),
+  resultsLabel: t(lang, ns, "ResultsLabel"),
+  humanReadableLabel: t(lang, ns, "HumanReadableLabel"),
+  nextExecutionsLabel: t(lang, ns, "NextExecutionsLabel"),
+  dateFormatLocale: t(lang, ns, "DateFormatLocale"),
+  dateFormatLocale12h: t(lang, ns, "DateFormatLocale12h"),
+  dateFormatFullMonth: t(lang, ns, "DateFormatFullMonth"),
+  dateFormatISO: t(lang, ns, "DateFormatISO"),
+  dateFormatCompact: t(lang, ns, "DateFormatCompact"),
+  dateFormatAmerican: t(lang, ns, "DateFormatAmerican"),
+  dateFormatVerbose: t(lang, ns, "DateFormatVerbose"),
+  partsLabel: t(lang, ns, "PartsLabel"),
+  partMinute: t(lang, ns, "PartMinute"),
+  partHour: t(lang, ns, "PartHour"),
+  partDay: t(lang, ns, "PartDay"),
+  partMonth: t(lang, ns, "PartMonth"),
+  partWeekday: t(lang, ns, "PartWeekday"),
+  parseToSeeResult: t(lang, ns, "ParseToSeeResult"),
+  copy: t(lang, ns, "Copy"),
+  copied: t(lang, ns, "Copied"),
+};
+// Strings consumed by the client controller (descriptions, errors, names).
+const clientStrings = {
+  lang,
+  copy: s.copy,
+  copied: s.copied,
+  parseToSeeResult: s.parseToSeeResult,
+  errorInvalidExpression: t(lang, ns, "ErrorInvalidExpression"),
+  errorExpectedFields: t(lang, ns, "ErrorExpectedFields"),
+  errorUnknownPreset: t(lang, ns, "ErrorUnknownPreset"),
+  scheduleReboot: t(lang, ns, "ScheduleReboot"),
+  scheduleYearly: t(lang, ns, "ScheduleYearly"),
+  scheduleMonthly: t(lang, ns, "ScheduleMonthly"),
+  scheduleWeekly: t(lang, ns, "ScheduleWeekly"),
+  scheduleDaily: t(lang, ns, "ScheduleDaily"),
+  scheduleHourly: t(lang, ns, "ScheduleHourly"),
+  scheduleEveryMinute: t(lang, ns, "ScheduleEveryMinute"),
+  scheduleEveryNMinutes: t(lang, ns, "ScheduleEveryNMinutes"),
+  scheduleAtMinute: t(lang, ns, "ScheduleAtMinute"),
+  scheduleAtMinutes: t(lang, ns, "ScheduleAtMinutes"),
+  scheduleEveryHour: t(lang, ns, "ScheduleEveryHour"),
+  scheduleEveryNHours: t(lang, ns, "ScheduleEveryNHours"),
+  scheduleAtHour: t(lang, ns, "ScheduleAtHour"),
+  scheduleAtHours: t(lang, ns, "ScheduleAtHours"),
+  scheduleEveryDay: t(lang, ns, "ScheduleEveryDay"),
+  scheduleOnDay: t(lang, ns, "ScheduleOnDay"),
+  scheduleOnDays: t(lang, ns, "ScheduleOnDays"),
+  scheduleLastDay: t(lang, ns, "ScheduleLastDay"),
+  scheduleOnWeekday: t(lang, ns, "ScheduleOnWeekday"),
+  scheduleOnWeekdays: t(lang, ns, "ScheduleOnWeekdays"),
+  scheduleInMonth: t(lang, ns, "ScheduleInMonth"),
+  scheduleInMonths: t(lang, ns, "ScheduleInMonths"),
+  months: t(lang, ns, "MonthNames").split(","),
+  weekdays: t(lang, ns, "WeekdayNames").split(","),
+};
+const stringsJson = JSON.stringify(clientStrings);
+const generatorUrl = localizedPath(lang, "cron-generator");
+---
+
+<div class="cronp-tool" data-cronp-tool>
+  <p class="cronp-linkbox">
+    {s.linkToGenerator} → <a href={generatorUrl}>{s.generatorTitle}</a>
+  </p>
+
+  <div class="cronp-grid">
+    <section class="cronp-card">
+      <h2 class="card-title">{s.inputLabel}</h2>
+
+      <input
+        type="text"
+        class="cronp-input"
+        data-cronp-input
+        placeholder={s.inputPlaceholder}
+        value="* * * * *"
+        aria-label={s.inputLabel}
+        spellcheck="false"
+      />
+
+      <div class="cronp-presets">
+        <span class="field-label">{s.presetsLabel}</span>
+        <div class="chips">
+          <button type="button" class="chip" data-cronp-preset="0 * * * *" title={s.presetHourAt0Title}>{s.presetEveryHour}</button>
+          <button type="button" class="chip" data-cronp-preset="0 */6 * * *" title={s.presetEvery6HoursTitle}>{s.presetEvery6Hours}</button>
+          <button type="button" class="chip" data-cronp-preset="0 2 * * *" title={s.presetDaily2AMTitle}>{s.presetDaily2AM}</button>
+          <button type="button" class="chip" data-cronp-preset="0 9 * * 1-5" title={s.presetWeekdays9AMTitle}>{s.presetWeekdays9AM}</button>
+          <button type="button" class="chip" data-cronp-preset="@weekly">{s.presetWeekly}</button>
+          <button type="button" class="chip" data-cronp-preset="@daily">{s.presetDaily}</button>
+          <button type="button" class="chip" data-cronp-preset="@hourly">{s.presetHourly}</button>
+          <button type="button" class="chip" data-cronp-preset="@reboot">{s.presetReboot}</button>
+          <button type="button" class="chip" data-cronp-preset="@monthly">{s.presetMonthly}</button>
+          <button type="button" class="chip" data-cronp-preset="@yearly">{s.presetYearly}</button>
+        </div>
+      </div>
+
+      <div class="cronp-actions">
+        <button type="button" class="primary-btn" data-cronp-parse>{s.actionParse}</button>
+        <button type="button" class="ghost-btn icon-btn" data-cronp-clear title={s.actionClear} aria-label={s.actionClear}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+        </button>
+      </div>
+
+      <p class="cronp-error" data-cronp-error role="alert" hidden></p>
+    </section>
+
+    <section class="cronp-card">
+      <h2 class="card-title">{s.resultsLabel}</h2>
+
+      <div class="cronp-field">
+        <div class="cronp-label-row">
+          <span class="field-label">{s.humanReadableLabel}</span>
+          <button type="button" class="copy-btn" data-cronp-copy title={s.copy} aria-label={s.copy}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span class="copy-text" data-cronp-copy-text>{s.copy}</span>
+          </button>
+        </div>
+        <div class="cronp-human" data-cronp-human>{s.parseToSeeResult}</div>
+      </div>
+
+      <div class="cronp-field">
+        <div class="cronp-label-row">
+          <span class="field-label">{s.nextExecutionsLabel}</span>
+          <select class="cronp-format" data-cronp-date-format aria-label={s.nextExecutionsLabel}>
+            <option value="locale">{s.dateFormatLocale}</option>
+            <option value="locale-12h">{s.dateFormatLocale12h}</option>
+            <option value="full-month">{s.dateFormatFullMonth}</option>
+            <option value="iso">{s.dateFormatISO}</option>
+            <option value="compact">{s.dateFormatCompact}</option>
+            <option value="american">{s.dateFormatAmerican}</option>
+            <option value="verbose">{s.dateFormatVerbose}</option>
+          </select>
+        </div>
+        <div class="cronp-next" data-cronp-next></div>
+      </div>
+
+      <div class="cronp-field">
+        <span class="field-label">{s.partsLabel}</span>
+        <div class="cronp-parts">
+          <div class="part">
+            <div class="part-value" data-cronp-part-minute>*</div>
+            <div class="part-name">{s.partMinute}</div>
+          </div>
+          <div class="part">
+            <div class="part-value" data-cronp-part-hour>*</div>
+            <div class="part-name">{s.partHour}</div>
+          </div>
+          <div class="part">
+            <div class="part-value" data-cronp-part-day>*</div>
+            <div class="part-name">{s.partDay}</div>
+          </div>
+          <div class="part">
+            <div class="part-value" data-cronp-part-month>*</div>
+            <div class="part-name">{s.partMonth}</div>
+          </div>
+          <div class="part">
+            <div class="part-value" data-cronp-part-weekday>*</div>
+            <div class="part-name">{s.partWeekday}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script is:inline type="application/json" data-cronp-strings set:html={stringsJson} />
+<script>import "@/tools/cron-parser.client.ts";</script>
+
+<style>
+  .cronp-linkbox {
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    background: var(--mdt-surface-raised);
+    font-size: 0.88rem;
+    color: var(--mdt-text-muted);
+    margin: 0 0 1.25rem;
+  }
+  .cronp-linkbox a { color: var(--mdt-accent); font-weight: 600; }
+
+  .cronp-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; align-items: start; }
+  @media (min-width: 900px) { .cronp-grid { grid-template-columns: 1fr 1fr; } }
+
+  .cronp-card { border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); padding: 1.1rem 1.2rem; }
+  .card-title { font-size: 0.95rem; margin: 0 0 0.9rem; color: var(--mdt-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .field-label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
+
+  .cronp-input {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface);
+    color: var(--mdt-text);
+    font-family: var(--mdt-font-mono);
+    font-size: 1.05rem;
+  }
+  .cronp-input:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+
+  .cronp-presets { margin-top: 1rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  .chip {
+    padding: 0.32rem 0.65rem; font-size: 0.8rem; font-family: var(--mdt-font-mono);
+    border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface); color: var(--mdt-text); cursor: pointer;
+  }
+  .chip:hover { border-color: var(--mdt-accent); color: var(--mdt-accent); }
+  .chip:focus-visible { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+
+  .cronp-actions { display: flex; gap: 0.6rem; margin-top: 1.25rem; }
+  .primary-btn {
+    flex: 1;
+    padding: 0.6rem 1.1rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer;
+    background: var(--mdt-accent); color: var(--mdt-accent-contrast); border: 1px solid transparent;
+  }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .ghost-btn {
+    padding: 0.6rem 1rem; border-radius: var(--mdt-radius); cursor: pointer;
+    background: var(--mdt-surface-raised); border: 1px solid var(--mdt-border); color: var(--mdt-text);
+  }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .icon-btn { display: inline-flex; align-items: center; justify-content: center; }
+  .icon-btn svg { width: 1.1rem; height: 1.1rem; }
+
+  .cronp-error {
+    margin: 0.9rem 0 0;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--mdt-danger);
+    border-radius: var(--mdt-radius-sm);
+    color: var(--mdt-danger);
+    background: color-mix(in srgb, var(--mdt-danger) 8%, transparent);
+    font-size: 0.88rem;
+  }
+
+  .cronp-field { margin-bottom: 1rem; }
+  .cronp-field:last-child { margin-bottom: 0; }
+  .cronp-label-row { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; }
+
+  .copy-btn {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    border: none; background: transparent; color: var(--mdt-text-muted);
+    cursor: pointer; font-size: 0.78rem; border-radius: var(--mdt-radius-sm);
+    padding: 0.2rem 0.4rem;
+  }
+  .copy-btn:hover { color: var(--mdt-text); }
+  .copy-btn:focus-visible { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  .copy-btn svg { width: 0.9rem; height: 0.9rem; }
+  .copy-btn.copied { color: var(--mdt-success); }
+
+  .cronp-human {
+    padding: 0.8rem 0.9rem;
+    background: var(--mdt-surface);
+    border-radius: var(--mdt-radius-sm);
+    min-height: 3rem;
+    color: var(--mdt-text-muted);
+    font-size: 0.92rem;
+  }
+
+  .cronp-format {
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface);
+    color: var(--mdt-text);
+    font-size: 0.78rem;
+    width: auto;
+  }
+  .cronp-format:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+
+  .cronp-next { display: grid; gap: 0.5rem; }
+  .cronp-next .next-row {
+    padding: 0.5rem 0.7rem;
+    background: var(--mdt-surface);
+    border-radius: var(--mdt-radius-sm);
+    font-size: 0.85rem;
+    font-family: var(--mdt-font-mono);
+  }
+  .cronp-next .next-row.plain { font-family: inherit; }
+
+  .cronp-parts { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; text-align: center; }
+  .part { background: var(--mdt-surface); padding: 0.5rem 0.3rem; border-radius: var(--mdt-radius-sm); }
+  .part-value { font-family: var(--mdt-font-mono); font-weight: 700; color: var(--mdt-accent); font-size: 0.85rem; word-break: break-all; }
+  .part-name { color: var(--mdt-text-muted); font-size: 0.72rem; margin-top: 0.25rem; }
+</style>

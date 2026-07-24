@@ -1,0 +1,152 @@
+---
+/**
+ * JSON Beautifier (structured-data domain). CodeMirror 5 editor (vendored,
+ * loaded on demand) with format (indent 2/4/tab, sort keys, compact/minify),
+ * open/save .json file, drag & drop, copy/clear. Pure JS (JSON.parse /
+ * stringify) — no WASM. Legacy localStorage input persistence intentionally
+ * dropped (privacy); only settings persist. Errors show a localized
+ * notification + editor error styling.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/json-beautifier";
+
+const openLabel = t(lang, "common", "Common_Open");
+const saveLabel = t(lang, "common", "Common_Download");
+const formatLabel = t(lang, ns, "FormatButton");
+const clearLabel = t(lang, ns, "ClearButton");
+const copyLabel = t(lang, ns, "CopyButton");
+const indent2 = t(lang, ns, "Indent2Spaces");
+const indent4 = t(lang, ns, "Indent4Spaces");
+const indentTab = t(lang, ns, "IndentTab");
+const sortKeysLabel = t(lang, ns, "SortKeys");
+const compactLabel = t(lang, ns, "CompactMode");
+
+const stringsJson = JSON.stringify({
+  errorInvalidJson: t(lang, ns, "ErrorInvalidJson"),
+  copied: t(lang, ns, "Copied"),
+  copy: copyLabel,
+  inputPlaceholder: t(lang, ns, "InputPlaceholder"),
+});
+---
+
+<div class="json-tool" data-json-tool>
+  <div class="json-toolbar">
+    <div class="json-toolbar-group">
+      <button type="button" class="ghost-btn" data-json-open title={openLabel}>{openLabel}</button>
+      <button type="button" class="ghost-btn" data-json-save title={saveLabel}>{saveLabel}</button>
+      <select class="json-indent" data-json-indent aria-label={t(lang, ns, "IndentSizeLabel")}>
+        <option value="2">{indent2}</option>
+        <option value="4" selected>{indent4}</option>
+        <option value="tab">{indentTab}</option>
+      </select>
+      <label class="check"><input type="checkbox" data-json-sort /> {sortKeysLabel}</label>
+      <label class="check"><input type="checkbox" data-json-compact /> {compactLabel}</label>
+    </div>
+    <div class="json-toolbar-group">
+      <button type="button" class="primary-btn" data-json-format title={formatLabel}>{formatLabel}</button>
+      <button type="button" class="ghost-btn" data-json-copy title={copyLabel}>{copyLabel}</button>
+      <button type="button" class="ghost-btn json-clear" data-json-clear title={clearLabel}>{clearLabel}</button>
+    </div>
+  </div>
+
+  <div class="json-editor" data-json-editor></div>
+  <input type="file" data-json-file accept=".json" hidden />
+</div>
+
+<script is:inline type="application/json" data-json-strings set:html={stringsJson} />
+<script>import "@/tools/json-beautifier.client.ts";</script>
+
+<style>
+  .json-toolbar {
+    display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;
+    justify-content: space-between; padding: 0.75rem; margin-bottom: 1rem;
+    background: var(--mdt-surface-muted); border-radius: var(--mdt-radius);
+  }
+  .json-toolbar-group { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+  .json-indent {
+    padding: 0.45rem 0.5rem; border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-raised); color: var(--mdt-text);
+  }
+  .check { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; }
+  .check input { cursor: pointer; }
+
+  .primary-btn, .ghost-btn {
+    padding: 0.5rem 0.95rem; border-radius: var(--mdt-radius); font-weight: 600;
+    cursor: pointer; border: 1px solid transparent; font-size: 0.85rem;
+  }
+  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .ghost-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .json-clear { color: var(--mdt-danger); }
+
+  .json-editor {
+    border: 2px solid var(--mdt-border); border-radius: var(--mdt-radius);
+    overflow: hidden; background: var(--mdt-surface-raised);
+  }
+  .json-editor :global(.CodeMirror) {
+    height: 600px; font-family: var(--mdt-font-mono); font-size: 0.88rem;
+    background: var(--mdt-surface-raised); color: var(--mdt-text);
+  }
+  .json-editor :global(.CodeMirror-gutters) {
+    background: var(--mdt-surface-muted); border-right: 1px solid var(--mdt-border);
+  }
+  .json-editor :global(.CodeMirror-linenumber) { color: var(--mdt-text-muted); }
+  .json-editor :global(.CodeMirror-cursor) { border-left: 2px solid var(--mdt-text); }
+  .json-editor :global(.CodeMirror-selected) { background: color-mix(in srgb, var(--mdt-accent) 22%, transparent); }
+  .json-editor :global(.CodeMirror-line)::selection,
+  .json-editor :global(.CodeMirror-line > span)::selection,
+  .json-editor :global(.CodeMirror-line > span > span)::selection {
+    background: color-mix(in srgb, var(--mdt-accent) 22%, transparent);
+  }
+
+  .json-editor.is-error { border-color: var(--mdt-danger); }
+  .json-editor.is-error :global(.CodeMirror) {
+    background: color-mix(in srgb, var(--mdt-danger) 6%, var(--mdt-surface-raised));
+  }
+
+  .json-editor.drag-over {
+    border-color: var(--mdt-accent);
+    background: color-mix(in srgb, var(--mdt-accent) 10%, transparent);
+  }
+
+  .json-tool :global(.json-notification) {
+    padding: 0.7rem 0.9rem; margin-bottom: 0.75rem; border-radius: var(--mdt-radius-sm);
+    font-size: 0.88rem; animation: json-slide-down 0.3s ease;
+  }
+  .json-tool :global(.json-notification-error) {
+    border: 1px solid var(--mdt-danger); color: var(--mdt-danger);
+    background: color-mix(in srgb, var(--mdt-danger) 8%, transparent);
+  }
+  .json-tool :global(.json-notification-info) {
+    border: 1px solid var(--mdt-accent); color: var(--mdt-accent);
+    background: color-mix(in srgb, var(--mdt-accent) 8%, transparent);
+  }
+  @keyframes json-slide-down {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 768px) {
+    .json-editor :global(.CodeMirror) { height: 400px; }
+  }
+
+  /* Dark theme syntax colors (legacy parity) */
+  :global([data-theme="dark"] .cm-s-default .cm-string) { color: #ce9178; }
+  :global([data-theme="dark"] .cm-s-default .cm-string-2) { color: #ce9178; }
+  :global([data-theme="dark"] .cm-s-default .cm-number) { color: #b5cea8; }
+  :global([data-theme="dark"] .cm-s-default .cm-atom) { color: #569cd6; }
+  :global([data-theme="dark"] .cm-s-default .cm-keyword) { color: #c586c0; }
+  :global([data-theme="dark"] .cm-s-default .cm-variable) { color: #9cdcfe; }
+  :global([data-theme="dark"] .cm-s-default .cm-def) { color: #dcdcaa; }
+  :global([data-theme="dark"] .cm-s-default .cm-property) { color: #9cdcfe; }
+  :global([data-theme="dark"] .cm-s-default .cm-operator) { color: #d4d4d4; }
+  :global([data-theme="dark"] .cm-s-default .cm-comment) { color: #6a9955; }
+  :global([data-theme="dark"] .cm-s-default .cm-meta) { color: #569cd6; }
+</style>

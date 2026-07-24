@@ -1,0 +1,142 @@
+---
+/**
+ * XML Beautifier (structured data, pure JS). Single CodeMirror editor with a
+ * custom 'simplexml' mode (ported verbatim from legacy), format (2/4/tab
+ * indent), compact mode (minify), open/save .xml files, drag & drop, copy,
+ * clear. Formatting is DOMParser + custom serializer — see
+ * `xml-beautifier.client.ts`. Input is NEVER persisted (legacy localStorage
+ * input persistence intentionally dropped for privacy).
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/xml-beautifier";
+const s = {
+  openButton: t(lang, ns, "OpenButton"),
+  saveButton: t(lang, ns, "SaveButton"),
+  indentSizeLabel: t(lang, ns, "IndentSizeLabel"),
+  indent2Spaces: t(lang, ns, "Indent2Spaces"),
+  indent4Spaces: t(lang, ns, "Indent4Spaces"),
+  indentTab: t(lang, ns, "IndentTab"),
+  compactMode: t(lang, ns, "CompactMode"),
+  formatButton: t(lang, ns, "FormatButton"),
+  copyButton: t(lang, ns, "CopyButton"),
+  copied: t(lang, ns, "Copied"),
+  clearButton: t(lang, ns, "ClearButton"),
+  errorInvalidXml: t(lang, ns, "ErrorInvalidXml"),
+  inputPlaceholder: t(lang, ns, "InputPlaceholder"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="xml-tool" data-xml-tool>
+  <div class="xml-toolbar">
+    <div class="xml-toolbar-group">
+      <button type="button" class="ghost-btn" data-xml-open title={s.openButton}>{s.openButton}</button>
+      <button type="button" class="ghost-btn" data-xml-save title={s.saveButton}>{s.saveButton}</button>
+      <label class="xml-setting">
+        <span class="field-label">{s.indentSizeLabel}</span>
+        <select data-xml-indent>
+          <option value="2">{s.indent2Spaces}</option>
+          <option value="4" selected>{s.indent4Spaces}</option>
+          <option value="tab">{s.indentTab}</option>
+        </select>
+      </label>
+      <label class="xml-check">
+        <input type="checkbox" data-xml-compact />
+        <span>{s.compactMode}</span>
+      </label>
+    </div>
+    <div class="xml-toolbar-group">
+      <button type="button" class="primary-btn" data-xml-format title={s.formatButton}>{s.formatButton}</button>
+      <button type="button" class="ghost-btn" data-xml-copy title={s.copyButton}>{s.copyButton}</button>
+      <button type="button" class="ghost-btn xml-danger" data-xml-clear title={s.clearButton}>{s.clearButton}</button>
+    </div>
+  </div>
+
+  <div class="xml-editor" data-xml-editor></div>
+
+  <input type="file" data-xml-file accept=".xml" hidden />
+</div>
+
+<script is:inline type="application/json" data-xml-strings set:html={stringsJson} />
+<script>import "@/tools/xml-beautifier.client.ts";</script>
+
+<style>
+  .xml-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 0.9rem;
+  }
+  .xml-toolbar-group { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: flex-end; }
+  .field-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
+  .xml-setting select {
+    padding: 0.45rem 0.5rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text);
+  }
+  .xml-check { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; padding-bottom: 0.45rem; }
+  .xml-check input { cursor: pointer; }
+  .primary-btn, .ghost-btn { padding: 0.6rem 1.1rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .ghost-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .xml-danger { color: var(--mdt-danger); }
+  .xml-danger:hover { border-color: var(--mdt-danger); }
+
+  /* CodeMirror mounts dynamic DOM — these rules must be global. Prefixed with
+     .xml-editor / .xml-notification so they cannot leak into other tools. */
+  :global(.xml-editor) {
+    border: 2px solid var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    overflow: hidden;
+  }
+  :global(.xml-editor .CodeMirror) {
+    height: 600px;
+    font-family: var(--mdt-font-mono);
+    font-size: 0.88rem;
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text);
+  }
+  :global(.xml-editor .CodeMirror-gutters) {
+    background: var(--mdt-surface-muted);
+    border-right: 1px solid var(--mdt-border);
+  }
+  :global(.xml-editor .CodeMirror-linenumber) { color: var(--mdt-text-muted); }
+  :global(.xml-editor.xml-error) { border-color: var(--mdt-danger); }
+  :global(.xml-editor.xml-error .CodeMirror) {
+    background: color-mix(in srgb, var(--mdt-danger) 6%, var(--mdt-surface-raised));
+  }
+  :global(.xml-editor.drag-over) { border-color: var(--mdt-accent); }
+  :global(.xml-notification) {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--mdt-border);
+    font-size: 0.9rem;
+  }
+  :global(.xml-notification-error) {
+    background: color-mix(in srgb, var(--mdt-danger) 10%, var(--mdt-surface-raised));
+    color: var(--mdt-danger);
+  }
+  :global(.xml-notification-info) {
+    background: var(--mdt-surface-muted);
+    color: var(--mdt-text);
+  }
+
+  /* Dark theme syntax colors (parity with legacy xml-beautifier.css). */
+  :global([data-theme="dark"] .cm-s-default .cm-tag) { color: #569cd6; }
+  :global([data-theme="dark"] .cm-s-default .cm-attribute) { color: #9cdcfe; }
+  :global([data-theme="dark"] .cm-s-default .cm-string) { color: #ce9178; }
+  :global([data-theme="dark"] .cm-s-default .cm-comment) { color: #6a9955; }
+  :global([data-theme="dark"] .cm-s-default .cm-meta) { color: #c586c0; }
+  :global([data-theme="dark"] .cm-s-default .cm-bracket) { color: #808080; }
+</style>

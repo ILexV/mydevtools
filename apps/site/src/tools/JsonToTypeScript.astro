@@ -1,0 +1,189 @@
+---
+/**
+ * JSON to TypeScript Converter (structured-data domain). Pure-JS type
+ * inference engine (ported 1:1 from legacy) + dual CodeMirror 5 editors
+ * (editable JSON input, read-only TS output). Live conversion; options:
+ * root name, export keyword, optional fields (?), type alias. Actions:
+ * convert/copy/download/clear. Legacy parity.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/json-to-typescript";
+const s = {
+  inputLabel: t(lang, ns, "InputLabel"),
+  inputPlaceholder: t(lang, ns, "InputPlaceholder"),
+  outputLabel: t(lang, ns, "OutputLabel"),
+  outputPlaceholder: t(lang, ns, "OutputPlaceholder"),
+  convertButton: t(lang, ns, "ConvertButton"),
+  copyButton: t(lang, ns, "CopyButton"),
+  downloadButton: t(lang, ns, "DownloadButton"),
+  clearButton: t(lang, ns, "ClearButton"),
+  copied: t(lang, ns, "Copied"),
+  errorInvalidJson: t(lang, ns, "ErrorInvalidJson"),
+  rootInterfaceNameLabel: t(lang, ns, "RootInterfaceNameLabel"),
+  rootInterfaceNamePlaceholder: t(lang, ns, "RootInterfaceNamePlaceholder"),
+  exportKeyword: t(lang, ns, "ExportKeyword"),
+  optionalFields: t(lang, ns, "OptionalFields"),
+  useTypeAlias: t(lang, ns, "UseTypeAlias"),
+};
+const stringsJson = JSON.stringify({
+  errorInvalidJson: s.errorInvalidJson,
+  copied: s.copied,
+  copyButton: s.copyButton,
+  inputPlaceholder: s.inputPlaceholder,
+  outputPlaceholder: s.outputPlaceholder,
+});
+---
+
+<div class="jts-tool" data-jts-tool>
+  <div class="jts-toolbar">
+    <div class="jts-options">
+      <label class="jts-root-name">
+        <span class="field-label">{s.rootInterfaceNameLabel}</span>
+        <input
+          type="text"
+          data-jts-root-name
+          placeholder={s.rootInterfaceNamePlaceholder}
+          value="Root"
+          maxlength="64"
+        />
+      </label>
+      <label class="check"><input type="checkbox" data-jts-export /> {s.exportKeyword}</label>
+      <label class="check"><input type="checkbox" data-jts-optional checked /> {s.optionalFields}</label>
+      <label class="check"><input type="checkbox" data-jts-use-type /> {s.useTypeAlias}</label>
+    </div>
+
+    <div class="jts-actions">
+      <button type="button" class="primary-btn" data-jts-convert>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+        </svg>
+        {s.convertButton}
+      </button>
+      <button type="button" class="ghost-btn" data-jts-copy>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+        </svg>
+        {s.copyButton}
+      </button>
+      <button type="button" class="ghost-btn" data-jts-download>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+        </svg>
+        {s.downloadButton}
+      </button>
+      <button type="button" class="ghost-btn danger" data-jts-clear aria-label={s.clearButton} title={s.clearButton}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <p class="jts-error" data-jts-error role="alert" hidden>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+    </svg>
+    <span data-jts-error-text></span>
+  </p>
+
+  <div class="jts-grid">
+    <section class="jts-pane">
+      <span class="field-label">{s.inputLabel}</span>
+      <div class="jts-editor jts-in" data-jts-input></div>
+    </section>
+    <section class="jts-pane">
+      <span class="field-label">{s.outputLabel}</span>
+      <div class="jts-editor jts-out" data-jts-output></div>
+    </section>
+  </div>
+</div>
+
+<script is:inline type="application/json" data-jts-strings set:html={stringsJson} />
+<script>import "@/tools/json-to-typescript.client.ts";</script>
+
+<style>
+  .jts-toolbar { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .jts-options { display: flex; flex-wrap: wrap; gap: 0.9rem; align-items: center; }
+  .field-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
+  .jts-root-name { display: flex; align-items: center; gap: 0.5rem; }
+  .jts-root-name .field-label { margin-bottom: 0; }
+  .jts-root-name input { width: 8rem; padding: 0.4rem 0.55rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-raised); color: var(--mdt-text); font-family: var(--mdt-font-mono); font-size: 0.85rem; }
+  .jts-root-name input:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  .check { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; }
+  .check input { accent-color: var(--mdt-accent); }
+
+  .jts-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .primary-btn, .ghost-btn { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.55rem 1rem; border-radius: var(--mdt-radius); font-weight: 600; font-size: 0.88rem; cursor: pointer; border: 1px solid transparent; }
+  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .ghost-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
+  .ghost-btn:hover { border-color: var(--mdt-accent); }
+  .ghost-btn.danger { color: var(--mdt-danger); }
+  .primary-btn svg, .ghost-btn svg { width: 1rem; height: 1rem; flex-shrink: 0; }
+
+  .jts-error { display: flex; align-items: center; gap: 0.5rem; padding: 0.7rem 0.9rem; border: 1px solid var(--mdt-danger); border-radius: var(--mdt-radius-sm); color: var(--mdt-danger); background: color-mix(in srgb, var(--mdt-danger) 8%, transparent); font-size: 0.88rem; margin-bottom: 1rem; }
+  .jts-error[hidden] { display: none; }
+  .jts-error svg { width: 1.1rem; height: 1.1rem; flex-shrink: 0; }
+
+  .jts-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+  @media (min-width: 1024px) { .jts-grid { grid-template-columns: 1fr 1fr; } }
+  .jts-editor { border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); overflow: hidden; }
+  .jts-editor.json-error { border-color: var(--mdt-danger); }
+
+  /* CodeMirror (runtime-created DOM → global selectors scoped under .jts-tool) */
+  .jts-tool :global(.CodeMirror) { height: 700px; font-family: var(--mdt-font-mono); font-size: 14px; background: var(--mdt-surface-raised); color: var(--mdt-text); }
+  .jts-tool :global(.CodeMirror-gutters) { background: var(--mdt-surface-muted); border-right: 1px solid var(--mdt-border); }
+  .jts-tool :global(.CodeMirror-linenumber) { color: var(--mdt-text-muted); }
+  .jts-tool :global(.CodeMirror-cursor) { border-left: 2px solid var(--mdt-text); }
+  .jts-tool :global(.CodeMirror-selected) { background: color-mix(in srgb, var(--mdt-accent) 18%, transparent); }
+  .jts-tool :global(.CodeMirror-focused .CodeMirror-selected) { background: color-mix(in srgb, var(--mdt-accent) 28%, transparent); }
+  .jts-tool :global(.CodeMirror-activeline-background) { background: color-mix(in srgb, var(--mdt-text) 6%, transparent); }
+  .jts-tool :global(.CodeMirror.json-error) { background: color-mix(in srgb, var(--mdt-danger) 6%, transparent); }
+
+  /* Syntax highlighting — light (legacy GitHub palette), per editor */
+  .jts-in :global(.cm-s-default .cm-string),
+  .jts-in :global(.cm-s-default .cm-string-2) { color: #032f62; }
+  .jts-in :global(.cm-s-default .cm-number),
+  .jts-in :global(.cm-s-default .cm-atom) { color: #005cc5; }
+  .jts-in :global(.cm-s-default .cm-keyword) { color: #d73a49; }
+  .jts-in :global(.cm-s-default .cm-property) { color: #6f42c1; }
+  .jts-out :global(.cm-s-default .cm-keyword),
+  .jts-out :global(.cm-s-default .cm-operator) { color: #d73a49; }
+  .jts-out :global(.cm-s-default .cm-def) { color: #6f42c1; }
+  .jts-out :global(.cm-s-default .cm-type),
+  .jts-out :global(.cm-s-default .cm-number),
+  .jts-out :global(.cm-s-default .cm-atom),
+  .jts-out :global(.cm-s-default .cm-property) { color: #005cc5; }
+  .jts-out :global(.cm-s-default .cm-string) { color: #032f62; }
+  .jts-out :global(.cm-s-default .cm-variable),
+  .jts-out :global(.cm-s-default .cm-variable-2),
+  .jts-out :global(.cm-s-default .cm-punctuation) { color: #24292e; }
+  .jts-out :global(.cm-s-default .cm-comment) { color: #6a737d; }
+  .jts-tool :global(.cm-s-default .cm-matchingbracket) { outline: 1px solid var(--mdt-accent); color: inherit !important; }
+
+  /* Syntax highlighting — dark (legacy VS Code palette), per editor */
+  :global([data-theme="dark"]) .jts-in :global(.cm-s-default .cm-string),
+  :global([data-theme="dark"]) .jts-in :global(.cm-s-default .cm-string-2) { color: #ce9178; }
+  :global([data-theme="dark"]) .jts-in :global(.cm-s-default .cm-number) { color: #b5cea8; }
+  :global([data-theme="dark"]) .jts-in :global(.cm-s-default .cm-atom) { color: #569cd6; }
+  :global([data-theme="dark"]) .jts-in :global(.cm-s-default .cm-keyword) { color: #c586c0; }
+  :global([data-theme="dark"]) .jts-in :global(.cm-s-default .cm-property) { color: #9cdcfe; }
+  :global([data-theme="dark"]) .jts-out :global(.cm-s-default .cm-keyword),
+  :global([data-theme="dark"]) .jts-out :global(.cm-s-default .cm-atom) { color: #569cd6; }
+  :global([data-theme="dark"]) .jts-out :global(.cm-s-default .cm-def) { color: #4ec9b0; }
+  :global([data-theme="dark"]) .jts-out :global(.cm-s-default .cm-type) { color: #4fc1ff; }
+  :global([data-theme="dark"]) .jts-out :global(.cm-s-default .cm-property) { color: #9cdcfe; }
+  :global([data-theme="dark"]) .jts-out :global(.cm-s-default .cm-string) { color: #ce9178; }
+  :global([data-theme="dark"]) .jts-out :global(.cm-s-default .cm-number) { color: #b5cea8; }
+  :global([data-theme="dark"]) .jts-out :global(.cm-s-default .cm-variable),
+  :global([data-theme="dark"]) .jts-out :global(.cm-s-default .cm-variable-2),
+  :global([data-theme="dark"]) .jts-out :global(.cm-s-default .cm-operator),
+  :global([data-theme="dark"]) .jts-out :global(.cm-s-default .cm-punctuation) { color: #d4d4d4; }
+  :global([data-theme="dark"]) .jts-out :global(.cm-s-default .cm-comment) { color: #6a9955; }
+</style>

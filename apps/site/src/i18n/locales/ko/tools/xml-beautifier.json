@@ -6,6 +6,8 @@
   "InputPlaceholder": "XML을 여기에 붙여넣으세요...",
   "FormatButton": "포맷",
   "ClearButton": "지우기",
+  "OpenButton": "열기",
+  "SaveButton": "저장",
   "CopyButton": "복사",
   "Copied": "복사됨!",
   "ErrorInvalidXml": "잘못된 XML입니다. 입력을 확인하세요.",

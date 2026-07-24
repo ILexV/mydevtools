@@ -34,6 +34,12 @@ import JwtEncoder from "@/tools/JwtEncoder.astro";
 import PasswordGenerator from "@/tools/PasswordGenerator.astro";
 import OpenSshKeys from "@/tools/OpenSshKeys.astro";
 import X509Tool from "@/tools/X509Tool.astro";
+import JsonBeautifier from "@/tools/JsonBeautifier.astro";
+import JsonToTypeScript from "@/tools/JsonToTypeScript.astro";
+import XmlBeautifier from "@/tools/XmlBeautifier.astro";
+import YamlBeautifierValidator from "@/tools/YamlBeautifierValidator.astro";
+import CronGenerator from "@/tools/CronGenerator.astro";
+import CronParser from "@/tools/CronParser.astro";
 
 assertRegistryValid();
 
@@ -82,6 +88,12 @@ const TOOL_COMPONENTS: Record<string, any> = {
   "password-generator": PasswordGenerator,
   "openssh-keys": OpenSshKeys,
   "x509": X509Tool,
+  "json-beautifier": JsonBeautifier,
+  "json-to-typescript": JsonToTypeScript,
+  "xml-beautifier": XmlBeautifier,
+  "yaml-beautifier-validator": YamlBeautifierValidator,
+  "cron-generator": CronGenerator,
+  "cron-parser": CronParser,
 };
 const ActiveTool = TOOL_COMPONENTS[slug];
 ---

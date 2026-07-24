@@ -6,6 +6,8 @@
   "InputPlaceholder": "在此处粘贴您的 XML...",
   "FormatButton": "格式化",
   "ClearButton": "清除",
+  "OpenButton": "打开",
+  "SaveButton": "保存",
   "CopyButton": "复制",
   "Copied": "已复制！",
   "ErrorInvalidXml": "无效的 XML。请检查您的输入。",

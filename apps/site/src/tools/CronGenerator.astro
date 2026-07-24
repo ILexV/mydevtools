@@ -1,0 +1,315 @@
+---
+/**
+ * Cron Expression Generator (pure JS). Five field inputs (minute / hour /
+ * day-of-month / month / day-of-week) → Generate builds the cron expression,
+ * validates it, renders a human-readable description and the next 5 execution
+ * times (local time, selectable date format persisted in localStorage). Copy
+ * button with 1200ms feedback swap. All logic in `cron-generator.client.ts`,
+ * ported from legacy `tools/cron-generator.js`.
+ */
+import { t } from "@/i18n/messages";
+import { localizedPath } from "@/lib/url";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/cron-generator";
+const s = {
+  linkToParser: t(lang, ns, "LinkToParser"),
+  parserTitle: t(lang, ns, "ParserTitle"),
+  generatorTitle: t(lang, ns, "GeneratorTitle"),
+  minuteLabel: t(lang, ns, "MinuteLabel"),
+  hourLabel: t(lang, ns, "HourLabel"),
+  dayLabel: t(lang, ns, "DayLabel"),
+  monthLabel: t(lang, ns, "MonthLabel"),
+  weekdayLabel: t(lang, ns, "WeekdayLabel"),
+  fieldHintExamples: t(lang, ns, "FieldHintExamples"),
+  generatedExpressionLabel: t(lang, ns, "GeneratedExpressionLabel"),
+  descriptionLabel: t(lang, ns, "DescriptionLabel"),
+  nextExecutionsPreviewLabel: t(lang, ns, "NextExecutionsPreviewLabel"),
+  generateToSeeResult: t(lang, ns, "GenerateToSeeResult"),
+  actionGenerate: t(lang, ns, "ActionGenerate"),
+  copy: t(lang, ns, "Copy"),
+  copied: t(lang, ns, "Copied"),
+  dateFormatLocale: t(lang, ns, "DateFormatLocale"),
+  dateFormatLocale12h: t(lang, ns, "DateFormatLocale12h"),
+  dateFormatFullMonth: t(lang, ns, "DateFormatFullMonth"),
+  dateFormatISO: t(lang, ns, "DateFormatISO"),
+  dateFormatCompact: t(lang, ns, "DateFormatCompact"),
+  dateFormatAmerican: t(lang, ns, "DateFormatAmerican"),
+  dateFormatVerbose: t(lang, ns, "DateFormatVerbose"),
+};
+// Strings consumed by the client controller (human-readable description
+// building blocks + month/weekday names used for parsing and rendering).
+const clientStrings = {
+  lang,
+  copied: s.copied,
+  scheduleReboot: t(lang, ns, "ScheduleReboot"),
+  scheduleYearly: t(lang, ns, "ScheduleYearly"),
+  scheduleMonthly: t(lang, ns, "ScheduleMonthly"),
+  scheduleWeekly: t(lang, ns, "ScheduleWeekly"),
+  scheduleDaily: t(lang, ns, "ScheduleDaily"),
+  scheduleHourly: t(lang, ns, "ScheduleHourly"),
+  scheduleEveryMinute: t(lang, ns, "ScheduleEveryMinute"),
+  scheduleEveryNMinutes: t(lang, ns, "ScheduleEveryNMinutes"),
+  scheduleAtMinute: t(lang, ns, "ScheduleAtMinute"),
+  scheduleAtMinutes: t(lang, ns, "ScheduleAtMinutes"),
+  scheduleEveryHour: t(lang, ns, "ScheduleEveryHour"),
+  scheduleEveryNHours: t(lang, ns, "ScheduleEveryNHours"),
+  scheduleAtHour: t(lang, ns, "ScheduleAtHour"),
+  scheduleAtHours: t(lang, ns, "ScheduleAtHours"),
+  scheduleEveryDay: t(lang, ns, "ScheduleEveryDay"),
+  scheduleOnDay: t(lang, ns, "ScheduleOnDay"),
+  scheduleOnDays: t(lang, ns, "ScheduleOnDays"),
+  scheduleLastDay: t(lang, ns, "ScheduleLastDay"),
+  scheduleOnWeekday: t(lang, ns, "ScheduleOnWeekday"),
+  scheduleOnWeekdays: t(lang, ns, "ScheduleOnWeekdays"),
+  scheduleInMonth: t(lang, ns, "ScheduleInMonth"),
+  scheduleInMonths: t(lang, ns, "ScheduleInMonths"),
+  months: t(lang, ns, "MonthNames").split(","),
+  weekdays: t(lang, ns, "WeekdayNames").split(","),
+};
+const stringsJson = JSON.stringify(clientStrings);
+const parserUrl = localizedPath(lang, "cron-parser");
+---
+
+<div class="crong-tool" data-crong-tool>
+  <p class="crong-linkbox">
+    {s.linkToParser} → <a href={parserUrl}>{s.parserTitle}</a>
+  </p>
+
+  <div class="crong-grid">
+    <section class="crong-card">
+      <h2 class="card-title">{s.generatorTitle}</h2>
+
+      <div class="crong-field">
+        <label class="field-label" for="crong-minute">{s.minuteLabel}</label>
+        <input
+          id="crong-minute"
+          type="text"
+          class="crong-input"
+          data-crong-minute
+          value="0"
+          placeholder="0-59, *, */5, 1,2,3"
+          spellcheck="false"
+        />
+        <span class="crong-hint">{s.fieldHintExamples}</span>
+      </div>
+
+      <div class="crong-field">
+        <label class="field-label" for="crong-hour">{s.hourLabel}</label>
+        <input
+          id="crong-hour"
+          type="text"
+          class="crong-input"
+          data-crong-hour
+          value="*"
+          placeholder="0-23, *, */2"
+          spellcheck="false"
+        />
+      </div>
+
+      <div class="crong-field">
+        <label class="field-label" for="crong-day">{s.dayLabel}</label>
+        <input
+          id="crong-day"
+          type="text"
+          class="crong-input"
+          data-crong-day
+          value="*"
+          placeholder="1-31, *, L, 1-15"
+          spellcheck="false"
+        />
+      </div>
+
+      <div class="crong-field">
+        <label class="field-label" for="crong-month">{s.monthLabel}</label>
+        <input
+          id="crong-month"
+          type="text"
+          class="crong-input"
+          data-crong-month
+          value="*"
+          placeholder="1-12, *, JAN-DEC"
+          spellcheck="false"
+        />
+      </div>
+
+      <div class="crong-field">
+        <label class="field-label" for="crong-weekday">{s.weekdayLabel}</label>
+        <input
+          id="crong-weekday"
+          type="text"
+          class="crong-input"
+          data-crong-weekday
+          value="*"
+          placeholder="0-6, *, 1-5, MON-FRI"
+          spellcheck="false"
+        />
+      </div>
+
+      <div class="crong-actions">
+        <button type="button" class="primary-btn" data-crong-generate>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+          </svg>
+          {s.actionGenerate}
+        </button>
+      </div>
+
+      <p class="crong-error" data-crong-error role="alert" hidden></p>
+    </section>
+
+    <section class="crong-card">
+      <h2 class="card-title">{s.generatedExpressionLabel}</h2>
+
+      <div class="crong-field">
+        <div class="crong-output-wrap">
+          <input
+            type="text"
+            class="crong-input crong-output"
+            data-crong-output
+            readonly
+            aria-label={s.generatedExpressionLabel}
+          />
+          <button type="button" class="copy-btn crong-copy" data-crong-copy title={s.copy} aria-label={s.copy}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="crong-field">
+        <span class="field-label">{s.descriptionLabel}</span>
+        <div class="crong-description" data-crong-description>{s.generateToSeeResult}</div>
+      </div>
+
+      <div class="crong-field">
+        <div class="crong-label-row">
+          <span class="field-label">{s.nextExecutionsPreviewLabel}</span>
+          <select class="crong-format" data-crong-date-format aria-label={s.nextExecutionsPreviewLabel}>
+            <option value="locale">{s.dateFormatLocale}</option>
+            <option value="locale-12h">{s.dateFormatLocale12h}</option>
+            <option value="full-month">{s.dateFormatFullMonth}</option>
+            <option value="iso">{s.dateFormatISO}</option>
+            <option value="compact">{s.dateFormatCompact}</option>
+            <option value="american">{s.dateFormatAmerican}</option>
+            <option value="verbose">{s.dateFormatVerbose}</option>
+          </select>
+        </div>
+        <div class="crong-next" data-crong-next></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script is:inline type="application/json" data-crong-strings set:html={stringsJson} />
+<script>import "@/tools/cron-generator.client.ts";</script>
+
+<style>
+  .crong-linkbox {
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    background: var(--mdt-surface-raised);
+    font-size: 0.88rem;
+    color: var(--mdt-text-muted);
+    margin: 0 0 1.25rem;
+  }
+  .crong-linkbox a { color: var(--mdt-accent); font-weight: 600; }
+
+  .crong-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; align-items: start; }
+  @media (min-width: 900px) { .crong-grid { grid-template-columns: 1fr 1fr; } }
+
+  .crong-card { border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); padding: 1.1rem 1.2rem; }
+  .card-title { font-size: 0.95rem; margin: 0 0 0.9rem; color: var(--mdt-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .field-label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
+
+  .crong-field { margin-bottom: 0.9rem; }
+  .crong-field:last-child { margin-bottom: 0; }
+  .crong-label-row { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; }
+  .crong-label-row .field-label { margin-bottom: 0.35rem; }
+
+  .crong-input {
+    width: 100%;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface);
+    color: var(--mdt-text);
+    font-family: var(--mdt-font-mono);
+    font-size: 0.95rem;
+  }
+  .crong-input:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+
+  .crong-hint { display: block; font-size: 0.72rem; color: var(--mdt-text-muted); opacity: 0.75; margin-top: 0.2rem; }
+
+  .crong-actions { display: flex; gap: 0.6rem; margin-top: 1.1rem; }
+  .primary-btn {
+    flex: 1;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.6rem 1.1rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer;
+    background: var(--mdt-accent); color: var(--mdt-accent-contrast); border: 1px solid transparent;
+  }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .primary-btn:focus-visible { outline: 2px solid var(--mdt-focus-ring); outline-offset: 2px; }
+  .primary-btn svg { width: 1.1rem; height: 1.1rem; }
+
+  .crong-error {
+    margin: 0.9rem 0 0;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--mdt-danger);
+    border-radius: var(--mdt-radius-sm);
+    color: var(--mdt-danger);
+    background: color-mix(in srgb, var(--mdt-danger) 8%, transparent);
+    font-size: 0.88rem;
+  }
+
+  .crong-output-wrap { position: relative; }
+  .crong-output-wrap .crong-output { padding-right: 2.6rem; font-size: 1.05rem; background: var(--mdt-surface-muted); }
+  .crong-copy {
+    position: absolute; top: 50%; right: 0.4rem; transform: translateY(-50%);
+    width: 2rem; height: 2rem;
+    border: none; background: transparent; color: var(--mdt-text-muted);
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; border-radius: var(--mdt-radius-sm);
+  }
+  .crong-copy:hover { color: var(--mdt-text); }
+  .crong-copy:focus-visible { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  .crong-copy svg { width: 1rem; height: 1rem; }
+  .crong-copy.copied { color: var(--mdt-success); }
+
+  .crong-description {
+    padding: 0.8rem 0.9rem;
+    background: var(--mdt-surface);
+    border-radius: var(--mdt-radius-sm);
+    min-height: 3rem;
+    color: var(--mdt-text-muted);
+    font-size: 0.92rem;
+  }
+
+  .crong-format {
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface);
+    color: var(--mdt-text);
+    font-size: 0.78rem;
+    width: auto;
+  }
+  .crong-format:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+
+  .crong-next { display: grid; gap: 0.5rem; }
+  .crong-next .next-row {
+    padding: 0.5rem 0.7rem;
+    background: var(--mdt-surface);
+    border-radius: var(--mdt-radius-sm);
+    font-size: 0.85rem;
+    font-family: var(--mdt-font-mono);
+  }
+  .crong-next .next-row.plain { font-family: inherit; }
+</style>

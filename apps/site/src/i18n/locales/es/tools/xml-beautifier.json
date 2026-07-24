@@ -6,6 +6,8 @@
   "InputPlaceholder": "Pega tu XML aquí...",
   "FormatButton": "Formatear",
   "ClearButton": "Limpiar",
+  "OpenButton": "Abrir",
+  "SaveButton": "Guardar",
   "CopyButton": "Copiar",
   "Copied": "¡Copiado!",
   "ErrorInvalidXml": "XML no válido. Por favor, revise su entrada.",

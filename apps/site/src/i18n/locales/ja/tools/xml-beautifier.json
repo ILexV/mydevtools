@@ -6,6 +6,8 @@
   "InputPlaceholder": "XML をここに貼り付け...",
   "FormatButton": "フォーマット",
   "ClearButton": "クリア",
+  "OpenButton": "開く",
+  "SaveButton": "保存",
   "CopyButton": "コピー",
   "Copied": "コピーしました！",
   "ErrorInvalidXml": "無効な XML です。入力を確認してください。",

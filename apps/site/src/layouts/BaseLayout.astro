@@ -1,8 +1,7 @@
 ---
 import type { LocaleCode, LocaleMeta } from "@/registry/locales";
 import { LOCALES } from "@/registry/locales";
-import { absoluteUrl, localizedPath } from "@/lib/url";
-import { t } from "@/i18n/messages";
+import Seo from "@/components/Seo.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import "@/styles/global.css";
@@ -13,35 +12,36 @@ interface Props {
   title: string;
   description: string;
   keywords?: string[];
+  /** Home page emits WebSite+Organization JSON-LD; tools emit SoftwareApplication. */
+  isHome?: boolean;
+  /** Localized category name — inserted into the tool breadcrumb JSON-LD. */
+  categoryName?: string;
 }
 
-const { locale, path = "", title, description, keywords = [] } = Astro.props as Props;
+const {
+  locale,
+  path = "",
+  title,
+  description,
+  keywords = [],
+  isHome = false,
+  categoryName,
+} = Astro.props as Props;
 const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
-const canonical = absoluteUrl(localizedPath(locale, path).replace(/\/+$/, ""));
-const siteName = t(locale, "common", "AppName");
-const fullTitle = title === siteName ? title : `${title} — ${siteName}`;
 ---
 
 <!doctype html>
 <html lang={meta.bcp47} dir={meta.dir}>
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{fullTitle}</title>
-    <meta name="description" content={description} />
-    {keywords.length > 0 && <meta name="keywords" content={keywords.join(", ")} />}
-    <link rel="canonical" href={canonical} />
-
-    {LOCALES.map((l) => (
-      <link rel="alternate" hreflang={l.bcp47} href={absoluteUrl(localizedPath(l.code, path).replace(/\/+$/, ""))} />
-    ))}
-    <link rel="alternate" hreflang="x-default" href={absoluteUrl(localizedPath("en", path).replace(/\/+$/, ""))} />
-
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content={fullTitle} />
-    <meta property="og:locale" content={meta.ogLocale} />
-    <meta property="og:url" content={canonical} />
-    <meta name="twitter:card" content="summary_large_image" />
+    <Seo
+      locale={locale}
+      path={path}
+      title={title}
+      description={description}
+      keywords={keywords}
+      isHome={isHome}
+      categoryName={categoryName}
+    />
 
     <script is:inline>
       (function () {
@@ -59,9 +59,19 @@ const fullTitle = title === siteName ? title : `${title} — ${siteName}`;
     <Header locale={locale} path={path} />
     <slot />
     <Footer locale={locale} />
+
+    <!-- Global shell: theme toggle, language switcher, search, favorites/recent. -->
     <script>
       import "@/scripts/chrome.ts";
       import "@/scripts/favorites.ts";
     </script>
+
+    <!-- PWA: register the build-generated service worker (production only). -->
+    <script>
+      import "@/scripts/sw-register.ts";
+    </script>
+
+    <!-- Service-worker update prompt. -->
+    <div id="sw-update-toast" hidden role="status" aria-live="polite"></div>
   </body>
 </html>

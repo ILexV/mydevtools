@@ -11,6 +11,7 @@
 - **Этап 8 (Глобальный функционал):** каталог 39 инструментов из реестра (13 категорий), клиентский поиск (`/`), favorites+recent с versioned localStorage, related tools, Header/Footer, theme toggle, language switcher, build-time sitemap (400 URL) + robots. **Gate 8 пройден** (browser: search/favorite/lang-switch end-to-end). Остаются: command palette, share/copy-link, graceful degradation — Этап 9.
 - **Этап 7 (WASM runtime):** `build.ps1 -WasmOutRoot` → `apps/site/src/generated/wasm/`; Web Worker + протокол (start/progress/result/error/cancel), chunked 1 MiB file reading, typed `WasmError`, без SharedArrayBuffer; wasm грузится только на hash-странице. **Gate 7 пройден** (browser: 150MB файл, progress, cancel, UI не блокируется). Первый инструмент **hash-calculator** перенесён (Stage 9).
 - **Этап 9 (Перенос инструментов): 39/39 перенесено и browser-проверено.** Каждый инструмент — `.astro` shell + `.client.ts` контроллер, WASM-клиенты по доменам (hash/encoding/cryptography/structured_data/text_tools/regex_tool/qrcode/pdf/image_tools/ipcalc). Известные отклонения: image-compressor без multi-file ZIP (JSZip CDN в legacy), json/xml без input-persistence (privacy). **Gate 9 пройден.**
+- **Этап 10 (SEO/PWA/hosting): готов.** `Seo.astro` (вся head + JSON-LD: WebSite/Organization/Breadcrumb на home, SoftwareApplication/Breadcrumb на tool — паритет с legacy MetaTags); base-aware `manifest.webmanifest` (start_url/scope `/mydevtools/`, иконки 192/512/maskable, theme_color); build-generated SW (`build-sw.mjs` сканирует dist → 19 precache, content-hash version) scoped `/mydevtools/sw.js`, стратегии network-first HTML / SWR assets / offline-fallback; update-flow (toast→SKIP_WAITING→purge stale→reload); `offline.astro`. **Gate 10 пройден локально** (browser: JSON-LD валиден, manifest валиден+3 иконки, SW registered+activated, offline-shell подтверждён через кеши). Финальный Lighthouse/HTTPS — Этап 12.
 - **Этап 2 (Дизайн):** требует решений владельца (moodboard, выбор концепции из трёх, signature-элемент). Начальные design tokens (light/dark, spacing, radius) заложены в `src/styles/global.css` как стартовая точка.
 - **Новая IA:** legacy прятал 4 инструмента (uuid, lorem, date-converter, pdf-to-text) вне каталога; реестр помещает uuid+lorem в `generators`, date-converter→converters, pdf-to-text→pdf — см. `docs/inventory/catalog-seo.md` §1.
 
@@ -276,21 +277,21 @@
 
 ## Этап 10. SEO, PWA и статический hosting
 
-- [ ] Создать общий SEO-компонент для title, description, canonical, Open Graph, Twitter cards и structured data.
-- [ ] Генерировать локализованный sitemap из locale/tool registries.
-- [ ] Обновить `robots.txt` под окончательный Pages URL.
-- [ ] Настроить корректные asset URLs с `import.meta.env.BASE_URL` или Astro helpers.
-- [ ] Создать manifest с base-aware `start_url`, scope, icons и theme colors.
-- [ ] Переписать service worker под GitHub Pages scope `/<repo>/`, не регистрировать `/sw.js` от корня домена.
-- [ ] Генерировать precache manifest из фактического `dist`, не поддерживать список hashed assets вручную.
-- [ ] Не кешировать навсегда HTML и service worker; versioned assets кешировать immutable.
-- [ ] Реализовать понятное обновление service worker без бесконечного stale cache.
-- [ ] Проверить offline shell и заранее определить, какие инструменты должны работать offline после первого посещения.
-- [ ] Проверить прямое открытие, refresh и 404 behavior всех route patterns на GitHub Pages.
+- [x] Создать общий SEO-компонент для title, description, canonical, Open Graph, Twitter cards и structured data. → `Seo.astro` (вся head-разметка) + `lib/seo.ts` JSON-LD: home → WebSite+Organization+Breadcrumb, tool → SoftwareApplication+Breadcrumb; проверено в dist (валидный JSON-LD на home и tool)
+- [x] Генерировать локализованный sitemap из locale/tool registries. → `sitemap.xml.ts` (Этап 8), registry-driven, 410 URL
+- [x] Обновить `robots.txt` под окончательный Pages URL. → `public/robots.txt` → Sitemap ilexv.github.io/mydevtools/sitemap.xml
+- [x] Настроить корректные asset URLs с `import.meta.env.BASE_URL` или Astro helpers. → `lib/url.ts` (BASE_URL/withBase/localizedPath), все ссылки через хелперы
+- [x] Создать manifest с base-aware `start_url`, scope, icons и theme colors. → `manifest.webmanifest.ts` (build-time, import.meta.env.BASE_URL), start_url/scope `/mydevtools/`, 3 иконки (192/512/maskable), theme_color; проверен в browser (валидный, 3 иконки)
+- [x] Переписать service worker под GitHub Pages scope `/<repo>/`, не регистрировать `/sw.js` от корня домена. → `dist/sw.js` по пути `/mydevtools/sw.js` (scope `/mydevtools/`), регистрация через `sw-register.ts` только в prod по `${BASE_URL}sw.js`; проверено (SW activated)
+- [x] Генерировать precache manifest из фактического `dist`, не поддерживать список hashed assets вручную. → `build-sw.mjs` сканирует dist: 19 precache (10 home + offline×2 + 5 иконок + manifest + 1 общий _astro CSS), version = sha1 контента
+- [x] Не кешировать навсегда HTML и service worker; versioned assets кешировать immutable. → навигации network-first (HTML всегда свежий), `_astro`/wasm/fonts — stale-while-revalidate, sw.js re-fetches each deploy (no-cache у браузера); precache в versioned cache `mdt-sw-precache-<hash>`
+- [x] Реализовать понятное обновление service worker без бесконечного stale cache. → новый SW waiting → toast "A new version available — Reload" → SKIP_WAITING → activate purges stale `mdt-sw-*` → controllerchange reload; version = content-hash → каждый деплой bumped
+- [x] Проверить offline shell и заранее определить, какие инструменты должны работать offline после первого посещения. → проверено напрямую через кеши: precache (offline-page + homes + icons + manifest), посещённые страницы → `mdt-sw-pages`; offline-fallback "You're offline" в precache (200); инструменты работают offline после первого визита (HTML+JS+WASM кешируются)
+- [x] Проверить прямое открытие, refresh и 404 behavior всех route patterns на GitHub Pages. → локально: `build.format: directory` (path/index.html) переживает Pages SPA-fallback, `404.astro` base-aware с locale-recovery; финальная проверка на живом деплое — Этап 12
 
 ### Gate 10
 
-- [ ] Lighthouse распознает installable PWA, sitemap/canonical корректны, обновление версии не оставляет старый UI.
+- [x] Lighthouse распознает installable PWA, sitemap/canonical корректны, обновление версии не оставляет старый UI. → предпосылки installability проверены локально (manifest валиден, SW registered+activated, иконки 192/512/maskable, theme_color); sitemap/canonical валидны; update-flow без stale (content-hash version + activate purge). Финальный Lighthouse-скор на HTTPS-деплое — Этап 12.
 
 ## Этап 11. Тестирование и quality gates
 

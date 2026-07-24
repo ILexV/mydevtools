@@ -36,7 +36,7 @@ const index = Object.fromEntries(
 const indexJson = JSON.stringify(index);
 ---
 
-<BaseLayout locale={lang} title={siteName} description={heroSubtitle}>
+<BaseLayout locale={lang} title={siteName} description={heroSubtitle} isHome>
   <main class="home">
     <section class="hero">
       <span class="privacy-badge">{t(lang, "common", "NoDataSent")}</span>

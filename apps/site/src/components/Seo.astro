@@ -1,0 +1,87 @@
+---
+/**
+ * Single SEO head component. Owns ALL <head> meta for every page:
+ *   title, description, keywords, canonical, hreflang alternates,
+ *   Open Graph + Twitter cards, JSON-LD structured data, theme-color,
+ *   web app manifest link, and favicon/icon set.
+ *
+ * Replaces the inline head previously in `BaseLayout.astro`. Pages pass
+ * `isHome` (+ optional `categoryName`) so `buildJsonLd` can emit the right
+ * schema graph (WebSite+Organization for home, SoftwareApplication+Breadcrumb
+ * for tools) — mirroring the legacy `MetaTags.razor` contract.
+ */
+import type { LocaleCode, LocaleMeta } from "@/registry/locales";
+import { LOCALES } from "@/registry/locales";
+import { absoluteUrl, localizedPath, withBase } from "@/lib/url";
+import { t } from "@/i18n/messages";
+import { buildJsonLd } from "@/lib/seo";
+
+interface Props {
+  locale: LocaleCode;
+  path?: string;
+  title: string;
+  description: string;
+  keywords?: string[];
+  isHome?: boolean;
+  categoryName?: string;
+}
+
+const {
+  locale,
+  path = "",
+  title,
+  description,
+  keywords = [],
+  isHome = false,
+  categoryName,
+} = Astro.props as Props;
+
+const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
+const canonical = absoluteUrl(localizedPath(locale, path).replace(/\/+$/, ""));
+const siteName = t(locale, "common", "AppName");
+const fullTitle = title === siteName ? title : `${title} — ${siteName}`;
+const ogImage = absoluteUrl(withBase("icons/icon-512.png"));
+const manifestHref = withBase("manifest.webmanifest");
+
+const jsonLd = buildJsonLd({ locale, path, title, description, isHome, categoryName });
+const jsonLdString = JSON.stringify(jsonLd);
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+{keywords.length > 0 && <meta name="keywords" content={keywords.join(", ")} />}
+<meta name="robots" content="index, follow" />
+<link rel="canonical" href={canonical} />
+
+{LOCALES.map((l) => (
+  <link rel="alternate" hreflang={l.bcp47} href={absoluteUrl(localizedPath(l.code, path).replace(/\/+$/, ""))} />
+))}
+<link rel="alternate" hreflang="x-default" href={absoluteUrl(localizedPath("en", path).replace(/\/+$/, ""))} />
+
+<meta property="og:type" content="website" />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:locale" content={meta.ogLocale} />
+{LOCALES.filter((l) => l.code !== locale).map((l) => (
+  <meta property="og:locale:alternate" content={l.ogLocale} />
+))}
+<meta property="og:site_name" content={siteName} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={ogImage} />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+
+<link rel="icon" type="image/svg+xml" href={withBase("icons/favicon.svg")} />
+<link rel="icon" type="image/png" sizes="192x192" href={withBase("icons/icon-192.png")} />
+<link rel="icon" type="image/png" sizes="512x512" href={withBase("icons/icon-512.png")} />
+<link rel="apple-touch-icon" href={withBase("icons/apple-touch-icon.png")} />
+<link rel="manifest" href={manifestHref} />
+<meta name="theme-color" content="#2f6df0" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#0e1116" media="(prefers-color-scheme: dark)" />
+
+<script type="application/ld+json" set:html={jsonLdString} is:inline />

@@ -6,7 +6,8 @@
   "description": "New static Astro frontend for MyDevTools (GitHub Pages).",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node build-sw.mjs",
+    "build:pages": "astro build && node build-sw.mjs",
     "check": "astro check",
     "validate:i18n": "node scripts/validate-i18n.mjs",
     "astro": "astro"

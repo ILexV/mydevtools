@@ -124,7 +124,7 @@ const TOOL_COMPONENTS: Record<string, any> = {
 const ActiveTool = TOOL_COMPONENTS[slug];
 ---
 
-<BaseLayout locale={lang} path={slug} title={title} description={description} keywords={[tool.slug]}>
+<BaseLayout locale={lang} path={slug} title={title} description={description} keywords={[tool.slug]} categoryName={catLabel}>
   <span data-visit-slug data-slug={slug} hidden></span>
   <main class="tool">
     <header class="tool-head">

@@ -13,6 +13,7 @@
 - **Этап 9 (Перенос инструментов): 39/39 перенесено и browser-проверено.** Каждый инструмент — `.astro` shell + `.client.ts` контроллер, WASM-клиенты по доменам (hash/encoding/cryptography/structured_data/text_tools/regex_tool/qrcode/pdf/image_tools/ipcalc). Известные отклонения: image-compressor без multi-file ZIP (JSZip CDN в legacy), json/xml без input-persistence (privacy). **Gate 9 пройден.**
 - **Этап 10 (SEO/PWA/hosting): готов.** `Seo.astro` (вся head + JSON-LD: WebSite/Organization/Breadcrumb на home, SoftwareApplication/Breadcrumb на tool — паритет с legacy MetaTags); base-aware `manifest.webmanifest` (start_url/scope `/mydevtools/`, иконки 192/512/maskable, theme_color); build-generated SW (`build-sw.mjs` сканирует dist → 19 precache, content-hash version) scoped `/mydevtools/sw.js`, стратегии network-first HTML / SWR assets / offline-fallback; update-flow (toast→SKIP_WAITING→purge stale→reload); `offline.astro`. **Gate 10 пройден локально** (browser: JSON-LD валиден, manifest валиден+3 иконки, SW registered+activated, offline-shell подтверждён через кеши). Финальный Lighthouse/HTTPS — Этап 12.
 - **Этап 11 (Тесты/QA): автоматизируемая часть готова.** Unit-тесты (node:test, zero-dep, 17 шт.): реестры+validate, pure `urlPath.ts`/`resolve.ts` (вынесены из Vite-bound модулей); static dist-smoke (`smoke-dist.mjs`: роуты/manifest/sw/JSON-LD/404); единая `npm run verify` (check+i18n+unit+build+smoke). Rust `cargo test --workspace` green — починены latent-баги (cryptography hex dev-dep + HMAC RFC-4231 векторы, structured_data wasm32-gate). Browser-QA (Chromium): 0 console/network/page errors, keyboard+focus+a11y, theme no-flash + контраст 8.39, viewport 320–1440 без overflow (en/zh/ru), localStorage-corruption robust, 40MB progress. **Gate 11 пройден** (`npm run verify`). Отложено на Этап 12/владельца: Lighthouse/CWV/budget (нужен HTTPS+measurement), визуальная приемка+polish (design-gated), browser matrix FF/Safari, real-device mobile.
+- **Этап 12 (Сборка/деплой): pipeline готов, реальный push — user-gated.** Root-скрипты `build:pages` (validate:i18n → build:wasm → build:site → test:smoke, проверен, 403 стр) и `deploy:pages` (`scripts/deploy-pages.mjs`: изолированный temp git-репо из `dist` → force-push `HEAD:gh-pages`, zero-dep, dry-run по умолчанию; dry-run проверен — 482 файла, 19 precache). Пины: `.nvmrc` (Node 25), `rust-toolchain.toml` (1.88.0). `apps/site/RELEASING.md` (prereqs → build → preview → deploy → smoke → rollback). **Локально всё готово**; `npm run deploy:pages -- --push` (с git-credentials владельца) + post-deploy smoke + GitHub Pages settings (gh-pages/root) — финальный шаг владельца.
 - **Этап 2 (Дизайн):** требует решений владельца (moodboard, выбор концепции из трёх, signature-элемент). Начальные design tokens (light/dark, spacing, radius) заложены в `src/styles/global.css` как стартовая точка.
 - **Новая IA:** legacy прятал 4 инструмента (uuid, lorem, date-converter, pdf-to-text) вне каталога; реестр помещает uuid+lorem в `generators`, date-converter→converters, pdf-to-text→pdf — см. `docs/inventory/catalog-seo.md` §1.
 
@@ -336,25 +337,25 @@
 
 ## Этап 12. Локальная сборка и публикация на GitHub Pages
 
-- [ ] Зафиксировать локальные версии Node/npm, Rust и `wasm-bindgen-cli` в документации и конфигурации.
-- [ ] Создать `npm run build:wasm` для локального вызова обновленного `wasm/build.ps1`.
-- [ ] Создать `npm run validate:i18n`.
-- [ ] Создать `npm run build:site` и итоговый `npm run build:pages`.
-- [ ] `build:pages` должен очистить старый output, собрать WASM, проверить locale JSON, собрать Astro и проверить ссылки/assets.
-- [ ] Выбрать локальную публикацию в `gh-pages` branch как основной способ; сборка не выполняется на GitHub.
-- [ ] Добавить `npm run deploy:pages`, публикующий только готовый `apps/site/dist`.
-- [ ] Не коммитить секреты или пользовательские настройки в deploy script.
-- [ ] В настройках GitHub Pages выбрать ветку `gh-pages` и корень `/`.
-- [ ] Выполнить первую публикацию в тестовый Pages URL до переключения основного сайта.
-- [ ] Проверить опубликованный сайт в новом browser profile без локального cache.
-- [ ] Повторить проверку после второй публикации, чтобы доказать корректное обновление cache/service worker.
-- [ ] Записать короткую инструкцию release: prerequisites → build → preview → deploy → smoke test → rollback.
-- [ ] Определить rollback на предыдущий commit ветки `gh-pages`.
+- [x] Зафиксировать локальные версии Node/npm, Rust и `wasm-bindgen-cli` в документации и конфигурации. → `.nvmrc` (Node 25), `rust-toolchain.toml` (1.88.0), `apps/site/RELEASING.md` (npm 11+, wasm-bindgen-cli 0.2.108 + one-time rustup setup).
+- [x] Создать `npm run build:wasm` для локального вызова обновленного `wasm/build.ps1`. → root `build:wasm` (`pwsh wasm/build.ps1 -Configuration Release -WasmOutRoot apps/site/src/generated/wasm`).
+- [x] Создать `npm run validate:i18n`. → root `validate:i18n` → site workspace.
+- [x] Создать `npm run build:site` и итоговый `npm run build:pages`. → root `build:site` + `build:pages` = validate:i18n → build:wasm → build:site → test:smoke.
+- [x] `build:pages` должен очистить старый output, собрать WASM, проверить locale JSON, собрать Astro и проверить ссылки/assets. → astro очищает dist; pipeline i18n→WASM→Astro(403 стр)→smoke(5/5); проверен (17s incremental). ipcalc-артефакт закоммичен (явный rebuild задокументирован — default-домены build.ps1 его опускают).
+- [x] Выбрать локальную публикацию в `gh-pages` branch как основной способ; сборка не выполняется на GitHub. → `scripts/deploy-pages.mjs`: изолированный temp git-репо из `dist`, force-push `HEAD:gh-pages`; сборка локальная, на GitHub только статика.
+- [x] Добавить `npm run deploy:pages`, публикующий только готовый `apps/site/dist`. → root `deploy:pages` (dry-run по умолчанию, `--push` для публикации); dry-run проверен (482 файла, 19 precache).
+- [x] Не коммитить секреты или пользовательские настройки в deploy script. → скрипт не хранит секретов; auth через стандартный git credential helper пользователя.
+- [ ] В настройках GitHub Pages выбрать ветку `gh-pages` и корень `/`. → разовая ручная настройка репо (Settings → Pages → branch `gh-pages` / root); не автоматизируется кодом.
+- [ ] Выполнить первую публикацию в тестовый Pages URL до переключения основного сайта. → требует `npm run deploy:pages -- --push` (нужны git-credentials владельца) — user-gated.
+- [ ] Проверить опубликованный сайт в новом browser profile без локального cache. → после реального deploy (см. RELEASING.md §Smoke test).
+- [ ] Повторить проверку после второй публикации, чтобы доказать корректное обновление cache/service worker. → после 2-го deploy.
+- [x] Записать короткую инструкцию release: prerequisites → build → preview → deploy → smoke test → rollback. → `apps/site/RELEASING.md`.
+- [x] Определить rollback на предыдущий commit ветки `gh-pages`. → RELEASING.md §Rollback: каждый deploy = force-pushed orphan-commit полного dist, rollback = republish предыдущего билда.
 
 ### Финальный Gate
 
-- [ ] Локальный `build:pages` воспроизводимо создает полный self-contained `dist`.
-- [ ] GitHub Pages содержит 39/39 инструментов и десять локалей.
-- [ ] Все пользовательские вычисления остаются локальными.
-- [ ] Новый дизайн подтвержден на реальных mobile/desktop устройствах.
-- [ ] Старый фронтенд остается доступен до подтвержденного функционального, SEO и accessibility паритета.
+- [x] Локальный `build:pages` воспроизводимо создает полный self-contained `dist`. → проверено: 403 страницы + sw.js + manifest + offline + 404 + 10 локалей × 39 инструментов, smoke 5/5.
+- [ ] GitHub Pages содержит 39/39 инструментов и десять локалей. → требует `npm run deploy:pages -- --push` (git-credentials владельца) + проверка живого URL — user-gated.
+- [x] Все пользовательские вычисления остаются локальными. → архитектура: статический `dist`, нет серверного runtime; все вычисления в браузере (WASM/JS), файлы не покидают устройство — подтверждено по всем стадиям.
+- [ ] Новый дизайн подтвержден на реальных mobile/desktop устройствах. → визуальное утверждение владельца (Этап 2 design-gated) + real-device проверка.
+- [x] Старый фронтенд остается доступен до подтвержденного функционального, SEO и accessibility паритета. → legacy Blazor-сайт (`MyDevToolsApp/`) не тронут; новый фронтенд отдельный (`apps/site/` + ветка `gh-pages`).

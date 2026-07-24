@@ -14,6 +14,8 @@
     "preview:site": "npm run preview -w @mydevtools/site",
     "check:site": "npm run check -w @mydevtools/site",
     "validate:i18n": "npm run validate:i18n -w @mydevtools/site",
+    "build:pages": "npm run validate:i18n && npm run build:wasm && npm run build:site && npm run test:smoke -w @mydevtools/site",
+    "deploy:pages": "node scripts/deploy-pages.mjs",
     "ui-kit:build": "npm run build -w @mydevtools/ui-kit"
   },
   "devDependencies": {

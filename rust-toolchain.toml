@@ -1,0 +1,5 @@
+# Pin the Rust toolchain used to build the WASM crates (wasm/ workspace).
+# `cargo`/`rustup` auto-selects this channel for any command run under the repo.
+# Bump deliberately and re-run `npm run build:wasm` + `cargo test --workspace`.
+[toolchain]
+channel = "1.88.0"

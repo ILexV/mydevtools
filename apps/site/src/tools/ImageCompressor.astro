@@ -1,0 +1,199 @@
+---
+/**
+ * Image Compressor (image-tools WASM domain). Upload/drag-drop an image
+ * (png/jpeg/webp — legacy parity), tune quality (1-100, default 80) and pick
+ * an output format (original/jpeg/png/webp), compress via `compressImage`,
+ * then preview the result with a size comparison (savings % per legacy) and
+ * download it as `<name>_min.<ext>` (jpeg → jpg — legacy parity).
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/image-compressor";
+const s = {
+  dropZone: t(lang, ns, "DragDrop"),
+  chooseFile: t(lang, "common", "Common_FileChooseButton"),
+  changeFile: t(lang, "common", "Common_FileChangeButton"),
+  clearFile: t(lang, "common", "Common_ClearFile"),
+  quality: t(lang, ns, "Quality"),
+  qualityHint: t(lang, ns, "QualityHint"),
+  formatLabel: t(lang, ns, "FormatLabel"),
+  formatOriginal: t(lang, ns, "FormatOriginal"),
+  compress: t(lang, ns, "Compress"),
+  compressing: t(lang, ns, "Compressing"),
+  done: t(lang, ns, "Done"),
+  resultLabel: t(lang, ns, "ResultLabel"),
+  originalSize: t(lang, ns, "OriginalSize"),
+  compressedSize: t(lang, ns, "CompressedSize"),
+  download: t(lang, ns, "Download"),
+  previewAlt: t(lang, ns, "PreviewAlt"),
+  errorNotImage: t(lang, ns, "ErrorNotImage"),
+  errorCompression: t(lang, ns, "ErrorCompression"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="imgc-tool" data-imgc-tool>
+  <div class="imgc-drop" data-imgc-dropzone>
+    <input type="file" accept="image/png, image/jpeg, image/webp" data-imgc-file hidden />
+    <button type="button" class="imgc-clear" data-imgc-clear aria-label={s.clearFile} title={s.clearFile} hidden>
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+
+    <div class="imgc-empty" data-imgc-empty>
+      <svg class="imgc-icon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+      <p class="imgc-drop-text">{s.dropZone}</p>
+      <button type="button" class="primary-btn" data-imgc-choose>{s.chooseFile}</button>
+    </div>
+
+    <div class="imgc-selected" data-imgc-selected hidden>
+      <img class="imgc-preview" data-imgc-preview alt={s.previewAlt} />
+      <div class="imgc-fileinfo">
+        <span class="imgc-filename" data-imgc-filename></span>
+        <span class="imgc-filesize" data-imgc-filesize></span>
+      </div>
+      <button type="button" class="primary-btn" data-imgc-change>{s.changeFile}</button>
+    </div>
+  </div>
+
+  <div class="imgc-settings">
+    <div class="imgc-field">
+      <label class="field-label" for="imgc-quality">
+        {s.quality}
+        <span class="imgc-quality-value" data-imgc-quality-value>80%</span>
+      </label>
+      <input type="range" id="imgc-quality" data-imgc-quality min="1" max="100" value="80" />
+      <div class="imgc-quality-hint">{s.qualityHint}</div>
+    </div>
+
+    <div class="imgc-field">
+      <label class="field-label" for="imgc-format">{s.formatLabel}</label>
+      <select id="imgc-format" data-imgc-format>
+        <option value="original" selected>{s.formatOriginal}</option>
+        <option value="jpeg">JPEG</option>
+        <option value="png">PNG</option>
+        <option value="webp">WebP</option>
+      </select>
+    </div>
+
+    <button type="button" class="primary-btn imgc-compress" data-imgc-compress disabled>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c-.017-.22-.032-.441-.046-.662M4.5 12l3 3m-3-3-3 3" />
+      </svg>
+      <span data-imgc-compress-label>{s.compress}</span>
+    </button>
+  </div>
+
+  <section class="imgc-result" data-imgc-result hidden>
+    <div class="imgc-result-head">
+      <span class="field-label">{s.resultLabel}</span>
+      <span class="imgc-badge" data-imgc-badge hidden></span>
+    </div>
+    <div class="imgc-output-wrap">
+      <img class="imgc-output" data-imgc-output alt={s.previewAlt} />
+    </div>
+    <p class="imgc-output-meta">
+      {s.originalSize}
+      <span class="imgc-meta-size" data-imgc-original-size></span>
+      <span class="imgc-meta-arrow" aria-hidden="true">→</span>
+      {s.compressedSize}
+      <span class="imgc-meta-size" data-imgc-compressed-size></span>
+    </p>
+    <button type="button" class="primary-btn imgc-download" data-imgc-download>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+      </svg>
+      {s.download}
+    </button>
+  </section>
+
+  <p class="imgc-error" data-imgc-error role="alert" hidden></p>
+</div>
+
+<script is:inline type="application/json" data-imgc-strings set:html={stringsJson} />
+<script>import "@/tools/image-compressor.client.ts";</script>
+
+<style>
+  .imgc-tool { max-width: 48rem; margin: 0 auto; }
+  .imgc-drop {
+    position: relative;
+    border: 2px dashed var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    padding: 2.25rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+  .imgc-drop:hover { border-color: var(--mdt-accent); }
+  .imgc-drop.imgc-dragover { border-color: var(--mdt-accent); background: color-mix(in srgb, var(--mdt-accent) 8%, transparent); }
+  .imgc-clear {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--mdt-text-muted);
+    cursor: pointer;
+  }
+  .imgc-clear:hover { color: var(--mdt-danger); background: var(--mdt-surface-muted); }
+  .imgc-empty, .imgc-selected { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; }
+  .imgc-icon { width: 3rem; height: 3rem; color: var(--mdt-text-muted); }
+  .imgc-drop-text { font-size: 1.05rem; font-weight: 500; margin: 0; }
+  .imgc-preview { max-width: 16rem; max-height: 12rem; object-fit: contain; border-radius: var(--mdt-radius-sm); box-shadow: 0 1px 4px rgb(0 0 0 / 0.15); }
+  .imgc-fileinfo { display: flex; flex-direction: column; gap: 0.15rem; }
+  .imgc-filename { font-weight: 500; overflow-wrap: anywhere; }
+  .imgc-filesize { font-size: 0.82rem; color: var(--mdt-text-muted); font-family: var(--mdt-font-mono); }
+  .primary-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; padding: 0.55rem 1rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer; border: 1px solid transparent; background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .primary-btn:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
+  .imgc-settings { margin-top: 1.25rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; align-items: end; }
+  .field-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
+  .imgc-field select { width: 100%; padding: 0.45rem 0.5rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-raised); color: var(--mdt-text); }
+  .imgc-field select:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  .imgc-quality-value { font-family: var(--mdt-font-mono); color: var(--mdt-text); }
+  .imgc-field input[type="range"] { width: 100%; accent-color: var(--mdt-accent); }
+  .imgc-quality-hint { font-size: 0.72rem; color: var(--mdt-text-muted); padding: 0 0.25rem; }
+  .imgc-compress { width: 100%; }
+  .imgc-result { margin-top: 1.25rem; }
+  .imgc-result-head { display: flex; align-items: center; gap: 0.6rem; }
+  .imgc-badge {
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: var(--mdt-success);
+    color: var(--mdt-accent-contrast);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .imgc-output-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 12rem;
+    padding: 1rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    background-image: conic-gradient(var(--mdt-surface-muted) 25%, transparent 0 50%, var(--mdt-surface-muted) 0 75%, transparent 0);
+    background-size: 1rem 1rem;
+  }
+  .imgc-output { max-width: 100%; max-height: 24rem; object-fit: contain; border: 1px solid var(--mdt-border); }
+  .imgc-output-meta { margin: 0.6rem 0 0; font-size: 0.85rem; color: var(--mdt-text-muted); }
+  .imgc-meta-size { font-family: var(--mdt-font-mono); font-weight: 600; color: var(--mdt-text); }
+  .imgc-meta-arrow { margin: 0 0.35rem; }
+  .imgc-download { margin-top: 0.9rem; width: 100%; background: var(--mdt-success); }
+  .imgc-error { margin-top: 1rem; padding: 0.7rem 0.9rem; border: 1px solid var(--mdt-danger); border-radius: var(--mdt-radius-sm); color: var(--mdt-danger); background: color-mix(in srgb, var(--mdt-danger) 8%, transparent); font-size: 0.88rem; }
+</style>

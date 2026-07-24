@@ -259,9 +259,9 @@
 
 ### Изображения, PDF и QR
 
-- [ ] `image-compressor`
-- [ ] `image-converter`
-- [ ] `image-resizer`
+- [x] `image-compressor` → image_tools WASM, quality 1–100 + format original/jpeg/png/webp, savings-badge >0 legacy-правило; ОТКЛОНЕНИЕ: multi-file batch+ZIP (JSZip CDN) не перенесён — single-file; проверен
+- [x] `image-converter` → 8 форматов (png/jpeg/webp/gif/bmp/ico/tiff/tga), quality только lossy, download rename; проверен (png→webp 164 B)
+- [x] `image-resizer` → aspect-lock auto-compute, format из исходника, download `<base>_<w>x<h>`; проверен (400×200→100×50)
 - [ ] `pdf-compressor`
 - [ ] `pdf-merger`
 - [ ] `pdf-to-text`

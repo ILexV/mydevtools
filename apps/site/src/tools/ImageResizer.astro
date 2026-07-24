@@ -1,0 +1,245 @@
+---
+/**
+ * Image Resizer (image-tools WASM domain). Upload/drag-drop an image, set
+ * target width/height with an aspect-ratio lock (editing one dimension
+ * auto-computes the other from the original ratio, per legacy), pick the
+ * output format (jpeg/png/webp, guessed from the source extension), resize
+ * via `resizeImage`, preview the result and download it as
+ * `<name>_<w>x<h>.<ext>`.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/image-resizer";
+const s = {
+  dropZone: t(lang, "common", "Common_FileDropTitle"),
+  chooseFile: t(lang, "common", "Common_FileChooseButton"),
+  changeFile: t(lang, "common", "Common_FileChangeButton"),
+  clearFile: t(lang, "common", "Common_ClearFile"),
+  outputTitle: t(lang, "common", "Common_Output"),
+  download: t(lang, "common", "Common_Download"),
+  settingsLabel: t(lang, ns, "SettingsLabel"),
+  originalInfo: t(lang, ns, "OriginalInfo"),
+  width: t(lang, ns, "Width"),
+  height: t(lang, ns, "Height"),
+  lockAspectRatio: t(lang, ns, "LockAspectRatio"),
+  formatLabel: t(lang, ns, "TargetFormatLabel"),
+  resize: t(lang, ns, "Resize"),
+  resizing: t(lang, ns, "Resizing"),
+  resultInfo: t(lang, ns, "ResultInfo"),
+  previewAlt: t(lang, ns, "PreviewAlt"),
+  errorNotImage: t(lang, ns, "ErrorNotImage"),
+  errorLoadImage: t(lang, ns, "ErrorLoadImage"),
+  errorInvalidDimensions: t(lang, ns, "ErrorInvalidDimensions"),
+  errorResizeFailed: t(lang, ns, "ErrorResizeFailed"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="imgr-tool" data-imgr-tool>
+  <p class="imgr-error" data-imgr-error role="alert" hidden></p>
+
+  <div class="imgr-grid">
+    <section class="imgr-card">
+      <div class="imgr-drop" data-imgr-dropzone>
+        <input type="file" accept="image/*" data-imgr-file hidden />
+        <button type="button" class="imgr-clear" data-imgr-clear aria-label={s.clearFile} title={s.clearFile} hidden>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        <div class="imgr-empty" data-imgr-empty>
+          <svg class="imgr-icon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <p class="imgr-drop-text">{s.dropZone}</p>
+          <button type="button" class="primary-btn" data-imgr-choose>{s.chooseFile}</button>
+        </div>
+
+        <div class="imgr-selected" data-imgr-selected hidden>
+          <img class="imgr-preview" data-imgr-preview alt={s.previewAlt} />
+          <div class="imgr-fileinfo">
+            <span class="imgr-filename" data-imgr-filename></span>
+            <span class="imgr-filesize" data-imgr-filesize></span>
+          </div>
+          <button type="button" class="primary-btn" data-imgr-change>{s.changeFile}</button>
+        </div>
+      </div>
+
+      <div class="imgr-settings" data-imgr-settings hidden>
+        <span class="field-label">{s.settingsLabel}</span>
+
+        <div class="imgr-original">
+          <span class="imgr-original-label">{s.originalInfo}</span>
+          <span class="imgr-original-value" data-imgr-original-info></span>
+        </div>
+
+        <div class="imgr-dims">
+          <label class="imgr-field">
+            <span class="field-label">{s.width}</span>
+            <input type="number" data-imgr-width placeholder="px" />
+          </label>
+          <label class="imgr-field">
+            <span class="field-label">{s.height}</span>
+            <input type="number" data-imgr-height placeholder="px" />
+          </label>
+        </div>
+
+        <label class="imgr-check">
+          <input type="checkbox" data-imgr-lock-ratio checked />
+          <span>{s.lockAspectRatio}</span>
+        </label>
+
+        <label class="imgr-field">
+          <span class="field-label">{s.formatLabel}</span>
+          <select data-imgr-format>
+            <option value="jpeg">JPEG</option>
+            <option value="png">PNG</option>
+            <option value="webp">WebP</option>
+          </select>
+        </label>
+
+        <button type="button" class="primary-btn imgr-resize" data-imgr-resize disabled>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+          </svg>
+          <span data-imgr-resize-label>{s.resize}</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="imgr-card" data-imgr-output hidden>
+      <span class="field-label">{s.outputTitle}</span>
+      <div class="imgr-result-wrap">
+        <img class="imgr-result" data-imgr-result-preview alt={s.previewAlt} />
+      </div>
+      <div class="imgr-original">
+        <span class="imgr-original-label">{s.resultInfo}</span>
+        <span class="imgr-original-value" data-imgr-output-info></span>
+      </div>
+      <button type="button" class="primary-btn imgr-download" data-imgr-download>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+        {s.download}
+      </button>
+    </section>
+  </div>
+</div>
+
+<script is:inline type="application/json" data-imgr-strings set:html={stringsJson} />
+<script>import "@/tools/image-resizer.client.ts";</script>
+
+<style>
+  .imgr-tool { max-width: 64rem; margin: 0 auto; }
+  .imgr-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; align-items: start; }
+  @media (min-width: 900px) { .imgr-grid { grid-template-columns: 1fr 1fr; } }
+  .imgr-card { border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); padding: 1.25rem; }
+  .imgr-drop {
+    position: relative;
+    border: 2px dashed var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    padding: 2rem 1.25rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+  .imgr-drop:hover { border-color: var(--mdt-accent); }
+  .imgr-drop.imgr-dragover { border-color: var(--mdt-accent); background: color-mix(in srgb, var(--mdt-accent) 8%, transparent); }
+  .imgr-clear {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--mdt-text-muted);
+    cursor: pointer;
+  }
+  .imgr-clear:hover { color: var(--mdt-danger); background: var(--mdt-surface-muted); }
+  .imgr-empty, .imgr-selected { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; }
+  .imgr-icon { width: 3rem; height: 3rem; color: var(--mdt-text-muted); }
+  .imgr-drop-text { font-size: 1.05rem; font-weight: 500; margin: 0; }
+  .imgr-fileinfo { display: flex; flex-direction: column; gap: 0.15rem; }
+  .imgr-filename { font-weight: 500; overflow-wrap: anywhere; }
+  .imgr-filesize { font-size: 0.82rem; color: var(--mdt-text-muted); font-family: var(--mdt-font-mono); }
+  .imgr-preview { max-width: 100%; max-height: 12rem; object-fit: contain; border-radius: var(--mdt-radius-sm); box-shadow: 0 1px 4px rgb(0 0 0 / 0.15); }
+  .imgr-settings { margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.9rem; }
+  .field-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  .imgr-original {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface-muted);
+    font-size: 0.85rem;
+  }
+  .imgr-original-label { font-weight: 700; color: var(--mdt-text-muted); text-transform: uppercase; font-size: 0.72rem; }
+  .imgr-original-value { font-family: var(--mdt-font-mono); font-weight: 600; overflow-wrap: anywhere; text-align: right; }
+  .imgr-dims { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .imgr-field input[type="number"], .imgr-field select {
+    width: 100%;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text);
+    font-size: 0.9rem;
+  }
+  .imgr-field input[type="number"]:focus, .imgr-field select:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  .imgr-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface-muted);
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  .imgr-check:hover { background: color-mix(in srgb, var(--mdt-surface-muted) 70%, var(--mdt-border)); }
+  .primary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1rem;
+    border-radius: var(--mdt-radius);
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    background: var(--mdt-accent);
+    color: var(--mdt-accent-contrast);
+  }
+  .primary-btn:hover { filter: brightness(1.05); }
+  .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .imgr-resize { width: 100%; margin-top: 0.25rem; }
+  .imgr-result-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 12rem;
+    margin-top: 0.5rem;
+    padding: 1rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface-muted);
+  }
+  .imgr-result { max-width: 100%; max-height: 24rem; object-fit: contain; border-radius: var(--mdt-radius-sm); box-shadow: 0 1px 4px rgb(0 0 0 / 0.15); }
+  .imgr-card > .imgr-original { margin-top: 0.9rem; }
+  .imgr-download { width: 100%; margin-top: 1rem; background: var(--mdt-success); }
+  .imgr-error { margin: 0 0 1rem; padding: 0.7rem 0.9rem; border: 1px solid var(--mdt-danger); border-radius: var(--mdt-radius-sm); color: var(--mdt-danger); background: color-mix(in srgb, var(--mdt-danger) 8%, transparent); font-size: 0.88rem; }
+</style>

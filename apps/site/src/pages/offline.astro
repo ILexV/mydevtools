@@ -5,9 +5,9 @@
  * offline. Kept minimal and self-contained (no shell, no locale dependency) to
  * stay small in the precache store.
  */
-const bg = "#0e1116";
-const fg = "#e6eaf0";
-const accent = "#6f9dff";
+const bg = "#0a0c12";
+const fg = "#eef1f7";
+const accent = "#6a5af9";
 ---
 
 <!doctype html>
@@ -22,8 +22,8 @@ const accent = "#6f9dff";
     <main style="max-width:26rem;margin:18vh auto;padding:1.5rem;text-align:center;">
       <div style={`width:3rem;height:3rem;margin:0 auto 1.25rem;border:2px solid ${accent};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:${accent};`} aria-hidden="true">✕</div>
       <h1 style="font-size:1.35rem;margin:0 0 0.5rem;">You’re offline</h1>
-      <p style="color:#9aa4b2;margin:0 0 1.5rem;">This page hasn’t been cached yet. Reconnect to load it, or open a tool you’ve visited before — those keep working offline.</p>
-      <button onclick="location.reload()" style={`background:${accent};color:#0b1322;border:0;border-radius:0.5rem;padding:0.6rem 1.25rem;font-weight:600;font-size:0.95rem;cursor:pointer;`}>Try again</button>
+      <p style="color:#97a1b5;margin:0 0 1.5rem;">This page hasn’t been cached yet. Reconnect to load it, or open a tool you’ve visited before — those keep working offline.</p>
+      <button onclick="location.reload()" style={`background:${accent};color:#ffffff;border:0;border-radius:0.5rem;padding:0.6rem 1.25rem;font-weight:600;font-size:0.95rem;cursor:pointer;`}>Try again</button>
     </main>
   </body>
 </html>

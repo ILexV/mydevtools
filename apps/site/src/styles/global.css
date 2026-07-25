@@ -374,7 +374,7 @@
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: #fff;
+    background: var(--mdt-accent-contrast);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     transition: transform 220ms var(--mdt-ease);
   }
@@ -420,8 +420,8 @@
     content: "";
     width: 10px;
     height: 6px;
-    border-left: 2px solid #fff;
-    border-bottom: 2px solid #fff;
+    border-left: 2px solid var(--mdt-accent-contrast);
+    border-bottom: 2px solid var(--mdt-accent-contrast);
     transform: rotate(-45deg) translateY(-1px);
   }
   .ds-radio:checked::after {
@@ -429,7 +429,7 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #fff;
+    background: var(--mdt-accent-contrast);
   }
   .ds-check:disabled,
   .ds-radio:disabled {

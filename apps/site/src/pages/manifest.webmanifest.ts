@@ -37,8 +37,8 @@ export const GET: APIRoute = () => {
     scope: base,
     display: "standalone",
     orientation: "any",
-    background_color: "#ffffff",
-    theme_color: "#2f6df0",
+    background_color: "#f6f7fb",
+    theme_color: "#6a5af9",
     categories: ["developer", "utilities", "productivity"],
     icons,
     shortcuts: LOCALES.slice(0, 4).map((l) => ({

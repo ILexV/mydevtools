@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="MyDevTools">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0e1119"/>
+      <stop offset="1" stop-color="#171c2a"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c6cff"/>
+      <stop offset="1" stop-color="#38e1c6"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="0.18" cy="0.2" r="0.5">
+      <stop offset="0" stop-color="#7c6cff" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#7c6cff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0.9" cy="0.85" r="0.45">
+      <stop offset="0" stop-color="#38e1c6" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#38e1c6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow1)"/>
+  <rect width="1200" height="630" fill="url(#glow2)"/>
+
+  <!-- brand tile -->
+  <g transform="translate(96 195)">
+    <rect width="240" height="240" rx="56" fill="url(#mark)"/>
+    <g fill="none" stroke="#ffffff" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" transform="translate(120 120) scale(1) translate(-120 -120)">
+      <path d="M93 78 L46 120 L93 162"/>
+      <path d="M147 78 L194 120 L147 162"/>
+      <path d="M141 71 L99 169"/>
+    </g>
+  </g>
+
+  <!-- wordmark -->
+  <text x="386" y="312" font-family="Inter, 'Segoe UI', system-ui, sans-serif" font-size="84" font-weight="700" fill="#eef1f7" letter-spacing="-1">MyDevTools</text>
+  <text x="390" y="372" font-family="Inter, 'Segoe UI', system-ui, sans-serif" font-size="30" font-weight="500" fill="#97a1b5">Privacy-first developer tools — runs locally in your browser</text>
+
+  <!-- category spectrum dots -->
+  <g transform="translate(390 432)">
+    <circle cx="0" cy="0" r="9" fill="#8b7bff"/>
+    <circle cx="34" cy="0" r="9" fill="#38bdf8"/>
+    <circle cx="68" cy="0" r="9" fill="#e2b93d"/>
+    <circle cx="102" cy="0" r="9" fill="#fb923c"/>
+    <circle cx="136" cy="0" r="9" fill="#4ade80"/>
+    <circle cx="170" cy="0" r="9" fill="#f5b544"/>
+    <circle cx="204" cy="0" r="9" fill="#f4636e"/>
+    <circle cx="238" cy="0" r="9" fill="#2fd4a4"/>
+    <circle cx="272" cy="0" r="9" fill="#22d3ee"/>
+    <circle cx="306" cy="0" r="9" fill="#e879c9"/>
+    <circle cx="340" cy="0" r="9" fill="#f472b6"/>
+    <circle cx="374" cy="0" r="9" fill="#ff6b5e"/>
+    <circle cx="408" cy="0" r="9" fill="#a3a3f5"/>
+  </g>
+  <text x="390" y="476" font-family="Inter, 'Segoe UI', system-ui, sans-serif" font-size="22" font-weight="500" fill="#6b7484">39 tools · WebAssembly · 10 languages</text>
+</svg>

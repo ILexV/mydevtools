@@ -40,7 +40,7 @@ const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
 const canonical = absoluteUrl(localizedPath(locale, path).replace(/\/+$/, ""));
 const siteName = t(locale, "common", "AppName");
 const fullTitle = title === siteName ? title : `${title} — ${siteName}`;
-const ogImage = absoluteUrl(withBase("icons/icon-512.png"));
+const ogImage = absoluteUrl(withBase("icons/og-image.png"));
 const manifestHref = withBase("manifest.webmanifest");
 
 const jsonLd = buildJsonLd({ locale, path, title, description, isHome, categoryName });
@@ -81,7 +81,7 @@ const jsonLdString = JSON.stringify(jsonLd);
 <link rel="icon" type="image/png" sizes="512x512" href={withBase("icons/icon-512.png")} />
 <link rel="apple-touch-icon" href={withBase("icons/apple-touch-icon.png")} />
 <link rel="manifest" href={manifestHref} />
-<meta name="theme-color" content="#2f6df0" media="(prefers-color-scheme: light)" />
-<meta name="theme-color" content="#0e1116" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#f6f7fb" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#0a0c12" media="(prefers-color-scheme: dark)" />
 
 <script type="application/ld+json" set:html={jsonLdString} is:inline />

@@ -40,7 +40,27 @@ export default defineConfig({
     serviceWorkers: "block",
     colorScheme: "light",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    // Chromium runs the full suite: pixel baselines (pages.spec.ts) + the
+    // functional cross-browser matrix.
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+      testMatch: /.*\.spec\.ts$/,
+    },
+    // Firefox + WebKit run only the functional matrix — pixel baselines are
+    // engine-specific (font AA / shaping differ), so they stay chromium-only.
+    {
+      name: "firefox",
+      use: { ...devices["Desktop Firefox"] },
+      testMatch: /cross-browser\.spec\.ts$/,
+    },
+    {
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
+      testMatch: /cross-browser\.spec\.ts$/,
+    },
+  ],
   webServer: {
     command: "npx astro preview --port 4123",
     cwd: "../apps/site",

@@ -109,7 +109,22 @@ npm run test:visual:update    # regenerate baselines after an intentional change
 Determinism: `reduceMotion: "reduce"` freezes every `@keyframes` (ambient spin,
 monogram drift), `serviceWorkers: "block"` prevents stale-cache serving,
 `animations: "disabled"` at capture, and each shot awaits `document.fonts.ready`.
-Chromium-only; Firefox/Safari are a separate (manual or CI multi-browser) gap.
+Pixel baselines are Chromium-only (font AA/shaping differs per engine). The
+cross-engine matrix below covers Firefox + WebKit functionally.
+
+## Cross-browser matrix (optional, local/CI)
+
+A separate `e2e/cross-browser.spec.ts` runs on **Chromium, Firefox and WebKit**
+and asserts what must hold in every engine — no console/page errors, no
+horizontal overflow (desktop + mobile 375), header + h1 present, theme toggle
+flips `data-theme`. It does NOT pixel-diff (baselines are engine-specific).
+
+```powershell
+npm run test:crossbrowser     # build:site → run matrix on all 3 engines
+```
+
+Run once after `npm run test:visual` to cover all engines. Firefox + WebKit
+binaries must be present (`npx playwright install firefox webkit`).
 
 ## Rollback
 

@@ -18,6 +18,7 @@
     "deploy:pages": "node scripts/deploy-pages.mjs",
     "test:smoke": "npm run test:smoke -w @mydevtools/site",
     "test:visual": "npm run build:site && playwright test -c e2e/playwright.config.ts",
+    "test:crossbrowser": "npm run build:site && playwright test -c e2e/playwright.config.ts cross-browser",
     "test:visual:update": "npm run build:site && playwright test -c e2e/playwright.config.ts --update-snapshots",
     "ui-kit:build": "npm run build -w @mydevtools/ui-kit"
   },

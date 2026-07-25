@@ -1,13 +1,18 @@
 ---
 /**
  * ToolCard — Prism catalog tile (design spec §1): category tile-icon, title
- * with slide-in arrow, 2-line description, favorite slot. Category color comes
- * from the parent section's `--mdt-cat` (set in index.astro).
- * `data-keywords` feeds client-side search; `data-fav-slot` carries the slug
- * for the favorites engine.
+ * with slide-in arrow, 2-line description, favorite toggle.
+ *
+ * Structure: a relative `.tool-card` wrapper holds a full-size `.card-link`
+ * anchor (so the whole tile is clickable) and a `.card-fav` toggle button as a
+ * sibling (NOT nested in the anchor — valid HTML + the click no longer falls
+ * through to navigation). Category color comes from the parent section's
+ * `--mdt-cat` (set in index.astro). `data-keywords` feeds client-side search;
+ * the favorite engine keys off `data-fav-toggle`/`data-slug`.
  */
 import type { CatalogTool } from "@/registry/catalog";
 import type { LocaleCode } from "@/registry/locales";
+import { t } from "@/i18n/messages";
 import Icon from "@/components/Icon.astro";
 
 interface Props {
@@ -15,30 +20,38 @@ interface Props {
   locale: LocaleCode;
 }
 
-const { tool } = Astro.props as Props;
+const { tool, locale } = Astro.props as Props;
+const favLabel = t(locale, "common", "Badge_Favorite");
 ---
 
-<a class="tool-card" href={tool.href} data-tool-card data-slug={tool.slug} data-keywords={tool.keywords.join(" ")}>
-  <span class="tile"><Icon name={tool.category} size={20} /></span>
-  <span class="card-fav" data-fav-slot data-slug={tool.slug} aria-hidden="true"></span>
-  <span class="card-title">
-    {tool.title}
-    <span class="go"><Icon name="arrow-right" size={13} /></span>
-  </span>
-  <span class="card-desc">{tool.description}</span>
-</a>
+<div class="tool-card" data-tool-card data-slug={tool.slug} data-keywords={tool.keywords.join(" ")}>
+  <a class="card-link" href={tool.href}>
+    <span class="tile"><Icon name={tool.category} size={20} /></span>
+    <span class="card-title">
+      {tool.title}
+      <span class="go"><Icon name="arrow-right" size={13} /></span>
+    </span>
+    <span class="card-desc">{tool.description}</span>
+  </a>
+  <button
+    type="button"
+    class="card-fav"
+    data-fav-toggle
+    data-fav-slot
+    data-slug={tool.slug}
+    aria-label={favLabel}
+    aria-pressed="false"
+    title={favLabel}
+  ></button>
+</div>
 
 <style>
   .tool-card {
-    display: flex;
-    flex-direction: column;
+    position: relative;
     padding: 1.1rem;
     border: 1px solid var(--mdt-border);
     border-radius: var(--mdt-radius);
     background: var(--mdt-surface-raised);
-    text-decoration: none;
-    color: var(--mdt-text);
-    position: relative;
     height: 100%;
     transition: transform var(--mdt-dur) var(--mdt-ease),
       border-color var(--mdt-dur), box-shadow var(--mdt-dur);
@@ -46,11 +59,18 @@ const { tool } = Astro.props as Props;
   .tool-card:hover {
     transform: translateY(-4px);
     border-color: color-mix(in srgb, var(--mdt-cat) 55%, var(--mdt-border));
-    --mdt-shadow-cat: color-mix(in srgb, var(--mdt-cat) 38%, transparent);
     box-shadow: var(--mdt-shadow-e1);
+  }
+  .card-link {
+    display: flex;
+    flex-direction: column;
+    color: var(--mdt-text);
+    text-decoration: none;
+    height: 100%;
   }
   .tile {
     margin-bottom: 0.85rem;
+    transition: transform var(--mdt-dur) var(--mdt-ease);
   }
   .tool-card:hover .tile {
     transform: rotate(-6deg) scale(1.07);
@@ -58,9 +78,28 @@ const { tool } = Astro.props as Props;
   }
   .card-fav {
     position: absolute;
-    top: 0.9rem;
-    right: 0.9rem;
+    top: 0.7rem;
+    right: 0.7rem;
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--mdt-text-faint);
+    cursor: pointer;
+    transition: color var(--mdt-dur-micro) var(--mdt-ease),
+      background-color var(--mdt-dur-micro) var(--mdt-ease);
+  }
+  .card-fav:hover {
+    color: var(--mdt-warning);
+    background: color-mix(in srgb, var(--mdt-warning) 12%, transparent);
+  }
+  .card-fav[aria-pressed="true"] {
+    color: var(--mdt-warning);
   }
   .card-title {
     display: flex;
@@ -69,6 +108,7 @@ const { tool } = Astro.props as Props;
     font-weight: 600;
     font-size: 1rem;
     letter-spacing: -0.015em;
+    padding-right: 2rem; /* keep title clear of the fav button */
   }
   .go {
     margin-left: auto;

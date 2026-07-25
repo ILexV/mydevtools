@@ -181,27 +181,29 @@ function boot(): void {
     }
   });
 
-  document.addEventListener("keydown", (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-      e.preventDefault();
-      if (isOpen) closePalette();
-      else openPalette();
-      return;
-    }
-    if (e.key === "Escape" && isOpen) {
-      closePalette();
-      return;
-    }
-    if (
-      e.key === "/" &&
-      !isOpen &&
-      !isEditable(e.target) &&
-      !document.getElementById("catalog-search") // home owns "/" for its inline search
-    ) {
-      e.preventDefault();
-      openPalette();
-    }
-  });
+  // Capture phase on window: run before browser defaults (Ctrl+K address-bar
+  // focus on some browsers) and before any sibling listeners. `e.code` is
+  // layout-independent, so Ctrl+K works regardless of keyboard layout.
+  window.addEventListener(
+    "keydown",
+    (e) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === "k" || e.code === "KeyK")) {
+        e.preventDefault();
+        if (isOpen) closePalette();
+        else openPalette();
+        return;
+      }
+      if (e.key === "Escape" && isOpen) {
+        closePalette();
+        return;
+      }
+      if (e.key === "/" && !isOpen && !isEditable(e.target)) {
+        e.preventDefault();
+        openPalette();
+      }
+    },
+    true,
+  );
 
   document.querySelector("[data-search-open]")?.addEventListener("click", openPalette);
   root.querySelector("[data-palette-close]")?.addEventListener("click", closePalette);

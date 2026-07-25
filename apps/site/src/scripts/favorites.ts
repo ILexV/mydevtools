@@ -97,8 +97,12 @@ function render(): void {
   // Card badges.
   document.querySelectorAll<HTMLElement>("[data-fav-slot][data-slug]").forEach((slot) => {
     const slug = slot.getAttribute("data-slug") || "";
-    slot.innerHTML = star(favs.includes(slug));
-    slot.style.color = favs.includes(slug) ? "var(--mdt-warning)" : "var(--mdt-text-muted)";
+    const on = favs.includes(slug);
+    slot.innerHTML = star(on);
+    // aria-pressed drives color via CSS; keep the attribute in sync (the
+    // [data-fav-toggle] loop below also sets it, but a slot may carry only
+    // data-fav-slot on some hosts).
+    if ("ariaPressed" in slot) slot.setAttribute("aria-pressed", String(on));
   });
   // Toggle button label.
   document.querySelectorAll<HTMLButtonElement>("[data-fav-toggle]").forEach((btn) => {

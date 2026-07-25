@@ -4,6 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "description": "New static Astro frontend for MyDevTools (GitHub Pages).",
+  "browserslist": [
+    "defaults",
+    "supports es6-module",
+    "supports wasm"
+  ],
   "scripts": {
     "dev": "astro dev",
     "build": "astro build && node build-sw.mjs",

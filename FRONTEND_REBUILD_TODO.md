@@ -5,9 +5,9 @@
 ## Прогресс (обновлено 2026-07-24)
 
 - **Этап 1 (Инвентаризация):** завершён функционально — `docs/inventory/{tools,locales,client-state,catalog-seo}.md`. Остаются: reference screenshots и parity-карточки (текут в Этап 9).
-- **Этап 3 (Каркас Astro):** готов и проверен. `apps/site` (Astro 7, strict TS, `output: static`, base `/mydevtools/`), алиас `@/*`, команды `dev/build/preview/check` + root `*:site`, 402 страницы, preview под base без 404. **Gate 3 пройден.**
-- **Этап 4 (Реестры):** `locales.ts` (10 языков + native names/og:locale/hreflang), `categories.ts` (13), `tools.ts` (39), `validate.ts` (build-time), маршруты из `getStaticPaths()`. Каталог/поиск/palette/sitemap из реестра — Этапы 8/10.
-- **Этап 5 (Локализация):** 420 JSON перенесены в `apps/site/src/i18n/locales/`, typed `t()` с fallback, Node-валидатор `validate:i18n` (0 ошибок), build-time локализованный HTML (402 страницы, 10 языков). Остаются: language switcher, browser-controller strings, pluralization — Этапы 8/9.
+- **Этап 3 (Каркас Astro):** готов и проверен ПОЛНОСТЬЮ. `apps/site` (Astro 7, strict TS, `output: static`, base `/mydevtools/`), алиас `@/*`, команды `dev/build/preview/check` + root `*:site`, 402 страницы, preview под base без 404, browserslist-политика задокументирована. **Gate 3 пройден.**
+- **Этап 4 (Реестры):** ЗАКРЫТ. `locales.ts` (10 языков + native names/og:locale/hreflang), `categories.ts` (13), `tools.ts` (39), `validate.ts` (build-time), маршруты из `getStaticPaths()`; каталог/поиск/palette/related/sitemap деривнуты из реестра. **Gate 4 пройден** (probe-инструмент одной записью → маршрут/каталог/поиск/related/sitemap, 2026-07-25).
+- **Этап 5 (Локализация):** ЗАКРЫТ. 420 JSON перенесены в `apps/site/src/i18n/locales/`, typed `t()` с fallback, Node-валидатор `validate:i18n` (0 ошибок), build-time локализованный HTML (402 страницы, 10 языков), language switcher (slug сохраняется), locale persistence в localStorage, per-tool string islands, interpolation+pluralization (`lib/format.ts`, Intl.PluralRules, ru-варианты cron). **Gate 5 пройден.**
 - **Этап 8 (Глобальный функционал):** каталог 39 инструментов из реестра (13 категорий), клиентский поиск (`/`), favorites+recent с versioned localStorage, related tools, Header/Footer, theme toggle, language switcher, build-time sitemap (400 URL) + robots. **Gate 8 пройден** (browser: search/favorite/lang-switch end-to-end). Command palette (Ctrl/Cmd+K, `/`, favorites+recent, keyboard nav) и share/copy-link (mobile share-sheet / desktop clipboard) добавлены 2026-07-25, live-проверены. Остаётся: graceful degradation — Этап 9.
 - **Этап 7 (WASM runtime):** `build.ps1 -WasmOutRoot` → `apps/site/src/generated/wasm/`; Web Worker + протокол (start/progress/result/error/cancel), chunked 1 MiB file reading, typed `WasmError`, без SharedArrayBuffer; wasm грузится только на hash-странице. **Gate 7 пройден** (browser: 150MB файл, progress, cancel, UI не блокируется). Первый инструмент **hash-calculator** перенесён (Stage 9).
 - **Этап 9 (Перенос инструментов): 39/39 перенесено и browser-проверено.** Каждый инструмент — `.astro` shell + `.client.ts` контроллер, WASM-клиенты по доменам (hash/encoding/cryptography/structured_data/text_tools/regex_tool/qrcode/pdf/image_tools/ipcalc). Известные отклонения: image-compressor без multi-file ZIP (JSZip CDN в legacy), json/xml без input-persistence (privacy). **Gate 9 пройден.**
@@ -108,7 +108,7 @@
 - [x] Добавить root-команду, последовательно запускающую WASM build, locale validation и Astro build. → root `build:pages` = validate:i18n → build:wasm → build:site → test:smoke (Этап 12).
 - [x] Создать структуру `src/pages`, `src/layouts`, `src/components`, `src/tools`, `src/i18n`, `src/registry`, `src/styles`, `src/generated`.
 - [x] Настроить абсолютные импорты только через build aliases; не использовать абсолютные публичные URL вида `/wasm/...`.
-- [ ] Определить политику browser support и targets для TypeScript/CSS.
+- [x] Определить политику browser support и targets для TypeScript/CSS. → `apps/site/package.json#browserslist` = "defaults, supports es6-module, supports wasm"; JS-target = Vite 8 default (baseline-widely-available, строже floor'а); CSS без downleveling, только Baseline-фичи. Документация: `apps/site/RELEASING.md` §Browser support policy.
 - [x] Настроить локальный production preview с тем же `base`, который будет на GitHub Pages. → проверено под `/mydevtools/`
 - [x] Добавить статические страницы `/`, `/{lang}/`, `/{lang}/not-found/` и совместимый `404.html`. → `404.html` восстанавливает locale из пути, покрывает not-found
 
@@ -124,13 +124,13 @@
 - [x] Создать `src/registry/tools.ts` как единственный реестр инструментов.
 - [x] Для записи инструмента определить: slug, component loader, category, locale namespace, keywords, WASM domain, capabilities и SEO id. → slug/category/wasm/capabilities в реестре; namespace через `toolNamespace()`; keywords в locale JSON; seoId=slug; component loader — Этап 9
 - [x] Из реестра генерировать static routes через `getStaticPaths()`. → 39×10 маршрутов из `tools.ts`
-- [ ] Из того же реестра строить home catalog, search index, categories, related tools, command palette и sitemap.
+- [x] Из того же реестра строить home catalog, search index, categories, related tools, command palette и sitemap. → все потребители деривнуты из `tools.ts` через `catalog.ts`/`getStaticPaths` (подтверждено Gate-4 probe).
 - [x] Добавить build-time проверку уникальности slug и наличия component/locale namespace. → `validate.ts` (`assertRegistryValid()` в build); проверка locale-namespace — Этап 5 validator
 - [x] Исключить отдельные hard-coded tool lists в layout, home, sitemap и asset loader. → в новом приложении реестр = единственный источник
 
 ### Gate 4
 
-- [ ] Добавление тестового инструмента одной записью создает маршрут, каталог, поиск, related links и sitemap entry.
+- [x] Добавление тестового инструмента одной записью создает маршрут, каталог, поиск, related links и sitemap entry. → прогон 2026-07-25 временным `gate4-probe` (regex): 413 страниц (маршруты ×10), карточка в каталоге + keywords, search-index и palette JSON, related на regex-tester, sitemap ×10 — из одной записи (плюс bump константы-трипваера `TOOLS.length` в validate.ts, это by design). Probe удалён, dist чист.
 
 ## Этап 5. Локализация
 
@@ -138,8 +138,8 @@
 - [x] Нормализовать структуру `common`, `home`, `categories`, `errors` и `tools/<slug>`. → сохранена legacy-структура; `errors` пока внутри tool-namespace (нет отдельного файла); де-дупликация category-ключей — при redesign
 - [x] Создать typed helper `t(locale, namespace, key, params)` с fallback `locale → en → key`. → `src/i18n/messages.ts`
 - [x] Генерировать HTML на build-time; не загружать весь locale catalog в браузер. → Astro prerender, `import.meta.glob` eager только на build
-- [ ] Передавать browser controller только строки текущего tool namespace, необходимые интерактивным состояниям. → Этап 9 (browser controllers)
-- [ ] Добавить pluralization, interpolation и locale-aware number/date formatting там, где это реально используется.
+- [x] Передавать browser controller только строки текущего tool namespace, необходимые интерактивным состояниям. → паттерн Stage 9: каждый tool .astro собирает island только из своего `tools/<slug>` (+`Common_Error`); подтверждено на Base58/Cron.
+- [x] Добавить pluralization, interpolation и locale-aware number/date formatting там, где это реально используется. → `lib/format.ts`: formatString (`{0}`-позиционная интерполяция, клиенты base58/cron переведены с ad-hoc replace) + formatPlural (Intl.PluralRules, кэш); конвенция `<Key>_<one/few/many>` в locale JSON, `pluralVariants()` в messages.ts прокидывает варианты в island только когда локаль их реально определяет (нет утечки en в частично переведённые локали). ru cron-parser/cron-generator: варианты для минут/часов (было грамматически неверно: «Каждые 21 минут» → «минуту», «каждые 5 часа» → «часов»). Locale-aware date formatting уже был в cron formatDate(lang); locale-aware number formatting не используется ни одним инструментом (formatBytes unit-based). Тесты: test/format.test.ts; browser: ru */21→«минуту», */3→«минуты», */5→«часов», en без регрессий.
 - [x] Реализовать language switcher, сохраняющий текущий tool slug. → Header.astro `<details>` switcher; `path` прокидывается из layout → slug сохраняется при смене языка (проверено в Stage 8 browser: en→ru).
 - [x] Определить поведение `/`: статическая language landing либо небольшой client redirect; не рассчитывать на `Accept-Language` server redirect. → `src/pages/index.astro` (client-side redirect по `navigator.languages`)
 - [x] Сохранять выбранный язык локально без обязательных cookies. → `mdt.locale` в localStorage (chrome.ts initLocalePersistence); URL — source of truth, cookies не используются.

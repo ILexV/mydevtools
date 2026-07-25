@@ -7,7 +7,7 @@
  * button with 1200ms feedback swap. All logic in `cron-generator.client.ts`,
  * ported from legacy `tools/cron-generator.js`.
  */
-import { t } from "@/i18n/messages";
+import { t, pluralVariants } from "@/i18n/messages";
 import { localizedPath } from "@/lib/url";
 import type { LocaleCode } from "@/registry/locales";
 
@@ -70,6 +70,8 @@ const clientStrings = {
   scheduleInMonths: t(lang, ns, "ScheduleInMonths"),
   months: t(lang, ns, "MonthNames").split(","),
   weekdays: t(lang, ns, "WeekdayNames").split(","),
+  // ru (и др. флективные локали) могут дать <Key>_<one/few/many> варианты.
+  ...pluralVariants(lang, ns),
 };
 const stringsJson = JSON.stringify(clientStrings);
 const parserUrl = localizedPath(lang, "cron-parser");

@@ -6,8 +6,9 @@
  * All logic ported from legacy `tools/cron-generator.js` — including the
  * hardcoded English error strings the legacy JS never localized.
  */
+import { formatPlural, formatString } from "@/lib/format";
 
-interface Strings {
+type Strings = {
   lang: string;
   copied: string;
   scheduleReboot: string;
@@ -58,13 +59,6 @@ function readStrings(): Strings | null {
   } catch {
     return null;
   }
-}
-
-function formatString(template: string, ...values: (string | number)[]): string {
-  return template.replace(/{(\d+)}/g, (match, number) => {
-    const idx = Number(number);
-    return typeof values[idx] !== "undefined" ? String(values[idx]) : match;
-  });
 }
 
 /** Expand one cron field into the sorted set of matching values (or ['L']/['?']). */
@@ -197,7 +191,7 @@ function getHumanReadable(expression: string, str: Strings): string {
     desc.push(str.scheduleEveryMinute);
   } else if (minute.includes("*/")) {
     const step = minute.split("/")[1];
-    desc.push(formatString(str.scheduleEveryNMinutes, step));
+    desc.push(formatPlural(str, "scheduleEveryNMinutes", Number(step), str.lang));
   } else if (minuteVals.length === 1) {
     desc.push(formatString(str.scheduleAtMinute, minuteVals[0]));
   } else {
@@ -213,7 +207,7 @@ function getHumanReadable(expression: string, str: Strings): string {
     desc.push(str.scheduleEveryHour);
   } else if (hour.includes("*/")) {
     const step = hour.split("/")[1];
-    desc.push(formatString(str.scheduleEveryNHours, step));
+    desc.push(formatPlural(str, "scheduleEveryNHours", Number(step), str.lang));
   } else if (hourVals.length === 1) {
     desc.push(formatString(str.scheduleAtHour, hourVals[0]));
   } else {

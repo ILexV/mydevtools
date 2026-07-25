@@ -12,8 +12,9 @@
  * - `L` is only special in the day-of-month field; `?` parses to no values.
  * - An empty input just hides the error and leaves previous results in place.
  */
+import { formatPlural, formatString } from "@/lib/format";
 
-interface Strings {
+type Strings = {
   lang: string;
   copy: string;
   copied: string;
@@ -77,13 +78,6 @@ function readStrings(): Strings | null {
   }
 }
 
-/** Legacy `formatString`: replaces {0}, {1}, … placeholders. */
-function formatString(template: string, ...values: Array<string | number>): string {
-  return template.replace(/\{(\d+)\}/g, (match, number: string) => {
-    const idx = Number(number);
-    return typeof values[idx] !== "undefined" ? String(values[idx]) : match;
-  });
-}
 
 /** Expand one cron field into the sorted set of matching values. */
 function parseCronField(fieldRaw: string, min: number, max: number, names?: string[]): FieldValue[] {
@@ -211,7 +205,7 @@ function getHumanReadable(expression: string, str: Strings): string {
     desc.push(str.scheduleEveryMinute);
   } else if (minute.includes("*/")) {
     const step = minute.split("/")[1];
-    desc.push(formatString(str.scheduleEveryNMinutes, step));
+    desc.push(formatPlural(str, "scheduleEveryNMinutes", Number(step), str.lang));
   } else if (minuteVals.length === 1) {
     desc.push(formatString(str.scheduleAtMinute, minuteVals[0]));
   } else {
@@ -227,7 +221,7 @@ function getHumanReadable(expression: string, str: Strings): string {
     desc.push(str.scheduleEveryHour);
   } else if (hour.includes("*/")) {
     const step = hour.split("/")[1];
-    desc.push(formatString(str.scheduleEveryNHours, step));
+    desc.push(formatPlural(str, "scheduleEveryNHours", Number(step), str.lang));
   } else if (hourVals.length === 1) {
     desc.push(formatString(str.scheduleAtHour, hourVals[0]));
   } else {

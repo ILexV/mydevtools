@@ -44,6 +44,27 @@ npm run deploy:pages -- --push
 After the first push: GitHub → **Settings → Pages → Source = branch `gh-pages` / root `/`**.
 The site is served at `https://<user>.github.io/mydevtools/`.
 
+## Browser support policy
+
+Declared in `apps/site/package.json#browserslist`:
+
+```
+defaults, supports es6-module, supports wasm
+```
+
+Rationale: the site is an ES-module static build and every tool computes via
+WebAssembly or modern JS — browsers without ESM/WASM are unsupported by design
+(the no-JS shell still renders, but tools stay inert). `defaults` (~Baseline
+Widely Available: Chrome/Edge 107+, Firefox 104+, Safari 16+) is the floor.
+
+Compile targets:
+
+- **JS/TS**: Vite 8 default (`baseline-widely-available`) — never older than
+  the browserslist floor, so no explicit override in `astro.config.mjs`.
+- **CSS**: no prefixer/downleveling; only Baseline features are allowed
+  (custom properties, `:focus-visible`, grid). Check new CSS against the
+  browserslist floor before use.
+
 ## What `build:pages` does
 
 `validate:i18n` → `build:wasm` (regenerates the 10 default WASM domains into

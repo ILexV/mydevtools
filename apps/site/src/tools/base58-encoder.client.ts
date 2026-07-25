@@ -11,6 +11,7 @@
  *
  * Loads only on the base58 tool page; SSR-safe no-op when the shell is absent.
  */
+import { formatString } from "@/lib/format";
 import { encodeText, decodeText, decodeToBytes } from "@/scripts/wasm/encoding-client";
 import type { EncodingOptions } from "@/scripts/wasm/encoding-client";
 import { encodeFile, decodeFile } from "@/scripts/wasm/encoding-file-client";
@@ -170,9 +171,7 @@ function init() {
       if (currentFile) {
         if (currentFile.size > ENCODE_FILE_LIMIT) {
           showError(
-            strings.fileSizeLimitEncode
-              .replace("{0}", formatBytes(ENCODE_FILE_LIMIT))
-              .replace("{1}", formatBytes(currentFile.size)),
+            formatString(strings.fileSizeLimitEncode, formatBytes(ENCODE_FILE_LIMIT), formatBytes(currentFile.size)),
           );
           return;
         }
@@ -214,9 +213,7 @@ function init() {
       if (currentFile) {
         if (currentFile.size > DECODE_FILE_LIMIT) {
           showError(
-            strings.fileSizeLimitDecode
-              .replace("{0}", formatBytes(DECODE_FILE_LIMIT))
-              .replace("{1}", formatBytes(currentFile.size)),
+            formatString(strings.fileSizeLimitDecode, formatBytes(DECODE_FILE_LIMIT), formatBytes(currentFile.size)),
           );
           return;
         }
@@ -227,7 +224,7 @@ function init() {
         });
         const bytes = res.bytes ?? new Uint8Array();
         const binName = `${currentFile.name}.bin`;
-        outputArea.value = strings.fileDecoded.replace("{0}", currentFile.name).replace("{1}", binName);
+        outputArea.value = formatString(strings.fileDecoded, currentFile.name, binName);
         lastDownload = {
           blob: new Blob([new Uint8Array(bytes)], { type: "application/octet-stream" }),
           name: binName,

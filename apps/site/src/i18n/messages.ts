@@ -60,3 +60,29 @@ export function t(
 export function getNamespace(lang: LocaleCode, namespace: string): Record<string, unknown> {
   return messages[lang]?.[namespace] ?? messages[DEFAULT_LOCALE]?.[namespace] ?? {};
 }
+
+const PLURAL_CATEGORIES: Record<string, true> = {
+  zero: true,
+  one: true,
+  two: true,
+  few: true,
+  many: true,
+  other: true,
+};
+
+/**
+ * Plural-variant entries (`<Key>_<category>`) of a namespace, first letter
+ * lowercased to match client-island key style. Empty when neither the locale
+ * nor its fallback defines variants — clients then fall back to the base key.
+ */
+export function pluralVariants(lang: LocaleCode, namespace: string): Record<string, string> {
+  const data = getNamespace(lang, namespace);
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(data)) {
+    const match = key.match(/_([a-z]+)$/);
+    if (match && PLURAL_CATEGORIES[match[1]] && typeof value === "string") {
+      out[key.charAt(0).toLowerCase() + key.slice(1)] = value;
+    }
+  }
+  return out;
+}

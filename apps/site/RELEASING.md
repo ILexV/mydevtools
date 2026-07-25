@@ -57,6 +57,11 @@ The site is served at `https://<user>.github.io/mydevtools/`.
 
 ## Smoke test (post-deploy)
 
+> **`.nojekyll` is mandatory.** GitHub Pages runs Jekyll on branch deploys,
+> which silently skips `_astro/` → all CSS/JS return 404 and the site renders
+> unstyled. `apps/site/public/.nojekyll` ships in every `dist`, and
+> `deploy-pages.mjs` refuses to publish without it.
+
 Open the published Pages URL in a fresh browser profile (no local cache):
 
 - Home loads, search works, language switcher works.

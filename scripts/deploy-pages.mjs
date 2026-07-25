@@ -45,6 +45,8 @@ must("sw.js", "service worker");
 must("offline/index.html", "offline page");
 must("404.html", "404 page");
 must("icons/icon-512.png", "icon");
+// Without this GitHub Pages runs Jekyll, which skips `_astro/` → all CSS/JS 404.
+must(".nojekyll", "Jekyll bypass marker");
 const LANGS = ["en", "ru", "es", "de", "pt", "zh", "fr", "ja", "ko", "hi"];
 const missingLangs = LANGS.filter((l) => !existsSync(join(dist, l, "index.html")));
 if (missingLangs.length) {

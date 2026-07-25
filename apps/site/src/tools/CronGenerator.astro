@@ -227,7 +227,7 @@ const parserUrl = localizedPath(lang, "cron-parser");
   .crong-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; align-items: start; }
   @media (min-width: 900px) { .crong-grid { grid-template-columns: 1fr 1fr; } }
 
-  .crong-card { border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); padding: 1.1rem 1.2rem; }
+  .crong-card { min-width: 0; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); padding: 1.1rem 1.2rem; }
   .card-title { font-size: 0.95rem; margin: 0 0 0.9rem; color: var(--mdt-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
   .field-label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
 
@@ -238,6 +238,7 @@ const parserUrl = localizedPath(lang, "cron-parser");
 
   .crong-input {
     width: 100%;
+    min-width: 0;
     padding: 0.55rem 0.7rem;
     border: 1px solid var(--mdt-border);
     border-radius: var(--mdt-radius-sm);
@@ -302,6 +303,8 @@ const parserUrl = localizedPath(lang, "cron-parser");
     color: var(--mdt-text);
     font-size: 0.78rem;
     width: auto;
+    max-width: 100%;
+    min-width: 0;
   }
   .crong-format:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
 
@@ -312,6 +315,7 @@ const parserUrl = localizedPath(lang, "cron-parser");
     border-radius: var(--mdt-radius-sm);
     font-size: 0.85rem;
     font-family: var(--mdt-font-mono);
+    overflow-wrap: anywhere;
   }
   .crong-next .next-row.plain { font-family: inherit; }
 </style>

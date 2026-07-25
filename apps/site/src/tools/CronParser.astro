@@ -225,12 +225,13 @@ const generatorUrl = localizedPath(lang, "cron-generator");
   .cronp-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; align-items: start; }
   @media (min-width: 900px) { .cronp-grid { grid-template-columns: 1fr 1fr; } }
 
-  .cronp-card { border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); padding: 1.1rem 1.2rem; }
+  .cronp-card { min-width: 0; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); padding: 1.1rem 1.2rem; }
   .card-title { font-size: 0.95rem; margin: 0 0 0.9rem; color: var(--mdt-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
   .field-label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
 
   .cronp-input {
     width: 100%;
+    min-width: 0;
     padding: 0.6rem 0.75rem;
     border: 1px solid var(--mdt-border);
     border-radius: var(--mdt-radius-sm);
@@ -299,7 +300,6 @@ const generatorUrl = localizedPath(lang, "cron-generator");
     color: var(--mdt-text-muted);
     font-size: 0.92rem;
   }
-
   .cronp-format {
     padding: 0.35rem 0.5rem;
     border: 1px solid var(--mdt-border);
@@ -308,6 +308,8 @@ const generatorUrl = localizedPath(lang, "cron-generator");
     color: var(--mdt-text);
     font-size: 0.78rem;
     width: auto;
+    max-width: 100%;
+    min-width: 0;
   }
   .cronp-format:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
 
@@ -318,6 +320,7 @@ const generatorUrl = localizedPath(lang, "cron-generator");
     border-radius: var(--mdt-radius-sm);
     font-size: 0.85rem;
     font-family: var(--mdt-font-mono);
+    overflow-wrap: anywhere;
   }
   .cronp-next .next-row.plain { font-family: inherit; }
 

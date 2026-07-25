@@ -89,22 +89,11 @@ function initShare() {
       }
       await navigator.clipboard.writeText(url);
     } catch (err) {
-      if ((err as DOMException)?.name === "AbortError") return;
-      // Clipboard API unavailable (permissions / insecure context) — legacy fallback.
-      const ta = document.createElement("textarea");
-      ta.value = url;
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
-      document.body.appendChild(ta);
-      ta.select();
-      let ok = false;
-      try {
-        ok = document.execCommand("copy");
-      } catch {
-        ok = false;
-      }
-      ta.remove();
-      if (!ok) return;
+      if ((err as DOMException)?.name === "AbortError") return; // user dismissed the share sheet
+      // navigator.clipboard requires a secure context (HTTPS); on the GitHub
+      // Pages deployment that always holds, so a rejection here is exceptional
+      // — skip the "copied" flash rather than fall back to deprecated APIs.
+      return;
     }
     flashCopied(btn);
   });

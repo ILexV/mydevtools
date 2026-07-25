@@ -1,11 +1,13 @@
 ---
 /**
- * `/{lang}/` — localized home. Registry-driven catalog grouped by category,
- * client-side search, and favorites/recent sections rendered from a JSON island.
+ * `/{lang}/` — localized home (Prism, design spec §1/§9).
+ * Registry-driven catalog grouped by category, hero with ambient monograms,
+ * client-side search, favorites/recent from a JSON island.
  * Adding a tool to `tools.ts` adds a card here (Stage 4 Gate 4) + search index.
  */
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import ToolCard from "@/components/ToolCard.astro";
+import Icon from "@/components/Icon.astro";
 import { LOCALES, type LocaleCode } from "@/registry/locales";
 import { buildCatalog } from "@/registry/catalog";
 import { t } from "@/i18n/messages";
@@ -28,6 +30,9 @@ const siteName = t(lang, "common", "AppName");
 const noResults = t(lang, "common", "CommandPalette_NoResults");
 const favTitle = t(lang, "common", "CommandPalette_FavoritesTitle");
 const recentTitle = t(lang, "common", "CommandPalette_RecentTitle");
+const statTools = t(lang, "home", "Stat_Tools");
+const statLanguages = t(lang, "home", "Stat_Languages");
+const statLocal = t(lang, "home", "Stat_Local");
 
 // Compact index for client-side favorites/recent rendering.
 const index = Object.fromEntries(
@@ -37,12 +42,31 @@ const indexJson = JSON.stringify(index);
 ---
 
 <BaseLayout locale={lang} title={siteName} description={heroSubtitle} isHome>
+  <div class="ambient" aria-hidden="true">
+    <span class="g" style="--x:6%;--y:12%;--d:8s;--s:15px">{"{}"}</span>
+    <span class="g" style="--x:88%;--y:9%;--d:10s;--s:13px">0x</span>
+    <span class="g" style="--x:14%;--y:78%;--d:9s;--s:17px">▦</span>
+    <span class="g" style="--x:79%;--y:70%;--d:11s;--s:14px">⚿</span>
+    <span class="g" style="--x:46%;--y:5%;--d:8.5s;--s:12px">%</span>
+    <span class="g" style="--x:64%;--y:85%;--d:10.5s;--s:15px">Aa</span>
+    <span class="g" style="--x:30%;--y:90%;--d:9.5s;--s:13px">01</span>
+    <span class="g" style="--x:93%;--y:45%;--d:12s;--s:16px">#</span>
+    <span class="g" style="--x:3%;--y:45%;--d:11s;--s:12px">µ</span>
+  </div>
+
   <main class="home">
     <section class="hero">
-      <span class="privacy-badge">{t(lang, "common", "NoDataSent")}</span>
+      <span class="hero-pill"><span class="dot"></span>{t(lang, "common", "NoDataSent")}</span>
       <h1>{heroTitle}</h1>
       <p class="hero-subtitle">{heroSubtitle}</p>
-      <a class="hero-cta" href="#catalog">{heroCta}</a>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#catalog">{heroCta}<Icon name="arrow-right" size={14} /></a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><b class="tabular">{catalog.tools.length}</b><span>{statTools}</span></div>
+        <div class="stat"><b class="tabular">{LOCALES.length}</b><span>{statLanguages}</span></div>
+        <div class="stat"><b class="tabular">100%</b><span>{statLocal}</span></div>
+      </div>
     </section>
 
     <div class="your-tools">
@@ -55,14 +79,19 @@ const indexJson = JSON.stringify(index);
     </div>
 
     <section class="search-bar" aria-label={searchPlaceholder}>
-      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+      <Icon name="search" size={16} />
       <input type="search" id="catalog-search" placeholder={searchPlaceholder} autocomplete="off" aria-label={searchPlaceholder} />
+      <kbd>/</kbd>
     </section>
 
     <section id="catalog" class="catalog">
       {catalog.categories.map((cat) => (
-        <div class="cat-section" data-cat-section>
-          <h2 class="cat-heading" data-cat-heading>{cat.label}</h2>
+        <div class="cat-section" data-cat-section style={`--mdt-cat: var(--mdt-cat-${cat.id})`}>
+          <div class="cat-head">
+            <span class="cat-icon"><Icon name={cat.id} size={17} /></span>
+            <h2 class="cat-heading" data-cat-heading>{cat.label}</h2>
+            <span class="cat-count tabular">{cat.tools.length}</span>
+          </div>
           <div class="cat-grid">
             {cat.tools.map((tool) => (
               <ToolCard tool={tool} locale={lang} />
@@ -113,88 +142,238 @@ const indexJson = JSON.stringify(index);
 </BaseLayout>
 
 <style>
+  /* ---------- ambient monograms (signature, spec §1.4) ---------- */
+  .ambient {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .ambient::before {
+    content: "";
+    position: absolute;
+    inset: -20%;
+    background:
+      radial-gradient(38% 30% at 18% 12%, color-mix(in srgb, var(--mdt-accent) 12%, transparent), transparent 70%),
+      radial-gradient(34% 28% at 85% 8%, color-mix(in srgb, var(--mdt-accent-2) 10%, transparent), transparent 70%);
+    animation: drift 26s ease-in-out infinite alternate;
+  }
+  @keyframes drift {
+    to { transform: translate3d(3%, -2%, 0) scale(1.06); }
+  }
+  .ambient .g {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    font-family: var(--mdt-font-mono);
+    font-weight: 600;
+    font-size: var(--s);
+    color: var(--mdt-text-faint);
+    opacity: 0.5;
+    animation: floaty var(--d) ease-in-out infinite alternate;
+  }
+  @keyframes floaty {
+    from { transform: translateY(-8px) rotate(-3deg); }
+    to { transform: translateY(10px) rotate(4deg); }
+  }
+
   .home {
+    position: relative;
+    z-index: 1;
     max-width: var(--mdt-content-max);
     margin: 0 auto;
-    padding: clamp(1.75rem, 5vw, 3.5rem) 1.25rem 2rem;
+    padding: clamp(2rem, 6vw, 4.5rem) 1.25rem 5rem;
   }
+
+  /* ---------- hero ---------- */
   .hero {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
-    padding-bottom: 1.5rem;
+    padding-bottom: 2.5rem;
+    animation: rise 0.5s var(--mdt-ease) both;
   }
-  .privacy-badge {
-    display: inline-block;
-    font-size: 0.78rem;
-    font-weight: 600;
-    padding: 0.25rem 0.65rem;
-    border-radius: 999px;
-    background: var(--mdt-surface-muted);
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+  }
+  .hero-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-micro);
+    color: var(--mdt-text-muted);
     border: 1px solid var(--mdt-border);
-    color: var(--mdt-success);
+    background: color-mix(in srgb, var(--mdt-surface-raised) 70%, transparent);
+    padding: 6px 13px;
+    border-radius: 999px;
+  }
+  .hero-pill .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--mdt-success);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mdt-success) 55%, transparent);
+    animation: pulse 2.2s infinite;
+  }
+  @keyframes pulse {
+    70% { box-shadow: 0 0 0 8px transparent; }
   }
   h1 {
-    font-size: clamp(1.85rem, 4.5vw, 3.1rem);
-    line-height: 1.1;
-    letter-spacing: -0.025em;
-    max-width: 20ch;
+    margin-top: 1.3rem;
+    font-weight: 650;
+    font-size: clamp(2rem, 4.6vw, 3.4rem);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    max-width: 22ch;
   }
-  .hero-subtitle { color: var(--mdt-text-muted); font-size: 1.05rem; max-width: 56ch; }
-  .hero-cta {
-    margin-top: 0.4rem;
-    padding: 0.7rem 1.3rem;
-    border-radius: var(--mdt-radius);
-    background: var(--mdt-accent);
-    color: var(--mdt-accent-contrast);
-    text-decoration: none;
-    font-weight: 600;
+  .hero-subtitle {
+    margin-top: 1.1rem;
+    color: var(--mdt-text-muted);
+    font-size: 1.05rem;
+    max-width: 56ch;
   }
-  .hero-cta:hover { filter: brightness(1.05); }
+  .hero-actions { margin-top: 1.7rem; }
+  .hero-actions .btn svg { transition: transform var(--mdt-dur-micro) var(--mdt-ease); }
+  .hero-actions .btn:hover svg { transform: translateX(3px); }
+  .hero-stats {
+    margin-top: 2.4rem;
+    display: flex;
+    gap: 2.5rem;
+  }
+  .stat b {
+    font-weight: 650;
+    font-size: 1.875rem;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .stat span {
+    display: block;
+    margin-top: 5px;
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-micro);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--mdt-text-faint);
+  }
 
+  /* ---------- favorites / recent ---------- */
   .your-tools { display: grid; gap: 0.75rem; margin-bottom: 1.5rem; }
   .your-tools section:not([hidden]) { display: block; }
-  .yt-heading { font-size: 0.95rem; color: var(--mdt-text-muted); margin-bottom: 0.4rem; }
+  .yt-heading {
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-micro);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--mdt-text-faint);
+    margin-bottom: 0.5rem;
+  }
   :global([data-fav-section] a), :global([data-recent-section] a) {
     display: inline-flex;
     align-items: center;
-    padding: 0.4rem 0.8rem;
-    margin: 0.2rem 0.3rem 0.2rem 0;
+    padding: 0.45rem 0.85rem;
+    margin: 0.2rem 0.35rem 0.2rem 0;
     border: 1px solid var(--mdt-border);
     border-radius: 999px;
     background: var(--mdt-surface-raised);
     color: var(--mdt-text);
     text-decoration: none;
-    font-size: 0.85rem;
+    font-size: var(--mdt-fs-meta);
+    transition: border-color var(--mdt-dur-micro);
   }
-  :global([data-fav-section] a:hover), :global([data-recent-section] a:hover) { border-color: var(--mdt-accent); }
+  :global([data-fav-section] a:hover), :global([data-recent-section] a:hover) {
+    border-color: var(--mdt-accent);
+  }
 
+  /* ---------- sticky catalog search ---------- */
   .search-bar {
     position: sticky;
-    top: 3.6rem;
+    top: calc(var(--mdt-header-h) + 0.5rem);
     z-index: 5;
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    padding: 0.6rem 0.9rem;
-    margin-bottom: 1.5rem;
-    background: var(--mdt-surface-raised);
+    padding: 0.7rem 0.95rem;
+    margin-bottom: 2rem;
+    background: color-mix(in srgb, var(--mdt-surface-raised) 88%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--mdt-border);
-    border-radius: var(--mdt-radius);
+    border-radius: var(--mdt-radius-md);
+    color: var(--mdt-text-faint);
+    transition: border-color var(--mdt-dur-micro), box-shadow var(--mdt-dur-micro);
+  }
+  .search-bar:focus-within {
+    border-color: color-mix(in srgb, var(--mdt-accent) 55%, var(--mdt-border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mdt-accent) 14%, transparent);
+  }
+  .search-bar input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--mdt-text);
+    font-size: 0.95rem;
+  }
+  .search-bar kbd {
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-micro);
+    border: 1px solid var(--mdt-border);
+    border-radius: 5px;
+    padding: 1.5px 7px;
     color: var(--mdt-text-muted);
+    background: var(--mdt-surface-inset);
   }
-  .search-bar input { flex: 1; border: none; outline: none; background: transparent; color: var(--mdt-text); font-size: 1rem; }
 
-  .cat-section { margin-bottom: 2.25rem; }
-  .cat-heading {
-    font-size: 1.15rem;
-    letter-spacing: -0.01em;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.4rem;
-    border-bottom: 1px solid var(--mdt-border);
+  /* ---------- category sections ---------- */
+  #catalog { scroll-margin-top: calc(var(--mdt-header-h) + 4.5rem); }
+  .cat-section { margin-bottom: 2.75rem; scroll-margin-top: calc(var(--mdt-header-h) + 4.5rem); }
+  .cat-head {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.1rem;
   }
-  .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.75rem; }
-  .no-results { color: var(--mdt-text-muted); padding: 2rem 0; text-align: center; }
+  .cat-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: color-mix(in srgb, var(--mdt-cat) 15%, transparent);
+    color: var(--mdt-cat);
+    border: 1px solid color-mix(in srgb, var(--mdt-cat) 30%, transparent);
+    flex-shrink: 0;
+  }
+  .cat-heading {
+    font-weight: 650;
+    font-size: var(--mdt-fs-h3);
+    letter-spacing: -0.02em;
+  }
+  .cat-count {
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-micro);
+    color: var(--mdt-text-faint);
+    border: 1px solid var(--mdt-border);
+    border-radius: 6px;
+    padding: 2px 7px;
+    background: var(--mdt-surface-inset);
+  }
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.875rem;
+  }
+  .no-results { color: var(--mdt-text-muted); padding: 1rem 0; }
   .hidden { display: none !important; }
+
+  @media (max-width: 1024px) {
+    .cat-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 640px) {
+    .cat-grid { grid-template-columns: 1fr; }
+    .hero-stats { gap: 1.6rem; flex-wrap: wrap; }
+    .home { padding: 1.75rem 1rem 4rem; }
+  }
 </style>

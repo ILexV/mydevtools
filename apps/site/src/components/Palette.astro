@@ -76,7 +76,9 @@ const placeholder = t(locale, "common", "CommandPalette_SearchPlaceholder");
   .palette-backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(8, 10, 14, 0.55);
+    background: rgba(4, 6, 10, 0.55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
   }
   .palette-panel {
     position: relative;
@@ -85,7 +87,7 @@ const placeholder = t(locale, "common", "CommandPalette_SearchPlaceholder");
     background: var(--mdt-surface-raised);
     border: 1px solid var(--mdt-border);
     border-radius: var(--mdt-radius);
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+    box-shadow: var(--mdt-shadow-e2);
     overflow: hidden;
   }
   .palette-input {
@@ -105,11 +107,11 @@ const placeholder = t(locale, "common", "CommandPalette_SearchPlaceholder");
   }
   .palette-group {
     padding: 0.45rem 0.65rem 0.25rem;
-    font-size: 0.72rem;
-    font-weight: 600;
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-micro);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--mdt-text-muted);
+    letter-spacing: 0.1em;
+    color: var(--mdt-text-faint);
   }
   .palette-option {
     display: flex;
@@ -154,9 +156,9 @@ const placeholder = t(locale, "common", "CommandPalette_SearchPlaceholder");
     font-size: 0.68rem;
   }
   @media (prefers-reduced-motion: no-preference) {
-    .palette-panel { animation: palette-in 120ms ease-out; }
+    .palette-panel { animation: palette-in 180ms var(--mdt-ease); }
     @keyframes palette-in {
-      from { opacity: 0; transform: translateY(-6px); }
+      from { opacity: 0; transform: translateY(-8px) scale(0.99); }
       to { opacity: 1; transform: none; }
     }
   }

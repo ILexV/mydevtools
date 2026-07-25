@@ -71,5 +71,7 @@
   "ViewTools": "查看工具",
   "TitlePrefix": "开发者",
   "Stat_Free": "免费",
-  "NoRecentDescription": "您使用的工具将显示在这里。"
+  "NoRecentDescription": "您使用的工具将显示在这里。",
+  "Stat_Languages": "语言",
+  "Stat_Local": "本地"
 }

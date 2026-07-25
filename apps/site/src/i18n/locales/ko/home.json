@@ -71,5 +71,7 @@
   "ViewTools": "도구 보기",
   "TitlePrefix": "개발자",
   "Stat_Free": "무료",
-  "NoRecentDescription": "사용한 도구가 여기에 표시됩니다."
+  "NoRecentDescription": "사용한 도구가 여기에 표시됩니다.",
+  "Stat_Languages": "언어",
+  "Stat_Local": "로컬"
 }

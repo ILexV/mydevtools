@@ -110,11 +110,85 @@ function initShare() {
   });
 }
 
+// ── MobileNav drawer ──────────────────────────────────────────────────────
+// Toggle via [data-nav-toggle], close via [data-nav-close] / scrim / Escape.
+// Locks body scroll while open.
+function initMobileNav() {
+  const nav = document.querySelector<HTMLElement>("[data-mobile-nav]");
+  const scrim = document.querySelector<HTMLElement>("[data-nav-close].nav-scrim");
+  const toggle = document.querySelector<HTMLButtonElement>("[data-nav-toggle]");
+  if (!nav || !scrim || !toggle) return;
+
+  let open = false;
+  function setOpen(next: boolean) {
+    open = next;
+    nav!.hidden = false;
+    scrim!.hidden = false;
+    // Force reflow so the transition runs from the hidden state.
+    void nav!.offsetWidth;
+    nav!.classList.toggle("open", next);
+    scrim!.classList.toggle("open", next);
+    toggle!.setAttribute("aria-expanded", String(next));
+    document.body.style.overflow = next ? "hidden" : "";
+    if (!next) {
+      setTimeout(() => {
+        if (!open) {
+          nav!.hidden = true;
+          scrim!.hidden = true;
+        }
+      }, 400);
+    }
+  }
+  toggle.addEventListener("click", () => setOpen(true));
+  document.addEventListener("click", (e) => {
+    if (!open) return;
+    if ((e.target as HTMLElement)?.closest?.("[data-nav-close]")) setOpen(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && open) setOpen(false);
+  });
+
+  // Favorites/recent in the drawer — rendered from the palette island
+  // (present on every page) + versioned localStorage; hidden when empty.
+  try {
+    const island = document.querySelector<HTMLScriptElement>("[data-palette-json]");
+    const box = nav.querySelector<HTMLElement>("[data-mnav-favs]");
+    const heading = box?.previousElementSibling as HTMLElement | null;
+    if (island && box) {
+      const index = JSON.parse(island.textContent ?? "{}") as Record<string, { t: string; h: string }>;
+      const read = (key: string): string[] => {
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) return [];
+          const parsed = JSON.parse(raw) as { items?: Array<string | { slug: string }> };
+          return (parsed.items ?? []).map((it) => (typeof it === "string" ? it : it.slug));
+        } catch {
+          return [];
+        }
+      };
+      const slugs = [...new Set([...read("mdt.favorites.v1"), ...read("mdt.recent.v1")])].slice(0, 8);
+      const links = slugs
+        .map((s) => index[s])
+        .filter(Boolean)
+        .map((entry) => `<a class="mnav-link" href="${entry.h}" data-nav-close>${entry.t}</a>`);
+      if (links.length > 0) {
+        box.innerHTML = links.join("");
+      } else {
+        box.hidden = true;
+        if (heading) heading.hidden = true;
+      }
+    }
+  } catch {
+    /* island/storage unavailable — drawer keeps its empty placeholder */
+  }
+}
+
 function boot() {
   initTheme();
   initLocalePersistence();
   initLangSwitcher();
   initShare();
+  initMobileNav();
 }
 
 if (document.readyState === "loading") {

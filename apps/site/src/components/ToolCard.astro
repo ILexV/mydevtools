@@ -1,70 +1,95 @@
 ---
 /**
- * ToolCard — a catalog tile linking to a tool route.
- * Pure presentation; all data comes from the catalog layer.
- * `data-keywords` feeds client-side search; the fav-slot span carries the slug
- * so the favorites engine can render a star badge (read-only indicator here;
- * toggling happens on the tool page).
+ * ToolCard — Prism catalog tile (design spec §1): category tile-icon, title
+ * with slide-in arrow, 2-line description, favorite slot. Category color comes
+ * from the parent section's `--mdt-cat` (set in index.astro).
+ * `data-keywords` feeds client-side search; `data-fav-slot` carries the slug
+ * for the favorites engine.
  */
 import type { CatalogTool } from "@/registry/catalog";
-import { categoryLabel } from "@/registry/catalog";
 import type { LocaleCode } from "@/registry/locales";
+import Icon from "@/components/Icon.astro";
 
 interface Props {
   tool: CatalogTool;
   locale: LocaleCode;
 }
 
-const { tool, locale } = Astro.props as Props;
-const cat = categoryLabel(locale, tool.category);
+const { tool } = Astro.props as Props;
 ---
 
 <a class="tool-card" href={tool.href} data-tool-card data-slug={tool.slug} data-keywords={tool.keywords.join(" ")}>
-  <span class="card-cat">{cat}</span>
-  <span class="card-title">{tool.title}</span>
-  <span class="card-desc">{tool.description}</span>
+  <span class="tile"><Icon name={tool.category} size={20} /></span>
   <span class="card-fav" data-fav-slot data-slug={tool.slug} aria-hidden="true"></span>
+  <span class="card-title">
+    {tool.title}
+    <span class="go"><Icon name="arrow-right" size={13} /></span>
+  </span>
+  <span class="card-desc">{tool.description}</span>
 </a>
 
 <style>
   .tool-card {
-    display: grid;
-    grid-template-areas: "cat fav" "title title" "desc desc";
-    gap: 0.25rem;
-    padding: 0.95rem 1rem;
+    display: flex;
+    flex-direction: column;
+    padding: 1.1rem;
     border: 1px solid var(--mdt-border);
     border-radius: var(--mdt-radius);
     background: var(--mdt-surface-raised);
     text-decoration: none;
     color: var(--mdt-text);
-    transition: border-color 0.15s ease, transform 0.15s ease;
     position: relative;
     height: 100%;
+    transition: transform var(--mdt-dur) var(--mdt-ease),
+      border-color var(--mdt-dur), box-shadow var(--mdt-dur);
   }
   .tool-card:hover {
-    border-color: var(--mdt-accent);
-    transform: translateY(-1px);
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--mdt-cat) 55%, var(--mdt-border));
+    --mdt-shadow-cat: color-mix(in srgb, var(--mdt-cat) 38%, transparent);
+    box-shadow: var(--mdt-shadow-e1);
   }
-  .card-cat {
-    grid-area: cat;
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--mdt-accent);
-    font-weight: 600;
+  .tile {
+    margin-bottom: 0.85rem;
   }
-  .card-fav { grid-area: fav; justify-self: end; display: inline-flex; }
+  .tool-card:hover .tile {
+    transform: rotate(-6deg) scale(1.07);
+    background: color-mix(in srgb, var(--mdt-cat) 20%, transparent);
+  }
+  .card-fav {
+    position: absolute;
+    top: 0.9rem;
+    right: 0.9rem;
+    display: inline-flex;
+  }
   .card-title {
-    grid-area: title;
+    display: flex;
+    align-items: center;
+    gap: 7px;
     font-weight: 600;
     font-size: 1rem;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
+  }
+  .go {
+    margin-left: auto;
+    color: var(--mdt-text-faint);
+    opacity: 0;
+    transform: translateX(-5px);
+    transition: all var(--mdt-dur-micro) var(--mdt-ease);
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+  .tool-card:hover .go {
+    opacity: 1;
+    transform: none;
+    color: var(--mdt-cat);
   }
   .card-desc {
-    grid-area: desc;
+    margin-top: 0.45rem;
     color: var(--mdt-text-muted);
-    font-size: 0.85rem;
-    line-height: 1.4;
+    font-size: var(--mdt-fs-meta);
+    line-height: 1.5;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;

@@ -66,10 +66,12 @@
   "SubtitlePrefix": "Alle Werkzeuge funktionieren offline in Ihrem Browser. Unterstützt von",
   "FeatureOfflineDescription": "Als PWA installieren und ohne Internetverbindung nutzen.",
   "ReadyToTry": "Bereit zum Ausprobieren?",
-  "Stat_Tools": "Werkzeuge",
+  "Stat_Tools": "Tools",
   "Badge_ToolsCount": "50+ Werkzeuge",
   "ViewTools": "Werkzeuge ansehen",
   "TitlePrefix": "Entwickler",
   "Stat_Free": "Kostenlos",
-  "NoRecentDescription": "Werkzeuge, die Sie verwenden, werden hier angezeigt."
+  "NoRecentDescription": "Werkzeuge, die Sie verwenden, werden hier angezeigt.",
+  "Stat_Languages": "Sprachen",
+  "Stat_Local": "Lokal"
 }

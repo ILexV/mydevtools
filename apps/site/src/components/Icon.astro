@@ -1,0 +1,65 @@
+---
+/**
+ * Icon — the Prism icon family (design spec §7): 20×20 viewBox, stroke 1.7,
+ * round caps/joins, no fill, currentColor. One consistent optical size.
+ * Usage: <Icon name="encoding" size={18} />
+ * Category names match CategoryId in src/registry/categories.ts.
+ */
+
+export interface Props {
+  name: IconName;
+  size?: number;
+}
+
+export const ICONS = {
+  /* ---- category icons (13) ---- */
+  encoding: '<path d="M7 6 3.5 10 7 14M13 6l3.5 4L13 14"/>',
+  "structured-data": '<path d="M6.5 3.5c-1.7 0-2 1-2 2.2v1.6c0 1-.5 1.7-1.5 1.7 1 0 1.5.7 1.5 1.7v1.6c0 1.2.3 2.2 2 2.2M13.5 3.5c1.7 0 2 1 2 2.2v1.6c0 1 .5 1.7 1.5 1.7-1 0-1.5.7-1.5 1.7v1.6c0 1.2-.3 2.2-2 2.2"/>',
+  text: '<path d="M4 5.5h12M4 10h12M4 14.5h7"/>',
+  jwt: '<rect x="3" y="4.5" width="14" height="11" rx="2"/><path d="M6.5 8.5h7M6.5 11.5h4.5"/><circle cx="15" cy="15.5" r="2.2"/><path d="m14 15.5.7.7 1.3-1.4"/>',
+  regex: '<path d="m5.5 6 2 4m0-4-2 4M13.5 6.5v4M11.5 8.5h4M10 13.5l2.5 3m0-3-2.5 3"/>',
+  hashing: '<path d="M7.5 3.5 6 16.5M14 3.5l-1.5 13M4 7h13M3 13h13"/>',
+  cryptography: '<rect x="4" y="9" width="12" height="8" rx="2"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9"/><circle cx="10" cy="13" r="1.2"/>',
+  generators: '<path d="M10 3v3.5M10 13.5V17M3 10h3.5M13.5 10H17M5.5 5.5l2.2 2.2M12.3 12.3l2.2 2.2M5.5 14.5l2.2-2.2M12.3 7.7l2.2-2.2"/>',
+  converters: '<path d="M5 7h10M12 4l3 3-3 3M15 13H5M8 16l-3-3 3-3"/>',
+  design: '<circle cx="10" cy="10" r="6.5"/><circle cx="10" cy="6.5" r="1.1"/><circle cx="6.5" cy="10" r="1.1"/><circle cx="13.5" cy="10" r="1.1"/><circle cx="10" cy="13.5" r="1.1"/>',
+  images: '<rect x="3" y="4" width="14" height="12" rx="2.5"/><circle cx="7.2" cy="8.2" r="1.3"/><path d="m4 14.5 4-4 2.7 2.7 2.3-2.3 3 3"/>',
+  pdf: '<path d="M11.5 3H6a1.5 1.5 0 0 0-1.5 1.5v11A1.5 1.5 0 0 0 6 17h8a1.5 1.5 0 0 0 1.5-1.5V7.5Z"/><path d="M11.5 3v4.5h4"/><path d="M7.5 12h5M7.5 14.5h3.5"/>',
+  qrcode: '<path d="M4 4h4.5v4.5H4zM11.5 4H16v4.5h-4.5zM4 11.5h4.5V16H4zM11.5 11.5h2v2h-2zM14.5 14.5H16V16h-1.5zM11.5 14.5h1M16 11.5v1.5"/>',
+  /* ---- shared UI ---- */
+  search: '<circle cx="9" cy="9" r="5.2"/><path d="m13 13 3.5 3.5"/>',
+  sun: '<circle cx="10" cy="10" r="3.2"/><path d="M10 3v1.6M10 15.4V17M3 10h1.6M15.4 10H17M5 5l1.1 1.1M13.9 13.9 15 15M5 15l1.1-1.1M13.9 6.1 15 5"/>',
+  moon: '<path d="M16 11.5A6.5 6.5 0 0 1 8.5 4a6.5 6.5 0 1 0 7.5 7.5Z"/>',
+  check: '<path d="m4 10.5 4 4 8-9"/>',
+  copy: '<rect x="7" y="7" width="9" height="9" rx="1.5"/><path d="M13 7V4.5A1.5 1.5 0 0 0 11.5 3h-6A1.5 1.5 0 0 0 4 4.5v6A1.5 1.5 0 0 0 5.5 12H7"/>',
+  "arrow-right": '<path d="M3.5 10h12M11.5 5.5 16 10l-4.5 4.5"/>',
+  close: '<path d="m5.5 5.5 9 9M14.5 5.5l-9 9"/>',
+  upload: '<path d="M10 13V4M6.5 7.5 10 4l3.5 3.5"/><path d="M4 13.5V15a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 16 15v-1.5"/>',
+  download: '<path d="M10 4v9M6.5 9.5 10 13l3.5-3.5"/><path d="M4 13.5V15a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 16 15v-1.5"/>',
+  star: '<path d="M10 3.5 12 7.5l4.4.7-3.2 3.1.8 4.4-4-2.1-4 2.1.8-4.4L3.6 8.2 8 7.5Z"/>',
+  globe: '<circle cx="10" cy="10" r="6.5"/><path d="M3.5 10h13M10 3.5c1.9 2 2.8 4.1 2.8 6.5s-.9 4.5-2.8 6.5c-1.9-2-2.8-4.1-2.8-6.5S8.1 5.5 10 3.5Z"/>',
+  menu: '<path d="M3.5 5.5h13M3.5 10h13M3.5 14.5h8"/>',
+  chevron: '<path d="m7 4.5 5.5 5.5L7 15.5"/>',
+  lock: '<rect x="4.5" y="9" width="11" height="7.5" rx="1.8"/><path d="M7.2 9V6.8a2.8 2.8 0 0 1 5.6 0V9"/>',
+  zap: '<path d="M11 3 5 11h4l-1 6 6.5-8H10Z"/>',
+  "logo-mark": '<path d="M7 6 3.5 10 7 14M13 6l3.5 4L13 14M11.2 4 8.8 16"/>',
+} as const;
+
+export type IconName = keyof typeof ICONS;
+
+const { name, size = 20 } = Astro.props as Props;
+const body = ICONS[name];
+---
+
+<svg
+  viewBox="0 0 20 20"
+  width={size}
+  height={size}
+  aria-hidden="true"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.7"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  set:html={body}
+/>

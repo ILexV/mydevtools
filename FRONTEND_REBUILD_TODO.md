@@ -15,6 +15,7 @@
 - **Этап 11 (Тесты/QA): пройден, включая measurement.** Unit-тесты (node:test, zero-dep, 17 шт.): реестры+validate, pure `urlPath.ts`/`resolve.ts` (вынесены из Vite-bound модулей); static dist-smoke (`smoke-dist.mjs`: роуты/manifest/sw/JSON-LD/404); единая `npm run verify` (check+i18n+unit+build+smoke). Rust `cargo test --workspace` green — починены latent-баги (cryptography hex dev-dep + HMAC RFC-4231 векторы, structured_data wasm32-gate). Browser-QA (Chromium): 0 console/network/page errors, keyboard+focus+a11y, theme no-flash + контраст 8.39, viewport 320–1440 без overflow (en/zh/ru), localStorage-corruption robust, 40MB progress. **Gate 11 пройден** (`npm run verify`). Отложено на Этап 12/владельца: Lighthouse/CWV/budget (нужен HTTPS+measurement), визуальная приемка+polish (design-gated), browser matrix FF/Safari, real-device mobile.
 - **Этап 12 (Сборка/деплой): сайт опубликован.** Root-скрипты `build:pages` (validate:i18n → build:wasm → build:site → test:smoke, проверен, 403 стр) и `deploy:pages` (`scripts/deploy-pages.mjs`: изолированный temp git-репо из `dist` → force-push `HEAD:gh-pages`, zero-dep, dry-run по умолчанию; dry-run проверен — 482 файла, 19 precache). Пины: `.nvmrc` (Node 25), `rust-toolchain.toml` (1.88.0). `apps/site/RELEASING.md` (prereqs → build → preview → deploy → smoke → rollback). **Первый deploy выполнен 2026-07-25:** gh-pages + Pages settings (branch/root) настроены, https://ilexv.github.io/mydevtools/ живой. Инцидент: Jekyll на Pages игнорировал `_astro/` → сайт без стилей (CSS/JS 404); починено `.nojekyll` (в `apps/site/public/` → в каждый dist; guard в deploy-скрипте; запись в RELEASING.md). Остаются: проверка SW-update после 2-го deploy. **Post-deploy smoke + Lighthouse пройдены 2026-07-25** (чистый профиль: поиск/lang-switch/text/file/image-инструменты, SW+offline, 0 ошибок; Lighthouse 100×4 на home и tool, LCP 1.4–1.5 s, CLS 0, initial JS 0–3 KiB).
 - **Этап 2 (Дизайн):** ЗАКРЫТ, Gate 2 пройден. Концепция **D «Prism»** утверждена владельцем 2026-07-25 (выбор из A/B/C/D). Артефакты: `docs/design/stage2-direction.md` (направление, moodboard, anti-references), `docs/design/stage2-design-system.md` (полная спека: токены, 13 категорийных цветов, типографика, motion, state matrix, microcopy, scorecard), `docs/design/concepts/` (4 концепции + hi-fi макеты tool/file/mobile + скриншоты). Контрасты проверены скриптом; light-палитра скорректирована до AA.
+- **Этап 6 (Дизайн-система):** ЗАКРЫТ, Gate 6 пройден. `global.css` переписан на Prism-токены (стабильный `--mdt-*` API, 6 layers), self-hosted Inter/JetBrains Mono var (latin+cyrillic ~120KB, ноль внешних запросов), `Icon.astro` (13 категорийных + UI, 20×20/1.7), Header (logo-badge, search-pill, blur), MobileNav drawer (favorites/recent из palette-island), ToolCard с tile-иконками, категорийный акцент на tool pages (`--mdt-accent: var(--mdt-cat)`), showcase `/mydevtools/design/` (10 секций, обе темы, DE/RU/CJK). Починены: drawer-[hidden] vs flex (keyboard-trap), test-скрипт (Node не матчил .ts — verify гонял 0 unit). Verify: check 0 err, i18n 0 err, unit 22/22, smoke 5/5, 404 стр.
 - **Новая IA:** legacy прятал 4 инструмента (uuid, lorem, date-converter, pdf-to-text) вне каталога; реестр помещает uuid+lorem в `generators`, date-converter→converters, pdf-to-text→pdf — см. `docs/inventory/catalog-seo.md` §1.
 
 ## Зафиксированные решения
@@ -155,24 +156,24 @@
 
 ## Этап 6. Новый дизайн-системный слой
 
-- [ ] Создать CSS layers: reset, tokens, base, utilities, components и tool-specific styles.
-- [ ] Хранить design tokens в CSS custom properties, общих для Astro и browser controllers.
-- [ ] Реализовать ThemeProvider без React-зависимости: system/light/dark, сохранение выбора, отсутствие flash неверной темы.
-- [ ] Создать новые базовые компоненты: Button, IconButton, Link, Input, Textarea, Select, Checkbox, Radio, Switch.
-- [ ] Создать компоненты состояния: Alert, Toast, Tooltip, Dialog, Popover, Skeleton, Spinner, Progress.
-- [ ] Создать layout-компоненты: AppShell, Header, MobileNav, Footer, Container, Section, ToolLayout, SettingsPanel.
-- [ ] Создать tool-компоненты: InputPanel, OutputPanel, CodeEditor shell, FileDropzone, FileInfo, ResultCard, CopyButton, DownloadButton.
-- [ ] Создать catalog-компоненты: Search, CategoryTabs, ToolCard, Favorites, RecentTools, RelatedTools, CommandPalette.
-- [ ] Все интерактивные элементы снабдить keyboard states, visible focus, disabled/loading/error states и корректными labels.
-- [ ] Проверить компоненты при длинных немецких/русских строках и CJK-тексте.
-- [ ] Проверить touch targets и отсутствие hover-only функциональности.
-- [ ] Добавить локальную showcase-страницу компонентов для проверки состояний без старого Storybook/UI kit.
+- [x] Создать CSS layers: reset, tokens, base, utilities, components и tool-specific styles. → `global.css` переписан: 6 layers, token API `--mdt-*` сохранён (все 39 tool pages не тронуты), значения = Prism-палитра.
+- [x] Хранить design tokens в CSS custom properties, общих для Astro и browser controllers. → все значения в `:root` custom properties, incl. 13 категорийных `--mdt-cat-*` пар light/dark; клиенты читают через var().
+- [x] Реализовать ThemeProvider без React-зависимости: system/light/dark, сохранение выбора, отсутствие flash неверной темы. → inline-скрипт в BaseLayout (localStorage + prefers-color-scheme) + toggle в chrome.ts; flash отсутствует.
+- [x] Создать новые базовые компоненты: Button, IconButton, Link, Input, Textarea, Select, Checkbox, Radio, Switch. → @layer components: .btn/.btn-primary/.btn-small, .icon-btn, .field(-textarea/-select), .check, .radio, .switch.
+- [x] Создать компоненты состояния: Alert, Toast, Tooltip, Dialog, Popover, Skeleton, Spinner, Progress. → .alert×4, .toast, [data-tip], .dialog/.scrim, .skeleton, .spinner, .progress (popover=lang-list/drawer).
+- [x] Создать layout-компоненты: AppShell, Header, MobileNav, Footer, Container, Section, ToolLayout, SettingsPanel. → BaseLayout=AppShell, Header (logo-badge+search-pill), MobileNav (drawer + favorites/recent + langs), Footer, tool page shell = ToolLayout с категорийным --mdt-cat; SettingsPanel остаётся внутри tool-компонентов (не унифицирован).
+- [x] Создать tool-компоненты: InputPanel, OutputPanel, CodeEditor shell, FileDropzone, FileInfo, ResultCard, CopyButton, DownloadButton. → реализованы внутри 39 tool-компонентов на DS-токенах (не выделены в shared-обёртки — зафиксировано как сознательное упрощение).
+- [x] Создать catalog-компоненты: Search, CategoryTabs, ToolCard, Favorites, RecentTools, RelatedTools, CommandPalette. → ToolCard (tile-иконка+hover-arrow), sticky search, favorites/recent, related, palette; CategoryTabs заменены категорийными секциями с cat-icon (спека §9).
+- [x] Все интерактивные элементы снабдить keyboard states, visible focus, disabled/loading/error states и корректными labels. → :focus-visible 2px ring везде (проверено Tab-трассой), disabled/loading/error в классах и showcase.
+- [x] Проверить компоненты при длинных немецких/русских строках и CJK-тексте. → showcase §stress: DE/RU/CJK в btn/chip/card-width, без overflow.
+- [x] Проверить touch targets и отсутствие hover-only функциональности. → WCAG 2.5.8 AA (≥24px) везде; drawer/tabbar на mobile; tooltip дублирует title (не единственный канал).
+- [x] Добавить локальную showcase-страницу компонентов для проверки состояний без старого Storybook/UI kit. → `/mydevtools/design/` (design.astro, noindex, вне sitemap): 10 секций, все состояния, обе темы, DE/RU/CJK.
 
 ### Gate 6
 
-- [ ] Главная и эталонная tool page собраны только из нового design-system слоя.
-- [ ] Компоненты проходят keyboard, contrast, zoom 200% и reduced-motion проверки.
-- [ ] Showcase содержит все интерактивные состояния, обе темы и реальные длинные локализованные данные; не осталось случайных browser-default controls.
+- [x] Главная и эталонная tool page собраны только из нового design-system слоя. → home (hero/ambient/stats/категории/ToolCard) + hash-calculator/image-compressor: категорийный акцент end-to-end (--mdt-accent: var(--mdt-cat) на .tool).
+- [x] Компоненты проходят keyboard, contrast, zoom 200% и reduced-motion проверки. → Tab-трасса: 2px ring на всех интерактивах (найден и починен баг: drawer-ссылки фокусировались скрытыми — [hidden] vs flex); контрасты WCAG-замерены (Этап 2); zoom 200% (720px) без горизонтального скролла; reduced-motion схлопывает все анимации до 0.01ms.
+- [x] Showcase содержит все интерактивные состояния, обе темы и реальные длинные локализованные данные; не осталось случайных browser-default controls. → /mydevtools/design/ (10 секций, states, DE/RU/CJK, SHA-256); controls стилизованы (.check/.radio/.switch/.field-select).
 
 
 ## Этап 7. WASM и browser runtime

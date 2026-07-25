@@ -66,10 +66,12 @@
   "SubtitlePrefix": "Все инструменты работают офлайн. На базе",
   "FeatureOfflineDescription": "Установите как PWA и используйте без интернета.",
   "ReadyToTry": "Готовы попробовать?",
-  "Stat_Tools": "Инструментов",
+  "Stat_Tools": "Инструменты",
   "Badge_ToolsCount": "50+ Инструментов",
   "ViewTools": "Смотреть инструменты",
   "TitlePrefix": "Инструменты",
   "Stat_Free": "Бесплатно",
-  "NoRecentDescription": "Здесь появятся инструменты, которые вы используете."
+  "NoRecentDescription": "Здесь появятся инструменты, которые вы используете.",
+  "Stat_Languages": "Языки",
+  "Stat_Local": "Локально"
 }

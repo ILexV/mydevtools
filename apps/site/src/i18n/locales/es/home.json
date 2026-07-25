@@ -71,5 +71,7 @@
   "ViewTools": "Ver herramientas",
   "TitlePrefix": "Herramientas",
   "Stat_Free": "Gratis",
-  "NoRecentDescription": "Las herramientas que uses aparecerán aquí."
+  "NoRecentDescription": "Las herramientas que uses aparecerán aquí.",
+  "Stat_Languages": "Idiomas",
+  "Stat_Local": "Local"
 }

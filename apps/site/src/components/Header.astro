@@ -1,13 +1,14 @@
 ---
 /**
- * Header — site chrome on every BaseLayout page.
- * Brand link to locale home, search trigger, theme toggle, language switcher.
- * `path` is the in-locale path ("" for home, "<slug>" for a tool) so the
- * language switcher preserves the current location across locales.
+ * Header — Prism site chrome (design spec §1/§9).
+ * Brand badge + search pill (opens palette) + theme toggle + lang switcher.
+ * Mobile: hamburger opens the MobileNav drawer (catalog/favorites/recent/lang).
+ * `path` is the in-locale path so the language switcher preserves location.
  */
 import { LOCALES, type LocaleCode } from "@/registry/locales";
 import { localizedPath } from "@/lib/url";
 import { t } from "@/i18n/messages";
+import Icon from "@/components/Icon.astro";
 
 interface Props {
   locale: LocaleCode;
@@ -17,38 +18,47 @@ interface Props {
 const { locale, path = "" } = Astro.props as Props;
 const brand = t(locale, "common", "AppName");
 const searchLabel = t(locale, "common", "Common_Search");
+const searchPlaceholder = t(locale, "common", "CommandPalette_SearchPlaceholder");
 const homeLabel = t(locale, "common", "Nav_Home");
 const toolsLabel = t(locale, "common", "Nav_Tools");
 const languageLabel = t(locale, "common", "Language");
+const favTitle = t(locale, "common", "CommandPalette_FavoritesTitle");
+const recentTitle = t(locale, "common", "CommandPalette_RecentTitle");
 ---
 
 <header class="site-header">
   <div class="header-inner">
-    <a class="brand" href={localizedPath(locale)}>{brand}</a>
+    <button type="button" class="icon-btn nav-toggle" data-nav-toggle aria-label="Menu">
+      <Icon name="menu" size={16} />
+    </button>
 
-    <nav class="primary-nav" aria-label="primary">
-      <a href={localizedPath(locale)}>{homeLabel}</a>
-      <a href={`${localizedPath(locale)}#catalog`}>{toolsLabel}</a>
-    </nav>
+    <a class="brand" href={localizedPath(locale)}>
+      <span class="logo-badge"><Icon name="logo-mark" size={16} /></span>
+      <span class="brand-name">{brand}</span>
+    </a>
+
+    <button
+      type="button"
+      class="search-pill"
+      data-search-open
+      aria-label={`${searchLabel} (Ctrl+K)`}
+    >
+      <Icon name="search" size={14} />
+      <span class="search-text">{searchPlaceholder}</span>
+      <kbd>Ctrl K</kbd>
+    </button>
 
     <div class="header-actions">
-      <button
-        type="button"
-        class="icon-btn"
-        data-search-open
-        aria-label={searchLabel}
-        title={`${searchLabel} (Ctrl+K)`}
-      >
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
-      </button>
-
       <button type="button" class="icon-btn" data-theme-toggle aria-label="Toggle theme" title="Theme">
-        <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
-        <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+        <span class="icon-sun"><Icon name="sun" size={16} /></span>
+        <span class="icon-moon"><Icon name="moon" size={16} /></span>
       </button>
 
       <details class="lang-switcher">
-        <summary aria-label={languageLabel}>{locale.toUpperCase()}</summary>
+        <summary class="icon-btn lang-btn" aria-label={languageLabel} title={languageLabel}>
+          <Icon name="globe" size={16} />
+          <span class="lang-code">{locale.toUpperCase()}</span>
+        </summary>
         <div class="lang-list" role="menu">
           {LOCALES.map((l) => (
             <a
@@ -64,106 +74,238 @@ const languageLabel = t(locale, "common", "Language");
   </div>
 </header>
 
+<!-- MobileNav drawer (mobile composition, spec §9) -->
+<div class="nav-scrim" data-nav-close hidden></div>
+<nav class="mobile-nav" data-mobile-nav aria-label="Mobile navigation" hidden>
+  <div class="mnav-head">
+    <span class="brand"><span class="logo-badge"><Icon name="logo-mark" size={14} /></span>{brand}</span>
+    <button type="button" class="icon-btn" data-nav-close aria-label="Close"><Icon name="close" size={15} /></button>
+  </div>
+  <span class="lbl">{toolsLabel}</span>
+  <a class="mnav-link" href={localizedPath(locale)} data-nav-close>{homeLabel}</a>
+  <a class="mnav-link" href={`${localizedPath(locale)}#catalog`} data-nav-close>{toolsLabel}</a>
+  <span class="lbl mnav-gap">{favTitle} / {recentTitle}</span>
+  <div class="mnav-favs" data-mnav-favs><span class="mnav-empty">—</span></div>
+  <span class="lbl mnav-gap">{languageLabel}</span>
+  <div class="mnav-langs">
+    {LOCALES.map((l) => (
+      <a hreflang={l.bcp47} href={localizedPath(l.code, path)} aria-current={l.code === locale ? "true" : undefined}>{l.code.toUpperCase()}</a>
+    ))}
+  </div>
+</nav>
+
 <style>
   .site-header {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: color-mix(in srgb, var(--mdt-surface) 88%, transparent);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--mdt-border);
+    background: color-mix(in srgb, var(--mdt-surface) 72%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--mdt-border-soft);
   }
   .header-inner {
     max-width: var(--mdt-content-max);
     margin: 0 auto;
-    padding: 0.6rem 1.25rem;
+    padding: 0.7rem 1.25rem;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.9rem;
   }
   .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
     font-weight: 700;
-    font-size: 1.05rem;
+    font-size: 1rem;
     letter-spacing: -0.01em;
     color: var(--mdt-text);
     text-decoration: none;
-    margin-right: auto;
   }
-  .primary-nav {
-    display: none;
-    gap: 1rem;
+  .logo-badge {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    background: linear-gradient(135deg, var(--mdt-accent), var(--mdt-accent-2));
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--mdt-accent) 40%, transparent);
+    flex-shrink: 0;
   }
-  .primary-nav a {
-    color: var(--mdt-text-muted);
-    text-decoration: none;
-    font-size: 0.92rem;
-  }
-  .primary-nav a:hover {
-    color: var(--mdt-text);
-  }
-  .header-actions {
+  .search-pill {
+    flex: 1;
+    max-width: 400px;
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    margin-right: calc(-0.25rem);
-  }
-  .icon-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border: 1px solid transparent;
+    gap: 9px;
+    background: var(--mdt-surface-raised);
+    border: 1px solid var(--mdt-border);
     border-radius: var(--mdt-radius-sm);
-    background: transparent;
-    color: var(--mdt-text-muted);
-    cursor: pointer;
+    padding: 8px 12px;
+    color: var(--mdt-text-faint);
+    font-size: var(--mdt-fs-meta);
+    cursor: text;
+    transition: border-color var(--mdt-dur-micro), box-shadow var(--mdt-dur-micro);
   }
-  .icon-btn:hover {
-    background: var(--mdt-surface-muted);
-    color: var(--mdt-text);
+  .search-pill:hover {
+    border-color: color-mix(in srgb, var(--mdt-accent) 55%, var(--mdt-border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mdt-accent) 14%, transparent);
+  }
+  .search-pill .search-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .search-pill kbd {
+    margin-left: auto;
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-micro);
+    border: 1px solid var(--mdt-border);
+    border-radius: 5px;
+    padding: 1.5px 6px;
+    color: var(--mdt-text-muted);
+    flex-shrink: 0;
+  }
+  .header-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .icon-sun,
+  .icon-moon {
+    display: grid;
+    place-items: center;
   }
   :global([data-theme="dark"]) .icon-sun { display: none; }
   :global([data-theme="light"]) .icon-moon { display: none; }
   :global(:root:not([data-theme])) .icon-moon { display: none; }
 
   .lang-switcher { position: relative; }
-  .lang-switcher summary {
+  .lang-btn {
+    width: auto;
+    padding: 0 9px;
+    gap: 5px;
+    display: inline-flex;
     list-style: none;
-    cursor: pointer;
-    padding: 0.4rem 0.55rem;
-    border-radius: var(--mdt-radius-sm);
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--mdt-text-muted);
-    letter-spacing: 0.03em;
   }
-  .lang-switcher summary::-webkit-details-marker { display: none; }
-  .lang-switcher summary:hover { background: var(--mdt-surface-muted); color: var(--mdt-text); }
+  .lang-btn::-webkit-details-marker { display: none; }
+  .lang-code {
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-micro);
+    font-weight: 500;
+  }
   .lang-list {
     position: absolute;
     right: 0;
-    top: calc(100% + 0.25rem);
-    min-width: 9rem;
+    top: calc(100% + 0.4rem);
+    min-width: 9.5rem;
     background: var(--mdt-surface-raised);
     border: 1px solid var(--mdt-border);
-    border-radius: var(--mdt-radius);
+    border-radius: var(--mdt-radius-md);
     padding: 0.3rem;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--mdt-shadow-e2);
     display: grid;
     gap: 0.1rem;
+    z-index: 60;
   }
   .lang-list a {
     padding: 0.45rem 0.6rem;
-    border-radius: var(--mdt-radius-sm);
+    border-radius: 8px;
     text-decoration: none;
     color: var(--mdt-text);
-    font-size: 0.9rem;
+    font-size: 0.875rem;
   }
-  .lang-list a:hover { background: var(--mdt-surface-muted); }
+  .lang-list a:hover { background: var(--mdt-surface-inset); }
   .lang-list a[aria-current="true"] { color: var(--mdt-accent); font-weight: 600; }
 
-  @media (min-width: 640px) {
-    .primary-nav { display: flex; }
+  .nav-toggle { display: none; }
+
+  /* ---------- MobileNav drawer ---------- */
+  .nav-scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 6, 10, 0.55);
+    backdrop-filter: blur(3px);
+    z-index: 80;
+    opacity: 0;
+    transition: opacity var(--mdt-dur) var(--mdt-ease);
+  }
+  .nav-scrim.open { opacity: 1; }
+  .mobile-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(84vw, 330px);
+    background: var(--mdt-surface-muted);
+    border-right: 1px solid var(--mdt-border);
+    z-index: 85;
+    padding: 1.1rem 1.1rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    transform: translateX(-103%);
+    transition: transform 380ms var(--mdt-ease);
+  }
+  .mobile-nav.open { transform: none; }
+  /* [hidden] must beat display:flex when the drawer is closed */
+  .mobile-nav[hidden],
+  .nav-scrim[hidden] { display: none; }
+  .mnav-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.2rem;
+  }
+  .mnav-head .brand { font-size: 0.95rem; }
+  .mnav-head .logo-badge { width: 26px; height: 26px; border-radius: 8px; }
+  .mobile-nav .lbl { display: block; margin-bottom: 0.5rem; }
+  .mnav-gap { margin-top: 1.1rem; }
+  .mnav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.55rem 0.65rem;
+    border-radius: var(--mdt-radius-sm);
+    color: var(--mdt-text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all var(--mdt-dur-micro);
+  }
+  .mnav-link:hover {
+    color: var(--mdt-text);
+    background: color-mix(in srgb, var(--mdt-accent) 10%, transparent);
+  }
+  .mnav-empty { color: var(--mdt-text-faint); font-size: 0.85rem; padding: 0.2rem 0.65rem; }
+  .mnav-langs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .mnav-langs a {
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-micro);
+    color: var(--mdt-text-muted);
+    text-decoration: none;
+    border: 1px solid var(--mdt-border);
+    border-radius: 7px;
+    padding: 5px 9px;
+  }
+  .mnav-langs a[aria-current="true"] {
+    color: var(--mdt-accent);
+    border-color: color-mix(in srgb, var(--mdt-accent) 45%, var(--mdt-border));
+    background: color-mix(in srgb, var(--mdt-accent) 8%, transparent);
+  }
+
+  @media (max-width: 700px) {
+    .search-pill { display: none; }
+    .nav-toggle { display: inline-grid; }
+    .header-inner { padding: 0.6rem 1rem; }
+  }
+  /* Mid-size: pill stays, code suffix hides to save room */
+  @media (max-width: 900px) {
+    .lang-code { display: none; }
+    .lang-btn { width: 34px; padding: 0; }
   }
 </style>

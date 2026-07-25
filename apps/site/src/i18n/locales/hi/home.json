@@ -66,10 +66,12 @@
   "SubtitlePrefix": "सभी टूल्स आपके ब्राउज़र में ऑफ़लाइन काम करते हैं। द्वारा संचालित",
   "FeatureOfflineDescription": "PWA के रूप में इंस्टॉल करें और इंटरनेट कनेक्शन के बिना उपयोग करें।",
   "ReadyToTry": "कोशिश करने के लिए तैयार हैं?",
-  "Stat_Tools": "टूल्स",
+  "Stat_Tools": "उपकरण",
   "Badge_ToolsCount": "50+ टूल्स",
   "ViewTools": "टूल्स देखें",
   "TitlePrefix": "डेवलपर",
   "Stat_Free": "मुफ्त",
-  "NoRecentDescription": "आपके द्वारा उपयोग किए जाने वाले टूल्स यहां दिखाई देंगे।"
+  "NoRecentDescription": "आपके द्वारा उपयोग किए जाने वाले टूल्स यहां दिखाई देंगे।",
+  "Stat_Languages": "भाषाएँ",
+  "Stat_Local": "लोकल"
 }

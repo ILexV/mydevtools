@@ -234,7 +234,7 @@
 
 @layer components {
   /* ---------- buttons ---------- */
-  .btn {
+  .ds-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -253,19 +253,19 @@
       border-color var(--mdt-dur-micro), box-shadow var(--mdt-dur-micro),
       background var(--mdt-dur-micro);
   }
-  .btn:hover {
+  .ds-btn:hover {
     transform: translateY(-1px);
     border-color: var(--mdt-text-faint);
   }
-  .btn:active {
+  .ds-btn:active {
     transform: translateY(0);
   }
-  .btn:disabled,
+  .ds-btn:disabled,
   .btn[aria-disabled="true"] {
     opacity: 0.45;
     pointer-events: none;
   }
-  .btn-primary {
+  .ds-btn-primary {
     color: var(--mdt-accent-contrast);
     border: 0;
     background: linear-gradient(
@@ -275,16 +275,16 @@
     );
     box-shadow: 0 5px 16px color-mix(in srgb, var(--mdt-accent) 35%, transparent);
   }
-  .btn-primary:hover {
+  .ds-btn-primary:hover {
     border-color: transparent;
     box-shadow: 0 8px 22px color-mix(in srgb, var(--mdt-accent) 45%, transparent);
   }
-  .btn-small {
+  .ds-btn-small {
     padding: 6px 11px;
     font-size: var(--mdt-fs-label);
     border-radius: 8px;
   }
-  .icon-btn {
+  .ds-icon-btn {
     width: 34px;
     height: 34px;
     display: inline-grid;
@@ -297,26 +297,26 @@
     transition: all var(--mdt-dur-micro) var(--mdt-ease);
     text-decoration: none;
   }
-  .icon-btn:hover {
+  .ds-icon-btn:hover {
     color: var(--mdt-text);
     transform: translateY(-1px);
     border-color: var(--mdt-text-faint);
   }
-  .icon-btn:disabled {
+  .ds-icon-btn:disabled {
     opacity: 0.45;
     pointer-events: none;
   }
-  .icon-btn svg {
+  .ds-icon-btn svg {
     transition: transform var(--mdt-dur-slow) var(--mdt-ease);
   }
-  .icon-btn:hover svg {
+  .ds-icon-btn:hover svg {
     transform: rotate(12deg) scale(1.06);
   }
 
   /* ---------- fields ---------- */
-  .field,
-  .field-textarea,
-  .field-select {
+  .ds-field,
+  .ds-field-textarea,
+  .ds-field-select {
     width: 100%;
     background: var(--mdt-surface-inset);
     border: 1px solid var(--mdt-border);
@@ -327,34 +327,34 @@
     padding: 10px 13px;
     transition: border-color var(--mdt-dur-micro), box-shadow var(--mdt-dur-micro);
   }
-  .field-textarea {
+  .ds-field-textarea {
     resize: vertical;
   }
-  .field.mono,
-  .field-textarea.mono {
+  .ds-field.mono,
+  .ds-field-textarea.mono {
     font-family: var(--mdt-font-mono);
     font-size: var(--mdt-fs-meta);
   }
-  .field:focus,
-  .field-textarea:focus,
-  .field-select:focus {
+  .ds-field:focus,
+  .ds-field-textarea:focus,
+  .ds-field-select:focus {
     outline: none;
     border-color: color-mix(in srgb, var(--mdt-cat) 60%, var(--mdt-border));
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--mdt-cat) 15%, transparent);
   }
-  .field::placeholder,
-  .field-textarea::placeholder {
+  .ds-field::placeholder,
+  .ds-field-textarea::placeholder {
     color: var(--mdt-text-faint);
   }
-  .field:disabled,
-  .field-textarea:disabled,
-  .field-select:disabled {
+  .ds-field:disabled,
+  .ds-field-textarea:disabled,
+  .ds-field-select:disabled {
     opacity: 0.5;
     pointer-events: none;
   }
 
   /* switch — <button class="switch" role="switch" aria-checked> or checkbox input */
-  .switch {
+  .ds-switch {
     appearance: none;
     width: 36px;
     height: 21px;
@@ -366,7 +366,7 @@
     flex-shrink: 0;
     transition: background var(--mdt-dur-micro);
   }
-  .switch::after {
+  .ds-switch::after {
     content: "";
     position: absolute;
     top: 2.5px;
@@ -378,22 +378,22 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     transition: transform 220ms var(--mdt-ease);
   }
-  .switch:checked,
+  .ds-switch:checked,
   .switch[aria-checked="true"] {
     background: var(--mdt-cat);
   }
-  .switch:checked::after,
+  .ds-switch:checked::after,
   .switch[aria-checked="true"]::after {
     transform: translateX(14px);
   }
-  .switch:disabled {
+  .ds-switch:disabled {
     opacity: 0.45;
     pointer-events: none;
   }
 
   /* checkbox / radio — accent-colored, no browser default */
-  .check,
-  .radio {
+  .ds-check,
+  .ds-radio {
     appearance: none;
     width: 18px;
     height: 18px;
@@ -405,18 +405,18 @@
     place-items: center;
     transition: all var(--mdt-dur-micro);
   }
-  .check {
+  .ds-check {
     border-radius: 5px;
   }
-  .radio {
+  .ds-radio {
     border-radius: 50%;
   }
-  .check:checked,
-  .radio:checked {
+  .ds-check:checked,
+  .ds-radio:checked {
     background: var(--mdt-cat);
     border-color: var(--mdt-cat);
   }
-  .check:checked::after {
+  .ds-check:checked::after {
     content: "";
     width: 10px;
     height: 6px;
@@ -424,21 +424,21 @@
     border-bottom: 2px solid #fff;
     transform: rotate(-45deg) translateY(-1px);
   }
-  .radio:checked::after {
+  .ds-radio:checked::after {
     content: "";
     width: 8px;
     height: 8px;
     border-radius: 50%;
     background: #fff;
   }
-  .check:disabled,
-  .radio:disabled {
+  .ds-check:disabled,
+  .ds-radio:disabled {
     opacity: 0.45;
     pointer-events: none;
   }
 
   /* ---------- chips, panels, tiles ---------- */
-  .chip {
+  .ds-chip {
     font-family: var(--mdt-font-mono);
     font-size: 0.625rem;
     letter-spacing: 0.05em;
@@ -449,11 +449,11 @@
     background: var(--mdt-surface-inset);
     white-space: nowrap;
   }
-  .chip-cat {
+  .ds-chip-cat {
     color: var(--mdt-cat);
     border-color: color-mix(in srgb, var(--mdt-cat) 30%, var(--mdt-border));
   }
-  .panel {
+  .ds-panel {
     background: var(--mdt-surface-raised);
     border: 1px solid var(--mdt-border);
     border-radius: var(--mdt-radius);
@@ -538,13 +538,13 @@
       transform: translate(-50%, 8px);
     }
   }
-  .progress {
+  .ds-progress {
     height: 4px;
     border-radius: 999px;
     background: var(--mdt-border-soft);
     overflow: hidden;
   }
-  .progress > i {
+  .ds-progress > i {
     display: block;
     height: 100%;
     border-radius: 999px;
@@ -555,7 +555,7 @@
     );
     transition: width var(--mdt-dur) var(--mdt-ease);
   }
-  .spinner {
+  .ds-spinner {
     width: 18px;
     height: 18px;
     border-radius: 50%;
@@ -614,14 +614,14 @@
   }
 
   /* dialog / popover shells (JS controls open state) */
-  .dialog {
+  .ds-dialog {
     background: var(--mdt-surface-raised);
     border: 1px solid var(--mdt-border);
     border-radius: var(--mdt-radius);
     box-shadow: var(--mdt-shadow-e2);
     padding: 20px;
   }
-  .scrim {
+  .ds-scrim {
     position: fixed;
     inset: 0;
     background: rgba(4, 6, 10, 0.55);

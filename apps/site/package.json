@@ -17,7 +17,7 @@
     "validate:i18n": "node scripts/validate-i18n.mjs",
     "test": "node --experimental-strip-types --test test/*.test.ts",
     "test:smoke": "node --test scripts/smoke-dist.mjs",
-    "verify": "astro check && npm run validate:i18n && node --test && npm run build && node --test scripts/smoke-dist.mjs",
+    "verify": "astro check && npm run validate:i18n && npm test && npm run build && node --test scripts/smoke-dist.mjs",
     "astro": "astro"
   },
   "dependencies": {

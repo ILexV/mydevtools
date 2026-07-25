@@ -1,9 +1,9 @@
 ---
 /**
  * Header — Prism site chrome (design spec §1/§9).
- * Brand badge + search pill (opens palette) + theme toggle + lang switcher.
+ * Brand badge + search pill (opens palette) + theme toggle + lang ds-switcher.
  * Mobile: hamburger opens the MobileNav drawer (catalog/favorites/recent/lang).
- * `path` is the in-locale path so the language switcher preserves location.
+ * `path` is the in-locale path so the language ds-switcher preserves location.
  */
 import { LOCALES, type LocaleCode } from "@/registry/locales";
 import { localizedPath } from "@/lib/url";
@@ -28,7 +28,7 @@ const recentTitle = t(locale, "common", "CommandPalette_RecentTitle");
 
 <header class="site-header">
   <div class="header-inner">
-    <button type="button" class="icon-btn nav-toggle" data-nav-toggle aria-label="Menu">
+    <button type="button" class="ds-icon-btn nav-toggle" data-nav-toggle aria-label="Menu">
       <Icon name="menu" size={16} />
     </button>
 
@@ -49,13 +49,13 @@ const recentTitle = t(locale, "common", "CommandPalette_RecentTitle");
     </button>
 
     <div class="header-actions">
-      <button type="button" class="icon-btn" data-theme-toggle aria-label="Toggle theme" title="Theme">
+      <button type="button" class="ds-icon-btn" data-theme-toggle aria-label="Toggle theme" title="Theme">
         <span class="icon-sun"><Icon name="sun" size={16} /></span>
         <span class="icon-moon"><Icon name="moon" size={16} /></span>
       </button>
 
       <details class="lang-switcher">
-        <summary class="icon-btn lang-btn" aria-label={languageLabel} title={languageLabel}>
+        <summary class="ds-icon-btn lang-btn" aria-label={languageLabel} title={languageLabel}>
           <Icon name="globe" size={16} />
           <span class="lang-code">{locale.toUpperCase()}</span>
         </summary>
@@ -79,7 +79,7 @@ const recentTitle = t(locale, "common", "CommandPalette_RecentTitle");
 <nav class="mobile-nav" data-mobile-nav aria-label="Mobile navigation" hidden>
   <div class="mnav-head">
     <span class="brand"><span class="logo-badge"><Icon name="logo-mark" size={14} /></span>{brand}</span>
-    <button type="button" class="icon-btn" data-nav-close aria-label="Close"><Icon name="close" size={15} /></button>
+    <button type="button" class="ds-icon-btn" data-nav-close aria-label="Close"><Icon name="close" size={15} /></button>
   </div>
   <span class="lbl">{toolsLabel}</span>
   <a class="mnav-link" href={localizedPath(locale)} data-nav-close>{homeLabel}</a>

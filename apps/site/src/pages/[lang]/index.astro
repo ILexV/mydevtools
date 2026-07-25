@@ -60,7 +60,7 @@ const indexJson = JSON.stringify(index);
       <h1>{heroTitle}</h1>
       <p class="hero-subtitle">{heroSubtitle}</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="#catalog">{heroCta}<Icon name="arrow-right" size={14} /></a>
+        <a class="ds-btn ds-btn-primary" href="#catalog">{heroCta}<Icon name="arrow-right" size={14} /></a>
       </div>
       <div class="hero-stats">
         <div class="stat"><b class="tabular">{catalog.tools.length}</b><span>{statTools}</span></div>
@@ -235,8 +235,8 @@ const indexJson = JSON.stringify(index);
     max-width: 56ch;
   }
   .hero-actions { margin-top: 1.7rem; }
-  .hero-actions .btn svg { transition: transform var(--mdt-dur-micro) var(--mdt-ease); }
-  .hero-actions .btn:hover svg { transform: translateX(3px); }
+  .hero-actions .ds-btn svg { transition: transform var(--mdt-dur-micro) var(--mdt-ease); }
+  .hero-actions .ds-btn:hover svg { transform: translateX(3px); }
   .hero-stats {
     margin-top: 2.4rem;
     display: flex;

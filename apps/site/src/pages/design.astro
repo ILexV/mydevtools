@@ -48,83 +48,83 @@ const STRESS = [
       </header>
 
       <!-- 1. Buttons -->
-      <section class="panel section">
+      <section class="ds-panel section">
         <h2 class="lbl">Buttons</h2>
         <div class="row">
-          <button class="btn" type="button">Default</button>
-          <button class="btn btn-primary" type="button">Primary</button>
-          <button class="btn btn-small" type="button">Small</button>
-          <button class="icon-btn" type="button" aria-label="Favorite">
+          <button class="ds-btn" type="button">Default</button>
+          <button class="ds-btn ds-btn-primary" type="button">Primary</button>
+          <button class="ds-btn ds-btn-small" type="button">Small</button>
+          <button class="ds-icon-btn" type="button" aria-label="Favorite">
             <Icon name="star" size={16} />
           </button>
         </div>
         <div class="row">
-          <button class="btn" type="button" disabled>Disabled</button>
-          <button class="btn btn-primary" type="button" disabled>Disabled primary</button>
-          <button class="icon-btn" type="button" disabled aria-label="Favorite (disabled)">
+          <button class="ds-btn" type="button" disabled>Disabled</button>
+          <button class="ds-btn ds-btn-primary" type="button" disabled>Disabled primary</button>
+          <button class="ds-icon-btn" type="button" disabled aria-label="Favorite (disabled)">
             <Icon name="star" size={16} />
           </button>
-          <button class="btn" type="button" aria-disabled="true">
-            <span class="spinner" aria-hidden="true"></span>
+          <button class="ds-btn" type="button" aria-disabled="true">
+            <span class="ds-spinner" aria-hidden="true"></span>
             Processing…
           </button>
         </div>
       </section>
 
       <!-- 2. Fields -->
-      <section class="panel section">
+      <section class="ds-panel section">
         <h2 class="lbl">Fields</h2>
         <div class="stack">
-          <input class="field" type="text" placeholder="Paste a JWT, URL, or base64 blob…" />
-          <input class="field mono" type="text" value="e30.eyJhbGciOiJIUzI1NiJ9.signature" aria-label="Mono field" />
-          <textarea class="field-textarea" rows="3" placeholder='{"name": "value"} — multi-line JSON input…'></textarea>
-          <select class="field-select" aria-label="Output format">
+          <input class="ds-field" type="text" placeholder="Paste a JWT, URL, or base64 blob…" />
+          <input class="ds-field mono" type="text" value="e30.eyJhbGciOiJIUzI1NiJ9.signature" aria-label="Mono ds-field" />
+          <textarea class="ds-field-textarea" rows="3" placeholder='{"name": "value"} — multi-line JSON input…'></textarea>
+          <select class="ds-field-select" aria-label="Output format">
             <option>Hex (lowercase)</option>
             <option>Base64</option>
             <option>Base64url</option>
           </select>
-          <input class="field" type="text" disabled value="Read-only computed digest" aria-label="Disabled field" />
+          <input class="ds-field" type="text" disabled value="Read-only computed digest" aria-label="Disabled ds-field" />
           <div class="field-error-group">
-            <input class="field field-invalid" type="text" value="sha-0" aria-invalid="true" aria-label="Field with error" />
+            <input class="ds-field field-invalid" type="text" value="sha-0" aria-invalid="true" aria-label="Field with error" />
             <p class="field-error-msg">Unknown algorithm “sha-0” — pick SHA-1, SHA-256, or SHA-512.</p>
           </div>
         </div>
       </section>
 
       <!-- 3. Toggles -->
-      <section class="panel section">
+      <section class="ds-panel section">
         <h2 class="lbl">Toggles</h2>
         <div class="row">
-          <label class="toggle-row"><input class="switch" type="checkbox" checked /> On</label>
-          <label class="toggle-row"><input class="switch" type="checkbox" /> Off</label>
-          <label class="toggle-row"><input class="switch" type="checkbox" disabled /> Disabled</label>
+          <label class="toggle-row"><input class="ds-switch" type="checkbox" checked /> On</label>
+          <label class="toggle-row"><input class="ds-switch" type="checkbox" /> Off</label>
+          <label class="toggle-row"><input class="ds-switch" type="checkbox" disabled /> Disabled</label>
         </div>
         <div class="row">
-          <label class="toggle-row"><input class="check" type="checkbox" checked /> Remember theme</label>
-          <label class="toggle-row"><input class="check" type="checkbox" /> Remember theme</label>
+          <label class="toggle-row"><input class="ds-check" type="checkbox" checked /> Remember theme</label>
+          <label class="toggle-row"><input class="ds-check" type="checkbox" /> Remember theme</label>
         </div>
         <div class="row" role="radiogroup" aria-label="Case">
-          <label class="toggle-row"><input class="radio" type="radio" name="case" checked /> lowercase</label>
-          <label class="toggle-row"><input class="radio" type="radio" name="case" /> UPPERCASE</label>
+          <label class="toggle-row"><input class="ds-radio" type="radio" name="case" checked /> lowercase</label>
+          <label class="toggle-row"><input class="ds-radio" type="radio" name="case" /> UPPERCASE</label>
         </div>
       </section>
 
       <!-- 4. Chips -->
-      <section class="panel section">
+      <section class="ds-panel section">
         <h2 class="lbl">Chips</h2>
         <div class="row">
-          <span class="chip">sha-256</span>
-          <span class="chip">base64</span>
-          <span class="chip">client-side</span>
+          <span class="ds-chip">sha-256</span>
+          <span class="ds-chip">base64</span>
+          <span class="ds-chip">client-side</span>
           <div class="row" style="--mdt-cat: var(--mdt-cat-hashing)">
-            <span class="chip chip-cat">hashing</span>
-            <span class="chip chip-cat">hmac</span>
+            <span class="ds-chip ds-chip-cat">hashing</span>
+            <span class="ds-chip ds-chip-cat">hmac</span>
           </div>
         </div>
       </section>
 
       <!-- 5. Category tiles -->
-      <section class="panel section">
+      <section class="ds-panel section">
         <h2 class="lbl">Category tiles</h2>
         <div class="tile-grid">
           {CATEGORIES.map((c) => (
@@ -137,7 +137,7 @@ const STRESS = [
       </section>
 
       <!-- 6. Feedback -->
-      <section class="panel section">
+      <section class="ds-panel section">
         <h2 class="lbl">Feedback</h2>
         <div class="stack">
           <div class="alert alert-info" role="status">Everything runs in your browser — nothing is uploaded.</div>
@@ -146,12 +146,12 @@ const STRESS = [
           <div class="alert alert-error" role="alert">14.6 MB — exceeds 10 MB per-file limit for WebP.</div>
           <div><span class="privacy-pill"><Icon name="lock" size={12} /> 100% client-side · no uploads</span></div>
           <div class="progress-row">
-            <div class="progress" role="progressbar" aria-valuenow={62} aria-valuemin={0} aria-valuemax={100} aria-label="Converting images"><i style="width: 62%"></i></div>
-            <span class="chip">62%</span>
+            <div class="ds-progress" role="progressbar" aria-valuenow={62} aria-valuemin={0} aria-valuemax={100} aria-label="Converting images"><i style="width: 62%"></i></div>
+            <span class="ds-chip">62%</span>
           </div>
           <div class="row">
-            <span class="spinner" role="status" aria-label="Loading"></span>
-            <span class="lbl">spinner</span>
+            <span class="ds-spinner" role="status" aria-label="Loading"></span>
+            <span class="lbl">ds-spinner</span>
           </div>
           <div class="stack">
             <div class="skeleton" style="width: 100%; height: 0.875rem"></div>
@@ -163,7 +163,7 @@ const STRESS = [
             </div>
           </div>
           <div class="row">
-            <button class="btn" type="button" data-tip="Copy to clipboard">
+            <button class="ds-btn" type="button" data-tip="Copy to clipboard">
               <Icon name="copy" size={16} /> Hover for tooltip
             </button>
           </div>
@@ -171,7 +171,7 @@ const STRESS = [
       </section>
 
       <!-- 7. Segmented control -->
-      <section class="panel section">
+      <section class="ds-panel section">
         <h2 class="lbl">Segmented control</h2>
         <div class="seg" role="group" aria-label="Indentation">
           <button type="button">2 spaces</button>
@@ -181,20 +181,20 @@ const STRESS = [
       </section>
 
       <!-- 8. Dialog -->
-      <section class="panel section">
+      <section class="ds-panel section">
         <h2 class="lbl">Dialog</h2>
-        <div class="dialog demo-dialog" role="dialog" aria-label="Clear recent tools">
+        <div class="ds-dialog demo-dialog" role="dialog" aria-label="Clear recent tools">
           <h3 class="h3">Clear recent tools?</h3>
           <p class="body-muted">This removes the local history of tools you opened. Favorites are kept.</p>
           <div class="row dialog-actions">
-            <button class="btn" type="button">Cancel</button>
-            <button class="btn btn-primary" type="button">Clear history</button>
+            <button class="ds-btn" type="button">Cancel</button>
+            <button class="ds-btn ds-btn-primary" type="button">Clear history</button>
           </div>
         </div>
       </section>
 
       <!-- 9. Typography -->
-      <section class="panel section">
+      <section class="ds-panel section">
         <h2 class="lbl">Typography</h2>
         <div class="stack type-stack">
           <p class="display">Every developer tool, zero uploads</p>
@@ -209,14 +209,14 @@ const STRESS = [
       </section>
 
       <!-- 10. Long-string stress (Gate 6) -->
-      <section class="panel section">
+      <section class="ds-panel section">
         <h2 class="lbl">Long strings — DE / RU / CJK</h2>
         {STRESS.map((s) => (
           <div class="stress-block">
-            <p class="lbl">{s.lang} — button / chip / card title</p>
+            <p class="lbl">{s.lang} — button / ds-chip / card title</p>
             <div class="row">
-              <button class="btn stress-wrap" type="button">{s.text}</button>
-              <span class="chip stress-ellipsis">{s.text}</span>
+              <button class="ds-btn stress-wrap" type="button">{s.text}</button>
+              <span class="ds-chip stress-ellipsis">{s.text}</span>
             </div>
             <div class="stress-card">
               <h3 class="h3 stress-wrap">{s.text}</h3>
@@ -228,10 +228,10 @@ const STRESS = [
 
     <!-- Floating theme toggle -->
     <div class="theme-fab">
-      <button class="icon-btn" type="button" data-set-theme="light" aria-label="Light theme" title="Light theme">
+      <button class="ds-icon-btn" type="button" data-set-theme="light" aria-label="Light theme" title="Light theme">
         <Icon name="sun" size={16} />
       </button>
-      <button class="icon-btn" type="button" data-set-theme="dark" aria-label="Dark theme" title="Dark theme">
+      <button class="ds-icon-btn" type="button" data-set-theme="dark" aria-label="Dark theme" title="Dark theme">
         <Icon name="moon" size={16} />
       </button>
     </div>
@@ -328,7 +328,7 @@ const STRESS = [
     gap: 0.75rem;
   }
 
-  .progress-row .progress {
+  .progress-row .ds-progress {
     flex: 1;
   }
 
@@ -400,7 +400,7 @@ const STRESS = [
     overflow-wrap: anywhere;
   }
 
-  .btn.stress-wrap {
+  .ds-btn.stress-wrap {
     white-space: normal;
     max-width: 20rem;
     text-align: left;

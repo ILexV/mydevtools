@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concept C — Index</title>
+<style>
+:root, :root[data-theme="light"] {
+  --bg: #ffffff; --panel: #ffffff; --ink: #111111; --ink-soft: #555555; --ink-faint: #9a9a9a;
+  --line: #111111; --hairline: #e0e0e0;
+  --signal: #e8001c;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --display: "Archivo Black", "Arial Black", system-ui, sans-serif;
+  --sans: "Inter", system-ui, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #0a0a0a; --panel: #0a0a0a; --ink: #f2f2f2; --ink-soft: #a8a8a8; --ink-faint: #666666;
+  --line: #f2f2f2; --hairline: #2c2c2c;
+  --signal: #ff3b47;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+a { color: inherit; text-decoration: none; }
+.mono { font-family: var(--mono); }
+
+header { border-bottom: 2px solid var(--line); }
+.header-inner { max-width: 1240px; margin: 0 auto; padding: 0 24px; height: 60px; display: flex; align-items: center; gap: 24px; }
+.logo { font: 900 18px var(--display); letter-spacing: -.01em; text-transform: uppercase; }
+.logo sup { color: var(--signal); font: 700 10px var(--mono); margin-left: 4px; }
+.search { margin-left: auto; font: 12px var(--mono); color: var(--ink-faint); border-bottom: 1px solid var(--ink-faint); padding: 2px 0; }
+.search b { color: var(--ink); font-weight: 500; }
+.hnav { display: flex; gap: 16px; font: 11px var(--mono); text-transform: uppercase; letter-spacing: .1em; }
+.hnav button { background: none; border: 0; font: inherit; color: inherit; cursor: pointer; text-transform: inherit; letter-spacing: inherit; padding: 0; }
+.hnav button:hover { color: var(--signal); }
+
+.hero { max-width: 1240px; margin: 0 auto; padding: 64px 24px 48px; border-bottom: 1px solid var(--hairline); }
+.hero h1 { font: 900 clamp(44px, 7.5vw, 96px)/0.98 var(--display); text-transform: uppercase; letter-spacing: -.02em; }
+.hero h1 .sig { color: var(--signal); }
+.hero-sub { margin-top: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: end; }
+.hero-sub p { color: var(--ink-soft); max-width: 46ch; font-size: 16px; }
+.hero-index { justify-self: end; display: flex; gap: 32px; font: 12px var(--mono); }
+.hero-index div { text-align: right; }
+.hero-index b { display: block; font: 900 34px var(--display); color: var(--ink); line-height: 1; }
+.hero-index span { color: var(--ink-faint); text-transform: uppercase; letter-spacing: .12em; font-size: 10px; }
+
+main { max-width: 1240px; margin: 0 auto; padding: 0 24px 88px; }
+.cat { margin-top: 0; }
+.cat-head { display: grid; grid-template-columns: 72px 1fr auto; align-items: baseline; gap: 20px; padding: 22px 0 14px; border-bottom: 2px solid var(--line); }
+.cat-head .no { font: 900 26px var(--display); color: var(--signal); }
+.cat-head h2 { font: 900 22px var(--display); text-transform: uppercase; letter-spacing: .01em; }
+.cat-head .n { font: 11px var(--mono); color: var(--ink-faint); }
+.list { display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 40px; }
+.row { display: grid; grid-template-columns: 52px 1fr auto; gap: 18px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--hairline); transition: background .12s; position: relative; }
+.row:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.row .no { font: 700 13px var(--mono); color: var(--ink-faint); }
+.row:hover .no { color: var(--signal); }
+.row h3 { font: 600 16px var(--sans); letter-spacing: -.01em; }
+.row p { grid-column: 2; font-size: 12.5px; color: var(--ink-soft); margin-top: -10px; }
+.row .arrow { font: 14px var(--mono); color: var(--ink-faint); transition: transform .12s, color .12s; }
+.row:hover .arrow { color: var(--signal); transform: translateX(3px); }
+footer { border-top: 2px solid var(--line); }
+.footer-inner { max-width: 1240px; margin: 0 auto; padding: 16px 24px; display: flex; justify-content: space-between; font: 10.5px var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--ink-faint); }
+@media (max-width: 860px) {
+  .list { grid-template-columns: 1fr; }
+  .hero-sub { grid-template-columns: 1fr; }
+  .hero-index { justify-self: start; }
+}
+@media (max-width: 560px) { .hero { padding: 40px 20px 32px; } .search { display: none; } }
+</style>
+</head>
+<body>
+<header><div class="header-inner">
+  <div class="logo">MyDevTools<sup>39</sup></div>
+  <div class="search"><b>Search the index</b> — ⌘K</div>
+  <nav class="hnav"><button>EN</button><button onclick="toggleTheme()">Dark</button></nav>
+</div></header>
+
+<section class="hero">
+  <h1>Tools.<br>Local.<br><span class="sig">Nothing else.</span></h1>
+  <div class="hero-sub">
+    <p>Thirty-nine utilities for encoding, hashing, documents and files. Computed in your browser. No server, no upload, no account — the network tab stays empty.</p>
+    <div class="hero-index"><div><b>39</b><span>tools</span></div><div><b>10</b><span>languages</span></div><div><b>0</b><span>servers</span></div></div>
+  </div>
+</section>
+
+<main>
+  <section class="cat">
+    <div class="cat-head"><span class="no">01</span><h2>Encoding</h2><span class="n">06 entries</span></div>
+    <div class="list">
+      <a class="row" href="#"><span class="no">01</span><h3>Base64 Encoder / Decoder</h3><span class="arrow">→</span><p>Encode and decode Base64 for text and files — all in your browser.</p></a>
+      <a class="row" href="#"><span class="no">02</span><h3>Base32 Encoder / Decoder</h3><span class="arrow">→</span><p>Encode and decode Base32 for text and files — all in your browser.</p></a>
+      <a class="row" href="#"><span class="no">03</span><h3>Base58 Encoder / Decoder</h3><span class="arrow">→</span><p>Encode and decode Base58 for text and files — all in your browser.</p></a>
+      <a class="row" href="#"><span class="no">04</span><h3>Hex Encoder / Decoder</h3><span class="arrow">→</span><p>Encode and decode Hex for text or files with configurable options.</p></a>
+      <a class="row" href="#"><span class="no">05</span><h3>URL Encoder / Decoder</h3><span class="arrow">→</span><p>Percent-encode and decode URL text with selectable modes and charsets.</p></a>
+      <a class="row" href="#"><span class="no">06</span><h3>HTML Entity Encoder / Decoder</h3><span class="arrow">→</span><p>Named, decimal and hexadecimal HTML entities — both directions.</p></a>
+    </div>
+  </section>
+  <section class="cat">
+    <div class="cat-head"><span class="no">02</span><h2>Generators</h2><span class="n">04 entries</span></div>
+    <div class="list">
+      <a class="row" href="#"><span class="no">01</span><h3>UUID/GUID Generator</h3><span class="arrow">→</span><p>UUID v4 and v7 identifiers, generated locally in your browser.</p></a>
+      <a class="row" href="#"><span class="no">02</span><h3>Password Generator</h3><span class="arrow">→</span><p>Strong, secure random passwords generated on-device.</p></a>
+      <a class="row" href="#"><span class="no">03</span><h3>Lorem Ipsum Generator</h3><span class="arrow">→</span><p>Placeholder text for mockups and designs — completely in your browser.</p></a>
+      <a class="row" href="#"><span class="no">04</span><h3>QR Code Generator</h3><span class="arrow">→</span><p>Custom QR codes with colors, styles and logos — all in your browser.</p></a>
+    </div>
+  </section>
+</main>
+<footer><div class="footer-inner"><span>MyDevTools — index 2026.07</span><span>Set locally. Printed nowhere.</span></div></footer>
+<script>
+function toggleTheme(){const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';}
+</script>
+</body>
+</html>

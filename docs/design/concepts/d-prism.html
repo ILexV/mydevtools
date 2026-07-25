@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concept D — Prism</title>
+<style>
+:root, :root[data-theme="dark"] {
+  --bg: #0a0c12; --bg2: #0e1119; --panel: #131722; --panel2: #171c2a;
+  --line: #232a3b; --line-soft: #1b2130;
+  --text: #eef1f7; --muted: #97a1b5; --faint: #626d84;
+  --brand1: #7c6cff; --brand2: #38e1c6;
+  --cat-enc: #8b7bff; --cat-gen: #2fd4a4;
+  --ok: #34d399;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --sans: "Inter", system-ui, "Segoe UI", sans-serif;
+  --ease: cubic-bezier(.2,.8,.2,1);
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg: #f6f7fb; --bg2: #eef0f7; --panel: #ffffff; --panel2: #f5f6fc;
+  --line: #e2e5f0; --line-soft: #eceef6;
+  --text: #151a26; --muted: #57627a; --faint: #6b7484;
+  --brand1: #6a5af9; --brand2: #0a8a6f;
+  --cat-enc: #6a5af9; --cat-gen: #067a60;
+  --ok: #0a9d6c;
+  color-scheme: light;
+}
+* { box-sizing: border-box; margin: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font: 15px/1.55 var(--sans); overflow-x: hidden;
+  transition: background .35s var(--ease), color .35s var(--ease); }
+a { color: inherit; text-decoration: none; }
+.mono { font-family: var(--mono); }
+
+/* ---- ambient background: drifting glyphs + soft beams ---- */
+.ambient { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.ambient::before { content: ""; position: absolute; inset: -20%;
+  background:
+    radial-gradient(38% 30% at 18% 12%, color-mix(in srgb, var(--brand1) 14%, transparent), transparent 70%),
+    radial-gradient(34% 28% at 85% 8%, color-mix(in srgb, var(--brand2) 12%, transparent), transparent 70%),
+    radial-gradient(40% 34% at 55% 95%, color-mix(in srgb, var(--brand1) 9%, transparent), transparent 70%);
+  animation: drift 26s ease-in-out infinite alternate; }
+@keyframes drift { to { transform: translate3d(3%, -2%, 0) scale(1.06); } }
+.glyph { position: absolute; font: 600 15px var(--mono); color: var(--faint); opacity: .5;
+  animation: floaty 9s ease-in-out infinite alternate; will-change: transform; }
+@keyframes floaty { from { transform: translateY(-8px) rotate(-3deg); } to { transform: translateY(10px) rotate(4deg); } }
+
+/* ---- header ---- */
+header { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--bg) 72%, transparent); border-bottom: 1px solid var(--line-soft); }
+.header-inner { max-width: 1180px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; gap: 18px; }
+.logo { display: flex; align-items: center; gap: 10px; font: 700 16px var(--sans); letter-spacing: -.01em; }
+.logo-badge { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: #fff;
+  background: linear-gradient(135deg, var(--brand1), var(--brand2)); box-shadow: 0 4px 14px color-mix(in srgb, var(--brand1) 40%, transparent); }
+.search { flex: 1; max-width: 400px; display: flex; align-items: center; gap: 9px; background: var(--panel);
+  border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; color: var(--faint); font-size: 13px;
+  transition: border-color .2s, box-shadow .2s; cursor: text; }
+.search:hover { border-color: color-mix(in srgb, var(--brand1) 55%, var(--line)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand1) 14%, transparent); }
+.search kbd { margin-left: auto; font: 10.5px var(--mono); border: 1px solid var(--line); border-radius: 5px; padding: 1.5px 6px; color: var(--muted); }
+.hnav { margin-left: auto; display: flex; gap: 8px; }
+.iconbtn { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--muted); cursor: pointer; transition: all .2s var(--ease); font: 11px var(--mono); }
+.iconbtn:hover { color: var(--text); transform: translateY(-1px); border-color: var(--faint); }
+.iconbtn svg { transition: transform .45s var(--ease); }
+.iconbtn:hover svg { transform: rotate(18deg) scale(1.08); }
+
+/* ---- hero ---- */
+.hero { max-width: 1180px; margin: 0 auto; padding: 84px 24px 40px; position: relative; }
+.pill { display: inline-flex; align-items: center; gap: 8px; font: 11.5px var(--mono); color: var(--muted);
+  border: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 70%, transparent);
+  padding: 6px 13px; border-radius: 999px; animation: rise .6s var(--ease) both; }
+.pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 55%, transparent); animation: pulse 2.2s infinite; }
+@keyframes pulse { 70% { box-shadow: 0 0 0 8px transparent; } }
+.hero h1 { margin-top: 22px; font: 650 clamp(38px, 5.6vw, 64px)/1.06 var(--sans); letter-spacing: -.035em; max-width: 16ch; }
+.hero h1 .w { display: inline-block; animation: rise .7s var(--ease) both; }
+.hero h1 .grad { background: linear-gradient(100deg, var(--brand1), var(--brand2) 70%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } }
+.hero p { margin-top: 20px; color: var(--muted); max-width: 54ch; font-size: 16.5px; animation: rise .7s .25s var(--ease) both; }
+.hero-cta { margin-top: 30px; display: flex; gap: 12px; animation: rise .7s .35s var(--ease) both; }
+.btn-primary { display: inline-flex; align-items: center; gap: 9px; padding: 12px 22px; border-radius: 11px; font-weight: 600; font-size: 14.5px; color: #fff;
+  background: linear-gradient(135deg, var(--brand1), color-mix(in srgb, var(--brand1) 55%, var(--brand2)));
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--brand1) 38%, transparent); transition: all .22s var(--ease); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 28px color-mix(in srgb, var(--brand1) 48%, transparent); }
+.btn-primary svg { transition: transform .22s var(--ease); }
+.btn-primary:hover svg { transform: translateX(3px); }
+.btn-ghost { display: inline-flex; align-items: center; padding: 12px 20px; border-radius: 11px; font-weight: 500; font-size: 14.5px;
+  border: 1px solid var(--line); color: var(--muted); background: color-mix(in srgb, var(--panel) 60%, transparent); transition: all .22s var(--ease); }
+.btn-ghost:hover { color: var(--text); border-color: var(--faint); transform: translateY(-2px); }
+.hero-stats { margin-top: 44px; display: flex; gap: 40px; animation: rise .7s .45s var(--ease) both; }
+.stat b { font: 650 30px/1 var(--sans); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.stat span { display: block; margin-top: 5px; font: 11px var(--mono); text-transform: uppercase; letter-spacing: .12em; color: var(--faint); }
+
+/* ---- catalog ---- */
+main { max-width: 1180px; margin: 0 auto; padding: 20px 24px 90px; --cat: var(--brand1); }
+.cat { margin-top: 46px; }
+.cat-head { display: flex; align-items: center; gap: 13px; margin-bottom: 18px; }
+.cat-icon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--cat) 15%, transparent); color: var(--cat);
+  border: 1px solid color-mix(in srgb, var(--cat) 30%, transparent); }
+.cat-head h2 { font: 650 20px var(--sans); letter-spacing: -.02em; }
+.cat-head .count { font: 11px var(--mono); color: var(--faint); margin-left: 2px; }
+.cat-head .more { margin-left: auto; font-size: 13px; color: var(--faint); display: flex; align-items: center; gap: 5px; transition: color .2s; }
+.cat-head .more:hover { color: var(--cat); }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.card { position: relative; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 15px; padding: 18px; transition: transform .25s var(--ease), border-color .25s, box-shadow .25s;
+  animation: rise .55s var(--ease) both; }
+.card:nth-child(2) { animation-delay: .05s; } .card:nth-child(3) { animation-delay: .1s; }
+.card:nth-child(4) { animation-delay: .15s; } .card:nth-child(5) { animation-delay: .2s; } .card:nth-child(6) { animation-delay: .25s; }
+.card:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--cat) 55%, var(--line));
+  box-shadow: 0 14px 34px -12px color-mix(in srgb, var(--cat) 38%, transparent); }
+.tile { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; margin-bottom: 14px;
+  background: color-mix(in srgb, var(--cat) 13%, transparent); color: var(--cat);
+  border: 1px solid color-mix(in srgb, var(--cat) 26%, transparent);
+  transition: transform .3s var(--ease), background .3s; }
+.card:hover .tile { transform: rotate(-6deg) scale(1.07); background: color-mix(in srgb, var(--cat) 20%, transparent); }
+.tile svg { overflow: visible; }
+.tile path, .tile rect, .tile circle, .tile line { transition: stroke-dashoffset .5s var(--ease); }
+.card h3 { font: 600 15.5px var(--sans); letter-spacing: -.015em; display: flex; align-items: center; gap: 7px; }
+.card h3 .go { margin-left: auto; color: var(--faint); opacity: 0; transform: translateX(-5px); transition: all .22s var(--ease); }
+.card:hover h3 .go { opacity: 1; transform: none; color: var(--cat); }
+.card p { margin-top: 7px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+.card .meta { margin-top: 13px; display: flex; gap: 6px; }
+.chip { font: 10px var(--mono); letter-spacing: .05em; color: var(--faint); border: 1px solid var(--line);
+  border-radius: 6px; padding: 2.5px 7px; background: var(--panel2); }
+.chip.wasm { color: var(--cat); border-color: color-mix(in srgb, var(--cat) 30%, var(--line)); }
+
+footer { border-top: 1px solid var(--line-soft); }
+.footer-inner { max-width: 1180px; margin: 0 auto; padding: 16px 24px; display: flex; justify-content: space-between; font: 11px var(--mono); color: var(--faint); }
+
+@media (max-width: 860px) { .grid { grid-template-columns: 1fr 1fr; } .hero-stats { gap: 26px; } }
+@media (max-width: 560px) {
+  .grid { grid-template-columns: 1fr; }
+  .hero { padding: 52px 20px 28px; }
+  .search { display: none; }
+  .hero-stats { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+<div class="ambient" id="ambient"></div>
+
+<header><div class="header-inner">
+  <div class="logo"><span class="logo-badge"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5 2 8l2.5 3M11.5 5 14 8l-2.5 3M9 3.5 7 12.5"/></svg></span>MyDevTools</div>
+  <div class="search"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="6" cy="6" r="4.2"/><path d="m9.2 9.2 3 3"/></svg>Search 39 tools…<kbd>⌘K</kbd></div>
+  <nav class="hnav">
+    <button class="iconbtn">EN</button>
+    <button class="iconbtn" onclick="toggleTheme()" title="Theme"><svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M7.5 1.5v1.4M7.5 12.1v1.4M1.5 7.5h1.4M12.1 7.5h1.4M3.3 3.3l1 1M10.7 10.7l1 1M3.3 11.7l1-1M10.7 4.3l1-1"/><circle cx="7.5" cy="7.5" r="2.6"/></svg></button>
+  </nav>
+</div></header>
+
+<section class="hero">
+  <span class="pill"><span class="dot"></span>39 tools · 100% local · no cookies</span>
+  <h1>
+    <span class="w" style="animation-delay:.05s">Every</span> <span class="w" style="animation-delay:.1s">dev</span> <span class="w" style="animation-delay:.15s">tool</span> <span class="w" style="animation-delay:.2s">you</span> <span class="w" style="animation-delay:.25s">need.</span><br>
+    <span class="w grad" style="animation-delay:.32s">Zero</span> <span class="w grad" style="animation-delay:.38s">servers</span> <span class="w" style="animation-delay:.44s">involved.</span>
+  </h1>
+  <p>Encode, hash, convert, compress and inspect — computed in your browser by Rust/WASM. Your data never touches a network cable.</p>
+  <div class="hero-cta">
+    <a class="btn-primary" href="#catalog">Browse tools<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h9M8 3.5 11.5 7 8 10.5"/></svg></a>
+    <a class="btn-ghost" href="#">How privacy works</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b data-count="39">0</b><span>tools</span></div>
+    <div class="stat"><b data-count="10">0</b><span>languages</span></div>
+    <div class="stat"><b data-count="17">0</b><span>wasm modules</span></div>
+    <div class="stat"><b>0</b><span>requests out</span></div>
+  </div>
+</section>
+
+<main id="catalog">
+  <section class="cat" style="--cat: var(--cat-enc)">
+    <div class="cat-head">
+      <span class="cat-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 6 3 8.5 5.5 11M11.5 6 14 8.5 11.5 11"/></svg></span>
+      <h2>Encoding</h2><span class="count">6 tools</span>
+      <a class="more" href="#">all <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 6h7M6.5 3 9.5 6 6.5 9"/></svg></a>
+    </div>
+    <div class="grid">
+      <a class="card" href="#"><span class="tile"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 4h4v4H4zM12 12h4v4h-4zM12 4h4v4h-4zM4 12h4v4H4z"/></svg></span><h3>Base64 Encoder / Decoder <span class="go">→</span></h3><p>Encode and decode Base64 for text and files — all in your browser.</p><div class="meta"><span class="chip wasm">wasm</span><span class="chip">text</span><span class="chip">file</span></div></a>
+      <a class="card" href="#"><span class="tile"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 6h14M3 10h14M3 14h9"/></svg></span><h3>Base32 Encoder / Decoder <span class="go">→</span></h3><p>Encode and decode Base32 for text and files — all in your browser.</p><div class="meta"><span class="chip wasm">wasm</span><span class="chip">text</span><span class="chip">file</span></div></a>
+      <a class="card" href="#"><span class="tile"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 11.5a3.5 3.5 0 0 0 5 0l2-2a3.54 3.54 0 0 0-5-5l-1 1M11.5 8.5a3.5 3.5 0 0 0-5 0l-2 2a3.54 3.54 0 0 0 5 5l1-1"/></svg></span><h3>Base58 Encoder / Decoder <span class="go">→</span></h3><p>Encode and decode Base58 for text and files — all in your browser.</p><div class="meta"><span class="chip wasm">wasm</span><span class="chip">text</span><span class="chip">file</span></div></a>
+      <a class="card" href="#"><span class="tile"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5 16.5 6v8L10 17.5 3.5 14V6Z"/><path d="M7 8.5h6M7 11.5h4"/></svg></span><h3>Hex Encoder / Decoder <span class="go">→</span></h3><p>Encode and decode Hex for text or files with configurable options.</p><div class="meta"><span class="chip wasm">wasm</span><span class="chip">text</span><span class="chip">file</span></div></a>
+      <a class="card" href="#"><span class="tile"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><path d="M3 10h14M10 3c2 2.2 3 4.4 3 7s-1 4.8-3 7c-2-2.2-3-4.4-3-7s1-4.8 3-7Z"/></svg></span><h3>URL Encoder / Decoder <span class="go">→</span></h3><p>Percent-encode and decode URL text with selectable modes and charsets.</p><div class="meta"><span class="chip">js</span><span class="chip">text</span></div></a>
+      <a class="card" href="#"><span class="tile"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m7 6-4 4 4 4M13 6l4 4-4 4"/></svg></span><h3>HTML Entity Encoder / Decoder <span class="go">→</span></h3><p>Named, decimal and hexadecimal HTML entities — both directions.</p><div class="meta"><span class="chip">js</span><span class="chip">text</span></div></a>
+    </div>
+  </section>
+
+  <section class="cat" style="--cat: var(--cat-gen)">
+    <div class="cat-head">
+      <span class="cat-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 2v3M8.5 12v3M2 8.5h3M12 8.5h3M4 4l2.2 2.2M10.8 10.8 13 13M4 13l2.2-2.2M10.8 6.2 13 4"/></svg></span>
+      <h2>Generators</h2><span class="count">4 tools</span>
+      <a class="more" href="#">all <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 6h7M6.5 3 9.5 6 6.5 9"/></svg></a>
+    </div>
+    <div class="grid">
+      <a class="card" href="#"><span class="tile"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="12" rx="2.5"/><path d="M6.5 8.5h7M6.5 11.5h4.5"/></svg></span><h3>UUID/GUID Generator <span class="go">→</span></h3><p>UUID v4 and v7 identifiers, generated locally in your browser.</p><div class="meta"><span class="chip">js</span><span class="chip">v4 · v7</span></div></a>
+      <a class="card" href="#"><span class="tile"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m11.5 11.5 5 5M14 14l1.8-1.8M7.5 12.5a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"/></svg></span><h3>Password Generator <span class="go">→</span></h3><p>Strong, secure random passwords generated on-device.</p><div class="meta"><span class="chip wasm">wasm</span><span class="chip">crypto</span></div></a>
+      <a class="card" href="#"><span class="tile"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 5h12M4 9h12M4 13h7"/></svg></span><h3>Lorem Ipsum Generator <span class="go">→</span></h3><p>Placeholder text for mockups and designs — completely in your browser.</p><div class="meta"><span class="chip">js</span><span class="chip">text</span></div></a>
+      <a class="card" href="#"><span class="tile"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3.5 3.5h5v5h-5zM11.5 3.5h5v5h-5zM3.5 11.5h5v5h-5zM11.5 11.5h2v2h-2zM14.5 14.5h2v2h-2zM11.5 14.5h1M16.5 11.5v1"/></svg></span><h3>QR Code Generator <span class="go">→</span></h3><p>Custom QR codes with colors, styles and logos — all in your browser.</p><div class="meta"><span class="chip wasm">wasm</span><span class="chip">png · svg</span></div></a>
+    </div>
+  </section>
+</main>
+<footer><div class="footer-inner"><span>MyDevTools © 2026</span><span>crafted locally · served statically</span></div></footer>
+
+<script>
+function toggleTheme(){const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';}
+// ambient floating glyphs (tool monograms drifting behind content)
+(function(){
+  const glyphs=['{}','#','⧉','64','0x','&','⌘','%','Aa','∑','⚿','▦','01','{;}','µ','×'];
+  const amb=document.getElementById('ambient');
+  glyphs.forEach((g,i)=>{
+    const s=document.createElement('span'); s.className='glyph'; s.textContent=g;
+    s.style.left=(4+ (i*6.3)%92)+'%'; s.style.top=(6+(i*17.7)%86)+'%';
+    s.style.animationDuration=(7+ i%5 *1.7)+'s'; s.style.animationDelay=(-i*1.3)+'s';
+    s.style.fontSize=(12+ (i%4)*3)+'px';
+    amb.appendChild(s);
+  });
+  // gentle mouse parallax
+  const fine=matchMedia('(prefers-reduced-motion: no-preference)').matches;
+  if(fine) addEventListener('pointermove',e=>{
+    const x=(e.clientX/innerWidth-.5)*14, y=(e.clientY/innerHeight-.5)*14;
+    amb.style.transform=`translate3d(${x}px,${y}px,0)`;
+  },{passive:true});
+})();
+// count-up stats
+(function(){
+  const els=document.querySelectorAll('[data-count]');
+  const io=new IntersectionObserver(en=>en.forEach(e=>{
+    if(!e.isIntersecting) return; io.unobserve(e.target);
+    const n=+e.target.dataset.count, t0=performance.now(), dur=900;
+    (function tick(t){ const p=Math.min(1,(t-t0)/dur), ease=1-Math.pow(1-p,3);
+      e.target.textContent=Math.round(n*ease); if(p<1) requestAnimationFrame(tick); })(t0);
+  }),{threshold:.4});
+  els.forEach(el=>io.observe(el));
+})();
+</script>
+</body>
+</html>

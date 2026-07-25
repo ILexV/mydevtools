@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prism — Mobile navigation</title>
+<link rel="stylesheet" href="prism-base.css">
+<style>
+.header-inner { padding: 10px 16px; gap: 12px; }
+main { padding: 20px 16px 120px; }
+.hero-m { padding: 18px 0 8px; animation: rise .5s var(--ease) both; }
+.hero-m h1 { font: 650 27px/1.12 var(--sans); letter-spacing: -.03em; }
+.hero-m h1 .grad { background: linear-gradient(100deg, var(--brand1), var(--brand2) 70%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero-m p { margin-top: 10px; font-size: 13.5px; color: var(--muted); }
+.quickstats { display: flex; gap: 8px; margin-top: 14px; }
+.quickstats span { font: 10.5px var(--mono); color: var(--faint); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; }
+.quickstats b { color: var(--text); }
+.search-m { display: flex; align-items: center; gap: 9px; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 12px; padding: 12px 14px; color: var(--faint); font-size: 14px; margin-top: 18px; animation: rise .5s .1s var(--ease) both; }
+.cat { margin-top: 26px; }
+.cat-head { display: flex; align-items: center; gap: 11px; margin-bottom: 12px; }
+.cat-icon { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--cat) 15%, transparent); color: var(--cat); border: 1px solid color-mix(in srgb, var(--cat) 30%, transparent); }
+.cat-head h2 { font: 650 17px var(--sans); letter-spacing: -.02em; }
+.cat-head .count { font: 10.5px var(--mono); color: var(--faint); }
+.cards { display: grid; gap: 10px; }
+.mcard { display: flex; align-items: center; gap: 13px; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 13px; padding: 13px 14px; animation: rise .45s var(--ease) both; }
+.mcard .tile { width: 38px; height: 38px; border-radius: 11px; }
+.mcard b { font: 600 14px var(--sans); letter-spacing: -.01em; display: block; }
+.mcard span.d { font-size: 12px; color: var(--faint); display: block; margin-top: 1px; }
+.mcard .go { margin-left: auto; color: var(--faint); }
+/* drawer */
+.scrim { position: fixed; inset: 0; background: rgba(4,6,10,.55); backdrop-filter: blur(3px); opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 40; }
+.drawer { position: fixed; inset: 0 18% 0 0; max-width: 330px; background: var(--bg2); border-right: 1px solid var(--line);
+  z-index: 50; transform: translateX(-102%); transition: transform .38s var(--ease); display: flex; flex-direction: column; padding: 18px 18px 28px; overflow-y: auto; }
+body.nav-open .scrim { opacity: 1; pointer-events: auto; }
+body.nav-open .drawer { transform: none; }
+.drawer .d-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.drawer .d-sec { margin-top: 18px; }
+.drawer .d-sec .lbl { margin-bottom: 8px; display: block; }
+.drawer a.d-link { display: flex; align-items: center; gap: 11px; padding: 9.5px 10px; border-radius: 10px; font-size: 14px; color: var(--muted); transition: all .15s; }
+.drawer a.d-link:hover, .drawer a.d-link.on { color: var(--text); background: color-mix(in srgb, var(--brand1) 10%, transparent); }
+.drawer a.d-link.on { color: var(--brand1); }
+.drawer a.d-link .n { margin-left: auto; font: 10px var(--mono); color: var(--faint); }
+.drawer .d-foot { margin-top: auto; padding-top: 18px; display: flex; gap: 8px; }
+.d-foot .iconbtn { width: auto; padding: 0 12px; height: 32px; font-size: 11px; gap: 6px; display: inline-flex; align-items: center; }
+/* bottom bar */
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: flex; justify-content: space-around;
+  background: color-mix(in srgb, var(--bg2) 88%, transparent); backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line-soft); padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); }
+.tabbar button { display: grid; place-items: center; gap: 3px; background: none; border: 0; color: var(--faint);
+  font: 9.5px var(--mono); cursor: pointer; padding: 4px 10px; border-radius: 10px; transition: color .18s; }
+.tabbar button.on { color: var(--brand1); }
+.tabbar button svg { width: 19px; height: 19px; }
+</style>
+</head>
+<body>
+<div class="ambient"></div>
+<header><div class="header-inner">
+  <button class="iconbtn" onclick="document.body.classList.toggle('nav-open')" aria-label="Menu"><svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 4h11M2 7.5h11M2 11h7"/></svg></button>
+  <div class="logo"><span class="logo-badge" style="width:27px;height:27px;border-radius:8px"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5 2 8l2.5 3M11.5 5 14 8l-2.5 3M9 3.5 7 12.5"/></svg></span>MyDevTools</div>
+  <nav class="hnav"><button class="iconbtn" onclick="toggleTheme()"><svg width="14" height="14" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7.5" cy="7.5" r="2.6"/><path d="M7.5 1.5v1.4M7.5 12.1v1.4M1.5 7.5h1.4M12.1 7.5h1.4"/></svg></button></nav>
+</div></header>
+
+<main>
+  <section class="hero-m">
+    <h1>Every dev tool.<br><span class="grad">Zero servers.</span></h1>
+    <p>39 utilities, computed on this device.</p>
+    <div class="quickstats"><span><b>39</b> tools</span><span><b>10</b> languages</span><span><b>0</b> uploads</span></div>
+    <div class="search-m"><svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="6" cy="6" r="4.2"/><path d="m9.2 9.2 3 3"/></svg>Search tools…</div>
+  </section>
+
+  <section class="cat" style="--cat:#f5b544">
+    <div class="cat-head"><span class="cat-icon"><svg width="15" height="15" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 5 4 8.5 6 12M11 5l2 3.5L11 12"/></svg></span><h2>Hashing &amp; Security</h2><span class="count">3</span></div>
+    <div class="cards">
+      <a class="mcard" href="#"><span class="tile"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4.5 8.5h11M10 8.5V16M6.5 12h7M6.5 15h7" transform="translate(0,-1)"/></svg></span><span><b>Hash Calculator</b><span class="d">MD5 · SHA-1 · SHA-256…</span></span><span class="go">›</span></a>
+      <a class="mcard" href="#"><span class="tile"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m11.5 11.5 5 5M14 14l1.8-1.8M7.5 12.5a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"/></svg></span><span><b>HMAC Calculator</b><span class="d">keyed hashing</span></span><span class="go">›</span></a>
+      <a class="mcard" href="#"><span class="tile"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="14" height="9" rx="2"/><path d="M6.5 8V6a3.5 3.5 0 0 1 7 0v2"/></svg></span><span><b>Password Generator</b><span class="d">crypto-random, on-device</span></span><span class="go">›</span></a>
+    </div>
+  </section>
+
+  <section class="cat" style="--cat:#8b7bff">
+    <div class="cat-head"><span class="cat-icon"><svg width="15" height="15" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 6 3 8.5 5.5 11M11.5 6 14 8.5 11.5 11"/></svg></span><h2>Encoding</h2><span class="count">6</span></div>
+    <div class="cards">
+      <a class="mcard" href="#"><span class="tile"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 4h4v4H4zM12 12h4v4h-4zM12 4h4v4h-4zM4 12h4v4H4z"/></svg></span><span><b>Base64 Encoder / Decoder</b><span class="d">text &amp; files</span></span><span class="go">›</span></a>
+    </div>
+  </section>
+</main>
+
+<nav class="tabbar">
+  <button class="on"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 10 3l7 5.5V16a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 16Z"/></svg>Home</button>
+  <button><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5"/><path d="m12.5 12.5 4 4"/></svg>Search</button>
+  <button><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4.5 12 8l3.8.6-2.75 2.7.65 3.8L10 13.6l-3.7 1.9.65-3.8L4.2 8.6 8 8Z"/></svg>Favorites</button>
+  <button><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10" cy="10" r="2.2"/><path d="M16.5 10a6.5 6.5 0 0 1-.4 2.2l1.6 1.2-1.5 2.6-1.9-.8a6.6 6.6 0 0 1-1.9 1.1L12 18.5H8l-.4-2.2a6.6 6.6 0 0 1-1.9-1.1l-1.9.8-1.5-2.6 1.6-1.2A6.5 6.5 0 0 1 3.5 10a6.5 6.5 0 0 1 .4-2.2L2.3 6.6l1.5-2.6 1.9.8a6.6 6.6 0 0 1 1.9-1.1L8 1.5h4l.4 2.2a6.6 6.6 0 0 1 1.9 1.1l1.9-.8 1.5 2.6-1.6 1.2c.3.7.4 1.4.4 2.2Z"/></svg>Settings</button>
+</nav>
+
+<div class="scrim" onclick="document.body.classList.remove('nav-open')"></div>
+<aside class="drawer">
+  <div class="d-head"><div class="logo"><span class="logo-badge" style="width:26px;height:26px;border-radius:8px"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5 2 8l2.5 3M11.5 5 14 8l-2.5 3M9 3.5 7 12.5"/></svg></span>MyDevTools</div>
+    <button class="iconbtn" onclick="document.body.classList.remove('nav-open')">✕</button></div>
+  <div class="d-sec"><span class="lbl">Catalog</span>
+    <a class="d-link on" href="#">All tools<span class="n">39</span></a>
+    <a class="d-link" href="#">Favorites<span class="n">4</span></a>
+    <a class="d-link" href="#">Recent<span class="n">7</span></a>
+  </div>
+  <div class="d-sec"><span class="lbl">Categories</span>
+    <a class="d-link" href="#"><span style="color:#8b7bff">●</span> Encoding<span class="n">6</span></a>
+    <a class="d-link" href="#"><span style="color:#38bdf8">●</span> Structured Data<span class="n">4</span></a>
+    <a class="d-link" href="#"><span style="color:#f5b544">●</span> Hashing &amp; Security<span class="n">3</span></a>
+    <a class="d-link" href="#"><span style="color:#f472b6">●</span> Images<span class="n">3</span></a>
+    <a class="d-link" href="#"><span style="color:#2fd4a4">●</span> Generators<span class="n">4</span></a>
+    <a class="d-link" href="#" style="color:var(--faint)">all 13 categories…</a>
+  </div>
+  <div class="d-foot">
+    <button class="iconbtn">EN ▾</button>
+    <button class="iconbtn" onclick="toggleTheme()">◐ theme</button>
+    <button class="iconbtn">? about</button>
+  </div>
+</aside>
+<script>
+function toggleTheme(){const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';}
+</script>
+</body>
+</html>

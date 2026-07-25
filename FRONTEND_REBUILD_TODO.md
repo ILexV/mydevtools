@@ -14,7 +14,7 @@
 - **Этап 10 (SEO/PWA/hosting): готов.** `Seo.astro` (вся head + JSON-LD: WebSite/Organization/Breadcrumb на home, SoftwareApplication/Breadcrumb на tool — паритет с legacy MetaTags); base-aware `manifest.webmanifest` (start_url/scope `/mydevtools/`, иконки 192/512/maskable, theme_color); build-generated SW (`build-sw.mjs` сканирует dist → 19 precache, content-hash version) scoped `/mydevtools/sw.js`, стратегии network-first HTML / SWR assets / offline-fallback; update-flow (toast→SKIP_WAITING→purge stale→reload); `offline.astro`. **Gate 10 пройден локально** (browser: JSON-LD валиден, manifest валиден+3 иконки, SW registered+activated, offline-shell подтверждён через кеши). Финальный Lighthouse/HTTPS — Этап 12.
 - **Этап 11 (Тесты/QA): пройден, включая measurement.** Unit-тесты (node:test, zero-dep, 17 шт.): реестры+validate, pure `urlPath.ts`/`resolve.ts` (вынесены из Vite-bound модулей); static dist-smoke (`smoke-dist.mjs`: роуты/manifest/sw/JSON-LD/404); единая `npm run verify` (check+i18n+unit+build+smoke). Rust `cargo test --workspace` green — починены latent-баги (cryptography hex dev-dep + HMAC RFC-4231 векторы, structured_data wasm32-gate). Browser-QA (Chromium): 0 console/network/page errors, keyboard+focus+a11y, theme no-flash + контраст 8.39, viewport 320–1440 без overflow (en/zh/ru), localStorage-corruption robust, 40MB progress. **Gate 11 пройден** (`npm run verify`). Отложено на Этап 12/владельца: Lighthouse/CWV/budget (нужен HTTPS+measurement), визуальная приемка+polish (design-gated), browser matrix FF/Safari, real-device mobile.
 - **Этап 12 (Сборка/деплой): сайт опубликован.** Root-скрипты `build:pages` (validate:i18n → build:wasm → build:site → test:smoke, проверен, 403 стр) и `deploy:pages` (`scripts/deploy-pages.mjs`: изолированный temp git-репо из `dist` → force-push `HEAD:gh-pages`, zero-dep, dry-run по умолчанию; dry-run проверен — 482 файла, 19 precache). Пины: `.nvmrc` (Node 25), `rust-toolchain.toml` (1.88.0). `apps/site/RELEASING.md` (prereqs → build → preview → deploy → smoke → rollback). **Первый deploy выполнен 2026-07-25:** gh-pages + Pages settings (branch/root) настроены, https://ilexv.github.io/mydevtools/ живой. Инцидент: Jekyll на Pages игнорировал `_astro/` → сайт без стилей (CSS/JS 404); починено `.nojekyll` (в `apps/site/public/` → в каждый dist; guard в deploy-скрипте; запись в RELEASING.md). Остаются: проверка SW-update после 2-го deploy. **Post-deploy smoke + Lighthouse пройдены 2026-07-25** (чистый профиль: поиск/lang-switch/text/file/image-инструменты, SW+offline, 0 ошибок; Lighthouse 100×4 на home и tool, LCP 1.4–1.5 s, CLS 0, initial JS 0–3 KiB).
-- **Этап 2 (Дизайн):** требует решений владельца (moodboard, выбор концепции из трёх, signature-элемент). Начальные design tokens (light/dark, spacing, radius) заложены в `src/styles/global.css` как стартовая точка.
+- **Этап 2 (Дизайн):** ЗАКРЫТ, Gate 2 пройден. Концепция **D «Prism»** утверждена владельцем 2026-07-25 (выбор из A/B/C/D). Артефакты: `docs/design/stage2-direction.md` (направление, moodboard, anti-references), `docs/design/stage2-design-system.md` (полная спека: токены, 13 категорийных цветов, типографика, motion, state matrix, microcopy, scorecard), `docs/design/concepts/` (4 концепции + hi-fi макеты tool/file/mobile + скриншоты). Контрасты проверены скриптом; light-палитра скорректирована до AA.
 - **Новая IA:** legacy прятал 4 инструмента (uuid, lorem, date-converter, pdf-to-text) вне каталога; реестр помещает uuid+lorem в `generators`, date-converter→converters, pdf-to-text→pdf — см. `docs/inventory/catalog-seo.md` §1.
 
 ## Зафиксированные решения
@@ -58,42 +58,42 @@
 
 ## Этап 2. Концепция нового дизайна
 
-- [ ] Сформулировать визуальное направление: характер бренда, аудитория, ключевые эмоции и отличия от типового dashboard.
-- [ ] Собрать moodboard из интерфейсов, типографики, цветовых сочетаний, motion и presentation-паттернов.
-- [ ] Подготовить минимум три визуальные концепции главной и выбрать одну до разработки компонентов.
-- [ ] Нарисовать high-fidelity макеты главной, каталога, типовой tool page, сложной file tool page и мобильной навигации.
-- [ ] Определить новую информационную архитектуру категорий и discovery инструментов.
-- [ ] Зафиксировать сетку, максимальную ширину контента, spacing scale и responsive breakpoints.
-- [ ] Выбрать собственную пару шрифтов и определить правила загрузки/subset без внешнего runtime-запроса.
-- [ ] Создать semantic color tokens для light/dark themes: surface, text, border, accent, success, warning, danger, focus.
-- [ ] Определить typography scale, radius, shadow, blur, border и elevation tokens.
-- [ ] Зафиксировать motion rules: длительности, easing, enter/exit и обязательный `prefers-reduced-motion` fallback.
-- [ ] Проверить контраст ключевых токенов до начала реализации компонентов.
-- [ ] Не использовать готовый `packages/ui-kit`; новые компоненты проектировать под выбранную концепцию.
+- [x] Сформулировать визуальное направление: характер бренда, аудитория, ключевые эмоции и отличия от типового dashboard. → `docs/design/stage2-direction.md` §Характер бренда.
+- [x] Собрать moodboard из интерфейсов, типографики, цветовых сочетаний, motion и presentation-паттернов. → `stage2-direction.md` §Moodboard (7 источников: что берём/не берём).
+- [x] Подготовить минимум три визуальные концепции главной и выбрать одну до разработки компонентов. → 4 концепции (A Terminal, B Blueprint, C Index, D Prism), реальные данные, обе темы + mobile, скриншоты; выбрана **D «Prism»** (после фидбека «газета» добавлена нарядная D).
+- [x] Нарисовать high-fidelity макеты главной, каталога, типовой tool page, сложной file tool page и мобильной навигации. → `d-prism.html` (home+каталог), `mock-tool.html` (Hash Calculator), `mock-file-tool.html` (Image Compressor: dropzone/progress/error/summary), `mock-mobile.html` (home + drawer + tabbar).
+- [x] Определить новую информационную архитектуру категорий и discovery инструментов. → спека §9: home = 13 категорийных секций, discovery = search/⌘K-palette/favorites/recent/related/drawer.
+- [x] Зафиксировать сетку, максимальную ширину контента, spacing scale и responsive breakpoints. → спека §4: 1180px, 3/2/1 колонки, tool page 1fr+300px→1col <900px, 4px scale.
+- [x] Выбрать собственную пару шрифтов и определить правила загрузки/subset без внешнего runtime-запроса. → спека §3: Inter var + JetBrains Mono var, self-hosted woff2, latin+cyrillic subsets, CJK→system, preload + font-display:swap.
+- [x] Создать semantic color tokens для light/dark themes: surface, text, border, accent, success, warning, danger, focus. → спека §2 (полная таблица + 13 категорийных пар).
+- [x] Определить typography scale, radius, shadow, blur, border и elevation tokens. → спека §3/§5.
+- [x] Зафиксировать motion rules: длительности, easing, enter/exit и обязательный `prefers-reduced-motion` fallback. → спека §6; fallback реализован во всех моках.
+- [x] Проверить контраст ключевых токенов до начала реализации компонентов. → WCAG-замер всех пар; light-палитра скорректирована до AA (faint #6b7484, ok #0a7a52, err #cf2331, категорийные emerald/amber/pink затемнены).
+- [x] Не использовать готовый `packages/ui-kit`; новые компоненты проектировать под выбранную концепцию. → зафиксировано в спеке Gate 2.
 
 ### Визуальный quality bar
 
-- [ ] Придумать один узнаваемый signature-элемент бренда: графический мотив, особую сетку, форму карточек или motion-язык; не собирать очередной типовой SaaS dashboard.
-- [ ] Собрать anti-reference: явно зафиксировать шаблонные решения, которые нельзя использовать без причины — бесконечные glass-карточки, случайные gradients, одинаковые Bento-блоки и декоративный blur без иерархии.
-- [ ] Проектировать макеты на реальных названиях инструментов, переводах, ошибках и длинных результатах, а не на lorem ipsum.
-- [ ] Для каждой ключевой страницы определить главный visual focal point и порядок чтения; один экран не должен конкурировать сам с собой пятью акцентами.
-- [ ] Зафиксировать правила вертикального ритма, line length, heading hierarchy и плотности интерфейса для marketing-, catalog- и tool-страниц.
-- [ ] Отдельно выбрать display, body, monospace и numeric styles; проверить читаемость кода, хэшей, JWT, дат, IP-адресов и длинных непрерывных строк.
-- [ ] Использовать одну согласованную icon family либо собственный набор с одинаковыми stroke, optical size, corners и baseline; не смешивать случайные библиотеки.
-- [ ] Создать собственный визуальный язык для hero, category accents, empty states, offline и 404 вместо stock-иллюстраций.
-- [ ] Спроектировать mobile-композиции отдельно, а не просто сжать desktop-макеты.
-- [ ] Использовать progressive disclosure: основные действия видны сразу, редкие настройки не перегружают tool page.
-- [ ] Создать state matrix для компонентов: default, hover, focus, active, disabled, loading, drag-over, progress, success, warning и error.
-- [ ] Проверить одновременно очень пустые и очень плотные состояния: нулевой результат, сотни строк, длинный filename, много настроек и несколько результатов.
-- [ ] Ограничить число акцентных цветов и эффектов на одном экране; каждый accent должен обозначать действие, состояние или категорию.
-- [ ] Спроектировать осмысленные microinteractions для copy, swap, clear, file drop, progress, completion и navigation; motion не должен скрывать задержки.
-- [ ] Подготовить tone-of-voice и microcopy для действий, ошибок, подтверждений, privacy hints и empty states.
-- [ ] Нарисовать favicon, PWA icons, social preview и browser theme colors как часть одной визуальной системы.
-- [ ] Создать design review scorecard: hierarchy, rhythm, typography, color, icons, states, motion, responsiveness, accessibility и brand distinctiveness.
+- [x] Придумать один узнаваемый signature-элемент бренда: графический мотив, особую сетку, форму карточек или motion-язык; не собирать очередной типовой SaaS dashboard. → спека §1: категорийный цвет как система + tile-иконки + градиентный brand-badge + ambient-монограммы + privacy-pill.
+- [x] Собрать anti-reference: явно зафиксировать шаблонные решения, которые нельзя использовать без причины — бесконечные glass-карточки, случайные gradients, одинаковые Bento-блоки и декоративный blur без иерархии. → `stage2-direction.md` §Anti-references (10 запретов).
+- [x] Проектировать макеты на реальных названиях инструментов, переводах, ошибках и длинных результатах, а не на lorem ipsum. → все моки на реальных Title/Description из locale JSON; длинный filename и SHA-512 в моках.
+- [x] Для каждой ключевой страницы определить главный visual focal point и порядок чтения; один экран не должен конкурировать сам с собой пятью акцентами. → home: hero→каталог; tool page: H1+input; file tool: dropzone; правило «brand + категория + 1 статус» (спека §2).
+- [x] Зафиксировать правила вертикального ритма, line length, heading hierarchy и плотности интерфейса для marketing-, catalog- и tool-страниц. → спека §3/§4.
+- [x] Отдельно выбрать display, body, monospace и numeric styles; проверить читаемость кода, хэшей, JWT, дат, IP-адресов и длинных непрерывных строк. → Inter display 650 / Inter body / JB Mono для данных / tabular-nums; длинные строки — ellipsis + copy (спека §3, §14).
+- [x] Использовать одну согласованную icon family либо собственный набор с одинаковыми stroke, optical size, corners и baseline; не смешивать случайные библиотеки. → спека §7: собственный SVG 20×20, stroke 1.7, round caps.
+- [x] Создать собственный визуальный язык для hero, category accents, empty states, offline и 404 вместо stock-иллюстраций. → спека §1/§14.
+- [x] Спроектировать mobile-композиции отдельно, а не просто сжать desktop-макеты. → `mock-mobile.html`: drawer-навигация, tabbar, компактный hero, карточки-строки.
+- [x] Использовать progressive disclosure: основные действия видны сразу, редкие настройки не перегружают tool page. → sidebar options + `details` advanced (мок file tool), спека §9.
+- [x] Создать state matrix для компонентов: default, hover, focus, active, disabled, loading, drag-over, progress, success, warning и error. → спека §10; drag-over/progress/error показаны в моке file tool.
+- [x] Проверить одновременно очень пустые и очень плотные состояния: нулевой результат, сотни строк, длинный filename, много настроек и несколько результатов. → спека §10/§14; мок file tool: длинный filename, error-row, batch summary.
+- [x] Ограничить число акцентных цветов и эффектов на одном экране; каждый accent должен обозначать действие, состояние или категорию. → спека §2 (правило), категорийные цвета = смысл.
+- [x] Спроектировать осмысленные microinteractions для copy, swap, clear, file drop, progress, completion и navigation; motion не должен скрывать задержки. → спека §11; реализовано в моках (copy→check, dropzone, progress-fill).
+- [x] Подготовить tone-of-voice и microcopy для действий, ошибок, подтверждений, privacy hints и empty states. → спека §12.
+- [x] Нарисовать favicon, PWA icons, social preview и browser theme colors как часть одной визуальной системы. → спека §13 (brand-badge как единый источник); генерация файлов — в Stage 6/10.
+- [x] Создать design review scorecard: hierarchy, rhythm, typography, color, icons, states, motion, responsiveness, accessibility и brand distinctiveness. → спека §15 (10 критериев).
 
 ### Gate 2
 
-- [ ] Утверждены desktop/mobile макеты и tokens для light/dark themes.
+- [x] Утверждены desktop/mobile макеты и tokens для light/dark themes. → владелец утвердил D «Prism» 2026-07-25; токены WCAG-проверены, light скорректирована до AA.
 - [ ] Типовая tool page покрывает text, file, result, settings, progress, error и empty states.
 - [ ] Владелец проекта отдельно утвердил реализованный visual prototype главной и эталонной tool page до массового переноса инструментов.
 

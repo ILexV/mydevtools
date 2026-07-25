@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prism — Tool page (Hash Calculator)</title>
+<link rel="stylesheet" href="prism-base.css">
+<style>
+:root, :root[data-theme="dark"] { --cat: #f5b544; }
+:root[data-theme="light"] { --cat: #996500; }
+.layout { display: grid; grid-template-columns: 1fr 300px; gap: 16px; margin-top: 22px; align-items: start; }
+.io-col { display: grid; gap: 16px; }
+.io-panel { padding: 18px; animation: rise .5s .08s var(--ease) both; }
+.io-panel .lbl-row { display: flex; align-items: center; margin-bottom: 10px; }
+.io-panel .lbl-row .actions { margin-left: auto; display: flex; gap: 6px; }
+.mini { background: none; border: 0; color: var(--faint); font: 11px var(--mono); cursor: pointer; padding: 4px 7px; border-radius: 6px; transition: all .18s; display: inline-flex; align-items: center; gap: 5px; }
+.mini:hover { color: var(--cat); background: color-mix(in srgb, var(--cat) 10%, transparent); }
+.mini.done { color: var(--ok); }
+.hash-list { display: grid; gap: 8px; }
+.hash-row { display: grid; grid-template-columns: 92px 1fr auto; gap: 12px; align-items: center;
+  background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+  transition: border-color .2s; animation: rise .4s var(--ease) both; }
+.hash-row:hover { border-color: color-mix(in srgb, var(--cat) 40%, var(--line)); }
+.hash-row .algo { font: 600 11px var(--mono); color: var(--cat); letter-spacing: .04em; }
+.hash-row .val { font: 12px var(--mono); color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hash-row:hover .val { color: var(--text); }
+.hash-row:nth-child(2) { animation-delay: .04s; } .hash-row:nth-child(3) { animation-delay: .08s; }
+.hash-row:nth-child(4) { animation-delay: .12s; } .hash-row:nth-child(5) { animation-delay: .16s; }
+.copy { background: none; border: 0; color: var(--faint); cursor: pointer; padding: 5px; border-radius: 7px; transition: all .18s; display: grid; place-items: center; }
+.copy:hover { color: var(--cat); background: color-mix(in srgb, var(--cat) 12%, transparent); }
+.copy.done { color: var(--ok); }
+.side { display: grid; gap: 16px; position: sticky; top: 76px; }
+.side .panel { padding: 16px; animation: rise .5s .16s var(--ease) both; }
+.opt-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; }
+.opt-row + .opt-row { border-top: 1px solid var(--line-soft); }
+.opt-row .name { font-size: 13.5px; }
+.opt-row .hint { font-size: 11.5px; color: var(--faint); margin-top: 1px; }
+.switch { width: 36px; height: 21px; border-radius: 999px; background: var(--line); border: 0; position: relative; cursor: pointer; transition: background .2s; flex-shrink: 0; }
+.switch::after { content: ""; position: absolute; top: 2.5px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .22s var(--ease); }
+.switch.on { background: var(--cat); }
+.switch.on::after { transform: translateX(14px); }
+.related a { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 13.5px; color: var(--muted); transition: color .18s; }
+.related a:hover { color: var(--cat); }
+.related a + a { border-top: 1px solid var(--line-soft); }
+.related .mini-tile { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; background: color-mix(in srgb, var(--cat) 12%, transparent); color: var(--cat); flex-shrink: 0; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .side { position: static; } }
+</style>
+</head>
+<body>
+<div class="ambient"></div>
+<header><div class="header-inner">
+  <div class="logo"><span class="logo-badge"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5 2 8l2.5 3M11.5 5 14 8l-2.5 3M9 3.5 7 12.5"/></svg></span>MyDevTools</div>
+  <div class="search"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="6" cy="6" r="4.2"/><path d="m9.2 9.2 3 3"/></svg>Search 39 tools…<kbd>⌘K</kbd></div>
+  <nav class="hnav"><button class="iconbtn">EN</button><button class="iconbtn" onclick="toggleTheme()"><svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7.5" cy="7.5" r="2.6"/><path d="M7.5 1.5v1.4M7.5 12.1v1.4M1.5 7.5h1.4M12.1 7.5h1.4"/></svg></button></nav>
+</div></header>
+
+<main>
+  <nav class="crumb"><a href="#">Catalog</a><span>/</span><a href="#">Hashing &amp; Security</a><span>/</span><span style="color:var(--cat)">hash-calculator</span></nav>
+  <div class="tool-head">
+    <span class="tile"><svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M7 4 5.8 6.2M13 4l-1.2 2.2M4.5 8.5h11M10 8.5V16M6.5 12h7M6.5 15h7" transform="translate(0,-1)"/></svg></span>
+    <div><h1>Hash Calculator</h1><div class="sub">MD5, SHA-1, SHA-256 and more — for text or files, computed locally.</div></div>
+    <span class="privacy"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="7" height="5" rx="1.2"/><path d="M4.2 5V3.8a1.8 1.8 0 0 1 3.6 0V5"/></svg>local only · no upload</span>
+  </div>
+
+  <div class="layout">
+    <div class="io-col">
+      <section class="panel io-panel">
+        <div class="lbl-row"><span class="lbl">Input</span><span class="actions">
+          <button class="mini" data-demo="paste">paste</button><button class="mini">sample</button><button class="mini">file ↑</button><button class="mini" data-demo="clear">clear ✕</button>
+        </span></div>
+        <textarea class="mono" rows="4" placeholder="Type or paste text to hash…">The quick brown fox jumps over the lazy dog</textarea>
+      </section>
+      <section class="panel io-panel">
+        <div class="lbl-row"><span class="lbl">Hashes</span><span class="actions"><button class="mini" data-demo="copyall">copy all</button></span></div>
+        <div class="hash-list">
+          <div class="hash-row"><span class="algo">MD5</span><span class="val">9e107d9d372bb6826bd81d3542a419d6</span><button class="copy" title="Copy"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4.5" width="8" height="8" rx="1.5"/><path d="M9.5 4.5v-2a1.5 1.5 0 0 0-1.5-1.5H3A1.5 1.5 0 0 0 1.5 2.5v5A1.5 1.5 0 0 0 3 9h1.5"/></svg></button></div>
+          <div class="hash-row"><span class="algo">SHA-1</span><span class="val">2fd4e1c67a2d28fced849ee1bb76e7391b93eb12</span><button class="copy done" title="Copied"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 7.5 3 3 6-6.5"/></svg></button></div>
+          <div class="hash-row"><span class="algo">SHA-256</span><span class="val">d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592</span><button class="copy"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4.5" width="8" height="8" rx="1.5"/><path d="M9.5 4.5v-2A1.5 1.5 0 0 0 8 1H3a1.5 1.5 0 0 0-1.5 1.5v5A1.5 1.5 0 0 0 3 9h1.5"/></svg></button></div>
+          <div class="hash-row"><span class="algo">SHA-512</span><span class="val">07e547d9586f6a73f73fbac0435ed76951218fb7d0c8d788a309d785436bbb642e93a252a954f23912547d1e8a3b5ed6e1bfd7097821233fa0538f3db854fee6</span><button class="copy"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4.5" width="8" height="8" rx="1.5"/><path d="M9.5 4.5v-2A1.5 1.5 0 0 0 8 1H3a1.5 1.5 0 0 0-1.5 1.5v5A1.5 1.5 0 0 0 3 9h1.5"/></svg></button></div>
+          <div class="hash-row"><span class="algo">SHA-3</span><span class="val">69070dda01975c8c120c3aada1b282394e7f032fa9cf32f4cb2259a0897dfc04</span><button class="copy"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4.5" width="8" height="8" rx="1.5"/><path d="M9.5 4.5v-2A1.5 1.5 0 0 0 8 1H3a1.5 1.5 0 0 0-1.5 1.5v5A1.5 1.5 0 0 0 3 9h1.5"/></svg></button></div>
+        </div>
+      </section>
+    </div>
+
+    <aside class="side">
+      <section class="panel">
+        <span class="lbl">Options</span>
+        <div style="margin-top:8px">
+          <div class="opt-row"><div><div class="name">Uppercase hex</div><div class="hint">A-F instead of a-f</div></div><button class="switch" onclick="this.classList.toggle('on')"></button></div>
+          <div class="opt-row"><div><div class="name">HMAC mode</div><div class="hint">keyed hashing</div></div><button class="switch" onclick="this.classList.toggle('on')"></button></div>
+          <div class="opt-row"><div><div class="name">Live update</div><div class="hint">rehash while typing</div></div><button class="switch on" onclick="this.classList.toggle('on')"></button></div>
+        </div>
+      </section>
+      <section class="panel related">
+        <span class="lbl">Related</span>
+        <div style="margin-top:8px">
+          <a href="#"><span class="mini-tile"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m8 8 3.5 3.5M9.8 9.8l1.2-1.2M5.5 8.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/></svg></span>HMAC Calculator</a>
+          <a href="#"><span class="mini-tile"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="9" height="6" rx="1.4"/><path d="M5 5.5V4a2 2 0 0 1 4 0v1.5"/></svg></span>Password Generator</a>
+          <a href="#"><span class="mini-tile"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2.5 4.5h9M2.5 7h9M2.5 9.5h5.5"/></svg></span>JWT Decoder</a>
+        </div>
+      </section>
+    </aside>
+  </div>
+</main>
+<footer><div class="footer-inner"><span>MyDevTools © 2026</span><span>crafted locally · served statically</span></div></footer>
+<script>
+function toggleTheme(){const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';}
+document.querySelectorAll('.copy').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.copy.done').forEach(x=>x.classList.remove('done'));
+  b.classList.add('done'); b.innerHTML='<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 7.5 3 3 6-6.5"/></svg>';
+}));
+</script>
+</body>
+</html>

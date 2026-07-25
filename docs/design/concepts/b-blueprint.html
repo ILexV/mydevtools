@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concept B — Blueprint</title>
+<style>
+:root, :root[data-theme="light"] {
+  --paper: #f5f2ea; --sheet: #fbf9f3; --line: #cfc8b4; --hairline: #e2dcc9;
+  --ink: #1d2f52; --ink-soft: #4c5c7c; --ink-faint: #8d97ac;
+  --accent: #e4572e; --accent-ink: #ffffff;
+  --grid-dot: #d9d2bd;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --sans: "Archivo", "Inter", system-ui, sans-serif;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --paper: #0f2547; --sheet: #143058; --line: #3d5c8f; --hairline: #274a7c;
+  --ink: #cfe2f7; --ink-soft: #9db9d9; --ink-faint: #6886ad;
+  --accent: #ff8a5c; --accent-ink: #1a0d06;
+  --grid-dot: #1d3c68;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.55 var(--sans);
+  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px); background-size: 24px 24px; }
+a { color: inherit; text-decoration: none; }
+.mono { font-family: var(--mono); }
+
+header { background: var(--sheet); border-bottom: 1px solid var(--line); }
+.header-inner { max-width: 1180px; margin: 0 auto; padding: 0 24px; display: flex; align-items: stretch; height: 56px; }
+.brand { display: flex; align-items: center; gap: 10px; font: 700 15px var(--sans); letter-spacing: .02em; padding-right: 24px; border-right: 1px solid var(--hairline); }
+.brand svg { color: var(--accent); }
+.hcell { display: flex; align-items: center; padding: 0 20px; border-right: 1px solid var(--hairline); font: 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.hcell.search { flex: 1; color: var(--ink-faint); text-transform: none; letter-spacing: .02em; }
+.hcell button { background: none; border: 0; font: inherit; color: inherit; cursor: pointer; text-transform: inherit; letter-spacing: inherit; }
+.hcell button:hover { color: var(--accent); }
+
+.hero { max-width: 1180px; margin: 0 auto; padding: 64px 24px 40px; position: relative; }
+.hero .fig { font: 11px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+.hero .fig::after { content: ""; flex: 1; border-top: 1px dashed var(--line); }
+.hero h1 { font: 700 clamp(32px, 4.6vw, 52px)/1.1 var(--sans); letter-spacing: -.02em; max-width: 20ch; }
+.hero h1 u { text-decoration: none; box-shadow: inset 0 -0.28em 0 color-mix(in srgb, var(--accent) 35%, transparent); }
+.hero p { margin-top: 18px; color: var(--ink-soft); max-width: 56ch; }
+.hero-spec { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 8px 28px; font: 11.5px var(--mono); color: var(--ink-faint); letter-spacing: .04em; }
+.hero-spec b { color: var(--ink); font-weight: 500; }
+
+main { max-width: 1180px; margin: 0 auto; padding: 8px 24px 80px; }
+.cat { margin-top: 44px; }
+.cat-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.cat-head .fig-no { font: 11px var(--mono); letter-spacing: .12em; color: var(--accent); border: 1px solid var(--accent); padding: 3px 8px; }
+.cat-head h2 { font: 600 19px var(--sans); letter-spacing: .01em; text-transform: uppercase; }
+.cat-head .rule { flex: 1; border-top: 1px solid var(--line); }
+.cat-head .scale { font: 10.5px var(--mono); color: var(--ink-faint); }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.card { background: var(--sheet); border: 1px solid var(--line); position: relative; padding: 18px 18px 16px; transition: border-color .15s, transform .15s; }
+.card::before, .card::after { content: ""; position: absolute; width: 9px; height: 9px; border-color: var(--ink-faint); border-style: solid; transition: border-color .15s; }
+.card::before { top: -1px; left: -1px; border-width: 1.5px 0 0 1.5px; }
+.card::after { bottom: -1px; right: -1px; border-width: 0 1.5px 1.5px 0; }
+.card:hover { border-color: var(--ink); }
+.card:hover::before, .card:hover::after { border-color: var(--accent); }
+.card .tag { font: 10px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); display: flex; justify-content: space-between; }
+.card h3 { font: 600 15.5px var(--sans); margin-top: 10px; }
+.card p { margin-top: 6px; font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+.card .leader { margin-top: 14px; padding-top: 8px; border-top: 1px dashed var(--hairline); font: 10.5px var(--mono); color: var(--ink-faint); display: flex; justify-content: space-between; }
+.card .leader .go { color: var(--accent); }
+footer { border-top: 1px solid var(--line); background: var(--sheet); }
+.footer-inner { max-width: 1180px; margin: 0 auto; padding: 12px 24px; display: flex; justify-content: space-between; font: 10.5px var(--mono); letter-spacing: .06em; color: var(--ink-faint); text-transform: uppercase; }
+@media (max-width: 860px) { .grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) {
+  .grid { grid-template-columns: 1fr; }
+  .hero { padding: 40px 20px 28px; }
+  .hcell.hide-m { display: none; }
+}
+</style>
+</head>
+<body>
+<header><div class="header-inner">
+  <div class="brand"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1h5v5H1zM12 12h5v5h-5zM1 12h5M6 14.5h6M12 6h5M14.5 1v5"/></svg>MyDevTools</div>
+  <div class="hcell search">Search tools…&nbsp;&nbsp;⌘K</div>
+  <div class="hcell hide-m">Sheet 1 / 1</div>
+  <div class="hcell"><button>EN ▾</button></div>
+  <div class="hcell"><button onclick="toggleTheme()">Invert</button></div>
+</div></header>
+
+<section class="hero">
+  <div class="fig">Fig. 00 — General arrangement</div>
+  <h1>39 developer tools, drawn to <u>local-only</u> specification.</h1>
+  <p>Encoding, hashing, documents and files. Every computation executes in your browser via WASM. No upload channel exists — by design, not by promise.</p>
+  <div class="hero-spec"><span>TOOLS <b>39</b></span><span>LOCALES <b>10</b></span><span>SERVER CALLS <b>0</b></span><span>TOLERANCE <b>±0</b></span></div>
+</section>
+
+<main>
+  <section class="cat">
+    <div class="cat-head"><span class="fig-no">FIG. 01</span><h2>Encoding</h2><span class="rule"></span><span class="scale">6 pcs · scale 1:1</span></div>
+    <div class="grid">
+      <a class="card" href="#"><div class="tag"><span>ENC-001</span><span>WASM</span></div><h3>Base64 Encoder / Decoder</h3><p>Encode and decode Base64 for text and files — all in your browser.</p><div class="leader"><span>text · file</span><span class="go">open →</span></div></a>
+      <a class="card" href="#"><div class="tag"><span>ENC-002</span><span>WASM</span></div><h3>Base32 Encoder / Decoder</h3><p>Encode and decode Base32 for text and files — all in your browser.</p><div class="leader"><span>text · file</span><span class="go">open →</span></div></a>
+      <a class="card" href="#"><div class="tag"><span>ENC-003</span><span>WASM</span></div><h3>Base58 Encoder / Decoder</h3><p>Encode and decode Base58 for text and files — all in your browser.</p><div class="leader"><span>text · file</span><span class="go">open →</span></div></a>
+      <a class="card" href="#"><div class="tag"><span>ENC-004</span><span>WASM</span></div><h3>Hex Encoder / Decoder</h3><p>Encode and decode Hex for text or files with configurable options.</p><div class="leader"><span>text · file</span><span class="go">open →</span></div></a>
+      <a class="card" href="#"><div class="tag"><span>ENC-005</span><span>JS</span></div><h3>URL Encoder / Decoder</h3><p>Percent-encode and decode URL text with selectable modes and charsets.</p><div class="leader"><span>text</span><span class="go">open →</span></div></a>
+      <a class="card" href="#"><div class="tag"><span>ENC-006</span><span>JS</span></div><h3>HTML Entity Encoder / Decoder</h3><p>Named, decimal and hexadecimal HTML entities — both directions.</p><div class="leader"><span>text</span><span class="go">open →</span></div></a>
+    </div>
+  </section>
+  <section class="cat">
+    <div class="cat-head"><span class="fig-no">FIG. 02</span><h2>Generators</h2><span class="rule"></span><span class="scale">4 pcs · scale 1:1</span></div>
+    <div class="grid">
+      <a class="card" href="#"><div class="tag"><span>GEN-001</span><span>JS</span></div><h3>UUID/GUID Generator</h3><p>UUID v4 and v7 identifiers, generated locally in your browser.</p><div class="leader"><span>v4 · v7</span><span class="go">open →</span></div></a>
+      <a class="card" href="#"><div class="tag"><span>GEN-002</span><span>WASM</span></div><h3>Password Generator</h3><p>Strong, secure random passwords generated on-device.</p><div class="leader"><span>crypto-random</span><span class="go">open →</span></div></a>
+      <a class="card" href="#"><div class="tag"><span>GEN-003</span><span>JS</span></div><h3>Lorem Ipsum Generator</h3><p>Placeholder text for mockups and designs — completely in your browser.</p><div class="leader"><span>text</span><span class="go">open →</span></div></a>
+      <a class="card" href="#"><div class="tag"><span>GEN-004</span><span>WASM</span></div><h3>QR Code Generator</h3><p>Custom QR codes with colors, styles and logos — all in your browser.</p><div class="leader"><span>png · svg</span><span class="go">open →</span></div></a>
+    </div>
+  </section>
+</main>
+<footer><div class="footer-inner"><span>MyDevTools — sheet 1 of 1</span><span>Drawn local · Checked local · Approved local</span></div></footer>
+<script>
+function toggleTheme(){const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';}
+</script>
+</body>
+</html>

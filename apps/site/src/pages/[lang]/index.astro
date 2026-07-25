@@ -107,54 +107,68 @@ const indexJson = JSON.stringify(index);
     overflow: hidden;
     pointer-events: none;
   }
-  /* Aurora mesh — layered category-tinted blooms drifting independently */
+  /* Prism spectrum — a large blurred conic gradient of category hues slowly
+     rotating: the signature "light split through a prism" sweep. A radial
+     mask keeps the centre (where the hero text sits) clear so contrast holds,
+     while colour visibly flows around the periphery. */
   .ambient::before {
     content: "";
     position: absolute;
-    inset: -25%;
-    background:
-      radial-gradient(36% 30% at 16% 14%, color-mix(in srgb, var(--mdt-accent) 16%, transparent), transparent 70%),
-      radial-gradient(32% 26% at 84% 10%, color-mix(in srgb, var(--mdt-accent-2) 14%, transparent), transparent 70%),
-      radial-gradient(30% 28% at 70% 82%, color-mix(in srgb, var(--mdt-cat-jwt) 11%, transparent), transparent 72%),
-      radial-gradient(26% 24% at 12% 78%, color-mix(in srgb, var(--mdt-cat-structured-data) 11%, transparent), transparent 72%);
-    filter: blur(6px);
-    animation: drift 28s ease-in-out infinite alternate;
+    left: 50%;
+    top: 52%;
+    width: 150vmax;
+    height: 150vmax;
+    transform: translate(-50%, -50%);
+    background: conic-gradient(
+      from 0deg,
+      color-mix(in srgb, var(--mdt-accent) 28%, transparent),
+      color-mix(in srgb, var(--mdt-cat-structured-data) 22%, transparent),
+      color-mix(in srgb, var(--mdt-accent-2) 28%, transparent),
+      color-mix(in srgb, var(--mdt-cat-design) 22%, transparent),
+      color-mix(in srgb, var(--mdt-cat-cryptography) 24%, transparent),
+      color-mix(in srgb, var(--mdt-cat-encoding) 22%, transparent),
+      color-mix(in srgb, var(--mdt-accent) 28%, transparent)
+    );
+    filter: blur(72px);
+    opacity: 0.6;
+    -webkit-mask-image: radial-gradient(ellipse 72% 62% at 50% 38%, transparent 28%, #000 78%);
+    mask-image: radial-gradient(ellipse 72% 62% at 50% 38%, transparent 28%, #000 78%);
+    animation: spin 80s linear infinite;
   }
-  @keyframes drift {
-    0%   { transform: translate3d(-2%, -1%, 0) scale(1); }
-    100% { transform: translate3d(3%, 2%, 0) scale(1.08); }
+  @keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
   }
-  /* Faint dot grid for depth (masked so it fades toward the edges) */
+  /* Faint dot grid for texture (masked so it fades toward the edges) */
   .ambient::after {
     content: "";
     position: absolute;
     inset: 0;
     color: var(--mdt-text-faint);
     background-image: radial-gradient(currentColor 1px, transparent 1px);
-    background-size: 26px 26px;
-    opacity: 0.05;
-    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 32%, #000 30%, transparent 78%);
-    mask-image: radial-gradient(ellipse 80% 70% at 50% 32%, #000 30%, transparent 78%);
+    background-size: 28px 28px;
+    opacity: 0.07;
+    -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 35%, #000 25%, transparent 80%);
+    mask-image: radial-gradient(ellipse 85% 75% at 50% 35%, #000 25%, transparent 80%);
   }
   .ambient .g {
     position: absolute;
     left: var(--x);
     top: var(--y);
     font-family: var(--mdt-font-mono);
-    font-weight: 600;
+    font-weight: 700;
     font-size: var(--s);
     color: var(--mdt-text-faint);
-    filter: blur(0.3px);
+    filter: blur(0.4px);
     animation: floaty var(--d) ease-in-out infinite alternate,
       fade var(--d) ease-in-out infinite alternate;
   }
   @keyframes floaty {
-    from { transform: translateY(-10px) rotate(-4deg); }
-    to   { transform: translateY(12px) rotate(5deg); }
+    from { transform: translateY(-12px) rotate(-5deg); }
+    to   { transform: translateY(14px) rotate(6deg); }
   }
   @keyframes fade {
-    from { opacity: 0.14; }
-    to   { opacity: 0.44; }
+    from { opacity: 0.18; }
+    to   { opacity: 0.5; }
   }
 
   .home {

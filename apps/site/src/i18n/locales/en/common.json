@@ -2,7 +2,6 @@
   "AppName": "MyDevTools",
   "AppTagline": "Developer tools with no server data upload",
   "NoDataSent": "No data is sent to the server",
-  
   "Common_Download": "Download",
   "Common_Input": "Input",
   "Common_Output": "Output",
@@ -16,17 +15,14 @@
   "Common_Copy": "Copy",
   "Common_Open": "Open",
   "Common_Search": "Search",
-  
   "Seo_DetailedDescriptionTitle": "Detailed Functionality",
   "Seo_ExamplesTitle": "Practical Examples",
   "Seo_HowToTitle": "How to Use This Tool",
   "Seo_TipsTitle": "Tips and Best Practices",
-  
   "Nav_Home": "Home",
   "Nav_Tools": "Tools",
   "Nav_Utilities": "Utilities",
   "Nav_Features": "Features",
-  
   "Search_Placeholder": "Search tools...",
   "Search_Tooltip": "Search tools (Ctrl+K)",
   "Search_NoResults": "No tools found",
@@ -34,18 +30,15 @@
   "Search_Navigate": "to navigate",
   "Search_Select": "to select",
   "Search_Results": "results",
-  
   "CommandPalette_SearchPlaceholder": "Search for a tool...",
   "CommandPalette_TypeToSearch": "Type to search...",
   "CommandPalette_NoResults": "No tools found",
   "CommandPalette_FavoritesTitle": "Favorites",
   "CommandPalette_RecentTitle": "Recent",
   "CommandPalette_PopularTitle": "Popular",
-  
   "Badge_Popular": "Popular",
   "Badge_Recent": "Recent",
   "Badge_Favorite": "Favorite",
-  
   "PWA_InstallTitle": "Install MyDevTools",
   "PWA_InstallDescription": "Install this app for quick access and offline use",
   "PWA_InstallButton": "Install App",
@@ -57,5 +50,7 @@
   "PWA_Installed": "App installed successfully!",
   "Theme_Toggle": "Toggle theme",
   "Common_Share": "Share",
-  "Common_LinkCopied": "Link copied!"
+  "Common_LinkCopied": "Link copied!",
+  "Common_NoJsTitle": "JavaScript required",
+  "Common_NoJsBody": "This tool runs entirely in your browser. Enable JavaScript to use it."
 }

@@ -50,5 +50,7 @@
   "Nav_Tools": "도구",
   "Theme_Toggle": "테마 변경",
   "Common_Share": "공유",
-  "Common_LinkCopied": "링크가 복사되었습니다!"
+  "Common_LinkCopied": "링크가 복사되었습니다!",
+  "Common_NoJsTitle": "JavaScript 필요",
+  "Common_NoJsBody": "이 도구는 브라우저에서 완전히 실행됩니다. 사용하려면 JavaScript를 활성화하세요."
 }

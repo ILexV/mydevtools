@@ -50,5 +50,7 @@
   "Nav_Tools": "टूल्स",
   "Theme_Toggle": "थीम बदलें",
   "Common_Share": "साझा करें",
-  "Common_LinkCopied": "लिंक कॉपी किया गया!"
+  "Common_LinkCopied": "लिंक कॉपी किया गया!",
+  "Common_NoJsTitle": "JavaScript आवश्यक है",
+  "Common_NoJsBody": "यह टूल पूरी तरह से आपके ब्राउज़र में चलता है। इसका उपयोग करने के लिए JavaScript सक्षम करें।"
 }

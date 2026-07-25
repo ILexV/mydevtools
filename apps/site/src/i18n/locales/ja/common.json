@@ -50,5 +50,7 @@
   "Nav_Tools": "ツール",
   "Theme_Toggle": "テーマ切替",
   "Common_Share": "共有",
-  "Common_LinkCopied": "リンクをコピーしました！"
+  "Common_LinkCopied": "リンクをコピーしました！",
+  "Common_NoJsTitle": "JavaScript が必要です",
+  "Common_NoJsBody": "このツールはブラウザー内で完全に動作します。使用するには JavaScript を有効にしてください。"
 }

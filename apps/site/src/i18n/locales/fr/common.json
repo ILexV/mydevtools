@@ -50,5 +50,7 @@
   "Nav_Tools": "Outils",
   "Theme_Toggle": "Changer de thème",
   "Common_Share": "Partager",
-  "Common_LinkCopied": "Lien copié !"
+  "Common_LinkCopied": "Lien copié !",
+  "Common_NoJsTitle": "JavaScript requis",
+  "Common_NoJsBody": "Cet outil fonctionne entièrement dans votre navigateur. Activez JavaScript pour l’utiliser."
 }

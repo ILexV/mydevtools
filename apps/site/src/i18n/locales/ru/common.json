@@ -36,11 +36,9 @@
   "CommandPalette_FavoritesTitle": "Избранное",
   "CommandPalette_RecentTitle": "Недавние",
   "CommandPalette_PopularTitle": "Популярные",
-  
   "Badge_Popular": "Популярное",
   "Badge_Recent": "Недавнее",
   "Badge_Favorite": "Избранное",
-  
   "PWA_InstallTitle": "Установить MyDevTools",
   "PWA_InstallDescription": "Установите приложение для быстрого доступа и работы офлайн",
   "PWA_InstallButton": "Установить",
@@ -52,5 +50,7 @@
   "PWA_Installed": "Приложение успешно установлено!",
   "Theme_Toggle": "Переключить тему",
   "Common_Share": "Поделиться",
-  "Common_LinkCopied": "Ссылка скопирована!"
+  "Common_LinkCopied": "Ссылка скопирована!",
+  "Common_NoJsTitle": "Требуется JavaScript",
+  "Common_NoJsBody": "Этот инструмент работает полностью в вашем браузере. Включите JavaScript, чтобы им воспользоваться."
 }

@@ -50,5 +50,7 @@
   "Nav_Tools": "工具",
   "Theme_Toggle": "切换主题",
   "Common_Share": "分享",
-  "Common_LinkCopied": "链接已复制！"
+  "Common_LinkCopied": "链接已复制！",
+  "Common_NoJsTitle": "需要 JavaScript",
+  "Common_NoJsBody": "此工具完全在您的浏览器中运行。请启用 JavaScript 以使用它。"
 }

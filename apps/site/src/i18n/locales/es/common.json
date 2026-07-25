@@ -36,11 +36,9 @@
   "CommandPalette_FavoritesTitle": "Favoritos",
   "CommandPalette_RecentTitle": "Recientes",
   "CommandPalette_PopularTitle": "Populares",
-  
   "Badge_Popular": "Popular",
   "Badge_Recent": "Reciente",
   "Badge_Favorite": "Favorito",
-  
   "PWA_InstallTitle": "Instalar MyDevTools",
   "PWA_InstallDescription": "Instala la aplicación para acceso rápido y uso sin conexión",
   "PWA_InstallButton": "Instalar App",
@@ -52,5 +50,7 @@
   "PWA_Installed": "¡Aplicación instalada con éxito!",
   "Theme_Toggle": "Cambiar tema",
   "Common_Share": "Compartir",
-  "Common_LinkCopied": "¡Enlace copiado!"
+  "Common_LinkCopied": "¡Enlace copiado!",
+  "Common_NoJsTitle": "Se requiere JavaScript",
+  "Common_NoJsBody": "Esta herramienta funciona completamente en tu navegador. Activa JavaScript para usarla."
 }

@@ -51,10 +51,70 @@ function initLangSwitcher() {
   });
 }
 
+// ── Share / copy-link (tool pages) ──────────────────────────────────────────
+// navigator.share where available (mobile), clipboard copy otherwise.
+// URL is location.href — always includes locale and Pages base.
+const CHECK_SVG =
+  '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+
+function flashCopied(btn: HTMLButtonElement): void {
+  if (btn.dataset.copied === "1") return;
+  const original = btn.innerHTML;
+  const originalTitle = btn.title;
+  btn.dataset.copied = "1";
+  btn.classList.add("copied");
+  btn.innerHTML = CHECK_SVG;
+  btn.title = btn.getAttribute("data-copied-label") || "Copied!";
+  setTimeout(() => {
+    delete btn.dataset.copied;
+    btn.classList.remove("copied");
+    btn.innerHTML = original;
+    btn.title = originalTitle;
+  }, 1600);
+}
+
+function initShare() {
+  document.addEventListener("click", async (e) => {
+    const btn = (e.target as HTMLElement)?.closest?.("[data-share]") as HTMLButtonElement | null;
+    if (!btn) return;
+    const url = window.location.href;
+    // navigator.share only on coarse-pointer (mobile) devices — its system
+    // sheet is the right UX there; on desktop copy-link is the expectation.
+    const preferShare =
+      !!navigator.share && window.matchMedia?.("(pointer: coarse)").matches;
+    try {
+      if (preferShare) {
+        await navigator.share({ title: document.title, url });
+        return; // system UI gives its own feedback; AbortError = user cancel
+      }
+      await navigator.clipboard.writeText(url);
+    } catch (err) {
+      if ((err as DOMException)?.name === "AbortError") return;
+      // Clipboard API unavailable (permissions / insecure context) — legacy fallback.
+      const ta = document.createElement("textarea");
+      ta.value = url;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try {
+        ok = document.execCommand("copy");
+      } catch {
+        ok = false;
+      }
+      ta.remove();
+      if (!ok) return;
+    }
+    flashCopied(btn);
+  });
+}
+
 function boot() {
   initTheme();
   initLocalePersistence();
   initLangSwitcher();
+  initShare();
 }
 
 if (document.readyState === "loading") {

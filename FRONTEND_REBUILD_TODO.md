@@ -105,7 +105,7 @@
 - [x] Настроить алиасы `@/components`, `@/tools`, `@/i18n`, `@/registry`, `@/styles`, `@/generated`. → единый `@/*` → `src/*` (даёт все перечисленные)
 - [x] Настроить `output: "static"`, `site` и GitHub Pages `base` в `astro.config.mjs`.
 - [x] Создать единые команды `dev`, `build`, `preview`, `check`, `test` и `deploy`. → `dev`/`build`/`preview`/`check` в `apps/site` + root `dev:site`/`build:site`/`preview:site`/`check:site`; `test`/`deploy` — Этапы 11/12
-- [ ] Добавить root-команду, последовательно запускающую WASM build, locale validation и Astro build.
+- [x] Добавить root-команду, последовательно запускающую WASM build, locale validation и Astro build. → root `build:pages` = validate:i18n → build:wasm → build:site → test:smoke (Этап 12).
 - [x] Создать структуру `src/pages`, `src/layouts`, `src/components`, `src/tools`, `src/i18n`, `src/registry`, `src/styles`, `src/generated`.
 - [x] Настроить абсолютные импорты только через build aliases; не использовать абсолютные публичные URL вида `/wasm/...`.
 - [ ] Определить политику browser support и targets для TypeScript/CSS.
@@ -140,9 +140,9 @@
 - [x] Генерировать HTML на build-time; не загружать весь locale catalog в браузер. → Astro prerender, `import.meta.glob` eager только на build
 - [ ] Передавать browser controller только строки текущего tool namespace, необходимые интерактивным состояниям. → Этап 9 (browser controllers)
 - [ ] Добавить pluralization, interpolation и locale-aware number/date formatting там, где это реально используется.
-- [ ] Реализовать language switcher, сохраняющий текущий tool slug.
+- [x] Реализовать language switcher, сохраняющий текущий tool slug. → Header.astro `<details>` switcher; `path` прокидывается из layout → slug сохраняется при смене языка (проверено в Stage 8 browser: en→ru).
 - [x] Определить поведение `/`: статическая language landing либо небольшой client redirect; не рассчитывать на `Accept-Language` server redirect. → `src/pages/index.astro` (client-side redirect по `navigator.languages`)
-- [ ] Сохранять выбранный язык локально без обязательных cookies.
+- [x] Сохранять выбранный язык локально без обязательных cookies. → `mdt.locale` в localStorage (chrome.ts initLocalePersistence); URL — source of truth, cookies не используются.
 - [x] Адаптировать LocalizationValidator под новые пути либо заменить его локальным Node/TypeScript validator. → `apps/site/scripts/validate-i18n.mjs` + `npm run validate:i18n`
 - [x] Валидировать parse errors, missing/extra keys, пустые значения, untranslated values и literal key references. → parse/missing/extra/empty/untranslated покрыты (literal-key refs — Этап 9)
 - [x] Проверять наличие каждого tool namespace во всех десяти языках. → проверка namespace-parity vs `en` для 10 языков
@@ -151,7 +151,7 @@
 ### Gate 5
 
 - [x] Отсутствующий/лишний localization key ломает локальную проверку до сборки. → `validate:i18n` exit≠0
-- [ ] Переключение языка сохраняет текущий инструмент и не требует network API.
+- [x] Переключение языка сохраняет текущий инструмент и не требует network API. → статические ссылки на prerendered `/{lang}/{slug}/`, ноль network-запросов.
 
 ## Этап 6. Новый дизайн-системный слой
 
@@ -201,10 +201,10 @@
 - [x] Реализовать главную с новым hero, поиском, категориями и понятным privacy-first сообщением. → `pages/[lang]/index.astro` + `catalog.ts`
 - [x] Реализовать быстрый локальный поиск по title, description, keywords и aliases текущего языка. → client-side filter по `data-keywords` + title/desc; горячая клавиша `/`
 - [x] Реализовать favorites и recent tools с versioned `localStorage` schema. → `scripts/favorites.ts`, `mdt.favorites.v1`/`mdt.recent.v1` (cap 10), badges + секции на home + toggle на tool page
-- [ ] Реализовать command palette и документировать keyboard shortcut.
+- [x] Реализовать command palette и документировать keyboard shortcut. → `components/Palette.astro` + `scripts/palette.ts` на каждой странице: Ctrl/Cmd+K и `/` (вне home — там `/` у inline-поиска) + кнопка в header (title с Ctrl+K); фильтр по title/keywords/category, пустой запрос → favorites+recent, клавиатура ↑↓/Enter/Esc, aria listbox/combobox; footer с kbd-подсказками. Проверено в browser (en/ru).
 - [x] Реализовать related tools на основе единого registry. → `relatedTools()` из `catalog.ts`, секция на tool page
 - [x] Реализовать responsive header, mobile navigation и footer. → `Header.astro` (sticky, мобильный брейкпоинт) + `Footer.astro`
-- [ ] Реализовать share/copy-link с URL, включающим locale и GitHub Pages base.
+- [x] Реализовать share/copy-link с URL, включающим locale и GitHub Pages base. → кнопка `[data-share]` в title-row tool page (chrome.ts): `navigator.share` только на coarse-pointer (mobile), desktop → clipboard copy URL (= locale + base), feedback «Link copied!» 1.6 s; fallback execCommand; AbortError отдельно. Ключи `Common_Share`/`Common_LinkCopied` ×10 локалей. Проверено в browser.
 - [x] Добавить безопасное восстановление state при поврежденном/запрещенном `localStorage`. → весь client-state в try/catch с silent degradation
 - [x] Не сохранять пользовательские тексты, файлы, ключи, пароли или результаты без явного действия пользователя. → сохраняются только slug'и favorites/recent + theme + locale; legacy-флаги приватности (json/xml input) в новом build не переносились
 - [x] Реализовать локализованные empty, loading, error, offline и not-found states. → empty (no-results), 404.html; tool-loading/error/offline — Этап 9 с реальным UI

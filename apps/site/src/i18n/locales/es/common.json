@@ -50,5 +50,7 @@
   "PWA_UpdateButton": "Actualizar Ahora",
   "PWA_UpdateDismiss": "Más tarde",
   "PWA_Installed": "¡Aplicación instalada con éxito!",
-  "Theme_Toggle": "Cambiar tema"
+  "Theme_Toggle": "Cambiar tema",
+  "Common_Share": "Compartir",
+  "Common_LinkCopied": "¡Enlace copiado!"
 }

@@ -48,5 +48,7 @@
   "Common_Copy": "복사",
   "Nav_Home": "홈",
   "Nav_Tools": "도구",
-  "Theme_Toggle": "테마 변경"
+  "Theme_Toggle": "테마 변경",
+  "Common_Share": "공유",
+  "Common_LinkCopied": "링크가 복사되었습니다!"
 }

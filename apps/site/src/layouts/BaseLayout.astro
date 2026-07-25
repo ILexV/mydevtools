@@ -4,6 +4,7 @@ import { LOCALES } from "@/registry/locales";
 import Seo from "@/components/Seo.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
+import Palette from "@/components/Palette.astro";
 import "@/styles/global.css";
 
 interface Props {
@@ -59,11 +60,13 @@ const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
     <Header locale={locale} path={path} />
     <slot />
     <Footer locale={locale} />
+    <Palette locale={locale} />
 
     <!-- Global shell: theme toggle, language switcher, search, favorites/recent. -->
     <script>
       import "@/scripts/chrome.ts";
       import "@/scripts/favorites.ts";
+      import "@/scripts/palette.ts";
     </script>
 
     <!-- PWA: register the build-generated service worker (production only). -->

@@ -50,5 +50,7 @@
   "PWA_UpdateButton": "Обновить",
   "PWA_UpdateDismiss": "Позже",
   "PWA_Installed": "Приложение успешно установлено!",
-  "Theme_Toggle": "Переключить тему"
+  "Theme_Toggle": "Переключить тему",
+  "Common_Share": "Поделиться",
+  "Common_LinkCopied": "Ссылка скопирована!"
 }

@@ -77,6 +77,8 @@ const description = t(lang, namespace, "Description");
 const catLabel = categoryLabel(lang, tool.category);
 const related = relatedTools(lang, slug);
 const favLabel = t(lang, "common", "Badge_Favorite");
+const shareLabel = t(lang, "common", "Common_Share");
+const copiedLabel = t(lang, "common", "Common_LinkCopied");
 const relatedLabel = `${catLabel}`;
 
 // Migrated tools render their own component; others show a placeholder.
@@ -146,6 +148,16 @@ const ActiveTool = TOOL_COMPONENTS[slug];
         >
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18.9 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
         </button>
+        <button
+          type="button"
+          class="share-btn"
+          data-share
+          data-copied-label={copiedLabel}
+          aria-label={shareLabel}
+          title={shareLabel}
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+        </button>
       </div>
       <p class="tool-desc">{description}</p>
       {ActiveTool ? (
@@ -191,6 +203,21 @@ const ActiveTool = TOOL_COMPONENTS[slug];
     letter-spacing: -0.02em;
     margin: 0;
   }
+  .share-btn {
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text-muted);
+    cursor: pointer;
+  }
+  .share-btn:hover { border-color: var(--mdt-accent); color: var(--mdt-accent); }
+  .share-btn.copied { border-color: var(--mdt-success); color: var(--mdt-success); }
   .fav-toggle {
     flex-shrink: 0;
     width: 2.25rem;

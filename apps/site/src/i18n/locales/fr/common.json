@@ -48,5 +48,7 @@
   "Common_Copy": "Copier",
   "Nav_Home": "Accueil",
   "Nav_Tools": "Outils",
-  "Theme_Toggle": "Changer de thème"
+  "Theme_Toggle": "Changer de thème",
+  "Common_Share": "Partager",
+  "Common_LinkCopied": "Lien copié !"
 }

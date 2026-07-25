@@ -31,7 +31,7 @@ const placeholder = t(locale, "common", "CommandPalette_SearchPlaceholder");
 <div
   class="palette"
   data-palette
-  hidden
+  popover="manual"
   data-label-noresults={t(locale, "common", "CommandPalette_NoResults")}
   data-label-hint={t(locale, "common", "CommandPalette_TypeToSearch")}
   data-label-favorites={t(locale, "common", "CommandPalette_FavoritesTitle")}
@@ -72,7 +72,12 @@ const placeholder = t(locale, "common", "CommandPalette_SearchPlaceholder");
     justify-content: center;
     padding: 12vh 1rem 1rem;
   }
-  .palette[hidden] { display: none; }
+  /* popover="manual" hides via the UA `[popover]:not(:popover-open)` rule, but
+     our author `.palette { display:flex }` beats UA-origin styles regardless of
+     specificity — so re-assert the hidden state as an author rule. */
+  .palette:not(:popover-open) {
+    display: none;
+  }
   .palette-backdrop {
     position: absolute;
     inset: 0;

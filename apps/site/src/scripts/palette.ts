@@ -132,7 +132,7 @@ function boot(): void {
     if (isOpen) return;
     isOpen = true;
     lastFocus = document.activeElement as HTMLElement | null;
-    root.hidden = false;
+    root.showPopover();
     document.body.style.overflow = "hidden";
     input.value = "";
     render();
@@ -142,7 +142,7 @@ function boot(): void {
   function closePalette(): void {
     if (!isOpen) return;
     isOpen = false;
-    root.hidden = true;
+    root.hidePopover();
     document.body.style.overflow = "";
     lastFocus?.focus?.();
   }

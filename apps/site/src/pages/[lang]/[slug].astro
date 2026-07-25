@@ -128,6 +128,7 @@ const ActiveTool = TOOL_COMPONENTS[slug];
 
 <BaseLayout locale={lang} path={slug} title={title} description={description} keywords={[tool.slug]} categoryName={catLabel}>
   <span data-visit-slug data-slug={slug} hidden></span>
+  <div class="scroll-progress" aria-hidden="true"></div>
   <main class="tool" style={`--mdt-cat: var(--mdt-cat-${tool.category})`}>
     <header class="tool-head">
       <nav class="crumbs" aria-label="breadcrumb">
@@ -284,5 +285,35 @@ const ActiveTool = TOOL_COMPONENTS[slug];
     .tool { padding: 1.25rem 1rem 2.5rem; }
     .privacy-pill { display: none; }
     .tool-title-row .tile { width: 40px; height: 40px; border-radius: 11px; }
+  }
+</style>
+<style is:inline>
+  /* Reading-progress indicator — pure CSS via animation-timeline: scroll(root),
+     zero JS. is:inline (verbatim, no minify/scope) so the minifier doesn't fold
+     animation-timeline into the animation shorthand (which Chromium rejects).
+     Chromium-only; non-supporting engines see no bar (scaleX(0) = invisible).
+     Tracks scroll 1:1, so reduced-motion users still get the indicator cleanly. */
+  .scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    background: linear-gradient(90deg, var(--mdt-cat), var(--mdt-accent-2));
+    z-index: 120;
+    pointer-events: none;
+    animation: none;
+  }
+  @supports (animation-timeline: scroll()) {
+    .scroll-progress {
+      animation: sp-grow linear both;
+      animation-timeline: scroll(root);
+    }
+    @keyframes sp-grow {
+      from { transform: scaleX(0); }
+      to { transform: scaleX(1); }
+    }
   }
 </style>

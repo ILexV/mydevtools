@@ -216,6 +216,19 @@
       scroll-behavior: auto !important;
     }
   }
+  /* Windows High Contrast / forced-colors: drop the purely-decorative ambient
+     (it only adds color noise in HC) and keep the primary CTA legible — its
+     white text would otherwise sit on a system ButtonFace remap. */
+  @media (forced-colors: active) {
+    .ambient {
+      display: none !important;
+    }
+    .ds-btn-primary {
+      color: HighlightText;
+      background: Highlight;
+      border: 1px solid HighlightText;
+    }
+  }
 }
 
 @layer utilities {

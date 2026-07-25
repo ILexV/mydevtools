@@ -16,9 +16,13 @@
     "validate:i18n": "npm run validate:i18n -w @mydevtools/site",
     "build:pages": "npm run validate:i18n && npm run build:wasm && npm run build:site && npm run test:smoke -w @mydevtools/site",
     "deploy:pages": "node scripts/deploy-pages.mjs",
+    "test:smoke": "npm run test:smoke -w @mydevtools/site",
+    "test:visual": "npm run build:site && playwright test -c e2e/playwright.config.ts",
+    "test:visual:update": "npm run build:site && playwright test -c e2e/playwright.config.ts --update-snapshots",
     "ui-kit:build": "npm run build -w @mydevtools/ui-kit"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.0",
     "typescript": "^6.0.3",
     "typescript-language-server": "^5.3.0",
     "vscode-langservers-extracted": "^4.10.0"

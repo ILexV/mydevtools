@@ -91,6 +91,26 @@ Open the published Pages URL in a fresh browser profile (no local cache):
 - Service worker registers (`/mydevtools/sw.js`), offline shell works after a visit.
 - A second publish + hard refresh serves the new version (SW update prompt).
 
+## Visual regression (optional, local/CI)
+
+Playwright captures baseline screenshots of the key surfaces (home light/dark +
+mobile, a text tool, a file/WASM tool, the design showcase) and diffs them.
+Baselines live in `e2e/pages.spec.ts-snapshots/` (platform-suffixed, e.g.
+`*-chromium-win32.png`) and are committed. The suite lives at the **repo root**
+`e2e/` (not under `apps/site/`) so Playwright's tsconfig loader never touches
+`apps/site/tsconfig.json` (`extends astro/tsconfigs/strict` is only resolvable
+by Astro's own TS tooling).
+
+```powershell
+npm run test:visual           # build:site → diff vs committed baselines
+npm run test:visual:update    # regenerate baselines after an intentional change
+```
+
+Determinism: `reduceMotion: "reduce"` freezes every `@keyframes` (ambient spin,
+monogram drift), `serviceWorkers: "block"` prevents stale-cache serving,
+`animations: "disabled"` at capture, and each shot awaits `document.fonts.ready`.
+Chromium-only; Firefox/Safari are a separate (manual or CI multi-browser) gap.
+
 ## Rollback
 
 The `gh-pages` branch is a linear series of deploy commits. To revert:

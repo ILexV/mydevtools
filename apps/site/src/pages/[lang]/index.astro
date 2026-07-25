@@ -342,3 +342,22 @@ const indexJson = JSON.stringify(index);
     .home { padding: 1.75rem 1rem 4rem; }
   }
 </style>
+<style is:inline>
+  /* Progressive scroll-reveal — Chromium-only (animation-timeline: view()).
+     is:inline (verbatim, no minify/scope) is required: Astro's minifier would
+     fold animation-timeline into the animation shorthand, producing a value
+     Chromium rejects — so the reveal would silently no-op. Double-guarded:
+     ignored in Firefox/Safari (content renders normally) and under reduced-motion. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .cat-section {
+        animation: mdt-reveal linear both;
+        animation-timeline: view();
+        animation-range: entry 6% cover 24%;
+      }
+      @keyframes mdt-reveal {
+        from { opacity: 0; transform: translateY(18px); }
+      }
+    }
+  }
+</style>

@@ -169,6 +169,29 @@
     transition: background var(--mdt-dur-slow) var(--mdt-ease), color var(--mdt-dur-slow) var(--mdt-ease);
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Balance heading line-breaks + pretty body wrapping (modern typography;
+     ignored where unsupported, degrades to normal wrapping). Smooth scroll is
+     auto-disabled below by the prefers-reduced-motion block. */
+  h1, h2, h3, h4 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Native form controls pick up the active accent; the custom .ds-check /
+     .ds-radio are appearance:none, so this only colors real checkboxes/radios. */
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="range"],
+  progress {
+    accent-color: var(--mdt-accent);
+  }
+
   :focus-visible {
     outline: 2px solid var(--mdt-focus-ring);
     outline-offset: 2px;

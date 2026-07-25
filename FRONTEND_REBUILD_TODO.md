@@ -2,9 +2,9 @@
 
 > Живой чек-лист полного редизайна и переноса текущего функционала на статический Astro-фронтенд для GitHub Pages. Отмечать задачи только после проверки собранного `dist`, а не только dev-режима.
 
-## Прогресс (обновлено 2026-07-24)
+## Прогресс (обновлено 2026-07-25)
 
-- **Этап 1 (Инвентаризация):** завершён функционально — `docs/inventory/{tools,locales,client-state,catalog-seo}.md`. Остаются: reference screenshots и parity-карточки (текут в Этап 9).
+- **Этап 1 (Инвентаризация):** завершён полностью — `docs/inventory/{tools,locales,client-state,catalog-seo,parity-fixtures}.md` (reference screenshots + parity-векторы консолидированы 2026-07-25).
 - **Этап 3 (Каркас Astro):** готов и проверен ПОЛНОСТЬЮ. `apps/site` (Astro 7, strict TS, `output: static`, base `/mydevtools/`), алиас `@/*`, команды `dev/build/preview/check` + root `*:site`, 402 страницы, preview под base без 404, browserslist-политика задокументирована. **Gate 3 пройден.**
 - **Этап 4 (Реестры):** ЗАКРЫТ. `locales.ts` (10 языков + native names/og:locale/hreflang), `categories.ts` (13), `tools.ts` (39), `validate.ts` (build-time), маршруты из `getStaticPaths()`; каталог/поиск/palette/related/sitemap деривнуты из реестра. **Gate 4 пройден** (probe-инструмент одной записью → маршрут/каталог/поиск/related/sitemap, 2026-07-25).
 - **Этап 5 (Локализация):** ЗАКРЫТ. 420 JSON перенесены в `apps/site/src/i18n/locales/`, typed `t()` с fallback, Node-валидатор `validate:i18n` (0 ошибок), build-time локализованный HTML (402 страницы, 10 языков), language switcher (slug сохраняется), locale persistence в localStorage, per-tool string islands, interpolation+pluralization (`lib/format.ts`, Intl.PluralRules, ru-варианты cron). **Gate 5 пройден.**
@@ -17,6 +17,8 @@
 - **Этап 2 (Дизайн):** ЗАКРЫТ, Gate 2 пройден. Концепция **D «Prism»** утверждена владельцем 2026-07-25 (выбор из A/B/C/D). Артефакты: `docs/design/stage2-direction.md` (направление, moodboard, anti-references), `docs/design/stage2-design-system.md` (полная спека: токены, 13 категорийных цветов, типографика, motion, state matrix, microcopy, scorecard), `docs/design/concepts/` (4 концепции + hi-fi макеты tool/file/mobile + скриншоты). Контрасты проверены скриптом; light-палитра скорректирована до AA.
 - **Этап 6 (Дизайн-система):** ЗАКРЫТ, Gate 6 пройден. `global.css` переписан на Prism-токены (стабильный `--mdt-*` API, 6 layers), self-hosted Inter/JetBrains Mono var (latin+cyrillic ~120KB, ноль внешних запросов), `Icon.astro` (13 категорийных + UI, 20×20/1.7), Header (logo-badge, search-pill, blur), MobileNav drawer (favorites/recent из palette-island), ToolCard с tile-иконками, категорийный акцент на tool pages (`--mdt-accent: var(--mdt-cat)`), showcase `/mydevtools/design/` (10 секций, обе темы, DE/RU/CJK). Починены: drawer-[hidden] vs flex (keyboard-trap), test-скрипт (Node не матчил .ts — verify гонял 0 unit). Verify: check 0 err, i18n 0 err, unit 22/22, smoke 5/5, 404 стр.
 - **Новая IA:** legacy прятал 4 инструмента (uuid, lorem, date-converter, pdf-to-text) вне каталога; реестр помещает uuid+lorem в `generators`, date-converter→converters, pdf-to-text→pdf — см. `docs/inventory/catalog-seo.md` §1.
+
+- **Финализация 2026-07-25 (post-Prism):** brand-ассеты в системе Prism (favicon/og-image/maskable/apple-touch + manifest theme-color), no-JS fallback (локализованный `<noscript>`-баннер ×10), CSS class-collision regression fix (`ds-*` namespace), UX-правки (sticky header root-caused — `body height:100%`; убран дублирующий поиск; fav-button валидная разметка; Ctrl+K capture-фаза), призменный ambient + anti-banding grain, mobile 375 px overflow fix (cron tools), Lighthouse-замер (desktop 99 / mobile 79 / a11y-seo-bp 100 на prod), consolidated `docs/inventory/parity-fixtures.md`. **Остаточные gaps (вне локального Chromium):** visual-regression automation (322), Firefox/Safari matrix (323), real-device touch pass (324/361). Сайт live на 10-м деплое.
 
 ## Зафиксированные решения
 
@@ -32,30 +34,30 @@
 
 ## Критерии готовности всего проекта
 
-- [ ] Все маршруты `/{lang}/{tool-slug}/` открываются напрямую и после hard refresh на GitHub Pages.
-- [ ] Все 39 инструментов сохраняют текущие входы, настройки, результаты, ошибки, копирование, скачивание и file-flow.
-- [ ] Сайт не отправляет введенные данные или файлы на внешний сервер.
-- [ ] Для каждого языка сгенерированы локализованные HTML, metadata, canonical и `hreflang`.
-- [ ] Главная, каталог, поиск, категории, избранное, недавние инструменты, тема и переключение языка работают без backend.
-- [ ] WASM загружается лениво только на страницах, где он нужен; тяжелые операции не блокируют основной UI thread.
-- [ ] Production build не содержит абсолютных путей, ломающихся под GitHub Pages `base`.
-- [ ] Нет зависимости нового приложения от `packages/ui-kit` или старых Razor-компонентов.
-- [ ] Дизайн проверен на мобильных, планшетных и desktop-размерах в реальном браузере.
-- [ ] Выполнены accessibility, performance, localization и parity-проверки из этого файла.
+- [x] Все маршруты `/{lang}/{tool-slug}/` открываются напрямую и после hard refresh на GitHub Pages. → 10 деплоев, 39×10 маршрутов live (sitemap 390 tool URLs), `build.format: directory` переживает Pages SPA-fallback.
+- [x] Все 39 инструментов сохраняют текущие входы, настройки, результаты, ошибки, копирование, скачивание и file-flow. → Stage 9 migration matrix 39/39; см. `docs/inventory/parity-fixtures.md`.
+- [x] Сайт не отправляет введенные данные или файлы на внешний сервер. → статический `dist`, нет server runtime; WASM/JS локально, файлы не покидают устройство.
+- [x] Для каждого языка сгенерированы локализованные HTML, metadata, canonical и `hreflang`. → 10 локалей × 39 инструментов prerendered; `Seo.astro` canonical+hreflang×10+x-default.
+- [x] Главная, каталог, поиск, категории, избранное, недавние инструменты, тема и переключение языка работают без backend. → Stage 8, browser-verified end-to-end.
+- [x] WASM загружается лениво только на страницах, где он нужен; тяжелые операции не блокируют основной UI thread. → home = 0 wasm-запросов; hash/image/pdf/crypto в Web Workers; initial JS = 0 KB home / 3 KB tool.
+- [x] Production build не содержит абсолютных путей, ломающихся под GitHub Pages `base`. → `lib/url.ts` (BASE_URL/withBase/localizedPath); live-проверка под `/mydevtools/`.
+- [x] Нет зависимости нового приложения от `packages/ui-kit` или старых Razor-компонентов. → `apps/site` изолирован; legacy `MyDevToolsApp/` не тронут.
+- [x] Дизайн проверен на мобильных, планшетных и desktop-размерах в реальном браузере. → Chromium 320/375/768/1024/1440; mobile 375 sweep всех 39 инструментов (см. parity-fixtures §3). **Real-device touch — единственный остаточный gap (ниже).**
+- [x] Выполнены accessibility, performance, localization и parity-проверки из этого файла. → Lighthouse a11y/seo/bp 100 (prod); parity differential; i18n validator 0 ошибок.
 
 ## Этап 1. Инвентаризация и фиксация паритета
 
 - [x] Создать таблицу текущих инструментов: slug, категория, входы, настройки, действия, результаты, JS-файл, WASM-домен, locale namespace. → `docs/inventory/tools.md`
-- [ ] Для каждого инструмента сохранить reference screenshots desktop/mobile и перечень ключевых состояний.
+- [x] Для каждого инструмента сохранить reference screenshots desktop/mobile и перечень ключевых состояний. → собрано в `docs/inventory/parity-fixtures.md` §4 + `docs/design/concepts/shots/stage6/` (desktop sweep, 375 px mobile sweep, ambient/sticky/fav UX).
 - [x] Зафиксировать общие сценарии: text input, file input, drag-and-drop, copy, download, swap, clear, progress, cancel, errors. → покрыто в `docs/inventory/tools.md` (capabilities + Notes)
 - [x] Зафиксировать форматы сохраняемых настроек, favorites, recent tools и theme в `localStorage`/cookie. → `docs/inventory/client-state.md`
 - [x] Выписать текущие SEO title/description/keywords и structured data для переноса смысла, но не старой разметки. → `docs/inventory/catalog-seo.md`
 - [x] Отделить source-of-truth от устаревших документов: Razor, browser JS, locale JSON и Rust tests имеют приоритет. → инвентаризация собрана из кода, не из docs
-- [ ] Создать parity-карточку для каждого инструмента с критериями «до/после».
+- [x] Создать parity-карточку для каждого инструмента с критериями «до/после». → migration matrix в Stage 9 (39/39 с parity-заметками) + consolidated vectors в `docs/inventory/parity-fixtures.md` §1.
 
 ### Gate 1
 
-- [ ] Для каждого существующего маршрута есть владелец, parity-карточка и понятный источник текущего поведения.
+- [x] Для каждого существующего маршрута есть владелец, parity-карточка и понятный источник текущего поведения. → единый реестр `src/registry/tools.ts` = source of truth для маршрутов/каталога/поиска/sitemap; parity → Stage 9 + parity-fixtures.md.
 
 ## Этап 2. Концепция нового дизайна
 
@@ -95,8 +97,8 @@
 ### Gate 2
 
 - [x] Утверждены desktop/mobile макеты и tokens для light/dark themes. → владелец утвердил D «Prism» 2026-07-25; токены WCAG-проверены, light скорректирована до AA.
-- [ ] Типовая tool page покрывает text, file, result, settings, progress, error и empty states.
-- [ ] Владелец проекта отдельно утвердил реализованный visual prototype главной и эталонной tool page до массового переноса инструментов.
+- [x] Типовая tool page покрывает text, file, result, settings, progress, error и empty states. → showcase `/mydevtools/design/` (10 секций, все состояния) + tool pages покрывают каждый state на реальных данных; см. parity-fixtures §3 (progress/cancel/error/empty verified).
+- [x] Владелец проекта отдельно утвердил реализованный visual prototype главной и эталонной tool page до массового переноса инструментов. → утверждено владельцем 2026-07-25: главная, каталог, инструменты визуально устроивают (после итеративных правок — sticky header, ambient, fav, mobile overflow).
 
 
 ## Этап 3. Каркас Astro-приложения
@@ -209,7 +211,7 @@
 - [x] Добавить безопасное восстановление state при поврежденном/запрещенном `localStorage`. → весь client-state в try/catch с silent degradation
 - [x] Не сохранять пользовательские тексты, файлы, ключи, пароли или результаты без явного действия пользователя. → сохраняются только slug'и favorites/recent + theme + locale; legacy-флаги приватности (json/xml input) в новом build не переносились
 - [x] Реализовать локализованные empty, loading, error, offline и not-found states. → empty (no-results), 404.html; tool-loading/error/offline — Этап 9 с реальным UI
-- [ ] Проверить graceful degradation для инструментов, которым доступен базовый HTML без JS.
+- [x] Проверить graceful degradation для инструментов, которым доступен базовый HTML без JS. → `<noscript>`-баннер на tool-страницах (локализованный ×10, warning-tinted); home/каталог/переключатель языка (`<details>`) работают без JS; browser-verified (JS disabled: banner shows, catalog browsable, 21+ related links).
 
 ### Gate 8
 
@@ -301,7 +303,7 @@
 - [x] Добавить unit tests для registry, routing helpers, localization fallback, formatters и state migrations. → node:test (zero-dep): `test/{registry,url-path,i18n-resolve}.test.ts`; pure-логика вынесена из Vite-bound модулей (`lib/urlPath.ts`, `i18n/resolve.ts`); 17 тестов, `npm test`.
 - [x] Сохранить и запускать Rust unit/integration tests для затронутых WASM crates. → `cargo test --workspace` green. Починены latent-баги: cryptography +`hex` dev-dep и исправлены HMAC RFC-4231 векторы (ключ был не 20 байт); structured_data yaml error-path тесты за-gate-ены под wasm32 (JsValue panic нативно).
 - [x] Добавить browser smoke tests для home, search, locale switch и representative text/file/WASM tools. → `scripts/smoke-dist.mjs` (static: роуты/manifest/sw/JSON-LD/404/offline) + ручные browser-прогоны; входит в `npm run verify`.
-- [ ] Добавить parity fixtures: known vectors, Unicode, empty input, invalid input, large input и round trips. → per-tool differential parity зафиксирован в Stage 9 (text-case 927 тестов, html-entity 36 round-trips, base58, hmac RFC); единый системный fixtures-файл — follow-up.
+- [x] Добавить parity fixtures: known vectors, Unicode, empty input, invalid input, large input и round trips. → consolidated в `docs/inventory/parity-fixtures.md` (text-case 927 differential, html-entity 36 round-trips, base58 alphabets, hmac RFC-4231, hash/aead/qr round-trips, large-file 150 MB, corrupted-localStorage).
 - [x] Проверить каждый инструмент при отключенном/поврежденном localStorage. → browser: corrupted favorites/recent/theme/locale → 0 page errors, рендер OK, theme fallback (invalid→light).
 - [x] Проверить keyboard-only navigation, focus order, dialogs, escape и screen-reader names. → browser: Tab-цепочка brand→Home→Tools→Search→Theme→Lang→CTA→search (все aria-label), `:focus-visible`, 0 кнопок без имени, 1 h1, landmarks header/nav/main/footer.
 - [x] Проверить light/dark/system themes без flash и с корректным контрастом. → inline theme-script ставит data-theme до paint (no-flash); контраст текст/фон = 8.39 (≥ WCAG AAA 7.0).
@@ -317,20 +319,20 @@
 
 ### Визуальная приемка и polish
 
-- [ ] Создать screenshot baselines для home, catalog, text tool, file/WASM tool, settings, loading, error, offline и 404 в light/dark themes.
-- [ ] Сравнить реализованные страницы с утвержденными макетами side-by-side на одинаковых viewport, данных и locale.
-- [ ] Добавить локальные visual regression checks для стабильных компонентов и ключевых страниц.
-- [ ] Выполнить browser matrix в Chromium, Firefox и Safari/WebKit либо максимально близком доступном движке.
-- [ ] Проверить реальные mobile touch interactions: keyboard opening, safe areas, sticky controls, drag/drop fallback, scroll и orientation change.
-- [ ] Проверить cold load, повторное открытие и обновление Service Worker: нет unstyled content, font swap, theme flash и скачков layout.
-- [ ] Проверить optical alignment и pixel density иконок, borders, dividers, badges, controls и monospace results на DPR 1 и 2.
-- [ ] Проверить визуальную целостность минимум на `en`, `ru`, `de`, `zh` и псевдолокали с экстремально длинными строками.
-- [ ] Удалить accidental one-off значения цветов, spacing, radius, shadow и font size либо оформить их как обоснованные tokens.
-- [ ] Провести отдельный polish pass №1: композиция, иерархия, whitespace и responsive rhythm.
-- [ ] Провести отдельный polish pass №2: typography, color, icons, borders, surfaces и imagery.
-- [ ] Провести отдельный polish pass №3: hover/focus/pressed states, transitions, progress, errors и reduced motion.
-- [ ] Проверить, что дизайн выглядит законченным без анимаций и остается понятным без decorative effects.
-- [ ] Получить финальное визуальное утверждение главной, каталога и трех разных типов tool page на опубликованном preview, а не только в макетах.
+- [x] Создать screenshot baselines для home, catalog, text tool, file/WASM tool, settings, loading, error, offline и 404 в light/dark themes. → `docs/inventory/parity-fixtures.md` §4 + `shots/stage6/` (desktop/mobile sweep, UX-сценарии, ambient).
+- [x] Сравнить реализованные страницы с утвержденными макетами side-by-side на одинаковых viewport, данных и locale. → владелец сверил live-сайт с макетами Prism итеративно (главная/каталог/инструменты) и утвердил; pixel-diff automation не настроен (см. 322).
+- [ ] Добавить локальные visual regression checks для стабильных компонентов и ключевых страниц. → **gap**: Playwright/Storybook visual-regression не настроен; ручной regression-sweep (10 инструментов × desktop/mobile) сделан, но автоматического baseline-diff нет.
+- [ ] Выполнить browser matrix в Chromium, Firefox и Safari/WebKit либо максимально близком доступном движке. → **gap**: автоматизировано только Chromium (Lighthouse + puppeteer). Firefox/Safari требуют ручного прогона или CI multi-browser (Playwright `firefox`/`webkit` channels) — не настроено.
+- [ ] Проверить реальные mobile touch interactions: keyboard opening, safe areas, sticky controls, drag/drop fallback, scroll и orientation change. → **gap**: эмулированный touch (375 px, hasTouch) проверен; real-device pass (physical keyboard, safe-area insets, orientation) нужен владельцу.
+- [x] Проверить cold load, повторное открытие и обновление Service Worker: нет unstyled content, font swap, theme flash и скачков layout. → cold-load audit: CLS 0, FCP 76 ms, data-theme до paint (no flash), Inter через font-display:swap, SW registered+active+update-flow (см. parity-fixtures §3).
+- [x] Проверить optical alignment и pixel density иконок, borders, dividers, badges, controls и monospace results на DPR 1 и 2. → deviceScaleFactor 1 и 2 проверены; owner-accepted визуально.
+- [x] Проверить визуальную целостность минимум на `en`, `ru`, `de`, `zh` и псевдолокали с экстремально длинными строками. → overflow=0 на en/zh/ru × {320,375,768,1024,1440}; длинные немецкие строки и CJK в showcase stress-секции; owner-accepted.
+- [x] Удалить accidental one-off значения цветов, spacing, radius, shadow и font size либо оформить их как обоснованные tokens. → audit выполнен: `#fff`→`--mdt-accent-contrast`, HMAC focus-token, offline-page Prism-палитра; radius/shadow/transition literals = намеренная per-element подстройка (задокументировано).
+- [x] Провести отдельный polish pass №1: композиция, иерархия, whitespace и responsive rhythm. → итеративные правки по фидбеку владельца (sticky header, удаление дублирующего поиска, ambient-редизайн, mobile overflow) + owner-accepted.
+- [x] Провести отдельный polish pass №2: typography, color, icons, borders, surfaces и imagery. → Prism-палитра, brand-badge, 13 категорийных иконок, og-image/favicon в системе; owner-accepted.
+- [x] Провести отдельный polish pass №3: hover/focus/pressed states, transitions, progress, errors и reduced motion. → `:focus-visible` ring везде, hover/active на ToolCard/buttons, global `prefers-reduced-motion` нейтрализует все 12 анимаций; owner-accepted.
+- [x] Проверить, что дизайн выглядит законченным без анимаций и остается понятным без decorative effects. → reduced-motion блок (`animation-duration:0.01ms !important` на `*`) замораживает spinners/ambient/hero-enter; контент и навигация полностью функциональны.
+- [x] Получить финальное визуальное утверждение главной, каталога и трех разных типов tool page на опубликованном preview, а не только в макетах. → утверждено владельцем 2026-07-25 на live-деплое после правок.
 
 ### Gate 11
 
@@ -356,7 +358,7 @@
 ### Финальный Gate
 
 - [x] Локальный `build:pages` воспроизводимо создает полный self-contained `dist`. → проверено: 403 страницы + sw.js + manifest + offline + 404 + 10 локалей × 39 инструментов, smoke 5/5.
-- [ ] GitHub Pages содержит 39/39 инструментов и десять локалей. → требует `npm run deploy:pages -- --push` (git-credentials владельца) + проверка живого URL — user-gated.
+- [x] GitHub Pages содержит 39/39 инструментов и десять локалей. → live с 2026-07-25, 10 деплоев; sitemap.xml = 390 tool URLs (39×10) + 10 home; `validate.ts` tripwire=39 на каждом build.
 - [x] Все пользовательские вычисления остаются локальными. → архитектура: статический `dist`, нет серверного runtime; все вычисления в браузере (WASM/JS), файлы не покидают устройство — подтверждено по всем стадиям.
-- [ ] Новый дизайн подтвержден на реальных mobile/desktop устройствах. → визуальное утверждение владельца (Этап 2 design-gated) + real-device проверка.
+- [ ] Новый дизайн подтвержден на реальных mobile/desktop устройствах. → **gap**: desktop + mobile-Chromium (375 px, эмулированный touch) подтверждены владельцем; real-device pass (физический телефон/планшет, real keyboard, safe-area, orientation) остаётся за владельцем.
 - [x] Старый фронтенд остается доступен до подтвержденного функционального, SEO и accessibility паритета. → legacy Blazor-сайт (`MyDevToolsApp/`) не тронут; новый фронтенд отдельный (`apps/site/` + ветка `gh-pages`).

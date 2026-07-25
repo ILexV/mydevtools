@@ -41,6 +41,7 @@ const indexJson = JSON.stringify(index);
 
 <BaseLayout locale={lang} title={siteName} description={heroSubtitle} isHome>
   <div class="ambient" aria-hidden="true">
+    <div class="grain"></div>
     <span class="g" style="--x:6%;--y:12%;--d:8s;--s:15px">{"{}"}</span>
     <span class="g" style="--x:88%;--y:9%;--d:10s;--s:13px">0x</span>
     <span class="g" style="--x:14%;--y:78%;--d:9s;--s:17px">▦</span>
@@ -137,6 +138,18 @@ const indexJson = JSON.stringify(index);
   }
   @keyframes spin {
     to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+  /* Grain — fractal-noise dither that breaks the 8-bit color banding a large
+     blurred gradient produces (very visible on the dark surface). Kept faint
+     and blended so it reads as film grain, not static. */
+  .ambient .grain {
+    position: absolute;
+    inset: -10%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    opacity: 0.06;
+    mix-blend-mode: overlay;
+    pointer-events: none;
   }
   /* Faint dot grid for texture (masked so it fades toward the edges) */
   .ambient::after {

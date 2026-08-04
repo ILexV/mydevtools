@@ -6,7 +6,8 @@
  *        editable elements. On the home page "/" stays with the inline catalog
  *        search (it owns that shortcut there); Ctrl+K/button still work.
  * Close: Esc, backdrop click, selecting a result.
- * Empty query: favorites + recent (via window.MDT, storage-safe).
+ * Empty query: favorites + recent + popular (via window.MDT, storage-safe;
+ *        popular is a fixed editorial list carried over from the legacy site).
  * SSR-safe: binds after DOM readiness, no storage access of its own.
  */
 export {};
@@ -23,6 +24,15 @@ interface PaletteItem {
 }
 
 const MAX_RESULTS = 12;
+
+/** Editorial popular set for the empty-query view (legacy commandPalette.js). */
+const POPULAR_SLUGS = [
+  "hash-calculator",
+  "base64-encoder",
+  "json-beautifier",
+  "password-generator",
+  "qr-code-generator",
+];
 
 function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) =>
@@ -59,6 +69,7 @@ function boot(): void {
     hint: root.getAttribute("data-label-hint") || "Type to search",
     favorites: root.getAttribute("data-label-favorites") || "Favorites",
     recent: root.getAttribute("data-label-recent") || "Recent",
+    popular: root.getAttribute("data-label-popular") || "Popular",
   };
 
   let isOpen = false;
@@ -105,13 +116,17 @@ function boot(): void {
       const recent = recentSlugs
         .filter((s) => index[s] && !favSlugs.includes(s))
         .map((slug) => ({ slug, e: index[slug] }));
-      current = [...favs, ...recent];
+      const popular = POPULAR_SLUGS.filter((s) => index[s] && !favSlugs.includes(s) && !recentSlugs.includes(s))
+        .map((slug) => ({ slug, e: index[slug] }));
+      current = [...favs, ...recent, ...popular];
       if (current.length === 0) {
         results.innerHTML = `<div class="palette-empty">${escapeHtml(labels.hint)}</div>`;
         return;
       }
       results.innerHTML =
-        renderGroup(labels.favorites, favs, 0) + renderGroup(labels.recent, recent, favs.length);
+        renderGroup(labels.favorites, favs, 0) +
+        renderGroup(labels.recent, recent, favs.length) +
+        renderGroup(labels.popular, popular, favs.length + recent.length);
     } else {
       current = all
         .filter(({ e }) => `${e.t} ${e.c} ${e.k}`.toLowerCase().includes(q))

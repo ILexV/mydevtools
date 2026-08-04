@@ -47,11 +47,40 @@ function saveFavorites(items: string[]): void {
 }
 function loadRecent(): { slug: string; ts: number }[] {
   const data = readJSON<{ v: number; items?: { slug: string; ts: number }[] }>(RECENT_KEY);
-  return Array.isArray(data?.items) ? data.items.filter((x) => x && typeof x.slug === "string") : [];
+  return Array.isArray(data?.items) ? data.items.filter((x) => x && typeof x.slug === "string" && x.slug !== "") : [];
 }
 function saveRecent(items: { slug: string; ts: number }[]): void {
   writeJSON(RECENT_KEY, { v: 1, items });
 }
+
+/**
+ * One-time import from the legacy Blazor site's storage (same-origin
+ * deployments only). Legacy shapes: `mydevtools_favorites` = string[],
+ * `mydevtools_recent` = {slug, icon, timestamp}[]. Runs only when the new
+ * versioned key is absent; legacy keys are left untouched.
+ */
+function migrateLegacy(): void {
+  try {
+    if (localStorage.getItem(FAV_KEY) === null) {
+      const legacy: unknown = JSON.parse(localStorage.getItem("mydevtools_favorites") || "null");
+      if (Array.isArray(legacy)) saveFavorites(legacy.filter((s) => typeof s === "string"));
+    }
+    if (localStorage.getItem(RECENT_KEY) === null) {
+      const legacy: unknown = JSON.parse(localStorage.getItem("mydevtools_recent") || "null");
+      if (Array.isArray(legacy)) {
+        saveRecent(
+          legacy
+            .filter((x) => x && typeof x.slug === "string")
+            .slice(0, RECENT_CAP)
+            .map((x) => ({ slug: x.slug as string, ts: typeof x.timestamp === "number" ? x.timestamp : Date.now() })),
+        );
+      }
+    }
+  } catch {
+    /* corrupt legacy data — skip import */
+  }
+}
+migrateLegacy();
 
 // In-memory mirrors so the UI updates even when persistence is unavailable.
 let favs = loadFavorites();
@@ -69,6 +98,7 @@ function toggleFavorite(slug: string): boolean {
   return i === -1;
 }
 function recordRecent(slug: string): void {
+  if (!slug) return;
   recent = recent.filter((x) => x.slug !== slug);
   recent.unshift({ slug, ts: Date.now() });
   if (recent.length > RECENT_CAP) recent.length = RECENT_CAP;
@@ -154,9 +184,10 @@ function init() {
       toggleFavorite(btn.getAttribute("data-slug") || "");
     }
   });
-  // Record recent visit (tool page).
+  // Record recent visit (tool page). The marker element carries the slug in
+  // `data-slug` (`<span data-visit-slug data-slug={slug}>` in [slug].astro).
   const visit = document.querySelector<HTMLElement>("[data-visit-slug]");
-  if (visit) recordRecent(visit.getAttribute("data-visit-slug") || "");
+  if (visit) recordRecent(visit.getAttribute("data-slug") || "");
   render();
 }
 

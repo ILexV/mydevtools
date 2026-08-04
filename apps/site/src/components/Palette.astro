@@ -4,10 +4,12 @@
  * (Stage 8). Markup + localized strings + a compact JSON island with the
  * per-locale tool index; behavior lives in `scripts/palette.ts`.
  *
- * Data-island entry: slug → { t: title, h: href, c: category label, k: keywords }
+ * Data-island entry: slug → { t: title, h: href, c: category label, k: keywords, g: category id }
  */
 import type { LocaleCode } from "@/registry/locales";
 import { buildCatalog, categoryLabel } from "@/registry/catalog";
+import { CATEGORY_IDS } from "@/registry/categories";
+import { ICONS } from "./Icon.astro";
 import { t } from "@/i18n/messages";
 
 interface Props {
@@ -19,10 +21,12 @@ const catalog = buildCatalog(locale);
 const index = Object.fromEntries(
   catalog.tools.map((tool) => [
     tool.slug,
-    { t: tool.title, h: tool.href, c: categoryLabel(locale, tool.category), k: tool.keywords.join(" ") },
+    { t: tool.title, h: tool.href, c: categoryLabel(locale, tool.category), k: tool.keywords.join(" "), g: tool.category },
   ]),
 );
 const indexJson = JSON.stringify(index);
+/** SVG bodies for the 13 category icons, keyed by category id (Prism family). */
+const iconsJson = JSON.stringify(Object.fromEntries(CATEGORY_IDS.map((id) => [id, ICONS[id]])));
 
 const searchLabel = t(locale, "common", "Common_Search");
 const placeholder = t(locale, "common", "CommandPalette_SearchPlaceholder");
@@ -37,6 +41,7 @@ const placeholder = t(locale, "common", "CommandPalette_SearchPlaceholder");
   data-label-favorites={t(locale, "common", "CommandPalette_FavoritesTitle")}
   data-label-recent={t(locale, "common", "CommandPalette_RecentTitle")}
   data-label-popular={t(locale, "common", "CommandPalette_PopularTitle")}
+  data-icons={iconsJson}
 >
   <div class="palette-backdrop" data-palette-close></div>
   <div class="palette-panel" role="dialog" aria-modal="true" aria-label={searchLabel}>
@@ -122,10 +127,17 @@ const placeholder = t(locale, "common", "CommandPalette_SearchPlaceholder");
   .palette-results {
     max-height: 20rem;
     overflow-y: auto;
-    padding: 0.35rem;
+    padding: 0 0.35rem 0.35rem;
   }
+  /* Sticky group headers: opaque background covers rows scrolling beneath;
+     the header's own top padding provides the inter-group gap (no transparent
+     margins, which would let rows peek through). */
   .palette-group {
-    padding: 0.45rem 0.65rem 0.25rem;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 0.6rem 0.65rem 0.3rem;
+    background: var(--mdt-surface-raised);
     font-family: var(--mdt-font-mono);
     font-size: var(--mdt-fs-micro);
     text-transform: uppercase;
@@ -134,24 +146,52 @@ const placeholder = t(locale, "common", "CommandPalette_SearchPlaceholder");
   }
   .palette-option {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.5rem 0.65rem;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.45rem 0.65rem;
     border-radius: var(--mdt-radius-sm);
     cursor: pointer;
     color: var(--mdt-text);
+  }
+  .palette-opt-icon {
+    width: 1.9rem;
+    height: 1.9rem;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: var(--mdt-radius-sm);
+    background: color-mix(in srgb, var(--mdt-cat) 13%, transparent);
+    color: var(--mdt-cat);
+    border: 1px solid color-mix(in srgb, var(--mdt-cat) 26%, transparent);
+  }
+  .palette-opt-title {
+    font-size: 0.92rem;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .palette-opt-cat {
+    font-size: 0.72rem;
+    color: var(--mdt-cat);
+    border: 1px solid color-mix(in srgb, var(--mdt-cat) 30%, var(--mdt-border));
+    border-radius: 999px;
+    padding: 0.08rem 0.5rem;
+    flex-shrink: 0;
   }
   .palette-option[data-active="true"] {
     background: var(--mdt-accent);
     color: var(--mdt-accent-contrast);
   }
-  .palette-option[data-active="true"] .palette-opt-cat { color: inherit; opacity: 0.8; }
-  .palette-opt-title { font-size: 0.92rem; }
-  .palette-opt-cat {
-    font-size: 0.75rem;
-    color: var(--mdt-text-muted);
-    flex-shrink: 0;
+  .palette-option[data-active="true"] .palette-opt-icon {
+    background: color-mix(in srgb, var(--mdt-accent-contrast) 18%, transparent);
+    color: var(--mdt-accent-contrast);
+    border-color: transparent;
+  }
+  .palette-option[data-active="true"] .palette-opt-cat {
+    color: var(--mdt-accent-contrast);
+    border-color: color-mix(in srgb, var(--mdt-accent-contrast) 45%, transparent);
   }
   .palette-empty {
     padding: 1.25rem 0.65rem;

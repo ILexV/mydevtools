@@ -17,6 +17,7 @@ interface PaletteEntry {
   h: string; // href (locale + base aware, build-time)
   c: string; // category label
   k: string; // keywords (space-separated)
+  g: string; // category id (drives icon tile + accent color)
 }
 interface PaletteItem {
   slug: string;
@@ -64,6 +65,22 @@ function boot(): void {
   }
   const all: PaletteItem[] = Object.entries(index).map(([slug, e]) => ({ slug, e }));
 
+  /** Category icon SVG bodies (build-time constants from the Prism family). */
+  let icons: Record<string, string> = {};
+  try {
+    icons = JSON.parse(root.getAttribute("data-icons") || "{}") as Record<string, string>;
+  } catch {
+    icons = {};
+  }
+  function iconTile(categoryId: string): string {
+    const body = icons[categoryId] || icons["generators"] || "";
+    return (
+      `<span class="palette-opt-icon" style="--mdt-cat: var(--mdt-cat-${categoryId})">` +
+      `<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" fill="none" ` +
+      `stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${body}</svg></span>`
+    );
+  }
+
   const labels = {
     noResults: root.getAttribute("data-label-noresults") || "No results",
     hint: root.getAttribute("data-label-hint") || "Type to search",
@@ -82,8 +99,9 @@ function boot(): void {
     return (
       `<div class="palette-option" role="option" id="palette-opt-${i}" data-index="${i}" ` +
       `data-active="false" aria-selected="false">` +
+      iconTile(e.g) +
       `<span class="palette-opt-title">${escapeHtml(e.t)}</span>` +
-      `<span class="palette-opt-cat">${escapeHtml(e.c)}</span></div>`
+      `<span class="palette-opt-cat" style="--mdt-cat: var(--mdt-cat-${e.g})">${escapeHtml(e.c)}</span></div>`
     );
   }
 
@@ -124,9 +142,9 @@ function boot(): void {
         return;
       }
       results.innerHTML =
-        renderGroup(labels.favorites, favs, 0) +
-        renderGroup(labels.recent, recent, favs.length) +
-        renderGroup(labels.popular, popular, favs.length + recent.length);
+        renderGroup(`⭐ ${labels.favorites}`, favs, 0) +
+        renderGroup(`🕐 ${labels.recent}`, recent, favs.length) +
+        renderGroup(`🔥 ${labels.popular}`, popular, favs.length + recent.length);
     } else {
       current = all
         .filter(({ e }) => `${e.t} ${e.c} ${e.k}`.toLowerCase().includes(q))

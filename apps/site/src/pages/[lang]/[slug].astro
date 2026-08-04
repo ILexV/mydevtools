@@ -7,6 +7,7 @@
  */
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import ToolCard from "@/components/ToolCard.astro";
+import ToolSeoContent from "@/components/ToolSeoContent.astro";
 import Icon from "@/components/Icon.astro";
 import { LOCALES, type LocaleCode } from "@/registry/locales";
 import { TOOLS, resolveTool } from "@/registry/tools";
@@ -82,6 +83,11 @@ const relatedLabel = `${catLabel}`;
 const homeLabel = t(lang, "common", "Nav_Home");
 const privacyLabel = t(lang, "common", "NoDataSent");
 
+// Seo_HowToSteps drives both the HowTo JSON-LD and the visible SEO block.
+// `t()` returns the raw key when missing — pass undefined in that case.
+const howToRaw = t(lang, namespace, "Seo_HowToSteps");
+const howToSteps = howToRaw === "Seo_HowToSteps" || !howToRaw.trim() ? undefined : howToRaw;
+
 const TOOL_COMPONENTS: Record<string, any> = {
   "hash-calculator": HashCalculator,
   "uuid-generator": UuidGenerator,
@@ -126,7 +132,7 @@ const TOOL_COMPONENTS: Record<string, any> = {
 const ActiveTool = TOOL_COMPONENTS[slug];
 ---
 
-<BaseLayout locale={lang} path={slug} title={title} description={description} keywords={[tool.slug]} categoryName={catLabel}>
+<BaseLayout locale={lang} path={slug} title={title} description={description} keywords={[tool.slug]} categoryName={catLabel} howToSteps={howToSteps}>
   <span data-visit-slug data-slug={slug} hidden></span>
   <div class="scroll-progress" aria-hidden="true"></div>
   <main class="tool" style={`--mdt-cat: var(--mdt-cat-${tool.category})`}>
@@ -183,6 +189,8 @@ const ActiveTool = TOOL_COMPONENTS[slug];
       </noscript>
       {ActiveTool && <ActiveTool lang={lang} />}
     </div>
+
+    <ToolSeoContent locale={lang} namespace={namespace} />
 
     {related.length > 0 && (
       <section class="related">

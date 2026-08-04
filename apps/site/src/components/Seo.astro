@@ -24,6 +24,8 @@ interface Props {
   keywords?: string[];
   isHome?: boolean;
   categoryName?: string;
+  /** `Seo_HowToSteps` markdown — emits HowTo JSON-LD on tool pages. */
+  howToSteps?: string;
 }
 
 const {
@@ -34,6 +36,7 @@ const {
   keywords = [],
   isHome = false,
   categoryName,
+  howToSteps,
 } = Astro.props as Props;
 
 const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
@@ -43,7 +46,7 @@ const fullTitle = title === siteName ? title : `${title} — ${siteName}`;
 const ogImage = absoluteUrl(withBase("icons/og-image.png"));
 const manifestHref = withBase("manifest.webmanifest");
 
-const jsonLd = buildJsonLd({ locale, path, title, description, isHome, categoryName });
+const jsonLd = buildJsonLd({ locale, path, title, description, isHome, categoryName, howToSteps });
 const jsonLdString = JSON.stringify(jsonLd);
 ---
 

@@ -10,6 +10,7 @@
  */
 import type { LocaleCode } from "@/registry/locales";
 import { absoluteUrl, localizedPath, withBase } from "@/lib/url";
+import { parseHowToSteps } from "@/lib/markdown";
 
 export interface SeoInput {
   locale: LocaleCode;
@@ -20,6 +21,12 @@ export interface SeoInput {
   isHome: boolean;
   /** Localized category name (tool pages only) — inserted as a breadcrumb. */
   categoryName?: string;
+  /**
+   * `Seo_HowToSteps` markdown ("### Step N: Title\nBody …"), tool pages only.
+   * When it parses to at least one step, a HowTo schema is appended — mirrors
+   * the legacy `MetaTags.razor` `HowToSteps` parameter.
+   */
+  howToSteps?: string;
 }
 
 /** Absolute URL of the 512×512 app icon, reused as Organization logo. */
@@ -33,7 +40,7 @@ function trim(path: string): string {
 
 /** Build the JSON-LD object array for the current page context. */
 export function buildJsonLd(input: SeoInput): Record<string, unknown>[] {
-  const { locale, path = "", title, description, isHome, categoryName } = input;
+  const { locale, path = "", title, description, isHome, categoryName, howToSteps } = input;
 
   if (isHome) {
     const siteUrl = absoluteUrl(trim(localizedPath(locale)));
@@ -101,7 +108,7 @@ export function buildJsonLd(input: SeoInput): Record<string, unknown>[] {
     crumbs.push({ "@type": "ListItem", position: 2, name: title, item: toolUrl });
   }
 
-  return [
+  const schemas: Record<string, unknown>[] = [
     app,
     {
       "@context": "https://schema.org",
@@ -109,4 +116,25 @@ export function buildJsonLd(input: SeoInput): Record<string, unknown>[] {
       itemListElement: crumbs,
     },
   ];
+
+  // HowTo schema from Seo_HowToSteps markdown (legacy MetaTags.razor parity).
+  if (howToSteps) {
+    const steps = parseHowToSteps(howToSteps);
+    if (steps.length > 0) {
+      schemas.push({
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: title,
+        description,
+        step: steps.map((s, i) => ({
+          "@type": "HowToStep",
+          position: i + 1,
+          name: s.name,
+          text: s.text,
+        })),
+      });
+    }
+  }
+
+  return schemas;
 }

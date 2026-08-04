@@ -17,6 +17,8 @@ interface Props {
   isHome?: boolean;
   /** Localized category name — inserted into the tool breadcrumb JSON-LD. */
   categoryName?: string;
+  /** `Seo_HowToSteps` markdown — forwarded to Seo for HowTo JSON-LD. */
+  howToSteps?: string;
 }
 
 const {
@@ -27,6 +29,7 @@ const {
   keywords = [],
   isHome = false,
   categoryName,
+  howToSteps,
 } = Astro.props as Props;
 const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
 ---
@@ -42,6 +45,7 @@ const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
       keywords={keywords}
       isHome={isHome}
       categoryName={categoryName}
+      howToSteps={howToSteps}
     />
 
     <script is:inline>

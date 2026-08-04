@@ -1,0 +1,150 @@
+---
+/**
+ * Visible on-page SEO content block for tool pages — port of the legacy
+ * `ToolSeoContent.razor`. Renders localized long-form copy from the tool's
+ * locale namespace: `Seo_Introduction`, `Seo_DetailedDescription`,
+ * `Seo_Examples`, `Seo_HowToSteps`, `Seo_Tips`; section titles come from
+ * `common` (`Seo_*Title`). Bodies are Markdown, converted by
+ * `seoMarkdownToHtml` (trusted build-time input). Renders nothing when the
+ * namespace defines no Seo_* content.
+ */
+import type { LocaleCode } from "@/registry/locales";
+import { t } from "@/i18n/messages";
+import { seoMarkdownToHtml } from "@/lib/markdown";
+
+interface Props {
+  locale: LocaleCode;
+  /** Tool namespace, e.g. "tools/hash-calculator". */
+  namespace: string;
+}
+
+const { locale, namespace } = Astro.props as Props;
+
+/** `t()` returns the raw key when missing — treat that (and blanks) as absent. */
+function seo(key: string): string | undefined {
+  const value = t(locale, namespace, key);
+  return value === key || !value.trim() ? undefined : value;
+}
+
+const introduction = seo("Seo_Introduction");
+const detailed = seo("Seo_DetailedDescription");
+const examples = seo("Seo_Examples");
+const howTo = seo("Seo_HowToSteps");
+const tips = seo("Seo_Tips");
+
+const hasProse = introduction || detailed || examples;
+const hasHowTo = howTo || tips;
+---
+
+{(hasProse || hasHowTo) && (
+  <div class="tool-seo">
+    {hasProse && (
+      <article class="seo-prose">
+        {introduction && <p class="seo-intro">{introduction}</p>}
+        {detailed && (
+          <section>
+            <h2>{t(locale, "common", "Seo_DetailedDescriptionTitle")}</h2>
+            <div class="seo-md" set:html={seoMarkdownToHtml(detailed)} />
+          </section>
+        )}
+        {examples && (
+          <section>
+            <h2>{t(locale, "common", "Seo_ExamplesTitle")}</h2>
+            <div class="seo-md" set:html={seoMarkdownToHtml(examples)} />
+          </section>
+        )}
+      </article>
+    )}
+    {hasHowTo && (
+      <article class="seo-howto">
+        {howTo && (
+          <>
+            <h2>{t(locale, "common", "Seo_HowToTitle")}</h2>
+            <div class="seo-md" set:html={seoMarkdownToHtml(howTo)} />
+          </>
+        )}
+        {tips && (
+          <div class="seo-tips">
+            <h3>{t(locale, "common", "Seo_TipsTitle")}</h3>
+            <div class="seo-md" set:html={seoMarkdownToHtml(tips)} />
+          </div>
+        )}
+      </article>
+    )}
+  </div>
+)}
+
+<style is:global>
+  /* is:global (Palette.astro precedent): `set:html` markdown output carries no
+     Astro scope attribute, so scoped selectors would never match it. */
+  .tool-seo {
+    margin-top: 2.5rem;
+    display: grid;
+    gap: 1.5rem;
+  }
+  .tool-seo .seo-prose {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .tool-seo .seo-intro {
+    color: var(--mdt-text-muted);
+    line-height: 1.65;
+    max-width: 75ch;
+  }
+  .tool-seo h2 {
+    font-size: var(--mdt-fs-h2);
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.75rem;
+  }
+  .tool-seo .seo-howto {
+    background: var(--mdt-surface-raised);
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    padding: clamp(1.25rem, 3vw, 1.75rem);
+  }
+  .tool-seo .seo-tips {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--mdt-border-soft);
+  }
+  .tool-seo .seo-tips h3 {
+    font-size: var(--mdt-fs-h3);
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+  }
+
+  /* Injected markdown body (seoMarkdownToHtml). */
+  .tool-seo .seo-md {
+    color: var(--mdt-text-muted);
+    line-height: 1.65;
+    max-width: 75ch;
+  }
+  .tool-seo .seo-md p {
+    margin-bottom: 0.75rem;
+  }
+  .tool-seo .seo-md h1,
+  .tool-seo .seo-md h2 {
+    color: var(--mdt-text);
+    font-size: var(--mdt-fs-h3);
+    font-weight: 650;
+    margin: 1.25rem 0 0.5rem;
+  }
+  .tool-seo .seo-md h3 {
+    color: var(--mdt-text);
+    font-size: var(--mdt-fs-body);
+    font-weight: 600;
+    margin: 1rem 0 0.4rem;
+  }
+  .tool-seo .seo-md ul {
+    list-style: disc;
+    padding-inline-start: 1.4rem;
+    margin: 0.5rem 0 0.75rem;
+    display: grid;
+    gap: 0.3rem;
+  }
+  .tool-seo .seo-md strong {
+    color: var(--mdt-text);
+    font-weight: 600;
+  }
+</style>

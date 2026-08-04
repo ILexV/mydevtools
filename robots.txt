@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ilexv.github.io/mydevtools/sitemap.xml

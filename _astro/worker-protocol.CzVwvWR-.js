@@ -1,0 +1,1 @@
+var e=class extends Error{code;constructor(e,t){super(t),this.name=`WasmError`,this.code=e}};export{e as t};

@@ -1,0 +1,1 @@
+function e(e,...t){return e.replace(/\{(\d+)\}/g,(e,n)=>{let r=Number(n);return t[r]===void 0?e:String(t[r])})}var t=new Map;function n(e,n){let r=t.get(e);return r||(r=new Intl.PluralRules(e),t.set(e,r)),r.select(n)}function r(t,r,i,a,...o){let s=t[`${r}_${n(a,i)}`]??t[r];return typeof s==`string`?e(s,i,...o):r}export{e as n,r as t};

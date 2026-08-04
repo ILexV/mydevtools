@@ -293,6 +293,10 @@
     transform: translateY(-1px);
     border-color: var(--mdt-text-faint);
   }
+  /* `display:inline-flex` above beats the UA `[hidden]` rule — restore it. */
+  .ds-btn[hidden] {
+    display: none;
+  }
   .ds-btn:active {
     transform: translateY(0);
   }

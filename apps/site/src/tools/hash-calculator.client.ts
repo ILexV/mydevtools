@@ -11,6 +11,7 @@ import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { HASH_ALGORITHMS, DEFAULT_HASH_ALGORITHMS } from "@/tools/hash-algorithms";
 
 const ALGO_STORAGE = "mdt.tools.hash-calculator.algos.v1";
+const LEGACY_ALGO_STORAGE = "mydevtools.tools.hash-calculator.selectedAlgorithms.v1";
 
 interface Strings {
   calculate: string;
@@ -35,7 +36,15 @@ function readStrings(): Strings | null {
 
 function loadStoredAlgos(): Set<string> | null {
   try {
-    const raw = localStorage.getItem(ALGO_STORAGE);
+    let raw = localStorage.getItem(ALGO_STORAGE);
+    if (!raw) {
+      // One-time import from the legacy site key (favorites/recent pattern).
+      const legacy = localStorage.getItem(LEGACY_ALGO_STORAGE);
+      if (legacy) {
+        localStorage.setItem(ALGO_STORAGE, legacy);
+        raw = legacy;
+      }
+    }
     if (!raw) return null;
     const arr = JSON.parse(raw);
     if (!Array.isArray(arr)) return null;

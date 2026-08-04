@@ -5,6 +5,7 @@ import Seo from "@/components/Seo.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Palette from "@/components/Palette.astro";
+import InstallPrompt from "@/components/InstallPrompt.astro";
 import "@/styles/global.css";
 
 interface Props {
@@ -65,12 +66,14 @@ const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
     <slot />
     <Footer locale={locale} />
     <Palette locale={locale} />
+    <InstallPrompt locale={locale} />
 
     <!-- Global shell: theme toggle, language switcher, search, favorites/recent. -->
     <script>
       import "@/scripts/chrome.ts";
       import "@/scripts/favorites.ts";
       import "@/scripts/palette.ts";
+      import "@/scripts/pwa-install.ts";
     </script>
 
     <!-- PWA: register the build-generated service worker (production only). -->

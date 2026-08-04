@@ -1,0 +1,82 @@
+---
+/**
+ * PWA install banner — port of the legacy `#pwa-install-prompt` (MainLayout).
+ * Hidden by default; `scripts/pwa-install.ts` reveals it when the user taps a
+ * `[data-pwa-install]` button (home hero) AND the browser has fired
+ * `beforeinstallprompt`, the app is not already installed/standalone, and the
+ * user has not dismissed it (`pwa-install-dismissed`, legacy key reused).
+ */
+import type { LocaleCode } from "@/registry/locales";
+import { t } from "@/i18n/messages";
+import Icon from "@/components/Icon.astro";
+
+interface Props {
+  locale: LocaleCode;
+}
+
+const { locale } = Astro.props as Props;
+---
+
+<div id="pwa-install-prompt" class="pwa-install" hidden role="dialog" aria-live="polite"
+     aria-label={t(locale, "common", "PWA_InstallTitle")}
+     data-installed-message={t(locale, "common", "PWA_Installed")}>
+  <span class="pwa-install-icon" aria-hidden="true"><Icon name="download" size={18} /></span>
+  <span class="pwa-install-text">
+    <strong>{t(locale, "common", "PWA_InstallTitle")}</strong>
+    <span>{t(locale, "common", "PWA_InstallDescription")}</span>
+  </span>
+  <button type="button" class="ds-btn ds-btn-primary pwa-install-btn" id="pwa-install-btn">
+    {t(locale, "common", "PWA_InstallButton")}
+  </button>
+  <button type="button" class="ds-btn pwa-install-dismiss" id="pwa-install-dismiss">
+    {t(locale, "common", "PWA_InstallDismiss")}
+  </button>
+</div>
+
+<style>
+  .pwa-install {
+    position: fixed;
+    z-index: 1000;
+    bottom: 1.25rem;
+    left: 1rem;
+    right: 1rem;
+    max-width: 42rem;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1rem;
+    border-radius: var(--mdt-radius);
+    border: 1px solid var(--mdt-border);
+    background: var(--mdt-surface-raised);
+    box-shadow: var(--mdt-shadow, 0 8px 24px rgba(0, 0, 0, 0.25));
+  }
+  .pwa-install[hidden] { display: none; }
+  .pwa-install-icon {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    color: var(--mdt-accent);
+    background: color-mix(in srgb, var(--mdt-accent) 12%, transparent);
+  }
+  .pwa-install-text {
+    display: grid;
+    gap: 0.1rem;
+    min-width: 0;
+    margin-right: auto;
+  }
+  .pwa-install-text strong { font-size: var(--mdt-fs-small); }
+  .pwa-install-text span {
+    color: var(--mdt-text-muted);
+    font-size: var(--mdt-fs-meta);
+  }
+  .pwa-install-btn,
+  .pwa-install-dismiss { flex-shrink: 0; }
+  @media (max-width: 560px) {
+    .pwa-install { flex-wrap: wrap; }
+    .pwa-install-text { flex-basis: 100%; order: -1; }
+  }
+</style>

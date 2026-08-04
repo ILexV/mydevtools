@@ -60,6 +60,9 @@ const indexJson = JSON.stringify(index);
       <p class="hero-subtitle">{heroSubtitle}</p>
       <div class="hero-actions">
         <a class="ds-btn ds-btn-primary" href="#catalog">{heroCta}<Icon name="arrow-right" size={14} /></a>
+        <button type="button" class="ds-btn" data-pwa-install hidden>
+          <Icon name="download" size={14} />{t(lang, "home", "CTA_PWA")}
+        </button>
       </div>
       <div class="hero-stats">
         <div class="stat"><b class="tabular">{catalog.tools.length}</b><span>{statTools}</span></div>

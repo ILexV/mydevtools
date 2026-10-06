@@ -10,9 +10,12 @@
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
+import CopyButton from "@/components/tool/CopyButton.astro";
+import EmptyState from "@/components/tool/EmptyState.astro";
 import Field from "@/components/tool/Field.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -23,7 +26,9 @@ const ns = "tools/url-encoder";
 
 const strings = {
   inputLabel: t(lang, ns, "InputLabel"),
-  inputPlaceholder: t(lang, ns, "InputPlaceholder"),
+  emptyHint: t(lang, ns, "EmptyHint"),
+  outputEmpty: t(lang, ns, "OutputEmpty"),
+  loadExample: t(lang, "common", "Common_LoadExample"),
   outputLabel: t(lang, ns, "OutputLabel"),
   modeLabel: t(lang, ns, "ModeLabel"),
   modeComponent: t(lang, ns, "Mode_Component"),
@@ -35,7 +40,8 @@ const strings = {
   swap: t(lang, ns, "ActionSwap"),
   clear: t(lang, ns, "ActionClear"),
   copy: t(lang, ns, "Copy"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
+  copyFailed: t(lang, "common", "Common_CopyFailed"),
   statsOutput: t(lang, ns, "StatsOutput"),
   errNotRepresentable: t(lang, ns, "Error_NotRepresentable"),
   errNotText: t(lang, ns, "Error_NotText"),
@@ -46,65 +52,69 @@ const strings = {
 const stringsJson = JSON.stringify(strings);
 ---
 
-<div class="ds-stack" data-url-tool>
-  <div class="ds-tool-grid">
-    <section class="ds-card ds-stack">
-      <Field label={strings.inputLabel} for="url-textarea">
-        <textarea
-          id="url-textarea"
-          class="ds-field-textarea mono"
-          data-url-input
-          rows="8"
-          spellcheck="false"
-          placeholder={strings.inputPlaceholder}
-        ></textarea>
+<div class="ds-workbench" data-url-tool>
+  <ToolPanel title={strings.inputLabel} for="url-textarea">
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-url-clear>{strings.clear}</button>
+    </Fragment>
+    <div class="ds-editor is-empty" data-url-input-host>
+      <textarea
+        id="url-textarea"
+        class="ds-field-textarea mono url-input"
+        data-url-input
+        rows="8"
+        spellcheck="false"
+        aria-describedby="url-input-empty"
+      ></textarea>
+      <EmptyState
+        hint={strings.emptyHint}
+        hintId="url-input-empty"
+        exampleLabel={strings.loadExample}
+        buttonProps={{ "data-url-example": true }}
+      />
+    </div>
+
+    <div class="ds-settings">
+      <Field label={strings.modeLabel} for="url-mode">
+        <select id="url-mode" class="ds-field-select" data-url-mode>
+          <option value="component">{strings.modeComponent}</option>
+          <option value="uri">{strings.modeUri}</option>
+          <option value="form">{strings.modeForm}</option>
+        </select>
       </Field>
+      <Field label={strings.charsetLabel} for="url-charset">
+        <select id="url-charset" class="ds-field-select" data-url-charset>
+          <option value="utf-8">UTF-8</option>
+          <option value="utf-16le">UTF-16LE</option>
+          <option value="utf-16be">UTF-16BE</option>
+          <option value="latin1">ISO-8859-1 (Latin-1)</option>
+        </select>
+      </Field>
+    </div>
 
-      <div class="ds-settings">
-        <Field label={strings.modeLabel} for="url-mode">
-          <select id="url-mode" class="ds-field-select" data-url-mode>
-            <option value="component">{strings.modeComponent}</option>
-            <option value="uri">{strings.modeUri}</option>
-            <option value="form">{strings.modeForm}</option>
-          </select>
-        </Field>
-        <Field label={strings.charsetLabel} for="url-charset">
-          <select id="url-charset" class="ds-field-select" data-url-charset>
-            <option value="utf-8">UTF-8</option>
-            <option value="utf-16le">UTF-16LE</option>
-            <option value="utf-16be">UTF-16BE</option>
-            <option value="latin1">ISO-8859-1 (Latin-1)</option>
-          </select>
-        </Field>
-      </div>
-    </section>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-url-encode>{strings.encode}</button>
+      <button type="button" class="ds-btn" data-url-decode>{strings.decode}</button>
+      <button type="button" class="ds-btn" data-url-swap>{strings.swap}</button>
+    </div>
 
-    <section class="ds-card ds-stack">
-      <OutputPanel label={strings.outputLabel} for="url-output-textarea">
-        <Fragment slot="actions">
-          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-url-copy>{strings.copy}</button>
-        </Fragment>
-        <textarea
-          id="url-output-textarea"
-          class="ds-field-textarea mono url-output"
-          data-url-output
-          rows="12"
-          spellcheck="false"
-          readonly
-        ></textarea>
-        <p class="ds-hint" data-url-stats aria-live="polite"></p>
-      </OutputPanel>
-    </section>
-  </div>
+    <StatusMessage kind="error" data-url-error />
+  </ToolPanel>
 
-  <div class="ds-actions">
-    <button type="button" class="ds-btn ds-btn-primary" data-url-encode>{strings.encode}</button>
-    <button type="button" class="ds-btn" data-url-decode>{strings.decode}</button>
-    <button type="button" class="ds-btn" data-url-swap>{strings.swap}</button>
-    <button type="button" class="ds-btn" data-url-clear>{strings.clear}</button>
-  </div>
-
-  <StatusMessage kind="error" data-url-error />
+  <OutputPanel panel label={strings.outputLabel} for="url-output-textarea" emptyHint={strings.outputEmpty} data-url-output-panel>
+    <Fragment slot="actions">
+      <CopyButton ghost label={strings.copy} copiedLabel={strings.copied} failedLabel={strings.copyFailed} data-url-copy disabled />
+    </Fragment>
+    <textarea
+      id="url-output-textarea"
+      class="ds-field-textarea mono url-output ds-when-filled"
+      data-url-output
+      rows="10"
+      spellcheck="false"
+      readonly
+    ></textarea>
+    <p class="ds-hint ds-when-filled" data-url-stats aria-live="polite"></p>
+  </OutputPanel>
 </div>
 
 <script is:inline type="application/json" data-url-strings set:html={stringsJson} />
@@ -114,6 +124,10 @@ const stringsJson = JSON.stringify(strings);
 
 <style>
   /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
+  /* URLs are short: a lower editor keeps the settings and actions in view. */
+  .url-input {
+    min-height: 12rem;
+  }
   .url-output {
     word-break: break-all;
   }

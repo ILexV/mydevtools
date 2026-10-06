@@ -38,5 +38,16 @@
   "Common_Share": "共有",
   "Common_LinkCopied": "リンクをコピーしました！",
   "Common_NoJsTitle": "JavaScript が必要です",
-  "Common_NoJsBody": "このツールはブラウザー内で完全に動作します。使用するには JavaScript を有効にしてください。"
+  "Common_NoJsBody": "このツールはブラウザー内で完全に動作します。使用するには JavaScript を有効にしてください。",
+  "Common_LoadExample": "例を読み込む",
+  "Common_Copied": "コピーしました",
+  "Common_EmptyHint": "ここにデータを貼り付けるか、例を読み込んでください。",
+  "CommandPalette_HintNavigate": "移動",
+  "CommandPalette_HintOpen": "開く",
+  "CommandPalette_HintClose": "閉じる",
+  "Footer_Categories": "カテゴリ",
+  "Footer_Languages": "言語",
+  "Footer_Source": "GitHub のソースコード",
+  "Language": "言語",
+  "Common_CopyFailed": "コピーできませんでした"
 }

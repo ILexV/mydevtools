@@ -3,9 +3,7 @@
   "Description": "2 つのテキストやファイルを行単位で比較し、追加・削除・変更された行を横並びまたは unified diff で表示。行内の変更箇所は単語単位でハイライトします。",
   "Keywords": "テキスト比較, 差分チェック, diff ツール, ファイル比較, 横並び比較, unified diff, コード比較, diff checker",
   "OriginalLabel": "元のテキスト",
-  "OriginalPlaceholder": "元のテキストをここに貼り付けるか入力するか、以下のファイルをアップロード...",
   "ModifiedLabel": "変更されたテキスト",
-  "ModifiedPlaceholder": "変更されたテキストをここに貼り付けるか入力するか、以下のファイルをアップロード...",
   "CompareButton": "比較",
   "ClearButton": "クリア",
   "LineByLine": "行ごと",
@@ -22,5 +20,10 @@
   "ViewModeLabel": "表示モード",
   "NoDifferences": "テキストは同一です。差分はありません。",
   "FileReadError": "ファイルをテキストとして読み込めませんでした。",
-  "DiffTooBig": "{max} 行を超える差分があるため表示できません。"
+  "DiffTooBig": "{max} 行を超える差分があるため表示できません。",
+  "OriginalEmptyHint": "元のテキストを貼り付けるか、ファイルを開いてください。",
+  "ModifiedEmptyHint": "変更後のテキストを貼り付けるか、ファイルを開いてください。",
+  "OutputEmpty": "両側に入力して「比較」を押すと、差分がここに表示されます。",
+  "ExampleOriginal": "買い物リスト\n- 牛乳\n- パン\n- 卵 6 個\n- コーヒー豆\n\n18:00 までに荷物を受け取る。",
+  "ExampleModified": "買い物リスト\n- オーツミルク\n- パン\n- 卵 12 個\n- コーヒー豆\n- りんご\n\n19:00 までに荷物を受け取る。"
 }

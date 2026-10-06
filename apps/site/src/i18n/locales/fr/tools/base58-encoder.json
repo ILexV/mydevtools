@@ -3,7 +3,6 @@
   "Description": "Encodez et décodez du Base58 avec l'alphabet Bitcoin, Flickr ou Ripple, pour du texte et des fichiers jusqu'à 1 Mio. En local dans le navigateur, sans envoi.",
   "Keywords": "encodeur Base58, décodeur Base58, Base58 Bitcoin, Base58 Flickr, Base58 Ripple, décoder adresse Base58, Base58 en ligne",
   "InputTextLabel": "Entrée (texte)",
-  "InputTextPlaceholder": "Entrez du texte ou Base58...",
   "FileHint": "Si un fichier est sélectionné, il sera utilisé à la place de l'entrée texte.",
   "CharsetLabel": "Jeu de caractères du texte",
   "AlphabetLabel": "Alphabet",
@@ -21,7 +20,6 @@
   "ActionClear": "Effacer",
   "OutputLabel": "Sortie",
   "Copy": "Copier",
-  "Copied": "Copié !",
   "Download": "Télécharger",
   "FileProgressTitle": "Traitement du fichier...",
   "Cancel": "Annuler",
@@ -42,5 +40,7 @@
   "Seo_DetailedDescription": "Base58 utilise 58 lettres et chiffres et écarte les caractères ambigus `0`, `O`, `I` et `l` ainsi que `+` et `/` : les valeurs encodées se lisent, se recopient et se sélectionnent d'un double-clic sans erreur. C'est l'encodage des adresses Bitcoin, des hachages IPFS CIDv0 et des clés Solana. Trois alphabets sont proposés : **Bitcoin** (le plus courant), **Flickr** (minuscules avant majuscules, utilisé pour les liens courts) et **Ripple** (XRP Ledger).\n\nContrairement à Base64, Base58 traite toute l'entrée comme un seul grand nombre : il n'y a pas de remplissage, et chaque octet nul en tête devient un `1` en tête avec l'alphabet Bitcoin. Le calcul croît de façon quadratique avec la taille, d'où la limite de 1 Mio à l'encodage et de 2 000 000 caractères au décodage ; pour des fichiers plus gros, utilisez Base64 ou Hex.\n\nIl s'agit de Base58 simple : l'outil n'ajoute ni ne vérifie la somme de contrôle Base58Check de 4 octets des adresses Bitcoin et des clés WIF ; décoder une adresse renvoie donc l'octet de version, les données et la somme de contrôle ensemble. Les octets qui ne forment pas un texte valide dans le jeu de caractères choisi s'enregistrent avec **Télécharger**.",
   "Seo_Examples": "**Alphabet Bitcoin** : `Hello World!` devient `2NEpo7TZRRrLZSi2U`, et décoder cette chaîne redonne `Hello World!`.\n\n**Autres alphabets** : le même texte donne `2nePN7syqqRkyrH2t` avec Flickr et `p4NFofTZRRiLZS5p7` avec Ripple.\n\n**Caractère invalide** : `2NEpo0TZRRrLZSi2U` (un zéro au lieu du 7) est refusé, car `0` ne figure dans aucun alphabet Base58.\n\n**Adresse Bitcoin** : décoder `1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa` donne 25 octets bruts (version, hachage et somme de contrôle) ; l'outil signale que ce n'est pas du texte et **Télécharger** les enregistre.",
   "Seo_HowToSteps": "### Étape 1 : Saisir le texte ou choisir un fichier\nTapez ou collez du texte dans **Entrée (texte)**, ou déposez sur la page un fichier de 1 Mio au plus, ou cliquez sur **Choisir un fichier**.\n\n### Étape 2 : Choisir l'alphabet\nDans **Alphabet**, sélectionnez **Bitcoin (Base58)**, **Flickr** ou **Ripple**. Ne modifiez **Jeu de caractères du texte** que si le texte n'est pas en UTF-8.\n\n### Étape 3 : Encoder ou décoder\nCliquez sur **Encoder** pour obtenir du Base58 ou sur **Décoder** pour retrouver le texte ou les octets. Décodez avec l'alphabet utilisé à l'encodage.\n\n### Étape 4 : Copier ou télécharger\n**Copier** place le résultat dans le presse-papiers, **Télécharger** l'enregistre ; un résultat binaire ne peut qu'être téléchargé.",
-  "Seo_Tips": "- La sortie Base58 est environ 37 % plus longue que l'entrée, un peu plus que Base64, en échange de caractères sans ambiguïté.\n- Les `1` en tête d'une chaîne en alphabet Bitcoin représentent des octets nuls en tête ; les retirer change la valeur décodée.\n- Avec le mauvais alphabet, on obtient d'autres octets ou une erreur : `2NEpo7TZRRrLZSi2U` décodé avec Ripple donne 13 octets binaires au lieu de `Hello World!`.\n- Les espaces et sauts de ligne sont ignorés tant que **Autoriser espaces/sauts de ligne** est activé, pratique pour les clés coupées sur plusieurs lignes.\n- Au-delà de 1 Mio, utilisez Base64 ou Hex, qui travaillent en temps linéaire."
+  "Seo_Tips": "- La sortie Base58 est environ 37 % plus longue que l'entrée, un peu plus que Base64, en échange de caractères sans ambiguïté.\n- Les `1` en tête d'une chaîne en alphabet Bitcoin représentent des octets nuls en tête ; les retirer change la valeur décodée.\n- Avec le mauvais alphabet, on obtient d'autres octets ou une erreur : `2NEpo7TZRRrLZSi2U` décodé avec Ripple donne 13 octets binaires au lieu de `Hello World!`.\n- Les espaces et sauts de ligne sont ignorés tant que **Autoriser espaces/sauts de ligne** est activé, pratique pour les clés coupées sur plusieurs lignes.\n- Au-delà de 1 Mio, utilisez Base64 ou Hex, qui travaillent en temps linéaire.",
+  "EmptyHint": "Saisissez du texte à encoder ou collez du Base58 à décoder, ou déposez un fichier ci-dessous.",
+  "OutputEmpty": "Le résultat encodé ou décodé s’affiche ici."
 }

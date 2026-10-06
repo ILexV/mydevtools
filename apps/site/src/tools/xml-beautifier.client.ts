@@ -7,13 +7,22 @@
  * PRIVACY: legacy persisted the input text to localStorage on every change
  * (`xml-beautifier-input`). That is intentionally NOT ported — user data
  * never leaves the page. Only the indent / compact-mode settings are kept.
+ * Empty editor shows a hint + "Load example" overlay (sample inserted only on click).
  */
 import { bindEditorFileDrop, downloadText, loadEditorKit, type MdtEditor } from "@/scripts/codemirror-loader";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import { bindLoadExample, copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
 import { formatXml, XmlParseError } from "@/tools/xml-format";
+
+/** "Load example" sample: unindented XML with a declaration, attributes, CDATA and a comment. */
+const EXAMPLE =
+  '<?xml version="1.0" encoding="UTF-8"?><catalog xmlns="urn:example:books"><!-- v2 -->' +
+  '<book id="bk101" lang="en"><title>XSLT 3.0</title><price currency="EUR">44.95</price>' +
+  '<tags><tag>xml</tag><tag>format</tag></tags></book><book id="bk102"><title><![CDATA[a < b && c > d]]></title>' +
+  '<price currency="USD">5.95</price><available/></book></catalog>';
 
 interface Strings {
   copied: string;
+  copyFailed?: string;
   errorInvalidXml: string;
   inputLabel: string;
   phrases?: Record<string, string>;
@@ -47,6 +56,8 @@ async function init(): Promise<void> {
   const saveBtn = root.querySelector<HTMLButtonElement>("[data-xml-save]");
   const fileInput = root.querySelector<HTMLInputElement>("[data-xml-file]");
   const errorBox = root.querySelector<HTMLElement>("[data-xml-error]");
+  const emptyHost = root.querySelector<HTMLElement>("[data-xml-editor-host]");
+  const exampleBtn = root.querySelector<HTMLButtonElement>("[data-xml-example]");
 
   let editor: MdtEditor;
   try {
@@ -58,11 +69,19 @@ async function init(): Promise<void> {
       hintId: "xml-editor-hint",
       indent: 4,
       onSubmit: () => formatAction(),
+      onChange: () => syncEmpty(),
     });
   } catch (err) {
     console.error("XML Beautifier: failed to load the editor", err);
     return;
   }
+
+  /** Empty-state overlay follows the document (typing, Open, drop, Clear). */
+  function syncEmpty() {
+    if (emptyHost) syncEmptyState(emptyHost, editor.getValue() === "");
+  }
+  syncEmpty();
+  if (exampleBtn) bindLoadExample(exampleBtn, () => editor.setValue(EXAMPLE), editor.view.contentDOM);
 
   // Settings persistence (parity). Input text is intentionally NOT persisted.
   try {
@@ -127,7 +146,7 @@ async function init(): Promise<void> {
   formatBtn.addEventListener("click", formatAction);
   clearBtn?.addEventListener("click", clearAll);
   copyBtn?.addEventListener("click", () => {
-    void copyWithFeedback(copyBtn, editor.getValue(), strings.copied);
+    void copyWithFeedback(copyBtn, editor.getValue(), strings.copied, undefined, { failedLabel: strings.copyFailed });
   });
   fileInput?.addEventListener("change", () => {
     const file = fileInput.files?.[0];

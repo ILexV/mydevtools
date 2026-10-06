@@ -1,14 +1,18 @@
 ---
 /**
- * Markdown Preview (pure JS). Split view: editor textarea left, live-rendered
- * HTML right (marked, loaded on demand from the vendored build). Toolbar with
- * formatting inserts, sync-scroll toggle, clear. Actions: copy HTML, copy
- * markdown, download standalone .html. No sanitization beyond marked — legacy
- * parity.
+ * Markdown Preview (pure JS). Workbench split view: editor panel left
+ * (Copy Markdown / Clear in its header, formatting inserts + sync-scroll toggle,
+ * empty state with a localized "Load example"), live-rendered HTML panel right
+ * (marked, loaded on demand; Copy HTML / Download in its header; compact
+ * placeholder while the editor is empty). Output is sanitized before insertion.
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import EmptyState from "@/components/tool/EmptyState.astro";
+import CopyButton from "@/components/tool/CopyButton.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -17,7 +21,6 @@ const { lang } = Astro.props as Props;
 const ns = "tools/markdown-preview";
 const s = {
   editorLabel: t(lang, ns, "EditorLabel"),
-  editorPlaceholder: t(lang, ns, "EditorPlaceholder"),
   previewLabel: t(lang, ns, "PreviewLabel"),
   bold: t(lang, ns, "Bold"),
   italic: t(lang, ns, "Italic"),
@@ -31,7 +34,11 @@ const s = {
   copyHtml: t(lang, ns, "CopyHTML"),
   copyMarkdown: t(lang, ns, "CopyMarkdown"),
   download: t(lang, ns, "Download"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
+  loadExample: t(lang, "common", "Common_LoadExample"),
+  emptyHint: t(lang, ns, "EmptyHint"),
+  previewEmpty: t(lang, ns, "PreviewEmpty"),
+  example: t(lang, ns, "ExampleMarkdown"),
   copyFailed: t(lang, ns, "CopyFailed"),
   renderError: t(lang, ns, "RenderError"),
   markedLoadFailed: t(lang, ns, "MarkedLoadFailed"),
@@ -42,12 +49,18 @@ const stringsJson = JSON.stringify({
   copyFailed: s.copyFailed,
   renderError: s.renderError,
   markedLoadFailed: s.markedLoadFailed,
+  example: s.example,
 });
 ---
 
 <div class="ds-stack" data-md-tool>
-  <!-- Toolbar -->
-  <div class="ds-card md-toolbar">
+  <div class="ds-workbench ds-workbench-stretch md-workbench">
+    <ToolPanel title={s.editorLabel} for="md-preview-input">
+      <Fragment slot="actions">
+        <CopyButton ghost label={s.copyMarkdown} copiedLabel={s.copied} data-md-copy-md />
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-md-clear>{s.clear}</button>
+      </Fragment>
+      <div class="md-toolbar">
     <div class="md-toolbar-groups" role="group" aria-label={s.toolbarLabel}>
       <div class="md-btn-group">
         <button type="button" class="ds-icon-btn" data-md-insert="bold" title={s.bold} aria-label={s.bold}>
@@ -84,37 +97,29 @@ const stringsJson = JSON.stringify({
         </button>
       </div>
     </div>
-    <div class="ds-actions">
-      <label class="ds-check-row">
-        <input type="checkbox" class="ds-check" data-md-sync-scroll checked />
-        <span>{s.syncScroll}</span>
-      </label>
-      <button type="button" class="ds-btn ds-btn-small ds-btn-danger" data-md-clear>{s.clear}</button>
-    </div>
-  </div>
+        <label class="ds-check-row md-sync">
+          <input type="checkbox" class="ds-check" data-md-sync-scroll checked />
+          <span>{s.syncScroll}</span>
+        </label>
+      </div>
+      <div class="ds-editor is-empty md-editor" data-md-input-host>
+        <textarea
+          id="md-preview-input"
+          class="ds-field-textarea mono md-input"
+          data-md-input
+          aria-describedby="md-input-empty"
+          spellcheck="false"></textarea>
+        <EmptyState hint={s.emptyHint} hintId="md-input-empty" exampleLabel={s.loadExample} buttonProps={{ "data-md-example": true }} />
+      </div>
+    </ToolPanel>
 
-  <!-- Split View -->
-  <div class="md-grid">
-    <div class="md-pane">
-      <label class="ds-label" for="md-preview-input">{s.editorLabel}</label>
-      <textarea
-        id="md-preview-input"
-        class="ds-field-textarea mono md-input"
-        data-md-input
-        placeholder={s.editorPlaceholder}
-        spellcheck="false"></textarea>
-    </div>
-    <div class="md-pane">
-      <span class="ds-label" id="md-preview-label">{s.previewLabel}</span>
-      <div class="md-preview" data-md-output role="region" aria-labelledby="md-preview-label" tabindex="0"></div>
-    </div>
-  </div>
-
-  <!-- Actions -->
-  <div class="ds-actions ds-actions-end">
-    <button type="button" class="ds-btn" data-md-copy-html>{s.copyHtml}</button>
-    <button type="button" class="ds-btn" data-md-copy-md>{s.copyMarkdown}</button>
-    <button type="button" class="ds-btn ds-btn-primary" data-md-download>{s.download}</button>
+    <OutputPanel panel label={s.previewLabel} emptyHint={s.previewEmpty} data-md-output-panel>
+      <Fragment slot="actions">
+        <CopyButton ghost label={s.copyHtml} copiedLabel={s.copied} data-md-copy-html />
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-md-download>{s.download}</button>
+      </Fragment>
+      <div class="md-preview ds-when-filled" data-md-output role="region" aria-label={s.previewLabel} tabindex="0"></div>
+    </OutputPanel>
   </div>
 
   <StatusMessage kind="error" data-md-error />
@@ -125,26 +130,26 @@ const stringsJson = JSON.stringify({
 
 <style>
   /* Layout + rendered-markdown typography; controls come from tool-ui.css (ds-*). */
-  .md-toolbar {
-    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-    gap: 0.6rem; padding: 0.5rem 0.75rem;
-  }
+  .md-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; }
   .md-toolbar-groups { display: flex; flex-wrap: wrap; gap: 0.75rem; }
   .md-btn-group { display: flex; gap: 0.25rem; }
+  .md-sync { margin-left: auto; }
   .md-glyph-mono { font-family: var(--mdt-font-mono); font-size: 0.78rem; }
   .md-glyph-list { font-size: 1.1rem; line-height: 1; }
 
-  /* Split view — legacy: 600px fixed height, 1 col mobile / 2 cols ≥768px */
-  .md-grid { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr 1fr; gap: 1rem; height: 600px; }
-  @media (min-width: 768px) { .md-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: 1fr; } }
-  .md-pane { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
-  .md-input { flex: 1; min-height: 0; resize: none; }
+  /* Fixed equal pane heights keep the proportional sync scroll meaningful. */
+  .md-input { height: 34rem; resize: none; }
   .md-preview {
-    flex: 1; min-height: 0; width: 100%; overflow-y: auto; overflow-wrap: anywhere;
+    height: 34rem; width: 100%; overflow-y: auto; overflow-wrap: anywhere;
     padding: 1rem 1.25rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm);
     background: var(--mdt-surface-raised); color: var(--mdt-text);
     font-size: 0.92rem; line-height: 1.6;
   }
+  @media (max-width: 899px) {
+    .md-input, .md-preview { height: 22rem; }
+  }
+  /* Side by side, the empty preview placeholder fills the stretched panel. */
+  .md-workbench > :global(.ds-output.is-empty > .ds-empty-state) { flex: 1; }
   .md-preview :global(.md-lib-error) { color: var(--mdt-danger); }
 
   /* Rendered markdown essentials (runtime innerHTML → global selectors) */

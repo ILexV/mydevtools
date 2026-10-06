@@ -3,10 +3,8 @@
   "CamelCase": "CamelCase",
   "Keywords": "Groß- und Kleinschreibung umwandeln, camelCase Konverter, snake_case, kebab-case, Title Case, Satzschreibweise, Großbuchstaben in Kleinbuchstaben, Variablennamen, text case converter",
   "ClearButton": "Löschen",
-  "Copied": "Kopiert!",
   "CopyButton": "Kopieren",
   "Description": "Text in camelCase, snake_case, kebab-case, Title Case, Satzschreibweise, GROSS- oder kleinschreibung umwandeln. Bezeichner wie XMLHttpRequest werden korrekt getrennt.",
-  "InputPlaceholder": "Text hier eingeben oder einfügen...",
   "InverseCase": "Umgekehrte Groß-/Kleinschreibung",
   "KebabCase": "Kebab-Case",
   "LowerCase": "kleinschreibung",
@@ -22,5 +20,7 @@
   "Seo_Tips": "- **GROSSSCHREIBUNG**, **kleinschreibung** und **Titel-Schreibweise** behandeln `_` und `-` ebenfalls als Worttrenner und ersetzen sie durch Leerzeichen: `user_id` wird zu `USER ID`. Für `USER_ID` wenden Sie **Umgekehrte Groß-/Kleinschreibung** auf das kleingeschriebene `user_id` an.\n- Die Satzschreibweise setzt auch Eigennamen und Akronyme klein (`HTTP server` wird zu `Http server`) – diese müssen Sie von Hand korrigieren.\n- Die Titel-Schreibweise schreibt jedes Wort groß, auch kurze: `the lord of the rings` wird zu `The Lord Of The Rings`; Ausnahmen aus Stilrichtlinien werden nicht berücksichtigt.\n- Ein Großbuchstabe innerhalb eines Wortes beginnt ein neues Wort: `iPhone` wird mit Snake_Case zu `i_phone`.\n- Die Umwandlung überschreibt das Feld; bewahren Sie das Original separat auf, wenn Sie Varianten vergleichen möchten.",
   "InputLabel": "Text",
   "ConvertLabel": "Umwandeln in",
-  "CopyFailed": "Kopieren in die Zwischenablage fehlgeschlagen."
+  "CopyFailed": "Kopieren in die Zwischenablage fehlgeschlagen.",
+  "EmptyHint": "Geben Sie Text ein oder fügen Sie ihn ein und wählen Sie unten eine Schreibweise – er wird direkt umgewandelt.",
+  "ExampleText": "zwölf boxkämpfer jagen viktor quer über den großen sylter deich. userProfile settings um 10:42 gespeichert."
 }

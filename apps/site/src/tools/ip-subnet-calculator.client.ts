@@ -10,7 +10,7 @@
  */
 import { calcIpv4, calcIpv6, ensureIpcalcReady, isIpv6Input, splitSubnets } from "@/scripts/wasm/ipcalc-client";
 import { defaultSplitPrefix, maxPrefix, parseSplitPrefix } from "@/tools/ip-subnet";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import { copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
 
 interface Strings {
   lang: string;
@@ -114,6 +114,13 @@ function init(): void {
   const input: HTMLInputElement = inputEl;
   const results: HTMLElement = resultsEl;
   const errorBox: HTMLElement = errorEl;
+  const splitPanel = root.querySelector<HTMLElement>("[data-ip-split]");
+
+  /** Show results (or the compact empty placeholder); the split panel follows. */
+  function setResultsVisible(visible: boolean): void {
+    syncEmptyState(results, !visible);
+    if (splitPanel) splitPanel.hidden = !visible;
+  }
 
   function setValue(key: string, text: string): void {
     const el = root.querySelector<HTMLElement>(`[data-ip-value="${key}"]`);
@@ -269,7 +276,7 @@ function init(): void {
     const value = input.value.trim();
     if (!value) {
       showError("");
-      results.hidden = true;
+      setResultsVisible(false);
       current = null;
       return;
     }
@@ -279,7 +286,7 @@ function init(): void {
       await ensureIpcalcReady();
     } catch {
       showError(strings.errorLoad);
-      results.hidden = true;
+      setResultsVisible(false);
       return;
     }
 
@@ -289,7 +296,7 @@ function init(): void {
       result = v6 ? await calcIpv6(value) : await calcIpv4(value);
     } catch {
       showError(strings.errorInvalidFormat);
-      results.hidden = true;
+      setResultsVisible(false);
       return;
     }
 
@@ -306,7 +313,7 @@ function init(): void {
     if (v6Table) v6Table.hidden = !v6;
 
     showError("");
-    results.hidden = false;
+    setResultsVisible(true);
   }
 
   root.querySelector<HTMLButtonElement>("[data-ip-calculate]")?.addEventListener("click", () => {

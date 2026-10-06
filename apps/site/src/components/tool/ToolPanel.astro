@@ -1,0 +1,40 @@
+---
+/**
+ * ToolPanel — workbench panel (tool UI kit): a `.ds-card` with a ~48px
+ * `.ds-panel-head` band (sentence-case title with the category rule left,
+ * panel-level `actions` slot right — Open/Paste/Clear on input, Copy/Download
+ * on output) and the panel body in the default slot. Place two of them in a
+ * `.ds-workbench` for the input | output layout.
+ *
+ * - `for`: renders the title as `<label for>` (panel holds one field);
+ *   otherwise `as` (h2 default, h3, span).
+ * - `meta`: quiet mono text after the title (counts, file name); hook via
+ *   `metaProps` so the controller can update it.
+ * - `empty`: starts the panel with `is-empty` (EmptyState / `.ds-when-filled`
+ *   children react to it; toggle with `syncEmptyState(panel, …)`).
+ * Root attributes (data-* hook, id, class) pass through.
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"section"> {
+  title: string;
+  for?: string;
+  as?: "h2" | "h3" | "span";
+  meta?: string;
+  metaProps?: HTMLAttributes<"span">;
+  empty?: boolean;
+}
+
+const { title, for: htmlFor, as = "h2", meta, metaProps, empty = false, class: className, ...rest } =
+  Astro.props as Props;
+const TitleTag = htmlFor ? "label" : as;
+---
+
+<section class:list={["ds-card", "ds-stack", { "is-empty": empty }, className]} {...rest}>
+  <div class="ds-panel-head">
+    <TitleTag class="ds-panel-title" for={htmlFor}>{title}</TitleTag>
+    {(meta !== undefined || metaProps) && <span class="ds-panel-meta" {...metaProps}>{meta}</span>}
+    {Astro.slots.has("actions") && <div class="ds-panel-actions"><slot name="actions" /></div>}
+  </div>
+  <slot />
+</section>

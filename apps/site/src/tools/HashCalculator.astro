@@ -4,6 +4,9 @@
  * Static shell; behavior lives in `hash-calculator.client.ts`, which calls the
  * worker-backed `hash-client` (text + file with progress/cancel, no UI blocking).
  *
+ * Workbench: input panel (text or Open file → algorithms → Calculate) | result
+ * rows (algorithm → digest → copy) with an empty state.
+ *
  * Locale strings for the current tool namespace are embedded as a JSON island
  * (Stage 5: browser controller gets only its own namespace strings).
  */
@@ -11,7 +14,9 @@ import { HASH_ALGORITHMS, DEFAULT_HASH_ALGORITHMS } from "@/tools/hash-algorithm
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
 import Field from "@/components/tool/Field.astro";
-import FileButton from "@/components/tool/FileButton.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import EmptyState from "@/components/tool/EmptyState.astro";
 import Progress from "@/components/tool/Progress.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
 
@@ -24,7 +29,6 @@ const ns = "tools/hash-calculator";
 
 const strings = {
   inputLabel: t(lang, ns, "InputLabel"),
-  inputPlaceholder: t(lang, ns, "InputPlaceholder"),
   fileLabel: t(lang, ns, "FileLabel"),
   fileHint: t(lang, ns, "FileHint"),
   fileProgressTitle: t(lang, ns, "FileProgressTitle"),
@@ -32,7 +36,12 @@ const strings = {
   calculate: t(lang, ns, "Calculate"),
   clear: t(lang, ns, "Clear"),
   copy: t(lang, ns, "Copy"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
+  open: t(lang, "common", "Common_Open"),
+  loadExample: t(lang, "common", "Common_LoadExample"),
+  emptyHint: t(lang, ns, "EmptyHint"),
+  resultsLabel: t(lang, ns, "ResultsLabel"),
+  outputEmpty: t(lang, ns, "OutputEmpty"),
   algorithmsTitle: t(lang, ns, "AlgorithmsTitle"),
   algorithmsSelected: t(lang, ns, "AlgorithmsSelected"),
   algorithmsSearchPlaceholder: t(lang, ns, "AlgorithmsSearchPlaceholder"),
@@ -44,29 +53,32 @@ const defaults = new Set(DEFAULT_HASH_ALGORITHMS);
 const stringsJson = JSON.stringify(strings);
 ---
 
-<div class="ds-stack" data-hash-tool>
-  <div class="ds-tool-grid hash-grid">
-    <section class="ds-card ds-stack">
-      <Field label={strings.inputLabel} for="hash-textarea">
-        <textarea
-          id="hash-textarea"
-          class="ds-field-textarea mono"
-          data-hash-textarea
-          rows="8"
-          placeholder={strings.inputPlaceholder}
-        ></textarea>
-      </Field>
-      <div>
-        <FileButton
-          label={strings.fileLabel}
-          inputProps={{ "data-hash-file": true }}
-          nameProps={{ "data-hash-filename": true }}
-        />
-        <p class="ds-hint">{strings.fileHint}</p>
-      </div>
-    </section>
+<div class="ds-workbench" data-hash-tool>
+  <ToolPanel title={strings.inputLabel} for="hash-textarea" meta="" metaProps={{ "data-hash-filename": true }}>
+    <Fragment slot="actions">
+      <label class="ds-btn ds-btn-small ds-btn-ghost ds-file-btn">
+        <input type="file" data-hash-file aria-label={strings.fileLabel} />{strings.open}
+      </label>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-hash-clear>{strings.clear}</button>
+    </Fragment>
+    <div class="ds-editor is-empty" data-hash-input-host>
+      <textarea
+        id="hash-textarea"
+        class="ds-field-textarea mono hash-input"
+        data-hash-textarea
+        rows="8"
+        aria-describedby="hash-input-empty hash-file-hint"
+      ></textarea>
+      <EmptyState
+        hint={strings.emptyHint}
+        hintId="hash-input-empty"
+        exampleLabel={strings.loadExample}
+        buttonProps={{ "data-hash-example": true }}
+      />
+    </div>
+    <p class="ds-hint hash-file-hint" id="hash-file-hint">{strings.fileHint}</p>
 
-    <section class="ds-card hash-algos">
+    <div class="ds-settings hash-algos">
       <Field label={strings.algorithmsTitle} asideProps={{ "data-hash-algo-count": true }}>
         <input
           type="search"
@@ -86,26 +98,26 @@ const stringsJson = JSON.stringify(strings);
         </div>
       </Field>
       <button type="button" class="ds-btn-link" data-hash-algo-reset>{strings.algorithmsReset}</button>
-    </section>
-  </div>
+    </div>
 
-  <div class="ds-actions">
-    <button type="button" class="ds-btn ds-btn-primary" data-hash-calculate>{strings.calculate}</button>
-    <button type="button" class="ds-btn" data-hash-cancel hidden>{strings.cancel}</button>
-    <button type="button" class="ds-btn" data-hash-clear>{strings.clear}</button>
-  </div>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-hash-calculate>{strings.calculate}</button>
+      <button type="button" class="ds-btn" data-hash-cancel hidden>{strings.cancel}</button>
+    </div>
 
-  <Progress
-    data-hash-progress
-    barLabel={strings.fileProgressTitle}
-    barProps={{ "data-hash-progress-bar": true }}
-    fillProps={{ "data-hash-progress-fill": true }}
-    labelProps={{ "data-hash-progress-label": true }}
-  />
+    <Progress
+      data-hash-progress
+      barLabel={strings.fileProgressTitle}
+      barProps={{ "data-hash-progress-bar": true }}
+      fillProps={{ "data-hash-progress-fill": true }}
+      labelProps={{ "data-hash-progress-label": true }}
+    />
+    <StatusMessage kind="error" data-hash-error />
+  </ToolPanel>
 
-  <StatusMessage kind="error" data-hash-error />
-
-  <div class="ds-result-list" data-hash-results aria-live="polite" hidden></div>
+  <OutputPanel panel label={strings.resultsLabel} emptyHint={strings.outputEmpty} data-hash-output>
+    <div class="ds-result-list ds-when-filled" data-hash-results aria-live="polite"></div>
+  </OutputPanel>
 </div>
 
 <script is:inline type="application/json" data-hash-strings set:html={stringsJson} />
@@ -115,14 +127,17 @@ const stringsJson = JSON.stringify(strings);
 
 <style>
   /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
-  .hash-grid {
-    --ds-tool-grid-cols: minmax(0, 1.4fr) minmax(0, 1fr);
+  .ds-editor > .hash-input {
+    min-height: 12rem;
+  }
+  .hash-file-hint {
+    margin-top: -0.5rem;
   }
   .hash-algos {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
   .hash-algos > :global(.ds-field-group) {
     align-self: stretch;
@@ -149,10 +164,13 @@ const stringsJson = JSON.stringify(strings);
     transition: background var(--mdt-dur-micro), color var(--mdt-dur-micro);
   }
   .algo-item:hover {
-    background: var(--mdt-surface-inset);
+    background: var(--mdt-surface-raised);
     color: var(--mdt-text);
   }
   .algo-item:has(:checked) {
     color: var(--mdt-cat);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .algo-item { transition: none; }
   }
 </style>

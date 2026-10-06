@@ -3,11 +3,15 @@
  * Lorem Ipsum Generator tool (pure JS). Generates placeholder text by
  * paragraphs / sentences / words with plain / HTML / markdown output, an
  * optional canonical "Lorem ipsum…" opening, and live word/character stats.
+ * Workbench: options panel (settings → Generate) | output with Copy/Download
+ * in its header. Text is generated on load, so the output is never empty.
  */
 import { t, pluralVariants } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
 import Field from "@/components/tool/Field.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
+import CopyButton from "@/components/tool/CopyButton.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
 import { MAX_COUNT } from "@/tools/lorem-ipsum";
 
@@ -29,7 +33,8 @@ const s = {
   outputLabel: t(lang, ns, "OutputLabel"),
   copyButton: t(lang, ns, "CopyButton"),
   downloadButton: t(lang, ns, "DownloadButton"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
+  settingsLabel: t(lang, ns, "SettingsLabel"),
   copyFailed: t(lang, ns, "CopyFailed"),
   formatLabel: t(lang, ns, "FormatLabel"),
   formatPlain: t(lang, ns, "Format_Plain"),
@@ -43,8 +48,8 @@ const s = {
 const stringsJson = JSON.stringify(s);
 ---
 
-<div class="ds-stack" data-lorem-tool>
-  <section class="ds-card ds-stack">
+<div class="ds-workbench" data-lorem-tool>
+  <ToolPanel title={s.settingsLabel}>
     <div class="ds-settings ds-settings-flat">
       <Field label={s.generateTypeLabel} for="li-type">
         <select id="li-type" class="ds-field-select" data-li-type>
@@ -76,14 +81,15 @@ const stringsJson = JSON.stringify(s);
       </label>
     </div>
 
-    <div class="ds-actions">
+    <div class="ds-action-row">
       <button type="button" class="ds-btn ds-btn-primary" data-li-generate>{s.generateButton}</button>
     </div>
-  </section>
+    <StatusMessage kind="error" data-li-error />
+  </ToolPanel>
 
-  <OutputPanel label={s.outputLabel} for="li-output" class="ds-card">
+  <OutputPanel panel label={s.outputLabel} for="li-output">
     <Fragment slot="actions">
-      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-li-copy>{s.copyButton}</button>
+      <CopyButton ghost label={s.copyButton} copiedLabel={s.copied} data-li-copy />
       <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-li-download>{s.downloadButton}</button>
     </Fragment>
     <textarea id="li-output" class="ds-field-textarea li-output" data-li-output rows="14" readonly></textarea>
@@ -92,7 +98,6 @@ const stringsJson = JSON.stringify(s);
       <span><b data-li-chars>0</b> <span data-li-chars-label>{s.characters}</span></span>
     </p>
   </OutputPanel>
-  <StatusMessage kind="error" data-li-error />
 </div>
 
 <script is:inline type="application/json" data-lorem-strings set:html={stringsJson} />
@@ -102,6 +107,6 @@ const stringsJson = JSON.stringify(s);
   /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
   .li-toggles { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
   .li-output { min-height: 16rem; }
-  .li-stats { display: flex; flex-wrap: wrap; gap: 1.25rem; margin: 0.6rem 0 0; }
+  .li-stats { display: flex; flex-wrap: wrap; gap: 1.25rem; margin: 0; }
   .li-stats b { font-family: var(--mdt-font-mono); color: var(--mdt-text); margin-right: 0.25rem; }
 </style>

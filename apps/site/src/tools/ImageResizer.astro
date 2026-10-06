@@ -16,6 +16,8 @@ import Field from "@/components/tool/Field.astro";
 import FileDrop from "@/components/tool/FileDrop.astro";
 import Progress from "@/components/tool/Progress.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -46,6 +48,8 @@ const s = {
   errorUnsupported: t(lang, ns, "ErrorUnsupportedFormat"),
   errorTooLarge: t(lang, ns, "ErrorDimensionsTooLarge"),
   errorResizeFailed: t(lang, ns, "ErrorResizeFailed"),
+  needFile: t(lang, ns, "NeedFile"),
+  outputEmpty: t(lang, ns, "OutputEmpty"),
 };
 const stringsJson = JSON.stringify(s);
 ---
@@ -53,8 +57,8 @@ const stringsJson = JSON.stringify(s);
 <div class="ds-stack imgr-tool" data-imgr-tool>
   <StatusMessage kind="error" data-imgr-error />
 
-  <div class="ds-tool-grid">
-    <section class="ds-card ds-stack">
+  <div class="ds-workbench">
+    <ToolPanel title={s.originalInfo}>
       <FileDrop
         changeLabel={t(lang, "common", "Common_FileChangeButton")}
         data-imgr-dropzone
@@ -81,11 +85,6 @@ const stringsJson = JSON.stringify(s);
       </div>
 
       <div class="ds-stack" data-imgr-settings hidden>
-        <span class="ds-card-title">{s.settingsLabel}</span>
-        <div class="ds-result-row ds-result-row-info imgr-info">
-          <span class="ds-result-key">{s.originalInfo}</span>
-          <span class="ds-result-value" data-imgr-original-info></span>
-        </div>
         <div class="ds-settings ds-settings-flat imgr-dims">
           <Field label={s.width} for="imgr-width">
             <input type="number" id="imgr-width" class="ds-field mono" data-imgr-width min="1" max="16384" step="1" inputmode="numeric" placeholder="px" />
@@ -105,34 +104,37 @@ const stringsJson = JSON.stringify(s);
             <option value="webp">WebP</option>
           </select>
         </Field>
-        <button type="button" class="ds-btn ds-btn-primary ds-btn-block" data-imgr-resize disabled>
+      </div>
+
+      <div class="ds-action-row">
+        <button type="button" class="ds-btn ds-btn-primary" data-imgr-resize disabled aria-describedby="imgr-need-file">
           <Icon name="images" size={16} />
           <span data-imgr-resize-label>{s.resize}</span>
         </button>
-        <Progress
-          data-imgr-progress
-          title={s.resizing}
-          cancelLabel={s.cancel}
-          cancelProps={{ "data-imgr-cancel": true }}
-          indeterminate
-        />
+        <p class="ds-action-row-aside imgr-need" id="imgr-need-file">{s.needFile}</p>
       </div>
-    </section>
+      <Progress
+        data-imgr-progress
+        title={s.resizing}
+        cancelLabel={s.cancel}
+        cancelProps={{ "data-imgr-cancel": true }}
+        indeterminate
+      />
+    </ToolPanel>
 
-    <section class="ds-card ds-stack" data-imgr-output hidden aria-live="polite">
-      <span class="ds-card-title">{s.outputTitle}</span>
-      <div class="imgr-result-wrap">
+    <OutputPanel panel label={s.outputTitle} emptyHint={s.outputEmpty} data-imgr-output aria-live="polite">
+      <div class="ds-result-headline ds-when-filled">
+        <span class="ds-result-headline-label">{s.resultInfo}</span>
+        <strong class="ds-result-headline-value imgr-result-info" data-imgr-output-info></strong>
+        <button type="button" class="ds-btn ds-btn-primary" data-imgr-download>
+          <Icon name="download" size={16} />
+          {s.download}
+        </button>
+      </div>
+      <div class="imgr-result-wrap ds-when-filled">
         <img class="imgr-result" data-imgr-result-preview alt={s.previewAlt} />
       </div>
-      <div class="ds-result-row ds-result-row-info imgr-info">
-        <span class="ds-result-key">{s.resultInfo}</span>
-        <span class="ds-result-value" data-imgr-output-info></span>
-      </div>
-      <button type="button" class="ds-btn ds-btn-primary ds-btn-block" data-imgr-download>
-        <Icon name="download" size={16} />
-        {s.download}
-      </button>
-    </section>
+    </OutputPanel>
   </div>
 </div>
 
@@ -151,8 +153,10 @@ const stringsJson = JSON.stringify(s);
     border-radius: var(--mdt-radius-sm);
     background: var(--mdt-surface-muted);
   }
-  /* Two-column info row (no action column). */
-  .imgr-info .ds-result-value { text-align: right; }
+  .imgr-result-info { font-size: clamp(1.25rem, 1rem + 0.9vw, 1.6rem); }
+  /* Prerequisite hint: only while Resize is disabled for lack of an image (not while busy). */
+  .imgr-need { display: none; }
+  .ds-action-row:has(> [data-imgr-resize]:disabled:not([aria-busy="true"])) > .imgr-need { display: block; }
   .imgr-dims { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .imgr-result-wrap {
     display: flex;

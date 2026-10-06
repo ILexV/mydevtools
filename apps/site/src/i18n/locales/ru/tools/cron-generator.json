@@ -17,7 +17,6 @@
   "GenerateToSeeResult": "Сгенерируйте cron-выражение для просмотра описания",
   "ActionGenerate": "Сгенерировать выражение",
   "Copy": "Копировать",
-  "Copied": "Скопировано!",
   "DateFormatLocale": "По умолчанию (24ч)",
   "DateFormatLocale12h": "Локальный (12ч AM/PM)",
   "DateFormatFullMonth": "Полное название месяца",

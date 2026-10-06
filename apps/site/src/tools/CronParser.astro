@@ -11,8 +11,10 @@ import { t, pluralVariants } from "@/i18n/messages";
 import { scheduleTemplates } from "@/tools/cron-strings";
 import { localizedPath } from "@/lib/url";
 import type { LocaleCode } from "@/registry/locales";
+import CopyButton from "@/components/tool/CopyButton.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -60,13 +62,15 @@ const s = {
   partWeekday: t(lang, ns, "PartWeekday"),
   parseToSeeResult: t(lang, ns, "ParseToSeeResult"),
   copy: t(lang, ns, "Copy"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
+  copyFailed: t(lang, "common", "Common_CopyFailed"),
 };
 // Strings consumed by the client controller (descriptions, errors, names).
 const clientStrings = {
   lang,
   copy: s.copy,
   copied: s.copied,
+  copyFailed: s.copyFailed,
   parseToSeeResult: s.parseToSeeResult,
   errorInvalidExpression: t(lang, ns, "ErrorInvalidExpression"),
   errorExpectedFields: t(lang, ns, "ErrorExpectedFields"),
@@ -98,10 +102,11 @@ const generatorUrl = localizedPath(lang, "cron-generator");
     {s.linkToGenerator} → <a href={generatorUrl}>{s.generatorTitle}</a>
   </p>
 
-  <div class="ds-tool-grid">
-    <section class="ds-card ds-stack" aria-labelledby="cronp-input-title">
-      <h2 class="ds-card-title" id="cronp-input-title">{s.inputLabel}</h2>
-
+  <div class="ds-workbench">
+    <ToolPanel title={s.inputLabel} for="cronp-input">
+      <Fragment slot="actions">
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-cronp-clear>{s.actionClear}</button>
+      </Fragment>
       <input
         type="text"
         id="cronp-input"
@@ -109,53 +114,45 @@ const generatorUrl = localizedPath(lang, "cron-generator");
         data-cronp-input
         placeholder={s.inputPlaceholder}
         value="* * * * *"
-        aria-labelledby="cronp-input-title"
         aria-describedby="cronp-error"
         spellcheck="false"
         autocomplete="off"
         autocapitalize="off"
       />
 
-      <div class="ds-field-group">
-        <span class="ds-label" id="cronp-presets-label">{s.presetsLabel}</span>
-        <div class="ds-chip-list" role="group" aria-labelledby="cronp-presets-label">
-          <button type="button" class="ds-chip-btn" data-cronp-preset="0 * * * *" title={s.presetHourAt0Title}>{s.presetEveryHour}</button>
-          <button type="button" class="ds-chip-btn" data-cronp-preset="0 */6 * * *" title={s.presetEvery6HoursTitle}>{s.presetEvery6Hours}</button>
-          <button type="button" class="ds-chip-btn" data-cronp-preset="0 2 * * *" title={s.presetDaily2AMTitle}>{s.presetDaily2AM}</button>
-          <button type="button" class="ds-chip-btn" data-cronp-preset="0 9 * * 1-5" title={s.presetWeekdays9AMTitle}>{s.presetWeekdays9AM}</button>
-          <button type="button" class="ds-chip-btn" data-cronp-preset="@weekly">{s.presetWeekly}</button>
-          <button type="button" class="ds-chip-btn" data-cronp-preset="@daily">{s.presetDaily}</button>
-          <button type="button" class="ds-chip-btn" data-cronp-preset="@hourly">{s.presetHourly}</button>
-          <button type="button" class="ds-chip-btn" data-cronp-preset="@reboot">{s.presetReboot}</button>
-          <button type="button" class="ds-chip-btn" data-cronp-preset="@monthly">{s.presetMonthly}</button>
-          <button type="button" class="ds-chip-btn" data-cronp-preset="@yearly">{s.presetYearly}</button>
-        </div>
+    <div class="ds-field-group">
+      <span class="ds-label" id="cronp-presets-label">{s.presetsLabel}</span>
+      <div class="ds-chip-list" role="group" aria-labelledby="cronp-presets-label">
+        <button type="button" class="ds-chip-btn" data-cronp-preset="0 * * * *" title={s.presetHourAt0Title}>{s.presetEveryHour}</button>
+        <button type="button" class="ds-chip-btn" data-cronp-preset="0 */6 * * *" title={s.presetEvery6HoursTitle}>{s.presetEvery6Hours}</button>
+        <button type="button" class="ds-chip-btn" data-cronp-preset="0 2 * * *" title={s.presetDaily2AMTitle}>{s.presetDaily2AM}</button>
+        <button type="button" class="ds-chip-btn" data-cronp-preset="0 9 * * 1-5" title={s.presetWeekdays9AMTitle}>{s.presetWeekdays9AM}</button>
+        <button type="button" class="ds-chip-btn" data-cronp-preset="@weekly">{s.presetWeekly}</button>
+        <button type="button" class="ds-chip-btn" data-cronp-preset="@daily">{s.presetDaily}</button>
+        <button type="button" class="ds-chip-btn" data-cronp-preset="@hourly">{s.presetHourly}</button>
+        <button type="button" class="ds-chip-btn" data-cronp-preset="@reboot">{s.presetReboot}</button>
+        <button type="button" class="ds-chip-btn" data-cronp-preset="@monthly">{s.presetMonthly}</button>
+        <button type="button" class="ds-chip-btn" data-cronp-preset="@yearly">{s.presetYearly}</button>
       </div>
+    </div>
 
-      <div class="ds-actions">
-        <button type="button" class="ds-btn ds-btn-primary cronp-parse" data-cronp-parse>{s.actionParse}</button>
-        <button type="button" class="ds-icon-btn" data-cronp-clear title={s.actionClear} aria-label={s.actionClear}>
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-          </svg>
-        </button>
+      <div class="ds-action-row">
+        <button type="button" class="ds-btn ds-btn-primary" data-cronp-parse>{s.actionParse}</button>
       </div>
 
       <StatusMessage kind="error" id="cronp-error" data-cronp-error />
-    </section>
+    </ToolPanel>
 
-    <section class="ds-card ds-stack" aria-labelledby="cronp-results-title">
-      <h2 class="ds-card-title" id="cronp-results-title">{s.resultsLabel}</h2>
+    <OutputPanel panel label={s.resultsLabel} emptyHint={s.parseToSeeResult} data-cronp-output-panel>
+      <div class="ds-result-headline ds-when-filled">
+        <span class="ds-result-headline-label">{s.humanReadableLabel}</span>
+        <output class="ds-result-headline-value cron-headline" data-cronp-human aria-live="polite"></output>
+        <CopyButton iconOnly label={s.copy} copiedLabel={s.copied} failedLabel={s.copyFailed} data-cronp-copy />
+      </div>
 
-      <OutputPanel label={s.humanReadableLabel}>
-        <Fragment slot="actions">
-          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-cronp-copy>{s.copy}</button>
-        </Fragment>
-        <div class="ds-code-block" data-cronp-human aria-live="polite">{s.parseToSeeResult}</div>
-      </OutputPanel>
-
-      <OutputPanel label={s.nextExecutionsLabel}>
-        <Fragment slot="actions">
+      <div class="ds-field-group ds-when-filled">
+        <div class="ds-label-row">
+          <span class="ds-label" id="cronp-next-label">{s.nextExecutionsLabel}</span>
           <select class="ds-field-select cron-format" data-cronp-date-format aria-label={s.dateFormatLabel}>
             <option value="locale">{s.dateFormatLocale}</option>
             <option value="locale-12h">{s.dateFormatLocale12h}</option>
@@ -165,21 +162,21 @@ const generatorUrl = localizedPath(lang, "cron-generator");
             <option value="american">{s.dateFormatAmerican}</option>
             <option value="verbose">{s.dateFormatVerbose}</option>
           </select>
-        </Fragment>
+        </div>
         <div data-cronp-next aria-live="polite"></div>
-      </OutputPanel>
+      </div>
 
-      <div class="ds-field-group">
+      <div class="ds-field-group ds-when-filled">
         <span class="ds-label" id="cronp-parts-label">{s.partsLabel}</span>
-        <dl class="cron-parts" aria-labelledby="cronp-parts-label">
-          <div class="cron-part"><dt>{s.partMinute}</dt><dd data-cronp-part-minute>*</dd></div>
-          <div class="cron-part"><dt>{s.partHour}</dt><dd data-cronp-part-hour>*</dd></div>
-          <div class="cron-part"><dt>{s.partDay}</dt><dd data-cronp-part-day>*</dd></div>
-          <div class="cron-part"><dt>{s.partMonth}</dt><dd data-cronp-part-month>*</dd></div>
-          <div class="cron-part"><dt>{s.partWeekday}</dt><dd data-cronp-part-weekday>*</dd></div>
+        <dl class="ds-result-list cron-parts" aria-labelledby="cronp-parts-label">
+        <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{s.partMinute}</dt><dd class="ds-result-value" data-cronp-part-minute>*</dd></div>
+        <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{s.partHour}</dt><dd class="ds-result-value" data-cronp-part-hour>*</dd></div>
+        <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{s.partDay}</dt><dd class="ds-result-value" data-cronp-part-day>*</dd></div>
+        <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{s.partMonth}</dt><dd class="ds-result-value" data-cronp-part-month>*</dd></div>
+        <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{s.partWeekday}</dt><dd class="ds-result-value" data-cronp-part-weekday>*</dd></div>
         </dl>
       </div>
-    </section>
+    </OutputPanel>
   </div>
 </div>
 
@@ -187,40 +184,17 @@ const generatorUrl = localizedPath(lang, "cron-generator");
 <script>import "@/tools/cron-parser.client.ts";</script>
 
 <style>
+  /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
   .cronp-input { font-size: 1.05rem; }
-  .cronp-parse { flex: 1; }
   .cron-format { width: auto; max-width: 100%; min-width: 0; }
+  /* The description is prose, not a number: calmer than the default headline size. */
+  .cron-headline { font-family: var(--mdt-font-sans); font-size: 1.15rem; line-height: 1.4; }
+  /* Field breakdown: aligned name column (rows are "key + value", no button). */
+  .cron-parts .ds-result-row-info { grid-template-columns: minmax(0, 9rem) minmax(0, 1fr); }
+  .cron-parts dd { margin: 0; color: var(--mdt-cat); font-weight: 600; }
 
   /* Next-run list (rows are created by the controller → :global). */
   [data-cronp-tool] :global(.cron-next) { margin: 0; padding-left: 2.2rem; }
   [data-cronp-tool] :global(.cron-next li + li) { margin-top: 0.3rem; }
   [data-cronp-tool] :global(.cron-next li::marker) { color: var(--mdt-text-faint); }
-
-  /* Field breakdown: dt = field name, dd = raw field value (cron table). */
-  .cron-parts {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 0.5rem;
-    margin: 0;
-    text-align: center;
-  }
-  .cron-part {
-    display: flex;
-    flex-direction: column-reverse;
-    gap: 0.25rem;
-    min-width: 0;
-    padding: 0.5rem 0.3rem;
-    background: var(--mdt-surface-inset);
-    border: 1px solid var(--mdt-border);
-    border-radius: var(--mdt-radius-sm);
-  }
-  .cron-part dt { color: var(--mdt-text-muted); font-size: var(--mdt-fs-micro); overflow-wrap: anywhere; }
-  .cron-part dd {
-    margin: 0;
-    font-family: var(--mdt-font-mono);
-    font-weight: 700;
-    color: var(--mdt-cat);
-    font-size: var(--mdt-fs-meta);
-    overflow-wrap: anywhere;
-  }
 </style>

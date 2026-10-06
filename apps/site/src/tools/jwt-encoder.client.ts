@@ -6,7 +6,7 @@
  * `buildSigningInput` (order-preserving); the HMAC from WASM `jwt_sign_input`.
  */
 import { jwtSignInput } from "@/scripts/wasm/crypto-client";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import { copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
 import { buildSigningInput, jsonObjectProblem, type JwtHmacAlg } from "@/tools/jwt";
 
 interface Strings {
@@ -43,6 +43,7 @@ function init() {
   const headerError = root.querySelector<HTMLElement>("[data-jwte-header-error]");
   const payloadError = root.querySelector<HTMLElement>("[data-jwte-payload-error]");
   const encodeError = root.querySelector<HTMLElement>("[data-jwte-error]");
+  const outputPanel = root.querySelector<HTMLElement>("[data-jwte-output-panel]");
 
   if (
     !headerInput ||
@@ -85,6 +86,7 @@ function init() {
   function clearToken() {
     outputArea.value = "";
     copyButton.disabled = true;
+    if (outputPanel) syncEmptyState(outputPanel, true);
   }
 
   async function generateToken() {
@@ -110,6 +112,7 @@ function init() {
       outputArea.value = `${built.input}.${signature}`;
       setEncodeError(null);
       copyButton.disabled = false;
+      if (outputPanel) syncEmptyState(outputPanel, false);
     } catch (err) {
       if (seq !== signSeq) return;
       clearToken();

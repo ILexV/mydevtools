@@ -6,11 +6,16 @@
  * actions per legacy parity; generation runs in a Web Worker with progress +
  * Cancel. Warnings from WASM render raw; well-known
  * passphrase errors are localized.
+ * Workbench: generate panel (settings → Generate) over the import panel
+ * (Open in its header; the editor is also a key-file drop target) | public
+ * and private key panels with Copy/Download in their headers.
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
 import Field from "@/components/tool/Field.astro";
-import FileDrop from "@/components/tool/FileDrop.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import EmptyState from "@/components/tool/EmptyState.astro";
+import CopyButton from "@/components/tool/CopyButton.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
 import Progress from "@/components/tool/Progress.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
@@ -28,7 +33,6 @@ const s = {
   generateButton: t(lang, ns, "GenerateButton"),
   importSectionTitle: t(lang, ns, "ImportSectionTitle"),
   importLabel: t(lang, ns, "ImportLabel"),
-  importPlaceholder: t(lang, ns, "ImportPlaceholder"),
   importFileLabel: t(lang, ns, "ImportFileLabel"),
   importFileHint: t(lang, ns, "ImportFileHint"),
   importButton: t(lang, ns, "ImportButton"),
@@ -36,7 +40,12 @@ const s = {
   publicKeyLabel: t(lang, ns, "PublicKeyLabel"),
   privateKeyLabel: t(lang, ns, "PrivateKeyLabel"),
   copy: t(lang, ns, "Copy"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
+  copyFailed: t(lang, "common", "Common_CopyFailed"),
+  open: t(lang, "common", "Common_Open"),
+  importEmpty: t(lang, ns, "ImportEmpty"),
+  publicEmpty: t(lang, ns, "PublicEmpty"),
+  privateEmpty: t(lang, ns, "PrivateEmpty"),
   download: t(lang, ns, "Download"),
   warningsTitle: t(lang, ns, "WarningsTitle"),
   commentLabel: t(lang, ns, "CommentLabel"),
@@ -50,13 +59,11 @@ const s = {
   generationCanceled: t(lang, ns, "GenerationCanceled"),
   cancel: t(lang, ns, "Cancel"),
   error: t(lang, "common", "Common_Error"),
-  fileChooseButton: t(lang, "common", "Common_FileChooseButton"),
-  fileDropTitle: t(lang, "common", "Common_FileDropTitle"),
-  fileDropSubtitle: t(lang, "common", "Common_FileDropSubtitle"),
 };
 const clientStrings = {
   copy: s.copy,
   copied: s.copied,
+  copyFailed: s.copyFailed,
   warningsTitle: s.warningsTitle,
   error: s.error,
   unsupportedFormat: s.errorUnsupportedFormat,
@@ -70,106 +77,98 @@ const clientStrings = {
 const stringsJson = JSON.stringify(clientStrings);
 ---
 
-<div class="ds-stack" data-ssh-tool>
-  <section class="ds-card ds-stack" aria-labelledby="ssh-gen-title">
-    <h2 class="ds-card-title" id="ssh-gen-title">{s.generateSectionTitle}</h2>
-    <div class="ds-settings ds-settings-flat ssh-gen">
-      <Field label={s.algorithmLabel} for="ssh-algorithm">
-        <select id="ssh-algorithm" class="ds-field-select" data-ssh-algorithm>
-          <option value="ed25519" selected>Ed25519 (Recommended)</option>
-          <option value="ecdsa-p256">ECDSA P-256</option>
-          <option value="ecdsa-p384">ECDSA P-384</option>
-          <option value="rsa-3072">RSA 3072</option>
-          <option value="rsa-4096">RSA 4096</option>
-        </select>
-      </Field>
-      <Field label={s.keySizeLabel} for="ssh-keysize">
-        <select id="ssh-keysize" class="ds-field-select" data-ssh-keysize disabled>
-          <option value="default">{s.keySizeDefault}</option>
-          <option value="3072">3072</option>
-          <option value="4096">4096</option>
-        </select>
-      </Field>
-      <Field label={s.passphraseLabel} for="ssh-passphrase">
-        <input
-          id="ssh-passphrase"
-          class="ds-field"
-          data-ssh-passphrase
-          type="password"
-          autocomplete="new-password"
-          spellcheck="false"
-        />
-        <p class="ds-hint" data-ssh-passphrase-ws aria-live="polite" hidden>{s.passphraseWhitespaceHint}</p>
-      </Field>
-    </div>
-    <div class="ds-actions ds-actions-end">
-      <button type="button" class="ds-btn ds-btn-primary" data-ssh-generate>{s.generateButton}</button>
-    </div>
-    <Progress
-      indeterminate
-      data-ssh-progress
-      title={s.generatingTitle}
-      cancelLabel={s.cancel}
-      cancelProps={{ "data-ssh-cancel": true }}
-      labelProps={{ "data-ssh-progress-label": true }}
-    />
-  </section>
-
-  <section class="ds-card ds-stack" aria-labelledby="ssh-import-title">
-    <h2 class="ds-card-title" id="ssh-import-title">{s.importSectionTitle}</h2>
-    <div class="ds-tool-grid">
-      <Field label={s.importLabel} for="ssh-import-text">
-        <textarea
-          id="ssh-import-text"
-          class="ds-field-textarea mono"
-          data-ssh-import-text
-          rows="6"
-          spellcheck="false"
-          autocomplete="off"
-          placeholder={s.importPlaceholder}></textarea>
-      </Field>
-      <div class="ds-field-group">
-        <span class="ds-label">{s.importFileLabel}</span>
-        <FileDrop
-          compact
-          class="ssh-drop"
-          data-ssh-dropzone
-          title={s.fileDropTitle}
-          sub={s.fileDropSubtitle}
-          buttonLabel={s.fileChooseButton}
-          accept=".pub,.pem,.key,.txt,text/plain"
-          inputProps={{ "data-ssh-importfile": true, "aria-describedby": "ssh-import-hint" }}
-        >
-          <span class="ds-file-name" aria-live="polite" data-ssh-importfilename></span>
-        </FileDrop>
+<div class="ds-workbench" data-ssh-tool>
+  <div class="ds-stack">
+    <ToolPanel title={s.generateSectionTitle}>
+      <div class="ds-settings ds-settings-flat ssh-gen">
+        <Field label={s.algorithmLabel} for="ssh-algorithm">
+          <select id="ssh-algorithm" class="ds-field-select" data-ssh-algorithm>
+            <option value="ed25519" selected>Ed25519 (Recommended)</option>
+            <option value="ecdsa-p256">ECDSA P-256</option>
+            <option value="ecdsa-p384">ECDSA P-384</option>
+            <option value="rsa-3072">RSA 3072</option>
+            <option value="rsa-4096">RSA 4096</option>
+          </select>
+        </Field>
+        <Field label={s.keySizeLabel} for="ssh-keysize">
+          <select id="ssh-keysize" class="ds-field-select" data-ssh-keysize disabled>
+            <option value="default">{s.keySizeDefault}</option>
+            <option value="3072">3072</option>
+            <option value="4096">4096</option>
+          </select>
+        </Field>
+        <Field label={s.passphraseLabel} for="ssh-passphrase" class="ds-settings-wide">
+          <input
+            id="ssh-passphrase"
+            class="ds-field"
+            data-ssh-passphrase
+            type="password"
+            autocomplete="new-password"
+            spellcheck="false"
+          />
+          <p class="ds-hint" data-ssh-passphrase-ws aria-live="polite" hidden>{s.passphraseWhitespaceHint}</p>
+        </Field>
       </div>
-    </div>
-    <p class="ds-hint" id="ssh-import-hint">{s.importFileHint}</p>
-    <div class="ds-actions ds-actions-end">
-      <button type="button" class="ds-btn" data-ssh-convert>{s.convertButton}</button>
-      <button type="button" class="ds-btn ds-btn-primary" data-ssh-import-btn>{s.importButton}</button>
-    </div>
-  </section>
+      <div class="ds-action-row">
+        <button type="button" class="ds-btn ds-btn-primary" data-ssh-generate>{s.generateButton}</button>
+      </div>
+      <Progress
+        indeterminate
+        data-ssh-progress
+        title={s.generatingTitle}
+        cancelLabel={s.cancel}
+        cancelProps={{ "data-ssh-cancel": true }}
+        labelProps={{ "data-ssh-progress-label": true }}
+      />
+    </ToolPanel>
 
-  <StatusMessage kind="error" data-ssh-error />
-  <StatusMessage kind="info" data-ssh-note />
-  <StatusMessage kind="info" class="mono" data-ssh-info />
-  <StatusMessage kind="warning" data-ssh-warnings />
-
-  <div class="ds-tool-grid">
-    <OutputPanel label={s.publicKeyLabel} for="ssh-public">
+    <ToolPanel title={s.importSectionTitle} meta="" metaProps={{ "data-ssh-importfilename": true, "aria-live": "polite" }}>
       <Fragment slot="actions">
-        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-ssh-public-copy aria-label={`${s.copy}: ${s.publicKeyLabel}`} disabled>{s.copy}</button>
+        <label class="ds-btn ds-btn-small ds-btn-ghost ds-file-btn">
+          <input type="file" accept=".pub,.pem,.key,.txt,text/plain" data-ssh-importfile aria-label={s.importFileLabel} aria-describedby="ssh-import-hint" />{s.open}
+        </label>
+      </Fragment>
+      <div class="ds-field-group">
+        <label class="ds-label" for="ssh-import-text">{s.importLabel}</label>
+        <div class="ds-editor is-empty ssh-import-host" data-ssh-dropzone>
+          <textarea
+            id="ssh-import-text"
+            class="ds-field-textarea mono ssh-import"
+            data-ssh-import-text
+            rows="6"
+            spellcheck="false"
+            autocomplete="off"
+            aria-describedby="ssh-import-empty ssh-import-hint"></textarea>
+          <EmptyState hint={s.importEmpty} hintId="ssh-import-empty" />
+        </div>
+        <p class="ds-hint" id="ssh-import-hint">{s.importFileHint}</p>
+      </div>
+      <div class="ds-action-row">
+        <button type="button" class="ds-btn ds-btn-primary" data-ssh-import-btn>{s.importButton}</button>
+        <button type="button" class="ds-btn" data-ssh-convert>{s.convertButton}</button>
+      </div>
+    </ToolPanel>
+  </div>
+
+  <div class="ds-stack">
+    <StatusMessage kind="error" data-ssh-error />
+    <StatusMessage kind="info" data-ssh-note />
+    <StatusMessage kind="info" class="mono" data-ssh-info />
+    <StatusMessage kind="warning" data-ssh-warnings />
+
+    <OutputPanel panel label={s.publicKeyLabel} for="ssh-public" emptyHint={s.publicEmpty} data-ssh-public-panel>
+      <Fragment slot="actions">
+        <CopyButton ghost label={s.copy} copiedLabel={s.copied} aria-label={`${s.copy}: ${s.publicKeyLabel}`} data-ssh-public-copy disabled />
         <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-ssh-public-download aria-label={`${s.download}: ${s.publicKeyLabel}`} disabled>{s.download}</button>
       </Fragment>
-      <textarea id="ssh-public" class="ds-field-textarea mono ssh-out" data-ssh-public rows="8" readonly spellcheck="false"></textarea>
+      <textarea id="ssh-public" class="ds-field-textarea mono ssh-out ds-when-filled" data-ssh-public rows="5" readonly spellcheck="false"></textarea>
     </OutputPanel>
-    <OutputPanel label={s.privateKeyLabel} for="ssh-private">
+    <OutputPanel panel label={s.privateKeyLabel} for="ssh-private" emptyHint={s.privateEmpty} data-ssh-private-panel>
       <Fragment slot="actions">
-        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-ssh-private-copy aria-label={`${s.copy}: ${s.privateKeyLabel}`} disabled>{s.copy}</button>
+        <CopyButton ghost label={s.copy} copiedLabel={s.copied} aria-label={`${s.copy}: ${s.privateKeyLabel}`} data-ssh-private-copy disabled />
         <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-ssh-private-download aria-label={`${s.download}: ${s.privateKeyLabel}`} disabled>{s.download}</button>
       </Fragment>
-      <textarea id="ssh-private" class="ds-field-textarea mono ssh-out" data-ssh-private rows="8" readonly spellcheck="false"></textarea>
+      <textarea id="ssh-private" class="ds-field-textarea mono ssh-out ds-when-filled" data-ssh-private rows="10" readonly spellcheck="false"></textarea>
     </OutputPanel>
   </div>
 </div>
@@ -182,12 +181,13 @@ const stringsJson = JSON.stringify(clientStrings);
   .ssh-gen {
     grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
   }
-  .ds-tool-grid > :global(.ds-field-group),
-  .ds-tool-grid > :global(.ds-output) {
-    height: 100%;
+  .ds-editor > .ssh-import {
+    min-height: 10rem;
   }
-  .ds-tool-grid > :global(.ds-field-group) > :global(.ssh-drop) {
-    flex: 1;
+  /* The import editor doubles as a key-file drop target. */
+  .ssh-import-host.is-dragover > .ssh-import {
+    border-color: var(--mdt-cat);
+    background: color-mix(in srgb, var(--mdt-cat) 6%, var(--mdt-surface-inset));
   }
   /* Keys are long unbroken base64 tokens: wrap anywhere, never overflow. */
   .ssh-out {

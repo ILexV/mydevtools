@@ -4,7 +4,10 @@
  * and formatting delegates to `dates.ts`.
  */
 import { parse, format, type InputType, type OutputFormat } from "@/tools/dates";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import { bindEmptyState, bindLoadExample, copyWithFeedback, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
+
+/** Language-neutral example: 2023-11-14T22:13:20Z as Unix seconds (auto-detected). */
+const EXAMPLE = "1700000000";
 
 interface Strings {
   lang: string;
@@ -41,6 +44,16 @@ function init(): void {
   const nowBtn = root.querySelector<HTMLButtonElement>("[data-date-now]");
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-date-copy]");
   const errorEl = root.querySelector<HTMLElement>("[data-date-error]");
+  const inputHost = root.querySelector<HTMLElement>("[data-date-input-host]");
+  const outputPanel = root.querySelector<HTMLElement>("[data-date-output-panel]");
+  const exampleBtn = root.querySelector<HTMLButtonElement>("[data-date-example]");
+  const syncInput = inputHost && input ? bindEmptyState(inputHost, input) : () => {};
+
+  /** Write the result and collapse/expand the output panel's empty state. */
+  function setOutput(text: string): void {
+    if (output) output.value = text;
+    if (outputPanel) syncEmptyState(outputPanel, text === "");
+  }
 
   function toggleCustom(): void {
     if (!customWrap || !outputFormat) return;
@@ -58,7 +71,7 @@ function init(): void {
     toggleCustom();
     const val = input.value;
     if (!val.trim()) {
-      output.value = "";
+      setOutput("");
       showError("");
       input.removeAttribute("aria-invalid");
       return;
@@ -67,13 +80,13 @@ function init(): void {
     if (!date || Number.isNaN(date.getTime())) {
       showError(strings.errorInvalid);
       input.setAttribute("aria-invalid", "true");
-      output.value = "";
+      setOutput("");
       return;
     }
     showError("");
     input.removeAttribute("aria-invalid");
     const custom = customInput ? customInput.value : "";
-    output.value = format(date, outputFormat.value as OutputFormat, custom, strings.lang) ?? "";
+    setOutput(format(date, outputFormat.value as OutputFormat, custom, strings.lang) ?? "");
   }
 
   function currentTime(): void {
@@ -87,6 +100,7 @@ function init(): void {
     } else {
       input.value = now.toISOString();
     }
+    syncInput();
     convert();
   }
 
@@ -97,6 +111,7 @@ function init(): void {
     if (!(await copyWithFeedback(copyBtn, text, strings.copied))) showError(strings.copyFailed);
   }
 
+  if (exampleBtn && input) bindLoadExample(exampleBtn, () => setFieldValue(input, EXAMPLE));
   convertBtn?.addEventListener("click", convert);
   nowBtn?.addEventListener("click", currentTime);
   copyBtn?.addEventListener("click", () => void copy());

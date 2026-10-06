@@ -2,10 +2,8 @@
   "AlternatingCase": "Alternating Case",
   "CamelCase": "Camel Case",
   "ClearButton": "Clear",
-  "Copied": "Copied!",
   "CopyButton": "Copy",
   "Description": "Convert text to camelCase, snake_case, kebab-case, Title Case, Sentence case, UPPER or lower case. Splits identifiers like XMLHttpRequest correctly.",
-  "InputPlaceholder": "Type or paste your text here...",
   "InverseCase": "Inverse Case",
   "KebabCase": "Kebab Case",
   "LowerCase": "lower case",
@@ -22,5 +20,7 @@
   "Seo_Tips": "- **UPPER CASE**, **lower case** and **Title Case** also treat `_` and `-` as word separators and replace them with spaces: `user_id` becomes `USER ID`. To get `USER_ID`, apply **Inverse Case** to the all-lowercase `user_id`.\n- Sentence case lowercases proper nouns and acronyms too (`HTTP server` becomes `Http server`) — fix those by hand.\n- Title Case capitalizes every word, including short ones: `the lord of the rings` becomes `The Lord Of The Rings`; it does not follow style-guide exceptions.\n- A capital letter inside a word starts a new word: `iPhone` with Snake Case becomes `i_phone`.\n- The conversion overwrites the field, so keep the original elsewhere if you want to compare variants.",
   "InputLabel": "Text",
   "ConvertLabel": "Convert to",
-  "CopyFailed": "Could not copy to the clipboard."
+  "CopyFailed": "Could not copy to the clipboard.",
+  "EmptyHint": "Type or paste text, then pick a case below — it is converted in place.",
+  "ExampleText": "the quick brown fox jumps over the lazy dog. userProfile settings were saved at 10:42."
 }

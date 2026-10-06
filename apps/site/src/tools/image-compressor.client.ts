@@ -7,8 +7,8 @@
  * it, and when the browser can't encode WebP the worker falls back to
  * lossless WASM WebP and a note says quality wasn't applied. Output format "original" maps from the source MIME
  * type (jpeg → jpeg, png → png, anything else → webp — legacy parity).
- * Result is previewed with an original → compressed size comparison and a
- * "Done! -N%" savings badge (shown only when savings > 0, legacy parity),
+ * Result leads with the compressed size (headline) and the original size plus
+ * a "−N%" savings note (shown only when savings > 0, legacy parity),
  * and downloaded as `<name>_min.<ext>` (jpeg → jpg — legacy parity).
  */
 import { compressImage } from "@/scripts/wasm/image-tools-client";
@@ -177,7 +177,7 @@ function init() {
       // Legacy parity: "Done! -N%" badge, only when savings are positive.
       const savedPct = savingsPercent(file.size, blob.size);
       if (badgeEl) {
-        badgeEl.textContent = `${strings!.done} -${savedPct}%`;
+        badgeEl.textContent = `−${savedPct}%`;
         badgeEl.hidden = savedPct <= 0;
       }
       if (webpNote) webpNote.hidden = !(targetFormat === "webp" && !webpLossy);

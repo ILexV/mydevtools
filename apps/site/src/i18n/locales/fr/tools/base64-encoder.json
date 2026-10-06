@@ -3,7 +3,6 @@
   "Description": "Encodez texte ou fichiers en Base64 et décodez-les : alphabet standard ou URL, remplissage, retour à 76 caractères, aperçu d'image. Dans votre navigateur.",
   "Keywords": "encodeur Base64, décodeur Base64, Base64 en ligne, décoder Base64, Base64 URL-safe, Base64 vers image, fichier en Base64",
   "InputTextLabel": "Entrée (texte)",
-  "InputTextPlaceholder": "Entrez du texte ou Base64...",
   "FileHint": "Si un fichier est sélectionné, il sera utilisé à la place de l'entrée texte.",
   "CharsetLabel": "Jeu de caractères du texte",
   "AlphabetLabel": "Alphabet",
@@ -27,13 +26,12 @@
   "ActionClear": "Effacer",
   "OutputLabel": "Sortie",
   "Copy": "Copier",
-  "Copied": "Copié !",
   "Download": "Télécharger",
   "FileProgressTitle": "Traitement du fichier...",
   "Cancel": "Annuler",
   "ImageDetected": "Image détectée : {type}",
   "BinaryDetected": "Fichier binaire détecté : {type} — prêt à télécharger",
-  "BinaryDownloadHint": "Utilisez le bouton « Télécharger » ci-dessous pour enregistrer le fichier.",
+  "BinaryDownloadHint": "Utilisez le bouton Télécharger pour enregistrer le fichier.",
   "OutputTitle": "Sortie",
   "StatsChars": "{n} caractères",
   "StatsChars_one": "{n} caractère",
@@ -58,5 +56,7 @@
   "Seo_DetailedDescription": "Le texte est d'abord converti en octets dans le jeu de caractères choisi (UTF-8, UTF-16LE, UTF-16BE, ASCII ou ISO-8859-1), puis encodé avec l'alphabet standard RFC 4648 (`+` et `/`) ou l'alphabet sécurisé pour les URL (`-` et `_`) utilisé par les JWT et les paramètres d'URL. Le remplissage `=` peut être requis, optionnel ou supprimé, et la sortie peut être coupée toutes les 76 caractères, comme l'exige MIME pour les e-mails.\n\nAu décodage, l'outil examine les octets obtenus. Le texte lisible s'affiche dans le champ de sortie ; les images PNG, JPEG, GIF, WebP, BMP, ICO, TIFF et SVG apparaissent en aperçu avec leur taille en pixels ; PDF, ZIP, GZIP, MP3, MP4 et exécutables sont reconnus à leur signature. Tout ce qui n'est pas du texte s'enregistre avec **Télécharger** sous l'extension adaptée, par exemple `decoded.png`.\n\nUn fichier peut être choisi ou déposé sur la page ; tant qu'il est sélectionné, le champ texte est ignoré. Le fichier est lu par blocs de 1 Mio dans un Web Worker, avec barre de progression et bouton **Annuler**, mais il est conservé entièrement en mémoire : la limite pratique est donc la RAM de l'appareil. Les résultats très longs sont affichés en aperçu et enregistrés en entier avec **Télécharger**.",
   "Seo_Examples": "**Texte vers Base64** : `Hello, World!` devient `SGVsbG8sIFdvcmxkIQ==` ; en UTF-8, `Привет` devient `0J/RgNC40LLQtdGC` (12 octets en entrée, 16 caractères en sortie).\n\n**URL sans remplissage** : `<<???>>` donne `PDw/Pz8+Pg==` avec l'alphabet standard et `PDw_Pz8-Pg` avec **Sécurisé pour les URL (-_)** et **Sans remplissage**, le format des segments JWT.\n\n**Entrée sans remplissage** : `SGk` échoue avec le remplissage **Requis** par défaut ; passez **Remplissage** sur **Optionnel** et vous obtenez `Hi`.\n\n**Base64 vers image** : coller le Base64 d'un PNG (il commence par `iVBORw0KGgo`) affiche l'image avec sa taille, par exemple 1×1 px, et **Télécharger** l'enregistre sous `decoded.png`.",
   "Seo_HowToSteps": "### Étape 1 : Saisir le texte ou choisir un fichier\nTapez ou collez du texte dans **Entrée (texte)**, ou déposez un fichier sur la page ou cliquez sur **Choisir un fichier**. Un fichier sélectionné a priorité sur le texte.\n\n### Étape 2 : Régler les options\nChoisissez **Jeu de caractères du texte** (UTF-8 le plus souvent), **Alphabet** (**Standard (+/)** ou **Sécurisé pour les URL (-_)**), **Remplissage** et, pour les e-mails MIME, **Retour à la ligne** à **76 caractères**.\n\n### Étape 3 : Encoder ou décoder\nCliquez sur **Encoder** pour obtenir du Base64, ou sur **Décoder** pour retrouver du texte, un aperçu d'image ou un fichier binaire. En cas d'erreur, le message en indique la cause, par exemple un caractère invalide ou un remplissage incorrect.\n\n### Étape 4 : Copier ou télécharger le résultat\n**Copier** place la sortie dans le presse-papiers et **Télécharger** l'enregistre dans un fichier. **Inverser** renvoie la sortie dans l'entrée pour vérifier l'aller-retour.",
-  "Seo_Tips": "- Base64 grossit les données d'environ 33 % : chaque groupe de 3 octets devient 4 caractères. C'est un encodage, pas un chiffrement ; n'importe qui peut le décoder.\n- Retirez le préfixe `data:image/png;base64,` d'une data URI avant de décoder : le décodeur n'accepte que la partie Base64.\n- L'en-tête et le payload d'un JWT utilisent l'alphabet URL sans remplissage : choisissez **Sécurisé pour les URL (-_)** et le remplissage **Optionnel**, et `eyJhbGciOiJIUzI1NiJ9` donne `{\"alg\":\"HS256\"}`.\n- Gardez **Autoriser espaces/sauts de ligne** activé pour décoder le Base64 coupé en lignes des e-mails ou fichiers PEM ; désactivez-le pour vérifier qu'une entrée tient sur une seule ligne propre.\n- Le jeu de caractères compte : `é` vaut `w6k=` en UTF-8 mais `6Q==` en ISO-8859-1 ; décodez avec celui utilisé à l'encodage.\n- Une fois la page ouverte, elle continue de fonctionner sans connexion."
+  "Seo_Tips": "- Base64 grossit les données d'environ 33 % : chaque groupe de 3 octets devient 4 caractères. C'est un encodage, pas un chiffrement ; n'importe qui peut le décoder.\n- Retirez le préfixe `data:image/png;base64,` d'une data URI avant de décoder : le décodeur n'accepte que la partie Base64.\n- L'en-tête et le payload d'un JWT utilisent l'alphabet URL sans remplissage : choisissez **Sécurisé pour les URL (-_)** et le remplissage **Optionnel**, et `eyJhbGciOiJIUzI1NiJ9` donne `{\"alg\":\"HS256\"}`.\n- Gardez **Autoriser espaces/sauts de ligne** activé pour décoder le Base64 coupé en lignes des e-mails ou fichiers PEM ; désactivez-le pour vérifier qu'une entrée tient sur une seule ligne propre.\n- Le jeu de caractères compte : `é` vaut `w6k=` en UTF-8 mais `6Q==` en ISO-8859-1 ; décodez avec celui utilisé à l'encodage.\n- Une fois la page ouverte, elle continue de fonctionner sans connexion.",
+  "EmptyHint": "Saisissez du texte à encoder ou collez du Base64 à décoder, ou déposez un fichier ci-dessous.",
+  "OutputEmpty": "Le résultat encodé ou décodé s’affiche ici."
 }

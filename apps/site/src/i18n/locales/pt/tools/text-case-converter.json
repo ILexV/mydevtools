@@ -3,10 +3,8 @@
   "CamelCase": "Camel Case",
   "Keywords": "conversor de maiúsculas e minúsculas, conversor camelCase, snake_case, kebab-case, title case, formato de título, converter maiúsculas, nomes de variáveis, text case converter",
   "ClearButton": "Limpar",
-  "Copied": "Copiado!",
   "CopyButton": "Copiar",
   "Description": "Converta texto para camelCase, snake_case, kebab-case, Formato de Título, formato de frase, MAIÚSCULAS ou minúsculas. Divide identificadores como XMLHttpRequest.",
-  "InputPlaceholder": "Digite ou cole seu texto aqui...",
   "InverseCase": "Formato Inverso",
   "KebabCase": "Kebab Case",
   "LowerCase": "minúsculas",
@@ -22,5 +20,7 @@
   "Seo_Tips": "- **MAIÚSCULAS**, **minúsculas** e **Formato de Título** também tratam `_` e `-` como separadores e os trocam por espaços: `user_id` vira `USER ID`. Para obter `USER_ID`, aplique **Formato Inverso** ao `user_id` todo em minúsculas.\n- O formato de frase também deixa em minúsculas nomes próprios e siglas (`HTTP server` vira `Http server`) — corrija-os à mão.\n- O Formato de Título capitaliza todas as palavras, inclusive as curtas: `the lord of the rings` vira `The Lord Of The Rings`; ele não segue exceções de guias de estilo.\n- Uma maiúscula no meio da palavra inicia uma nova palavra: `iPhone` com Snake Case vira `i_phone`.\n- A conversão sobrescreve o campo; guarde o original em outro lugar se quiser comparar variantes.",
   "InputLabel": "Texto",
   "ConvertLabel": "Converter para",
-  "CopyFailed": "Não foi possível copiar para a área de transferência."
+  "CopyFailed": "Não foi possível copiar para a área de transferência.",
+  "EmptyHint": "Digite ou cole um texto e escolha um formato abaixo — ele é convertido no próprio campo.",
+  "ExampleText": "luís argüia à júlia que «brações, fé, chá, óxido, pôr, zângão» eram palavras do português. userProfile settings salvos às 10:42."
 }

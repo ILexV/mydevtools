@@ -149,19 +149,36 @@ const aboutFeatures = [
     </section>
 
     <div class="home">
+      <!-- Heading sits outside the slot: scripts/favorites.ts replaces the
+           slot's innerHTML and toggles its `hidden`; the group hides with it. -->
       <div class="your-tools">
-        <section data-fav-section hidden>
+        <div class="yt-group">
           <h2 class="yt-heading">{favTitle}</h2>
-        </section>
-        <section data-recent-section hidden>
+          <section class="yt-list" data-fav-section aria-label={favTitle} hidden></section>
+        </div>
+        <div class="yt-group">
           <h2 class="yt-heading">{recentTitle}</h2>
-        </section>
+          <section class="yt-list" data-recent-section aria-label={recentTitle} hidden></section>
+        </div>
       </div>
 
-
       <section id="catalog" class="catalog">
+        <!-- Category jump links: anchors `#cat-<id>` (also used by the footer). -->
+        <nav class="cat-jump" aria-label={heroCta}>
+          <ul class="cat-jump-list" role="list">
+            {catalog.categories.map((cat) => (
+              <li style={`--mdt-cat: var(--mdt-cat-${cat.id})`}>
+                <a class="cat-chip" href={`#cat-${cat.id}`}>
+                  <Icon name={cat.id} size={14} />
+                  <span>{cat.label}</span>
+                  <span class="cat-chip-count tabular">{cat.tools.length}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
         {catalog.categories.map((cat) => (
-          <div class="cat-section" data-cat-section style={`--mdt-cat: var(--mdt-cat-${cat.id})`}>
+          <div id={`cat-${cat.id}`} class="cat-section" data-cat-section style={`--mdt-cat: var(--mdt-cat-${cat.id})`}>
             <div class="cat-head">
               <span class="cat-icon"><Icon name={cat.id} size={17} /></span>
               <h2 class="cat-heading" data-cat-heading>{cat.label}</h2>
@@ -527,21 +544,25 @@ const aboutFeatures = [
   }
 
   /* ---------- favorites / recent ---------- */
-  .your-tools { display: grid; gap: 0.75rem; margin-bottom: 1.5rem; }
-  .your-tools section:not([hidden]) { display: block; }
+  .your-tools { display: grid; gap: 1rem; margin-bottom: 1.75rem; }
+  .your-tools:not(:has(.yt-list:not([hidden]))) { display: none; }
+  .yt-group:has(> .yt-list[hidden]) { display: none; }
   .yt-heading {
-    font-family: var(--mdt-font-mono);
-    font-size: var(--mdt-fs-micro);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--mdt-text-faint);
+    font-size: var(--mdt-fs-meta);
+    font-weight: 600;
+    color: var(--mdt-text-muted);
     margin-bottom: 0.5rem;
+  }
+  .yt-list:not([hidden]) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
   }
   :global([data-fav-section] a), :global([data-recent-section] a) {
     display: inline-flex;
     align-items: center;
-    padding: 0.45rem 0.85rem;
-    margin: 0.2rem 0.35rem 0.2rem 0;
+    min-height: 34px;
+    padding: 0.3rem 0.85rem;
     border: 1px solid var(--mdt-border);
     border-radius: 999px;
     background: var(--mdt-surface-raised);
@@ -552,6 +573,42 @@ const aboutFeatures = [
   }
   :global([data-fav-section] a:hover), :global([data-recent-section] a:hover) {
     border-color: var(--mdt-accent);
+  }
+
+  /* ---------- category jump links (wrap on desktop, scroll on phones) ---------- */
+  .cat-jump { margin-bottom: 2.25rem; }
+  .cat-jump-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .cat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 34px;
+    padding: 0.3rem 0.75rem 0.3rem 0.6rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: 999px;
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text);
+    text-decoration: none;
+    font-size: var(--mdt-fs-meta);
+    white-space: nowrap;
+    transition: border-color var(--mdt-dur-micro) var(--mdt-ease), background-color var(--mdt-dur-micro) var(--mdt-ease);
+  }
+  .cat-chip :global(svg) { color: var(--mdt-cat); flex-shrink: 0; }
+  .cat-chip:hover {
+    border-color: color-mix(in srgb, var(--mdt-cat) 55%, var(--mdt-border));
+    background: color-mix(in srgb, var(--mdt-cat) 7%, var(--mdt-surface-raised));
+  }
+  .cat-chip-count {
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-micro);
+    color: var(--mdt-text-faint);
   }
 
   /* ---------- category sections ---------- */
@@ -596,7 +653,7 @@ const aboutFeatures = [
   .cat-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1rem;
+    gap: 0.875rem;
   }
   .hidden { display: none !important; }
 
@@ -665,6 +722,14 @@ const aboutFeatures = [
   }
   @media (max-width: 640px) {
     .cat-grid, .about-features { grid-template-columns: minmax(0, 1fr); }
+    /* one swipeable row inside its own container; the page never overflows */
+    .cat-jump {
+      margin-inline: -1rem;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+    }
+    .cat-jump-list { flex-wrap: nowrap; padding-inline: 1rem; width: max-content; }
     .hero { padding: 2rem 1rem 2.5rem; }
     .home { padding: 0.5rem 1rem 4rem; }
     .hero-stats { gap: 0.75rem 1.5rem; }

@@ -15,6 +15,7 @@
   "ResultLabel": "转换后的图片",
   "QualityLow": "低",
   "QualityHigh": "高",
+  "NeedFile": "请先选择一张图片。",
   "Seo_Introduction": "在浏览器中将图片在 PNG、JPEG、WebP、GIF、BMP、ICO、TIFF 和 TGA 之间转换——制作 favicon、处理旧格式，或把截图转成 WebP。文件在本地处理，不会上传。",
   "Seo_DetailedDescription": "八种格式都可以作为输入；输出格式在 **目标格式** 中选择。质量滑块只对 JPEG 和 WebP 显示（默认 90），其他格式忽略该设置。大于 256 px 的 ICO 图片会按比例缩小到 256×256 以内；源图透明的地方在 JPEG 中填充白色背景；16 位源图会降为每通道 8 位。\n\nWebP 由浏览器按所选质量进行有损编码；若浏览器不支持，则生成无损 WebP，并提示质量设置未生效。EXIF 方向会应用到像素上，元数据不会复制。动画 GIF 只转换第一帧。\n\n浏览器无法显示 TIFF 和 TGA，因此这类结果只显示大小——文件照常下载。转换在 Web Worker 中通过 Rust/WebAssembly 运行，可以取消。",
   "Seo_Examples": "**徽标转 favicon**：一张 1024×1024 的 PNG 徽标转换为 **ICO** 后，成为 256×256、`10.24 KB` 的图标，保存为 `logo.ico`。\n\n**透明 PNG 转 JPEG**：透明区域变为白色而不是黑色。\n\n**JPEG 转 WebP**：一张 1920×1280、`476.38 KB` 的照片在质量 `90` 下得到 `433.54 KB`；降低质量可以节省更多空间。\n\n**游戏纹理**：一张 640×480 的 `texture.tga` 转换为 **PNG** 后，得到可在任何地方打开的 `texture.png`。",

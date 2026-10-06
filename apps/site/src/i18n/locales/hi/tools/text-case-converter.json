@@ -3,10 +3,8 @@
   "CamelCase": "कैमल केस",
   "Keywords": "टेक्स्ट केस कनवर्टर, camelCase कनवर्टर, snake_case, kebab-case, title case, sentence case, uppercase lowercase, वेरिएबल नाम कनवर्टर, text case converter",
   "ClearButton": "साफ़ करें",
-  "Copied": "कॉपी हो गया!",
   "CopyButton": "कॉपी",
   "Description": "टेक्स्ट को camelCase, snake_case, kebab-case, Title Case, Sentence case, UPPER या lower case में बदलें। XMLHttpRequest जैसे नाम सही बँटते हैं।",
-  "InputPlaceholder": "अपना टेक्स्ट यहाँ टाइप या पेस्ट करें...",
   "InverseCase": "उल्टा केस",
   "KebabCase": "केबाब केस",
   "LowerCase": "लोअर केस",
@@ -22,5 +20,7 @@
   "Seo_Tips": "- **अपर केस**, **लोअर केस** और **टाइटल केस** भी `_` और `-` को separator मानकर स्पेस से बदल देते हैं: `user_id` से `USER ID` बनता है। `USER_ID` पाने के लिए पूरी तरह lowercase `user_id` पर **उल्टा केस** लगाएँ।\n- वाक्य केस व्यक्तिवाचक नामों और संक्षिप्त रूपों को भी lowercase कर देता है (`HTTP server` से `Http server`) — इन्हें हाथ से ठीक करें।\n- टाइटल केस छोटे शब्दों सहित हर शब्द कैपिटल करता है: `the lord of the rings` से `The Lord Of The Rings`; यह स्टाइल-गाइड के अपवाद नहीं मानता।\n- शब्द के बीच का कैपिटल अक्षर नया शब्द शुरू करता है: `iPhone` पर स्नेक केस से `i_phone` बनता है।\n- रूपांतरण फ़ील्ड को ओवरराइट करता है; अलग-अलग विकल्पों की तुलना करनी हो तो मूल टेक्स्ट कहीं और रखें।",
   "InputLabel": "पाठ",
   "ConvertLabel": "इसमें बदलें",
-  "CopyFailed": "क्लिपबोर्ड पर कॉपी नहीं हो सका।"
+  "CopyFailed": "क्लिपबोर्ड पर कॉपी नहीं हो सका।",
+  "EmptyHint": "टेक्स्ट लिखें या पेस्ट करें, फिर नीचे कोई केस चुनें — वहीं बदल जाएगा।",
+  "ExampleText": "the quick brown fox आलसी कुत्ते के ऊपर से कूद गई। userProfile settings 10:42 पर सहेजी गईं।"
 }

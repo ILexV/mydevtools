@@ -60,6 +60,12 @@ export interface ToolCapabilities {
 
 export interface Tool {
   slug: string;
+  /**
+   * Short language-neutral monospace mark (≤4 chars, no emoji) shown in the
+   * catalog card tile so sibling tools of one category are told apart at a
+   * glance (B64 vs B32 vs 0x). Not translated; must be unique.
+   */
+  monogram: string;
   category: CategoryId;
   wasm: WasmDomain | null;
   capabilities: ToolCapabilities;
@@ -67,69 +73,69 @@ export interface Tool {
 
 export const TOOLS: readonly Tool[] = [
   // ── encoding ──────────────────────────────────────────────────────────────
-  { slug: "base64-encoder", category: "encoding", wasm: "encoding", capabilities: { file: "optional", chunked: true, progress: true, cancel: true, copy: true, download: true, swap: true } },
-  { slug: "base32-encoder", category: "encoding", wasm: "encoding", capabilities: { file: "optional", chunked: true, progress: true, cancel: true, copy: true, download: true, swap: true } },
-  { slug: "base58-encoder", category: "encoding", wasm: "encoding", capabilities: { file: "optional", progress: true, copy: true, download: true, swap: true } },
-  { slug: "hex-encoder", category: "encoding", wasm: "encoding", capabilities: { file: "optional", chunked: true, progress: true, cancel: true, copy: true, download: true, swap: true } },
-  { slug: "url-encoder", category: "encoding", wasm: "encoding", capabilities: { copy: true, swap: true } },
-  { slug: "html-entity-encoder", category: "encoding", wasm: null, capabilities: { copy: true, swap: true } },
+  { slug: "base64-encoder", monogram: "B64", category: "encoding", wasm: "encoding", capabilities: { file: "optional", chunked: true, progress: true, cancel: true, copy: true, download: true, swap: true } },
+  { slug: "base32-encoder", monogram: "B32", category: "encoding", wasm: "encoding", capabilities: { file: "optional", chunked: true, progress: true, cancel: true, copy: true, download: true, swap: true } },
+  { slug: "base58-encoder", monogram: "B58", category: "encoding", wasm: "encoding", capabilities: { file: "optional", progress: true, copy: true, download: true, swap: true } },
+  { slug: "hex-encoder", monogram: "0x", category: "encoding", wasm: "encoding", capabilities: { file: "optional", chunked: true, progress: true, cancel: true, copy: true, download: true, swap: true } },
+  { slug: "url-encoder", monogram: "%20", category: "encoding", wasm: "encoding", capabilities: { copy: true, swap: true } },
+  { slug: "html-entity-encoder", monogram: "&;", category: "encoding", wasm: null, capabilities: { copy: true, swap: true } },
 
   // ── structured-data ───────────────────────────────────────────────────────
-  { slug: "json-beautifier", category: "structured-data", wasm: null, capabilities: { codeEditor: true, copy: true } },
-  { slug: "json-to-typescript", category: "structured-data", wasm: null, capabilities: { codeEditor: true, copy: true, download: true } },
-  { slug: "xml-beautifier", category: "structured-data", wasm: null, capabilities: { codeEditor: true, copy: true } },
-  { slug: "yaml-beautifier-validator", category: "structured-data", wasm: "structured_data", capabilities: { codeEditor: true, copy: true } },
-  { slug: "cron-generator", category: "structured-data", wasm: null, capabilities: { copy: true } },
-  { slug: "cron-parser", category: "structured-data", wasm: null, capabilities: { copy: true } },
+  { slug: "json-beautifier", monogram: "{}", category: "structured-data", wasm: null, capabilities: { codeEditor: true, copy: true } },
+  { slug: "json-to-typescript", monogram: "TS", category: "structured-data", wasm: null, capabilities: { codeEditor: true, copy: true, download: true } },
+  { slug: "xml-beautifier", monogram: "</>", category: "structured-data", wasm: null, capabilities: { codeEditor: true, copy: true } },
+  { slug: "yaml-beautifier-validator", monogram: "Y:", category: "structured-data", wasm: "structured_data", capabilities: { codeEditor: true, copy: true } },
+  { slug: "cron-generator", monogram: "*/5", category: "structured-data", wasm: null, capabilities: { copy: true } },
+  { slug: "cron-parser", monogram: "cron", category: "structured-data", wasm: null, capabilities: { copy: true } },
 
   // ── text ──────────────────────────────────────────────────────────────────
-  { slug: "word-counter", category: "text", wasm: null, capabilities: { copy: true } },
-  { slug: "text-case-converter", category: "text", wasm: null, capabilities: { copy: true } },
-  { slug: "text-diff-viewer", category: "text", wasm: null, capabilities: { file: "optional", copy: true } },
+  { slug: "word-counter", monogram: "wc", category: "text", wasm: null, capabilities: { copy: true } },
+  { slug: "text-case-converter", monogram: "Aa", category: "text", wasm: null, capabilities: { copy: true } },
+  { slug: "text-diff-viewer", monogram: "±", category: "text", wasm: null, capabilities: { file: "optional", copy: true } },
 
   // ── jwt ───────────────────────────────────────────────────────────────────
-  { slug: "jwt-decoder", category: "jwt", wasm: "cryptography", capabilities: { copy: true } },
-  { slug: "jwt-encoder", category: "jwt", wasm: "cryptography", capabilities: { copy: true } },
+  { slug: "jwt-decoder", monogram: "eyJ", category: "jwt", wasm: "cryptography", capabilities: { copy: true } },
+  { slug: "jwt-encoder", monogram: "JWT", category: "jwt", wasm: "cryptography", capabilities: { copy: true } },
 
   // ── regex ─────────────────────────────────────────────────────────────────
-  { slug: "regex-tester", category: "regex", wasm: "regex_tool", capabilities: { copy: true } },
+  { slug: "regex-tester", monogram: ".*", category: "regex", wasm: "regex_tool", capabilities: { copy: true } },
 
   // ── hashing ───────────────────────────────────────────────────────────────
-  { slug: "hash-calculator", category: "hashing", wasm: "hash", capabilities: { file: "optional", chunked: true, progress: true, cancel: true, copy: true } },
-  { slug: "password-generator", category: "hashing", wasm: "password", capabilities: { copy: true } },
+  { slug: "hash-calculator", monogram: "sha", category: "hashing", wasm: "hash", capabilities: { file: "optional", chunked: true, progress: true, cancel: true, copy: true } },
+  { slug: "password-generator", monogram: "***", category: "hashing", wasm: "password", capabilities: { copy: true } },
 
   // ── cryptography ──────────────────────────────────────────────────────────
-  { slug: "hmac-calculator", category: "cryptography", wasm: "cryptography", capabilities: { copy: true } },
-  { slug: "aead-file", category: "cryptography", wasm: "cryptography", capabilities: { file: "single", chunked: true, progress: true, cancel: true, download: true } },
-  { slug: "openssh-keys", category: "cryptography", wasm: "cryptography", capabilities: { file: "optional", progress: true, cancel: true, copy: true, download: true } },
-  { slug: "x509", category: "cryptography", wasm: "cryptography", capabilities: { copy: true, download: true } },
+  { slug: "hmac-calculator", monogram: "MAC", category: "cryptography", wasm: "cryptography", capabilities: { copy: true } },
+  { slug: "aead-file", monogram: "AES", category: "cryptography", wasm: "cryptography", capabilities: { file: "single", chunked: true, progress: true, cancel: true, download: true } },
+  { slug: "openssh-keys", monogram: "ssh", category: "cryptography", wasm: "cryptography", capabilities: { file: "optional", progress: true, cancel: true, copy: true, download: true } },
+  { slug: "x509", monogram: "509", category: "cryptography", wasm: "cryptography", capabilities: { copy: true, download: true } },
 
   // ── generators (legacy: ungrouped; new IA) ────────────────────────────────
-  { slug: "uuid-generator", category: "generators", wasm: null, capabilities: { copy: true, download: true } },
-  { slug: "lorem-ipsum-generator", category: "generators", wasm: null, capabilities: { copy: true, download: true } },
+  { slug: "uuid-generator", monogram: "uuid", category: "generators", wasm: null, capabilities: { copy: true, download: true } },
+  { slug: "lorem-ipsum-generator", monogram: "Lo", category: "generators", wasm: null, capabilities: { copy: true, download: true } },
 
   // ── converters ────────────────────────────────────────────────────────────
-  { slug: "unit-converter", category: "converters", wasm: null, capabilities: { copy: true } },
-  { slug: "date-converter", category: "converters", wasm: null, capabilities: { copy: true } },
-  { slug: "ip-subnet-calculator", category: "converters", wasm: "ipcalc", capabilities: { copy: true } },
+  { slug: "unit-converter", monogram: "m↔ft", category: "converters", wasm: null, capabilities: { copy: true } },
+  { slug: "date-converter", monogram: "UTC", category: "converters", wasm: null, capabilities: { copy: true } },
+  { slug: "ip-subnet-calculator", monogram: "/24", category: "converters", wasm: "ipcalc", capabilities: { copy: true } },
 
   // ── design ────────────────────────────────────────────────────────────────
-  { slug: "color-converter", category: "design", wasm: null, capabilities: { copy: true } },
-  { slug: "markdown-preview", category: "design", wasm: null, capabilities: { copy: true, download: true } },
+  { slug: "color-converter", monogram: "#hex", category: "design", wasm: null, capabilities: { copy: true } },
+  { slug: "markdown-preview", monogram: "M↓", category: "design", wasm: null, capabilities: { copy: true, download: true } },
 
   // ── images ────────────────────────────────────────────────────────────────
-  { slug: "image-compressor", category: "images", wasm: "image_tools", capabilities: { file: "multi", progress: true, download: true } },
-  { slug: "image-converter", category: "images", wasm: "image_tools", capabilities: { file: "single", download: true } },
-  { slug: "image-resizer", category: "images", wasm: "image_tools", capabilities: { file: "single", download: true } },
+  { slug: "image-compressor", monogram: "−%", category: "images", wasm: "image_tools", capabilities: { file: "multi", progress: true, download: true } },
+  { slug: "image-converter", monogram: "png", category: "images", wasm: "image_tools", capabilities: { file: "single", download: true } },
+  { slug: "image-resizer", monogram: "px", category: "images", wasm: "image_tools", capabilities: { file: "single", download: true } },
 
   // ── pdf ───────────────────────────────────────────────────────────────────
-  { slug: "pdf-compressor", category: "pdf", wasm: "pdf", capabilities: { file: "multi", progress: true, download: true } },
-  { slug: "pdf-merger", category: "pdf", wasm: "pdf", capabilities: { file: "multi", progress: true, download: true } },
-  { slug: "pdf-to-text", category: "pdf", wasm: "pdf", capabilities: { file: "multi", progress: true, download: true } },
+  { slug: "pdf-compressor", monogram: "−KB", category: "pdf", wasm: "pdf", capabilities: { file: "multi", progress: true, download: true } },
+  { slug: "pdf-merger", monogram: "1+2", category: "pdf", wasm: "pdf", capabilities: { file: "multi", progress: true, download: true } },
+  { slug: "pdf-to-text", monogram: "txt", category: "pdf", wasm: "pdf", capabilities: { file: "multi", progress: true, download: true } },
 
   // ── qrcode ────────────────────────────────────────────────────────────────
-  { slug: "qr-code-generator", category: "qrcode", wasm: "qrcode", capabilities: { file: "optional", download: true } },
-  { slug: "qr-scanner", category: "qrcode", wasm: "qrcode", capabilities: { file: "single", copy: true } },
+  { slug: "qr-code-generator", monogram: "→QR", category: "qrcode", wasm: "qrcode", capabilities: { file: "optional", download: true } },
+  { slug: "qr-scanner", monogram: "QR→", category: "qrcode", wasm: "qrcode", capabilities: { file: "single", copy: true } },
 ] as const;
 
 export const TOOL_COUNT = TOOLS.length;

@@ -11,9 +11,11 @@ import { t, pluralVariants } from "@/i18n/messages";
 import { scheduleTemplates } from "@/tools/cron-strings";
 import { localizedPath } from "@/lib/url";
 import type { LocaleCode } from "@/registry/locales";
+import CopyButton from "@/components/tool/CopyButton.astro";
 import Field from "@/components/tool/Field.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -36,7 +38,8 @@ const s = {
   generateToSeeResult: t(lang, ns, "GenerateToSeeResult"),
   actionGenerate: t(lang, ns, "ActionGenerate"),
   copy: t(lang, ns, "Copy"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
+  copyFailed: t(lang, "common", "Common_CopyFailed"),
   dateFormatLocale: t(lang, ns, "DateFormatLocale"),
   dateFormatLocale12h: t(lang, ns, "DateFormatLocale12h"),
   dateFormatFullMonth: t(lang, ns, "DateFormatFullMonth"),
@@ -50,6 +53,7 @@ const s = {
 const clientStrings = {
   lang,
   copied: s.copied,
+  copyFailed: s.copyFailed,
   errorInvalidExpression: t(lang, ns, "ErrorInvalidExpression"),
   errorExpectedFields: t(lang, ns, "ErrorExpectedFields"),
   errorUnknownPreset: t(lang, ns, "ErrorUnknownPreset"),
@@ -80,10 +84,9 @@ const parserUrl = localizedPath(lang, "cron-parser");
     {s.linkToParser} → <a href={parserUrl}>{s.parserTitle}</a>
   </p>
 
-  <div class="ds-tool-grid">
-    <section class="ds-card ds-stack" aria-labelledby="crong-build-title">
-      <h2 class="ds-card-title" id="crong-build-title">{s.generatorTitle}</h2>
-
+  <div class="ds-workbench">
+    <ToolPanel title={s.generatorTitle}>
+      <div class="crong-fields">
       <Field label={s.minuteLabel} for="crong-minute" hint={s.fieldHintExamples}>
         <input
           id="crong-minute"
@@ -154,32 +157,29 @@ const parserUrl = localizedPath(lang, "cron-parser");
           autocapitalize="off"
         />
       </Field>
-
-      <button type="button" class="ds-btn ds-btn-primary ds-btn-block" data-crong-generate>{s.actionGenerate}</button>
-
-      <StatusMessage kind="error" id="crong-error" data-crong-error />
-    </section>
-
-    <section class="ds-card ds-stack" aria-labelledby="crong-result-title">
-      <h2 class="ds-card-title" id="crong-result-title">{s.generatedExpressionLabel}</h2>
-
-      <div class="ds-input-group">
-        <input
-          type="text"
-          class="ds-field mono crong-output"
-          data-crong-output
-          readonly
-          aria-labelledby="crong-result-title"
-        />
-        <button type="button" class="ds-btn ds-btn-small" data-crong-copy>{s.copy}</button>
       </div>
 
-      <OutputPanel label={s.descriptionLabel}>
-        <div class="ds-code-block" data-crong-description aria-live="polite">{s.generateToSeeResult}</div>
-      </OutputPanel>
+      <div class="ds-action-row">
+        <button type="button" class="ds-btn ds-btn-primary" data-crong-generate>{s.actionGenerate}</button>
+      </div>
 
-      <OutputPanel label={s.nextExecutionsPreviewLabel}>
-        <Fragment slot="actions">
+      <StatusMessage kind="error" id="crong-error" data-crong-error />
+    </ToolPanel>
+
+    <OutputPanel panel label={s.generatedExpressionLabel} emptyHint={s.generateToSeeResult} data-crong-output-panel>
+      <div class="ds-result-headline ds-when-filled">
+        <output class="ds-result-headline-value" data-crong-output></output>
+        <CopyButton iconOnly label={s.copy} copiedLabel={s.copied} failedLabel={s.copyFailed} data-crong-copy />
+      </div>
+
+      <div class="ds-field-group ds-when-filled">
+        <span class="ds-label">{s.descriptionLabel}</span>
+        <p class="crong-description" data-crong-description aria-live="polite"></p>
+      </div>
+
+      <div class="ds-field-group ds-when-filled">
+        <div class="ds-label-row">
+          <span class="ds-label">{s.nextExecutionsPreviewLabel}</span>
           <select class="ds-field-select crong-format" data-crong-date-format aria-label={s.nextExecutionsPreviewLabel}>
             <option value="locale">{s.dateFormatLocale}</option>
             <option value="locale-12h">{s.dateFormatLocale12h}</option>
@@ -189,10 +189,10 @@ const parserUrl = localizedPath(lang, "cron-parser");
             <option value="american">{s.dateFormatAmerican}</option>
             <option value="verbose">{s.dateFormatVerbose}</option>
           </select>
-        </Fragment>
+        </div>
         <div data-crong-next aria-live="polite"></div>
-      </OutputPanel>
-    </section>
+      </div>
+    </OutputPanel>
   </div>
 </div>
 
@@ -200,7 +200,9 @@ const parserUrl = localizedPath(lang, "cron-parser");
 <script>import "@/tools/cron-generator.client.ts";</script>
 
 <style>
-  .crong-output { font-size: 1.05rem; }
+  /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
+  .crong-fields { display: grid; gap: 0.85rem; }
+  .crong-description { margin: 0; line-height: 1.5; color: var(--mdt-text); overflow-wrap: anywhere; }
   .crong-format { width: auto; max-width: 100%; min-width: 0; }
 
   /* Next-run list (rows are created by the controller → :global). */

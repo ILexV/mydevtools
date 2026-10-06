@@ -3,9 +3,7 @@
   "Description": "Compare two texts or files line by line: added, removed and changed lines shown side by side or as a unified diff, with word-level highlights.",
   "Keywords": "text diff, diff checker, compare text, compare two files, side by side diff, unified diff, code diff, diff viewer online",
   "OriginalLabel": "Original Text",
-  "OriginalPlaceholder": "Paste or type original text here, or upload a file below...",
   "ModifiedLabel": "Modified Text",
-  "ModifiedPlaceholder": "Paste or type modified text here, or upload a file below...",
   "CompareButton": "Compare",
   "ClearButton": "Clear",
   "LineByLine": "Line by Line",
@@ -22,5 +20,10 @@
   "ViewModeLabel": "View mode",
   "NoDifferences": "The texts are identical — no differences found.",
   "FileReadError": "Could not read the file as text.",
-  "DiffTooBig": "The texts differ in more than {max} lines — too many changes to display."
+  "DiffTooBig": "The texts differ in more than {max} lines — too many changes to display.",
+  "OriginalEmptyHint": "Paste the original text or open a file.",
+  "ModifiedEmptyHint": "Paste the changed text or open a file.",
+  "OutputEmpty": "Fill in both sides and press Compare to see the differences here.",
+  "ExampleOriginal": "Shopping list\n- milk\n- bread\n- 6 eggs\n- coffee beans\n\nPick up the parcel before 18:00.",
+  "ExampleModified": "Shopping list\n- oat milk\n- bread\n- 12 eggs\n- coffee beans\n- apples\n\nPick up the parcel before 19:00."
 }

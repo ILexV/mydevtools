@@ -3,9 +3,11 @@
  * editor kit, `@codemirror/lang-yaml` highlight + folding). Format/validate run through the structured-data WASM
  * client (loaded on first use); errors show the localized "invalid" label
  * plus the parser detail; status badge valid/invalid; paste/copy/clear.
+ * Workbench empty states: input overlay + "Load example" (only on click),
+ * compact output placeholder until there is a result.
  */
 import { loadEditorKit, type MdtEditor } from "@/scripts/codemirror-loader";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import { bindLoadExample, copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
 
 interface Strings {
   inputLabel: string;
@@ -13,8 +15,24 @@ interface Strings {
   valid: string;
   invalid: string;
   copied: string;
+  copyFailed?: string;
   phrases?: Record<string, string>;
 }
+
+/** "Load example" sample: messy but valid YAML (uneven indent, flow list, anchor/alias). */
+const EXAMPLE = `version: 3
+services:
+    web:
+        image: "nginx:1.27"
+        ports: [ "8080:80",  "8443:443" ]
+        environment: &env
+          TZ:   UTC
+          LOG_LEVEL: info
+    worker:
+      image: example/worker:2.1
+      environment: *env
+      deploy: { replicas: 2 }
+`;
 
 function readStrings(): Strings | null {
   const el = document.querySelector<HTMLScriptElement>("[data-yaml-strings]");
@@ -54,6 +72,9 @@ async function init() {
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-yaml-copy]");
   const status = root.querySelector<HTMLElement>("[data-yaml-status]");
   const errorBox = root.querySelector<HTMLElement>("[data-yaml-error]");
+  const inputHost = root.querySelector<HTMLElement>("[data-yaml-input-host]");
+  const outputPanel = root.querySelector<HTMLElement>("[data-yaml-output-panel]");
+  const exampleBtn = root.querySelector<HTMLButtonElement>("[data-yaml-example]");
 
   let inputEditor: MdtEditor;
   let outputEditor: MdtEditor;
@@ -67,13 +88,34 @@ async function init() {
         hintId: "yaml-editor-hint",
         indent: 2,
         onSubmit: () => formatBtn?.click(),
+        onChange: () => syncInput(),
       }),
-      kit.createEditor(outputEl, { language: "yaml", label: strings.outputLabel, phrases: strings.phrases, readOnly: true }),
+      kit.createEditor(outputEl, {
+        language: "yaml",
+        label: strings.outputLabel,
+        phrases: strings.phrases,
+        readOnly: true,
+        onChange: () => syncOutput(),
+      }),
     ]);
   } catch (err) {
     console.error("YAML tool: failed to load the editor", err);
     return;
   }
+
+  /** Input overlay follows the input document (typing, Paste, example, Clear). */
+  function syncInput() {
+    if (inputHost) syncEmptyState(inputHost, inputEditor.getValue() === "");
+  }
+  /** Output placeholder until there is a result; Copy needs text. */
+  function syncOutput() {
+    const empty = outputEditor.getValue() === "";
+    if (outputPanel) syncEmptyState(outputPanel, empty);
+    if (copyBtn) copyBtn.disabled = empty;
+  }
+  syncInput();
+  syncOutput();
+  if (exampleBtn) bindLoadExample(exampleBtn, () => inputEditor.setValue(EXAMPLE), inputEditor.view.contentDOM);
 
   function showError(detail: string | null) {
     inputEl?.classList.toggle("is-error", detail !== null);
@@ -145,7 +187,7 @@ async function init() {
 
   copyBtn?.addEventListener("click", () => {
     const text = outputEditor.getValue();
-    if (text) void copyWithFeedback(copyBtn, text, strings.copied);
+    if (text) void copyWithFeedback(copyBtn, text, strings.copied, undefined, { failedLabel: strings.copyFailed });
   });
 }
 

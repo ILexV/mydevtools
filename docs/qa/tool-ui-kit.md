@@ -89,12 +89,12 @@
 | `ds-output` (`OutputPanel`) | Шапка `ds-output-head` (label + `ds-actions` справа) над полем/блоком результата. |
 | `ds-output-summary` (`OutputPanel summaryProps`) | Строка-сводка под результатом, `role="status" aria-live="polite"`, скрыта пока пуста. Заполнять `setLiveText()` — изменение `value` у readonly textarea скринридер не озвучивает (пример: html-entity-encoder, «Результат: 53 симв.»). |
 | `ds-code-block` | Read-only mono результат (`pre`/`div`): pre-wrap, перенос длинных токенов, `max-height: 28rem` со скроллом. |
-| `ds-result-list`, `ds-result-row`, `ds-result-key`, `ds-result-value` | Строки «ключ → значение → кнопка» (хэши, детали). На ≤560px значение уходит на вторую строку. |
+| `ds-result-list`, `ds-result-row`, `ds-result-key`, `ds-result-value` | Строки «ключ → значение → кнопка» (хэши, детали), **разделённые линиями, без вложенных карточек** (с 2026-10-06, Фаза 3). Отдельно стоящий список — одна рамка `surface-inset`; внутри `.ds-card`/`.ds-output` (или `-flush`) рамка снимается. Колонка ключа — `--ds-result-key-w` (6rem). На ≤560px значение уходит на вторую строку. Строка вне списка сохраняет старый «коробочный» вид. |
 | `ds-result-row-info` / `ds-result-row-bare` / `ds-result-row-index` | Варианты: «ключ + значение» без кнопки (image-resizer); «значение + кнопка» без ключа (история паролей); узкая колонка 2.5rem под номер (uuid). `-info`/`-bare` остаются в одну строку и на телефоне. |
 | `ds-alert ds-alert-error\|success\|warning\|info\|neutral` (`StatusMessage`) | Блочное сообщение. error → `role="alert"`, прочие → `role="status"`. **`ds-alert-info` и `ds-alert-neutral` нейтральные** (текст, рамка `--mdt-border`, фон `surface-inset`): на странице инструмента `--mdt-accent` = цвет категории, и на красных/оранжевых категориях (crypto, jwt) акцентный info выглядел как ошибка. Старый `.alert-info` (только `/design`) остался акцентным. |
 | `ds-status` + `.is-success\|.is-error\|.is-warning` | Короткий инлайн-статус (valid/invalid, счётчики). |
 | `ds-badge`, `ds-badge-cat\|success\|warning\|danger` | Пилюля статуса (строка файла: working/done/error). |
-| `ds-empty` | Пустое состояние (mono, faint, по центру). |
+| `ds-empty` | Пустое состояние списка (mono, faint, по центру). Для пустого редактора/вывода — `ds-empty-state` (см. «Фаза 3»). |
 | `ds-spinner` | Примитив; теперь `display: inline-block` — сохраняет размер и вне flex-родителя. |
 | `ds-dialog` + `::backdrop` | Нативный `<dialog class="ds-dialog">` (`showModal`) получает общий scrim: токен `--mdt-scrim` (его же использует `.ds-scrim`) + blur 3px. Свой `::backdrop` в инструменте не пишите. |
 | `ds-chip` | Неинтерактивная метка (примитив). |
@@ -105,6 +105,128 @@
 - Runtime-состояния — классы `is-*` (`is-dragover`, `is-copied`, `is-success`, `is-error`, `is-indeterminate`) или ARIA (`aria-busy`, `aria-invalid`, `aria-pressed`, `aria-disabled`). Не изобретайте `copied`, `drag-over`, `<prefix>-dragover`, `checked`.
 - Цвет акцента внутри инструмента — `var(--mdt-cat)` / `var(--mdt-accent)` (на странице инструмента `--mdt-accent` = цвет категории). Никаких хардкод-цветов.
 - `forced-colors`: в `tool-ui.css` фокус полей заменяется на `outline: Highlight`, отмеченные `ds-check/ds-radio`, заливка прогресса и активные состояния — системные цвета. Свой локальный стиль с `box-shadow`-фокусом в HC невидим — не делайте так.
+
+## Фаза 3: workbench, пустые состояния, результаты, копирование (2026-10-06, агент `K-tool-kit`)
+
+Цель — читать инструмент как верстак «ввод → настройка → результат». Всё ниже — opt-in: немигрированные инструменты выглядят как раньше, кроме общих улучшений (disabled-primary, FileDrop, строки результата, копирование).
+
+### Новые классы
+
+| Класс | Назначение |
+| --- | --- |
+| `ds-workbench` | Сетка ввод \| вывод: 2 **равные** колонки ≥900px, стопка ниже; gap 16px; панели выровнены по верху (пустой вывод остаётся компактным). `-single` — всегда одна колонка; `-stretch` — равная высота панелей; дети `.ds-workbench-wide` — на обе колонки. Треки — `--ds-workbench-cols`. `ds-tool-grid` остаётся для старых раскладок. |
+| `ds-panel-head` | Шапка панели ~48px: заголовок слева, действия справа, перенос на узких экранах. Первым ребёнком `.ds-card` становится полосой во всю ширину карточки с линией снизу. |
+| `ds-panel-title` | Заголовок панели (sentence case, 15px/600) с 2px линией цвета категории слева. На `<label for>`, если в панели одно поле; иначе `h2`/`h3`/`span`. **Не** uppercase-микроподпись. |
+| `ds-panel-meta` | Тихая mono-метка после заголовка (счётчик символов, имя файла). |
+| `ds-panel-actions` | Действия уровня панели справа: `ds-btn ds-btn-small ds-btn-ghost` (Open = ghost `ds-file-btn`, Paste, Clear, Copy, Download). Высота 36px, 44px на touch. |
+| `ds-action-row` (+ `ds-action-row-aside`) | Ряд основного действия **сразу под настройками**: primary первым, затем вторичные; кнопки 44px; `-aside` (пояснение «сначала выберите файл», инлайн-статус) уходит вправо. На ≤480px primary — на всю ширину. |
+| `ds-editor` | Обёртка поля ввода (`textarea` или `.mdt-cm`) под оверлей пустого состояния. Textarea внутри — `min-height: 20rem` (11rem на ≤560px), `resize: vertical` сохраняется. |
+| `ds-empty-state` (+ `ds-empty-state-hint`) | Пустое состояние: короткая подсказка + необязательная кнопка «Load example». Должно быть **прямым ребёнком хоста с классом `is-empty`**. В `.ds-editor` — оверлей по центру поля (клики проходят в поле, интерактивна только кнопка); в остальных местах (панель вывода) — компактная пунктирная заглушка ~72px. Без `is-empty` у хоста скрыто. |
+| `ds-when-filled` | Тело результата (readonly textarea, `ds-code-block`, `ds-result-list`), скрытое, пока хост `is-empty`. Растёт, когда появились данные. |
+| `ds-result-headline` (`-label`, `-value`, `-meta`) | Одна главная метрика крупно (контраст, энтропия, итоговый размер): подпись, mono-значение 24–34px, кнопка копирования справа, тихая строка/сетка вторичных исходов (`-meta`, напр. AA/AAA) ниже. |
+| `ds-result-list-flush` | Список результатов без рамки вне карточки. |
+| `ds-copy-faces`, `ds-copy-face(-idle\|-done\|-fail)` | Грани кнопки копирования (ставит `prepareCopyButton`/`CopyButton`); вручную не пишите. |
+| `.is-copy-failed` | Состояние кнопки при неудачном копировании (красный, ⚠ **только иконка**; текст ошибки — в `aria-label`/`title` и в polite-объявлении). |
+| `ds-settings-checks` (+ `-inline`) | Ячейка чекбоксов внутри `ds-settings`: `align-self: end` и высота не меньше поля, поэтому чекбоксы стоят на одной линии с соседними select/input (у которых подпись сверху). На `<div>` или `<fieldset class="ds-check-group ds-settings-checks">` (legend остаётся сверху). `-inline` — чекбоксы в строку с переносом. Заменяет локальные `.json-checks { align-self: end; … }`. |
+| `.is-empty` | Состояние хоста пустого состояния (ставит разметка, переключает `syncEmptyState`). |
+
+Общие правки, действующие на всех: disabled `ds-btn-primary` — плоская нейтральная заливка без свечения и с faint-текстом (busy-кнопка сохраняет акцент); у `ds-btn` добавлен переход `color`, у `ds-icon-btn` — явный список переходов вместо `all` (150ms); при `prefers-reduced-motion` подъём кнопок, scale dropzone и сдвиги иконок отключены; `ds-dropzone` — ~180px на десктопе (`min-height: 11.25rem`), иконка 40px, кнопка выбора файла 44px (и в `compact`); CodeMirror — 320–400px по умолчанию.
+
+### Новые компоненты
+
+| Компонент | Props | Рендер |
+| --- | --- | --- |
+| `ToolPanel` | `title`, `for?`, `as?` (`h2`/`h3`/`span`), `meta?`, `metaProps?`, `empty?`, slot `actions`, slot | `section.ds-card.ds-stack[.is-empty]` > `.ds-panel-head` (`.ds-panel-title` + `.ds-panel-meta` + `.ds-panel-actions`) > slot |
+| `OutputPanel` (расширен) | + `panel?`, `emptyHint?`, `emptyProps?` | `panel` → `ds-card` + `ds-panel-head` вместо `ds-output-head`; `emptyHint` → корень `is-empty` + `.ds-empty-state`. Без новых props — как раньше. |
+| `EmptyState` | `hint`, `hintId?`, `exampleLabel?`, `buttonProps?`, slot | `div.ds-empty-state` > `p.ds-empty-state-hint#hintId` + `button.ds-btn.ds-btn-small` |
+| `CopyButton` | `label`, `copiedLabel`, `failedLabel?`, `iconOnly?`, `ghost?`, `icon?` (true) | `button.ds-btn.ds-btn-small[.ds-btn-ghost]` или `button.ds-icon-btn[aria-label]` с тремя гранями, отрисованными на сервере. Ширина резервируется только под «копировать» / «✓ скопировано»; грань ошибки — только ⚠ (длинный `failedLabel` ширину не раздувает). В `.ds-panel-actions` на ≤480px текст визуально скрыт (остаётся доступным именем) — кнопка становится иконкой, чтобы действия шапки не уезжали на вторую строку в ru/de. |
+
+### Новые TS-хелперы (`@/scripts/tool-ui`)
+
+- `copyWithFeedback(btn, text, copiedLabel, ms = 1500, { failedLabel?, announce? = true })` — **только после успешной записи** в буфер: ✓ + `copiedLabel` на самой кнопке (`.is-copied`), объявление через общий polite live-регион, `aria-label` → `copiedLabel`. При неудаче: ⚠ (только иконка) и `.is-copy-failed`; `failedLabel` (из опций или `data-copy-failed-label`) временно ставится в `aria-label` и `title` и объявляется через live-регион, затем атрибуты восстанавливаются. Содержимое меняется через грани в одной grid-ячейке — **ширина не меняется** (резерв — только под idle и «Copied»). Если Clipboard API нет/отказал — пробует `execCommand("copy")`. `copiedLabel = null` — без подписи (только ✓). Старые вызовы `(btn, text, copiedLabel, ms)` работают; у немигрированных кнопок грани создаются при первом клике (ширина фиксируется на максимуме один раз) — чтобы не было и этого скачка, используйте `CopyButton` или `prepareCopyButton()` при инициализации.
+- `prepareCopyButton(btn, copiedLabel, failedLabel?)` — обернуть содержимое кнопки в грани заранее (идемпотентно).
+- `announce(text)` — общий скрытый `role="status"` регион.
+- `syncEmptyState(host, isEmpty)` — переключить `is-empty`. Вызывайте после **каждой** программной записи (`textarea.value = …` событий не шлёт).
+- `bindEmptyState(host, field)` — синхронизация по `input`/`change` + сразу; возвращает `sync()`.
+- `setFieldValue(field, value)` — записать значение и отправить `input` (сработают и обработчики инструмента, и `bindEmptyState`).
+- `bindLoadExample(button, apply, focusTarget?)` — пример вставляется **только по клику**; после `apply` фокус уходит в поле внутри `.ds-editor` (кнопка исчезает вместе с оверлеем — иначе фокус потеряется). Возвращает unbind.
+
+### Строки (locale)
+
+Общие: `common/Common_EmptyHint` («Paste your data here or load an example.»), `Common_LoadExample`, `Common_Copy`, `Common_Copied`, `Common_Open`, `Common_Download`, `Common_Output`. Подсказка, специфичная для инструмента, и подсказка пустого вывода — в `tools/<slug>.json` во всех 10 языках (напр. `emptyHint`, `outputEmpty`). Пример данных (`EXAMPLE`) — константа в контроллере, не перевод. `failedLabel` — существующий `copyFailed` инструмента, если есть.
+
+### Рецепт миграции (для агентов миграции)
+
+1. **Раскладка.** `<div class="ds-workbench">` с двумя панелями: ввод (`ToolPanel`) и вывод (`OutputPanel panel`). Один редактор (json/xml/yaml, markdown) — `ds-workbench ds-workbench-single` или без сетки. Не навязывайте две колонки инструментам с одним рабочим полем.
+2. **Шапки.** Open/Paste/Clear — в `slot="actions"` панели ввода; Copy/Download — в `slot="actions"` вывода. Все ghost-small. Убрать общий «тулбар со всем подряд».
+3. **Настройки** (`ds-settings`; группа чекбоксов рядом с select — `ds-settings-checks`, локальный `align-self: end` удалить) — под полем ввода в той же панели (или `ds-workbench-wide` между рядом и панелями, если общие). **Основное действие** — `ds-action-row` сразу под настройками; пояснение недоступности — `ds-action-row-aside` (строка в locale).
+4. **Пустые состояния.** Поле ввода — в `.ds-editor.is-empty` + `EmptyState` (подсказка + «Load example», если пример осмыслен); убрать дублирующий `placeholder` или сократить его. Вывод — `OutputPanel emptyHint=…`, тело с `ds-when-filled`. В контроллере: `bindEmptyState(host, textarea)`, `syncEmptyState(outputPanel, !result)` после каждого пересчёта/очистки, `bindLoadExample(btn, () => setFieldValue(textarea, EXAMPLE))`.
+5. **Результаты.** Списки «ключ → значение» — `ds-result-list` / `ds-result-row` (кнопка — `CopyButton iconOnly` или `ds-btn-small ds-btn-ghost`); одна ключевая метрика — `ds-result-headline`. Убрать вложенные карточки и локальные `grid-template-columns` (ширина ключа — `--ds-result-key-w`).
+6. **Копирование.** Разметка — `CopyButton`; для кнопок, созданных контроллером, — `prepareCopyButton(btn, strings.copied)` сразу после создания. Клик — `copyWithFeedback(btn, text, strings.copied, undefined, { failedLabel: strings.copyFailed })`. Свой текст «Copied!» / тост / `setTimeout` для отката — удалить.
+7. **Проверка.** 1440/375, светлая/тёмная, пусто → пример → результат → копирование → очистка (пустое состояние вернулось), Tab-фокус после «Load example» в поле, нет горизонтального скролла.
+
+```astro
+---
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import EmptyState from "@/components/tool/EmptyState.astro";
+import CopyButton from "@/components/tool/CopyButton.astro";
+---
+<div class="ds-workbench" data-x-tool>
+  <ToolPanel title={s.inputLabel} for="x-in" meta="" metaProps={{ "data-x-count": true }}>
+    <Fragment slot="actions">
+      <label class="ds-btn ds-btn-small ds-btn-ghost ds-file-btn"><input type="file" data-x-file />{c.open}</label>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-x-clear>{s.clear}</button>
+    </Fragment>
+    <div class="ds-editor is-empty" data-x-input-host>
+      <textarea id="x-in" class="ds-field-textarea mono" aria-describedby="x-in-empty" data-x-input></textarea>
+      <EmptyState hint={s.emptyHint} hintId="x-in-empty" exampleLabel={c.loadExample}
+        buttonProps={{ "data-x-example": true }} />
+    </div>
+    <div class="ds-settings">…ds-field-group…</div>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-x-run>{s.run}</button>
+      <button type="button" class="ds-btn" data-x-swap>{s.swap}</button>
+    </div>
+  </ToolPanel>
+
+  <OutputPanel panel label={c.output} for="x-out" emptyHint={s.outputEmpty} data-x-output-panel>
+    <Fragment slot="actions">
+      <CopyButton ghost label={c.copy} copiedLabel={c.copied} failedLabel={s.copyFailed} data-x-copy />
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-x-download>{c.download}</button>
+    </Fragment>
+    <textarea id="x-out" class="ds-field-textarea mono ds-when-filled" readonly rows="10" data-x-output></textarea>
+  </OutputPanel>
+</div>
+```
+
+```ts
+import { bindEmptyState, bindLoadExample, copyWithFeedback, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
+
+const syncInput = bindEmptyState(inputHost, input);          // call syncInput() after input.value = …
+bindLoadExample(exampleBtn, () => setFieldValue(input, EXAMPLE));
+function render(result: string) {
+  output.value = result;
+  syncEmptyState(outputPanel, result === "");
+}
+copyBtn.addEventListener("click", () =>
+  void copyWithFeedback(copyBtn, output.value, strings.copied, undefined, { failedLabel: strings.copyFailed }));
+```
+
+Результаты-строки, созданные контроллером:
+
+```ts
+const row = document.createElement("div");
+row.className = "ds-result-row";
+row.innerHTML = `<span class="ds-result-key"></span><span class="ds-result-value"></span>`;
+row.children[0].textContent = name; row.children[1].textContent = value;
+const btn = document.createElement("button");
+btn.type = "button"; btn.className = "ds-btn ds-btn-small ds-btn-ghost"; btn.textContent = strings.copy;
+prepareCopyButton(btn, strings.copied);   // reserve width before the first click
+row.append(btn);
+```
+
+CodeMirror: `<div class="ds-editor is-empty"><div class="mdt-cm" …></div><EmptyState … /></div>`; `syncEmptyState(host, editor.getValue() === "")` в обработчике изменений редактора; `bindLoadExample(btn, () => editor.setValue(EXAMPLE), editorContentEl)`.
 
 ## Компоненты (`src/components/tool/`)
 
@@ -123,7 +245,7 @@
 
 ## TS-хелперы
 
-- `@/scripts/tool-ui` → `copyWithFeedback(btn, text, copiedLabel, ms?)` — пишет в буфер, ставит `.is-copied`, меняет текст (если в кнопке нет дочерних элементов) и `aria-label`, восстанавливает; повторный клик перезапускает таймер. Возвращает `false`, если Clipboard API недоступен — покажите локализованную ошибку.
+- `@/scripts/tool-ui` → `copyWithFeedback(btn, text, copiedLabel, ms = 1500, { failedLabel?, announce? })` — см. «Фаза 3 → Копирование». Сигнатура обратно совместима; возвращает `false`, если скопировать не удалось (кнопка уже показала ⚠; своя локализованная ошибка — по желанию).
 - `@/scripts/tool-ui` → `bindDropzone(zone, input, onFiles)` — `.is-dragover` (со счётчиком enter/leave), drop, клик по фону зоны открывает input, `change` input тоже вызывает `onFiles` и **затем сбрасывает `input.value`** (повторный выбор того же файла снова даёт `change`; храните полученные `File`, а не `input.files`). Учитывает `multiple` и `aria-disabled`. Возвращает unbind.
 - `@/scripts/tool-ui` → `setDropzoneHasFile(zone, hasFile)` — `.has-file` + смена текста кнопки на `changeLabel`.
 - `@/scripts/tool-ui` → `setLiveText(el, text)` — обновить live-регион так, чтобы повтор того же текста тоже озвучивался.
@@ -185,7 +307,7 @@
 
 Не трогаем общим слоем (остаются локально): превью изображений/QR, diff-подсветка, markdown-рендер, regex-подсветка совпадений, cron-таблицы.
 
-**CodeMirror** — общая тема в `apps/site/src/styles/codemirror.css` (создана группой structured): хост редактора `<div class="mdt-cm">`, все правила под `.mdt-cm`, цвета только из `--mdt-*`, состояния хоста `.is-error`, `.is-dragover`, `:focus-within`, высота — `--mdt-cm-height`. Импортируется только из json-beautifier, json-to-typescript, xml-beautifier, yaml-beautifier-validator (не из `global.css`). Новые редакторы подключают этот файл, а не пишут свои `.cm-*`.
+**CodeMirror** — общая тема в `apps/site/src/styles/codemirror.css` (создана группой structured): хост редактора `<div class="mdt-cm">`, все правила под `.mdt-cm`, цвета только из `--mdt-*`, состояния хоста `.is-error`, `.is-dragover`, `:focus-within`, высота — `--mdt-cm-height` (по умолчанию с Фазы 3 `clamp(20rem, 50vh, 25rem)` = 320–400px, на узких экранах 20rem, максимум 400px). Импортируется только из json-beautifier, json-to-typescript, xml-beautifier, yaml-beautifier-validator (не из `global.css`). Новые редакторы подключают этот файл, а не пишут свои `.cm-*`.
 
 ## Правила для scoped `<style>` инструмента
 

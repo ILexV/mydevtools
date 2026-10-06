@@ -3,9 +3,7 @@
   "Description": "Compare dois textos ou arquivos linha por linha: linhas adicionadas, removidas e alteradas lado a lado ou em diff unificado, com destaque por palavra.",
   "Keywords": "comparar textos, diff de texto, comparar arquivos online, diff lado a lado, diff unificado, diff de código, verificador de diferenças, text diff, diff checker",
   "OriginalLabel": "Texto Original",
-  "OriginalPlaceholder": "Cole ou digite o texto original aqui, ou carregue um arquivo abaixo...",
   "ModifiedLabel": "Texto Modificado",
-  "ModifiedPlaceholder": "Cole ou digite o texto modificado aqui, ou carregue um arquivo abaixo...",
   "CompareButton": "Comparar",
   "ClearButton": "Limpar",
   "LineByLine": "Linha por Linha",
@@ -22,5 +20,10 @@
   "ViewModeLabel": "Modo de visualização",
   "NoDifferences": "Os textos são idênticos — nenhuma diferença encontrada.",
   "FileReadError": "Não foi possível ler o arquivo como texto.",
-  "DiffTooBig": "Os textos diferem em mais de {max} linhas — alterações demais para exibir."
+  "DiffTooBig": "Os textos diferem em mais de {max} linhas — alterações demais para exibir.",
+  "OriginalEmptyHint": "Cole o texto original ou abra um arquivo.",
+  "ModifiedEmptyHint": "Cole o texto alterado ou abra um arquivo.",
+  "OutputEmpty": "Preencha os dois lados e clique em Comparar para ver as diferenças aqui.",
+  "ExampleOriginal": "Lista de compras\n- leite\n- pão\n- 6 ovos\n- café em grão\n\nBuscar a encomenda antes das 18:00.",
+  "ExampleModified": "Lista de compras\n- leite de aveia\n- pão\n- 12 ovos\n- café em grão\n- maçãs\n\nBuscar a encomenda antes das 19:00."
 }

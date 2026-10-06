@@ -24,4 +24,7 @@ function readOptions(root: HTMLElement): EncodingOptions {
   };
 }
 
-onReady(() => initEncodingTool({ prefix: "b32", formatName: "Base32", ext: "b32", readOptions }));
+/** "Load example" sample (language-neutral; an otpauth-style account id). */
+const EXAMPLE = "ada@example.com:2026";
+
+onReady(() => initEncodingTool({ prefix: "b32", formatName: "Base32", ext: "b32", readOptions, example: EXAMPLE }));

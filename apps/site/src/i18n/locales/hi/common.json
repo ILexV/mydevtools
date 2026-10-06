@@ -38,5 +38,16 @@
   "Common_Share": "साझा करें",
   "Common_LinkCopied": "लिंक कॉपी किया गया!",
   "Common_NoJsTitle": "JavaScript आवश्यक है",
-  "Common_NoJsBody": "यह टूल पूरी तरह से आपके ब्राउज़र में चलता है। इसका उपयोग करने के लिए JavaScript सक्षम करें।"
+  "Common_NoJsBody": "यह टूल पूरी तरह से आपके ब्राउज़र में चलता है। इसका उपयोग करने के लिए JavaScript सक्षम करें।",
+  "Common_LoadExample": "उदाहरण लोड करें",
+  "Common_Copied": "कॉपी हो गया",
+  "Common_EmptyHint": "अपना डेटा यहाँ पेस्ट करें या उदाहरण लोड करें।",
+  "CommandPalette_HintNavigate": "नेविगेट करें",
+  "CommandPalette_HintOpen": "खोलें",
+  "CommandPalette_HintClose": "बंद करें",
+  "Footer_Categories": "श्रेणियाँ",
+  "Footer_Languages": "भाषाएँ",
+  "Footer_Source": "GitHub पर स्रोत कोड",
+  "Language": "भाषा",
+  "Common_CopyFailed": "कॉपी नहीं हो सका"
 }

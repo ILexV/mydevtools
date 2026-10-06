@@ -1,0 +1,40 @@
+---
+/**
+ * EmptyState — hint + optional "Load example" button for an empty editor or
+ * output (tool UI kit). Must be a DIRECT child of a host that carries
+ * `is-empty` while empty: inside `.ds-editor` it overlays the empty field;
+ * elsewhere (output panel) it is a compact dashed placeholder. Toggle the host
+ * with `syncEmptyState()` / `bindEmptyState()`; wire the button with
+ * `bindLoadExample(btn, apply)` — examples are inserted only on click.
+ *
+ * Text: `hint` from the tool locale (e.g. `emptyHint`) or
+ * `common/Common_EmptyHint`; `exampleLabel` = `common/Common_LoadExample`.
+ * Hooks: root attributes pass through; the button's via `buttonProps`. Give
+ * the field `aria-describedby={hintId}` so the hint is read with it.
+ *
+ *   <div class="ds-editor is-empty" data-x-input-host>
+ *     <textarea id="x-in" class="ds-field-textarea mono" aria-describedby="x-in-empty" data-x-input></textarea>
+ *     <EmptyState hint={s.emptyHint} hintId="x-in-empty" exampleLabel={c.loadExample}
+ *       buttonProps={{ "data-x-example": true }} />
+ *   </div>
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"div"> {
+  hint: string;
+  hintId?: string;
+  /** Renders the "Load example" button when set. */
+  exampleLabel?: string;
+  buttonProps?: HTMLAttributes<"button">;
+}
+
+const { hint, hintId, exampleLabel, buttonProps, class: className, ...rest } = Astro.props as Props;
+---
+
+<div class:list={["ds-empty-state", className]} {...rest}>
+  <p class="ds-empty-state-hint" id={hintId}>{hint}</p>
+  {exampleLabel && (
+    <button type="button" class="ds-btn ds-btn-small" {...buttonProps}>{exampleLabel}</button>
+  )}
+  <slot />
+</div>

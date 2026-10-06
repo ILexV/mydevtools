@@ -1,10 +1,14 @@
 ---
 /**
- * Footer — site chrome. Brand, privacy-first reminder, locale links.
+ * Footer — site chrome and brand signature: category-spectrum hairline, brand
+ * mark + privacy line + source link, category links to home catalog anchors
+ * (`#cat-<id>`), language switch group (current locale marked), copyright.
  */
 import { LOCALES, type LocaleCode } from "@/registry/locales";
+import { buildCatalog } from "@/registry/catalog";
 import { localizedPath } from "@/lib/url";
 import { t } from "@/i18n/messages";
+import Icon from "@/components/Icon.astro";
 
 interface Props {
   locale: LocaleCode;
@@ -13,62 +17,192 @@ interface Props {
 const { locale } = Astro.props as Props;
 const brand = t(locale, "common", "AppName");
 const privacy = t(locale, "home", "NoDataSent");
+const categoriesTitle = t(locale, "common", "Footer_Categories");
+const languagesTitle = t(locale, "common", "Footer_Languages");
+const sourceLabel = t(locale, "common", "Footer_Source");
+const homeHref = localizedPath(locale);
+const categories = buildCatalog(locale).categories;
+/** Hairline gradient: category hues in catalog order (the prism's spectrum). */
+const spectrum = `linear-gradient(90deg, ${categories
+  .map((c) => `var(--mdt-cat-${c.id})`)
+  .join(", ")})`;
 const year = new Date().getUTCFullYear();
 ---
 
 <footer class="site-footer">
+  <div class="footer-spectrum" aria-hidden="true" style={`background-image: ${spectrum}`}></div>
   <div class="footer-inner">
     <div class="footer-brand">
-      <strong>{brand}</strong>
+      <a class="footer-logo" href={homeHref}>
+        <span class="footer-badge"><Icon name="logo-mark" size={14} /></span>
+        <strong>{brand}</strong>
+      </a>
       <p class="privacy">{privacy}</p>
+      <a class="footer-source" href="https://github.com/ILexV/mydevtools" rel="noopener">
+        <Icon name="encoding" size={14} />
+        <span>{sourceLabel}</span>
+      </a>
     </div>
-    <nav class="footer-langs" aria-label="languages">
-      {LOCALES.map((l) => (
-        <a hreflang={l.bcp47} href={localizedPath(l.code)}>{l.nativeName}</a>
-      ))}
+
+    <nav class="footer-cats" aria-labelledby="footer-cats-title">
+      <h2 class="footer-title" id="footer-cats-title">{categoriesTitle}</h2>
+      <ul>
+        {categories.map((c) => (
+          <li style={`--mdt-cat: var(--mdt-cat-${c.id})`}>
+            <a href={`${homeHref}#cat-${c.id}`}>{c.label}</a>
+          </li>
+        ))}
+      </ul>
     </nav>
+
+    <nav class="footer-langs" aria-labelledby="footer-langs-title">
+      <h2 class="footer-title" id="footer-langs-title">{languagesTitle}</h2>
+      <ul>
+        {LOCALES.map((l) => (
+          <li>
+            <a
+              hreflang={l.bcp47}
+              lang={l.bcp47}
+              href={localizedPath(l.code)}
+              aria-current={l.code === locale ? "true" : undefined}
+            >{l.nativeName}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
     <p class="copyright">© {year} {brand}</p>
   </div>
 </footer>
 
 <style>
   .site-footer {
-    border-top: 1px solid var(--mdt-border-soft);
+    position: relative;
     background: var(--mdt-surface-muted);
-    margin-top: 0;
+    border-top: 1px solid var(--mdt-border-soft);
+  }
+  /* 1px category spectrum over the top border, faded at both ends. */
+  .footer-spectrum {
+    position: absolute;
+    inset: -1px 0 auto;
+    height: 1px;
+    opacity: 0.7;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
   }
   .footer-inner {
     max-width: var(--mdt-content-max);
     margin: 0 auto;
-    padding: 1.75rem 1.25rem;
-    display: flex;
+    padding: 2.5rem 1.25rem 1.5rem;
+    display: grid;
+    grid-template-columns: minmax(14rem, 1fr) minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 2rem 3rem;
+    align-items: start;
+  }
+  .footer-brand { display: grid; gap: 0.6rem; justify-items: start; }
+  .footer-logo {
+    display: inline-flex;
     align-items: center;
-    gap: 1.5rem;
-    flex-wrap: wrap;
+    gap: 0.55rem;
+    color: var(--mdt-text);
+    text-decoration: none;
   }
-  .footer-brand strong { font-size: 0.95rem; letter-spacing: -0.01em; }
+  .footer-logo strong { font-size: 0.95rem; letter-spacing: -0.01em; }
+  .footer-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    color: var(--mdt-accent-contrast);
+    background: linear-gradient(135deg, var(--mdt-accent), var(--mdt-accent-2));
+  }
   .privacy {
-    color: var(--mdt-text-faint);
+    color: var(--mdt-text-muted);
     font-size: var(--mdt-fs-meta);
-    margin-top: 0.2rem;
-    max-width: 42ch;
+    max-width: 34ch;
   }
-  .footer-langs {
+  .footer-source {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--mdt-text-muted);
+    font-size: var(--mdt-fs-meta);
+    text-decoration: none;
+  }
+  .footer-source:hover { color: var(--mdt-text); }
+  .footer-title {
+    font-size: var(--mdt-fs-label);
+    font-weight: 600;
+    color: var(--mdt-text-faint);
+    margin-bottom: 0.75rem;
+  }
+  .footer-cats ul,
+  .footer-langs ul {
+    list-style: none;
+    padding: 0;
+  }
+  .footer-cats ul {
+    columns: 2;
+    column-gap: 1.5rem;
+  }
+  .footer-cats li {
+    break-inside: avoid;
+    padding: 0.18rem 0;
+  }
+  .footer-cats a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--mdt-text-muted);
+    font-size: var(--mdt-fs-meta);
+    text-decoration: none;
+  }
+  /* Category hue dot: the only colour in the column, quiet until hover. */
+  .footer-cats a::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--mdt-cat);
+    opacity: 0.75;
+  }
+  .footer-cats a:hover { color: var(--mdt-text); }
+  .footer-cats a:hover::before { opacity: 1; }
+  .footer-langs ul {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.35rem 0.85rem;
-    margin-left: auto;
+    gap: 0.35rem;
   }
   .footer-langs a {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border: 1px solid transparent;
+    border-radius: var(--mdt-radius-xs);
     color: var(--mdt-text-muted);
-    text-decoration: none;
     font-size: var(--mdt-fs-meta);
+    text-decoration: none;
   }
-  .footer-langs a:hover { color: var(--mdt-accent); }
+  .footer-langs a:hover { color: var(--mdt-text); border-color: var(--mdt-border); }
+  .footer-langs a[aria-current="true"] {
+    color: var(--mdt-text);
+    border-color: var(--mdt-border);
+    background: var(--mdt-surface-raised);
+  }
   .copyright {
+    grid-column: 1 / -1;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--mdt-border-soft);
     color: var(--mdt-text-faint);
     font-family: var(--mdt-font-mono);
     font-size: var(--mdt-fs-micro);
-    width: 100%;
+  }
+  @media (max-width: 60rem) {
+    .footer-inner { grid-template-columns: 1fr 1fr; }
+    .footer-brand { grid-column: 1 / -1; }
+  }
+  @media (max-width: 40rem) {
+    .footer-inner { grid-template-columns: 1fr; padding-top: 2rem; }
   }
 </style>

@@ -15,6 +15,7 @@ import Field from "@/components/tool/Field.astro";
 import FileDrop from "@/components/tool/FileDrop.astro";
 import Progress from "@/components/tool/Progress.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -40,7 +41,10 @@ const s = {
   errorUnsupported: t(lang, ns, "ErrorUnsupportedFormat"),
   errorConversion: t(lang, ns, "ErrorConversion"),
   webpLosslessNote: t(lang, ns, "WebpLosslessNote"),
+  needFile: t(lang, ns, "NeedFile"),
 };
+/** "Output Size:" → "Output Size" for the headline label (ASCII or full-width colon). */
+const plainLabel = (label: string) => label.replace(/\s*[:：]\s*$/, "");
 const stringsJson = JSON.stringify(s);
 ---
 
@@ -92,11 +96,12 @@ const stringsJson = JSON.stringify(s);
     </Field>
   </div>
 
-  <div class="ds-actions">
-    <button type="button" class="ds-btn ds-btn-primary" data-imgv-convert disabled>
+  <div class="ds-action-row">
+    <button type="button" class="ds-btn ds-btn-primary" data-imgv-convert disabled aria-describedby="imgv-need-file">
       <Icon name="converters" size={16} />
       <span data-imgv-convert-label>{s.convert}</span>
     </button>
+    <p class="ds-action-row-aside imgv-need" id="imgv-need-file">{s.needFile}</p>
   </div>
 
   <Progress
@@ -109,22 +114,20 @@ const stringsJson = JSON.stringify(s);
 
   <StatusMessage kind="error" data-imgv-error />
 
-  <section class="ds-card ds-stack" data-imgv-result hidden aria-live="polite">
-    <div class="ds-card-head">
-      <span class="ds-card-title">{s.resultLabel}</span>
+  <ToolPanel title={s.resultLabel} data-imgv-result hidden aria-live="polite">
+    <div class="ds-result-headline">
+      <span class="ds-result-headline-label">{plainLabel(s.outputSize)}</span>
+      <strong class="ds-result-headline-value" data-imgv-output-size></strong>
+      <button type="button" class="ds-btn ds-btn-primary" data-imgv-download>
+        <Icon name="download" size={16} />
+        {s.download}
+      </button>
     </div>
     <div class="imgv-output-wrap" data-imgv-output-wrap>
       <img class="imgv-output" data-imgv-output alt={s.previewAlt} />
     </div>
-    <p class="imgv-output-meta">
-      {s.outputSize}{" "}<span class="imgv-output-size" data-imgv-output-size></span>
-    </p>
     <StatusMessage kind="info" data-imgv-webp-note>{s.webpLosslessNote}</StatusMessage>
-    <button type="button" class="ds-btn ds-btn-primary ds-btn-block" data-imgv-download>
-      <Icon name="download" size={16} />
-      {s.download}
-    </button>
-  </section>
+  </ToolPanel>
 </div>
 
 <script is:inline type="application/json" data-imgv-strings set:html={stringsJson} />
@@ -157,6 +160,7 @@ const stringsJson = JSON.stringify(s);
     background-size: 1rem 1rem;
   }
   .imgv-output { max-width: 100%; max-height: 24rem; object-fit: contain; }
-  .imgv-output-meta { font-size: var(--mdt-fs-small); color: var(--mdt-text-muted); }
-  .imgv-output-size { font-family: var(--mdt-font-mono); font-weight: 600; color: var(--mdt-text); }
+  /* Prerequisite hint: only while Convert is disabled for lack of a file (not while busy). */
+  .imgv-need { display: none; }
+  .ds-action-row:has(> [data-imgv-convert]:disabled:not([aria-busy="true"])) > .imgv-need { display: block; }
 </style>

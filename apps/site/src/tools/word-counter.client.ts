@@ -2,15 +2,18 @@
  * Word Counter client. Recomputes stats on every input (rules in
  * `word-stats.ts`). Pure JS, no network. Paste/copy go through the Clipboard
  * API; failures surface a localized error instead of failing silently.
+ * Empty textarea shows a hint + "Load example" (localized sample text, on click only).
  */
 import { computeStats, readingMinutes } from "@/tools/word-stats";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import { bindEmptyState, bindLoadExample, copyWithFeedback, setFieldValue } from "@/scripts/tool-ui";
 
 interface Strings {
   copied: string;
   copyFailed: string;
+  copyFailedShort?: string;
   pasteFailed: string;
   minutes: string;
+  example?: string;
 }
 
 function readStrings(): Strings | null {
@@ -43,6 +46,13 @@ function init() {
     reading: root.querySelector<HTMLElement>("[data-wc-reading]"),
     speaking: root.querySelector<HTMLElement>("[data-wc-speaking]"),
   };
+  const inputHost = root.querySelector<HTMLElement>("[data-wc-input-host]");
+  const exampleBtn = root.querySelector<HTMLButtonElement>("[data-wc-example]");
+  const syncInput = inputHost ? bindEmptyState(inputHost, textarea) : () => {};
+  if (exampleBtn && strings.example) {
+    const sample = strings.example;
+    bindLoadExample(exampleBtn, () => setFieldValue(textarea, sample));
+  }
   const nf = new Intl.NumberFormat(document.documentElement.lang || undefined);
 
   function showError(message: string | null) {
@@ -70,6 +80,7 @@ function init() {
 
   root.querySelector<HTMLButtonElement>("[data-wc-clear]")?.addEventListener("click", () => {
     textarea.value = "";
+    syncInput();
     showError(null);
     render();
     textarea.focus();
@@ -77,13 +88,16 @@ function init() {
 
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-wc-copy]");
   copyBtn?.addEventListener("click", async () => {
-    const ok = await copyWithFeedback(copyBtn, textarea.value, strings.copied);
+    const ok = await copyWithFeedback(copyBtn, textarea.value, strings.copied, undefined, {
+      failedLabel: strings.copyFailedShort,
+    });
     showError(ok ? null : strings.copyFailed);
   });
 
   root.querySelector<HTMLButtonElement>("[data-wc-paste]")?.addEventListener("click", async () => {
     try {
       textarea.value = await navigator.clipboard.readText();
+      syncInput();
       showError(null);
       render();
     } catch {

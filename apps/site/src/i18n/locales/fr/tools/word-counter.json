@@ -6,7 +6,6 @@
   "ClearButton": "Effacer",
   "CopyButton": "Copier",
   "PasteButton": "Coller",
-  "Copied": "Copié !",
   "Statistics": "Statistiques",
   "Words": "Mots",
   "WordsDesc": "Nombre total de mots",
@@ -26,5 +25,6 @@
   "Seo_Tips": "- Un point dans un nombre ou une abréviation termine aussi une phrase : `Version 2.0 is out...` compte 2 phrases et `e.g. this one` en compte 3, considérez donc le nombre de phrases comme une estimation.\n- Pour une limite en caractères (meta description, SMS, publication sur un réseau social), utilisez **Caractères (avec espaces)** ; certains services comptent en unités UTF-16, où un emoji peut valoir 2.\n- Le thaï, le lao, le khmer et les autres écritures sans espaces ne sont pas segmentés : un passage continu compte pour un seul mot.\n- Le coréen et le hindi séparent les mots par des espaces et sont donc comptés comme le français.\n- Après la première visite, la page fonctionne aussi sans connexion réseau.",
   "InputLabel": "Texte",
   "CopyFailed": "Impossible de copier dans le presse-papiers.",
-  "PasteFailed": "Impossible de lire le presse-papiers. Autorisez l’accès ou collez avec Ctrl+V."
+  "PasteFailed": "Impossible de lire le presse-papiers. Autorisez l’accès ou collez avec Ctrl+V.",
+  "ExampleText": "La confidentialité compte. Ce compteur fonctionne entièrement dans votre navigateur : votre brouillon ne quitte jamais la page.\n\nCollez un essai, une lettre de motivation ou une fiche produit pour connaître sa longueur. Est-ce assez court ? Vérifiez le temps de lecture !"
 }

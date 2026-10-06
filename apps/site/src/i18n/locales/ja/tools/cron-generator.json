@@ -17,7 +17,6 @@
   "GenerateToSeeResult": "説明を表示するには Cron 式を生成してください",
   "ActionGenerate": "式を生成",
   "Copy": "コピー",
-  "Copied": "コピーしました!",
   "DateFormatLocale": "デフォルト (24時間制)",
   "DateFormatLocale12h": "ローカル (12時間制 AM/PM)",
   "DateFormatFullMonth": "月の完全名",

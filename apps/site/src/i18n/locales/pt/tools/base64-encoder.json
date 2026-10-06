@@ -3,7 +3,6 @@
   "Description": "Codifique texto ou arquivos em Base64 e decodifique: alfabeto padrão ou URL seguro, preenchimento, quebra a cada 76 caracteres e prévia de imagem. No navegador.",
   "Keywords": "codificador Base64, decodificador Base64, Base64 online, decodificar Base64, Base64 URL seguro, Base64 para imagem, arquivo para Base64",
   "InputTextLabel": "Entrada (texto)",
-  "InputTextPlaceholder": "Digite texto ou Base64...",
   "FileHint": "Se um arquivo for selecionado, ele será usado em vez da entrada de texto.",
   "CharsetLabel": "Conjunto de caracteres",
   "AlphabetLabel": "Alfabeto",
@@ -27,13 +26,12 @@
   "ActionClear": "Limpar",
   "OutputLabel": "Saída",
   "Copy": "Copiar",
-  "Copied": "Copiado!",
   "Download": "Baixar",
   "FileProgressTitle": "Processando arquivo...",
   "Cancel": "Cancelar",
   "ImageDetected": "Imagem detectada: {type}",
   "BinaryDetected": "Arquivo binário detectado: {type} — pronto para download",
-  "BinaryDownloadHint": "Use o botão «Baixar» abaixo para salvar o arquivo.",
+  "BinaryDownloadHint": "Use o botão Baixar para salvar o arquivo.",
   "OutputTitle": "Saída",
   "StatsChars": "{n} caracteres",
   "StatsChars_one": "{n} caractere",
@@ -58,5 +56,7 @@
   "Seo_DetailedDescription": "O texto é primeiro convertido em bytes no conjunto de caracteres escolhido (UTF-8, UTF-16LE, UTF-16BE, ASCII ou ISO-8859-1) e depois codificado com o alfabeto padrão RFC 4648 (`+` e `/`) ou com o alfabeto URL seguro (`-` e `_`) usado em JWTs e parâmetros de URL. O preenchimento com `=` pode ser obrigatório, opcional ou removido, e a saída pode ser quebrada em linhas de 76 caracteres, como exige o MIME em e-mails.\n\nNa decodificação, a ferramenta examina os bytes resultantes. Texto legível vai para o campo de saída; imagens PNG, JPEG, GIF, WebP, BMP, ICO, TIFF e SVG aparecem em prévia com o tamanho em pixels; PDF, ZIP, GZIP, MP3, MP4 e executáveis são reconhecidos pela assinatura. Tudo o que não for texto pode ser salvo com **Baixar** e a extensão correspondente, por exemplo `decoded.png`.\n\nVocê pode escolher um arquivo ou arrastá-lo para a página; enquanto houver um arquivo selecionado, o campo de texto é ignorado. O arquivo é lido em blocos de 1 MiB num Web Worker, com barra de progresso e botão **Cancelar**, mas fica inteiro na memória, então o limite prático é a RAM do dispositivo. Resultados muito longos aparecem resumidos e são salvos completos com **Baixar**.",
   "Seo_Examples": "**Texto para Base64**: `Hello, World!` vira `SGVsbG8sIFdvcmxkIQ==`; em UTF-8, `Привет` vira `0J/RgNC40LLQtdGC` (12 bytes de entrada, 16 caracteres de saída).\n\n**URL seguro sem preenchimento**: `<<???>>` gera `PDw/Pz8+Pg==` no alfabeto padrão e `PDw_Pz8-Pg` com **URL seguro (-_)** e **Sem preenchimento**, o formato dos segmentos de JWT.\n\n**Entrada sem preenchimento**: `SGk` falha com o preenchimento padrão **Obrigatório**; mude **Preenchimento** para **Opcional** e o resultado é `Hi`.\n\n**Base64 para imagem**: ao colar o Base64 de um PNG (começa com `iVBORw0KGgo`), a imagem aparece com o tamanho, por exemplo 1×1 px, e **Baixar** salva `decoded.png`.",
   "Seo_HowToSteps": "### Passo 1: Digite o texto ou escolha um arquivo\nDigite ou cole o texto em **Entrada (texto)**, ou arraste um arquivo para a página ou clique em **Escolher arquivo**. O arquivo selecionado tem prioridade sobre o texto.\n\n### Passo 2: Ajuste as opções\nEscolha **Conjunto de caracteres** (normalmente UTF-8), **Alfabeto** (**Padrão (+/)** ou **URL seguro (-_)**), **Preenchimento** e, para e-mail MIME, **Quebra de linha** em **76 caracteres**.\n\n### Passo 3: Codifique ou decodifique\nClique em **Codificar** para obter Base64 ou em **Decodificar** para recuperar texto, uma prévia de imagem ou um arquivo binário. Em caso de erro, a mensagem indica a causa, como um caractere inválido ou preenchimento incorreto.\n\n### Passo 4: Copie ou baixe o resultado\n**Copiar** envia a saída para a área de transferência e **Baixar** a salva como arquivo. **Inverter** leva a saída para a entrada para testar a conversão de volta.",
-  "Seo_Tips": "- Base64 aumenta os dados em cerca de 33%: cada 3 bytes viram 4 caracteres. É uma codificação, não criptografia; qualquer pessoa pode decodificá-la.\n- Remova o prefixo `data:image/png;base64,` de um data URI antes de decodificar; o decodificador aceita só a parte Base64.\n- Cabeçalho e payload de um JWT usam o alfabeto URL seguro sem preenchimento: escolha **URL seguro (-_)** e preenchimento **Opcional**, e `eyJhbGciOiJIUzI1NiJ9` vira `{\"alg\":\"HS256\"}`.\n- Deixe **Permitir espaços em branco/novas linhas** ativado para decodificar Base64 quebrado em linhas de e-mails ou arquivos PEM; desative para conferir se a entrada é uma linha limpa.\n- O conjunto de caracteres importa: `é` é `w6k=` em UTF-8, mas `6Q==` em ISO-8859-1, então decodifique com o mesmo usado na codificação.\n- Depois de aberta uma vez, a página continua funcionando sem conexão."
+  "Seo_Tips": "- Base64 aumenta os dados em cerca de 33%: cada 3 bytes viram 4 caracteres. É uma codificação, não criptografia; qualquer pessoa pode decodificá-la.\n- Remova o prefixo `data:image/png;base64,` de um data URI antes de decodificar; o decodificador aceita só a parte Base64.\n- Cabeçalho e payload de um JWT usam o alfabeto URL seguro sem preenchimento: escolha **URL seguro (-_)** e preenchimento **Opcional**, e `eyJhbGciOiJIUzI1NiJ9` vira `{\"alg\":\"HS256\"}`.\n- Deixe **Permitir espaços em branco/novas linhas** ativado para decodificar Base64 quebrado em linhas de e-mails ou arquivos PEM; desative para conferir se a entrada é uma linha limpa.\n- O conjunto de caracteres importa: `é` é `w6k=` em UTF-8, mas `6Q==` em ISO-8859-1, então decodifique com o mesmo usado na codificação.\n- Depois de aberta uma vez, a página continua funcionando sem conexão.",
+  "EmptyHint": "Digite um texto para codificar ou cole Base64 para decodificar, ou solte um arquivo abaixo.",
+  "OutputEmpty": "O resultado codificado ou decodificado aparece aqui."
 }

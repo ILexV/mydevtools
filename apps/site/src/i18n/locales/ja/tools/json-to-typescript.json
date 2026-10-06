@@ -3,14 +3,12 @@
   "Description": "JSON サンプルから TypeScript の interface / type エイリアスを生成。ネスト型、配列要素のマージ、オプショナル、export に対応しブラウザで動作。",
   "Keywords": "JSON TypeScript 変換, JSON から interface, TypeScript interface 生成, JSON 型生成, TypeScript 型定義 自動生成, TypeScript type エイリアス, JSON to TypeScript",
   "InputLabel": "JSON 入力",
-  "InputPlaceholder": "JSONをここに貼り付け...",
   "OutputLabel": "TypeScript 出力",
   "OutputPlaceholder": "TypeScriptインターフェースがここに表示されます...",
   "ConvertButton": "変換",
   "CopyButton": "コピー",
   "DownloadButton": ".ts をダウンロード",
   "ClearButton": "クリア",
-  "Copied": "コピーしました！",
   "ErrorInvalidJson": "無効なJSONです。入力を確認してください。",
   "RootInterfaceNameLabel": "ルート名",
   "RootInterfaceNamePlaceholder": "Root",
@@ -22,5 +20,6 @@
   "Seo_DetailedDescription": "型は値から推論されます。`string`、`number`、`boolean`、`null`、配列は `T[]`、型が混在する配列は `(number | string | null)[]` のようなユニオン、空配列は `unknown[]` です。ネストしたオブジェクトには、そのパスを PascalCase にした名前の interface が作られます (`Order` 内の `shipping_address` → `OrderShippingAddress`)。配列内のオブジェクトはすべて 1 つの要素型にマージされ、一部の要素にしかないキーはオプショナルに、値の型が異なるキーはユニオンになります。\n\nオプション: **ルート名** はトップレベルの型名を設定します (既定は `Root`)。**export キーワード** はすべての宣言に `export` を付けます。**オプショナルフィールド (?)** (既定でオン) は値が `null` のキーをオプショナルにします。**type エイリアスを使用** は `interface X { … }` の代わりに `type X = { … };` を出力します。ルートが配列の場合は `export type Users = UsersItem[];` のようなエイリアスが生成されます。識別子として無効なキーは引用符で囲まれ (`\"order-id\": string;`)、重複する型名には番号の接尾辞が付きます。\n\n出力は編集のたびに (少し間をおいて) 再生成されるほか、**変換** または Ctrl+Enter でも再生成されます。無効な JSON ではパーサーのエラーが表示されます。結果は読み取り専用のエディターに表示され、**コピー** するか **.ts をダウンロード** で `types.ts` として保存できます。すべてローカルで動作し、サンプルがアップロードや保存されることはありません。",
   "Seo_Examples": "**API オブジェクト**: `{\"id\":7,\"user_name\":\"ann\",\"tags\":[\"a\"],\"manager\":null}` をルート名 `User`、export キーワードありで変換すると `export interface User { id: number; user_name: string; tags: string[]; manager?: null; }` になります。\n\n**異なるオブジェクトの配列**: `[{\"id\":1,\"email\":\"a@x.io\"},{\"id\":2,\"phone\":\"555\"}]` をルート名 `Users` で変換すると `export interface UsersItem { id: number; email?: string; phone?: string; }` と `export type Users = UsersItem[];` になります。\n\n**type エイリアスと引用符付きのキー**: `{\"order-id\":\"A1\",\"items\":[{\"sku\":\"x\",\"qty\":2}],\"shipping_address\":{\"city\":\"Omsk\"}}` をルート名 `Order`、type エイリアスを使用ありで変換すると `type OrderItemsItem = { sku: string; qty: number; };`、`type OrderShippingAddress = { city: string; };`、`type Order = { \"order-id\": string; items: OrderItemsItem[]; shipping_address: OrderShippingAddress; };` になります。",
   "Seo_HowToSteps": "### ステップ1: JSON を貼り付ける\nJSON サンプルを **JSON 入力** エディターに入れます。**TypeScript 出力** は自動で更新されます。\n\n### ステップ2: オプションを調整する\n**ルート名** を設定し、必要に応じて **export キーワード**、**オプショナルフィールド (?)**、**type エイリアスを使用** を切り替えます。\n\n### ステップ3: 型を取り出す\n**コピー** をクリックして宣言をコピーするか、**.ts をダウンロード** で `types.ts` として保存します。",
-  "Seo_Tips": "- サンプルからわかるのは含まれている値だけです。サンプルで `null` のフィールドは `null` 型になるので、実際の型 (たとえば `string | null`) に手で置き換えてください。\n- 要素型を正しく得るには、オプショナルなフィールドが異なる要素を配列に複数入れてください。\n- 数値はすべて `number` になり、ISO 形式の日付は `string` のままです。\n- `null` 値が常に明示的に送られ、`manager: null` を必須キーにしたい場合は、オプショナルフィールド (?) をオフにしてください。\n- プロパティ名は元の綴りのままで、PascalCase に変換されるのは型名だけです。"
+  "Seo_Tips": "- サンプルからわかるのは含まれている値だけです。サンプルで `null` のフィールドは `null` 型になるので、実際の型 (たとえば `string | null`) に手で置き換えてください。\n- 要素型を正しく得るには、オプショナルなフィールドが異なる要素を配列に複数入れてください。\n- 数値はすべて `number` になり、ISO 形式の日付は `string` のままです。\n- `null` 値が常に明示的に送られ、`manager: null` を必須キーにしたい場合は、オプショナルフィールド (?) をオフにしてください。\n- プロパティ名は元の綴りのままで、PascalCase に変換されるのは型名だけです。",
+  "EmptyHint": "JSON のサンプルを貼り付けると、入力に合わせて TypeScript のインターフェースが生成されます。"
 }

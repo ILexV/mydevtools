@@ -81,6 +81,18 @@ test("tools: every tool has a known category", () => {
   }
 });
 
+// Monograms tell sibling cards apart in the catalog tile: short, unique, no emoji.
+test("tools: every tool has a unique short monogram without emoji", () => {
+  const seen = new Set<string>();
+  for (const tool of TOOLS) {
+    const len = [...tool.monogram].length;
+    assert.ok(len >= 1 && len <= 4, `${tool.slug} monogram length ${len}`);
+    assert.ok(!/\p{Emoji_Presentation}/u.test(tool.monogram), `${tool.slug} monogram has emoji`);
+    assert.ok(!seen.has(tool.monogram), `${tool.slug} monogram "${tool.monogram}" duplicated`);
+    seen.add(tool.monogram);
+  }
+});
+
 test("toolNamespace / getTool / toolsByCategory / allLocalizedRoutes", () => {
   assert.equal(toolNamespace("hash-calculator"), "tools/hash-calculator");
   assert.ok(getTool("hash-calculator"));

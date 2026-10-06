@@ -9,7 +9,12 @@
 import { t } from "@/i18n/messages";
 import { editorPhrases } from "@/tools/editor-phrases";
 import type { LocaleCode } from "@/registry/locales";
+import CopyButton from "@/components/tool/CopyButton.astro";
+import EmptyState from "@/components/tool/EmptyState.astro";
+import Field from "@/components/tool/Field.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 import "@/styles/codemirror.css";
 
 interface Props {
@@ -19,14 +24,16 @@ const { lang } = Astro.props as Props;
 const ns = "tools/json-to-typescript";
 const s = {
   inputLabel: t(lang, ns, "InputLabel"),
-  inputPlaceholder: t(lang, ns, "InputPlaceholder"),
+  emptyHint: t(lang, ns, "EmptyHint"),
+  loadExample: t(lang, "common", "Common_LoadExample"),
   outputLabel: t(lang, ns, "OutputLabel"),
   outputPlaceholder: t(lang, ns, "OutputPlaceholder"),
   convertButton: t(lang, ns, "ConvertButton"),
   copyButton: t(lang, ns, "CopyButton"),
   downloadButton: t(lang, ns, "DownloadButton"),
   clearButton: t(lang, ns, "ClearButton"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
+  copyFailed: t(lang, "common", "Common_CopyFailed"),
   errorInvalidJson: t(lang, ns, "ErrorInvalidJson"),
   rootInterfaceNameLabel: t(lang, ns, "RootInterfaceNameLabel"),
   rootInterfaceNamePlaceholder: t(lang, ns, "RootInterfaceNamePlaceholder"),
@@ -38,20 +45,35 @@ const s = {
 const stringsJson = JSON.stringify({
   errorInvalidJson: s.errorInvalidJson,
   copied: s.copied,
+  copyFailed: s.copyFailed,
   inputLabel: s.inputLabel,
   outputLabel: s.outputLabel,
   phrases: editorPhrases(lang),
 });
 ---
 
-<div class="ds-stack" data-jts-tool>
-  <div class="ds-card cm-toolbar">
-    <div class="cm-options">
-      <label class="cm-inline-field">
-        <span class="ds-label">{s.rootInterfaceNameLabel}</span>
+<div class="ds-workbench" data-jts-tool>
+  <ToolPanel title={s.inputLabel}>
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-jts-clear>{s.clearButton}</button>
+    </Fragment>
+    <div class="ds-editor is-empty" data-jts-input-host>
+      <div class="mdt-cm" data-jts-input role="group" aria-label={s.inputLabel}></div>
+      <EmptyState
+        hint={s.emptyHint}
+        hintId="jts-input-empty"
+        exampleLabel={s.loadExample}
+        buttonProps={{ "data-jts-example": true }}
+      />
+    </div>
+    <p class="ds-hint" id="jts-editor-hint">{s.keyboardHint}</p>
+
+    <div class="ds-settings">
+      <Field label={s.rootInterfaceNameLabel} for="jts-root-name">
         <input
+          id="jts-root-name"
           type="text"
-          class="ds-field mono jts-root-name"
+          class="ds-field mono"
           data-jts-root-name
           placeholder={s.rootInterfaceNamePlaceholder}
           value="Root"
@@ -59,49 +81,34 @@ const stringsJson = JSON.stringify({
           spellcheck="false"
           autocomplete="off"
         />
-      </label>
-      <label class="ds-check-row"><input type="checkbox" class="ds-check" data-jts-export /> {s.exportKeyword}</label>
-      <label class="ds-check-row"><input type="checkbox" class="ds-check" data-jts-optional checked /> {s.optionalFields}</label>
-      <label class="ds-check-row"><input type="checkbox" class="ds-check" data-jts-use-type /> {s.useTypeAlias}</label>
+      </Field>
+      <div class="ds-check-group jts-checks">
+        <label class="ds-check-row"><input type="checkbox" class="ds-check" data-jts-export /> {s.exportKeyword}</label>
+        <label class="ds-check-row"><input type="checkbox" class="ds-check" data-jts-optional checked /> {s.optionalFields}</label>
+        <label class="ds-check-row"><input type="checkbox" class="ds-check" data-jts-use-type /> {s.useTypeAlias}</label>
+      </div>
     </div>
-    <div class="ds-actions">
+
+    <div class="ds-action-row">
       <button type="button" class="ds-btn ds-btn-primary" data-jts-convert>{s.convertButton}</button>
-      <button type="button" class="ds-btn" data-jts-copy>{s.copyButton}</button>
-      <button type="button" class="ds-btn" data-jts-download>{s.downloadButton}</button>
-      <button type="button" class="ds-btn ds-btn-danger" data-jts-clear>{s.clearButton}</button>
     </div>
-  </div>
 
-  <StatusMessage kind="error" data-jts-error />
+    <StatusMessage kind="error" data-jts-error />
+  </ToolPanel>
 
-  <div class="ds-tool-grid">
-    <div class="ds-field-group">
-      <span class="ds-label" id="jts-input-label">{s.inputLabel}</span>
-      <div class="mdt-cm jts-editor" data-jts-input role="group" aria-labelledby="jts-input-label"></div>
-    </div>
-    <div class="ds-field-group">
-      <span class="ds-label" id="jts-output-label">{s.outputLabel}</span>
-      <div class="mdt-cm jts-editor" data-jts-output role="group" aria-labelledby="jts-output-label"></div>
-    </div>
-  </div>
-  <p class="ds-hint" id="jts-editor-hint">{s.keyboardHint}</p>
+  <OutputPanel panel label={s.outputLabel} emptyHint={s.outputPlaceholder} data-jts-output-panel>
+    <Fragment slot="actions">
+      <CopyButton ghost label={s.copyButton} copiedLabel={s.copied} failedLabel={s.copyFailed} data-jts-copy disabled />
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-jts-download disabled>{s.downloadButton}</button>
+    </Fragment>
+    <div class="mdt-cm ds-when-filled" data-jts-output role="group" aria-label={s.outputLabel}></div>
+  </OutputPanel>
 </div>
 
 <script is:inline type="application/json" data-jts-strings set:html={stringsJson} />
 <script>import "@/tools/json-to-typescript.client.ts";</script>
 
 <style>
-  .cm-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem 1.25rem;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-  }
-  .cm-options { display: flex; flex-wrap: wrap; gap: 0.6rem 1.1rem; align-items: center; min-width: 0; }
-  .cm-inline-field { display: flex; align-items: center; gap: 0.5rem; }
-  .cm-inline-field .ds-label { margin-bottom: 0; }
-  .jts-root-name { width: 9rem; }
-  .jts-editor { --mdt-cm-height: min(700px, 75vh); }
+  /* Layout-only: checkboxes as a column next to the root-name field. */
+  .jts-checks { display: flex; flex-direction: column; gap: 0.35rem; }
 </style>

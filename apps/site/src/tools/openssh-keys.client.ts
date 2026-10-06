@@ -20,7 +20,7 @@ import { sshPublicKeyInfo, sshToPkcs8Pem } from "@/scripts/wasm/crypto-client";
 import { sshGenerateInWorker } from "@/scripts/wasm/keygen-client";
 import type { SshKeygenType } from "@/scripts/wasm/keygen-protocol";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
-import { bindDropzone, copyWithFeedback } from "@/scripts/tool-ui";
+import { bindDropzone, bindEmptyState, copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
 import { guessSshInput, rsaBits, sshErrorKey } from "@/tools/openssh-keys-helpers";
 import { hasEdgeWhitespace, passwordCandidates } from "@/tools/crypto-password";
@@ -28,6 +28,7 @@ import { hasEdgeWhitespace, passwordCandidates } from "@/tools/crypto-password";
 interface Strings {
   copy: string;
   copied: string;
+  copyFailed: string;
   warningsTitle: string;
   error: string;
   unsupportedFormat: string;
@@ -104,6 +105,8 @@ function initTool(): void {
   const progress = q<HTMLElement>("[data-ssh-progress]");
   const progressLabel = q<HTMLElement>("[data-ssh-progress-label]");
   const cancelBtn = q<HTMLButtonElement>("[data-ssh-cancel]");
+  const publicPanel = q<HTMLElement>("[data-ssh-public-panel]");
+  const privatePanel = q<HTMLElement>("[data-ssh-private-panel]");
 
   if (
     !algorithm || !keySize || !passphrase || !generateBtn || !importText || !dropzone ||
@@ -133,6 +136,8 @@ function initTool(): void {
     privateArea.value = privatePem;
     publicCopy!.disabled = publicDownload!.disabled = !publicLine;
     privateCopy!.disabled = privateDownload!.disabled = !privatePem;
+    if (publicPanel) syncEmptyState(publicPanel, !publicLine);
+    if (privatePanel) syncEmptyState(privatePanel, !privatePem);
   }
 
   function setWarnings(list: string[]): void {
@@ -341,6 +346,7 @@ function initTool(): void {
     try {
       if (file.size > MAX_KEY_FILE_BYTES) throw new Error(strings.unsupportedFormat);
       importArea.value = (await file.text()).trim();
+      syncImport();
     } catch (err) {
       setError(err);
     }
@@ -352,7 +358,15 @@ function initTool(): void {
     keySizeSelect.value = "default";
   });
 
-  bindDropzone(dropzone, fileInput, (files) => void loadKeyFile(files));
+  // The import editor is the drop target (no click-to-pick: clicks belong to the
+  // textarea); the header "Open" button is the picker.
+  const syncImport = bindEmptyState(dropzone, importArea);
+  bindDropzone(dropzone, null, (files) => void loadKeyFile(files));
+  fileInput.addEventListener("change", () => {
+    const files = Array.from(fileInput.files ?? []);
+    fileInput.value = "";
+    if (files.length > 0) void loadKeyFile(files);
+  });
   passInput.addEventListener("input", () => {
     passInput.removeAttribute("aria-invalid");
     updateWhitespaceHint();
@@ -363,8 +377,9 @@ function initTool(): void {
   generateBtn.addEventListener("click", () => void busy(generateBtn, generateAction));
   importBtn.addEventListener("click", () => void busy(importBtn, importAction));
   convertBtn.addEventListener("click", () => void busy(convertBtn, convertAction));
-  publicCopy.addEventListener("click", () => void copyWithFeedback(publicCopy, publicArea.value, strings.copied));
-  privateCopy.addEventListener("click", () => void copyWithFeedback(privateCopy, privateArea.value, strings.copied));
+  const copyOpts = { failedLabel: strings.copyFailed };
+  publicCopy.addEventListener("click", () => void copyWithFeedback(publicCopy, publicArea.value, strings.copied, undefined, copyOpts));
+  privateCopy.addEventListener("click", () => void copyWithFeedback(privateCopy, privateArea.value, strings.copied, undefined, copyOpts));
   publicDownload.addEventListener("click", () => {
     if (publicArea.value) downloadText(lastPublicName || "id_key.pub", publicArea.value);
   });

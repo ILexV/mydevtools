@@ -3,10 +3,8 @@
   "CamelCase": "Camel Case",
   "Keywords": "convertidor de mayúsculas y minúsculas, convertir a camelCase, snake_case, kebab-case, title case, mayúsculas a minúsculas, nombres de variables, text case converter",
   "ClearButton": "Borrar",
-  "Copied": "¡Copiado!",
   "CopyButton": "Copiar",
   "Description": "Convierte texto a camelCase, snake_case, kebab-case, Title Case, caso de oración, MAYÚSCULAS o minúsculas. Divide bien identificadores como XMLHttpRequest.",
-  "InputPlaceholder": "Escribe o pega tu texto aquí...",
   "InverseCase": "Invertir Caso",
   "KebabCase": "Kebab Case",
   "LowerCase": "minúsculas",
@@ -22,5 +20,7 @@
   "Seo_Tips": "- **MAYÚSCULAS**, **minúsculas** y **Caso de Título** también tratan `_` y `-` como separadores de palabra y los sustituyen por espacios: `user_id` se convierte en `USER ID`. Para obtener `USER_ID`, aplica **Invertir Caso** a `user_id` escrito todo en minúsculas.\n- El caso de oración también pone en minúscula nombres propios y acrónimos (`HTTP server` pasa a `Http server`); corrígelos a mano.\n- Caso de Título pone en mayúscula cada palabra, también las cortas: `the lord of the rings` pasa a `The Lord Of The Rings`; no aplica excepciones de guías de estilo.\n- Una mayúscula dentro de una palabra empieza otra palabra: `iPhone` con Snake Case se convierte en `i_phone`.\n- La conversión sobrescribe el campo; guarda el original aparte si quieres comparar variantes.",
   "InputLabel": "Texto",
   "ConvertLabel": "Convertir a",
-  "CopyFailed": "No se pudo copiar al portapapeles."
+  "CopyFailed": "No se pudo copiar al portapapeles.",
+  "EmptyHint": "Escriba o pegue un texto y elija abajo un formato: se convierte en el mismo campo.",
+  "ExampleText": "el veloz murciélago hindú comía feliz cardillo y kiwi. userProfile settings guardados a las 10:42."
 }

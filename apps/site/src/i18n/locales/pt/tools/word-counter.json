@@ -6,7 +6,6 @@
   "ClearButton": "Limpar",
   "CopyButton": "Copiar",
   "PasteButton": "Colar",
-  "Copied": "Copiado!",
   "Statistics": "Estatísticas",
   "Words": "Palavras",
   "WordsDesc": "Contagem total de palavras",
@@ -26,5 +25,6 @@
   "Seo_Tips": "- Um ponto dentro de um número ou abreviação também encerra uma frase: `Version 2.0 is out...` conta como 2 frases e `e.g. this one` como 3, então trate a contagem de frases como uma estimativa.\n- Para limites medidos em caracteres (meta descriptions, SMS, posts em redes sociais) use **Caracteres (com espaços)**; alguns serviços contam unidades UTF-16, em que um emoji pode valer 2.\n- Tailandês, laosiano, khmer e outras escritas sem espaços não são segmentados: um trecho contínuo conta como uma palavra.\n- Coreano e hindi separam palavras com espaços, por isso são contados como o português.\n- Depois da primeira visita, a página também funciona sem conexão de rede.",
   "InputLabel": "Texto",
   "CopyFailed": "Não foi possível copiar para a área de transferência.",
-  "PasteFailed": "Não foi possível ler a área de transferência. Permita o acesso ou cole com Ctrl+V."
+  "PasteFailed": "Não foi possível ler a área de transferência. Permita o acesso ou cole com Ctrl+V.",
+  "ExampleText": "A privacidade importa. Este contador funciona inteiramente no seu navegador, então o seu rascunho nunca sai da página.\n\nCole uma redação, uma carta de apresentação ou a descrição de um produto para ver o tamanho. Está curto o bastante? Confira o tempo de leitura!"
 }

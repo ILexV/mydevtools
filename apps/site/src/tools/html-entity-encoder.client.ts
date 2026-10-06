@@ -1,14 +1,26 @@
 /**
  * HTML Entity Encoder/Decoder client. Wires input/output, mode + format
  * selects, and encode/decode/swap/clear/copy actions. All transforms via
- * `entities.ts`; pure JS, no network, no WASM.
+ * `entities.ts`; pure JS, no network, no WASM. Workbench empty states: input
+ * overlay with "Load example" (only on click) and a compact output placeholder.
  */
-import { copyWithFeedback, setLiveText } from "@/scripts/tool-ui";
+import {
+  bindEmptyState,
+  bindLoadExample,
+  copyWithFeedback,
+  setFieldValue,
+  setLiveText,
+  syncEmptyState,
+} from "@/scripts/tool-ui";
 import { formatString } from "@/lib/format";
 import { encodeHtml, decodeHtml, type EntityMode, type EntityFormat } from "@/tools/entities";
 
+/** "Load example" sample: markup with quotes, ampersand and non-ASCII (language-neutral). */
+const EXAMPLE = '<a href="/menu?item=café&size=L" title="Tom & Jerry\'s">5 € — “crème brûlée” 🍮</a>';
+
 interface Strings {
   copied: string;
+  copyFailed?: string;
   errCopyFailed: string;
   outputSummary: string;
   lang: string;
@@ -43,8 +55,18 @@ function init() {
   const clearError = () => {
     if (errorBox) errorBox.hidden = true;
   };
-  // Announce each result (the readonly textarea's value change is silent).
+  const inputHost = root.querySelector<HTMLElement>("[data-ent-input-host]");
+  const outputPanel = root.querySelector<HTMLElement>("[data-ent-output-panel]");
+  const exampleBtn = root.querySelector<HTMLButtonElement>("[data-ent-example]");
+  const copyBtn = root.querySelector<HTMLButtonElement>("[data-ent-copy]");
+  const syncInput = inputHost ? bindEmptyState(inputHost, input) : () => {};
+  if (exampleBtn) bindLoadExample(exampleBtn, () => setFieldValue(input, EXAMPLE));
+
+  // Announce each result (the readonly textarea's value change is silent) and
+  // toggle the output placeholder / Copy availability.
   const announce = () => {
+    if (outputPanel) syncEmptyState(outputPanel, output.value === "");
+    if (copyBtn) copyBtn.disabled = output.value === "";
     if (!summary) return;
     const n = Array.from(output.value).length;
     setLiveText(summary, output.value ? formatString(strings.outputSummary, n.toLocaleString(strings.lang)) : "");
@@ -69,6 +91,7 @@ function init() {
     const prev = input.value;
     input.value = output.value;
     output.value = prev;
+    syncInput();
     announce();
   });
 
@@ -76,12 +99,15 @@ function init() {
     clearError();
     input.value = "";
     output.value = "";
+    syncInput();
     announce();
+    input.focus();
   });
 
-  const copyBtn = root.querySelector<HTMLButtonElement>("[data-ent-copy]");
   copyBtn?.addEventListener("click", async () => {
-    const ok = await copyWithFeedback(copyBtn, output.value, strings.copied);
+    const ok = await copyWithFeedback(copyBtn, output.value, strings.copied, undefined, {
+      failedLabel: strings.copyFailed,
+    });
     if (!ok && errorBox) {
       errorBox.textContent = strings.errCopyFailed;
       errorBox.hidden = false;

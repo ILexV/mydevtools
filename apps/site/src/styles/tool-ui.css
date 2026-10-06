@@ -71,6 +71,215 @@
     color: var(--mdt-text-faint);
   }
 
+  /* ---------- workbench: input → configuration → result ---------- */
+
+  /* Tool workbench grid: input | output in two equal columns ≥900px, stacked
+     below. Panels align to the top so an empty output stays compact next to
+     a tall input (opt into equal heights with `.ds-workbench-stretch`).
+     `.ds-workbench-single` keeps one column at every width (single-editor
+     tools); `.ds-workbench-wide` children span both columns (settings,
+     action row). Override tracks with `--ds-workbench-cols`. */
+  .ds-workbench {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    min-width: 0;
+  }
+  .ds-workbench > * {
+    min-width: 0;
+  }
+  @media (min-width: 900px) {
+    .ds-workbench:not(.ds-workbench-single) {
+      grid-template-columns: var(--ds-workbench-cols, minmax(0, 1fr) minmax(0, 1fr));
+    }
+  }
+  .ds-workbench-stretch {
+    align-items: stretch;
+  }
+  .ds-workbench > .ds-workbench-wide {
+    grid-column: 1 / -1;
+  }
+
+  /* Panel header (~48px): title left, panel-level actions right
+     (Open/Paste/Clear beside the input title, Copy/Download beside the
+     output title). As the first child of a .ds-card it becomes a full-bleed
+     band with a hairline under it. */
+  .ds-panel-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    min-height: 3rem;
+    min-width: 0;
+  }
+  .ds-card > .ds-panel-head:first-child {
+    margin: -1.1rem -1.2rem 1rem;
+    padding: 0.3rem 0.6rem 0.3rem 1.2rem;
+    border-bottom: 1px solid var(--mdt-border);
+  }
+  .ds-stack > .ds-panel-head:first-child {
+    margin-bottom: 0;
+  }
+  /* Sentence-case panel title with a 2px category rule (prism accent). Put
+     it on a <label for> when the panel holds one field, else h2/h3/span. */
+  .ds-panel-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0;
+    min-width: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--mdt-text);
+  }
+  .ds-panel-title::before {
+    content: "";
+    flex-shrink: 0;
+    width: 2px;
+    height: 1.05em;
+    border-radius: 1px;
+    background: var(--mdt-cat);
+  }
+  /* Quiet metadata next to the title (character count, file name). */
+  .ds-panel-meta {
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-label);
+    font-weight: 400;
+    color: var(--mdt-text-faint);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  /* Panel-level actions: `ds-btn ds-btn-small ds-btn-ghost` buttons (or a
+     ghost `ds-file-btn` label for Open), right-aligned, wrap under the
+     title on narrow screens. */
+  .ds-panel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.25rem;
+    margin-left: auto;
+    min-width: 0;
+  }
+  .ds-panel-actions > :is(.ds-btn, .ds-icon-btn) {
+    min-height: 2.25rem;
+  }
+  /* Phones: tighter header buttons; CopyButton collapses to its icon (the
+     label stays as the visually hidden accessible name). */
+  @media (max-width: 30rem) {
+    .ds-panel-actions > .ds-btn-small {
+      padding-inline: 8px;
+    }
+    .ds-panel-actions .ds-copy-face:has(> .ds-copy-text) > .ds-copy-text {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    .ds-panel-actions > .ds-btn-small:has(> .ds-copy-faces > .ds-copy-face-idle > svg) {
+      min-width: 2.25rem;
+    }
+  }
+
+  /* Primary-action row placed right below the configuration: primary button
+     first, secondary buttons next, `.ds-action-row-aside` (prerequisite
+     hint, inline status) pushed to the end. 44px touch targets; on phones
+     the primary button takes the whole row. */
+  .ds-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+  }
+  .ds-action-row > .ds-btn:not(.ds-btn-small, .ds-btn-link) {
+    min-height: 2.75rem;
+  }
+  .ds-action-row-aside {
+    margin-left: auto;
+    min-width: 0;
+    font-size: var(--mdt-fs-label);
+    line-height: 1.45;
+    color: var(--mdt-text-faint);
+  }
+  @media (max-width: 30rem) {
+    .ds-action-row > .ds-btn-primary {
+      flex: 1 1 100%;
+    }
+    .ds-action-row-aside {
+      margin-left: 0;
+      flex-basis: 100%;
+    }
+  }
+
+  /* ---------- editors & empty states ---------- */
+
+  /* Editor host: wraps an input <textarea> (or a CodeMirror `.mdt-cm` host)
+     so an empty-state overlay can sit on top. Textareas start 20rem (320px)
+     tall on desktop and stay vertically resizable. */
+  .ds-editor {
+    position: relative;
+    min-width: 0;
+  }
+  .ds-editor > .ds-field-textarea {
+    display: block;
+    min-height: 20rem;
+  }
+  @media (max-width: 560px) {
+    .ds-editor > .ds-field-textarea {
+      min-height: 11rem;
+    }
+  }
+
+  /* Empty state: short hint + optional "Load example" button. Lives as a
+     DIRECT child of a host that carries `is-empty` while there is no
+     content (put the class in the markup; `syncEmptyState()` toggles it).
+     - in `.ds-editor`: a centred overlay over the empty field (clicks pass
+       through to the field; only the button is interactive);
+     - elsewhere (output panel): a compact dashed placeholder, while the
+       host's `.ds-when-filled` children (the result body) stay hidden. */
+  .ds-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 1rem 1.25rem;
+    min-height: 4.5rem;
+    text-align: center;
+    font-size: var(--mdt-fs-meta);
+    line-height: 1.5;
+    color: var(--mdt-text-faint);
+    border: 1px dashed var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+  }
+  .ds-empty-state-hint {
+    margin: 0;
+    max-width: 38ch;
+  }
+  :not(.is-empty) > .ds-empty-state {
+    display: none;
+  }
+  .is-empty > .ds-when-filled {
+    display: none !important;
+  }
+  .ds-editor > .ds-empty-state {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    min-height: 0;
+    padding: 1.5rem;
+    border: 0;
+    pointer-events: none;
+  }
+  .ds-editor > .ds-empty-state :is(button, a, label) {
+    pointer-events: auto;
+  }
+
   /* ---------- fields ---------- */
 
   /* Label + control + hint column. */
@@ -207,6 +416,26 @@
     grid-column: 1 / -1;
   }
 
+  /* Checkbox cell inside .ds-settings: sits at the bottom of its grid row and
+     is at least one field tall, so its checkboxes line up with the selects /
+     inputs next to it (whose labels sit above). Works on a <div> or on a
+     <fieldset class="ds-check-group ds-settings-checks"> (legend stays on top).
+     Add `-inline` to lay the checks out in a wrapping row. */
+  .ds-settings-checks {
+    align-self: end;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.25rem 1rem;
+    min-height: 2.7rem;
+    min-width: 0;
+  }
+  .ds-settings-checks-inline {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
   /* <label class="ds-check-row"><input class="ds-check" type="checkbox"> Text</label> */
   .ds-check-row {
     display: flex;
@@ -306,7 +535,43 @@
     animation: mdt-spin 0.8s linear infinite;
     flex-shrink: 0;
   }
-  /* Copy feedback (see flashCopied in scripts/tool-ui.ts). */
+  /* Copy feedback (copyWithFeedback in scripts/tool-ui.ts). The button's
+     content is wrapped in stacked faces (idle / done ✓ "Copied" / fail ⚠)
+     sharing one grid cell, so the button keeps the width of its widest face
+     and never jumps; `.is-copied` / `.is-copy-failed` pick the visible face. */
+  .ds-copy-faces {
+    display: inline-grid;
+    min-width: 0;
+  }
+  .ds-copy-face {
+    grid-area: 1 / 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .ds-copy-face > svg {
+    flex-shrink: 0;
+  }
+  .ds-copy-face-done,
+  .ds-copy-face-fail,
+  .is-copied > .ds-copy-faces > .ds-copy-face-idle,
+  .is-copy-failed > .ds-copy-faces > .ds-copy-face-idle {
+    visibility: hidden;
+  }
+  .is-copied > .ds-copy-faces > .ds-copy-face-done,
+  .is-copy-failed > .ds-copy-faces > .ds-copy-face-fail {
+    visibility: visible;
+  }
+  :is(.ds-btn, .ds-icon-btn).is-copy-failed {
+    color: var(--mdt-danger);
+    border-color: color-mix(in srgb, var(--mdt-danger) 55%, var(--mdt-border));
+  }
+  .ds-btn-ghost.is-copy-failed {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--mdt-danger) 10%, transparent);
+  }
   :is(.ds-btn, .ds-icon-btn).is-copied {
     color: var(--mdt-success);
     border-color: color-mix(in srgb, var(--mdt-success) 55%, var(--mdt-border));
@@ -373,15 +638,16 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.6rem;
-    padding: 2rem 1.25rem;
+    gap: 0.5rem;
+    min-height: 11.25rem; /* ~180px on desktop */
+    padding: 1.25rem;
     text-align: center;
     border: 1.5px dashed color-mix(in srgb, var(--mdt-cat) 45%, var(--mdt-border));
     border-radius: var(--mdt-radius);
     background: color-mix(in srgb, var(--mdt-cat) 4%, var(--mdt-surface-raised));
     cursor: pointer;
-    transition: border-color var(--mdt-dur) var(--mdt-ease),
-      background var(--mdt-dur) var(--mdt-ease), transform var(--mdt-dur) var(--mdt-ease);
+    transition: border-color var(--mdt-dur-micro) var(--mdt-ease),
+      background var(--mdt-dur-micro) var(--mdt-ease), transform var(--mdt-dur-micro) var(--mdt-ease);
   }
   .ds-dropzone:hover {
     border-color: var(--mdt-cat);
@@ -400,9 +666,9 @@
     pointer-events: none;
   }
   .ds-dropzone-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
     display: grid;
     place-items: center;
     background: color-mix(in srgb, var(--mdt-cat) 14%, transparent);
@@ -421,6 +687,14 @@
     font-size: var(--mdt-fs-label);
     color: var(--mdt-text-faint);
   }
+  /* The zone's own "Choose file" button is a 44px touch target (FileDrop
+     renders it with ds-btn-small; this restores full size). */
+  .ds-dropzone > .ds-file-btn {
+    min-height: 2.75rem;
+    padding: 0 1.1rem;
+    font-size: 0.875rem;
+    border-radius: var(--mdt-radius-sm);
+  }
 
   /* Compact one-row zone for text-first tools (file is secondary):
      icon | title + sub | button; extra content (slot) spans the next row. */
@@ -431,6 +705,7 @@
     align-content: center;
     column-gap: 0.85rem;
     row-gap: 0.1rem;
+    min-height: 0;
     padding: 0.85rem 1rem;
     text-align: left;
   }
@@ -641,25 +916,52 @@
     min-width: 0;
   }
 
-  /* Key → value result rows (hash list, key/value details). */
+  /* Result list: key → value → copy rows divided by hairlines (no nested
+     cards). Standalone it is one framed inset box; inside a .ds-card /
+     .ds-output (or with `-flush`) the frame drops and only separators stay.
+     Key column width: `--ds-result-key-w` (default 6rem ≈ 96px). Values are
+     selectable mono and wrap anywhere — hashes are never truncated. */
   .ds-result-list {
     display: grid;
-    gap: 0.5rem;
+    gap: 0;
     min-width: 0;
+    margin: 0;
+    padding: 0 0.85rem;
+    list-style: none;
+    background: var(--mdt-surface-inset);
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+  }
+  :is(.ds-card, .ds-output) .ds-result-list,
+  .ds-result-list.ds-result-list-flush {
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+  }
+  /* An empty list (before the controller fills it) draws nothing. */
+  .ds-result-list:empty {
+    border: 0;
+    background: none;
   }
   .ds-result-row {
     display: grid;
-    grid-template-columns: minmax(5.5rem, 9rem) minmax(0, 1fr) auto;
+    grid-template-columns: var(--ds-result-key-w, 6rem) minmax(0, 1fr) auto;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem 0.85rem;
+    min-height: 2.75rem;
+    padding: 0.45rem 0;
+    min-width: 0;
+  }
+  .ds-result-list > .ds-result-row + .ds-result-row {
+    border-top: 1px solid var(--mdt-border);
+  }
+  /* A row outside a list keeps the legacy boxed look (image-resizer info). */
+  :not(.ds-result-list) > .ds-result-row {
     padding: 0.6rem 0.75rem;
     background: var(--mdt-surface-inset);
     border: 1px solid var(--mdt-border);
     border-radius: var(--mdt-radius-sm);
-    transition: border-color var(--mdt-dur-micro);
-  }
-  .ds-result-row:hover {
-    border-color: color-mix(in srgb, var(--mdt-cat) 40%, var(--mdt-border));
   }
   .ds-result-key {
     font-family: var(--mdt-font-mono);
@@ -672,10 +974,20 @@
   .ds-result-value {
     font-family: var(--mdt-font-mono);
     font-size: var(--mdt-fs-meta);
+    line-height: 1.5;
     color: var(--mdt-text);
     overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+    user-select: text;
+    cursor: text;
     min-width: 0;
   }
+  /* Row copy control: icon button 36px (44px on touch) or a small text button. */
+  .ds-result-row > .ds-icon-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
   /* Variants: -info = key + value, no action; -bare = value + action, no key;
      -index = narrow first column (row number) + value + action. */
   .ds-result-row-info {
@@ -702,6 +1014,78 @@
     :is(.ds-result-row-info, .ds-result-row-bare) > .ds-result-value {
       grid-column: auto;
       grid-row: auto;
+    }
+  }
+
+  /* Headline result: one key metric shown large (contrast ratio, entropy,
+     total size), optional copy button on the right, and a quieter
+     `-meta` line/grid below for secondary outcomes (AA/AAA, units).
+       <div class="ds-result-headline">
+         <span class="ds-result-headline-label">Contrast ratio</span>
+         <output class="ds-result-headline-value">7.12:1</output>
+         <div class="ds-result-headline-meta">…</div>
+       </div> */
+  .ds-result-headline {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.2rem 0.85rem;
+    min-width: 0;
+  }
+  .ds-result-headline-label {
+    grid-column: 1;
+    font-size: var(--mdt-fs-meta);
+    font-weight: 600;
+    color: var(--mdt-text-muted);
+  }
+  .ds-result-headline-value {
+    grid-column: 1;
+    font-family: var(--mdt-font-mono);
+    font-size: clamp(1.5rem, 1.15rem + 1.2vw, 2.1rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--mdt-text);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+    user-select: text;
+    min-width: 0;
+  }
+  .ds-result-headline > :is(.ds-btn, .ds-icon-btn) {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+  .ds-result-headline-meta {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1rem;
+    margin-top: 0.4rem;
+    font-size: var(--mdt-fs-label);
+    color: var(--mdt-text-muted);
+  }
+
+  /* Touch: panel actions and row copy controls grow to 44px targets. */
+  @media (pointer: coarse) {
+    .ds-panel-actions > :is(.ds-btn, .ds-icon-btn),
+    .ds-result-row > :is(.ds-btn, .ds-icon-btn) {
+      min-height: 2.75rem;
+    }
+    .ds-result-row > .ds-icon-btn {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+  }
+
+  /* Reduced motion: keep colour feedback, drop movement (hover lift, drag
+     scale, icon nudges). */
+  @media (prefers-reduced-motion: reduce) {
+    .ds-btn:hover,
+    .ds-icon-btn:hover,
+    .ds-icon-btn:hover svg,
+    .ds-dropzone.is-dragover,
+    .ds-dropzone.is-dragover .ds-dropzone-icon {
+      transform: none;
     }
   }
 
@@ -833,6 +1217,12 @@
     }
     :is(.ds-btn, .ds-icon-btn).is-copied {
       border-color: Highlight;
+    }
+    :is(.ds-btn, .ds-icon-btn).is-copy-failed {
+      border-color: CanvasText;
+    }
+    .ds-empty-state {
+      border-color: GrayText;
     }
   }
 }

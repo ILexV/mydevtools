@@ -3,7 +3,8 @@
  * (300ms debounce), copy-description and the persisted date-format select
  * (localStorage `cron-date-format`, shared with cron-generator). Validation,
  * description and next 5 runs come from the pure `cron-core.ts`; field errors
- * are localized and mark the input `aria-invalid`.
+ * are localized and mark the input `aria-invalid`. The results panel shows a
+ * compact placeholder while there is no valid expression.
  */
 import {
   CRON_FIELDS,
@@ -16,13 +17,14 @@ import {
   type CronFieldName,
   type CronStrings,
 } from "@/tools/cron-core";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import { copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
 import { renderNextRuns, restoreDateFormat, saveDateFormat } from "@/tools/cron-ui";
 
 type Strings = CronStrings &
   CronErrorStrings & {
     copy: string;
     copied: string;
+    copyFailed?: string;
     parseToSeeResult: string;
     noUpcomingRuns: string;
     fieldNames: Record<CronFieldName, string>;
@@ -62,6 +64,7 @@ function init() {
   const parseBtn = root.querySelector<HTMLButtonElement>("[data-cronp-parse]");
   const clearBtn = root.querySelector<HTMLButtonElement>("[data-cronp-clear]");
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-cronp-copy]");
+  const outputPanel = root.querySelector<HTMLElement>("[data-cronp-output-panel]");
   const partEls = Object.fromEntries(
     CRON_FIELDS.map((f) => [f, root.querySelector<HTMLElement>(`[data-cronp-part-${f}]`)]),
   ) as Record<CronFieldName, HTMLElement | null>;
@@ -83,9 +86,15 @@ function init() {
     }
   }
 
-  function resetResults(message: string) {
-    hasResult = false;
-    humanReadable.textContent = message;
+  /** Toggle the results placeholder (shown while there is no valid expression). */
+  function setHasResult(value: boolean) {
+    hasResult = value;
+    if (outputPanel) syncEmptyState(outputPanel, !value);
+  }
+
+  function resetResults() {
+    setHasResult(false);
+    humanReadable.textContent = "";
     nextExecutions.replaceChildren();
     setParts(null);
   }
@@ -94,7 +103,7 @@ function init() {
     const expression = input.value.trim();
     if (!expression) {
       setError("");
-      resetResults(strings.parseToSeeResult);
+      resetResults();
       return;
     }
 
@@ -107,12 +116,12 @@ function init() {
       expanded = expandCronPreset(expression);
     } catch (e) {
       setError(cronErrorMessage(e, strings, strings.fieldNames));
-      resetResults("");
+      resetResults();
       return;
     }
 
     setError("");
-    hasResult = true;
+    setHasResult(true);
     humanReadable.textContent = description;
     setParts(expanded);
     const format = dateFormatSelect?.value || "locale";
@@ -127,7 +136,7 @@ function init() {
   function clearAction() {
     input.value = "";
     setError("");
-    resetResults(strings.parseToSeeResult);
+    resetResults();
     input.focus();
   }
 
@@ -163,7 +172,7 @@ function init() {
   copyBtn?.addEventListener("click", () => {
     const value = humanReadable.textContent || "";
     if (!hasResult || !value) return;
-    void copyWithFeedback(copyBtn, value, strings.copied);
+    void copyWithFeedback(copyBtn, value, strings.copied, undefined, { failedLabel: strings.copyFailed });
   });
 
   // Restore saved date format, then parse the default expression.

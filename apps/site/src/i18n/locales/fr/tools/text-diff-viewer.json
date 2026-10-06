@@ -3,9 +3,7 @@
   "Description": "Comparez deux textes ou fichiers ligne par ligne : lignes ajoutées, supprimées et modifiées côte à côte ou en diff unifié, avec surlignage des mots.",
   "Keywords": "comparer deux textes, diff de texte, comparateur de fichiers en ligne, diff côte à côte, diff unifié, diff de code, différences entre textes, text diff, diff checker",
   "OriginalLabel": "Texte original",
-  "OriginalPlaceholder": "Collez ou tapez le texte original ici, ou téléchargez un fichier ci-dessous...",
   "ModifiedLabel": "Texte modifié",
-  "ModifiedPlaceholder": "Collez ou tapez le texte modifié ici, ou téléchargez un fichier ci-dessous...",
   "CompareButton": "Comparer",
   "ClearButton": "Effacer",
   "LineByLine": "Ligne par ligne",
@@ -22,5 +20,10 @@
   "ViewModeLabel": "Mode d’affichage",
   "NoDifferences": "Les textes sont identiques : aucune différence.",
   "FileReadError": "Impossible de lire le fichier en tant que texte.",
-  "DiffTooBig": "Les textes diffèrent sur plus de {max} lignes : trop de modifications à afficher."
+  "DiffTooBig": "Les textes diffèrent sur plus de {max} lignes : trop de modifications à afficher.",
+  "OriginalEmptyHint": "Collez le texte d’origine ou ouvrez un fichier.",
+  "ModifiedEmptyHint": "Collez le texte modifié ou ouvrez un fichier.",
+  "OutputEmpty": "Remplissez les deux côtés et cliquez sur Comparer pour voir les différences ici.",
+  "ExampleOriginal": "Liste de courses\n- lait\n- pain\n- 6 œufs\n- café en grains\n\nRécupérer le colis avant 18:00.",
+  "ExampleModified": "Liste de courses\n- lait d’avoine\n- pain\n- 12 œufs\n- café en grains\n- pommes\n\nRécupérer le colis avant 19:00."
 }

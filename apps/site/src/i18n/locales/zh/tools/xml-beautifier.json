@@ -3,13 +3,11 @@
   "Description": "在浏览器中美化或压缩 XML，支持 2/4 空格或制表符缩进；保留注释、CDATA 和处理指令，并报告带行号和列号的解析错误。",
   "Keywords": "XML 格式化, XML 美化, XML 压缩, XML 校验, XML 在线格式化, XML 缩进, XML beautifier, XML formatter, pretty print XML",
   "InputLabel": "输入 XML",
-  "InputPlaceholder": "在此处粘贴您的 XML...",
   "FormatButton": "格式化",
   "ClearButton": "清除",
   "OpenButton": "打开",
   "SaveButton": "保存",
   "CopyButton": "复制",
-  "Copied": "已复制！",
   "ErrorInvalidXml": "无效的 XML。请检查您的输入。",
   "IndentSizeLabel": "缩进大小",
   "Indent2Spaces": "2 空格",
@@ -21,5 +19,6 @@
   "Seo_DetailedDescription": "**格式化** 让每个元素独占一行，并以 2 个空格、4 个空格或制表符缩进；只包含文本的元素保持在一行（`<to>Ann</to>`），空元素写成 `<b/>`。**紧凑模式（压缩）** 会删除标签之间的空白。XML 声明、注释、`<![CDATA[…]]>` 段、`<?xml-stylesheet …?>` 之类的处理指令以及 DOCTYPE 都会保留，特殊字符在输出时会重新转义（`&amp;`、`&lt;`、`&quot;`）。\n\n解析采用严格的 XML 规则，而非 HTML：未闭合或不匹配的标签、缺少引号或未定义的实体都会中止格式化并显示解析器的信息，例如 Chrome 中的 `error on line 1 at column 11: Opening and ending tag mismatch`。DOCTYPE 的内部子集（`<!DOCTYPE x [ … ]>`）不会保留，因为浏览器不提供它。\n\n打开 .xml 文件或将其拖放到编辑器中，然后复制结果，或保存为 `formatted.xml`。编辑器高亮标签、属性和注释，支持折叠元素，处理大文件时依然快速。缩进和紧凑模式的设置会保存在当前浏览器中；XML 本身从不存储或发送到任何地方。",
   "Seo_Examples": "**为单行文档添加缩进**：`<note><to>Ann</to><from>Bob</from></note>` 使用 2 空格缩进后变成四行 —— `<note>`、`  <to>Ann</to>`、`  <from>Bob</from>`、`</note>`。\n\n**保留注释和 CDATA**：在 `<?xml version=\"1.0\"?><!-- cfg --><config><db host=\"localhost\" port=\"5432\"/><![CDATA[a<b]]></config>` 中，声明和注释各占一行，`<![CDATA[a<b]]>` 在 `<config>` 内保持不变。\n\n**压缩**：开启紧凑模式后，包含 `<a>1</a>` 和 `<b/>` 的缩进 `<root>` 变为 `<root><a>1</a><b/></root>`。\n\n**发现损坏的标签**：`<a><b></a>` 会被拒绝，提示 “Opening and ending tag mismatch: b line 1 and a”。",
   "Seo_HowToSteps": "### 步骤1：添加 XML\n将其粘贴到 **输入 XML** 编辑器中，点击 **打开** 加载 .xml 文件，或将文件拖放到编辑器上。\n\n### 步骤2：选择输出样式\n选择 **缩进大小**（2 空格、4 空格或制表符），或开启 **紧凑模式（压缩）** 。\n\n### 步骤3：格式化\n点击 **格式化** 或按 Ctrl+Enter（macOS 上为 Cmd+Enter）。解析错误会显示在编辑器上方。\n\n### 步骤4：使用结果\n点击 **复制**，或点击 **保存** 将结果下载为 `formatted.xml`。",
-  "Seo_Tips": "- 修改缩进或紧凑模式后，当前文档会立即重新格式化。\n- 混合内容会被拆分并去除首尾空白：`<p>Hello <b>world</b>!</p>` 会变成 `Hello`、`<b>world</b>` 和 `!` 三行。文本中的空格有意义的文档不要重新格式化。\n- HTML 的习惯在 XML 中行不通：不带斜杠的 `<br>` 或没有 DTD 的 `&nbsp;` 在这里都是错误。\n- 点击行号旁的箭头可折叠元素；Ctrl/Cmd+F 可搜索整个文档。\n- 在编辑器中按 Tab 会插入缩进；先按 Esc 再按 Tab 可将焦点移出编辑器。\n- 无需上传：文档在页面内处理，首次访问后离线也能使用。"
+  "Seo_Tips": "- 修改缩进或紧凑模式后，当前文档会立即重新格式化。\n- 混合内容会被拆分并去除首尾空白：`<p>Hello <b>world</b>!</p>` 会变成 `Hello`、`<b>world</b>` 和 `!` 三行。文本中的空格有意义的文档不要重新格式化。\n- HTML 的习惯在 XML 中行不通：不带斜杠的 `<br>` 或没有 DTD 的 `&nbsp;` 在这里都是错误。\n- 点击行号旁的箭头可折叠元素；Ctrl/Cmd+F 可搜索整个文档。\n- 在编辑器中按 Tab 会插入缩进；先按 Esc 再按 Tab 可将焦点移出编辑器。\n- 无需上传：文档在页面内处理，首次访问后离线也能使用。",
+  "EmptyHint": "在此粘贴 XML 或拖放 .xml 文件，即可缩进格式化或压缩为一行。"
 }

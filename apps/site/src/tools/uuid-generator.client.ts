@@ -1,10 +1,11 @@
 /**
  * UUID Generator client. Reads settings, generates via `uuid.ts`, renders the
- * list (ds-result-row) with per-row copy + copy-all + download .txt + clear.
+ * list (ds-result-row) with per-row copy + copy-all + download .txt + clear;
+ * the output panel's empty state returns when the list is cleared.
  * SSR-safe; one-time init guard on the tool root.
  */
 import { generateBatch, type UuidVersion, type UuidFormat, type UuidCase } from "@/tools/uuid";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import { copyWithFeedback, prepareCopyButton, syncEmptyState } from "@/scripts/tool-ui";
 
 interface Strings {
   copy: string;
@@ -32,7 +33,7 @@ function init() {
   const strings: Strings = raw;
 
   const list = root.querySelector<HTMLOListElement>("[data-uuid-list]");
-  const empty = root.querySelector<HTMLElement>("[data-uuid-empty]");
+  const output = root.querySelector<HTMLElement>("[data-uuid-output]");
   const countInput = root.querySelector<HTMLInputElement>("[data-uuid-count]");
   const countVal = root.querySelector<HTMLElement>("[data-uuid-count-val]");
   const genBtn = root.querySelector<HTMLButtonElement>("[data-uuid-generate]");
@@ -72,13 +73,13 @@ function init() {
           btn.dataset.copy = u;
           btn.textContent = strings.copy;
           btn.setAttribute("aria-label", `${strings.copy} #${i + 1}`);
+          prepareCopyButton(btn, strings.copied);
           li.append(idx, val, btn);
           return li;
         }),
       );
-      list.hidden = !has;
     }
-    if (empty) empty.hidden = has;
+    if (output) syncEmptyState(output, !has);
     if (copyAllBtn) copyAllBtn.hidden = !has;
     if (downloadBtn) downloadBtn.hidden = !has;
     if (clearBtn) clearBtn.hidden = !has;

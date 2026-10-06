@@ -3,7 +3,6 @@
   "Description": "Convert text or files to hexadecimal and back. Pick charset and case; decode hex with spaces, colons, dashes or 0x prefixes. Runs in your browser.",
   "Keywords": "hex encoder, hex decoder, hexadecimal converter, text to hex, hex to text, hex encoding online, hexadecimal online tool",
   "InputTextLabel": "Text",
-  "InputTextPlaceholder": "Enter text (for Encode) or hex string (for Decode)...",
   "FileHint": "If a file is selected, the text input is ignored.",
   "FileProgressTitle": "Processing file...",
   "Cancel": "Cancel",
@@ -24,7 +23,6 @@
   "ActionClear": "Clear",
   "OutputLabel": "Output",
   "Copy": "Copy",
-  "Copied": "Copied!",
   "Download": "Download",
   "Error_InvalidChar": "Invalid character at position {0}.",
   "Error_NotRepresentable": "The character at position {0} cannot be represented in the selected charset.",
@@ -41,5 +39,7 @@
   "Seo_DetailedDescription": "Each byte becomes two hex digits, so the output shows exactly which bytes a string contains: handy for checking UTF-8 sequences, byte order marks, line endings and invisible characters. Text is converted with the chosen charset (UTF-8, UTF-16LE, UTF-16BE, ASCII or ISO-8859-1), and **Hex case** switches between `lowercase` and `UPPERCASE` digits.\n\nThe decoder accepts hex in the shapes you usually copy from debuggers, packet captures and certificates: continuous (`48656c6c6f`), split by spaces or line breaks, separated by colons or dashes (`48:65:6c`, `48-65-6c`), and with a `0x` prefix on each byte (`0x48 0x65`). Each of these can be switched off under **Decode options** for strict validation. An odd number of digits or a non-hex character produces an error, and the offending character is selected in the input.\n\nFiles can be chosen or dropped onto the page and are read in a Web Worker with a progress bar and **Cancel**. If the decoded bytes are not valid text in the selected charset, for example a binary dump, the tool says so and **Download** saves the raw bytes.",
   "Seo_Examples": "**Text to hex**: `Hi!` becomes `486921`; in UTF-8, `Привет` becomes `d09fd180d0b8d0b2d0b5d182` (12 bytes, two per Cyrillic letter).\n\n**Charset and byte order**: the letter `A` is `4100` in UTF-16LE and `0041` in UTF-16BE.\n\n**Formatted hex**: `48:65:6c:6c:6f`, `48-65-6c-6c-6f` and `0x48 0x65 0x6C 0x6C 0x6F` all decode to `Hello`.\n\n**Validation**: `48656c6c6` (nine digits) is rejected as truncated, and `4865zz` reports an invalid character at position 5.",
   "Seo_HowToSteps": "### Step 1: Enter text or choose a file\nType or paste into **Text**: plain text to encode or a hex string to decode. You can also drop a file onto the page or click **Choose file**.\n\n### Step 2: Set the charset and case\nChoose the **Text charset** used to turn text into bytes and the **Hex case** of the output. Under **Decode options**, keep or clear **Ignore whitespace**, **Allow separators (: and -)** and **Allow 0x prefix**.\n\n### Step 3: Encode or decode\nClick **Encode** to get hex or **Decode** to turn hex back into text or bytes. If the input is invalid, the error names the position of the bad character.\n\n### Step 4: Copy or download\nClick **Copy** to take the result to the clipboard or **Download** to save it; binary results can only be downloaded.",
-  "Seo_Tips": "- Hex doubles the size: 1 byte becomes 2 characters. For compact transport use Base64; hex is for inspecting and comparing bytes.\n- To find a hidden byte order mark or non-breaking space, encode the text in UTF-8: `efbbbf` is a BOM and `c2a0` is a no-break space.\n- Hash values (SHA-256, MD5) are hex too: decoding them gives raw bytes rather than readable text, so use **Download**.\n- Clear **Allow separators (: and -)** or **Allow 0x prefix** when you need to confirm that the input is plain continuous hex: `0x48` then fails at position 2.\n- Hex digits are case-insensitive on decode: `D0 9f` and `d0 9F` give the same letter `П`."
+  "Seo_Tips": "- Hex doubles the size: 1 byte becomes 2 characters. For compact transport use Base64; hex is for inspecting and comparing bytes.\n- To find a hidden byte order mark or non-breaking space, encode the text in UTF-8: `efbbbf` is a BOM and `c2a0` is a no-break space.\n- Hash values (SHA-256, MD5) are hex too: decoding them gives raw bytes rather than readable text, so use **Download**.\n- Clear **Allow separators (: and -)** or **Allow 0x prefix** when you need to confirm that the input is plain continuous hex: `0x48` then fails at position 2.\n- Hex digits are case-insensitive on decode: `D0 9f` and `d0 9F` give the same letter `П`.",
+  "EmptyHint": "Type text to encode, or paste hex to decode — or drop a file below.",
+  "OutputEmpty": "The encoded or decoded result appears here."
 }

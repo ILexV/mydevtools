@@ -1,14 +1,16 @@
 ---
 /**
  * Unit Converter tool (pure JS). Length / Weight / Temperature / Volume
- * conversion. Live convert on input or select change, swap from↔to, copy
- * result, formula note, quick-conversion chips, and a common-conversions
- * sidebar. All math lives in `units.ts`; unit names are localized here.
+ * conversion as a workbench: From panel (category, value, unit, swap) |
+ * To panel (unit, headline result + formula, copy, quick-conversion chips),
+ * then a common-conversions panel. Live convert on input or select change. All math lives in `units.ts`; unit names are localized here.
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
 import Field from "@/components/tool/Field.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import CopyButton from "@/components/tool/CopyButton.astro";
 import { allUnitIds } from "@/tools/units";
 
 interface Props {
@@ -25,7 +27,8 @@ const s = {
   valueLabel: t(lang, ns, "ValueLabel"),
   swap: t(lang, ns, "Swap"),
   copy: t(lang, ns, "Copy"),
-  copied: t(lang, ns, "Copied"),
+  unitLabel: t(lang, ns, "UnitLabel"),
+  copied: t(lang, "common", "Common_Copied"),
   copyFailed: t(lang, ns, "CopyFailed"),
   belowAbsoluteZero: t(lang, ns, "Warning_BelowAbsoluteZero"),
   quickConversions: t(lang, ns, "QuickConversions"),
@@ -42,83 +45,68 @@ const categories = [
 ] as const;
 ---
 
-<div class="unit-tool" data-unit-tool>
-  <div class="ds-tool-grid unit-grid">
-    <div class="ds-stack">
-      <section class="ds-card ds-stack">
-        <Field label={s.categoryLabel} for="unit-category">
-          <select id="unit-category" class="ds-field-select" data-unit-category>
-            {categories.map((c) => <option value={c.value}>{c.label}</option>)}
-          </select>
+<div class="ds-stack unit-tool" data-unit-tool>
+  <div class="ds-workbench">
+    <ToolPanel title={s.fromLabel}>
+      <Fragment slot="actions">
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-unit-swap title={s.swap}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+          </svg>
+          {s.swap}
+        </button>
+      </Fragment>
+      <Field label={s.categoryLabel} for="unit-category">
+        <select id="unit-category" class="ds-field-select" data-unit-category>
+          {categories.map((c) => <option value={c.value}>{c.label}</option>)}
+        </select>
+      </Field>
+      <div class="unit-pair">
+        <Field label={s.valueLabel} for="unit-from-value">
+          <input
+            id="unit-from-value"
+            type="number"
+            class="ds-field mono"
+            data-unit-from-value
+            value="1"
+            step="any"
+            placeholder="0"
+            inputmode="decimal"
+          />
         </Field>
+        <Field label={s.unitLabel} for="unit-from">
+          <select id="unit-from" class="ds-field-select" data-unit-from></select>
+        </Field>
+      </div>
+      <p class="ds-status is-warning" data-unit-warning role="status" hidden></p>
+    </ToolPanel>
 
-        <div class="convert-row">
-          <div class="ds-stack convert-side">
-            <Field label={s.fromLabel} for="unit-from">
-              <select id="unit-from" class="ds-field-select" data-unit-from></select>
-            </Field>
-            <input
-              type="number"
-              class="ds-field mono"
-              data-unit-from-value
-              value="1"
-              step="any"
-              placeholder="0"
-              inputmode="decimal"
-              aria-label={`${s.valueLabel} (${s.fromLabel})`}
-            />
-          </div>
-
-          <div class="swap-wrap">
-            <button type="button" class="ds-icon-btn" data-unit-swap title={s.swap} aria-label={s.swap}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-              </svg>
-            </button>
-          </div>
-
-          <div class="ds-stack convert-side">
-            <Field label={s.toLabel} for="unit-to">
-              <select id="unit-to" class="ds-field-select" data-unit-to></select>
-            </Field>
-            <div class="to-wrap">
-              <input
-                type="text"
-                class="ds-field mono"
-                data-unit-to-value
-                readonly
-                aria-label={`${s.valueLabel} (${s.toLabel})`}
-              />
-              <button type="button" class="ds-icon-btn" data-unit-copy title={s.copy} aria-label={s.copy}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <p class="ds-status is-warning" data-unit-warning role="status" hidden></p>
-        <StatusMessage kind="error" data-unit-error />
-
-        <div class="ds-field-group">
-          <span class="ds-label" id="unit-quick-label">{s.quickConversions}</span>
-          <div class="ds-chip-list" data-unit-quick role="group" aria-labelledby="unit-quick-label"></div>
-        </div>
-      </section>
-
-      <section class="ds-card" aria-labelledby="unit-formula-title">
-        <div class="ds-card-head"><h2 class="ds-card-title" id="unit-formula-title">{s.formula}</h2></div>
-        <div class="ds-code-block" data-unit-formula aria-live="polite"></div>
-      </section>
-    </div>
-
-    <aside class="ds-card" aria-labelledby="unit-common-title">
-      <div class="ds-card-head"><h2 class="ds-card-title" id="unit-common-title">{s.commonConversions}</h2></div>
-      <div class="common-list" data-unit-common></div>
-    </aside>
+    <ToolPanel title={s.toLabel}>
+      <Fragment slot="actions">
+        <CopyButton ghost label={s.copy} copiedLabel={s.copied} data-unit-copy />
+      </Fragment>
+      <Field label={s.unitLabel} for="unit-to">
+        <select id="unit-to" class="ds-field-select" data-unit-to></select>
+      </Field>
+      <div class="ds-result-headline">
+        <span class="ds-result-headline-label" id="unit-result-label" data-unit-result-label>{s.valueLabel}</span>
+        <output class="ds-result-headline-value" data-unit-to-value aria-labelledby="unit-result-label"></output>
+        <p class="ds-result-headline-meta unit-formula">
+          <span>{s.formula}:</span>
+          <span class="mono" data-unit-formula aria-live="polite"></span>
+        </p>
+      </div>
+      <StatusMessage kind="error" data-unit-error />
+      <div class="ds-field-group">
+        <span class="ds-label" id="unit-quick-label">{s.quickConversions}</span>
+        <div class="ds-chip-list" data-unit-quick role="group" aria-labelledby="unit-quick-label"></div>
+      </div>
+    </ToolPanel>
   </div>
+
+  <ToolPanel title={s.commonConversions}>
+    <div class="common-list" data-unit-common></div>
+  </ToolPanel>
 </div>
 
 <script is:inline type="application/json" data-unit-strings set:html={stringsJson} />
@@ -126,17 +114,16 @@ const categories = [
 
 <style>
   /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
-  .unit-grid { --ds-tool-grid-cols: minmax(0, 2fr) minmax(0, 1fr); align-items: start; }
+  .unit-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.75rem; }
+  @media (max-width: 30rem) { .unit-pair { grid-template-columns: minmax(0, 1fr); } }
+  .unit-formula { display: block; margin: 0.4rem 0 0; overflow-wrap: anywhere; }
+  .unit-formula > .mono { margin-left: 0.35rem; color: var(--mdt-text); }
 
-  .convert-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.9rem; align-items: end; }
-  @media (min-width: 640px) { .convert-row { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); } }
-  .convert-side { gap: 0.5rem; }
-  .swap-wrap { display: flex; justify-content: center; padding-bottom: 0.2rem; }
-
-  .to-wrap { display: flex; gap: 0.4rem; align-items: center; }
-  .to-wrap > input { flex: 1; min-width: 0; }
-
-  .common-list { display: grid; gap: 0.5rem; }
+  .common-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    gap: 0.5rem;
+  }
   /* Common rows are built by the controller as .ds-btn; left-aligned mono text. */
   .common-list :global(.ds-btn) {
     justify-content: flex-start;

@@ -21,6 +21,7 @@
   "Format_Markdown": "Markdown",
   "Characters": "个字符",
   "WordsStat": "个单词",
+  "SettingsLabel": "选项",
   "Seo_Introduction": "为原型、模板和界面测试生成 Lorem Ipsum 占位文本：1 到 1000 个段落、句子或单词，可选以经典的“Lorem ipsum dolor sit amet…”开头，输出纯文本、HTML 或 Markdown。",
   "Seo_DetailedDescription": "文本由约 160 个拉丁词组成。每句 5–15 个词，首字母大写、以句号结尾；每段 3–7 句。单词模式下会严格生成你指定的词数，便于测试截断和字段长度限制。勾选经典开头后，输出以标准句子“Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.”开始。\n\n段落之间以空行分隔，这同时也是合法的 Markdown。HTML 格式下可以把每段包裹在 `<p>…</p>` 中，该选项仅对 HTML 段落生效。任何设置变化都会重新生成文本，下方的词数和字符数统计会显示结果大小（包含标签）。\n\n生成过程是页面上的 JavaScript，每次结果都是随机的，两次运行不会相同。可以复制结果或下载为 `lorem-ipsum.txt`。不会向服务器发送任何内容。",
   "Seo_Examples": "**精确词数**：按单词、数量 `5`、开启经典开头 → `lorem ipsum dolor sit amet`。\n\n**模板用 HTML**：按段落、数量 `3`、HTML 格式并用 `<p>` 包裹 → 三个以空行分隔的 `<p>…</p>` 块，可直接粘贴。\n\n**简短界面文案**：按句子、数量 `2`、开启经典开头 → 标准句“Lorem ipsum dolor sit amet…”加一个 5–15 词的随机句子。\n\n**长内容排版测试**：按段落、数量 `50`，可得到数千个单词，用于检查滚动和长内容布局。",

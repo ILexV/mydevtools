@@ -38,5 +38,16 @@
   "Common_Share": "공유",
   "Common_LinkCopied": "링크가 복사되었습니다!",
   "Common_NoJsTitle": "JavaScript 필요",
-  "Common_NoJsBody": "이 도구는 브라우저에서 완전히 실행됩니다. 사용하려면 JavaScript를 활성화하세요."
+  "Common_NoJsBody": "이 도구는 브라우저에서 완전히 실행됩니다. 사용하려면 JavaScript를 활성화하세요.",
+  "Common_LoadExample": "예시 불러오기",
+  "Common_Copied": "복사됨",
+  "Common_EmptyHint": "여기에 데이터를 붙여 넣거나 예시를 불러오세요.",
+  "CommandPalette_HintNavigate": "이동",
+  "CommandPalette_HintOpen": "열기",
+  "CommandPalette_HintClose": "닫기",
+  "Footer_Categories": "카테고리",
+  "Footer_Languages": "언어",
+  "Footer_Source": "GitHub 소스 코드",
+  "Language": "언어",
+  "Common_CopyFailed": "복사하지 못했습니다"
 }

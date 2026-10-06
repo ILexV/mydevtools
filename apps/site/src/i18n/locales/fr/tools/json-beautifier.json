@@ -3,11 +3,9 @@
   "Description": "Formatez, minifiez et validez du JSON dans le navigateur : indentation 2/4 espaces ou tabulation, tri récursif des clés, grands nombres exacts, fichiers .json.",
   "Keywords": "formater JSON, formateur JSON, JSON beautifier, JSON formatter, minifier JSON, valider JSON, validateur JSON, trier les clés JSON, pretty print JSON, formater JSON en ligne",
   "InputLabel": "JSON d'entrée",
-  "InputPlaceholder": "Collez votre JSON ici...",
   "FormatButton": "Formater",
   "ClearButton": "Effacer",
   "CopyButton": "Copier",
-  "Copied": "Copié !",
   "ErrorInvalidJson": "JSON invalide. Veuillez vérifier votre saisie.",
   "IndentSizeLabel": "Taille de l'indentation",
   "Indent2Spaces": "2 espaces",
@@ -48,5 +46,6 @@
   "Editor_GoToLine": "Aller à la ligne",
   "Editor_Go": "aller",
   "Editor_ControlCharacter": "Caractère de contrôle",
-  "Editor_SelectionDeleted": "Sélection supprimée"
+  "Editor_SelectionDeleted": "Sélection supprimée",
+  "EmptyHint": "Collez du JSON ou déposez ici un fichier .json pour le formater, le minifier ou trier ses clés."
 }

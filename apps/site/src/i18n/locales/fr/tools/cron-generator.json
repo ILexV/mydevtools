@@ -17,7 +17,6 @@
   "GenerateToSeeResult": "Générez une expression cron pour voir la description",
   "ActionGenerate": "Générer l'Expression",
   "Copy": "Copier",
-  "Copied": "Copié!",
   "DateFormatLocale": "Par défaut (24h)",
   "DateFormatLocale12h": "Local (12h AM/PM)",
   "DateFormatFullMonth": "Nom complet du mois",

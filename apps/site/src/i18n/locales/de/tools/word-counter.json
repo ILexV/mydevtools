@@ -6,7 +6,6 @@
   "ClearButton": "Löschen",
   "CopyButton": "Kopieren",
   "PasteButton": "Einfügen",
-  "Copied": "Kopiert!",
   "Statistics": "Statistik",
   "Words": "Wörter",
   "WordsDesc": "Gesamtzahl der Wörter",
@@ -26,5 +25,6 @@
   "Seo_Tips": "- Auch ein Punkt in einer Zahl oder Abkürzung beendet einen Satz: `Version 2.0 is out...` zählt als 2 Sätze und `e.g. this one` als 3 – die Satzzahl ist also eine Schätzung.\n- Für Zeichenlimits (Meta-Descriptions, SMS, Social-Media-Posts) gilt **Zeichen (mit Leerzeichen)**; manche Dienste zählen UTF-16-Einheiten, bei denen ein Emoji als 2 zählen kann.\n- Thai, Laotisch, Khmer und andere Schriften ohne Leerzeichen werden nicht segmentiert: Ein zusammenhängender Abschnitt zählt als ein Wort.\n- Koreanisch und Hindi trennen Wörter mit Leerzeichen und werden daher wie Deutsch gezählt.\n- Nach dem ersten Besuch funktioniert die Seite auch ohne Netzwerkverbindung.",
   "InputLabel": "Text",
   "CopyFailed": "Kopieren in die Zwischenablage fehlgeschlagen.",
-  "PasteFailed": "Zwischenablage konnte nicht gelesen werden. Zugriff erlauben oder mit Strg+V einfügen."
+  "PasteFailed": "Zwischenablage konnte nicht gelesen werden. Zugriff erlauben oder mit Strg+V einfügen.",
+  "ExampleText": "Datenschutz zählt. Dieser Zähler läuft vollständig in Ihrem Browser, Ihr Entwurf verlässt die Seite also nie.\n\nFügen Sie einen Aufsatz, ein Anschreiben oder eine Produktbeschreibung ein, um die Länge zu sehen. Ist der Text kurz genug? Prüfen Sie die Lesezeit!"
 }

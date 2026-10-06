@@ -44,7 +44,6 @@
   "ActionParse": "Analizar Expresión",
   "ActionClear": "Limpiar",
   "Copy": "Copiar",
-  "Copied": "¡Copiado!",
   "ErrorInvalidExpression": "Expresión no válida: {0}",
   "ErrorExpectedFields": "Se esperaban 5 campos, se recibieron {0}",
   "ErrorUnknownPreset": "Preajuste desconocido",

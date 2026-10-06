@@ -3,9 +3,7 @@
   "Description": "두 텍스트나 파일을 줄 단위로 비교해 추가·삭제·변경된 줄을 나란히 또는 unified diff로 보여 주고, 줄 안의 바뀐 단어를 강조합니다.",
   "Keywords": "텍스트 비교, 텍스트 차이, diff 도구, 파일 비교, 나란히 비교, unified diff, 코드 비교, diff checker",
   "OriginalLabel": "원본 텍스트",
-  "OriginalPlaceholder": "원본 텍스트를 붙여넣거나 입력하거나 아래에서 파일 업로드...",
   "ModifiedLabel": "수정된 텍스트",
-  "ModifiedPlaceholder": "수정된 텍스트를 붙여넣거나 입력하거나 아래에서 파일 업로드...",
   "CompareButton": "비교",
   "ClearButton": "지우기",
   "LineByLine": "줄 단위",
@@ -22,5 +20,10 @@
   "ViewModeLabel": "보기 모드",
   "NoDifferences": "두 텍스트가 동일합니다. 차이가 없습니다.",
   "FileReadError": "파일을 텍스트로 읽을 수 없습니다.",
-  "DiffTooBig": "두 텍스트가 {max}줄 넘게 달라 표시할 수 없습니다."
+  "DiffTooBig": "두 텍스트가 {max}줄 넘게 달라 표시할 수 없습니다.",
+  "OriginalEmptyHint": "원본 텍스트를 붙여넣거나 파일을 여세요.",
+  "ModifiedEmptyHint": "변경된 텍스트를 붙여넣거나 파일을 여세요.",
+  "OutputEmpty": "양쪽을 채우고 비교를 누르면 차이가 여기에 표시됩니다.",
+  "ExampleOriginal": "장보기 목록\n- 우유\n- 빵\n- 달걀 6개\n- 원두\n\n18:00 전에 택배 찾기.",
+  "ExampleModified": "장보기 목록\n- 귀리 우유\n- 빵\n- 달걀 12개\n- 원두\n- 사과\n\n19:00 전에 택배 찾기."
 }

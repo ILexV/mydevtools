@@ -10,11 +10,22 @@
  * absent.
  */
 import { hmacCompute, type HmacAlgorithm } from "@/scripts/wasm/crypto-client";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import {
+  bindEmptyState,
+  bindLoadExample,
+  copyWithFeedback,
+  setFieldValue,
+  syncEmptyState,
+} from "@/scripts/tool-ui";
+
+/** Synthetic "Load example" pair: a throwaway demo key and a webhook-like JSON body. */
+const EXAMPLE_KEY = "demo-secret-key-not-for-production";
+const EXAMPLE_MESSAGE = '{"event":"order.created","id":1042,"amount":"19.99"}';
 
 interface Strings {
   copy: string;
   copied: string;
+  copyFailed: string;
   error: string;
 }
 
@@ -43,6 +54,9 @@ function init() {
   const clearBtn = root.querySelector<HTMLButtonElement>("[data-hmac-clear]");
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-hmac-copy]");
   const errorBox = root.querySelector<HTMLElement>("[data-hmac-error]");
+  const outputPanel = root.querySelector<HTMLElement>("[data-hmac-output-panel]");
+  const messageHost = root.querySelector<HTMLElement>("[data-hmac-message-host]");
+  const exampleBtn = root.querySelector<HTMLButtonElement>("[data-hmac-example]");
 
   if (!key || !message || !output) return;
   const keyArea: HTMLTextAreaElement = key;
@@ -60,8 +74,18 @@ function init() {
     if (errorBox) errorBox.hidden = true;
   }
 
+  /** Copy shows only with a result; the output panel's empty state otherwise. */
   function setCopyVisible(visible: boolean) {
     if (copyBtn) copyBtn.hidden = !visible;
+    if (outputPanel) syncEmptyState(outputPanel, !visible);
+  }
+
+  const syncMessage = messageHost ? bindEmptyState(messageHost, messageArea) : () => {};
+  if (exampleBtn) {
+    bindLoadExample(exampleBtn, () => {
+      keyArea.value = EXAMPLE_KEY;
+      setFieldValue(messageArea, EXAMPLE_MESSAGE);
+    });
   }
 
   // Live recalc fires per keystroke; only the newest run may write output.
@@ -104,14 +128,16 @@ function init() {
     runId++;
     keyArea.value = "";
     messageArea.value = "";
+    syncMessage();
     outputArea.value = "";
     setCopyVisible(false);
     clearError();
+    keyArea.focus();
   });
 
   copyBtn?.addEventListener("click", () => {
     if (!copyBtn || !outputArea.value) return;
-    void copyWithFeedback(copyBtn, outputArea.value, strings.copied);
+    void copyWithFeedback(copyBtn, outputArea.value, strings.copied, undefined, { failedLabel: strings.copyFailed });
   });
 }
 

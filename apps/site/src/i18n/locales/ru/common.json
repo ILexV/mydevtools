@@ -38,5 +38,16 @@
   "Common_Share": "Поделиться",
   "Common_LinkCopied": "Ссылка скопирована!",
   "Common_NoJsTitle": "Требуется JavaScript",
-  "Common_NoJsBody": "Этот инструмент работает полностью в вашем браузере. Включите JavaScript, чтобы им воспользоваться."
+  "Common_NoJsBody": "Этот инструмент работает полностью в вашем браузере. Включите JavaScript, чтобы им воспользоваться.",
+  "Common_LoadExample": "Загрузить пример",
+  "Common_Copied": "Скопировано",
+  "Common_EmptyHint": "Вставьте данные или загрузите пример.",
+  "CommandPalette_HintNavigate": "Навигация",
+  "CommandPalette_HintOpen": "Открыть",
+  "CommandPalette_HintClose": "Закрыть",
+  "Footer_Categories": "Категории",
+  "Footer_Languages": "Языки",
+  "Footer_Source": "Исходный код на GitHub",
+  "Language": "Язык",
+  "Common_CopyFailed": "Не удалось скопировать"
 }

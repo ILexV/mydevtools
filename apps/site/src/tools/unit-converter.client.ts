@@ -47,7 +47,7 @@ function init() {
   const fromUnitSelectEl = root.querySelector<HTMLSelectElement>("[data-unit-from]");
   const toUnitSelectEl = root.querySelector<HTMLSelectElement>("[data-unit-to]");
   const fromValueInputEl = root.querySelector<HTMLInputElement>("[data-unit-from-value]");
-  const toValueInputEl = root.querySelector<HTMLInputElement>("[data-unit-to-value]");
+  const toValueInputEl = root.querySelector<HTMLOutputElement>("[data-unit-to-value]");
   if (!categorySelectEl || !fromUnitSelectEl || !toUnitSelectEl || !fromValueInputEl || !toValueInputEl) {
     return;
   }
@@ -64,6 +64,7 @@ function init() {
   const commonEl = root.querySelector<HTMLElement>("[data-unit-common]");
   const warningEl = root.querySelector<HTMLElement>("[data-unit-warning]");
   const errorEl = root.querySelector<HTMLElement>("[data-unit-error]");
+  const resultLabelEl = root.querySelector<HTMLElement>("[data-unit-result-label]");
 
   const fmt = (n: number): string => formatNumberLocale(n, strings.lang);
   const name = (id: string): string => strings.unitNames[id] ?? id;
@@ -135,6 +136,8 @@ function init() {
     const value = fromValueInput.valueAsNumber;
     const fromUnit = fromUnitSelect.value;
     const toUnit = toUnitSelect.value;
+    // Headline label names the target unit ("Kilometers") so the big number reads on its own.
+    if (resultLabelEl) resultLabelEl.textContent = name(toUnit);
 
     if (!Number.isFinite(value)) {
       toValueInput.value = "";
@@ -178,6 +181,7 @@ function init() {
   copyBtn?.addEventListener("click", async () => {
     const value = toValueInput.value;
     if (!value) return;
+    // Failure shows ⚠ on the button plus the tool's full localized hint below.
     const ok = await copyWithFeedback(copyBtn, value, strings.copied);
     if (errorEl) {
       errorEl.textContent = ok ? "" : strings.copyFailed;

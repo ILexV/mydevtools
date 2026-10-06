@@ -3,13 +3,16 @@
  * in-place to the textarea. Clear empties; Copy writes to clipboard with
  * transient `.is-copied` feedback (localized error if the Clipboard API is
  * unavailable). All transforms come from `text-case.ts` (pure JS).
+ * Empty textarea shows a hint + "Load example" (localized sample, on click only).
  */
 import { convertCase, type CaseType } from "@/tools/text-case";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import { bindEmptyState, bindLoadExample, copyWithFeedback, setFieldValue } from "@/scripts/tool-ui";
 
 interface Strings {
   copied: string;
   copyFailed: string;
+  copyFailedShort?: string;
+  example?: string;
 }
 
 function readStrings(): Strings | null {
@@ -33,6 +36,13 @@ function init(): void {
   if (!textarea) return;
   const input = textarea;
   const errorEl = root.querySelector<HTMLElement>("[data-tcc-error]");
+  const inputHost = root.querySelector<HTMLElement>("[data-tcc-input-host]");
+  const exampleBtn = root.querySelector<HTMLButtonElement>("[data-tcc-example]");
+  const syncInput = inputHost ? bindEmptyState(inputHost, input) : () => {};
+  if (exampleBtn && strings.example) {
+    const sample = strings.example;
+    bindLoadExample(exampleBtn, () => setFieldValue(input, sample));
+  }
   const showError = (message: string | null) => {
     if (!errorEl) return;
     errorEl.textContent = message ?? "";
@@ -52,6 +62,7 @@ function init(): void {
     if (target.closest("[data-tcc-clear]")) {
       e.preventDefault();
       input.value = "";
+      syncInput();
       showError(null);
       input.focus();
       return;
@@ -59,7 +70,9 @@ function init(): void {
     const copyBtn = target.closest<HTMLButtonElement>("[data-tcc-copy]");
     if (copyBtn) {
       e.preventDefault();
-      void copyWithFeedback(copyBtn, input.value, strings.copied).then((ok) => {
+      void copyWithFeedback(copyBtn, input.value, strings.copied, undefined, {
+        failedLabel: strings.copyFailedShort,
+      }).then((ok) => {
         showError(ok ? null : strings.copyFailed);
       });
     }

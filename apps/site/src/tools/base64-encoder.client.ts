@@ -4,9 +4,11 @@
  * shared `bindDropzone`. Decode detection (legacy parity): image → preview,
  * known binary → info panel, other non-text → generic binary info; the
  * decoded bytes are always downloadable with the detected extension.
+ * Workbench empty states: input overlay with "Load example" (only on click),
+ * compact output placeholder until there is a result.
  */
 import { formatBytes, formatString, pluralSuffix, progressPercent } from "@/lib/format";
-import { copyWithFeedback, bindDropzone } from "@/scripts/tool-ui";
+import { bindDropzone, bindLoadExample, copyWithFeedback, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
 import { encodeBytes, decodeToBytes, textToBytes, type EncodingOptions } from "@/scripts/wasm/encoding-client";
 import { encodeFile, decodeFile } from "@/scripts/wasm/encoding-file-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
@@ -16,6 +18,7 @@ import { onReady } from "@/tools/encoding-tool";
 
 interface Strings {
   copied: string;
+  copyFailed?: string;
   fileProgressTitle: string;
   imageDetected: string;
   binaryDetected: string;
@@ -41,9 +44,11 @@ interface Strings {
 }
 
 const PREVIEW_LIMIT = 200_000;
+/** "Load example" sample: a small language-neutral JSON payload (no secrets). */
+const EXAMPLE = '{"user":"ada","role":"editor","exp":1767225600}';
 
 /** Keys of `Strings` that hold plain message templates (not plural-form maps). */
-type MessageKey = { [K in keyof Strings]: Strings[K] extends string ? K : never }[keyof Strings];
+type MessageKey = Exclude<{ [K in keyof Strings]-?: Strings[K] extends string ? K : never }[keyof Strings], undefined>;
 
 const ERROR_STRING: Record<EncodingErrorKey, MessageKey> = {
   Error_InvalidChar: "errInvalidChar",
@@ -124,12 +129,26 @@ function init() {
   const progressBar = q<HTMLElement>("progress-bar");
   const progressFill = q<HTMLElement>("progress-fill");
   const progressLabel = q<HTMLElement>("progress-label");
+  const inputHost = q<HTMLElement>("input-host");
+  const outputPanel = q<HTMLElement>("output-panel");
+  const exampleBtn = q<HTMLButtonElement>("example");
 
   let currentFile: File | null = null;
   let abortController: AbortController | null = null;
   let previewUrl: string | null = null;
   /** What Download saves: decoded bytes (with detected type) or the text output. */
   let lastDownload: { blob: Blob; name: string } | null = null;
+
+  /** Input overlay shows while there is neither text nor a selected file. */
+  function syncInput() {
+    if (inputHost) syncEmptyState(inputHost, inputArea.value === "" && !currentFile);
+  }
+  /** Output placeholder until there is text, a detect panel or a download. */
+  function syncOutput() {
+    const noText = outputArea.value === "" || outputArea.hidden === true;
+    if (outputPanel) syncEmptyState(outputPanel, noText && (detect?.hidden ?? true) && !lastDownload);
+    if (copyBtn) copyBtn.disabled = noText;
+  }
 
   function options(): EncodingOptions {
     return {
@@ -155,6 +174,7 @@ function init() {
   function setLastDownload(dl: { blob: Blob; name: string } | null) {
     lastDownload = dl;
     if (downloadBtn) downloadBtn.disabled = !dl;
+    syncOutput();
   }
 
   function clearDetect() {
@@ -179,6 +199,12 @@ function init() {
     clearDetect();
     setStats("");
     setLastDownload(null);
+  }
+
+  /** Write the text result and refresh the output empty state. */
+  function setOutput(text: string) {
+    outputArea.value = text;
+    syncOutput();
   }
 
   function setBusy(busy: boolean, trigger?: HTMLButtonElement | null) {
@@ -233,7 +259,7 @@ function init() {
 
   function showEncoded(text: string, rawBytes: number, sourceName: string | null) {
     clearDetect();
-    outputArea.value = previewText(text, outputMode?.value ?? "preview", PREVIEW_LIMIT, strings.previewTruncated).text;
+    setOutput(previewText(text, outputMode?.value ?? "preview", PREVIEW_LIMIT, strings.previewTruncated).text);
     setStats(`${countLabel(strings.statsBytesForms, strings.statsBytes, rawBytes)} ${strings.statsEncoded.replace("{size}", formatBytes(text.length))}`);
     setLastDownload({ blob: new Blob([text], { type: "text/plain" }), name: outputFileName(sourceName, "b64") });
   }
@@ -247,7 +273,7 @@ function init() {
     if (!detected && isLikelyText(bytes)) {
       const cs = charset?.value ?? "utf-8";
       const text = new TextDecoder(DECODER_LABEL[cs] ?? "utf-8").decode(bytes);
-      outputArea.value = previewText(text, outputMode?.value ?? "preview", PREVIEW_LIMIT, strings.previewTruncated).text;
+      setOutput(previewText(text, outputMode?.value ?? "preview", PREVIEW_LIMIT, strings.previewTruncated).text);
       setStats(decodedStat);
       setLastDownload({ blob: new Blob([new Uint8Array(bytes)], { type: "text/plain" }), name: `${base}.txt` });
       return;
@@ -258,6 +284,7 @@ function init() {
     outputArea.value = "";
     outputArea.hidden = true;
     if (detect) detect.hidden = false;
+    syncOutput();
     setStats(decodedStat);
     if (kind.kind === "image" && detectImg && detectLabel) {
       detectLabel.textContent = strings.imageDetected.replace("{type}", kind.label);
@@ -295,6 +322,7 @@ function init() {
       fileInput.value = "";
     }
     updateFileUi();
+    syncInput();
   }
 
   if (drop) bindDropzone(drop, fileInput, (files) => setFile(files[0] ?? null));
@@ -331,7 +359,11 @@ function init() {
   encodeBtn?.addEventListener("click", () => run("encode"));
   decodeBtn?.addEventListener("click", () => run("decode"));
   cancelBtn?.addEventListener("click", () => abortController?.abort());
-  inputArea.addEventListener("input", () => inputArea.removeAttribute("aria-invalid"));
+  inputArea.addEventListener("input", () => {
+    inputArea.removeAttribute("aria-invalid");
+    syncInput();
+  });
+  if (exampleBtn) bindLoadExample(exampleBtn, () => setFieldValue(inputArea, EXAMPLE));
 
   swapBtn?.addEventListener("click", () => {
     clearError();
@@ -339,7 +371,8 @@ function init() {
     const a = inputArea.value;
     inputArea.value = outputArea.hidden ? "" : outputArea.value;
     resetOutput();
-    outputArea.value = a;
+    setOutput(a);
+    syncInput();
   });
 
   clearBtn?.addEventListener("click", () => {
@@ -347,10 +380,13 @@ function init() {
     resetOutput();
     clearError();
     setFile(null);
+    inputArea.focus();
   });
 
   copyBtn?.addEventListener("click", async () => {
-    const ok = await copyWithFeedback(copyBtn, outputArea.value, strings.copied);
+    const ok = await copyWithFeedback(copyBtn, outputArea.value, strings.copied, undefined, {
+      failedLabel: strings.copyFailed,
+    });
     if (!ok) showError(strings.errCopyFailed);
   });
 
@@ -365,6 +401,9 @@ function init() {
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
+
+  syncInput();
+  syncOutput();
 }
 
 onReady(init);

@@ -3,11 +3,9 @@
   "Description": "在浏览器中格式化、压缩和校验 JSON：支持 2/4 空格或制表符缩进、递归排序键、大数字原样保留，可打开和保存 .json 文件。",
   "Keywords": "JSON 格式化, JSON 美化, JSON 压缩, JSON 校验, JSON 在线格式化, JSON 排序键, JSON beautifier, JSON formatter, pretty print JSON",
   "InputLabel": "输入 JSON",
-  "InputPlaceholder": "在此处粘贴您的 JSON...",
   "FormatButton": "格式化",
   "ClearButton": "清除",
   "CopyButton": "复制",
-  "Copied": "已复制！",
   "ErrorInvalidJson": "无效的 JSON。请检查您的输入。",
   "IndentSizeLabel": "缩进大小",
   "Indent2Spaces": "2 空格",
@@ -48,5 +46,6 @@
   "Editor_GoToLine": "跳转到行",
   "Editor_Go": "跳转",
   "Editor_ControlCharacter": "控制字符",
-  "Editor_SelectionDeleted": "已删除所选内容"
+  "Editor_SelectionDeleted": "已删除所选内容",
+  "EmptyHint": "在此粘贴 JSON 或拖放 .json 文件，即可格式化、压缩或按键排序。"
 }

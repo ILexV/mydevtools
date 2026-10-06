@@ -6,7 +6,10 @@
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
+import CopyButton from "@/components/tool/CopyButton.astro";
+import EmptyState from "@/components/tool/EmptyState.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -15,12 +18,14 @@ const { lang } = Astro.props as Props;
 const ns = "tools/text-case-converter";
 const s = {
   inputLabel: t(lang, ns, "InputLabel"),
-  inputPlaceholder: t(lang, ns, "InputPlaceholder"),
+  emptyHint: t(lang, ns, "EmptyHint"),
+  loadExample: t(lang, "common", "Common_LoadExample"),
   convertLabel: t(lang, ns, "ConvertLabel"),
   clear: t(lang, ns, "ClearButton"),
   copy: t(lang, ns, "CopyButton"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
   copyFailed: t(lang, ns, "CopyFailed"),
+  copyFailedShort: t(lang, "common", "Common_CopyFailed"),
 };
 const cases = [
   ["sentence", t(lang, ns, "SentenceCase")],
@@ -33,43 +38,56 @@ const cases = [
   ["snake", t(lang, ns, "SnakeCase")],
   ["kebab", t(lang, ns, "KebabCase")],
 ] as const;
-const stringsJson = JSON.stringify({ copied: s.copied, copyFailed: s.copyFailed });
+const stringsJson = JSON.stringify({
+  copied: s.copied,
+  copyFailed: s.copyFailed,
+  copyFailedShort: s.copyFailedShort,
+  example: t(lang, ns, "ExampleText"),
+});
 ---
 
-<section class="ds-card ds-stack" data-tcc-tool>
-  <div class="ds-output-head">
-    <label class="ds-label" for="tcc-input">{s.inputLabel}</label>
-    <div class="ds-actions">
-      <button type="button" class="ds-btn ds-btn-small" data-tcc-copy>{s.copy}</button>
-      <button type="button" class="ds-btn ds-btn-small ds-btn-danger" data-tcc-clear>{s.clear}</button>
+<div class="ds-workbench ds-workbench-single" data-tcc-tool>
+  <ToolPanel title={s.inputLabel} for="tcc-input">
+    <Fragment slot="actions">
+      <CopyButton ghost label={s.copy} copiedLabel={s.copied} failedLabel={s.copyFailedShort} data-tcc-copy />
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-tcc-clear>{s.clear}</button>
+    </Fragment>
+    <div class="ds-editor is-empty" data-tcc-input-host>
+      <textarea
+        id="tcc-input"
+        class="ds-field-textarea mono tcc-textarea"
+        data-tcc-textarea
+        rows="12"
+        spellcheck="false"
+        aria-describedby="tcc-input-empty"
+      ></textarea>
+      <EmptyState
+        hint={s.emptyHint}
+        hintId="tcc-input-empty"
+        exampleLabel={s.loadExample}
+        buttonProps={{ "data-tcc-example": true }}
+      />
     </div>
-  </div>
 
-  <textarea
-    id="tcc-input"
-    class="ds-field-textarea mono tcc-textarea"
-    data-tcc-textarea
-    rows="12"
-    placeholder={s.inputPlaceholder}
-    spellcheck="false"
-  ></textarea>
+    <div class="ds-field-group">
+      <span class="ds-label" id="tcc-convert-label">{s.convertLabel}</span>
+      <div class="tcc-grid" role="group" aria-labelledby="tcc-convert-label">
+        {cases.map(([value, label]) => (
+          <button type="button" class="ds-btn" data-tcc-case={value} aria-controls="tcc-input">{label}</button>
+        ))}
+      </div>
+    </div>
 
-  <div class="tcc-grid" role="group" aria-label={s.convertLabel}>
-    {cases.map(([value, label]) => (
-      <button type="button" class="ds-btn" data-tcc-case={value} aria-controls="tcc-input">{label}</button>
-    ))}
-  </div>
-
-  <StatusMessage kind="error" data-tcc-error />
-</section>
+    <StatusMessage kind="error" data-tcc-error />
+  </ToolPanel>
+</div>
 
 <script is:inline type="application/json" data-tcc-strings set:html={stringsJson} />
 <script>import "@/tools/text-case-converter.client.ts";</script>
 
 <style>
   /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
-  .tcc-textarea { min-height: 14rem; }
   .tcc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
   @media (min-width: 560px) { .tcc-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-  .tcc-grid > :global(.ds-btn) { justify-content: center; min-width: 0; white-space: normal; }
+  .tcc-grid > :global(.ds-btn) { justify-content: center; min-width: 0; white-space: normal; overflow-wrap: anywhere; hyphens: auto; text-align: center; }
 </style>

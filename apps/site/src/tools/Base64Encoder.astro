@@ -12,11 +12,14 @@
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
+import CopyButton from "@/components/tool/CopyButton.astro";
+import EmptyState from "@/components/tool/EmptyState.astro";
 import Field from "@/components/tool/Field.astro";
 import FileDrop from "@/components/tool/FileDrop.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
 import Progress from "@/components/tool/Progress.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -32,7 +35,9 @@ const pluralForms = (key: string): Record<string, string> =>
 
 const s = {
   inputTextLabel: t(lang, ns, "InputTextLabel"),
-  inputTextPlaceholder: t(lang, ns, "InputTextPlaceholder"),
+  emptyHint: t(lang, ns, "EmptyHint"),
+  outputEmpty: t(lang, ns, "OutputEmpty"),
+  loadExample: t(lang, "common", "Common_LoadExample"),
   fileHint: t(lang, ns, "FileHint"),
   charsetLabel: t(lang, ns, "CharsetLabel"),
   alphabetLabel: t(lang, ns, "AlphabetLabel"),
@@ -67,7 +72,8 @@ const s = {
   actionClear: t(lang, ns, "ActionClear"),
   outputLabel: t(lang, ns, "OutputLabel"),
   copy: t(lang, ns, "Copy"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
+  copyFailed: t(lang, "common", "Common_CopyFailed"),
   download: t(lang, ns, "Download"),
   fileProgressTitle: t(lang, ns, "FileProgressTitle"),
   cancel: t(lang, ns, "Cancel"),
@@ -89,121 +95,124 @@ const s = {
 const stringsJson = JSON.stringify(s);
 ---
 
-<div class="ds-stack" data-b64-tool>
-  <div class="ds-tool-grid">
-    <section class="ds-card ds-stack">
-      <Field label={s.inputTextLabel} for="b64-input-text">
-        <textarea
-          id="b64-input-text"
-          class="ds-field-textarea mono"
-          data-b64-input
-          rows="8"
-          spellcheck="false"
-          placeholder={s.inputTextPlaceholder}
-        ></textarea>
-      </Field>
-
-      <FileDrop
-        compact
-        data-b64-drop
-        title={s.dropTitle}
-        sub={s.fileHint}
-        buttonLabel={s.chooseFile}
-        inputProps={{ "data-b64-file": true }}
-      >
-        <div class="ds-file-row">
-          <span class="ds-file-name" data-b64-filename aria-live="polite"></span>
-          <button type="button" class="ds-btn-link" data-b64-file-clear hidden>{s.clearFile}</button>
-        </div>
-      </FileDrop>
-
-      <div class="ds-settings">
-        <Field label={s.charsetLabel} for="b64-charset">
-          <select id="b64-charset" class="ds-field-select" data-b64-charset>
-            <option value="utf-8">UTF-8</option>
-            <option value="utf-16le">UTF-16LE</option>
-            <option value="utf-16be">UTF-16BE</option>
-            <option value="ascii">ASCII</option>
-            <option value="latin1">ISO-8859-1 (Latin-1)</option>
-          </select>
-        </Field>
-        <Field label={s.alphabetLabel} for="b64-alphabet">
-          <select id="b64-alphabet" class="ds-field-select" data-b64-alphabet>
-            <option value="standard">{s.alphabetStandard}</option>
-            <option value="urlsafe">{s.alphabetUrlSafe}</option>
-          </select>
-        </Field>
-        <Field label={s.paddingLabel} for="b64-padding">
-          <select id="b64-padding" class="ds-field-select" data-b64-padding>
-            <option value="required">{s.paddingRequired}</option>
-            <option value="optional">{s.paddingOptional}</option>
-            <option value="none">{s.paddingNone}</option>
-          </select>
-        </Field>
-        <Field label={s.lineWrapLabel} for="b64-linewrap">
-          <select id="b64-linewrap" class="ds-field-select" data-b64-linewrap>
-            <option value="none">{s.lineWrapNone}</option>
-            <option value="76">{s.lineWrap76}</option>
-          </select>
-        </Field>
-        <Field class="ds-settings-wide" label={s.outputModeLabel} for="b64-output-mode">
-          <select id="b64-output-mode" class="ds-field-select" data-b64-output-mode>
-            <option value="preview">{s.outputModePreview}</option>
-            <option value="full">{s.outputModeFull}</option>
-          </select>
-        </Field>
-        <fieldset class="ds-check-group ds-settings-wide">
-          <legend class="ds-label">{s.decodeOptionsLabel}</legend>
-          <label class="ds-check-row">
-            <input type="checkbox" class="ds-check" data-b64-allow-whitespace checked />
-            <span>{s.allowWhitespace}</span>
-          </label>
-        </fieldset>
-      </div>
-    </section>
-
-    <section class="ds-card ds-stack">
-      <OutputPanel label={s.outputLabel} for="b64-output">
-        <Fragment slot="actions">
-          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-b64-copy>{s.copy}</button>
-          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-b64-download disabled>{s.download}</button>
-        </Fragment>
-        <textarea
-          id="b64-output"
-          class="ds-field-textarea mono enc-output"
-          data-b64-output
-          rows="16"
-          spellcheck="false"
-          readonly
-        ></textarea>
-        <div class="b64-detect" data-b64-detect role="status" hidden>
-          <p class="b64-detect-label" data-b64-detect-label></p>
-          <p class="ds-hint" data-b64-detect-hint></p>
-          <img class="b64-detect-img" data-b64-detect-img alt="" hidden />
-        </div>
-        <p class="ds-hint" data-b64-stats aria-live="polite"></p>
-      </OutputPanel>
-
-      <Progress
-        data-b64-progress
-        title={s.fileProgressTitle}
-        cancelLabel={s.cancel}
-        cancelProps={{ "data-b64-cancel": true }}
-        barProps={{ "data-b64-progress-bar": true }}
-        fillProps={{ "data-b64-progress-fill": true }}
-        labelProps={{ "data-b64-progress-label": true }}
+<div class="ds-workbench" data-b64-tool>
+  <ToolPanel title={s.inputTextLabel} for="b64-input-text">
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-b64-clear>{s.actionClear}</button>
+    </Fragment>
+    <div class="ds-editor is-empty" data-b64-input-host>
+      <textarea
+        id="b64-input-text"
+        class="ds-field-textarea mono enc-input"
+        data-b64-input
+        rows="8"
+        spellcheck="false"
+        aria-describedby="b64-input-empty"
+      ></textarea>
+      <EmptyState
+        hint={s.emptyHint}
+        hintId="b64-input-empty"
+        exampleLabel={s.loadExample}
+        buttonProps={{ "data-b64-example": true }}
       />
-    </section>
-  </div>
+    </div>
 
-  <div class="ds-actions">
-    <button type="button" class="ds-btn ds-btn-primary" data-b64-encode>{s.actionEncode}</button>
-    <button type="button" class="ds-btn" data-b64-decode>{s.actionDecode}</button>
-    <button type="button" class="ds-btn" data-b64-swap>{s.actionSwap}</button>
-    <button type="button" class="ds-btn" data-b64-clear>{s.actionClear}</button>
-  </div>
+    <FileDrop
+      compact
+      data-b64-drop
+      title={s.dropTitle}
+      sub={s.fileHint}
+      buttonLabel={s.chooseFile}
+      inputProps={{ "data-b64-file": true }}
+    >
+      <div class="ds-file-row">
+        <span class="ds-file-name" data-b64-filename aria-live="polite"></span>
+        <button type="button" class="ds-btn-link" data-b64-file-clear hidden>{s.clearFile}</button>
+      </div>
+    </FileDrop>
 
-  <StatusMessage kind="error" data-b64-error />
+    <div class="ds-settings">
+      <Field label={s.charsetLabel} for="b64-charset">
+        <select id="b64-charset" class="ds-field-select" data-b64-charset>
+          <option value="utf-8">UTF-8</option>
+          <option value="utf-16le">UTF-16LE</option>
+          <option value="utf-16be">UTF-16BE</option>
+          <option value="ascii">ASCII</option>
+          <option value="latin1">ISO-8859-1 (Latin-1)</option>
+        </select>
+      </Field>
+      <Field label={s.alphabetLabel} for="b64-alphabet">
+        <select id="b64-alphabet" class="ds-field-select" data-b64-alphabet>
+          <option value="standard">{s.alphabetStandard}</option>
+          <option value="urlsafe">{s.alphabetUrlSafe}</option>
+        </select>
+      </Field>
+      <Field label={s.paddingLabel} for="b64-padding">
+        <select id="b64-padding" class="ds-field-select" data-b64-padding>
+          <option value="required">{s.paddingRequired}</option>
+          <option value="optional">{s.paddingOptional}</option>
+          <option value="none">{s.paddingNone}</option>
+        </select>
+      </Field>
+      <Field label={s.lineWrapLabel} for="b64-linewrap">
+        <select id="b64-linewrap" class="ds-field-select" data-b64-linewrap>
+          <option value="none">{s.lineWrapNone}</option>
+          <option value="76">{s.lineWrap76}</option>
+        </select>
+      </Field>
+      <Field class="ds-settings-wide" label={s.outputModeLabel} for="b64-output-mode">
+        <select id="b64-output-mode" class="ds-field-select" data-b64-output-mode>
+          <option value="preview">{s.outputModePreview}</option>
+          <option value="full">{s.outputModeFull}</option>
+        </select>
+      </Field>
+      <fieldset class="ds-check-group ds-settings-wide">
+        <legend class="ds-label">{s.decodeOptionsLabel}</legend>
+        <label class="ds-check-row">
+          <input type="checkbox" class="ds-check" data-b64-allow-whitespace checked />
+          <span>{s.allowWhitespace}</span>
+        </label>
+      </fieldset>
+    </div>
+
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-b64-encode>{s.actionEncode}</button>
+      <button type="button" class="ds-btn" data-b64-decode>{s.actionDecode}</button>
+      <button type="button" class="ds-btn" data-b64-swap>{s.actionSwap}</button>
+    </div>
+
+    <Progress
+      data-b64-progress
+      title={s.fileProgressTitle}
+      cancelLabel={s.cancel}
+      cancelProps={{ "data-b64-cancel": true }}
+      barProps={{ "data-b64-progress-bar": true }}
+      fillProps={{ "data-b64-progress-fill": true }}
+      labelProps={{ "data-b64-progress-label": true }}
+    />
+    <StatusMessage kind="error" data-b64-error />
+  </ToolPanel>
+
+  <OutputPanel panel label={s.outputLabel} for="b64-output" emptyHint={s.outputEmpty} data-b64-output-panel>
+    <Fragment slot="actions">
+      <CopyButton ghost label={s.copy} copiedLabel={s.copied} failedLabel={s.copyFailed} data-b64-copy disabled />
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-b64-download disabled>{s.download}</button>
+    </Fragment>
+    <textarea
+      id="b64-output"
+      class="ds-field-textarea mono enc-output ds-when-filled"
+      data-b64-output
+      rows="16"
+      spellcheck="false"
+      readonly
+    ></textarea>
+    <div class="b64-detect ds-when-filled" data-b64-detect role="status" hidden>
+      <p class="b64-detect-label" data-b64-detect-label></p>
+      <p class="ds-hint" data-b64-detect-hint></p>
+      <img class="b64-detect-img" data-b64-detect-img alt="" hidden />
+    </div>
+    <p class="ds-hint ds-when-filled" data-b64-stats aria-live="polite"></p>
+  </OutputPanel>
 </div>
 
 <script is:inline type="application/json" data-b64-strings set:html={stringsJson} />

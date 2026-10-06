@@ -6,17 +6,24 @@
  *
  * PRIVACY: legacy persisted the input text to localStorage; that is
  * intentionally NOT ported. Only the formatting settings persist.
+ * Empty editor shows a hint + "Load example" overlay (sample inserted only on click).
  */
 import { bindEditorFileDrop, downloadText, loadEditorKit, type MdtEditor } from "@/scripts/codemirror-loader";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import { bindLoadExample, copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
 import { formatJson } from "@/tools/json-format";
 
 interface Strings {
   errorInvalidJson: string;
   copied: string;
+  copyFailed?: string;
   inputLabel: string;
   phrases?: Record<string, string>;
 }
+
+/** "Load example" sample: compact, unsorted JSON so Format / Sort keys visibly change it. */
+const EXAMPLE =
+  '{"name":"mydevtools","version":"2.4.0","private":true,"scripts":{"dev":"astro dev","build":"astro build"},' +
+  '"engines":{"node":">=22"},"keywords":["json","formatter",42,null],"limits":{"maxBytes":1048576,"ratio":0.75}}';
 
 const KEYS = {
   indent: "json-beautifier-indent",
@@ -69,6 +76,8 @@ async function init() {
   const saveBtn = root.querySelector<HTMLButtonElement>("[data-json-save]");
   const fileInput = root.querySelector<HTMLInputElement>("[data-json-file]");
   const errorBox = root.querySelector<HTMLElement>("[data-json-error]");
+  const emptyHost = root.querySelector<HTMLElement>("[data-json-editor-host]");
+  const exampleBtn = root.querySelector<HTMLButtonElement>("[data-json-example]");
 
   let editor: MdtEditor;
   try {
@@ -80,11 +89,19 @@ async function init() {
       hintId: "json-editor-hint",
       indent: 4,
       onSubmit: () => formatAction(),
+      onChange: () => syncEmpty(),
     });
   } catch (err) {
     console.error("JSON Beautifier: failed to load the editor:", err);
     return;
   }
+
+  /** Empty-state overlay follows the document (typing, Open, drop, Clear). */
+  function syncEmpty() {
+    if (emptyHost) syncEmptyState(emptyHost, editor.getValue() === "");
+  }
+  syncEmpty();
+  if (exampleBtn) bindLoadExample(exampleBtn, () => editor.setValue(EXAMPLE), editor.view.contentDOM);
 
   // Restore saved settings (input text persistence intentionally dropped — privacy).
   const savedIndent = storageGet(KEYS.indent);
@@ -139,7 +156,7 @@ async function init() {
   formatBtn.addEventListener("click", formatAction);
   clearBtn?.addEventListener("click", clearAll);
   copyBtn?.addEventListener("click", () => {
-    void copyWithFeedback(copyBtn, editor.getValue(), str.copied);
+    void copyWithFeedback(copyBtn, editor.getValue(), str.copied, undefined, { failedLabel: str.copyFailed });
   });
   fileInput?.addEventListener("change", () => {
     const file = fileInput.files?.[0];

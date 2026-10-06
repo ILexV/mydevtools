@@ -3,11 +3,9 @@
   "Description": "브라우저에서 JSON을 포맷·압축·검증합니다. 2/4칸 공백 또는 탭 들여쓰기, 재귀적 키 정렬, 큰 숫자 원형 유지, .json 파일 열기와 저장 지원.",
   "Keywords": "JSON 포맷터, JSON 정렬, JSON 뷰티파이어, JSON 압축, JSON minify, JSON 검증, JSON 키 정렬, JSON formatter, pretty print JSON, 온라인 JSON 포맷",
   "InputLabel": "입력 JSON",
-  "InputPlaceholder": "JSON을 여기에 붙여넣으세요...",
   "FormatButton": "포맷",
   "ClearButton": "지우기",
   "CopyButton": "복사",
-  "Copied": "복사됨!",
   "ErrorInvalidJson": "잘못된 JSON입니다. 입력을 확인하세요.",
   "IndentSizeLabel": "들여쓰기 크기",
   "Indent2Spaces": "2칸 공백",
@@ -48,5 +46,6 @@
   "Editor_GoToLine": "줄로 이동",
   "Editor_Go": "이동",
   "Editor_ControlCharacter": "제어 문자",
-  "Editor_SelectionDeleted": "선택 영역을 삭제했습니다"
+  "Editor_SelectionDeleted": "선택 영역을 삭제했습니다",
+  "EmptyHint": "JSON을 붙여넣거나 .json 파일을 여기로 끌어다 놓아 서식 지정, 압축, 키 정렬을 할 수 있습니다."
 }

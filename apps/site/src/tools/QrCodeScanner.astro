@@ -13,6 +13,7 @@ import type { LocaleCode } from "@/registry/locales";
 import FileDrop from "@/components/tool/FileDrop.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import CopyButton from "@/components/tool/CopyButton.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -26,7 +27,7 @@ const s = {
   clearFile: t(lang, "common", "Common_ClearFile"),
   resultLabel: t(lang, ns, "ResultLabel"),
   copy: t(lang, "common", "Common_Copy"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
   openLink: t(lang, ns, "OpenLink"),
   previewAlt: t(lang, ns, "PreviewAlt"),
   errorNotImage: t(lang, ns, "ErrorNotImage"),
@@ -99,19 +100,17 @@ const stringsJson = JSON.stringify(s);
 
   <StatusMessage kind="error" data-qrs-error />
 
-  <OutputPanel label={s.resultLabel} for="qrs-output" data-qrs-result aria-live="polite" hidden>
+  <OutputPanel panel label={s.resultLabel} for="qrs-output" data-qrs-result aria-live="polite" hidden>
     <Fragment slot="actions">
-      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-qrs-copy>{s.copy}</button>
-    </Fragment>
-    <textarea id="qrs-output" class="ds-field-textarea mono" data-qrs-output rows="5" readonly></textarea>
-    <div class="ds-actions" data-qrs-linkwrap hidden>
-      <a class="ds-btn ds-btn-primary" data-qrs-openlink target="_blank" rel="noopener noreferrer">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <a class="ds-btn ds-btn-small ds-btn-ghost" data-qrs-linkwrap data-qrs-openlink target="_blank" rel="noopener noreferrer" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
         </svg>
         {s.openLink}
       </a>
-    </div>
+      <CopyButton ghost label={s.copy} copiedLabel={s.copied} data-qrs-copy />
+    </Fragment>
+    <textarea id="qrs-output" class="ds-field-textarea mono qrs-output" data-qrs-output rows="4" readonly></textarea>
   </OutputPanel>
 </div>
 
@@ -131,9 +130,8 @@ const stringsJson = JSON.stringify(s);
   .qrs-fileinfo { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; max-width: 100%; }
   .qrs-filename { font-weight: 500; overflow-wrap: anywhere; }
   .qrs-busy { display: flex; align-items: center; gap: 0.5rem; font-size: var(--mdt-fs-meta); color: var(--mdt-text-muted); }
-  .qrs-tool :global([data-qrs-linkwrap]) { margin-top: 0.75rem; }
+  .qrs-output { min-height: 6rem; }
   .qrs-camera-actions { justify-content: center; }
-  .qrs-camera-actions[hidden], .qrs-camera[hidden], .qrs-camera-select[hidden] { display: none; }
   .qrs-video-wrap {
     position: relative;
     overflow: hidden;

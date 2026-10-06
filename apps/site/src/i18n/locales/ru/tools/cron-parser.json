@@ -44,7 +44,6 @@
   "ActionParse": "Распарсить выражение",
   "ActionClear": "Очистить",
   "Copy": "Копировать",
-  "Copied": "Скопировано!",
   "ErrorInvalidExpression": "Недопустимое выражение: {0}",
   "ErrorExpectedFields": "Ожидалось 5 полей, получено: {0}",
   "ErrorUnknownPreset": "Неизвестный шаблон",

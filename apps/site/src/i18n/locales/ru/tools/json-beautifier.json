@@ -3,11 +3,9 @@
   "Description": "Форматирование, минификация и проверка JSON в браузере: отступ 2/4 пробела или табуляция, сортировка ключей, точные большие числа, файлы .json.",
   "Keywords": "форматирование JSON, JSON beautifier, JSON formatter, минификация JSON, проверка JSON, валидатор JSON, сортировка ключей JSON",
   "InputLabel": "Входной JSON",
-  "InputPlaceholder": "Вставьте ваш JSON здесь...",
   "FormatButton": "Форматировать",
   "ClearButton": "Очистить",
   "CopyButton": "Копировать",
-  "Copied": "Скопировано!",
   "ErrorInvalidJson": "Неверный JSON. Проверьте введённые данные.",
   "IndentSizeLabel": "Размер отступа",
   "Indent2Spaces": "2 пробела",
@@ -48,5 +46,6 @@
   "Editor_GoToLine": "Перейти к строке",
   "Editor_Go": "перейти",
   "Editor_ControlCharacter": "Управляющий символ",
-  "Editor_SelectionDeleted": "Выделенный текст удалён"
+  "Editor_SelectionDeleted": "Выделенный текст удалён",
+  "EmptyHint": "Вставьте JSON или перетащите сюда файл .json, чтобы отформатировать, сжать или отсортировать ключи."
 }

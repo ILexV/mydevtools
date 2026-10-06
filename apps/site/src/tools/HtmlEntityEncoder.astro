@@ -7,8 +7,12 @@
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
+import CopyButton from "@/components/tool/CopyButton.astro";
+import EmptyState from "@/components/tool/EmptyState.astro";
 import Field from "@/components/tool/Field.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -16,9 +20,10 @@ interface Props {
 const { lang } = Astro.props as Props;
 const ns = "tools/html-entity-encoder";
 const s = {
-  inputTitle: t(lang, ns, "InputTitle"),
   inputLabel: t(lang, ns, "InputLabel"),
-  inputPlaceholder: t(lang, ns, "InputPlaceholder"),
+  emptyHint: t(lang, ns, "EmptyHint"),
+  outputEmpty: t(lang, ns, "OutputEmpty"),
+  loadExample: t(lang, "common", "Common_LoadExample"),
   outputTitle: t(lang, ns, "OutputTitle"),
   settingsTitle: t(lang, ns, "SettingsTitle"),
   modeLabel: t(lang, ns, "ModeLabel"),
@@ -34,7 +39,8 @@ const s = {
   actionSwap: t(lang, ns, "ActionSwap"),
   actionClear: t(lang, ns, "ActionClear"),
   copy: t(lang, ns, "Copy"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
+  copyFailed: t(lang, "common", "Common_CopyFailed"),
   errCopyFailed: t(lang, ns, "Error_CopyFailed"),
   outputSummary: t(lang, ns, "OutputSummary"),
   lang,
@@ -42,69 +48,74 @@ const s = {
 const stringsJson = JSON.stringify(s);
 ---
 
-<div class="ds-stack" data-ent-tool>
-  <div class="ds-tool-grid">
-    <section class="ds-card ds-stack" aria-labelledby="ent-input-title">
-      <div class="ds-card-head">
-        <h2 class="ds-card-title" id="ent-input-title">{s.inputTitle}</h2>
-      </div>
-      <Field label={s.inputLabel} for="ent-input">
-        <textarea
-          id="ent-input"
-          class="ds-field-textarea mono"
-          data-ent-input
-          rows="10"
-          spellcheck="false"
-          placeholder={s.inputPlaceholder}
-        ></textarea>
-      </Field>
-
-      <div class="ds-settings" role="group" aria-label={s.settingsTitle}>
-        <Field label={s.modeLabel} for="ent-mode">
-          <select id="ent-mode" class="ds-field-select" data-ent-mode>
-            <option value="specialchars" selected>{s.modeSpecialChars}</option>
-            <option value="nonascii">{s.modeNonAscii}</option>
-            <option value="all">{s.modeAll}</option>
-          </select>
-        </Field>
-        <Field label={s.formatLabel} for="ent-format">
-          <select id="ent-format" class="ds-field-select" data-ent-format>
-            <option value="named" selected>{s.formatNamed}</option>
-            <option value="decimal">{s.formatDecimal}</option>
-            <option value="hex">{s.formatHex}</option>
-          </select>
-        </Field>
-      </div>
-    </section>
-
-    <section class="ds-card ds-stack" aria-labelledby="ent-output-title">
-      <div class="ds-card-head">
-        <h2 class="ds-card-title" id="ent-output-title">{s.outputTitle}</h2>
-        <div class="ds-actions">
-          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-ent-copy>{s.copy}</button>
-        </div>
-      </div>
+<div class="ds-workbench" data-ent-tool>
+  <ToolPanel title={s.inputLabel} for="ent-input">
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-ent-clear>{s.actionClear}</button>
+    </Fragment>
+    <div class="ds-editor is-empty" data-ent-input-host>
       <textarea
-        id="ent-output"
-        class="ds-field-textarea mono ent-output"
-        data-ent-output
-        rows="14"
+        id="ent-input"
+        class="ds-field-textarea mono"
+        data-ent-input
+        rows="10"
         spellcheck="false"
-        readonly
-        aria-labelledby="ent-output-title"
+        aria-describedby="ent-input-empty"
       ></textarea>
-      <p class="ds-output-summary" role="status" aria-live="polite" data-ent-summary></p>
-    </section>
-  </div>
+      <EmptyState
+        hint={s.emptyHint}
+        hintId="ent-input-empty"
+        exampleLabel={s.loadExample}
+        buttonProps={{ "data-ent-example": true }}
+      />
+    </div>
 
-  <div class="ds-actions">
-    <button type="button" class="ds-btn ds-btn-primary" data-ent-encode>{s.actionEncode}</button>
-    <button type="button" class="ds-btn" data-ent-decode>{s.actionDecode}</button>
-    <button type="button" class="ds-btn" data-ent-swap>{s.actionSwap}</button>
-    <button type="button" class="ds-btn" data-ent-clear>{s.actionClear}</button>
-  </div>
+    <div class="ds-settings" role="group" aria-label={s.settingsTitle}>
+      <Field label={s.modeLabel} for="ent-mode">
+        <select id="ent-mode" class="ds-field-select" data-ent-mode>
+          <option value="specialchars" selected>{s.modeSpecialChars}</option>
+          <option value="nonascii">{s.modeNonAscii}</option>
+          <option value="all">{s.modeAll}</option>
+        </select>
+      </Field>
+      <Field label={s.formatLabel} for="ent-format">
+        <select id="ent-format" class="ds-field-select" data-ent-format>
+          <option value="named" selected>{s.formatNamed}</option>
+          <option value="decimal">{s.formatDecimal}</option>
+          <option value="hex">{s.formatHex}</option>
+        </select>
+      </Field>
+    </div>
 
-  <StatusMessage kind="error" data-ent-error />
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-ent-encode>{s.actionEncode}</button>
+      <button type="button" class="ds-btn" data-ent-decode>{s.actionDecode}</button>
+      <button type="button" class="ds-btn" data-ent-swap>{s.actionSwap}</button>
+    </div>
+
+    <StatusMessage kind="error" data-ent-error />
+  </ToolPanel>
+
+  <OutputPanel
+    panel
+    label={s.outputTitle}
+    for="ent-output"
+    emptyHint={s.outputEmpty}
+    summaryProps={{ "data-ent-summary": true }}
+    data-ent-output-panel
+  >
+    <Fragment slot="actions">
+      <CopyButton ghost label={s.copy} copiedLabel={s.copied} failedLabel={s.copyFailed} data-ent-copy disabled />
+    </Fragment>
+    <textarea
+      id="ent-output"
+      class="ds-field-textarea mono ent-output ds-when-filled"
+      data-ent-output
+      rows="14"
+      spellcheck="false"
+      readonly
+    ></textarea>
+  </OutputPanel>
 </div>
 
 <script is:inline type="application/json" data-ent-strings set:html={stringsJson} />
@@ -113,7 +124,6 @@ const stringsJson = JSON.stringify(s);
 <style>
   /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
   .ent-output {
-    flex: 1;
     overflow-wrap: anywhere;
   }
 </style>

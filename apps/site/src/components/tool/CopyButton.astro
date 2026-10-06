@@ -1,0 +1,62 @@
+---
+/**
+ * CopyButton — copy control with width-stable feedback (tool UI kit). Renders
+ * the idle / done (✓ "Copied") / fail (⚠) faces server-side in one grid cell,
+ * so the button already has its final width before the first click. Wire it
+ * with `copyWithFeedback(btn, text, copiedLabel)` from `@/scripts/tool-ui`
+ * (pass the same `copiedLabel`); the helper toggles `.is-copied` /
+ * `.is-copy-failed` and announces the result politely.
+ *
+ * - `iconOnly`: square `ds-icon-btn` with `aria-label={label}` (result rows).
+ * - `ghost`: quiet panel-header style (`ds-btn-ghost`). Inside
+ *   `.ds-panel-actions` on phones (≤480px) the text is visually hidden (still
+ *   the accessible name) and the button shows just the copy / ✓ icon, so
+ *   long locales don't push header actions onto a second row.
+ * - `failedLabel`: localized failure text (tool locale `copyFailed`), stored in
+ *   `data-copy-failed-label`. The fail face is always the ⚠ icon only (no
+ *   width reserved for long failure text); the text is set as aria-label/title
+ *   and announced politely by copyWithFeedback.
+ * Root attributes (data-* hook, disabled, id, class) pass through.
+ *
+ *   <CopyButton label={s.copy} copiedLabel={s.copied} ghost data-b64-copy />
+ */
+import type { HTMLAttributes } from "astro/types";
+import Icon from "@/components/Icon.astro";
+
+interface Props extends HTMLAttributes<"button"> {
+  label: string;
+  copiedLabel: string;
+  failedLabel?: string;
+  iconOnly?: boolean;
+  ghost?: boolean;
+  /** Show the copy icon before the text (text buttons). Default true. */
+  icon?: boolean;
+}
+
+const {
+  label,
+  copiedLabel,
+  failedLabel,
+  iconOnly = false,
+  ghost = false,
+  icon = true,
+  class: className,
+  ...rest
+} = Astro.props as Props;
+const size = iconOnly ? 18 : 15;
+---
+
+<button
+  type="button"
+  class:list={[iconOnly ? "ds-icon-btn" : "ds-btn ds-btn-small", { "ds-btn-ghost": ghost && !iconOnly }, className]}
+  aria-label={iconOnly ? label : undefined}
+  title={iconOnly ? label : undefined}
+  data-copy-failed-label={failedLabel}
+  {...rest}
+>
+  <span class="ds-copy-faces" data-icon-only={String(iconOnly)}>
+    <span class="ds-copy-face ds-copy-face-idle">{(icon || iconOnly) && <Icon name="copy" size={size} />}{!iconOnly && <span class="ds-copy-text">{label}</span>}</span>
+    <span class="ds-copy-face ds-copy-face-done" data-face-key={`check|${iconOnly ? "" : copiedLabel}`}><Icon name="check" size={size} />{!iconOnly && <span class="ds-copy-text">{copiedLabel}</span>}</span>
+    <span class="ds-copy-face ds-copy-face-fail" data-face-key="alert|"><Icon name="alert" size={size} /></span>
+  </span>
+</button>

@@ -2,7 +2,9 @@
 /**
  * `/{lang}/{slug}/` — tool page (Prism shell, design spec §9).
  * All 39 × 10 routes from the tool registry (validated at build). Tool head:
- * breadcrumb, category tile + H1 + description + privacy pill, favorite/share.
+ * breadcrumb, per-tool monogram tile + H1 + description + privacy note, favorite/share.
+ * Tile/H1 carry `tool-icon-<slug>` / `tool-title-<slug>` view-transition names
+ * (pair with ToolCard for the catalog → tool morph).
  * `--mdt-cat` scopes the category accent to the whole page.
  */
 import BaseLayout from "@/layouts/BaseLayout.astro";
@@ -75,6 +77,8 @@ const { tool, namespace } = resolved;
 const title = t(lang, namespace, "Title");
 const description = t(lang, namespace, "Description");
 const catLabel = categoryLabel(lang, tool.category);
+// Same monogram + length step as ToolCard so the tile morphs 1:1 (view transition).
+const monoLen = Math.min(4, [...tool.monogram].length);
 const related = relatedTools(lang, slug);
 const favLabel = t(lang, "common", "Badge_Favorite");
 const shareLabel = t(lang, "common", "Common_Share");
@@ -145,13 +149,11 @@ const ActiveTool = TOOL_COMPONENTS[slug];
         <span class="crumb-current">{tool.slug}</span>
       </nav>
       <div class="tool-title-row">
-        <span class="tile"><Icon name={tool.category} size={22} /></span>
-        <div class="tool-title-text">
-          <h1>{title}</h1>
-          <p class="tool-desc">{description}</p>
-        </div>
+        <span class="mono" data-len={monoLen} aria-hidden="true" style={`view-transition-name: tool-icon-${slug}`}>{tool.monogram}</span>
+        <h1 style={`view-transition-name: tool-title-${slug}`}>{title}</h1>
+        <p class="tool-desc">{description}</p>
+        <p class="privacy-note"><Icon name="lock" size={13} /><span>{privacyLabel}</span></p>
         <div class="tool-actions">
-          <span class="privacy-pill"><Icon name="lock" size={11} />{privacyLabel}</span>
           <button
             type="button"
             class="ds-icon-btn fav-toggle"
@@ -226,37 +228,126 @@ const ActiveTool = TOOL_COMPONENTS[slug];
   .crumbs a:hover { color: var(--mdt-cat); }
   .crumb-current { color: var(--mdt-cat); }
 
-  .tool-title-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.95rem;
+  /* Prism header: static category-tinted glow (::before) and a spectrum
+     hairline (::after) closing the header; both stay inside the header box
+     so nothing bleeds into the tool workspace or causes overflow. */
+  .tool-head {
+    position: relative;
+    isolation: isolate;
+    padding-bottom: 1.35rem;
+    --head-glow: 11%;
   }
-  .tool-title-row .tile {
+  :global(:root[data-theme="dark"]) .tool-head { --head-glow: 17%; }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme])) .tool-head { --head-glow: 17%; }
+  }
+  .tool-head::before {
+    content: "";
+    position: absolute;
+    inset: -1.5rem -1rem 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(
+      closest-side at 24% 50%,
+      color-mix(in srgb, var(--mdt-cat) var(--head-glow), transparent),
+      transparent
+    );
+  }
+  .tool-head::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      var(--mdt-cat),
+      color-mix(in srgb, var(--mdt-cat) 45%, var(--mdt-accent-2)) 28%,
+      transparent 72%
+    );
+    opacity: 0.55;
+  }
+
+  /* Desktop: tile | title + description + privacy | actions. */
+  .tool-title-row {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "tile title actions"
+      ".    desc  actions"
+      ".    priv  actions";
+    column-gap: 0.95rem;
+    align-items: start;
+  }
+  /* Per-tool monogram tile — ToolCard's `.mono` scaled ×1.4375 (32 → 46px). */
+  .mono {
+    grid-area: tile;
     width: 46px;
     height: 46px;
+    margin-top: 0.1rem;
+    display: grid;
+    place-items: center;
     border-radius: 13px;
-    margin-top: 0.15rem;
+    background: color-mix(in srgb, var(--mdt-cat) 13%, transparent);
+    border: 1px solid color-mix(in srgb, var(--mdt-cat) 28%, transparent);
+    color: var(--mdt-cat);
+    font-family: var(--mdt-font-mono);
+    font-weight: 700;
+    font-size: 23px;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    white-space: nowrap;
+    overflow: hidden;
   }
-  .tool-title-text { min-width: 0; }
+  .mono[data-len="2"] { font-size: 20px; }
+  .mono[data-len="3"] { font-size: 17px; letter-spacing: -0.06em; }
+  .mono[data-len="4"] { font-size: 14px; letter-spacing: -0.07em; }
   h1 {
+    grid-area: title;
+    min-width: 0;
+    align-self: center;
+    /* Shrink-wrap the text so the view-transition snapshot keeps the card
+       title's aspect ratio (a full-width box would stretch the old image). */
+    justify-self: start;
     font-family: var(--mdt-font-display);
     font-weight: 700;
     font-size: clamp(1.45rem, 3vw, 1.9rem);
     letter-spacing: -0.03em;
     line-height: 1.15;
+    overflow-wrap: anywhere;
   }
   .tool-desc {
+    grid-area: desc;
+    min-width: 0;
     color: var(--mdt-text-muted);
     font-size: var(--mdt-fs-small);
     max-width: 65ch;
     margin-top: 0.35rem;
   }
+  /* Quiet privacy note (was a mono pill): lock + localized text, wraps freely. */
+  .privacy-note {
+    grid-area: priv;
+    min-width: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+    font-size: var(--mdt-fs-label, 0.8125rem);
+    line-height: 1.35;
+    color: var(--mdt-text-faint);
+  }
+  .privacy-note :global(svg) {
+    flex-shrink: 0;
+    margin-top: 0.1em;
+    color: var(--mdt-success);
+  }
   .tool-actions {
-    margin-left: auto;
+    grid-area: actions;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    flex-shrink: 0;
   }
   .fav-toggle:hover { border-color: var(--mdt-warning); color: var(--mdt-warning); }
   .fav-toggle[aria-pressed="true"] { color: var(--mdt-warning); border-color: var(--mdt-warning); }
@@ -265,7 +356,7 @@ const ActiveTool = TOOL_COMPONENTS[slug];
   .share-btn.copied { border-color: var(--mdt-success); color: var(--mdt-success); }
   .share-btn:hover svg { transform: none; }
 
-  .tool-body { margin-top: 1.75rem; }
+  .tool-body { margin-top: 1.5rem; }
   .nojs-banner {
     display: flex;
     gap: 0.85rem;
@@ -292,8 +383,28 @@ const ActiveTool = TOOL_COMPONENTS[slug];
 
   @media (max-width: 640px) {
     .tool { padding: 1.25rem 1rem 2.5rem; }
-    .privacy-pill { display: none; }
-    .tool-title-row .tile { width: 40px; height: 40px; border-radius: 11px; }
+    .crumbs { margin-bottom: 0.85rem; }
+    /* Mobile: small tile inline with H1, full-width description, then one
+       compact row with the privacy note and 44px favorite/share targets. */
+    .tool-head { padding-bottom: 1rem; }
+    .tool-title-row {
+      grid-template-columns: 32px minmax(0, 1fr) auto;
+      grid-template-areas:
+        "tile title title"
+        "desc desc  desc"
+        "priv priv  actions";
+      column-gap: 0.65rem;
+    }
+    /* Mobile tile = exactly ToolCard's 32px monogram. */
+    .mono { width: 32px; height: 32px; border-radius: 9px; margin-top: 0; align-self: center; font-size: 16px; }
+    .mono[data-len="2"] { font-size: 14px; }
+    .mono[data-len="3"] { font-size: 12px; }
+    .mono[data-len="4"] { font-size: 10px; }
+    h1 { font-size: 1.4rem; }
+    .tool-desc { margin-top: 0.6rem; }
+    .privacy-note { align-self: center; margin-top: 0.75rem; }
+    .tool-actions { margin-top: 0.75rem; }
+    .tool-actions .ds-icon-btn { width: 44px; height: 44px; border-radius: 11px; }
   }
 </style>
 <style is:inline>

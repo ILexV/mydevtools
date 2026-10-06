@@ -3,9 +3,7 @@
   "Description": "Zwei Texte oder Dateien zeilenweise vergleichen: hinzugefügte, entfernte und geänderte Zeilen nebeneinander oder als Unified Diff mit Hervorhebung auf Wortebene.",
   "Keywords": "Text vergleichen, Diff online, zwei Dateien vergleichen, Unterschiede finden, diff checker, side by side diff, unified diff, Code vergleichen",
   "OriginalLabel": "Originaltext",
-  "OriginalPlaceholder": "Originaltext hier einfügen oder eingeben, oder Datei unten hochladen...",
   "ModifiedLabel": "Geänderter Text",
-  "ModifiedPlaceholder": "Geänderten Text hier einfügen oder eingeben, oder Datei unten hochladen...",
   "CompareButton": "Vergleichen",
   "ClearButton": "Löschen",
   "LineByLine": "Zeile für Zeile",
@@ -22,5 +20,10 @@
   "ViewModeLabel": "Ansicht",
   "NoDifferences": "Die Texte sind identisch – keine Unterschiede gefunden.",
   "FileReadError": "Die Datei konnte nicht als Text gelesen werden.",
-  "DiffTooBig": "Die Texte unterscheiden sich in mehr als {max} Zeilen – zu viele Änderungen für die Anzeige."
+  "DiffTooBig": "Die Texte unterscheiden sich in mehr als {max} Zeilen – zu viele Änderungen für die Anzeige.",
+  "OriginalEmptyHint": "Fügen Sie den Originaltext ein oder öffnen Sie eine Datei.",
+  "ModifiedEmptyHint": "Fügen Sie den geänderten Text ein oder öffnen Sie eine Datei.",
+  "OutputEmpty": "Füllen Sie beide Seiten aus und klicken Sie auf „Vergleichen“, um die Unterschiede hier zu sehen.",
+  "ExampleOriginal": "Einkaufsliste\n- Milch\n- Brot\n- 6 Eier\n- Kaffeebohnen\n\nPaket vor 18:00 abholen.",
+  "ExampleModified": "Einkaufsliste\n- Hafermilch\n- Brot\n- 12 Eier\n- Kaffeebohnen\n- Äpfel\n\nPaket vor 19:00 abholen."
 }

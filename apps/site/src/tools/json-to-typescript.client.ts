@@ -3,21 +3,36 @@
  * TS output) via the lazy editor kit; conversion by `jsonToTypeScript`
  * (`json-to-typescript.ts`). Live conversion on input (debounced) and on
  * option change; copy, download (`types.ts`), clear; localized invalid-JSON
- * error with the parser detail; Esc→Tab leaves the editors.
+ * error with the parser detail; Esc→Tab leaves the editors. Workbench empty
+ * states: input overlay + "Load example" (only on click), output placeholder.
  */
 import { downloadText, loadEditorKit, type MdtEditor } from "@/scripts/codemirror-loader";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import { bindLoadExample, copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
 import { jsonToTypeScript, type ConvertOptions } from "@/tools/json-to-typescript";
 
 interface Strings {
   errorInvalidJson: string;
   copied: string;
+  copyFailed?: string;
   inputLabel: string;
   outputLabel: string;
   phrases?: Record<string, string>;
 }
 
 const LIVE_DELAY_MS = 250;
+
+/** "Load example" sample: an API-style payload with nesting, arrays, nulls and mixed types. */
+const EXAMPLE = `{
+  "id": 1024,
+  "email": "ada@example.com",
+  "active": true,
+  "roles": ["admin", "editor"],
+  "profile": { "displayName": "Ada", "avatarUrl": null, "locale": "en-GB" },
+  "orders": [
+    { "orderId": "A-17", "total": 42.5, "items": [{ "sku": "KB-01", "qty": 2 }] },
+    { "orderId": "A-18", "total": 9.99, "items": [], "coupon": "WELCOME" }
+  ]
+}`;
 
 function readStrings(): Strings | null {
   const el = document.querySelector<HTMLScriptElement>("[data-jts-strings]");
@@ -49,6 +64,9 @@ async function init() {
   const optionalChk = root.querySelector<HTMLInputElement>("[data-jts-optional]");
   const useTypeChk = root.querySelector<HTMLInputElement>("[data-jts-use-type]");
   const errorBox = root.querySelector<HTMLElement>("[data-jts-error]");
+  const emptyInputHost = root.querySelector<HTMLElement>("[data-jts-input-host]");
+  const outputPanel = root.querySelector<HTMLElement>("[data-jts-output-panel]");
+  const exampleBtn = root.querySelector<HTMLButtonElement>("[data-jts-example]");
 
   let inputEditor: MdtEditor;
   let outputEditor: MdtEditor;
@@ -62,7 +80,10 @@ async function init() {
         hintId: "jts-editor-hint",
         indent: 2,
         onSubmit: () => doConvert(),
-        onChange: () => scheduleConvert(),
+        onChange: () => {
+          syncInput();
+          scheduleConvert();
+        },
       }),
       kit.createEditor(outputEl, {
         language: "typescript",
@@ -70,11 +91,32 @@ async function init() {
         phrases: strings.phrases,
         hintId: "jts-editor-hint",
         readOnly: true,
+        onChange: () => syncOutput(),
       }),
     ]);
   } catch (err) {
     console.error("JSON to TypeScript: failed to load the editor", err);
     return;
+  }
+
+  /** Input overlay follows the JSON document (typing, example, Clear). */
+  function syncInput() {
+    if (emptyInputHost) syncEmptyState(emptyInputHost, inputEditor.getValue() === "");
+  }
+  /** Output placeholder until interfaces exist; Copy/Download need them. */
+  function syncOutput() {
+    const empty = outputEditor.getValue() === "";
+    if (outputPanel) syncEmptyState(outputPanel, empty);
+    if (copyBtn) copyBtn.disabled = empty;
+    if (downloadBtn) downloadBtn.disabled = empty;
+  }
+  syncInput();
+  syncOutput();
+  if (exampleBtn) {
+    bindLoadExample(exampleBtn, () => {
+      inputEditor.setValue(EXAMPLE);
+      doConvert(); // show the result right away instead of after the debounce
+    }, inputEditor.view.contentDOM);
   }
 
   function getOpts(): ConvertOptions {
@@ -119,7 +161,7 @@ async function init() {
   convertBtn.addEventListener("click", doConvert);
   copyBtn?.addEventListener("click", () => {
     const text = outputEditor.getValue();
-    if (text) void copyWithFeedback(copyBtn, text, strings.copied);
+    if (text) void copyWithFeedback(copyBtn, text, strings.copied, undefined, { failedLabel: strings.copyFailed });
   });
   clearBtn?.addEventListener("click", () => {
     inputEditor.setValue("");

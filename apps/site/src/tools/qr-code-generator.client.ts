@@ -7,7 +7,10 @@
  * WASM errors are mapped to localized messages (too long / generic).
  */
 import { qrPng, qrSvg } from "@/scripts/wasm/qrcode-client";
-import { bindDropzone, setDropzoneHasFile } from "@/scripts/tool-ui";
+import { bindDropzone, bindEmptyState, bindLoadExample, setDropzoneHasFile, setFieldValue } from "@/scripts/tool-ui";
+
+/** Language-neutral example payload for "Load example" (inserted only on click). */
+const EXAMPLE = "https://example.com/";
 import { classifyGenerateError, isDecodableImageType, normalizeHexColor } from "@/tools/qr-code";
 
 interface Strings {
@@ -40,6 +43,8 @@ function init() {
   const q = <T extends Element>(sel: string) => root.querySelector<T>(sel);
 
   const content = q<HTMLTextAreaElement>("[data-qrg-content]");
+  const contentHost = q<HTMLElement>("[data-qrg-content-host]");
+  const exampleBtn = q<HTMLButtonElement>("[data-qrg-example]");
   const fgColor = q<HTMLInputElement>("[data-qrg-fg]");
   const fgColorText = q<HTMLInputElement>("[data-qrg-fg-text]");
   const bgColor = q<HTMLInputElement>("[data-qrg-bg]");
@@ -239,6 +244,9 @@ function init() {
       loading!.hidden = true;
     }
   }
+
+  if (contentHost) bindEmptyState(contentHost, content);
+  if (exampleBtn) bindLoadExample(exampleBtn, () => setFieldValue(content, EXAMPLE));
 
   generate.addEventListener("click", () => {
     void generateQrCode();

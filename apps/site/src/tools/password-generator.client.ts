@@ -5,12 +5,13 @@
  * (newest first) with per-item copy. Legacy parity.
  */
 import { generatePassword } from "@/scripts/wasm/password-client";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import { copyWithFeedback, prepareCopyButton, syncEmptyState } from "@/scripts/tool-ui";
 import { hasCharset, sanitizeSettings, type PwSettings } from "@/tools/password-settings";
 
 interface Strings {
   copy: string;
   copied: string;
+  copyFailed: string;
   errorNoCharset: string;
 }
 
@@ -42,10 +43,10 @@ function init() {
   const chkSpecial = root.querySelector<HTMLInputElement>("[data-pw-special]");
   const specialCharsInput = root.querySelector<HTMLInputElement>("[data-pw-special-chars]");
   const generateBtn = root.querySelector<HTMLButtonElement>("[data-pw-generate]");
-  const resultInput = root.querySelector<HTMLInputElement>("[data-pw-result]");
+  const resultInput = root.querySelector<HTMLOutputElement>("[data-pw-result]");
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-pw-copy]");
   const historyList = root.querySelector<HTMLElement>("[data-pw-history-list]");
-  const historyEmpty = root.querySelector<HTMLElement>("[data-pw-history-empty]");
+  const historyEmpty = root.querySelector<HTMLElement>("[data-pw-history]");
   const clearHistoryBtn = root.querySelector<HTMLButtonElement>("[data-pw-clear-history]");
   const errorBox = root.querySelector<HTMLElement>("[data-pw-error]");
 
@@ -74,7 +75,7 @@ function init() {
   const numbersEl: HTMLInputElement = chkNumbers;
   const specialEl: HTMLInputElement = chkSpecial;
   const specialCharsEl: HTMLInputElement = specialCharsInput;
-  const resultEl: HTMLInputElement = resultInput;
+  const resultEl: HTMLOutputElement = resultInput;
   const historyListEl: HTMLElement = historyList;
   const historyEmptyEl: HTMLElement = historyEmpty;
 
@@ -131,9 +132,14 @@ function init() {
     if (errorBox) errorBox.hidden = true;
   }
 
-  function addToHistory(password: string) {
-    historyEmptyEl.hidden = true;
+  /** History panel: empty state + hidden "Clear history" until a password exists. */
+  function syncHistory() {
+    const empty = historyListEl.children.length === 0;
+    syncEmptyState(historyEmptyEl, empty);
+    clearHistoryBtn!.hidden = empty;
+  }
 
+  function addToHistory(password: string) {
     // Shared `.ds-result-*` classes: scoped Astro styles never reach this runtime DOM.
     const item = document.createElement("div");
     item.className = "ds-result-row ds-result-row-bare";
@@ -145,13 +151,16 @@ function init() {
     btn.type = "button";
     btn.className = "ds-btn ds-btn-small ds-btn-ghost";
     btn.textContent = strings.copy;
-    btn.addEventListener("click", () => void copyWithFeedback(btn, password, strings.copied));
+    prepareCopyButton(btn, strings.copied);
+    btn.addEventListener("click", () =>
+      void copyWithFeedback(btn, password, strings.copied, undefined, { failedLabel: strings.copyFailed }));
 
     item.append(pass, btn);
     historyListEl.prepend(item);
     while (historyListEl.children.length > HISTORY_LIMIT) {
       historyListEl.lastElementChild?.remove();
     }
+    syncHistory();
   }
 
   async function generate() {
@@ -196,12 +205,13 @@ function init() {
   copyBtn.addEventListener("click", () => {
     const value = resultEl.value;
     if (!value) return;
-    void copyWithFeedback(copyBtn, value, strings.copied);
+    void copyWithFeedback(copyBtn, value, strings.copied, undefined, { failedLabel: strings.copyFailed });
   });
 
   clearHistoryBtn.addEventListener("click", () => {
     historyListEl.replaceChildren();
-    historyEmptyEl.hidden = false;
+    syncHistory();
+    generateBtn.focus();
   });
 
   loadSettings();

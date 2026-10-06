@@ -3,7 +3,6 @@
   "Description": "Validate YAML and reformat it into clean block style with 2-space indentation; errors show line and column. Runs locally via WebAssembly.",
   "Keywords": "YAML validator, YAML formatter, YAML beautifier, YAML linter, YAML syntax checker, format YAML online, validate YAML",
   "InputLabel": "YAML Input",
-  "InputPlaceholder": "Enter YAML content here...",
   "Format": "Format",
   "Validate": "Validate",
   "Clear": "Clear",
@@ -11,12 +10,13 @@
   "Valid": "YAML is valid",
   "Invalid": "YAML is invalid",
   "Copy": "Copy",
-  "Copied": "Copied!",
   "Paste": "Paste",
   "EditorKeyboardHint": "In the editor, Tab indents. Press Esc, then Tab to move focus out.",
   "Seo_Introduction": "Check a YAML file for syntax errors and rewrite it in a consistent block style. Parsing and formatting run in your browser in a small Rust library compiled to WebAssembly, loaded only when you first click Format or Validate.",
   "Seo_DetailedDescription": "**Validate** only parses the input and answers “YAML is valid” or shows the first error with its line and column, e.g. `mapping values are not allowed in this context at line 2 column 7`. **Format** parses and re-emits every document: mappings and lists in block style with two-space indentation, inline collections such as `[80, 443]` or `{host: localhost}` expanded into lines, and each document starting with `---`. Files with several documents separated by `---` are supported.\n\nFormatting rewrites the data, not the text, so some things are normalized: comments are removed, an empty value becomes `~`, and words that YAML 1.1 tools read as booleans (`yes`, `no`, `on`, `off`) are quoted, e.g. `flag: \"yes\"`. Key order is preserved. When you only need a syntax check and want to keep the file exactly as it is, use Validate.\n\nThe input editor highlights YAML and folds nested blocks; the result appears in a read-only output editor. **Paste** inserts text from the clipboard and **Copy** copies the output. Nothing you enter is stored or uploaded.",
   "Seo_Examples": "**Inline lists to block style**: `ports: [80, 443]` is formatted as `ports:` followed by the lines `  - 80` and `  - 443`.\n\n**Find an indentation error**: `name: demo` followed by an indented `  port: 80` fails with “YAML is invalid: mapping values are not allowed in this context at line 2 column 7”.\n\n**Several documents**: `a: 1`, `---`, `b: 2` stays two documents — the output is `---`, `a: 1`, `---`, `b: 2`.\n\n**Normalized values**: `flag: yes` and an empty `empty:` become `flag: \"yes\"` and `empty: ~`.",
   "Seo_HowToSteps": "### Step 1: Add your YAML\nPaste it into the **YAML Input** editor or click **Paste** to insert the clipboard contents.\n\n### Step 2: Check the syntax\nClick **Validate**. The badge shows “YAML is valid”, or an error with the line and column appears above the editors.\n\n### Step 3: Format\nClick **Format** (or press Ctrl+Enter / Cmd+Enter in the input) to get the normalized YAML in **Output**.\n\n### Step 4: Copy the result\nClick **Copy** to put the formatted YAML on the clipboard.",
-  "Seo_Tips": "- Format drops comments — keep the original file, or use only Validate for files with important comments.\n- YAML does not allow tabs for indentation; the error position points to the offending line.\n- Line and column numbers start at 1, matching what most editors show.\n- Before committing Kubernetes, Compose or CI files, check that quoted values such as `\"yes\"` are what your tool expects.\n- The WebAssembly module is downloaded on the first Format or Validate; after that the page also works offline.\n- In the input editor Tab inserts indentation; press Esc, then Tab to move focus out."
+  "Seo_Tips": "- Format drops comments — keep the original file, or use only Validate for files with important comments.\n- YAML does not allow tabs for indentation; the error position points to the offending line.\n- Line and column numbers start at 1, matching what most editors show.\n- Before committing Kubernetes, Compose or CI files, check that quoted values such as `\"yes\"` are what your tool expects.\n- The WebAssembly module is downloaded on the first Format or Validate; after that the page also works offline.\n- In the input editor Tab inserts indentation; press Esc, then Tab to move focus out.",
+  "EmptyHint": "Paste YAML here to reformat it or check it for syntax errors.",
+  "OutputEmpty": "Formatted YAML or the validation result appears here."
 }

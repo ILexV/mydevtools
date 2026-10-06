@@ -19,6 +19,7 @@ import type { LocaleCode } from "@/registry/locales";
 import FileDrop from "@/components/tool/FileDrop.astro";
 import Progress from "@/components/tool/Progress.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 import Icon from "@/components/Icon.astro";
 
 interface Props {
@@ -45,6 +46,7 @@ const s = {
   resultLabel: t(lang, ns, "ResultLabel"),
   resultName: "merged.pdf",
   minFilesHint: t(lang, ns, "MinFilesHint"),
+  filesTitle: t(lang, ns, "FilesTitle"),
   download: t(lang, ns, "DownloadButton"),
   errorNotPdf: t(lang, ns, "ErrorNotPdf"),
   errorInvalidPdf: t(lang, ns, "ErrorInvalidPdf"),
@@ -66,17 +68,19 @@ const stringsJson = JSON.stringify(s);
     inputProps={{ "data-pdfm-file": true }}
   />
 
-  <section class="ds-stack" data-pdfm-list hidden>
+  <ToolPanel title={s.filesTitle} data-pdfm-list hidden>
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-pdfm-add>{s.addFiles}</button>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-pdfm-clear>{s.clearAll}</button>
+    </Fragment>
     <ol class="ds-file-list" data-pdfm-items></ol>
-    <p class="ds-hint" data-pdfm-hint>{s.minFilesHint}</p>
-    <div class="ds-actions ds-actions-end">
-      <button type="button" class="ds-btn" data-pdfm-add>{s.addFiles}</button>
-      <button type="button" class="ds-btn ds-btn-danger" data-pdfm-clear>{s.clearAll}</button>
-      <button type="button" class="ds-btn ds-btn-primary" data-pdfm-merge disabled>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-pdfm-merge disabled aria-describedby="pdfm-hint">
         <span data-pdfm-merge-label>{s.merge}</span>
       </button>
+      <p class="ds-action-row-aside" id="pdfm-hint" data-pdfm-hint>{s.minFilesHint}</p>
     </div>
-  </section>
+  </ToolPanel>
 
   <Progress
     indeterminate
@@ -87,18 +91,17 @@ const stringsJson = JSON.stringify(s);
     labelProps={{ "data-pdfm-progress-label": true }}
   />
 
-  <section class="ds-card ds-stack" data-pdfm-result hidden aria-labelledby="pdfm-result-title">
-    <h2 class="ds-card-title" id="pdfm-result-title">{s.resultLabel}</h2>
-    <StatusMessage kind="success" hidden={false}>{s.success}</StatusMessage>
-    <p class="pdfm-result-meta">
-      <span class="pdfm-result-name">{s.resultName}</span>
-      <span class="pdfm-result-size" data-pdfm-result-size></span>
-    </p>
-    <button type="button" class="ds-btn ds-btn-primary ds-btn-block" data-pdfm-download>
-      <Icon name="download" size={16} />
-      {s.download}
-    </button>
-  </section>
+  <ToolPanel title={s.resultLabel} data-pdfm-result hidden>
+    <div class="ds-result-headline">
+      <span class="ds-result-headline-label mono">{s.resultName}</span>
+      <strong class="ds-result-headline-value" data-pdfm-result-size></strong>
+      <button type="button" class="ds-btn ds-btn-primary" data-pdfm-download>
+        <Icon name="download" size={16} />
+        {s.download}
+      </button>
+      <p class="ds-result-headline-meta"><span class="ds-status is-success" role="status">{s.success}</span></p>
+    </div>
+  </ToolPanel>
 
   <StatusMessage kind="error" data-pdfm-error />
   <StatusMessage kind="info" data-pdfm-note />
@@ -110,7 +113,4 @@ const stringsJson = JSON.stringify(s);
 <style>
   .pdfm-tool { max-width: 48rem; margin: 0 auto; }
   .pdfm-tool :global(.pdf-meta-value) { white-space: nowrap; }
-  .pdfm-result-meta { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline; font-size: var(--mdt-fs-small); }
-  .pdfm-result-name { font-weight: 600; overflow-wrap: anywhere; }
-  .pdfm-result-size { font-family: var(--mdt-font-mono); color: var(--mdt-text-muted); }
 </style>

@@ -38,5 +38,16 @@
   "Common_Share": "Partager",
   "Common_LinkCopied": "Lien copié !",
   "Common_NoJsTitle": "JavaScript requis",
-  "Common_NoJsBody": "Cet outil fonctionne entièrement dans votre navigateur. Activez JavaScript pour l’utiliser."
+  "Common_NoJsBody": "Cet outil fonctionne entièrement dans votre navigateur. Activez JavaScript pour l’utiliser.",
+  "Common_LoadExample": "Charger un exemple",
+  "Common_Copied": "Copié",
+  "Common_EmptyHint": "Collez vos données ici ou chargez un exemple.",
+  "CommandPalette_HintNavigate": "Naviguer",
+  "CommandPalette_HintOpen": "Ouvrir",
+  "CommandPalette_HintClose": "Fermer",
+  "Footer_Categories": "Catégories",
+  "Footer_Languages": "Langues",
+  "Footer_Source": "Code source sur GitHub",
+  "Language": "Langue",
+  "Common_CopyFailed": "Échec de la copie"
 }

@@ -3,9 +3,7 @@
   "Description": "逐行比较两段文本或两个文件：以并排或统一 diff 视图显示新增、删除和修改的行，并高亮行内变化的单词。",
   "Keywords": "文本对比, 文本比较, diff 工具, 文件对比, 并排对比, unified diff, 代码对比, diff checker, 在线 diff",
   "OriginalLabel": "原始文本",
-  "OriginalPlaceholder": "在此处粘贴或输入原始文本，或在下方上传文件...",
   "ModifiedLabel": "修改后的文本",
-  "ModifiedPlaceholder": "在此处粘贴或输入修改后的文本，或在下方上传文件...",
   "CompareButton": "比较",
   "ClearButton": "清除",
   "LineByLine": "逐行比较",
@@ -22,5 +20,10 @@
   "ViewModeLabel": "视图模式",
   "NoDifferences": "两段文本完全相同，没有差异。",
   "FileReadError": "无法将文件读取为文本。",
-  "DiffTooBig": "文本差异超过 {max} 行，更改过多，无法显示。"
+  "DiffTooBig": "文本差异超过 {max} 行，更改过多，无法显示。",
+  "OriginalEmptyHint": "粘贴原始文本或打开文件。",
+  "ModifiedEmptyHint": "粘贴修改后的文本或打开文件。",
+  "OutputEmpty": "填写两侧内容并点击“比较”，差异将显示在这里。",
+  "ExampleOriginal": "购物清单\n- 牛奶\n- 面包\n- 6 个鸡蛋\n- 咖啡豆\n\n18:00 前取快递。",
+  "ExampleModified": "购物清单\n- 燕麦奶\n- 面包\n- 12 个鸡蛋\n- 咖啡豆\n- 苹果\n\n19:00 前取快递。"
 }

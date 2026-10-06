@@ -10,10 +10,19 @@ import { hashText, hashFile } from "@/scripts/wasm/hash-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { HASH_ALGORITHMS, DEFAULT_HASH_ALGORITHMS } from "@/tools/hash-algorithms";
 import { formatBytes, formatMs, progressPercent } from "@/lib/format";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import {
+  bindEmptyState,
+  bindLoadExample,
+  copyWithFeedback,
+  prepareCopyButton,
+  setFieldValue,
+  syncEmptyState,
+} from "@/scripts/tool-ui";
 
 const ALGO_STORAGE = "mdt.tools.hash-calculator.algos.v1";
 const LEGACY_ALGO_STORAGE = "mydevtools.tools.hash-calculator.selectedAlgorithms.v1";
+/** "Load example" input: the classic pangram test vector (well-known MD5/SHA digests). */
+const EXAMPLE = "The quick brown fox jumps over the lazy dog";
 
 interface Strings {
   calculate: string;
@@ -81,6 +90,11 @@ function init() {
   const progressLabel = root.querySelector<HTMLElement>("[data-hash-progress-label]");
   const errorBox = root.querySelector<HTMLElement>("[data-hash-error]");
   const results = root.querySelector<HTMLElement>("[data-hash-results]");
+  const output = root.querySelector<HTMLElement>("[data-hash-output]");
+  const inputHost = root.querySelector<HTMLElement>("[data-hash-input-host]");
+  const exampleBtn = root.querySelector<HTMLButtonElement>("[data-hash-example]");
+  const syncInput = inputHost && textarea ? bindEmptyState(inputHost, textarea) : () => {};
+  if (exampleBtn && textarea) bindLoadExample(exampleBtn, () => setFieldValue(textarea, EXAMPLE));
 
   let currentFile: File | null = null;
   let abortController: AbortController | null = null;
@@ -183,11 +197,17 @@ function init() {
         copy.dataset.copy = h.hex;
         copy.textContent = strings.copy;
         copy.setAttribute("aria-label", `${strings.copy} ${algo.textContent}`);
+        prepareCopyButton(copy, strings.copied);
         row.append(algo, hex, copy);
         return row;
       }),
     );
-    results.hidden = false;
+    if (output) syncEmptyState(output, hashes.length === 0);
+  }
+
+  function clearResults() {
+    results?.replaceChildren();
+    if (output) syncEmptyState(output, true);
   }
 
   results?.addEventListener("click", (e) => {
@@ -215,7 +235,7 @@ function init() {
       showError(strings.selectAtLeastOne);
       return;
     }
-    if (results) { results.hidden = true; results.replaceChildren(); }
+    clearResults();
 
     setBusy(true);
     abortController = new AbortController();
@@ -258,11 +278,13 @@ function init() {
 
   clearBtn?.addEventListener("click", () => {
     if (textarea) textarea.value = "";
+    syncInput();
     if (fileInput) fileInput.value = "";
     currentFile = null;
     if (fileName) fileName.textContent = "";
-    if (results) { results.hidden = true; results.replaceChildren(); }
+    clearResults();
     clearError();
+    textarea?.focus();
   });
 }
 

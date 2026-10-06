@@ -44,7 +44,6 @@
   "ActionParse": "अभिव्यक्ति पार्स करें",
   "ActionClear": "साफ करें",
   "Copy": "कॉपी करें",
-  "Copied": "कॉपी किया गया!",
   "ErrorInvalidExpression": "अमान्य अभिव्यक्ति: {0}",
   "ErrorExpectedFields": "5 फ़ील्ड अपेक्षित थे, {0} मिले",
   "ErrorUnknownPreset": "अज्ञात प्रीसेट",

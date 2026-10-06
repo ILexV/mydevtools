@@ -13,6 +13,8 @@ import { initEncodingTool, onReady } from "@/tools/encoding-tool";
 
 const ENCODE_LIMIT = 1024 * 1024; // raw bytes (1 MiB)
 const DECODE_LIMIT = 2_000_000; // encoded chars (crate MAX_BASE58_INPUT_LEN)
+/** "Load example" sample (language-neutral; a short JSON payload). */
+const EXAMPLE = '{"id":42,"tag":"b58"}';
 
 function readOptions(root: HTMLElement): EncodingOptions {
   const val = (name: string) => root.querySelector<HTMLSelectElement>(`[data-b58-${name}]`)?.value;
@@ -30,6 +32,7 @@ onReady(() =>
     formatName: "Base58",
     ext: "b58",
     readOptions,
+    example: EXAMPLE,
     encodeLimit: ENCODE_LIMIT,
     decodeLimit: DECODE_LIMIT,
   }),

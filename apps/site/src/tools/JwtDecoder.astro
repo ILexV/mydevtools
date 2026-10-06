@@ -7,11 +7,16 @@
  * against an optional secret or RSA public key (alg from the header:
  * HS256/384/512, RS256/384/512). `alg: none` is reported as unsigned, never
  * as verified. Helpers in `jwt.ts`.
+ * Workbench: token panel (empty state + "Load example" demo token) and the
+ * signature panel (alg as panel meta) | decoded header/payload panel.
  */
 import { t } from "@/i18n/messages";
 import { localizedPath } from "@/lib/url";
 import type { LocaleCode } from "@/registry/locales";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import EmptyState from "@/components/tool/EmptyState.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -20,14 +25,17 @@ const { lang } = Astro.props as Props;
 const ns = "tools/jwt-decoder";
 const s = {
   tokenLabel: t(lang, ns, "TokenLabel"),
-  encodedPlaceholder: t(lang, ns, "EncodedPlaceholder"),
   decodedHeaderLabel: t(lang, ns, "DecodedHeaderLabel"),
   decodedPayloadLabel: t(lang, ns, "DecodedPayloadLabel"),
   signatureLabel: t(lang, ns, "SignatureLabel"),
   secretLabel: t(lang, ns, "SecretLabel"),
   secretPlaceholder: t(lang, ns, "SecretPlaceholder"),
   linkToEncoder: t(lang, ns, "LinkToEncoder"),
-  encoderTitle: t(lang, ns, "EncoderTitle"),
+  clear: t(lang, ns, "Clear"),
+  emptyHint: t(lang, ns, "EmptyHint"),
+  decodedLabel: t(lang, ns, "DecodedLabel"),
+  outputEmpty: t(lang, ns, "OutputEmpty"),
+  loadExample: t(lang, "common", "Common_LoadExample"),
 };
 const stringsJson = JSON.stringify({
   signatureVerified: t(lang, ns, "SignatureVerified"),
@@ -46,48 +54,55 @@ const encoderUrl = localizedPath(lang, "jwt-encoder");
 ---
 
 <div class="ds-stack" data-jwtd-tool>
-  <p class="ds-hint jwt-link-note">
-    {s.linkToEncoder} → <a href={encoderUrl}>{s.encoderTitle}</a>
-  </p>
+  <p class="ds-hint jwt-link-note"><a href={encoderUrl}>{s.linkToEncoder}</a></p>
 
-  <section class="ds-card ds-field-group">
-    <label class="ds-label" for="jwtd-encoded">{s.tokenLabel}</label>
-    <textarea
-      id="jwtd-encoded"
-      class="ds-field-textarea mono jwtd-token"
-      data-jwtd-encoded
-      rows="5"
-      placeholder={s.encodedPlaceholder}
-      spellcheck="false"
-      autocomplete="off"
-      aria-describedby="jwtd-error"
-    ></textarea>
-    <StatusMessage kind="error" id="jwtd-error" class="jwtd-error" data-jwtd-error />
-  </section>
+  <div class="ds-workbench">
+    <div class="ds-stack">
+      <ToolPanel title={s.tokenLabel} for="jwtd-encoded">
+        <Fragment slot="actions">
+          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-jwtd-clear>{s.clear}</button>
+        </Fragment>
+        <div class="ds-editor is-empty" data-jwtd-input-host>
+          <textarea
+            id="jwtd-encoded"
+            class="ds-field-textarea mono jwtd-token"
+            data-jwtd-encoded
+            rows="5"
+            spellcheck="false"
+            autocomplete="off"
+            aria-describedby="jwtd-empty jwtd-error"
+          ></textarea>
+          <EmptyState
+            hint={s.emptyHint}
+            hintId="jwtd-empty"
+            exampleLabel={s.loadExample}
+            buttonProps={{ "data-jwtd-example": true }}
+          />
+        </div>
+        <StatusMessage kind="error" id="jwtd-error" class="jwtd-error" data-jwtd-error />
+      </ToolPanel>
 
-  <div class="ds-tool-grid jwtd-grid">
-    <section class="ds-card ds-field-group">
-      <label class="ds-label" for="jwtd-header">{s.decodedHeaderLabel}</label>
-      <textarea id="jwtd-header" class="ds-field-textarea mono" data-jwtd-header rows="8" readonly spellcheck="false"></textarea>
-    </section>
-    <section class="ds-card ds-field-group">
-      <label class="ds-label" for="jwtd-payload">{s.decodedPayloadLabel}</label>
-      <textarea id="jwtd-payload" class="ds-field-textarea mono" data-jwtd-payload rows="8" readonly spellcheck="false"></textarea>
-      <ul class="jwtd-claims" data-jwtd-claims aria-live="polite" hidden></ul>
-    </section>
+      <ToolPanel title={s.signatureLabel} meta="" metaProps={{ "data-jwtd-alg": true }}>
+        <div class="ds-field-group">
+          <label class="ds-label" for="jwtd-secret">{s.secretLabel}</label>
+          <textarea id="jwtd-secret" class="ds-field-textarea mono" data-jwtd-secret rows="3" placeholder={s.secretPlaceholder} spellcheck="false" autocomplete="off"></textarea>
+        </div>
+        <p class="ds-alert jwtd-status" data-jwtd-status role="status" aria-live="polite" hidden></p>
+      </ToolPanel>
+    </div>
+
+    <OutputPanel panel label={s.decodedLabel} emptyHint={s.outputEmpty} data-jwtd-output>
+      <div class="ds-field-group ds-when-filled">
+        <label class="ds-label" for="jwtd-header">{s.decodedHeaderLabel}</label>
+        <textarea id="jwtd-header" class="ds-field-textarea mono" data-jwtd-header rows="5" readonly spellcheck="false"></textarea>
+      </div>
+      <div class="ds-field-group ds-when-filled">
+        <label class="ds-label" for="jwtd-payload">{s.decodedPayloadLabel}</label>
+        <textarea id="jwtd-payload" class="ds-field-textarea mono" data-jwtd-payload rows="10" readonly spellcheck="false"></textarea>
+        <ul class="jwtd-claims" data-jwtd-claims aria-live="polite" hidden></ul>
+      </div>
+    </OutputPanel>
   </div>
-
-  <section class="ds-card ds-stack jwtd-signature" aria-labelledby="jwtd-signature-title">
-    <div class="ds-card-head">
-      <h2 class="ds-card-title" id="jwtd-signature-title">{s.signatureLabel}</h2>
-      <span class="ds-badge ds-badge-cat" data-jwtd-alg>ALG</span>
-    </div>
-    <div class="ds-field-group">
-      <label class="ds-label" for="jwtd-secret">{s.secretLabel}</label>
-      <textarea id="jwtd-secret" class="ds-field-textarea mono" data-jwtd-secret rows="3" placeholder={s.secretPlaceholder} spellcheck="false" autocomplete="off"></textarea>
-    </div>
-    <p class="ds-alert jwtd-status" data-jwtd-status role="status" aria-live="polite" hidden></p>
-  </section>
 </div>
 
 <script is:inline type="application/json" data-jwtd-strings set:html={stringsJson} />
@@ -97,10 +112,9 @@ const encoderUrl = localizedPath(lang, "jwt-encoder");
   /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
   .jwt-link-note { margin: 0; }
   .jwt-link-note a { color: var(--mdt-cat); font-weight: 600; }
-  .jwtd-grid { --ds-tool-grid-cols: minmax(0, 1fr) minmax(0, 1fr); }
   .jwtd-token { word-break: break-all; }
-  .jwtd-error { margin-top: 0.6rem; overflow-wrap: anywhere; }
-  .jwtd-signature { border-top: 3px solid var(--mdt-cat); }
+  .ds-editor > .jwtd-token { min-height: 12rem; }
+  .jwtd-error { overflow-wrap: anywhere; }
   .jwtd-status { display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-weight: 700; }
   /* Neutral prompt ("enter a secret") uses the shared ds-alert-neutral tone. */
   .jwtd-status.ds-alert-neutral { font-weight: 500; }

@@ -9,7 +9,11 @@
 import { t } from "@/i18n/messages";
 import { editorPhrases } from "@/tools/editor-phrases";
 import type { LocaleCode } from "@/registry/locales";
+import CopyButton from "@/components/tool/CopyButton.astro";
+import EmptyState from "@/components/tool/EmptyState.astro";
+import Field from "@/components/tool/Field.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 import "@/styles/codemirror.css";
 
 interface Props {
@@ -30,63 +34,68 @@ const s = {
   clearButton: t(lang, ns, "ClearButton"),
   inputLabel: t(lang, ns, "InputLabel"),
   keyboardHint: t(lang, ns, "EditorKeyboardHint"),
+  emptyHint: t(lang, ns, "EmptyHint"),
+  loadExample: t(lang, "common", "Common_LoadExample"),
+  copied: t(lang, "common", "Common_Copied"),
+  copyFailed: t(lang, "common", "Common_CopyFailed"),
 };
 const stringsJson = JSON.stringify({
-  copied: t(lang, ns, "Copied"),
+  copied: s.copied,
+  copyFailed: s.copyFailed,
   errorInvalidXml: t(lang, ns, "ErrorInvalidXml"),
   inputLabel: s.inputLabel,
   phrases: editorPhrases(lang),
 });
 ---
 
-<div class="ds-stack" data-xml-tool>
-  <div class="ds-card cm-toolbar">
-    <div class="cm-options">
-      <label class="ds-btn ds-file-btn">
+<div class="ds-workbench ds-workbench-single" data-xml-tool>
+  <ToolPanel title={s.inputLabel}>
+    <Fragment slot="actions">
+      <label class="ds-btn ds-btn-small ds-btn-ghost ds-file-btn">
         <input type="file" accept=".xml,application/xml,text/xml" data-xml-file />
         {s.openButton}
       </label>
-      <button type="button" class="ds-btn" data-xml-save>{s.saveButton}</button>
-      <label class="cm-inline-field">
-        <span class="ds-label">{s.indentSizeLabel}</span>
-        <select class="ds-field-select" data-xml-indent>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-xml-save>{s.saveButton}</button>
+      <CopyButton ghost label={s.copyButton} copiedLabel={s.copied} failedLabel={s.copyFailed} data-xml-copy />
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-xml-clear>{s.clearButton}</button>
+    </Fragment>
+
+    <div class="ds-editor is-empty" data-xml-editor-host>
+      <div class="mdt-cm" data-xml-editor role="group" aria-label={s.inputLabel}></div>
+      <EmptyState
+        hint={s.emptyHint}
+        hintId="xml-editor-empty"
+        exampleLabel={s.loadExample}
+        buttonProps={{ "data-xml-example": true }}
+      />
+    </div>
+    <p class="ds-hint" id="xml-editor-hint">{s.keyboardHint}</p>
+
+    <div class="ds-settings">
+      <Field label={s.indentSizeLabel} for="xml-indent">
+        <select id="xml-indent" class="ds-field-select" data-xml-indent>
           <option value="2">{s.indent2Spaces}</option>
           <option value="4" selected>{s.indent4Spaces}</option>
           <option value="tab">{s.indentTab}</option>
         </select>
-      </label>
-      <label class="ds-check-row"><input type="checkbox" class="ds-check" data-xml-compact /> {s.compactMode}</label>
+      </Field>
+      <div class="ds-check-group xml-checks">
+        <label class="ds-check-row"><input type="checkbox" class="ds-check" data-xml-compact /> {s.compactMode}</label>
+      </div>
     </div>
-    <div class="ds-actions">
+
+    <div class="ds-action-row">
       <button type="button" class="ds-btn ds-btn-primary" data-xml-format>{s.formatButton}</button>
-      <button type="button" class="ds-btn" data-xml-copy>{s.copyButton}</button>
-      <button type="button" class="ds-btn ds-btn-danger" data-xml-clear>{s.clearButton}</button>
     </div>
-  </div>
 
-  <StatusMessage kind="error" data-xml-error />
-
-  <div class="ds-field-group">
-    <span class="ds-label" id="xml-editor-label">{s.inputLabel}</span>
-    <div class="mdt-cm" data-xml-editor role="group" aria-labelledby="xml-editor-label"></div>
-    <p class="ds-hint" id="xml-editor-hint">{s.keyboardHint}</p>
-  </div>
+    <StatusMessage kind="error" data-xml-error />
+  </ToolPanel>
 </div>
 
 <script is:inline type="application/json" data-xml-strings set:html={stringsJson} />
 <script>import "@/tools/xml-beautifier.client.ts";</script>
 
 <style>
-  .cm-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem 1.25rem;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-  }
-  .cm-options { display: flex; flex-wrap: wrap; gap: 0.6rem 1.1rem; align-items: center; min-width: 0; }
-  .cm-inline-field { display: flex; align-items: center; gap: 0.5rem; }
-  .cm-inline-field .ds-label { margin-bottom: 0; }
-  .cm-inline-field .ds-field-select { width: auto; }
+  /* Layout-only: the checkbox sits level with the indent select. */
+  .xml-checks { align-self: end; padding-bottom: 0.55rem; }
 </style>

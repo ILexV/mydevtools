@@ -17,7 +17,6 @@
   "GenerateToSeeResult": "生成 Cron 表达式以查看说明",
   "ActionGenerate": "生成表达式",
   "Copy": "复制",
-  "Copied": "已复制!",
   "DateFormatLocale": "默认 (24小时制)",
   "DateFormatLocale12h": "本地 (12小时制 AM/PM)",
   "DateFormatFullMonth": "完整月份名称",

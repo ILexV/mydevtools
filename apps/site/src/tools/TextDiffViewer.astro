@@ -8,7 +8,10 @@
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
+import EmptyState from "@/components/tool/EmptyState.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -26,6 +29,8 @@ const viewModeLabel = t(lang, ns, "ViewModeLabel");
 const chooseFile = t(lang, "common", "Common_FileChooseButton");
 const lineByLine = t(lang, ns, "LineByLine");
 const sideBySide = t(lang, ns, "SideBySide");
+const loadExample = t(lang, "common", "Common_LoadExample");
+const outputLabel = t(lang, "common", "Common_Output");
 
 const stringsJson = JSON.stringify({
   loading: t(lang, "common", "Common_Loading"),
@@ -34,42 +39,47 @@ const stringsJson = JSON.stringify({
   noDifferences: t(lang, ns, "NoDifferences"),
   fileReadError: t(lang, ns, "FileReadError"),
   diffTooBig: t(lang, ns, "DiffTooBig"),
+  exampleOriginal: t(lang, ns, "ExampleOriginal"),
+  exampleModified: t(lang, ns, "ExampleModified"),
 });
+const uploadIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>`;
+const sides = [
+  { key: "original", label: originalLabel, choose: chooseOriginal, hint: t(lang, ns, "OriginalEmptyHint") },
+  { key: "modified", label: modifiedLabel, choose: chooseModified, hint: t(lang, ns, "ModifiedEmptyHint") },
+] as const;
 ---
 
-<div class="ds-stack" data-diff-tool>
-  <div class="ds-tool-grid diff-grid">
-    <section class="ds-card ds-stack diff-side">
-      <div class="ds-output-head">
-        <label class="ds-label" for="diff-original">{originalLabel}</label>
-        <div class="ds-actions">
-          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-diff-load="original" title={chooseOriginal} aria-label={chooseOriginal}>
-            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
-            {chooseFile}
-          </button>
-        </div>
-        <input type="file" class="visually-hidden" data-diff-file="original" tabindex="-1" aria-hidden="true" />
+<div class="ds-workbench" data-diff-tool>
+  {sides.map((side) => (
+    <ToolPanel title={side.label} for={`diff-${side.key}`}>
+      <Fragment slot="actions">
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-diff-load={side.key} title={side.choose} aria-label={side.choose}>
+          <Fragment set:html={uploadIcon} />
+          {chooseFile}
+        </button>
+        <input type="file" class="visually-hidden" data-diff-file={side.key} tabindex="-1" aria-hidden="true" />
+      </Fragment>
+      <div class="ds-editor is-empty" data-diff-host={side.key}>
+        <textarea
+          id={`diff-${side.key}`}
+          class="ds-field-textarea mono diff-textarea"
+          data-diff-text={side.key}
+          rows="14"
+          spellcheck="false"
+          aria-describedby={`diff-${side.key}-empty`}
+        ></textarea>
+        <EmptyState
+          hint={side.hint}
+          hintId={`diff-${side.key}-empty`}
+          exampleLabel={loadExample}
+          buttonProps={{ "data-diff-example": true }}
+        />
       </div>
-      <textarea id="diff-original" class="ds-field-textarea mono diff-textarea" data-diff-text="original" rows="14" placeholder={t(lang, ns, "OriginalPlaceholder")} spellcheck="false"></textarea>
-    </section>
+    </ToolPanel>
+  ))}
 
-    <section class="ds-card ds-stack diff-side">
-      <div class="ds-output-head">
-        <label class="ds-label" for="diff-modified">{modifiedLabel}</label>
-        <div class="ds-actions">
-          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-diff-load="modified" title={chooseModified} aria-label={chooseModified}>
-            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
-            {chooseFile}
-          </button>
-        </div>
-        <input type="file" class="visually-hidden" data-diff-file="modified" tabindex="-1" aria-hidden="true" />
-      </div>
-      <textarea id="diff-modified" class="ds-field-textarea mono diff-textarea" data-diff-text="modified" rows="14" placeholder={t(lang, ns, "ModifiedPlaceholder")} spellcheck="false"></textarea>
-    </section>
-  </div>
-
-  <div class="diff-bar">
-    <div class="ds-actions">
+  <div class="ds-workbench-wide diff-bar">
+    <div class="ds-action-row">
       <button type="button" class="ds-btn ds-btn-primary" data-diff-compare>{t(lang, ns, "CompareButton")}</button>
       <button type="button" class="ds-btn" data-diff-clear>{t(lang, ns, "ClearButton")}</button>
     </div>
@@ -86,10 +96,11 @@ const stringsJson = JSON.stringify({
     </fieldset>
   </div>
 
-  <StatusMessage kind="info" data-diff-status />
-  <StatusMessage kind="error" data-diff-error />
-
-  <div class="diff-output" data-diff-output hidden></div>
+  <OutputPanel panel class="ds-workbench-wide" label={outputLabel} emptyHint={t(lang, ns, "OutputEmpty")} data-diff-output-panel>
+    <StatusMessage kind="info" data-diff-status />
+    <StatusMessage kind="error" data-diff-error />
+    <div class="diff-output" data-diff-output hidden></div>
+  </OutputPanel>
 </div>
 
 <script is:inline type="application/json" data-diff-strings set:html={stringsJson} />
@@ -97,8 +108,6 @@ const stringsJson = JSON.stringify({
 
 <style>
   /* Layout + diff2html theming only; shared visuals come from tool-ui.css (ds-*). */
-  .diff-grid { --ds-tool-grid-cols: minmax(0, 1fr) minmax(0, 1fr); }
-  .diff-side { gap: 0; }
   .diff-textarea { min-height: 14rem; }
   .diff-bar {
     display: flex; flex-wrap: wrap; align-items: center;

@@ -2,9 +2,7 @@
   "Title": "HTML Entity Encoder / Decoder",
   "Description": "Escape HTML special characters as named, decimal or hex entities and decode entities back to text. Handles emoji correctly. Runs entirely in your browser.",
   "Keywords": "HTML entity encoder, HTML entity decoder, HTML escape, HTML unescape, HTML special characters, encode HTML online, HTML entities",
-  "InputTitle": "Input & Settings",
   "InputLabel": "Text to encode/decode",
-  "InputPlaceholder": "Type or paste your text here...",
   "OutputTitle": "Output",
   "SettingsTitle": "Settings",
   "ModeLabel": "Encode mode",
@@ -20,12 +18,13 @@
   "ActionSwap": "Swap",
   "ActionClear": "Clear",
   "Copy": "Copy",
-  "Copied": "Copied!",
   "Error_CopyFailed": "Could not copy: the clipboard is unavailable.",
   "OutputSummary": "Result: {0} characters",
   "Seo_Introduction": "Escape ampersands, angle brackets, quotes and non-ASCII characters as HTML entities, or turn entities back into plain text. The tool is plain JavaScript running in your browser, so the markup you paste is not sent anywhere.",
   "Seo_DetailedDescription": "Three encode modes cover the usual cases. The special-characters mode, the default, escapes the five characters that matter in HTML markup and attributes: `&`, `<`, `>`, `\"` and `'`. The non-ASCII mode leaves markup alone and converts accented letters, symbols and emoji, which helps when a template or email has to stay pure ASCII. The all-characters mode does both.\n\nEntities can be written as **named** (`&amp;`, `&copy;`), **decimal** (`&#169;`) or **hexadecimal** (`&#xA9;`) references. Only about 30 common symbols have names in this tool, such as `&copy;`, `&mdash;`, `&euro;` and `&nbsp;`; other characters fall back to hex references even in named format. Emoji and other characters outside the Basic Multilingual Plane become a single reference such as `&#x1F600;`.\n\nDecoding understands the same named entities plus decimal and hex references (`&#169;`, `&#xA9;`, `&#XA9;`) and works in one pass, so `&amp;lt;` correctly becomes `&lt;` rather than `<`. Unknown names such as `&hearts;` and references without the closing semicolon are left as they are.",
   "Seo_Examples": "**Escape markup**: `<a href=\"x\">Tom & Jerry</a>` becomes `&lt;a href=&quot;x&quot;&gt;Tom &amp; Jerry&lt;/a&gt;` with the default settings.\n\n**Non-ASCII only**: `© 2026 — café <b>` becomes `&copy; 2026 &mdash; caf&#xE9; <b>`: the tag stays as it is, and `é`, which has no name in the list, falls back to hex.\n\n**Emoji**: in all-characters mode, `😀 ©` becomes `&#128512; &#169;` in decimal format and `&#x1F600; &#xA9;` in hexadecimal.\n\n**Decoding**: `&lt;p&gt; &#169; &#x1F600; &euro;` decodes to `<p> © 😀 €`, while `&amp;lt;` decodes to `&lt;`.",
   "Seo_HowToSteps": "### Step 1: Paste your text\nType or paste plain text or HTML into **Text to encode/decode**.\n\n### Step 2: Choose the mode and format\nIn **Encode mode**, pick `Only special characters (& < > \" ')`, `Only non-ASCII characters` or `All characters (special + non-ASCII)`. In **Entity format**, pick `Named (&amp;)`, `Decimal (&#38;)` or `Hexadecimal (&#x26;)`. These settings affect encoding only.\n\n### Step 3: Encode or decode\nClick **Encode to HTML** to escape the text or **Decode from HTML** to turn entities back into characters.\n\n### Step 4: Copy the result\nClick **Copy** to take the output to the clipboard. **Swap** moves it back into the input, for example to decode a second layer.",
-  "Seo_Tips": "- For text placed inside HTML elements or quoted attributes, escaping the five special characters is enough; non-ASCII text does not need entities when the page is served as UTF-8.\n- Escaping is not a complete XSS defense: values placed in `href`, inside `<script>` or in CSS need context-specific handling such as URL validation or JSON encoding.\n- The apostrophe is encoded as `&#x27;`, or `&#39;` in decimal format, rather than `&apos;`, which HTML 4 did not define.\n- Decoding is a single pass: text escaped twice, like `&amp;amp;`, gives `&amp;` first; click **Swap** and decode again.\n- Only the named entities from the built-in list are decoded; numeric references work for every Unicode character."
+  "Seo_Tips": "- For text placed inside HTML elements or quoted attributes, escaping the five special characters is enough; non-ASCII text does not need entities when the page is served as UTF-8.\n- Escaping is not a complete XSS defense: values placed in `href`, inside `<script>` or in CSS need context-specific handling such as URL validation or JSON encoding.\n- The apostrophe is encoded as `&#x27;`, or `&#39;` in decimal format, rather than `&apos;`, which HTML 4 did not define.\n- Decoding is a single pass: text escaped twice, like `&amp;amp;`, gives `&amp;` first; click **Swap** and decode again.\n- Only the named entities from the built-in list are decoded; numeric references work for every Unicode character.",
+  "EmptyHint": "Type HTML or text to escape, or paste entities such as &lt; to decode them.",
+  "OutputEmpty": "The escaped or decoded text appears here."
 }

@@ -7,7 +7,9 @@
  * `compressImage` (cancellable), then preview the result with a size
  * comparison (savings % per legacy) and download it as `<name>_min.<ext>`
  * (jpeg → jpg — legacy parity). Single file only (legacy multi-file ZIP is a
- * documented deviation). UI: shared tool kit (FileDrop, ds-file-item, Progress).
+ * documented deviation). UI: shared tool kit (FileDrop, ds-file-item, Progress);
+ * file-first flow: disabled Compress shows a "choose an image first" hint, the
+ * result panel leads with the compressed size (headline) + Download.
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
@@ -16,6 +18,7 @@ import Field from "@/components/tool/Field.astro";
 import FileDrop from "@/components/tool/FileDrop.astro";
 import Progress from "@/components/tool/Progress.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -43,7 +46,10 @@ const s = {
   errorUnsupported: t(lang, ns, "ErrorUnsupportedFormat"),
   errorCompression: t(lang, ns, "ErrorCompression"),
   webpLosslessNote: t(lang, ns, "WebpLosslessNote"),
+  needFile: t(lang, ns, "NeedFile"),
 };
+/** "Compressed:" → "Compressed" for the headline label (ASCII or full-width colon). */
+const plainLabel = (label: string) => label.replace(/\s*[:：]\s*$/, "");
 const stringsJson = JSON.stringify(s);
 ---
 
@@ -87,11 +93,12 @@ const stringsJson = JSON.stringify(s);
     </Field>
   </div>
 
-  <div class="ds-actions">
-    <button type="button" class="ds-btn ds-btn-primary" data-imgc-compress disabled>
+  <div class="ds-action-row">
+    <button type="button" class="ds-btn ds-btn-primary" data-imgc-compress disabled aria-describedby="imgc-need-file">
       <Icon name="zap" size={16} />
       <span data-imgc-compress-label>{s.compress}</span>
     </button>
+    <p class="ds-action-row-aside imgc-need" id="imgc-need-file">{s.needFile}</p>
   </div>
 
   <Progress
@@ -104,25 +111,24 @@ const stringsJson = JSON.stringify(s);
 
   <StatusMessage kind="error" data-imgc-error />
 
-  <section class="ds-card ds-stack" data-imgc-result hidden aria-live="polite">
-    <div class="ds-card-head">
-      <span class="ds-card-title">{s.resultLabel}</span>
-      <span class="ds-badge ds-badge-success" data-imgc-badge hidden></span>
+  <ToolPanel title={s.resultLabel} data-imgc-result hidden aria-live="polite">
+    <div class="ds-result-headline">
+      <span class="ds-result-headline-label">{plainLabel(s.compressedSize)}</span>
+      <strong class="ds-result-headline-value" data-imgc-compressed-size></strong>
+      <button type="button" class="ds-btn ds-btn-primary" data-imgc-download>
+        <Icon name="download" size={16} />
+        {s.download}
+      </button>
+      <p class="ds-result-headline-meta">
+        <span>{s.originalSize} <span class="mono" data-imgc-original-size></span></span>
+        <span class="ds-status is-success" data-imgc-badge hidden></span>
+      </p>
     </div>
     <div class="imgc-output-wrap">
       <img class="imgc-output" data-imgc-output alt={s.previewAlt} />
     </div>
-    <p class="imgc-output-meta">
-      <span>{s.originalSize} <span class="imgc-meta-size" data-imgc-original-size></span></span>
-      <span aria-hidden="true">→</span>
-      <span>{s.compressedSize} <span class="imgc-meta-size" data-imgc-compressed-size></span></span>
-    </p>
     <StatusMessage kind="info" data-imgc-webp-note>{s.webpLosslessNote}</StatusMessage>
-    <button type="button" class="ds-btn ds-btn-primary ds-btn-block" data-imgc-download>
-      <Icon name="download" size={16} />
-      {s.download}
-    </button>
-  </section>
+  </ToolPanel>
 </div>
 
 <script is:inline type="application/json" data-imgc-strings set:html={stringsJson} />
@@ -154,6 +160,7 @@ const stringsJson = JSON.stringify(s);
     background-size: 1rem 1rem;
   }
   .imgc-output { max-width: 100%; max-height: 24rem; object-fit: contain; }
-  .imgc-output-meta { display: flex; flex-wrap: wrap; gap: 0.25rem 0.5rem; font-size: var(--mdt-fs-small); color: var(--mdt-text-muted); overflow-wrap: anywhere; }
-  .imgc-meta-size { font-family: var(--mdt-font-mono); font-weight: 600; color: var(--mdt-text); }
+  /* Prerequisite hint: only while Compress is disabled for lack of a file (not while busy). */
+  .imgc-need { display: none; }
+  .ds-action-row:has(> [data-imgc-compress]:disabled:not([aria-busy="true"])) > .imgc-need { display: block; }
 </style>

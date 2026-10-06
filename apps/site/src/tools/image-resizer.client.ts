@@ -13,7 +13,7 @@
  */
 import { convertImage, resizeImage } from "@/scripts/wasm/image-tools-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
-import { bindDropzone, setDropzoneHasFile } from "@/scripts/tool-ui";
+import { bindDropzone, setDropzoneHasFile, syncEmptyState } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
 import {
   guessResizeFormat,
@@ -104,7 +104,7 @@ function init() {
   }
 
   function hideOutput() {
-    outputEl!.hidden = true;
+    syncEmptyState(outputEl!, true);
     resultPreview!.removeAttribute("src");
     if (outputInfo) outputInfo.textContent = "";
     if (resultUrl) URL.revokeObjectURL(resultUrl);
@@ -257,7 +257,7 @@ function init() {
       resultPreview!.src = resultUrl;
       if (outputInfo) outputInfo.textContent = `${width}×${height}, ${formatBytes(blob.size, 2)}`;
       resultName = resizedName(file.name, width, height, format);
-      outputEl!.hidden = false;
+      syncEmptyState(outputEl!, false);
     } catch (e) {
       if (e instanceof WasmError && e.code === "aborted") return;
       hideOutput();

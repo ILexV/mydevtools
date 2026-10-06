@@ -7,6 +7,7 @@
  * "enter a secret" when the secret is empty (instead of a bare "invalid").
  */
 import { jwtVerify } from "@/scripts/wasm/crypto-client";
+import { bindEmptyState, bindLoadExample, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
 import { algFromHeader, classifyAlg, decodeJwt, normalizeToken, timeClaims } from "@/tools/jwt";
 
 interface Strings {
@@ -22,6 +23,16 @@ interface Strings {
   claimValidFrom: string;
   claimIssuedAt: string;
 }
+
+/**
+ * "Load example": a synthetic HS256 demo token (sub "user-1234", exp 2100-01-01)
+ * signed with the throwaway secret below, so the example also shows "verified".
+ */
+const EXAMPLE_TOKEN =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
+  "eyJzdWIiOiJ1c2VyLTEyMzQiLCJuYW1lIjoiRGVtbyBVc2VyIiwicm9sZSI6InZpZXdlciIsImlhdCI6MTc2NzIyNTYwMCwiZXhwIjo0MTAyNDQ0ODAwfQ." +
+  "rV5714Mls37YtVABZFdQ9O195iuMAnR8bn6ugUIBl2g";
+const EXAMPLE_SECRET = "demo-secret-not-for-production";
 
 type StatusKind = "success" | "error" | "warning" | "neutral";
 
@@ -55,6 +66,10 @@ function init() {
   const status = root.querySelector<HTMLElement>("[data-jwtd-status]");
   const algBadge = root.querySelector<HTMLElement>("[data-jwtd-alg]");
   const claims = root.querySelector<HTMLElement>("[data-jwtd-claims]");
+  const outputPanel = root.querySelector<HTMLElement>("[data-jwtd-output]");
+  const inputHost = root.querySelector<HTMLElement>("[data-jwtd-input-host]");
+  const exampleBtn = root.querySelector<HTMLButtonElement>("[data-jwtd-example]");
+  const clearBtn = root.querySelector<HTMLButtonElement>("[data-jwtd-clear]");
   if (!encoded || !header || !payload || !secret || !status || !algBadge || !errorBox || !claims) return;
 
   const encodedArea: HTMLTextAreaElement = encoded;
@@ -82,7 +97,8 @@ function init() {
   function clearOutputs() {
     headerArea.value = "";
     payloadArea.value = "";
-    algEl.textContent = "ALG";
+    algEl.textContent = "";
+    if (outputPanel) syncEmptyState(outputPanel, true);
     statusBox.hidden = true;
     statusBox.innerHTML = "";
     claimsList.hidden = true;
@@ -150,6 +166,7 @@ function init() {
 
     headerArea.value = headerJson;
     payloadArea.value = payloadJson;
+    if (outputPanel) syncEmptyState(outputPanel, false);
     renderClaims(payloadJson);
 
     const alg = algFromHeader(headerJson) ?? "HS256";
@@ -184,6 +201,19 @@ function init() {
   }
 
   encodedArea.addEventListener("input", () => void updateAll());
+  const syncInput = inputHost ? bindEmptyState(inputHost, encodedArea) : () => {};
+  if (exampleBtn) {
+    bindLoadExample(exampleBtn, () => {
+      secretArea.value = EXAMPLE_SECRET;
+      setFieldValue(encodedArea, EXAMPLE_TOKEN);
+    });
+  }
+  clearBtn?.addEventListener("click", () => {
+    encodedArea.value = "";
+    syncInput();
+    void updateAll();
+    encodedArea.focus();
+  });
   secretArea.addEventListener("input", () => void updateAll());
 
   if (encodedArea.value) void updateAll();

@@ -6,7 +6,6 @@
   "ClearButton": "Limpiar",
   "CopyButton": "Copiar",
   "PasteButton": "Pegar",
-  "Copied": "¡Copiado!",
   "Statistics": "Estadísticas",
   "Words": "Palabras",
   "WordsDesc": "Conteo total de palabras",
@@ -26,5 +25,6 @@
   "Seo_Tips": "- Un punto dentro de un número o una abreviatura también cierra una oración: `Version 2.0 is out...` cuenta como 2 oraciones y `e.g. this one` como 3, así que toma el número de oraciones como una estimación.\n- Para límites en caracteres (meta descriptions, SMS, publicaciones en redes) usa **Caracteres (con espacios)**; algunos servicios cuentan unidades UTF-16, donde un emoji puede contar como 2.\n- El tailandés, el lao, el jemer y otras escrituras sin espacios no se segmentan: un fragmento continuo de ese texto cuenta como una palabra.\n- El coreano y el hindi separan las palabras con espacios, por lo que se cuentan igual que el español.\n- Tras la primera visita, la página también funciona sin conexión.",
   "InputLabel": "Texto",
   "CopyFailed": "No se pudo copiar al portapapeles.",
-  "PasteFailed": "No se pudo leer el portapapeles. Permite el acceso o pega con Ctrl+V."
+  "PasteFailed": "No se pudo leer el portapapeles. Permite el acceso o pega con Ctrl+V.",
+  "ExampleText": "La privacidad importa. Este contador funciona por completo en su navegador, así que su borrador nunca sale de la página.\n\nPegue un ensayo, una carta de presentación o la descripción de un producto para ver su extensión. ¿Es lo bastante breve? ¡Consulte el tiempo de lectura!"
 }

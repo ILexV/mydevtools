@@ -3,7 +3,6 @@
   "Description": "Encode and decode Base32 with RFC 4648, Crockford or z-base-32 alphabets, padding and letter-case options, for text and files, right in your browser.",
   "Keywords": "Base32 encoder, Base32 decoder, RFC 4648 Base32, Crockford Base32, z-base-32, decode TOTP secret Base32, Base32 online",
   "InputTextLabel": "Input (text)",
-  "InputTextPlaceholder": "Enter text or Base32...",
   "FileHint": "If a file is selected, it will be used instead of the text input.",
   "CharsetLabel": "Text charset",
   "AlphabetLabel": "Alphabet",
@@ -29,7 +28,6 @@
   "ActionClear": "Clear",
   "OutputLabel": "Output",
   "Copy": "Copy",
-  "Copied": "Copied!",
   "Download": "Download",
   "FileProgressTitle": "Processing file...",
   "Cancel": "Cancel",
@@ -48,5 +46,7 @@
   "Seo_DetailedDescription": "Base32 stores 5 bits per character and uses only letters and digits, so the result survives case changes and is easy to type or read aloud. The **RFC 4648** alphabet (`A–Z`, `2–7`) is the one used for TOTP secrets in authenticator apps and for Tor onion addresses. **Crockford** (`0–9`, `A–Z` without I, L, O and U) is made for humans: on decode it reads `I` and `L` as `1`, `O` as `0` and ignores hyphens. **z-base-32** uses a lowercase alphabet ordered for readability and is never padded.\n\nPadding with `=` to a multiple of 8 characters can be required, optional or omitted. **Letter case** forces upper- or lowercase output, while **Auto** keeps the alphabet's usual case. Decoding ignores letter case in every alphabet and, with **Allow whitespace/newlines**, skips spaces and line breaks.\n\nText is converted to bytes in the chosen charset (UTF-8, UTF-16LE, UTF-16BE, ASCII or ISO-8859-1). Files can be chosen or dropped onto the page and are read in a Web Worker with a progress bar and **Cancel**. If the decoded bytes are not valid text, the tool says so and **Download** still saves the raw bytes.",
   "Seo_Examples": "**Three alphabets**: `hello` encodes to `NBSWY3DP` (RFC 4648), `D1JPRV3F` (Crockford) and `pb1sa5dx` (z-base-32).\n\n**Padding and case**: `Hi` becomes `JBUQ====` with **Required** padding and `JBUQ` with **No padding**; **Letter case** set to **Lowercase** gives `jbuq====`.\n\n**Case-insensitive decoding**: both `JBSWY3DPEE======` and `jbswy3dpee======` decode to `Hello!`; the unpadded `JBSWY3DPEE` also works once padding is **Optional**.\n\n**Crockford tolerance**: with the Crockford alphabet, `DIJPRV3F` (letter I instead of 1) and `d1jp-rv3f` (lowercase with a hyphen) both decode to `hello`.",
   "Seo_HowToSteps": "### Step 1: Enter text or choose a file\nType or paste text into **Input (text)**, or drop a file onto the page or click **Choose file**.\n\n### Step 2: Choose the alphabet and padding\nSelect the **Alphabet**: **RFC 4648 (A-Z2-7)**, **Crockford (0-9A-Z)** or **z-base-32**. Set **Padding**, **Letter case** and the **Text charset** if your text is not UTF-8.\n\n### Step 3: Encode or decode\nClick **Encode** to produce Base32 or **Decode** to restore the original text or bytes. Use the same alphabet that produced the string.\n\n### Step 4: Copy or download\nClick **Copy** for the clipboard or **Download** to save the result; binary output can only be saved as a file.",
-  "Seo_Tips": "- Base32 output is about 60% larger than the input (8 characters for every 5 bytes); when case-insensitivity does not matter, Base64 is more compact.\n- TOTP secrets from `otpauth://` QR codes are RFC 4648 Base32, often without padding: choose **Optional** padding. `JBSWY3DPEHPK3PXP` decodes to 10 raw bytes, so save them with **Download**.\n- Unpadded input such as `JBSWY3DPEE` is rejected while padding is **Required**; switch to **Optional**.\n- The alphabets are not interchangeable: `pb1sa5dx` decodes to `hello` only with z-base-32 and is invalid as RFC 4648.\n- Spaces and line breaks in pasted keys are ignored while **Allow whitespace/newlines** is on."
+  "Seo_Tips": "- Base32 output is about 60% larger than the input (8 characters for every 5 bytes); when case-insensitivity does not matter, Base64 is more compact.\n- TOTP secrets from `otpauth://` QR codes are RFC 4648 Base32, often without padding: choose **Optional** padding. `JBSWY3DPEHPK3PXP` decodes to 10 raw bytes, so save them with **Download**.\n- Unpadded input such as `JBSWY3DPEE` is rejected while padding is **Required**; switch to **Optional**.\n- The alphabets are not interchangeable: `pb1sa5dx` decodes to `hello` only with z-base-32 and is invalid as RFC 4648.\n- Spaces and line breaks in pasted keys are ignored while **Allow whitespace/newlines** is on.",
+  "EmptyHint": "Type text to encode, or paste Base32 to decode — or drop a file below.",
+  "OutputEmpty": "The encoded or decoded result appears here."
 }

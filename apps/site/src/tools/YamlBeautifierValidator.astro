@@ -8,8 +8,11 @@
 import { t } from "@/i18n/messages";
 import { editorPhrases } from "@/tools/editor-phrases";
 import type { LocaleCode } from "@/registry/locales";
+import CopyButton from "@/components/tool/CopyButton.astro";
+import EmptyState from "@/components/tool/EmptyState.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 import "@/styles/codemirror.css";
 
 interface Props {
@@ -26,39 +29,49 @@ const s = {
   valid: t(lang, ns, "Valid"),
   invalid: t(lang, ns, "Invalid"),
   copy: t(lang, ns, "Copy"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
+  copyFailed: t(lang, "common", "Common_CopyFailed"),
+  emptyHint: t(lang, ns, "EmptyHint"),
+  outputEmpty: t(lang, ns, "OutputEmpty"),
+  loadExample: t(lang, "common", "Common_LoadExample"),
   paste: t(lang, ns, "Paste"),
   keyboardHint: t(lang, ns, "EditorKeyboardHint"),
 };
 const stringsJson = JSON.stringify({ ...s, phrases: editorPhrases(lang) });
 ---
 
-<div class="ds-stack" data-yaml-tool>
-  <div class="ds-actions">
-    <button type="button" class="ds-btn ds-btn-primary" data-yaml-format>{s.format}</button>
-    <button type="button" class="ds-btn" data-yaml-validate>{s.validate}</button>
-    <button type="button" class="ds-btn ds-btn-danger" data-yaml-clear>{s.clear}</button>
-  </div>
-
-  <StatusMessage kind="error" data-yaml-error />
-
-  <div class="ds-tool-grid">
-    <OutputPanel label={s.inputLabel}>
-      <Fragment slot="actions">
-        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-yaml-paste>{s.paste}</button>
-      </Fragment>
+<div class="ds-workbench" data-yaml-tool>
+  <ToolPanel title={s.inputLabel}>
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-yaml-paste>{s.paste}</button>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-yaml-clear>{s.clear}</button>
+    </Fragment>
+    <div class="ds-editor is-empty" data-yaml-input-host>
       <div class="mdt-cm" data-yaml-input role="group" aria-label={s.inputLabel}></div>
-    </OutputPanel>
+      <EmptyState
+        hint={s.emptyHint}
+        hintId="yaml-input-empty"
+        exampleLabel={s.loadExample}
+        buttonProps={{ "data-yaml-example": true }}
+      />
+    </div>
+    <p class="ds-hint" id="yaml-editor-hint">{s.keyboardHint}</p>
 
-    <OutputPanel label={s.outputLabel}>
-      <Fragment slot="actions">
-        <span class="ds-badge" data-yaml-status role="status" hidden></span>
-        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-yaml-copy>{s.copy}</button>
-      </Fragment>
-      <div class="mdt-cm" data-yaml-output role="group" aria-label={s.outputLabel}></div>
-    </OutputPanel>
-  </div>
-  <p class="ds-hint" id="yaml-editor-hint">{s.keyboardHint}</p>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-yaml-format>{s.format}</button>
+      <button type="button" class="ds-btn" data-yaml-validate>{s.validate}</button>
+    </div>
+
+    <StatusMessage kind="error" data-yaml-error />
+  </ToolPanel>
+
+  <OutputPanel panel label={s.outputLabel} emptyHint={s.outputEmpty} data-yaml-output-panel>
+    <Fragment slot="actions">
+      <span class="ds-badge" data-yaml-status role="status" hidden></span>
+      <CopyButton ghost label={s.copy} copiedLabel={s.copied} failedLabel={s.copyFailed} data-yaml-copy disabled />
+    </Fragment>
+    <div class="mdt-cm ds-when-filled" data-yaml-output role="group" aria-label={s.outputLabel}></div>
+  </OutputPanel>
 </div>
 
 <script is:inline type="application/json" data-yaml-strings set:html={stringsJson} />

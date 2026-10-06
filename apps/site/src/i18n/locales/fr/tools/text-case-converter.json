@@ -3,10 +3,8 @@
   "CamelCase": "Camel Case",
   "Keywords": "convertisseur de casse, changer la casse, camelCase, snake_case, kebab-case, majuscules minuscules, casse de titre, nom de variable, text case converter",
   "ClearButton": "Effacer",
-  "Copied": "Copié !",
   "CopyButton": "Copier",
   "Description": "Convertissez un texte en camelCase, snake_case, kebab-case, casse de titre, casse de phrase, MAJUSCULES ou minuscules. Découpe bien XMLHttpRequest.",
-  "InputPlaceholder": "Tapez ou collez votre texte ici...",
   "InverseCase": "Inverser la casse",
   "KebabCase": "Kebab Case",
   "LowerCase": "minuscules",
@@ -22,5 +20,7 @@
   "Seo_Tips": "- **MAJUSCULES**, **minuscules** et **Titre (chaque mot en majuscule)** traitent aussi `_` et `-` comme séparateurs et les remplacent par des espaces : `user_id` devient `USER ID`. Pour obtenir `USER_ID`, appliquez **Inverser la casse** à `user_id` tout en minuscules.\n- La casse de phrase met aussi en minuscules les noms propres et les sigles (`HTTP server` devient `Http server`) — corrigez-les à la main.\n- La casse de titre met une majuscule à chaque mot, même les plus courts : `the lord of the rings` devient `The Lord Of The Rings` ; elle ne suit pas les exceptions des guides de style.\n- Une majuscule au milieu d’un mot commence un nouveau mot : `iPhone` avec Snake Case devient `i_phone`.\n- La conversion écrase le champ ; gardez l’original ailleurs si vous voulez comparer plusieurs variantes.",
   "InputLabel": "Texte",
   "ConvertLabel": "Convertir en",
-  "CopyFailed": "Impossible de copier dans le presse-papiers."
+  "CopyFailed": "Impossible de copier dans le presse-papiers.",
+  "EmptyHint": "Saisissez ou collez du texte, puis choisissez une casse ci-dessous : il est converti sur place.",
+  "ExampleText": "portez ce vieux whisky au juge blond qui fume. userProfile settings enregistrés à 10:42."
 }

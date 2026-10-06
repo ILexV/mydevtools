@@ -3,13 +3,11 @@
   "Description": "브라우저에서 XML을 2/4칸 공백 또는 탭으로 보기 좋게 정리하거나 압축합니다. 주석, CDATA, 처리 명령을 유지하고 파싱 오류를 알려 줍니다.",
   "Keywords": "XML 포맷터, XML 정렬, XML 뷰티파이어, XML 압축, XML minify, XML 검증, XML 들여쓰기, XML formatter, pretty print XML, 온라인 XML 포맷",
   "InputLabel": "입력 XML",
-  "InputPlaceholder": "XML을 여기에 붙여넣으세요...",
   "FormatButton": "포맷",
   "ClearButton": "지우기",
   "OpenButton": "열기",
   "SaveButton": "저장",
   "CopyButton": "복사",
-  "Copied": "복사됨!",
   "ErrorInvalidXml": "잘못된 XML입니다. 입력을 확인하세요.",
   "IndentSizeLabel": "들여쓰기 크기",
   "Indent2Spaces": "2칸 공백",
@@ -21,5 +19,6 @@
   "Seo_DetailedDescription": "**포맷**은 모든 요소를 각자의 줄에 놓고 2칸 공백, 4칸 공백 또는 탭으로 들여씁니다. 텍스트만 담은 요소는 한 줄로 유지되고(`<to>Ann</to>`), 빈 요소는 `<b/>`로 출력됩니다. **압축 모드 (최소화)**는 태그 사이 공백을 제거합니다. XML 선언, 주석, `<![CDATA[…]]>` 섹션, `<?xml-stylesheet …?>` 같은 처리 명령, DOCTYPE은 그대로 유지되며, 특수 문자는 출력 시 다시 이스케이프됩니다(`&amp;`, `&lt;`, `&quot;`).\n\n파싱은 HTML이 아닌 엄격한 XML 기준입니다. 닫히지 않았거나 짝이 맞지 않는 태그, 빠진 따옴표, 정의되지 않은 엔티티가 있으면 파서 메시지와 함께 포맷이 중단됩니다. 예를 들어 Chrome에서는 `error on line 1 at column 11: Opening and ending tag mismatch`가 표시됩니다. 브라우저가 DOCTYPE의 내부 서브셋(`<!DOCTYPE x [ … ]>`)을 제공하지 않기 때문에 이 부분은 유지되지 않습니다.\n\n.xml 파일을 열거나 에디터에 끌어다 놓은 뒤 결과를 복사하거나 `formatted.xml`로 저장하세요. 에디터는 태그, 속성, 주석을 강조하고 요소를 접을 수 있으며 큰 파일에서도 빠르게 동작합니다. 들여쓰기와 압축 설정은 이 브라우저에 기억되지만 XML 자체는 저장되거나 어디로도 전송되지 않습니다.",
   "Seo_Examples": "**한 줄 문서 들여쓰기**: `<note><to>Ann</to><from>Bob</from></note>`를 2칸 공백으로 포맷하면 `<note>`, `  <to>Ann</to>`, `  <from>Bob</from>`, `</note>`의 네 줄이 됩니다.\n\n**주석과 CDATA 유지**: `<?xml version=\"1.0\"?><!-- cfg --><config><db host=\"localhost\" port=\"5432\"/><![CDATA[a<b]]></config>`에서 선언과 주석은 각각 별도 줄에 놓이고, `<![CDATA[a<b]]>`는 `<config>` 안에 그대로 남습니다.\n\n**압축**: 압축 모드를 켜면 `<a>1</a>`와 `<b/>`를 담은 들여쓴 `<root>`가 `<root><a>1</a><b/></root>`가 됩니다.\n\n**깨진 태그 찾기**: `<a><b></a>`는 “Opening and ending tag mismatch: b line 1 and a” 오류로 거부됩니다.",
   "Seo_HowToSteps": "### 1단계: XML 입력\n**입력 XML** 에디터에 붙여넣거나, **열기**를 눌러 .xml 파일을 불러오거나, 파일을 에디터에 끌어다 놓습니다.\n\n### 2단계: 출력 스타일 선택\n**들여쓰기 크기**(2칸 공백, 4칸 공백 또는 탭)를 고르거나 **압축 모드 (최소화)**를 켭니다.\n\n### 3단계: 포맷\n**포맷**을 누르거나 Ctrl+Enter(macOS에서는 Cmd+Enter)를 누릅니다. 파싱 오류는 에디터 위에 표시됩니다.\n\n### 4단계: 결과 사용\n**복사**를 누르거나, **저장**을 눌러 결과를 `formatted.xml`로 다운로드합니다.",
-  "Seo_Tips": "- 들여쓰기나 압축 모드를 바꾸면 현재 문서가 즉시 다시 포맷됩니다.\n- 혼합 콘텐츠는 나뉘고 공백이 잘립니다. `<p>Hello <b>world</b>!</p>`는 `Hello`, `<b>world</b>`, `!`이 각각 별도 줄이 됩니다. 텍스트 안의 공백이 중요한 문서는 다시 포맷하지 마세요.\n- HTML 습관은 XML을 깨뜨립니다. 슬래시 없는 `<br>`이나 DTD 없는 `&nbsp;`는 여기서 오류입니다.\n- 줄 번호 옆 화살표를 눌러 요소를 접을 수 있고, Ctrl/Cmd+F로 문서 전체를 검색합니다.\n- 에디터에서 Tab은 들여쓰기를 넣습니다. 포커스를 밖으로 옮기려면 Esc를 누른 뒤 Tab을 누르세요.\n- 업로드가 없습니다. 문서는 페이지 안에서 처리되며, 처음 방문한 뒤에는 오프라인에서도 동작합니다."
+  "Seo_Tips": "- 들여쓰기나 압축 모드를 바꾸면 현재 문서가 즉시 다시 포맷됩니다.\n- 혼합 콘텐츠는 나뉘고 공백이 잘립니다. `<p>Hello <b>world</b>!</p>`는 `Hello`, `<b>world</b>`, `!`이 각각 별도 줄이 됩니다. 텍스트 안의 공백이 중요한 문서는 다시 포맷하지 마세요.\n- HTML 습관은 XML을 깨뜨립니다. 슬래시 없는 `<br>`이나 DTD 없는 `&nbsp;`는 여기서 오류입니다.\n- 줄 번호 옆 화살표를 눌러 요소를 접을 수 있고, Ctrl/Cmd+F로 문서 전체를 검색합니다.\n- 에디터에서 Tab은 들여쓰기를 넣습니다. 포커스를 밖으로 옮기려면 Esc를 누른 뒤 Tab을 누르세요.\n- 업로드가 없습니다. 문서는 페이지 안에서 처리되며, 처음 방문한 뒤에는 오프라인에서도 동작합니다.",
+  "EmptyHint": "XML을 붙여넣거나 .xml 파일을 여기로 끌어다 놓아 들여쓰기하거나 한 줄로 압축하세요."
 }

@@ -10,11 +10,14 @@
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
+import CopyButton from "@/components/tool/CopyButton.astro";
+import EmptyState from "@/components/tool/EmptyState.astro";
 import Field from "@/components/tool/Field.astro";
 import FileDrop from "@/components/tool/FileDrop.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
 import Progress from "@/components/tool/Progress.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -25,7 +28,9 @@ const ns = "tools/base58-encoder";
 
 const s = {
   inputTextLabel: t(lang, ns, "InputTextLabel"),
-  inputTextPlaceholder: t(lang, ns, "InputTextPlaceholder"),
+  emptyHint: t(lang, ns, "EmptyHint"),
+  outputEmpty: t(lang, ns, "OutputEmpty"),
+  loadExample: t(lang, "common", "Common_LoadExample"),
   fileHint: t(lang, ns, "FileHint"),
   charsetLabel: t(lang, ns, "CharsetLabel"),
   alphabetLabel: t(lang, ns, "AlphabetLabel"),
@@ -45,7 +50,8 @@ const s = {
   actionClear: t(lang, ns, "ActionClear"),
   outputLabel: t(lang, ns, "OutputLabel"),
   copy: t(lang, ns, "Copy"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
+  copyFailed: t(lang, "common", "Common_CopyFailed"),
   download: t(lang, ns, "Download"),
   fileProgressTitle: t(lang, ns, "FileProgressTitle"),
   cancel: t(lang, ns, "Cancel"),
@@ -68,104 +74,107 @@ const s = {
 const stringsJson = JSON.stringify(s);
 ---
 
-<div class="ds-stack" data-b58-tool>
-  <div class="ds-tool-grid">
-    <section class="ds-card ds-stack">
-      <Field label={s.inputTextLabel} for="b58-input-text">
-        <textarea
-          id="b58-input-text"
-          class="ds-field-textarea mono"
-          data-b58-input
-          rows="8"
-          spellcheck="false"
-          placeholder={s.inputTextPlaceholder}
-        ></textarea>
-      </Field>
-
-      <FileDrop
-        compact
-        data-b58-drop
-        title={s.dropTitle}
-        sub={s.fileHint}
-        buttonLabel={s.chooseFile}
-        inputProps={{ "data-b58-file": true }}
-      >
-        <div class="ds-file-row">
-          <span class="ds-file-name" data-b58-filename aria-live="polite"></span>
-          <button type="button" class="ds-btn-link" data-b58-file-clear hidden>{s.clearFile}</button>
-        </div>
-      </FileDrop>
-
-      <div class="ds-settings">
-        <Field label={s.charsetLabel} for="b58-charset">
-          <select id="b58-charset" class="ds-field-select" data-b58-charset>
-            <option value="utf-8">UTF-8</option>
-            <option value="utf-16le">UTF-16LE</option>
-            <option value="utf-16be">UTF-16BE</option>
-            <option value="ascii">ASCII</option>
-            <option value="latin1">ISO-8859-1 (Latin-1)</option>
-          </select>
-        </Field>
-        <Field label={s.alphabetLabel} for="b58-alphabet">
-          <select id="b58-alphabet" class="ds-field-select" data-b58-alphabet>
-            <option value="bitcoin">{s.alphabetBitcoin}</option>
-            <option value="flickr">{s.alphabetFlickr}</option>
-            <option value="ripple">{s.alphabetRipple}</option>
-          </select>
-        </Field>
-        <Field class="ds-settings-wide" label={s.outputModeLabel} for="b58-output-mode">
-          <select id="b58-output-mode" class="ds-field-select" data-b58-output-mode>
-            <option value="preview">{s.outputModePreview}</option>
-            <option value="full">{s.outputModeFull}</option>
-          </select>
-        </Field>
-        <fieldset class="ds-check-group ds-settings-wide">
-          <legend class="ds-label">{s.decodeOptionsLabel}</legend>
-          <label class="ds-check-row">
-            <input type="checkbox" class="ds-check" data-b58-allow-whitespace checked />
-            <span>{s.allowWhitespace}</span>
-          </label>
-        </fieldset>
-      </div>
-    </section>
-
-    <section class="ds-card ds-stack">
-      <OutputPanel label={s.outputLabel} for="b58-output">
-        <Fragment slot="actions">
-          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-b58-copy>{s.copy}</button>
-          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-b58-download disabled>{s.download}</button>
-        </Fragment>
-        <textarea
-          id="b58-output"
-          class="ds-field-textarea mono enc-output"
-          data-b58-output
-          rows="16"
-          spellcheck="false"
-          readonly
-        ></textarea>
-        <p class="ds-hint" data-b58-stats aria-live="polite"></p>
-      </OutputPanel>
-
-      <Progress
-        data-b58-progress
-        title={s.fileProgressTitle}
-        cancelLabel={s.cancel}
-        cancelProps={{ "data-b58-cancel": true }}
-        barProps={{ "data-b58-progress-bar": true }}
-        fillProps={{ "data-b58-progress-fill": true }}
-        labelProps={{ "data-b58-progress-label": true }}
+<div class="ds-workbench" data-b58-tool>
+  <ToolPanel title={s.inputTextLabel} for="b58-input-text">
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-b58-clear>{s.actionClear}</button>
+    </Fragment>
+    <div class="ds-editor is-empty" data-b58-input-host>
+      <textarea
+        id="b58-input-text"
+        class="ds-field-textarea mono enc-input"
+        data-b58-input
+        rows="8"
+        spellcheck="false"
+        aria-describedby="b58-input-empty"
+      ></textarea>
+      <EmptyState
+        hint={s.emptyHint}
+        hintId="b58-input-empty"
+        exampleLabel={s.loadExample}
+        buttonProps={{ "data-b58-example": true }}
       />
-    </section>
-  </div>
+    </div>
 
-  <div class="ds-actions">
-    <button type="button" class="ds-btn ds-btn-primary" data-b58-encode>{s.actionEncode}</button>
-    <button type="button" class="ds-btn" data-b58-decode>{s.actionDecode}</button>
-    <button type="button" class="ds-btn" data-b58-swap>{s.actionSwap}</button>
-    <button type="button" class="ds-btn" data-b58-clear>{s.actionClear}</button>
-  </div>
+    <FileDrop
+      compact
+      data-b58-drop
+      title={s.dropTitle}
+      sub={s.fileHint}
+      buttonLabel={s.chooseFile}
+      inputProps={{ "data-b58-file": true }}
+    >
+      <div class="ds-file-row">
+        <span class="ds-file-name" data-b58-filename aria-live="polite"></span>
+        <button type="button" class="ds-btn-link" data-b58-file-clear hidden>{s.clearFile}</button>
+      </div>
+    </FileDrop>
 
-  <StatusMessage kind="error" data-b58-error />
+    <div class="ds-settings">
+      <Field label={s.charsetLabel} for="b58-charset">
+        <select id="b58-charset" class="ds-field-select" data-b58-charset>
+          <option value="utf-8">UTF-8</option>
+          <option value="utf-16le">UTF-16LE</option>
+          <option value="utf-16be">UTF-16BE</option>
+          <option value="ascii">ASCII</option>
+          <option value="latin1">ISO-8859-1 (Latin-1)</option>
+        </select>
+      </Field>
+      <Field label={s.alphabetLabel} for="b58-alphabet">
+        <select id="b58-alphabet" class="ds-field-select" data-b58-alphabet>
+          <option value="bitcoin">{s.alphabetBitcoin}</option>
+          <option value="flickr">{s.alphabetFlickr}</option>
+          <option value="ripple">{s.alphabetRipple}</option>
+        </select>
+      </Field>
+      <Field class="ds-settings-wide" label={s.outputModeLabel} for="b58-output-mode">
+        <select id="b58-output-mode" class="ds-field-select" data-b58-output-mode>
+          <option value="preview">{s.outputModePreview}</option>
+          <option value="full">{s.outputModeFull}</option>
+        </select>
+      </Field>
+      <fieldset class="ds-check-group ds-settings-wide">
+        <legend class="ds-label">{s.decodeOptionsLabel}</legend>
+        <label class="ds-check-row">
+          <input type="checkbox" class="ds-check" data-b58-allow-whitespace checked />
+          <span>{s.allowWhitespace}</span>
+        </label>
+      </fieldset>
+    </div>
+
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-b58-encode>{s.actionEncode}</button>
+      <button type="button" class="ds-btn" data-b58-decode>{s.actionDecode}</button>
+      <button type="button" class="ds-btn" data-b58-swap>{s.actionSwap}</button>
+    </div>
+
+    <Progress
+      data-b58-progress
+      title={s.fileProgressTitle}
+      cancelLabel={s.cancel}
+      cancelProps={{ "data-b58-cancel": true }}
+      barProps={{ "data-b58-progress-bar": true }}
+      fillProps={{ "data-b58-progress-fill": true }}
+      labelProps={{ "data-b58-progress-label": true }}
+    />
+    <StatusMessage kind="error" data-b58-error />
+  </ToolPanel>
+
+  <OutputPanel panel label={s.outputLabel} for="b58-output" emptyHint={s.outputEmpty} data-b58-output-panel>
+    <Fragment slot="actions">
+      <CopyButton ghost label={s.copy} copiedLabel={s.copied} failedLabel={s.copyFailed} data-b58-copy disabled />
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-b58-download disabled>{s.download}</button>
+    </Fragment>
+    <textarea
+      id="b58-output"
+      class="ds-field-textarea mono enc-output ds-when-filled"
+      data-b58-output
+      rows="16"
+      spellcheck="false"
+      readonly
+    ></textarea>
+    <p class="ds-hint ds-when-filled" data-b58-stats aria-live="polite"></p>
+  </OutputPanel>
 </div>
 
 <script is:inline type="application/json" data-b58-strings set:html={stringsJson} />

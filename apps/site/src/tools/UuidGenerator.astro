@@ -1,11 +1,15 @@
 ---
 /**
  * UUID Generator tool (pure JS, Web Crypto). v4/v7, format, case, batch ≤100,
- * per-row copy, copy-all, download .txt, clear. Strings via JSON island.
+ * per-row copy, copy-all, download .txt, clear. Workbench: options panel
+ * (settings → Generate) | output panel with header actions and empty state.
+ * Strings via JSON island.
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
+import CopyButton from "@/components/tool/CopyButton.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
 
 interface Props {
@@ -31,7 +35,8 @@ const s = {
   download: t(lang, ns, "Download"),
   clear: t(lang, ns, "Clear"),
   copy: t(lang, ns, "Copy"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
+  settingsLabel: t(lang, ns, "SettingsLabel"),
   copyFailed: t(lang, ns, "CopyFailed"),
   outputLabel: t(lang, ns, "OutputLabel"),
   outputPlaceholder: t(lang, ns, "OutputPlaceholder"),
@@ -39,8 +44,8 @@ const s = {
 const stringsJson = JSON.stringify(s);
 ---
 
-<div class="ds-stack uuid-tool" data-uuid-tool>
-  <section class="ds-card ds-stack">
+<div class="ds-workbench uuid-tool" data-uuid-tool>
+  <ToolPanel title={s.settingsLabel}>
     <div class="ds-settings ds-settings-flat uuid-settings">
       {[
         { name: "uuid-version", legend: s.versionLabel, opts: [["v4", s.v4], ["v7", s.v7]] },
@@ -57,23 +62,24 @@ const stringsJson = JSON.stringify(s);
           ))}
         </fieldset>
       ))}
-      <div class="ds-field-group">
+      <div class="ds-field-group ds-settings-wide">
         <label class="ds-label" for="uuid-count">{s.countLabel}: <span class="uuid-count-val" data-uuid-count-val>1</span></label>
         <input id="uuid-count" type="range" class="uuid-range" min="1" max="100" value="1" data-uuid-count />
       </div>
     </div>
-    <div class="ds-actions">
+    <div class="ds-action-row">
       <button type="button" class="ds-btn ds-btn-primary" data-uuid-generate>{s.generate}</button>
-      <button type="button" class="ds-btn" data-uuid-copyall hidden>{s.copyAll}</button>
-      <button type="button" class="ds-btn" data-uuid-download hidden>{s.download}</button>
-      <button type="button" class="ds-btn ds-btn-danger" data-uuid-clear hidden>{s.clear}</button>
     </div>
     <StatusMessage kind="error" data-uuid-error />
-  </section>
+  </ToolPanel>
 
-  <OutputPanel label={s.outputLabel} class="ds-card">
-    <p class="ds-empty" data-uuid-empty>{s.outputPlaceholder}</p>
-    <ol class="ds-result-list uuid-list" data-uuid-list aria-live="polite" hidden></ol>
+  <OutputPanel panel label={s.outputLabel} emptyHint={s.outputPlaceholder} data-uuid-output>
+    <Fragment slot="actions">
+      <CopyButton ghost label={s.copyAll} copiedLabel={s.copied} hidden data-uuid-copyall />
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-uuid-download hidden>{s.download}</button>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-uuid-clear hidden>{s.clear}</button>
+    </Fragment>
+    <ol class="ds-result-list uuid-list ds-when-filled" data-uuid-list aria-live="polite"></ol>
   </OutputPanel>
 </div>
 
@@ -82,7 +88,7 @@ const stringsJson = JSON.stringify(s);
 
 <style>
   /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
-  .uuid-settings { grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); }
+  .uuid-settings { grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr)); }
   .uuid-count-val { font-family: var(--mdt-font-mono); color: var(--mdt-cat); }
   .uuid-range { width: 100%; accent-color: var(--mdt-cat); }
   .uuid-list { margin: 0; padding: 0; list-style: none; max-height: 32rem; overflow: auto; }

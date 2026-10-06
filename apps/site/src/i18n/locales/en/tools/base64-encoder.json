@@ -3,7 +3,6 @@
   "Description": "Encode text or files to Base64 and decode back: standard or URL-safe alphabet, padding control, 76-char line wrap and image preview. Runs in your browser.",
   "Keywords": "Base64 encoder, Base64 decoder, Base64 encode online, Base64 decode online, URL-safe Base64, Base64 to image, Base64 file encoder",
   "InputTextLabel": "Input (text)",
-  "InputTextPlaceholder": "Enter text or Base64...",
   "FileHint": "If a file is selected, it will be used instead of the text input.",
   "CharsetLabel": "Text charset",
   "AlphabetLabel": "Alphabet",
@@ -27,13 +26,12 @@
   "ActionClear": "Clear",
   "OutputLabel": "Output",
   "Copy": "Copy",
-  "Copied": "Copied!",
   "Download": "Download",
   "FileProgressTitle": "Processing file...",
   "Cancel": "Cancel",
   "ImageDetected": "Detected image: {type}",
   "BinaryDetected": "Detected binary file: {type} — ready to download",
-  "BinaryDownloadHint": "Use the Download button below to save the file.",
+  "BinaryDownloadHint": "Use the Download button to save the file.",
   "OutputTitle": "Output",
   "StatsChars": "{n} chars",
   "StatsChars_one": "{n} char",
@@ -58,5 +56,7 @@
   "Seo_DetailedDescription": "Text is first converted to bytes in the selected charset (UTF-8, UTF-16LE, UTF-16BE, ASCII or ISO-8859-1) and then encoded with the standard RFC 4648 alphabet (`+` and `/`) or the URL-safe alphabet (`-` and `_`) used in JWTs and URL parameters. Padding with `=` can be required, optional or omitted, and the output can be wrapped at 76 characters per line, as MIME email expects.\n\nOn decode the tool inspects the resulting bytes. Readable text goes to the output field; PNG, JPEG, GIF, WebP, BMP, ICO, TIFF and SVG images are shown as a preview with their pixel size; PDF, ZIP, GZIP, MP3, MP4 and executables are recognized by their signature. Anything that is not text can be saved with **Download** under the matching extension, for example `decoded.png`.\n\nA file can be chosen or dropped onto the page; while a file is selected, the text field is ignored. Files are read in 1 MiB chunks in a Web Worker with a progress bar and a **Cancel** button, but the whole file is kept in memory, so the practical size limit is your device's RAM. Very long results are previewed in the output field and saved in full with **Download**.",
   "Seo_Examples": "**Text to Base64**: `Hello, World!` encodes to `SGVsbG8sIFdvcmxkIQ==`; with UTF-8, `Привет` becomes `0J/RgNC40LLQtdGC` (12 bytes in, 16 characters out).\n\n**URL-safe without padding**: `<<???>>` gives `PDw/Pz8+Pg==` with the standard alphabet and `PDw_Pz8-Pg` with **URL-safe (-_)** and **No padding**, the form used in JWT segments.\n\n**Unpadded input**: decoding `SGk` fails with the default **Required** padding; switch **Padding** to **Optional** and it decodes to `Hi`.\n\n**Base64 to image**: pasting the Base64 of a PNG (it starts with `iVBORw0KGgo`) shows the picture with its size, for example 1×1 px, and **Download** saves it as `decoded.png`.",
   "Seo_HowToSteps": "### Step 1: Enter text or choose a file\nType or paste text into **Input (text)**, or drop a file onto the page or click **Choose file**. A selected file takes priority over the text field.\n\n### Step 2: Set the options\nPick the **Text charset** (UTF-8 in most cases), the **Alphabet** (**Standard (+/)** or **URL-safe (-_)**), **Padding** and, for MIME email, **Line wrap** at **76 chars**.\n\n### Step 3: Encode or decode\nClick **Encode** to get Base64, or **Decode** to turn Base64 back into text, an image preview or a binary file. An error message names the problem, such as an invalid character or wrong padding.\n\n### Step 4: Copy or download the result\nClick **Copy** to put the output on the clipboard or **Download** to save it as a file. **Swap** moves the output back into the input for a round-trip check.",
-  "Seo_Tips": "- Base64 makes data about 33% larger: every 3 bytes become 4 characters. It is an encoding, not encryption; anyone can decode it.\n- Remove the `data:image/png;base64,` prefix of a data URI before decoding; the decoder accepts only the Base64 part.\n- JWT header and payload use the URL-safe alphabet without padding: choose **URL-safe (-_)** and **Optional** padding, and `eyJhbGciOiJIUzI1NiJ9` decodes to `{\"alg\":\"HS256\"}`.\n- Keep **Allow whitespace/newlines** on to decode wrapped Base64 from emails or PEM files; turn it off to check that the input is a single clean line.\n- The charset matters: `é` is `w6k=` in UTF-8 but `6Q==` in ISO-8859-1, so decode with the same charset that was used to encode.\n- After the page has been opened once, it keeps working without a network connection."
+  "Seo_Tips": "- Base64 makes data about 33% larger: every 3 bytes become 4 characters. It is an encoding, not encryption; anyone can decode it.\n- Remove the `data:image/png;base64,` prefix of a data URI before decoding; the decoder accepts only the Base64 part.\n- JWT header and payload use the URL-safe alphabet without padding: choose **URL-safe (-_)** and **Optional** padding, and `eyJhbGciOiJIUzI1NiJ9` decodes to `{\"alg\":\"HS256\"}`.\n- Keep **Allow whitespace/newlines** on to decode wrapped Base64 from emails or PEM files; turn it off to check that the input is a single clean line.\n- The charset matters: `é` is `w6k=` in UTF-8 but `6Q==` in ISO-8859-1, so decode with the same charset that was used to encode.\n- After the page has been opened once, it keeps working without a network connection.",
+  "EmptyHint": "Type text to encode, or paste Base64 to decode — or drop a file below.",
+  "OutputEmpty": "The encoded or decoded result appears here."
 }

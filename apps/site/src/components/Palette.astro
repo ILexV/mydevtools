@@ -9,7 +9,7 @@
 import type { LocaleCode } from "@/registry/locales";
 import { buildCatalog, categoryLabel } from "@/registry/catalog";
 import { CATEGORY_IDS } from "@/registry/categories";
-import { ICONS } from "./Icon.astro";
+import Icon, { ICONS } from "./Icon.astro";
 import { t } from "@/i18n/messages";
 
 interface Props {
@@ -45,24 +45,28 @@ const placeholder = t(locale, "common", "CommandPalette_SearchPlaceholder");
 >
   <div class="palette-backdrop" data-palette-close></div>
   <div class="palette-panel" role="dialog" aria-modal="true" aria-label={searchLabel}>
-    <input
-      class="palette-input"
-      data-palette-input
-      type="text"
-      role="combobox"
-      aria-expanded="true"
-      aria-controls="palette-results"
-      placeholder={placeholder}
-      aria-label={searchLabel}
-      autocomplete="off"
-      spellcheck="false"
-    />
+    <div class="palette-head">
+      <Icon name="search" size={16} />
+      <input
+        class="palette-input"
+        data-palette-input
+        type="text"
+        role="combobox"
+        aria-expanded="true"
+        aria-autocomplete="list"
+        aria-controls="palette-results"
+        placeholder={placeholder}
+        aria-label={searchLabel}
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <kbd class="palette-esc" aria-hidden="true">Esc</kbd>
+    </div>
     <div class="palette-results" id="palette-results" data-palette-results role="listbox" aria-label={searchLabel}></div>
     <div class="palette-foot" aria-hidden="true">
-      <span><kbd>↑</kbd><kbd>↓</kbd></span>
-      <span><kbd>Enter</kbd> ↵</span>
-      <span><kbd>Esc</kbd> ✕</span>
-      <span><kbd>Ctrl</kbd>+<kbd>K</kbd></span>
+      <span><kbd>↑</kbd><kbd>↓</kbd> {t(locale, "common", "CommandPalette_HintNavigate")}</span>
+      <span><kbd>↵</kbd> {t(locale, "common", "CommandPalette_HintOpen")}</span>
+      <span><kbd>Esc</kbd> {t(locale, "common", "CommandPalette_HintClose")}</span>
     </div>
   </div>
 </div>
@@ -108,116 +112,153 @@ const placeholder = t(locale, "common", "CommandPalette_SearchPlaceholder");
     position: relative;
     width: 100%;
     max-width: 34rem;
+    display: flex;
+    flex-direction: column;
     background: var(--mdt-surface-raised);
     border: 1px solid var(--mdt-border);
     border-radius: var(--mdt-radius);
     box-shadow: var(--mdt-shadow-e2);
     overflow: hidden;
   }
+  /* 52px search header: icon + input + Esc hint. The input is always focused
+     while open, so focus is shown by the icon/hairline turning accent. */
+  .palette-head {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    height: 3.25rem;
+    padding: 0 0.9rem 0 1rem;
+    border-bottom: 1px solid var(--mdt-border);
+    color: var(--mdt-text-faint);
+  }
+  .palette-head:focus-within {
+    color: var(--mdt-accent);
+    border-bottom-color: color-mix(in srgb, var(--mdt-accent) 45%, var(--mdt-border));
+  }
   .palette-input {
-    width: 100%;
-    padding: 0.9rem 1rem;
+    flex: 1;
+    min-width: 0;
+    height: 100%;
     font: inherit;
+    font-size: var(--mdt-fs-body);
     color: var(--mdt-text);
     background: transparent;
     border: none;
-    border-bottom: 1px solid var(--mdt-border);
     outline: none;
+  }
+  .palette-input::placeholder { color: var(--mdt-text-faint); }
+  .palette kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.35rem;
+    height: 1.25rem;
+    padding: 0 0.3rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-xs);
+    background: var(--mdt-surface-inset);
+    color: var(--mdt-text-muted);
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-micro);
+    line-height: 1;
   }
   .palette-results {
     max-height: min(30rem, 62vh);
     overflow-y: auto;
-    padding: 0 0.35rem 0.35rem;
+    overscroll-behavior: contain;
+    padding: 0.3rem 0.4rem 0.4rem;
   }
-  /* Sticky group headers: opaque background covers rows scrolling beneath;
-     the header's own top padding provides the inter-group gap (no transparent
-     margins, which would let rows peek through). */
+  /* Group header: quiet sentence-case label; sticky within its group with an
+     opaque background so rows scrolling beneath stay hidden. */
   .palette-group {
     position: sticky;
     top: 0;
     z-index: 2;
-    padding: 0.6rem 0.65rem 0.3rem;
+    padding: 0.55rem 0.7rem 0.3rem;
     background: var(--mdt-surface-raised);
-    font-family: var(--mdt-font-mono);
-    font-size: var(--mdt-fs-micro);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    font-size: var(--mdt-fs-label);
+    font-weight: 500;
     color: var(--mdt-text-faint);
   }
+  /* 48px result row; selection = faint category tint + 3px left rail. */
   .palette-option {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
-    padding: 0.45rem 0.65rem;
+    gap: 0.75rem;
+    min-height: 3rem;
+    padding: 0.35rem 0.75rem;
     border-radius: var(--mdt-radius-sm);
     cursor: pointer;
     color: var(--mdt-text);
   }
+  .palette-option[data-active="true"] {
+    background: color-mix(in srgb, var(--mdt-cat) 9%, transparent);
+    box-shadow: inset 3px 0 0 var(--mdt-cat);
+  }
   .palette-opt-icon {
-    width: 1.9rem;
-    height: 1.9rem;
+    width: 1.75rem;
+    height: 1.75rem;
     flex-shrink: 0;
     display: grid;
     place-items: center;
-    border-radius: var(--mdt-radius-sm);
-    background: color-mix(in srgb, var(--mdt-cat) 13%, transparent);
+    border-radius: var(--mdt-radius-xs);
+    background: color-mix(in srgb, var(--mdt-cat) 12%, transparent);
     color: var(--mdt-cat);
-    border: 1px solid color-mix(in srgb, var(--mdt-cat) 26%, transparent);
   }
   .palette-opt-title {
-    font-size: 0.92rem;
+    font-size: var(--mdt-fs-small);
     flex: 1;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .palette-opt-title mark {
+    background: none;
+    color: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--mdt-cat) 70%, transparent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
   .palette-opt-cat {
-    font-size: 0.72rem;
-    color: var(--mdt-cat);
-    border: 1px solid color-mix(in srgb, var(--mdt-cat) 30%, var(--mdt-border));
-    border-radius: 999px;
-    padding: 0.08rem 0.5rem;
-    flex-shrink: 0;
+    flex-shrink: 1;
+    max-width: 45%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--mdt-fs-label);
+    color: var(--mdt-text-faint);
   }
-  .palette-option[data-active="true"] {
-    background: var(--mdt-accent);
-    color: var(--mdt-accent-contrast);
-  }
-  .palette-option[data-active="true"] .palette-opt-icon {
-    background: color-mix(in srgb, var(--mdt-accent-contrast) 18%, transparent);
-    color: var(--mdt-accent-contrast);
-    border-color: transparent;
-  }
-  .palette-option[data-active="true"] .palette-opt-cat {
-    color: var(--mdt-accent-contrast);
-    border-color: color-mix(in srgb, var(--mdt-accent-contrast) 45%, transparent);
-  }
+  .palette-option[data-active="true"] .palette-opt-cat { color: var(--mdt-text-muted); }
   .palette-empty {
-    padding: 1.25rem 0.65rem;
+    padding: 1.5rem 0.75rem;
     text-align: center;
     color: var(--mdt-text-muted);
-    font-size: 0.9rem;
+    font-size: var(--mdt-fs-small);
   }
   .palette-foot {
     display: flex;
-    gap: 1rem;
-    padding: 0.5rem 0.85rem;
-    border-top: 1px solid var(--mdt-border);
-    color: var(--mdt-text-muted);
-    font-size: 0.72rem;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.1rem;
+    padding: 0.55rem 1rem;
+    border-top: 1px solid var(--mdt-border-soft);
+    background: var(--mdt-surface-muted);
+    color: var(--mdt-text-faint);
+    font-size: var(--mdt-fs-label);
   }
-  .palette-foot kbd {
-    padding: 0.1rem 0.3rem;
-    border: 1px solid var(--mdt-border);
-    border-radius: 4px;
-    font-family: var(--mdt-font-mono);
-    font-size: 0.68rem;
+  .palette-foot span { display: inline-flex; align-items: center; gap: 0.3rem; }
+  @media (max-width: 40rem) {
+    /* Mobile: top sheet spanning the viewport width. */
+    .palette { padding: 0.5rem 0.5rem 1rem; }
+    .palette-results { max-height: min(34rem, 70vh); }
+    .palette-opt-cat { max-width: 38%; }
+    .palette .palette-esc { display: none; }
   }
   @media (prefers-reduced-motion: no-preference) {
-    .palette-panel { animation: palette-in 180ms var(--mdt-ease); }
+    .palette-panel { animation: palette-in 160ms var(--mdt-ease); }
     @keyframes palette-in {
-      from { opacity: 0; transform: translateY(-8px) scale(0.99); }
+      from { opacity: 0; transform: translateY(-6px); }
       to { opacity: 1; transform: none; }
     }
   }

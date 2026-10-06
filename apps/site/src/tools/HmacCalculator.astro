@@ -5,12 +5,18 @@
  * Behavior lives in `hmac-calculator.client.ts`, which calls the
  * main-thread `crypto-client` (one-shot WASM ops).
  *
+ * Workbench: input panel (key, message, algorithm → Calculate) | HMAC hex
+ * output with Copy in its header and an empty state.
+ *
  * Locale strings for the tool namespace are embedded as a JSON island.
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
 import Field from "@/components/tool/Field.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
+import EmptyState from "@/components/tool/EmptyState.astro";
+import CopyButton from "@/components/tool/CopyButton.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
 
 interface Props {
@@ -24,69 +30,80 @@ const strings = {
   keyLabel: t(lang, ns, "KeyLabel"),
   keyPlaceholder: t(lang, ns, "KeyPlaceholder"),
   messageLabel: t(lang, ns, "MessageLabel"),
-  messagePlaceholder: t(lang, ns, "MessagePlaceholder"),
   algorithmLabel: t(lang, ns, "AlgorithmLabel"),
   calculate: t(lang, ns, "Calculate"),
   clear: t(lang, ns, "Clear"),
   outputLabel: t(lang, ns, "OutputLabel"),
   copy: t(lang, ns, "Copy"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
+  inputTitle: t(lang, ns, "InputTitle"),
+  emptyHint: t(lang, ns, "EmptyHint"),
+  outputEmpty: t(lang, ns, "OutputEmpty"),
+  loadExample: t(lang, "common", "Common_LoadExample"),
+  copyFailed: t(lang, "common", "Common_CopyFailed"),
   error: t(lang, "common", "Common_Error"),
 };
 const stringsJson = JSON.stringify(strings);
 ---
 
-<div class="ds-stack" data-hmac-tool>
-  <div class="ds-tool-grid">
+<div class="ds-workbench" data-hmac-tool>
+  <ToolPanel title={strings.inputTitle}>
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-hmac-clear>{strings.clear}</button>
+    </Fragment>
     <Field label={strings.keyLabel} for="hmac-key">
       <textarea
         id="hmac-key"
-        class="ds-field-textarea mono"
+        class="ds-field-textarea mono hmac-key"
         data-hmac-key
         placeholder={strings.keyPlaceholder}
         spellcheck="false"
         autocomplete="off"
-        rows="7"></textarea>
+        rows="2"></textarea>
     </Field>
     <Field label={strings.messageLabel} for="hmac-message">
-      <textarea
-        id="hmac-message"
-        class="ds-field-textarea mono"
-        data-hmac-message
-        placeholder={strings.messagePlaceholder}
-        spellcheck="false"
-        rows="7"></textarea>
+      <div class="ds-editor is-empty" data-hmac-message-host>
+        <textarea
+          id="hmac-message"
+          class="ds-field-textarea mono hmac-message"
+          data-hmac-message
+          aria-describedby="hmac-message-empty"
+          spellcheck="false"
+          rows="7"></textarea>
+        <EmptyState
+          hint={strings.emptyHint}
+          hintId="hmac-message-empty"
+          exampleLabel={strings.loadExample}
+          buttonProps={{ "data-hmac-example": true }}
+        />
+      </div>
     </Field>
-  </div>
-
-  <div class="hmac-controls">
-    <Field label={strings.algorithmLabel} for="hmac-algorithm" class="hmac-alg">
-      <select id="hmac-algorithm" class="ds-field-select" data-hmac-algorithm>
-        <option value="sha256" selected>SHA-256</option>
-        <option value="sha512">SHA-512</option>
-      </select>
-    </Field>
-    <div class="ds-actions">
-      <button type="button" class="ds-btn ds-btn-primary" data-hmac-calculate>{strings.calculate}</button>
-      <button type="button" class="ds-btn" data-hmac-clear>{strings.clear}</button>
+    <div class="ds-settings ds-settings-flat">
+      <Field label={strings.algorithmLabel} for="hmac-algorithm">
+        <select id="hmac-algorithm" class="ds-field-select" data-hmac-algorithm>
+          <option value="sha256" selected>SHA-256</option>
+          <option value="sha512">SHA-512</option>
+        </select>
+      </Field>
     </div>
-  </div>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-hmac-calculate>{strings.calculate}</button>
+    </div>
+    <StatusMessage kind="error" data-hmac-error />
+  </ToolPanel>
 
-  <OutputPanel label={strings.outputLabel} for="hmac-output">
+  <OutputPanel panel label={strings.outputLabel} for="hmac-output" emptyHint={strings.outputEmpty} data-hmac-output-panel>
     <Fragment slot="actions">
-      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-hmac-copy hidden>{strings.copy}</button>
+      <CopyButton ghost label={strings.copy} copiedLabel={strings.copied} data-hmac-copy hidden />
     </Fragment>
     <textarea
       id="hmac-output"
-      class="ds-field-textarea mono hmac-output"
+      class="ds-field-textarea mono hmac-output ds-when-filled"
       data-hmac-output
       readonly
       spellcheck="false"
-      rows="3"
-      placeholder="…"></textarea>
+      rows="3"></textarea>
   </OutputPanel>
-
-  <StatusMessage kind="error" data-hmac-error />
 </div>
 
 <script is:inline type="application/json" data-hmac-strings set:html={stringsJson} />
@@ -96,17 +113,13 @@ const stringsJson = JSON.stringify(strings);
 
 <style>
   /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
-  .hmac-controls {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 1rem;
+  .hmac-key {
+    min-height: 3.5rem;
   }
-  .hmac-controls > :global(.hmac-alg) {
-    width: min(16rem, 100%);
+  .ds-editor > .hmac-message {
+    min-height: 11rem;
   }
   .hmac-output {
-    min-height: 4.5rem;
+    min-height: 5.5rem;
   }
 </style>

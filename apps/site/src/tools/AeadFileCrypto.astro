@@ -1,8 +1,9 @@
 ---
 /**
- * AEAD File Encrypt/Decrypt (cryptography WASM domain). Two panels (encrypt
- * with algorithm + shared password, decrypt) plus a full-width output section
- * (progress + cancel, header hex, result, download). Streaming chunked WASM
+ * AEAD File Encrypt/Decrypt (cryptography WASM domain). Workbench: encrypt
+ * panel (file, algorithm, shared password → Encrypt) over the decrypt panel
+ * (file → Decrypt) | output panel (progress + cancel, result + header hex
+ * rows, Download in its header, empty state until a run finishes). Streaming chunked WASM
  * ops via aead-file-client (writes MDT3, reads MDT3 + legacy MDT2).
  */
 import { t } from "@/i18n/messages";
@@ -10,6 +11,7 @@ import type { LocaleCode } from "@/registry/locales";
 import Field from "@/components/tool/Field.astro";
 import FileButton from "@/components/tool/FileButton.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 import Progress from "@/components/tool/Progress.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
 
@@ -45,14 +47,14 @@ const s = {
   noteTrimmedPassword: t(lang, ns, "NoteTrimmedPassword"),
   noteLegacyFormat: t(lang, ns, "NoteLegacyFormat"),
   fileChoose: t(lang, "common", "Common_FileChooseButton"),
+  outputEmpty: t(lang, ns, "OutputEmpty"),
 };
 const stringsJson = JSON.stringify(s);
 ---
 
-<div class="ds-stack" data-aead-tool>
-  <div class="ds-tool-grid">
-    <section class="ds-card ds-stack" aria-labelledby="aead-enc-title">
-      <h2 class="ds-card-title" id="aead-enc-title">{s.encryptSectionTitle}</h2>
+<div class="ds-workbench" data-aead-tool>
+  <div class="ds-stack">
+    <ToolPanel title={s.encryptSectionTitle} id="aead-enc-panel">
 
       <div class="ds-field-group">
         <span class="ds-label" id="aead-enc-file-label">{s.fileLabel}</span>
@@ -100,11 +102,12 @@ const stringsJson = JSON.stringify(s);
         <p class="ds-hint" data-aead-password-ws aria-live="polite" hidden>{s.passwordWhitespaceHint}</p>
       </Field>
 
-      <button type="button" class="ds-btn ds-btn-primary ds-btn-block" data-aead-encrypt>{s.encryptButton}</button>
-    </section>
+      <div class="ds-action-row">
+        <button type="button" class="ds-btn ds-btn-primary" data-aead-encrypt>{s.encryptButton}</button>
+      </div>
+    </ToolPanel>
 
-    <section class="ds-card ds-stack" aria-labelledby="aead-dec-title">
-      <h2 class="ds-card-title" id="aead-dec-title">{s.decryptSectionTitle}</h2>
+    <ToolPanel title={s.decryptSectionTitle}>
 
       <div class="ds-field-group">
         <span class="ds-label" id="aead-dec-file-label">{s.fileLabel}</span>
@@ -116,14 +119,17 @@ const stringsJson = JSON.stringify(s);
         />
       </div>
 
-      <p class="ds-hint">{s.sharedPasswordNote}</p>
-
-      <button type="button" class="ds-btn ds-btn-primary ds-btn-block" data-aead-decrypt>{s.decryptButton}</button>
-    </section>
+      <div class="ds-action-row">
+        <button type="button" class="ds-btn ds-btn-primary" data-aead-decrypt>{s.decryptButton}</button>
+        <span class="ds-action-row-aside">{s.sharedPasswordNote}</span>
+      </div>
+    </ToolPanel>
   </div>
 
-  <section class="ds-card ds-stack" aria-labelledby="aead-out-title">
-    <h2 class="ds-card-title" id="aead-out-title">{s.outputLabel}</h2>
+  <OutputPanel panel label={s.outputLabel} emptyHint={s.outputEmpty} data-aead-output>
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-aead-download disabled>{s.download}</button>
+    </Fragment>
 
     <Progress
       data-aead-progress
@@ -135,20 +141,20 @@ const stringsJson = JSON.stringify(s);
       labelProps={{ "data-aead-progress-stats": true }}
     />
 
-    <Field label={s.headerLabel} for="aead-header">
-      <textarea id="aead-header" class="ds-field-textarea mono aead-header" data-aead-header rows="3" readonly spellcheck="false"></textarea>
-    </Field>
-
-    <OutputPanel label={s.resultLabel} for="aead-result">
-      <div class="ds-input-group">
-        <input id="aead-result" type="text" class="ds-field mono" data-aead-result readonly aria-live="polite" />
-        <button type="button" class="ds-btn" data-aead-download disabled>{s.download}</button>
+    <dl class="ds-result-list ds-when-filled aead-results" aria-live="polite">
+      <div class="ds-result-row ds-result-row-info">
+        <dt class="ds-result-key">{s.resultLabel}</dt>
+        <dd class="ds-result-value" data-aead-result></dd>
       </div>
-    </OutputPanel>
+      <div class="ds-result-row ds-result-row-info">
+        <dt class="ds-result-key">{s.headerLabel}</dt>
+        <dd class="ds-result-value" data-aead-header></dd>
+      </div>
+    </dl>
 
     <StatusMessage kind="error" data-aead-error />
     <StatusMessage kind="info" data-aead-note />
-  </section>
+  </OutputPanel>
 </div>
 
 <script is:inline type="application/json" data-aead-strings set:html={stringsJson} />
@@ -156,7 +162,7 @@ const stringsJson = JSON.stringify(s);
 
 <style>
   /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
-  .aead-header {
-    min-height: 4.5rem;
+  .aead-results :is(dt, dd) {
+    margin: 0;
   }
 </style>

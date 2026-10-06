@@ -6,11 +6,16 @@
  * forced into the header object for signing without rewriting the textarea.
  * Segments are built in `jwt.ts` (claim order + extra header fields kept);
  * the HMAC is computed by the cryptography WASM.
+ * Workbench: header/payload + algorithm/secret panel | encoded token panel
+ * (Copy in its header; empty state while the JSON is invalid).
  */
 import { t } from "@/i18n/messages";
 import { localizedPath } from "@/lib/url";
 import type { LocaleCode } from "@/registry/locales";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import CopyButton from "@/components/tool/CopyButton.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -28,7 +33,9 @@ const s = {
   secretPlaceholder: t(lang, ns, "SecretPlaceholder"),
   encodedLabel: t(lang, ns, "EncodedLabel"),
   copy: t(lang, ns, "Copy"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
+  inputTitle: t(lang, ns, "InputTitle"),
+  outputEmpty: t(lang, ns, "OutputEmpty"),
   copyFailed: t(lang, ns, "CopyFailed"),
   invalidJson: t(lang, ns, "InvalidJson"),
   mustBeObject: t(lang, ns, "MustBeObject"),
@@ -47,54 +54,45 @@ const decoderUrl = localizedPath(lang, "jwt-decoder");
 ---
 
 <div class="ds-stack" data-jwte-tool>
-  <p class="ds-hint jwt-link-note">
-    {s.linkToDecoder} → <a href={decoderUrl}>{s.decoderTitle}</a>
-  </p>
+  <p class="ds-hint jwt-link-note">{s.linkToDecoder} <a href={decoderUrl}>{s.decoderTitle}</a></p>
 
-  <div class="ds-tool-grid jwte-grid">
-    <section class="ds-card ds-field-group">
-      <label class="ds-label" for="jwte-header">{s.headerLabel}</label>
-      <textarea id="jwte-header" class="ds-field-textarea mono" data-jwte-header rows="8" spellcheck="false" aria-describedby="jwte-header-error">{defaultHeader}</textarea>
-      <p class="ds-hint ds-hint-error" id="jwte-header-error" data-jwte-header-error role="alert" hidden></p>
-    </section>
+  <div class="ds-workbench">
+    <ToolPanel title={s.inputTitle}>
+      <div class="ds-field-group">
+        <label class="ds-label" for="jwte-header">{s.headerLabel}</label>
+        <textarea id="jwte-header" class="ds-field-textarea mono" data-jwte-header rows="4" spellcheck="false" aria-describedby="jwte-header-error">{defaultHeader}</textarea>
+        <p class="ds-hint ds-hint-error" id="jwte-header-error" data-jwte-header-error role="alert" hidden></p>
+      </div>
+      <div class="ds-field-group">
+        <label class="ds-label" for="jwte-payload">{s.payloadLabel}</label>
+        <textarea id="jwte-payload" class="ds-field-textarea mono" data-jwte-payload rows="8" spellcheck="false" aria-describedby="jwte-payload-error">{defaultPayload}</textarea>
+        <p class="ds-hint ds-hint-error" id="jwte-payload-error" data-jwte-payload-error role="alert" hidden></p>
+      </div>
+      <fieldset class="ds-settings jwte-sig">
+        <legend class="visually-hidden">{s.signatureLabel}</legend>
+        <div class="ds-field-group">
+          <label class="ds-label" for="jwte-alg">{s.algorithmLabel}</label>
+          <select id="jwte-alg" class="ds-field-select" data-jwte-algorithm>
+            <option value="HS256" selected>HS256</option>
+            <option value="HS384">HS384</option>
+            <option value="HS512">HS512</option>
+          </select>
+        </div>
+        <div class="ds-field-group">
+          <label class="ds-label" for="jwte-secret">{s.secretLabel}</label>
+          <textarea id="jwte-secret" class="ds-field-textarea mono jwte-secret" data-jwte-secret rows="2" placeholder={s.secretPlaceholder} spellcheck="false" autocomplete="off"></textarea>
+        </div>
+      </fieldset>
+    </ToolPanel>
 
-    <section class="ds-card ds-field-group">
-      <label class="ds-label" for="jwte-payload">{s.payloadLabel}</label>
-      <textarea id="jwte-payload" class="ds-field-textarea mono" data-jwte-payload rows="8" spellcheck="false" aria-describedby="jwte-payload-error">{defaultPayload}</textarea>
-      <p class="ds-hint ds-hint-error" id="jwte-payload-error" data-jwte-payload-error role="alert" hidden></p>
-    </section>
+    <OutputPanel panel label={s.encodedLabel} for="jwte-output" emptyHint={s.outputEmpty} data-jwte-output-panel>
+      <Fragment slot="actions">
+        <CopyButton ghost label={s.copy} copiedLabel={s.copied} data-jwte-copy disabled />
+      </Fragment>
+      <textarea id="jwte-output" class="ds-field-textarea mono jwte-output ds-when-filled" data-jwte-output rows="6" readonly spellcheck="false" aria-live="polite"></textarea>
+      <StatusMessage kind="error" data-jwte-error />
+    </OutputPanel>
   </div>
-
-  <section class="ds-card jwte-signature" aria-labelledby="jwte-signature-title">
-    <div class="ds-card-head">
-      <h2 class="ds-card-title" id="jwte-signature-title">{s.signatureLabel}</h2>
-    </div>
-    <div class="jwte-sig-grid">
-      <div class="ds-field-group">
-        <label class="ds-label" for="jwte-alg">{s.algorithmLabel}</label>
-        <select id="jwte-alg" class="ds-field-select" data-jwte-algorithm>
-          <option value="HS256" selected>HS256</option>
-          <option value="HS384">HS384</option>
-          <option value="HS512">HS512</option>
-        </select>
-      </div>
-      <div class="ds-field-group">
-        <label class="ds-label" for="jwte-secret">{s.secretLabel}</label>
-        <textarea id="jwte-secret" class="ds-field-textarea mono jwte-secret" data-jwte-secret rows="2" placeholder={s.secretPlaceholder} spellcheck="false" autocomplete="off"></textarea>
-      </div>
-    </div>
-  </section>
-
-  <section class="ds-card ds-output">
-    <div class="ds-output-head">
-      <label class="ds-label" for="jwte-output">{s.encodedLabel}</label>
-      <div class="ds-actions">
-        <button type="button" class="ds-btn ds-btn-small" data-jwte-copy disabled>{s.copy}</button>
-      </div>
-    </div>
-    <textarea id="jwte-output" class="ds-field-textarea mono jwte-output" data-jwte-output rows="5" readonly spellcheck="false" aria-live="polite"></textarea>
-    <StatusMessage kind="error" class="jwte-error" data-jwte-error />
-  </section>
 </div>
 
 <script is:inline type="application/json" data-jwte-strings set:html={stringsJson} />
@@ -104,11 +102,8 @@ const decoderUrl = localizedPath(lang, "jwt-decoder");
   /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
   .jwt-link-note { margin: 0; }
   .jwt-link-note a { color: var(--mdt-cat); font-weight: 600; }
-  .jwte-grid { --ds-tool-grid-cols: minmax(0, 1fr) minmax(0, 1fr); }
-  .jwte-signature { border-top: 3px solid var(--mdt-cat); }
-  .jwte-sig-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
-  @media (min-width: 900px) { .jwte-sig-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); } }
+  .jwte-sig { margin: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+  @media (max-width: 560px) { .jwte-sig { grid-template-columns: minmax(0, 1fr); } }
   .jwte-secret { min-height: 4.5rem; }
-  .jwte-output { min-height: 7rem; word-break: break-all; }
-  .jwte-error { margin-top: 0.75rem; }
+  .jwte-output { min-height: 9rem; word-break: break-all; }
 </style>

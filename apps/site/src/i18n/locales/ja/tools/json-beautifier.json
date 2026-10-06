@@ -3,11 +3,9 @@
   "Description": "ブラウザで JSON を整形・圧縮・検証。2/4 スペースやタブのインデント、キーの再帰ソート、大きな数値をそのまま保持し、.json ファイルの読み込みと保存にも対応。",
   "Keywords": "JSON 整形, JSON フォーマッター, JSON 圧縮, JSON 検証, JSON 整形 オンライン, JSON キー ソート, JSON beautifier, JSON formatter, pretty print JSON",
   "InputLabel": "入力 JSON",
-  "InputPlaceholder": "JSON をここに貼り付け...",
   "FormatButton": "整形",
   "ClearButton": "クリア",
   "CopyButton": "コピー",
-  "Copied": "コピーしました！",
   "ErrorInvalidJson": "無効な JSON です。入力を確認してください。",
   "IndentSizeLabel": "インデントサイズ",
   "Indent2Spaces": "2スペース",
@@ -48,5 +46,6 @@
   "Editor_GoToLine": "行へ移動",
   "Editor_Go": "移動",
   "Editor_ControlCharacter": "制御文字",
-  "Editor_SelectionDeleted": "選択範囲を削除しました"
+  "Editor_SelectionDeleted": "選択範囲を削除しました",
+  "EmptyHint": "JSON を貼り付けるか .json ファイルをここにドロップすると、整形・圧縮・キーの並べ替えができます。"
 }

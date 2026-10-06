@@ -11,7 +11,11 @@
 import { t } from "@/i18n/messages";
 import { editorPhrases } from "@/tools/editor-phrases";
 import type { LocaleCode } from "@/registry/locales";
+import CopyButton from "@/components/tool/CopyButton.astro";
+import EmptyState from "@/components/tool/EmptyState.astro";
+import Field from "@/components/tool/Field.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 import "@/styles/codemirror.css";
 
 interface Props {
@@ -34,65 +38,70 @@ const s = {
   compact: t(lang, ns, "CompactMode"),
   inputLabel: t(lang, ns, "InputLabel"),
   keyboardHint: t(lang, ns, "EditorKeyboardHint"),
+  emptyHint: t(lang, ns, "EmptyHint"),
+  loadExample: t(lang, "common", "Common_LoadExample"),
+  copied: t(lang, "common", "Common_Copied"),
+  copyFailed: t(lang, "common", "Common_CopyFailed"),
 };
 
 const stringsJson = JSON.stringify({
   errorInvalidJson: t(lang, ns, "ErrorInvalidJson"),
-  copied: t(lang, ns, "Copied"),
+  copied: s.copied,
+  copyFailed: s.copyFailed,
   inputLabel: s.inputLabel,
   phrases: editorPhrases(lang),
 });
 ---
 
-<div class="ds-stack" data-json-tool>
-  <div class="ds-card cm-toolbar">
-    <div class="cm-options">
-      <label class="ds-btn ds-file-btn">
+<div class="ds-workbench ds-workbench-single" data-json-tool>
+  <ToolPanel title={s.inputLabel}>
+    <Fragment slot="actions">
+      <label class="ds-btn ds-btn-small ds-btn-ghost ds-file-btn">
         <input type="file" accept=".json,application/json" data-json-file />
         {s.open}
       </label>
-      <button type="button" class="ds-btn" data-json-save>{s.save}</button>
-      <label class="cm-inline-field">
-        <span class="ds-label">{s.indentLabel}</span>
-        <select class="ds-field-select" data-json-indent>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-json-save>{s.save}</button>
+      <CopyButton ghost label={s.copy} copiedLabel={s.copied} failedLabel={s.copyFailed} data-json-copy />
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-json-clear>{s.clear}</button>
+    </Fragment>
+
+    <div class="ds-editor is-empty" data-json-editor-host>
+      <div class="mdt-cm" data-json-editor role="group" aria-label={s.inputLabel}></div>
+      <EmptyState
+        hint={s.emptyHint}
+        hintId="json-editor-empty"
+        exampleLabel={s.loadExample}
+        buttonProps={{ "data-json-example": true }}
+      />
+    </div>
+    <p class="ds-hint" id="json-editor-hint">{s.keyboardHint}</p>
+
+    <div class="ds-settings">
+      <Field label={s.indentLabel} for="json-indent">
+        <select id="json-indent" class="ds-field-select" data-json-indent>
           <option value="2">{s.indent2}</option>
           <option value="4" selected>{s.indent4}</option>
           <option value="tab">{s.indentTab}</option>
         </select>
-      </label>
-      <label class="ds-check-row"><input type="checkbox" class="ds-check" data-json-sort /> {s.sortKeys}</label>
-      <label class="ds-check-row"><input type="checkbox" class="ds-check" data-json-compact /> {s.compact}</label>
+      </Field>
+      <div class="ds-check-group json-checks">
+        <label class="ds-check-row"><input type="checkbox" class="ds-check" data-json-sort /> {s.sortKeys}</label>
+        <label class="ds-check-row"><input type="checkbox" class="ds-check" data-json-compact /> {s.compact}</label>
+      </div>
     </div>
-    <div class="ds-actions">
+
+    <div class="ds-action-row">
       <button type="button" class="ds-btn ds-btn-primary" data-json-format>{s.format}</button>
-      <button type="button" class="ds-btn" data-json-copy>{s.copy}</button>
-      <button type="button" class="ds-btn ds-btn-danger" data-json-clear>{s.clear}</button>
     </div>
-  </div>
 
-  <StatusMessage kind="error" data-json-error />
-
-  <div class="ds-field-group">
-    <span class="ds-label" id="json-editor-label">{s.inputLabel}</span>
-    <div class="mdt-cm" data-json-editor role="group" aria-labelledby="json-editor-label"></div>
-    <p class="ds-hint" id="json-editor-hint">{s.keyboardHint}</p>
-  </div>
+    <StatusMessage kind="error" data-json-error />
+  </ToolPanel>
 </div>
 
 <script is:inline type="application/json" data-json-strings set:html={stringsJson} />
 <script>import "@/tools/json-beautifier.client.ts";</script>
 
 <style>
-  .cm-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem 1.25rem;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-  }
-  .cm-options { display: flex; flex-wrap: wrap; gap: 0.6rem 1.1rem; align-items: center; min-width: 0; }
-  .cm-inline-field { display: flex; align-items: center; gap: 0.5rem; }
-  .cm-inline-field .ds-label { margin-bottom: 0; }
-  .cm-inline-field .ds-field-select { width: auto; }
+  /* Layout-only: checkboxes sit level with the indent select. */
+  .json-checks { align-self: end; display: flex; flex-direction: column; gap: 0.35rem; }
 </style>

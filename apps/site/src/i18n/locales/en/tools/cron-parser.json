@@ -44,7 +44,6 @@
   "ActionParse": "Parse Expression",
   "ActionClear": "Clear",
   "Copy": "Copy",
-  "Copied": "Copied!",
   "ErrorInvalidExpression": "Invalid expression: {0}",
   "ErrorExpectedFields": "Expected 5 fields, got {0}",
   "ErrorUnknownPreset": "Unknown preset",

@@ -16,6 +16,7 @@ import type { LocaleCode } from "@/registry/locales";
 import FileDrop from "@/components/tool/FileDrop.astro";
 import Progress from "@/components/tool/Progress.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -54,15 +55,14 @@ const stringsJson = JSON.stringify(s);
     inputProps={{ "data-pdft-file": true }}
   />
 
-  <section class="ds-stack" data-pdft-list hidden aria-labelledby="pdft-list-title">
-    <h2 class="ds-label" id="pdft-list-title">{s.filesToProcess}</h2>
+  <ToolPanel title={s.filesToProcess} data-pdft-list hidden>
     <ul class="ds-file-list" data-pdft-items></ul>
-    <div class="ds-actions ds-actions-end">
+    <div class="ds-action-row">
       <button type="button" class="ds-btn ds-btn-primary" data-pdft-extract>
         <span data-pdft-extract-label>{s.extract}</span>
       </button>
     </div>
-  </section>
+  </ToolPanel>
 
   <Progress
     title={s.processing}

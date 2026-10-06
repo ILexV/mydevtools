@@ -9,6 +9,7 @@
  * Match positions from WASM are UTF-16 offsets (see wasm/regex_tool).
  */
 import { regexTest } from "@/scripts/wasm/regex-client";
+import { bindEmptyState, bindLoadExample, syncEmptyState } from "@/scripts/tool-ui";
 import {
   applyGlobalFlag,
   buildHighlightHtml,
@@ -111,11 +112,14 @@ function init(): void {
   const errorBoxEl = root.querySelector<HTMLElement>("[data-rx-error]");
   const examplesBodyEl = root.querySelector<HTMLElement>("[data-rx-examples-body]");
   const savedBodyEl = root.querySelector<HTMLElement>("[data-rx-saved-body]");
-  const savedEmptyEl = root.querySelector<HTMLElement>("[data-rx-saved-empty]");
+  const savedEmptyEl = root.querySelector<HTMLElement>("[data-rx-saved]");
   const dialogEl = root.querySelector<HTMLDialogElement>("[data-rx-dialog]");
   const saveNameEl = root.querySelector<HTMLInputElement>("[data-rx-save-name]");
   const cheatsheetEl = root.querySelector<HTMLElement>("[data-rx-cheatsheet]");
   const cheatsheetToggleEl = root.querySelector<HTMLButtonElement>("[data-rx-cheatsheet-toggle]");
+  const textHost = root.querySelector<HTMLElement>("[data-rx-text-host]");
+  const matchesPanel = root.querySelector<HTMLElement>("[data-rx-matches]");
+  const exampleBtn = root.querySelector<HTMLButtonElement>("[data-rx-example]");
   const flagEls = Array.from(root.querySelectorAll<HTMLInputElement>("[data-rx-flag]"));
 
   if (!patternEl || !textEl || !backdropEl || !resultsEl || !countEl || !examplesBodyEl || !savedBodyEl || !savedEmptyEl || !dialogEl || !saveNameEl || !errorBoxEl) return;
@@ -131,6 +135,12 @@ function init(): void {
   const dialog: HTMLDialogElement = dialogEl;
   const saveName: HTMLInputElement = saveNameEl;
   const flags: HTMLInputElement[] = flagEls;
+
+  const syncText = textHost ? bindEmptyState(textHost, text) : () => {};
+  /** Matches panel shows its empty state until there is a pattern to test. */
+  const syncMatches = () => {
+    if (matchesPanel) syncEmptyState(matchesPanel, pattern.value === "");
+  };
 
   let debounceTimer = 0;
   let runSeq = 0;
@@ -210,6 +220,7 @@ function init(): void {
 
     syncScroll();
 
+    syncMatches();
     if (!patternValue) {
       backdrop.innerHTML = buildHighlightHtml(textValue, []);
       showNoMatches();
@@ -249,11 +260,8 @@ function init(): void {
     const saved = getSavedPatterns();
     savedBody.innerHTML = "";
 
-    if (saved.length === 0) {
-      savedEmpty.hidden = false;
-      return;
-    }
-    savedEmpty.hidden = true;
+    syncEmptyState(savedEmpty, saved.length === 0);
+    if (saved.length === 0) return;
 
     saved.forEach((item, idx) => {
       const tr = document.createElement("tr");
@@ -303,6 +311,7 @@ function init(): void {
   function loadPattern(data: SavedPattern): void {
     pattern.value = data.pattern;
     text.value = data.sample || "";
+    syncText();
     if (data.flags && Array.isArray(data.flags)) {
       for (const f of flags) f.checked = data.flags.includes(f.value);
     }
@@ -386,6 +395,14 @@ function init(): void {
       }
     }
   });
+
+  // "Load example" in the empty test-string field = the first quick example (Email).
+  if (exampleBtn) {
+    bindLoadExample(exampleBtn, () => {
+      const ex = COMMON_REGEXES[0];
+      loadPattern({ name: ex.name, pattern: ex.pattern, sample: ex.sample, flags: ["g"] });
+    }, text);
+  }
 
   // ── Init ──
 

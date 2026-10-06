@@ -10,11 +10,14 @@
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
+import CopyButton from "@/components/tool/CopyButton.astro";
+import EmptyState from "@/components/tool/EmptyState.astro";
 import Field from "@/components/tool/Field.astro";
 import FileDrop from "@/components/tool/FileDrop.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
 import Progress from "@/components/tool/Progress.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -25,7 +28,9 @@ const ns = "tools/hex-encoder";
 
 const s = {
   inputTextLabel: t(lang, ns, "InputTextLabel"),
-  inputTextPlaceholder: t(lang, ns, "InputTextPlaceholder"),
+  emptyHint: t(lang, ns, "EmptyHint"),
+  outputEmpty: t(lang, ns, "OutputEmpty"),
+  loadExample: t(lang, "common", "Common_LoadExample"),
   fileHint: t(lang, ns, "FileHint"),
   charsetLabel: t(lang, ns, "CharsetLabel"),
   caseLabel: t(lang, ns, "CaseLabel"),
@@ -44,7 +49,8 @@ const s = {
   actionClear: t(lang, ns, "ActionClear"),
   outputLabel: t(lang, ns, "OutputLabel"),
   copy: t(lang, ns, "Copy"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
+  copyFailed: t(lang, "common", "Common_CopyFailed"),
   download: t(lang, ns, "Download"),
   fileProgressTitle: t(lang, ns, "FileProgressTitle"),
   cancel: t(lang, ns, "Cancel"),
@@ -67,111 +73,114 @@ const s = {
 const stringsJson = JSON.stringify(s);
 ---
 
-<div class="ds-stack" data-hex-tool>
-  <div class="ds-tool-grid">
-    <section class="ds-card ds-stack">
-      <Field label={s.inputTextLabel} for="hex-input-text">
-        <textarea
-          id="hex-input-text"
-          class="ds-field-textarea mono"
-          data-hex-input
-          rows="8"
-          spellcheck="false"
-          placeholder={s.inputTextPlaceholder}
-        ></textarea>
-      </Field>
-
-      <FileDrop
-        compact
-        data-hex-drop
-        title={s.dropTitle}
-        sub={s.fileHint}
-        buttonLabel={s.chooseFile}
-        inputProps={{ "data-hex-file": true }}
-      >
-        <div class="ds-file-row">
-          <span class="ds-file-name" data-hex-filename aria-live="polite"></span>
-          <button type="button" class="ds-btn-link" data-hex-file-clear hidden>{s.clearFile}</button>
-        </div>
-      </FileDrop>
-
-      <div class="ds-settings">
-        <Field label={s.charsetLabel} for="hex-charset">
-          <select id="hex-charset" class="ds-field-select" data-hex-charset>
-            <option value="utf-8">UTF-8</option>
-            <option value="utf-16le">UTF-16LE</option>
-            <option value="utf-16be">UTF-16BE</option>
-            <option value="ascii">ASCII</option>
-            <option value="latin1">ISO-8859-1 (Latin-1)</option>
-          </select>
-        </Field>
-        <Field label={s.caseLabel} for="hex-case">
-          <select id="hex-case" class="ds-field-select" data-hex-case>
-            <option value="lower">{s.caseLower}</option>
-            <option value="upper">{s.caseUpper}</option>
-          </select>
-        </Field>
-        <Field class="ds-settings-wide" label={s.outputModeLabel} for="hex-output-mode">
-          <select id="hex-output-mode" class="ds-field-select" data-hex-output-mode>
-            <option value="preview">{s.outputModePreview}</option>
-            <option value="full">{s.outputModeFull}</option>
-          </select>
-        </Field>
-        <fieldset class="ds-check-group ds-settings-wide">
-          <legend class="ds-label">{s.decodeOptionsLabel}</legend>
-          <label class="ds-check-row">
-            <input type="checkbox" class="ds-check" data-hex-ignore-whitespace checked />
-            <span>{s.ignoreWhitespace}</span>
-          </label>
-          <label class="ds-check-row">
-            <input type="checkbox" class="ds-check" data-hex-allow-separators checked />
-            <span>{s.allowSeparators}</span>
-          </label>
-          <label class="ds-check-row">
-            <input type="checkbox" class="ds-check" data-hex-allow-0x checked />
-            <span>{s.allow0x}</span>
-          </label>
-        </fieldset>
-      </div>
-    </section>
-
-    <section class="ds-card ds-stack">
-      <OutputPanel label={s.outputLabel} for="hex-output">
-        <Fragment slot="actions">
-          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-hex-copy>{s.copy}</button>
-          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-hex-download disabled>{s.download}</button>
-        </Fragment>
-        <textarea
-          id="hex-output"
-          class="ds-field-textarea mono enc-output"
-          data-hex-output
-          rows="16"
-          spellcheck="false"
-          readonly
-        ></textarea>
-        <p class="ds-hint" data-hex-stats aria-live="polite"></p>
-      </OutputPanel>
-
-      <Progress
-        data-hex-progress
-        title={s.fileProgressTitle}
-        cancelLabel={s.cancel}
-        cancelProps={{ "data-hex-cancel": true }}
-        barProps={{ "data-hex-progress-bar": true }}
-        fillProps={{ "data-hex-progress-fill": true }}
-        labelProps={{ "data-hex-progress-label": true }}
+<div class="ds-workbench" data-hex-tool>
+  <ToolPanel title={s.inputTextLabel} for="hex-input-text">
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-hex-clear>{s.actionClear}</button>
+    </Fragment>
+    <div class="ds-editor is-empty" data-hex-input-host>
+      <textarea
+        id="hex-input-text"
+        class="ds-field-textarea mono enc-input"
+        data-hex-input
+        rows="8"
+        spellcheck="false"
+        aria-describedby="hex-input-empty"
+      ></textarea>
+      <EmptyState
+        hint={s.emptyHint}
+        hintId="hex-input-empty"
+        exampleLabel={s.loadExample}
+        buttonProps={{ "data-hex-example": true }}
       />
-    </section>
-  </div>
+    </div>
 
-  <div class="ds-actions">
-    <button type="button" class="ds-btn ds-btn-primary" data-hex-encode>{s.actionEncode}</button>
-    <button type="button" class="ds-btn" data-hex-decode>{s.actionDecode}</button>
-    <button type="button" class="ds-btn" data-hex-swap>{s.actionSwap}</button>
-    <button type="button" class="ds-btn" data-hex-clear>{s.actionClear}</button>
-  </div>
+    <FileDrop
+      compact
+      data-hex-drop
+      title={s.dropTitle}
+      sub={s.fileHint}
+      buttonLabel={s.chooseFile}
+      inputProps={{ "data-hex-file": true }}
+    >
+      <div class="ds-file-row">
+        <span class="ds-file-name" data-hex-filename aria-live="polite"></span>
+        <button type="button" class="ds-btn-link" data-hex-file-clear hidden>{s.clearFile}</button>
+      </div>
+    </FileDrop>
 
-  <StatusMessage kind="error" data-hex-error />
+    <div class="ds-settings">
+      <Field label={s.charsetLabel} for="hex-charset">
+        <select id="hex-charset" class="ds-field-select" data-hex-charset>
+          <option value="utf-8">UTF-8</option>
+          <option value="utf-16le">UTF-16LE</option>
+          <option value="utf-16be">UTF-16BE</option>
+          <option value="ascii">ASCII</option>
+          <option value="latin1">ISO-8859-1 (Latin-1)</option>
+        </select>
+      </Field>
+      <Field label={s.caseLabel} for="hex-case">
+        <select id="hex-case" class="ds-field-select" data-hex-case>
+          <option value="lower">{s.caseLower}</option>
+          <option value="upper">{s.caseUpper}</option>
+        </select>
+      </Field>
+      <Field class="ds-settings-wide" label={s.outputModeLabel} for="hex-output-mode">
+        <select id="hex-output-mode" class="ds-field-select" data-hex-output-mode>
+          <option value="preview">{s.outputModePreview}</option>
+          <option value="full">{s.outputModeFull}</option>
+        </select>
+      </Field>
+      <fieldset class="ds-check-group ds-settings-wide">
+        <legend class="ds-label">{s.decodeOptionsLabel}</legend>
+        <label class="ds-check-row">
+          <input type="checkbox" class="ds-check" data-hex-ignore-whitespace checked />
+          <span>{s.ignoreWhitespace}</span>
+        </label>
+        <label class="ds-check-row">
+          <input type="checkbox" class="ds-check" data-hex-allow-separators checked />
+          <span>{s.allowSeparators}</span>
+        </label>
+        <label class="ds-check-row">
+          <input type="checkbox" class="ds-check" data-hex-allow-0x checked />
+          <span>{s.allow0x}</span>
+        </label>
+      </fieldset>
+    </div>
+
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-hex-encode>{s.actionEncode}</button>
+      <button type="button" class="ds-btn" data-hex-decode>{s.actionDecode}</button>
+      <button type="button" class="ds-btn" data-hex-swap>{s.actionSwap}</button>
+    </div>
+
+    <Progress
+      data-hex-progress
+      title={s.fileProgressTitle}
+      cancelLabel={s.cancel}
+      cancelProps={{ "data-hex-cancel": true }}
+      barProps={{ "data-hex-progress-bar": true }}
+      fillProps={{ "data-hex-progress-fill": true }}
+      labelProps={{ "data-hex-progress-label": true }}
+    />
+    <StatusMessage kind="error" data-hex-error />
+  </ToolPanel>
+
+  <OutputPanel panel label={s.outputLabel} for="hex-output" emptyHint={s.outputEmpty} data-hex-output-panel>
+    <Fragment slot="actions">
+      <CopyButton ghost label={s.copy} copiedLabel={s.copied} failedLabel={s.copyFailed} data-hex-copy disabled />
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-hex-download disabled>{s.download}</button>
+    </Fragment>
+    <textarea
+      id="hex-output"
+      class="ds-field-textarea mono enc-output ds-when-filled"
+      data-hex-output
+      rows="16"
+      spellcheck="false"
+      readonly
+    ></textarea>
+    <p class="ds-hint ds-when-filled" data-hex-stats aria-live="polite"></p>
+  </OutputPanel>
 </div>
 
 <script is:inline type="application/json" data-hex-strings set:html={stringsJson} />

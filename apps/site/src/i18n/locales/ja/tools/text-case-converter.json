@@ -3,10 +3,8 @@
   "CamelCase": "キャメルケース",
   "Keywords": "ケース変換, 大文字小文字変換, キャメルケース変換, camelCase, snake_case, kebab-case, タイトルケース, 変数名変換",
   "ClearButton": "クリア",
-  "Copied": "コピーしました！",
   "CopyButton": "コピー",
   "Description": "テキストを camelCase、snake_case、kebab-case、タイトルケース、文のケース、大文字、小文字にワンクリックで変換。XMLHttpRequest のような識別子も正しく分割します。",
-  "InputPlaceholder": "テキストを入力または貼り付け...",
   "InverseCase": "逆ケース",
   "KebabCase": "ケバブケース",
   "LowerCase": "小文字",
@@ -22,5 +20,7 @@
   "Seo_Tips": "- **大文字**、**小文字**、**タイトルケース** も `_` と `-` を単語の区切りとして扱い、スペースに置き換えます：`user_id` は `USER ID` になります。`USER_ID` にしたい場合は、すべて小文字の `user_id` に **逆ケース** を適用してください。\n- 文のケースは固有名詞や略語も小文字にします（`HTTP server` は `Http server` に）。必要に応じて手で直してください。\n- タイトルケースは短い単語も含めてすべての単語の先頭を大文字にします：`the lord of the rings` は `The Lord Of The Rings` になり、スタイルガイドの例外規則には従いません。\n- 単語の途中の大文字は新しい単語の始まりになります：`iPhone` にスネークケースを適用すると `i_phone` になります。\n- 変換は欄の内容を上書きするため、複数の結果を比べたい場合は元のテキストを別の場所に残しておきましょう。",
   "InputLabel": "テキスト",
   "ConvertLabel": "変換先",
-  "CopyFailed": "クリップボードにコピーできませんでした。"
+  "CopyFailed": "クリップボードにコピーできませんでした。",
+  "EmptyHint": "テキストを入力または貼り付けて、下のケースを選ぶとその場で変換されます。",
+  "ExampleText": "the quick brown fox がのんびりした犬を飛び越えた。userProfile settings は 10:42 に保存されました。"
 }

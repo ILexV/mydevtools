@@ -6,8 +6,10 @@
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
-import Field from "@/components/tool/Field.astro";
+import CopyButton from "@/components/tool/CopyButton.astro";
+import EmptyState from "@/components/tool/EmptyState.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -20,8 +22,10 @@ const s = {
   clear: t(lang, ns, "ClearButton"),
   copy: t(lang, ns, "CopyButton"),
   paste: t(lang, ns, "PasteButton"),
-  copied: t(lang, ns, "Copied"),
+  copied: t(lang, "common", "Common_Copied"),
   copyFailed: t(lang, ns, "CopyFailed"),
+  copyFailedShort: t(lang, "common", "Common_CopyFailed"),
+  loadExample: t(lang, "common", "Common_LoadExample"),
   pasteFailed: t(lang, ns, "PasteFailed"),
   statistics: t(lang, ns, "Statistics"),
   words: t(lang, ns, "Words"),
@@ -39,77 +43,61 @@ const s = {
 const stringsJson = JSON.stringify({
   copied: s.copied,
   copyFailed: s.copyFailed,
+  copyFailedShort: s.copyFailedShort,
   pasteFailed: s.pasteFailed,
   minutes: s.minutes,
+  example: t(lang, ns, "ExampleText"),
 });
 ---
 
-<div class="ds-tool-grid wc-grid" data-wc-tool>
-  <section class="ds-card ds-stack">
-    <Field label={s.inputLabel} for="wc-input">
+<div class="ds-workbench wc-grid" data-wc-tool>
+  <ToolPanel title={s.inputLabel} for="wc-input">
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-wc-paste>{s.paste}</button>
+      <CopyButton ghost label={s.copy} copiedLabel={s.copied} failedLabel={s.copyFailedShort} data-wc-copy />
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-wc-clear>{s.clear}</button>
+    </Fragment>
+    <div class="ds-editor is-empty" data-wc-input-host>
       <textarea
         id="wc-input"
-        class="ds-field-textarea wc-textarea"
+        class="ds-field-textarea"
         data-wc-textarea
         rows="14"
-        placeholder={s.inputPlaceholder}
+        aria-describedby="wc-input-empty"
       ></textarea>
-    </Field>
-    <div class="ds-actions">
-      <button type="button" class="ds-btn" data-wc-paste>{s.paste}</button>
-      <button type="button" class="ds-btn" data-wc-copy>{s.copy}</button>
-      <button type="button" class="ds-btn ds-btn-danger" data-wc-clear>{s.clear}</button>
+      <EmptyState
+        hint={s.inputPlaceholder}
+        hintId="wc-input-empty"
+        exampleLabel={s.loadExample}
+        buttonProps={{ "data-wc-example": true }}
+      />
     </div>
     <StatusMessage kind="error" data-wc-error />
-  </section>
+  </ToolPanel>
 
-  <aside class="ds-card wc-stats" aria-labelledby="wc-stats-title">
-    <div class="ds-card-head">
-      <h2 class="ds-card-title" id="wc-stats-title">{s.statistics}</h2>
+  <ToolPanel title={s.statistics} class="wc-stats">
+    <div class="ds-result-headline">
+      <span class="ds-result-headline-label">{s.words}</span>
+      <output class="ds-result-headline-value" data-wc-words>0</output>
+      <p class="ds-result-headline-meta">{s.wordsDesc}</p>
     </div>
-    <dl class="wc-list">
-      <div class="wc-item wc-item-main">
-        <dt>{s.words}</dt><dd data-wc-words>0</dd>
-        <p class="ds-hint wc-desc">{s.wordsDesc}</p>
-      </div>
-      <div class="wc-item"><dt>{s.charsSpaces}</dt><dd data-wc-chars-spaces>0</dd></div>
-      <div class="wc-item"><dt>{s.charsNoSpaces}</dt><dd data-wc-chars-nospaces>0</dd></div>
-      <div class="wc-item"><dt>{s.lines}</dt><dd data-wc-lines>0</dd></div>
-      <div class="wc-item"><dt>{s.paragraphs}</dt><dd data-wc-paragraphs>0</dd></div>
-      <div class="wc-item"><dt>{s.sentences}</dt><dd data-wc-sentences>0</dd></div>
-      <div class="wc-item"><dt>{s.readingTime}</dt><dd data-wc-reading>0 {s.minutes}</dd></div>
-      <div class="wc-item"><dt>{s.speakingTime}</dt><dd data-wc-speaking>0 {s.minutes}</dd></div>
+    <dl class="ds-result-list wc-list">
+      <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{s.charsSpaces}</dt><dd class="ds-result-value" data-wc-chars-spaces>0</dd></div>
+      <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{s.charsNoSpaces}</dt><dd class="ds-result-value" data-wc-chars-nospaces>0</dd></div>
+      <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{s.lines}</dt><dd class="ds-result-value" data-wc-lines>0</dd></div>
+      <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{s.paragraphs}</dt><dd class="ds-result-value" data-wc-paragraphs>0</dd></div>
+      <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{s.sentences}</dt><dd class="ds-result-value" data-wc-sentences>0</dd></div>
+      <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{s.readingTime}</dt><dd class="ds-result-value" data-wc-reading>0 {s.minutes}</dd></div>
+      <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{s.speakingTime}</dt><dd class="ds-result-value" data-wc-speaking>0 {s.minutes}</dd></div>
     </dl>
-  </aside>
+  </ToolPanel>
 </div>
 
 <script is:inline type="application/json" data-wc-strings set:html={stringsJson} />
 <script>import "@/tools/word-counter.client.ts";</script>
 
 <style>
-  /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
-  .wc-grid { --ds-tool-grid-cols: minmax(0, 1.6fr) minmax(0, 1fr); align-items: start; }
-  .wc-textarea { min-height: 16rem; }
-  .wc-list { display: grid; gap: 0.15rem; margin: 0; }
-  .wc-item {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: baseline;
-    gap: 0.25rem 0.75rem;
-    padding: 0.45rem 0;
-    border-bottom: 1px solid var(--mdt-border);
-  }
-  .wc-item:last-child { border-bottom: 0; }
-  .wc-item dt { font-size: var(--mdt-fs-meta); color: var(--mdt-text-muted); min-width: 0; overflow-wrap: anywhere; }
-  .wc-item dd {
-    margin: 0;
-    font-family: var(--mdt-font-mono);
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: var(--mdt-text);
-    font-variant-numeric: tabular-nums;
-    text-align: right;
-  }
-  .wc-item-main dd { font-size: 1.5rem; color: var(--mdt-cat); }
-  .wc-desc { grid-column: 1 / -1; margin: 0; }
+  /* Layout-only: wider text column; stat values right-aligned like a ledger. */
+  .wc-grid { --ds-workbench-cols: minmax(0, 1.6fr) minmax(0, 1fr); }
+  .wc-list dd { margin: 0; text-align: right; }
 </style>

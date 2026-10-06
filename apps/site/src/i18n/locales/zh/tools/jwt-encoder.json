@@ -12,6 +12,8 @@
   "EncodedLabel": "已编码令牌",
   "Copy": "复制令牌",
   "Copied": "已复制！",
+  "InputTitle": "头部、载荷与签名",
+  "OutputEmpty": "请修正头部和载荷的 JSON——签名后的令牌会随输入显示在这里。",
   "Seo_Introduction": "为测试 API 和认证流程生成签名的 JSON Web Token：编辑头部和载荷 JSON，选择 HS256、HS384 或 HS512，输入密钥后复制令牌——令牌随每次按键实时更新。",
   "Seo_DetailedDescription": "头部和载荷都必须是 JSON 对象；无效的 JSON 或数组等非对象值会在对应字段下提示，并且不会生成令牌。JSON 会被压缩（去除空白）并进行不带填充的 base64url 编码，保留您的声明顺序以及 `kid`、`cty` 等额外头部字段。头部中的 `alg` 值会被替换为列表中选择的算法；如果缺失，则添加在最前面。\n\nHMAC 签名（SHA-256、SHA-384 或 SHA-512）由编译为 WebAssembly 的 Rust 加密模块计算；密钥按 UTF-8 文本使用。只提供对称的 HMAC 算法——需要私钥的 RS256 或 ES256 令牌无法在这里创建。密钥为空时仍会生成一个用空密钥签名的令牌，只适合做实验。\n\n密钥和声明都留在页面中，不会被保存。工具不会自动添加 `iat` 或 `exp`：请自行在载荷中填写 NumericDate 值（以秒为单位的 Unix 时间）。",
   "Seo_Examples": "**jwt.io 测试向量**：默认头部 `{\"alg\":\"HS256\",\"typ\":\"JWT\"}` 和载荷 `{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"iat\":1516239022}` 配合密钥 `your-256-bit-secret`，生成以 `SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c` 结尾的令牌，与 jwt.io 完全一致。\n\n**密钥 ID 和过期时间**：头部 `{\"alg\":\"HS256\",\"typ\":\"JWT\",\"kid\":\"key-2026\"}`、载荷 `{\"sub\":\"42\",\"role\":\"admin\",\"exp\":1767225600}`、算法 HS384——编码后的头部为 `{\"alg\":\"HS384\",\"typ\":\"JWT\",\"kid\":\"key-2026\"}`，字段顺序保持不变，签名长 64 个字符。\n\n**不是对象**：载荷为 `[1,2]` 时，字段下方会显示 “必须是 JSON 对象”，令牌被清空。",

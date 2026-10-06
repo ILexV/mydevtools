@@ -3,7 +3,6 @@
   "Description": "使用 Bitcoin、Flickr 或 Ripple 字母表编码和解码 Base58，支持文本和不超过 1 MiB 的文件。在浏览器本地运行，不上传任何数据。",
   "Keywords": "Base58 编码, Base58 解码, Bitcoin Base58, Flickr Base58, Ripple Base58, Base58 地址解码, Base58 在线转换",
   "InputTextLabel": "输入（文本）",
-  "InputTextPlaceholder": "输入文本或 Base58...",
   "FileHint": "如果选择了文件，将使用文件而非文本输入。",
   "CharsetLabel": "文本字符集",
   "AlphabetLabel": "字母表",
@@ -21,7 +20,6 @@
   "ActionClear": "清除",
   "OutputLabel": "输出",
   "Copy": "复制",
-  "Copied": "已复制！",
   "Download": "下载",
   "FileProgressTitle": "正在处理文件...",
   "Cancel": "取消",
@@ -42,5 +40,7 @@
   "Seo_DetailedDescription": "Base58 使用 58 个字母和数字，去掉了容易混淆的 `0`、`O`、`I`、`l` 以及 `+` 和 `/`，因此编码结果便于阅读、重新输入，也能双击整段选中。比特币地址、IPFS CIDv0 哈希和 Solana 密钥都采用这种编码。提供三种字母表：**Bitcoin**（最常用）、**Flickr**（小写字母排在大写之前，用于短链接）和 **Ripple**（XRP Ledger）。\n\n与 Base64 不同，Base58 把整个输入当作一个大整数处理：没有填充，每个前导零字节在 Bitcoin 字母表中变成一个前导 `1`。计算量随输入大小呈平方增长，因此编码上限为 1 MiB，解码上限为 2,000,000 个字符；更大的文件请使用 Base64 或 Hex。\n\n这是纯 Base58：工具不会添加或校验比特币地址和 WIF 私钥中 4 字节的 Base58Check 校验和，因此解码地址时会一并得到版本字节、数据和校验和。在所选字符集中不是有效文本的字节，可以用 **下载** 保存。",
   "Seo_Examples": "**Bitcoin 字母表**：`Hello World!` 编码为 `2NEpo7TZRRrLZSi2U`，解码该字符串又得到 `Hello World!`。\n\n**其他字母表**：同一文本用 Flickr 得到 `2nePN7syqqRkyrH2t`，用 Ripple 得到 `p4NFofTZRRiLZS5p7`。\n\n**非法字符**：`2NEpo0TZRRrLZSi2U`（把 7 换成 0）会被拒绝，因为任何 Base58 字母表都不包含 `0`。\n\n**比特币地址**：解码 `1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa` 得到 25 个原始字节（版本、哈希和校验和）；工具会提示这不是文本，可用 **下载** 保存。",
   "Seo_HowToSteps": "### 步骤1：输入文本或选择文件\n在 **输入（文本）** 中输入或粘贴文本，或将不超过 1 MiB 的文件拖到页面上、点击 **选择文件**。\n\n### 步骤2：选择字母表\n在 **字母表** 中选择 **Bitcoin (Base58)**、**Flickr** 或 **Ripple**。只有文本不是 UTF-8 时才需要修改 **文本字符集**。\n\n### 步骤3：编码或解码\n点击 **编码** 生成 Base58，或点击 **解码** 还原文本或字节。解码时请使用编码时的同一字母表。\n\n### 步骤4：复制或下载\n**复制** 将结果放入剪贴板，**下载** 将其保存为文件；二进制结果只能下载。",
-  "Seo_Tips": "- Base58 输出比输入长约 37%，略长于 Base64，换来的是没有歧义的字符。\n- Bitcoin 字母表字符串开头的 `1` 代表前导零字节，删掉它们会改变解码结果。\n- 用错字母表会得到不同的字节或报错：选择 Ripple 时，`2NEpo7TZRRrLZSi2U` 会解码成 13 字节的二进制数据，而不是 `Hello World!`。\n- 开启 **允许空白字符/换行** 时会跳过空格和换行，适合处理被拆成多行的密钥。\n- 超过 1 MiB 的文件请改用 Base64 或 Hex，它们是线性时间的。"
+  "Seo_Tips": "- Base58 输出比输入长约 37%，略长于 Base64，换来的是没有歧义的字符。\n- Bitcoin 字母表字符串开头的 `1` 代表前导零字节，删掉它们会改变解码结果。\n- 用错字母表会得到不同的字节或报错：选择 Ripple 时，`2NEpo7TZRRrLZSi2U` 会解码成 13 字节的二进制数据，而不是 `Hello World!`。\n- 开启 **允许空白字符/换行** 时会跳过空格和换行，适合处理被拆成多行的密钥。\n- 超过 1 MiB 的文件请改用 Base64 或 Hex，它们是线性时间的。",
+  "EmptyHint": "输入要编码的文本，或粘贴 Base58 进行解码，也可以在下方拖放文件。",
+  "OutputEmpty": "编码或解码结果将显示在这里。"
 }

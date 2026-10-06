@@ -7,7 +7,11 @@
  * line-by-line. Loading a file fills its side and auto-compares once both
  * sides have content. Dark theme toggles diff2html's `d2h-dark-color-scheme`
  * class (the vendored CSS ships dark variables behind that class).
+ * Workbench empty states: each side shows a hint + "Load example" (fills both
+ * sides with localized sample text, on click only); the result panel shows a
+ * compact placeholder until there is a diff or a status message.
  */
+import { bindEmptyState, bindLoadExample, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
 
 declare global {
   interface Window {
@@ -40,6 +44,8 @@ interface Strings {
   noDifferences: string;
   fileReadError: string;
   diffTooBig: string;
+  exampleOriginal?: string;
+  exampleModified?: string;
 }
 
 /**
@@ -138,6 +144,26 @@ function init(): void {
   const originalFile = root.querySelector<HTMLInputElement>('[data-diff-file="original"]');
   const modifiedFile = root.querySelector<HTMLInputElement>('[data-diff-file="modified"]');
 
+  const outputPanel = root.querySelector<HTMLElement>("[data-diff-output-panel]");
+  const hostOf = (side: string) => toolRoot.querySelector<HTMLElement>(`[data-diff-host="${side}"]`);
+  const originalHost = hostOf("original");
+  const modifiedHost = hostOf("modified");
+  const syncOriginal = originalHost ? bindEmptyState(originalHost, originalText) : () => {};
+  const syncModified = modifiedHost ? bindEmptyState(modifiedHost, modifiedText) : () => {};
+  root.querySelectorAll<HTMLButtonElement>("[data-diff-example]").forEach((btn) => {
+    bindLoadExample(btn, () => {
+      setFieldValue(originalText, strings.exampleOriginal ?? "");
+      setFieldValue(modifiedText, strings.exampleModified ?? "");
+    });
+  });
+
+  /** Result placeholder while there is neither a diff nor a status/error line. */
+  function syncOutput(): void {
+    if (!outputPanel) return;
+    const empty = outputEl.hidden === true && (statusEl?.hidden ?? true) !== false && (errorEl?.hidden ?? true) !== false;
+    syncEmptyState(outputPanel, empty);
+  }
+
   let currentOriginal = originalText.value;
   let currentModified = modifiedText.value;
 
@@ -162,11 +188,13 @@ function init(): void {
       errorEl.textContent = kind === "error" ? (message ?? "") : "";
       errorEl.hidden = kind !== "error" || message === null;
     }
+    syncOutput();
   }
 
   function hideOutput(): void {
     outputEl.innerHTML = "";
     outputEl.hidden = true;
+    syncOutput();
   }
 
   async function renderDiff(): Promise<void> {
@@ -224,6 +252,7 @@ function init(): void {
     showAlert(null);
     outputEl.innerHTML = "";
     outputEl.hidden = false;
+    syncOutput();
     syncThemeClass();
     const ui = new DiffUI(outputEl, patch, configuration);
     ui.draw();
@@ -267,8 +296,11 @@ function init(): void {
       currentModified = "";
       if (originalFile) originalFile.value = "";
       if (modifiedFile) modifiedFile.value = "";
+      syncOriginal();
+      syncModified();
       hideOutput();
       showAlert(null);
+      originalText.focus();
     }
   });
 
@@ -291,6 +323,8 @@ function init(): void {
       reader.onload = () => {
         const text = typeof reader.result === "string" ? reader.result : "";
         area.value = text;
+        if (isOriginal) syncOriginal();
+        else syncModified();
         // Read back the field value: textarea normalizes CRLF → LF, so the
         // auto-compare matches a later manual Compare (CRLF file vs LF file
         // used to show every line as changed only on auto-compare).
@@ -312,6 +346,7 @@ function init(): void {
   };
   bindFile(originalFile, originalText, true);
   bindFile(modifiedFile, modifiedText, false);
+  syncOutput();
 }
 
 if (document.readyState === "loading") {

@@ -13,7 +13,9 @@
  *
  * Host states: `.is-error` (invalid input), `.is-dragover` (file drag),
  * `:focus-within` (focus ring). Height: `--mdt-cm-height` on the host
- * (default min(600px, 70vh); at most 400px on narrow screens).
+ * (default clamp(20rem, 50vh, 25rem) = 320–400px so an empty editor isn't a
+ * vast blank; at most 400px, default 20rem, on narrow screens). Wrap the host
+ * in `.ds-editor` (tool-ui.css) to add an empty-state overlay.
  */
 
 .mdt-cm {
@@ -33,7 +35,7 @@
   position: relative;
   min-width: 0;
   max-width: 100%;
-  height: var(--mdt-cm-height, min(600px, 70vh));
+  height: var(--mdt-cm-height, clamp(20rem, 50vh, 25rem));
   overflow: hidden;
   border: 1px solid var(--mdt-border);
   border-radius: var(--mdt-radius);
@@ -42,7 +44,7 @@
 }
 @media (max-width: 768px) {
   .mdt-cm {
-    height: min(var(--mdt-cm-height, 400px), 400px);
+    height: min(var(--mdt-cm-height, 20rem), 400px);
   }
   .mdt-cm .cm-editor {
     font-size: 0.8125rem;

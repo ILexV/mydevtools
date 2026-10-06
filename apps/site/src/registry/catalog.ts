@@ -15,6 +15,8 @@ import { localizedPath } from "@/lib/url";
 
 export interface CatalogTool {
   slug: string;
+  /** Language-neutral tile mark from the registry (e.g. "B64"). */
+  monogram: string;
   title: string;
   description: string;
   /** English comma-separated keywords from the tool namespace (SEO + search). */
@@ -53,6 +55,7 @@ function buildTool(tool: Tool, lang: LocaleCode): CatalogTool {
   const keywords = splitKeywords(t(lang, ns, "Keywords"));
   return {
     slug: tool.slug,
+    monogram: tool.monogram,
     title,
     description,
     keywords,

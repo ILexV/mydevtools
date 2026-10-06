@@ -3,7 +3,6 @@
   "Description": "Codifique e decodifique Base58 com o alfabeto Bitcoin, Flickr ou Ripple para texto e arquivos de até 1 MiB. Localmente no navegador, sem envio de dados.",
   "Keywords": "codificador Base58, decodificador Base58, Base58 Bitcoin, Base58 Flickr, Base58 Ripple, decodificar endereço Base58, Base58 online",
   "InputTextLabel": "Entrada (texto)",
-  "InputTextPlaceholder": "Digite texto ou Base58...",
   "FileHint": "Se um arquivo for selecionado, ele será usado em vez da entrada de texto.",
   "CharsetLabel": "Conjunto de caracteres",
   "AlphabetLabel": "Alfabeto",
@@ -21,7 +20,6 @@
   "ActionClear": "Limpar",
   "OutputLabel": "Saída",
   "Copy": "Copiar",
-  "Copied": "Copiado!",
   "Download": "Baixar",
   "FileProgressTitle": "Processando arquivo...",
   "Cancel": "Cancelar",
@@ -42,5 +40,7 @@
   "Seo_DetailedDescription": "Base58 usa 58 letras e dígitos e deixa de fora os parecidos `0`, `O`, `I` e `l`, além de `+` e `/`, por isso os valores codificados são fáceis de ler, redigitar e selecionar com clique duplo. É a codificação dos endereços Bitcoin, dos hashes IPFS CIDv0 e das chaves Solana. Há três alfabetos: **Bitcoin** (o mais comum), **Flickr** (minúsculas antes das maiúsculas, usado em links curtos) e **Ripple** (XRP Ledger).\n\nAo contrário do Base64, o Base58 trata toda a entrada como um único número grande: não há preenchimento e cada byte zero inicial vira um `1` inicial no alfabeto Bitcoin. Esse cálculo cresce de forma quadrática com o tamanho, por isso a codificação é limitada a 1 MiB e a decodificação a 2.000.000 caracteres; para arquivos maiores use Base64 ou Hex.\n\nÉ Base58 puro: a ferramenta não adiciona nem verifica o checksum Base58Check de 4 bytes dos endereços Bitcoin e chaves WIF, então ao decodificar um endereço você recebe juntos o byte de versão, os dados e o checksum. Bytes que não são texto válido no conjunto de caracteres escolhido podem ser salvos com **Baixar**.",
   "Seo_Examples": "**Alfabeto Bitcoin**: `Hello World!` vira `2NEpo7TZRRrLZSi2U`, e decodificar essa string devolve `Hello World!`.\n\n**Outros alfabetos**: o mesmo texto gera `2nePN7syqqRkyrH2t` com Flickr e `p4NFofTZRRiLZS5p7` com Ripple.\n\n**Caractere inválido**: `2NEpo0TZRRrLZSi2U` (zero no lugar do 7) é rejeitado, porque `0` não existe em nenhum alfabeto Base58.\n\n**Endereço Bitcoin**: decodificar `1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa` gera 25 bytes brutos (versão, hash e checksum); a ferramenta avisa que não é texto e **Baixar** os salva.",
   "Seo_HowToSteps": "### Passo 1: Digite o texto ou escolha um arquivo\nDigite ou cole o texto em **Entrada (texto)**, ou arraste para a página um arquivo de até 1 MiB ou clique em **Escolher arquivo**.\n\n### Passo 2: Escolha o alfabeto\nEm **Alfabeto**, selecione **Bitcoin (Base58)**, **Flickr** ou **Ripple**. Mude o **Conjunto de caracteres** só se o texto não estiver em UTF-8.\n\n### Passo 3: Codifique ou decodifique\nClique em **Codificar** para gerar Base58 ou em **Decodificar** para recuperar o texto ou os bytes. Decodifique com o mesmo alfabeto usado na codificação.\n\n### Passo 4: Copie ou baixe\n**Copiar** leva o resultado para a área de transferência e **Baixar** o salva; resultados binários só podem ser baixados.",
-  "Seo_Tips": "- A saída Base58 é cerca de 37% maior que a entrada, um pouco mais que Base64, em troca de caracteres sem ambiguidade.\n- Os `1` iniciais de uma string no alfabeto Bitcoin representam bytes zero iniciais; removê-los muda o valor decodificado.\n- Decodificar com o alfabeto errado gera outros bytes ou um erro: `2NEpo7TZRRrLZSi2U` com Ripple selecionado vira 13 bytes binários em vez de `Hello World!`.\n- Espaços e quebras de linha são ignorados enquanto **Permitir espaços em branco/novas linhas** estiver ativado, útil para chaves quebradas em linhas.\n- Para arquivos acima de 1 MiB use Base64 ou Hex, que trabalham em tempo linear."
+  "Seo_Tips": "- A saída Base58 é cerca de 37% maior que a entrada, um pouco mais que Base64, em troca de caracteres sem ambiguidade.\n- Os `1` iniciais de uma string no alfabeto Bitcoin representam bytes zero iniciais; removê-los muda o valor decodificado.\n- Decodificar com o alfabeto errado gera outros bytes ou um erro: `2NEpo7TZRRrLZSi2U` com Ripple selecionado vira 13 bytes binários em vez de `Hello World!`.\n- Espaços e quebras de linha são ignorados enquanto **Permitir espaços em branco/novas linhas** estiver ativado, útil para chaves quebradas em linhas.\n- Para arquivos acima de 1 MiB use Base64 ou Hex, que trabalham em tempo linear.",
+  "EmptyHint": "Digite um texto para codificar ou cole Base58 para decodificar, ou solte um arquivo abaixo.",
+  "OutputEmpty": "O resultado codificado ou decodificado aparece aqui."
 }

@@ -4,15 +4,16 @@
  * demand, base-path aware). Legacy parity: marked options { breaks, gfm,
  * headerIds, mangle } (v11 ignores the removed headerIds/mangle — defaults
  * match), no debounce, formatting inserts,
- * two-way proportional sync scroll, copy HTML/markdown (1200ms label swap),
- * download standalone .html, preloaded sample when empty. Deviation: the
+ * two-way proportional sync scroll, copy HTML/markdown (width-stable copy
+ * feedback), download standalone .html. The editor starts empty (empty state);
+ * the localized sample loads only via "Load example". Deviation: the
  * marked output is sanitized (`markdown-sanitize.ts`) before insertion, so
  * raw HTML/`javascript:` links in the markdown cannot execute. Preview headings
  * are demoted one level (`demoteHeadings`) so the page keeps a single h1;
  * Copy HTML / Download export the sanitized HTML with the original levels.
  */
 import { demoteHeadings, sanitizeHtml } from "@/tools/markdown-sanitize";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import { bindEmptyState, bindLoadExample, copyWithFeedback, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
 
 interface MarkedGlobal {
   parse(src: string, options?: Record<string, unknown>): string;
@@ -29,36 +30,12 @@ interface Strings {
   copyFailed: string;
   renderError: string;
   markedLoadFailed: string;
+  /** Localized sample document (locale `ExampleMarkdown`). */
+  example: string;
 }
 
 /** Legacy marked options, ported verbatim. */
 const MARKED_OPTIONS = { breaks: true, gfm: true, headerIds: true, mangle: false };
-
-/** Legacy sample document, shown when the editor is empty on first load. */
-const DEFAULT_MARKDOWN =
-  "# Welcome to Markdown Preview\n\n" +
-  "## Features\n\n" +
-  "- **Live preview** as you type\n" +
-  "- Support for **GitHub Flavored Markdown** (GFM)\n" +
-  "- Fenced code blocks (no syntax highlighting)\n" +
-  "- Tables, lists, and more\n\n" +
-  "### Example Code Block\n\n" +
-  "```javascript\n" +
-  "function greet(name) {\n" +
-  "    console.log(`Hello, ${name}!`);\n" +
-  "}\n" +
-  "```\n\n" +
-  "### Example Table\n\n" +
-  "| Feature | Supported |\n" +
-  "|---------|-----------|\n" +
-  "| Headers | ✅ |\n" +
-  "| Lists   | ✅ |\n" +
-  "| Links   | ✅ |\n" +
-  "| Images  | ✅ |\n\n" +
-  "### Example Link\n\n" +
-  "[Visit MyDevTools](https://mydevtools.app)\n\n" +
-  "---\n\n" +
-  "*Start typing in the editor to see your markdown rendered!*";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -127,11 +104,18 @@ function init(): void {
   const errorDiv: HTMLElement = errorEl;
 
   const syncToggle = root.querySelector<HTMLInputElement>("[data-md-sync-scroll]");
+  const inputHost = root.querySelector<HTMLElement>("[data-md-input-host]");
+  const outputPanel = root.querySelector<HTMLElement>("[data-md-output-panel]");
+  const exampleBtn = root.querySelector<HTMLButtonElement>("[data-md-example]");
+  const syncInput = inputHost ? bindEmptyState(inputHost, input) : () => {};
 
   /** Sanitized HTML with original heading levels — what Copy HTML / Download export. */
   let exportHtml = "";
 
   function renderMarkdown(): void {
+    // Empty editor → compact preview placeholder; programmatic writes resync the editor too.
+    syncInput();
+    if (outputPanel) syncEmptyState(outputPanel, input.value === "");
     try {
       if (window.marked) {
         const fragment = sanitizeHtml(window.marked.parse(input.value, MARKED_OPTIONS));
@@ -350,10 +334,8 @@ function init(): void {
     });
   });
 
-  // Initialize with the sample document only if empty (legacy behavior).
-  if (!input.value) {
-    input.value = DEFAULT_MARKDOWN;
-  }
+  // Sample document only on explicit request (never preloaded silently).
+  if (exampleBtn) bindLoadExample(exampleBtn, () => setFieldValue(input, strings.example));
 
   // Load marked on demand, then initial render.
   void ensureMarked()

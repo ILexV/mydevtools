@@ -94,18 +94,39 @@ function boot(): void {
   let current: PaletteItem[] = [];
   let lastFocus: HTMLElement | null = null;
 
+  /** Current trimmed query; drives the match highlight in result titles. */
+  let query = "";
+
+  /**
+   * Title with the first query match wrapped in <mark> (search-hit highlight).
+   * Skipped when lowercasing changes string length (index mapping would drift).
+   */
+  function titleHtml(title: string): string {
+    const lower = title.toLowerCase();
+    const at = query ? lower.indexOf(query) : -1;
+    if (at < 0 || lower.length !== title.length) return escapeHtml(title);
+    const end = at + query.length;
+    return (
+      escapeHtml(title.slice(0, at)) +
+      `<mark>${escapeHtml(title.slice(at, end))}</mark>` +
+      escapeHtml(title.slice(end))
+    );
+  }
+
+  /** One listbox option: category icon tile, title, quiet category label. */
   function optionHtml(i: number): string {
     const { e } = current[i];
     return (
       `<div class="palette-option" role="option" id="palette-opt-${i}" data-index="${i}" ` +
-      `data-active="false" aria-selected="false">` +
+      `data-active="false" aria-selected="false" style="--mdt-cat: var(--mdt-cat-${e.g})">` +
       iconTile(e.g) +
-      `<span class="palette-opt-title">${escapeHtml(e.t)}</span>` +
-      `<span class="palette-opt-cat" style="--mdt-cat: var(--mdt-cat-${e.g})">${escapeHtml(e.c)}</span></div>`
+      `<span class="palette-opt-title">${titleHtml(e.t)}</span>` +
+      `<span class="palette-opt-cat">${escapeHtml(e.c)}</span></div>`
     );
   }
 
   function markActive(): void {
+    if (active < 0) input.removeAttribute("aria-activedescendant");
     results.querySelectorAll<HTMLElement>(".palette-option").forEach((opt) => {
       const on = Number(opt.getAttribute("data-index")) === active;
       opt.setAttribute("data-active", String(on));
@@ -117,16 +138,22 @@ function boot(): void {
     });
   }
 
-  function renderGroup(label: string, items: PaletteItem[], offset: number): string {
+  /** Empty-query section (favorites/recent/popular) as an ARIA group of options. */
+  function renderGroup(key: string, label: string, items: PaletteItem[], offset: number): string {
     if (items.length === 0) return "";
-    let html = `<div class="palette-group">${escapeHtml(label)}</div>`;
+    const id = `palette-grp-${key}`;
+    let html =
+      `<div role="group" aria-labelledby="${id}">` +
+      `<div class="palette-group" id="${id}" role="presentation">${escapeHtml(label)}</div>`;
     for (let i = 0; i < items.length; i++) html += optionHtml(offset + i);
-    return html;
+    return html + "</div>";
   }
 
   function render(): void {
     const q = input.value.trim().toLowerCase();
+    query = q;
     active = -1;
+    markActive();
     if (q === "") {
       const favSlugs = window.MDT?.favorites.list() ?? [];
       const recentSlugs = (window.MDT?.recent.list() ?? []).map((r) => r.slug);
@@ -142,9 +169,9 @@ function boot(): void {
         return;
       }
       results.innerHTML =
-        renderGroup(`⭐ ${labels.favorites}`, favs, 0) +
-        renderGroup(`🕐 ${labels.recent}`, recent, favs.length) +
-        renderGroup(`🔥 ${labels.popular}`, popular, favs.length + recent.length);
+        renderGroup("fav", labels.favorites, favs, 0) +
+        renderGroup("recent", labels.recent, recent, favs.length) +
+        renderGroup("popular", labels.popular, popular, favs.length + recent.length);
     } else {
       current = all
         .filter(({ e }) => `${e.t} ${e.c} ${e.k}`.toLowerCase().includes(q))

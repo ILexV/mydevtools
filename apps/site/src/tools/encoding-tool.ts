@@ -2,12 +2,14 @@
  * Shared browser controller for the text-or-file encoders (base32, base58,
  * hex): encode/decode text via `encoding-client`, files via the worker
  * (`encoding-file-client`, progress + cancel), drag & drop, swap/clear,
- * copy/download, localized errors with caret placement, preview/full output.
- * Each tool's `*.client.ts` passes its prefix (`data-<prefix>-*` hooks),
- * option reader and file extension. Shell markup: `HexEncoder.astro` et al.
+ * copy/download, localized errors with caret placement, preview/full output,
+ * workbench empty states (input overlay + "Load example", compact output
+ * placeholder). Each tool's `*.client.ts` passes its prefix (`data-<prefix>-*`
+ * hooks), option reader, file extension and example text. Shell markup:
+ * `HexEncoder.astro` et al.
  */
 import { formatBytes, formatString, progressPercent } from "@/lib/format";
-import { copyWithFeedback, bindDropzone } from "@/scripts/tool-ui";
+import { bindDropzone, bindLoadExample, copyWithFeedback, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
 import {
   encodeBytes,
   decodeToBytes,
@@ -24,6 +26,7 @@ const PREVIEW_CHAR_LIMIT = 200_000;
 
 export interface EncodingToolStrings {
   copied: string;
+  copyFailed?: string;
   fileProgressTitle: string;
   previewTruncated: string;
   fileDecoded: string;
@@ -49,6 +52,8 @@ export interface EncodingToolConfig {
   /** Download extension for encoded output ("hex", "b32", "b58"). */
   ext: string;
   readOptions(root: HTMLElement): EncodingOptions;
+  /** Language-neutral sample inserted by "Load example" (only on click). */
+  example?: string;
   /** Optional input caps (base58 is O(n²)): raw bytes to encode / encoded chars to decode. */
   encodeLimit?: number;
   decodeLimit?: number;
@@ -120,11 +125,30 @@ export function initEncodingTool(config: EncodingToolConfig): void {
   const progressFill = q<HTMLElement>("progress-fill");
   const progressLabel = q<HTMLElement>("progress-label");
   const stats = q<HTMLElement>("stats");
+  const inputHost = q<HTMLElement>("input-host");
+  const outputPanel = q<HTMLElement>("output-panel");
+  const exampleBtn = q<HTMLButtonElement>("example");
   const lang = document.documentElement.lang || "en";
 
   let currentFile: File | null = null;
   let abortController: AbortController | null = null;
   let lastDownload: { blob: Blob; name: string } | null = null;
+
+  /** Input overlay shows while there is neither text nor a selected file. */
+  function syncInput() {
+    if (inputHost) syncEmptyState(inputHost, inputArea.value === "" && !currentFile);
+  }
+  /** Output placeholder while there is no result; Copy needs text. */
+  function syncOutput() {
+    const empty = outputArea.value === "";
+    if (outputPanel) syncEmptyState(outputPanel, empty && !lastDownload);
+    if (copyBtn) copyBtn.disabled = empty;
+  }
+  /** Write the result box and refresh the output empty state. */
+  function setOutput(text: string) {
+    outputArea.value = text;
+    syncOutput();
+  }
 
   function showError(msg: string) {
     errorArea.textContent = msg;
@@ -145,6 +169,7 @@ export function initEncodingTool(config: EncodingToolConfig): void {
   function setLastDownload(dl: { blob: Blob; name: string } | null) {
     lastDownload = dl;
     if (downloadBtn) downloadBtn.disabled = !dl;
+    syncOutput();
   }
 
   function setBusy(busy: boolean, trigger?: HTMLButtonElement | null) {
@@ -190,7 +215,7 @@ export function initEncodingTool(config: EncodingToolConfig): void {
     const { key, position } = classifyEncodingError(message);
     // Never leave a stale result next to an error. Not-text decodes keep the
     // raw-bytes download (set before the charset conversion failed).
-    outputArea.value = "";
+    setOutput("");
     if (key !== "Error_NotText") {
       setStats(null);
       setLastDownload(null);
@@ -220,7 +245,7 @@ export function initEncodingTool(config: EncodingToolConfig): void {
     if (file) {
       // File mode replaces the text input (legacy parity).
       inputArea.value = "";
-      outputArea.value = "";
+      setOutput("");
       setLastDownload(null);
       setStats(null);
       clearError();
@@ -228,6 +253,7 @@ export function initEncodingTool(config: EncodingToolConfig): void {
       fileInput.value = "";
     }
     updateFileUi();
+    syncInput();
   }
 
   if (drop) {
@@ -240,7 +266,7 @@ export function initEncodingTool(config: EncodingToolConfig): void {
   /** Pre-check an optional size cap; shows the localized limit error. */
   function tooLarge(limit: number | undefined, template: string | undefined, size: number): boolean {
     if (!limit || !template || size <= limit) return false;
-    outputArea.value = "";
+    setOutput("");
     setStats(null);
     setLastDownload(null);
     showError(formatString(template, formatBytes(limit), formatBytes(size)));
@@ -258,14 +284,14 @@ export function initEncodingTool(config: EncodingToolConfig): void {
         setProgress(true);
         const result = await encodeFile(options, currentFile, { signal: abortController.signal, onProgress });
         const full = result.text;
-        outputArea.value = previewText(full, outputModeSel?.value ?? "preview", PREVIEW_CHAR_LIMIT, strings.previewTruncated).text;
+        setOutput(previewText(full, outputModeSel?.value ?? "preview", PREVIEW_CHAR_LIMIT, strings.previewTruncated).text);
         setStats(full.length, currentFile.size);
         setLastDownload({ blob: new Blob([full], { type: "text/plain" }), name: outputFileName(currentFile.name, config.ext) });
       } else {
         const bytes = await textToBytes(inputArea.value, options.charset);
         if (tooLarge(config.encodeLimit, strings.fileSizeLimitEncode, bytes.length)) return;
         const out = await encodeBytes(options, bytes);
-        outputArea.value = out;
+        setOutput(out);
         setStats(out.length, bytes.length);
         setLastDownload({ blob: new Blob([out], { type: "text/plain" }), name: outputFileName(null, config.ext) });
       }
@@ -290,7 +316,7 @@ export function initEncodingTool(config: EncodingToolConfig): void {
         const result = await decodeFile(options, currentFile, { signal: abortController.signal, onProgress });
         const bytes = result.bytes ?? new Uint8Array(0);
         const binName = outputFileName(currentFile.name, "bin");
-        outputArea.value = formatString(strings.fileDecoded, currentFile.name, binName);
+        setOutput(formatString(strings.fileDecoded, currentFile.name, binName));
         setStats(currentFile.size, bytes.length);
         setLastDownload({ blob: new Blob([new Uint8Array(bytes)], { type: "application/octet-stream" }), name: binName });
       } else {
@@ -300,7 +326,7 @@ export function initEncodingTool(config: EncodingToolConfig): void {
         // Raw bytes stay downloadable even when they aren't text in the charset.
         setLastDownload({ blob: new Blob([new Uint8Array(bytes)], { type: "application/octet-stream" }), name: "decoded.bin" });
         setStats(encoded.length, bytes.length);
-        outputArea.value = await bytesToText(bytes, options.charset);
+        setOutput(await bytesToText(bytes, options.charset));
       }
     } catch (e) {
       handleError(e);
@@ -314,7 +340,14 @@ export function initEncodingTool(config: EncodingToolConfig): void {
   encodeBtn?.addEventListener("click", handleEncode);
   decodeBtn?.addEventListener("click", handleDecode);
   cancelBtn?.addEventListener("click", () => abortController?.abort());
-  inputArea.addEventListener("input", () => inputArea.removeAttribute("aria-invalid"));
+  inputArea.addEventListener("input", () => {
+    inputArea.removeAttribute("aria-invalid");
+    syncInput();
+  });
+  if (exampleBtn && config.example) {
+    const sample = config.example;
+    bindLoadExample(exampleBtn, () => setFieldValue(inputArea, sample));
+  }
 
   swapBtn?.addEventListener("click", () => {
     clearError();
@@ -322,24 +355,31 @@ export function initEncodingTool(config: EncodingToolConfig): void {
     if (currentFile) setFile(null);
     const a = inputArea.value;
     inputArea.value = outputArea.value;
-    outputArea.value = a;
     setStats(null);
     setLastDownload(null);
+    setOutput(a);
+    syncInput();
   });
 
   clearBtn?.addEventListener("click", () => {
     inputArea.value = "";
-    outputArea.value = "";
+    setOutput("");
     setFile(null);
     setLastDownload(null);
     setStats(null);
     clearError();
+    inputArea.focus();
   });
 
   copyBtn?.addEventListener("click", async () => {
-    const ok = await copyWithFeedback(copyBtn, outputArea.value, strings.copied);
+    const ok = await copyWithFeedback(copyBtn, outputArea.value, strings.copied, undefined, {
+      failedLabel: strings.copyFailed,
+    });
     if (!ok) showError(strings.errCopyFailed);
   });
+
+  syncInput();
+  syncOutput();
 
   downloadBtn?.addEventListener("click", () => {
     if (lastDownload) downloadBlob(lastDownload.blob, lastDownload.name);

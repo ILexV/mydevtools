@@ -6,7 +6,6 @@
   "ClearButton": "Clear",
   "CopyButton": "Copy",
   "PasteButton": "Paste",
-  "Copied": "Copied!",
   "Statistics": "Statistics",
   "Words": "Words",
   "WordsDesc": "Total word count",
@@ -26,5 +25,6 @@
   "Seo_Tips": "- A dot inside a number or abbreviation also ends a sentence: `Version 2.0 is out...` counts as 2 sentences and `e.g. this one` as 3, so treat the sentence count as an estimate.\n- For limits measured in characters (meta descriptions, SMS, social posts) use **Characters (with spaces)**; some services count UTF-16 units instead, where one emoji can count as 2.\n- Thai, Lao, Khmer and other scripts written without spaces are not segmented: a run of such text counts as one word.\n- Korean and Hindi separate words with spaces, so they are counted like English.\n- After the first visit the page also works without a network connection.",
   "InputLabel": "Text",
   "CopyFailed": "Could not copy to the clipboard.",
-  "PasteFailed": "Could not read the clipboard. Allow clipboard access or paste with Ctrl+V."
+  "PasteFailed": "Could not read the clipboard. Allow clipboard access or paste with Ctrl+V.",
+  "ExampleText": "Privacy matters. This counter runs entirely in your browser, so your draft never leaves the page.\n\nPaste an essay, a cover letter or a product description to see how long it is. Is it short enough? Check the reading time!"
 }

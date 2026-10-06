@@ -15,7 +15,7 @@ import {
   wcag,
   type RGB,
 } from "@/tools/color";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import { copyWithFeedback, prepareCopyButton } from "@/scripts/tool-ui";
 
 interface Strings {
   copy: string;
@@ -63,6 +63,7 @@ function init(): void {
   const ratioEl = root.querySelector<HTMLElement>("[data-color-ratio]");
   const wcagEl = root.querySelector<HTMLElement>("[data-color-wcag]");
   const previewEl = root.querySelector<HTMLElement>("[data-color-preview]");
+  const ratioCopyBtn = root.querySelector<HTMLButtonElement>("[data-color-ratio-copy]");
 
   function showError(msg: string): void {
     if (errorEl) {
@@ -101,6 +102,7 @@ function init(): void {
         btn.dataset.copy = val;
         btn.textContent = strings.copy;
         btn.setAttribute("aria-label", `${strings.copy} ${name}`);
+        prepareCopyButton(btn, strings.copied);
         row.append(key, value, btn);
         return row;
       }),
@@ -216,11 +218,17 @@ function init(): void {
         [strings.aaaNormal, r.aaaNormal],
         [strings.aaaLarge, r.aaaLarge],
       ];
+      // Quiet labelled grid under the headline ratio: level on the left, ✓ Pass / ✗ Fail right.
       wcagEl.replaceChildren(
         ...items.map(([label, ok]) => {
           const li = document.createElement("li");
-          li.className = `ds-badge ${ok ? "ds-badge-success" : "ds-badge-danger"}`;
-          li.textContent = `${ok ? "✓" : "✗"} ${label}: ${ok ? strings.pass : strings.fail}`;
+          const level = document.createElement("span");
+          level.className = "wcag-level";
+          level.textContent = label;
+          const status = document.createElement("span");
+          status.className = `ds-status ${ok ? "is-success" : "is-error"}`;
+          status.textContent = `${ok ? "✓" : "✗"} ${ok ? strings.pass : strings.fail}`;
+          li.append(level, status);
           return li;
         }),
       );
@@ -230,6 +238,13 @@ function init(): void {
       previewEl.style.color = fg.value;
     }
   }
+
+  ratioCopyBtn?.addEventListener("click", async () => {
+    const text = ratioEl?.textContent ?? "";
+    if (!text || text === "—") return;
+    const ok = await copyWithFeedback(ratioCopyBtn, text, strings.copied);
+    if (!ok) showError(strings.copyFailed);
+  });
 
   fg?.addEventListener("input", renderContrast);
   bg?.addEventListener("input", renderContrast);

@@ -17,7 +17,6 @@
   "GenerateToSeeResult": "설명을 볼려면 Cron 표현식을 생성하세요",
   "ActionGenerate": "표현식 생성",
   "Copy": "복사",
-  "Copied": "복사됨!",
   "DateFormatLocale": "기본 (24시간제)",
   "DateFormatLocale12h": "로컬 (12시간제 AM/PM)",
   "DateFormatFullMonth": "월의 전체 이름",

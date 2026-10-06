@@ -3,10 +3,8 @@
   "CamelCase": "驼峰式",
   "Keywords": "大小写转换, 驼峰命名转换, camelCase, snake_case, kebab-case, 标题大小写, 句子大小写, 大写转小写, 变量名转换",
   "ClearButton": "清除",
-  "Copied": "已复制！",
   "CopyButton": "复制",
   "Description": "一键将文本转换为 camelCase、snake_case、kebab-case、标题大小写、句子大小写、全大写或全小写，能正确拆分 XMLHttpRequest 这类标识符。",
-  "InputPlaceholder": "在此处输入或粘贴您的文本...",
   "InverseCase": "反转大小写",
   "KebabCase": "烤肉串式",
   "LowerCase": "小写",
@@ -22,5 +20,7 @@
   "Seo_Tips": "- **大写**、**小写** 和 **标题大小写** 同样把 `_` 和 `-` 视为单词分隔符，并替换为空格：`user_id` 会变成 `USER ID`。要得到 `USER_ID`，请对全小写的 `user_id` 使用 **反转大小写**。\n- 句子大小写也会把专有名词和缩写转为小写（`HTTP server` 变成 `Http server`），需要手动修正。\n- 标题大小写会把每个单词首字母大写，包括短词：`the lord of the rings` 变成 `The Lord Of The Rings`，不遵循写作规范中的例外规则。\n- 单词内部的大写字母会开始一个新单词：`iPhone` 使用蛇形式变成 `i_phone`。\n- 转换会覆盖输入框内容，如需比较不同结果，请先在别处保留原文。",
   "InputLabel": "文本",
   "ConvertLabel": "转换为",
-  "CopyFailed": "无法复制到剪贴板。"
+  "CopyFailed": "无法复制到剪贴板。",
+  "EmptyHint": "输入或粘贴文本，然后在下方选择一种大小写格式——文本会就地转换。",
+  "ExampleText": "the quick brown fox 跳过了 the lazy dog。userProfile settings 已于 10:42 保存。"
 }

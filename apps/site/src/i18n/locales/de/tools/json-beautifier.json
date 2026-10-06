@@ -3,11 +3,9 @@
   "Description": "JSON im Browser formatieren, minifizieren und validieren: 2/4 Leerzeichen oder Tab, rekursive Schlüsselsortierung, exakte große Zahlen, .json-Dateien.",
   "Keywords": "JSON formatieren, JSON Formatter, JSON Beautifier, JSON minifizieren, JSON validieren, JSON Validator, JSON Schlüssel sortieren, JSON pretty print online",
   "InputLabel": "Eingabe JSON",
-  "InputPlaceholder": "JSON hier einfügen...",
   "FormatButton": "Formatieren",
   "ClearButton": "Löschen",
   "CopyButton": "Kopieren",
-  "Copied": "Kopiert!",
   "ErrorInvalidJson": "Ungültiges JSON. Bitte überprüfen Sie Ihre Eingabe.",
   "IndentSizeLabel": "Einrückungsgröße",
   "Indent2Spaces": "2 Leerzeichen",
@@ -48,5 +46,6 @@
   "Editor_GoToLine": "Gehe zu Zeile",
   "Editor_Go": "los",
   "Editor_ControlCharacter": "Steuerzeichen",
-  "Editor_SelectionDeleted": "Auswahl gelöscht"
+  "Editor_SelectionDeleted": "Auswahl gelöscht",
+  "EmptyHint": "Fügen Sie JSON ein oder ziehen Sie eine .json-Datei hierher, um sie zu formatieren, zu minifizieren oder die Schlüssel zu sortieren."
 }

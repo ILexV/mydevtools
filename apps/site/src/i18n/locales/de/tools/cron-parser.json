@@ -44,7 +44,6 @@
   "ActionParse": "Ausdruck parsen",
   "ActionClear": "Löschen",
   "Copy": "Kopieren",
-  "Copied": "Kopiert!",
   "ErrorInvalidExpression": "Ungültiger Ausdruck: {0}",
   "ErrorExpectedFields": "5 Felder erwartet, {0} erhalten",
   "ErrorUnknownPreset": "Unbekannte Voreinstellung",

@@ -7,15 +7,20 @@
  *
  * Loads only on the URL tool page (the component imports this script), so the
  * WASM module is fetched only there. SSR-safe: no-ops when the shell is absent.
+ * Workbench empty states: input overlay + "Load example", output placeholder.
  */
 import { formatBytes, formatString } from "@/lib/format";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import { bindEmptyState, bindLoadExample, copyWithFeedback, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
 import { decodeToBytes, bytesToText, encodeBytes, textToBytes, type EncodingOptions } from "@/scripts/wasm/encoding-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { classifyEncodingError } from "@/tools/encoding-ui";
 
+/** "Load example" sample: a URL with a query, non-ASCII text and a fragment. */
+const EXAMPLE = "https://example.com/search?q=café & crème&page=2#résumé";
+
 interface Strings {
   copied: string;
+  copyFailed?: string;
   statsOutput: string;
   errNotRepresentable: string;
   errNotText: string;
@@ -58,6 +63,18 @@ function init() {
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-url-copy]");
   const stats = root.querySelector<HTMLElement>("[data-url-stats]");
   const lang = document.documentElement.lang || "en";
+  const inputHost = root.querySelector<HTMLElement>("[data-url-input-host]");
+  const outputPanel = root.querySelector<HTMLElement>("[data-url-output-panel]");
+  const exampleBtn = root.querySelector<HTMLButtonElement>("[data-url-example]");
+  const syncInput = inputHost ? bindEmptyState(inputHost, inputArea) : () => {};
+  if (exampleBtn) bindLoadExample(exampleBtn, () => setFieldValue(inputArea, EXAMPLE));
+
+  /** Write the result and toggle the output placeholder / Copy availability. */
+  function setOutput(text: string) {
+    outputArea.value = text;
+    if (outputPanel) syncEmptyState(outputPanel, text === "");
+    if (copyBtn) copyBtn.disabled = text === "";
+  }
 
   function options(): EncodingOptions {
     return { format: "url", mode: mode?.value || "component", charset: charset?.value || "utf-8" };
@@ -83,7 +100,7 @@ function init() {
     }
     const message = e instanceof Error ? e.message : String(e);
     const { key, position } = classifyEncodingError(message);
-    outputArea.value = "";
+    setOutput("");
     setStats(null);
     inputArea.setAttribute("aria-invalid", "true");
     if (key === "Error_NotRepresentable") {
@@ -112,11 +129,11 @@ function init() {
       if (direction === "encode") {
         const bytes = await textToBytes(inputArea.value, opts.charset);
         const out = await encodeBytes(opts, bytes);
-        outputArea.value = out;
+        setOutput(out);
         setStats(out.length, bytes.length);
       } else {
         const bytes = await decodeToBytes(opts, inputArea.value);
-        outputArea.value = await bytesToText(bytes, opts.charset);
+        setOutput(await bytesToText(bytes, opts.charset));
         setStats(inputArea.value.length, bytes.length);
       }
     } catch (e) {
@@ -135,19 +152,24 @@ function init() {
     clearError();
     const a = inputArea.value;
     inputArea.value = outputArea.value;
-    outputArea.value = a;
+    syncInput();
+    setOutput(a);
     setStats(null);
   });
 
   clearBtn?.addEventListener("click", () => {
     inputArea.value = "";
-    outputArea.value = "";
+    syncInput();
+    setOutput("");
     setStats(null);
     clearError();
+    inputArea.focus();
   });
 
   copyBtn?.addEventListener("click", async () => {
-    const ok = await copyWithFeedback(copyBtn, outputArea.value, strings.copied);
+    const ok = await copyWithFeedback(copyBtn, outputArea.value, strings.copied, undefined, {
+      failedLabel: strings.copyFailed,
+    });
     if (!ok) showError(strings.errCopyFailed);
   });
 }

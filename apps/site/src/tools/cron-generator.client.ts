@@ -3,7 +3,8 @@
  * expression on Generate (or Enter in a field), validates it with the shared
  * `cron-core.ts`, renders the description and next 5 runs (persisted date
  * format, shared with cron-parser). Invalid fields get a localized error and
- * `aria-invalid`; copy uses the shared `.is-copied` feedback.
+ * `aria-invalid`; copy uses the shared `.is-copied` feedback. The result
+ * panel shows a compact placeholder until an expression is generated.
  */
 import {
   CRON_FIELDS,
@@ -16,12 +17,13 @@ import {
   type CronFieldName,
   type CronStrings,
 } from "@/tools/cron-core";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import { copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
 import { renderNextRuns, restoreDateFormat, saveDateFormat } from "@/tools/cron-ui";
 
 type Strings = CronStrings &
   CronErrorStrings & {
     copied: string;
+    copyFailed?: string;
     noUpcomingRuns: string;
     fieldNames: Record<CronFieldName, string>;
   };
@@ -48,7 +50,7 @@ function init() {
   const inputs = Object.fromEntries(
     CRON_FIELDS.map((f) => [f, root.querySelector<HTMLInputElement>(`[data-crong-${f}]`)]),
   ) as Record<CronFieldName, HTMLInputElement | null>;
-  const outputEl = root.querySelector<HTMLInputElement>("[data-crong-output]");
+  const outputEl = root.querySelector<HTMLOutputElement>("[data-crong-output]");
   const descriptionEl = root.querySelector<HTMLElement>("[data-crong-description]");
   const nextEl = root.querySelector<HTMLElement>("[data-crong-next]");
   const selectEl = root.querySelector<HTMLSelectElement>("[data-crong-date-format]");
@@ -64,6 +66,10 @@ function init() {
 
   const generateBtn = root.querySelector<HTMLButtonElement>("[data-crong-generate]");
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-crong-copy]");
+  const outputPanel = root.querySelector<HTMLElement>("[data-crong-output-panel]");
+  const setFilled = (filled: boolean) => {
+    if (outputPanel) syncEmptyState(outputPanel, !filled);
+  };
 
   function setError(msg: string, field?: CronFieldName) {
     error.textContent = msg;
@@ -89,12 +95,14 @@ function init() {
       output.value = "";
       description.textContent = "";
       nextExecutions.replaceChildren();
+      setFilled(false);
       return;
     }
 
     setError("");
     output.value = expression;
     description.textContent = text;
+    setFilled(true);
     const format = dateFormatSelect.value || "locale";
     if (!schedule) {
       renderNextRuns(nextExecutions, strings.scheduleReboot, format, strings.lang);
@@ -113,7 +121,7 @@ function init() {
 
   copyBtn?.addEventListener("click", () => {
     if (!output.value) return;
-    void copyWithFeedback(copyBtn, output.value, strings.copied);
+    void copyWithFeedback(copyBtn, output.value, strings.copied, undefined, { failedLabel: strings.copyFailed });
   });
 
   dateFormatSelect.addEventListener("change", () => {

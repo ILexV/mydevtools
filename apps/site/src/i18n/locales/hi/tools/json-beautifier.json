@@ -3,11 +3,9 @@
   "Description": "ब्राउज़र में JSON को फॉर्मेट, मिनिफाई और वैलिडेट करें: 2/4 स्पेस या टैब इंडेंट, रिकर्सिव की सॉर्टिंग, बड़े नंबर बिल्कुल वैसे ही, .json फ़ाइल खोलें और सहेजें।",
   "Keywords": "JSON फॉर्मेटर, JSON ब्यूटीफायर, JSON मिनिफायर, JSON वैलिडेटर, JSON कीज़ सॉर्ट, JSON formatter, JSON beautifier, pretty print JSON, format JSON online, ऑनलाइन JSON फॉर्मेट",
   "InputLabel": "इनपुट JSON",
-  "InputPlaceholder": "अपना JSON यहाँ पेस्ट करें...",
   "FormatButton": "फॉर्मेट",
   "ClearButton": "साफ़ करें",
   "CopyButton": "कॉपी",
-  "Copied": "कॉपी हो गया!",
   "ErrorInvalidJson": "अमान्य JSON। कृपया अपना इनपुट जाँचें।",
   "IndentSizeLabel": "इंडेंट साइज़",
   "Indent2Spaces": "2 स्पेस",
@@ -48,5 +46,6 @@
   "Editor_GoToLine": "पंक्ति पर जाएँ",
   "Editor_Go": "जाएँ",
   "Editor_ControlCharacter": "नियंत्रण वर्ण",
-  "Editor_SelectionDeleted": "चयन हटाया गया"
+  "Editor_SelectionDeleted": "चयन हटाया गया",
+  "EmptyHint": "फ़ॉर्मैट, मिनिफ़ाई या कुंजियाँ क्रमबद्ध करने के लिए JSON पेस्ट करें या .json फ़ाइल यहाँ छोड़ें।"
 }

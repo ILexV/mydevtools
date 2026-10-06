@@ -21,12 +21,19 @@ import {
   bytesToHex,
   X509_ALG,
 } from "@/scripts/wasm/crypto-client";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import {
+  bindEmptyState,
+  bindLoadExample,
+  copyWithFeedback,
+  setFieldValue,
+  syncEmptyState,
+} from "@/scripts/tool-ui";
 import { base64ToBytes, derBase64ToPem, isCsrPem, parseSanList, parseValidityDays, prettyJson, type SanList } from "@/tools/x509-helpers";
 
 interface Strings {
   copy: string;
   copied: string;
+  copyFailed: string;
   download: string;
   warningsTitle: string;
   invalidFormat: string;
@@ -68,6 +75,9 @@ function init() {
   const downloadBtn = root.querySelector<HTMLButtonElement>("[data-x509-download]");
   const warnings = root.querySelector<HTMLElement>("[data-x509-warnings]");
   const errorEl = root.querySelector<HTMLElement>("[data-x509-error]");
+  const outputPanel = root.querySelector<HTMLElement>("[data-x509-output-panel]");
+  const parseHost = root.querySelector<HTMLElement>("[data-x509-parse-host]");
+  const exampleBtn = root.querySelector<HTMLButtonElement>("[data-x509-example]");
 
   if (!subject || !validity || !san || !parseInput || !output || !warnings || !errorEl) return;
   const sanArea: HTMLTextAreaElement = san;
@@ -113,6 +123,7 @@ function init() {
     lastDownloadName = downloadName;
     if (copyBtn) copyBtn.disabled = !text;
     if (downloadBtn) downloadBtn.disabled = !text;
+    if (outputPanel) syncEmptyState(outputPanel, !text);
   }
 
   /** Map WASM generation errors to localized text (raw detail kept after a dash). */
@@ -256,8 +267,29 @@ function init() {
   );
 
   copyBtn?.addEventListener("click", () => {
-    if (outputArea.value) void copyWithFeedback(copyBtn, outputArea.value, strings.copied);
+    if (outputArea.value) void copyWithFeedback(copyBtn, outputArea.value, strings.copied, undefined, { failedLabel: strings.copyFailed });
   });
+
+  if (parseHost) bindEmptyState(parseHost, parseArea);
+  // "Load example": a freshly generated throwaway certificate (never a stored
+  // key/cert) — Ed25519, CN=example.com, SAN example.com, 365 days.
+  if (exampleBtn) {
+    bindLoadExample(exampleBtn, async () => {
+      try {
+        const { certificate } = await x509SelfSignedEx(
+          X509_ALG.ed25519,
+          "CN=example.com,O=Example",
+          365,
+          ["example.com", "www.example.com"],
+          [],
+          [],
+        );
+        setFieldValue(parseArea, certificate.trim());
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      }
+    });
+  }
 
   downloadBtn?.addEventListener("click", () => {
     if (!outputArea.value) return;

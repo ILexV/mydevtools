@@ -21,6 +21,7 @@
   "Format_Markdown": "Markdown",
   "Characters": "文字",
   "WordsStat": "語",
+  "SettingsLabel": "オプション",
   "Seo_Introduction": "モックアップ、テンプレート、UI テスト用の Lorem Ipsum ダミーテキストを生成します。段落・文・単語を 1～1000 個、必要なら定番の「Lorem ipsum dolor sit amet…」から始めて、プレーンテキスト、HTML、Markdown で出力できます。",
   "Seo_DetailedDescription": "テキストは約 160 語のラテン語リストから組み立てます。1 文は 5～15 語で、先頭が大文字、末尾がピリオドです。1 段落は 3～7 文です。単語モードでは指定した語数ちょうどを出力するので、省略表示や入力欄の文字数制限のテストに便利です。定番の書き出しを選ぶと、標準の一文「Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.」から始まります。\n\n段落は空行で区切られ、そのまま正しい Markdown になります。HTML 形式では各段落を `<p>…</p>` で囲めます（このオプションは HTML の段落でのみ有効）。設定を変えるたびにテキストが再生成され、下の語数・文字数カウンターがタグを含めた結果の量を示します。\n\n生成はページ上の JavaScript で行い、毎回ランダムなので 2 回の結果が一致することはありません。結果はコピーするか `lorem-ipsum.txt` としてダウンロードできます。サーバーには何も送信されません。",
   "Seo_Examples": "**語数ぴったり**：単語、数 `5`、定番の書き出しオン → `lorem ipsum dolor sit amet`。\n\n**テンプレート用 HTML**：段落、数 `3`、HTML 形式で `<p>` 付き → 空行で区切られた 3 つの `<p>…</p>` ブロック。そのまま貼り付けられます。\n\n**短い UI テキスト**：文、数 `2`、定番の書き出しオン → 標準の「Lorem ipsum dolor sit amet…」の一文と、5～15 語のランダムな一文。\n\n**レイアウトの負荷テスト**：段落、数 `50` で数千語になり、スクロールや長いコンテンツの表示を確認できます。",

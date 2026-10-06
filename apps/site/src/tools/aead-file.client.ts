@@ -17,6 +17,7 @@ import {
   type AeadProgress,
 } from "@/scripts/wasm/aead-file-client";
 import { formatBytes } from "@/lib/format";
+import { syncEmptyState } from "@/scripts/tool-ui";
 import { aeadProgressView, decryptedName, encryptedName } from "@/tools/aead-file-helpers";
 import { hasEdgeWhitespace, passwordCandidates } from "@/tools/crypto-password";
 
@@ -64,8 +65,9 @@ function init() {
   const progressFill = root.querySelector<HTMLElement>("[data-aead-progress-fill]");
   const progressStats = root.querySelector<HTMLElement>("[data-aead-progress-stats]");
   const cancelBtn = root.querySelector<HTMLButtonElement>("[data-aead-cancel]");
-  const headerOut = root.querySelector<HTMLTextAreaElement>("[data-aead-header]");
-  const resultOut = root.querySelector<HTMLInputElement>("[data-aead-result]");
+  const headerOut = root.querySelector<HTMLElement>("[data-aead-header]");
+  const resultOut = root.querySelector<HTMLElement>("[data-aead-result]");
+  const outputPanel = root.querySelector<HTMLElement>("[data-aead-output]");
   const downloadBtn = root.querySelector<HTMLButtonElement>("[data-aead-download]");
   const errorBox = root.querySelector<HTMLElement>("[data-aead-error]");
   const noteBox = root.querySelector<HTMLElement>("[data-aead-note]");
@@ -88,8 +90,8 @@ function init() {
   const progressPanel: HTMLElement = progress;
   const progressFillEl: HTMLElement = progressFill;
   const progressStatsEl: HTMLElement = progressStats;
-  const headerField: HTMLTextAreaElement = headerOut;
-  const resultField: HTMLInputElement = resultOut;
+  const headerField: HTMLElement = headerOut;
+  const resultField: HTMLElement = resultOut;
   const downloadButton: HTMLButtonElement = downloadBtn;
   const errorEl: HTMLElement = errorBox;
 
@@ -161,9 +163,10 @@ function init() {
   function resetOutput() {
     lastBlob = null;
     lastName = null;
-    headerField.value = "";
-    resultField.value = "";
+    headerField.textContent = "";
+    resultField.textContent = "";
     downloadButton.disabled = true;
+    if (outputPanel) syncEmptyState(outputPanel, true);
   }
 
   function handleError(e: unknown) {
@@ -221,9 +224,10 @@ function init() {
       const outName = mode === "encrypt" ? encryptedName(file.name) : decryptedName(file.name);
       lastBlob = blob;
       lastName = outName;
-      headerField.value = headerHex;
-      resultField.value = `${outName} • ${formatBytes(blob.size, 2)}`;
+      headerField.textContent = headerHex;
+      resultField.textContent = `${outName} • ${formatBytes(blob.size, 2)}`;
       downloadButton.disabled = false;
+      if (outputPanel) syncEmptyState(outputPanel, false);
       showNotes(notes);
     } catch (e) {
       handleError(e);

@@ -2,112 +2,88 @@
 
 ## Project Overview
 
-MyDevTools is a privacy-first collection of multilingual developer utilities. The primary application is a .NET 10 Blazor SSR site in `MyDevToolsApp/MyDevTools.Site`; Razor renders localized HTML, while vanilla browser JavaScript and lazy-loaded Rust/WASM perform user-data processing locally. The repository also contains a separate React/TypeScript UI kit and Storybook workspace; it is not currently the live Razor site's rendering layer.
+MyDevTools is a privacy-first collection of 39 multilingual developer utilities. The **live site** is a static Astro build in `apps/site`, published to GitHub Pages at https://ilexv.github.io/mydevtools/ (branch `gh-pages`). All computation runs in the browser: vanilla TypeScript controllers plus lazy-loaded Rust/WASM, no server runtime.
+
+The former .NET 10 Blazor SSR site (`MyDevToolsApp/`) and the React UI kit (`packages/ui-kit`, `apps/storybook`) are **legacy**: kept for reference, not deployed, and not used by the Astro site. Do not add features there.
 
 ## Architecture & Data Flow
 
-- Entry point: `MyDevToolsApp/MyDevTools.Site/Program.cs`. It registers Razor Components for SSR only; no interactive Blazor render mode or application API/controller layer is present.
-- Request flow: ASP.NET Core middleware handles forwarded headers, errors/HTTPS, sitemap, compression, static/page caching, HEAD requests, culture canonicalization, localization, and antiforgery before mapping static assets and Razor components. Middleware order in `Program.cs` is significant.
-- Tool flow: localized route `/{lang}/{tool-slug}` → Razor tool under `Components/Tools/` → `ToolLayout`/SEO metadata and localized `data-*` or JSON configuration → route-selected script under `wwwroot/tools/` → optional dynamic import from `wwwroot/wasm/<domain>/` → Rust computation → DOM/download update.
-- Localization: `JsonLocalizationService` preloads JSON from `wwwroot/i18n/{lang}/`, caches it in concurrent dictionaries, and falls back requested language → English → key. URL culture is canonical; supported languages are `en`, `ru`, `es`, `de`, `pt`, `zh`, `fr`, `ja`, `ko`, and `hi`.
-- State: browser preferences, favorites, and recent tools use `localStorage`; theme is mirrored to a cookie so SSR can emit the initial `data-theme`.
-- WASM: independent domain crates under `wasm/` expose `#[wasm_bindgen]` APIs. `wasm/build.ps1` compiles them and writes web bindings into the site's `wwwroot/wasm/` tree.
-- UI kit: `packages/ui-kit` builds an ES-only React library. `apps/storybook` aliases UI-kit source for isolated visual development. Do not assume these components are consumed by the Razor site.
+- Config: `apps/site/astro.config.mjs` — `output: "static"`, `site: https://ilexv.github.io`, `base: "/mydevtools/"`, `trailingSlash: "always"`, `build.format: "directory"` (each route emits `index.html` so deep links survive Pages). `@/*` aliases `src/`.
+- Registries are the single source of truth (`apps/site/src/registry/`): `tools.ts` (39 tools: slug, category, WASM domain, capabilities), `categories.ts` (13), `locales.ts` (10 languages, native names, og:locale, hreflang), `catalog.ts` (grouping/related), `validate.ts` (build-time assertions). Routes, home catalog, search, command palette, related tools and sitemap are all derived from them.
+- Routes: `src/pages/index.astro` (root language redirect), `[lang]/index.astro` (home), `[lang]/[slug].astro` (tool page via `getStaticPaths` over LOCALES × TOOLS; picks the component from the `TOOL_COMPONENTS` map), plus `404.astro`, `offline.astro`, `design.astro` (design-system showcase), `sitemap.xml.ts`, `manifest.webmanifest.ts`.
+- Tool flow: `/{lang}/{slug}/` → `src/tools/<PascalName>.astro` (markup + localized strings as an inline JSON island) → `src/tools/<slug>.client.ts` controller → optional `src/scripts/wasm/<domain>-client.ts` → dynamic import of `src/generated/wasm/<domain>/` bindings; heavy/file work runs in `src/workers/*.worker.ts` (protocol in `scripts/wasm/worker-protocol.ts`: start/progress/result/error/cancel, 1 MiB chunks).
+- Localization: JSON in `src/i18n/locales/<lang>/{common,home,categories}.json` and `tools/<slug>.json`. Rendered at build time with `t()` from `src/i18n/messages.ts` (fallback locale → en → key, `{param}` interpolation); pluralization via `src/lib/format.ts` (`Intl.PluralRules`). Languages: `en`, `ru`, `es`, `de`, `pt`, `zh`, `fr`, `ja`, `ko`, `hi`.
+- SEO/PWA: `components/Seo.astro` (head, canonical, hreflang ×10 + x-default, JSON-LD), `ToolSeoContent.astro` (visible SEO block from locale `Seo_*` keys), base-aware manifest, service worker generated after build by `build-sw.mjs` from `scripts/sw-template.js`, PWA install prompt (`InstallPrompt.astro`, `scripts/pwa-install.ts`).
+- Client state: favorites, recent tools, theme, locale and per-tool settings live in versioned `localStorage` keys (schema: `docs/inventory/client-state.md`). Some legacy keys are imported once on first visit.
+- Design: "Prism" design system — tokens and layers in `src/styles/global.css` (`--mdt-*` variables, `ds-*` component classes), self-hosted Inter/JetBrains Mono, icons in `components/Icon.astro`. Spec: `docs/design/stage2-design-system.md`.
 
 ## Key Directories
 
-- `MyDevToolsApp/MyDevTools.Site/Components/Tools/`: routed Razor tool pages.
-- `MyDevToolsApp/MyDevTools.Site/Components/{Layout,Pages,Seo,Common}/`: shell, routes, metadata, and shared Razor UI.
-- `MyDevToolsApp/MyDevTools.Site/{Middleware,Services}/`: request pipeline, caching, culture, and JSON localization.
-- `MyDevToolsApp/MyDevTools.Site/wwwroot/tools/`: browser controllers for individual tools.
-- `MyDevToolsApp/MyDevTools.Site/wwwroot/i18n/<lang>/`: current localization source of truth.
-- `MyDevToolsApp/MyDevTools.Site/Styles/`: CSS input; `wwwroot/app.css` is generated.
-- `wasm/<domain>/`: Rust crates for hash, encoding, cryptography, structured data, passwords, text/image/regex/PDF/QR/IP tools.
-- `MyDevToolsApp/Tools/LocalizationValidator/`: standalone .NET localization QA utility; not part of the solution.
-- `packages/ui-kit/`: React/TypeScript design-system package.
-- `apps/storybook/`: Storybook host and stories for the UI kit.
+- `apps/site/src/{pages,layouts,components}/`: routes, `BaseLayout.astro`, shared shell (Header, Footer, Palette, ToolCard, Seo).
+- `apps/site/src/tools/`: per-tool `.astro` shells, `.client.ts` controllers and pure helpers (`base64.ts`, `uuid.ts`, …).
+- `apps/site/src/scripts/`: global browser scripts (palette, favorites, chrome, sw-register, codemirror-loader) and `wasm/` domain clients.
+- `apps/site/src/generated/wasm/`: wasm-bindgen output — **gitignored, must be generated** (`npm run build:wasm`).
+- `apps/site/{test,scripts}/`: unit tests (node:test) and build tooling (`validate-i18n.mjs`, `smoke-dist.mjs`).
+- `apps/site/public/`: static files copied to `dist` (icons, `robots.txt`, `.nojekyll`).
+- `wasm/<domain>/`: Rust crates (hash, encoding, cryptography, structured_data, password, text_tools, image_tools, regex_tool, qrcode, pdf, ipcalc).
+- `e2e/`: Playwright visual-regression and cross-browser suites (kept at repo root on purpose).
+- `scripts/deploy-pages.mjs`: publishes `apps/site/dist` to `gh-pages`.
+- `docs/inventory/`: parity inventory (tools, locales, client state, SEO, parity fixtures); `docs/design/`: design direction and spec.
+- `FRONTEND_REBUILD_TODO.md`: migration checklist, decisions and known deviations from legacy.
+- Legacy: `MyDevToolsApp/` (Blazor), `packages/ui-kit/`, `apps/storybook/`.
 
 ## Development Commands
 
-Run from the repository root unless a directory change is shown.
+Run from the repository root (npm workspaces).
 
-```powershell
-# Primary site: http://localhost:3311
-dotnet run --project MyDevToolsApp/MyDevTools.Site/MyDevTools.Site.csproj
-dotnet build MyDevToolsApp/MyDevTools.Site/MyDevTools.Site.csproj
+```bash
+npm install                                  # all workspaces
+npm run build:wasm                           # wasm/build.ps1 → apps/site/src/generated/wasm (10 default domains)
+pwsh wasm/build.ps1 -Configuration Release -WasmOutRoot apps/site/src/generated/wasm -Domains ipcalc   # ipcalc is not in the default list
 
-# Site CSS/static asset pipeline
-cd MyDevToolsApp/MyDevTools.Site
-npm run dev
-npm run build
+npm run dev -w @mydevtools/site              # http://localhost:3312/mydevtools/
+npm run check:site                           # astro check
+npm run validate:i18n                        # locale JSON parity/empty/untranslated
+npm run verify -w @mydevtools/site           # check + i18n + unit + build + dist smoke
+npm run build:site                           # astro build + service worker
+npm run preview:site                         # http://localhost:4321/mydevtools/en/
 
-# Generate all default WASM domains, or one domain
-pwsh ./wasm/build.ps1 -Configuration Release
-pwsh ./wasm/build.ps1 -Configuration Release -Domains hash
+npm run build:pages                          # validate:i18n → build:wasm → build:site → test:smoke
+npm run deploy:pages                         # dry run: verifies dist, no push
+npm run deploy:pages -- --push               # force-push dist as an orphan commit to origin/gh-pages
 
-# Rust tests
+npm run test:visual                          # Playwright pixel baselines (Chromium)
+npm run test:crossbrowser                    # Chromium/Firefox/WebKit functional matrix
 cargo test --workspace --manifest-path wasm/Cargo.toml
-cargo test --manifest-path wasm/hash/Cargo.toml
-
-# Localization validation
-dotnet run --project MyDevToolsApp/Tools/LocalizationValidator
-
-# Root npm workspace
-npm run build
-npm run storybook             # port 6006
-npm run storybook:build
-npm run ui-kit:build
-npm run lint -w @mydevtools/ui-kit
-npm run lint -w @mydevtools/storybook
 ```
 
-Debug `dotnet build`/`dotnet run` invokes the site Vite build; Release/publish does not. The Vite prebuild rewrites the service-worker cache version in `wwwroot/sw.js`. Docker Release builds also consume pre-generated CSS and WASM; regenerate and commit those artifacts when their sources change. The WASM script's default list omits the workspace `ipcalc` crate, so use `-Domains ipcalc` explicitly when needed.
+`build:wasm` must run before the first `astro build` on a fresh checkout (and whenever Rust sources change) — WASM tools import the generated bindings. Full release procedure and rollback: `apps/site/RELEASING.md`.
 
 ## Code Conventions & Common Patterns
 
-- C#/Razor: PascalCase types/files and async `Task`/`await`; inject services with `@inject`/`[Inject]`, constructor-inject middleware, and use structured `ILogger` calls. Preserve middleware ordering.
-- Tool pages inherit `ToolComponentBase`, set `LocalizationNamespace`, and use `T()`/`TCommon()`. Use `ToolLayout` and place `MetaTags` inside its content. Do not add tool text to `.resx`; current localization is JSON.
-- Naming across layers: `HashCalculator.razor` / route `hash-calculator` / `hash-calculator.js` / `tools/hash-calculator.json`; JavaScript uses camelCase, Rust modules/exports use snake_case.
-- Browser code must be SSR-safe: bind after DOM readiness, use delegated handlers or one-time root guards (`WeakSet`/`data-initialized`), cache lazy import promises, and keep user data in the browser. For long file work, follow existing chunking, progress, and `AbortController` patterns.
-- Surface localized UI errors. In JS, catch rejected WASM, clipboard, storage, and file operations and treat `AbortError` separately. Rust boundaries validate input and normally return `Result<_, JsValue>`.
-- UI-kit components extend native HTML prop types, export named `Props`, spread remaining props, use `cn()` with `mdt-*` classes, and remain stateless composition primitives where possible. TypeScript is strict, ES-module based, and `noEmit` outside Vite builds.
-- Adding a tool requires synchronized registration because language/tool catalogs are duplicated. At minimum inspect `Middleware/HeadRequestMiddleware.cs`, `Middleware/CultureRedirectMiddleware.cs`, `Components/App.razor`, layout/home catalogs, route-selected assets, and all locale trees.
-- Make surgical changes and follow an existing neighboring tool/component. Generated `wwwroot/app.css` and wasm-bindgen outputs must not be hand-edited.
-
-## Important Files
-
-- `MyDevToolsApp/MyDevToolsApp.slnx`: solution containing the production site.
-- `MyDevToolsApp/MyDevTools.Site/Program.cs`: DI, localization initialization, and ordered HTTP pipeline.
-- `MyDevToolsApp/MyDevTools.Site/Components/App.razor`: document shell and route-sensitive asset loading.
-- `MyDevToolsApp/MyDevTools.Site/Components/Routes.razor`: Razor router and default layout.
-- `MyDevToolsApp/MyDevTools.Site/Components/ToolComponentBase.cs`: tool localization contract.
-- `MyDevToolsApp/MyDevTools.Site/Services/JsonLocalizationService.cs`: JSON loading/cache/fallback behavior.
-- `MyDevToolsApp/MyDevTools.Site/Middleware/CultureRedirectMiddleware.cs`: localized URL policy.
-- `MyDevToolsApp/MyDevTools.Site/MyDevTools.Site.csproj`: .NET target and Debug-only Vite hook.
-- `MyDevToolsApp/MyDevTools.Site/{package.json,vite.config.js,tailwind.config.js}`: site asset pipeline.
-- `wasm/{Cargo.toml,build.ps1}`: Rust workspace and authoritative wasm-bindgen packaging flow.
-- `package.json`: npm workspace commands for `apps/*` and `packages/*`.
-- `packages/ui-kit/src/index.ts`: public UI-kit barrel.
-- `Dockerfile`: .NET 10 Release image; assumes generated browser assets already exist.
+- Naming across layers: registry slug `hash-calculator` → `src/tools/HashCalculator.astro` → `src/tools/hash-calculator.client.ts` → `src/i18n/locales/<lang>/tools/hash-calculator.json`. TS uses camelCase; Rust modules/exports use snake_case.
+- Adding a tool: entry in `registry/tools.ts`, import + key in `TOOL_COMPONENTS` in `pages/[lang]/[slug].astro`, locale JSON for all 10 languages, a WASM client if needed. `validate.ts` fails the build on unknown categories or missing locale namespaces.
+- Never hard-code absolute paths: use `withBase()` / `localizedPath()` from `src/lib/url.ts` (everything is served under `/mydevtools/`).
+- Strings reach client code via the JSON island in the `.astro` shell, not via runtime fetches. Do not add tool text outside locale JSON.
+- Browser code: bind once per root (guard), cache lazy import promises, keep user data in the browser, surface localized errors, treat `AbortError` separately, use workers + chunking + progress + `AbortController` for large files. No SharedArrayBuffer.
+- Privacy: do not persist tool input (json/xml beautifiers deliberately don't); store only explicit user settings.
+- Styling: use Prism tokens (`--mdt-*`) and `ds-*` classes; per-tool styles in scoped `<style>` blocks; tool pages scope the category accent via `--mdt-cat`. Only Baseline CSS (browserslist: `defaults, supports es6-module, supports wasm`).
+- Rust boundaries validate input and return `Result<_, JsValue>`. Do not hand-edit wasm-bindgen output.
+- Make surgical changes and follow a neighboring tool. Comments in English.
 
 ## Runtime/Tooling Preferences
 
-- Required: .NET 10 SDK, Rust/rustup with `wasm32-unknown-unknown`, `wasm-bindgen-cli`, and npm. Install WASM prerequisites with `rustup target add wasm32-unknown-unknown` and `cargo install wasm-bindgen-cli --locked`.
-- Use npm, not Bun/pnpm/Yarn. Root `package.json` declares `npm@11.12.1` and uses `package-lock.json`; the site has its own `package.json` and lockfile. Node and Rust compiler versions are otherwise unpinned.
-- Root npm workspaces and the site Vite project are separate dependency/build contexts.
-- Tailwind 3, DaisyUI 4, Vite, and PostCSS generate the site CSS. React 19, TypeScript, Vite, and Storybook drive the UI-kit workspace.
-- Trust manifests, scripts, and current source over older prose: several docs contain stale port, `.resx`, Tailwind-version, and feature-status guidance.
+- Node 25 (`.nvmrc`), npm 11 (`packageManager`; npm only, not Bun/pnpm/Yarn), Rust 1.88.0 (`rust-toolchain.toml`) with `wasm32-unknown-unknown`, `wasm-bindgen-cli` 0.2.108 (must match `wasm/Cargo.lock`), PowerShell 7 (`pwsh`) for `wasm/build.ps1`.
+- One-time setup: `rustup target add wasm32-unknown-unknown`, `cargo install wasm-bindgen-cli --version 0.2.108 --locked`; on Linux without sudo, `dotnet tool install -g PowerShell` provides `pwsh`.
+- The `cryptography` crate depends on `ring`, which compiles C for wasm32 and needs **clang + llvm-ar** (gcc cannot target wasm). On Debian/Ubuntu: `sudo apt install clang llvm`.
+- Pass several domains to `build.ps1` from bash via `pwsh -Command './wasm/build.ps1 … -Domains a,b'` — with `pwsh -File`-style invocation the comma list is taken as one folder name.
+- Pages specifics: `.nojekyll` is mandatory (otherwise Jekyll drops `_astro/` and CSS/JS 404); the deploy script refuses to publish without it. No build runs on GitHub — dist is built locally and pushed.
+- Trust code, registries and scripts over prose; legacy docs (`ARCHITECTURE.md`, `DEVELOPMENT.md`, `TOOL_DEVELOPMENT_GUIDE.md`, `WASM_INTEGRATION.md`, etc.) describe the Blazor site.
 
 ## Testing & QA
 
-- Rust is the conventional automated test layer. Run the workspace or affected crate tests; cryptography also has integration fixtures under `wasm/cryptography/tests/`.
-- Cryptography's browser WASM smoke is feature-gated:
-  ```powershell
-  cd wasm/cryptography
-  $env:CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER='wasm-bindgen-test-runner'
-  cargo test --target wasm32-unknown-unknown --features wasm-test
-  ```
-- After changing localization, run `dotnet run --project MyDevToolsApp/Tools/LocalizationValidator`. It checks JSON validity, required files/keys, Razor `T()` references, empty values, and untranslated strings; failures exit nonzero.
-- UI changes require a real-browser smoke test against the running site, including Console/Network and WASM loading where relevant. Use Playwright/Chrome rather than `curl` or HTML text matching. Check representative English/Russian routes, all ten languages for localization-heavy changes, and the language switcher.
-- Storybook provides manual component/a11y review (`npm run storybook`), but accessibility test mode is currently `todo` and there are no story interaction tests.
-- No .NET test project, JavaScript test script, CI workflow, or enforced coverage threshold currently exists. Add tests only in the established layer that owns the changed behavior; do not claim repository-wide coverage from a narrowed check.
+- `npm run verify -w @mydevtools/site` is the default gate after any site change: `astro check`, i18n validator, unit tests (`apps/site/test/*.test.ts`, node:test with `--experimental-strip-types`), build, dist smoke (routes, manifest, SW, JSON-LD, 404).
+- Rust: `cargo test --workspace --manifest-path wasm/Cargo.toml`; cryptography browser smoke is feature-gated (`--target wasm32-unknown-unknown --features wasm-test` with `wasm-bindgen-test-runner`).
+- UI changes require a real-browser check of the built site (`preview:site`) with Playwright/Chrome: Console/Network clean, WASM loads only where needed, representative en/ru routes (all 10 languages for localization changes), language switcher, both themes, mobile 375 px without horizontal overflow.
+- Visual baselines in `e2e/pages.spec.ts-snapshots/` are `*-chromium-win32.png` (captured on Windows); on Linux they won't match pixel-for-pixel — regenerate deliberately or rely on the cross-browser suite.
+- Deploying (`deploy:pages -- --push`) publishes to the public site: do it only when the owner asks, then smoke-test the live URL (see `apps/site/RELEASING.md`).

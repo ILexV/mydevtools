@@ -72,9 +72,9 @@ Compile targets:
 → `test:smoke` (static dist smoke). Astro empties `dist/` before each build.
 
 > **Note on `ipcalc`:** `wasm/build.ps1`'s default domain list omits the
-> `ipcalc` crate. Its generated artifacts are committed; regenerate explicitly
-> with `pwsh wasm/build.ps1 -Configuration Release -WasmOutRoot apps/site/src/generated/wasm -Domains ipcalc`
-> only when its Rust source changes.
+> `ipcalc` crate. `src/generated/` is gitignored, so on a fresh checkout (and
+> whenever its Rust source changes) generate it explicitly with
+> `pwsh wasm/build.ps1 -Configuration Release -WasmOutRoot apps/site/src/generated/wasm -Domains ipcalc`.
 
 ## Smoke test (post-deploy)
 

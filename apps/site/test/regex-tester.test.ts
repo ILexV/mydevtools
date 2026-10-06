@@ -9,8 +9,8 @@ import {
 } from "../src/tools/regex-tester-core.ts";
 
 test("buildRustPattern: drops JS-only g, inlines the rest in checkbox order", () => {
-  assert.equal(buildRustPattern("a.b", ["g", "u"]), "(?u)a.b");
-  assert.equal(buildRustPattern("a.b", ["g", "i", "m", "s", "u"]), "(?imsu)a.b");
+  assert.equal(buildRustPattern("a.b", ["g", "u"]), "a.b"); // u: Unicode is always on
+  assert.equal(buildRustPattern("a.b", ["g", "i", "m", "s", "u"]), "(?ims)a.b");
   assert.equal(buildRustPattern("a.b", ["g"]), "a.b");
   assert.equal(buildRustPattern("a.b", []), "a.b");
   assert.equal(buildRustPattern("x", ["y", "<script>"]), "x"); // unknown flags ignored

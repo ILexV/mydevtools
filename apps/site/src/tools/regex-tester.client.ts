@@ -361,7 +361,7 @@ function init(): void {
       e.preventDefault();
       const idx = parseInt(loadExampleBtn.dataset.rxLoadExample || "", 10);
       const ex = COMMON_REGEXES[idx];
-      if (ex) loadPattern({ name: ex.name, pattern: ex.pattern, sample: ex.sample, flags: ["u"] });
+      if (ex) loadPattern({ name: ex.name, pattern: ex.pattern, sample: ex.sample, flags: ["g"] });
       return;
     }
 

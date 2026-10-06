@@ -37,6 +37,17 @@ const index = Object.fromEntries(
   catalog.tools.map((tool) => [tool.slug, { title: tool.title, href: tool.href, category: tool.category }]),
 );
 const indexJson = JSON.stringify(index);
+
+// "Why MyDevTools" block below the catalog: crawlable prose + feature cards
+// from `home.json` (privacy, WASM, offline/PWA, languages, free, favorites).
+const aboutFeatures = [
+  { key: "Privacy", icon: "lock" },
+  { key: "Wasm", icon: "zap" },
+  { key: "Offline", icon: "download" },
+  { key: "Languages", icon: "globe" },
+  { key: "Free", icon: "check" },
+  { key: "Algorithms", icon: "star" },
+] as const;
 ---
 
 <BaseLayout locale={lang} title={siteName} description={heroSubtitle} isHome>
@@ -96,6 +107,23 @@ const indexJson = JSON.stringify(index);
           </div>
         </div>
       ))}
+    </section>
+
+    <section class="about" aria-labelledby="about-heading">
+      <h2 id="about-heading" class="about-heading">{t(lang, "home", "SeoContent_Title")}</h2>
+      <div class="about-text">
+        <p>{t(lang, "home", "SeoContent_P1")}</p>
+        <p>{t(lang, "home", "SeoContent_P2")}</p>
+      </div>
+      <ul class="about-features" role="list">
+        {aboutFeatures.map((f) => (
+          <li class="about-feature">
+            <span class="about-icon" aria-hidden="true"><Icon name={f.icon} size={17} /></span>
+            <h3>{t(lang, "home", `Feature${f.key}Title`)}</h3>
+            <p>{t(lang, "home", `Feature${f.key}Description`)}</p>
+          </li>
+        ))}
+      </ul>
     </section>
   </main>
   <script is:inline type="application/json" data-catalog-json set:html={indexJson} />
@@ -336,11 +364,66 @@ const indexJson = JSON.stringify(index);
   }
   .hidden { display: none !important; }
 
+  /* ---------- about / SEO block ---------- */
+  .about {
+    margin-top: 1rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--mdt-border);
+  }
+  .about-heading {
+    font-weight: 650;
+    font-size: var(--mdt-fs-h3);
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+  }
+  .about-text {
+    max-width: 72ch;
+    display: grid;
+    gap: 0.85rem;
+    color: var(--mdt-text-muted);
+    line-height: 1.65;
+    text-wrap: pretty;
+  }
+  .about-features {
+    list-style: none;
+    margin: 1.75rem 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.875rem;
+  }
+  .about-feature {
+    padding: 1.1rem 1.15rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-md);
+    background: var(--mdt-surface-raised);
+  }
+  .about-feature h3 {
+    font-size: 0.975rem;
+    font-weight: 620;
+    margin: 0.75rem 0 0.35rem;
+  }
+  .about-feature p {
+    font-size: var(--mdt-fs-meta);
+    color: var(--mdt-text-muted);
+    line-height: 1.55;
+  }
+  .about-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: color-mix(in srgb, var(--mdt-accent) 14%, transparent);
+    color: var(--mdt-accent);
+    border: 1px solid color-mix(in srgb, var(--mdt-accent) 28%, transparent);
+  }
+
   @media (max-width: 1024px) {
-    .cat-grid { grid-template-columns: repeat(2, 1fr); }
+    .cat-grid, .about-features { grid-template-columns: repeat(2, 1fr); }
   }
   @media (max-width: 640px) {
-    .cat-grid { grid-template-columns: 1fr; }
+    .cat-grid, .about-features { grid-template-columns: 1fr; }
     .hero-stats { gap: 1.6rem; flex-wrap: wrap; }
     .home { padding: 1.75rem 1rem 4rem; }
   }

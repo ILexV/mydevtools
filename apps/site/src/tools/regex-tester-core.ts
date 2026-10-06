@@ -28,12 +28,13 @@ export function escapeHtml(text: string): string {
 }
 
 /**
- * Legacy flag model: checkboxes g/i/m/s/u; the JS-only `g`/`y` are dropped
- * (Rust always finds all matches) and the rest become an inline group,
- * e.g. ("a.b", ["g","i","s"]) → "(?is)a.b".
+ * Flag checkboxes g/i/m/s → Rust inline group, e.g. ("a.b", ["g","i","s"]) →
+ * "(?is)a.b". `g` is handled by the caller (all matches vs first). `u` is
+ * ignored: Unicode mode is always on in the Rust engine, so the UI no longer
+ * offers it, but saved legacy patterns may still carry it.
  */
 export function buildRustPattern(pattern: string, flags: readonly string[]): string {
-  const inline = flags.filter((f) => f.length === 1 && "imsuUx".includes(f)).join("");
+  const inline = flags.filter((f) => f.length === 1 && "imsUx".includes(f)).join("");
   return inline ? `(?${inline})${pattern}` : pattern;
 }
 

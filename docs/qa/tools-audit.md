@@ -70,8 +70,7 @@
 
 ## Открытые вопросы владельцу
 
-- regex-tester: флажок `u` ничего не делает (в Rust Unicode всегда включён) — убрать или показывать включённым.
-- `home.json`: ключи `SeoContent_*`, `Feature*`, `WhyChoose*`, `Badge_*` не выводятся новой главной — вывести SEO-блоком или удалить.
+- `home.json`: SEO-блок (`SeoContent_Title/P1/P2` + 6 карточек `Feature*`) выведен на главной 2026-10-06; ключи `SeoContent_Bullet_*`, `WhyChoose*`, `Badge_*`, `FeaturePwa*`, `ReadyToTry*` и др. по-прежнему не используются.
 - AEAD: деривация ключа Argon2id и шифрование всё ещё в main thread (≈1 с).
 - x509: нет полей SAN при генерации; pdf-merger без кнопки отмены; IPv6 без разбиения на подсети.
 - Визуальные baselines `e2e/pages.spec.ts-snapshots/` (win32) устарели после редизайна инструментов — перегенерировать на Windows (`npm run test:visual:update`).

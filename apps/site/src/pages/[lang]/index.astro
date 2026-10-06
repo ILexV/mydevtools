@@ -1,8 +1,10 @@
 ---
 /**
  * `/{lang}/` — localized home (Prism, design spec §1/§9).
- * Registry-driven catalog grouped by category, hero with ambient monograms,
- * client-side search, favorites/recent from a JSON island.
+ * Hero: copy + live "text lab" (Base64/URL/Hex/SHA-256 computed in the
+ * browser) over an animated prism canvas whose rays feed the lab rows.
+ * Registry-driven catalog grouped by category, client-side search,
+ * favorites/recent from a JSON island.
  * Adding a tool to `tools.ts` adds a card here (Stage 4 Gate 4) + search index.
  */
 import BaseLayout from "@/layouts/BaseLayout.astro";
@@ -11,6 +13,7 @@ import Icon from "@/components/Icon.astro";
 import { LOCALES, type LocaleCode } from "@/registry/locales";
 import { buildCatalog } from "@/registry/catalog";
 import { t } from "@/i18n/messages";
+import { computeLab, type LabKind } from "@/lib/hero-lab";
 
 export function getStaticPaths() {
   return LOCALES.map((l) => ({ params: { lang: l.code } }));
@@ -23,7 +26,9 @@ interface Params {
 const { lang } = Astro.params as Params;
 const catalog = buildCatalog(lang);
 const heroTitle = t(lang, "home", "Title");
-const heroSubtitle = t(lang, "home", "Subtitle");
+const heroAccent = t(lang, "home", "Title_Accent");
+const heroLead = t(lang, "home", "Lead");
+const heroSubtitle = t(lang, "home", "Subtitle"); // meta description
 const heroCta = t(lang, "home", "CTA_Start");
 const siteName = t(lang, "common", "AppName");
 const favTitle = t(lang, "common", "CommandPalette_FavoritesTitle");
@@ -38,6 +43,26 @@ const index = Object.fromEntries(
 );
 const indexJson = JSON.stringify(index);
 
+// Hero "text lab": live encodings of the visitor's text (scripts/hero-lab.ts).
+// Row order/colours must match ROW_VARS in scripts/hero-prism.ts (one ray per row).
+// Outputs are seeded at build time so the panel is complete without JS.
+const labSamples = ["Lab_Sample1", "Lab_Sample2", "Lab_Sample3"].map((k) => t(lang, "home", k));
+const labSeed = await computeLab(labSamples[0]);
+const labRows: { kind: LabKind; label: string; slug: string; cat: string }[] = [
+  { kind: "base64", label: "Base64", slug: "base64-encoder", cat: "encoding" },
+  { kind: "url", label: "URL", slug: "url-encoder", cat: "structured-data" },
+  { kind: "hex", label: "Hex", slug: "hex-encoder", cat: "generators" },
+  { kind: "sha256", label: "SHA-256", slug: "hash-calculator", cat: "hashing" },
+];
+const toolBySlug = new Map(catalog.tools.map((tool) => [tool.slug, tool]));
+const copyLabel = t(lang, "common", "Common_Copy");
+const labBytesTpl = t(lang, "home", "Lab_Bytes");
+const labStringsJson = JSON.stringify({
+  copied: t(lang, "home", "Lab_Copied"),
+  bytes: labBytesTpl,
+  samples: labSamples,
+});
+
 // "Why MyDevTools" block below the catalog: crawlable prose + feature cards
 // from `home.json` (privacy, WASM, offline/PWA, languages, free, algorithms).
 const aboutFeatures = [
@@ -51,248 +76,454 @@ const aboutFeatures = [
 ---
 
 <BaseLayout locale={lang} title={siteName} description={heroSubtitle} isHome>
-  <div class="ambient" aria-hidden="true">
-    <div class="grain"></div>
-    <span class="g" style="--x:6%;--y:12%;--d:8s;--s:15px">{"{}"}</span>
-    <span class="g" style="--x:88%;--y:9%;--d:10s;--s:13px">0x</span>
-    <span class="g" style="--x:14%;--y:78%;--d:9s;--s:17px">▦</span>
-    <span class="g" style="--x:79%;--y:70%;--d:11s;--s:14px">⚿</span>
-    <span class="g" style="--x:46%;--y:5%;--d:8.5s;--s:12px">%</span>
-    <span class="g" style="--x:64%;--y:85%;--d:10.5s;--s:15px">Aa</span>
-    <span class="g" style="--x:30%;--y:90%;--d:9.5s;--s:13px">01</span>
-    <span class="g" style="--x:93%;--y:45%;--d:12s;--s:16px">#</span>
-    <span class="g" style="--x:3%;--y:45%;--d:11s;--s:12px">µ</span>
-  </div>
+  <main>
+    <section class="hero-band" data-hero-band>
+      <div class="ambient" aria-hidden="true"></div>
+      <canvas class="prism" data-prism-canvas aria-hidden="true"></canvas>
+      <div class="hero">
+        <div class="hero-copy">
+          <p class="hero-eyebrow"><span class="dot"></span>{t(lang, "common", "NoDataSent")}</p>
+          <h1><span>{heroTitle}</span> <span class="accent">{heroAccent}</span></h1>
+          <p class="hero-subtitle">{heroLead}</p>
+          <div class="hero-actions">
+            <a class="ds-btn ds-btn-primary" href="#catalog">{heroCta}<Icon name="arrow-right" size={14} /></a>
+            <button type="button" class="ds-btn" data-pwa-install hidden>
+              <Icon name="download" size={14} />{t(lang, "home", "CTA_PWA")}
+            </button>
+          </div>
+          <dl class="hero-stats">
+            <div class="stat"><dt>{statTools}</dt><dd class="tabular">{catalog.tools.length}</dd></div>
+            <div class="stat"><dt>{statLanguages}</dt><dd class="tabular">{LOCALES.length}</dd></div>
+            <div class="stat"><dt>{statLocal}</dt><dd class="tabular">0</dd></div>
+          </dl>
+        </div>
 
-  <main class="home">
-    <section class="hero">
-      <span class="hero-pill"><span class="dot"></span>{t(lang, "common", "NoDataSent")}</span>
-      <h1>{heroTitle}</h1>
-      <p class="hero-subtitle">{heroSubtitle}</p>
-      <div class="hero-actions">
-        <a class="ds-btn ds-btn-primary" href="#catalog">{heroCta}<Icon name="arrow-right" size={14} /></a>
-        <button type="button" class="ds-btn" data-pwa-install hidden>
-          <Icon name="download" size={14} />{t(lang, "home", "CTA_PWA")}
-        </button>
-      </div>
-      <div class="hero-stats">
-        <div class="stat"><b class="tabular">{catalog.tools.length}</b><span>{statTools}</span></div>
-        <div class="stat"><b class="tabular">{LOCALES.length}</b><span>{statLanguages}</span></div>
-        <div class="stat"><b class="tabular">100%</b><span>{statLocal}</span></div>
+        <div class="lab" data-hero-lab>
+          <div class="lab-head">
+            <span class="lab-title">{t(lang, "home", "Lab_Title")}</span>
+            <span class="lab-local"><span class="dot"></span>{t(lang, "home", "Lab_Local")}</span>
+          </div>
+          <label class="visually-hidden" for="hero-lab-input">{t(lang, "home", "Lab_InputLabel")}</label>
+          <textarea
+            id="hero-lab-input"
+            class="lab-input"
+            rows="2"
+            maxlength="256"
+            spellcheck="false"
+            autocomplete="off"
+            readonly
+            data-lab-input
+          >{labSamples[0]}</textarea>
+          <ul class="lab-rows" role="list">
+            {labRows.map((row) => {
+              const tool = toolBySlug.get(row.slug);
+              const value = labSeed[row.kind] ?? "";
+              return (
+                <li class="lab-row" data-lab-row={row.kind} style={`--row: var(--mdt-cat-${row.cat})`}>
+                  <a class="lab-key" href={tool?.href} title={tool?.title} aria-label={tool?.title}>
+                    {row.label}<Icon name="arrow-right" size={11} />
+                  </a>
+                  <output class="lab-val" data-lab-out={row.kind} title={value}>{value}</output>
+                  <button
+                    type="button"
+                    class="ds-icon-btn lab-copy"
+                    data-lab-copy={row.kind}
+                    data-lab-enhance
+                    aria-label={`${copyLabel} ${row.label}`}
+                    title={copyLabel}
+                    hidden
+                  ><Icon name="copy" size={14} /></button>
+                </li>
+              );
+            })}
+          </ul>
+          <div class="lab-foot">
+            <span class="lab-bytes tabular" data-lab-bytes>{labBytesTpl.replace("{0}", String(labSeed.bytes))}</span>
+            <button type="button" class="ds-btn ds-btn-ghost ds-btn-small lab-next" data-lab-next data-lab-enhance hidden>
+              <Icon name="generators" size={13} />{t(lang, "home", "Lab_Next")}
+            </button>
+          </div>
+          <script is:inline type="application/json" data-lab-strings set:html={labStringsJson} />
+        </div>
       </div>
     </section>
 
-    <div class="your-tools">
-      <section data-fav-section hidden>
-        <h2 class="yt-heading">{favTitle}</h2>
+    <div class="home">
+      <div class="your-tools">
+        <section data-fav-section hidden>
+          <h2 class="yt-heading">{favTitle}</h2>
+        </section>
+        <section data-recent-section hidden>
+          <h2 class="yt-heading">{recentTitle}</h2>
+        </section>
+      </div>
+
+
+      <section id="catalog" class="catalog">
+        {catalog.categories.map((cat) => (
+          <div class="cat-section" data-cat-section style={`--mdt-cat: var(--mdt-cat-${cat.id})`}>
+            <div class="cat-head">
+              <span class="cat-icon"><Icon name={cat.id} size={17} /></span>
+              <h2 class="cat-heading" data-cat-heading>{cat.label}</h2>
+              <span class="cat-count tabular">{cat.tools.length}</span>
+            </div>
+            <div class="cat-grid">
+              {cat.tools.map((tool) => (
+                <ToolCard tool={tool} locale={lang} />
+              ))}
+            </div>
+          </div>
+        ))}
       </section>
-      <section data-recent-section hidden>
-        <h2 class="yt-heading">{recentTitle}</h2>
+
+      <section class="about" aria-labelledby="about-heading">
+        <h2 id="about-heading" class="about-heading">{t(lang, "home", "SeoContent_Title")}</h2>
+        <div class="about-text">
+          <p>{t(lang, "home", "SeoContent_P1")}</p>
+          <p>{t(lang, "home", "SeoContent_P2")}</p>
+        </div>
+        <ul class="about-features" role="list">
+          {aboutFeatures.map((f) => (
+            <li class="about-feature">
+              <span class="about-icon" aria-hidden="true"><Icon name={f.icon} size={17} /></span>
+              <h3>{t(lang, "home", `Feature${f.key}Title`)}</h3>
+              <p>{t(lang, "home", `Feature${f.key}Description`)}</p>
+            </li>
+          ))}
+        </ul>
       </section>
     </div>
-
-
-    <section id="catalog" class="catalog">
-      {catalog.categories.map((cat) => (
-        <div class="cat-section" data-cat-section style={`--mdt-cat: var(--mdt-cat-${cat.id})`}>
-          <div class="cat-head">
-            <span class="cat-icon"><Icon name={cat.id} size={17} /></span>
-            <h2 class="cat-heading" data-cat-heading>{cat.label}</h2>
-            <span class="cat-count tabular">{cat.tools.length}</span>
-          </div>
-          <div class="cat-grid">
-            {cat.tools.map((tool) => (
-              <ToolCard tool={tool} locale={lang} />
-            ))}
-          </div>
-        </div>
-      ))}
-    </section>
-
-    <section class="about" aria-labelledby="about-heading">
-      <h2 id="about-heading" class="about-heading">{t(lang, "home", "SeoContent_Title")}</h2>
-      <div class="about-text">
-        <p>{t(lang, "home", "SeoContent_P1")}</p>
-        <p>{t(lang, "home", "SeoContent_P2")}</p>
-      </div>
-      <ul class="about-features" role="list">
-        {aboutFeatures.map((f) => (
-          <li class="about-feature">
-            <span class="about-icon" aria-hidden="true"><Icon name={f.icon} size={17} /></span>
-            <h3>{t(lang, "home", `Feature${f.key}Title`)}</h3>
-            <p>{t(lang, "home", `Feature${f.key}Description`)}</p>
-          </li>
-        ))}
-      </ul>
-    </section>
   </main>
   <script is:inline type="application/json" data-catalog-json set:html={indexJson} />
+  <script>
+    import { initHeroLab } from "@/scripts/hero-lab";
+    import { initHeroPrism } from "@/scripts/hero-prism";
+
+    const band = document.querySelector<HTMLElement>("[data-hero-band]");
+    if (band) {
+      initHeroLab(band);
+      initHeroPrism(band);
+    }
+
+    // Card spotlight: category-tinted glow follows the pointer (vars read by ToolCard CSS).
+    document.getElementById("catalog")?.addEventListener("pointermove", (e) => {
+      const card = (e.target as Element).closest<HTMLElement>("[data-tool-card]");
+      if (!card) return;
+      const r = card.getBoundingClientRect();
+      card.style.setProperty("--mx", `${e.clientX - r.left}px`);
+      card.style.setProperty("--my", `${e.clientY - r.top}px`);
+    });
+  </script>
 
 </BaseLayout>
 
 <style>
-  /* ---------- ambient (Prism signature backdrop, spec §1.4) ---------- */
+  /* ---------- hero band: static aurora + prism canvas (scripts/hero-prism.ts) ---------- */
+  .hero-band {
+    position: relative;
+    isolation: isolate;
+    overflow: clip;
+  }
+  /* Static backdrop: two soft category-hued glows + a masked dot grid + grain.
+     Kept even without JS / under reduced motion; the canvas adds the motion. */
   .ambient {
-    position: fixed;
+    position: absolute;
     inset: 0;
-    z-index: 0;
-    overflow: hidden;
+    z-index: -1;
     pointer-events: none;
+    -webkit-mask-image: linear-gradient(to bottom, #000 65%, transparent);
+    mask-image: linear-gradient(to bottom, #000 65%, transparent);
+    background:
+      radial-gradient(38rem 26rem at 78% 46%, color-mix(in srgb, var(--mdt-accent) 22%, transparent), transparent 70%),
+      radial-gradient(30rem 22rem at 12% 8%, color-mix(in srgb, var(--mdt-accent-2) 10%, transparent), transparent 70%),
+      radial-gradient(26rem 18rem at 96% 96%, color-mix(in srgb, var(--mdt-cat-hashing) 10%, transparent), transparent 70%);
   }
-  /* Prism spectrum — a large blurred conic gradient of category hues slowly
-     rotating: the signature "light split through a prism" sweep. A radial
-     mask keeps the centre (where the hero text sits) clear so contrast holds,
-     while colour visibly flows around the periphery. */
   .ambient::before {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 52%;
-    width: 150vmax;
-    height: 150vmax;
-    transform: translate(-50%, -50%);
-    background: conic-gradient(
-      from 0deg,
-      color-mix(in srgb, var(--mdt-accent) 28%, transparent),
-      color-mix(in srgb, var(--mdt-cat-structured-data) 22%, transparent),
-      color-mix(in srgb, var(--mdt-accent-2) 28%, transparent),
-      color-mix(in srgb, var(--mdt-cat-design) 22%, transparent),
-      color-mix(in srgb, var(--mdt-cat-cryptography) 24%, transparent),
-      color-mix(in srgb, var(--mdt-cat-encoding) 22%, transparent),
-      color-mix(in srgb, var(--mdt-accent) 28%, transparent)
-    );
-    filter: blur(72px);
-    opacity: 0.6;
-    -webkit-mask-image: radial-gradient(ellipse 72% 62% at 50% 38%, transparent 28%, #000 78%);
-    mask-image: radial-gradient(ellipse 72% 62% at 50% 38%, transparent 28%, #000 78%);
-    animation: spin 80s linear infinite;
-  }
-  @keyframes spin {
-    to { transform: translate(-50%, -50%) rotate(360deg); }
-  }
-  /* Grain — fractal-noise dither that breaks the 8-bit color banding a large
-     blurred gradient produces (very visible on the dark surface). Kept faint
-     and blended so it reads as film grain, not static. */
-  .ambient .grain {
-    position: absolute;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size: 180px 180px;
-    opacity: 0.06;
-    mix-blend-mode: overlay;
-    pointer-events: none;
-  }
-  /* Faint dot grid for texture (masked so it fades toward the edges) */
-  .ambient::after {
     content: "";
     position: absolute;
     inset: 0;
     color: var(--mdt-text-faint);
     background-image: radial-gradient(currentColor 1px, transparent 1px);
-    background-size: 28px 28px;
-    opacity: 0.07;
-    -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 35%, #000 25%, transparent 80%);
-    mask-image: radial-gradient(ellipse 85% 75% at 50% 35%, #000 25%, transparent 80%);
+    background-size: 26px 26px;
+    opacity: 0.14;
+    -webkit-mask-image: radial-gradient(ellipse 70% 80% at 70% 45%, #000 10%, transparent 75%);
+    mask-image: radial-gradient(ellipse 70% 80% at 70% 45%, #000 10%, transparent 75%);
   }
-  .ambient .g {
+  /* Grain dithers the banding of large soft gradients (very visible on dark). */
+  .ambient::after {
+    content: "";
     position: absolute;
-    left: var(--x);
-    top: var(--y);
-    font-family: var(--mdt-font-mono);
-    font-weight: 700;
-    font-size: var(--s);
-    color: var(--mdt-text-faint);
-    filter: blur(0.4px);
-    animation: floaty var(--d) ease-in-out infinite alternate,
-      fade var(--d) ease-in-out infinite alternate;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
   }
-  @keyframes floaty {
-    from { transform: translateY(-12px) rotate(-5deg); }
-    to   { transform: translateY(14px) rotate(6deg); }
+  .prism {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 900ms var(--mdt-ease);
+    -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent);
+    mask-image: linear-gradient(to bottom, #000 78%, transparent);
   }
-  @keyframes fade {
-    from { opacity: 0.18; }
-    to   { opacity: 0.5; }
+  .prism:global(.is-ready) { opacity: 1; }
+  @media (forced-colors: active) {
+    .prism { display: none; }
   }
 
-  .home {
-    position: relative;
-    z-index: 1;
+  /* ---------- hero layout ---------- */
+  .hero {
     max-width: var(--mdt-content-max);
     margin: 0 auto;
-    padding: clamp(2rem, 6vw, 4.5rem) 1.25rem 5rem;
+    padding: clamp(2.75rem, 6.5vw, 5.5rem) 1.25rem clamp(2.5rem, 5vw, 4.5rem);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 27rem);
+    gap: clamp(5rem, 9vw, 8rem);
+    align-items: center;
   }
-
-  /* ---------- hero ---------- */
-  .hero {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding-bottom: 2.5rem;
-    animation: rise 0.5s var(--mdt-ease) both;
+  .hero-copy {
+    min-width: 0;
+    animation: rise 0.6s var(--mdt-ease) both;
   }
   @keyframes rise {
     from { opacity: 0; transform: translateY(14px); }
   }
-  .hero-pill {
+  .hero-eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-family: var(--mdt-font-mono);
-    font-size: var(--mdt-fs-micro);
+    gap: 9px;
+    font-size: var(--mdt-fs-meta);
+    font-weight: 500;
     color: var(--mdt-text-muted);
-    border: 1px solid var(--mdt-border);
-    background: color-mix(in srgb, var(--mdt-surface-raised) 70%, transparent);
-    padding: 6px 13px;
-    border-radius: 999px;
   }
-  .hero-pill .dot {
+  .dot {
     width: 7px;
     height: 7px;
     border-radius: 50%;
+    flex-shrink: 0;
     background: var(--mdt-success);
     box-shadow: 0 0 0 0 color-mix(in srgb, var(--mdt-success) 55%, transparent);
-    animation: pulse 2.2s infinite;
+    animation: pulse 2.4s infinite;
   }
   @keyframes pulse {
-    70% { box-shadow: 0 0 0 8px transparent; }
+    70% { box-shadow: 0 0 0 7px transparent; }
   }
   h1 {
-    margin-top: 1.3rem;
-    font-weight: 650;
-    font-size: clamp(2rem, 4.6vw, 3.4rem);
-    line-height: 1.08;
-    letter-spacing: -0.03em;
-    max-width: 22ch;
+    margin-top: 1.1rem;
+    font-family: var(--mdt-font-display);
+    font-weight: 750;
+    font-size: clamp(2.3rem, 4.8vw, 3.8rem);
+    line-height: 1.03;
+    letter-spacing: -0.04em;
+    max-width: 15ch;
+  }
+  h1 span { display: block; }
+  /* Spectrum-tinted second line — the prism metaphor in type. */
+  h1 .accent {
+    padding-bottom: 0.06em; /* keep descenders inside the clipped gradient */
+    background: linear-gradient(
+      100deg,
+      var(--mdt-accent) 0%,
+      var(--mdt-cat-structured-data) 45%,
+      var(--mdt-accent-2) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  :is(:lang(zh), :lang(ja), :lang(ko), :lang(hi)) h1 {
+    letter-spacing: 0;
+    line-height: 1.2;
   }
   .hero-subtitle {
-    margin-top: 1.1rem;
+    margin-top: 1.25rem;
     color: var(--mdt-text-muted);
-    font-size: 1.05rem;
-    max-width: 56ch;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    max-width: 46ch;
   }
-  .hero-actions { margin-top: 1.7rem; }
+  .hero-actions {
+    margin-top: 1.9rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .hero-actions .ds-btn { min-height: 44px; padding-inline: 20px; }
   .hero-actions .ds-btn svg { transition: transform var(--mdt-dur-micro) var(--mdt-ease); }
   .hero-actions .ds-btn:hover svg { transform: translateX(3px); }
   .hero-stats {
-    margin-top: 2.4rem;
+    margin-top: 2.6rem;
     display: flex;
-    gap: 2.5rem;
+    flex-wrap: wrap;
+    gap: 0.75rem 2.25rem;
   }
-  .stat b {
-    font-weight: 650;
-    font-size: 1.875rem;
+  .stat {
+    display: flex;
+    flex-direction: column-reverse; /* number above, label below; dt stays first in source */
+    gap: 4px;
+    padding-left: 0.9rem;
+    border-left: 1px solid var(--mdt-border);
+  }
+  .stat dd {
+    margin: 0;
+    font-family: var(--mdt-font-display);
+    font-weight: 700;
+    font-size: 1.6rem;
     line-height: 1;
     letter-spacing: -0.03em;
   }
-  .stat span {
-    display: block;
-    margin-top: 5px;
+  .stat dt {
+    font-size: var(--mdt-fs-meta);
+    color: var(--mdt-text-faint);
+  }
+
+  /* ---------- hero lab panel (scripts/hero-lab.ts) ---------- */
+  .lab {
+    position: relative;
+    min-width: 0;
+    padding: 1.1rem;
+    border: 1px solid transparent;
+    border-radius: 18px;
+    /* gradient hairline: solid surface inside, accent → border on the edge */
+    background:
+      linear-gradient(var(--mdt-surface-raised), var(--mdt-surface-raised)) padding-box,
+      linear-gradient(150deg,
+        color-mix(in srgb, var(--mdt-accent) 70%, var(--mdt-border)),
+        var(--mdt-border) 45%,
+        color-mix(in srgb, var(--mdt-accent-2) 45%, var(--mdt-border))) border-box;
+    box-shadow:
+      0 30px 70px -28px color-mix(in srgb, var(--mdt-accent) 45%, transparent),
+      0 10px 30px -18px rgba(4, 6, 12, 0.45);
+    animation: rise 0.7s 0.08s var(--mdt-ease) both;
+  }
+  .lab-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .lab-title {
+    font-family: var(--mdt-font-display);
+    font-weight: 700;
+    font-size: 1.02rem;
+    letter-spacing: -0.015em;
+  }
+  .lab-local {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     font-family: var(--mdt-font-mono);
     font-size: var(--mdt-fs-micro);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
     color: var(--mdt-text-faint);
+    white-space: nowrap;
+  }
+  .lab-input {
+    display: block;
+    width: 100%;
+    resize: none;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: 11px;
+    background: var(--mdt-surface-inset);
+    font-family: var(--mdt-font-mono);
+    font-size: 0.95rem;
+    line-height: 1.45;
+    color: var(--mdt-text);
+    caret-color: var(--mdt-accent);
+    transition: border-color var(--mdt-dur-micro) var(--mdt-ease), box-shadow var(--mdt-dur-micro) var(--mdt-ease);
+  }
+  .lab-input:focus-visible {
+    outline: none;
+    border-color: var(--mdt-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mdt-accent) 22%, transparent);
+  }
+  .lab-rows {
+    list-style: none;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+  }
+  .lab-row {
+    display: grid;
+    grid-template-columns: 5.4rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 40px;
+    padding: 3px 4px 3px 10px;
+    border: 1px solid var(--mdt-border-soft);
+    border-left: 2px solid var(--row);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--row) 5%, var(--mdt-surface-inset));
+  }
+  /* Packet from the prism "delivers" to this row. */
+  .lab-row:global(.is-hit) { animation: hit 700ms var(--mdt-ease); }
+  @keyframes hit {
+    25% {
+      background: color-mix(in srgb, var(--row) 18%, var(--mdt-surface-inset));
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--row) 55%, transparent), 0 0 18px -4px var(--row);
+    }
+  }
+  .lab-key {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-label);
+    font-weight: 600;
+    color: var(--row);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .lab-key :global(svg) {
+    opacity: 0;
+    transform: translateX(-3px);
+    transition: opacity var(--mdt-dur-micro), transform var(--mdt-dur-micro) var(--mdt-ease);
+  }
+  .lab-key:hover :global(svg), .lab-key:focus-visible :global(svg) { opacity: 1; transform: none; }
+  .lab-key:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .lab-val {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-meta);
+    color: var(--mdt-text);
+  }
+  .lab-copy {
+    width: 32px;
+    height: 32px;
+    border-color: transparent;
+    background: transparent;
+    color: var(--mdt-text-faint);
+  }
+  .lab-copy:hover { color: var(--mdt-text); border-color: var(--mdt-border); }
+  .lab-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 34px;
+    margin-top: 0.7rem;
+  }
+  .lab-bytes {
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-micro);
+    color: var(--mdt-text-faint);
+  }
+  .lab-next { color: var(--mdt-text-muted); }
+
+  .home {
+    max-width: var(--mdt-content-max);
+    margin: 0 auto;
+    padding: 1rem 1.25rem 5rem;
   }
 
   /* ---------- favorites / recent ---------- */
@@ -325,16 +556,24 @@ const aboutFeatures = [
 
   /* ---------- category sections ---------- */
   #catalog { scroll-margin-top: calc(var(--mdt-header-h) + 1rem); }
-  .cat-section { margin-bottom: 2.75rem; scroll-margin-top: calc(var(--mdt-header-h) + 1rem); }
+  .cat-section { margin-bottom: 3rem; scroll-margin-top: calc(var(--mdt-header-h) + 1rem); }
   .cat-head {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
+    gap: 0.75rem;
     margin-bottom: 1.1rem;
   }
+  /* hairline that runs out from the heading, tinted by the category */
+  .cat-head::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    margin-left: 0.4rem;
+    background: linear-gradient(to right, color-mix(in srgb, var(--mdt-cat) 35%, var(--mdt-border)), transparent);
+  }
   .cat-icon {
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
     border-radius: 10px;
     display: grid;
     place-items: center;
@@ -344,73 +583,70 @@ const aboutFeatures = [
     flex-shrink: 0;
   }
   .cat-heading {
-    font-weight: 650;
-    font-size: var(--mdt-fs-h3);
-    letter-spacing: -0.02em;
+    font-family: var(--mdt-font-display);
+    font-weight: 700;
+    font-size: 1.3rem;
+    letter-spacing: -0.025em;
   }
   .cat-count {
     font-family: var(--mdt-font-mono);
-    font-size: var(--mdt-fs-micro);
+    font-size: var(--mdt-fs-label);
     color: var(--mdt-text-faint);
-    border: 1px solid var(--mdt-border);
-    border-radius: 6px;
-    padding: 2px 7px;
-    background: var(--mdt-surface-inset);
   }
   .cat-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.875rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
   }
   .hidden { display: none !important; }
 
-  /* ---------- about / SEO block ---------- */
+  /* ---------- about / SEO block: editorial, unboxed ---------- */
   .about {
-    margin-top: 1rem;
-    padding-top: 2.5rem;
+    margin-top: 1.5rem;
+    padding-top: 3rem;
     border-top: 1px solid var(--mdt-border);
   }
   .about-heading {
-    font-weight: 650;
-    font-size: var(--mdt-fs-h3);
-    letter-spacing: -0.02em;
-    margin-bottom: 1rem;
+    font-family: var(--mdt-font-display);
+    font-weight: 750;
+    font-size: clamp(1.6rem, 3vw, 2.1rem);
+    letter-spacing: -0.035em;
+    margin-bottom: 1.1rem;
   }
   .about-text {
-    max-width: 72ch;
+    max-width: 68ch;
     display: grid;
     gap: 0.85rem;
     color: var(--mdt-text-muted);
-    line-height: 1.65;
-    text-wrap: pretty;
+    line-height: 1.7;
   }
   .about-features {
     list-style: none;
-    margin: 1.75rem 0 0;
+    margin: 2.5rem 0 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.875rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2rem 2.25rem;
   }
   .about-feature {
-    padding: 1.1rem 1.15rem;
-    border: 1px solid var(--mdt-border);
-    border-radius: var(--mdt-radius-md);
-    background: var(--mdt-surface-raised);
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--mdt-border);
   }
   .about-feature h3 {
-    font-size: 0.975rem;
-    font-weight: 620;
-    margin: 0.75rem 0 0.35rem;
+    font-family: var(--mdt-font-display);
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin: 0.85rem 0 0.35rem;
   }
   .about-feature p {
     font-size: var(--mdt-fs-meta);
     color: var(--mdt-text-muted);
-    line-height: 1.55;
+    line-height: 1.6;
   }
   .about-icon {
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
     border-radius: 10px;
     display: grid;
     place-items: center;
@@ -420,12 +656,20 @@ const aboutFeatures = [
   }
 
   @media (max-width: 1024px) {
-    .cat-grid, .about-features { grid-template-columns: repeat(2, 1fr); }
+    .cat-grid, .about-features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 899px) {
+    /* tall gap: the prism (scripts/hero-prism.ts, mobile layout) floats here */
+    .hero { grid-template-columns: minmax(0, 1fr); gap: 6.5rem; }
+    .lab { max-width: 34rem; }
   }
   @media (max-width: 640px) {
-    .cat-grid, .about-features { grid-template-columns: 1fr; }
-    .hero-stats { gap: 1.6rem; flex-wrap: wrap; }
-    .home { padding: 1.75rem 1rem 4rem; }
+    .cat-grid, .about-features { grid-template-columns: minmax(0, 1fr); }
+    .hero { padding: 2rem 1rem 2.5rem; }
+    .home { padding: 0.5rem 1rem 4rem; }
+    .hero-stats { gap: 0.75rem 1.5rem; }
+    .lab { padding: 0.9rem; }
+    .lab-row { grid-template-columns: 4.6rem minmax(0, 1fr) auto; }
   }
 </style>
 <style is:inline>

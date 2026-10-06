@@ -56,12 +56,32 @@ const favLabel = t(locale, "common", "Badge_Favorite");
     transition: transform var(--mdt-dur) var(--mdt-ease),
       border-color var(--mdt-dur), box-shadow var(--mdt-dur);
   }
+  /* Spotlight: category-tinted glow at the pointer (--mx/--my set by the home
+     page script; without them it sits at the top centre). */
+  .tool-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      280px circle at var(--mx, 50%) var(--my, 0%),
+      color-mix(in srgb, var(--mdt-cat) 14%, transparent),
+      transparent 65%
+    );
+    opacity: 0;
+    transition: opacity var(--mdt-dur) var(--mdt-ease);
+    pointer-events: none;
+  }
+  .tool-card:hover::before {
+    opacity: 1;
+  }
   .tool-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-2px);
     border-color: color-mix(in srgb, var(--mdt-cat) 55%, var(--mdt-border));
     box-shadow: var(--mdt-shadow-e1);
   }
   .card-link {
+    position: relative;
     display: flex;
     flex-direction: column;
     color: var(--mdt-text);

@@ -9,8 +9,9 @@ import { defineConfig, devices } from "@playwright/test";
  * The standalone `e2e/tsconfig.json` has no such extends.
  *
  * Determinism (baselines must not flap run-to-run):
- *  - reduceMotion "reduce"  → the global @media (prefers-reduced-motion)
- *    block freezes every @keyframes (ambient spin, monogram drift, hero rise).
+ *  - contextOptions.reducedMotion "reduce" → the global @media
+ *    (prefers-reduced-motion) block freezes every @keyframes, and the home
+ *    hero lab/prism canvas render one static frame (no demo typing, no packets).
  *  - serviceWorkers "block" → precache SW can't serve stale HTML/CSS.
  *  - animations "disabled"  → freezes any residual motion at capture.
  *  - each capture awaits document.fonts.ready so Inter isn't mid-swap.
@@ -36,7 +37,8 @@ export default defineConfig({
   use: {
     baseURL: "http://localhost:4123",
     viewport: { width: 1440, height: 900 },
-    reduceMotion: "reduce",
+    // Runner-level `reducedMotion` is not a fixture option — it only applies via contextOptions.
+    contextOptions: { reducedMotion: "reduce" },
     serviceWorkers: "block",
     colorScheme: "light",
   },

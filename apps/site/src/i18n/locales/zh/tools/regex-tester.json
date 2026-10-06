@@ -1,7 +1,7 @@
 {
   "Title": "正则表达式测试器",
-  "Description": "使用 Rust 正则表达式引擎 (WASM) 测试和调试正则表达式 — 全部在您的浏览器中",
-  "Keywords": "regex tester, regular expression tester, regex online, regex debugger, regex validator, test regex, regex match, regex replace",
+  "Description": "使用 Rust regex 引擎（WebAssembly）实时测试正则表达式：高亮匹配、捕获组和命名组、i/m/s 标志以及保存的模式。",
+  "Keywords": "正则表达式测试, 正则测试工具, regex tester, rust regex, 在线正则, 捕获组, 命名组, 正则调试",
   "PatternLabel": "模式",
   "PatternPlaceholder": "输入正则表达式模式...",
   "TextLabel": "测试字符串",
@@ -45,11 +45,11 @@
   "MatchNumber": "匹配 {n}",
   "GroupLabel": "分组",
   "MoreMatches": "……以及另外 {count} 个匹配",
-  "Seo_Introduction": "Regex Tester工具是为开发人员设计的注重隐私的在线工具。所有处理都使用WebAssembly在您的浏览器中本地进行，确保您的数据永远不会离开您的设备。",
-  "Seo_DetailedDescription": "此工具为regex tester操作提供全面的功能。采用现代Web技术构建，由Rust编译的WebAssembly提供支持，直接在您的浏览器中提供原生级别的性能。\n\n界面设计注重效率和易用性，支持文本输入和文件处理。所有操作都在客户端执行，确保您的敏感数据完全隐私和安全。",
-  "Seo_Examples": "**示例1**：在开发工作流程中使用Regex Tester进行快速转换。\n\n**示例2**：直接处理文件而无需上传到任何服务器，保持完全隐私。\n\n**示例3**：将工具集成到日常开发任务中以提高生产力。",
-  "Seo_HowToSteps": "### 步骤1：准备输入\n在输入字段中输入数据或从设备上传文件。\n\n### 步骤2：配置选项\n根据需要调整工具设置。\n\n### 步骤3：处理并复制结果\n点击操作按钮处理输入并将结果复制到剪贴板。",
-  "Seo_Tips": "- 所有处理都在浏览器中进行，以实现最大隐私\n- 初始页面加载后，工具可离线工作\n- 您的偏好设置本地保存在浏览器中\n- 支持带进度跟踪的大文件",
+  "Seo_Introduction": "输入正则表达式，测试文本中的每个匹配都会随输入实时高亮，下方列出位置和捕获组。模式运行在编译为 WebAssembly 的 Rust regex crate 上，因此语法和行为遵循 Rust，而不是 JavaScript。",
+  "Seo_DetailedDescription": "支持的语法包括字符类和 Unicode 类（如 `\\p{Cyrillic}`）、贪婪和惰性量词、分支、锚点、单词边界 `\\b`、编号组、命名组 `(?<name>…)` 或 `(?P<name>…)`、非捕获组以及 `(?i)` 这样的内联标志。该引擎不支持先行断言、后行断言和 `\\1` 这类反向引用——工具会显示引擎的错误信息。作为交换，匹配时间随输入线性增长，因此 `(a+)+$` 这样的模式不会让页面卡死。\n\n标志：**i** 忽略大小写，**m** 让 `^` 和 `$` 匹配每一行，**s** 让 `.` 也能匹配换行；关闭 **全局** 时只显示第一个匹配。Rust 引擎始终启用 Unicode 模式，因此无论 **u** 复选框是否勾选，`\\w`、`\\d` 和 `.` 都会匹配非 ASCII 的字母、数字和字符。位置是 JavaScript 字符串索引（UTF-16，一个表情占 2）。列表显示前 50 个匹配，计数在 10,000 处停止。\n\n一切都在本地运行。只有点击 **保存模式** 时，模式才会连同名称、标志和示例文本保存到本浏览器的 localStorage。五个内置示例（电子邮件、IPv4 地址、日期、十六进制颜色、URL）一键即可加载。",
+  "Seo_Examples": "**命名组**：`(?<year>\\d{4})-(?<month>\\d{2})-(?<day>\\d{2})` 作用于 `Released 2026-10-06, patched 2026-11-02`，得到 2 个匹配；第一个是位于 `[9-19]` 的 `2026-10-06`，year 为 `2026`，month 为 `10`，day 为 `06`。\n\n**忽略大小写的分支**：`error|warn` 加 i 标志，作用于 `ERROR: disk full` 和 `Warn: low memory` 两行，匹配 `ERROR` 和 `Warn`。\n\n**行锚点**：`^\\w+` 作用于 `alpha one` 和 `beta two` 两行时只匹配 `alpha`；加上 m 标志后匹配 `alpha` 和 `beta`。\n\n**不支持的先行断言**：`foo(?=bar)` 会被拒绝，并提示 “look-around, including look-ahead and look-behind, is not supported”——改为匹配 `foo(bar)` 并使用捕获组。",
+  "Seo_HowToSteps": "### 步骤1：输入模式\n在 **模式** 中输入表达式，不需要两侧的斜杠。**速查表** 列出了最常用的语法。\n\n### 步骤2：设置标志\n在 **标志** 下按需勾选 **忽略大小写**、**多行** 或 **点匹配所有**；取消 **全局** 则只显示第一个匹配。\n\n### 步骤3：添加测试文本\n将文本粘贴到 **测试字符串**——匹配会随输入实时高亮。\n\n### 步骤4：查看匹配\n**匹配项** 列表显示每个匹配的 `[start-end]` 位置和捕获组。\n\n### 步骤5：保存或复用\n点击 **保存模式** 保存表达式，之后可从 **已保存的模式** 中 **加载**，或从某个 **示例** 开始。",
+  "Seo_Tips": "- 使用断言或 `\\1` 的 JavaScript、PCRE 模式需要改写：把周围文本放进捕获组，或在代码中检查条件。\n- `/` 不需要转义，但字面量点号需要：用 `\\.` 表示 “.”。\n- 内联标志在模式中同样有效：`(?i)error` 等同于勾选 i 标志的 `error`。\n- 保存的模式只存在于本浏览器中；清除网站数据会将其删除。\n- 在单词两侧使用 `\\b`（`\\bcolou?r\\b`），这样 `colours` 就不会被当作 `colour` 匹配。",
   "EngineError": "无法加载正则表达式引擎：{message}",
   "StorageError": "无法保存：浏览器存储不可用或已满。"
 }

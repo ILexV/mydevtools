@@ -2,7 +2,8 @@
 /**
  * Image Converter (image-tools WASM domain). Upload/drag-drop an image, pick
  * a target format (png/jpeg/webp/gif/bmp/ico/tiff/tga — legacy parity),
- * optional quality slider for lossy targets (jpeg/webp only), convert via
+ * optional quality slider for lossy targets (jpeg/webp only; WebP is lossy
+ * via the browser encoder, lossless WASM fallback with a note), convert via
  * `convertImage`, preview the result with size and download it under the
  * original name with the new extension. Worker-backed and cancellable; UI on
  * the shared tool kit (FileDrop, ds-file-item, Progress, StatusMessage).
@@ -38,6 +39,7 @@ const s = {
   errorNotImage: t(lang, ns, "ErrorNotImage"),
   errorUnsupported: t(lang, ns, "ErrorUnsupportedFormat"),
   errorConversion: t(lang, ns, "ErrorConversion"),
+  webpLosslessNote: t(lang, ns, "WebpLosslessNote"),
 };
 const stringsJson = JSON.stringify(s);
 ---
@@ -117,6 +119,7 @@ const stringsJson = JSON.stringify(s);
     <p class="imgv-output-meta">
       {s.outputSize}{" "}<span class="imgv-output-size" data-imgv-output-size></span>
     </p>
+    <StatusMessage kind="info" data-imgv-webp-note>{s.webpLosslessNote}</StatusMessage>
     <button type="button" class="ds-btn ds-btn-primary ds-btn-block" data-imgv-download>
       <Icon name="download" size={16} />
       {s.download}

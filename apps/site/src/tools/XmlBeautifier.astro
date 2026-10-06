@@ -1,13 +1,13 @@
 ---
 /**
- * XML Beautifier (structured data, pure JS). Single CodeMirror editor with a
- * custom 'simplexml' mode (ported verbatim from legacy; shared theme in
- * `styles/codemirror.css`), format (2/4/tab indent), compact mode (minify),
+ * XML Beautifier (structured data, pure JS). Single CodeMirror 6 editor
+ * (`@codemirror/lang-xml`; shared theme in `styles/codemirror.css`), format (2/4/tab indent), compact mode (minify),
  * open/save .xml files, drag & drop onto the editor, copy, clear. Formatting
  * is DOMParser + the pure serializer in `xml-format.ts`. Input is NEVER
  * persisted (legacy localStorage input persistence dropped for privacy).
  */
 import { t } from "@/i18n/messages";
+import { editorPhrases } from "@/tools/editor-phrases";
 import type { LocaleCode } from "@/registry/locales";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
 import "@/styles/codemirror.css";
@@ -35,6 +35,7 @@ const stringsJson = JSON.stringify({
   copied: t(lang, ns, "Copied"),
   errorInvalidXml: t(lang, ns, "ErrorInvalidXml"),
   inputLabel: s.inputLabel,
+  phrases: editorPhrases(lang),
 });
 ---
 

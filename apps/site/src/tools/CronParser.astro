@@ -8,6 +8,7 @@
  * live in the shared pure `cron-core.ts`; DOM wiring in `cron-parser.client.ts`.
  */
 import { t, pluralVariants } from "@/i18n/messages";
+import { scheduleTemplates } from "@/tools/cron-strings";
 import { localizedPath } from "@/lib/url";
 import type { LocaleCode } from "@/registry/locales";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
@@ -79,31 +80,12 @@ const clientStrings = {
     month: s.partMonth,
     weekday: s.partWeekday,
   },
-  scheduleReboot: t(lang, ns, "ScheduleReboot"),
-  scheduleYearly: t(lang, ns, "ScheduleYearly"),
-  scheduleMonthly: t(lang, ns, "ScheduleMonthly"),
-  scheduleWeekly: t(lang, ns, "ScheduleWeekly"),
-  scheduleDaily: t(lang, ns, "ScheduleDaily"),
-  scheduleHourly: t(lang, ns, "ScheduleHourly"),
-  scheduleEveryMinute: t(lang, ns, "ScheduleEveryMinute"),
-  scheduleEveryNMinutes: t(lang, ns, "ScheduleEveryNMinutes"),
-  scheduleAtMinute: t(lang, ns, "ScheduleAtMinute"),
-  scheduleAtMinutes: t(lang, ns, "ScheduleAtMinutes"),
-  scheduleEveryHour: t(lang, ns, "ScheduleEveryHour"),
-  scheduleEveryNHours: t(lang, ns, "ScheduleEveryNHours"),
-  scheduleAtHour: t(lang, ns, "ScheduleAtHour"),
-  scheduleAtHours: t(lang, ns, "ScheduleAtHours"),
-  scheduleEveryDay: t(lang, ns, "ScheduleEveryDay"),
-  scheduleOnDay: t(lang, ns, "ScheduleOnDay"),
-  scheduleOnDays: t(lang, ns, "ScheduleOnDays"),
-  scheduleLastDay: t(lang, ns, "ScheduleLastDay"),
-  scheduleOnWeekday: t(lang, ns, "ScheduleOnWeekday"),
-  scheduleOnWeekdays: t(lang, ns, "ScheduleOnWeekdays"),
-  scheduleInMonth: t(lang, ns, "ScheduleInMonth"),
-  scheduleInMonths: t(lang, ns, "ScheduleInMonths"),
-  scheduleDayOrWeekday: t(lang, ns, "ScheduleDayOrWeekday"),
+  // Every description template (Schedule*, incl. plural/ordinal variants).
+  ...scheduleTemplates(lang, ns),
   months: t(lang, ns, "MonthNames").split(","),
   weekdays: t(lang, ns, "WeekdayNames").split(","),
+  monthsLong: t(lang, ns, "MonthNamesLong").split(","),
+  weekdaysLong: t(lang, ns, "WeekdayNamesLong").split(","),
   // ru (и др. флективные локали) могут дать <Key>_<one/few/many> варианты.
   ...pluralVariants(lang, ns),
 };

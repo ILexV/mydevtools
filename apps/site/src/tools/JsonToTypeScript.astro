@@ -1,12 +1,13 @@
 ---
 /**
  * JSON to TypeScript Converter (structured-data domain). Pure-JS type
- * inference (`json-to-typescript.ts`) + dual CodeMirror 5 editors (editable
+ * inference (`json-to-typescript.ts`) + dual CodeMirror 6 editors (editable
  * JSON input, read-only TS output; shared theme `styles/codemirror.css`).
  * Live conversion (debounced); options: root name, export keyword, optional
  * fields (?), type alias. Actions: convert/copy/download/clear.
  */
 import { t } from "@/i18n/messages";
+import { editorPhrases } from "@/tools/editor-phrases";
 import type { LocaleCode } from "@/registry/locales";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
 import "@/styles/codemirror.css";
@@ -39,6 +40,7 @@ const stringsJson = JSON.stringify({
   copied: s.copied,
   inputLabel: s.inputLabel,
   outputLabel: s.outputLabel,
+  phrases: editorPhrases(lang),
 });
 ---
 

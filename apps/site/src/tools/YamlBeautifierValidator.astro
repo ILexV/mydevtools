@@ -1,13 +1,12 @@
 ---
 /**
- * YAML Beautifier/Validator (structured-data WASM domain). Two CodeMirror 5
- * editors from the legacy vendored build (mode:'yaml' kept verbatim — no yaml
- * mode file was ever vendored, CodeMirror no-ops to plain text; parity) with
- * the shared theme in `styles/codemirror.css`. Format/validate via the
+ * YAML Beautifier/Validator (structured-data WASM domain). Two CodeMirror 6
+ * editors (`@codemirror/lang-yaml` highlight + folding) with the shared theme in `styles/codemirror.css`. Format/validate via the
  * structured-data WASM client; all in-browser. Errors: localized "invalid"
  * label + parser detail (line/column).
  */
 import { t } from "@/i18n/messages";
+import { editorPhrases } from "@/tools/editor-phrases";
 import type { LocaleCode } from "@/registry/locales";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
@@ -31,7 +30,7 @@ const s = {
   paste: t(lang, ns, "Paste"),
   keyboardHint: t(lang, ns, "EditorKeyboardHint"),
 };
-const stringsJson = JSON.stringify(s);
+const stringsJson = JSON.stringify({ ...s, phrases: editorPhrases(lang) });
 ---
 
 <div class="ds-stack" data-yaml-tool>

@@ -1,5 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { formatPlural } from "../src/lib/format.ts";
 import {
   generateLorem,
   clampCount,
@@ -114,4 +116,54 @@ test("count edge cases: 0 → 1 item, huge is capped (no freeze)", () => {
   assert.equal(huge.text.split("\n\n").length, MAX_COUNT);
   assert.ok(Date.now() - t0 < 2000);
   assert.equal(gen({ type: "words", count: NaN }).words, 5);
+});
+
+/**
+ * Stats labels ("1 слово / 3 слова / 5 слов") as the client builds them: the
+ * locale JSON keys lower-cased like `pluralVariants()` does, then `formatPlural`.
+ */
+function statStrings(lang: string): Record<string, string> {
+  const raw = JSON.parse(
+    readFileSync(new URL(`../src/i18n/locales/${lang}/tools/lorem-ipsum-generator.json`, import.meta.url), "utf8"),
+  ) as Record<string, string>;
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw)) out[k.charAt(0).toLowerCase() + k.slice(1)] = v;
+  return out;
+}
+
+test("stats labels use locale plural forms", () => {
+  const label = (lang: string, key: string, n: number) => formatPlural(statStrings(lang), key, n, lang);
+  const ru: Array<[number, string, string]> = [
+    [1, "слово", "символ"],
+    [2, "слова", "символа"],
+    [4, "слова", "символа"],
+    [5, "слов", "символов"],
+    [11, "слов", "символов"],
+    [21, "слово", "символ"],
+    [22, "слова", "символа"],
+    [112, "слов", "символов"],
+    [1001, "слово", "символ"],
+  ];
+  for (const [n, w, c] of ru) {
+    assert.equal(label("ru", "wordsStat", n), w, `ru words ${n}`);
+    assert.equal(label("ru", "characters", n), c, `ru chars ${n}`);
+  }
+  assert.equal(label("en", "wordsStat", 1), "word");
+  assert.equal(label("en", "wordsStat", 2), "words");
+  assert.equal(label("en", "characters", 1), "character");
+  assert.equal(label("en", "characters", 1000), "characters");
+  assert.equal(label("de", "wordsStat", 1), "Wort");
+  assert.equal(label("de", "wordsStat", 7), "Wörter");
+  assert.equal(label("de", "characters", 1), "Zeichen");
+  assert.equal(label("es", "wordsStat", 1), "palabra");
+  assert.equal(label("es", "characters", 3), "caracteres");
+  assert.equal(label("pt", "characters", 1), "caractere");
+  assert.equal(label("fr", "wordsStat", 1), "mot");
+  assert.equal(label("fr", "wordsStat", 2), "mots");
+  // Locales without plural inflection keep the base key for every count.
+  for (const lang of ["ja", "zh", "ko", "hi"]) {
+    const base = statStrings(lang);
+    assert.equal(label(lang, "wordsStat", 1), base.wordsStat, lang);
+    assert.equal(label(lang, "characters", 5), base.characters, lang);
+  }
 });

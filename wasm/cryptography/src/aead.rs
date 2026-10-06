@@ -15,6 +15,10 @@ const AEAD_TAG_LEN: u16 = 16;
 
 const AEAD_STREAM_MAGIC: [u8; 4] = *b"MDT2";
 const AEAD_STREAM_VERSION: u8 = 1;
+/// MDT3: same header layout as MDT2, but every chunk authenticates
+/// `header ‖ final_flag` as AAD, so truncation at a chunk boundary, dropped
+/// tails, appended chunks and header edits are detected.
+const AEAD_STREAM3_MAGIC: [u8; 4] = *b"MDT3";
 
 const KDF_ARGON2ID: u8 = 1;
 const KDF_PBKDF2_SHA512: u8 = 2;
@@ -85,14 +89,77 @@ fn pack_aead_stream_header(
 }
 
 fn parse_aead_stream_header(data: &[u8]) -> Result<(u8, u8, u16, u16, u32, usize), JsValue> {
+    let h = parse_stream_header_core(data).map_err(|e| JsValue::from_str(e.message()))?;
+    Ok((h.algorithm, h.kdf_id, h.salt_len, h.nonce_len, h.chunk_size, h.header_len))
+}
+
+/// Failure of the streaming container core. Kept free of `JsValue` so native
+/// (non-wasm) tests can assert error paths; wasm exports map it to a string.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StreamError {
+    /// Fewer bytes than a fixed header / salt / nonce prefix needs.
+    ShortHeader,
+    /// Not an MDT2/MDT3 container.
+    BadMagic,
+    UnsupportedVersion,
+    /// MDT3 header field out of range (algorithm, KDF, prefix length, chunk size).
+    BadHeader,
+    UnknownAlgorithm,
+    BadKey,
+    /// AEAD tag mismatch: wrong password/key, tampered, reordered, truncated or extended data.
+    Auth,
+    /// MDT3 container without its final chunk (e.g. cut right after the header).
+    Truncated,
+}
+
+impl StreamError {
+    pub fn message(self) -> &'static str {
+        match self {
+            StreamError::ShortHeader => "data too short for header",
+            StreamError::BadMagic => "invalid magic",
+            StreamError::UnsupportedVersion => "unsupported version",
+            StreamError::BadHeader => "invalid header",
+            StreamError::UnknownAlgorithm => "unknown algorithm",
+            StreamError::BadKey => "key must be 32 bytes",
+            StreamError::Auth => "decrypt failed",
+            StreamError::Truncated => "truncated container",
+        }
+    }
+}
+
+/// Parsed MDT2/MDT3 stream header. `format` is 2 (legacy, no final-chunk
+/// authentication) or 3 (header + final flag bound into every chunk's AAD).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StreamHeader {
+    pub format: u8,
+    pub algorithm: u8,
+    pub kdf_id: u8,
+    pub salt_len: u16,
+    pub nonce_len: u16,
+    pub chunk_size: u32,
+    pub header_len: usize,
+}
+
+/// Largest chunk size an MDT3 header may declare (the site writes 1 MiB).
+pub const AEAD_STREAM3_MAX_CHUNK: u32 = 64 * 1024 * 1024;
+
+/// Parses the fixed MDT2/MDT3 header layout (identical for both formats):
+/// magic(4) ‖ version u8 = 1 ‖ algorithm u8 ‖ kdf u8 ‖ salt_len u16le ‖
+/// nonce_prefix_len u16le ‖ chunk_size u32le ‖ salt ‖ nonce_prefix.
+/// MDT2 is accepted as before (no field checks); MDT3 is validated strictly.
+pub fn parse_stream_header_core(data: &[u8]) -> Result<StreamHeader, StreamError> {
     if data.len() < 15 {
-        return Err(JsValue::from_str("data too короткие для header"));
+        return Err(StreamError::ShortHeader);
     }
-    if data[0..4] != AEAD_STREAM_MAGIC {
-        return Err(JsValue::from_str("invalid magic"));
-    }
+    let format = if data[0..4] == AEAD_STREAM_MAGIC {
+        2
+    } else if data[0..4] == AEAD_STREAM3_MAGIC {
+        3
+    } else {
+        return Err(StreamError::BadMagic);
+    };
     if data[4] != AEAD_STREAM_VERSION {
-        return Err(JsValue::from_str("unsupported version"));
+        return Err(StreamError::UnsupportedVersion);
     }
 
     let algorithm = data[5];
@@ -103,23 +170,37 @@ fn parse_aead_stream_header(data: &[u8]) -> Result<(u8, u8, u16, u16, u32, usize
 
     let header_len = 15usize + salt_len as usize + nonce_len as usize;
     if data.len() < header_len {
-        return Err(JsValue::from_str("data too короткие для salt/nonce"));
+        return Err(StreamError::ShortHeader);
+    }
+    if format == 3 {
+        let prefix_ok = match algorithm {
+            AEAD_ALGO_AES256_GCM | AEAD_ALGO_CHACHA20_POLY1305 => nonce_len == 4,
+            AEAD_ALGO_XCHACHA20_POLY1305 => nonce_len == 16,
+            _ => false,
+        };
+        let kdf_ok = kdf_id == KDF_ARGON2ID || kdf_id == KDF_PBKDF2_SHA512;
+        if !prefix_ok || !kdf_ok || salt_len < 8 || chunk_size == 0 || chunk_size > AEAD_STREAM3_MAX_CHUNK {
+            return Err(StreamError::BadHeader);
+        }
     }
 
-    Ok((algorithm, kdf_id, salt_len, nonce_len, chunk_size, header_len))
+    Ok(StreamHeader { format, algorithm, kdf_id, salt_len, nonce_len, chunk_size, header_len })
 }
 
-/// Returns stream header info: [algorithm, kdf_id, salt_len, nonce_prefix_len, chunk_size, header_len].
+/// Returns stream header info for MDT2 or MDT3 containers:
+/// [algorithm, kdf_id, salt_len, nonce_prefix_len, chunk_size, header_len, format]
+/// where format is 2 (legacy MDT2) or 3 (MDT3, final chunk authenticated).
 #[wasm_bindgen]
 pub fn aead_stream_header_info(data: &[u8]) -> Result<Vec<u32>, JsValue> {
-    let (algorithm, kdf_id, salt_len, nonce_len, chunk_size, header_len) = parse_aead_stream_header(data)?;
+    let h = parse_stream_header_core(data).map_err(|e| JsValue::from_str(e.message()))?;
     Ok(vec![
-        algorithm as u32,
-        kdf_id as u32,
-        salt_len as u32,
-        nonce_len as u32,
-        chunk_size,
-        header_len as u32,
+        h.algorithm as u32,
+        h.kdf_id as u32,
+        h.salt_len as u32,
+        h.nonce_len as u32,
+        h.chunk_size,
+        h.header_len as u32,
+        h.format as u32,
     ])
 }
 
@@ -215,6 +296,147 @@ pub fn aead_stream_decrypt_chunk(
         }
         _ => Err(JsValue::from_str("unknown algorithm")),
     }
+}
+
+/* ── MDT3: final-chunk-authenticated stream container ─────────────────────
+ *
+ * container = header ‖ chunk₀ ‖ … ‖ chunkₙ₋₁   (n ≥ 1, even for empty input)
+ * chunkᵢ    = AEAD(key, prefix ‖ u64be(i), plaintextᵢ, aad = header ‖ flagᵢ)
+ * flagᵢ     = 0x01 for the last chunk, 0x00 otherwise
+ * Every non-final plaintext chunk is exactly `chunk_size` bytes; the final
+ * one is 0..=chunk_size. The decryptor treats the chunk that ends the file
+ * as final, so a container cut at a chunk boundary (its new last chunk was
+ * sealed with flag 0) or extended past the real final chunk fails the tag.
+ */
+
+/// Builds an MDT3 stream header (same layout as MDT2, magic `MDT3`).
+#[wasm_bindgen]
+pub fn aead_stream3_header_pack(
+    algorithm: u8,
+    kdf_id: u8,
+    salt: &[u8],
+    nonce_prefix: &[u8],
+    chunk_size: u32,
+) -> Result<Vec<u8>, JsValue> {
+    let mut header = pack_aead_stream_header(algorithm, kdf_id, salt, nonce_prefix, chunk_size)?;
+    header[0..4].copy_from_slice(&AEAD_STREAM3_MAGIC);
+    parse_stream_header_core(&header).map_err(|e| JsValue::from_str(e.message()))?;
+    Ok(header)
+}
+
+/// MDT3 chunk AAD: the full header followed by the final-chunk flag.
+pub fn stream3_aad(header: &[u8], is_final: bool) -> Vec<u8> {
+    let mut aad = Vec::with_capacity(header.len() + 1);
+    aad.extend_from_slice(header);
+    aad.push(u8::from(is_final));
+    aad
+}
+
+fn cipher_op<C: KeyInit + Aead>(key: &[u8], nonce: &[u8], encrypt: bool, data: &[u8], aad: &[u8]) -> Result<Vec<u8>, StreamError> {
+    let cipher = C::new_from_slice(key).map_err(|_| StreamError::BadKey)?;
+    let nonce = aead::Nonce::<C>::from_slice(nonce);
+    let payload = Payload { msg: data, aad };
+    if encrypt {
+        cipher.encrypt(nonce, payload).map_err(|_| StreamError::Auth)
+    } else {
+        cipher.decrypt(nonce, payload).map_err(|_| StreamError::Auth)
+    }
+}
+
+/// Seals/opens one chunk with nonce = prefix ‖ u64be(counter) (MDT2 and MDT3).
+pub fn stream_chunk_core(
+    encrypt: bool,
+    algorithm: u8,
+    key: &[u8],
+    nonce_prefix: &[u8],
+    counter: u64,
+    data: &[u8],
+    aad: &[u8],
+) -> Result<Vec<u8>, StreamError> {
+    if key.len() != 32 {
+        return Err(StreamError::BadKey);
+    }
+    let mut nonce = Vec::with_capacity(24);
+    nonce.extend_from_slice(nonce_prefix);
+    nonce.extend_from_slice(&counter.to_be_bytes());
+    match algorithm {
+        AEAD_ALGO_AES256_GCM if nonce.len() == 12 => cipher_op::<Aes256Gcm>(key, &nonce, encrypt, data, aad),
+        AEAD_ALGO_CHACHA20_POLY1305 if nonce.len() == 12 => cipher_op::<ChaCha20Poly1305>(key, &nonce, encrypt, data, aad),
+        AEAD_ALGO_XCHACHA20_POLY1305 if nonce.len() == 24 => cipher_op::<XChaCha20Poly1305>(key, &nonce, encrypt, data, aad),
+        AEAD_ALGO_AES256_GCM | AEAD_ALGO_CHACHA20_POLY1305 | AEAD_ALGO_XCHACHA20_POLY1305 => Err(StreamError::BadHeader),
+        _ => Err(StreamError::UnknownAlgorithm),
+    }
+}
+
+fn stream3_chunk(encrypt: bool, header: &[u8], key: &[u8], counter: u64, is_final: bool, data: &[u8]) -> Result<Vec<u8>, StreamError> {
+    let h = parse_stream_header_core(header)?;
+    if h.format != 3 || header.len() != h.header_len {
+        return Err(StreamError::BadHeader);
+    }
+    let prefix = &header[h.header_len - h.nonce_len as usize..h.header_len];
+    stream_chunk_core(encrypt, h.algorithm, key, prefix, counter, data, &stream3_aad(header, is_final))
+}
+
+/// Encrypts one MDT3 chunk. `header` is the exact container header; set
+/// `is_final` on the last chunk (the only one allowed to be shorter).
+#[wasm_bindgen]
+pub fn aead_stream3_encrypt_chunk(header: &[u8], key: &[u8], counter: u64, is_final: bool, plaintext: &[u8]) -> Result<Vec<u8>, JsValue> {
+    stream3_chunk(true, header, key, counter, is_final, plaintext).map_err(|e| JsValue::from_str(e.message()))
+}
+
+/// Decrypts one MDT3 chunk; `is_final` must be true exactly for the chunk that ends the file.
+#[wasm_bindgen]
+pub fn aead_stream3_decrypt_chunk(header: &[u8], key: &[u8], counter: u64, is_final: bool, ciphertext: &[u8]) -> Result<Vec<u8>, JsValue> {
+    stream3_chunk(false, header, key, counter, is_final, ciphertext).map_err(|e| JsValue::from_str(e.message()))
+}
+
+/// Reference MDT3 encryption of a whole buffer (the browser client does the
+/// same chunk by chunk from a `File`). `header` comes from `aead_stream3_header_pack`.
+pub fn stream3_seal(header: &[u8], key: &[u8], plaintext: &[u8]) -> Result<Vec<u8>, StreamError> {
+    let h = parse_stream_header_core(header)?;
+    if h.format != 3 {
+        return Err(StreamError::BadHeader);
+    }
+    let chunk = h.chunk_size as usize;
+    let count = plaintext.len().div_ceil(chunk).max(1);
+    let mut out = header.to_vec();
+    for i in 0..count {
+        let part = &plaintext[(i * chunk).min(plaintext.len())..((i + 1) * chunk).min(plaintext.len())];
+        out.extend(stream3_chunk(true, header, key, i as u64, i + 1 == count, part)?);
+    }
+    Ok(out)
+}
+
+/// Reference decryption of a whole MDT2 or MDT3 container with a derived key.
+/// MDT2 (legacy) cannot detect a cut at a chunk boundary; MDT3 can.
+pub fn stream_open(container: &[u8], key: &[u8]) -> Result<Vec<u8>, StreamError> {
+    let h = parse_stream_header_core(container)?;
+    if h.chunk_size == 0 {
+        return Err(StreamError::BadHeader);
+    }
+    let header = &container[..h.header_len];
+    let prefix = &header[h.header_len - h.nonce_len as usize..];
+    let body = &container[h.header_len..];
+    if h.format == 3 && body.is_empty() {
+        return Err(StreamError::Truncated);
+    }
+    let step = h.chunk_size as usize + AEAD_TAG_LEN as usize;
+    let mut out = Vec::with_capacity(body.len());
+    let mut offset = 0usize;
+    let mut counter = 0u64;
+    while offset < body.len() {
+        let end = (offset + step).min(body.len());
+        let ct = &body[offset..end];
+        let pt = if h.format == 3 {
+            stream_chunk_core(false, h.algorithm, key, prefix, counter, ct, &stream3_aad(header, end == body.len()))?
+        } else {
+            stream_chunk_core(false, h.algorithm, key, prefix, counter, ct, b"")?
+        };
+        out.extend(pt);
+        offset = end;
+        counter += 1;
+    }
+    Ok(out)
 }
 
 /// AES-256-GCM encrypt (nonce = 12 bytes). Returns ciphertext with tag appended.
@@ -838,5 +1060,141 @@ mod tests {
         );
         assert_eq!(aead_derive_nonce_12(&[9u8; 4], 5).expect("n").len(), 12);
         assert_eq!(aead_derive_nonce_24(&[9u8; 16], 5).expect("n").len(), 24);
+    }
+
+    /* ── MDT3 ── */
+
+    fn mdt3_header(alg: u8, chunk: u32) -> Vec<u8> {
+        let prefix = vec![0x5au8; if alg == AEAD_ALGO_XCHACHA20_POLY1305 { 16 } else { 4 }];
+        aead_stream3_header_pack(alg, KDF_ARGON2ID, &[0x33u8; 16], &prefix, chunk).expect("mdt3 header")
+    }
+
+    fn sample(len: usize) -> Vec<u8> {
+        (0..len as u32).map(|i| (i * 13 % 251) as u8).collect()
+    }
+
+    #[test]
+    fn mdt3_roundtrip_all_algorithms_and_sizes() {
+        for alg in [AEAD_ALGO_AES256_GCM, AEAD_ALGO_CHACHA20_POLY1305, AEAD_ALGO_XCHACHA20_POLY1305] {
+            let header = mdt3_header(alg, 100);
+            let key = aead_stream_derive_key_from_header(&header, "pässwörd 🔑".as_bytes(), 256, 1, 1).expect("key");
+            for len in [0usize, 1, 99, 100, 101, 300, 345] {
+                let plain = sample(len);
+                let container = stream3_seal(&header, &key, &plain).expect("seal");
+                assert_eq!(&container[..4], b"MDT3");
+                // At least one (final) chunk even for empty input.
+                let chunks = len.div_ceil(100).max(1);
+                assert_eq!(container.len(), header.len() + len + chunks * AEAD_TAG_LEN as usize, "alg {alg} len {len}");
+                assert_eq!(stream_open(&container, &key).expect("open"), plain, "alg {alg} len {len}");
+            }
+        }
+    }
+
+    #[test]
+    fn mdt3_chunk_api_matches_reference() {
+        // The browser client calls the per-chunk export; it must equal stream3_seal.
+        let header = mdt3_header(AEAD_ALGO_AES256_GCM, 64);
+        let key = [7u8; 32];
+        let plain = sample(150);
+        let mut manual = header.clone();
+        for (i, part) in plain.chunks(64).enumerate() {
+            manual.extend(aead_stream3_encrypt_chunk(&header, &key, i as u64, i == 2, part).expect("chunk"));
+        }
+        assert_eq!(manual, stream3_seal(&header, &key, &plain).expect("seal"));
+        let info = aead_stream_header_info(&header).expect("info");
+        assert_eq!(info, vec![1, 1, 16, 4, 64, 35, 3]);
+    }
+
+    #[test]
+    fn mdt3_detects_truncation_at_chunk_boundary() {
+        let header = mdt3_header(AEAD_ALGO_CHACHA20_POLY1305, 100);
+        let key = [9u8; 32];
+        let container = stream3_seal(&header, &key, &sample(300)).expect("seal"); // 3 full chunks
+        let step = 100 + AEAD_TAG_LEN as usize;
+        for kept in 1..3 {
+            let cut = &container[..header.len() + kept * step];
+            assert_eq!(stream_open(cut, &key), Err(StreamError::Auth), "cut after {kept} chunk(s)");
+        }
+        // Cut right after the header: no final chunk at all.
+        assert_eq!(stream_open(&container[..header.len()], &key), Err(StreamError::Truncated));
+        // Cut inside a chunk also fails.
+        assert_eq!(stream_open(&container[..container.len() - 1], &key), Err(StreamError::Auth));
+    }
+
+    #[test]
+    fn mdt2_cannot_detect_boundary_truncation_but_mdt3_can() {
+        // Documents why MDT3 exists: the legacy layout silently returns a prefix.
+        let salt = [1u8; 16];
+        let prefix = [2u8; 4];
+        let key = [3u8; 32];
+        let h2 = aead_stream_header_pack(AEAD_ALGO_AES256_GCM, KDF_ARGON2ID, &salt, &prefix, 100).expect("h2");
+        let mut c2 = h2.clone();
+        for (i, part) in sample(300).chunks(100).enumerate() {
+            c2.extend(stream_chunk_core(true, AEAD_ALGO_AES256_GCM, &key, &prefix, i as u64, part, b"").expect("enc"));
+        }
+        let cut2 = &c2[..h2.len() + 2 * 116];
+        assert_eq!(stream_open(cut2, &key).expect("mdt2 opens a truncated file"), sample(200));
+    }
+
+    #[test]
+    fn mdt3_detects_reorder_append_and_tamper() {
+        let header = mdt3_header(AEAD_ALGO_XCHACHA20_POLY1305, 100);
+        let key = [4u8; 32];
+        let container = stream3_seal(&header, &key, &sample(250)).expect("seal");
+        let h = header.len();
+        let step = 116;
+        // Swap chunk 0 and 1 (counter nonces).
+        let mut swapped = container[..h].to_vec();
+        swapped.extend_from_slice(&container[h + step..h + 2 * step]);
+        swapped.extend_from_slice(&container[h..h + step]);
+        swapped.extend_from_slice(&container[h + 2 * step..]);
+        assert_eq!(swapped.len(), container.len());
+        assert_eq!(stream_open(&swapped, &key), Err(StreamError::Auth));
+        // Append a copy of chunk 0 after the real final chunk.
+        let mut extended = container.clone();
+        extended.extend_from_slice(&container[h..h + step]);
+        assert_eq!(stream_open(&extended, &key), Err(StreamError::Auth));
+        // Flip a ciphertext bit / a tag bit.
+        let mut flipped = container.clone();
+        flipped[h + 5] ^= 1;
+        assert_eq!(stream_open(&flipped, &key), Err(StreamError::Auth));
+        let mut tag = container.clone();
+        *tag.last_mut().unwrap() ^= 0x80;
+        assert_eq!(stream_open(&tag, &key), Err(StreamError::Auth));
+        // Header is authenticated: change the declared chunk size 100 → 99.
+        let mut hdr = container.clone();
+        hdr[11] = 99;
+        assert_eq!(stream_open(&hdr, &key), Err(StreamError::Auth));
+        // Wrong key.
+        assert_eq!(stream_open(&container, &[5u8; 32]), Err(StreamError::Auth));
+    }
+
+    #[test]
+    fn mdt3_header_validation() {
+        let ok = mdt3_header(AEAD_ALGO_AES256_GCM, 1024);
+        assert_eq!(parse_stream_header_core(&ok).expect("ok").format, 3);
+        let mut bad_alg = ok.clone();
+        bad_alg[5] = 9;
+        assert_eq!(parse_stream_header_core(&bad_alg), Err(StreamError::BadHeader));
+        let mut bad_kdf = ok.clone();
+        bad_kdf[6] = 7;
+        assert_eq!(parse_stream_header_core(&bad_kdf), Err(StreamError::BadHeader));
+        let mut zero_chunk = ok.clone();
+        zero_chunk[11..15].copy_from_slice(&0u32.to_le_bytes());
+        assert_eq!(parse_stream_header_core(&zero_chunk), Err(StreamError::BadHeader));
+        // XChaCha needs a 16-byte prefix: a 4-byte prefix header is rejected.
+        let mut wrong_prefix = ok.clone();
+        wrong_prefix[5] = AEAD_ALGO_XCHACHA20_POLY1305;
+        assert_eq!(parse_stream_header_core(&wrong_prefix), Err(StreamError::BadHeader));
+        assert_eq!(parse_stream_header_core(&ok[..20]), Err(StreamError::ShortHeader));
+        assert_eq!(parse_stream_header_core(b"not an aead file"), Err(StreamError::BadMagic));
+        let mut bad_version = ok.clone();
+        bad_version[4] = 2;
+        assert_eq!(parse_stream_header_core(&bad_version), Err(StreamError::UnsupportedVersion));
+        // MDT2 keeps its lenient legacy parsing (unknown algorithm is rejected later).
+        let mut legacy = ok.clone();
+        legacy[0..4].copy_from_slice(b"MDT2");
+        legacy[5] = 9;
+        assert_eq!(parse_stream_header_core(&legacy).expect("mdt2").format, 2);
     }
 }

@@ -1,8 +1,8 @@
 {
   "TargetFormatLabel": "대상 형식",
   "Title": "이미지 변환기",
-  "Keywords": "image converter, convert image online, PNG to JPEG, WEBP converter, image format converter, BMP to PNG, ICO converter, TIFF converter",
-  "Description": "브라우저에서 안전하게 이미지를 형식(PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA) 간 변환",
+  "Keywords": "이미지 변환기, PNG JPG 변환, JPG WebP 변환, PNG ICO 변환, 파비콘 변환, TGA PNG 변환, TIFF PNG 변환, BMP PNG 변환, 이미지 형식 변환",
+  "Description": "브라우저에서 PNG, JPEG, WebP, GIF, BMP, ICO, TIFF, TGA 간 이미지 형식을 변환하고 JPEG·WebP 품질을 조절합니다. 업로드 없음.",
   "SelectFormat": "출력 형식 선택",
   "Convert": "변환",
   "Download": "다운로드",
@@ -16,11 +16,12 @@
   "ResultLabel": "변환된 이미지",
   "QualityLow": "낮음",
   "QualityHigh": "높음",
-  "Seo_Introduction": "Image Converter 도구는 개발자를 위해 설계된 개인정보 보호 중심 온라인 도구입니다. 모든 처리는 WebAssembly를 사용하여 브라우저에서 로컬로 수행되므로 데이터가 장치를 벗어나지 않습니다.",
-  "Seo_DetailedDescription": "이 도구는 image converter 작업을 위한 포괄적인 기능을 제공합니다. 최신 웹 기술로 구축되고 Rust 컴파일된 WebAssembly로 구동되어 브라우저에서 직접 네이티브 수준의 성능을 제공합니다.\n\n인터페이스는 효율성과 사용 편의성을 위해 설계되었으며 텍스트 입력과 파일 처리를 모두 지원합니다. 모든 작업은 클라이언트 측에서 수행되어 민감한 데이터의 완전한 개인정보 보호와 보안을 보장합니다.",
-  "Seo_Examples": "**예제 1**: 개발 워크플로에서 빠른 변환을 위해 Image Converter를 사용하세요.\n\n**예제 2**: 서버에 업로드하지 않고 직접 파일을 처리하여 완전한 개인정보를 유지하세요.\n\n**예제 3**: 생산성 향상을 위해 일상적인 개발 작업에 도구를 통합하세요.",
-  "Seo_HowToSteps": "### 1단계: 입력 준비\n입력 필드에 데이터를 입력하거나 장치에서 파일을 업로드합니다.\n\n### 2단계: 옵션 구성\n필요에 따라 도구 설정을 조정합니다.\n\n### 3단계: 처리 및 결과 복사\n작업 버튼을 클릭하여 입력을 처리하고 결과를 클립보드에 복사합니다.",
-  "Seo_Tips": "- 최대 개인정보 보호를 위해 모든 처리는 브라우저에서 수행됩니다\n- 초기 페이지 로드 후 도구는 오프라인으로 작동합니다\n- 설정은 브라우저에 로컬로 저장됩니다\n- 진행률 추적 기능이 있는 대용량 파일을 지원합니다",
+  "Seo_Introduction": "브라우저에서 PNG, JPEG, WebP, GIF, BMP, ICO, TIFF, TGA 이미지를 서로 변환하세요. 파비콘 만들기, 오래된 형식 변환, 스크린샷을 WebP로 바꾸기에 쓸 수 있습니다. 파일은 로컬에서 처리되며 업로드되지 않습니다.",
+  "Seo_DetailedDescription": "8가지 형식 모두 입력으로 쓸 수 있고, 출력 형식은 **대상 형식**에서 고릅니다. 품질 슬라이더는 JPEG와 WebP에서만 나타나며(기본값 90) 다른 형식에는 적용되지 않습니다. 256 px보다 큰 ICO 이미지는 비율을 유지한 채 256×256 안에 맞게 축소되고, JPEG는 원본의 투명한 부분이 흰색 배경이 되며, 16비트 이미지는 채널당 8비트로 줄어듭니다.\n\nWebP는 브라우저가 선택한 품질로 손실 압축합니다. 브라우저가 이를 지원하지 않으면 무손실 WebP가 만들어지고 품질이 적용되지 않았다는 안내가 표시됩니다. EXIF 방향 정보는 픽셀에 적용되며 메타데이터는 복사되지 않습니다. 애니메이션 GIF는 첫 프레임만 변환됩니다.\n\n브라우저는 TIFF와 TGA를 표시할 수 없으므로 이 형식의 결과는 크기만 표시되지만 파일은 다운로드됩니다. 변환은 Rust/WebAssembly로 Web Worker에서 실행되며 취소할 수 있습니다.",
+  "Seo_Examples": "**로고를 파비콘으로**: 1024×1024 PNG 로고를 **ICO**로 변환하면 `10.24 KB`의 256×256 아이콘이 되어 `logo.ico`로 저장됩니다.\n\n**투명 PNG를 JPEG로**: 투명한 영역이 검은색이 아니라 흰색으로 나옵니다.\n\n**JPEG를 WebP로**: `476.38 KB`인 1920×1280 사진을 품질 `90`으로 변환하면 `433.54 KB`가 됩니다. 더 줄이려면 품질을 낮추세요.\n\n**게임 텍스처**: 640×480 `texture.tga`를 **PNG**로 변환하면 어디서나 열리는 `texture.png`가 됩니다.",
+  "Seo_HowToSteps": "### 1단계: 이미지 선택\n**파일 선택**을 클릭하거나 PNG, JPEG, WebP, GIF, BMP, ICO, TIFF, TGA 파일을 영역에 드롭합니다.\n\n### 2단계: 대상 형식 선택\n**대상 형식**에서 형식을 고릅니다. JPEG와 WebP는 **품질 (JPEG, WebP)**을 설정합니다.\n\n### 3단계: 변환\n**변환**을 클릭합니다. 오래 걸리는 작업은 **취소**로 멈출 수 있습니다.\n\n### 4단계: 다운로드\n**출력 크기:**와 미리보기를 확인한 뒤 **다운로드**를 클릭해 `<name>.<ext>`를 저장합니다.",
+  "Seo_Tips": "- 스크린샷과 텍스트에는 PNG, 사진에는 JPEG나 WebP를 쓰세요.\n- 파비콘은 256×256 px 이상의 정사각형 이미지로 시작하세요. 더 큰 이미지는 256 px로 축소됩니다.\n- JPEG를 PNG로 바꿔도 잃어버린 디테일은 돌아오지 않고 파일만 커집니다.\n- TIFF와 TGA 결과는 브라우저에서 미리볼 수 없지만 다운로드한 파일은 온전합니다.\n- 애니메이션 GIF는 애니메이션이 사라지고 첫 프레임만 남습니다.",
   "Cancel": "취소",
-  "ErrorUnsupportedFormat": "지원되지 않는 이미지 형식입니다. PNG, JPEG, WebP, GIF, BMP, ICO, TIFF 또는 TGA를 사용하세요."
+  "ErrorUnsupportedFormat": "지원되지 않는 이미지 형식입니다. PNG, JPEG, WebP, GIF, BMP, ICO, TIFF 또는 TGA를 사용하세요.",
+  "WebpLosslessNote": "브라우저가 손실 WebP 인코딩을 지원하지 않아 무손실 WebP로 저장했으며 품질 설정은 적용되지 않았습니다. 사진을 더 작게 하려면 JPEG를 선택하세요."
 }

@@ -1,7 +1,7 @@
 {
   "Title": "YAML 格式化/验证器",
-  "Description": "格式化和验证 YAML，带有错误高亮",
-  "Keywords": "YAML beautifier, YAML formatter, YAML validator, YAML linter, format YAML online, YAML syntax checker, YAML editor",
+  "Description": "校验 YAML 并将其重新格式化为 2 空格缩进的整洁块样式；错误会显示行号和列号。通过 WebAssembly 在本地运行。",
+  "Keywords": "YAML 校验, YAML 验证, YAML 格式化, YAML 美化, YAML 语法检查, YAML 在线格式化, YAML validator, YAML formatter, YAML linter",
   "InputLabel": "YAML 输入",
   "InputPlaceholder": "在此处输入 YAML 内容...",
   "Format": "格式化",
@@ -14,9 +14,9 @@
   "Copied": "已复制！",
   "Paste": "粘贴",
   "EditorKeyboardHint": "在编辑器中按 Tab 键可缩进。按 Esc 再按 Tab 可移出编辑器。",
-  "Seo_Introduction": "YAML Beautifier工具是为开发人员设计的注重隐私的在线工具。所有处理都使用WebAssembly在您的浏览器中本地进行，确保您的数据永远不会离开您的设备。",
-  "Seo_DetailedDescription": "此工具为yaml beautifier操作提供全面的功能。采用现代Web技术构建，由Rust编译的WebAssembly提供支持，直接在您的浏览器中提供原生级别的性能。\n\n界面设计注重效率和易用性，支持文本输入和文件处理。所有操作都在客户端执行，确保您的敏感数据完全隐私和安全。",
-  "Seo_Examples": "**示例1**：在开发工作流程中使用YAML Beautifier进行快速转换。\n\n**示例2**：直接处理文件而无需上传到任何服务器，保持完全隐私。\n\n**示例3**：将工具集成到日常开发任务中以提高生产力。",
-  "Seo_HowToSteps": "### 步骤1：准备输入\n在输入字段中输入数据或从设备上传文件。\n\n### 步骤2：配置选项\n根据需要调整工具设置。\n\n### 步骤3：处理并复制结果\n点击操作按钮处理输入并将结果复制到剪贴板。",
-  "Seo_Tips": "- 所有处理都在浏览器中进行，以实现最大隐私\n- 初始页面加载后，工具可离线工作\n- 您的偏好设置本地保存在浏览器中\n- 支持带进度跟踪的大文件"
+  "Seo_Introduction": "检查 YAML 文件的语法错误，并以统一的块样式重写。解析和格式化在浏览器中由一个编译为 WebAssembly 的小型 Rust 库完成，该库仅在你首次点击格式化或验证时加载。",
+  "Seo_DetailedDescription": "**验证** 只解析输入，并给出 “YAML 有效”，或显示第一个错误及其行号和列号，例如 `mapping values are not allowed in this context at line 2 column 7`。**格式化** 会解析并重新输出每个文档：映射和列表采用两空格缩进的块样式，`[80, 443]` 或 `{host: localhost}` 这样的行内集合会展开为多行，每个文档以 `---` 开头。支持用 `---` 分隔多个文档的文件。\n\n格式化重写的是数据而不是文本，因此有些内容会被规范化：注释会被删除，空值变为 `~`，YAML 1.1 工具会当作布尔值读取的单词（`yes`、`no`、`on`、`off`）会加上引号，例如 `flag: \"yes\"`。键的顺序保持不变。如果只需要检查语法、希望文件保持原样，请使用验证。\n\n输入编辑器高亮 YAML 并可折叠嵌套块；结果显示在只读的输出编辑器中。**粘贴** 插入剪贴板中的文本，**复制** 复制输出内容。你输入的任何内容都不会被存储或上传。",
+  "Seo_Examples": "**行内列表转块样式**：`ports: [80, 443]` 会格式化为 `ports:`，后面跟着 `  - 80` 和 `  - 443` 两行。\n\n**找出缩进错误**：`name: demo` 后面跟一个缩进的 `  port: 80`，会报错 “YAML 无效: mapping values are not allowed in this context at line 2 column 7”。\n\n**多个文档**：`a: 1`、`---`、`b: 2` 仍是两个文档 —— 输出为 `---`、`a: 1`、`---`、`b: 2`。\n\n**规范化的值**：`flag: yes` 和空的 `empty:` 变为 `flag: \"yes\"` 和 `empty: ~`。",
+  "Seo_HowToSteps": "### 步骤1：添加 YAML\n将其粘贴到 **YAML 输入** 编辑器中，或点击 **粘贴** 插入剪贴板内容。\n\n### 步骤2：检查语法\n点击 **验证**。徽标会显示 “YAML 有效”，否则编辑器上方会出现带行号和列号的错误。\n\n### 步骤3：格式化\n点击 **格式化**（或在输入框中按 Ctrl+Enter / Cmd+Enter），在 **输出** 中得到规范化的 YAML。\n\n### 步骤4：复制结果\n点击 **复制** 将格式化后的 YAML 放入剪贴板。",
+  "Seo_Tips": "- 格式化会删除注释 —— 请保留原始文件，或者对含有重要注释的文件只使用验证。\n- YAML 不允许用制表符缩进；错误位置会指向出问题的那一行。\n- 行号和列号从 1 开始，与大多数编辑器的显示一致。\n- 提交 Kubernetes、Compose 或 CI 配置文件前，请确认 `\"yes\"` 这类加了引号的值符合你的工具的预期。\n- WebAssembly 模块会在首次格式化或验证时下载；之后页面离线也能使用。\n- 在输入编辑器中按 Tab 会插入缩进；先按 Esc 再按 Tab 可将焦点移出编辑器。"
 }

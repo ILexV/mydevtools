@@ -129,3 +129,32 @@ export function sanitizeHtml(html: string, doc: Document = document): DocumentFr
   walk(tpl.content);
   return tpl.content;
 }
+
+/**
+ * Preview heading level for a markdown heading: one level down (h1→h2 …
+ * h6→7 via aria-level) so user `# Title` never becomes a second page h1 /
+ * outline root next to the tool title. Copy HTML / Download keep the original levels.
+ */
+export function previewHeadingLevel(level: number): number {
+  return Math.min(Math.max(level, 1), 6) + 1;
+}
+
+/**
+ * Demote h1–h6 inside the preview tree (page-outline fix). Each heading is
+ * replaced by `<hN+1>` (or `<div role="heading" aria-level="7">` for h6) with
+ * class `md-hN`, so it keeps the visual size of the source level.
+ */
+export function demoteHeadings(root: ParentNode, doc: Document = document): void {
+  for (const h of Array.from(root.querySelectorAll("h1, h2, h3, h4, h5, h6"))) {
+    const level = Number(h.tagName.charAt(1));
+    const next = previewHeadingLevel(level);
+    const el = next <= 6 ? doc.createElement(`h${next}`) : doc.createElement("div");
+    if (next > 6) {
+      el.setAttribute("role", "heading");
+      el.setAttribute("aria-level", String(next));
+    }
+    el.className = `md-h${level}`;
+    el.append(...Array.from(h.childNodes));
+    h.replaceWith(el);
+  }
+}

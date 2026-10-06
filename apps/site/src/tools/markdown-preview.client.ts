@@ -7,9 +7,11 @@
  * two-way proportional sync scroll, copy HTML/markdown (1200ms label swap),
  * download standalone .html, preloaded sample when empty. Deviation: the
  * marked output is sanitized (`markdown-sanitize.ts`) before insertion, so
- * raw HTML/`javascript:` links in the markdown cannot execute.
+ * raw HTML/`javascript:` links in the markdown cannot execute. Preview headings
+ * are demoted one level (`demoteHeadings`) so the page keeps a single h1;
+ * Copy HTML / Download export the sanitized HTML with the original levels.
  */
-import { sanitizeHtml } from "@/tools/markdown-sanitize";
+import { demoteHeadings, sanitizeHtml } from "@/tools/markdown-sanitize";
 import { copyWithFeedback } from "@/scripts/tool-ui";
 
 interface MarkedGlobal {
@@ -38,7 +40,7 @@ const DEFAULT_MARKDOWN =
   "## Features\n\n" +
   "- **Live preview** as you type\n" +
   "- Support for **GitHub Flavored Markdown** (GFM)\n" +
-  "- Code syntax highlighting\n" +
+  "- Fenced code blocks (no syntax highlighting)\n" +
   "- Tables, lists, and more\n\n" +
   "### Example Code Block\n\n" +
   "```javascript\n" +
@@ -126,11 +128,20 @@ function init(): void {
 
   const syncToggle = root.querySelector<HTMLInputElement>("[data-md-sync-scroll]");
 
+  /** Sanitized HTML with original heading levels — what Copy HTML / Download export. */
+  let exportHtml = "";
+
   function renderMarkdown(): void {
     try {
       if (window.marked) {
-        output.replaceChildren(sanitizeHtml(window.marked.parse(input.value, MARKED_OPTIONS)));
+        const fragment = sanitizeHtml(window.marked.parse(input.value, MARKED_OPTIONS));
+        const holder = document.createElement("div");
+        holder.append(fragment.cloneNode(true));
+        exportHtml = holder.innerHTML;
+        demoteHeadings(fragment);
+        output.replaceChildren(fragment);
       } else {
+        exportHtml = "";
         output.textContent = "";
         const p = document.createElement("p");
         p.className = "md-lib-error";
@@ -248,7 +259,7 @@ function init(): void {
       '    </style>\n' +
       '</head>\n' +
       '<body>\n' +
-      output.innerHTML +
+      exportHtml +
       '\n</body>\n' +
       '</html>';
 
@@ -295,7 +306,7 @@ function init(): void {
   const copyHtmlBtn = root.querySelector<HTMLButtonElement>("[data-md-copy-html]");
   if (copyHtmlBtn) {
     copyHtmlBtn.addEventListener("click", () => {
-      void copyToClipboard(output.innerHTML, copyHtmlBtn);
+      void copyToClipboard(exportHtml, copyHtmlBtn);
     });
   }
 

@@ -1,6 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  cameraFrameSize,
+  classifyCameraError,
   normalizeHexColor,
   classifyGenerateError,
   classifyDecodeError,
@@ -55,4 +57,23 @@ test("isHttpUrl: only well-formed http(s) URLs", () => {
   assert.ok(!isHttpUrl("see https://example.com"));
   assert.ok(!isHttpUrl("https://"));
   assert.ok(!isHttpUrl("Привет 🚀"));
+});
+
+test("cameraFrameSize: longest side capped at 1024, aspect kept, no upscaling", () => {
+  assert.deepEqual(cameraFrameSize(1920, 1080), { width: 1024, height: 576 });
+  assert.deepEqual(cameraFrameSize(1080, 1920), { width: 576, height: 1024 });
+  assert.deepEqual(cameraFrameSize(640, 480), { width: 640, height: 480 });
+  assert.equal(cameraFrameSize(0, 480), null);
+  assert.equal(cameraFrameSize(Number.NaN, 480), null);
+});
+
+test("classifyCameraError: getUserMedia exception names → message kinds", () => {
+  assert.equal(classifyCameraError("NotAllowedError"), "denied");
+  assert.equal(classifyCameraError("SecurityError"), "denied");
+  assert.equal(classifyCameraError("NotFoundError"), "notFound");
+  assert.equal(classifyCameraError("OverconstrainedError"), "notFound");
+  assert.equal(classifyCameraError("NotReadableError"), "inUse");
+  assert.equal(classifyCameraError("insecure"), "insecure");
+  assert.equal(classifyCameraError("TypeError"), "generic");
+  assert.equal(classifyCameraError(undefined), "generic");
 });

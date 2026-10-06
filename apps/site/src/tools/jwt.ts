@@ -119,3 +119,99 @@ export function timeClaims(payloadJson: string, nowSeconds: number): TimeClaim[]
   }
   return out;
 }
+
+/** base64url (no padding, RFC 7515 §2) → bytes; null on any invalid character/length. */
+export function base64UrlDecodeBytes(segment: string): Uint8Array | null {
+  if (!/^[A-Za-z0-9_-]*$/.test(segment) || segment.length % 4 === 1) return null;
+  const b64 = segment.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((segment.length + 3) % 4);
+  let bin: string;
+  try {
+    bin = atob(b64);
+  } catch {
+    return null;
+  }
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+/**
+ * Pretty-print JSON text (2-space indent) by re-indenting its tokens instead of
+ * parse → stringify, so the decoded JWT keeps the token's original key order
+ * (incl. integer-like keys), duplicate keys and number spelling (no float or
+ * > 2^53 precision loss). Input must already be valid JSON.
+ */
+export function reindentJson(json: string): string {
+  let out = "";
+  let depth = 0;
+  const nl = () => "\n" + "  ".repeat(depth);
+  for (let i = 0; i < json.length; i++) {
+    const ch = json.charAt(i);
+    if (ch === '"') {
+      let j = i + 1;
+      while (j < json.length && json.charAt(j) !== '"') j += json.charAt(j) === "\\" ? 2 : 1;
+      out += json.slice(i, j + 1);
+      i = j;
+    } else if (ch === "{" || ch === "[") {
+      const close = ch === "{" ? "}" : "]";
+      let j = i + 1;
+      while (/\s/.test(json.charAt(j))) j++;
+      if (json.charAt(j) === close) {
+        out += ch + close; // empty container stays inline: {} / []
+        i = j;
+      } else {
+        depth++;
+        out += ch + nl();
+      }
+    } else if (ch === "}" || ch === "]") {
+      depth--;
+      out += nl() + ch;
+    } else if (ch === ",") {
+      out += "," + nl();
+    } else if (ch === ":") {
+      out += ": ";
+    } else if (!/\s/.test(ch)) {
+      out += ch;
+    }
+  }
+  return out;
+}
+
+export type DecodedJwt =
+  | { ok: true; header: string; payload: string }
+  | { ok: false; error: string };
+
+const utf8 = new TextDecoder("utf-8", { fatal: true });
+
+function decodeSegment(segment: string, label: "Header" | "Payload"): string | { error: string } {
+  const bytes = base64UrlDecodeBytes(segment);
+  if (!bytes) return { error: `${label} decode error: invalid base64url` };
+  let text: string;
+  try {
+    text = utf8.decode(bytes);
+  } catch {
+    return { error: `${label} invalid UTF-8` };
+  }
+  try {
+    JSON.parse(text);
+    return reindentJson(text);
+  } catch {
+    return JSON.stringify(text); // not JSON → shown as a JSON string (legacy WASM parity)
+  }
+}
+
+/**
+ * Decode a (normalized) JWT's header and payload for display, in the original
+ * claim order. Same contract as the legacy WASM `jwt_decode` (≥ 2 dot parts,
+ * strict base64url/UTF-8, non-JSON segment shown as a string) minus its
+ * alphabetical key sorting. The signature is not checked here.
+ */
+export function decodeJwt(token: string): DecodedJwt {
+  const parts = token.split(".");
+  if (parts.length < 2) return { ok: false, error: "Invalid JWT format" };
+  const header = decodeSegment(parts[0] ?? "", "Header");
+  if (typeof header !== "string") return { ok: false, error: header.error };
+  const payload = decodeSegment(parts[1] ?? "", "Payload");
+  if (typeof payload !== "string") return { ok: false, error: payload.error };
+  return { ok: true, header, payload };
+}

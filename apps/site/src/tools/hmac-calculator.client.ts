@@ -1,8 +1,9 @@
 /**
  * HMAC Calculator client controller. Drives the `HmacCalculator.astro`
  * shell, calling the main-thread `crypto-client` (one-shot WASM ops).
- * Live recalculation on input/change (legacy parity): text key, hex output,
- * SHA-256/SHA-512. Copy button appears only when output is non-empty.
+ * Live recalculation on input/change: text key, hex output, SHA-256/SHA-512.
+ * A key is required; an empty message is a valid HMAC input (RFC 2104) and
+ * is computed (legacy showed nothing). Copy appears only with output.
  *
  * Loads only on the HMAC tool page (the component imports this script), so
  * the WASM module is fetched only there. SSR-safe: no-ops when the shell is
@@ -71,8 +72,8 @@ function init() {
     const keyVal = keyArea.value;
     const msgVal = messageArea.value;
 
-    // Legacy: silently clear output until both inputs are present.
-    if (!keyVal || !msgVal) {
+    // No key yet → nothing to show. The message may be empty: HMAC(key, "") is valid.
+    if (!keyVal) {
       clearError();
       outputArea.value = "";
       setCopyVisible(false);

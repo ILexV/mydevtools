@@ -1,12 +1,10 @@
 /**
- * YAML Beautifier/Validator client controller. CodeMirror 5 editors via the
- * legacy vendored build (`ensureCodeMirror`); `mode:'yaml'` is kept verbatim
- * from legacy — no yaml mode file was ever vendored, so CodeMirror no-ops to
- * plain text (parity). Format/validate run through the structured-data WASM
+ * YAML Beautifier/Validator client controller. CodeMirror 6 editors (lazy
+ * editor kit, `@codemirror/lang-yaml` highlight + folding). Format/validate run through the structured-data WASM
  * client (loaded on first use); errors show the localized "invalid" label
  * plus the parser detail; status badge valid/invalid; paste/copy/clear.
  */
-import { ensureCodeMirror, getCodeMirror, makeEditorAccessible, refreshOnThemeChange } from "@/scripts/codemirror-loader";
+import { loadEditorKit, type MdtEditor } from "@/scripts/codemirror-loader";
 import { copyWithFeedback } from "@/scripts/tool-ui";
 
 interface Strings {
@@ -15,6 +13,7 @@ interface Strings {
   valid: string;
   invalid: string;
   copied: string;
+  phrases?: Record<string, string>;
 }
 
 function readStrings(): Strings | null {
@@ -56,35 +55,25 @@ async function init() {
   const status = root.querySelector<HTMLElement>("[data-yaml-status]");
   const errorBox = root.querySelector<HTMLElement>("[data-yaml-error]");
 
+  let inputEditor: MdtEditor;
+  let outputEditor: MdtEditor;
   try {
-    await ensureCodeMirror();
+    const kit = await loadEditorKit();
+    [inputEditor, outputEditor] = await Promise.all([
+      kit.createEditor(inputEl, {
+        language: "yaml",
+        label: strings.inputLabel,
+        phrases: strings.phrases,
+        hintId: "yaml-editor-hint",
+        indent: 2,
+        onSubmit: () => formatBtn?.click(),
+      }),
+      kit.createEditor(outputEl, { language: "yaml", label: strings.outputLabel, phrases: strings.phrases, readOnly: true }),
+    ]);
   } catch (err) {
-    console.error("YAML tool: failed to load CodeMirror", err);
+    console.error("YAML tool: failed to load the editor", err);
     return;
   }
-  const CM = getCodeMirror();
-  if (!CM) return;
-
-  const inputEditor = CM(inputEl, {
-    mode: "yaml",
-    theme: "default",
-    lineNumbers: true,
-    autoCloseBrackets: true,
-    matchBrackets: true,
-    indentUnit: 2,
-    tabSize: 2,
-    lineWrapping: true,
-  });
-  const outputEditor = CM(outputEl, {
-    mode: "yaml",
-    theme: "default",
-    lineNumbers: true,
-    readOnly: true,
-    lineWrapping: true,
-  });
-  makeEditorAccessible(inputEditor, strings.inputLabel, "yaml-editor-hint");
-  makeEditorAccessible(outputEditor, strings.outputLabel);
-  refreshOnThemeChange([inputEditor, outputEditor]);
 
   function showError(detail: string | null) {
     inputEl?.classList.toggle("is-error", detail !== null);

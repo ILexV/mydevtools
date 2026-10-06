@@ -72,3 +72,9 @@ test("elementAction: active content dropped, unknown unwrapped, markdown tags ke
     assert.equal(elementAction(t), "keep", t);
   }
 });
+
+test("previewHeadingLevel: preview demotes one level so user # never becomes a page h1", async () => {
+  const { previewHeadingLevel } = await import("../src/tools/markdown-sanitize.ts");
+  assert.deepEqual([1, 2, 3, 4, 5, 6].map(previewHeadingLevel), [2, 3, 4, 5, 6, 7]);
+  assert.equal(previewHeadingLevel(0), 2);
+});

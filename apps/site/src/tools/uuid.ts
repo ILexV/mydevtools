@@ -72,23 +72,23 @@ function toHyphenated(b: Uint8Array): string {
   return `${h[0]}${h[1]}${h[2]}${h[3]}-${h[4]}${h[5]}-${h[6]}${h[7]}-${h[8]}${h[9]}-${h[10]}${h[11]}${h[12]}${h[13]}${h[14]}${h[15]}`;
 }
 
+/**
+ * One formatted UUID. Case applies to the hex digits only: the URN prefix stays
+ * the canonical lower-case `urn:uuid:` (RFC 9562 §4) even in UPPERCASE mode.
+ */
 export function generateUuid(version: UuidVersion, format: UuidFormat, casing: UuidCase): string {
-  const raw = toHyphenated(randomUuidBytes(version));
-  let out: string;
+  const hex = toHyphenated(randomUuidBytes(version));
+  const raw = casing === "upper" ? hex.toUpperCase() : hex;
   switch (format) {
     case "plain":
-      out = raw.replaceAll("-", "");
-      break;
+      return raw.replaceAll("-", "");
     case "braces":
-      out = `{${raw}}`;
-      break;
+      return `{${raw}}`;
     case "urn":
-      out = `urn:uuid:${raw}`;
-      break;
+      return `urn:uuid:${raw}`;
     default:
-      out = raw;
+      return raw;
   }
-  return casing === "upper" ? out.toUpperCase() : out;
 }
 
 export function generateBatch(version: UuidVersion, format: UuidFormat, casing: UuidCase, count: number): string[] {

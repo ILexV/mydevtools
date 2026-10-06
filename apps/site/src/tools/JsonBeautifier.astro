@@ -1,6 +1,6 @@
 ---
 /**
- * JSON Beautifier (structured-data domain). CodeMirror 5 editor (vendored,
+ * JSON Beautifier (structured-data domain). CodeMirror 6 editor (npm,
  * loaded on demand; shared theme in `styles/codemirror.css`) with format
  * (indent 2/4/tab, sort keys, compact/minify — `json-format.ts`), open/save
  * .json file, drag & drop onto the editor, copy/clear. Pure JS — no WASM.
@@ -9,6 +9,7 @@
  * editor error state.
  */
 import { t } from "@/i18n/messages";
+import { editorPhrases } from "@/tools/editor-phrases";
 import type { LocaleCode } from "@/registry/locales";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
 import "@/styles/codemirror.css";
@@ -39,6 +40,7 @@ const stringsJson = JSON.stringify({
   errorInvalidJson: t(lang, ns, "ErrorInvalidJson"),
   copied: t(lang, ns, "Copied"),
   inputLabel: s.inputLabel,
+  phrases: editorPhrases(lang),
 });
 ---
 

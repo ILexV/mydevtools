@@ -291,8 +291,11 @@ function init(): void {
       reader.onload = () => {
         const text = typeof reader.result === "string" ? reader.result : "";
         area.value = text;
-        if (isOriginal) currentOriginal = text;
-        else currentModified = text;
+        // Read back the field value: textarea normalizes CRLF → LF, so the
+        // auto-compare matches a later manual Compare (CRLF file vs LF file
+        // used to show every line as changed only on auto-compare).
+        if (isOriginal) currentOriginal = area.value;
+        else currentModified = area.value;
         // Auto-trigger once both sides have content (legacy parity).
         if (currentOriginal && currentModified) void renderDiff();
       };

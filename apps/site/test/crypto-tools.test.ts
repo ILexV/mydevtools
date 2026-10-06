@@ -8,7 +8,8 @@ import assert from "node:assert/strict";
 import { hasCharset, sanitizeSettings, PW_MAX_LENGTH, PW_MIN_LENGTH } from "../src/tools/password-settings.ts";
 import { aeadProgressView, decryptedName, encryptedName, formatDuration } from "../src/tools/aead-file-helpers.ts";
 import { guessSshInput, rsaBits, sshErrorKey } from "../src/tools/openssh-keys-helpers.ts";
-import { base64ToBytes, derBase64ToPem, parseValidityDays, prettyJson, X509_MAX_VALIDITY_DAYS } from "../src/tools/x509-helpers.ts";
+import { base64ToBytes, derBase64ToPem, isCsrPem, parseValidityDays, prettyJson, X509_MAX_VALIDITY_DAYS } from "../src/tools/x509-helpers.ts";
+import { hasEdgeWhitespace, passwordCandidates } from "../src/tools/crypto-password.ts";
 import { HASH_ALGORITHMS, DEFAULT_HASH_ALGORITHMS } from "../src/tools/hash-algorithms.ts";
 
 /* ── password-generator ─────────────────────────────────────────────────── */
@@ -146,4 +147,30 @@ test("hash: catalog has 39 unique ids/labels and valid defaults", () => {
   const ids = new Set(HASH_ALGORITHMS.map((a) => a.id));
   assert.deepEqual([...DEFAULT_HASH_ALGORITHMS], ["md5", "sha1", "sha256"]);
   for (const id of DEFAULT_HASH_ALGORITHMS) assert.ok(ids.has(id), id);
+});
+
+test("password input: no silent trim — candidates are as typed, then trimmed", () => {
+  assert.deepEqual(passwordCandidates(""), []);
+  assert.deepEqual(passwordCandidates("secret"), ["secret"]);
+  assert.deepEqual(passwordCandidates(" secret "), [" secret ", "secret"]);
+  assert.deepEqual(passwordCandidates("pass phrase"), ["pass phrase"], "inner spaces are kept, no fallback");
+  assert.deepEqual(passwordCandidates("\tкод 🔑\n"), ["\tкод 🔑\n", "код 🔑"]);
+  // Whitespace-only: used as typed; an empty trimmed variant is never tried.
+  assert.deepEqual(passwordCandidates("   "), ["   "]);
+});
+
+test("password input: hasEdgeWhitespace flags leading/trailing whitespace only", () => {
+  assert.equal(hasEdgeWhitespace(""), false);
+  assert.equal(hasEdgeWhitespace("a b"), false);
+  assert.equal(hasEdgeWhitespace(" a"), true);
+  assert.equal(hasEdgeWhitespace("a "), true);
+  assert.equal(hasEdgeWhitespace("a\u00a0"), true);
+  assert.equal(hasEdgeWhitespace("   "), true);
+});
+
+test("x509: isCsrPem recognises PKCS#10 armor only", () => {
+  assert.equal(isCsrPem("-----BEGIN CERTIFICATE REQUEST-----\nAA==\n-----END CERTIFICATE REQUEST-----"), true);
+  assert.equal(isCsrPem("-----BEGIN NEW CERTIFICATE REQUEST-----\nAA=="), true);
+  assert.equal(isCsrPem("-----BEGIN CERTIFICATE-----\nAA=="), false);
+  assert.equal(isCsrPem("MIIB"), false);
 });

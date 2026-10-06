@@ -174,6 +174,21 @@ export async function x509Parse(input: string): Promise<string> {
   });
 }
 
+/**
+ * Parse a PKCS#10 certificate signing request (PEM with a `CERTIFICATE
+ * REQUEST` label, or hex DER) → JSON summary: subject, publicKey,
+ * signatureAlgorithmOid, signatureValid (true/false/null = unsupported),
+ * subjectAltNames, keyUsage, extendedKeyUsage, basicConstraints.
+ */
+export async function x509ParseCsr(input: string): Promise<string> {
+  await ensureReady();
+  return wrap(() => {
+    const trimmed = input.trim();
+    if (trimmed.startsWith("-----BEGIN")) return crypto.x509_parse_csr_pem(trimmed);
+    return crypto.x509_parse_csr_der(hexToBytes(trimmed));
+  });
+}
+
 export async function x509Warnings(pem: string): Promise<string[]> {
   await ensureReady();
   return wrap(() => crypto.x509_warnings_pem(pem, BigInt(Math.floor(Date.now() / 1000))));

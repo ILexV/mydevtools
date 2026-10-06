@@ -1,18 +1,19 @@
 /*
- * Shared CodeMirror 5 theme for the structured-data editor tools
+ * Shared CodeMirror 6 styling for the structured-data editor tools
  * (json-beautifier, json-to-typescript, xml-beautifier, yaml-beautifier-validator).
  * Imported from those tools' .astro files only (not global.css).
  *
- * Usage: the editor host is `<div class="mdt-cm" …>`; CodeMirror mounts inside
- * it at runtime (scoped Astro styles can't reach that DOM, hence a plain
- * stylesheet). Every rule is prefixed with `.mdt-cm` so it out-specifies the
- * vendored `codemirror.min.css`, which is injected later by the loader.
- * Colors come only from `--mdt-*` tokens, so light/dark follow the site theme.
+ * The editor host is `<div class="mdt-cm" …>`; CodeMirror mounts `.cm-editor`
+ * inside it at runtime (Astro scoped styles can't reach that DOM). Editor
+ * internals (gutters, cursor, selection, panels) are themed in
+ * `scripts/codemirror-kit.ts` (`EditorView.theme`, so they out-rank the base
+ * theme); this file owns the host frame, height, states, syntax token colors
+ * (`tok-*` classes from `mdtHighlighter`) and forced-colors. Colors come
+ * only from `--mdt-*` tokens, so light/dark follow the site theme.
  *
  * Host states: `.is-error` (invalid input), `.is-dragover` (file drag),
- * `:focus-within` (focus ring, the hidden textarea itself is invisible).
- * Height: `--mdt-cm-height` on the host (default min(600px, 70vh); 400px max
- * on narrow screens).
+ * `:focus-within` (focus ring). Height: `--mdt-cm-height` on the host
+ * (default min(600px, 70vh); at most 400px on narrow screens).
  */
 
 .mdt-cm {
@@ -32,11 +33,20 @@
   position: relative;
   min-width: 0;
   max-width: 100%;
+  height: var(--mdt-cm-height, min(600px, 70vh));
   overflow: hidden;
   border: 1px solid var(--mdt-border);
   border-radius: var(--mdt-radius);
   background: var(--mdt-surface-raised);
-  transition: border-color var(--mdt-dur-micro), box-shadow var(--mdt-dur-micro);
+  transition: border-color var(--mdt-dur-micro), box-shadow var(--mdt-dur-micro), background-color var(--mdt-dur-micro);
+}
+@media (max-width: 768px) {
+  .mdt-cm {
+    height: min(var(--mdt-cm-height, 400px), 400px);
+  }
+  .mdt-cm .cm-editor {
+    font-size: 0.8125rem;
+  }
 }
 .mdt-cm:focus-within {
   border-color: var(--mdt-focus-ring);
@@ -44,6 +54,7 @@
 }
 .mdt-cm.is-error {
   border-color: var(--mdt-danger);
+  background: color-mix(in srgb, var(--mdt-danger) 5%, var(--mdt-surface-raised));
 }
 .mdt-cm.is-error:focus-within {
   box-shadow: 0 0 0 1px var(--mdt-danger);
@@ -52,118 +63,51 @@
   border-color: var(--mdt-cat);
   border-style: dashed;
   box-shadow: 0 0 0 1px var(--mdt-cat);
-}
-
-.mdt-cm .CodeMirror {
-  height: var(--mdt-cm-height, min(600px, 70vh));
-  font-family: var(--mdt-font-mono);
-  font-size: 0.875rem;
-  line-height: 1.5;
-  background: var(--mdt-surface-raised);
-  color: var(--mdt-text);
-}
-@media (max-width: 768px) {
-  .mdt-cm .CodeMirror {
-    height: min(var(--mdt-cm-height, 400px), 400px);
-    font-size: 0.8125rem;
-  }
-}
-.mdt-cm.is-error .CodeMirror {
-  background: color-mix(in srgb, var(--mdt-danger) 5%, var(--mdt-surface-raised));
-}
-.mdt-cm.is-dragover .CodeMirror {
   background: color-mix(in srgb, var(--mdt-cat) 7%, var(--mdt-surface-raised));
 }
 
-.mdt-cm .CodeMirror-gutters {
-  background: var(--mdt-surface-muted);
-  border-right: 1px solid var(--mdt-border);
-}
-.mdt-cm .CodeMirror-linenumber {
-  color: var(--mdt-text-faint);
-}
-.mdt-cm .CodeMirror-foldgutter-open,
-.mdt-cm .CodeMirror-foldgutter-folded {
-  color: var(--mdt-text-muted);
-}
-.mdt-cm .CodeMirror-foldmarker {
-  color: var(--mdt-accent);
-  text-shadow: none;
-  font-family: var(--mdt-font-mono);
-}
-.mdt-cm .CodeMirror-cursor {
-  border-left: 2px solid var(--mdt-text);
-}
-.mdt-cm .CodeMirror-selected {
-  background: var(--cm-selection);
-}
-.mdt-cm .CodeMirror-focused .CodeMirror-selected {
-  background: var(--cm-selection-focused);
-}
-.mdt-cm .CodeMirror-line::selection,
-.mdt-cm .CodeMirror-line > span::selection,
-.mdt-cm .CodeMirror-line > span > span::selection {
-  background: var(--cm-selection-focused);
-}
-.mdt-cm .CodeMirror-activeline-background {
-  background: color-mix(in srgb, var(--mdt-text) 5%, transparent);
-}
-.mdt-cm .CodeMirror-readonly .CodeMirror-cursor {
+/* Read-only output editors: no blinking caret. */
+.mdt-cm .cm-editor:has(.cm-content[aria-readonly="true"]) .cm-cursorLayer {
   display: none;
 }
 
-/* Syntax (cm-s-default is the only theme the tools use). */
-.mdt-cm .cm-s-default .cm-keyword,
-.mdt-cm .cm-s-default .cm-tag {
+/* Syntax tokens (`mdtHighlighter` in codemirror-kit.ts). */
+.mdt-cm .tok-keyword,
+.mdt-cm .tok-tag {
   color: var(--cm-keyword);
 }
-.mdt-cm .cm-s-default .cm-string,
-.mdt-cm .cm-s-default .cm-string-2 {
+.mdt-cm .tok-string,
+.mdt-cm .tok-string2 {
   color: var(--cm-string);
 }
-.mdt-cm .cm-s-default .cm-number {
+.mdt-cm .tok-number {
   color: var(--cm-number);
 }
-.mdt-cm .cm-s-default .cm-atom,
-.mdt-cm .cm-s-default .cm-builtin {
+.mdt-cm .tok-atom {
   color: var(--cm-atom);
 }
-.mdt-cm .cm-s-default .cm-property,
-.mdt-cm .cm-s-default .cm-attribute,
-.mdt-cm .cm-s-default .cm-variable-2,
-.mdt-cm .cm-s-default .cm-qualifier {
+.mdt-cm .tok-property {
   color: var(--cm-property);
 }
-.mdt-cm .cm-s-default .cm-def,
-.mdt-cm .cm-s-default .cm-type,
-.mdt-cm .cm-s-default .cm-variable-3 {
+.mdt-cm .tok-def,
+.mdt-cm .tok-type {
   color: var(--cm-def);
 }
-.mdt-cm .cm-s-default .cm-variable {
+.mdt-cm .tok-variable {
   color: var(--mdt-text);
 }
-.mdt-cm .cm-s-default .cm-meta {
+.mdt-cm .tok-meta {
   color: var(--cm-meta);
 }
-.mdt-cm .cm-s-default .cm-comment {
+.mdt-cm .tok-comment {
   color: var(--cm-comment);
   font-style: italic;
 }
-.mdt-cm .cm-s-default .cm-operator,
-.mdt-cm .cm-s-default .cm-punctuation,
-.mdt-cm .cm-s-default .cm-bracket {
+.mdt-cm .tok-punct {
   color: var(--cm-punct);
 }
-.mdt-cm .cm-s-default .cm-error {
+.mdt-cm .tok-invalid {
   color: var(--mdt-danger);
-}
-.mdt-cm .CodeMirror-matchingbracket {
-  color: inherit !important;
-  outline: 1px solid var(--mdt-accent);
-  background: color-mix(in srgb, var(--mdt-accent) 12%, transparent);
-}
-.mdt-cm .CodeMirror-nonmatchingbracket {
-  color: var(--mdt-danger) !important;
 }
 
 @media (forced-colors: active) {
@@ -171,11 +115,18 @@
     outline: 2px solid Highlight;
     outline-offset: 1px;
   }
-  .mdt-cm .CodeMirror-selected,
-  .mdt-cm .CodeMirror-focused .CodeMirror-selected {
-    background: Highlight;
+  .mdt-cm .cm-editor .cm-selectionBackground,
+  .mdt-cm .cm-editor.cm-focused .cm-selectionBackground {
+    background: Highlight !important;
+    forced-color-adjust: none;
   }
-  .mdt-cm .CodeMirror-cursor {
+  .mdt-cm .cm-editor .cm-cursor {
     border-left-color: CanvasText;
+  }
+  .mdt-cm .cm-editor .cm-gutters {
+    border-right-color: CanvasText;
+  }
+  .mdt-cm .cm-editor .cm-matchingBracket {
+    outline-color: Highlight;
   }
 }

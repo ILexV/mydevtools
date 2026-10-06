@@ -1,7 +1,8 @@
 ---
 /**
  * Image Compressor (image-tools WASM domain, worker-backed). Upload/drag-drop
- * an image (png/jpeg/webp — legacy parity), tune quality (1-100, default 80)
+ * an image (png/jpeg/webp — legacy parity), tune quality (1-100, default 80;
+ * WebP is lossy via the browser encoder, lossless WASM fallback with a note)
  * and pick an output format (original/jpeg/png/webp), compress via
  * `compressImage` (cancellable), then preview the result with a size
  * comparison (savings % per legacy) and download it as `<name>_min.<ext>`
@@ -41,6 +42,7 @@ const s = {
   errorNotImage: t(lang, ns, "ErrorNotImage"),
   errorUnsupported: t(lang, ns, "ErrorUnsupportedFormat"),
   errorCompression: t(lang, ns, "ErrorCompression"),
+  webpLosslessNote: t(lang, ns, "WebpLosslessNote"),
 };
 const stringsJson = JSON.stringify(s);
 ---
@@ -115,6 +117,7 @@ const stringsJson = JSON.stringify(s);
       <span aria-hidden="true">→</span>
       <span>{s.compressedSize} <span class="imgc-meta-size" data-imgc-compressed-size></span></span>
     </p>
+    <StatusMessage kind="info" data-imgc-webp-note>{s.webpLosslessNote}</StatusMessage>
     <button type="button" class="ds-btn ds-btn-primary ds-btn-block" data-imgc-download>
       <Icon name="download" size={16} />
       {s.download}

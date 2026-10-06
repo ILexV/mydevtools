@@ -10,21 +10,20 @@
  * "unsupported", malformed public lines were accepted, "id_key" downloaded
  * as "id_key.txt", the drop zone had no drop handling.
  *
- * `crypto-client` covers sshGenerate/sshPublicKeyInfo/sshToPkcs8Pem; the
+ * `crypto-client` covers sshPublicKeyInfo/sshToPkcs8Pem; the
  * remaining legacy WASM calls (private-key warnings, public-line derivation,
  * SPKI/PKCS#8 import) go through the generated module directly, initialized
  * once here.
  */
 import init, * as crypto from "@/generated/wasm/cryptography/cryptography.js";
-import {
-  sshGenerate,
-  sshPublicKeyInfo,
-  sshToPkcs8Pem,
-  type SshKeyType,
-} from "@/scripts/wasm/crypto-client";
+import { sshPublicKeyInfo, sshToPkcs8Pem } from "@/scripts/wasm/crypto-client";
+import { sshGenerateInWorker } from "@/scripts/wasm/keygen-client";
+import type { SshKeygenType } from "@/scripts/wasm/keygen-protocol";
+import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, copyWithFeedback } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
 import { guessSshInput, rsaBits, sshErrorKey } from "@/tools/openssh-keys-helpers";
+import { hasEdgeWhitespace, passwordCandidates } from "@/tools/crypto-password";
 
 interface Strings {
   copy: string;
@@ -36,6 +35,8 @@ interface Strings {
   errorWrongPassphrase: string;
   algorithmLabel: string;
   commentLabel: string;
+  noteTrimmedPassphrase: string;
+  generationCanceled: string;
 }
 
 /** Key files are tiny; anything bigger is certainly not a key. */
@@ -57,10 +58,6 @@ function readStrings(): Strings | null {
   }
 }
 
-/** Let the browser paint the busy state before synchronous WASM work (RSA keygen). */
-function nextPaint(): Promise<void> {
-  return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
-}
 
 function downloadText(filename: string, text: string): void {
   // octet-stream: with text/plain Chrome saves "id_key" as "id_key.txt".
@@ -102,6 +99,11 @@ function initTool(): void {
   const info = q<HTMLElement>("[data-ssh-info]");
   const warnings = q<HTMLElement>("[data-ssh-warnings]");
   const errorEl = q<HTMLElement>("[data-ssh-error]");
+  const noteEl = q<HTMLElement>("[data-ssh-note]");
+  const wsHint = q<HTMLElement>("[data-ssh-passphrase-ws]");
+  const progress = q<HTMLElement>("[data-ssh-progress]");
+  const progressLabel = q<HTMLElement>("[data-ssh-progress-label]");
+  const cancelBtn = q<HTMLButtonElement>("[data-ssh-cancel]");
 
   if (
     !algorithm || !keySize || !passphrase || !generateBtn || !importText || !dropzone ||
@@ -162,7 +164,8 @@ function initTool(): void {
   }
 
   function clearMessages(): void {
-    for (const box of [warningsBox, infoBox, errorBox]) {
+    for (const box of [warningsBox, infoBox, errorBox, noteEl]) {
+      if (!box) continue;
       box.hidden = true;
       box.textContent = "";
     }
@@ -176,9 +179,38 @@ function initTool(): void {
     infoBox.hidden = false;
   }
 
-  /** Legacy parity: the passphrase is trimmed; empty → no encryption. */
+  function showNote(text: string): void {
+    if (!noteEl) return;
+    noteEl.textContent = text;
+    noteEl.hidden = false;
+  }
+
+  function updateWhitespaceHint(): void {
+    if (wsHint) wsHint.hidden = !hasEdgeWhitespace(passInput.value);
+  }
+
+  /** Passphrase exactly as typed; empty → no encryption. */
   function readPass(): string | null {
-    return passInput.value.trim() || null;
+    return passInput.value || null;
+  }
+
+  /**
+   * Runs a passphrase-dependent step with the typed passphrase; if it is
+   * rejected as wrong and a trimmed variant exists (old site trimmed),
+   * retries once with that and shows a note.
+   */
+  async function withPassFallback<T>(fn: (pass: string | null) => T | Promise<T>): Promise<T> {
+    const candidates = passwordCandidates(passInput.value);
+    if (candidates.length === 0) return fn(null);
+    try {
+      return await fn(candidates[0]);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (candidates.length < 2 || sshErrorKey(message) !== "ErrorWrongPassphrase") throw err;
+      const result = await fn(candidates[1]);
+      showNote(strings.noteTrimmedPassphrase);
+      return result;
+    }
   }
 
   /** Runs an action with all buttons disabled and `aria-busy` on the active one. */
@@ -187,41 +219,53 @@ function initTool(): void {
     for (const b of actionButtons) b.disabled = true;
     btn.setAttribute("aria-busy", "true");
     try {
-      await nextPaint();
       await action();
     } catch (err) {
-      setError(err);
+      if (err instanceof WasmError && err.code === "aborted") showNote(strings.generationCanceled);
+      else setError(err);
     } finally {
       btn.removeAttribute("aria-busy");
       for (const b of actionButtons) b.disabled = false;
     }
   }
 
+  let generation: AbortController | null = null;
+
+  /** Key generation in the worker: indeterminate progress + elapsed seconds + Cancel. */
   async function generateAction(): Promise<void> {
     const pass = readPass();
     const algorithmValue = algorithmSelect.value;
-    let privateKeyPem: string;
-    let publicKeyLine: string;
-
-    await ensureRaw();
-    if (algorithmValue.startsWith("rsa")) {
-      const pkcs8 = crypto.rsa_generate_private_key_pkcs8(rsaBits(algorithmValue, keySizeSelect.value));
-      privateKeyPem = crypto.openssh_rsa_private_key_from_pkcs8(pkcs8, null, pass, null);
-      publicKeyLine = crypto.openssh_private_key_to_public_key_line(privateKeyPem, pass, null);
-    } else {
-      const pair = await sshGenerate(algorithmValue as SshKeyType, "", pass ?? "");
-      privateKeyPem = pair.privateKey;
-      publicKeyLine = pair.publicKey;
+    const keyType: SshKeygenType = algorithmValue.startsWith("rsa") ? "rsa" : (algorithmValue as SshKeygenType);
+    const controller = new AbortController();
+    generation = controller;
+    const started = performance.now();
+    const tick = () => {
+      if (progressLabel) progressLabel.textContent = `${Math.floor((performance.now() - started) / 1000)} s`;
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
+    if (progress) progress.hidden = false;
+    try {
+      const key = await sshGenerateInWorker(
+        { keyType, rsaBits: rsaBits(algorithmValue, keySizeSelect.value), passphrase: pass },
+        controller.signal,
+      );
+      setOutputs(key.publicKey, key.privateKey);
+      setWarnings(key.warnings);
+      lastPublicName = "id_key.pub";
+      lastPrivateName = "id_key";
+    } finally {
+      clearInterval(timer);
+      if (progress) progress.hidden = true;
+      generation = null;
     }
-
-    setOutputs(publicKeyLine, privateKeyPem);
-    setWarnings(crypto.openssh_private_key_warnings(privateKeyPem, pass));
-    lastPublicName = "id_key.pub";
-    lastPrivateName = "id_key";
   }
 
   async function importAction(): Promise<void> {
-    const pass = readPass();
+    await withPassFallback((pass) => importWith(pass));
+  }
+
+  async function importWith(pass: string | null): Promise<void> {
     const input = importArea.value.trim();
     const kind = guessSshInput(input);
     if (kind === "empty") return;
@@ -260,7 +304,10 @@ function initTool(): void {
   }
 
   async function convertAction(): Promise<void> {
-    const pass = readPass();
+    await withPassFallback((pass) => convertWith(pass));
+  }
+
+  async function convertWith(pass: string | null): Promise<void> {
     const input = importArea.value.trim();
     const kind = guessSshInput(input);
 
@@ -306,7 +353,12 @@ function initTool(): void {
   });
 
   bindDropzone(dropzone, fileInput, (files) => void loadKeyFile(files));
-  passInput.addEventListener("input", () => passInput.removeAttribute("aria-invalid"));
+  passInput.addEventListener("input", () => {
+    passInput.removeAttribute("aria-invalid");
+    updateWhitespaceHint();
+  });
+  updateWhitespaceHint();
+  cancelBtn?.addEventListener("click", () => generation?.abort());
 
   generateBtn.addEventListener("click", () => void busy(generateBtn, generateAction));
   importBtn.addEventListener("click", () => void busy(importBtn, importAction));

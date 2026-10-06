@@ -4,7 +4,7 @@
  * paragraphs / sentences / words with plain / HTML / markdown output, an
  * optional canonical "Lorem ipsum…" opening, and live word/character stats.
  */
-import { t } from "@/i18n/messages";
+import { t, pluralVariants } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
 import Field from "@/components/tool/Field.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
@@ -37,6 +37,8 @@ const s = {
   formatMarkdown: t(lang, ns, "Format_Markdown"),
   characters: t(lang, ns, "Characters"),
   wordsStat: t(lang, ns, "WordsStat"),
+  // wordsStat_one/_few/_many, characters_one/… — Intl.PluralRules variants per locale.
+  ...pluralVariants(lang, ns),
 };
 const stringsJson = JSON.stringify(s);
 ---
@@ -86,8 +88,8 @@ const stringsJson = JSON.stringify(s);
     </Fragment>
     <textarea id="li-output" class="ds-field-textarea li-output" data-li-output rows="14" readonly></textarea>
     <p class="ds-status li-stats" role="status">
-      <span><b data-li-words>0</b> {s.wordsStat}</span>
-      <span><b data-li-chars>0</b> {s.characters}</span>
+      <span><b data-li-words>0</b> <span data-li-words-label>{s.wordsStat}</span></span>
+      <span><b data-li-chars>0</b> <span data-li-chars-label>{s.characters}</span></span>
     </p>
   </OutputPanel>
   <StatusMessage kind="error" data-li-error />

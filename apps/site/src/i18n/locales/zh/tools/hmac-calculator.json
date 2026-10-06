@@ -1,7 +1,7 @@
 {
   "Title": "HMAC 计算器",
-  "Description": "使用自定义密钥和消息生成 SHA-256 和 SHA-512 的 HMAC 哈希值 — 全部在您的浏览器中",
-  "Keywords": "HMAC calculator, HMAC SHA-256, HMAC SHA-512, message authentication code, HMAC online, keyed hash, API signature",
+  "Description": "用密钥实时计算消息的 HMAC-SHA256 或 HMAC-SHA512，边输入边更新。十六进制输出、UTF-8 输入，支持空消息。",
+  "Keywords": "HMAC 计算器, HMAC-SHA256, HMAC-SHA512, HMAC 生成, Webhook 签名, API 请求签名, 消息认证码",
   "KeyLabel": "密钥",
   "KeyPlaceholder": "输入您的密钥...",
   "MessageLabel": "消息",
@@ -12,9 +12,9 @@
   "OutputLabel": "HMAC 结果",
   "Copy": "复制",
   "Copied": "已复制！",
-  "Seo_Introduction": "HMAC Calculator工具是为开发人员设计的注重隐私的在线工具。所有处理都使用WebAssembly在您的浏览器中本地进行，确保您的数据永远不会离开您的设备。",
-  "Seo_DetailedDescription": "此工具为hmac calculator操作提供全面的功能。采用现代Web技术构建，由Rust编译的WebAssembly提供支持，直接在您的浏览器中提供原生级别的性能。\n\n界面设计注重效率和易用性，支持文本输入和文件处理。所有操作都在客户端执行，确保您的敏感数据完全隐私和安全。",
-  "Seo_Examples": "**示例1**：在开发工作流程中使用HMAC Calculator进行快速转换。\n\n**示例2**：直接处理文件而无需上传到任何服务器，保持完全隐私。\n\n**示例3**：将工具集成到日常开发任务中以提高生产力。",
-  "Seo_HowToSteps": "### 步骤1：准备输入\n在输入字段中输入数据或从设备上传文件。\n\n### 步骤2：配置选项\n根据需要调整工具设置。\n\n### 步骤3：处理并复制结果\n点击操作按钮处理输入并将结果复制到剪贴板。",
-  "Seo_Tips": "- 所有处理都在浏览器中进行，以实现最大隐私\n- 初始页面加载后，工具可离线工作\n- 您的偏好设置本地保存在浏览器中\n- 支持带进度跟踪的大文件"
+  "Seo_Introduction": "HMAC 计算器在你输入时用 SHA-256 或 SHA-512 计算带密钥的消息认证码（RFC 2104）。可用于校验 Webhook 签名或复现 API 请求签名；密钥和消息都留在浏览器中。",
+  "Seo_DetailedDescription": "填写 **密钥** 和 **消息**，两者都按输入原样作为 UTF-8 文本处理。每次按键或切换算法都会重新计算，结果以小写十六进制显示：HMAC-SHA256 为 64 个字符，HMAC-SHA512 为 128 个字符。计算由页面内的 Rust/WebAssembly 模块完成。\n\n空消息是合法输入：密钥为 `key` 时，空消息的 HMAC-SHA256 为 `5d5d139563c95b5967b9bd9a8c9b233a9dedb45072794cd232dc1b74832607d0`，与 OpenSSL 等库一致。没有密钥时输出保持为空。长于哈希分组的密钥（SHA-256 为 64 字节，SHA-512 为 128 字节）会按标准先做哈希。\n\n密钥字段只接受文本，因此服务以 hex 或 Base64 形式提供的密钥，应按该服务实际用作密钥的形式填写。结果已用 RFC 4231 测试向量核对。不保存任何内容：刷新页面后两个字段都会清空。",
+  "Seo_Examples": "**经典测试向量**：密钥 `key`，消息 `The quick brown fox jumps over the lazy dog`，SHA-256 → `f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8`。\n\n**RFC 4231 测试用例 2**：密钥 `Jefe`，消息 `what do ya want for nothing?`，SHA-256 → `5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843`。\n\n**空消息**：密钥 `key` 加空消息得到 `5d5d139563c95b5967b9bd9a8c9b233a9dedb45072794cd232dc1b74832607d0`，与 `printf '' | openssl dgst -sha256 -hmac key` 相同。\n\n**校验 Webhook**：把原始请求体粘贴为消息、Webhook 密钥作为密钥；如果服务商发送的是 `sha256=<hex>`，只拿 hex 部分与结果比较。",
+  "Seo_HowToSteps": "### 步骤1：输入密钥\n在 **密钥** 中输入或粘贴共享密钥。\n\n### 步骤2：输入消息\n在 **消息** 中粘贴被签名的原始字节，或留空以计算空字符串的 HMAC。\n\n### 步骤3：选择算法\n在 **算法** 中选择 SHA-256 或 SHA-512，**HMAC 结果** 会立即更新（也可点击 **计算 HMAC**）。\n\n### 步骤4：复制或清除\n**复制** 取出十六进制值，**清除** 清空两个字段。",
+  "Seo_Tips": "- 必须对服务器签名时的原始字节计算：重新格式化的 JSON、不同的键顺序或末尾多出的换行都会改变 HMAC。\n- 在自己的代码中应使用恒定时间比较 HMAC；这里的目视比对只用于调试。\n- 末尾带空格或换行的密钥就是另一个密钥；结果不一致时请检查该字段。\n- 一般场景下 HMAC-SHA512 并不是\"安全两倍\"，请选择对方要求的算法。\n- 如果期望值是 Base64，它与十六进制输出编码的是同样的字节：比较前先相互转换。"
 }

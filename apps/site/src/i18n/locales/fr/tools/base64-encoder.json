@@ -1,7 +1,7 @@
 {
   "Title": "Encodeur / Décodeur Base64",
-  "Description": "Encoder et décoder Base64 pour du texte et des fichiers — tout dans votre navigateur.",
-  "Keywords": "Base64 encoder, Base64 decoder, Base64 encode online, Base64 decode online, Base64 file encoder, Base64 string converter",
+  "Description": "Encodez texte ou fichiers en Base64 et décodez-les : alphabet standard ou URL, remplissage, retour à 76 caractères, aperçu d'image. Dans votre navigateur.",
+  "Keywords": "encodeur Base64, décodeur Base64, Base64 en ligne, décoder Base64, Base64 URL-safe, Base64 vers image, fichier en Base64",
   "OtherFormats": "Autres formats :",
   "LinkHex": "Hex",
   "LinkBase32": "Base32",
@@ -43,8 +43,12 @@
   "InputSettingsTitle": "Entrée & Paramètres",
   "OutputTitle": "Sortie",
   "CopyBase64": "Copier Base64",
-  "StatsChars": "{n} chars",
+  "StatsChars": "{n} caractères",
+  "StatsChars_one": "{n} caractère",
+  "StatsChars_other": "{n} caractères",
   "StatsBytes": "{n} octets",
+  "StatsBytes_one": "{n} octet",
+  "StatsBytes_other": "{n} octets",
   "StatsRatio": "ratio {r}×",
   "StatsEncoded": "→ {size} encodé",
   "StatsDecoded": "→ {size} décodé",
@@ -59,9 +63,9 @@
   "PreviewTruncated": "(aperçu tronqué, utilisez Télécharger pour la sortie complète)",
   "FileDecoded": "Décodé : {0} → {1}",
   "Error_CopyFailed": "Copie impossible : le presse-papiers n’est pas disponible.",
-  "Seo_Introduction": "L'outil Base64 Encoder est un outil en ligne axé sur la confidentialité conçu pour les développeurs. Tout le traitement se fait localement dans votre navigateur en utilisant WebAssembly, garantissant que vos données ne quittent jamais votre appareil.",
-  "Seo_DetailedDescription": "Cet outil fournit des fonctionnalités complètes pour les opérations base64 encoder. Construit avec des technologies web modernes et alimenté par WebAssembly compilé depuis Rust, il offre des performances natives directement dans votre navigateur.\n\nL'interface est conçue pour l'efficacité et la facilité d'utilisation, avec prise en charge de la saisie de texte et du traitement de fichiers. Toutes les opérations sont effectuées côté client, garantissant une confidentialité et une sécurité complètes pour vos données sensibles.",
-  "Seo_Examples": "**Exemple 1** : Utilisez Base64 Encoder pour des conversions rapides dans votre flux de travail de développement.\n\n**Exemple 2** : Traitez les fichiers directement sans les télécharger sur un serveur, en maintenant une confidentialité complète.\n\n**Exemple 3** : Intégrez l'outil dans vos tâches de développement quotidiennes pour améliorer la productivité.",
-  "Seo_HowToSteps": "### Étape 1 : Préparez votre entrée\nEntrez vos données dans le champ de saisie ou téléchargez un fichier depuis votre appareil.\n\n### Étape 2 : Configurez les options\nAjustez les paramètres de l'outil selon vos besoins.\n\n### Étape 3 : Traitez et copiez les résultats\nCliquez sur le bouton d'action pour traiter votre entrée et copiez les résultats dans le presse-papiers.",
-  "Seo_Tips": "- Tout le traitement se fait dans votre navigateur pour une confidentialité maximale\n- L'outil fonctionne hors ligne après le chargement initial de la page\n- Vos préférences sont enregistrées localement dans votre navigateur\n- Les fichiers volumineux sont pris en charge avec suivi de la progression"
+  "Seo_Introduction": "Convertissez du texte ou n'importe quel fichier en Base64 et inversement, sans rien téléverser. L'encodage est réalisé dans le navigateur par un module WebAssembly compilé depuis Rust ; les images décodées sont prévisualisées et les données binaires se téléchargent avec la bonne extension.",
+  "Seo_DetailedDescription": "Le texte est d'abord converti en octets dans le jeu de caractères choisi (UTF-8, UTF-16LE, UTF-16BE, ASCII ou ISO-8859-1), puis encodé avec l'alphabet standard RFC 4648 (`+` et `/`) ou l'alphabet sécurisé pour les URL (`-` et `_`) utilisé par les JWT et les paramètres d'URL. Le remplissage `=` peut être requis, optionnel ou supprimé, et la sortie peut être coupée toutes les 76 caractères, comme l'exige MIME pour les e-mails.\n\nAu décodage, l'outil examine les octets obtenus. Le texte lisible s'affiche dans le champ de sortie ; les images PNG, JPEG, GIF, WebP, BMP, ICO, TIFF et SVG apparaissent en aperçu avec leur taille en pixels ; PDF, ZIP, GZIP, MP3, MP4 et exécutables sont reconnus à leur signature. Tout ce qui n'est pas du texte s'enregistre avec **Télécharger** sous l'extension adaptée, par exemple `decoded.png`.\n\nUn fichier peut être choisi ou déposé sur la page ; tant qu'il est sélectionné, le champ texte est ignoré. Le fichier est lu par blocs de 1 Mio dans un Web Worker, avec barre de progression et bouton **Annuler**, mais il est conservé entièrement en mémoire : la limite pratique est donc la RAM de l'appareil. Les résultats très longs sont affichés en aperçu et enregistrés en entier avec **Télécharger**.",
+  "Seo_Examples": "**Texte vers Base64** : `Hello, World!` devient `SGVsbG8sIFdvcmxkIQ==` ; en UTF-8, `Привет` devient `0J/RgNC40LLQtdGC` (12 octets en entrée, 16 caractères en sortie).\n\n**URL sans remplissage** : `<<???>>` donne `PDw/Pz8+Pg==` avec l'alphabet standard et `PDw_Pz8-Pg` avec **Sécurisé pour les URL (-_)** et **Sans remplissage**, le format des segments JWT.\n\n**Entrée sans remplissage** : `SGk` échoue avec le remplissage **Requis** par défaut ; passez **Remplissage** sur **Optionnel** et vous obtenez `Hi`.\n\n**Base64 vers image** : coller le Base64 d'un PNG (il commence par `iVBORw0KGgo`) affiche l'image avec sa taille, par exemple 1×1 px, et **Télécharger** l'enregistre sous `decoded.png`.",
+  "Seo_HowToSteps": "### Étape 1 : Saisir le texte ou choisir un fichier\nTapez ou collez du texte dans **Entrée (texte)**, ou déposez un fichier sur la page ou cliquez sur **Choisir un fichier**. Un fichier sélectionné a priorité sur le texte.\n\n### Étape 2 : Régler les options\nChoisissez **Jeu de caractères du texte** (UTF-8 le plus souvent), **Alphabet** (**Standard (+/)** ou **Sécurisé pour les URL (-_)**), **Remplissage** et, pour les e-mails MIME, **Retour à la ligne** à **76 caractères**.\n\n### Étape 3 : Encoder ou décoder\nCliquez sur **Encoder** pour obtenir du Base64, ou sur **Décoder** pour retrouver du texte, un aperçu d'image ou un fichier binaire. En cas d'erreur, le message en indique la cause, par exemple un caractère invalide ou un remplissage incorrect.\n\n### Étape 4 : Copier ou télécharger le résultat\n**Copier** place la sortie dans le presse-papiers et **Télécharger** l'enregistre dans un fichier. **Inverser** renvoie la sortie dans l'entrée pour vérifier l'aller-retour.",
+  "Seo_Tips": "- Base64 grossit les données d'environ 33 % : chaque groupe de 3 octets devient 4 caractères. C'est un encodage, pas un chiffrement ; n'importe qui peut le décoder.\n- Retirez le préfixe `data:image/png;base64,` d'une data URI avant de décoder : le décodeur n'accepte que la partie Base64.\n- L'en-tête et le payload d'un JWT utilisent l'alphabet URL sans remplissage : choisissez **Sécurisé pour les URL (-_)** et le remplissage **Optionnel**, et `eyJhbGciOiJIUzI1NiJ9` donne `{\"alg\":\"HS256\"}`.\n- Gardez **Autoriser espaces/sauts de ligne** activé pour décoder le Base64 coupé en lignes des e-mails ou fichiers PEM ; désactivez-le pour vérifier qu'une entrée tient sur une seule ligne propre.\n- Le jeu de caractères compte : `é` vaut `w6k=` en UTF-8 mais `6Q==` en ISO-8859-1 ; décodez avec celui utilisé à l'encodage.\n- Une fois la page ouverte, elle continue de fonctionner sans connexion."
 }

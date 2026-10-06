@@ -1,7 +1,7 @@
 {
   "Title": "PDF to Text",
-  "Description": "Extract all text from PDF documents easily in your browser.",
-  "Keywords": "PDF to text, extract text from PDF, PDF text extractor, convert PDF to text, PDF reader online, PDF content extractor",
+  "Description": "Extract the text layer of PDF files into UTF-8 .txt files in your browser, with Unicode font mapping and batch processing. No upload, no OCR.",
+  "Keywords": "PDF to text, extract text from PDF, PDF text extractor, PDF to TXT, copy text from PDF, batch PDF text extraction, offline PDF to text",
   "DropZoneTitle": "Upload PDF",
   "ExtractButton": "Extract Text",
   "FilesToProcess": "Files to Process",
@@ -17,9 +17,9 @@
   "ErrorEncrypted": "{name}: the PDF is password-protected and can't be processed.",
   "Cancel": "Cancel",
   "ErrorExtraction": "Failed to extract text from the PDF.",
-  "Seo_Introduction": "The PDF to Text converter is a privacy-first tool that allows you to extract text content from any PDF file directly in your browser.",
-  "Seo_DetailedDescription": "This tool uses WebAssembly technology to parse PDF structures and extract text without uploading your files to any server. It supports standard text-based PDF documents and handles various character encodings to ensure accurate extraction.\n\nYou can upload multiple PDF files and process them in a batch. Each file will be converted to a plain text (.txt) file that you can download and use for your needs.",
-  "Seo_Examples": "**Example 1**: Extract content from a research paper PDF for analysis in a text editor.\n\n**Example 2**: Quickly get text from a PDF invoice or receipt.\n\n**Example 3**: Convert a large PDF ebook into a simple text file for easier reading on low-power devices.",
-  "Seo_HowToSteps": "### Step 1: Upload PDF Files\nDrag and drop your PDF documents into the tool or click the upload area to select them.\n\n### Step 2: Start Extraction\nClick the \"Extract Text\" button to begin processing all loaded files.\n\n### Step 3: Download Text Files\nOnce the extraction is complete, click the \"Download\" icon next to each file to save the resulting .txt document.",
-  "Seo_Tips": "- Works completely in the browser for maximum privacy\n- Fast and efficient processing using Rust/WASM\n- Supports batch processing of multiple files\n- No registration or server upload required"
+  "Seo_Introduction": "Extract the text layer of PDF files into plain UTF-8 .txt files in the browser — for search, diffs or feeding text to scripts. Nothing is uploaded and no OCR is involved.",
+  "Seo_DetailedDescription": "The extractor reads the text-showing commands of every page and decodes characters through the font's ToUnicode map, the embedded TrueType cmap or WinAnsi encoding, so Cyrillic and other non-Latin text comes out correctly when the PDF provides the mapping. A new line starts wherever the PDF moves to the next line, and pages are separated by a blank line.\n\nScanned PDFs contain only images and produce empty text, because there is no OCR. Multi-column layouts and tables are flattened in the order the text is stored in the file, and spaces between words depend on how the PDF was produced. Password-protected PDFs are rejected with a clear message.\n\nAdd several PDFs at once: they are processed one after another in a Web Worker with a progress bar, **Cancel** stops immediately, and every finished row gets **Download TXT**, which saves `<name>.txt`.",
+  "Seo_Examples": "**Two-page document**: a PDF whose pages read “Second doc page A” and “Second doc page B” gives `Second doc page A`, an empty line, `Second doc page B`.\n\n**Large file**: a 2,500-page `5.44 MB` PDF produces a 36 KB `big.txt` while the page stays responsive.\n\n**Scanned contract**: a PDF made of page images gives an empty `.txt` — run OCR elsewhere first.\n\n**Password-protected file**: shows “locked.pdf: the PDF is password-protected and can't be processed.” while the other files in the batch are still extracted.",
+  "Seo_HowToSteps": "### Step 1: Add PDF files\nClick **Choose file** or drop one or more PDFs onto **Upload PDF**. They appear under **Files to Process**.\n\n### Step 2: Extract\nClick **Extract Text**. The progress bar shows the current file; **Cancel** stops the batch.\n\n### Step 3: Download the text\nClick **Download TXT** on a row to save `<name>.txt` (UTF-8).",
+  "Seo_Tips": "- If the result is empty, the PDF is probably a scan: there is no text layer to extract.\n- Garbled characters mean the PDF has no usable Unicode mapping for its font; copying from a PDF viewer will usually fail the same way.\n- Tables and columns come out in storage order, so check the line order before parsing the text with scripts.\n- Already extracted files are skipped when you click **Extract Text** again, so you can add more files to the same list."
 }

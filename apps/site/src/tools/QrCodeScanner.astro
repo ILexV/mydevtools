@@ -1,9 +1,12 @@
 ---
 /**
  * QR Code Scanner (qrcode WASM domain). Upload/drag-drop an image, decode via
- * `qrDecode`, show the decoded text with copy; URL results get an open-link
+ * `qrDecode` (Web Worker), show the decoded text with copy; URL results get an open-link
  * action. Image preview + file info + clear per legacy FileDropZone parity.
- * Upload only (legacy parity: no live camera / getUserMedia).
+ * Live camera scanning (`qr-camera.ts`): "Scan with camera" opens the rear
+ * camera with a framing overlay and an optional camera switcher; frames are
+ * decoded in the same worker. The button is hidden when getUserMedia is
+ * missing in a secure context (an insecure page shows a localized error).
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
@@ -31,7 +34,19 @@ const s = {
   errorReading: t(lang, ns, "ErrorReading"),
   errorUnsupportedImage: t(lang, ns, "ErrorUnsupportedImage"),
   errorCopy: t(lang, ns, "ErrorCopy"),
+  scanCamera: t(lang, ns, "ScanCamera"),
+  scanAgain: t(lang, ns, "ScanAgain"),
+  stopCamera: t(lang, ns, "StopCamera"),
+  cameraSelect: t(lang, ns, "CameraSelect"),
+  cameraHint: t(lang, ns, "CameraHint"),
+  cameraPreview: t(lang, ns, "CameraPreview"),
+  errorCameraDenied: t(lang, ns, "ErrorCameraDenied"),
+  errorCameraNotFound: t(lang, ns, "ErrorCameraNotFound"),
+  errorCameraInUse: t(lang, ns, "ErrorCameraInUse"),
+  errorCameraInsecure: t(lang, ns, "ErrorCameraInsecure"),
+  errorCameraGeneric: t(lang, ns, "ErrorCameraGeneric"),
 };
+const cameraIcon = "M3 8.5A2.5 2.5 0 015.5 6h1.6l1.2-1.8A1.5 1.5 0 019.55 3.5h4.9a1.5 1.5 0 011.25.7L16.9 6h1.6A2.5 2.5 0 0121 8.5v9a2.5 2.5 0 01-2.5 2.5h-13A2.5 2.5 0 013 17.5v-9zM12 16.5a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z";
 const stringsJson = JSON.stringify(s);
 ---
 
@@ -55,6 +70,28 @@ const stringsJson = JSON.stringify(s);
     </div>
   </FileDrop>
 
+  <div class="ds-actions qrs-camera-actions" data-qrs-camera-actions hidden>
+    <button type="button" class="ds-btn" data-qrs-camera-start>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={cameraIcon} /></svg>
+      <span data-qrs-camera-start-label>{s.scanCamera}</span>
+    </button>
+  </div>
+
+  <section class="ds-card ds-stack qrs-camera" data-qrs-camera aria-label={s.cameraPreview} hidden>
+    <div class="qrs-video-wrap">
+      <video class="qrs-video" data-qrs-video playsinline muted aria-label={s.cameraPreview}></video>
+      <div class="qrs-frame" aria-hidden="true"></div>
+    </div>
+    <p class="qrs-camera-hint" role="status">{s.cameraHint}</p>
+    <div class="qrs-camera-controls">
+      <label class="qrs-camera-select" data-qrs-camera-select-wrap hidden>
+        <span class="qrs-camera-select-label">{s.cameraSelect}</span>
+        <select class="ds-field-select" data-qrs-camera-select></select>
+      </label>
+      <button type="button" class="ds-btn" data-qrs-camera-stop>{s.stopCamera}</button>
+    </div>
+  </section>
+
   <p class="qrs-busy" data-qrs-busy role="status" hidden>
     <span class="ds-spinner" aria-hidden="true"></span>
     <span>{s.loading}</span>
@@ -62,7 +99,7 @@ const stringsJson = JSON.stringify(s);
 
   <StatusMessage kind="error" data-qrs-error />
 
-  <OutputPanel label={s.resultLabel} for="qrs-output" data-qrs-result hidden>
+  <OutputPanel label={s.resultLabel} for="qrs-output" data-qrs-result aria-live="polite" hidden>
     <Fragment slot="actions">
       <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-qrs-copy>{s.copy}</button>
     </Fragment>
@@ -95,4 +132,31 @@ const stringsJson = JSON.stringify(s);
   .qrs-filename { font-weight: 500; overflow-wrap: anywhere; }
   .qrs-busy { display: flex; align-items: center; gap: 0.5rem; font-size: var(--mdt-fs-meta); color: var(--mdt-text-muted); }
   .qrs-tool :global([data-qrs-linkwrap]) { margin-top: 0.75rem; }
+  .qrs-camera-actions { justify-content: center; }
+  .qrs-camera-actions[hidden], .qrs-camera[hidden], .qrs-camera-select[hidden] { display: none; }
+  .qrs-video-wrap {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--mdt-radius-sm);
+    background: #000;
+    aspect-ratio: 4 / 3;
+    max-height: 60vh;
+  }
+  .qrs-video { display: block; width: 100%; height: 100%; object-fit: cover; }
+  /* Framing guide: a centered square with the rest dimmed. */
+  .qrs-frame {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: min(60%, 60vh);
+    aspect-ratio: 1;
+    border: 3px solid rgb(255 255 255 / 0.9);
+    border-radius: 0.75rem;
+    box-shadow: 0 0 0 100vmax rgb(0 0 0 / 0.35);
+    pointer-events: none;
+  }
+  .qrs-camera-hint { font-size: var(--mdt-fs-meta); color: var(--mdt-text-muted); margin: 0; }
+  .qrs-camera-controls { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 0.75rem; }
+  .qrs-camera-select { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; flex: 1 1 12rem; }
+  .qrs-camera-select-label { font-size: var(--mdt-fs-meta); font-weight: 500; }
 </style>

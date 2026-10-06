@@ -2,8 +2,9 @@
 /**
  * X.509 certificate tool (cryptography WASM domain). Self-signed certificate /
  * CSR generation (subject DN or bare CN, key algorithm, validity days — legacy
- * ignored the DN attributes and the days field), PEM or Base64-DER parsing to
- * a pretty JSON summary, validity warnings, copy/download.
+ * ignored the DN attributes and the days field), PEM or Base64-DER parsing of
+ * certificates and PKCS#10 CSRs to a pretty JSON summary, validity / CSR
+ * signature warnings, copy/download.
  * Behavior lives in `x509.client.ts` (crypto-client helpers, main-thread WASM).
  */
 import { t } from "@/i18n/messages";
@@ -37,6 +38,7 @@ const s = {
   algorithmLabel: t(lang, ns, "AlgorithmLabel"),
   errorValidityDays: t(lang, ns, "ErrorValidityDays"),
   errorInvalidSubject: t(lang, ns, "ErrorInvalidSubject"),
+  warningCsrSignature: t(lang, ns, "WarningCsrSignature"),
   error: t(lang, "common", "Common_Error"),
 };
 const stringsJson = JSON.stringify(s);

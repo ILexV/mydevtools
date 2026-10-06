@@ -3,7 +3,7 @@
  * AEAD File Encrypt/Decrypt (cryptography WASM domain). Two panels (encrypt
  * with algorithm + shared password, decrypt) plus a full-width output section
  * (progress + cancel, header hex, result, download). Streaming chunked WASM
- * ops via aead-file-client (legacy parity).
+ * ops via aead-file-client (writes MDT3, reads MDT3 + legacy MDT2).
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
@@ -41,6 +41,9 @@ const s = {
   errorDecryptFailed: t(lang, ns, "ErrorDecryptFailed"),
   errorInvalidContainer: t(lang, ns, "ErrorInvalidContainer"),
   showPassword: t(lang, ns, "ShowPassword"),
+  passwordWhitespaceHint: t(lang, ns, "PasswordWhitespaceHint"),
+  noteTrimmedPassword: t(lang, ns, "NoteTrimmedPassword"),
+  noteLegacyFormat: t(lang, ns, "NoteLegacyFormat"),
   fileChoose: t(lang, "common", "Common_FileChooseButton"),
 };
 const stringsJson = JSON.stringify(s);
@@ -94,6 +97,7 @@ const stringsJson = JSON.stringify(s);
             </svg>
           </button>
         </div>
+        <p class="ds-hint" data-aead-password-ws aria-live="polite" hidden>{s.passwordWhitespaceHint}</p>
       </Field>
 
       <button type="button" class="ds-btn ds-btn-primary ds-btn-block" data-aead-encrypt>{s.encryptButton}</button>
@@ -143,6 +147,7 @@ const stringsJson = JSON.stringify(s);
     </OutputPanel>
 
     <StatusMessage kind="error" data-aead-error />
+    <StatusMessage kind="info" data-aead-note />
   </section>
 </div>
 

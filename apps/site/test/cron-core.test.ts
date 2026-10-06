@@ -26,6 +26,8 @@ function strings(lang: string, ns = "cron-parser"): CronStrings & Record<string,
   for (const [k, v] of Object.entries(raw)) out[k.charAt(0).toLowerCase() + k.slice(1)] = v;
   out.months = raw.MonthNames.split(",");
   out.weekdays = raw.WeekdayNames.split(",");
+  out.monthsLong = raw.MonthNamesLong.split(",");
+  out.weekdaysLong = raw.WeekdayNamesLong.split(",");
   return out as CronStrings & Record<string, string>;
 }
 const en = strings("en");
@@ -173,33 +175,79 @@ test("cronNextRuns: rare and impossible schedules", () => {
 });
 
 test("describeCron: English descriptions", () => {
-  assert.equal(describeCron("* * * * *", en), "Every minute every day");
-  assert.equal(describeCron("*/15 * * * *", en), "Every 15 minutes every day");
-  assert.equal(describeCron("*/1 * * * *", en), "Every minute every day");
-  assert.equal(describeCron("0 2 * * *", en), "At minute 0 at hour 2 every day");
-  assert.equal(describeCron("0 9 * * MON-FRI", en), "At minute 0 at hour 9 on MON, TUE, WED, THU, FRI");
-  assert.equal(describeCron("0 0 L * *", en), "At minute 0 at hour 0 on the last day of the month");
-  assert.equal(describeCron("0 0 1 JAN *", en), "At minute 0 at hour 0 on day 1 of the month in JAN");
-  assert.equal(describeCron("0 0 13 * 5", en), "At minute 0 at hour 0 on day 13 of the month or on FRI");
-  assert.equal(describeCron("0 */6 * * *", en), "At minute 0 every 6 hours every day");
-  assert.equal(describeCron("0-59/10 * 1-10 * *", en), "At minutes 0, 10, 20, 30, 40... of every hour on days 1, 2, 3, 4, 5...");
+  const cases: Array<[string, string]> = [
+    ["* * * * *", "Every minute"],
+    ["*/1 * * * *", "Every minute"],
+    ["*/15 * * * *", "Every 15 minutes"],
+    ["0 * * * *", "Every hour on the hour"],
+    ["15 * * * *", "Every hour at minute 15"],
+    ["0,30 * * * *", "Every hour at minutes 0 and 30"],
+    ["0 2 * * *", "Every day at 02:00"],
+    ["30 8,12,18 * * *", "Every day at 08:30, 12:30, and 18:30"],
+    ["0 9 * * MON-FRI", "At 09:00 Monday through Friday"],
+    ["0 10 * * 6,0", "At 10:00 on weekends"],
+    ["*/5 9-17 * * 1-5", "Every 5 minutes from 09:00 to 17:55 Monday through Friday"],
+    ["0 */6 * * *", "Every 6 hours starting at 00:00"],
+    ["0 9-17 * * *", "Every hour from 09:00 to 17:00"],
+    ["*/10 0-5,9,12 * * *", "Every 10 minutes during hours 0–5, 9, and 12"],
+    ["0 0 L * *", "At 00:00 on the last day of the month"],
+    ["0 0 1 JAN *", "At 00:00 on the 1st of the month in January"],
+    ["0 0 13 * 5", "At 00:00 on the 13th of the month or on Fridays"],
+    ["0 0 2,3,11,22 * *", "At 00:00 on the 2nd, 3rd, 11th, and 22nd of the month"],
+    ["0-59/10 * 1-10 * *", "Every hour at minutes 0, 10, 20, 30, 40, and 50 on the 1st–10th of the month"],
+    ["0 22 * * 1,3,5", "At 22:00 on Mondays, Wednesdays, and Fridays"],
+    ["0 0 1 1,7 *", "At 00:00 on the 1st of the month in January and July"],
+  ];
+  for (const [expr, want] of cases) assert.equal(describeCron(expr, en), want, expr);
   assert.equal(describeCron("@daily", en), en.scheduleDaily);
   assert.equal(describeCron("@reboot", en), en.scheduleReboot);
 });
 
-test("describeCron: ru uses plural forms and localized names", () => {
-  assert.equal(describeCron("*/1 * * * *", ru), "Каждую минуту каждого часа каждый день");
-  assert.match(describeCron("*/1 */1 * * *", ru), /^Каждую минуту/);
-  assert.match(describeCron("*/21 * * * *", ru), /^Каждые 21 минуту /);
-  assert.match(describeCron("*/2 * * * *", ru), /^Каждые 2 минуты /);
-  assert.match(describeCron("*/5 * * * *", ru), /^Каждые 5 минут /);
-  assert.match(describeCron("0 */1 * * *", ru), /каждого часа/);
-  assert.match(describeCron("0 */3 * * *", ru), /каждые 3 часа /);
-  assert.match(describeCron("0 */5 * * *", ru), /каждые 5 часов /);
-  assert.match(describeCron("0 */21 * * *", ru), /каждые 21 час /);
-  assert.match(describeCron("0 9 * * 1-5", ru), /в ПН, ВТ, СР, ЧТ, ПТ$/);
-  assert.match(describeCron("0 9 * MAY *", ru), /в МАЙ$/);
-  assert.match(describeCron("0 0 13 * 5", ru), /в день 13 месяца или в ПТ$/);
+test("describeCron: natural Russian phrasing (plural forms, cases, lists)", () => {
+  const cases: Array<[string, string]> = [
+    ["* * * * *", "Каждую минуту"],
+    ["*/1 */1 * * *", "Каждую минуту"],
+    ["*/2 * * * *", "Каждые 2 минуты"],
+    ["*/5 * * * *", "Каждые 5 минут"],
+    ["*/21 * * * *", "Каждую 21 минуту"],
+    ["0 * * * *", "Каждый час, в начале часа"],
+    ["1 * * * *", "Каждый час в 1 минуту"],
+    ["22 * * * *", "Каждый час в 22 минуты"],
+    ["15 * * * *", "Каждый час в 15 минут"],
+    ["0,30 * * * *", "Каждый час в 0 и 30 минут"],
+    ["0 */3 * * *", "Каждые 3 часа, начиная с 00:00"],
+    ["0 */5 * * *", "Каждые 5 часов, начиная с 00:00"],
+    ["0 */21 * * *", "Каждый 21 час, начиная с 00:00"],
+    ["0 2 * * *", "Каждый день в 02:00"],
+    ["30 8,12,18 * * *", "Каждый день в 08:30, 12:30 и 18:30"],
+    ["0 9 * * 1-5", "В 09:00 по будням"],
+    ["0 10 * * SAT,SUN", "В 10:00 по выходным"],
+    ["0 22 * * 1,3,5", "В 22:00 по понедельникам, средам и пятницам"],
+    ["*/5 9-17 * * 1-5", "Каждые 5 минут с 09:00 до 17:55 по будням"],
+    ["0 9 * MAY *", "В 09:00 в мае"],
+    ["0 0 1 1,7 *", "В 00:00 1-го числа в январе и июле"],
+    ["0 0 13 * 5", "В 00:00 13-го числа или по пятницам"],
+    ["0 0 L * *", "В 00:00 в последний день месяца"],
+    ["0 12 1-10 * *", "В 12:00 с 1-го по 10-го числа"],
+    ["0 9 * * ПН", "В 09:00 по понедельникам"],
+  ];
+  for (const [expr, want] of cases) assert.equal(describeCron(expr, ru), want, expr);
+});
+
+test("describeCron: other locales read as one sentence (no glued fragments)", () => {
+  assert.equal(describeCron("0 9 * * 1-5", strings("de")), "Um 09:00 montags bis freitags");
+  assert.equal(describeCron("0 0 1 * *", strings("fr")), "À 00:00 le 1er du mois");
+  assert.equal(describeCron("0 9 * * 1-5", strings("ja")), "平日、09:00に");
+  assert.equal(describeCron("*/15 * * * *", strings("ja")), "15分ごと");
+  assert.equal(describeCron("30 8,12 * * *", strings("zh")), "每天08:30和12:30");
+  assert.equal(describeCron("0 22 * * 1,3", strings("es")), "A las 22:00 los lunes y miércoles");
+  for (const lang of ["en", "ru", "es", "de", "pt", "zh", "fr", "ja", "ko", "hi"]) {
+    const s = strings(lang);
+    for (const expr of ["* * * * *", "*/5 9-17 * * 1-5", "0 0 13 * 5", "0-59/10 * 1-10 * *", "0 */2 * * *", "*/10 0-5,9,12 * 1,7 0,6"]) {
+      const d = describeCron(expr, s);
+      assert.ok(!/\{\d\}|undefined|  |^[\s,，、]|[\s,，、]$/.test(d), `${lang} ${expr}: ${d}`);
+    }
+  }
 });
 
 test("describeCron: invalid input throws CronError", () => {

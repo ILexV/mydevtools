@@ -1,7 +1,7 @@
 {
   "Title": "X.509 Certificates",
-  "Description": "Create self-signed certificates, CSRs, and parse PEM/DER.",
-  "Keywords": "X.509 certificate, self-signed certificate, CSR generator, PEM parser, DER parser, SSL certificate, TLS certificate, certificate tool",
+  "Description": "Create self-signed X.509 certificates and CSRs with Ed25519 or ECDSA keys, and decode certificates or CSRs from PEM/DER — locally in your browser.",
+  "Keywords": "x509 certificate decoder, self-signed certificate generator, CSR generator, CSR decoder, PKCS#10, PEM to JSON, certificate parser, ECDSA certificate",
   "SelfSignedSectionTitle": "Self-signed",
   "SubjectLabel": "Subject (CN)",
   "SubjectHint": "Format: CN=Name,O=Org,C=Country",
@@ -11,7 +11,7 @@
   "GenerateCsr": "Generate CSR",
   "ParseSectionTitle": "Parse",
   "ParseLabel": "Paste PEM/DER",
-  "ParsePlaceholder": "Paste certificate, CSR, or key (PEM/DER) here...",
+  "ParsePlaceholder": "Paste a certificate or CSR (PEM or Base64 DER) here...",
   "ParseButton": "Parse",
   "OutputLabel": "Output",
   "Copy": "Copy",
@@ -22,9 +22,10 @@
   "AlgorithmLabel": "Key algorithm",
   "ErrorValidityDays": "Validity must be a whole number of days from 1 to 36500.",
   "ErrorInvalidSubject": "Invalid subject. Use a name or CN=…,O=…,OU=…,L=…,ST=…,C=XX.",
-  "Seo_Introduction": "The X.509 Certificate Tool is a privacy-first online tool designed for developers. All processing happens locally in your browser using WebAssembly, ensuring your data never leaves your device.",
-  "Seo_DetailedDescription": "This tool provides comprehensive functionality for x.509 certificate tool operations. Built with modern web technologies and powered by Rust-compiled WebAssembly, it delivers native-like performance directly in your browser.\n\nThe interface is designed for efficiency and ease of use, with support for both text input and file processing. All operations are performed client-side, guaranteeing complete privacy and security for your sensitive data.",
-  "Seo_Examples": "**Example 1**: Use the X.509 Certificate Tool for quick conversions and transformations in your development workflow.\n\n**Example 2**: Process files directly without uploading them to any server, maintaining complete privacy.\n\n**Example 3**: Integrate the tool into your daily development tasks for improved productivity.",
-  "Seo_HowToSteps": "### Step 1: Prepare Your Input\nEnter your data in the input field or upload a file from your device.\n\n### Step 2: Configure Options\nAdjust the tool settings according to your needs.\n\n### Step 3: Process and Copy Results\nClick the action button to process your input and copy the results to your clipboard.",
-  "Seo_Tips": "- All processing happens in your browser for maximum privacy\n- The tool works offline after initial page load\n- Your preferences are saved locally in your browser\n- Large files are supported with progress tracking"
+  "Seo_Introduction": "X.509 Certificates creates self-signed certificates and certificate signing requests (CSR, PKCS#10) and decodes existing certificates and CSRs into readable JSON. Keys are generated and files parsed in your browser; nothing is uploaded.",
+  "Seo_DetailedDescription": "The generator takes a subject as a distinguished name (`CN=…,O=…,OU=…,L=…,ST=…,C=XX`; a bare name becomes the CN), a key algorithm (Ed25519, ECDSA P-256 or ECDSA P-384) and, for certificates, a validity from 1 to 36500 days. **Generate certificate** returns a self-signed `-----BEGIN CERTIFICATE-----` PEM, **Generate CSR** returns a `-----BEGIN CERTIFICATE REQUEST-----` PEM; in both cases the new private key follows as a PKCS#8 `-----BEGIN PRIVATE KEY-----` block. The generator does not add Subject Alternative Names, so these certificates suit tests and internal tools rather than public websites.\n\n**Parse** accepts a certificate or a CSR as PEM or as Base64 DER. For a certificate it shows subject, issuer, `notBefore` / `notAfter`, signature and public key algorithm OIDs and Subject Alternative Names, with warnings for expired or not-yet-valid certificates, SHA-1 or MD5 signatures, RSA keys under 3072 bits and weak curves. For a CSR it shows subject, key type (for example `ECDSA P-256` or `RSA 2048`), signature algorithm, requested SANs, key usage, extended key usage and basic constraints, and checks the request's self-signature (`signatureValid`). A request whose signature does not verify gets a warning, because it was modified or corrupted after signing.\n\nThe output can be copied or downloaded as `certificate.pem`, `request.csr.pem`, `x509.json` or `csr.json`.",
+  "Seo_Examples": "**Check a CSR before sending it to a CA**: paste the `CERTIFICATE REQUEST` PEM and click **Parse**. An OpenSSL request for `api.example.com` shows `\"publicKey\": \"RSA 2048\"`, the requested DNS and IP names, `\"extendedKeyUsage\": [\"serverAuth\", \"clientAuth\"]` and `\"signatureValid\": true`.\n\n**Test certificate for a local service**: enter `CN=api.example.com,O=Example GmbH,C=DE`, choose ECDSA P-256, keep 365 days and click **Generate certificate**. Parsing the result shows the subject `CN=api.example.com, O=Example GmbH, C=DE` and validity dates exactly 365 days apart.\n\n**Find out when a certificate expires**: paste a server certificate (PEM, or Base64 DER from a config file) and click **Parse**; `notAfter` holds the expiry date and an expired certificate is flagged in **Warnings**.\n\n**Create a key and CSR in one step**: fill in the subject, choose the key algorithm and click **Generate CSR**; keep the private key block and submit only the request block.",
+  "Seo_HowToSteps": "### Step 1: Describe the subject\nType the **Subject (CN)**, for example `CN=example.com,O=My Org,C=US`, or just a host name.\n\n### Step 2: Choose key and validity\nPick the **Key algorithm** and, for a certificate, set **Validity (days)**.\n\n### Step 3: Generate\nClick **Generate certificate** for a self-signed certificate or **Generate CSR** for a signing request.\n\n### Step 4: Parse existing files\nPaste a certificate or CSR into **Paste PEM/DER** and click **Parse** to see its fields and **Warnings**.",
+  "Seo_Tips": "- Browsers do not accept Ed25519 certificates for TLS; choose ECDSA P-256 for anything a browser will open.\n- Self-signed certificates are trusted only where you install them; for public sites submit a CSR to a certificate authority.\n- The private key appears right below the certificate or CSR: store it separately and never send it to a CA.\n- Modern clients match host names against Subject Alternative Names; CSRs from this generator have none, so add SANs with your CA or OpenSSL when a client needs them.\n- `\"signatureValid\": null` means the CSR's signature algorithm is not supported for verification, not that it failed.",
+  "WarningCsrSignature": "the CSR signature does not verify: the request was modified or is corrupted"
 }

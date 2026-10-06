@@ -62,3 +62,23 @@ test("parseHowToSteps: garbage without step markers yields no HowTo schema mater
   assert.deepEqual(parseHowToSteps(""), []);
   assert.deepEqual(parseHowToSteps("   \n  "), []);
 });
+
+test("parseHowToSteps: localized step headings split into separate steps with prefix stripped", () => {
+  const cases: Array<[string, string]> = [
+    ["### Шаг 1: Вставьте текст\nТело 1\n\n### Шаг 2: Скопируйте\nТело 2", "Вставьте текст"],
+    ["### 步骤1：准备输入\n正文\n\n### 步骤2：复制\n正文", "准备输入"],
+    ["### 1단계: 입력 준비\n본문\n\n### 2단계: 복사\n본문", "입력 준비"],
+    ["### Étape 1 : Préparez\nCorps\n\n### Étape 2 : Copiez\nCorps", "Préparez"],
+    ["### चरण 1: इनपुट तैयार करें\nपाठ\n\n### चरण 2: कॉपी करें\nपाठ", "इनपुट तैयार करें"],
+    ["### ステップ1: 入力を準備する\n本文\n\n### ステップ2: コピー\n本文", "入力を準備する"],
+  ];
+  for (const [md, first] of cases) {
+    const steps = parseHowToSteps(md);
+    assert.equal(steps.length, 2, md);
+    assert.equal(steps[0].name, first);
+  }
+});
+
+test("parseHowToSteps: heading without a step number keeps its full name", () => {
+  assert.equal(parseHowToSteps("### Paste your JSON\nBody")[0].name, "Paste your JSON");
+});

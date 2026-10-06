@@ -70,6 +70,10 @@ test("cryptography wasm: HMAC RFC 4231 vectors", { skip }, async () => {
   // Empty key / message and Unicode vs node.
   assert.equal(hex(c.hmac_sha256(new Uint8Array(), new Uint8Array())), createHmac("sha256", "").update("").digest("hex"));
   assert.equal(hex(c.hmac_sha256(enc.encode("🔑"), enc.encode("тест"))), createHmac("sha256", "🔑").update("тест").digest("hex"));
+  // Key + empty message (now computed by the tool): HMAC-SHA256("key", "") = 5d5d1395…
+  assert.equal(hex(c.hmac_sha256(enc.encode("key"), new Uint8Array())), "5d5d139563c95b5967b9bd9a8c9b233a9dedb45072794cd232dc1b74832607d0");
+  assert.equal(hex(c.hmac_sha256(enc.encode("key"), new Uint8Array())), createHmac("sha256", "key").update("").digest("hex"));
+  assert.equal(hex(c.hmac_sha512(enc.encode("key"), new Uint8Array())), createHmac("sha512", "key").update("").digest("hex"));
 });
 
 test("cryptography wasm: AEAD container flow (aead-file-client) incl. failures", { skip }, async () => {
@@ -149,4 +153,126 @@ test("cryptography wasm: OpenSSH error messages mapped by sshErrorKey", { skip }
   const spki = c.openssh_public_key_to_spki_pem(line);
   assert.equal(c.openssh_public_key_from_spki_pem(spki, "me"), line);
   assert.throws(() => c.openssh_public_key_bytes("ssh-ed25519 AAAA!!!notbase64 c"));
+});
+
+/**
+ * Mirrors aead-file-client: MDT3 encryption (final flag on the last chunk,
+ * at least one chunk) and MDT2/MDT3 decryption with password candidates
+ * (as typed → trimmed). Site KDF params.
+ */
+const SITE_KDF = [64 * 1024, 3, 1] as const;
+function aeadEncrypt3(c: any, plain: Uint8Array, password: string, alg: number, chunk: number): Buffer {
+  const salt = new Uint8Array(16).fill(5);
+  const prefix = new Uint8Array(alg === 3 ? 16 : 4).fill(6);
+  const header: Uint8Array = c.aead_stream3_header_pack(alg, 1, salt, prefix, chunk);
+  const key = c.aead_stream_derive_key_from_header(header, enc.encode(password), ...SITE_KDF);
+  const parts = [header];
+  let off = 0, n = 0n;
+  do {
+    const end = Math.min(off + chunk, plain.length);
+    parts.push(c.aead_stream3_encrypt_chunk(header, key, n, end >= plain.length, plain.subarray(off, end)));
+    off = end; n++;
+  } while (off < plain.length);
+  return Buffer.concat(parts);
+}
+function aeadDecrypt(c: any, file: Uint8Array, candidates: string[]): { plain: Buffer; format: number; passwordIndex: number } {
+  const info = c.aead_stream_header_info(file.subarray(0, 128));
+  const [alg, , , , chunk, hlen] = info;
+  const format = info[6];
+  const header = file.subarray(0, hlen);
+  const prefix = c.aead_stream_extract_nonce_prefix(header);
+  if (format === 3 && file.length === hlen) throw new Error("truncated container");
+  const open = (key: Uint8Array, n: bigint, ct: Uint8Array, last: boolean) =>
+    format === 3 ? c.aead_stream3_decrypt_chunk(header, key, n, last, ct) : c.aead_stream_decrypt_chunk(alg, key, prefix, n, ct, new Uint8Array());
+  const out: Uint8Array[] = [];
+  let key: Uint8Array | null = null, passwordIndex = 0;
+  for (let off = hlen, n = 0n; off < file.length; n++) {
+    const end = Math.min(off + chunk + 16, file.length);
+    const ct = file.subarray(off, end);
+    if (!key) {
+      let lastErr: unknown;
+      for (let i = 0; i < candidates.length && !key; i++) {
+        const k = c.aead_stream_derive_key_from_header(header, enc.encode(candidates[i]), ...SITE_KDF);
+        try { out.push(open(k, n, ct, end === file.length)); key = k; passwordIndex = i; } catch (e) { lastErr = e; }
+      }
+      if (!key) throw lastErr;
+    } else {
+      out.push(open(key, n, ct, end === file.length));
+    }
+    off = end;
+  }
+  return { plain: Buffer.concat(out), format, passwordIndex };
+}
+
+test("cryptography wasm: AEAD MDT3 round-trip, truncation/extension detection", { skip }, async () => {
+  const c = await load("cryptography");
+  const CHUNK = 1024, C = CHUNK + 16;
+  for (const [alg, len] of [[1, 0], [2, 1], [3, 3 * CHUNK], [1, 2600]]) {
+    const plain = new Uint8Array(len).map((_, i) => (i * 17) % 256);
+    const file = aeadEncrypt3(c, plain, "pass ", alg, CHUNK);
+    assert.equal(file.subarray(0, 4).toString(), "MDT3");
+    const res = aeadDecrypt(c, file, ["pass "]);
+    assert.deepEqual(res.plain, Buffer.from(plain), `alg ${alg} len ${len}`);
+    assert.equal(res.format, 3);
+  }
+  const plain = new Uint8Array(3 * CHUNK).fill(9);
+  const file = aeadEncrypt3(c, plain, "pw", 1, CHUNK);
+  const H = c.aead_stream_header_info(file.subarray(0, 128))[5];
+  assert.equal(file.length, H + 3 * C);
+  assert.throws(() => aeadDecrypt(c, file.subarray(0, H + 2 * C), ["pw"]), "cut at a chunk boundary must fail");
+  assert.throws(() => aeadDecrypt(c, file.subarray(0, H + C), ["pw"]), "cut after the first chunk must fail");
+  assert.throws(() => aeadDecrypt(c, file.subarray(0, H), ["pw"]), /truncated/);
+  assert.throws(() => aeadDecrypt(c, Buffer.concat([file, file.subarray(H, H + C)]), ["pw"]), "appended chunk must fail");
+  const swapped = Buffer.concat([file.subarray(0, H), file.subarray(H + C, H + 2 * C), file.subarray(H, H + C), file.subarray(H + 2 * C)]);
+  assert.throws(() => aeadDecrypt(c, swapped, ["pw"]), "reordered chunks must fail");
+  // Password used exactly as typed: the trimmed variant does not open an MDT3 file made with spaces.
+  const spaced = aeadEncrypt3(c, plain.subarray(0, 10), " pw ", 2, CHUNK);
+  assert.throws(() => aeadDecrypt(c, spaced, ["pw"]));
+  assert.equal(aeadDecrypt(c, spaced, [" pw ", "pw"]).passwordIndex, 0);
+  // Bad MDT3 header fields are rejected up front.
+  const bad = Buffer.from(file); bad[5] = 9;
+  assert.throws(() => c.aead_stream_header_info(bad.subarray(0, 128)), /invalid header/);
+});
+
+test("cryptography wasm: legacy MDT2 file from the old site still decrypts (trimmed-password fallback)", { skip }, async () => {
+  const c = await load("cryptography");
+  // Produced by the pre-MDT3 site code with the site's Argon2id params; the old
+  // site trimmed the password, so a user typing " legacy pass " must still get in.
+  const file = Buffer.from(readFileSync(new URL("../../../wasm/cryptography/tests/fixtures/aead_mdt2_legacy_site.b64", import.meta.url), "utf8").trim(), "base64");
+  assert.equal(file.subarray(0, 4).toString(), "MDT2");
+  const res = aeadDecrypt(c, file, [" legacy pass ", "legacy pass"]);
+  assert.equal(res.plain.toString(), "MyDevTools MDT2 legacy fixture\n");
+  assert.equal(res.format, 2);
+  assert.equal(res.passwordIndex, 1, "opened by the trimmed fallback");
+  assert.throws(() => aeadDecrypt(c, file, ["legacy pass!"]));
+});
+
+test("cryptography wasm: CSR (PKCS#10) parsing — own CSRs and OpenSSL fixtures", { skip }, async () => {
+  const c = await load("cryptography");
+  const [csrPem] = c.x509_csr_pem_ex(2, "CN=csr.example, O=Org, C=de", ["csr.example"], ["192.0.2.1"]);
+  const own = JSON.parse(c.x509_parse_csr_pem(csrPem));
+  assert.equal(own.publicKey, "ECDSA P-256");
+  assert.equal(own.signatureValid, true);
+  assert.deepEqual(own.subjectAltNames, ["DNS:csr.example", "IP:192.0.2.1"]);
+  assert.match(own.subject, /CN=csr\.example/);
+  const fx = (name: string) => readFileSync(new URL(`../../../wasm/cryptography/tests/fixtures/${name}`, import.meta.url), "utf8");
+  const rsa = JSON.parse(c.x509_parse_csr_pem(fx("csr_rsa2048_openssl.pem")));
+  assert.equal(rsa.subject, "C=DE, O=Example GmbH, CN=api.example.com");
+  assert.equal(rsa.publicKey, "RSA 2048");
+  assert.deepEqual(rsa.extendedKeyUsage, ["serverAuth", "clientAuth"]);
+  const ed = JSON.parse(c.x509_parse_csr_der(Buffer.from(fx("csr_ed25519_openssl.der.b64").trim(), "base64")));
+  assert.equal(ed.publicKey, "Ed25519");
+  assert.equal(ed.signatureValid, true);
+  // A certificate is not a CSR (the controller tries the certificate parser first for DER).
+  const [certPem] = c.x509_self_signed_pem_ex(1, "CN=c", 1, BigInt(Math.floor(Date.now() / 1000)), [], []);
+  assert.throws(() => c.x509_parse_csr_pem(certPem), /not a certificate request/);
+});
+
+test("cryptography wasm: keygen worker path — RSA PKCS#8 → OpenSSH with a passphrase kept as typed", { skip }, async () => {
+  const c = await load("cryptography");
+  // Same calls as crypto-keygen.worker (RSA branch), 3072 bits to keep the test short.
+  const priv = c.openssh_rsa_private_key_from_pkcs8(c.rsa_generate_private_key_pkcs8(3072), null, " sp ", null);
+  const line = c.openssh_private_key_to_public_key_line(priv, " sp ", null);
+  assert.match(line, /^ssh-rsa /);
+  assert.throws(() => c.openssh_private_key_to_public_key_line(priv, "sp", null), /invalid passphrase/);
 });

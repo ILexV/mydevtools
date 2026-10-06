@@ -1,6 +1,6 @@
 {
   "Title": "Lorem Ipsum 생성기",
-  "Description": "모형 및 디자인을 위한 자리 표시자 텍스트를 브라우저에서 완전히 생성합니다.",
+  "Description": "Lorem Ipsum 자리 표시자 텍스트를 단락, 문장, 단어(1–1000) 단위로 생성합니다. 일반 텍스트, <p> 태그 HTML, Markdown 출력과 단어 수 세기를 지원합니다.",
   "Keywords": "lorem ipsum generator, placeholder text, dummy text generator, lorem ipsum online, filler text, fake text generator",
   "GenerateTypeLabel": "생성 기준",
   "Paragraphs": "단락",
@@ -21,9 +21,9 @@
   "Format_Markdown": "Markdown",
   "Characters": "자",
   "WordsStat": "단어",
-  "Seo_Introduction": "Lorem Ipsum Generator 도구는 개발자를 위해 설계된 개인정보 보호 중심 온라인 도구입니다. 모든 처리는 WebAssembly를 사용하여 브라우저에서 로컬로 수행되므로 데이터가 장치를 벗어나지 않습니다.",
-  "Seo_DetailedDescription": "이 도구는 lorem ipsum generator 작업을 위한 포괄적인 기능을 제공합니다. 최신 웹 기술로 구축되고 Rust 컴파일된 WebAssembly로 구동되어 브라우저에서 직접 네이티브 수준의 성능을 제공합니다.\n\n인터페이스는 효율성과 사용 편의성을 위해 설계되었으며 텍스트 입력과 파일 처리를 모두 지원합니다. 모든 작업은 클라이언트 측에서 수행되어 민감한 데이터의 완전한 개인정보 보호와 보안을 보장합니다.",
-  "Seo_Examples": "**예제 1**: 개발 워크플로에서 빠른 변환을 위해 Lorem Ipsum Generator를 사용하세요.\n\n**예제 2**: 서버에 업로드하지 않고 직접 파일을 처리하여 완전한 개인정보를 유지하세요.\n\n**예제 3**: 생산성 향상을 위해 일상적인 개발 작업에 도구를 통합하세요.",
-  "Seo_HowToSteps": "### 1단계: 입력 준비\n입력 필드에 데이터를 입력하거나 장치에서 파일을 업로드합니다.\n\n### 2단계: 옵션 구성\n필요에 따라 도구 설정을 조정합니다.\n\n### 3단계: 처리 및 결과 복사\n작업 버튼을 클릭하여 입력을 처리하고 결과를 클립보드에 복사합니다.",
-  "Seo_Tips": "- 최대 개인정보 보호를 위해 모든 처리는 브라우저에서 수행됩니다\n- 초기 페이지 로드 후 도구는 오프라인으로 작동합니다\n- 설정은 브라우저에 로컬로 저장됩니다\n- 진행률 추적 기능이 있는 대용량 파일을 지원합니다"
+  "Seo_Introduction": "목업, 템플릿, UI 테스트용 Lorem Ipsum 자리 표시자 텍스트를 생성합니다. 단락, 문장, 단어를 1~1000개 만들 수 있고, 원하면 고전적인 \"Lorem ipsum dolor sit amet…\"로 시작하며 일반 텍스트, HTML, Markdown으로 출력합니다.",
+  "Seo_DetailedDescription": "텍스트는 약 160개의 라틴어 단어 목록으로 만듭니다. 문장은 5~15개 단어로 대문자로 시작해 마침표로 끝나고, 단락은 3~7개 문장입니다. 단어 모드에서는 요청한 단어 수를 정확히 출력하므로 말줄임이나 입력 필드 길이 제한을 시험하기 좋습니다. 고전적 시작 옵션을 켜면 표준 문장 \"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\"로 시작합니다.\n\n단락은 빈 줄로 구분되며, 이는 그대로 올바른 Markdown입니다. HTML 형식에서는 각 단락을 `<p>…</p>`로 감쌀 수 있고, 이 옵션은 HTML 단락에서만 활성화됩니다. 설정을 바꿀 때마다 텍스트가 다시 생성되고, 아래의 단어·문자 수는 태그를 포함한 결과 크기를 보여 줍니다.\n\n생성은 페이지의 JavaScript로 이루어지며 매번 무작위라 두 번의 결과가 같지 않습니다. 결과를 복사하거나 `lorem-ipsum.txt`로 내려받을 수 있습니다. 서버로는 아무것도 보내지 않습니다.",
+  "Seo_Examples": "**정확한 단어 수**: 단어, 개수 `5`, 고전적 시작 켜기 → `lorem ipsum dolor sit amet`.\n\n**템플릿용 HTML**: 단락, 개수 `3`, HTML 형식에 `<p>` 감싸기 → 빈 줄로 구분된 `<p>…</p>` 블록 세 개, 바로 붙여 넣을 수 있습니다.\n\n**짧은 UI 문구**: 문장, 개수 `2`, 고전적 시작 켜기 → 표준 문장 \"Lorem ipsum dolor sit amet…\"과 5~15단어짜리 무작위 문장 하나.\n\n**레이아웃 부하 테스트**: 단락, 개수 `50`이면 수천 단어가 생겨 스크롤과 긴 콘텐츠 배치를 확인할 수 있습니다.",
+  "Seo_HowToSteps": "### 1단계: 단위 선택\n'생성 기준'에서 단락, 문장, 단어 중 하나를 고르고 '개수'(1–1000)를 정합니다.\n\n### 2단계: 출력 설정\n'출력 형식'을 고르고, '\"Lorem ipsum dolor sit amet...\"으로 시작'과 HTML 단락이라면 '단락을 <p> 태그로 감싸기'를 켭니다.\n\n### 3단계: 생성 후 사용\n설정을 바꿀 때마다 텍스트가 다시 생성됩니다. '생성'으로 새 무작위 결과를 만든 뒤 '복사' 또는 'TXT로 다운로드'를 누릅니다.",
+  "Seo_Tips": "- 1000을 넘는 개수는 1000으로, 0은 1로 바뀌므로 오타로 페이지가 멈추지 않습니다.\n- 매번 무작위로 생성됩니다. 같은 텍스트를 여러 번 써야 한다면 결과를 저장하세요.\n- Lorem Ipsum은 짧은 라틴어 단어뿐이므로 긴 단어, 줄바꿈, 한글 같은 비라틴 문자는 실제 대상 언어 텍스트로 확인하세요.\n- 문자 수에는 공백, 줄바꿈, HTML 태그가 포함되어 `maxlength` 제한 확인에 유용합니다.\n- 출시 전에 자리 표시자 텍스트를 바꾸세요. 검색 엔진과 스크린 리더는 이를 실제 콘텐츠로 취급합니다."
 }

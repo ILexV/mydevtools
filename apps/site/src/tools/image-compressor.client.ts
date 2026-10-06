@@ -3,7 +3,9 @@
  * (`bindDropzone`: drag-drop, zone click, keyboard-reachable file button);
  * compressed by the image-tools WASM worker (`compressImage`, cancellable via
  * AbortController). Quality slider (1-100, default 80) is passed through
- * as-is (legacy parity). Output format "original" maps from the source MIME
+ * as-is (legacy parity); for WebP output the browser's lossy encoder applies
+ * it, and when the browser can't encode WebP the worker falls back to
+ * lossless WASM WebP and a note says quality wasn't applied. Output format "original" maps from the source MIME
  * type (jpeg → jpeg, png → png, anything else → webp — legacy parity).
  * Result is previewed with an original → compressed size comparison and a
  * "Done! -N%" savings badge (shown only when savings > 0, legacy parity),
@@ -29,6 +31,7 @@ interface Strings {
   errorNotImage: string;
   errorUnsupported: string;
   errorCompression: string;
+  webpLosslessNote: string;
 }
 
 function readStrings(): Strings | null {
@@ -69,6 +72,7 @@ function init() {
   const originalSizeEl = q<HTMLElement>("[data-imgc-original-size]");
   const compressedSizeEl = q<HTMLElement>("[data-imgc-compressed-size]");
   const downloadBtn = q<HTMLButtonElement>("[data-imgc-download]");
+  const webpNote = q<HTMLElement>("[data-imgc-webp-note]");
   if (
     !zone || !input || !selectedEl || !preview || !qualityRange || !formatSel ||
     !compressBtn || !progressEl || !errorBox || !resultEl || !output || !downloadBtn
@@ -93,6 +97,7 @@ function init() {
   function hideResult() {
     resultEl!.hidden = true;
     if (badgeEl) badgeEl.hidden = true;
+    if (webpNote) webpNote.hidden = true;
     if (resultUrl) URL.revokeObjectURL(resultUrl);
     resultUrl = null;
     resultName = null;
@@ -160,7 +165,7 @@ function init() {
     setBusy(true);
     try {
       const bytes = new Uint8Array(await file.arrayBuffer());
-      const resultBytes = await compressImage(bytes, targetFormat, quality, ctrl.signal);
+      const { bytes: resultBytes, webpLossy } = await compressImage(bytes, targetFormat, quality, ctrl.signal);
       if (ctrl.signal.aborted || currentFile !== file) return;
 
       const blob = new Blob([resultBytes as BlobPart], { type: mimeFor(targetFormat) });
@@ -175,6 +180,7 @@ function init() {
         badgeEl.textContent = `${strings!.done} -${savedPct}%`;
         badgeEl.hidden = savedPct <= 0;
       }
+      if (webpNote) webpNote.hidden = !(targetFormat === "webp" && !webpLossy);
       resultName = compressedName(file.name, targetFormat);
       resultEl!.hidden = false;
     } catch (e) {

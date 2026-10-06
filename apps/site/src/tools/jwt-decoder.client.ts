@@ -1,13 +1,13 @@
 /**
- * JWT Decoder client controller. Live-decodes the token on input via
- * `jwtDecode` (crypto WASM), splits pretty header/payload JSON into the two
- * output areas, shows the algorithm badge and exp/nbf/iat claims, and
+ * JWT Decoder client controller. Live-decodes the token on input in TS
+ * (`decodeJwt`: original claim order, pretty-printed) into the two output
+ * areas, shows the algorithm badge and exp/nbf/iat claims, and
  * verifies the signature with `jwtVerify` on every input/secret change.
  * Status: verified / invalid / unsigned (`alg: none`) / unsupported alg /
  * "enter a secret" when the secret is empty (instead of a bare "invalid").
  */
-import { jwtDecode, jwtVerify } from "@/scripts/wasm/crypto-client";
-import { algFromHeader, classifyAlg, normalizeToken, timeClaims } from "@/tools/jwt";
+import { jwtVerify } from "@/scripts/wasm/crypto-client";
+import { algFromHeader, classifyAlg, decodeJwt, normalizeToken, timeClaims } from "@/tools/jwt";
 
 interface Strings {
   signatureVerified: string;
@@ -137,28 +137,16 @@ function init() {
       return;
     }
 
-    let decodedJson: string;
-    try {
-      decodedJson = await jwtDecode(token);
-    } catch (err) {
-      if (id !== runId) return;
-      const detail = err instanceof Error ? err.message : String(err);
-      setError(strings.invalidToken.replace("{message}", detail));
+    // Decoded in TS rather than WASM `jwt_decode`, which re-sorted keys alphabetically.
+    const decoded = decodeJwt(token);
+    if (!decoded.ok) {
+      setError(strings.invalidToken.replace("{message}", decoded.error));
       clearOutputs();
       return;
     }
-    if (id !== runId) return;
     setError(null);
-
-    let headerJson = "";
-    let payloadJson = "";
-    try {
-      const decoded = JSON.parse(decodedJson) as { header?: unknown; payload?: unknown };
-      headerJson = typeof decoded.header === "string" ? decoded.header : "";
-      payloadJson = typeof decoded.payload === "string" ? decoded.payload : "";
-    } catch {
-      headerJson = decodedJson;
-    }
+    const headerJson = decoded.header;
+    const payloadJson = decoded.payload;
 
     headerArea.value = headerJson;
     payloadArea.value = payloadJson;

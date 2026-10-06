@@ -1,6 +1,7 @@
 /**
  * X.509 client controller. Generate self-signed certs / CSRs and parse PEM or
- * Base64-DER input via the main-thread `crypto-client` WASM helpers.
+ * Base64-DER certificates and PKCS#10 CSRs (subject, key, SANs, extensions,
+ * self-signature check) via the main-thread `crypto-client` WASM helpers.
  * Legacy parity: Ed25519 by default (legacy passed algorithm id 1 = Ed25519),
  * no SAN inputs, pretty-JSON output, copy/download, download names
  * certificate.pem / request.csr.pem / x509.json.
@@ -11,6 +12,7 @@
  */
 import {
   x509Parse,
+  x509ParseCsr,
   x509Warnings,
   x509SelfSignedEx,
   x509CsrEx,
@@ -18,7 +20,7 @@ import {
   X509_ALG,
 } from "@/scripts/wasm/crypto-client";
 import { copyWithFeedback } from "@/scripts/tool-ui";
-import { base64ToBytes, derBase64ToPem, parseValidityDays, prettyJson } from "@/tools/x509-helpers";
+import { base64ToBytes, derBase64ToPem, isCsrPem, parseValidityDays, prettyJson } from "@/tools/x509-helpers";
 
 interface Strings {
   copy: string;
@@ -29,6 +31,7 @@ interface Strings {
   errorValidityDays: string;
   errorInvalidSubject: string;
   error: string;
+  warningCsrSignature: string;
 }
 
 function readStrings(): Strings | null {
@@ -168,17 +171,37 @@ function init() {
     void withBusy(parseBtn, async () => {
       const input = parseArea.value.trim();
       if (!input) return;
+      /** CSR summary + a warning when its self-signature does not verify. */
+      const showCsr = (json: string) => {
+        setOutput(prettyJson(json), "csr.json");
+        try {
+          if (JSON.parse(json).signatureValid === false) setWarnings([strings.warningCsrSignature]);
+        } catch {
+          /* summary is always JSON; ignore */
+        }
+      };
       try {
-        if (input.includes("BEGIN")) {
+        if (isCsrPem(input)) {
+          showCsr(await x509ParseCsr(input));
+        } else if (input.includes("BEGIN")) {
           setOutput(prettyJson(await x509Parse(input)), "x509.json");
           setWarnings(await x509Warnings(input));
         } else {
-          const bytes = base64ToBytes(input);
-          setOutput(prettyJson(await x509Parse(bytesToHex(bytes))), "x509.json");
+          const hexDer = bytesToHex(base64ToBytes(input));
+          let certJson: string | null = null;
           try {
-            setWarnings(await x509Warnings(derBase64ToPem(input)));
+            certJson = await x509Parse(hexDer);
           } catch {
-            /* warnings are best-effort for DER input */
+            // Not a certificate: Base64 DER may be a CSR.
+            showCsr(await x509ParseCsr(hexDer));
+          }
+          if (certJson !== null) {
+            setOutput(prettyJson(certJson), "x509.json");
+            try {
+              setWarnings(await x509Warnings(derBase64ToPem(input)));
+            } catch {
+              /* warnings are best-effort for DER input */
+            }
           }
         }
       } catch {

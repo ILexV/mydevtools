@@ -30,17 +30,23 @@ type JobPayload =
   | { op: "compress" | "convert"; format: string; quality: number }
   | { op: "resize"; width: number; height: number; format: string };
 
-function run(input: Uint8Array, payload: JobPayload, signal?: AbortSignal): Promise<Uint8Array> {
+/** Encoded output plus which WebP encoder ran (false for non-WebP formats). */
+export interface ImageJobResult {
+  bytes: Uint8Array;
+  webpLossy: boolean;
+}
+
+function run(input: Uint8Array, payload: JobPayload, signal?: AbortSignal): Promise<ImageJobResult> {
   if (signal?.aborted) return Promise.reject(new WasmError("aborted", "Aborted"));
   const w = getWorker();
   const id = nextId++;
-  const { promise, resolve, reject } = Promise.withResolvers<Uint8Array>();
+  const { promise, resolve, reject } = Promise.withResolvers<ImageJobResult>();
 
   const onMsg = (ev: MessageEvent<ImageWorkerResponse>) => {
     const m = ev.data;
     if (m.id !== id) return;
     cleanup();
-    if (m.ok) resolve(new Uint8Array(m.output));
+    if (m.ok) resolve({ bytes: new Uint8Array(m.output), webpLossy: m.webpLossy });
     else reject(new WasmError("unknown", m.message));
   };
   const onError = (ev: ErrorEvent) => {
@@ -71,33 +77,33 @@ function run(input: Uint8Array, payload: JobPayload, signal?: AbortSignal): Prom
   return promise;
 }
 
-/** Compress an image (target format + quality 1-100) → encoded bytes. */
+/** Compress an image (target format + quality 1-100; WebP lossy when the browser can). */
 export function compressImage(
   input: Uint8Array,
   format: string,
   quality: number,
   signal?: AbortSignal,
-): Promise<Uint8Array> {
+): Promise<ImageJobResult> {
   return run(input, { op: "compress", format, quality }, signal);
 }
 
-/** Convert an image to another format (quality 1-100) → encoded bytes. */
+/** Convert an image to another format (quality 1-100 for jpeg/webp/png<90). */
 export function convertImage(
   input: Uint8Array,
   format: string,
   quality: number,
   signal?: AbortSignal,
-): Promise<Uint8Array> {
+): Promise<ImageJobResult> {
   return run(input, { op: "convert", format, quality }, signal);
 }
 
-/** Resize an image to width×height → encoded bytes in the given format. */
+/** Resize an image to width×height → encoded bytes (jpeg/webp at quality 90). */
 export function resizeImage(
   input: Uint8Array,
   width: number,
   height: number,
   format: string,
   signal?: AbortSignal,
-): Promise<Uint8Array> {
+): Promise<ImageJobResult> {
   return run(input, { op: "resize", width, height, format }, signal);
 }

@@ -24,6 +24,11 @@ interface Props {
 
 const { lang } = Astro.props as Props;
 const ns = "tools/base64-encoder";
+/** `Key_one`/`_few`/… for the plural categories this locale actually uses. */
+const pluralForms = (key: string): Record<string, string> =>
+  Object.fromEntries(
+    new Intl.PluralRules(lang).resolvedOptions().pluralCategories.map((c) => [c, t(lang, ns, `${key}_${c}`)]),
+  );
 
 const s = {
   inputTextLabel: t(lang, ns, "InputTextLabel"),
@@ -47,6 +52,9 @@ const s = {
   binaryDownloadHint: t(lang, ns, "BinaryDownloadHint"),
   statsChars: t(lang, ns, "StatsChars"),
   statsBytes: t(lang, ns, "StatsBytes"),
+  // Plural forms picked client-side with Intl.PluralRules ("1 byte", "2 байта", "5 байт").
+  statsCharsForms: pluralForms("StatsChars"),
+  statsBytesForms: pluralForms("StatsBytes"),
   statsEncoded: t(lang, ns, "StatsEncoded"),
   statsDecoded: t(lang, ns, "StatsDecoded"),
   statsImage: t(lang, ns, "StatsImage"),

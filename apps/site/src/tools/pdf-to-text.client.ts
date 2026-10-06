@@ -3,8 +3,9 @@
  * (`bindDropzone`) are appended to a batch list (legacy parity: multi-file;
  * non-PDF entries are rejected with a localized message). "Extract Text"
  * runs every pending file through the pdf WASM module (`extractText`) with a
- * per-row spinner and a batch progress bar; Cancel stops after the current
- * file (main-thread WASM cannot be interrupted mid-file). Each finished row
+ * per-row spinner and a batch progress bar. Extraction runs in the pdf Web
+ * Worker (page stays responsive); Cancel aborts the current file
+ * (terminates the worker) and stops the batch. Each finished row
  * gets a download link for `<name>.txt` (legacy filename pattern). A
  * corrupted or password-protected PDF gets an error badge and a localized
  * message naming the file; the rest of the batch still runs. Already
@@ -12,6 +13,7 @@
  * revoked on remove.
  */
 import { extractText } from "@/scripts/wasm/pdf-client";
+import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone } from "@/scripts/tool-ui";
 import { formatBytes, progressPercent } from "@/lib/format";
 import { classifyPdfError, isPdfFile, textFileName } from "@/tools/pdf-files";
@@ -73,7 +75,7 @@ function init() {
 
   const files: PdfItem[] = [];
   let extracting = false;
-  let cancelRequested = false;
+  let job: AbortController | null = null;
 
   function showError(msg: string) {
     if (!errorBox) return;
@@ -162,14 +164,15 @@ function init() {
     if (queue.length === 0) return;
 
     clearError();
-    cancelRequested = false;
+    const ctrl = new AbortController();
+    job = ctrl;
     setBusy(true);
     const errors: string[] = [];
     let done = 0;
     setProgress(0, queue.length, queue[0]?.file.name ?? "");
 
     for (const item of queue) {
-      if (cancelRequested) break;
+      if (ctrl.signal.aborted) break;
       if (!files.includes(item)) continue;
       item.processing = true;
       item.error = null;
@@ -177,19 +180,23 @@ function init() {
       setProgress(done, queue.length, item.file.name);
       try {
         const bytes = new Uint8Array(await item.file.arrayBuffer());
-        const text = await extractText(bytes);
+        const text = await extractText(bytes, ctrl.signal);
         item.url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
       } catch (e) {
+        if (e instanceof WasmError && e.code === "aborted") {
+          // Cancelled mid-file: the row goes back to "ready".
+          item.processing = false;
+          break;
+        }
         item.error = errorMessage(e, item.file.name);
         errors.push(item.error);
       }
       item.processing = false;
       done++;
       setProgress(done, queue.length, "");
-      // Yield so a Cancel click queued during the WASM call is handled.
-      await new Promise((r) => setTimeout(r, 0));
     }
 
+    job = null;
     setBusy(false);
     render();
     if (errors.length > 0) showError(errors.join("\n"));
@@ -198,8 +205,8 @@ function init() {
   bindDropzone(zone, input, addFiles);
   extract.addEventListener("click", () => void handleExtract());
   cancelBtn?.addEventListener("click", () => {
-    cancelRequested = true;
     cancelBtn.disabled = true;
+    job?.abort();
   });
 }
 

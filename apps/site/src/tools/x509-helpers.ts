@@ -1,6 +1,7 @@
 /**
  * X.509 tool helpers (pure, unit-tested in test/crypto-tools.test.ts):
- * Base64-DER ↔ PEM armor for parsing pasted certificates, pretty-printing
+ * Base64-DER ↔ PEM armor for parsing pasted certificates, CSR detection,
+ * pretty-printing
  * the WASM JSON summary, and validating the "Validity (days)" field
  * (whole days 1–36500, mirrors X509_MAX_VALIDITY_DAYS in wasm/cryptography).
  */
@@ -41,4 +42,9 @@ export function parseValidityDays(raw: string): number | null {
   if (!/^\d+$/.test(text)) return null;
   const days = Number(text);
   return days >= 1 && days <= X509_MAX_VALIDITY_DAYS ? days : null;
+}
+
+/** True for PEM armor of a PKCS#10 request (`CERTIFICATE REQUEST` / legacy `NEW CERTIFICATE REQUEST`). */
+export function isCsrPem(text: string): boolean {
+  return /-----BEGIN (NEW )?CERTIFICATE REQUEST-----/.test(text);
 }

@@ -38,6 +38,15 @@ export function buildRustPattern(pattern: string, flags: readonly string[]): str
 }
 
 /**
+ * JS-style `g` semantics on top of the engine, which always returns every
+ * match: without the Global flag only the first match is kept (previously
+ * the checkbox had no effect).
+ */
+export function applyGlobalFlag<T>(matches: readonly T[], global: boolean): T[] {
+  return global ? matches.slice() : matches.slice(0, 1);
+}
+
+/**
  * Escaped text with `<mark class="rx-mark">` around each non-overlapping span
  * (spans out of order/overlapping/out of range are skipped). A trailing newline
  * gets a filler line so the backdrop keeps the textarea's scroll height.

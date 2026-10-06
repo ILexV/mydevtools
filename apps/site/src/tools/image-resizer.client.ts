@@ -1,6 +1,8 @@
 /**
  * Image Resizer client controller. Image picked via the drop zone
- * (`bindDropzone`); original dimensions are read with an `Image` probe, the
+ * (`bindDropzone`); original dimensions are read with an `Image` probe
+ * (formats the browser can't display — TIFF, TGA — are first decoded to a
+ * PNG preview by the image-tools worker), the
  * aspect-ratio lock auto-computes the opposite dimension on input (legacy
  * parity: only when locked and the edited value is > 0), and `resizeImage`
  * (image-tools WASM worker, cancellable) produces the result. Dimensions are
@@ -9,7 +11,7 @@
  * guessed from the source extension (jpg→jpeg, unknown→png). Download name:
  * `<base>_<w>x<h>.<ext>` (jpeg→jpg). Object URLs are revoked on replace/clear.
  */
-import { resizeImage } from "@/scripts/wasm/image-tools-client";
+import { convertImage, resizeImage } from "@/scripts/wasm/image-tools-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, setDropzoneHasFile } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
@@ -84,6 +86,8 @@ function init() {
   let originalWidth = 0;
   let originalHeight = 0;
   let previewUrl: string | null = null;
+  /** File whose preview already fell back to a WASM-decoded PNG. */
+  let wasmPreviewFor: File | null = null;
   let resultUrl: string | null = null;
   let resultName: string | null = null;
   let job: AbortController | null = null;
@@ -184,11 +188,32 @@ function init() {
     actionBtn.disabled = false;
   });
   preview.addEventListener("error", () => {
-    if (!currentFile || !preview.getAttribute("src")) return;
-    // The browser can't decode it (e.g. TIFF/TGA), so dimensions are unknown.
+    const file = currentFile;
+    if (!file || !preview.getAttribute("src")) return;
+    if (wasmPreviewFor !== file) {
+      // The browser can't decode it (e.g. TIFF/TGA): decode to PNG in the
+      // worker; the PNG preview then drives the usual dimension probe.
+      wasmPreviewFor = file;
+      void wasmPreview(file);
+      return;
+    }
     preview.hidden = true;
     showError(strings.errorLoadImage);
   });
+
+  async function wasmPreview(file: File) {
+    try {
+      const { bytes } = await convertImage(new Uint8Array(await file.arrayBuffer()), "png", 100);
+      if (currentFile !== file) return;
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = URL.createObjectURL(new Blob([bytes as BlobPart], { type: "image/png" }));
+      preview!.src = previewUrl;
+    } catch {
+      if (currentFile !== file) return;
+      preview!.hidden = true;
+      showError(strings!.errorLoadImage);
+    }
+  }
 
   // Aspect-ratio lock: editing one dimension recomputes the other from the
   // original ratio (legacy parity: only when locked, dims known, value > 0).
@@ -223,7 +248,7 @@ function init() {
     setBusy(true);
     try {
       const bytes = new Uint8Array(await file.arrayBuffer());
-      const resultBytes = await resizeImage(bytes, width, height, format, ctrl.signal);
+      const { bytes: resultBytes } = await resizeImage(bytes, width, height, format, ctrl.signal);
       if (ctrl.signal.aborted || currentFile !== file) return;
 
       const blob = new Blob([resultBytes as BlobPart], { type: mimeFor(format) });

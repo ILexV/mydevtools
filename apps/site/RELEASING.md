@@ -67,14 +67,12 @@ Compile targets:
 
 ## What `build:pages` does
 
-`validate:i18n` → `build:wasm` (regenerates the 10 default WASM domains into
+`validate:i18n` → `build:wasm` (regenerates all 11 WASM domains into
 `apps/site/src/generated/wasm/`) → `build:site` (`astro build` + `node build-sw.mjs`)
 → `test:smoke` (static dist smoke). Astro empties `dist/` before each build.
 
-> **Note on `ipcalc`:** `wasm/build.ps1`'s default domain list omits the
-> `ipcalc` crate. `src/generated/` is gitignored, so on a fresh checkout (and
-> whenever its Rust source changes) generate it explicitly with
-> `pwsh wasm/build.ps1 -Configuration Release -WasmOutRoot apps/site/src/generated/wasm -Domains ipcalc`.
+> `src/generated/` is gitignored, so `npm run build:wasm` (all 11 domains,
+> `ipcalc` included) must run on a fresh checkout and whenever Rust sources change.
 
 ## Smoke test (post-deploy)
 

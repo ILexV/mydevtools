@@ -56,8 +56,6 @@ export interface ToolCapabilities {
   download?: boolean;
   /** Input ↔ output swap. */
   swap?: boolean;
-  /** Depends on external CDN libs (Stage 7 must vendor or replace). */
-  externalDeps?: boolean;
 }
 
 export interface Tool {
@@ -87,7 +85,7 @@ export const TOOLS: readonly Tool[] = [
   // ── text ──────────────────────────────────────────────────────────────────
   { slug: "word-counter", category: "text", wasm: null, capabilities: { copy: true } },
   { slug: "text-case-converter", category: "text", wasm: null, capabilities: { copy: true } },
-  { slug: "text-diff-viewer", category: "text", wasm: null, capabilities: { file: "optional", copy: true, externalDeps: true } },
+  { slug: "text-diff-viewer", category: "text", wasm: null, capabilities: { file: "optional", copy: true } },
 
   // ── jwt ───────────────────────────────────────────────────────────────────
   { slug: "jwt-decoder", category: "jwt", wasm: "cryptography", capabilities: { copy: true } },
@@ -103,7 +101,7 @@ export const TOOLS: readonly Tool[] = [
   // ── cryptography ──────────────────────────────────────────────────────────
   { slug: "hmac-calculator", category: "cryptography", wasm: "cryptography", capabilities: { copy: true } },
   { slug: "aead-file", category: "cryptography", wasm: "cryptography", capabilities: { file: "single", chunked: true, progress: true, cancel: true, download: true } },
-  { slug: "openssh-keys", category: "cryptography", wasm: "cryptography", capabilities: { file: "optional", copy: true, download: true } },
+  { slug: "openssh-keys", category: "cryptography", wasm: "cryptography", capabilities: { file: "optional", progress: true, cancel: true, copy: true, download: true } },
   { slug: "x509", category: "cryptography", wasm: "cryptography", capabilities: { copy: true, download: true } },
 
   // ── generators (legacy: ungrouped; new IA) ────────────────────────────────
@@ -117,10 +115,10 @@ export const TOOLS: readonly Tool[] = [
 
   // ── design ────────────────────────────────────────────────────────────────
   { slug: "color-converter", category: "design", wasm: null, capabilities: { copy: true } },
-  { slug: "markdown-preview", category: "design", wasm: null, capabilities: { copy: true, download: true, externalDeps: true } },
+  { slug: "markdown-preview", category: "design", wasm: null, capabilities: { copy: true, download: true } },
 
   // ── images ────────────────────────────────────────────────────────────────
-  { slug: "image-compressor", category: "images", wasm: "image_tools", capabilities: { file: "multi", progress: true, download: true, externalDeps: true } },
+  { slug: "image-compressor", category: "images", wasm: "image_tools", capabilities: { file: "multi", progress: true, download: true } },
   { slug: "image-converter", category: "images", wasm: "image_tools", capabilities: { file: "single", download: true } },
   { slug: "image-resizer", category: "images", wasm: "image_tools", capabilities: { file: "single", download: true } },
 

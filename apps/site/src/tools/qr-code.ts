@@ -51,3 +51,40 @@ export function isHttpUrl(text: string): boolean {
     return false;
   }
 }
+
+/** Longest side of a camera frame sent to the decoder (keeps rxing fast). */
+export const CAMERA_FRAME_MAX = 1024;
+
+/** Downscaled frame size: longest side ≤ `max`, aspect kept, never upscaled; null if unknown. */
+export function cameraFrameSize(width: number, height: number, max = CAMERA_FRAME_MAX): { width: number; height: number } | null {
+  if (!(width > 0 && height > 0)) return null;
+  const k = Math.min(1, max / Math.max(width, height));
+  return { width: Math.max(1, Math.round(width * k)), height: Math.max(1, Math.round(height * k)) };
+}
+
+export type CameraErrorKind = "denied" | "notFound" | "inUse" | "insecure" | "generic";
+
+/**
+ * Map a `getUserMedia` failure (DOMException name) to a localized-message
+ * kind: permission denied, no camera, camera busy, insecure context.
+ */
+export function classifyCameraError(name: string | undefined): CameraErrorKind {
+  switch (name) {
+    case "NotAllowedError":
+    case "PermissionDeniedError":
+    case "SecurityError":
+      return "denied";
+    case "NotFoundError":
+    case "DevicesNotFoundError":
+    case "OverconstrainedError":
+      return "notFound";
+    case "NotReadableError":
+    case "TrackStartError":
+    case "AbortError":
+      return "inUse";
+    case "insecure":
+      return "insecure";
+    default:
+      return "generic";
+  }
+}

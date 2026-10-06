@@ -4,14 +4,15 @@
  * Non-PDF files are rejected with a localized message. "Compress PDFs"
  * processes every not-yet-compressed file sequentially via the pdf WASM
  * module (`compressPdf`) with a per-row spinner and a batch progress bar;
- * Cancel stops after the current file (WASM runs on the main thread and
- * cannot be interrupted mid-file). Each result row shows original →
+ * work runs in the pdf Web Worker, so the page stays responsive; Cancel
+ * aborts the current file (terminates the worker) and stops the batch. Each result row shows original →
  * compressed size and a "Saved N%" badge — shown even when negative (legacy
  * parity) — and downloads as `compressed_<original name>` (legacy parity).
  * A corrupted or password-protected PDF gets an error badge and a localized
  * message naming the file; the rest of the batch still runs.
  */
 import { compressPdf } from "@/scripts/wasm/pdf-client";
+import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone } from "@/scripts/tool-ui";
 import { formatBytes, progressPercent } from "@/lib/format";
 import { classifyPdfError, compressedFileName, isPdfFile, savingsPercent } from "@/tools/pdf-files";
@@ -75,7 +76,7 @@ function init() {
 
   const files: FileItem[] = [];
   let compressing = false;
-  let cancelRequested = false;
+  let job: AbortController | null = null;
 
   function showError(msg: string) {
     if (!errorBox) return;
@@ -172,14 +173,15 @@ function init() {
     if (queue.length === 0) return;
 
     clearError();
-    cancelRequested = false;
+    const ctrl = new AbortController();
+    job = ctrl;
     setBusy(true);
     const errors: string[] = [];
     let done = 0;
     setProgress(0, queue.length, queue[0]?.file.name ?? "");
 
     for (const item of queue) {
-      if (cancelRequested) break;
+      if (ctrl.signal.aborted) break;
       if (!files.includes(item)) continue;
       item.processing = true;
       item.error = null;
@@ -187,20 +189,24 @@ function init() {
       setProgress(done, queue.length, item.file.name);
       try {
         const bytes = new Uint8Array(await item.file.arrayBuffer());
-        const compressed = await compressPdf(bytes);
+        const compressed = await compressPdf(bytes, ctrl.signal);
         item.compressedSize = compressed.length;
         item.url = URL.createObjectURL(new Blob([compressed.slice()], { type: "application/pdf" }));
       } catch (e) {
+        if (e instanceof WasmError && e.code === "aborted") {
+          // Cancelled mid-file: the row goes back to "ready".
+          item.processing = false;
+          break;
+        }
         item.error = errorMessage(e, item.file.name);
         errors.push(item.error);
       }
       item.processing = false;
       done++;
       setProgress(done, queue.length, "");
-      // Yield so a Cancel click queued during the WASM call is handled.
-      await new Promise((r) => setTimeout(r, 0));
     }
 
+    job = null;
     setBusy(false);
     render();
     if (errors.length > 0) showError(errors.join("\n"));
@@ -209,8 +215,8 @@ function init() {
   bindDropzone(zone, input, addFiles);
   compress.addEventListener("click", () => void handleCompress());
   cancelBtn?.addEventListener("click", () => {
-    cancelRequested = true;
     cancelBtn.disabled = true;
+    job?.abort();
   });
 }
 

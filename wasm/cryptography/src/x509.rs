@@ -439,6 +439,149 @@ pub fn x509_parse_der(der: &[u8]) -> Result<String, JsValue> {
     Ok(cert_to_json(&cert))
 }
 
+/* ── CSR (PKCS#10) parsing ───────────────────────────────────────────── */
+
+const OID_ED25519: &str = "1.3.101.112";
+
+/// Short human label for a public key: "Ed25519", "ECDSA P-256", "RSA 2048", else the OID.
+fn spki_label(spki: &x509_parser::x509::SubjectPublicKeyInfo<'_>) -> String {
+    let oid = spki.algorithm.algorithm.to_id_string();
+    match oid.as_str() {
+        OID_ED25519 => "Ed25519".to_string(),
+        OID_ECDSA => {
+            let curve = spki
+                .algorithm
+                .parameters
+                .as_ref()
+                .and_then(|p| p.as_oid().ok())
+                .map(|o| o.to_id_string());
+            match curve.as_deref() {
+                Some(OID_SECP256R1) => "ECDSA P-256".to_string(),
+                Some(OID_SECP384R1) => "ECDSA P-384".to_string(),
+                Some(other) => format!("ECDSA ({other})"),
+                None => "ECDSA".to_string(),
+            }
+        }
+        OID_RSA_ENCRYPTION => match spki.parsed() {
+            Ok(PublicKey::RSA(rsa)) if !rsa.modulus.is_empty() => {
+                let modulus = rsa.modulus.iter().skip_while(|b| **b == 0).copied().collect::<Vec<u8>>();
+                let bits = modulus.len() as u32 * 8 - modulus.first().map_or(0, |b| b.leading_zeros());
+                format!("RSA {bits}")
+            }
+            _ => "RSA".to_string(),
+        },
+        _ => oid,
+    }
+}
+
+fn general_name_string(name: &GeneralName<'_>) -> Option<String> {
+    match name {
+        GeneralName::DNSName(n) => Some(format!("DNS:{n}")),
+        GeneralName::IPAddress(bytes) => match bytes.len() {
+            4 => <[u8; 4]>::try_from(*bytes).ok().map(|a| format!("IP:{}", IpAddr::from(a))),
+            16 => <[u8; 16]>::try_from(*bytes).ok().map(|a| format!("IP:{}", IpAddr::from(a))),
+            _ => None,
+        },
+        GeneralName::RFC822Name(n) => Some(format!("EMAIL:{n}")),
+        GeneralName::URI(n) => Some(format!("URI:{n}")),
+        _ => None,
+    }
+}
+
+/// PEM → DER for a certificate request (`CERTIFICATE REQUEST` or the older
+/// `NEW CERTIFICATE REQUEST` label).
+pub(crate) fn csr_der_from_pem(pem: &str) -> Result<Vec<u8>, String> {
+    let (_, pem) = x509_parser::pem::parse_x509_pem(pem.as_bytes()).map_err(|_| "invalid PEM".to_string())?;
+    if pem.label != "CERTIFICATE REQUEST" && pem.label != "NEW CERTIFICATE REQUEST" {
+        return Err("not a certificate request".to_string());
+    }
+    Ok(pem.contents)
+}
+
+/// Parses a PKCS#10 certificate signing request (DER) into a JSON summary:
+/// subject, public key, signature algorithm, whether the self-signature
+/// (proof of key possession) verifies, and requested extensions (SAN, key
+/// usage, extended key usage, basic constraints).
+pub(crate) fn csr_json(der: &[u8]) -> Result<String, String> {
+    use x509_parser::certification_request::X509CertificationRequest;
+    let (_, req) = X509CertificationRequest::from_der(der).map_err(|_| "invalid certificate request".to_string())?;
+    let info = &req.certification_request_info;
+
+    // null = signature algorithm not supported by the verifier (e.g. RSA-PSS).
+    let signature_valid = match req.verify_signature() {
+        Ok(()) => serde_json::Value::Bool(true),
+        Err(X509Error::SignatureUnsupportedAlgorithm) => serde_json::Value::Null,
+        Err(_) => serde_json::Value::Bool(false),
+    };
+
+    let mut sans = Vec::new();
+    let mut key_usage = serde_json::Value::Null;
+    let mut ext_key_usage = Vec::new();
+    let mut basic_constraints = serde_json::Value::Null;
+    if let Some(exts) = req.requested_extensions() {
+        for ext in exts {
+            match ext {
+                ParsedExtension::SubjectAlternativeName(san) => {
+                    sans.extend(san.general_names.iter().filter_map(general_name_string));
+                }
+                ParsedExtension::KeyUsage(ku) => key_usage = serde_json::Value::String(ku.to_string()),
+                ParsedExtension::ExtendedKeyUsage(eku) => {
+                    for (on, name) in [
+                        (eku.any, "any"),
+                        (eku.server_auth, "serverAuth"),
+                        (eku.client_auth, "clientAuth"),
+                        (eku.code_signing, "codeSigning"),
+                        (eku.email_protection, "emailProtection"),
+                        (eku.time_stamping, "timeStamping"),
+                        (eku.ocsp_signing, "OCSPSigning"),
+                    ] {
+                        if on {
+                            ext_key_usage.push(name.to_string());
+                        }
+                    }
+                    ext_key_usage.extend(eku.other.iter().map(|o| o.to_id_string()));
+                }
+                ParsedExtension::BasicConstraints(bc) => {
+                    basic_constraints = serde_json::json!({ "ca": bc.ca, "pathLen": bc.path_len_constraint });
+                }
+                _ => {}
+            }
+        }
+    }
+
+    // Fixed, reader-friendly key order (serde_json maps would sort keys).
+    let fields: [(&str, serde_json::Value); 10] = [
+        ("type", "PKCS#10 certificate request".into()),
+        ("subject", info.subject.to_string().into()),
+        ("publicKey", spki_label(&info.subject_pki).into()),
+        ("publicKeyAlgorithmOid", info.subject_pki.algorithm.algorithm.to_id_string().into()),
+        ("signatureAlgorithmOid", req.signature_algorithm.algorithm.to_id_string().into()),
+        ("signatureValid", signature_valid),
+        ("subjectAltNames", sans.into()),
+        ("keyUsage", key_usage),
+        ("extendedKeyUsage", ext_key_usage.into()),
+        ("basicConstraints", basic_constraints),
+    ];
+    let body = fields
+        .iter()
+        .map(|(k, v)| format!("{}:{}", serde_json::Value::from(*k), v))
+        .collect::<Vec<_>>()
+        .join(",");
+    Ok(format!("{{{body}}}"))
+}
+
+/// Parses a PEM certificate signing request (PKCS#10) → JSON summary.
+#[wasm_bindgen]
+pub fn x509_parse_csr_pem(pem: &str) -> Result<String, JsValue> {
+    csr_der_from_pem(pem).and_then(|der| csr_json(&der)).map_err(|e| JsValue::from_str(&e))
+}
+
+/// Parses a DER certificate signing request (PKCS#10) → JSON summary.
+#[wasm_bindgen]
+pub fn x509_parse_csr_der(der: &[u8]) -> Result<String, JsValue> {
+    csr_json(der).map_err(|e| JsValue::from_str(&e))
+}
+
 /// Returns warnings for a PEM certificate (provide current unix timestamp).
 #[wasm_bindgen]
 pub fn x509_warnings_pem(pem: &str, now_unix: i64) -> Result<Vec<String>, JsValue> {
@@ -660,5 +803,83 @@ mod tests {
         let sans: Vec<&str> = json["subjectAltNames"].as_array().unwrap().iter().map(|v| v.as_str().unwrap()).collect();
         assert_eq!(sans, vec!["DNS:der.local", "IP:10.0.0.1"]);
         assert_eq!(json["publicKeyAlgorithmOid"], "1.3.101.112"); // Ed25519
+    }
+
+    /* ── CSR parsing ── */
+
+    fn csr_value(pem: &str) -> serde_json::Value {
+        serde_json::from_str(&csr_json(&csr_der_from_pem(pem).expect("pem")).expect("csr")).expect("json")
+    }
+
+    #[test]
+    fn csr_parse_own_requests_all_algorithms() {
+        for (alg, label, oid) in [
+            (X509_ALG_ED25519, "Ed25519", "1.3.101.112"),
+            (X509_ALG_ECDSA_P256, "ECDSA P-256", "1.2.840.10045.2.1"),
+            (X509_ALG_ECDSA_P384, "ECDSA P-384", "1.2.840.10045.2.1"),
+        ] {
+            let out = csr_ex(alg, "CN=req.example, O=Org, C=de", vec!["req.example".into()], vec!["10.1.2.3".into()]).expect("csr");
+            let v = csr_value(&out[0]);
+            assert_eq!(v["publicKey"], label);
+            assert_eq!(v["publicKeyAlgorithmOid"], oid);
+            assert_eq!(v["signatureValid"], true, "{label}");
+            let subject = v["subject"].as_str().unwrap();
+            assert!(subject.contains("CN=req.example") && subject.contains("O=Org") && subject.contains("C=DE"), "{subject}");
+            let sans: Vec<&str> = v["subjectAltNames"].as_array().unwrap().iter().map(|s| s.as_str().unwrap()).collect();
+            assert_eq!(sans, vec!["DNS:req.example", "IP:10.1.2.3"]);
+        }
+    }
+
+    #[test]
+    fn csr_parse_openssl_rsa_fixture() {
+        let pem = std::fs::read_to_string("tests/fixtures/csr_rsa2048_openssl.pem").expect("fixture");
+        let v = csr_value(&pem);
+        assert_eq!(v["subject"], "C=DE, O=Example GmbH, CN=api.example.com");
+        assert_eq!(v["publicKey"], "RSA 2048");
+        assert_eq!(v["signatureAlgorithmOid"], "1.2.840.113549.1.1.11"); // sha256WithRSAEncryption
+        assert_eq!(v["signatureValid"], true);
+        let sans: Vec<&str> = v["subjectAltNames"].as_array().unwrap().iter().map(|s| s.as_str().unwrap()).collect();
+        assert_eq!(sans, vec!["DNS:api.example.com", "DNS:www.example.com", "IP:192.0.2.10", "EMAIL:ops@example.com"]);
+        assert_eq!(v["extendedKeyUsage"], serde_json::json!(["serverAuth", "clientAuth"]));
+        let ku = v["keyUsage"].as_str().unwrap();
+        assert!(ku.contains("Digital Signature") && ku.contains("Key Encipherment"), "{ku}");
+    }
+
+    #[test]
+    fn csr_parse_openssl_ed25519_der_fixture() {
+        use base64::Engine;
+        let b64 = std::fs::read_to_string("tests/fixtures/csr_ed25519_openssl.der.b64").expect("fixture");
+        let der = base64::engine::general_purpose::STANDARD.decode(b64.trim()).expect("b64");
+        let v: serde_json::Value = serde_json::from_str(&csr_json(&der).expect("csr")).expect("json");
+        assert_eq!(v["subject"], "CN=ed.example");
+        assert_eq!(v["publicKey"], "Ed25519");
+        assert_eq!(v["signatureValid"], true);
+        assert_eq!(v["subjectAltNames"], serde_json::json!([]));
+    }
+
+    #[test]
+    fn csr_tampered_signature_is_reported_invalid() {
+        let out = csr_ex(X509_ALG_ECDSA_P256, "CN=tamper.example", vec![], vec![]).expect("csr");
+        let mut der = csr_der_from_pem(&out[0]).expect("der");
+        // Flip a byte inside the subject CN ("tamper" → "uamper"): still parses, signature breaks.
+        let pos = der.windows(6).position(|w| w == b"tamper").expect("cn bytes");
+        der[pos] = b'u';
+        let raw = csr_json(&der).expect("parse");
+        assert!(raw.starts_with("{\"type\":\"PKCS#10 certificate request\",\"subject\":"), "{raw}");
+        let v: serde_json::Value = serde_json::from_str(&raw).expect("json");
+        assert_eq!(v["subject"], "CN=uamper.example");
+        assert_eq!(v["signatureValid"], false);
+    }
+
+    #[test]
+    fn csr_parse_rejects_non_requests() {
+        let cert = self_signed_ex(X509_ALG_ED25519, "CN=c", 1, NOW, vec![], vec![]).expect("cert");
+        assert_eq!(csr_der_from_pem(&cert[0]).unwrap_err(), "not a certificate request");
+        let cert_der = parse_pem_to_der(&cert[0]).expect("der");
+        assert_eq!(csr_json(&cert_der).unwrap_err(), "invalid certificate request");
+        assert_eq!(csr_json(b"garbage").unwrap_err(), "invalid certificate request");
+        let legacy_label = csr_ex(X509_ALG_ED25519, "CN=old", vec![], vec![]).expect("csr")[0]
+            .replace("CERTIFICATE REQUEST", "NEW CERTIFICATE REQUEST");
+        assert_eq!(csr_value(&legacy_label)["subject"], "CN=old");
     }
 }

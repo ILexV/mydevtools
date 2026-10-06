@@ -38,8 +38,8 @@ Run from the repository root (npm workspaces).
 
 ```bash
 npm install                                  # all workspaces
-npm run build:wasm                           # wasm/build.ps1 → apps/site/src/generated/wasm (10 default domains)
-pwsh wasm/build.ps1 -Configuration Release -WasmOutRoot apps/site/src/generated/wasm -Domains ipcalc   # ipcalc is not in the default list
+npm run build:wasm                           # wasm/build.ps1 → apps/site/src/generated/wasm (all 11 domains)
+pwsh -Command './wasm/build.ps1 -Configuration Release -WasmOutRoot apps/site/src/generated/wasm -Domains ipcalc'   # one domain
 
 npm run dev -w @mydevtools/site              # http://localhost:3312/mydevtools/
 npm run check:site                           # astro check
@@ -67,7 +67,7 @@ cargo test --workspace --manifest-path wasm/Cargo.toml
 - Strings reach client code via the JSON island in the `.astro` shell, not via runtime fetches. Do not add tool text outside locale JSON.
 - Browser code: bind once per root (guard), cache lazy import promises, keep user data in the browser, surface localized errors, treat `AbortError` separately, use workers + chunking + progress + `AbortController` for large files. No SharedArrayBuffer.
 - Privacy: do not persist tool input (json/xml beautifiers deliberately don't); store only explicit user settings.
-- Tool UI: build tools from the shared layer — `src/styles/tool-ui.css` (`ds-*` classes), `src/components/tool/{Field,FileButton,FileDrop,Progress,OutputPanel,StatusMessage}.astro`, `src/scripts/tool-ui.ts` (`copyWithFeedback`, `bindDropzone`), editors themed by `src/styles/codemirror.css`. Catalog, mapping and rules: `docs/qa/tool-ui-kit.md`. Don't re-declare buttons/fields/file/progress styles locally; style controller-created DOM with `ds-*` classes (Astro scoped CSS doesn't reach it); toggle visibility with `el.hidden` (global `[hidden]` wins); runtime states are `is-*`.
+- Tool UI: build tools from the shared layer — `src/styles/tool-ui.css` (`ds-*` classes), `src/components/tool/{Field,FileButton,FileDrop,Progress,OutputPanel,StatusMessage}.astro`, `src/scripts/tool-ui.ts` (`copyWithFeedback`, `bindDropzone`), code editors are CodeMirror 6 (npm `@codemirror/*`), lazy-loaded via `src/scripts/codemirror-loader.ts` → `codemirror-kit.ts` only on editor pages and themed by `src/styles/codemirror.css`. Catalog, mapping and rules: `docs/qa/tool-ui-kit.md`. Don't re-declare buttons/fields/file/progress styles locally; style controller-created DOM with `ds-*` classes (Astro scoped CSS doesn't reach it); toggle visibility with `el.hidden` (global `[hidden]` wins); runtime states are `is-*`.
 - Styling: use Prism tokens (`--mdt-*`) and `ds-*` classes; keep only layout-specific CSS in scoped `<style>` blocks; tool pages scope the category accent via `--mdt-cat`. Only Baseline CSS (browserslist: `defaults, supports es6-module, supports wasm`).
 - Rust boundaries validate input and return `Result<_, JsValue>`. Do not hand-edit wasm-bindgen output.
 - Make surgical changes and follow a neighboring tool. Comments in English.

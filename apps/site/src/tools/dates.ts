@@ -94,7 +94,8 @@ export function format(date: Date, fmt: OutputFormat, custom?: string, locale?: 
         return date.toString();
       }
     case "rfc":
-      return date.toUTCString();
+      // RFC 5322 §3.3: numeric zone; "GMT" is obsolete syntax that must not be generated.
+      return date.toUTCString().replace(/GMT$/, "+0000");
     case "unix-sec":
       return Math.floor(date.getTime() / 1000).toString();
     case "unix-ms":

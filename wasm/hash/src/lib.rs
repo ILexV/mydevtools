@@ -21,8 +21,15 @@ fn u64_to_bytes_le(v: u64) -> [u8; 8] {
     v.to_le_bytes()
 }
 
-fn u32_to_bytes_le(v: u32) -> [u8; 4] {
-    v.to_le_bytes()
+// Integer checksums (CRC32, Adler-32, xxHash, FNV-1a, …) are conventionally shown
+// as the number in hex — what `crc32`, `xxhsum`, zlib and most tools print — i.e.
+// big-endian bytes. CRC32("hello") must read 3610a686, not 86a61036.
+fn u64_to_bytes_be(v: u64) -> [u8; 8] {
+    v.to_be_bytes()
+}
+
+fn u32_to_bytes_be(v: u32) -> [u8; 4] {
+    v.to_be_bytes()
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -293,19 +300,19 @@ impl HasherImpl {
             Self::Ripemd128(h) => h.finalize().to_vec(),
             Self::Ripemd256(h) => h.finalize().to_vec(),
             Self::Ripemd320(h) => h.finalize().to_vec(),
-            Self::Xxh32(h) => u32_to_bytes_le(h.digest()).to_vec(),
-            Self::Xxh64(h) => u64_to_bytes_le(h.finish()).to_vec(),
-            Self::Xxh3_64(h) => u64_to_bytes_le(h.finish()).to_vec(),
-            Self::FxHash64(h) => u64_to_bytes_le(h.finish()).to_vec(),
-            Self::Fnv1a64(h) => u64_to_bytes_le(h.finish()).to_vec(),
-            Self::SeaHash64(h) => u64_to_bytes_le(h.finish()).to_vec(),
-            Self::Crc32(h) => u32_to_bytes_le(h.finalize()).to_vec(),
-            Self::Adler32(h) => u32_to_bytes_le(h.checksum()).to_vec(),
+            Self::Xxh32(h) => u32_to_bytes_be(h.digest()).to_vec(),
+            Self::Xxh64(h) => u64_to_bytes_be(h.finish()).to_vec(),
+            Self::Xxh3_64(h) => u64_to_bytes_be(h.finish()).to_vec(),
+            Self::FxHash64(h) => u64_to_bytes_be(h.finish()).to_vec(),
+            Self::Fnv1a64(h) => u64_to_bytes_be(h.finish()).to_vec(),
+            Self::SeaHash64(h) => u64_to_bytes_be(h.finish()).to_vec(),
+            Self::Crc32(h) => u32_to_bytes_be(h.finalize()).to_vec(),
+            Self::Adler32(h) => u32_to_bytes_be(h.checksum()).to_vec(),
             Self::SipHash13(h) => u64_to_bytes_le(h.finish()).to_vec(),
             Self::SipHash24(h) => u64_to_bytes_le(h.finish()).to_vec(),
             Self::HighwayHash64(h) => {
                 use highway::HighwayHash;
-                u64_to_bytes_le(h.finalize64()).to_vec()
+                u64_to_bytes_be(h.finalize64()).to_vec()
             }
             Self::MetroHash64(h) => u64_to_bytes_le(h.finish()).to_vec(),
         }
@@ -526,6 +533,18 @@ mod tests {
     }
 
     #[test]
+    fn integer_checksums_use_conventional_big_endian_hex() {
+        // Values as printed by zlib/`crc32`, `xxhsum`, and the FNV reference.
+        assert_eq!(hash_bytes("crc32", b"hello").unwrap(), "3610a686");
+        assert_eq!(hash_bytes("crc32", b"123456789").unwrap(), "cbf43926");
+        assert_eq!(hash_bytes("adler32", b"Wikipedia").unwrap(), "11e60398");
+        assert_eq!(hash_bytes("xxh32", b"").unwrap(), "02cc5d05");
+        assert_eq!(hash_bytes("xxh64", b"").unwrap(), "ef46db3751d8e999");
+        assert_eq!(hash_bytes("xxh3", b"").unwrap(), "2d06800538d394c2");
+        assert_eq!(hash_bytes("fnv1a64", b"a").unwrap(), "af63dc4c8601ec8c");
+    }
+
+    #[test]
     fn other_algorithms_match_reference() {
         let input = b"abc";
 
@@ -620,41 +639,41 @@ mod tests {
         assert_eq!(hash_bytes("ripemd-320", input).unwrap(), expected_ripemd320);
 
         // xxh32 (little-endian bytes in our wasm API)
-        let expected_xxh32 = to_hex_lower(&xxhash_rust::xxh32::xxh32(input, 0).to_le_bytes());
+        let expected_xxh32 = to_hex_lower(&xxhash_rust::xxh32::xxh32(input, 0).to_be_bytes());
         assert_eq!(hash_bytes("xxh32", input).unwrap(), expected_xxh32);
 
         // xxh64 (little-endian bytes in our wasm API)
-        let expected_xxh64 = to_hex_lower(&xxhash_rust::xxh64::xxh64(input, 0).to_le_bytes());
+        let expected_xxh64 = to_hex_lower(&xxhash_rust::xxh64::xxh64(input, 0).to_be_bytes());
         assert_eq!(hash_bytes("xxh64", input).unwrap(), expected_xxh64);
 
         // xxh3-64 (little-endian bytes in our wasm API)
-        let expected_xxh3 = to_hex_lower(&xxhash_rust::xxh3::xxh3_64(input).to_le_bytes());
+        let expected_xxh3 = to_hex_lower(&xxhash_rust::xxh3::xxh3_64(input).to_be_bytes());
         assert_eq!(hash_bytes("xxh3-64", input).unwrap(), expected_xxh3);
 
         // fxhash64
         let mut fx = rustc_hash::FxHasher::default();
         fx.write(input);
-        let expected_fx = to_hex_lower(&fx.finish().to_le_bytes());
+        let expected_fx = to_hex_lower(&fx.finish().to_be_bytes());
         assert_eq!(hash_bytes("fxhash64", input).unwrap(), expected_fx);
 
         // fnv1a64
         let mut fnv = fnv::FnvHasher::default();
         fnv.write(input);
-        let expected_fnv = to_hex_lower(&fnv.finish().to_le_bytes());
+        let expected_fnv = to_hex_lower(&fnv.finish().to_be_bytes());
         assert_eq!(hash_bytes("fnv1a64", input).unwrap(), expected_fnv);
 
         // seahash64
         let mut sea = seahash::SeaHasher::new();
         sea.write(input);
-        let expected_sea = to_hex_lower(&sea.finish().to_le_bytes());
+        let expected_sea = to_hex_lower(&sea.finish().to_be_bytes());
         assert_eq!(hash_bytes("seahash64", input).unwrap(), expected_sea);
 
         // crc32 (little-endian bytes in our wasm API)
-        let expected_crc32 = to_hex_lower(&crc32fast::hash(input).to_le_bytes());
+        let expected_crc32 = to_hex_lower(&crc32fast::hash(input).to_be_bytes());
         assert_eq!(hash_bytes("crc32", input).unwrap(), expected_crc32);
 
         // adler32 (little-endian bytes in our wasm API)
-        let expected_adler32 = to_hex_lower(&adler::adler32_slice(input).to_le_bytes());
+        let expected_adler32 = to_hex_lower(&adler::adler32_slice(input).to_be_bytes());
         assert_eq!(hash_bytes("adler32", input).unwrap(), expected_adler32);
 
         // siphash-1-3 (k0=k1=0)
@@ -674,7 +693,7 @@ mod tests {
         let mut highway_hasher = highway::HighwayHasher::new(key);
         use highway::HighwayHash;
         highway_hasher.append(input);
-        let expected_highway64 = to_hex_lower(&highway_hasher.finalize64().to_le_bytes());
+        let expected_highway64 = to_hex_lower(&highway_hasher.finalize64().to_be_bytes());
         assert_eq!(hash_bytes("highwayhash64", input).unwrap(), expected_highway64);
 
         // metrohash64
@@ -688,16 +707,16 @@ mod tests {
     fn crc32_known_vector_123456789() {
         // CRC-32/ISO-HDLC (aka "CRC-32" / IEEE 802.3)
         // CRC32("123456789") = 0xCBF43926
-        assert_eq!(hash_text_utf8("crc32", "123456789").unwrap(), "2639f4cb");
+        assert_eq!(hash_text_utf8("crc32", "123456789").unwrap(), "cbf43926");
     }
 
     #[test]
     fn adler32_known_vectors() {
         // Adler32("") = 1
-        assert_eq!(hash_text_utf8("adler32", "").unwrap(), "01000000");
+        assert_eq!(hash_text_utf8("adler32", "").unwrap(), "00000001");
 
         // Adler32("Wikipedia") = 0x11E60398
-        assert_eq!(hash_text_utf8("adler32", "Wikipedia").unwrap(), "9803e611");
+        assert_eq!(hash_text_utf8("adler32", "Wikipedia").unwrap(), "11e60398");
     }
 
     #[test]

@@ -94,3 +94,31 @@ test("timeClaims: expired exp, future nbf, iat never flagged; junk ignored", () 
   assert.deepEqual(timeClaims('"string payload"', now), []);
   assert.deepEqual(timeClaims("not json", now), []);
 });
+
+test("decodeJwt: keeps the token's claim order and pretty-prints (no alphabetical sort)", async () => {
+  const { decodeJwt, base64UrlEncode } = await import("../src/tools/jwt.ts");
+  const h = base64UrlEncode('{"typ":"JWT","alg":"HS256","kid":"k1"}');
+  const p = base64UrlEncode('{"sub":"42","name":"Анна 👋","2":true,"1":[],"big":12345678901234567890,"f":1.10,"n":{"z":1,"a":"x\\"y,{"}}');
+  const r = decodeJwt(`${h}.${p}.sig`);
+  assert.ok(r.ok);
+  if (!r.ok) return;
+  assert.equal(r.header, '{\n  "typ": "JWT",\n  "alg": "HS256",\n  "kid": "k1"\n}');
+  assert.equal(
+    r.payload,
+    '{\n  "sub": "42",\n  "name": "Анна 👋",\n  "2": true,\n  "1": [],\n  "big": 12345678901234567890,\n  "f": 1.10,\n  "n": {\n    "z": 1,\n    "a": "x\\"y,{"\n  }\n}',
+  );
+  assert.deepEqual(JSON.parse(r.payload), JSON.parse('{"sub":"42","name":"Анна 👋","2":true,"1":[],"big":12345678901234567890,"f":1.10,"n":{"z":1,"a":"x\\"y,{"}}'));
+});
+
+test("decodeJwt: errors and non-JSON segments match the legacy WASM contract", async () => {
+  const { decodeJwt, base64UrlEncode } = await import("../src/tools/jwt.ts");
+  assert.deepEqual(decodeJwt("abc"), { ok: false, error: "Invalid JWT format" });
+  assert.equal(decodeJwt("a+b.c").ok, false); // '+' is not base64url
+  assert.equal(decodeJwt("eyJ=.e30").ok, false); // padding rejected (URL_SAFE_NO_PAD)
+  assert.equal(decodeJwt("_w.e30").ok, false); // 0xFF → invalid UTF-8
+  const r = decodeJwt(`${base64UrlEncode('{"alg":"none"}')}.${base64UrlEncode("hello")}.`);
+  assert.deepEqual(r, { ok: true, header: '{\n  "alg": "none"\n}', payload: '"hello"' });
+  // jwt.io sample, two-part token (no signature) still decodes.
+  const io = decodeJwt("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ");
+  assert.ok(io.ok && io.header === '{\n  "alg": "HS256",\n  "typ": "JWT"\n}' && io.payload.startsWith('{\n  "sub"'));
+});

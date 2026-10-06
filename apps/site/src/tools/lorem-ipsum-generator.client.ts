@@ -6,6 +6,7 @@
  */
 import { generateLorem, clampCount, type LoremFormat, type LoremType } from "@/tools/lorem-ipsum";
 import { copyWithFeedback } from "@/scripts/tool-ui";
+import { formatPlural } from "@/lib/format";
 
 interface Strings {
   generateTypeLabel: string;
@@ -22,6 +23,10 @@ interface Strings {
   copied: string;
   copyFailed: string;
   lang: string;
+  wordsStat: string;
+  characters: string;
+  /** Optional plural variants (`wordsStat_one`, `characters_few`, …). */
+  [key: string]: string;
 }
 
 function readStrings(): Strings | null {
@@ -50,6 +55,8 @@ function init(): void {
   const outputEl = root.querySelector<HTMLTextAreaElement>("[data-li-output]");
   const wordsEl = root.querySelector<HTMLElement>("[data-li-words]");
   const charsEl = root.querySelector<HTMLElement>("[data-li-chars]");
+  const wordsLabelEl = root.querySelector<HTMLElement>("[data-li-words-label]");
+  const charsLabelEl = root.querySelector<HTMLElement>("[data-li-chars-label]");
   const generateBtn = root.querySelector<HTMLButtonElement>("[data-li-generate]");
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-li-copy]");
   const downloadBtn = root.querySelector<HTMLButtonElement>("[data-li-download]");
@@ -69,6 +76,8 @@ function init(): void {
   }
 
   function generate(): void {
+    // <p> wrapping only applies to HTML paragraphs — grey the toggle out otherwise.
+    if (wrapEl) wrapEl.disabled = !(format.value === "html" && type.value === "paragraphs");
     const result = generateLorem({
       type: type.value as LoremType,
       count: count.value.trim() === "" ? NaN : Number(count.value),
@@ -79,6 +88,9 @@ function init(): void {
     output.value = result.text;
     if (wordsEl) wordsEl.textContent = nf.format(result.words);
     if (charsEl) charsEl.textContent = nf.format(result.chars);
+    // "1 слово / 3 слова / 5 слов": label follows the locale's plural category.
+    if (wordsLabelEl) wordsLabelEl.textContent = formatPlural(strings, "wordsStat", result.words, strings.lang);
+    if (charsLabelEl) charsLabelEl.textContent = formatPlural(strings, "characters", result.chars, strings.lang);
   }
 
   generateBtn?.addEventListener("click", generate);

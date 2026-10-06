@@ -1,7 +1,8 @@
 ---
 /**
- * JWT Decoder (cryptography WASM domain). Paste a token → live-decodes header
- * and payload as pretty JSON, shows the algorithm badge and the exp/nbf/iat
+ * JWT Decoder. Paste a token → live-decodes header and payload as pretty JSON
+ * in TS, keeping the token's claim order (`decodeJwt`); signature check runs in
+ * the cryptography WASM. Also shows the algorithm badge and the exp/nbf/iat
  * time claims (expired / not-yet-valid flagged), and verifies the signature
  * against an optional secret or RSA public key (alg from the header:
  * HS256/384/512, RS256/384/512). `alg: none` is reported as unsigned, never

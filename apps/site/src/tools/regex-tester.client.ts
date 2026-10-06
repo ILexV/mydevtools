@@ -10,6 +10,7 @@
  */
 import { regexTest } from "@/scripts/wasm/regex-client";
 import {
+  applyGlobalFlag,
   buildHighlightHtml,
   buildRustPattern,
   escapeHtml,
@@ -225,9 +226,11 @@ function init(): void {
         return;
       }
 
-      backdrop.innerHTML = buildHighlightHtml(textValue, result.matches);
+      const global = activeFlags.includes("g");
+      const matches = applyGlobalFlag(result.matches, global);
+      backdrop.innerHTML = buildHighlightHtml(textValue, matches);
       syncScroll();
-      renderMatchDetails(result.matches, result.truncated === true);
+      renderMatchDetails(matches, global && result.truncated === true);
     } catch (err) {
       if (seq !== runSeq) return;
       const message = err instanceof Error ? err.message : String(err);

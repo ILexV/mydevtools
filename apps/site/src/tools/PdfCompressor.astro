@@ -8,7 +8,8 @@
  * rejected with a localized message; corrupted / password-protected PDFs
  * get a per-row error badge and a localized message, the batch continues.
  * UI: tool UI kit (FileDrop + ds-file-list rows built by the controller,
- * Progress with cancel between files, StatusMessage).
+ * Progress with cancel that aborts the current file in the pdf worker,
+ * StatusMessage).
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";

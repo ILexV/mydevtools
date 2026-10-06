@@ -230,7 +230,7 @@
 - [x] `hex-encoder` → encoding WASM, 0x/separators/whitespace; проверен
 - [x] `url-encoder` → encoding WASM, component/uri/form; round-trip по всем charset; проверен
 - [x] `html-entity-encoder` → pure JS (36 round-trips parity), 3 режима × 3 формата; проверен
-- [x] `json-beautifier` → CodeMirror 5 (vendored loader), format/sort/minify 2/4/tab, open/save/drag-drop; input-persistence НЕ перенесена (privacy); проверен
+- [x] `json-beautifier` → CodeMirror 5 (vendored loader; заменён на CodeMirror 6 из npm 2026-10-06, см. docs/qa/reports/fix-structured.md), format/sort/minify 2/4/tab, open/save/drag-drop; input-persistence НЕ перенесена (privacy); проверен
 - [x] `json-to-typescript` → CodeMirror ×2, type inference (interfaces/arrays/optional), опции root/export/optional/type; проверен
 - [x] `xml-beautifier` → CodeMirror, format/minify/validate, open/save; input-persistence НЕ перенесена (privacy); проверен
 - [x] `yaml-beautifier-validator` → structured_data WASM format/validate, valid-badge, mode:'yaml' parity; проверен

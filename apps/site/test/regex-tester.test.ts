@@ -74,3 +74,11 @@ test("truncateText: cuts by code points (no broken surrogate pairs)", () => {
   assert.equal(truncateText("😀😀😀", 2), "😀😀…");
   assert.equal(truncateText("x".repeat(150)).length, 101);
 });
+
+test("applyGlobalFlag: without g only the first match is kept", async () => {
+  const { applyGlobalFlag } = await import("../src/tools/regex-tester-core.ts");
+  const m = [{ start: 0, end: 1 }, { start: 2, end: 3 }];
+  assert.deepEqual(applyGlobalFlag(m, true), m);
+  assert.deepEqual(applyGlobalFlag(m, false), [{ start: 0, end: 1 }]);
+  assert.deepEqual(applyGlobalFlag([], false), []);
+});

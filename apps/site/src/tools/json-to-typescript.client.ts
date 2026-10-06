@@ -1,17 +1,11 @@
 /**
- * JSON to TypeScript client: dual CodeMirror 5 editors (JSON input, read-only
- * TS output) via the shared loader; conversion by `jsonToTypeScript`
+ * JSON to TypeScript client: dual CodeMirror 6 editors (JSON input, read-only
+ * TS output) via the lazy editor kit; conversion by `jsonToTypeScript`
  * (`json-to-typescript.ts`). Live conversion on input (debounced) and on
  * option change; copy, download (`types.ts`), clear; localized invalid-JSON
  * error with the parser detail; Esc→Tab leaves the editors.
  */
-import {
-  downloadText,
-  ensureCodeMirror,
-  getCodeMirror,
-  makeEditorAccessible,
-  refreshOnThemeChange,
-} from "@/scripts/codemirror-loader";
+import { downloadText, loadEditorKit, type MdtEditor } from "@/scripts/codemirror-loader";
 import { copyWithFeedback } from "@/scripts/tool-ui";
 import { jsonToTypeScript, type ConvertOptions } from "@/tools/json-to-typescript";
 
@@ -20,6 +14,7 @@ interface Strings {
   copied: string;
   inputLabel: string;
   outputLabel: string;
+  phrases?: Record<string, string>;
 }
 
 const LIVE_DELAY_MS = 250;
@@ -55,39 +50,32 @@ async function init() {
   const useTypeChk = root.querySelector<HTMLInputElement>("[data-jts-use-type]");
   const errorBox = root.querySelector<HTMLElement>("[data-jts-error]");
 
+  let inputEditor: MdtEditor;
+  let outputEditor: MdtEditor;
   try {
-    await ensureCodeMirror();
+    const kit = await loadEditorKit();
+    [inputEditor, outputEditor] = await Promise.all([
+      kit.createEditor(inputEl, {
+        language: "json",
+        label: strings.inputLabel,
+        phrases: strings.phrases,
+        hintId: "jts-editor-hint",
+        indent: 2,
+        onSubmit: () => doConvert(),
+        onChange: () => scheduleConvert(),
+      }),
+      kit.createEditor(outputEl, {
+        language: "typescript",
+        label: strings.outputLabel,
+        phrases: strings.phrases,
+        hintId: "jts-editor-hint",
+        readOnly: true,
+      }),
+    ]);
   } catch (err) {
-    console.error("JSON to TypeScript: failed to load CodeMirror", err);
+    console.error("JSON to TypeScript: failed to load the editor", err);
     return;
   }
-  const CodeMirror = getCodeMirror();
-  if (!CodeMirror) return;
-
-  const inputEditor = CodeMirror(inputEl, {
-    mode: { name: "javascript", json: true },
-    lineNumbers: true,
-    lineWrapping: true,
-    autoCloseBrackets: true,
-    matchBrackets: true,
-    indentUnit: 2,
-    tabSize: 2,
-    theme: "default",
-    foldGutter: true,
-    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-  });
-  const outputEditor = CodeMirror(outputEl, {
-    mode: { name: "javascript", typescript: true },
-    lineNumbers: true,
-    lineWrapping: true,
-    readOnly: true,
-    theme: "default",
-    foldGutter: true,
-    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-  });
-  makeEditorAccessible(inputEditor, strings.inputLabel, "jts-editor-hint");
-  makeEditorAccessible(outputEditor, strings.outputLabel, "jts-editor-hint");
-  refreshOnThemeChange([inputEditor, outputEditor]);
 
   function getOpts(): ConvertOptions {
     return {
@@ -123,10 +111,10 @@ async function init() {
       setError(strings.errorInvalidJson + (e instanceof Error && e.message ? ` (${e.message})` : ""));
     }
   }
-  const scheduleConvert = () => {
+  function scheduleConvert() {
     window.clearTimeout(liveTimer);
     liveTimer = window.setTimeout(doConvert, LIVE_DELAY_MS);
-  };
+  }
 
   convertBtn.addEventListener("click", doConvert);
   copyBtn?.addEventListener("click", () => {
@@ -144,7 +132,6 @@ async function init() {
     if (text) downloadText(text, "types.ts", "text/plain");
   });
 
-  inputEditor.on("change", scheduleConvert);
   for (const el of [exportChk, optionalChk, useTypeChk]) el?.addEventListener("change", doConvert);
   rootNameInput?.addEventListener("input", scheduleConvert);
 }

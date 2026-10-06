@@ -2,7 +2,9 @@
  * Image Converter client controller. Image picked via the drop zone
  * (`bindDropzone`); converted by the image-tools WASM worker (`convertImage`,
  * cancellable via AbortController). Quality slider (1-100, default 90) is
- * only shown for lossy targets (jpeg/webp — legacy parity). Result is
+ * only shown for lossy targets (jpeg/webp — legacy parity). WebP uses the
+ * browser's lossy encoder; without one the worker falls back to lossless
+ * WASM WebP and a note says quality wasn't applied. Result is
  * previewed with its byte size (formats the browser can't display, e.g.
  * TIFF/TGA, hide the preview) and downloaded under the original name with the
  * new extension (jpeg → jpg).
@@ -19,6 +21,7 @@ interface Strings {
   errorNotImage: string;
   errorUnsupported: string;
   errorConversion: string;
+  webpLosslessNote: string;
 }
 
 function readStrings(): Strings | null {
@@ -59,6 +62,7 @@ function init() {
   const output = q<HTMLImageElement>("[data-imgv-output]");
   const outputSizeEl = q<HTMLElement>("[data-imgv-output-size]");
   const downloadBtn = q<HTMLButtonElement>("[data-imgv-download]");
+  const webpNote = q<HTMLElement>("[data-imgv-webp-note]");
   if (
     !zone || !input || !selectedEl || !preview || !qualityRange || !formatSel ||
     !actionBtn || !progressEl || !errorBox || !resultEl || !output || !downloadBtn
@@ -82,6 +86,7 @@ function init() {
 
   function hideResult() {
     resultEl!.hidden = true;
+    if (webpNote) webpNote.hidden = true;
     if (resultUrl) URL.revokeObjectURL(resultUrl);
     resultUrl = null;
     resultName = null;
@@ -145,8 +150,10 @@ function init() {
   async function handleConvert() {
     if (!currentFile || job) return;
     const file = currentFile;
-    const quality = Number.parseInt(qualityRange!.value || "90", 10);
     const targetFormat = formatSel!.value;
+    // The slider is only shown for jpeg/webp; a value left below 90 from an
+    // earlier jpeg run must not silently palette-quantize "PNG (Lossless)".
+    const quality = targetFormat === "jpeg" || targetFormat === "webp" ? Number.parseInt(qualityRange!.value || "90", 10) : 100;
 
     clearError();
     hideResult();
@@ -155,7 +162,7 @@ function init() {
     setBusy(true);
     try {
       const bytes = new Uint8Array(await file.arrayBuffer());
-      const resultBytes = await convertImage(bytes, targetFormat, quality, ctrl.signal);
+      const { bytes: resultBytes, webpLossy } = await convertImage(bytes, targetFormat, quality, ctrl.signal);
       if (ctrl.signal.aborted || currentFile !== file) return;
 
       const blob = new Blob([resultBytes as BlobPart], { type: mimeFor(targetFormat) });
@@ -163,6 +170,7 @@ function init() {
       if (outputWrap) outputWrap.hidden = false;
       output!.src = resultUrl;
       if (outputSizeEl) outputSizeEl.textContent = formatBytes(blob.size, 2);
+      if (webpNote) webpNote.hidden = !(targetFormat === "webp" && !webpLossy);
       resultName = convertedName(file.name, targetFormat);
       resultEl!.hidden = false;
     } catch (e) {

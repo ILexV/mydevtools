@@ -2,12 +2,13 @@
  * Cron core shared by cron-parser and cron-generator: strict 5-field cron
  * parsing/validation (ranges, steps, lists, JAN-DEC / SUN-SAT names, `L` last
  * day of month, `?`, weekday 7 = Sunday, @presets), human-readable schedule
- * description (localized building blocks, ru plural forms), next-run
+ * description (localized templates, Intl.PluralRules plural/ordinal forms,
+ * Intl.ListFormat lists, clock times, workdays/weekends), next-run
  * calculation (day-by-day scan, Vixie cron day-of-month OR day-of-week rule)
  * and next-run date formatting. Pure module — no DOM; unit-tested in
  * `test/cron-core.test.ts`.
  */
-import { formatPlural, formatString } from "../lib/format.ts";
+import { formatPlural, formatString, pluralSuffix } from "../lib/format.ts";
 
 /** Field order of a 5-field expression. */
 export const CRON_FIELDS = ["minute", "hour", "day", "month", "weekday"] as const;
@@ -219,7 +220,12 @@ export function cronNextRuns(schedule: CronSchedule, from: Date, count: number, 
   return runs;
 }
 
-/** Localized description building blocks (+ optional `<key>_<one|few|many|other>` plural variants). */
+/**
+ * Localized description templates (camelCased locale keys; `<key>_<category>`
+ * plural variants come from `pluralVariants()`). Placeholders: `{0}`, `{1}`, ….
+ * Lists are joined with `Intl.ListFormat`, counts pick a form via
+ * `Intl.PluralRules`, day numbers via ordinal PluralRules (`scheduleDayOrdinal_one` …).
+ */
 export interface CronStrings {
   lang: string;
   scheduleReboot: string;
@@ -228,25 +234,57 @@ export interface CronStrings {
   scheduleWeekly: string;
   scheduleDaily: string;
   scheduleHourly: string;
+  /** "every minute" */
   scheduleEveryMinute: string;
+  /** "every {0} minutes" (plural on {0}) */
   scheduleEveryNMinutes: string;
+  /** "at minute {0}" (plural on {0}) */
   scheduleAtMinute: string;
+  /** "at minutes {0}" (list; plural on the last number) */
   scheduleAtMinutes: string;
-  scheduleEveryHour: string;
-  scheduleEveryNHours: string;
-  scheduleAtHour: string;
-  scheduleAtHours: string;
-  scheduleEveryDay: string;
+  /** "every hour at minute {0}" (plural on {0}) */
+  scheduleHourlyAtMinute: string;
+  /** "every hour at minutes {0}" (list; plural on the last number) */
+  scheduleHourlyAtMinutes: string;
+  /** "every hour on the hour" (`0 * * * *`) */
+  scheduleHourlyOnTheHour: string;
+  /** "every hour from {0} to {1}" (times) */
+  scheduleHourlyBetween: string;
+  /** "every {0} hours starting at {1}" (plural on {0}) */
+  scheduleEveryNHoursFrom: string;
+  /** "{0} from {1} to {2}" — minute phrase inside an hour window */
+  scheduleWindow: string;
+  /** "{0} during hours {1}" — minute phrase + hour list */
+  scheduleDuringHours: string;
+  /** "at {0}" (list of HH:MM) */
+  scheduleAtTimes: string;
+  /** "every day at {0}" (list of HH:MM) */
+  scheduleDailyAt: string;
+  /** "on the {0} of the month" (list of ordinal days) */
   scheduleOnDay: string;
-  scheduleOnDays: string;
+  /** Run of days "{0}–{1}" (ru «с {0} по {1}»). */
+  scheduleDayRange?: string;
+  /** Ordinal day number "{0}th" (+ `_one`/`_two`/`_few`… ordinal variants). */
+  scheduleDayOrdinal: string;
   scheduleLastDay: string;
-  scheduleOnWeekday: string;
+  /** "on {0}" (list of `weekdaysLong`) */
   scheduleOnWeekdays: string;
-  scheduleInMonth: string;
+  /** Monday–Friday */
+  scheduleWorkdays: string;
+  /** Saturday + Sunday */
+  scheduleWeekends: string;
+  /** "in {0}" (list of `monthsLong`) */
   scheduleInMonths: string;
+  /** "{0} or {1}" — day-of-month OR weekday (Vixie rule) */
   scheduleDayOrWeekday: string;
+  /** Sentence order "{0} {1} {2}" = time, days, months. */
+  scheduleSentence: string;
+  /** Short names (aliases accepted in input). */
   months: string[];
   weekdays: string[];
+  /** Names in the grammatical form the templates need (ru: «в январе», «по понедельникам»). */
+  monthsLong: string[];
+  weekdaysLong: string[];
   [plural: string]: unknown;
 }
 
@@ -261,15 +299,105 @@ const PRESET_DESCRIPTION: Record<string, keyof CronStrings> = {
   "@reboot": "scheduleReboot",
 };
 
-function listPreview(values: Array<string | number>): string {
-  return values.slice(0, 5).join(", ") + (values.length > 5 ? "..." : "");
+/** Max explicit times ("at 09:00, 13:00 and 17:00") before switching to a window/list phrase. */
+const MAX_TIMES = 6;
+
+const listFormatCache = new Map<string, Intl.ListFormat>();
+function joinList(lang: string, items: string[]): string {
+  let lf = listFormatCache.get(lang);
+  if (!lf) {
+    lf = new Intl.ListFormat(lang, { type: "conjunction", style: "long" });
+    listFormatCache.set(lang, lf);
+  }
+  return lf.format(items);
 }
 
-// `*` or `*/1` → every unit; `*/n` → every n units; otherwise null.
+/** Collapse consecutive numbers into runs: [1,2,3,5] → [[1,3],[5,5]]. */
+function runs(values: number[]): Array<[number, number]> {
+  const out: Array<[number, number]> = [];
+  for (const v of values) {
+    const last = out.at(-1);
+    if (last && v === last[1] + 1) last[1] = v;
+    else out.push([v, v]);
+  }
+  return out;
+}
+
+/** Numbers as list items; runs of 3+ become "a–b" (or `rangeTpl` "{0}…{1}"). */
+function runItems(values: number[], fmt: (n: number) => string = String, rangeTpl = "{0}–{1}"): string[] {
+  return runs(values).flatMap(([a, b]) =>
+    b - a >= 2 ? [formatString(rangeTpl, fmt(a), fmt(b))] : a === b ? [fmt(a)] : [fmt(a), fmt(b)],
+  );
+}
+
+/** Template picked by the plural form of `n`, filled with `values` (not `n`) — for list phrases. */
+function pluralList(str: CronStrings, key: string, n: number, ...values: string[]): string {
+  const raw = str[`${key}_${pluralSuffix(str.lang, n)}`] ?? str[key];
+  return formatString(typeof raw === "string" ? raw : key, ...values);
+}
+
+const pad2 = (n: number) => String(n).padStart(2, "0");
+const hhmm = (h: number, m: number) => `${pad2(h)}:${pad2(m)}`;
+
+// `*` / `?` / `*/1` → every unit; `*/n` → every n units; otherwise null.
 function everyStep(raw: string): number | null {
-  if (raw === "*") return 1;
+  if (raw === "*" || raw === "?") return 1;
   const m = raw.match(/^\*\/(\d+)$/);
   return m ? Number(m[1]) : null;
+}
+
+const ordinalRulesCache = new Map<string, Intl.PluralRules>();
+function dayOrdinal(str: CronStrings, n: number): string {
+  let pr = ordinalRulesCache.get(str.lang);
+  if (!pr) {
+    pr = new Intl.PluralRules(str.lang, { type: "ordinal" });
+    ordinalRulesCache.set(str.lang, pr);
+  }
+  const raw = str[`scheduleDayOrdinal_${pr.select(n)}`] ?? str.scheduleDayOrdinal;
+  return formatString(typeof raw === "string" ? raw : "{0}", n);
+}
+
+/** Time-of-day clause from the minute and hour fields. */
+function describeTime(str: CronStrings, s: CronSchedule, minuteRaw: string, hourRaw: string, allDays: boolean): string {
+  const lang = str.lang;
+  const mins = s.minute.values;
+  const hours = s.hour.values;
+  const minuteStep = everyStep(minuteRaw);
+  const hourStep = everyStep(hourRaw);
+  const lastMinute = mins[mins.length - 1];
+
+  // Single minute + a handful of hours → explicit clock times.
+  if (mins.length === 1 && hourStep === null && hours.length <= MAX_TIMES) {
+    const times = joinList(lang, hours.map((h) => hhmm(h, mins[0])));
+    return formatString(allDays ? str.scheduleDailyAt : str.scheduleAtTimes, times);
+  }
+
+  const minutePhrase =
+    minuteStep === 1
+      ? str.scheduleEveryMinute
+      : minuteStep !== null
+        ? formatPlural(str, "scheduleEveryNMinutes", minuteStep, lang)
+        : mins.length === 1
+          ? formatPlural(str, "scheduleAtMinute", mins[0], lang)
+          : pluralList(str, "scheduleAtMinutes", lastMinute, joinList(lang, runItems(mins)));
+
+  if (hourStep === 1) {
+    if (minuteStep !== null) return minutePhrase;
+    if (mins.length === 1 && mins[0] === 0) return str.scheduleHourlyOnTheHour;
+    return mins.length === 1
+      ? formatPlural(str, "scheduleHourlyAtMinute", mins[0], lang)
+      : pluralList(str, "scheduleHourlyAtMinutes", lastMinute, joinList(lang, runItems(mins)));
+  }
+  if (hourStep !== null && mins.length === 1) {
+    return formatPlural(str, "scheduleEveryNHoursFrom", hourStep, lang, hhmm(hours[0], mins[0]));
+  }
+  const hourRuns = runs(hours);
+  if (hourRuns.length === 1) {
+    const [a, b] = hourRuns[0];
+    if (mins.length === 1) return formatString(str.scheduleHourlyBetween, hhmm(a, mins[0]), hhmm(b, mins[0]));
+    return formatString(str.scheduleWindow, minutePhrase, hhmm(a, mins[0]), hhmm(b, lastMinute));
+  }
+  return formatString(str.scheduleDuringHours, minutePhrase, joinList(lang, runItems(hours)));
 }
 
 /** Human-readable description of a valid expression (throws CronError when invalid). */
@@ -282,49 +410,48 @@ export function describeCron(expression: string, str: CronStrings): string {
   }
   const schedule = parseCron(trimmed, str);
   if (!schedule) return str.scheduleReboot;
-  const [minute, hour, day, month, weekday] = trimmed.split(/\s+/);
-  const isAll = (raw: string) => raw === "*" || raw === "?";
-  const desc: string[] = [];
+  const [minute, hour] = trimmed.split(/\s+/);
+  const lang = str.lang;
+  const full = (f: CronFieldSet, name: CronFieldName) =>
+    !f.last && f.values.length === CRON_RANGES[name][1] - CRON_RANGES[name][0] + 1;
 
-  const minuteStep = everyStep(minute);
-  if (minuteStep === 1) desc.push(str.scheduleEveryMinute);
-  else if (minuteStep !== null) desc.push(formatPlural(str, "scheduleEveryNMinutes", minuteStep, str.lang));
-  else if (schedule.minute.values.length === 1) desc.push(formatString(str.scheduleAtMinute, schedule.minute.values[0]));
-  else desc.push(formatString(str.scheduleAtMinutes, listPreview(schedule.minute.values)));
+  const dayAll = full(schedule.day, "day");
+  const weekdayAll = full(schedule.weekday, "weekday");
+  const monthAll = full(schedule.month, "month");
 
-  const hourStep = everyStep(hour);
-  if (hourStep === 1) desc.push(str.scheduleEveryHour);
-  else if (hourStep !== null) desc.push(formatPlural(str, "scheduleEveryNHours", hourStep, str.lang));
-  else if (schedule.hour.values.length === 1) desc.push(formatString(str.scheduleAtHour, schedule.hour.values[0]));
-  else desc.push(formatString(str.scheduleAtHours, listPreview(schedule.hour.values)));
-
-  const dayText = isAll(day)
+  const dayText = dayAll
     ? null
     : schedule.day.last
       ? str.scheduleLastDay
-      : schedule.day.values.length === 1
-        ? formatString(str.scheduleOnDay, schedule.day.values[0])
-        : formatString(str.scheduleOnDays, listPreview(schedule.day.values));
-  const weekdayNames = schedule.weekday.values.map((v) => str.weekdays[v] ?? CRON_WEEKDAY_NAMES[v]);
-  const weekdayText = isAll(weekday)
+      : formatString(
+          str.scheduleOnDay,
+          joinList(lang, runItems(schedule.day.values, (n) => dayOrdinal(str, n), str.scheduleDayRange ?? "{0}–{1}")),
+        );
+  const wd = schedule.weekday.values;
+  const weekdayText = weekdayAll
     ? null
-    : formatString(weekdayNames.length === 1 ? str.scheduleOnWeekday : str.scheduleOnWeekdays, weekdayNames.join(", "));
-  if (dayText && weekdayText) desc.push(formatString(str.scheduleDayOrWeekday, dayText, weekdayText));
-  else if (dayText) desc.push(dayText);
-  else if (weekdayText) desc.push(weekdayText);
-  else desc.push(str.scheduleEveryDay);
+    : wd.join() === "1,2,3,4,5"
+      ? str.scheduleWorkdays
+      : wd.join() === "0,6"
+        ? str.scheduleWeekends
+        : formatString(str.scheduleOnWeekdays, joinList(lang, wd.map((v) => str.weekdaysLong?.[v] ?? CRON_WEEKDAY_NAMES[v])));
+  // Vixie cron: day-of-month OR weekday when both are restricted (`*/n` counts as unrestricted).
+  const daysText =
+    dayText && weekdayText
+      ? !schedule.day.wildcard && !schedule.weekday.wildcard
+        ? formatString(str.scheduleDayOrWeekday, dayText, weekdayText)
+        : `${dayText} ${weekdayText}`
+      : (dayText ?? weekdayText ?? "");
+  const monthText = monthAll
+    ? ""
+    : formatString(str.scheduleInMonths, joinList(lang, schedule.month.values.map((v) => str.monthsLong?.[v - 1] ?? CRON_MONTH_NAMES[v - 1])));
 
-  if (!isAll(month) && schedule.month.values.length < 12) {
-    const monthNames = schedule.month.values.map((v) => str.months[v - 1] ?? CRON_MONTH_NAMES[v - 1]);
-    desc.push(
-      monthNames.length === 1
-        ? formatString(str.scheduleInMonth, monthNames[0])
-        : formatString(str.scheduleInMonths, listPreview(monthNames)),
-    );
-  }
-
-  // English-only smoothing kept from legacy ("Every minute of every hour every day").
-  return desc.join(" ").replace(/of every hour every/g, "every").replace(/at hour every/g, "every");
+  const timeText = describeTime(str, schedule, minute, hour, !daysText && !monthText);
+  const sentence = formatString(str.scheduleSentence ?? "{0} {1} {2}", timeText, daysText, monthText)
+    .replace(/\s+/g, " ")
+    .replace(/\s+([,，、])/g, "$1")
+    .replace(/^[\s,，、]+|[\s,，、]+$/g, "");
+  return sentence.charAt(0).toLocaleUpperCase(lang) + sentence.slice(1);
 }
 
 /** Localized error strings for `cronErrorMessage`. */

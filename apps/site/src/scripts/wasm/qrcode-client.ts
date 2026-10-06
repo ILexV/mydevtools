@@ -1,7 +1,8 @@
 /**
- * QR code WASM client (main thread). One-shot PNG/SVG generation and image
- * decode. Caches the module init promise; normalizes thrown values into
- * typed `WasmError`.
+ * QR code WASM client (main thread): one-shot PNG/SVG generation — fast, so
+ * it stays on the main thread. Caches the module init promise; normalizes
+ * thrown values into typed `WasmError`. Decoding lives in
+ * `qrcode-decode-client` (Web Worker).
  */
 import init, * as qr from "@/generated/wasm/qrcode/qrcode.js";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
@@ -42,10 +43,4 @@ export async function qrPng(data: string, options: QrPngOptions): Promise<Uint8A
 export async function qrSvg(data: string, fgColor: string, bgColor: string, ecLevel: string): Promise<string> {
   await ensureReady();
   return wrap(() => qr.generate_qr_svg(data, fgColor, bgColor, ecLevel));
-}
-
-/** Decode a QR code from image bytes (PNG/JPEG/…). Throws WasmError when no code is found. */
-export async function qrDecode(imageBytes: Uint8Array): Promise<string> {
-  await ensureReady();
-  return wrap(() => qr.decode_qr(imageBytes));
 }

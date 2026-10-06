@@ -279,10 +279,26 @@ const stringsJson = JSON.stringify({
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--mdt-warning) 40%, transparent);
   }
 
-  /* Box-shadow rings vanish in High Contrast; mirror tool-ui.css forced-colors fallback. */
+  /* High Contrast: the UA paints the textarea with an opaque Canvas background,
+     which hid the highlight backdrop. Opt both layers out of forced colors with
+     system colors only, and draw matches as a Highlight outline + underline
+     (no fill) so the textarea's CanvasText stays readable over them. */
   @media (forced-colors: active) {
     .rx-pattern-row:focus-within, .rx-text:focus { outline: 2px solid Highlight; outline-offset: 1px; }
-    .rx-backdrop :global(mark.rx-mark) { background: Mark; forced-color-adjust: none; }
+    .rx-backdrop { forced-color-adjust: none; background: Canvas; border-color: CanvasText; }
+    .rx-text {
+      forced-color-adjust: none; background: transparent;
+      color: CanvasText; caret-color: CanvasText; border-color: CanvasText;
+    }
+    .rx-text::placeholder { color: GrayText; }
+    /* The wrapper clips the outline above, so the focus cue is the border itself. */
+    .rx-text:focus { border-color: Highlight; box-shadow: inset 0 0 0 1px Highlight; }
+    .rx-backdrop :global(mark.rx-mark) {
+      forced-color-adjust: none; background: transparent; color: transparent;
+      box-shadow: none; border-radius: 0;
+      outline: 2px solid Highlight; outline-offset: 0;
+      text-decoration: underline 3px Highlight; text-underline-offset: 2px;
+    }
   }
 
   .rx-error { overflow-wrap: anywhere; white-space: pre-wrap; font-family: var(--mdt-font-mono); }

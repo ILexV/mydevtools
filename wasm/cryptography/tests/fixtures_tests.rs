@@ -35,3 +35,23 @@ fn openssh_public_key_fixture_spki_roundtrip() {
     let back = openssh::openssh_public_key_from_spki_pem(&spki, comment).expect("from spki");
     assert_eq!(back.split_whitespace().take(2).collect::<Vec<_>>(), line.split_whitespace().take(2).collect::<Vec<_>>());
 }
+
+#[test]
+fn aead_mdt2_legacy_fixture_still_decrypts() {
+    // Produced by the pre-MDT3 site code (scratch gen-mdt2.mjs) with small
+    // Argon2id params (256 KiB, 1 iteration, 1 lane), ChaCha20-Poly1305,
+    // 1000-byte chunks, password "legacy pass", plaintext (i*7) % 251 × 2500.
+    use mydevtools_cryptography::aead;
+    let container = common::read_fixture_b64("aead_mdt2_legacy_chacha.b64");
+    assert_eq!(&container[..4], b"MDT2");
+    let info = aead::aead_stream_header_info(&container[..128]).expect("info");
+    assert_eq!(info[6], 2, "format");
+    let header = &container[..info[5] as usize];
+    let key = aead::aead_stream_derive_key_from_header(header, b"legacy pass", 256, 1, 1).expect("key");
+    let plain = aead::stream_open(&container, &key).expect("legacy MDT2 must still open");
+    let expected: Vec<u8> = (0..2500u32).map(|i| (i * 7 % 251) as u8).collect();
+    assert_eq!(plain, expected);
+    // The site-parameter fixture (1 MiB chunk header) parses as MDT2 too.
+    let site = common::read_fixture_b64("aead_mdt2_legacy_site.b64");
+    assert_eq!(aead::parse_stream_header_core(&site).expect("site").chunk_size, 1024 * 1024);
+}

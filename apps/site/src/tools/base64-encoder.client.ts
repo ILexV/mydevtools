@@ -5,7 +5,7 @@
  * known binary → info panel, other non-text → generic binary info; the
  * decoded bytes are always downloadable with the detected extension.
  */
-import { formatBytes, formatString, progressPercent } from "@/lib/format";
+import { formatBytes, formatString, pluralSuffix, progressPercent } from "@/lib/format";
 import { copyWithFeedback, bindDropzone } from "@/scripts/tool-ui";
 import { encodeBytes, decodeToBytes, textToBytes, type EncodingOptions } from "@/scripts/wasm/encoding-client";
 import { encodeFile, decodeFile } from "@/scripts/wasm/encoding-file-client";
@@ -22,6 +22,8 @@ interface Strings {
   binaryDownloadHint: string;
   statsChars: string;
   statsBytes: string;
+  statsCharsForms: Record<string, string>;
+  statsBytesForms: Record<string, string>;
   statsEncoded: string;
   statsDecoded: string;
   statsImage: string;
@@ -40,7 +42,10 @@ interface Strings {
 
 const PREVIEW_LIMIT = 200_000;
 
-const ERROR_STRING: Record<EncodingErrorKey, keyof Strings> = {
+/** Keys of `Strings` that hold plain message templates (not plural-form maps). */
+type MessageKey = { [K in keyof Strings]: Strings[K] extends string ? K : never }[keyof Strings];
+
+const ERROR_STRING: Record<EncodingErrorKey, MessageKey> = {
   Error_InvalidChar: "errInvalidChar",
   Error_NotRepresentable: "errNotRepresentable",
   Error_InvalidLength: "errInvalidLength",
@@ -58,6 +63,13 @@ const DECODER_LABEL: Record<string, string> = {
   ascii: "windows-1252",
   latin1: "windows-1252",
 };
+
+/** "{n} …" in the plural form for `n` in the page locale; falls back to the generic string. */
+function countLabel(forms: Record<string, string> | undefined, fallback: string, n: number): string {
+  const lang = document.documentElement.lang || "en";
+  const template = forms?.[pluralSuffix(lang, n)] ?? fallback;
+  return template.replace("{n}", n.toLocaleString(lang));
+}
 
 function readStrings(): Strings | null {
   const el = document.querySelector<HTMLScriptElement>("[data-b64-strings]");
@@ -222,14 +234,14 @@ function init() {
   function showEncoded(text: string, rawBytes: number, sourceName: string | null) {
     clearDetect();
     outputArea.value = previewText(text, outputMode?.value ?? "preview", PREVIEW_LIMIT, strings.previewTruncated).text;
-    setStats(`${strings.statsBytes.replace("{n}", rawBytes.toLocaleString())} ${strings.statsEncoded.replace("{size}", formatBytes(text.length))}`);
+    setStats(`${countLabel(strings.statsBytesForms, strings.statsBytes, rawBytes)} ${strings.statsEncoded.replace("{size}", formatBytes(text.length))}`);
     setLastDownload({ blob: new Blob([text], { type: "text/plain" }), name: outputFileName(sourceName, "b64") });
   }
 
   /** Decoded bytes → text output, or image preview / binary info (legacy parity). */
   function showDecoded(bytes: Uint8Array, encodedChars: number, sourceName: string | null) {
     clearDetect();
-    const decodedStat = `${strings.statsChars.replace("{n}", encodedChars.toLocaleString())} ${strings.statsDecoded.replace("{size}", formatBytes(bytes.length))}`;
+    const decodedStat = `${countLabel(strings.statsCharsForms, strings.statsChars, encodedChars)} ${strings.statsDecoded.replace("{size}", formatBytes(bytes.length))}`;
     const detected = detectFileType(bytes);
     const base = sourceName ? sourceName.replace(/\.(b64|base64|txt)$/i, "") : "decoded";
     if (!detected && isLikelyText(bytes)) {

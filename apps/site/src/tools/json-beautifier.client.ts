@@ -1,20 +1,13 @@
 /**
- * JSON Beautifier client controller. CodeMirror 5 editor (`ensureCodeMirror`,
- * vendored legacy build) + `formatJson` (indent 2/4/tab, sort keys, compact,
+ * JSON Beautifier client controller. CodeMirror 6 editor (lazy kit via
+ * `loadEditorKit`) + `formatJson` (indent 2/4/tab, sort keys, compact,
  * exact number preservation). Open/save .json, drop a file onto the editor,
  * copy/clear, Ctrl/Cmd-Enter format, Esc→Tab leaves the editor.
  *
  * PRIVACY: legacy persisted the input text to localStorage; that is
  * intentionally NOT ported. Only the formatting settings persist.
  */
-import {
-  bindEditorFileDrop,
-  downloadText,
-  ensureCodeMirror,
-  getCodeMirror,
-  makeEditorAccessible,
-  refreshOnThemeChange,
-} from "@/scripts/codemirror-loader";
+import { bindEditorFileDrop, downloadText, loadEditorKit, type MdtEditor } from "@/scripts/codemirror-loader";
 import { copyWithFeedback } from "@/scripts/tool-ui";
 import { formatJson } from "@/tools/json-format";
 
@@ -22,6 +15,7 @@ interface Strings {
   errorInvalidJson: string;
   copied: string;
   inputLabel: string;
+  phrases?: Record<string, string>;
 }
 
 const KEYS = {
@@ -76,29 +70,21 @@ async function init() {
   const fileInput = root.querySelector<HTMLInputElement>("[data-json-file]");
   const errorBox = root.querySelector<HTMLElement>("[data-json-error]");
 
+  let editor: MdtEditor;
   try {
-    await ensureCodeMirror();
+    const kit = await loadEditorKit();
+    editor = await kit.createEditor(editorHost, {
+      language: "json",
+      label: str.inputLabel,
+      phrases: str.phrases,
+      hintId: "json-editor-hint",
+      indent: 4,
+      onSubmit: () => formatAction(),
+    });
   } catch (err) {
-    console.error("JSON Beautifier: failed to load CodeMirror:", err);
+    console.error("JSON Beautifier: failed to load the editor:", err);
     return;
   }
-  const CM = getCodeMirror();
-  if (!CM) return;
-
-  const editor = CM(editorHost, {
-    mode: { name: "javascript", json: true },
-    lineNumbers: true,
-    lineWrapping: true,
-    autoCloseBrackets: true,
-    matchBrackets: true,
-    indentUnit: 4,
-    tabSize: 4,
-    theme: "default",
-    foldGutter: true,
-    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-  });
-  makeEditorAccessible(editor, str.inputLabel, "json-editor-hint");
-  refreshOnThemeChange([editor]);
 
   // Restore saved settings (input text persistence intentionally dropped — privacy).
   const savedIndent = storageGet(KEYS.indent);
@@ -126,13 +112,8 @@ async function init() {
     try {
       const formatted = formatJson(input, { indent, sortKeys: Boolean(sortKeys?.checked), compact: Boolean(compact?.checked) });
       editor.setValue(formatted);
-      // Keep CodeMirror's own indentation in line with the chosen style.
-      if (!compact?.checked) {
-        const unit = indent === "tab" ? 4 : Number.parseInt(indent, 10) || 4;
-        editor.setOption("indentWithTabs", indent === "tab");
-        editor.setOption("indentUnit", unit);
-        editor.setOption("tabSize", unit);
-      }
+      // Keep the editor's own indentation in line with the chosen style.
+      if (!compact?.checked) editor.setIndent(indent === "tab" ? "tab" : Number.parseInt(indent, 10) || 4);
       setError("");
     } catch (e) {
       const detail = e instanceof Error && e.message ? ` (${e.message})` : "";
@@ -181,12 +162,8 @@ async function init() {
     if (editor.getValue().trim()) formatAction();
   });
 
-  // Legacy also bound Ctrl/Cmd-K to clear; that chord is the site-wide command
-  // palette (captured on window), so only the format shortcut remains.
-  editor.setOption("extraKeys", {
-    "Ctrl-Enter": formatAction,
-    "Cmd-Enter": formatAction,
-  });
+  // Ctrl/Cmd-Enter formats (onSubmit). Legacy also bound Ctrl/Cmd-K to clear;
+  // that chord is the site-wide command palette, so it is not bound here.
 
   bindEditorFileDrop(
     editorHost,

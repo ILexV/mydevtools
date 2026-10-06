@@ -1,7 +1,7 @@
 {
   "Title": "JSON 转 TypeScript 转换器",
-  "Description": "将 JSON 对象即时转换为 TypeScript 接口和类型别名 — 私密，完全在浏览器中运行",
-  "Keywords": "JSON to TypeScript, JSON to interface, TypeScript generator, JSON type generator, convert JSON to TypeScript, TypeScript interface from JSON",
+  "Description": "根据 JSON 示例生成 TypeScript interface 或类型别名：嵌套类型、合并数组元素、可选字段、export 关键字。在浏览器中运行。",
+  "Keywords": "JSON 转 TypeScript, JSON 转 interface, TypeScript 接口生成, JSON 生成 TypeScript 类型, TypeScript 类型别名, JSON to TypeScript, json2ts",
   "InputLabel": "JSON 输入",
   "InputPlaceholder": "在此粘贴 JSON...",
   "OutputLabel": "TypeScript 输出",
@@ -18,9 +18,9 @@
   "OptionalFields": "可选字段 (?)",
   "UseTypeAlias": "使用 type 别名",
   "EditorKeyboardHint": "在编辑器中按 Tab 键可缩进。按 Esc 再按 Tab 可移出编辑器。",
-  "Seo_Introduction": "JSON 转 TypeScript 转换器可在几秒内将 JSON 数据转换为强类型的 TypeScript 接口和类型别名。所有转换均在浏览器本地完成 — 您的数据永远不会离开您的计算机。",
-  "Seo_DetailedDescription": "转换器分析任意 JSON 对象或数组的结构，并生成符合惯用法的 TypeScript 定义。嵌套对象会自动提取为单独的命名接口。\n\n**主要选项：**\n- **根类型名称** — 自定义顶层接口的名称（默认：`Root`）。\n- **export** — 在每个生成的接口或类型别名前添加 `export`。\n- **可选字段 (?)** — 将值为 `null` 的属性标记为可选。\n- **type 别名** — 生成 `type Foo = { … }` 而非 `interface Foo { … }`。",
-  "Seo_Examples": "**示例 1：API 响应 → TypeScript**\n粘贴 REST API 响应，设置根名称并转换，获得可直接用于项目的接口。\n\n**示例 2：深层嵌套配置**\n具有多层嵌套的 JSON 配置文件会被自动处理，每个嵌套对象都成为独立的命名接口。\n\n**示例 3：对象数组**\n如果根值是数组，转换器会生成数组的类型别名和元素的接口，例如 `export type Users = UserItem[];`",
-  "Seo_HowToSteps": "### 步骤 1：粘贴 JSON\n从 API 响应或配置文件复制 JSON，粘贴到左侧面板。TypeScript 输出会自动更新。\n\n### 步骤 2：配置选项\n设置根接口名称，选择是否添加 `export`，切换可选字段，在 `interface` 和 `type` 之间选择。\n\n### 步骤 3：使用结果\n点击**复制**或**下载 .ts** 保存文件。",
-  "Seo_Tips": "- **实时转换** — 编辑 JSON 时输出即时更新。\n- **命名规范** — `snake_case` 和 `kebab-case` 键会自动转换为 `PascalCase`。\n- **大型数据** — 转换器可无性能问题地处理大型、深层嵌套的 JSON。"
+  "Seo_Introduction": "粘贴一段 JSON 示例 —— API 响应、配置文件或测试数据 —— 即可边输入边得到对应的 TypeScript 声明。嵌套对象会成为单独命名的 interface，输出可以直接放进 .ts 文件。",
+  "Seo_DetailedDescription": "类型根据值推断：`string`、`number`、`boolean`、`null`，数组为 `T[]`，混合数组为 `(number | string | null)[]` 这样的联合类型，空数组为 `unknown[]`。每个嵌套对象都会得到一个按其路径以 PascalCase 命名的 interface（`Order` 中的 `shipping_address` → `OrderShippingAddress`）。数组中的所有对象会合并为一个元素类型：在部分元素中缺失的键变为可选，值类型不同的键得到联合类型。\n\n选项：**根类型名称** 设置顶层类型名（默认为 `Root`）；**export 关键字** 为每个声明添加 `export`；**可选字段 (?)** （默认开启）把值为 `null` 的键标记为可选；**使用 type 别名** 输出 `type X = { … };` 而不是 `interface X { … }`。根为数组时会生成 `export type Users = UsersItem[];` 这样的别名。不是合法标识符的键会加上引号（`\"order-id\": string;`），重名的类型名会加上数字后缀。\n\n每次编辑后（短暂停顿后）以及点击 **转换** 或按 Ctrl+Enter 时都会重新生成输出；无效的 JSON 会显示解析器错误。结果位于只读编辑器中，可以 **复制**，或用 **下载 .ts** 保存为 `types.ts`。一切都在本地运行 —— 示例数据从不上传或保存。",
+  "Seo_Examples": "**API 对象**：`{\"id\":7,\"user_name\":\"ann\",\"tags\":[\"a\"],\"manager\":null}`，根类型名称为 `User` 并开启 export 关键字，得到 `export interface User { id: number; user_name: string; tags: string[]; manager?: null; }`。\n\n**由不同对象组成的数组**：`[{\"id\":1,\"email\":\"a@x.io\"},{\"id\":2,\"phone\":\"555\"}]`，根类型名称为 `Users`，得到 `export interface UsersItem { id: number; email?: string; phone?: string; }` 和 `export type Users = UsersItem[];`。\n\n**类型别名和带引号的键**：`{\"order-id\":\"A1\",\"items\":[{\"sku\":\"x\",\"qty\":2}],\"shipping_address\":{\"city\":\"Omsk\"}}`，根类型名称为 `Order` 并开启使用 type 别名，得到 `type OrderItemsItem = { sku: string; qty: number; };`、`type OrderShippingAddress = { city: string; };` 和 `type Order = { \"order-id\": string; items: OrderItemsItem[]; shipping_address: OrderShippingAddress; };`。",
+  "Seo_HowToSteps": "### 步骤1：粘贴 JSON\n将 JSON 示例放入 **JSON 输入** 编辑器。**TypeScript 输出** 会自动更新。\n\n### 步骤2：调整选项\n设置 **根类型名称**，并按需切换 **export 关键字**、**可选字段 (?)** 和 **使用 type 别名** 。\n\n### 步骤3：获取类型\n点击 **复制** 复制声明，或点击 **下载 .ts** 保存为 `types.ts`。",
+  "Seo_Tips": "- 示例只能体现它所包含的值：示例中为 `null` 的字段会被推断为 `null`，请手动替换为真实类型（例如 `string | null`）。\n- 在数组中放入几个带有不同可选字段的元素，才能得到正确的元素类型。\n- 所有数字都变为 `number`，ISO 格式的日期仍为 `string`。\n- 如果 `null` 值总是被显式发送，并且你希望 `manager: null` 是必需的键，请关闭可选字段 (?)。\n- 属性名保持原有拼写；只有类型名会转换为 PascalCase。"
 }

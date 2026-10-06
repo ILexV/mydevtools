@@ -24,6 +24,9 @@ pub struct CalculationResult {
     pub usable_hosts: u64,
     pub class: String,
     pub is_private: bool,
+    /// Address type of the entered IP: private | shared | loopback |
+    /// link-local | documentation | multicast | reserved | public.
+    pub scope: String,
     pub ip_binary: String,
     pub mask_binary: String,
 }
@@ -153,6 +156,7 @@ impl Ipv4Cidr {
             usable_hosts,
             class: self.get_class(),
             is_private: self.is_private(),
+            scope: self.scope().to_string(),
             ip_binary: to_binary_string(ip),
             mask_binary: to_binary_string(mask),
         }
@@ -188,6 +192,34 @@ impl Ipv4Cidr {
             return true;
         }
         false
+    }
+
+    /// IANA IPv4 special-purpose registry (main entries) for the entered
+    /// address; anything not listed is "public" (globally routable).
+    fn scope(&self) -> &'static str {
+        let ip = self.address;
+        let in_net = |net: u32, len: u32| ip & (u32::MAX << (32 - len)) == net;
+        if self.is_private() {
+            "private"
+        } else if in_net(0x6440_0000, 10) {
+            "shared" // 100.64.0.0/10 carrier-grade NAT (RFC 6598)
+        } else if in_net(0x7F00_0000, 8) {
+            "loopback"
+        } else if in_net(0xA9FE_0000, 16) {
+            "link-local"
+        } else if in_net(0xC000_0200, 24) || in_net(0xC633_6400, 24) || in_net(0xCB00_7100, 24) {
+            "documentation" // TEST-NET-1/2/3 (RFC 5737)
+        } else if in_net(0xE000_0000, 4) {
+            "multicast"
+        } else if in_net(0x0000_0000, 8)
+            || in_net(0xF000_0000, 4)
+            || in_net(0xC612_0000, 15)
+            || in_net(0xC000_0000, 24)
+        {
+            "reserved" // this-network, class E/broadcast, benchmarking, IETF protocol
+        } else {
+            "public"
+        }
     }
 }
 
@@ -349,7 +381,7 @@ mod tests {
         assert_eq!(err(""), "Invalid format (expected IP/Prefix or IP Mask)");
         assert_eq!(err("hello"), "Invalid format (expected IP/Prefix or IP Mask)");
         assert_eq!(err("1.2.3.4 5.6.7.8 9"), "Invalid format (expected IP/Prefix or IP Mask)");
-        // IPv6 is not supported by this calculator.
+        // IPv6 goes through ipv6.rs; the IPv4 parser still rejects it.
         assert_eq!(err("2001:db8::1/64"), "Invalid IPv4 address");
         assert_eq!(err("::1"), "Invalid format (expected IP/Prefix or IP Mask)");
     }
@@ -390,5 +422,35 @@ mod tests {
         assert_eq!(res.ip_binary, "11000000.10101000.00000001.00001010");
         assert_eq!(res.mask_binary, "11111111.11111111.11111111.00000000");
         assert_eq!(calc("0.0.0.0/0").mask_binary, "00000000.00000000.00000000.00000000");
+    }
+
+    #[test]
+    fn test_scopes() {
+        let scope = |s: &str| calc(s).scope;
+        assert_eq!(scope("192.168.1.10/24"), "private");
+        assert_eq!(scope("172.31.0.1/16"), "private");
+        assert_eq!(scope("8.8.8.8/32"), "public");
+        assert_eq!(scope("1.1.1.1"), "public");
+        assert_eq!(scope("100.64.0.1/10"), "shared");
+        assert_eq!(scope("100.127.255.255"), "shared");
+        assert_eq!(scope("100.128.0.0"), "public");
+        assert_eq!(scope("127.0.0.1/8"), "loopback");
+        assert_eq!(scope("169.254.10.20/16"), "link-local");
+        assert_eq!(scope("192.0.2.1/24"), "documentation");
+        assert_eq!(scope("198.51.100.7"), "documentation");
+        assert_eq!(scope("203.0.113.200"), "documentation");
+        assert_eq!(scope("224.0.0.251"), "multicast");
+        assert_eq!(scope("239.255.255.250"), "multicast");
+        assert_eq!(scope("0.0.0.0/0"), "reserved");
+        assert_eq!(scope("198.18.0.1"), "reserved");
+        assert_eq!(scope("198.20.0.1"), "public");
+        assert_eq!(scope("255.255.255.255"), "reserved");
+        assert_eq!(scope("240.0.0.1"), "reserved");
+        // Public ranges are fully calculated — no private-only restriction.
+        let r = calc("203.0.114.77/20");
+        assert_eq!(r.network, "203.0.112.0");
+        assert_eq!(r.broadcast, "203.0.127.255");
+        assert_eq!(r.usable_hosts, 4094);
+        assert_eq!(r.scope, "public");
     }
 }

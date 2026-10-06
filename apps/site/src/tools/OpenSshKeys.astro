@@ -3,7 +3,8 @@
  * OpenSSH Keys (cryptography WASM domain). Generate (ed25519 / ecdsa-p256 /
  * ecdsa-p384 / rsa with bits), import (OpenSSH public/private, SPKI PEM,
  * PKCS#8 PEM) and convert between formats. Passphrase field is shared by all
- * actions per legacy parity. Warnings from WASM render raw; well-known
+ * actions per legacy parity; generation runs in a Web Worker with progress +
+ * Cancel. Warnings from WASM render raw; well-known
  * passphrase errors are localized.
  */
 import { t } from "@/i18n/messages";
@@ -11,6 +12,7 @@ import type { LocaleCode } from "@/registry/locales";
 import Field from "@/components/tool/Field.astro";
 import FileDrop from "@/components/tool/FileDrop.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
+import Progress from "@/components/tool/Progress.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
 
 interface Props {
@@ -42,6 +44,11 @@ const s = {
   errorPassphraseRequired: t(lang, ns, "ErrorPassphraseRequired"),
   errorWrongPassphrase: t(lang, ns, "ErrorWrongPassphrase"),
   keySizeDefault: t(lang, ns, "KeySizeDefault"),
+  passphraseWhitespaceHint: t(lang, ns, "PassphraseWhitespaceHint"),
+  noteTrimmedPassphrase: t(lang, ns, "NoteTrimmedPassphrase"),
+  generatingTitle: t(lang, ns, "GeneratingTitle"),
+  generationCanceled: t(lang, ns, "GenerationCanceled"),
+  cancel: t(lang, ns, "Cancel"),
   error: t(lang, "common", "Common_Error"),
   fileChooseButton: t(lang, "common", "Common_FileChooseButton"),
   fileDropTitle: t(lang, "common", "Common_FileDropTitle"),
@@ -57,6 +64,8 @@ const clientStrings = {
   errorWrongPassphrase: s.errorWrongPassphrase,
   algorithmLabel: s.algorithmLabel,
   commentLabel: s.commentLabel,
+  noteTrimmedPassphrase: s.noteTrimmedPassphrase,
+  generationCanceled: s.generationCanceled,
 };
 const stringsJson = JSON.stringify(clientStrings);
 ---
@@ -90,11 +99,20 @@ const stringsJson = JSON.stringify(clientStrings);
           autocomplete="new-password"
           spellcheck="false"
         />
+        <p class="ds-hint" data-ssh-passphrase-ws aria-live="polite" hidden>{s.passphraseWhitespaceHint}</p>
       </Field>
     </div>
     <div class="ds-actions ds-actions-end">
       <button type="button" class="ds-btn ds-btn-primary" data-ssh-generate>{s.generateButton}</button>
     </div>
+    <Progress
+      indeterminate
+      data-ssh-progress
+      title={s.generatingTitle}
+      cancelLabel={s.cancel}
+      cancelProps={{ "data-ssh-cancel": true }}
+      labelProps={{ "data-ssh-progress-label": true }}
+    />
   </section>
 
   <section class="ds-card ds-stack" aria-labelledby="ssh-import-title">
@@ -134,6 +152,7 @@ const stringsJson = JSON.stringify(clientStrings);
   </section>
 
   <StatusMessage kind="error" data-ssh-error />
+  <StatusMessage kind="info" data-ssh-note />
   <StatusMessage kind="info" class="mono" data-ssh-info />
   <StatusMessage kind="warning" data-ssh-warnings />
 

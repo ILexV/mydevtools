@@ -71,15 +71,20 @@ export interface HowToStep {
  * HowTo JSON-LD in `seo.ts`). Port of `MetaTags.razor` `ParseHowToSteps`:
  * the "Step N:" prefix is dropped from the name, remaining lines become text.
  */
+/** "Step 1:", "Шаг 1:", "步骤1：", "1단계:", "Étape 1 :", "चरण 1:" — optional word, number, optional word, colon. */
+const STEP_PREFIX = /^(?:[\p{L}\p{M}]+\s*)?\d+\s*(?:[\p{L}\p{M}]+\s*)?[:：]\s*/u;
+
 export function parseHowToSteps(markdown: string): HowToStep[] {
   const steps: HowToStep[] = [];
-  for (const part of markdown.trim().split(/(?=###\s+Step\s+\d+)/)) {
+  // Split on every `###` heading (not just English "Step"): localized bodies use
+  // "Шаг 1:", "步骤1：", "1단계:", "Étape 1 :" … and must still yield one step each.
+  for (const part of markdown.trim().split(/^(?=###\s)/m)) {
     const trimmed = part.trim();
-    if (!trimmed) continue;
+    if (!trimmed.startsWith("###")) continue;
     const nl = trimmed.indexOf("\n");
     const heading = (nl === -1 ? trimmed : trimmed.slice(0, nl))
       .replace(/^#+\s*/, "")
-      .replace(/^Step\s+\d+:\s*/, "")
+      .replace(STEP_PREFIX, "")
       .trim();
     const text = nl === -1 ? "" : trimmed.slice(nl + 1).trim();
     steps.push({ name: heading, text });

@@ -63,8 +63,9 @@ test("formats and case", () => {
   assert.match(generateUuid("v4", "braces", "lower"), /^\{[0-9a-f-]{36}\}$/);
   assert.match(generateUuid("v4", "urn", "lower"), /^urn:uuid:[0-9a-f-]{36}$/);
   assert.match(generateUuid("v4", "hyphenated", "upper"), /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/);
-  // URN uppercase uppercases the prefix too (legacy behaviour).
-  assert.match(generateUuid("v7", "urn", "upper"), /^URN:UUID:[0-9A-F-]{36}$/);
+  // UPPERCASE affects the hex only; the URN prefix stays canonical lower-case.
+  assert.match(generateUuid("v7", "urn", "upper"), /^urn:uuid:[0-9A-F-]{36}$/);
+  assert.match(generateUuid("v4", "braces", "upper"), /^\{[0-9A-F-]{36}\}$/);
   for (const f of ["plain", "braces", "urn"] as const) assert.equal(strip(generateUuid("v4", f, "lower")).length, 32);
 });
 

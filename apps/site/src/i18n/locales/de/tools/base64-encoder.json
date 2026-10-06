@@ -1,7 +1,7 @@
 {
   "Title": "Base64 Kodierer / Dekodierer",
-  "Description": "Base64 für Text und Dateien kodieren und dekodieren – alles in Ihrem Browser.",
-  "Keywords": "Base64 encoder, Base64 decoder, Base64 encode online, Base64 decode online, Base64 file encoder, Base64 string converter",
+  "Description": "Text oder Dateien in Base64 kodieren und zurück dekodieren: Standard- oder URL-sicheres Alphabet, Padding, 76-Zeichen-Umbruch, Bildvorschau. Im Browser.",
+  "Keywords": "Base64 Encoder, Base64 Decoder, Base64 online kodieren, Base64 dekodieren, URL-sicheres Base64, Base64 zu Bild, Datei in Base64",
   "OtherFormats": "Andere Formate:",
   "LinkHex": "Hex",
   "LinkBase32": "Base32",
@@ -44,7 +44,11 @@
   "OutputTitle": "Ausgabe",
   "CopyBase64": "Base64 kopieren",
   "StatsChars": "{n} Zeichen",
+  "StatsChars_one": "{n} Zeichen",
+  "StatsChars_other": "{n} Zeichen",
   "StatsBytes": "{n} Bytes",
+  "StatsBytes_one": "{n} Byte",
+  "StatsBytes_other": "{n} Bytes",
   "StatsRatio": "Verhältnis {r}×",
   "StatsEncoded": "→ {size} kodiert",
   "StatsDecoded": "→ {size} dekodiert",
@@ -59,9 +63,9 @@
   "PreviewTruncated": "(Vorschau gekürzt – vollständige Ausgabe per Download)",
   "FileDecoded": "Dekodiert: {0} → {1}",
   "Error_CopyFailed": "Kopieren fehlgeschlagen: Die Zwischenablage ist nicht verfügbar.",
-  "Seo_Introduction": "Das Base64 Encoder-Tool ist ein datenschutzorientiertes Online-Tool für Entwickler. Die gesamte Verarbeitung erfolgt lokal in Ihrem Browser mit WebAssembly und stellt sicher, dass Ihre Daten niemals Ihr Gerät verlassen.",
-  "Seo_DetailedDescription": "Dieses Tool bietet umfassende Funktionalität für base64 encoder-Operationen. Gebaut mit modernen Webtechnologien und angetrieben von Rust-kompiliertem WebAssembly, liefert es native Leistung direkt in Ihrem Browser.\n\nDie Benutzeroberfläche ist auf Effizienz und Benutzerfreundlichkeit ausgelegt, mit Unterstützung sowohl für Texteingabe als auch für Dateiverarbeitung. Alle Operationen werden clientseitig durchgeführt und garantieren vollständige Privatsphäre und Sicherheit für Ihre sensiblen Daten.",
-  "Seo_Examples": "**Beispiel 1**: Verwenden Sie Base64 Encoder für schnelle Konvertierungen in Ihrem Entwicklungsworkflow.\n\n**Beispiel 2**: Verarbeiten Sie Dateien direkt, ohne sie auf einen Server hochzuladen, und wahren Sie vollständige Privatsphäre.\n\n**Beispiel 3**: Integrieren Sie das Tool in Ihre täglichen Entwicklungsaufgaben für verbesserte Produktivität.",
-  "Seo_HowToSteps": "### Schritt 1: Bereiten Sie Ihre Eingabe vor\nGeben Sie Ihre Daten in das Eingabefeld ein oder laden Sie eine Datei von Ihrem Gerät hoch.\n\n### Schritt 2: Konfigurieren Sie die Optionen\nPassen Sie die Tool-Einstellungen an Ihre Bedürfnisse an.\n\n### Schritt 3: Verarbeiten und kopieren Sie die Ergebnisse\nKlicken Sie auf die Aktionstaste, um Ihre Eingabe zu verarbeiten, und kopieren Sie die Ergebnisse in die Zwischenablage.",
-  "Seo_Tips": "- Die gesamte Verarbeitung erfolgt in Ihrem Browser für maximale Privatsphäre\n- Das Tool funktioniert offline nach dem ersten Laden der Seite\n- Ihre Einstellungen werden lokal in Ihrem Browser gespeichert\n- Große Dateien werden mit Fortschrittsverfolgung unterstützt"
+  "Seo_Introduction": "Wandeln Sie Text oder beliebige Dateien in Base64 um und zurück, ohne etwas hochzuladen. Die Kodierung übernimmt ein aus Rust kompiliertes WebAssembly-Modul direkt im Browser; dekodierte Bilder erscheinen als Vorschau, Binärdaten lassen sich mit passender Dateiendung speichern.",
+  "Seo_DetailedDescription": "Text wird zuerst im gewählten Zeichensatz (UTF-8, UTF-16LE, UTF-16BE, ASCII oder ISO-8859-1) in Bytes umgewandelt und dann mit dem Standardalphabet nach RFC 4648 (`+` und `/`) oder dem URL-sicheren Alphabet (`-` und `_`) kodiert, das JWTs und URL-Parameter verwenden. Das Padding mit `=` kann erforderlich, optional oder abgeschaltet sein, und die Ausgabe lässt sich wie bei MIME-E-Mails nach 76 Zeichen umbrechen.\n\nBeim Dekodieren prüft das Tool die entstandenen Bytes. Lesbarer Text landet im Ausgabefeld; PNG-, JPEG-, GIF-, WebP-, BMP-, ICO-, TIFF- und SVG-Bilder werden mit Pixelgröße als Vorschau gezeigt; PDF, ZIP, GZIP, MP3, MP4 und ausführbare Dateien werden an ihrer Signatur erkannt. Alles, was kein Text ist, speichert **Herunterladen** mit passender Endung, etwa `decoded.png`.\n\nEine Datei kann ausgewählt oder auf die Seite gezogen werden; solange sie ausgewählt ist, wird das Textfeld ignoriert. Dateien werden in einem Web Worker in 1-MiB-Blöcken mit Fortschrittsbalken und **Abbrechen**-Schaltfläche gelesen, aber vollständig im Speicher gehalten – die praktische Grenze ist also der Arbeitsspeicher des Geräts. Sehr lange Ergebnisse werden gekürzt angezeigt und mit **Herunterladen** vollständig gespeichert.",
+  "Seo_Examples": "**Text zu Base64**: `Hello, World!` wird zu `SGVsbG8sIFdvcmxkIQ==`; in UTF-8 wird `Привет` zu `0J/RgNC40LLQtdGC` (12 Bytes rein, 16 Zeichen raus).\n\n**URL-sicher ohne Padding**: `<<???>>` ergibt `PDw/Pz8+Pg==` mit dem Standardalphabet und `PDw_Pz8-Pg` mit **URL-sicher (-_)** und **Kein Padding** – so sehen JWT-Segmente aus.\n\n**Eingabe ohne Padding**: `SGk` schlägt mit dem voreingestellten Padding **Erforderlich** fehl; stellen Sie **Padding** auf **Optional**, dann ergibt sich `Hi`.\n\n**Base64 zu Bild**: Base64 einer PNG-Datei (beginnt mit `iVBORw0KGgo`) zeigt das Bild samt Größe, etwa 1×1 px, und **Herunterladen** speichert es als `decoded.png`.",
+  "Seo_HowToSteps": "### Schritt 1: Text eingeben oder Datei wählen\nGeben Sie Text in **Eingabe (Text)** ein, oder ziehen Sie eine Datei auf die Seite bzw. klicken Sie auf **Datei auswählen**. Eine gewählte Datei hat Vorrang vor dem Text.\n\n### Schritt 2: Optionen festlegen\nWählen Sie **Text-Zeichensatz** (meist UTF-8), **Alphabet** (**Standard (+/)** oder **URL-sicher (-_)**), **Padding** und für MIME-E-Mails **Zeilenumbruch** mit **76 Zeichen**.\n\n### Schritt 3: Kodieren oder dekodieren\nKlicken Sie auf **Kodieren** für Base64 oder auf **Dekodieren**, um Text, eine Bildvorschau oder eine Binärdatei zu erhalten. Eine Fehlermeldung nennt die Ursache, etwa ein ungültiges Zeichen oder falsches Padding.\n\n### Schritt 4: Ergebnis kopieren oder herunterladen\n**Kopieren** legt die Ausgabe in die Zwischenablage, **Herunterladen** speichert sie als Datei. **Tauschen** verschiebt die Ausgabe in die Eingabe, um die Rückrichtung zu prüfen.",
+  "Seo_Tips": "- Base64 vergrößert Daten um etwa 33 %: Aus je 3 Bytes werden 4 Zeichen. Es ist eine Kodierung, keine Verschlüsselung – jeder kann sie dekodieren.\n- Entfernen Sie vor dem Dekodieren das Präfix `data:image/png;base64,` einer Data-URI; der Decoder akzeptiert nur den Base64-Teil.\n- Header und Payload eines JWT nutzen das URL-sichere Alphabet ohne Padding: Wählen Sie **URL-sicher (-_)** und Padding **Optional**, dann wird `eyJhbGciOiJIUzI1NiJ9` zu `{\"alg\":\"HS256\"}`.\n- Lassen Sie **Leerzeichen/Zeilenumbrüche erlauben** an, um umbrochenes Base64 aus E-Mails oder PEM-Dateien zu dekodieren; schalten Sie es aus, um eine saubere einzeilige Eingabe zu prüfen.\n- Der Zeichensatz zählt: `é` ist `w6k=` in UTF-8, aber `6Q==` in ISO-8859-1 – dekodieren Sie mit demselben Zeichensatz wie beim Kodieren.\n- Nach dem ersten Aufruf funktioniert die Seite auch ohne Netzverbindung."
 }

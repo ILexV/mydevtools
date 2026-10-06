@@ -1,8 +1,8 @@
 {
   "TargetFormatLabel": "Formato de destino",
   "Title": "Convertidor de imágenes",
-  "Keywords": "image converter, convert image online, PNG to JPEG, WEBP converter, image format converter, BMP to PNG, ICO converter, TIFF converter",
-  "Description": "Convierte imágenes entre formatos (PNG, JPEG, WEBP, GIF, BMP, ICO, TIFF, TGA) de forma segura en tu navegador.",
+  "Keywords": "convertidor de imágenes, PNG a JPG, JPG a WebP, PNG a ICO, crear favicon, TGA a PNG, TIFF a PNG, BMP a PNG, cambiar formato de imagen",
+  "Description": "Convierte imágenes entre PNG, JPEG, WebP, GIF, BMP, ICO, TIFF y TGA en el navegador, con control de calidad para JPEG y WebP. Sin subidas.",
   "SelectFormat": "Seleccionar formato de salida",
   "Convert": "Convertir",
   "Download": "Descargar",
@@ -16,11 +16,12 @@
   "ResultLabel": "Imagen convertida",
   "QualityLow": "Baja",
   "QualityHigh": "Alta",
-  "Seo_Introduction": "La herramienta Image Converter es una herramienta en línea centrada en la privacidad diseñada para desarrolladores. Todo el procesamiento ocurre localmente en su navegador usando WebAssembly, asegurando que sus datos nunca salgan de su dispositivo.",
-  "Seo_DetailedDescription": "Esta herramienta proporciona funcionalidad integral para operaciones de image converter. Construida con tecnologías web modernas y potenciada por WebAssembly compilado desde Rust, ofrece rendimiento nativo directamente en su navegador.\n\nLa interfaz está diseñada para eficiencia y facilidad de uso, con soporte tanto para entrada de texto como para procesamiento de archivos. Todas las operaciones se realizan del lado del cliente, garantizando privacidad y seguridad completas para sus datos sensibles.",
-  "Seo_Examples": "**Ejemplo 1**: Use Image Converter para conversiones rápidas en su flujo de trabajo de desarrollo.\n\n**Ejemplo 2**: Procese archivos directamente sin subirlos a ningún servidor, manteniendo privacidad completa.\n\n**Ejemplo 3**: Integre la herramienta en sus tareas diarias de desarrollo para mejorar la productividad.",
-  "Seo_HowToSteps": "### Paso 1: Prepare su entrada\nIngrese sus datos en el campo de entrada o cargue un archivo desde su dispositivo.\n\n### Paso 2: Configure las opciones\nAjuste la configuración de la herramienta según sus necesidades.\n\n### Paso 3: Procese y copie los resultados\nHaga clic en el botón de acción para procesar su entrada y copie los resultados al portapapeles.",
-  "Seo_Tips": "- Todo el procesamiento ocurre en su navegador para máxima privacidad\n- La herramienta funciona sin conexión después de la carga inicial de la página\n- Sus preferencias se guardan localmente en su navegador\n- Se admiten archivos grandes con seguimiento de progreso",
+  "Seo_Introduction": "Convierte una imagen entre PNG, JPEG, WebP, GIF, BMP, ICO, TIFF y TGA en el navegador: para favicons, formatos antiguos o para pasar una captura de pantalla a WebP. El archivo se procesa localmente y nunca se sube.",
+  "Seo_DetailedDescription": "Cualquiera de los ocho formatos puede ser la entrada; la salida se elige en **Formato de destino**. El control de calidad solo aparece para JPEG y WebP (90 por defecto); los demás formatos lo ignoran. Las imágenes ICO de más de 256 px se reducen para caber en 256×256 manteniendo las proporciones, JPEG recibe un fondo blanco donde el original era transparente y las fuentes de 16 bits se reducen a 8 bits por canal.\n\nEl navegador codifica WebP con pérdida a la calidad elegida; si no puede hacerlo, se genera un WebP sin pérdida y un aviso explica que no se aplicó la calidad. La orientación EXIF se aplica a los píxeles y los metadatos no se copian. De un GIF animado solo se convierte el primer fotograma.\n\nLos navegadores no pueden mostrar TIFF ni TGA, así que para esos resultados solo se indica el tamaño; el archivo se descarga igualmente. La conversión se ejecuta en un Web Worker con Rust/WebAssembly y se puede cancelar.",
+  "Seo_Examples": "**Logotipo a favicon**: un logotipo PNG de 1024×1024 convertido a **ICO** se convierte en un icono de 256×256 de `10.24 KB`, guardado como `logo.ico`.\n\n**PNG transparente a JPEG**: las zonas transparentes salen blancas en lugar de negras.\n\n**JPEG a WebP**: una foto de 1920×1280 de `476.38 KB` con calidad `90` da `433.54 KB`; baja la calidad para ahorrar más.\n\n**Textura de juego**: un `texture.tga` de 640×480 convertido a **PNG** se abre en cualquier sitio como `texture.png`.",
+  "Seo_HowToSteps": "### Paso 1: Elige una imagen\nHaz clic en **Elegir archivo** o suelta un archivo PNG, JPEG, WebP, GIF, BMP, ICO, TIFF o TGA en la zona.\n\n### Paso 2: Elige el formato de destino\nSelecciona el formato en **Formato de destino**. Para JPEG y WebP, ajusta **Calidad (JPEG, WebP)**.\n\n### Paso 3: Convierte\nHaz clic en **Convertir**. Un trabajo largo se puede detener con **Cancelar**.\n\n### Paso 4: Descarga\nRevisa **Tamaño:** y la vista previa, y haz clic en **Descargar** para guardar `<name>.<ext>`.",
+  "Seo_Tips": "- Usa PNG para capturas de pantalla y texto, y JPEG o WebP para fotos.\n- Para un favicon parte de una imagen cuadrada de al menos 256×256 px; las imágenes más grandes se reducen a 256 px.\n- Convertir JPEG a PNG no recupera el detalle perdido: solo hace el archivo más grande.\n- Los resultados TIFF y TGA no tienen vista previa en el navegador, pero el archivo descargado está completo.\n- Los GIF animados pierden la animación: solo se conserva el primer fotograma.",
   "Cancel": "Cancelar",
-  "ErrorUnsupportedFormat": "Este formato de imagen no es compatible. Usa PNG, JPEG, WebP, GIF, BMP, ICO, TIFF o TGA."
+  "ErrorUnsupportedFormat": "Este formato de imagen no es compatible. Usa PNG, JPEG, WebP, GIF, BMP, ICO, TIFF o TGA.",
+  "WebpLosslessNote": "Tu navegador no puede codificar WebP con pérdida, así que se guardó un WebP sin pérdida y no se aplicó la calidad. Elige JPEG para una foto más ligera."
 }

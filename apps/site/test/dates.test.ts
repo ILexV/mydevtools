@@ -61,7 +61,9 @@ test("format: fixed outputs for 1700000000 (2023-11-14 22:13:20 UTC)", () => {
   const d = new Date(1700000000000);
   assert.equal(format(d, "iso"), "2023-11-14T22:13:20.000Z");
   assert.equal(format(d, "utc"), "Tue, 14 Nov 2023 22:13:20 GMT");
-  assert.equal(format(d, "rfc"), "Tue, 14 Nov 2023 22:13:20 GMT");
+  assert.equal(format(d, "rfc"), "Tue, 14 Nov 2023 22:13:20 +0000");
+  // The RFC 5322 output parses back to the same instant.
+  assert.equal(ms(parse(format(d, "rfc")!, "auto")), d.getTime());
   assert.equal(format(d, "unix-sec"), "1700000000");
   assert.equal(format(d, "unix-ms"), "1700000000000");
   // Berlin = UTC+1 in November.

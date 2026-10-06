@@ -1,5 +1,6 @@
 use image::codecs::jpeg::JpegEncoder;
-use image::{DynamicImage, ImageFormat, Rgb, RgbImage};
+use image::metadata::Orientation;
+use image::{DynamicImage, ImageDecoder, ImageFormat, ImageReader, Rgb, RgbImage};
 use std::io::Cursor;
 use wasm_bindgen::prelude::*;
 
@@ -36,11 +37,26 @@ pub fn resize_image(input_data: &[u8], width: u32, height: u32, format_str: &str
     encode_dynamic_image(&resized, format_str, 90)
 }
 
+/// Decode any supported input. TGA has no magic number, so unrecognized bytes
+/// are tried as TGA (otherwise .tga uploads always failed). The EXIF/TIFF
+/// orientation tag is applied to the pixels: re-encoding drops the metadata,
+/// so a rotated phone photo would otherwise come out sideways.
 fn decode(input_data: &[u8]) -> Result<DynamicImage, String> {
     if input_data.is_empty() {
         return Err("Failed to load image: empty input".to_string());
     }
-    image::load_from_memory(input_data).map_err(|e| format!("Failed to load image: {}", e))
+    let fail = |e: image::ImageError| format!("Failed to load image: {}", e);
+    let mut reader = ImageReader::new(Cursor::new(input_data))
+        .with_guessed_format()
+        .map_err(|e| format!("Failed to load image: {}", e))?;
+    if reader.format().is_none() {
+        reader.set_format(ImageFormat::Tga);
+    }
+    let mut decoder = reader.into_decoder().map_err(fail)?;
+    let orientation = decoder.orientation().unwrap_or(Orientation::NoTransforms);
+    let mut img = DynamicImage::from_decoder(decoder).map_err(fail)?;
+    img.apply_orientation(orientation);
+    Ok(img)
 }
 
 fn validate_dimensions(width: u32, height: u32) -> Result<(), String> {
@@ -298,6 +314,43 @@ mod tests {
         assert!(resize_image(&src, MAX_DIMENSION, MAX_DIMENSION, "png").unwrap_err().contains("too large"));
         assert!(resize_image(&src, MAX_DIMENSION + 1, 1, "png").is_err());
         assert!(resize_image(&src, MAX_DIMENSION, 1, "png").is_ok());
+    }
+
+    #[test]
+    fn tga_input_is_decoded_despite_missing_magic() {
+        let tga = convert_image(&rgba_png(40, 30, 255), "tga", 90).unwrap();
+        let png = convert_image(&tga, "png", 100).unwrap();
+        assert_eq!(image::load_from_memory(&png).unwrap().dimensions(), (40, 30));
+        assert!(resize_image(&tga, 20, 15, "jpeg").is_ok());
+    }
+
+    /// JPEG 4×2 with an EXIF APP1 segment carrying Orientation = 6 (rotate 90° CW).
+    fn jpeg_with_orientation_6() -> Vec<u8> {
+        let mut jpeg = Vec::new();
+        JpegEncoder::new_with_quality(&mut jpeg, 90)
+            .encode_image(&DynamicImage::ImageRgb8(RgbImage::from_pixel(4, 2, Rgb([200, 10, 10]))))
+            .unwrap();
+        let mut tiff = b"II*\0\x08\0\0\0".to_vec(); // little-endian, IFD at 8
+        tiff.extend_from_slice(&[1, 0]); // 1 entry
+        tiff.extend_from_slice(&[0x12, 0x01, 3, 0, 1, 0, 0, 0, 6, 0, 0, 0]); // Orientation=6
+        tiff.extend_from_slice(&[0, 0, 0, 0]); // no next IFD
+        let mut app1 = b"Exif\0\0".to_vec();
+        app1.extend_from_slice(&tiff);
+        let len = (app1.len() + 2) as u16;
+        let mut out = vec![0xFF, 0xD8, 0xFF, 0xE1];
+        out.extend_from_slice(&len.to_be_bytes());
+        out.extend_from_slice(&app1);
+        out.extend_from_slice(&jpeg[2..]); // skip the encoder's SOI
+        out
+    }
+
+    #[test]
+    fn exif_orientation_is_applied_before_reencoding() {
+        let src = jpeg_with_orientation_6();
+        for fmt in ["jpeg", "png", "webp"] {
+            let out = compress_image(&src, fmt, 90).unwrap();
+            assert_eq!(image::load_from_memory(&out).unwrap().dimensions(), (2, 4), "{fmt}");
+        }
     }
 
     #[test]

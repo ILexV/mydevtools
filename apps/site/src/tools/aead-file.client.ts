@@ -1,9 +1,12 @@
 /**
  * AEAD file crypto client controller. Drives `aead-file-client` (chunked
  * streaming WASM) for encrypt/decrypt with progress + cancel, header hex
- * output, and blob download — legacy parity (1 MiB chunks, Argon2id,
- * `<name>.aead` / strip-`.aead`-or-append-`.dec` download names, trimmed
- * password). Wrong password / tampered file / non-.aead input surface as
+ * output, and blob download (1 MiB chunks, Argon2id, `<name>.aead` /
+ * strip-`.aead`-or-append-`.dec` download names). Encryption writes MDT3 and
+ * uses the password exactly as typed (a hint flags edge whitespace);
+ * decryption also reads legacy MDT2 and falls back to the trimmed password
+ * (the old site trimmed), with a note when either legacy path was used.
+ * Wrong password / tampered or truncated file / non-.aead input surface as
  * localized errors (AeadError.failure), not raw WASM strings.
  */
 import {
@@ -15,6 +18,7 @@ import {
 } from "@/scripts/wasm/aead-file-client";
 import { formatBytes } from "@/lib/format";
 import { aeadProgressView, decryptedName, encryptedName } from "@/tools/aead-file-helpers";
+import { hasEdgeWhitespace, passwordCandidates } from "@/tools/crypto-password";
 
 interface Strings {
   fileProgressTitle: string;
@@ -25,6 +29,8 @@ interface Strings {
   errorOperationCanceled: string;
   errorDecryptFailed: string;
   errorInvalidContainer: string;
+  noteTrimmedPassword: string;
+  noteLegacyFormat: string;
 }
 
 function readStrings(): Strings | null {
@@ -62,6 +68,8 @@ function init() {
   const resultOut = root.querySelector<HTMLInputElement>("[data-aead-result]");
   const downloadBtn = root.querySelector<HTMLButtonElement>("[data-aead-download]");
   const errorBox = root.querySelector<HTMLElement>("[data-aead-error]");
+  const noteBox = root.querySelector<HTMLElement>("[data-aead-note]");
+  const whitespaceHint = root.querySelector<HTMLElement>("[data-aead-password-ws]");
 
   if (
     !encFile || !encFileName || !decFile || !decFileName || !algorithm || !password ||
@@ -96,6 +104,20 @@ function init() {
   function clearError() {
     errorEl.hidden = true;
     passwordInput.removeAttribute("aria-invalid");
+    if (noteBox) {
+      noteBox.hidden = true;
+      noteBox.textContent = "";
+    }
+  }
+
+  function showNotes(notes: string[]) {
+    if (!noteBox || notes.length === 0) return;
+    noteBox.textContent = notes.join(" ");
+    noteBox.hidden = false;
+  }
+
+  function updateWhitespaceHint() {
+    if (whitespaceHint) whitespaceHint.hidden = !hasEdgeWhitespace(passwordInput.value);
   }
 
   function selectedFile(input: HTMLInputElement): File | null {
@@ -157,9 +179,9 @@ function init() {
     }
   }
 
+  /** The password exactly as typed (no trim); empty → localized error. */
   function readPassword(): string | null {
-    // Trimmed for legacy parity: files encrypted by the legacy site used the trimmed password.
-    const pw = passwordInput.value.trim();
+    const pw = passwordInput.value;
     if (!pw) {
       passwordInput.setAttribute("aria-invalid", "true");
       showError(strings.errorPasswordRequired);
@@ -185,16 +207,24 @@ function init() {
     showProgress(file);
     try {
       const opts = { signal: abortController.signal, onProgress: updateProgress };
-      const { blob, headerHex } =
-        mode === "encrypt"
-          ? await aeadEncryptFile(file, pw, (algorithmSelect.value || "aes-256-gcm") as AeadAlgorithm, opts)
-          : await aeadDecryptFile(file, pw, opts);
+      const notes: string[] = [];
+      let blob: Blob;
+      let headerHex: string;
+      if (mode === "encrypt") {
+        ({ blob, headerHex } = await aeadEncryptFile(file, pw, (algorithmSelect.value || "aes-256-gcm") as AeadAlgorithm, opts));
+      } else {
+        const res = await aeadDecryptFile(file, passwordCandidates(pw), opts);
+        ({ blob, headerHex } = res);
+        if (res.passwordIndex > 0) notes.push(strings.noteTrimmedPassword);
+        if (res.format === 2) notes.push(strings.noteLegacyFormat);
+      }
       const outName = mode === "encrypt" ? encryptedName(file.name) : decryptedName(file.name);
       lastBlob = blob;
       lastName = outName;
       headerField.value = headerHex;
       resultField.value = `${outName} • ${formatBytes(blob.size, 2)}`;
       downloadButton.disabled = false;
+      showNotes(notes);
     } catch (e) {
       handleError(e);
     } finally {
@@ -209,7 +239,11 @@ function init() {
   encryptButton.addEventListener("click", () => void run("encrypt"));
   decryptButton.addEventListener("click", () => void run("decrypt"));
   cancelBtn.addEventListener("click", () => abortController?.abort());
-  passwordInput.addEventListener("input", () => passwordInput.removeAttribute("aria-invalid"));
+  passwordInput.addEventListener("input", () => {
+    passwordInput.removeAttribute("aria-invalid");
+    updateWhitespaceHint();
+  });
+  updateWhitespaceHint();
 
   togglePassword?.addEventListener("click", () => {
     const show = passwordInput.type === "password";

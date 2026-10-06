@@ -1,7 +1,7 @@
 {
   "Title": "JSON → TypeScript 변환기",
-  "Description": "JSON 객체를 TypeScript 인터페이스 및 타입 별칭으로 즉시 변환 — 개인 정보 보호, 브라우저에서 완전히 실행",
-  "Keywords": "JSON to TypeScript, JSON to interface, TypeScript generator, JSON type generator, convert JSON to TypeScript, TypeScript interface from JSON",
+  "Description": "JSON 샘플에서 TypeScript 인터페이스나 타입 별칭을 생성합니다. 중첩 타입, 배열 항목 병합, 선택적 필드, export 키워드 지원. 브라우저에서 실행.",
+  "Keywords": "JSON TypeScript 변환, JSON to TypeScript, JSON 인터페이스 생성, TypeScript 인터페이스 생성기, TypeScript 타입 생성, JSON 타입 변환, TypeScript type alias",
   "InputLabel": "JSON 입력",
   "InputPlaceholder": "JSON을 여기에 붙여넣기...",
   "OutputLabel": "TypeScript 출력",
@@ -18,9 +18,9 @@
   "OptionalFields": "선택적 필드 (?)",
   "UseTypeAlias": "타입 별칭 사용",
   "EditorKeyboardHint": "편집기에서 Tab 키는 들여쓰기를 합니다. 편집기에서 나가려면 Esc를 누른 다음 Tab을 누르세요.",
-  "Seo_Introduction": "JSON → TypeScript 변환기는 JSON 데이터를 강타입 TypeScript 인터페이스 및 타입 별칭으로 몇 초 만에 변환합니다. 모든 변환은 브라우저에서 로컬로 수행됩니다 — 데이터가 외부로 전송되지 않습니다.",
-  "Seo_DetailedDescription": "변환기는 JSON 객체 또는 배열의 구조를 분석하여 관용적인 TypeScript 정의를 생성합니다. 중첩된 객체는 자동으로 별도의 명명된 인터페이스로 추출됩니다.\n\n**주요 옵션:**\n- **루트 이름** — 최상위 인터페이스 이름 커스터마이즈(기본값: `Root`).\n- **export** — 각 생성된 인터페이스 또는 타입 별칭 앞에 `export` 추가.\n- **선택적 필드 (?)** — `null` 값을 가진 프로퍼티를 선택적으로 표시.\n- **타입 별칭** — `interface Foo { … }` 대신 `type Foo = { … }` 생성.",
-  "Seo_Examples": "**예시 1: API 응답 → TypeScript**\nREST API 응답을 붙여넣고 루트 이름을 설정한 후 변환합니다. 프로젝트에 바로 사용할 수 있는 인터페이스를 얻습니다.\n\n**예시 2: 깊게 중첩된 설정 파일**\n여러 중첩 수준의 JSON 설정 파일이 자동으로 처리됩니다.\n\n**예시 3: 객체 배열**\n루트 값이 배열인 경우, 변환기는 배열의 타입 별칭과 요소의 인터페이스를 생성합니다.",
-  "Seo_HowToSteps": "### 1단계: JSON 붙여넣기\nAPI 응답 또는 설정 파일에서 JSON을 복사하여 왼쪽 패널에 붙여넣습니다. TypeScript 출력이 자동으로 업데이트됩니다.\n\n### 2단계: 옵션 설정\n루트 인터페이스 이름을 설정하고, `export` 추가 여부를 선택하고, 선택적 필드를 전환하고, `interface`와 `type` 중 선택합니다.\n\n### 3단계: 결과 사용\n**복사** 또는 **.ts 다운로드**를 클릭합니다.",
-  "Seo_Tips": "- **실시간 변환** — JSON을 편집하면 출력이 즉시 업데이트됩니다.\n- **명명 규칙** — `snake_case` 및 `kebab-case` 키는 자동으로 `PascalCase`로 변환됩니다.\n- **대용량 데이터** — 크고 깊게 중첩된 JSON을 성능 문제 없이 처리합니다."
+  "Seo_Introduction": "API 응답, 설정 파일, 테스트 픽스처 같은 JSON 샘플을 붙여넣으면 입력하는 즉시 TypeScript 선언이 만들어집니다. 중첩 객체는 각각 이름이 붙은 인터페이스가 되므로 결과를 바로 .ts 파일에 넣을 수 있습니다.",
+  "Seo_DetailedDescription": "타입은 값에서 추론됩니다. `string`, `number`, `boolean`, `null`, 배열은 `T[]`, 섞인 배열은 `(number | string | null)[]` 같은 유니언, 빈 배열은 `unknown[]`이 됩니다. 중첩 객체마다 경로를 PascalCase로 바꾼 이름의 인터페이스가 생깁니다(`Order` 안의 `shipping_address` → `OrderShippingAddress`). 배열의 모든 객체는 하나의 항목 타입으로 병합되며, 일부 요소에 없는 키는 선택적이 되고 값 타입이 다른 키는 유니언이 됩니다.\n\n옵션: **루트 이름**은 최상위 타입 이름을 정합니다(기본값 `Root`). **export 키워드**는 모든 선언에 `export`를 붙입니다. 기본으로 켜져 있는 **선택적 필드 (?)**는 값이 `null`인 키를 선택적으로 표시합니다. **타입 별칭 사용**은 `interface X { … }` 대신 `type X = { … };`를 씁니다. 루트가 배열이면 `export type Users = UsersItem[];` 같은 별칭이 만들어집니다. 유효한 식별자가 아닌 키는 따옴표로 감싸고(`\"order-id\": string;`), 타입 이름이 겹치면 숫자 접미사가 붙습니다.\n\n출력은 편집할 때마다(잠시 멈춘 뒤), 그리고 **변환** 또는 Ctrl+Enter를 누를 때 다시 만들어지며, 잘못된 JSON이면 파서 오류가 표시됩니다. 결과는 읽기 전용 에디터에 나오며 **복사**하거나 **.ts 다운로드**로 `types.ts`에 저장할 수 있습니다. 모든 처리는 로컬에서 이루어지며 샘플은 업로드되거나 저장되지 않습니다.",
+  "Seo_Examples": "**API 객체**: `{\"id\":7,\"user_name\":\"ann\",\"tags\":[\"a\"],\"manager\":null}`에 루트 이름 `User`와 export 키워드를 지정하면 `export interface User { id: number; user_name: string; tags: string[]; manager?: null; }`가 나옵니다.\n\n**서로 다른 객체의 배열**: `[{\"id\":1,\"email\":\"a@x.io\"},{\"id\":2,\"phone\":\"555\"}]`에 루트 이름 `Users`를 지정하면 `export interface UsersItem { id: number; email?: string; phone?: string; }`와 `export type Users = UsersItem[];`가 나옵니다.\n\n**타입 별칭과 따옴표 키**: `{\"order-id\":\"A1\",\"items\":[{\"sku\":\"x\",\"qty\":2}],\"shipping_address\":{\"city\":\"Omsk\"}}`에 루트 이름 `Order`와 타입 별칭 사용을 지정하면 `type OrderItemsItem = { sku: string; qty: number; };`, `type OrderShippingAddress = { city: string; };`, `type Order = { \"order-id\": string; items: OrderItemsItem[]; shipping_address: OrderShippingAddress; };`가 나옵니다.",
+  "Seo_HowToSteps": "### 1단계: JSON 붙여넣기\n**JSON 입력** 에디터에 JSON 샘플을 넣습니다. **TypeScript 출력**이 자동으로 갱신됩니다.\n\n### 2단계: 옵션 조정\n**루트 이름**을 정하고 필요에 따라 **export 키워드**, **선택적 필드 (?)**, **타입 별칭 사용**을 켜거나 끕니다.\n\n### 3단계: 타입 가져가기\n**복사**를 눌러 선언을 복사하거나 **.ts 다운로드**를 눌러 `types.ts`로 저장합니다.",
+  "Seo_Tips": "- 샘플은 그 안에 있는 값만 보여 줍니다. 샘플에서 `null`인 필드는 `null` 타입이 되므로 실제 타입(예: `string | null`)으로 직접 바꾸세요.\n- 항목 타입을 정확히 얻으려면 선택적 필드가 서로 다른 배열 요소를 여러 개 넣으세요.\n- 숫자는 모두 `number`가 되고, ISO 형식의 날짜는 `string`으로 남습니다.\n- `null` 값이 항상 명시적으로 전송되어 `manager: null`을 필수 키로 두고 싶다면 선택적 필드 (?)를 끄세요.\n- 속성 이름은 원래 표기를 유지하며, 타입 이름만 PascalCase로 변환됩니다."
 }

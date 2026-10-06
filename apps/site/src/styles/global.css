@@ -376,6 +376,13 @@
   .ds-field-textarea {
     resize: vertical;
   }
+  /* WebKit counts the longest <option> text in the page's scrollable overflow
+     even when the select itself is narrower (ja/de labels caused 18px of
+     horizontal scroll at 375px). Paint containment clips that; the element's
+     own focus ring/box-shadow are not clipped. */
+  .ds-field-select {
+    contain: paint;
+  }
   .ds-field.mono,
   .ds-field-textarea.mono {
     font-family: var(--mdt-font-mono);

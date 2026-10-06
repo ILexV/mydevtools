@@ -1,11 +1,12 @@
 ---
 /**
- * IP Subnet Calculator tool (ipcalc WASM domain). Accepts CIDR
- * (192.168.1.1/24) or "IP mask" (192.168.1.1 255.255.255.0) input and renders
- * the full legacy results table: address/netmask/wildcard, network + prefix,
- * broadcast, host range, usable/total hosts, class + private/public badge, and
- * the binary IP/mask view. Calculate on button click or Enter; example buttons
- * fill + run; copy buttons on network/broadcast with transient feedback.
+ * IP Subnet Calculator tool (ipcalc WASM domain). IPv4: CIDR
+ * (192.168.1.1/24), "IP mask" (192.168.1.1 255.255.255.0) or bare IP →
+ * address/netmask/wildcard, network + prefix, broadcast, host range,
+ * usable/total hosts, class + address-type badge, binary view. IPv6 (any input
+ * with a colon): CIDR or bare address → compressed/expanded address, network,
+ * prefix mask, first/last address, exact address count (BigInt) + type badge.
+ * Calculate on button click or Enter; example buttons fill + run; copy buttons.
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
@@ -31,8 +32,26 @@ const s = {
   hosts: t(lang, ns, "Hosts"),
   total: t(lang, ns, "Total"),
   classLabel: t(lang, ns, "Class"),
-  privateLabel: t(lang, ns, "Private"),
-  publicLabel: t(lang, ns, "Public"),
+  expanded: t(lang, ns, "Expanded"),
+  firstAddress: t(lang, ns, "FirstAddress"),
+  lastAddress: t(lang, ns, "LastAddress"),
+  addresses: t(lang, ns, "Addresses"),
+  typeLabel: t(lang, ns, "Type"),
+  // Address-type badge text, keyed by the WASM `scope` value.
+  scopes: {
+    private: t(lang, ns, "Private"),
+    public: t(lang, ns, "Public"),
+    shared: t(lang, ns, "Scope_Shared"),
+    loopback: t(lang, ns, "Scope_Loopback"),
+    "link-local": t(lang, ns, "Scope_LinkLocal"),
+    documentation: t(lang, ns, "Scope_Documentation"),
+    multicast: t(lang, ns, "Scope_Multicast"),
+    reserved: t(lang, ns, "Scope_Reserved"),
+    "unique-local": t(lang, ns, "Scope_UniqueLocal"),
+    global: t(lang, ns, "Scope_Global"),
+    unspecified: t(lang, ns, "Scope_Unspecified"),
+    "ipv4-mapped": t(lang, ns, "Scope_Ipv4Mapped"),
+  },
   binary: t(lang, ns, "Binary"),
   examples: t(lang, ns, "Examples"),
   copy: t(lang, ns, "Copy"),
@@ -56,7 +75,7 @@ const copyIcon =
             type="text"
             class="ds-field mono"
             data-ip-input
-            placeholder="192.168.1.1/24"
+            placeholder="192.168.1.1/24 · 2001:db8::1/64"
             autocomplete="off"
             spellcheck="false"
             autocapitalize="off"
@@ -69,7 +88,7 @@ const copyIcon =
       <div class="ds-field-group">
         <span class="ds-label" id="ip-examples-label">{s.examples}</span>
         <div class="ds-chip-list" role="group" aria-labelledby="ip-examples-label">
-          {["192.168.0.1/24", "10.0.0.0/8", "172.16.0.1 255.240.0.0", "10.0.0.1/31"].map((ex) => (
+          {["192.168.0.1/24", "10.0.0.0/8", "172.16.0.1 255.240.0.0", "10.0.0.1/31", "2001:db8:abcd:12::1/64"].map((ex) => (
             <button type="button" class="ds-chip-btn" data-ip-example={ex}>{ex}</button>
           ))}
         </div>
@@ -77,7 +96,7 @@ const copyIcon =
     </section>
 
     <section class="ds-card ip-results" data-ip-results aria-live="polite" hidden>
-      <table class="ip-table">
+      <table class="ip-table" data-ip-v4>
         <tbody>
           <tr><th scope="row">{s.address}</th><td><span data-ip-value="ip"></span></td><td></td></tr>
           <tr><th scope="row">{s.netmask}</th><td><span data-ip-value="netmask"></span></td><td></td></tr>
@@ -112,15 +131,50 @@ const copyIcon =
             <th scope="row">{s.classLabel}</th>
             <td>
               <span data-ip-value="class"></span>
-              <span class="ds-badge ds-badge-warning" data-ip-badge="private" hidden>{s.privateLabel}</span>
-              <span class="ds-badge ds-badge-success" data-ip-badge="public" hidden>{s.publicLabel}</span>
+              <span class="ds-badge" data-ip-scope></span>
             </td>
             <td></td>
           </tr>
         </tbody>
       </table>
 
-      <div class="ip-binary">
+      <table class="ip-table" data-ip-v6 hidden>
+        <tbody>
+          <tr><th scope="row">{s.address}</th><td><span data-ip-value="v6ip"></span></td><td></td></tr>
+          <tr><th scope="row">{s.expanded}</th><td><span data-ip-value="v6expanded"></span></td><td></td></tr>
+          <tr>
+            <th scope="row">{s.network}</th>
+            <td><span data-ip-value="v6network"></span><span class="ip-dim" data-ip-value="v6prefix"></span></td>
+            <td class="ip-copy-cell">
+              <button type="button" class="ds-icon-btn ip-copy" data-ip-copy="v6network" aria-label={`${s.copy}: ${s.network}`} title={`${s.copy}: ${s.network}`} set:html={copyIcon} />
+            </td>
+          </tr>
+          <tr><th scope="row">{s.netmask}</th><td><span data-ip-value="v6netmask"></span></td><td></td></tr>
+          <tr><th scope="row">{s.firstAddress}</th><td><span data-ip-value="v6first"></span></td><td></td></tr>
+          <tr>
+            <th scope="row">{s.lastAddress}</th>
+            <td><span data-ip-value="v6last"></span></td>
+            <td class="ip-copy-cell">
+              <button type="button" class="ds-icon-btn ip-copy" data-ip-copy="v6last" aria-label={`${s.copy}: ${s.lastAddress}`} title={`${s.copy}: ${s.lastAddress}`} set:html={copyIcon} />
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">{s.addresses}</th>
+            <td>
+              <strong data-ip-value="v6count"></strong>
+              <span class="ip-dim ip-total">(2<sup data-ip-value="v6pow"></sup>)</span>
+            </td>
+            <td></td>
+          </tr>
+          <tr>
+            <th scope="row">{s.typeLabel}</th>
+            <td><span class="ds-badge" data-ip-scope-v6></span></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="ip-binary" data-ip-binary>
         <div class="ds-label">{s.binary}</div>
         <dl class="ip-binary-list">
           <dt>{s.address}</dt>
@@ -159,6 +213,7 @@ const copyIcon =
   .ip-copy-cell { text-align: right; width: 2.5rem; }
   .ip-copy { width: 30px; height: 30px; }
   .ip-table .ds-badge { margin-left: 0.4rem; vertical-align: middle; }
+  .ip-table [data-ip-scope-v6] { margin-left: 0; }
 
   .ip-binary {
     margin-top: 1rem;

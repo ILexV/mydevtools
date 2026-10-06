@@ -8,15 +8,20 @@ use wasm_bindgen::prelude::*;
 
 const BUILD_ID: &str = "winansi-fallback-2026-02-19-2";
 
-// Helper to log to console
-#[cfg(target_arch = "wasm32")]
+// Diagnostic logging. Off by default: text extraction used to emit thousands
+// of console lines per document (noise in the user's console and a big
+// slowdown). Enable with `--features debug-log` when debugging extraction.
 macro_rules! console_log {
-    ($($t:tt)*) => (web_sys::console::log_1(&format!($($t)*).into()))
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-macro_rules! console_log {
-    ($($t:tt)*) => (println!($($t)*))
+    ($($t:tt)*) => {{
+        #[cfg(all(target_arch = "wasm32", feature = "debug-log"))]
+        web_sys::console::log_1(&format!($($t)*).into());
+        #[cfg(all(not(target_arch = "wasm32"), feature = "debug-log"))]
+        println!($($t)*);
+        #[cfg(not(feature = "debug-log"))]
+        {
+            let _ = format_args!($($t)*);
+        }
+    }};
 }
 
 /// Stable marker in error messages for password-protected PDFs; the site
@@ -62,8 +67,10 @@ pub fn merge_pdfs_bytes(files: &[Vec<u8>]) -> Result<Vec<u8>, String> {
     // Start with the first document as the base
     let mut target_doc = documents.remove(0);
 
-    // Ensure version is at least 1.5
-    target_doc.version = "1.5".to_string();
+    // Ensure version is at least 1.5 (never downgrade a 1.7 / 2.0 header).
+    if target_doc.version.parse::<f32>().unwrap_or(1.0) < 1.5 {
+        target_doc.version = "1.5".to_string();
+    }
 
     // Get the Pages object reference from the catalog
     let catalog_id = target_doc
@@ -203,9 +210,8 @@ pub fn compress_pdf_bytes(bytes: &[u8]) -> Result<Vec<u8>, String> {
         if let Ok(root) = doc.get_object_mut(root_id).and_then(|o| o.as_dict_mut()) {
             root.remove(b"Metadata");
             root.remove(b"PieceInfo");
-            root.remove(b"StructTreeRoot");
-            root.remove(b"OCProperties");
-            root.remove(b"MarkInfo");
+            // /StructTreeRoot, /MarkInfo and /Lang are kept: tagged-PDF
+            // (PDF/UA) accessibility structure must survive compression.
         }
     }
 
@@ -218,9 +224,11 @@ pub fn compress_pdf_bytes(bytes: &[u8]) -> Result<Vec<u8>, String> {
                 dict.remove(b"PieceInfo");
                 dict.remove(b"LastModified");
                 dict.remove(b"Thumb");
-                dict.remove(b"StructParents");
-                dict.remove(b"A"); // Actions (can be bloat)
-                dict.remove(b"AA"); // Additional Actions
+                // /StructParents (and /StructParent) link pages and
+                // annotations to the structure tree's /ParentTree: kept.
+                // /A and /AA (actions) are kept: removing them broke every
+                // hyperlink and bookmark jump. /OCProperties (layers) is kept
+                // too: without it hidden optional content became visible.
             }
         }
     }
@@ -435,6 +443,45 @@ fn stream_content(stream: &lopdf::Stream) -> Result<Vec<u8>, lopdf::Error> {
         return Ok(stream.content.clone());
     }
     stream.decompressed_content()
+}
+
+/// Rewrite the text-show-with-newline operators so the extractor only has to
+/// handle `Tj`: `string '` → `T*` + `Tj`, `aw ac string "` → `T*` + `Tj`
+/// (word/char spacing don't affect extracted text).
+fn normalize_text_ops(ops: &[lopdf::content::Operation]) -> Vec<lopdf::content::Operation> {
+    use lopdf::content::Operation;
+    let mut out = Vec::with_capacity(ops.len());
+    for op in ops {
+        let string = match op.operator.as_str() {
+            "'" => op.operands.first(),
+            "\"" => op.operands.get(2),
+            _ => {
+                out.push(op.clone());
+                continue;
+            }
+        };
+        out.push(Operation::new("T*", vec![]));
+        if let Some(s) = string {
+            out.push(Operation::new("Tj", vec![s.clone()]));
+        }
+    }
+    out
+}
+
+/// Numeric content-stream operand (integer or real) as f32.
+fn operand_number(o: &Object) -> Option<f32> {
+    match o {
+        Object::Integer(i) => Some(*i as f32),
+        Object::Real(r) => Some(*r),
+        _ => None,
+    }
+}
+
+/// Append a newline unless the page text is empty or already ends with one.
+fn push_line_break(text: &mut String) {
+    if !text.is_empty() && !text.ends_with('\n') {
+        text.push('\n');
+    }
 }
 
 fn extract_text_impl(doc: Document) -> Result<String, String> {
@@ -1376,6 +1423,7 @@ fn extract_text_impl(doc: Document) -> Result<String, String> {
                             if let Ok(content) = Content::decode(&content_bytes) {
                                 let mut current_font: Option<String> = None;
                                 let mut page_text = String::new();
+                                let mut last_tm_y: Option<f32> = None;
 
 
                                 // Track which fonts we've already attempted heuristics for on this page
@@ -1656,7 +1704,8 @@ fn extract_text_impl(doc: Document) -> Result<String, String> {
                                     }
                                     best_map
                                 }
-                                for op in content.operations.iter() {
+                                let ops = normalize_text_ops(&content.operations);
+                                for op in ops.iter() {
                                     match op.operator.as_ref() {
                                         "Tf" => {
                                             // set font resource
@@ -1909,9 +1958,6 @@ fn extract_text_impl(doc: Document) -> Result<String, String> {
                                             // array of strings and numbers
                                             if !op.operands.is_empty() {
                                                 if let Ok(arr) = op.operands[0].as_array() {
-                                                    let font_map = current_font
-                                                        .as_ref()
-                                                        .and_then(|f| font_maps.get(f));
                                                     for el in arr.iter() {
                                                         if let Ok(sbytes) = el.as_str() {
                                                             let b = sbytes.to_vec();
@@ -2180,7 +2226,23 @@ fn extract_text_impl(doc: Document) -> Result<String, String> {
                                                 }
                                             }
                                         }
-                                        "\n" | "'" | "\"" | "Ts" | _ => {}
+                                        // Line breaks: next-line operators and
+                                        // vertical text moves (`'`/`"` were
+                                        // normalized into T* + Tj).
+                                        "T*" => push_line_break(&mut page_text),
+                                        "Td" | "TD" => {
+                                            if op.operands.get(1).and_then(operand_number).is_some_and(|ty| ty != 0.0) {
+                                                push_line_break(&mut page_text);
+                                            }
+                                        }
+                                        "Tm" => {
+                                            let y = op.operands.get(5).and_then(operand_number);
+                                            if y.is_some() && y != last_tm_y {
+                                                push_line_break(&mut page_text);
+                                            }
+                                            last_tm_y = y;
+                                        }
+                                        _ => {}
                                     }
                                 }
                                 out_parts.push(page_text);
@@ -2345,6 +2407,18 @@ mod tests {
     }
 
     #[test]
+    fn merge_keeps_newer_pdf_version() {
+        let mut doc = Document::load_mem(&make_pdf(&["New"])).unwrap();
+        doc.version = "1.7".to_string();
+        let mut v17 = Vec::new();
+        doc.save_to(&mut v17).unwrap();
+        let merged = merge_pdfs_bytes(&[v17, make_pdf(&["Old"])]).unwrap();
+        assert!(merged.starts_with(b"%PDF-1.7"), "{:?}", &merged[..8]);
+        let old_first = merge_pdfs_bytes(&[make_pdf(&["Old"]), make_pdf(&["Old"])]).unwrap();
+        assert!(old_first.starts_with(b"%PDF-1.5"));
+    }
+
+    #[test]
     fn merge_rejects_empty_input() {
         assert_eq!(merge_pdfs_bytes(&[]).unwrap_err(), "No files provided");
     }
@@ -2372,6 +2446,117 @@ mod tests {
         let doc = Document::load_mem(&out).unwrap();
         assert!(doc.trailer.get(b"Info").is_err());
         assert!(doc.version.parse::<f32>().unwrap() >= 1.5);
+    }
+
+    #[test]
+    fn compress_keeps_link_actions_and_layers() {
+        let src = make_pdf(&["Linked"]);
+        let mut doc = Document::load_mem(&src).unwrap();
+        let page_id = *doc.get_pages().values().next().unwrap();
+        let annot_id = doc.add_object(dictionary! {
+            "Type" => "Annot", "Subtype" => "Link",
+            "Rect" => vec![0.into(), 0.into(), 100.into(), 20.into()],
+            "A" => dictionary! { "S" => "URI", "URI" => Object::string_literal("https://example.com/") },
+        });
+        doc.get_object_mut(page_id).unwrap().as_dict_mut().unwrap().set("Annots", vec![annot_id.into()]);
+        let ocg_id = doc.add_object(dictionary! { "Type" => "OCG", "Name" => Object::string_literal("Layer") });
+        let root_id = doc.trailer.get(b"Root").unwrap().as_reference().unwrap();
+        doc.get_object_mut(root_id).unwrap().as_dict_mut().unwrap().set(
+            "OCProperties",
+            dictionary! { "OCGs" => vec![ocg_id.into()], "D" => dictionary! { "OFF" => vec![ocg_id.into()] } },
+        );
+        let mut with_link = Vec::new();
+        doc.save_to(&mut with_link).unwrap();
+
+        let out = Document::load_mem(&compress_pdf_bytes(&with_link).unwrap()).unwrap();
+        let page_id = *out.get_pages().values().next().unwrap();
+        let annots = out.get_dictionary(page_id).unwrap().get(b"Annots").unwrap().as_array().unwrap();
+        let annot = out.get_dictionary(annots[0].as_reference().unwrap()).unwrap();
+        let action = match annot.get(b"A").expect("link action kept") {
+            Object::Reference(r) => out.get_dictionary(*r).unwrap(),
+            o => o.as_dict().unwrap(),
+        };
+        assert_eq!(action.get(b"URI").unwrap().as_str().unwrap(), b"https://example.com/");
+        let root_id = out.trailer.get(b"Root").unwrap().as_reference().unwrap();
+        assert!(out.get_dictionary(root_id).unwrap().get(b"OCProperties").is_ok(), "layers kept");
+    }
+
+    #[test]
+    fn compress_keeps_tagged_pdf_structure() {
+        // Tagged page: marked content with MCID 0 inside a /P structure element.
+        let mut doc = Document::with_version("1.7");
+        let pages_id = doc.new_object_id();
+        let font_id = doc.add_object(dictionary! {
+            "Type" => "Font", "Subtype" => "Type1", "BaseFont" => "Helvetica", "Encoding" => "WinAnsiEncoding",
+        });
+        let content = Content {
+            operations: vec![
+                Operation::new("BDC", vec!["P".into(), dictionary! { "MCID" => 0 }.into()]),
+                Operation::new("BT", vec![]),
+                Operation::new("Tf", vec!["F1".into(), 12.into()]),
+                Operation::new("Td", vec![72.into(), 720.into()]),
+                Operation::new("Tj", vec![Object::string_literal("Tagged text")]),
+                Operation::new("ET", vec![]),
+                Operation::new("EMC", vec![]),
+            ],
+        };
+        let content_id = doc.add_object(Stream::new(dictionary! {}, content.encode().unwrap()));
+        let page_id = doc.add_object(dictionary! {
+            "Type" => "Page", "Parent" => pages_id, "Contents" => content_id, "StructParents" => 0,
+        });
+        doc.objects.insert(
+            pages_id,
+            Object::Dictionary(dictionary! {
+                "Type" => "Pages", "Kids" => vec![page_id.into()], "Count" => 1,
+                "Resources" => dictionary! { "Font" => dictionary! { "F1" => font_id } },
+                "MediaBox" => vec![0.into(), 0.into(), 612.into(), 792.into()],
+            }),
+        );
+        let root_elem_id = doc.new_object_id();
+        let struct_root_id = doc.new_object_id();
+        let p_elem_id = doc.add_object(dictionary! {
+            "Type" => "StructElem", "S" => "P", "P" => root_elem_id, "Pg" => page_id, "K" => 0,
+        });
+        doc.objects.insert(root_elem_id, Object::Dictionary(dictionary! {
+            "Type" => "StructElem", "S" => "Document", "P" => struct_root_id, "K" => vec![p_elem_id.into()],
+        }));
+        doc.objects.insert(struct_root_id, Object::Dictionary(dictionary! {
+            "Type" => "StructTreeRoot",
+            "K" => root_elem_id,
+            "RoleMap" => dictionary! { "Para" => "P" },
+            "ParentTree" => dictionary! { "Nums" => vec![0.into(), vec![p_elem_id.into()].into()] },
+            "ParentTreeNextKey" => 1,
+        }));
+        let catalog_id = doc.add_object(dictionary! {
+            "Type" => "Catalog", "Pages" => pages_id, "StructTreeRoot" => struct_root_id,
+            "MarkInfo" => dictionary! { "Marked" => true }, "Lang" => Object::string_literal("en-US"),
+        });
+        doc.trailer.set("Root", catalog_id);
+        let mut src = Vec::new();
+        doc.save_to(&mut src).unwrap();
+
+        let out = Document::load_mem(&compress_pdf_bytes(&src).unwrap()).unwrap();
+        let deref = |o: &Object| -> lopdf::Dictionary {
+            match o {
+                Object::Reference(r) => out.get_dictionary(*r).unwrap().clone(),
+                o => o.as_dict().unwrap().clone(),
+            }
+        };
+        let root = out.get_dictionary(out.trailer.get(b"Root").unwrap().as_reference().unwrap()).unwrap();
+        assert_eq!(root.get(b"Lang").unwrap().as_str().unwrap(), b"en-US");
+        assert!(deref(root.get(b"MarkInfo").expect("MarkInfo kept")).get(b"Marked").unwrap().as_bool().unwrap());
+        let tree = deref(root.get(b"StructTreeRoot").expect("StructTreeRoot kept"));
+        assert!(tree.get(b"RoleMap").is_ok() && tree.get(b"ParentTree").is_ok());
+        let top = deref(tree.get(b"K").unwrap());
+        assert_eq!(top.get(b"S").unwrap().as_name().unwrap(), b"Document");
+        let page_id = *out.get_pages().values().next().unwrap();
+        let page = out.get_dictionary(page_id).unwrap();
+        assert_eq!(page.get(b"StructParents").unwrap().as_i64().unwrap(), 0);
+        let content = out.get_page_content(page_id).unwrap();
+        let ops = Content::decode(&content).unwrap().operations;
+        let bdc = ops.iter().find(|o| o.operator == "BDC").expect("BDC kept");
+        assert_eq!(bdc.operands[1].as_dict().unwrap().get(b"MCID").unwrap().as_i64().unwrap(), 0);
+        assert!(ops.iter().any(|o| o.operator == "EMC"));
     }
 
     #[test]
@@ -2450,6 +2635,59 @@ endcmap\nend\nend\n";
         let text = extract_text_bytes(&out).unwrap();
         assert!(text.contains("ПрП"), "{text:?}");
         assert!(!text.contains("DEBUG"), "debug dump leaked into output: {text:?}");
+    }
+
+    /// One-page Helvetica PDF whose content stream is `ops` (inside BT/ET).
+    fn make_pdf_with_ops(ops: Vec<Operation>) -> Vec<u8> {
+        let mut doc = Document::with_version("1.4");
+        let pages_id = doc.new_object_id();
+        let font_id = doc.add_object(dictionary! {
+            "Type" => "Font", "Subtype" => "Type1", "BaseFont" => "Helvetica", "Encoding" => "WinAnsiEncoding",
+        });
+        let mut all = vec![Operation::new("BT", vec![]), Operation::new("Tf", vec!["F1".into(), 12.into()])];
+        all.extend(ops);
+        all.push(Operation::new("ET", vec![]));
+        let content_id = doc.add_object(Stream::new(dictionary! {}, Content { operations: all }.encode().unwrap()));
+        let page_id = doc.add_object(dictionary! { "Type" => "Page", "Parent" => pages_id, "Contents" => content_id });
+        doc.objects.insert(
+            pages_id,
+            Object::Dictionary(dictionary! {
+                "Type" => "Pages", "Kids" => vec![page_id.into()], "Count" => 1,
+                "Resources" => dictionary! { "Font" => dictionary! { "F1" => font_id } },
+                "MediaBox" => vec![0.into(), 0.into(), 612.into(), 792.into()],
+            }),
+        );
+        let catalog_id = doc.add_object(dictionary! { "Type" => "Catalog", "Pages" => pages_id });
+        doc.trailer.set("Root", catalog_id);
+        let mut out = Vec::new();
+        doc.save_to(&mut out).unwrap();
+        out
+    }
+
+    #[test]
+    fn extract_text_breaks_lines_on_next_line_operators() {
+        let s = |t: &str| Object::string_literal(t);
+        let pdf = make_pdf_with_ops(vec![
+            Operation::new("Td", vec![72.into(), 720.into()]),
+            Operation::new("Tj", vec![s("Line one")]),
+            Operation::new("Td", vec![0.into(), (-14).into()]),
+            Operation::new("Tj", vec![s("Line two")]),
+            Operation::new("Td", vec![40.into(), 0.into()]),
+            Operation::new("Tj", vec![s(" same line")]),
+            Operation::new("T*", vec![]),
+            Operation::new("Tj", vec![s("Line three")]),
+            Operation::new("'", vec![s("Quote op")]),
+            Operation::new("\"", vec![1.into(), 0.into(), s("Dquote op")]),
+            Operation::new("Tm", vec![1.into(), 0.into(), 0.into(), 1.into(), 72.into(), 500.into()]),
+            Operation::new("Tj", vec![s("Matrix A")]),
+            Operation::new("Tm", vec![1.into(), 0.into(), 0.into(), 1.into(), 72.into(), 480.into()]),
+            Operation::new("Tj", vec![s("Matrix B")]),
+        ]);
+        let text = extract_text_bytes(&pdf).unwrap();
+        assert_eq!(
+            text,
+            "Line one\nLine two same line\nLine three\nQuote op\nDquote op\nMatrix A\nMatrix B"
+        );
     }
 
     #[test]

@@ -1,7 +1,7 @@
 {
   "Title": "X.509 证书",
-  "Description": "创建自签名证书、CSR 并解析 PEM/DER。",
-  "Keywords": "X.509 certificate, self-signed certificate, CSR generator, PEM parser, DER parser, SSL certificate, TLS certificate, certificate tool",
+  "Description": "使用 Ed25519 或 ECDSA 密钥创建自签名 X.509 证书和 CSR，并解析 PEM/DER 格式的证书或 CSR，全部在浏览器本地完成。",
+  "Keywords": "X.509 证书解析, 自签名证书生成, CSR 生成, CSR 解析, PKCS#10, PEM 转 JSON, 证书查看器, ECDSA 证书",
   "SelfSignedSectionTitle": "自签名",
   "SubjectLabel": "主题 (CN)",
   "SubjectHint": "格式：CN=Name,O=Org,C=Country",
@@ -11,7 +11,7 @@
   "GenerateCsr": "生成 CSR",
   "ParseSectionTitle": "解析",
   "ParseLabel": "粘贴 PEM/DER",
-  "ParsePlaceholder": "在此处粘贴证书、CSR 或密钥 (PEM/DER)...",
+  "ParsePlaceholder": "在此粘贴证书或 CSR（PEM 或 Base64 DER）...",
   "ParseButton": "解析",
   "OutputLabel": "输出",
   "Copy": "复制",
@@ -22,9 +22,10 @@
   "AlgorithmLabel": "密钥算法",
   "ErrorValidityDays": "有效期必须是 1 到 36500 之间的整数天数。",
   "ErrorInvalidSubject": "主题无效。请使用名称或 CN=…,O=…,OU=…,L=…,ST=…,C=XX。",
-  "Seo_Introduction": "X.509 Certificate Tool工具是为开发人员设计的注重隐私的在线工具。所有处理都使用WebAssembly在您的浏览器中本地进行，确保您的数据永远不会离开您的设备。",
-  "Seo_DetailedDescription": "此工具为x.509 certificate tool操作提供全面的功能。采用现代Web技术构建，由Rust编译的WebAssembly提供支持，直接在您的浏览器中提供原生级别的性能。\n\n界面设计注重效率和易用性，支持文本输入和文件处理。所有操作都在客户端执行，确保您的敏感数据完全隐私和安全。",
-  "Seo_Examples": "**示例1**：在开发工作流程中使用X.509 Certificate Tool进行快速转换。\n\n**示例2**：直接处理文件而无需上传到任何服务器，保持完全隐私。\n\n**示例3**：将工具集成到日常开发任务中以提高生产力。",
-  "Seo_HowToSteps": "### 步骤1：准备输入\n在输入字段中输入数据或从设备上传文件。\n\n### 步骤2：配置选项\n根据需要调整工具设置。\n\n### 步骤3：处理并复制结果\n点击操作按钮处理输入并将结果复制到剪贴板。",
-  "Seo_Tips": "- 所有处理都在浏览器中进行，以实现最大隐私\n- 初始页面加载后，工具可离线工作\n- 您的偏好设置本地保存在浏览器中\n- 支持带进度跟踪的大文件"
+  "Seo_Introduction": "X.509 证书工具可创建自签名证书和证书签名请求（CSR，PKCS#10），并将现有证书和 CSR 解析为易读的 JSON。密钥在浏览器中生成，文件在浏览器中解析，不会上传任何内容。",
+  "Seo_DetailedDescription": "生成器接收以可分辨名称表示的主题（`CN=…,O=…,OU=…,L=…,ST=…,C=XX`；只写名称时作为 CN）、密钥算法（Ed25519、ECDSA P-256 或 ECDSA P-384），生成证书时还需要 1 到 36500 天的有效期。**生成证书** 输出自签名的 `-----BEGIN CERTIFICATE-----` PEM，**生成 CSR** 输出 `-----BEGIN CERTIFICATE REQUEST-----` PEM；两种情况下，新私钥都以 PKCS#8 `-----BEGIN PRIVATE KEY-----` 块紧随其后。生成器不会添加 Subject Alternative Names，因此这些证书适合测试和内部工具，而不适合公开网站。\n\n**解析** 接受 PEM 或 Base64 DER 格式的证书或 CSR。对于证书，会显示主题、颁发者、`notBefore` / `notAfter`、签名算法和公钥算法 OID 以及 Subject Alternative Names，并对已过期或尚未生效、SHA-1 或 MD5 签名、短于 3072 位的 RSA 和弱曲线给出警告。对于 CSR，会显示主题、密钥类型（例如 `ECDSA P-256` 或 `RSA 2048`）、签名算法、请求的 SAN、key usage、extended key usage 和 basic constraints，并校验请求自身的签名（`signatureValid`）。签名校验失败时会给出警告，说明请求在签名后被修改或已损坏。\n\n输出可以复制，或下载为 `certificate.pem`、`request.csr.pem`、`x509.json` 或 `csr.json`。",
+  "Seo_Examples": "**提交给 CA 前检查 CSR**：粘贴 `CERTIFICATE REQUEST` PEM 并点击 **解析**。OpenSSL 为 `api.example.com` 生成的请求会显示 `\"publicKey\": \"RSA 2048\"`、请求的 DNS 名称和 IP、`\"extendedKeyUsage\": [\"serverAuth\", \"clientAuth\"]` 以及 `\"signatureValid\": true`。\n\n**本地服务的测试证书**：输入 `CN=api.example.com,O=Example GmbH,C=DE`，选择 ECDSA P-256，保留 365 天并点击 **生成证书**。解析结果显示主题 `CN=api.example.com, O=Example GmbH, C=DE`，有效期起止日期正好相差 365 天。\n\n**查看证书何时过期**：粘贴服务器证书（PEM，或配置文件中的 Base64 DER）并点击 **解析**；`notAfter` 即到期日期，已过期的证书会在 **警告** 中标出。\n\n**一步生成密钥和 CSR**：填写主题，选择密钥算法并点击 **生成 CSR**；自行保管私钥块，只提交请求块。",
+  "Seo_HowToSteps": "### 步骤1：填写主题\n输入 **主题 (CN)**，例如 `CN=example.com,O=My Org,C=US`，或只输入主机名。\n\n### 步骤2：选择密钥和有效期\n选择 **密钥算法**，生成证书时设置 **有效期（天）**。\n\n### 步骤3：生成\n点击 **生成证书** 得到自签名证书，或点击 **生成 CSR** 得到签名请求。\n\n### 步骤4：解析现有文件\n将证书或 CSR 粘贴到 **粘贴 PEM/DER** 中并点击 **解析**，查看字段和 **警告**。",
+  "Seo_Tips": "- 浏览器不接受用于 TLS 的 Ed25519 证书；凡是要在浏览器中打开的服务，请选择 ECDSA P-256。\n- 自签名证书只在安装了它的地方受信任；公开网站请将 CSR 提交给证书颁发机构。\n- 私钥紧跟在证书或 CSR 下方：请单独保存，切勿发送给 CA。\n- 现代客户端会用 Subject Alternative Names 匹配主机名；本生成器的 CSR 不含 SAN，需要时请通过 CA 或 OpenSSL 添加。\n- `\"signatureValid\": null` 表示该 CSR 的签名算法不支持校验，而不是校验失败。",
+  "WarningCsrSignature": "CSR 签名校验失败：请求已被修改或已损坏"
 }

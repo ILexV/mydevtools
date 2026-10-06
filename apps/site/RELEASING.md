@@ -94,7 +94,7 @@ Open the published Pages URL in a fresh browser profile (no local cache):
 Playwright captures baseline screenshots of the key surfaces (home light/dark +
 mobile, a text tool, a file/WASM tool, the design showcase) and diffs them.
 Baselines live in `e2e/pages.spec.ts-snapshots/` (platform-suffixed, e.g.
-`*-chromium-win32.png`) and are committed. The suite lives at the **repo root**
+`*-chromium-linux.png`, captured on the Linux build machine) and are committed. The suite lives at the **repo root**
 `e2e/` (not under `apps/site/`) so Playwright's tsconfig loader never touches
 `apps/site/tsconfig.json` (`extends astro/tsconfigs/strict` is only resolvable
 by Astro's own TS tooling).

@@ -17,7 +17,7 @@ import {
   type AeadProgress,
 } from "@/scripts/wasm/aead-file-client";
 import { formatBytes } from "@/lib/format";
-import { syncEmptyState } from "@/scripts/tool-ui";
+import { revealOutput, startPreparing, syncEmptyState } from "@/scripts/tool-ui";
 import { aeadProgressView, decryptedName, encryptedName } from "@/tools/aead-file-helpers";
 import { hasEdgeWhitespace, passwordCandidates } from "@/tools/crypto-password";
 
@@ -32,6 +32,8 @@ interface Strings {
   errorInvalidContainer: string;
   noteTrimmedPassword: string;
   noteLegacyFormat: string;
+  /** `Common_Preparing` — first-run WASM load feedback. */
+  preparing?: string;
 }
 
 function readStrings(): Strings | null {
@@ -205,11 +207,23 @@ function init() {
     if (pw === null) return;
 
     resetOutput();
-    setBusy(true, mode === "encrypt" ? encryptButton : decryptButton);
+    const trigger = mode === "encrypt" ? encryptButton : decryptButton;
+    setBusy(true, trigger);
     abortController = new AbortController();
     showProgress(file);
+    // First-run "Preparing…" until the AEAD worker reports progress or finishes.
+    const prepared = startPreparing("cryptography:aead", {
+      host: trigger.closest<HTMLElement>(".ds-action-row"),
+      label: strings.preparing,
+    });
     try {
-      const opts = { signal: abortController.signal, onProgress: updateProgress };
+      const opts = {
+        signal: abortController.signal,
+        onProgress: (info: Parameters<typeof updateProgress>[0]) => {
+          prepared();
+          updateProgress(info);
+        },
+      };
       const notes: string[] = [];
       let blob: Blob;
       let headerHex: string;
@@ -229,9 +243,11 @@ function init() {
       downloadButton.disabled = false;
       if (outputPanel) syncEmptyState(outputPanel, false);
       showNotes(notes);
+      revealOutput(outputPanel);
     } catch (e) {
       handleError(e);
     } finally {
+      prepared();
       progressPanel.hidden = true;
       setBusy(false, null);
       abortController = null;

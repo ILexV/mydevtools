@@ -4,7 +4,14 @@
  * and formatting delegates to `dates.ts`.
  */
 import { parse, format, type InputType, type OutputFormat } from "@/tools/dates";
-import { bindEmptyState, bindLoadExample, copyWithFeedback, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
+import {
+  bindEmptyState,
+  bindLoadExample,
+  copyWithFeedback,
+  revealOutput,
+  setFieldValue,
+  syncEmptyState,
+} from "@/scripts/tool-ui";
 
 /** Language-neutral example: 2023-11-14T22:13:20Z as Unix seconds (auto-detected). */
 const EXAMPLE = "1700000000";
@@ -112,8 +119,18 @@ function init(): void {
   }
 
   if (exampleBtn && input) bindLoadExample(exampleBtn, () => setFieldValue(input, EXAMPLE));
-  convertBtn?.addEventListener("click", convert);
-  nowBtn?.addEventListener("click", currentTime);
+  /** Explicit Convert / Now: bring a fresh result into view on phones (never on typing). */
+  const revealIfFilled = () => {
+    if (output?.value) revealOutput(outputPanel);
+  };
+  convertBtn?.addEventListener("click", () => {
+    convert();
+    revealIfFilled();
+  });
+  nowBtn?.addEventListener("click", () => {
+    currentTime();
+    revealIfFilled();
+  });
   copyBtn?.addEventListener("click", () => void copy());
   input?.addEventListener("input", convert);
   customInput?.addEventListener("input", convert);

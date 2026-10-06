@@ -49,5 +49,21 @@
   "Footer_Languages": "Languages",
   "Footer_Source": "Source on GitHub",
   "Language": "Language",
-  "Common_CopyFailed": "Copy failed"
+  "Common_CopyFailed": "Copy failed",
+  "Common_OnThisPage": "On this page",
+  "Common_RelatedTools": "Related tools",
+  "Common_Preparing": "Preparing…",
+  "NotFound_Title": "Page not found",
+  "NotFound_Lead": "This address doesn’t lead anywhere — the page may have moved or the link has a typo. Find the tool you need below.",
+  "NotFound_SearchLabel": "Search tools",
+  "NotFound_SearchPlaceholder": "Type a tool name…",
+  "NotFound_Popular": "Popular tools",
+  "NotFound_Recent": "Recently used",
+  "NotFound_Results": "Matching tools",
+  "NotFound_NoResults": "No tools match your search.",
+  "NotFound_Home": "Go to home page",
+  "Offline_Title": "You’re offline",
+  "Offline_Lead": "This page hasn’t been cached yet. Reconnect to load it, or open a tool you’ve visited before — those keep working offline.",
+  "Offline_Retry": "Try again",
+  "Offline_Home": "Go to home page"
 }

@@ -6,7 +6,7 @@
  * `buildSigningInput` (order-preserving); the HMAC from WASM `jwt_sign_input`.
  */
 import { jwtSignInput } from "@/scripts/wasm/crypto-client";
-import { copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
+import { copyWithFeedback, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
 import { buildSigningInput, jsonObjectProblem, type JwtHmacAlg } from "@/tools/jwt";
 
 interface Strings {
@@ -15,6 +15,8 @@ interface Strings {
   invalidJson: string;
   mustBeObject: string;
   encodeFailed: string;
+  /** `Common_Preparing` — first-run WASM load feedback. */
+  preparing?: string;
 }
 
 function readStrings(): Strings | null {
@@ -107,7 +109,10 @@ function init() {
     }
 
     try {
-      const signature = await jwtSignInput(built.input, secretArea.value, alg);
+      const signature = await withPreparing("cryptography", jwtSignInput(built.input, secretArea.value, alg), {
+        host: outputPanel,
+        label: strings.preparing,
+      });
       if (seq !== signSeq) return;
       outputArea.value = `${built.input}.${signature}`;
       setEncodeError(null);

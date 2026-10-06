@@ -7,7 +7,15 @@
  * WASM errors are mapped to localized messages (too long / generic).
  */
 import { qrPng, qrSvg } from "@/scripts/wasm/qrcode-client";
-import { bindDropzone, bindEmptyState, bindLoadExample, setDropzoneHasFile, setFieldValue } from "@/scripts/tool-ui";
+import {
+  bindDropzone,
+  bindEmptyState,
+  bindLoadExample,
+  revealOutput,
+  setDropzoneHasFile,
+  setFieldValue,
+  withPreparing,
+} from "@/scripts/tool-ui";
 
 /** Language-neutral example payload for "Load example" (inserted only on click). */
 const EXAMPLE = "https://example.com/";
@@ -21,6 +29,8 @@ interface Strings {
   errorGenerateFailed: string;
   errorTooLong: string;
   errorInvalidColor: string;
+  /** `Common_Preparing` — first-run WASM load feedback. */
+  preparing?: string;
 }
 
 function readStrings(): Strings | null {
@@ -194,14 +204,18 @@ function init() {
     clearError();
 
     try {
-      const pngBytes = await qrPng(value, {
-        size: parseInt(size!.value, 10),
-        fgColor: fg,
-        bgColor: bg,
-        ecLevel: ecLevel!.value,
-        style: currentStyle,
-        logoData: logoBytes,
-      });
+      const pngBytes = await withPreparing(
+        "qrcode",
+        qrPng(value, {
+          size: parseInt(size!.value, 10),
+          fgColor: fg,
+          bgColor: bg,
+          ecLevel: ecLevel!.value,
+          style: currentStyle,
+          logoData: logoBytes,
+        }),
+        { host: generate!.closest<HTMLElement>(".ds-action-row"), label: strings.preparing },
+      );
 
       const pngBlob = new Blob([pngBytes.slice()], { type: "image/png" });
       if (currentPngUrl) URL.revokeObjectURL(currentPngUrl);
@@ -210,6 +224,8 @@ function init() {
       placeholder!.hidden = true;
       previewImg!.hidden = false;
       previewImg!.src = currentPngUrl;
+      // Explicit Generate: bring the preview into view on phones.
+      revealOutput(previewImg!.closest<HTMLElement>(".ds-card"));
 
       downloadPng!.href = currentPngUrl;
       downloadPng!.download = "qrcode.png";

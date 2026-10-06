@@ -4,7 +4,8 @@
  * diff built with vendored jsdiff and rendered by vendored diff2html-ui (both
  * loaded on demand by the client). View modes: side-by-side (default) /
  * line-by-line. Actions: compare, clear. Large diffs are capped via
- * diffMaxChanges / diffMaxLineLength (legacy parity).
+ * diffMaxChanges / diffMaxLineLength (legacy parity). A headline above the
+ * diff counts added/removed lines ("+12 −4").
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
@@ -41,6 +42,8 @@ const stringsJson = JSON.stringify({
   diffTooBig: t(lang, ns, "DiffTooBig"),
   exampleOriginal: t(lang, ns, "ExampleOriginal"),
   exampleModified: t(lang, ns, "ExampleModified"),
+  linesAdded: t(lang, ns, "LinesAdded"),
+  linesRemoved: t(lang, ns, "LinesRemoved"),
 });
 const uploadIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>`;
 const sides = [
@@ -99,6 +102,13 @@ const sides = [
   <OutputPanel panel class="ds-workbench-wide" label={outputLabel} emptyHint={t(lang, ns, "OutputEmpty")} data-diff-output-panel>
     <StatusMessage kind="info" data-diff-status />
     <StatusMessage kind="error" data-diff-error />
+    <div class="ds-result-headline" data-diff-summary hidden>
+      <span class="ds-result-headline-label">{t(lang, ns, "ChangesLabel")}</span>
+      <span class="ds-result-headline-value diff-counts">
+        <span class="diff-count-add" data-diff-added></span>
+        <span class="diff-count-del" data-diff-removed></span>
+      </span>
+    </div>
     <div class="diff-output" data-diff-output hidden></div>
   </OutputPanel>
 </div>
@@ -118,6 +128,11 @@ const sides = [
     padding: 0.4rem 0.85rem; border-radius: var(--mdt-radius-sm);
     background: var(--mdt-surface-inset); border: 1px solid var(--mdt-border);
   }
+
+  /* Headline "+12 −4": added in success, removed in danger colour. */
+  .diff-counts { display: inline-flex; flex-wrap: wrap; gap: 0 0.9rem; }
+  .diff-count-add { color: var(--mdt-success); }
+  .diff-count-del { color: var(--mdt-danger); }
 
   .diff-output {
     border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius);

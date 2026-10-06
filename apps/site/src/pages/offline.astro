@@ -1,13 +1,37 @@
 ---
 /**
- * `offline/index.html` — served by the service worker when a navigation fails
- * and no cached copy is available. Precached at install, so it always works
- * offline. Kept minimal and self-contained (no shell, no locale dependency) to
- * stay small in the precache store.
+ * `offline/index.html` — offline fallback served by the service worker when a
+ * navigation fails and no cached copy exists. Precached at install together
+ * with its `_astro` CSS, so it renders styled without network. Standalone (no
+ * shell); the locale is detected client-side from the requested URL (the SW
+ * keeps the original address) → saved `mdt.locale` → navigator.language → en.
+ * No-JS fallback: English.
  */
-const bg = "#0a0c12";
-const fg = "#eef1f7";
-const accent = "#6a5af9";
+import { LOCALES, LOCALE_CODES, DEFAULT_LOCALE } from "@/registry/locales";
+import { t } from "@/i18n/messages";
+import { BASE_URL, localizedPath, withBase } from "@/lib/url";
+import Icon from "@/components/Icon.astro";
+import "@/styles/global.css";
+
+const KEYS = ["AppName", "Offline_Title", "Offline_Lead", "Offline_Retry", "Offline_Home"] as const;
+const str = (key: string) => t(DEFAULT_LOCALE, "common", key);
+const island = {
+  b: BASE_URL,
+  l: LOCALES.map((l) => [l.code, l.bcp47]),
+  s: Object.fromEntries(LOCALE_CODES.map((c) => [c, Object.fromEntries(KEYS.map((k) => [k, t(c, "common", k)]))])),
+};
+
+/** Theme + locale pick + string swap; runs before first paint (head) and at body end. */
+const headScript = `(function(){var d=document.documentElement;try{var th=localStorage.getItem("theme");if(!th)th=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";d.setAttribute("data-theme",th==="dark"?"dark":"light");}catch(e){}})();`;
+const bodyScript = `(function(){try{var D=${JSON.stringify(island).replace(/</g, "\\u003c")},d=document.documentElement,L=D.l.map(function(x){return x[0];});
+var p=location.pathname;if(p.indexOf(D.b)===0)p=p.slice(D.b.length);var lang=p.split("/")[0].toLowerCase();
+if(L.indexOf(lang)<0){lang=null;try{lang=localStorage.getItem("mdt.locale");}catch(e){}}
+if(L.indexOf(lang)<0){lang=null;var nl=navigator.languages||[navigator.language||""];for(var i=0;i<nl.length&&!lang;i++){var c=String(nl[i]||"").toLowerCase().split("-")[0];if(L.indexOf(c)!==-1)lang=c;}}
+if(L.indexOf(lang)<0)lang="en";var S=D.s[lang];d.lang=D.l[L.indexOf(lang)][1];document.title=S.Offline_Title+" — "+S.AppName;
+Array.prototype.forEach.call(document.querySelectorAll("[data-off-text]"),function(el){var v=S[el.getAttribute("data-off-text")];if(v)el.textContent=v;});
+Array.prototype.forEach.call(document.querySelectorAll("[data-off-home]"),function(el){el.href=D.b+lang+"/";});
+}catch(e){}
+var r=document.querySelector("[data-off-retry]");if(r)r.addEventListener("click",function(){location.reload();});})();`;
 ---
 
 <!doctype html>
@@ -16,14 +40,81 @@ const accent = "#6a5af9";
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
-    <title>You’re offline — MyDevTools</title>
+    <title>{str("Offline_Title")} — MyDevTools</title>
+    <link rel="icon" href={withBase("icons/favicon.svg")} type="image/svg+xml" />
+    <script is:inline set:html={headScript} />
   </head>
-  <body style={`margin:0;background:${bg};color:${fg};font-family:system-ui,Segoe UI,Roboto,sans-serif;`}>
-    <main style="max-width:26rem;margin:18vh auto;padding:1.5rem;text-align:center;">
-      <div style={`width:3rem;height:3rem;margin:0 auto 1.25rem;border:2px solid ${accent};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:${accent};`} aria-hidden="true">✕</div>
-      <h1 style="font-size:1.35rem;margin:0 0 0.5rem;">You’re offline</h1>
-      <p style="color:#97a1b5;margin:0 0 1.5rem;">This page hasn’t been cached yet. Reconnect to load it, or open a tool you’ve visited before — those keep working offline.</p>
-      <button onclick="location.reload()" style={`background:${accent};color:#ffffff;border:0;border-radius:0.5rem;padding:0.6rem 1.25rem;font-weight:600;font-size:0.95rem;cursor:pointer;`}>Try again</button>
+  <body class="off">
+    <main class="off-main">
+      <svg class="off-prism" viewBox="0 0 240 120" aria-hidden="true" focusable="false">
+        <path d="M0 70 L104 62" class="off-beam" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="6 7" fill="none" />
+        <polygon class="off-prism-body" points="120,14 154,92 86,92" stroke-width="2" stroke-linejoin="round" />
+        <path d="M140 60 L236 34 M140 62 L236 62 M140 64 L236 90" class="off-rays" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 9" fill="none" />
+      </svg>
+      <h1 data-off-text="Offline_Title">{str("Offline_Title")}</h1>
+      <p class="off-lead" data-off-text="Offline_Lead">{str("Offline_Lead")}</p>
+      <div class="off-actions">
+        <button type="button" class="ds-btn ds-btn-primary" data-off-retry>
+          <span data-off-text="Offline_Retry">{str("Offline_Retry")}</span>
+        </button>
+        <a class="ds-btn" href={localizedPath(DEFAULT_LOCALE)} data-off-home>
+          <span data-off-text="Offline_Home">{str("Offline_Home")}</span>
+          <Icon name="arrow-right" size={16} />
+        </a>
+      </div>
     </main>
+    <script is:inline set:html={bodyScript} />
   </body>
 </html>
+
+<style>
+  .off {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem 1rem;
+    background:
+      radial-gradient(50rem 24rem at 50% -6rem, color-mix(in srgb, var(--mdt-accent) 9%, transparent), transparent 70%),
+      var(--mdt-surface);
+  }
+  .off-main {
+    width: 100%;
+    max-width: 30rem;
+    text-align: center;
+    display: grid;
+    justify-items: center;
+    gap: 0.75rem;
+  }
+  .off-prism {
+    width: 100%;
+    max-width: 14rem;
+    height: auto;
+    margin-bottom: 0.5rem;
+  }
+  .off-beam {
+    stroke: var(--mdt-text-faint);
+  }
+  .off-prism-body {
+    fill: var(--mdt-surface-raised);
+    stroke: var(--mdt-text-muted);
+  }
+  /* Dotted, muted rays: the spectrum is "cut off" while the network is down. */
+  .off-rays {
+    stroke: color-mix(in srgb, var(--mdt-accent) 55%, var(--mdt-text-faint));
+  }
+  h1 {
+    font-family: var(--mdt-font-display);
+    font-size: var(--mdt-fs-h2);
+    line-height: 1.2;
+  }
+  .off-lead {
+    color: var(--mdt-text-muted);
+  }
+  .off-actions {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+  }
+</style>

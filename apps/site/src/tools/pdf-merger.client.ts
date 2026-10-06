@@ -17,7 +17,7 @@
  */
 import { mergePdfs } from "@/scripts/wasm/pdf-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
-import { bindDropzone } from "@/scripts/tool-ui";
+import { bindDropzone, revealOutput, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
 import { classifyPdfError, isPdfFile, moveItem } from "@/tools/pdf-files";
 import { appendMeta, badge, buildFileRow, iconButton, PDF_ICONS } from "@/tools/pdf-file-ui";
@@ -38,6 +38,8 @@ interface Strings {
   errorEncrypted: string;
   errorMerge: string;
   error: string;
+  /** `Common_Preparing` — first-run WASM load feedback. */
+  preparing?: string;
 }
 
 function readStrings(): Strings | null {
@@ -223,7 +225,10 @@ function init() {
     try {
       const buffers = await Promise.all(files.map(async (file) => new Uint8Array(await file.arrayBuffer())));
       if (ctrl.signal.aborted) throw new WasmError("aborted", "Aborted");
-      const out = await mergePdfs(buffers, ctrl.signal);
+      const out = await withPreparing("pdf", mergePdfs(buffers, ctrl.signal), {
+        host: merge!.closest<HTMLElement>(".ds-action-row"),
+        label: strings.preparing,
+      });
       const blob = new Blob([out.slice()], { type: "application/pdf" });
       resultUrl = URL.createObjectURL(blob);
       if (resultSizeEl) resultSizeEl.textContent = formatBytes(blob.size, 2);
@@ -244,7 +249,10 @@ function init() {
       if (mergeLabel) mergeLabel.textContent = strings.merge;
       updateMergeState();
       renderRows();
-      if (merged) download!.focus();
+      if (merged) {
+        download!.focus({ preventScroll: true });
+        revealOutput(resultEl);
+      }
       // Cancel hid its own button: return keyboard focus to Merge.
       else if (ctrl.signal.aborted) merge!.focus();
     }

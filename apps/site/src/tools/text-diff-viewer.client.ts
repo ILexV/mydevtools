@@ -11,7 +11,7 @@
  * sides with localized sample text, on click only); the result panel shows a
  * compact placeholder until there is a diff or a status message.
  */
-import { bindEmptyState, bindLoadExample, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
+import { bindEmptyState, bindLoadExample, revealOutput, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
 
 declare global {
   interface Window {
@@ -46,6 +46,21 @@ interface Strings {
   diffTooBig: string;
   exampleOriginal?: string;
   exampleModified?: string;
+  /** "{0} added" / "{0} removed" — screen-reader text for the headline counts. */
+  linesAdded?: string;
+  linesRemoved?: string;
+}
+
+/** Added / removed line counts of a unified diff (file headers `+++`/`---` excluded). */
+function countPatchLines(patch: string): { added: number; removed: number } {
+  let added = 0;
+  let removed = 0;
+  for (const line of patch.split("\n")) {
+    if (line.startsWith("+++") || line.startsWith("---")) continue;
+    if (line.startsWith("+")) added++;
+    else if (line.startsWith("-")) removed++;
+  }
+  return { added, removed };
 }
 
 /**
@@ -191,7 +206,33 @@ function init(): void {
     syncOutput();
   }
 
+  const summaryEl = root.querySelector<HTMLElement>("[data-diff-summary]");
+  const addedEl = root.querySelector<HTMLElement>("[data-diff-added]");
+  const removedEl = root.querySelector<HTMLElement>("[data-diff-removed]");
+
+  /** Fill one headline count: visible "+12" plus visually hidden "12 added". */
+  function setCount(el: HTMLElement | null, sign: string, n: number, template: string | undefined): void {
+    if (!el) return;
+    const visible = document.createElement("span");
+    visible.setAttribute("aria-hidden", "true");
+    visible.textContent = `${sign}${n}`;
+    const spoken = document.createElement("span");
+    spoken.className = "visually-hidden";
+    spoken.textContent = (template ?? "{0}").replace("{0}", String(n));
+    el.replaceChildren(visible, spoken);
+  }
+
+  function renderSummary(patch: string | null): void {
+    if (!summaryEl) return;
+    summaryEl.hidden = patch === null;
+    if (patch === null) return;
+    const { added, removed } = countPatchLines(patch);
+    setCount(addedEl, "+", added, strings.linesAdded);
+    setCount(removedEl, "−", removed, strings.linesRemoved);
+  }
+
   function hideOutput(): void {
+    renderSummary(null);
     outputEl.innerHTML = "";
     outputEl.hidden = true;
     syncOutput();
@@ -250,6 +291,7 @@ function init(): void {
       diffMaxLineLength: 1000,
     };
     showAlert(null);
+    renderSummary(patch);
     outputEl.innerHTML = "";
     outputEl.hidden = false;
     syncOutput();
@@ -284,7 +326,8 @@ function init(): void {
         originalText.focus();
         return;
       }
-      void renderDiff();
+      // Explicit Compare: bring the result into view on phones once drawn.
+      void renderDiff().then(() => revealOutput(outputPanel));
       return;
     }
 

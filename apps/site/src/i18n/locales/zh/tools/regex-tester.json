@@ -45,6 +45,7 @@
   "MoreMatches": "……以及另外 {count} 个匹配",
   "EmptyHint": "输入或粘贴用于测试模式的文本，或加载示例。",
   "OutputEmpty": "输入模式后，匹配项及其位置和捕获组将显示在这里。",
+  "MatchCountLabel": "匹配数",
   "Seo_Introduction": "输入正则表达式，测试文本中的每个匹配都会随输入实时高亮，下方列出位置和捕获组。模式运行在编译为 WebAssembly 的 Rust regex crate 上，因此语法和行为遵循 Rust，而不是 JavaScript。",
   "Seo_DetailedDescription": "支持的语法包括字符类和 Unicode 类（如 `\\p{Cyrillic}`）、贪婪和惰性量词、分支、锚点、单词边界 `\\b`、编号组、命名组 `(?<name>…)` 或 `(?P<name>…)`、非捕获组以及 `(?i)` 这样的内联标志。该引擎不支持先行断言、后行断言和 `\\1` 这类反向引用——工具会显示引擎的错误信息。作为交换，匹配时间随输入线性增长，因此 `(a+)+$` 这样的模式不会让页面卡死。\n\n标志：**i** 忽略大小写，**m** 让 `^` 和 `$` 匹配每一行，**s** 让 `.` 也能匹配换行；关闭 **全局** 时只显示第一个匹配。Rust 引擎始终启用 Unicode 模式，因此`\\w`、`\\d` 和 `.` 都会匹配非 ASCII 的字母、数字和字符。位置是 JavaScript 字符串索引（UTF-16，一个表情占 2）。列表显示前 50 个匹配，计数在 10,000 处停止。\n\n一切都在本地运行。只有点击 **保存模式** 时，模式才会连同名称、标志和示例文本保存到本浏览器的 localStorage。五个内置示例（电子邮件、IPv4 地址、日期、十六进制颜色、URL）一键即可加载。",
   "Seo_Examples": "**命名组**：`(?<year>\\d{4})-(?<month>\\d{2})-(?<day>\\d{2})` 作用于 `Released 2026-10-06, patched 2026-11-02`，得到 2 个匹配；第一个是位于 `[9-19]` 的 `2026-10-06`，year 为 `2026`，month 为 `10`，day 为 `06`。\n\n**忽略大小写的分支**：`error|warn` 加 i 标志，作用于 `ERROR: disk full` 和 `Warn: low memory` 两行，匹配 `ERROR` 和 `Warn`。\n\n**行锚点**：`^\\w+` 作用于 `alpha one` 和 `beta two` 两行时只匹配 `alpha`；加上 m 标志后匹配 `alpha` 和 `beta`。\n\n**不支持的先行断言**：`foo(?=bar)` 会被拒绝，并提示 “look-around, including look-ahead and look-behind, is not supported”——改为匹配 `foo(bar)` 并使用捕获组。",

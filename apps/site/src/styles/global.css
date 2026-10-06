@@ -9,7 +9,7 @@
 /* Shared tool UI layer (@layer tools) — see docs/qa/tool-ui-kit.md. */
 @import "./tool-ui.css";
 
-@layer reset, tokens, base, utilities, components, tools;
+@layer reset, tokens, base, utilities, components, tools, focus;
 
 /* Cross-document View Transitions (progressive: ignored where unsupported).
    Catalog card icon/title morph into the tool page header via matching
@@ -21,6 +21,26 @@
   @view-transition {
     navigation: none;
   }
+}
+
+/* Theme toggle reveal (scripts/chrome.ts): a same-document transition where
+   only the root animates. Element names (set inline on cards/tool headers) are
+   suspended with !important so nothing morphs, CSS transitions are cut so the
+   new snapshot is final colours (no fade/flash), and the default cross-fade is
+   replaced by the clip-path circle animated from JS on ::view-transition-new. */
+:root.is-theme-switching *,
+:root.is-theme-switching *::before,
+:root.is-theme-switching *::after {
+  view-transition-name: none !important;
+  transition: none !important;
+}
+:root.is-theme-switching::view-transition-old(root),
+:root.is-theme-switching::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+:root.is-theme-switching::view-transition-new(root) {
+  z-index: 1;
 }
 
 @layer reset {
@@ -176,6 +196,9 @@
     --mdt-header-h: 3.75rem;
     /* active category accent (pages/sections override) */
     --mdt-cat: var(--mdt-accent);
+    /* keyboard focus ring geometry (colour = --mdt-cat, see base :focus-visible) */
+    --mdt-focus-width: 2px;
+    --mdt-focus-offset: 2px;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -218,9 +241,9 @@
     accent-color: var(--mdt-accent);
   }
 
+  /* Focused element without its own radius gets a softly rounded ring. The
+     ring itself lives in @layer focus (end of file). */
   :focus-visible {
-    outline: 2px solid var(--mdt-focus-ring);
-    outline-offset: 2px;
     border-radius: var(--mdt-radius-xs);
   }
 
@@ -768,3 +791,20 @@
 }
 
 /* @layer tools — shared tool UI lives in ./tool-ui.css (imported above). */
+
+/* Keyboard focus ring (one rule site-wide) in the category colour: `--mdt-cat`
+   on tool pages / catalog sections, brand accent elsewhere; `--mdt-focus-color`
+   is an optional override hook. Colour resolves per element (not a :root token)
+   so a section-level --mdt-cat wins. 2px outline (cat hues are AA on panels in
+   both themes, so ≥3:1) + soft halo via box-shadow — neither shifts layout.
+   Last layer: beats component shadows; text fields keep their own border+ring
+   (components layer, :focus) and scoped/unlayered overrides still win.
+   `.card-link` is excluded: ToolCard draws the ring on the whole card box. */
+@layer focus {
+  :focus-visible:not(.ds-field, .ds-field-textarea, .ds-field-select, .card-link) {
+    outline: var(--mdt-focus-width) solid var(--mdt-focus-color, var(--mdt-cat));
+    outline-offset: var(--mdt-focus-offset);
+    box-shadow: 0 0 0 calc(var(--mdt-focus-offset) + var(--mdt-focus-width) + 3px)
+      color-mix(in srgb, var(--mdt-focus-color, var(--mdt-cat)) 22%, transparent);
+  }
+}

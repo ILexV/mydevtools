@@ -15,6 +15,8 @@ import { LOCALES } from "@/registry/locales";
 import { absoluteUrl, localizedPath, withBase } from "@/lib/url";
 import { t } from "@/i18n/messages";
 import { buildJsonLd } from "@/lib/seo";
+import { TOOLS } from "@/registry/tools";
+import { OG_HEIGHT, OG_HOME_SLUG, OG_WIDTH, ogImagePath } from "@/lib/og/layout";
 
 interface Props {
   locale: LocaleCode;
@@ -43,7 +45,12 @@ const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
 const canonical = absoluteUrl(localizedPath(locale, path).replace(/\/+$/, ""));
 const siteName = t(locale, "common", "AppName");
 const fullTitle = title === siteName ? title : `${title} — ${siteName}`;
-const ogImage = absoluteUrl(withBase("icons/og-image.png"));
+// Per-page share card from pages/og/[lang]/[slug].png.ts: the tool card when
+// `path` is a tool slug, the home card on home; other pages keep the static
+// icons/og-image.png (also 1200×630).
+const ogSlug = isHome ? OG_HOME_SLUG : TOOLS.some((tool) => tool.slug === path) ? path : null;
+const ogImage = absoluteUrl(withBase(ogSlug ? ogImagePath(locale, ogSlug) : "icons/og-image.png"));
+const ogImageAlt = isHome ? description : title;
 const manifestHref = withBase("manifest.webmanifest");
 
 const jsonLd = buildJsonLd({ locale, path, title, description, isHome, categoryName, howToSteps });
@@ -73,11 +80,16 @@ const jsonLdString = JSON.stringify(jsonLd);
 <meta property="og:site_name" content={siteName} />
 <meta property="og:url" content={canonical} />
 <meta property="og:image" content={ogImage} />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content={String(OG_WIDTH)} />
+<meta property="og:image:height" content={String(OG_HEIGHT)} />
+<meta property="og:image:alt" content={ogImageAlt} />
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={fullTitle} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={ogImage} />
+<meta name="twitter:image:alt" content={ogImageAlt} />
 
 <link rel="icon" type="image/svg+xml" href={withBase("icons/favicon.svg")} />
 <link rel="icon" type="image/png" sizes="192x192" href={withBase("icons/icon-192.png")} />

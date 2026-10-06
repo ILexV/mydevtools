@@ -16,6 +16,7 @@
   "PreviewAlt": "图片预览",
   "OriginalSize": "原始大小:",
   "CompressedSize": "压缩后:",
+  "SizeChangeLabel": "大小变化",
   "ErrorNotImage": "请上传图片文件。",
   "ErrorCompression": "压缩失败。",
   "NeedFile": "请先选择一张图片。",

@@ -12,6 +12,7 @@
   "TableCompressedSize": "Сжатый размер",
   "StatusReady": "Готов",
   "SavedPercent": "Сэкономлено {pct}%",
+  "TotalSizeChangeLabel": "Общее изменение размера",
   "RemoveFile": "Удалить файл",
   "ErrorNotPdf": "Поддерживаются только PDF-файлы.",
   "ErrorInvalidPdf": "{name}: файл не является PDF или повреждён.",

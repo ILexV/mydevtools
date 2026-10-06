@@ -13,7 +13,7 @@
  */
 import { convertImage, resizeImage } from "@/scripts/wasm/image-tools-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
-import { bindDropzone, setDropzoneHasFile, syncEmptyState } from "@/scripts/tool-ui";
+import { bindDropzone, revealOutput, setDropzoneHasFile, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
 import {
   guessResizeFormat,
@@ -34,6 +34,8 @@ interface Strings {
   errorInvalidDimensions: string;
   errorTooLarge: string;
   errorResizeFailed: string;
+  /** `Common_Preparing` — first-run WASM load feedback. */
+  preparing?: string;
 }
 
 function readStrings(): Strings | null {
@@ -248,7 +250,10 @@ function init() {
     setBusy(true);
     try {
       const bytes = new Uint8Array(await file.arrayBuffer());
-      const { bytes: resultBytes } = await resizeImage(bytes, width, height, format, ctrl.signal);
+      const { bytes: resultBytes } = await withPreparing("image_tools", resizeImage(bytes, width, height, format, ctrl.signal), {
+        host: actionBtn!.closest<HTMLElement>(".ds-action-row"),
+        label: strings!.preparing,
+      });
       if (ctrl.signal.aborted || currentFile !== file) return;
 
       const blob = new Blob([resultBytes as BlobPart], { type: mimeFor(format) });
@@ -258,6 +263,7 @@ function init() {
       if (outputInfo) outputInfo.textContent = `${width}×${height}, ${formatBytes(blob.size, 2)}`;
       resultName = resizedName(file.name, width, height, format);
       syncEmptyState(outputEl!, false);
+      revealOutput(outputEl);
     } catch (e) {
       if (e instanceof WasmError && e.code === "aborted") return;
       hideOutput();

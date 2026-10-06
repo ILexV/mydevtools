@@ -1,28 +1,127 @@
 ---
 /**
- * `404.html` — GitHub Pages fallback for any unmatched URL.
- * Lives at the repo root of the deployed `dist`; GitHub Pages serves it for
- * every path that has no matching static file (including deep `/{lang}/{tool}/`
- * links after a hard refresh on a stale deploy).
+ * `404.html` — GitHub Pages fallback (page not found) for every unmatched URL
+ * under `/mydevtools/`, at any depth. Standalone (no BaseLayout): the locale is
+ * only known client-side, so the shell, canonical and hreflang of BaseLayout
+ * would all be wrong. Every asset/link is absolute via `withBase()`.
  *
- * No server, so we attempt to recover the intended locale from the URL path and
- * fall back to the default language landing.
+ * Smart recovery first: a URL containing a known tool slug (legacy or mistyped,
+ * e.g. `/mydevtools/tools/uuid-generator`) is redirected to `/{lang}/{slug}/`
+ * before paint. Otherwise the page renders in the detected locale (URL segment
+ * → saved `mdt.locale` → navigator.language → en) with a client-side tool
+ * search, popular and recent tools. No-JS fallback: English text + links.
  */
-import { LOCALES, DEFAULT_LOCALE } from "@/registry/locales";
-import { localizedPath } from "@/lib/url";
+import { LOCALES, LOCALE_CODES, DEFAULT_LOCALE } from "@/registry/locales";
+import { TOOLS, toolNamespace } from "@/registry/tools";
+import { t } from "@/i18n/messages";
+import { BASE_URL, localizedPath, withBase } from "@/lib/url";
+import Icon from "@/components/Icon.astro";
+import "@/styles/global.css";
 
+/** Editorial popular set (mirrors palette.ts POPULAR_SLUGS, plus one to fill the grid). */
+const POPULAR = [
+  "hash-calculator",
+  "base64-encoder",
+  "json-beautifier",
+  "password-generator",
+  "qr-code-generator",
+  "uuid-generator",
+].filter((s) => TOOLS.some((tool) => tool.slug === s));
 
-const codes = LOCALES.map((l) => l.code);
-const defaultUrl = localizedPath(DEFAULT_LOCALE);
-const recoverScript = `(function(){try{
-var S=${JSON.stringify(codes)};
-var parts=location.pathname.replace(/^\\/$|\\/$/,"").split("/").filter(Boolean);
-var seg=parts.map(function(p){return p.toLowerCase();});
-var pick="en";
-for(var i=0;i<seg.length;i++){var c=seg[i];if(S.indexOf(c)!==-1){pick=c;break;}}
-var saved=localStorage.getItem("locale");if(saved&&S.indexOf(saved)!==-1)pick=saved;
-location.replace(pick+"/");
-}catch(e){location.replace("en/");}})();`;
+/** Locale strings the client swaps in (`data-nf-text` / `data-nf-attr` hooks). */
+const KEYS = [
+  "AppName",
+  "NotFound_Title",
+  "NotFound_Lead",
+  "NotFound_SearchLabel",
+  "NotFound_SearchPlaceholder",
+  "NotFound_Popular",
+  "NotFound_Recent",
+  "NotFound_Results",
+  "NotFound_NoResults",
+  "NotFound_Home",
+] as const;
+const str = (lang: (typeof LOCALE_CODES)[number], key: string) => t(lang, "common", key);
+
+/**
+ * Compact island: `t` = [slug, category, monogram, titles per locale (LOCALE
+ * order), en keywords]; `s` = strings per locale; `l` = [code, bcp47].
+ */
+const island = {
+  b: BASE_URL,
+  l: LOCALES.map((l) => [l.code, l.bcp47]),
+  p: POPULAR,
+  s: Object.fromEntries(LOCALE_CODES.map((c) => [c, Object.fromEntries(KEYS.map((k) => [k, str(c, k)]))])),
+  t: TOOLS.map((tool) => {
+    const ns = toolNamespace(tool.slug);
+    return [
+      tool.slug,
+      tool.category,
+      tool.monogram,
+      LOCALE_CODES.map((c) => t(c, ns, "Title")),
+      t(DEFAULT_LOCALE, ns, "Keywords").toLowerCase(),
+    ];
+  }),
+};
+const islandJson = JSON.stringify(island).replace(/</g, "\\u003c");
+
+/**
+ * Head script (before paint): theme, locale detection and the tool-slug
+ * redirect. Kept tiny and dependency-free; never loops (skips when the
+ * target equals the current path).
+ */
+const headScript = `(function(){var B=${JSON.stringify(BASE_URL)},L=${JSON.stringify(LOCALE_CODES)},S=${JSON.stringify(TOOLS.map((x) => x.slug))},d=document.documentElement;
+try{var th=localStorage.getItem("theme");if(!th)th=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";d.setAttribute("data-theme",th==="dark"?"dark":"light");}catch(e){}
+try{var p=location.pathname;if(p.indexOf(B)===0)p=p.slice(B.length);
+var parts=p.split("/").map(function(x){try{x=decodeURIComponent(x);}catch(e){}return x.toLowerCase().replace(/\\.html?$/,"");}).filter(Boolean);
+var lang=null,slug=null,i;for(i=0;i<parts.length;i++){if(!lang&&L.indexOf(parts[i])!==-1)lang=parts[i];if(!slug&&S.indexOf(parts[i])!==-1)slug=parts[i];}
+if(!lang){var sv=null;try{sv=localStorage.getItem("mdt.locale")||localStorage.getItem("locale");}catch(e){}if(sv&&L.indexOf(sv)!==-1)lang=sv;}
+if(!lang){var nl=navigator.languages||[navigator.language||""];for(i=0;i<nl.length&&!lang;i++){var c=String(nl[i]||"").toLowerCase().split("-")[0];if(L.indexOf(c)!==-1)lang=c;}}
+lang=lang||"en";d.setAttribute("data-nf-lang",lang);
+if(slug){var to=B+lang+"/"+slug+"/";if(to!==location.pathname){d.setAttribute("data-nf-redirect","");location.replace(to+location.search+location.hash);}}
+}catch(e){}})();`;
+
+/**
+ * Body script (synchronous, end of body → no English flash): applies locale
+ * strings, renders popular/recent lists and the search filter.
+ */
+const bodyScript = `(function(){try{
+var d=document.documentElement;if(d.hasAttribute("data-nf-redirect"))return;
+var D=JSON.parse(document.getElementById("nf-data").textContent);
+var codes=D.l.map(function(x){return x[0];});var lang=d.getAttribute("data-nf-lang")||"en";var li=codes.indexOf(lang);if(li<0){lang="en";li=0;}
+var S=D.s[lang];d.lang=D.l[li][1];document.title=S.NotFound_Title+" — "+S.AppName;
+var q=function(s){return document.querySelectorAll(s);};
+Array.prototype.forEach.call(q("[data-nf-text]"),function(el){var v=S[el.getAttribute("data-nf-text")];if(v)el.textContent=v;});
+Array.prototype.forEach.call(q("[data-nf-attr]"),function(el){var pr=el.getAttribute("data-nf-attr").split(":");if(S[pr[1]])el.setAttribute(pr[0],S[pr[1]]);});
+Array.prototype.forEach.call(q("[data-nf-home]"),function(el){el.href=D.b+lang+"/";});
+var bySlug={};D.t.forEach(function(r){bySlug[r[0]]=r;});
+var href=function(r){return D.b+lang+"/"+r[0]+"/";};
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
+var item=function(r){return '<li><a class="nf-tool" href="'+href(r)+'" style="--mdt-cat:var(--mdt-cat-'+r[1]+')"><span class="nf-mono" aria-hidden="true">'+esc(r[2])+'</span><span class="nf-name">'+esc(r[3][li])+'</span></a></li>';};
+var list=document.querySelector("[data-nf-list]"),title=document.querySelector("[data-nf-list-title]"),empty=document.querySelector("[data-nf-empty]");
+var popular=D.p.map(function(s){return bySlug[s];}).filter(Boolean);
+var show=function(rows,key){list.innerHTML=rows.map(item).join("");list.hidden=rows.length===0;empty.hidden=rows.length!==0;title.textContent=S[key];};
+show(popular,"NotFound_Popular");
+var recent=[];try{var raw=JSON.parse(localStorage.getItem("mdt.recent.v1")||"null");if(raw&&Array.isArray(raw.items))recent=raw.items.map(function(x){return x&&bySlug[x.slug];}).filter(Boolean).slice(0,6);}catch(e){}
+if(recent.length){var rb=document.querySelector("[data-nf-recent]");rb.querySelector("ul").innerHTML=recent.map(item).join("");rb.hidden=false;}
+var form=document.querySelector("[data-nf-search]"),input=form.querySelector("input");form.hidden=false;
+var norm=function(s){return String(s).toLowerCase().normalize("NFKD").replace(/[\\u0300-\\u036f]/g,"").replace(/\u044d/g,"\u0435");};
+var hay=D.t.map(function(r){return norm(r[3][li]+" "+r[3][0]+" "+r[0].replace(/-/g," ")+" "+r[4]);});
+input.addEventListener("input",function(){var v=norm(input.value.trim());if(!v){show(popular,"NotFound_Popular");return;}
+var terms=v.split(/\\s+/);var hits=D.t.filter(function(r,i){return terms.every(function(w){return hay[i].indexOf(w)!==-1;});});
+var head=hits.filter(function(r){return norm(r[3][li]).indexOf(terms[0])===0;});hits=head.concat(hits.filter(function(r){return head.indexOf(r)<0;}));
+show(hits.slice(0,8),"NotFound_Results");});
+form.addEventListener("submit",function(e){e.preventDefault();var a=list.querySelector("a");if(a&&!list.hidden)location.href=a.href;});
+}catch(e){}})();`;
+
+const homeEn = localizedPath(DEFAULT_LOCALE);
+const enTitle = str(DEFAULT_LOCALE, "NotFound_Title");
+const popularEn = POPULAR.map((slug) => {
+  const tool = TOOLS.find((x) => x.slug === slug)!;
+  return { slug, category: tool.category, monogram: tool.monogram, title: t(DEFAULT_LOCALE, toolNamespace(slug), "Title") };
+});
+/** Spectrum rays leaving the prism — category hues, top to bottom. */
+const RAYS = ["encoding", "cryptography", "jwt", "hashing", "generators", "structured-data", "qrcode"];
 ---
 
 <!doctype html>
@@ -30,15 +129,290 @@ location.replace(pick+"/");
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Page not found — MyDevTools</title>
+    <title>{enTitle} — MyDevTools</title>
     <meta name="robots" content="noindex" />
-    <script is:inline set:html={recoverScript} />
-    <noscript><meta http-equiv="refresh" content={`0; url=${defaultUrl}`} /></noscript>
+    <link rel="icon" href={withBase("icons/favicon.svg")} type="image/svg+xml" />
+    <script is:inline set:html={headScript} />
   </head>
-  <body>
-    <main style="font-family: system-ui, sans-serif; max-width: 28rem; margin: 12vh auto; padding: 1.5rem; text-align: center;">
-      <h1 style="font-size: 1.5rem;">404</h1>
-      <p style="color:#5a6573;">This page doesn’t exist. <a href={defaultUrl}>Go home →</a></p>
+  <body class="nf">
+    <header class="nf-top">
+      <a class="nf-brand" href={homeEn} data-nf-home>
+        <span class="nf-logo"><Icon name="logo-mark" size={16} /></span>
+        <span data-nf-text="AppName">MyDevTools</span>
+      </a>
+    </header>
+
+    <main class="nf-main">
+      <section class="nf-hero" aria-labelledby="nf-title">
+        <svg class="nf-prism" viewBox="0 0 480 160" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="nf-beam" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0" style="stop-color: var(--mdt-text-faint); stop-opacity: 0" />
+              <stop offset="1" style="stop-color: var(--mdt-text); stop-opacity: 0.85" />
+            </linearGradient>
+            <linearGradient id="nf-fade" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0" stop-color="#fff" stop-opacity="1" />
+              <stop offset="0.85" stop-color="#fff" stop-opacity="0" />
+            </linearGradient>
+            <mask id="nf-rays-mask" maskUnits="userSpaceOnUse" x="250" y="0" width="230" height="160">
+              <rect x="250" y="0" width="230" height="160" fill="url(#nf-fade)" />
+            </mask>
+          </defs>
+          <path d="M0 92 L214 80" stroke="url(#nf-beam)" stroke-width="2.5" stroke-linecap="round" fill="none" />
+          <g mask="url(#nf-rays-mask)">
+            {RAYS.map((cat, i) => (
+              <polygon
+                points={`252,${74 + i * 2.2} 480,${8 + i * 22} 480,${26 + i * 22} 252,${76.2 + i * 2.2}`}
+                style={`fill: var(--mdt-cat-${cat}); opacity: 0.8`}
+              />
+            ))}
+          </g>
+          <polygon
+            class="nf-prism-body"
+            points="240,22 284,118 196,118"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+          <path d="M240 22 L252 88" class="nf-prism-edge" stroke-width="1" fill="none" />
+        </svg>
+
+        <p class="nf-code" aria-hidden="true">404</p>
+        <h1 id="nf-title" data-nf-text="NotFound_Title">{enTitle}</h1>
+        <p class="nf-lead" data-nf-text="NotFound_Lead">{str(DEFAULT_LOCALE, "NotFound_Lead")}</p>
+        <a class="ds-btn ds-btn-primary nf-home" href={homeEn} data-nf-home>
+          <span data-nf-text="NotFound_Home">{str(DEFAULT_LOCALE, "NotFound_Home")}</span>
+          <Icon name="arrow-right" size={16} />
+        </a>
+      </section>
+
+      <section class="nf-panel">
+        <form class="nf-search" role="search" data-nf-search hidden>
+          <label class="nf-label" for="nf-q" data-nf-text="NotFound_SearchLabel">{str(DEFAULT_LOCALE, "NotFound_SearchLabel")}</label>
+          <div class="nf-field">
+            <Icon name="search" size={16} />
+            <input
+              id="nf-q"
+              class="ds-field"
+              type="search"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder={str(DEFAULT_LOCALE, "NotFound_SearchPlaceholder")}
+              data-nf-attr="placeholder:NotFound_SearchPlaceholder"
+            />
+          </div>
+        </form>
+
+        <h2 class="nf-h2" data-nf-list-title aria-live="polite">{str(DEFAULT_LOCALE, "NotFound_Popular")}</h2>
+        <ul class="nf-list" data-nf-list>
+          {popularEn.map((tool) => (
+            <li>
+              <a class="nf-tool" href={localizedPath(DEFAULT_LOCALE, tool.slug)} style={`--mdt-cat: var(--mdt-cat-${tool.category})`}>
+                <span class="nf-mono" aria-hidden="true">{tool.monogram}</span>
+                <span class="nf-name">{tool.title}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <p class="nf-empty" data-nf-empty data-nf-text="NotFound_NoResults" hidden>{str(DEFAULT_LOCALE, "NotFound_NoResults")}</p>
+
+        <div class="nf-recent" data-nf-recent hidden>
+          <h2 class="nf-h2" data-nf-text="NotFound_Recent">{str(DEFAULT_LOCALE, "NotFound_Recent")}</h2>
+          <ul class="nf-list"></ul>
+        </div>
+      </section>
     </main>
+
+    <script is:inline type="application/json" id="nf-data" set:html={islandJson} />
+    <script is:inline set:html={bodyScript} />
   </body>
 </html>
+
+<style>
+  .nf {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background:
+      radial-gradient(60rem 28rem at 50% -8rem, color-mix(in srgb, var(--mdt-accent) 9%, transparent), transparent 70%),
+      var(--mdt-surface);
+  }
+  .nf-top {
+    max-width: var(--mdt-content-max);
+    width: 100%;
+    margin: 0 auto;
+    padding: 0.9rem 1.25rem;
+  }
+  .nf-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 700;
+    color: var(--mdt-text);
+    text-decoration: none;
+  }
+  .nf-logo {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    color: var(--mdt-accent-contrast);
+    background: linear-gradient(135deg, var(--mdt-accent), var(--mdt-accent-2));
+  }
+  .nf-main {
+    flex: 1;
+    width: 100%;
+    max-width: 52rem;
+    margin: 0 auto;
+    padding: 1rem 1rem 4rem;
+    display: grid;
+    gap: 2rem;
+  }
+  .nf-hero {
+    text-align: center;
+    display: grid;
+    justify-items: center;
+    gap: 0.75rem;
+  }
+  .nf-prism {
+    width: 100%;
+    max-width: 26rem;
+    height: auto;
+  }
+  .nf-prism-body {
+    fill: color-mix(in srgb, var(--mdt-surface-raised) 80%, transparent);
+    stroke: var(--mdt-text-muted);
+  }
+  .nf-prism-edge {
+    stroke: color-mix(in srgb, var(--mdt-text-muted) 45%, transparent);
+  }
+  .nf-code {
+    font-family: var(--mdt-font-mono);
+    font-weight: 700;
+    font-size: clamp(2.75rem, 9vw, 4rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    background: linear-gradient(
+      90deg,
+      var(--mdt-cat-encoding),
+      var(--mdt-cat-cryptography),
+      var(--mdt-cat-hashing),
+      var(--mdt-cat-generators),
+      var(--mdt-cat-structured-data)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  h1 {
+    font-family: var(--mdt-font-display);
+    font-size: var(--mdt-fs-h2);
+    line-height: 1.2;
+  }
+  .nf-lead {
+    max-width: 34rem;
+    color: var(--mdt-text-muted);
+  }
+  .nf-home {
+    margin-top: 0.5rem;
+  }
+  .nf-panel {
+    background: var(--mdt-surface-raised);
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    padding: 1.25rem;
+    display: grid;
+    gap: 0.9rem;
+    min-width: 0;
+  }
+  .nf-search {
+    display: grid;
+    gap: 0.4rem;
+  }
+  .nf-label {
+    font-size: var(--mdt-fs-meta);
+    font-weight: 600;
+    color: var(--mdt-text-muted);
+  }
+  .nf-field {
+    position: relative;
+    color: var(--mdt-text-faint);
+  }
+  .nf-field :global(svg) {
+    position: absolute;
+    left: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  .nf-field .ds-field {
+    padding-left: 2.4rem;
+    font-size: var(--mdt-fs-body);
+  }
+  .nf-h2 {
+    font-size: var(--mdt-fs-meta);
+    font-weight: 600;
+    color: var(--mdt-text-muted);
+  }
+  .nf-recent {
+    display: grid;
+    gap: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--mdt-border-soft);
+  }
+  .nf-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr));
+    gap: 0.5rem;
+  }
+  .nf-empty {
+    color: var(--mdt-text-muted);
+    font-size: var(--mdt-fs-small);
+  }
+  /* Tool rows: client-rendered too, so styled via :global (scoped CSS misses JS DOM). */
+  .nf-panel :global(.nf-tool) {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--mdt-border-soft);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface-inset);
+    color: var(--mdt-text);
+    text-decoration: none;
+    transition: border-color var(--mdt-dur-micro), background var(--mdt-dur-micro);
+  }
+  .nf-panel :global(.nf-tool:hover) {
+    border-color: color-mix(in srgb, var(--mdt-cat) 55%, var(--mdt-border));
+    background: color-mix(in srgb, var(--mdt-cat) 6%, var(--mdt-surface-inset));
+  }
+  .nf-panel :global(.nf-mono) {
+    flex-shrink: 0;
+    min-width: 2.1rem;
+    height: 1.9rem;
+    padding: 0 0.3rem;
+    display: grid;
+    place-items: center;
+    border-radius: var(--mdt-radius-xs);
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-label);
+    font-weight: 700;
+    color: var(--mdt-cat);
+    background: color-mix(in srgb, var(--mdt-cat) 13%, transparent);
+    border: 1px solid color-mix(in srgb, var(--mdt-cat) 28%, transparent);
+  }
+  .nf-panel :global(.nf-name) {
+    min-width: 0;
+    font-size: var(--mdt-fs-small);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+  @media (max-width: 480px) {
+    .nf-panel {
+      padding: 1rem;
+    }
+  }
+</style>

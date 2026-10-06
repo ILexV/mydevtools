@@ -15,7 +15,7 @@
 | `apps/site/src/styles/global.css` | Примитивы Prism (`@layer components`): `ds-btn`, `ds-btn-primary`, `ds-btn-small`, `ds-icon-btn`, `ds-field`, `ds-field-textarea`, `ds-field-select`, `ds-check`, `ds-radio`, `ds-switch`, `ds-chip`, `ds-chip-cat`, `ds-panel`, `ds-progress`, `ds-spinner`, `ds-dialog`, `ds-scrim`, `seg`, `alert`/`ds-alert-*`, `toast`, `skeleton`, `[data-tip]`. Импортирует `tool-ui.css`. |
 | `apps/site/src/styles/tool-ui.css` | **Новый.** Составные классы инструментов, `@layer tools` (см. каталог ниже) + `forced-colors`. |
 | `apps/site/src/components/tool/*.astro` | **Новые** компоненты-«сахар»: `Field`, `FileButton`, `FileDrop`, `Progress`, `OutputPanel`, `StatusMessage`. |
-| `apps/site/src/scripts/tool-ui.ts` | **Новый.** `copyWithFeedback()`, `bindDropzone()`. |
+| `apps/site/src/scripts/tool-ui.ts` | **Новый.** `copyWithFeedback()`, `bindDropzone()`; с раунда 4 — `revealOutput()`, `startPreparing()`/`withPreparing()`. |
 | `apps/site/src/lib/format.ts` | Добавлены `formatBytes()`, `formatMs()`, `progressPercent()` (тесты — `test/format.test.ts`). |
 
 ### Каскад (важно)
@@ -227,6 +227,32 @@ row.append(btn);
 ```
 
 CodeMirror: `<div class="ds-editor is-empty"><div class="mdt-cm" …></div><EmptyState … /></div>`; `syncEmptyState(host, editor.getValue() === "")` в обработчике изменений редактора; `bindLoadExample(btn, () => editor.setValue(EXAMPLE), editorContentEl)`.
+
+## Раунд 4: обратная связь инструментов (2026-10-06, агент `r4-D`)
+
+### Новые TS-хелперы (`@/scripts/tool-ui`)
+
+- `revealOutput(panel)` — после **явного** действия (Generate, Compress, Beautify, Compare…) прокручивает панель результата в видимую область, если её верх не виден: ниже липкой шапки (+12px) или в нижних ~30% экрана. Если панель уже видна (десктопный workbench), скрыта или пуста по раскладке — ничего не делает. Smooth только без `prefers-reduced-motion`; фокус не трогает. **Не вызывайте** из живых обновлений по вводу, автозапуска при загрузке и смены настроек. Передавайте корень панели (`ToolPanel`/`OutputPanel`), а не внутреннюю textarea.
+- `startPreparing(engine, { host, label, delay = 300 })` → `done()` — обратная связь первого запуска лениво загружаемого WASM-домена. Только первый вызов на ключ `engine` (имя домена: `hash`, `password`, `regex`, `image_tools`, `pdf`, `encoding`, `cryptography`, `structured_data`, `ipcalc`, `qrcode`; для worker-вариантов — `encoding:worker`, `cryptography:aead` и т. п.) за загрузку страницы: если через `delay` мс ответа нет, в `host` добавляется `.ds-preparing` (подпись `Common_Preparing` + тонкая неопределённая полоса цвета `--mdt-cat`), подпись один раз объявляется через общий polite-регион, у `host` ставится `.is-preparing` (панель прячет устаревший `.ds-when-filled`). `done()` убирает индикатор и помечает движок «тёплым» — вызывайте на результате, ошибке **и первом тике прогресса** (у файловых задач свой прогресс). Идемпотентно.
+- `withPreparing(engine, promise, opts)` — то же для одного `await`: индикатор снимается, когда промис завершился.
+- Host: `.ds-action-row` основной кнопки (`btn.closest(".ds-action-row")`), для живых инструментов без кнопки — панель вывода. Строка — `preparing: t(lang, "common", "Common_Preparing")` в JSON-островке инструмента.
+
+### Новые классы
+
+| Класс | Назначение |
+| --- | --- |
+| `ds-preparing` (`-text`, `-bar`) | Индикатор «Preparing…» (создаёт `startPreparing`, вручную не пишите). В `.ds-action-row` — рядом с кнопкой, в `.ds-card`/`.ds-output` — на всю ширину. При reduced motion полоса статична. |
+| `.is-preparing` | Состояние host на время индикатора: прямые дети `.ds-when-filled` скрыты (`!important`, т. к. scoped-стили инструмента не в слое). |
+| `ds-meter` (+ `> i`) | Сегментная шкала одной оценки (сила пароля): заливка `--ds-meter` 0..1, цвет по `data-level` 1–4 (danger → warning → `--mdt-cat` → success). `role="meter"` + `aria-valuenow/-valuetext` ставит контроллер. Переход ширины отключён при reduced motion. |
+
+### Главные метрики (`ds-result-headline`)
+
+- password-generator — шкала энтропии под паролем: «Очень надёжный · 103 бита» (`alphabetSize`/`entropyBits`/`strengthLevel`/`strengthFill` в `tools/password-settings.ts`, повторяют `build_charset` из Rust; пороги <50 / <70 / <100 / ≥100 бит; тесты в `test/crypto-tools.test.ts`). Считается по настройкам, с которыми пароль создан.
+- image-compressor — «Изменение размера −85%» (цвет категории; «+N%», если файл вырос) + «Исходный → Сжатый».
+- pdf-compressor — сводка пакета над списком: общий «−N%» и сумма размеров до → после.
+- regex-tester — «Найдено совпадений» крупным числом (вместо счётчика в мете панели; хук `data-rx-count` сохранён).
+- text-diff-viewer — «Изменённые строки +4 −3» (успех/опасность; для скринридера — скрытый текст «добавлено: 4»).
+- Уже были: word-counter, color-converter, cron, ip-subnet, image-resizer/converter, pdf-merger, unit-converter.
 
 ## Компоненты (`src/components/tool/`)
 

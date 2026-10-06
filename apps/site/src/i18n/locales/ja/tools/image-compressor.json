@@ -16,6 +16,7 @@
   "PreviewAlt": "画像プレビュー",
   "OriginalSize": "元のサイズ:",
   "CompressedSize": "圧縮後:",
+  "SizeChangeLabel": "サイズの変化",
   "ErrorNotImage": "画像ファイルをアップロードしてください。",
   "ErrorCompression": "圧縮に失敗しました。",
   "NeedFile": "先に画像を選択してください。",

@@ -20,7 +20,7 @@ import { sshPublicKeyInfo, sshToPkcs8Pem } from "@/scripts/wasm/crypto-client";
 import { sshGenerateInWorker } from "@/scripts/wasm/keygen-client";
 import type { SshKeygenType } from "@/scripts/wasm/keygen-protocol";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
-import { bindDropzone, bindEmptyState, copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
+import { bindDropzone, bindEmptyState, copyWithFeedback, revealOutput, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
 import { guessSshInput, rsaBits, sshErrorKey } from "@/tools/openssh-keys-helpers";
 import { hasEdgeWhitespace, passwordCandidates } from "@/tools/crypto-password";
@@ -38,6 +38,8 @@ interface Strings {
   commentLabel: string;
   noteTrimmedPassphrase: string;
   generationCanceled: string;
+  /** `Common_Preparing` — first-run WASM load feedback. */
+  preparing?: string;
 }
 
 /** Key files are tiny; anything bigger is certainly not a key. */
@@ -224,7 +226,12 @@ function initTool(): void {
     for (const b of actionButtons) b.disabled = true;
     btn.setAttribute("aria-busy", "true");
     try {
-      await action();
+      // Generate runs in the keygen worker; import/convert load WASM on the main thread.
+      await withPreparing(btn === generateBtn ? "cryptography:worker" : "cryptography", action(), {
+        host: btn.closest<HTMLElement>(".ds-action-row"),
+        label: strings.preparing,
+      });
+      if (publicArea.value || privateArea.value) revealOutput(publicArea.value ? publicPanel : privatePanel);
     } catch (err) {
       if (err instanceof WasmError && err.code === "aborted") showNote(strings.generationCanceled);
       else setError(err);

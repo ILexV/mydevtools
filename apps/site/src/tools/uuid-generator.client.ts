@@ -5,7 +5,7 @@
  * SSR-safe; one-time init guard on the tool root.
  */
 import { generateBatch, type UuidVersion, type UuidFormat, type UuidCase } from "@/tools/uuid";
-import { copyWithFeedback, prepareCopyButton, syncEmptyState } from "@/scripts/tool-ui";
+import { copyWithFeedback, prepareCopyButton, revealOutput, syncEmptyState } from "@/scripts/tool-ui";
 
 interface Strings {
   copy: string;
@@ -105,6 +105,7 @@ function init() {
         countInput ? Number(countInput.value) : 1,
       ),
     );
+    revealOutput(output);
   });
 
   copyAllBtn?.addEventListener("click", async () => {

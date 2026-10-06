@@ -5,7 +5,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { hasCharset, sanitizeSettings, PW_MAX_LENGTH, PW_MIN_LENGTH } from "../src/tools/password-settings.ts";
+import { alphabetSize, entropyBits, hasCharset, sanitizeSettings, strengthFill, strengthLevel, PW_MAX_LENGTH, PW_MIN_LENGTH } from "../src/tools/password-settings.ts";
 import { aeadAlgorithmId, aeadProgressView, bytesToHex, decryptedName, encryptedName, formatDuration } from "../src/tools/aead-file-helpers.ts";
 import { guessSshInput, rsaBits, sshErrorKey } from "../src/tools/openssh-keys-helpers.ts";
 import { base64ToBytes, derBase64ToPem, isCsrPem, parseSanList, parseValidityDays, prettyJson, X509_MAX_VALIDITY_DAYS } from "../src/tools/x509-helpers.ts";
@@ -39,6 +39,30 @@ test("password: hasCharset requires at least one class", () => {
 });
 
 /* ── aead-file ──────────────────────────────────────────────────────────── */
+
+test("password: alphabetSize mirrors the Rust charset rules", () => {
+  const all = { length: 16, uppercase: true, lowercase: true, numbers: true, special: true, specialChars: "" };
+  assert.equal(alphabetSize(all), 88);
+  assert.equal(alphabetSize({ ...all, special: false }), 62);
+  // Custom symbols replace the default set; spaces and duplicates are dropped.
+  assert.equal(alphabetSize({ ...all, specialChars: " -_. -_ " }), 65);
+  // Duplicates across sets count once ("a" is already lowercase).
+  assert.equal(alphabetSize({ ...all, uppercase: false, numbers: false, specialChars: "a!" }), 27);
+  assert.equal(alphabetSize({ ...all, uppercase: false, lowercase: false, special: false }), 10);
+});
+
+test("password: entropy bits and strength grade", () => {
+  assert.ok(Math.abs(entropyBits(16, 88) - 103.35) < 0.01);
+  assert.equal(entropyBits(0, 88), 0);
+  assert.equal(entropyBits(12, 1), 0);
+  assert.equal(strengthLevel(entropyBits(6, 10)), 1);
+  assert.equal(strengthLevel(entropyBits(8, 88)), 2);
+  assert.equal(strengthLevel(entropyBits(12, 88)), 3);
+  assert.equal(strengthLevel(entropyBits(16, 88)), 4);
+  assert.equal(strengthFill(0), 0);
+  assert.equal(strengthFill(64), 0.5);
+  assert.equal(strengthFill(400), 1);
+});
 
 test("aead: output names (legacy parity)", () => {
   assert.equal(encryptedName("report.pdf"), "report.pdf.aead");

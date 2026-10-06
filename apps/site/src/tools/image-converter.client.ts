@@ -11,7 +11,7 @@
  */
 import { convertImage } from "@/scripts/wasm/image-tools-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
-import { bindDropzone, setDropzoneHasFile } from "@/scripts/tool-ui";
+import { bindDropzone, revealOutput, setDropzoneHasFile, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
 import { convertedName, isDecodableImage, isImageFile, mimeFor } from "@/tools/image-tools";
 
@@ -22,6 +22,8 @@ interface Strings {
   errorUnsupported: string;
   errorConversion: string;
   webpLosslessNote: string;
+  /** `Common_Preparing` — first-run WASM load feedback. */
+  preparing?: string;
 }
 
 function readStrings(): Strings | null {
@@ -162,7 +164,11 @@ function init() {
     setBusy(true);
     try {
       const bytes = new Uint8Array(await file.arrayBuffer());
-      const { bytes: resultBytes, webpLossy } = await convertImage(bytes, targetFormat, quality, ctrl.signal);
+      const { bytes: resultBytes, webpLossy } = await withPreparing(
+        "image_tools",
+        convertImage(bytes, targetFormat, quality, ctrl.signal),
+        { host: actionBtn!.closest<HTMLElement>(".ds-action-row"), label: strings!.preparing },
+      );
       if (ctrl.signal.aborted || currentFile !== file) return;
 
       const blob = new Blob([resultBytes as BlobPart], { type: mimeFor(targetFormat) });
@@ -173,6 +179,7 @@ function init() {
       if (webpNote) webpNote.hidden = !(targetFormat === "webp" && !webpLossy);
       resultName = convertedName(file.name, targetFormat);
       resultEl!.hidden = false;
+      revealOutput(resultEl);
     } catch (e) {
       if (e instanceof WasmError && e.code === "aborted") return;
       const detail = e instanceof Error ? e.message : "";

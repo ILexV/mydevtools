@@ -7,7 +7,7 @@
  * "enter a secret" when the secret is empty (instead of a bare "invalid").
  */
 import { jwtVerify } from "@/scripts/wasm/crypto-client";
-import { bindEmptyState, bindLoadExample, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
+import { bindEmptyState, bindLoadExample, setFieldValue, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
 import { algFromHeader, classifyAlg, decodeJwt, normalizeToken, timeClaims } from "@/tools/jwt";
 
 interface Strings {
@@ -22,6 +22,8 @@ interface Strings {
   claimNotBefore: string;
   claimValidFrom: string;
   claimIssuedAt: string;
+  /** `Common_Preparing` — first-run WASM load feedback. */
+  preparing?: string;
 }
 
 /**
@@ -188,7 +190,10 @@ function init() {
 
     let verified = false;
     try {
-      verified = await jwtVerify(token, secretArea.value, alg);
+      verified = await withPreparing("cryptography", jwtVerify(token, secretArea.value, alg), {
+        host: outputPanel,
+        label: strings.preparing,
+      });
     } catch {
       verified = false; // malformed signature segment / bad PEM → not verified
     }

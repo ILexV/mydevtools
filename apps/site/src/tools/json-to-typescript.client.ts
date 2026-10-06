@@ -7,7 +7,7 @@
  * states: input overlay + "Load example" (only on click), output placeholder.
  */
 import { downloadText, loadEditorKit, type MdtEditor } from "@/scripts/codemirror-loader";
-import { bindLoadExample, copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
+import { bindLoadExample, copyWithFeedback, revealOutput, syncEmptyState } from "@/scripts/tool-ui";
 import { jsonToTypeScript, type ConvertOptions } from "@/tools/json-to-typescript";
 
 interface Strings {
@@ -158,7 +158,11 @@ async function init() {
     liveTimer = window.setTimeout(doConvert, LIVE_DELAY_MS);
   }
 
-  convertBtn.addEventListener("click", doConvert);
+  convertBtn.addEventListener("click", () => {
+    doConvert();
+    // Explicit Convert only (live typing never scrolls).
+    if (outputEditor.getValue()) revealOutput(outputPanel);
+  });
   copyBtn?.addEventListener("click", () => {
     const text = outputEditor.getValue();
     if (text) void copyWithFeedback(copyBtn, text, strings.copied, undefined, { failedLabel: strings.copyFailed });

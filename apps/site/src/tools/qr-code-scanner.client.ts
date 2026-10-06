@@ -17,7 +17,7 @@
  */
 import { qrDecode } from "@/scripts/wasm/qrcode-decode-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
-import { bindDropzone, copyWithFeedback, setDropzoneHasFile } from "@/scripts/tool-ui";
+import { bindDropzone, copyWithFeedback, revealOutput, setDropzoneHasFile } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
 import { classifyDecodeError, isHttpUrl, isImageType, type CameraErrorKind } from "@/tools/qr-code";
 import { cameraSupported, createCameraScanner } from "@/tools/qr-camera";
@@ -164,6 +164,8 @@ function init() {
       const text = await qrDecode(bytes, ctrl.signal);
       if (mine !== seq) return;
       showResult(text);
+      // Picking/dropping a file is the explicit action: bring the result into view on phones.
+      revealOutput(resultEl);
     } catch (e) {
       if (mine !== seq) return;
       if (e instanceof WasmError) {

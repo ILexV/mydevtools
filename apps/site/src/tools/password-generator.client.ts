@@ -2,17 +2,35 @@
  * Password Generator client controller. One-shot WASM generation
  * (`password-client`), settings persisted to localStorage, auto-generate
  * on load when the result is empty, history of the last 10 passwords
- * (newest first) with per-item copy. Legacy parity.
+ * (newest first) with per-item copy. Legacy parity. Shows the entropy /
+ * strength meter of each generated password; an explicit Generate click
+ * scrolls the result into view on phones (revealOutput).
  */
 import { generatePassword } from "@/scripts/wasm/password-client";
-import { copyWithFeedback, prepareCopyButton, syncEmptyState } from "@/scripts/tool-ui";
-import { hasCharset, sanitizeSettings, type PwSettings } from "@/tools/password-settings";
+import { copyWithFeedback, prepareCopyButton, revealOutput, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
+import { formatPlural } from "@/lib/format";
+import {
+  alphabetSize,
+  entropyBits,
+  hasCharset,
+  sanitizeSettings,
+  strengthFill,
+  strengthLevel,
+  type PwSettings,
+} from "@/tools/password-settings";
 
 interface Strings {
   copy: string;
   copied: string;
   copyFailed: string;
   errorNoCharset: string;
+  preparing: string;
+  strengthLabel: string;
+  /** "{0} bits" (+ optional `entropyBits_<plural>` variants). */
+  entropyBits: string;
+  /** weak, fair, strong, very strong */
+  strengthLevels: string[];
+  [key: string]: unknown;
 }
 
 const SETTINGS_KEY = "mydevtools.tools.password-generator.settings.v1";
@@ -49,6 +67,13 @@ function init() {
   const historyEmpty = root.querySelector<HTMLElement>("[data-pw-history]");
   const clearHistoryBtn = root.querySelector<HTMLButtonElement>("[data-pw-clear-history]");
   const errorBox = root.querySelector<HTMLElement>("[data-pw-error]");
+  const strengthBox = root.querySelector<HTMLElement>("[data-pw-strength]");
+  const meterEl = root.querySelector<HTMLElement>("[data-pw-meter]");
+  const levelEl = root.querySelector<HTMLElement>("[data-pw-strength-level]");
+  const entropyEl = root.querySelector<HTMLElement>("[data-pw-entropy]");
+  const resultPanel = root.querySelector<HTMLElement>("[data-pw-result-panel]");
+  const actionRow = generateBtn?.closest<HTMLElement>(".ds-action-row");
+  const lang = document.documentElement.lang || "en";
 
   if (
     !lengthInput ||
@@ -119,8 +144,29 @@ function init() {
     if (restored.specialChars !== undefined) specialCharsEl.value = restored.specialChars;
   }
 
+  /** Entropy meter for the password just generated (bits from the settings it used). */
+  function renderStrength(settings: PwSettings | null) {
+    if (!strengthBox || !meterEl || !levelEl || !entropyEl) return;
+    if (!settings) {
+      strengthBox.hidden = true;
+      return;
+    }
+    const bits = entropyBits(settings.length, alphabetSize(settings));
+    const level = strengthLevel(bits);
+    const levelText = strings.strengthLevels[level - 1] ?? "";
+    const bitsText = formatPlural(strings, "entropyBits", Math.round(bits), lang);
+    meterEl.dataset.level = String(level);
+    meterEl.style.setProperty("--ds-meter", String(strengthFill(bits)));
+    meterEl.setAttribute("aria-valuenow", String(Math.min(128, Math.round(bits))));
+    meterEl.setAttribute("aria-valuetext", `${levelText}, ${bitsText}`);
+    levelEl.textContent = levelText;
+    entropyEl.textContent = bitsText;
+    strengthBox.hidden = false;
+  }
+
   function showError(msg: string) {
     resultEl.value = "";
+    renderStrength(null);
     resultEl.setAttribute("aria-invalid", "true");
     if (errorBox) {
       errorBox.textContent = msg;
@@ -164,7 +210,8 @@ function init() {
     syncHistory();
   }
 
-  async function generate() {
+  /** `reveal` = explicit Generate click (not the auto-run on page load). */
+  async function generate(reveal = false) {
     const settings = readSettings();
     saveSettings();
 
@@ -174,17 +221,23 @@ function init() {
     }
 
     try {
-      const password = await generatePassword({
-        length: settings.length,
-        uppercase: settings.uppercase,
-        lowercase: settings.lowercase,
-        numbers: settings.numbers,
-        special: settings.special,
-        specialChars: settings.specialChars,
-      });
+      const password = await withPreparing(
+        "password",
+        generatePassword({
+          length: settings.length,
+          uppercase: settings.uppercase,
+          lowercase: settings.lowercase,
+          numbers: settings.numbers,
+          special: settings.special,
+          specialChars: settings.specialChars,
+        }),
+        { host: actionRow, label: strings.preparing },
+      );
       clearError();
       resultEl.value = password;
+      renderStrength(settings);
       addToHistory(password);
+      if (reveal) revealOutput(resultPanel);
     } catch (e) {
       showError(e instanceof Error ? e.message : String(e));
     }
@@ -200,7 +253,7 @@ function init() {
   }
 
   generateBtn.addEventListener("click", () => {
-    void generate();
+    void generate(true);
   });
 
   copyBtn.addEventListener("click", () => {

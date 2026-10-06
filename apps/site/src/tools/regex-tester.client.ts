@@ -9,7 +9,7 @@
  * Match positions from WASM are UTF-16 offsets (see wasm/regex_tool).
  */
 import { regexTest } from "@/scripts/wasm/regex-client";
-import { bindEmptyState, bindLoadExample, syncEmptyState } from "@/scripts/tool-ui";
+import { bindEmptyState, bindLoadExample, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
 import {
   applyGlobalFlag,
   buildHighlightHtml,
@@ -30,6 +30,7 @@ interface Strings {
   moreMatches: string;
   engineError: string;
   storageError: string;
+  preparing: string;
 }
 
 /** WASM `test_regex` result JSON (wasm/regex_tool/src/lib.rs). */
@@ -167,7 +168,7 @@ function init(): void {
   function showError(message: string): void {
     setError(message);
     results.innerHTML = "";
-    countBadge.textContent = "!";
+    countBadge.textContent = "—";
     backdrop.innerHTML = buildHighlightHtml(text.value, []);
   }
 
@@ -229,7 +230,11 @@ function init(): void {
 
     try {
       const activeFlags = flags.filter((f) => f.checked).map((f) => f.value);
-      const result = (await regexTest(buildRustPattern(patternValue, activeFlags), textValue)) as RegexResult;
+      // Live run: first-use WASM load shows "Preparing…" in the matches panel if slow.
+      const result = (await withPreparing("regex", regexTest(buildRustPattern(patternValue, activeFlags), textValue), {
+        host: matchesPanel,
+        label: strings.preparing,
+      })) as RegexResult;
       if (seq !== runSeq) return; // stale — a newer run already applied
 
       if (result.error) {

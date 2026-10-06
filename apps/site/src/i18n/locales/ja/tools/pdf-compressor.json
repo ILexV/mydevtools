@@ -12,6 +12,7 @@
   "TableCompressedSize": "圧縮後のサイズ",
   "StatusReady": "準備完了",
   "SavedPercent": "{pct}% 削減",
+  "TotalSizeChangeLabel": "合計サイズの変化",
   "RemoveFile": "ファイルを削除",
   "ErrorNotPdf": "PDF ファイルのみサポートされています。",
   "ErrorInvalidPdf": "{name}: 有効な PDF ではないか、ファイルが破損しています。",

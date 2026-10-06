@@ -10,7 +10,7 @@
  */
 import { calcIpv4, calcIpv6, ensureIpcalcReady, isIpv6Input, splitSubnets } from "@/scripts/wasm/ipcalc-client";
 import { defaultSplitPrefix, maxPrefix, parseSplitPrefix } from "@/tools/ip-subnet";
-import { copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
+import { copyWithFeedback, revealOutput, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
 
 interface Strings {
   lang: string;
@@ -27,6 +27,8 @@ interface Strings {
   splitColHostRange: string;
   splitColRange: string;
   errorSplitPrefix: string;
+  /** `Common_Preparing` — first-run WASM load feedback. */
+  preparing?: string;
 }
 
 /** WASM `SplitResult` JSON shape (wasm/ipcalc/src/split.rs). */
@@ -272,22 +274,26 @@ function init(): void {
     renderSplit(result, v6);
   }
 
-  async function calculate(): Promise<void> {
+  /** Resolves true when results were rendered (explicit callers then reveal them). */
+  async function calculate(): Promise<boolean> {
     const value = input.value.trim();
     if (!value) {
       showError("");
       setResultsVisible(false);
       current = null;
-      return;
+      return false;
     }
 
     // Load failure (network/offline) is not the user's fault — separate message.
     try {
-      await ensureIpcalcReady();
+      await withPreparing("ipcalc", ensureIpcalcReady(), {
+        host: root.querySelector<HTMLElement>("[data-ip-calculate]")?.closest<HTMLElement>(".ds-action-row") ?? results,
+        label: strings.preparing,
+      });
     } catch {
       showError(strings.errorLoad);
       setResultsVisible(false);
-      return;
+      return false;
     }
 
     const v6 = isIpv6Input(value);
@@ -297,7 +303,7 @@ function init(): void {
     } catch {
       showError(strings.errorInvalidFormat);
       setResultsVisible(false);
-      return;
+      return false;
     }
 
     if (v6) renderV6(result as Ipv6Result);
@@ -314,18 +320,25 @@ function init(): void {
 
     showError("");
     setResultsVisible(true);
+    return true;
+  }
+
+  /** Explicit Calculate / Enter / example chip: bring the results into view on phones. */
+  async function calculateAndReveal(): Promise<void> {
+    if (await calculate()) revealOutput(results);
   }
 
   root.querySelector<HTMLButtonElement>("[data-ip-calculate]")?.addEventListener("click", () => {
-    void calculate();
+    void calculateAndReveal();
   });
 
   input.addEventListener("keydown", (e: KeyboardEvent) => {
-    if (e.key === "Enter") void calculate();
+    if (e.key === "Enter") void calculateAndReveal();
   });
 
-  root.querySelector<HTMLButtonElement>("[data-ip-split-run]")?.addEventListener("click", () => {
-    void split();
+  root.querySelector<HTMLButtonElement>("[data-ip-split-run]")?.addEventListener("click", async () => {
+    await split();
+    if (splitOutEl && !splitOutEl.hidden) revealOutput(splitOutEl);
   });
   splitPrefixEl?.addEventListener("keydown", (e: KeyboardEvent) => {
     if (e.key === "Enter") void split();
@@ -340,7 +353,7 @@ function init(): void {
   root.querySelectorAll<HTMLButtonElement>("[data-ip-example]").forEach((btn) => {
     btn.addEventListener("click", () => {
       input.value = btn.dataset.ipExample ?? "";
-      void calculate();
+      void calculateAndReveal();
     });
   });
 

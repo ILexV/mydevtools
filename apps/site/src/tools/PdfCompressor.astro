@@ -41,6 +41,8 @@ const s = {
   errorInvalidPdf: t(lang, ns, "ErrorInvalidPdf"),
   errorEncrypted: t(lang, ns, "ErrorEncrypted"),
   error: t(lang, "common", "Common_Error"),
+  totalChange: t(lang, ns, "TotalSizeChangeLabel"),
+  preparing: t(lang, "common", "Common_Preparing"),
 };
 const stringsJson = JSON.stringify(s);
 ---
@@ -57,6 +59,14 @@ const stringsJson = JSON.stringify(s);
   />
 
   <ToolPanel title={s.filesToProcess} data-pdfc-list hidden>
+    <div class="ds-result-headline" data-pdfc-summary hidden>
+      <span class="ds-result-headline-label">{s.totalChange}</span>
+      <strong class="ds-result-headline-value pdfc-savings" data-pdfc-total></strong>
+      <p class="ds-result-headline-meta">
+        <span>{s.tableOriginalSize} <span class="mono" data-pdfc-total-before></span></span>
+        <span><span aria-hidden="true">→ </span>{s.tableCompressedSize} <strong class="mono pdfc-after" data-pdfc-total-after></strong></span>
+      </p>
+    </div>
     <ul class="ds-file-list" data-pdfc-items></ul>
     <div class="ds-action-row">
       <button type="button" class="ds-btn ds-btn-primary" data-pdfc-compress>
@@ -85,4 +95,7 @@ const stringsJson = JSON.stringify(s);
   .pdfc-tool { max-width: 48rem; margin: 0 auto; }
   .pdfc-tool :global(.pdf-errors) { white-space: pre-line; }
   .pdfc-tool :global(.pdf-meta-value) { white-space: nowrap; }
+  /* Total savings headline: category colour when the batch got smaller. */
+  .pdfc-savings.is-smaller { color: var(--mdt-cat); }
+  .pdfc-after { color: var(--mdt-text); font-weight: 600; }
 </style>

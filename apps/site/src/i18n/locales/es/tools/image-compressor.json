@@ -16,6 +16,7 @@
   "PreviewAlt": "Vista previa de la imagen",
   "OriginalSize": "Original:",
   "CompressedSize": "Comprimida:",
+  "SizeChangeLabel": "Cambio de tamaño",
   "ErrorNotImage": "Sube un archivo de imagen.",
   "ErrorCompression": "Error al comprimir.",
   "NeedFile": "Primero elige una imagen.",

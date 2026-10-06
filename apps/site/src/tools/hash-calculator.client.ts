@@ -15,7 +15,9 @@ import {
   bindLoadExample,
   copyWithFeedback,
   prepareCopyButton,
+  revealOutput,
   setFieldValue,
+  startPreparing,
   syncEmptyState,
 } from "@/scripts/tool-ui";
 
@@ -33,6 +35,7 @@ interface Strings {
   algorithmsSelected: string;
   selectAtLeastOne: string;
   fileProgress: string;
+  preparing?: string;
 }
 
 function readStrings(): Strings | null {
@@ -239,6 +242,11 @@ function init() {
 
     setBusy(true);
     abortController = new AbortController();
+    // First run loads the hash WASM in the worker: "Preparing…" next to Calculate if slow.
+    const prepared = startPreparing("hash", {
+      host: calcBtn?.closest<HTMLElement>(".ds-action-row"),
+      label: strings.preparing,
+    });
     try {
       let hashes;
       if (currentFile) {
@@ -246,6 +254,7 @@ function init() {
         hashes = await hashFile(currentFile, algos, {
           signal: abortController.signal,
           onProgress: ({ processed, total, elapsedMs }) => {
+            prepared();
             setProgress(progressPercent(processed, total));
             if (progressLabel) {
               progressLabel.textContent = `${strings.fileProgress}: ${formatBytes(processed)} / ${formatBytes(total)} · ${formatMs(elapsedMs)}`;
@@ -256,7 +265,9 @@ function init() {
         const text = textarea?.value ?? "";
         hashes = await hashText(algos, text);
       }
+      prepared();
       renderResults(hashes);
+      revealOutput(output);
     } catch (e) {
       if (e instanceof WasmError && e.code === "aborted") {
         clearError(); // cancellation is not an error to surface
@@ -264,6 +275,7 @@ function init() {
         showError(e instanceof Error ? e.message : String(e));
       }
     } finally {
+      prepared();
       if (progress) {
         progress.hidden = true;
         setProgress(0);

@@ -12,6 +12,7 @@
   "TableCompressedSize": "压缩后大小",
   "StatusReady": "就绪",
   "SavedPercent": "节省 {pct}%",
+  "TotalSizeChangeLabel": "总大小变化",
   "RemoveFile": "移除文件",
   "ErrorNotPdf": "仅支持 PDF 文件。",
   "ErrorInvalidPdf": "{name}：不是有效的 PDF 或文件已损坏。",

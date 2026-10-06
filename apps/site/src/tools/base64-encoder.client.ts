@@ -8,7 +8,15 @@
  * compact output placeholder until there is a result.
  */
 import { formatBytes, formatString, pluralSuffix, progressPercent } from "@/lib/format";
-import { bindDropzone, bindLoadExample, copyWithFeedback, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
+import {
+  bindDropzone,
+  bindLoadExample,
+  copyWithFeedback,
+  revealOutput,
+  setFieldValue,
+  startPreparing,
+  syncEmptyState,
+} from "@/scripts/tool-ui";
 import { encodeBytes, decodeToBytes, textToBytes, type EncodingOptions } from "@/scripts/wasm/encoding-client";
 import { encodeFile, decodeFile } from "@/scripts/wasm/encoding-file-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
@@ -41,6 +49,8 @@ interface Strings {
   errInvalidData: string;
   errCopyFailed: string;
   error: string;
+  /** `Common_Preparing` — first-run WASM load feedback. */
+  preparing?: string;
 }
 
 const PREVIEW_LIMIT = 200_000;
@@ -332,12 +342,25 @@ function init() {
   async function run(direction: "encode" | "decode") {
     clearError();
     abortController = new AbortController();
-    setBusy(true, direction === "encode" ? encodeBtn : decodeBtn);
+    const trigger = direction === "encode" ? encodeBtn : decodeBtn;
+    setBusy(true, trigger);
+    // First-run "Preparing…": text ops load WASM on the main thread, files in the worker.
+    const prepared = startPreparing(currentFile ? "encoding:worker" : "encoding", {
+      host: trigger?.closest<HTMLElement>(".ds-action-row") ?? outputPanel,
+      label: strings.preparing,
+    });
+    let shown = false;
     try {
       if (currentFile) {
         setProgress(true);
         const fn = direction === "encode" ? encodeFile : decodeFile;
-        const result = await fn(options(), currentFile, { signal: abortController.signal, onProgress });
+        const result = await fn(options(), currentFile, {
+          signal: abortController.signal,
+          onProgress: (info) => {
+            prepared();
+            onProgress(info);
+          },
+        });
         if (direction === "encode") showEncoded(result.text, currentFile.size, currentFile.name);
         else showDecoded(result.bytes ?? new Uint8Array(0), currentFile.size, currentFile.name);
       } else if (direction === "encode") {
@@ -347,9 +370,12 @@ function init() {
         const bytes = await decodeToBytes(options(), inputArea.value);
         showDecoded(bytes, inputArea.value.length, null);
       }
+      shown = true;
     } catch (e) {
       handleError(e);
     } finally {
+      prepared();
+      if (shown) revealOutput(outputPanel);
       setProgress(false);
       setBusy(false);
       abortController = null;

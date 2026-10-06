@@ -9,7 +9,15 @@
  * `HexEncoder.astro` et al.
  */
 import { formatBytes, formatString, progressPercent } from "@/lib/format";
-import { bindDropzone, bindLoadExample, copyWithFeedback, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
+import {
+  bindDropzone,
+  bindLoadExample,
+  copyWithFeedback,
+  revealOutput,
+  setFieldValue,
+  startPreparing,
+  syncEmptyState,
+} from "@/scripts/tool-ui";
 import {
   encodeBytes,
   decodeToBytes,
@@ -42,6 +50,8 @@ export interface EncodingToolStrings {
   error: string;
   fileSizeLimitEncode?: string;
   fileSizeLimitDecode?: string;
+  /** `Common_Preparing` — first-run WASM load feedback. */
+  preparing?: string;
 }
 
 export interface EncodingToolConfig {
@@ -129,6 +139,12 @@ export function initEncodingTool(config: EncodingToolConfig): void {
   const outputPanel = q<HTMLElement>("output-panel");
   const exampleBtn = q<HTMLButtonElement>("example");
   const lang = document.documentElement.lang || "en";
+  const actionRow = (encodeBtn ?? decodeBtn)?.closest<HTMLElement>(".ds-action-row") ?? outputPanel;
+
+  /** First-run "Preparing…" for the text engine (main thread) or the file worker. */
+  function prepare(): () => void {
+    return startPreparing(currentFile ? "encoding:worker" : "encoding", { host: actionRow, label: strings.preparing });
+  }
 
   let currentFile: File | null = null;
   let abortController: AbortController | null = null;
@@ -278,11 +294,19 @@ export function initEncodingTool(config: EncodingToolConfig): void {
     const options = config.readOptions(root!);
     abortController = new AbortController();
     setBusy(true, encodeBtn);
+    const prepared = prepare();
+    let shown = false;
     try {
       if (currentFile) {
         if (tooLarge(config.encodeLimit, strings.fileSizeLimitEncode, currentFile.size)) return;
         setProgress(true);
-        const result = await encodeFile(options, currentFile, { signal: abortController.signal, onProgress });
+        const result = await encodeFile(options, currentFile, {
+          signal: abortController.signal,
+          onProgress: (info) => {
+            prepared();
+            onProgress(info);
+          },
+        });
         const full = result.text;
         setOutput(previewText(full, outputModeSel?.value ?? "preview", PREVIEW_CHAR_LIMIT, strings.previewTruncated).text);
         setStats(full.length, currentFile.size);
@@ -295,9 +319,12 @@ export function initEncodingTool(config: EncodingToolConfig): void {
         setStats(out.length, bytes.length);
         setLastDownload({ blob: new Blob([out], { type: "text/plain" }), name: outputFileName(null, config.ext) });
       }
+      shown = true;
     } catch (e) {
       handleError(e);
     } finally {
+      prepared();
+      if (shown) revealOutput(outputPanel);
       setProgress(false);
       setBusy(false);
       abortController = null;
@@ -309,11 +336,19 @@ export function initEncodingTool(config: EncodingToolConfig): void {
     const options = config.readOptions(root!);
     abortController = new AbortController();
     setBusy(true, decodeBtn);
+    const prepared = prepare();
+    let shown = false;
     try {
       if (currentFile) {
         if (tooLarge(config.decodeLimit, strings.fileSizeLimitDecode, currentFile.size)) return;
         setProgress(true);
-        const result = await decodeFile(options, currentFile, { signal: abortController.signal, onProgress });
+        const result = await decodeFile(options, currentFile, {
+          signal: abortController.signal,
+          onProgress: (info) => {
+            prepared();
+            onProgress(info);
+          },
+        });
         const bytes = result.bytes ?? new Uint8Array(0);
         const binName = outputFileName(currentFile.name, "bin");
         setOutput(formatString(strings.fileDecoded, currentFile.name, binName));
@@ -328,9 +363,12 @@ export function initEncodingTool(config: EncodingToolConfig): void {
         setStats(encoded.length, bytes.length);
         setOutput(await bytesToText(bytes, options.charset));
       }
+      shown = true;
     } catch (e) {
       handleError(e);
     } finally {
+      prepared();
+      if (shown) revealOutput(outputPanel);
       setProgress(false);
       setBusy(false);
       abortController = null;

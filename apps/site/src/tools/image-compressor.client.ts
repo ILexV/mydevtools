@@ -7,13 +7,13 @@
  * it, and when the browser can't encode WebP the worker falls back to
  * lossless WASM WebP and a note says quality wasn't applied. Output format "original" maps from the source MIME
  * type (jpeg → jpeg, png → png, anything else → webp — legacy parity).
- * Result leads with the compressed size (headline) and the original size plus
- * a "−N%" savings note (shown only when savings > 0, legacy parity),
+ * Result leads with the size change as a headline ("−N %", "+N %" when the
+ * output grew) over original → compressed sizes,
  * and downloaded as `<name>_min.<ext>` (jpeg → jpg — legacy parity).
  */
 import { compressImage } from "@/scripts/wasm/image-tools-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
-import { bindDropzone, setDropzoneHasFile } from "@/scripts/tool-ui";
+import { bindDropzone, revealOutput, setDropzoneHasFile, startPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
 import {
   compressedName,
@@ -32,6 +32,7 @@ interface Strings {
   errorUnsupported: string;
   errorCompression: string;
   webpLosslessNote: string;
+  preparing: string;
 }
 
 function readStrings(): Strings | null {
@@ -96,7 +97,6 @@ function init() {
 
   function hideResult() {
     resultEl!.hidden = true;
-    if (badgeEl) badgeEl.hidden = true;
     if (webpNote) webpNote.hidden = true;
     if (resultUrl) URL.revokeObjectURL(resultUrl);
     resultUrl = null;
@@ -163,9 +163,15 @@ function init() {
     const ctrl = new AbortController();
     job = ctrl;
     setBusy(true);
+    // First run loads the image-tools WASM in the worker: "Preparing…" if slow.
+    const prepared = startPreparing("image_tools", {
+      host: compressBtn!.closest<HTMLElement>(".ds-action-row"),
+      label: strings!.preparing,
+    });
     try {
       const bytes = new Uint8Array(await file.arrayBuffer());
       const { bytes: resultBytes, webpLossy } = await compressImage(bytes, targetFormat, quality, ctrl.signal);
+      prepared();
       if (ctrl.signal.aborted || currentFile !== file) return;
 
       const blob = new Blob([resultBytes as BlobPart], { type: mimeFor(targetFormat) });
@@ -174,20 +180,22 @@ function init() {
       if (originalSizeEl) originalSizeEl.textContent = formatBytes(file.size, 2);
       if (compressedSizeEl) compressedSizeEl.textContent = formatBytes(blob.size, 2);
 
-      // Legacy parity: "Done! -N%" badge, only when savings are positive.
+      // Headline: "−N %" when smaller, "+N %" when the output grew.
       const savedPct = savingsPercent(file.size, blob.size);
       if (badgeEl) {
-        badgeEl.textContent = `−${savedPct}%`;
-        badgeEl.hidden = savedPct <= 0;
+        badgeEl.textContent = savedPct > 0 ? `−${savedPct}%` : savedPct < 0 ? `+${-savedPct}%` : "0%";
+        badgeEl.classList.toggle("is-smaller", savedPct > 0);
       }
       if (webpNote) webpNote.hidden = !(targetFormat === "webp" && !webpLossy);
       resultName = compressedName(file.name, targetFormat);
       resultEl!.hidden = false;
+      revealOutput(resultEl);
     } catch (e) {
       if (e instanceof WasmError && e.code === "aborted") return;
       const detail = e instanceof Error ? e.message : "";
       showError(detail ? `${strings!.errorCompression} ${detail}` : strings!.errorCompression);
     } finally {
+      prepared();
       if (job === ctrl) job = null;
       setBusy(false);
     }

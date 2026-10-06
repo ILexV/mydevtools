@@ -17,7 +17,7 @@ import {
   type CronFieldName,
   type CronStrings,
 } from "@/tools/cron-core";
-import { copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
+import { copyWithFeedback, revealOutput, syncEmptyState } from "@/scripts/tool-ui";
 import { renderNextRuns, restoreDateFormat, saveDateFormat } from "@/tools/cron-ui";
 
 type Strings = CronStrings &
@@ -140,14 +140,20 @@ function init() {
     input.focus();
   }
 
-  parseBtn?.addEventListener("click", parseAction);
+  /** Explicit parse (button, preset, Enter): bring a fresh result into view on phones. */
+  function parseAndReveal() {
+    parseAction();
+    if (outputPanel && !outputPanel.classList.contains("is-empty")) revealOutput(outputPanel);
+  }
+
+  parseBtn?.addEventListener("click", parseAndReveal);
   clearBtn?.addEventListener("click", clearAction);
 
   root.querySelectorAll<HTMLButtonElement>("[data-cronp-preset]").forEach((btn) => {
     btn.addEventListener("click", () => {
       input.value = btn.dataset.cronpPreset || "";
       window.clearTimeout(parseTimeout);
-      parseAction();
+      parseAndReveal();
     });
   });
 

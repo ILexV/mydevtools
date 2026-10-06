@@ -16,6 +16,7 @@
   "PreviewAlt": "इमेज पूर्वावलोकन",
   "OriginalSize": "मूल:",
   "CompressedSize": "कंप्रेस्ड:",
+  "SizeChangeLabel": "आकार में बदलाव",
   "ErrorNotImage": "कृपया एक इमेज फ़ाइल अपलोड करें।",
   "ErrorCompression": "कंप्रेसन विफल।",
   "NeedFile": "पहले एक इमेज चुनें।",

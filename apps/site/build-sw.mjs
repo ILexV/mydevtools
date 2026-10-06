@@ -6,9 +6,9 @@
  *   node build-sw.mjs
  *
  * Walks dist/, builds a precache manifest (static root files, the offline
- * page, locale home pages, all non-_astro images, and every _astro asset
- * referenced by the precached HTML), injects it into scripts/sw-template.js,
- * and writes dist/sw.js. Idempotent, deterministic, no dependencies.
+ * page, locale home pages, all non-_astro images except social share cards,
+ * and every _astro asset referenced by the precached HTML), injects it into
+ * scripts/sw-template.js and writes dist/sw.js. Idempotent, deterministic, no dependencies.
  */
 import { createHash } from "node:crypto";
 import { readFile, writeFile, readdir, stat } from "node:fs/promises";
@@ -86,6 +86,9 @@ for (const l of LOCALES) await addIfExists(`${l}/index.html`);
 for await (const abs of walk(DIST)) {
   const rel = toPosix(abs.slice(DIST.length + 1)); // dist-relative posix
   if (rel.startsWith("_astro/")) continue;
+  // Social share cards (og/<lang>/<slug>.png, ~240 × ~45 KB, plus the static
+  // fallback) are fetched by crawlers, never by the app offline — don't precache.
+  if (rel.startsWith("og/") || rel === "icons/og-image.png") continue;
   const dot = rel.lastIndexOf(".");
   if (dot === -1) continue;
   if (IMG_EXT.has(rel.slice(dot).toLowerCase())) precachePaths.add(rel);

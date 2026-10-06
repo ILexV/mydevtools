@@ -6,7 +6,7 @@
  * localStorage. Live testing on input (150ms debounce, legacy parity).
  * Workbench: pattern panel (Save/Cheat sheet in its header → pattern → flags
  * → test string with empty state + "Load example") | matches panel (count as
- * panel meta), then saved patterns | examples. All logic in
+ * headline), then saved patterns | examples. All logic in
  * `regex-tester.client.ts`.
  */
 import { t } from "@/i18n/messages";
@@ -40,6 +40,7 @@ const dialogCancel = t(lang, ns, "SaveDialogCancel");
 const loadExample = t(lang, "common", "Common_LoadExample");
 const emptyHint = t(lang, ns, "EmptyHint");
 const outputEmpty = t(lang, ns, "OutputEmpty");
+const matchCountLabel = t(lang, ns, "MatchCountLabel");
 
 const flags = [
   { value: "g", label: t(lang, ns, "FlagGlobal"), checked: true },
@@ -70,6 +71,7 @@ const stringsJson = JSON.stringify({
   moreMatches: t(lang, ns, "MoreMatches"),
   engineError: t(lang, ns, "EngineError"),
   storageError: t(lang, ns, "StorageError"),
+  preparing: t(lang, "common", "Common_Preparing"),
 });
 ---
 
@@ -148,15 +150,13 @@ const stringsJson = JSON.stringify({
       </div>
     </ToolPanel>
 
-    <ToolPanel
-      title={matchesLabel}
-      meta=""
-      metaProps={{ "data-rx-count": true, "aria-live": "polite", "aria-atomic": "true" }}
-      empty
-      data-rx-matches
-    >
+    <ToolPanel title={matchesLabel} empty data-rx-matches>
       <p class="ds-alert ds-alert-error rx-error" id="rx-error" data-rx-error role="alert" hidden></p>
       <EmptyState hint={outputEmpty} />
+      <div class="ds-result-headline ds-when-filled">
+        <span class="ds-result-headline-label" id="rx-count-label">{matchCountLabel}</span>
+        <output class="ds-result-headline-value" data-rx-count aria-labelledby="rx-count-label" aria-live="polite" aria-atomic="true"></output>
+      </div>
       <div class="rx-results ds-when-filled" data-rx-results></div>
     </ToolPanel>
   </div>

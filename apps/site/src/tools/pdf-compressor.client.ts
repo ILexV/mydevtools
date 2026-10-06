@@ -9,11 +9,12 @@
  * compressed size and a "Saved N%" badge — shown even when negative (legacy
  * parity) — and downloads as `compressed_<original name>` (legacy parity).
  * A corrupted or password-protected PDF gets an error badge and a localized
- * message naming the file; the rest of the batch still runs.
+ * message naming the file; the rest of the batch still runs. A headline
+ * above the list sums the batch: total "−N%" with original → compressed sizes.
  */
 import { compressPdf } from "@/scripts/wasm/pdf-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
-import { bindDropzone } from "@/scripts/tool-ui";
+import { bindDropzone, revealOutput, startPreparing } from "@/scripts/tool-ui";
 import { formatBytes, progressPercent } from "@/lib/format";
 import { classifyPdfError, compressedFileName, isPdfFile, savingsPercent } from "@/tools/pdf-files";
 import { appendMeta, badge, buildFileRow, downloadLink, iconButton, PDF_ICONS, spinner } from "@/tools/pdf-file-ui";
@@ -31,6 +32,7 @@ interface Strings {
   errorInvalidPdf: string;
   errorEncrypted: string;
   error: string;
+  preparing: string;
 }
 
 interface FileItem {
@@ -70,6 +72,10 @@ function init() {
   const progressLabel = root.querySelector<HTMLElement>("[data-pdfc-progress-label]");
   const cancelBtn = root.querySelector<HTMLButtonElement>("[data-pdfc-cancel]");
   const errorBox = root.querySelector<HTMLElement>("[data-pdfc-error]");
+  const summaryEl = root.querySelector<HTMLElement>("[data-pdfc-summary]");
+  const totalEl = root.querySelector<HTMLElement>("[data-pdfc-total]");
+  const totalBeforeEl = root.querySelector<HTMLElement>("[data-pdfc-total-before]");
+  const totalAfterEl = root.querySelector<HTMLElement>("[data-pdfc-total-after]");
   if (!zone || !input || !listEl || !itemsEl || !compressEl) return;
   const compress: HTMLButtonElement = compressEl;
   root.dataset.initialized = "true";
@@ -113,7 +119,23 @@ function init() {
     if (progressLabel) progressLabel.textContent = current ? `${done} / ${total} · ${current}` : `${done} / ${total}`;
   }
 
+  /** Batch headline over all compressed rows; hidden until one is done. */
+  function renderSummary() {
+    if (!summaryEl || !totalEl) return;
+    const doneItems = files.filter((f) => f.compressedSize !== null);
+    summaryEl.hidden = doneItems.length === 0;
+    if (doneItems.length === 0) return;
+    const before = doneItems.reduce((sum, f) => sum + f.file.size, 0);
+    const after = doneItems.reduce((sum, f) => sum + (f.compressedSize ?? 0), 0);
+    const pct = savingsPercent(before, after);
+    totalEl.textContent = pct > 0 ? `−${pct}%` : pct < 0 ? `+${-pct}%` : "0%";
+    totalEl.classList.toggle("is-smaller", pct > 0);
+    if (totalBeforeEl) totalBeforeEl.textContent = formatBytes(before, 2);
+    if (totalAfterEl) totalAfterEl.textContent = formatBytes(after, 2);
+  }
+
   function render() {
+    renderSummary();
     itemsEl!.replaceChildren();
     listEl!.hidden = files.length === 0;
 
@@ -189,7 +211,8 @@ function init() {
       setProgress(done, queue.length, item.file.name);
       try {
         const bytes = new Uint8Array(await item.file.arrayBuffer());
-        const compressed = await compressPdf(bytes, ctrl.signal);
+        // First file loads the pdf WASM in the worker: "Preparing…" if slow.
+        const compressed = await withPdfPreparing(compressPdf(bytes, ctrl.signal));
         item.compressedSize = compressed.length;
         item.url = URL.createObjectURL(new Blob([compressed.slice()], { type: "application/pdf" }));
       } catch (e) {
@@ -210,6 +233,12 @@ function init() {
     setBusy(false);
     render();
     if (errors.length > 0) showError(errors.join("\n"));
+    if (summaryEl && !summaryEl.hidden) revealOutput(summaryEl);
+  }
+
+  function withPdfPreparing<T>(work: Promise<T>): Promise<T> {
+    const done = startPreparing("pdf", { host: compress.closest<HTMLElement>(".ds-action-row"), label: strings.preparing });
+    return work.finally(done);
   }
 
   bindDropzone(zone, input, addFiles);

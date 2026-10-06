@@ -616,8 +616,10 @@
     pointer-events: none;
   }
   .ds-file-btn:has(> input:focus-visible) {
-    outline: 2px solid var(--mdt-focus-ring);
-    outline-offset: 2px;
+    outline: var(--mdt-focus-width) solid var(--mdt-focus-color, var(--mdt-cat));
+    outline-offset: var(--mdt-focus-offset);
+    box-shadow: 0 0 0 calc(var(--mdt-focus-offset) + var(--mdt-focus-width) + 3px)
+      color-mix(in srgb, var(--mdt-focus-color, var(--mdt-cat)) 22%, transparent);
   }
   .ds-file-btn:has(> input:disabled) {
     opacity: 0.45;
@@ -873,6 +875,83 @@
     }
     to {
       transform: translateX(300%);
+    }
+  }
+
+  /* ---------- first-run "Preparing…" (startPreparing) ---------- */
+
+  /* Shown by startPreparing() only when a lazily loaded WASM engine takes
+     >300ms on its first call: label + slim indeterminate bar in the category
+     colour. Static (no sweep) under prefers-reduced-motion. */
+  .ds-preparing {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: min(9rem, 100%);
+    font-size: var(--mdt-fs-label);
+    color: var(--mdt-text-muted);
+  }
+  .ds-preparing-bar {
+    position: relative;
+    display: block;
+    height: 3px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--mdt-cat, var(--mdt-accent)) 16%, transparent);
+  }
+  .ds-preparing-bar > i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 40%;
+    border-radius: inherit;
+    background: var(--mdt-cat, var(--mdt-accent));
+    animation: mdt-progress-slide 1.1s var(--mdt-ease) infinite;
+  }
+  .ds-card > .ds-preparing,
+  .ds-output > .ds-preparing {
+    display: flex;
+    width: 100%;
+  }
+  /* !important: scoped tool styles (unlayered) often set display on the body. */
+  .is-preparing > .ds-when-filled {
+    display: none !important;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ds-preparing-bar > i {
+      animation: none;
+      width: 100%;
+      opacity: 0.55;
+    }
+  }
+
+  /* ---------- level meter (password strength) ---------- */
+
+  /* Segmented meter for one graded metric: `--ds-meter` = fill 0..1 set by
+     the controller, `data-level` = 1..4 picks the colour (danger → warning →
+     category → success). Width transition is dropped under reduced motion. */
+  .ds-meter {
+    position: relative;
+    display: block;
+    height: 6px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--mdt-surface-muted);
+  }
+  .ds-meter > i {
+    display: block;
+    height: 100%;
+    width: calc(var(--ds-meter, 0) * 100%);
+    border-radius: inherit;
+    background: var(--ds-meter-color, var(--mdt-cat, var(--mdt-accent)));
+    transition: width var(--mdt-dur-micro, 150ms) var(--mdt-ease), background-color var(--mdt-dur-micro, 150ms);
+  }
+  .ds-meter[data-level="1"] { --ds-meter-color: var(--mdt-danger); }
+  .ds-meter[data-level="2"] { --ds-meter-color: var(--mdt-warning); }
+  .ds-meter[data-level="3"] { --ds-meter-color: var(--mdt-cat, var(--mdt-accent)); }
+  .ds-meter[data-level="4"] { --ds-meter-color: var(--mdt-success); }
+  @media (prefers-reduced-motion: reduce) {
+    .ds-meter > i {
+      transition: none;
     }
   }
 
@@ -1237,6 +1316,14 @@
     }
     .ds-empty-state {
       border-color: GrayText;
+    }
+    .ds-preparing-bar > i,
+    .ds-meter > i {
+      forced-color-adjust: none;
+      background: Highlight;
+    }
+    .ds-meter {
+      border: 1px solid CanvasText;
     }
   }
 }

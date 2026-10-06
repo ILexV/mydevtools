@@ -49,5 +49,21 @@
   "Footer_Languages": "भाषाएँ",
   "Footer_Source": "GitHub पर स्रोत कोड",
   "Language": "भाषा",
-  "Common_CopyFailed": "कॉपी नहीं हो सका"
+  "Common_CopyFailed": "कॉपी नहीं हो सका",
+  "Common_OnThisPage": "इस पृष्ठ पर",
+  "Common_RelatedTools": "संबंधित टूल",
+  "Common_Preparing": "तैयारी हो रही है…",
+  "NotFound_Title": "पेज नहीं मिला",
+  "NotFound_Lead": "यह पता कहीं नहीं ले जाता — हो सकता है पेज हट गया हो या लिंक में टाइपो हो। अपनी ज़रूरत का टूल नीचे खोजें।",
+  "NotFound_SearchLabel": "टूल खोजें",
+  "NotFound_SearchPlaceholder": "टूल का नाम लिखें…",
+  "NotFound_Popular": "लोकप्रिय टूल",
+  "NotFound_Recent": "हाल ही में उपयोग किए गए",
+  "NotFound_Results": "मेल खाते टूल",
+  "NotFound_NoResults": "आपकी खोज से कोई टूल मेल नहीं खाता।",
+  "NotFound_Home": "होम पेज पर जाएँ",
+  "Offline_Title": "आप ऑफ़लाइन हैं",
+  "Offline_Lead": "यह पेज अभी कैश नहीं हुआ है। इसे लोड करने के लिए फिर से कनेक्ट करें, या पहले खोला गया कोई टूल खोलें — वे ऑफ़लाइन भी काम करते हैं।",
+  "Offline_Retry": "फिर से कोशिश करें",
+  "Offline_Home": "होम पेज पर जाएँ"
 }

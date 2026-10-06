@@ -10,7 +10,15 @@
  * Workbench empty states: input overlay + "Load example", output placeholder.
  */
 import { formatBytes, formatString } from "@/lib/format";
-import { bindEmptyState, bindLoadExample, copyWithFeedback, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
+import {
+  bindEmptyState,
+  bindLoadExample,
+  copyWithFeedback,
+  revealOutput,
+  setFieldValue,
+  syncEmptyState,
+  withPreparing,
+} from "@/scripts/tool-ui";
 import { decodeToBytes, bytesToText, encodeBytes, textToBytes, type EncodingOptions } from "@/scripts/wasm/encoding-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { classifyEncodingError } from "@/tools/encoding-ui";
@@ -27,6 +35,8 @@ interface Strings {
   errInvalidPercent: string;
   errCopyFailed: string;
   error: string;
+  /** `Common_Preparing` — first-run WASM load feedback. */
+  preparing?: string;
 }
 
 function readStrings(): Strings | null {
@@ -126,16 +136,18 @@ function init() {
     trigger?.setAttribute("aria-busy", "true");
     try {
       const opts = options();
+      const prep = { host: trigger?.closest<HTMLElement>(".ds-action-row") ?? outputPanel, label: strings.preparing };
       if (direction === "encode") {
-        const bytes = await textToBytes(inputArea.value, opts.charset);
+        const bytes = await withPreparing("encoding", textToBytes(inputArea.value, opts.charset), prep);
         const out = await encodeBytes(opts, bytes);
         setOutput(out);
         setStats(out.length, bytes.length);
       } else {
-        const bytes = await decodeToBytes(opts, inputArea.value);
+        const bytes = await withPreparing("encoding", decodeToBytes(opts, inputArea.value), prep);
         setOutput(await bytesToText(bytes, opts.charset));
         setStats(inputArea.value.length, bytes.length);
       }
+      revealOutput(outputPanel);
     } catch (e) {
       handleFailure(e);
     } finally {

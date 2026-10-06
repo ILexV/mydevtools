@@ -17,15 +17,63 @@ function initTheme() {
   function current(): "light" | "dark" {
     return root.getAttribute("data-theme") === "dark" ? "dark" : "light";
   }
-  btn.addEventListener("click", () => {
-    const next = current() === "dark" ? "light" : "dark";
+  function apply(next: "light" | "dark") {
     root.setAttribute("data-theme", next);
     try {
       localStorage.setItem("theme", next);
     } catch {
       /* storage unavailable — keep in-memory only */
     }
+  }
+  btn.addEventListener("click", () => {
+    const next = current() === "dark" ? "light" : "dark";
+    switchThemeWithReveal(root, btn, () => apply(next));
   });
+}
+
+/**
+ * Theme switch animation: same-document View Transition with a circular
+ * clip-path reveal growing from the toggle button. Instant fallback when the
+ * API is missing or prefers-reduced-motion is set. While `.is-theme-switching`
+ * is on <html>, CSS drops element view-transition-names (only the root
+ * animates, no card/header morph) and CSS transitions (no colour fade / flash).
+ */
+function switchThemeWithReveal(root: HTMLElement, origin: HTMLElement, apply: () => void): void {
+  const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  if (typeof document.startViewTransition !== "function" || reduce) {
+    apply();
+    return;
+  }
+  const rect = origin.getBoundingClientRect();
+  const x = rect.left + rect.width / 2;
+  const y = rect.top + rect.height / 2;
+  const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+
+  root.classList.add("is-theme-switching");
+  let transition: ViewTransition;
+  try {
+    transition = document.startViewTransition(apply);
+  } catch {
+    // Another transition in flight (InvalidStateError) — switch instantly.
+    root.classList.remove("is-theme-switching");
+    apply();
+    return;
+  }
+  transition.ready
+    .then(() => {
+      root.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+        { duration: 520, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", pseudoElement: "::view-transition-new(root)" },
+      );
+    })
+    .catch(() => {
+      /* transition skipped — the theme is already applied */
+    });
+  transition.finished
+    .catch(() => {
+      /* update callback failed — nothing to animate */
+    })
+    .finally(() => root.classList.remove("is-theme-switching"));
 }
 
 // ── Locale persistence (URL is source of truth; this only remembers choice) ─

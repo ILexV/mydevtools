@@ -12,6 +12,7 @@
   "TableCompressedSize": "압축된 크기",
   "StatusReady": "준비됨",
   "SavedPercent": "{pct}% 절약",
+  "TotalSizeChangeLabel": "전체 크기 변화",
   "RemoveFile": "파일 제거",
   "ErrorNotPdf": "PDF 파일만 지원됩니다.",
   "ErrorInvalidPdf": "{name}: 유효한 PDF가 아니거나 파일이 손상되었습니다.",

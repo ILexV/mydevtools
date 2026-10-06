@@ -2,7 +2,9 @@
  * Shared DOM behaviors for tool controllers (pairs with styles/tool-ui.css,
  * docs/qa/tool-ui-kit.md): copy-to-clipboard with width-stable ✓/⚠ button
  * feedback + polite announcement, empty-state / "Load example" wiring, and
- * drop-zone wiring with the `.is-dragover` state. Import from a
+ * drop-zone wiring with the `.is-dragover` state, revealing an off-screen
+ * result after an explicit action (revealOutput) and first-run WASM
+ * "Preparing…" feedback (startPreparing/withPreparing). Import from a
  * `*.client.ts`; nothing here runs on import (SSR/tree-shake safe).
  */
 
@@ -359,4 +361,115 @@ export function bindLoadExample(
   };
   button.addEventListener("click", onClick);
   return () => button.removeEventListener("click", onClick);
+}
+
+/** Gap (px) kept between the sticky site header and a revealed panel. */
+const REVEAL_GAP = 12;
+
+/** Bottom edge of the sticky site header (0 when it isn't pinned). */
+function stickyHeaderBottom(): number {
+  const header = document.querySelector<HTMLElement>("header.site-header");
+  if (!header) return 0;
+  const rect = header.getBoundingClientRect();
+  return rect.top <= 0 && rect.bottom > 0 ? rect.bottom : 0;
+}
+
+/**
+ * Scroll an output/result panel into view after an explicit action (Generate,
+ * Compress, Beautify…) when its top is off screen — typically on phones, where
+ * the result panel sits below the fold and the click otherwise looks like it
+ * did nothing. No-op when the panel's top is already visible (desktop
+ * two-column workbench), when it is hidden, or while the user types — call it
+ * only from click/submit handlers, never from live input updates. Offsets the
+ * sticky header, smooth only without prefers-reduced-motion, never moves focus.
+ */
+export function revealOutput(target: HTMLElement | null | undefined): void {
+  if (!target) return;
+  // Wait a frame so freshly un-hidden / filled content has its final layout.
+  requestAnimationFrame(() => {
+    if (!target.isConnected || target.hidden || target.getClientRects().length === 0) return;
+    const top = target.getBoundingClientRect().top;
+    const minTop = stickyHeaderBottom();
+    // "Visible" = the panel top sits in the upper ~70% of the viewport, so a
+    // meaningful part of the result shows (not just its header strip).
+    const visibleLimit = window.innerHeight - Math.max(96, window.innerHeight * 0.3);
+    if (top >= minTop && top <= visibleLimit) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({
+      top: Math.max(0, window.scrollY + top - minTop - REVEAL_GAP),
+      behavior: reduce ? "auto" : "smooth",
+    });
+  });
+}
+
+/** WASM domains (or other lazy engines) that finished their first run on this page. */
+const warmEngines = new Set<string>();
+
+export interface PreparingOptions {
+  /** Element the indicator is appended to (action row, output panel). */
+  host: HTMLElement | null | undefined;
+  /** Localized "Preparing…" (`Common_Preparing`, passed through the tool's JSON island). */
+  label: string | null | undefined;
+  /** Show only after this many ms (default 300) — fast loads show nothing. */
+  delay?: number;
+}
+
+/**
+ * First-run feedback for a lazily loaded WASM engine ("Preparing…"): the
+ * first call per `engine` key on a page may download + compile the module.
+ * If it is still pending after `delay` ms, a slim indeterminate bar in the
+ * category colour plus the label appears in `host` (`.ds-preparing`) and the
+ * label is announced politely once; the host gets `.is-preparing` (a panel
+ * hides its stale `.ds-when-filled` body). Returns `done()` — call it when the engine
+ * answered (result, error, first progress tick); it removes the indicator and
+ * marks the engine warm, so later runs never show it. Idempotent.
+ */
+export function startPreparing(engine: string, { host, label, delay = 300 }: PreparingOptions): () => void {
+  if (warmEngines.has(engine) || !host || !label) {
+    return () => { warmEngines.add(engine); };
+  }
+  let el: HTMLElement | null = null;
+  let finished = false;
+  const timer = window.setTimeout(() => {
+    if (finished || !host.isConnected) return;
+    el = document.createElement("div");
+    el.className = "ds-preparing";
+    el.dataset.dsPreparing = engine;
+    const bar = document.createElement("span");
+    bar.className = "ds-preparing-bar";
+    bar.setAttribute("aria-hidden", "true");
+    bar.append(document.createElement("i"));
+    const text = document.createElement("span");
+    text.className = "ds-preparing-text";
+    text.textContent = label;
+    el.append(text, bar);
+    // The node itself stays silent; the shared polite region speaks once.
+    el.setAttribute("aria-hidden", "true");
+    host.append(el);
+    // Panels hide their stale result body (`.ds-when-filled`) meanwhile.
+    host.classList.add("is-preparing");
+    announce(label);
+  }, delay);
+  return () => {
+    if (finished) return;
+    finished = true;
+    warmEngines.add(engine);
+    window.clearTimeout(timer);
+    if (el) host.classList.remove("is-preparing");
+    el?.remove();
+  };
+}
+
+/**
+ * Await `work` with startPreparing() feedback: the indicator ends when the
+ * promise settles (success or error). For jobs that report progress, use
+ * startPreparing() directly and also call `done()` on the first tick.
+ */
+export async function withPreparing<T>(engine: string, work: Promise<T>, options: PreparingOptions): Promise<T> {
+  const done = startPreparing(engine, options);
+  try {
+    return await work;
+  } finally {
+    done();
+  }
 }

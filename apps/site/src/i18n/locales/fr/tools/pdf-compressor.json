@@ -12,6 +12,7 @@
   "TableCompressedSize": "Taille compressée",
   "StatusReady": "Prêt",
   "SavedPercent": "{pct}% économisés",
+  "TotalSizeChangeLabel": "Variation totale de taille",
   "RemoveFile": "Supprimer le fichier",
   "ErrorNotPdf": "Seuls les fichiers PDF sont pris en charge.",
   "ErrorInvalidPdf": "{name} : PDF non valide ou fichier endommagé.",

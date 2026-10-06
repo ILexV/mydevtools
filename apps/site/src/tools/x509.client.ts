@@ -25,8 +25,10 @@ import {
   bindEmptyState,
   bindLoadExample,
   copyWithFeedback,
+  revealOutput,
   setFieldValue,
   syncEmptyState,
+  withPreparing,
 } from "@/scripts/tool-ui";
 import { base64ToBytes, derBase64ToPem, isCsrPem, parseSanList, parseValidityDays, prettyJson, type SanList } from "@/tools/x509-helpers";
 
@@ -43,6 +45,8 @@ interface Strings {
   warningNoSan: string;
   error: string;
   warningCsrSignature: string;
+  /** `Common_Preparing` — first-run WASM load feedback. */
+  preparing?: string;
 }
 
 function readStrings(): Strings | null {
@@ -173,7 +177,12 @@ function init() {
     clearMessages();
     btn?.setAttribute("aria-busy", "true");
     try {
-      await action();
+      await withPreparing("cryptography", action(), {
+        host: btn?.closest<HTMLElement>(".ds-action-row") ?? outputPanel,
+        label: strings.preparing,
+      });
+      // Explicit Generate / Parse: bring a fresh result into view on phones.
+      if (outputArea.value) revealOutput(outputPanel);
     } finally {
       btn?.removeAttribute("aria-busy");
     }

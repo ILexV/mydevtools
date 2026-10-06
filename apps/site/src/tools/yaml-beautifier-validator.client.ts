@@ -7,7 +7,7 @@
  * compact output placeholder until there is a result.
  */
 import { loadEditorKit, type MdtEditor } from "@/scripts/codemirror-loader";
-import { bindLoadExample, copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
+import { bindLoadExample, copyWithFeedback, revealOutput, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
 
 interface Strings {
   inputLabel: string;
@@ -16,6 +16,8 @@ interface Strings {
   invalid: string;
   copied: string;
   copyFailed?: string;
+  /** `Common_Preparing` — first-run WASM load feedback. */
+  preparing?: string;
   phrases?: Record<string, string>;
 }
 
@@ -142,8 +144,13 @@ async function init() {
     }
     btn?.setAttribute("aria-busy", "true");
     try {
-      await action(await sdClient(), yaml);
+      const host = btn?.closest<HTMLElement>(".ds-action-row") ?? outputPanel;
+      await withPreparing("structured_data", (async () => action(await sdClient(), yaml))(), {
+        host,
+        label: strings.preparing,
+      });
       showError(null);
+      revealOutput(outputPanel);
     } catch (e) {
       outputEditor.setValue("");
       showError(message(e));

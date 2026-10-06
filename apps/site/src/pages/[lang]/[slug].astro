@@ -83,7 +83,9 @@ const related = relatedTools(lang, slug);
 const favLabel = t(lang, "common", "Badge_Favorite");
 const shareLabel = t(lang, "common", "Common_Share");
 const copiedLabel = t(lang, "common", "Common_LinkCopied");
-const relatedLabel = `${catLabel}`;
+// Mixed categories → generic "Related tools"; all siblings → the category name.
+const relatedMixed = related.some((rel) => rel.category !== tool.category);
+const relatedLabel = relatedMixed ? t(lang, "common", "Common_RelatedTools") : catLabel;
 const homeLabel = t(lang, "common", "Nav_Home");
 const privacyLabel = t(lang, "common", "NoDataSent");
 
@@ -195,13 +197,15 @@ const ActiveTool = TOOL_COMPONENTS[slug];
     <ToolSeoContent locale={lang} namespace={namespace} />
 
     {related.length > 0 && (
-      <section class="related">
-        <h2 class="related-heading">{relatedLabel}</h2>
-        <div class="cat-grid">
+      <section class="related" aria-labelledby="related-heading">
+        <h2 class="related-heading" id="related-heading">{relatedLabel}</h2>
+        <ul class="related-grid" role="list">
           {related.map((rel) => (
-            <ToolCard tool={rel} locale={lang} />
+            <li class="related-item" style={`--mdt-cat: var(--mdt-cat-${rel.category}); --mdt-accent: var(--mdt-cat)`}>
+              <ToolCard tool={rel} locale={lang} />
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
     )}
   </main>
@@ -379,7 +383,17 @@ const ActiveTool = TOOL_COMPONENTS[slug];
     letter-spacing: -0.02em;
     margin-bottom: 1rem;
   }
-  .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.875rem; }
+  /* Related tools: 4-up grid on desktop; each card keeps its own category hue. */
+  .related-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 0.875rem;
+  }
+  .related-item { display: grid; min-width: 0; }
+  .related-item > :global(*) { min-width: 0; }
 
   @media (max-width: 640px) {
     .tool { padding: 1.25rem 1rem 2.5rem; }
@@ -405,6 +419,22 @@ const ActiveTool = TOOL_COMPONENTS[slug];
     .privacy-note { align-self: center; margin-top: 0.75rem; }
     .tool-actions { margin-top: 0.75rem; }
     .tool-actions .ds-icon-btn { width: 44px; height: 44px; border-radius: 11px; }
+    /* Related tools: horizontal scroll-snap rail, bleeding to the screen edge
+       inside .tool's 1rem gutter (negative margin = gutter, so no page overflow). */
+    .related-grid {
+      grid-template-columns: none;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(15rem, 78%);
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: 1rem;
+      margin-inline: -1rem;
+      padding: 0.25rem 1rem 0.75rem;
+      scrollbar-width: none;
+    }
+    .related-grid::-webkit-scrollbar { display: none; }
+    .related-item { scroll-snap-align: start; }
   }
 </style>
 <style is:inline>

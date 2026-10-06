@@ -49,5 +49,21 @@
   "Footer_Languages": "言語",
   "Footer_Source": "GitHub のソースコード",
   "Language": "言語",
-  "Common_CopyFailed": "コピーできませんでした"
+  "Common_CopyFailed": "コピーできませんでした",
+  "Common_OnThisPage": "このページの内容",
+  "Common_RelatedTools": "関連ツール",
+  "Common_Preparing": "準備中…",
+  "NotFound_Title": "ページが見つかりません",
+  "NotFound_Lead": "このアドレスには何もありません。ページが移動したか、リンクに誤りがある可能性があります。必要なツールを下から探してください。",
+  "NotFound_SearchLabel": "ツールを検索",
+  "NotFound_SearchPlaceholder": "ツール名を入力…",
+  "NotFound_Popular": "人気のツール",
+  "NotFound_Recent": "最近使用したツール",
+  "NotFound_Results": "一致するツール",
+  "NotFound_NoResults": "検索に一致するツールはありません。",
+  "NotFound_Home": "ホームへ戻る",
+  "Offline_Title": "オフラインです",
+  "Offline_Lead": "このページはまだキャッシュされていません。再接続して読み込むか、以前に開いたツールを開いてください。それらはオフラインでも動作します。",
+  "Offline_Retry": "再試行",
+  "Offline_Home": "ホームへ戻る"
 }

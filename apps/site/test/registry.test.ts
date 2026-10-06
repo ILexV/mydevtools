@@ -22,6 +22,7 @@ import {
   allLocalizedRoutes,
 } from "../src/registry/tools.ts";
 import { lintRegistry } from "../src/registry/validate.ts";
+import { relatedSlugs, CATEGORY_NEIGHBOURS, RELATED_COUNT } from "../src/registry/related.ts";
 
 // ── locales ────────────────────────────────────────────────────────────────
 test("locales: 10 supported, unique codes, default en", () => {
@@ -112,4 +113,48 @@ test("lintRegistry: healthy registry → no issues", () => {
 test("lintRegistry: flags locale-count mismatch", () => {
   const issues = lintRegistry(["en", "ru"]); // only 2 passed → must flag the 10-locale invariant
   assert.ok(issues.some((i) => i.message.includes("expected 10 locales")));
+});
+
+// ── related tools (related.ts → catalog.relatedTools) ──────────────────────
+test("relatedSlugs: every tool gets 3–4 known tools, never itself, no duplicates", () => {
+  assert.ok(RELATED_COUNT >= 3 && RELATED_COUNT <= 4);
+  for (const tool of TOOLS) {
+    const rel = relatedSlugs(tool.slug);
+    assert.ok(rel.length >= 3 && rel.length <= 4, `${tool.slug}: ${rel.length} related`);
+    assert.ok(!rel.includes(tool.slug), `${tool.slug} lists itself`);
+    assert.equal(new Set(rel).size, rel.length, `${tool.slug} has duplicates`);
+    assert.ok(rel.every((s) => getTool(s)), `${tool.slug} lists an unknown slug`);
+  }
+});
+
+test("relatedSlugs: same category first, then neighbouring categories", () => {
+  for (const tool of TOOLS) {
+    const cats = relatedSlugs(tool.slug).map((s) => getTool(s)!.category);
+    const firstOther = cats.findIndex((c) => c !== tool.category);
+    if (firstOther === -1) continue;
+    assert.ok(cats.slice(firstOther).every((c) => c !== tool.category), `${tool.slug}: siblings not first`);
+    const siblings = toolsByCategory(tool.category).length - 1;
+    assert.equal(firstOther, Math.min(siblings, RELATED_COUNT), `${tool.slug}: siblings missing`);
+    assert.ok(
+      cats.slice(firstOther).every((c) => CATEGORY_NEIGHBOURS[tool.category].includes(c)),
+      `${tool.slug}: fill outside neighbouring categories`,
+    );
+  }
+  assert.deepEqual(relatedSlugs("password-generator").slice(0, 1), ["hash-calculator"]);
+});
+
+test("relatedSlugs: deterministic, respects limit, unknown slug → []", () => {
+  for (const tool of TOOLS) assert.deepEqual(relatedSlugs(tool.slug), relatedSlugs(tool.slug));
+  assert.equal(relatedSlugs("json-beautifier", 2).length, 2);
+  assert.deepEqual(relatedSlugs("no-such-tool"), []);
+  assert.deepEqual(relatedSlugs("json-beautifier", 0), []);
+});
+
+test("CATEGORY_NEIGHBOURS: every category mapped, no self-reference, known ids", () => {
+  for (const id of CATEGORY_IDS) {
+    const n = CATEGORY_NEIGHBOURS[id];
+    assert.ok(n && n.length > 0, `${id} has neighbours`);
+    assert.ok(!n.includes(id), `${id} lists itself`);
+    assert.ok(n.every((c) => isCategoryId(c)), `${id} has unknown neighbour`);
+  }
 });

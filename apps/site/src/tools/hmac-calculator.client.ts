@@ -14,8 +14,10 @@ import {
   bindEmptyState,
   bindLoadExample,
   copyWithFeedback,
+  revealOutput,
   setFieldValue,
   syncEmptyState,
+  withPreparing,
 } from "@/scripts/tool-ui";
 
 /** Synthetic "Load example" pair: a throwaway demo key and a webhook-like JSON body. */
@@ -27,6 +29,8 @@ interface Strings {
   copied: string;
   copyFailed: string;
   error: string;
+  /** `Common_Preparing` — first-run WASM load feedback. */
+  preparing?: string;
 }
 
 function readStrings(): Strings | null {
@@ -91,7 +95,8 @@ function init() {
   // Live recalc fires per keystroke; only the newest run may write output.
   let runId = 0;
 
-  async function calculate() {
+  /** Returns true when a fresh result was written (for the explicit Calculate reveal). */
+  async function calculate(): Promise<boolean> {
     const run = ++runId;
     const keyVal = keyArea.value;
     const msgVal = messageArea.value;
@@ -101,28 +106,35 @@ function init() {
       clearError();
       outputArea.value = "";
       setCopyVisible(false);
-      return;
+      return false;
     }
 
     try {
       const alg = (algorithm?.value ?? "sha256") as HmacAlgorithm;
-      const hex = await hmacCompute(alg, keyVal, msgVal, "text", "hex");
-      if (run !== runId) return;
+      const hex = await withPreparing("cryptography", hmacCompute(alg, keyVal, msgVal, "text", "hex"), {
+        host: calculateBtn?.closest<HTMLElement>(".ds-action-row") ?? outputPanel,
+        label: strings.preparing,
+      });
+      if (run !== runId) return false;
       outputArea.value = hex;
       clearError();
       setCopyVisible(true);
+      return true;
     } catch (e) {
-      if (run !== runId) return;
+      if (run !== runId) return false;
       outputArea.value = "";
       setCopyVisible(false);
       showError(e instanceof Error ? e.message : strings.error);
+      return false;
     }
   }
 
   keyArea.addEventListener("input", calculate);
   messageArea.addEventListener("input", calculate);
   algorithm?.addEventListener("change", calculate);
-  calculateBtn?.addEventListener("click", calculate);
+  calculateBtn?.addEventListener("click", async () => {
+    if (await calculate()) revealOutput(outputPanel);
+  });
 
   clearBtn?.addEventListener("click", () => {
     runId++;

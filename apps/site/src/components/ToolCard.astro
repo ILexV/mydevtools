@@ -104,9 +104,11 @@ const monoLen = Math.min(4, [...tool.monogram].length);
   .card-link:focus-visible {
     outline: none;
   }
+  /* Same ring as the global focus layer: category colour + soft halo. */
   .tool-card:has(.card-link:focus-visible) {
-    outline: 2px solid var(--mdt-accent);
-    outline-offset: 2px;
+    outline: var(--mdt-focus-width, 2px) solid var(--mdt-cat, var(--mdt-accent));
+    outline-offset: var(--mdt-focus-offset, 2px);
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--mdt-cat, var(--mdt-accent)) 22%, transparent);
   }
   .card-head {
     display: flex;

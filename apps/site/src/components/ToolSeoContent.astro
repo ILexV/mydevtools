@@ -7,10 +7,14 @@
  * `common` (`Seo_*Title`). Bodies are Markdown, converted by
  * `seoMarkdownToHtml` (trusted build-time input). Renders nothing when the
  * namespace defines no Seo_* content.
+ *
+ * Guide layout: "How to use" steps become a numbered step rail in the category
+ * accent, Tips is a collapsed <details> (content stays in the HTML for SEO),
+ * and ≥1100px shows a sticky "On this page" TOC with scroll-spy (≥2 sections).
  */
 import type { LocaleCode } from "@/registry/locales";
 import { t } from "@/i18n/messages";
-import { seoMarkdownToHtml } from "@/lib/markdown";
+import { seoMarkdownToHtml, parseHowToSteps } from "@/lib/markdown";
 
 interface Props {
   locale: LocaleCode;
@@ -32,93 +36,316 @@ const examples = seo("Seo_Examples");
 const howTo = seo("Seo_HowToSteps");
 const tips = seo("Seo_Tips");
 
-const hasProse = introduction || detailed || examples;
-const hasHowTo = howTo || tips;
+// "### Step N: Title" blocks → numbered step rail; falls back to plain markdown.
+const steps = howTo ? parseHowToSteps(howTo) : [];
+
+/** Guide sections in reading order — drive both the headings' ids and the TOC. */
+const sections = [
+  detailed && { id: "seo-details", title: t(locale, "common", "Seo_DetailedDescriptionTitle") },
+  examples && { id: "seo-examples", title: t(locale, "common", "Seo_ExamplesTitle") },
+  howTo && { id: "seo-howto", title: t(locale, "common", "Seo_HowToTitle") },
+  tips && { id: "seo-tips", title: t(locale, "common", "Seo_TipsTitle") },
+].filter((s): s is { id: string; title: string } => Boolean(s));
+const titleOf = (id: string) => sections.find((s) => s.id === id)?.title ?? "";
+const showToc = sections.length >= 2;
+const tocLabel = t(locale, "common", "Common_OnThisPage");
 ---
 
-{(hasProse || hasHowTo) && (
-  <div class="tool-seo">
-    {hasProse && (
-      <article class="seo-prose">
-        {introduction && <p class="seo-intro">{introduction}</p>}
-        {detailed && (
-          <section>
-            <h2>{t(locale, "common", "Seo_DetailedDescriptionTitle")}</h2>
-            <div class="seo-md" set:html={seoMarkdownToHtml(detailed)} />
-          </section>
-        )}
-        {examples && (
-          <section>
-            <h2>{t(locale, "common", "Seo_ExamplesTitle")}</h2>
-            <div class="seo-md" set:html={seoMarkdownToHtml(examples)} />
-          </section>
-        )}
-      </article>
-    )}
-    {hasHowTo && (
-      <article class="seo-howto">
-        {howTo && (
-          <>
-            <h2>{t(locale, "common", "Seo_HowToTitle")}</h2>
+{(introduction || sections.length > 0) && (
+  <div class="tool-seo" data-has-toc={showToc ? "" : undefined}>
+    <div class="seo-main">
+      {introduction && <p class="seo-intro">{introduction}</p>}
+      {detailed && (
+        <section class="seo-section" aria-labelledby="seo-details">
+          <h2 id="seo-details">{titleOf("seo-details")}</h2>
+          <div class="seo-md" set:html={seoMarkdownToHtml(detailed)} />
+        </section>
+      )}
+      {examples && (
+        <section class="seo-section" aria-labelledby="seo-examples">
+          <h2 id="seo-examples">{titleOf("seo-examples")}</h2>
+          <div class="seo-md" set:html={seoMarkdownToHtml(examples)} />
+        </section>
+      )}
+      {howTo && (
+        <section class="seo-section" aria-labelledby="seo-howto">
+          <h2 id="seo-howto">{titleOf("seo-howto")}</h2>
+          {steps.length > 0 ? (
+            <ol class="seo-steps">
+              {steps.map((step, i) => (
+                <li class="seo-step">
+                  <span class="seo-step-num" aria-hidden="true">{i + 1}</span>
+                  <div class="seo-step-body">
+                    <h3>{step.name}</h3>
+                    {step.text && <div class="seo-md" set:html={seoMarkdownToHtml(step.text)} />}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          ) : (
             <div class="seo-md" set:html={seoMarkdownToHtml(howTo)} />
-          </>
-        )}
-        {tips && (
-          <div class="seo-tips">
-            <h3>{t(locale, "common", "Seo_TipsTitle")}</h3>
-            <div class="seo-md" set:html={seoMarkdownToHtml(tips)} />
-          </div>
-        )}
-      </article>
+          )}
+        </section>
+      )}
+      {tips && (
+        <details class="seo-section seo-tips">
+          <summary>
+            <h2 id="seo-tips">{titleOf("seo-tips")}</h2>
+            <svg class="seo-tips-chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </summary>
+          <div class="seo-md" set:html={seoMarkdownToHtml(tips)} />
+        </details>
+      )}
+    </div>
+    {showToc && (
+      <nav class="seo-toc" aria-label={tocLabel} data-seo-toc>
+        <p class="seo-toc-title">{tocLabel}</p>
+        <ol>
+          {sections.map((s) => (
+            <li><a href={`#${s.id}`} data-toc-link={s.id}>{s.title}</a></li>
+          ))}
+        </ol>
+      </nav>
     )}
   </div>
 )}
+
+<script>
+  /**
+   * "On this page" TOC for the tool guide: highlights the section currently
+   * read (scroll spy via IntersectionObserver) and opens the collapsed Tips
+   * <details> when its anchor is followed. Smooth scrolling comes from the
+   * global `html { scroll-behavior }`, which reduced motion already disables.
+   */
+  function bindSeoToc(): void {
+    const toc = document.querySelector<HTMLElement>("[data-seo-toc]");
+    if (!toc || toc.dataset.bound) return;
+    toc.dataset.bound = "1";
+
+    const links = [...toc.querySelectorAll<HTMLAnchorElement>("[data-toc-link]")];
+    const headings = links
+      .map((a) => document.getElementById(a.dataset.tocLink ?? ""))
+      .filter((h): h is HTMLElement => h !== null);
+
+    const openTarget = (id: string) => {
+      const details = document.getElementById(id)?.closest("details");
+      if (details && !details.open) details.open = true;
+    };
+    for (const a of links) a.addEventListener("click", () => openTarget(a.dataset.tocLink ?? ""));
+    if (location.hash) openTarget(decodeURIComponent(location.hash.slice(1)));
+
+    const setActive = (id: string) => {
+      for (const a of links) {
+        const on = a.dataset.tocLink === id;
+        a.classList.toggle("is-active", on);
+        if (on) a.setAttribute("aria-current", "location");
+        else a.removeAttribute("aria-current");
+      }
+    };
+
+    if (!("IntersectionObserver" in window)) return;
+    // Active = last heading that has crossed the upper band of the viewport.
+    const visible = new Set<string>();
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) visible.add(e.target.id);
+          else visible.delete(e.target.id);
+        }
+        const firstVisible = headings.find((h) => visible.has(h.id));
+        if (firstVisible) {
+          setActive(firstVisible.id);
+          return;
+        }
+        const above = headings.filter((h) => h.getBoundingClientRect().top < 0);
+        if (above.length) setActive(above[above.length - 1].id);
+        else setActive("");
+      },
+      { rootMargin: "-72px 0px -55% 0px" },
+    );
+    for (const h of headings) io.observe(h);
+  }
+  bindSeoToc();
+</script>
 
 <style is:global>
   /* is:global (Palette.astro precedent): `set:html` markdown output carries no
      Astro scope attribute, so scoped selectors would never match it. */
   .tool-seo {
-    margin-top: 2.5rem;
+    margin-top: 2.75rem;
     display: grid;
-    gap: 1.5rem;
+    gap: 2rem;
   }
-  .tool-seo .seo-prose {
+  .tool-seo .seo-main {
     display: grid;
-    gap: 1.5rem;
+    gap: 2.25rem;
+    min-width: 0;
   }
   .tool-seo .seo-intro {
     color: var(--mdt-text-muted);
+    font-size: var(--mdt-fs-body);
     line-height: 1.65;
-    max-width: 75ch;
+    max-width: 68ch;
   }
   .tool-seo h2 {
     font-size: var(--mdt-fs-h2);
     font-weight: 650;
     letter-spacing: -0.02em;
-    margin-bottom: 0.75rem;
+    line-height: 1.2;
+    margin-bottom: 0.85rem;
+    /* Anchor targets clear the sticky site header. */
+    scroll-margin-top: calc(var(--mdt-header-h) + 1.25rem);
   }
-  .tool-seo .seo-howto {
-    background: var(--mdt-surface-raised);
+
+  /* How-to step rail: accent-numbered markers joined by a thin line. */
+  .tool-seo .seo-steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    max-width: calc(68ch + 2.75rem);
+  }
+  .tool-seo .seo-step {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.85rem minmax(0, 1fr);
+    column-gap: 0.9rem;
+    padding-bottom: 1.15rem;
+  }
+  .tool-seo .seo-step:last-child { padding-bottom: 0; }
+  .tool-seo .seo-step:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: calc(1.85rem / 2 - 0.5px);
+    top: 2.15rem;
+    bottom: 0.3rem;
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--mdt-cat) 45%, transparent),
+      color-mix(in srgb, var(--mdt-cat) 12%, transparent)
+    );
+  }
+  .tool-seo .seo-step-num {
+    width: 1.85rem;
+    height: 1.85rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--mdt-cat) 40%, transparent);
+    background: color-mix(in srgb, var(--mdt-cat) 12%, var(--mdt-surface-raised));
+    color: var(--mdt-cat);
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-meta);
+    font-weight: 700;
+    line-height: 1;
+  }
+  .tool-seo .seo-step-body { min-width: 0; padding-top: 0.2rem; }
+  .tool-seo .seo-step-body h3 {
+    color: var(--mdt-text);
+    font-size: var(--mdt-fs-body);
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 0.3rem;
+  }
+  .tool-seo .seo-step-body .seo-md p:last-child { margin-bottom: 0; }
+
+  /* Tips: collapsed disclosure; heading stays a real h2 inside <summary>. */
+  .tool-seo .seo-tips {
+    max-width: calc(68ch + 2.5rem);
     border: 1px solid var(--mdt-border);
     border-radius: var(--mdt-radius);
-    padding: clamp(1.25rem, 3vw, 1.75rem);
+    background: var(--mdt-surface-raised);
   }
-  .tool-seo .seo-tips {
-    margin-top: 1.5rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--mdt-border-soft);
+  .tool-seo .seo-tips summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.95rem 1.25rem;
+    cursor: pointer;
+    list-style: none;
+    border-radius: var(--mdt-radius);
   }
-  .tool-seo .seo-tips h3 {
+  .tool-seo .seo-tips summary::-webkit-details-marker { display: none; }
+  .tool-seo .seo-tips summary h2 {
     font-size: var(--mdt-fs-h3);
+    margin: 0;
+  }
+  .tool-seo .seo-tips summary:hover h2 { color: var(--mdt-cat); }
+  .tool-seo .seo-tips-chev {
+    flex-shrink: 0;
+    color: var(--mdt-text-faint);
+    transition: transform var(--mdt-dur-micro) var(--mdt-ease);
+  }
+  .tool-seo .seo-tips[open] .seo-tips-chev { transform: rotate(180deg); }
+  .tool-seo .seo-tips[open] summary {
+    border-bottom: 1px solid var(--mdt-border-soft);
+    border-radius: var(--mdt-radius) var(--mdt-radius) 0 0;
+  }
+  .tool-seo .seo-tips > .seo-md {
+    padding: 0.9rem 1.25rem 0.35rem;
+  }
+
+  /* "On this page" — wide screens only, sticky beside the guide. */
+  .tool-seo .seo-toc { display: none; }
+  @media (min-width: 1100px) {
+    .tool-seo[data-has-toc] {
+      grid-template-columns: minmax(0, 46rem) 14.5rem;
+      justify-content: space-between;
+      column-gap: 3rem;
+      align-items: start;
+    }
+    .tool-seo .seo-toc {
+      display: block;
+      position: sticky;
+      top: calc(var(--mdt-header-h) + 1.5rem);
+      padding-left: 1rem;
+      border-left: 1px solid var(--mdt-border);
+    }
+  }
+  .tool-seo .seo-toc-title {
+    font-size: var(--mdt-fs-meta);
     font-weight: 600;
+    color: var(--mdt-text);
     margin-bottom: 0.6rem;
+  }
+  .tool-seo .seo-toc ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.15rem;
+  }
+  .tool-seo .seo-toc a {
+    position: relative;
+    display: block;
+    padding: 0.3rem 0;
+    font-size: var(--mdt-fs-meta);
+    line-height: 1.4;
+    color: var(--mdt-text-muted);
+    text-decoration: none;
+    transition: color var(--mdt-dur-micro);
+  }
+  .tool-seo .seo-toc a:hover { color: var(--mdt-text); }
+  .tool-seo .seo-toc a.is-active { color: var(--mdt-cat); font-weight: 600; }
+  /* Active marker sits on the TOC's left rule. */
+  .tool-seo .seo-toc a.is-active::before {
+    content: "";
+    position: absolute;
+    left: calc(-1rem - 1px);
+    top: 0.3rem;
+    bottom: 0.3rem;
+    width: 2px;
+    border-radius: 2px;
+    background: var(--mdt-cat);
   }
 
   /* Injected markdown body (seoMarkdownToHtml). */
   .tool-seo .seo-md {
     color: var(--mdt-text-muted);
     line-height: 1.65;
-    max-width: 75ch;
+    max-width: 68ch;
   }
   .tool-seo .seo-md p {
     margin-bottom: 0.75rem;
@@ -143,6 +370,7 @@ const hasHowTo = howTo || tips;
     display: grid;
     gap: 0.3rem;
   }
+  .tool-seo .seo-md li::marker { color: color-mix(in srgb, var(--mdt-cat) 70%, var(--mdt-text-faint)); }
   .tool-seo .seo-md code {
     font-family: var(--mdt-font-mono);
     font-size: 0.9em;

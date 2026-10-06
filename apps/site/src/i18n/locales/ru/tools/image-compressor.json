@@ -16,6 +16,7 @@
   "PreviewAlt": "Предпросмотр изображения",
   "OriginalSize": "Исходный:",
   "CompressedSize": "Сжатый:",
+  "SizeChangeLabel": "Изменение размера",
   "ErrorNotImage": "Пожалуйста, загрузите файл изображения.",
   "ErrorCompression": "Ошибка сжатия.",
   "NeedFile": "Сначала выберите изображение.",

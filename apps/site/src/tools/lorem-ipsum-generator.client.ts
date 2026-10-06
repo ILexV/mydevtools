@@ -5,7 +5,7 @@
  * comes from the `data-lorem-strings` island.
  */
 import { generateLorem, clampCount, type LoremFormat, type LoremType } from "@/tools/lorem-ipsum";
-import { copyWithFeedback } from "@/scripts/tool-ui";
+import { copyWithFeedback, revealOutput } from "@/scripts/tool-ui";
 import { formatPlural } from "@/lib/format";
 
 interface Strings {
@@ -93,7 +93,11 @@ function init(): void {
     if (charsLabelEl) charsLabelEl.textContent = formatPlural(strings, "characters", result.chars, strings.lang);
   }
 
-  generateBtn?.addEventListener("click", generate);
+  generateBtn?.addEventListener("click", () => {
+    generate();
+    // Explicit Generate only; live option changes never scroll.
+    revealOutput(output.closest<HTMLElement>(".ds-card, .ds-output"));
+  });
   type.addEventListener("change", generate);
   format.addEventListener("change", generate);
   classicEl?.addEventListener("change", generate);

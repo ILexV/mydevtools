@@ -16,6 +16,7 @@
   "PreviewAlt": "Image preview",
   "OriginalSize": "Original:",
   "CompressedSize": "Compressed:",
+  "SizeChangeLabel": "Size change",
   "ErrorNotImage": "Please upload an image file.",
   "ErrorCompression": "Compression failed.",
   "NeedFile": "Choose an image first.",

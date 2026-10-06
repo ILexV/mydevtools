@@ -49,5 +49,21 @@
   "Footer_Languages": "Idiomas",
   "Footer_Source": "Código fuente en GitHub",
   "Language": "Idioma",
-  "Common_CopyFailed": "No se pudo copiar"
+  "Common_CopyFailed": "No se pudo copiar",
+  "Common_OnThisPage": "En esta página",
+  "Common_RelatedTools": "Herramientas relacionadas",
+  "Common_Preparing": "Preparando…",
+  "NotFound_Title": "Página no encontrada",
+  "NotFound_Lead": "Esta dirección no lleva a ninguna parte: puede que la página se haya movido o que el enlace tenga un error. Encuentra la herramienta que necesitas abajo.",
+  "NotFound_SearchLabel": "Buscar herramientas",
+  "NotFound_SearchPlaceholder": "Escribe el nombre de una herramienta…",
+  "NotFound_Popular": "Herramientas populares",
+  "NotFound_Recent": "Usadas recientemente",
+  "NotFound_Results": "Herramientas coincidentes",
+  "NotFound_NoResults": "Ninguna herramienta coincide con tu búsqueda.",
+  "NotFound_Home": "Ir a la página de inicio",
+  "Offline_Title": "Estás sin conexión",
+  "Offline_Lead": "Esta página aún no está en caché. Vuelve a conectarte para cargarla o abre una herramienta que ya hayas visitado: esas siguen funcionando sin conexión.",
+  "Offline_Retry": "Reintentar",
+  "Offline_Home": "Ir a la página de inicio"
 }

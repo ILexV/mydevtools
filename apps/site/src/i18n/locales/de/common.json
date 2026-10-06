@@ -49,5 +49,21 @@
   "Footer_Languages": "Sprachen",
   "Footer_Source": "Quellcode auf GitHub",
   "Language": "Sprache",
-  "Common_CopyFailed": "Kopieren fehlgeschlagen"
+  "Common_CopyFailed": "Kopieren fehlgeschlagen",
+  "Common_OnThisPage": "Auf dieser Seite",
+  "Common_RelatedTools": "Verwandte Tools",
+  "Common_Preparing": "Wird vorbereitet…",
+  "NotFound_Title": "Seite nicht gefunden",
+  "NotFound_Lead": "Diese Adresse führt ins Leere – die Seite wurde möglicherweise verschoben oder der Link enthält einen Tippfehler. Finden Sie das gewünschte Tool unten.",
+  "NotFound_SearchLabel": "Tools durchsuchen",
+  "NotFound_SearchPlaceholder": "Geben Sie einen Tool-Namen ein…",
+  "NotFound_Popular": "Beliebte Tools",
+  "NotFound_Recent": "Zuletzt verwendet",
+  "NotFound_Results": "Passende Tools",
+  "NotFound_NoResults": "Keine Tools entsprechen Ihrer Suche.",
+  "NotFound_Home": "Zur Startseite",
+  "Offline_Title": "Sie sind offline",
+  "Offline_Lead": "Diese Seite ist noch nicht zwischengespeichert. Stellen Sie die Verbindung wieder her, um sie zu laden, oder öffnen Sie ein bereits besuchtes Tool – diese funktionieren auch offline.",
+  "Offline_Retry": "Erneut versuchen",
+  "Offline_Home": "Zur Startseite"
 }

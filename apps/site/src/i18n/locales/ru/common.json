@@ -49,5 +49,21 @@
   "Footer_Languages": "Языки",
   "Footer_Source": "Исходный код на GitHub",
   "Language": "Язык",
-  "Common_CopyFailed": "Не удалось скопировать"
+  "Common_CopyFailed": "Не удалось скопировать",
+  "Common_OnThisPage": "На этой странице",
+  "Common_RelatedTools": "Похожие инструменты",
+  "Common_Preparing": "Подготовка…",
+  "NotFound_Title": "Страница не найдена",
+  "NotFound_Lead": "По этому адресу ничего нет — страница могла переехать, или в ссылке опечатка. Найдите нужный инструмент ниже.",
+  "NotFound_SearchLabel": "Поиск инструментов",
+  "NotFound_SearchPlaceholder": "Введите название инструмента…",
+  "NotFound_Popular": "Популярные инструменты",
+  "NotFound_Recent": "Недавние",
+  "NotFound_Results": "Подходящие инструменты",
+  "NotFound_NoResults": "Ничего не найдено.",
+  "NotFound_Home": "На главную",
+  "Offline_Title": "Нет подключения к сети",
+  "Offline_Lead": "Эта страница ещё не сохранена. Подключитесь к сети, чтобы загрузить её, или откройте инструмент, который уже открывали, — такие работают офлайн.",
+  "Offline_Retry": "Повторить",
+  "Offline_Home": "На главную"
 }

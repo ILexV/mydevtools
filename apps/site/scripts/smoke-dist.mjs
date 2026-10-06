@@ -56,3 +56,22 @@ test("JSON-LD: WebSite on home, SoftwareApplication on tool", { skip }, () => {
 test("offline page: fallback copy present", { skip }, () => {
   assert.match(read("offline/index.html"), /offline/i);
 });
+
+test("og:image: tool page card is a 1200×630 PNG ≤ 80 KB, not precached", { skip }, () => {
+  const ogPath = (html) => {
+    const m = html.match(/<meta property="og:image" content="https?:\/\/[^/]+\/mydevtools\/([^"]+)"/);
+    assert.ok(m, "og:image meta with base-prefixed absolute URL");
+    return m[1];
+  };
+  const rel = ogPath(read("ru/hash-calculator/index.html"));
+  assert.equal(rel, "og/ru/hash-calculator.png");
+  // CJK/Devanagari locales reuse the English card (fonts cover Latin/Cyrillic only).
+  assert.equal(ogPath(read("ja/hash-calculator/index.html")), "og/en/hash-calculator.png");
+  assert.ok(has("og/en/home.png"), "home card");
+  const png = readFileSync(new URL(rel, DIST));
+  assert.equal(png.subarray(1, 4).toString("latin1"), "PNG", "PNG signature");
+  assert.equal(png.readUInt32BE(16), 1200, "width");
+  assert.equal(png.readUInt32BE(20), 630, "height");
+  assert.ok(png.length <= 80 * 1024, `card size ${png.length} B ≤ 80 KB`);
+  assert.ok(!read("sw.js").includes("/og/"), "share cards are not precached");
+});

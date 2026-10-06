@@ -49,5 +49,21 @@
   "Footer_Languages": "언어",
   "Footer_Source": "GitHub 소스 코드",
   "Language": "언어",
-  "Common_CopyFailed": "복사하지 못했습니다"
+  "Common_CopyFailed": "복사하지 못했습니다",
+  "Common_OnThisPage": "이 페이지에서",
+  "Common_RelatedTools": "관련 도구",
+  "Common_Preparing": "준비 중…",
+  "NotFound_Title": "페이지를 찾을 수 없습니다",
+  "NotFound_Lead": "이 주소에는 아무것도 없습니다. 페이지가 이동했거나 링크에 오타가 있을 수 있습니다. 아래에서 필요한 도구를 찾아보세요.",
+  "NotFound_SearchLabel": "도구 검색",
+  "NotFound_SearchPlaceholder": "도구 이름 입력…",
+  "NotFound_Popular": "인기 도구",
+  "NotFound_Recent": "최근 사용",
+  "NotFound_Results": "일치하는 도구",
+  "NotFound_NoResults": "검색과 일치하는 도구가 없습니다.",
+  "NotFound_Home": "홈으로 이동",
+  "Offline_Title": "오프라인 상태입니다",
+  "Offline_Lead": "이 페이지는 아직 캐시되지 않았습니다. 다시 연결하여 불러오거나 이전에 방문한 도구를 여세요. 해당 도구는 오프라인에서도 작동합니다.",
+  "Offline_Retry": "다시 시도",
+  "Offline_Home": "홈으로 이동"
 }

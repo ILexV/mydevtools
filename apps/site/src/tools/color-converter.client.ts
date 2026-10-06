@@ -15,7 +15,7 @@ import {
   wcag,
   type RGB,
 } from "@/tools/color";
-import { copyWithFeedback, prepareCopyButton } from "@/scripts/tool-ui";
+import { copyWithFeedback, prepareCopyButton, revealOutput } from "@/scripts/tool-ui";
 
 interface Strings {
   copy: string;
@@ -159,6 +159,8 @@ function init(): void {
     const parsed = parseColor(input.value);
     if (parsed) {
       apply(parsed.rgb);
+      // Explicit Convert / Enter: bring the converted formats into view on phones.
+      revealOutput(formatsEl?.closest<HTMLElement>(".ds-card"));
     } else {
       setInvalid(true);
       showError(strings.invalidColor);

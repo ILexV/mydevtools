@@ -49,5 +49,21 @@
   "Footer_Languages": "语言",
   "Footer_Source": "GitHub 上的源代码",
   "Language": "语言",
-  "Common_CopyFailed": "复制失败"
+  "Common_CopyFailed": "复制失败",
+  "Common_OnThisPage": "本页内容",
+  "Common_RelatedTools": "相关工具",
+  "Common_Preparing": "正在准备…",
+  "NotFound_Title": "页面未找到",
+  "NotFound_Lead": "此地址不存在——页面可能已移动，或链接有拼写错误。请在下方查找所需工具。",
+  "NotFound_SearchLabel": "搜索工具",
+  "NotFound_SearchPlaceholder": "输入工具名称…",
+  "NotFound_Popular": "热门工具",
+  "NotFound_Recent": "最近使用",
+  "NotFound_Results": "匹配的工具",
+  "NotFound_NoResults": "没有与搜索匹配的工具。",
+  "NotFound_Home": "返回首页",
+  "Offline_Title": "您已离线",
+  "Offline_Lead": "此页面尚未缓存。请重新连接网络以加载，或打开您访问过的工具——它们可以离线使用。",
+  "Offline_Retry": "重试",
+  "Offline_Home": "返回首页"
 }

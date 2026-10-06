@@ -12,6 +12,7 @@
   "TableCompressedSize": "संपीड़ित आकार",
   "StatusReady": "तैयार",
   "SavedPercent": "{pct}% बचत",
+  "TotalSizeChangeLabel": "कुल आकार में बदलाव",
   "RemoveFile": "फ़ाइल हटाएँ",
   "ErrorNotPdf": "केवल PDF फ़ाइलें समर्थित हैं।",
   "ErrorInvalidPdf": "{name}: मान्य PDF नहीं है या फ़ाइल क्षतिग्रस्त है।",

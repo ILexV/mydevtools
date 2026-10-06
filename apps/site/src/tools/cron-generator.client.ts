@@ -17,7 +17,7 @@ import {
   type CronFieldName,
   type CronStrings,
 } from "@/tools/cron-core";
-import { copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
+import { copyWithFeedback, revealOutput, syncEmptyState } from "@/scripts/tool-ui";
 import { renderNextRuns, restoreDateFormat, saveDateFormat } from "@/tools/cron-ui";
 
 type Strings = CronStrings &
@@ -112,7 +112,10 @@ function init() {
     renderNextRuns(nextExecutions, runs.length ? runs : strings.noUpcomingRuns, format, strings.lang);
   }
 
-  generateBtn?.addEventListener("click", generateAction);
+  generateBtn?.addEventListener("click", () => {
+    generateAction();
+    if (outputPanel && !outputPanel.classList.contains("is-empty")) revealOutput(outputPanel);
+  });
   for (const f of CRON_FIELDS) {
     inputs[f]?.addEventListener("keydown", (ev) => {
       if (ev.key === "Enter") generateAction();

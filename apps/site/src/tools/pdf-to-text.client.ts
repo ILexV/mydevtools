@@ -14,7 +14,7 @@
  */
 import { extractText } from "@/scripts/wasm/pdf-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
-import { bindDropzone } from "@/scripts/tool-ui";
+import { bindDropzone, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes, progressPercent } from "@/lib/format";
 import { classifyPdfError, isPdfFile, textFileName } from "@/tools/pdf-files";
 import { appendMeta, badge, buildFileRow, downloadLink, iconButton, PDF_ICONS, spinner } from "@/tools/pdf-file-ui";
@@ -31,6 +31,8 @@ interface Strings {
   errorEncrypted: string;
   errorExtraction: string;
   error: string;
+  /** `Common_Preparing` — first-run WASM load feedback. */
+  preparing?: string;
 }
 
 interface PdfItem {
@@ -180,7 +182,10 @@ function init() {
       setProgress(done, queue.length, item.file.name);
       try {
         const bytes = new Uint8Array(await item.file.arrayBuffer());
-        const text = await extractText(bytes, ctrl.signal);
+        const text = await withPreparing("pdf", extractText(bytes, ctrl.signal), {
+          host: extract.closest<HTMLElement>(".ds-action-row"),
+          label: strings.preparing,
+        });
         item.url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
       } catch (e) {
         if (e instanceof WasmError && e.code === "aborted") {

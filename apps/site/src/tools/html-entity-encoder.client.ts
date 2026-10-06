@@ -8,6 +8,7 @@ import {
   bindEmptyState,
   bindLoadExample,
   copyWithFeedback,
+  revealOutput,
   setFieldValue,
   setLiveText,
   syncEmptyState,
@@ -78,12 +79,14 @@ function init() {
     const format = (formatSel?.value ?? "named") as EntityFormat;
     output.value = encodeHtml(input.value, mode, format);
     announce();
+    revealOutput(outputPanel);
   });
 
   root.querySelector<HTMLButtonElement>("[data-ent-decode]")?.addEventListener("click", () => {
     clearError();
     output.value = decodeHtml(input.value);
     announce();
+    revealOutput(outputPanel);
   });
 
   root.querySelector<HTMLButtonElement>("[data-ent-swap]")?.addEventListener("click", () => {

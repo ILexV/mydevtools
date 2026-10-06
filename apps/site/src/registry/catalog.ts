@@ -10,6 +10,7 @@
 import { CATEGORIES, type CategoryId, getCategory } from "./categories";
 import { TOOLS, type Tool, type WasmDomain, toolNamespace } from "./tools";
 import type { LocaleCode } from "./locales";
+import { RELATED_COUNT, relatedSlugs } from "./related";
 import { t } from "@/i18n/messages";
 import { localizedPath } from "@/lib/url";
 
@@ -82,12 +83,15 @@ export function buildCatalog(lang: LocaleCode): Catalog {
   return { categories, tools };
 }
 
-/** Tools sharing the same category as `slug`, excluding itself, capped. */
-export function relatedTools(lang: LocaleCode, slug: string, limit = 6): CatalogTool[] {
-  const tool = TOOLS.find((t) => t.slug === slug);
-  if (!tool) return [];
-  return TOOLS.filter((t) => t.category === tool.category && t.slug !== slug)
-    .slice(0, limit)
+/**
+ * Localized related-tools cards for a tool page: same category first, then
+ * neighbouring categories (see `relatedSlugs` in related.ts), default 4 cards,
+ * identical order in every locale, never the tool itself.
+ */
+export function relatedTools(lang: LocaleCode, slug: string, limit = RELATED_COUNT): CatalogTool[] {
+  return relatedSlugs(slug, limit)
+    .map((s) => TOOLS.find((t) => t.slug === s))
+    .filter((t): t is Tool => t !== undefined)
     .map((t) => buildTool(t, lang));
 }
 

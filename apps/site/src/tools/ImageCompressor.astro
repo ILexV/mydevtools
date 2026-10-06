@@ -9,7 +9,8 @@
  * (jpeg → jpg — legacy parity). Single file only (legacy multi-file ZIP is a
  * documented deviation). UI: shared tool kit (FileDrop, ds-file-item, Progress);
  * file-first flow: disabled Compress shows a "choose an image first" hint, the
- * result panel leads with the compressed size (headline) + Download.
+ * result panel leads with the size change (headline "−42%") and
+ * original → compressed sizes + Download.
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
@@ -47,6 +48,8 @@ const s = {
   errorCompression: t(lang, ns, "ErrorCompression"),
   webpLosslessNote: t(lang, ns, "WebpLosslessNote"),
   needFile: t(lang, ns, "NeedFile"),
+  sizeChange: t(lang, ns, "SizeChangeLabel"),
+  preparing: t(lang, "common", "Common_Preparing"),
 };
 /** "Compressed:" → "Compressed" for the headline label (ASCII or full-width colon). */
 const plainLabel = (label: string) => label.replace(/\s*[:：]\s*$/, "");
@@ -113,15 +116,15 @@ const stringsJson = JSON.stringify(s);
 
   <ToolPanel title={s.resultLabel} data-imgc-result hidden aria-live="polite">
     <div class="ds-result-headline">
-      <span class="ds-result-headline-label">{plainLabel(s.compressedSize)}</span>
-      <strong class="ds-result-headline-value" data-imgc-compressed-size></strong>
+      <span class="ds-result-headline-label">{s.sizeChange}</span>
+      <strong class="ds-result-headline-value imgc-savings" data-imgc-badge></strong>
       <button type="button" class="ds-btn ds-btn-primary" data-imgc-download>
         <Icon name="download" size={16} />
         {s.download}
       </button>
       <p class="ds-result-headline-meta">
-        <span>{s.originalSize} <span class="mono" data-imgc-original-size></span></span>
-        <span class="ds-status is-success" data-imgc-badge hidden></span>
+        <span>{plainLabel(s.originalSize)} <span class="mono" data-imgc-original-size></span></span>
+        <span><span aria-hidden="true">→ </span>{plainLabel(s.compressedSize)} <strong class="mono imgc-after" data-imgc-compressed-size></strong></span>
       </p>
     </div>
     <div class="imgc-output-wrap">
@@ -147,6 +150,9 @@ const stringsJson = JSON.stringify(s);
     background: var(--mdt-surface-muted);
   }
   .imgc-range { width: 100%; }
+  /* Savings headline: category colour when smaller, neutral when it grew. */
+  .imgc-savings.is-smaller { color: var(--mdt-cat); }
+  .imgc-after { color: var(--mdt-text); font-weight: 600; }
   .imgc-output-wrap {
     display: flex;
     align-items: center;

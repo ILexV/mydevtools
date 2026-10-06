@@ -1,17 +1,21 @@
 /**
  * Base64 client controller. Text ops via `encoding-client`; file ops via
- * `encoding-file-client` (worker, progress + cancel). Decode detection:
- * image → preview, binary → info panel (legacy parity).
+ * `encoding-file-client` (worker, progress + cancel); drag & drop via the
+ * shared `bindDropzone`. Decode detection (legacy parity): image → preview,
+ * known binary → info panel, other non-text → generic binary info; the
+ * decoded bytes are always downloadable with the detected extension.
  */
-import { encodeText, decodeText, decodeToBytes, type EncodingOptions } from "@/scripts/wasm/encoding-client";
+import { formatBytes, formatString, progressPercent } from "@/lib/format";
+import { copyWithFeedback, bindDropzone } from "@/scripts/tool-ui";
+import { encodeBytes, decodeToBytes, textToBytes, type EncodingOptions } from "@/scripts/wasm/encoding-client";
 import { encodeFile, decodeFile } from "@/scripts/wasm/encoding-file-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
-import { detectFileType, isLikelyText, formatBytes, formatDuration } from "@/tools/base64";
+import { detectFileType, isLikelyText } from "@/tools/base64";
+import { classifyEncodingError, outputFileName, previewText, type EncodingErrorKey } from "@/tools/encoding-ui";
+import { onReady } from "@/tools/encoding-tool";
 
 interface Strings {
-  copy: string;
   copied: string;
-  cancel: string;
   fileProgressTitle: string;
   imageDetected: string;
   binaryDetected: string;
@@ -20,10 +24,40 @@ interface Strings {
   statsBytes: string;
   statsEncoded: string;
   statsDecoded: string;
-  copyBase64?: string;
+  statsImage: string;
+  previewTruncated: string;
+  fileDecoded: string;
+  errInvalidChar: string;
+  errNotRepresentable: string;
+  errInvalidLength: string;
+  errWhitespace: string;
+  errPadding: string;
+  errNotText: string;
+  errInvalidData: string;
+  errCopyFailed: string;
+  error: string;
 }
 
 const PREVIEW_LIMIT = 200_000;
+
+const ERROR_STRING: Record<EncodingErrorKey, keyof Strings> = {
+  Error_InvalidChar: "errInvalidChar",
+  Error_NotRepresentable: "errNotRepresentable",
+  Error_InvalidLength: "errInvalidLength",
+  Error_Whitespace: "errWhitespace",
+  Error_Padding: "errPadding",
+  Error_NotText: "errNotText",
+  Error_InvalidData: "errInvalidData",
+};
+
+/** WHATWG TextDecoder labels for the charset select (lenient display decode). */
+const DECODER_LABEL: Record<string, string> = {
+  "utf-8": "utf-8",
+  "utf-16le": "utf-16le",
+  "utf-16be": "utf-16be",
+  ascii: "windows-1252",
+  latin1: "windows-1252",
+};
 
 function readStrings(): Strings | null {
   const el = document.querySelector<HTMLScriptElement>("[data-b64-strings]");
@@ -37,45 +71,53 @@ function readStrings(): Strings | null {
 
 function init() {
   const root = document.querySelector<HTMLElement>("[data-b64-tool]");
-  if (!root) return;
+  if (!root || root.dataset.initialized) return;
   const raw = readStrings();
   if (!raw) return;
   const strings: Strings = raw;
+  const q = <T extends Element>(name: string) => root.querySelector<T>(`[data-b64-${name}]`);
 
-  const textarea = root.querySelector<HTMLTextAreaElement>("[data-b64-textarea]");
-  const fileInput = root.querySelector<HTMLInputElement>("[data-b64-file]");
-  const fileName = root.querySelector<HTMLElement>("[data-b64-filename]");
-  const clearFileBtn = root.querySelector<HTMLButtonElement>("[data-b64-clearfile]");
-  const charset = root.querySelector<HTMLSelectElement>("[data-b64-charset]");
-  const alphabet = root.querySelector<HTMLSelectElement>("[data-b64-alphabet]");
-  const padding = root.querySelector<HTMLSelectElement>("[data-b64-padding]");
-  const lineWrap = root.querySelector<HTMLSelectElement>("[data-b64-linewrap]");
-  const outputMode = root.querySelector<HTMLSelectElement>("[data-b64-outputmode]");
-  const allowWs = root.querySelector<HTMLInputElement>("[data-b64-allowws]");
-  const output = root.querySelector<HTMLTextAreaElement>("[data-b64-output]");
-  const stats = root.querySelector<HTMLElement>("[data-b64-stats]");
-  const detect = root.querySelector<HTMLElement>("[data-b64-detect]");
-  const encodeBtn = root.querySelector<HTMLButtonElement>("[data-b64-encode]");
-  const decodeBtn = root.querySelector<HTMLButtonElement>("[data-b64-decode]");
-  const swapBtn = root.querySelector<HTMLButtonElement>("[data-b64-swap]");
-  const clearBtn = root.querySelector<HTMLButtonElement>("[data-b64-clear]");
-  const copyBtn = root.querySelector<HTMLButtonElement>("[data-b64-copy]");
-  const downloadBtn = root.querySelector<HTMLButtonElement>("[data-b64-download]");
-  const cancelBtn = root.querySelector<HTMLButtonElement>("[data-b64-cancel]");
-  const progress = root.querySelector<HTMLElement>("[data-b64-progress]");
-  const progressFill = root.querySelector<HTMLElement>("[data-b64-progress-fill]");
-  const progressLabel = root.querySelector<HTMLElement>("[data-b64-progress-label]");
-  const errorBox = root.querySelector<HTMLElement>("[data-b64-error]");
-
-  let currentFile: File | null = null;
-  let lastBytes: Uint8Array | null = null;
-  let lastExt = "txt";
-  let lastMime = "text/plain";
-  let abortController: AbortController | null = null;
-
-  if (!textarea || !output) return;
+  const textarea = q<HTMLTextAreaElement>("input");
+  const output = q<HTMLTextAreaElement>("output");
+  const errorBox = q<HTMLElement>("error");
+  if (!textarea || !output || !errorBox) return;
+  root.dataset.initialized = "true";
   const inputArea: HTMLTextAreaElement = textarea;
   const outputArea: HTMLTextAreaElement = output;
+  const errorArea: HTMLElement = errorBox;
+
+  const fileInput = q<HTMLInputElement>("file");
+  const drop = q<HTMLElement>("drop");
+  const fileName = q<HTMLElement>("filename");
+  const clearFileBtn = q<HTMLButtonElement>("file-clear");
+  const charset = q<HTMLSelectElement>("charset");
+  const alphabet = q<HTMLSelectElement>("alphabet");
+  const padding = q<HTMLSelectElement>("padding");
+  const lineWrap = q<HTMLSelectElement>("linewrap");
+  const outputMode = q<HTMLSelectElement>("output-mode");
+  const allowWs = q<HTMLInputElement>("allow-whitespace");
+  const stats = q<HTMLElement>("stats");
+  const detect = q<HTMLElement>("detect");
+  const detectLabel = q<HTMLElement>("detect-label");
+  const detectHint = q<HTMLElement>("detect-hint");
+  const detectImg = q<HTMLImageElement>("detect-img");
+  const encodeBtn = q<HTMLButtonElement>("encode");
+  const decodeBtn = q<HTMLButtonElement>("decode");
+  const swapBtn = q<HTMLButtonElement>("swap");
+  const clearBtn = q<HTMLButtonElement>("clear");
+  const copyBtn = q<HTMLButtonElement>("copy");
+  const downloadBtn = q<HTMLButtonElement>("download");
+  const cancelBtn = q<HTMLButtonElement>("cancel");
+  const progress = q<HTMLElement>("progress");
+  const progressBar = q<HTMLElement>("progress-bar");
+  const progressFill = q<HTMLElement>("progress-fill");
+  const progressLabel = q<HTMLElement>("progress-label");
+
+  let currentFile: File | null = null;
+  let abortController: AbortController | null = null;
+  let previewUrl: string | null = null;
+  /** What Download saves: decoded bytes (with detected type) or the text output. */
+  let lastDownload: { blob: Blob; name: string } | null = null;
 
   function options(): EncodingOptions {
     return {
@@ -89,130 +131,186 @@ function init() {
   }
 
   function showError(msg: string) {
-    if (errorBox) { errorBox.textContent = msg; errorBox.hidden = false; }
+    errorArea.textContent = msg;
+    errorArea.hidden = false;
   }
   function clearError() {
-    if (errorBox) errorBox.hidden = true;
+    errorArea.hidden = true;
+    errorArea.textContent = "";
+    inputArea.removeAttribute("aria-invalid");
   }
 
-  function showDetect(html: string) {
-    if (detect) { detect.innerHTML = html; detect.hidden = false; }
+  function setLastDownload(dl: { blob: Blob; name: string } | null) {
+    lastDownload = dl;
+    if (downloadBtn) downloadBtn.disabled = !dl;
   }
+
   function clearDetect() {
-    if (detect) { detect.innerHTML = ""; detect.hidden = true; }
+    if (detect) detect.hidden = true;
+    if (detectImg) {
+      detectImg.hidden = true;
+      detectImg.removeAttribute("src");
+    }
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      previewUrl = null;
+    }
+    outputArea.hidden = false;
   }
 
   function setStats(text: string) {
     if (stats) stats.textContent = text;
   }
 
-  function setBusy(busy: boolean) {
-    for (const b of [encodeBtn, decodeBtn]) if (b) b.disabled = busy;
-    if (cancelBtn) cancelBtn.hidden = !busy || !currentFile;
+  function resetOutput() {
+    outputArea.value = "";
+    clearDetect();
+    setStats("");
+    setLastDownload(null);
   }
 
-  function setOutput(text: string, statText: string) {
-    const preview = outputMode?.value !== "full" && text.length > PREVIEW_LIMIT;
-    outputArea.value = preview ? text.slice(0, PREVIEW_LIMIT) : text;
-    setStats(preview ? `${statText} · truncated` : statText);
+  function setBusy(busy: boolean, trigger?: HTMLButtonElement | null) {
+    for (const b of [encodeBtn, decodeBtn, swapBtn, clearBtn]) if (b) b.disabled = busy;
+    if (busy && trigger) trigger.setAttribute("aria-busy", "true");
+    if (!busy) {
+      encodeBtn?.removeAttribute("aria-busy");
+      decodeBtn?.removeAttribute("aria-busy");
+    }
+    if (fileInput) fileInput.disabled = busy;
+    drop?.setAttribute("aria-disabled", String(busy));
   }
 
-  function setFileResult(bytes: Uint8Array | undefined, direction: "encode" | "decode", text: string) {
-    if (direction === "decode" && bytes) {
-      lastBytes = bytes;
-      const detected = detectFileType(bytes);
-      if (detected) {
-        lastExt = detected.ext;
-        lastMime = detected.mime;
-        if (detected.kind === "image") {
-          const blob = new Blob([bytes.slice()], { type: detected.mime });
-          const url = URL.createObjectURL(blob);
-          showDetect(
-            `${strings.imageDetected.replace("{type}", detected.label)}<br/><img src="${url}" alt="${detected.label}" />`,
-          );
-        } else {
-          showDetect(
-            `${strings.binaryDetected.replace("{type}", detected.label)} — ${formatBytes(bytes.length)}<br/><small>${strings.binaryDownloadHint}</small>`,
-          );
-        }
-      } else if (isLikelyText(bytes)) {
-        lastExt = "txt";
-        lastMime = "text/plain";
-        clearDetect();
-      } else {
-        lastExt = "bin";
-        lastMime = "application/octet-stream";
-        showDetect(`${strings.binaryDetected.replace("{type}", "BIN")} — ${formatBytes(bytes.length)}<br/><small>${strings.binaryDownloadHint}</small>`);
+  function setProgress(visible: boolean) {
+    if (progress) progress.hidden = !visible;
+    if (progressFill) progressFill.style.width = "0%";
+    progressBar?.setAttribute("aria-valuenow", "0");
+    if (progressLabel) progressLabel.textContent = visible ? strings.fileProgressTitle : "";
+  }
+
+  function onProgress({ processed, total, elapsedMs }: { processed: number; total: number; elapsedMs: number }) {
+    const pct = progressPercent(processed, total);
+    if (progressFill) progressFill.style.width = `${pct}%`;
+    progressBar?.setAttribute("aria-valuenow", String(Math.round(pct)));
+    if (progressLabel) {
+      const speed = elapsedMs > 0 ? (processed / elapsedMs) * 1000 : 0;
+      progressLabel.textContent = `${pct.toFixed(1)}% · ${formatBytes(processed)} / ${formatBytes(total)} · ${formatBytes(speed)}/s`;
+    }
+  }
+
+  function handleError(e: unknown) {
+    if (e instanceof WasmError && e.code === "aborted") {
+      clearError();
+      return;
+    }
+    const message = e instanceof Error ? e.message : String(e);
+    const { key, position } = classifyEncodingError(message);
+    resetOutput();
+    const arg = key === "Error_InvalidData" ? "Base64" : String((position ?? 0) + 1);
+    showError(formatString(strings[ERROR_STRING[key]] ?? strings.error, arg));
+    if (currentFile) return;
+    inputArea.setAttribute("aria-invalid", "true");
+    if (position !== undefined && key === "Error_NotRepresentable") {
+      try {
+        inputArea.focus();
+        inputArea.setSelectionRange(position, Math.min(position + 1, inputArea.value.length));
+      } catch {
+        /* selection unsupported */
       }
-      setOutput(text, strings.statsDecoded.replace("{size}", formatBytes(bytes.length)));
-    } else {
-      lastBytes = null;
-      lastExt = "txt";
-      lastMime = "text/plain";
-      clearDetect();
-      setOutput(text, strings.statsEncoded.replace("{size}", formatBytes(text.length)));
     }
   }
 
-  function resetFile() {
-    currentFile = null;
-    if (fileInput) fileInput.value = "";
-    if (fileName) fileName.textContent = "";
-    if (clearFileBtn) clearFileBtn.hidden = true;
+  function showEncoded(text: string, rawBytes: number, sourceName: string | null) {
+    clearDetect();
+    outputArea.value = previewText(text, outputMode?.value ?? "preview", PREVIEW_LIMIT, strings.previewTruncated).text;
+    setStats(`${strings.statsBytes.replace("{n}", rawBytes.toLocaleString())} ${strings.statsEncoded.replace("{size}", formatBytes(text.length))}`);
+    setLastDownload({ blob: new Blob([text], { type: "text/plain" }), name: outputFileName(sourceName, "b64") });
   }
 
-  fileInput?.addEventListener("change", () => {
-    currentFile = fileInput.files?.[0] ?? null;
-    if (currentFile && fileName) {
-      fileName.textContent = `${currentFile.name} (${formatBytes(currentFile.size)})`;
-      if (clearFileBtn) clearFileBtn.hidden = false;
+  /** Decoded bytes → text output, or image preview / binary info (legacy parity). */
+  function showDecoded(bytes: Uint8Array, encodedChars: number, sourceName: string | null) {
+    clearDetect();
+    const decodedStat = `${strings.statsChars.replace("{n}", encodedChars.toLocaleString())} ${strings.statsDecoded.replace("{size}", formatBytes(bytes.length))}`;
+    const detected = detectFileType(bytes);
+    const base = sourceName ? sourceName.replace(/\.(b64|base64|txt)$/i, "") : "decoded";
+    if (!detected && isLikelyText(bytes)) {
+      const cs = charset?.value ?? "utf-8";
+      const text = new TextDecoder(DECODER_LABEL[cs] ?? "utf-8").decode(bytes);
+      outputArea.value = previewText(text, outputMode?.value ?? "preview", PREVIEW_LIMIT, strings.previewTruncated).text;
+      setStats(decodedStat);
+      setLastDownload({ blob: new Blob([new Uint8Array(bytes)], { type: "text/plain" }), name: `${base}.txt` });
+      return;
     }
-  });
-  clearFileBtn?.addEventListener("click", resetFile);
+    const kind = detected ?? { kind: "binary" as const, mime: "application/octet-stream", ext: "bin", label: "BIN" };
+    const blob = new Blob([new Uint8Array(bytes)], { type: kind.mime });
+    setLastDownload({ blob, name: `${base}.${kind.ext}` });
+    outputArea.value = "";
+    outputArea.hidden = true;
+    if (detect) detect.hidden = false;
+    setStats(decodedStat);
+    if (kind.kind === "image" && detectImg && detectLabel) {
+      detectLabel.textContent = strings.imageDetected.replace("{type}", kind.label);
+      if (detectHint) detectHint.textContent = strings.binaryDownloadHint;
+      previewUrl = URL.createObjectURL(blob);
+      detectImg.alt = kind.label;
+      detectImg.onload = () => {
+        setStats(
+          strings.statsImage
+            .replace("{size}", formatBytes(bytes.length))
+            .replace("{w}", String(detectImg.naturalWidth))
+            .replace("{h}", String(detectImg.naturalHeight)),
+        );
+      };
+      detectImg.src = previewUrl;
+      detectImg.hidden = false;
+    } else if (detectLabel) {
+      detectLabel.textContent = `${strings.binaryDetected.replace("{type}", kind.label)} · ${formatBytes(bytes.length)}`;
+      if (detectHint) detectHint.textContent = strings.binaryDownloadHint;
+    }
+  }
+
+  function updateFileUi() {
+    if (fileName) fileName.textContent = currentFile ? `${currentFile.name} (${formatBytes(currentFile.size)})` : "";
+    if (clearFileBtn) clearFileBtn.hidden = !currentFile;
+  }
+
+  function setFile(file: File | null) {
+    currentFile = file;
+    if (file) {
+      inputArea.value = "";
+      resetOutput();
+      clearError();
+    } else if (fileInput) {
+      fileInput.value = "";
+    }
+    updateFileUi();
+  }
+
+  if (drop) bindDropzone(drop, fileInput, (files) => setFile(files[0] ?? null));
+  else fileInput?.addEventListener("change", () => setFile(fileInput.files?.[0] ?? null));
+  clearFileBtn?.addEventListener("click", () => setFile(null));
 
   async function run(direction: "encode" | "decode") {
     clearError();
-    const start = performance.now();
-    setBusy(true);
     abortController = new AbortController();
+    setBusy(true, direction === "encode" ? encodeBtn : decodeBtn);
     try {
       if (currentFile) {
-        if (progress) progress.hidden = false;
+        setProgress(true);
         const fn = direction === "encode" ? encodeFile : decodeFile;
-        const result = await fn(options(), currentFile, {
-          signal: abortController.signal,
-          onProgress: ({ processed, total, elapsedMs }) => {
-            const pct = total > 0 ? Math.min(100, (processed / total) * 100) : 0;
-            if (progressFill) progressFill.style.width = `${pct}%`;
-            if (progressLabel) {
-              progressLabel.textContent = `${strings.fileProgressTitle} ${formatBytes(processed)} / ${formatBytes(total)} · ${formatDuration(elapsedMs / 1000)}`;
-            }
-          },
-        });
-        setFileResult(result.bytes, direction, result.text);
+        const result = await fn(options(), currentFile, { signal: abortController.signal, onProgress });
+        if (direction === "encode") showEncoded(result.text, currentFile.size, currentFile.name);
+        else showDecoded(result.bytes ?? new Uint8Array(0), currentFile.size, currentFile.name);
+      } else if (direction === "encode") {
+        const bytes = await textToBytes(inputArea.value, options().charset);
+        showEncoded(await encodeBytes(options(), bytes), bytes.length, null);
       } else {
-        const input = inputArea.value;
-        if (direction === "encode") {
-          const text = await encodeText(options(), input);
-          setFileResult(undefined, "encode", text);
-        } else {
-          const bytes = await decodeToBytes(options(), input);
-          try {
-            const cs = charset?.value ?? "utf-8";
-            const label = cs === "utf-16le" ? "utf-16le" : cs === "utf-16be" ? "utf-16be" : cs === "latin1" ? "latin1" : "utf-8";
-            const text = new TextDecoder(label).decode(bytes);
-            setFileResult(bytes, "decode", text);
-          } catch {
-            setFileResult(bytes, "decode", "");
-          }
-        }
+        const bytes = await decodeToBytes(options(), inputArea.value);
+        showDecoded(bytes, inputArea.value.length, null);
       }
     } catch (e) {
-      if (!(e instanceof WasmError && e.code === "aborted")) {
-        showError(e instanceof Error ? e.message : String(e));
-      }
+      handleError(e);
     } finally {
-      if (progress) { progress.hidden = true; if (progressFill) progressFill.style.width = "0%"; }
+      setProgress(false);
       setBusy(false);
       abortController = null;
     }
@@ -221,54 +319,40 @@ function init() {
   encodeBtn?.addEventListener("click", () => run("encode"));
   decodeBtn?.addEventListener("click", () => run("decode"));
   cancelBtn?.addEventListener("click", () => abortController?.abort());
+  inputArea.addEventListener("input", () => inputArea.removeAttribute("aria-invalid"));
 
   swapBtn?.addEventListener("click", () => {
+    clearError();
+    if (currentFile) setFile(null);
     const a = inputArea.value;
-    inputArea.value = outputArea.value;
+    inputArea.value = outputArea.hidden ? "" : outputArea.value;
+    resetOutput();
     outputArea.value = a;
   });
 
   clearBtn?.addEventListener("click", () => {
     inputArea.value = "";
-    outputArea.value = "";
-    clearDetect();
+    resetOutput();
     clearError();
-    setStats("");
-    resetFile();
+    setFile(null);
   });
 
   copyBtn?.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(outputArea.value);
-      if (copyBtn) {
-        const orig = copyBtn.textContent;
-        copyBtn.textContent = strings.copied;
-        setTimeout(() => { copyBtn.textContent = orig; }, 1200);
-      }
-    } catch {
-      /* clipboard unavailable */
-    }
+    const ok = await copyWithFeedback(copyBtn, outputArea.value, strings.copied);
+    if (!ok) showError(strings.errCopyFailed);
   });
 
   downloadBtn?.addEventListener("click", () => {
-    let blob: Blob;
-    if (lastBytes) {
-      blob = new Blob([lastBytes.slice()], { type: lastMime });
-    } else {
-      blob = new Blob([outputArea.value], { type: "text/plain" });
-      lastExt = "txt";
-    }
-    const url = URL.createObjectURL(blob);
+    if (!lastDownload) return;
+    const url = URL.createObjectURL(lastDownload.blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = currentFile ? `${currentFile.name.replace(/\.[^.]+$/, "")}.${lastExt}` : `output.${lastExt}`;
+    a.download = lastDownload.name;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", init, { once: true });
-} else {
-  init();
-}
+onReady(init);

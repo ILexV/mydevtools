@@ -20,5 +20,8 @@
   "ErrorNotImage": "Le fichier sélectionné n'est pas une image.",
   "ErrorLoadImage": "Échec du chargement de l'image.",
   "ErrorInvalidDimensions": "Dimensions invalides.",
-  "ErrorResizeFailed": "Échec du redimensionnement."
+  "ErrorResizeFailed": "Échec du redimensionnement.",
+  "Cancel": "Annuler",
+  "ErrorUnsupportedFormat": "Ce format d’image n’est pas pris en charge. Utilisez PNG, JPEG, WebP, GIF, BMP, ICO, TIFF ou TGA.",
+  "ErrorDimensionsTooLarge": "Dimensions trop grandes : 16384 px maximum par côté et 64 mégapixels au total."
 }

@@ -3,8 +3,12 @@
  * import (OpenSSH public/private, SPKI PEM, PKCS#8 PEM) and convert via the
  * cryptography WASM module. Legacy parity: RSA bits select enabled only for
  * RSA algorithms, download names (id_key/id_key.pub on generate,
- * imported.key/imported.pub on import), 1200ms copy label swap, raw WASM
- * warning strings, convert on empty input reports "unsupported format".
+ * imported.key/imported.pub on import), raw WASM warning strings, trimmed
+ * passphrase, convert on empty input reports "unsupported format".
+ * Fixes vs. the first port: Import button was bound to the textarea (shared
+ * data hook), "RSA 4096" generated 3072-bit keys, ECDSA public lines were
+ * "unsupported", malformed public lines were accepted, "id_key" downloaded
+ * as "id_key.txt", the drop zone had no drop handling.
  *
  * `crypto-client` covers sshGenerate/sshPublicKeyInfo/sshToPkcs8Pem; the
  * remaining legacy WASM calls (private-key warnings, public-line derivation,
@@ -18,6 +22,9 @@ import {
   sshToPkcs8Pem,
   type SshKeyType,
 } from "@/scripts/wasm/crypto-client";
+import { bindDropzone, copyWithFeedback } from "@/scripts/tool-ui";
+import { formatBytes } from "@/lib/format";
+import { guessSshInput, rsaBits, sshErrorKey } from "@/tools/openssh-keys-helpers";
 
 interface Strings {
   copy: string;
@@ -25,18 +32,14 @@ interface Strings {
   warningsTitle: string;
   error: string;
   unsupportedFormat: string;
+  errorPassphraseRequired: string;
+  errorWrongPassphrase: string;
   algorithmLabel: string;
   commentLabel: string;
-  fileDropSubtitle: string;
 }
 
-type InputKind =
-  | "empty"
-  | "openssh-public"
-  | "openssh-private"
-  | "spki-public"
-  | "pkcs8-private"
-  | "unknown";
+/** Key files are tiny; anything bigger is certainly not a key. */
+const MAX_KEY_FILE_BYTES = 1024 * 1024;
 
 let rawReady: Promise<void> | null = null;
 function ensureRaw(): Promise<void> {
@@ -54,19 +57,14 @@ function readStrings(): Strings | null {
   }
 }
 
-function guessInput(text: string): InputKind {
-  const trimmed = text.trim();
-  if (!trimmed) return "empty";
-  if (trimmed.startsWith("ssh-")) return "openssh-public";
-  if (trimmed.includes("BEGIN OPENSSH PRIVATE KEY")) return "openssh-private";
-  if (trimmed.includes("BEGIN PUBLIC KEY")) return "spki-public";
-  if (trimmed.includes("BEGIN PRIVATE KEY") || trimmed.includes("BEGIN ENCRYPTED PRIVATE KEY"))
-    return "pkcs8-private";
-  return "unknown";
+/** Let the browser paint the busy state before synchronous WASM work (RSA keygen). */
+function nextPaint(): Promise<void> {
+  return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
 }
 
 function downloadText(filename: string, text: string): void {
-  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  // octet-stream: with text/plain Chrome saves "id_key" as "id_key.txt".
+  const blob = new Blob([text], { type: "application/octet-stream" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -74,7 +72,7 @@ function downloadText(filename: string, text: string): void {
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 function initTool(): void {
@@ -84,42 +82,31 @@ function initTool(): void {
   if (!raw) return;
   const strings: Strings = raw;
 
-  const algorithm = root.querySelector<HTMLSelectElement>("[data-ssh-algorithm]");
-  const keySize = root.querySelector<HTMLSelectElement>("[data-ssh-keysize]");
-  const passphrase = root.querySelector<HTMLInputElement>("[data-ssh-passphrase]");
-  const generateBtn = root.querySelector<HTMLButtonElement>("[data-ssh-generate]");
-  const importText = root.querySelector<HTMLTextAreaElement>("[data-ssh-import]");
-  const importFile = root.querySelector<HTMLInputElement>("[data-ssh-importfile]");
-  const importFileName = root.querySelector<HTMLElement>("[data-ssh-importfilename]");
-  const importBtn = root.querySelector<HTMLButtonElement>("[data-ssh-import]");
-  const convertBtn = root.querySelector<HTMLButtonElement>("[data-ssh-convert]");
-  const publicKey = root.querySelector<HTMLTextAreaElement>("[data-ssh-public]");
-  const privateKey = root.querySelector<HTMLTextAreaElement>("[data-ssh-private]");
-  const publicCopy = root.querySelector<HTMLButtonElement>("[data-ssh-public-copy]");
-  const privateCopy = root.querySelector<HTMLButtonElement>("[data-ssh-private-copy]");
-  const publicDownload = root.querySelector<HTMLButtonElement>("[data-ssh-public-download]");
-  const privateDownload = root.querySelector<HTMLButtonElement>("[data-ssh-private-download]");
-  const info = root.querySelector<HTMLElement>("[data-ssh-info]");
-  const warnings = root.querySelector<HTMLElement>("[data-ssh-warnings]");
+  const q = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel);
+  const algorithm = q<HTMLSelectElement>("[data-ssh-algorithm]");
+  const keySize = q<HTMLSelectElement>("[data-ssh-keysize]");
+  const passphrase = q<HTMLInputElement>("[data-ssh-passphrase]");
+  const generateBtn = q<HTMLButtonElement>("[data-ssh-generate]");
+  const importText = q<HTMLTextAreaElement>("[data-ssh-import-text]");
+  const dropzone = q<HTMLElement>("[data-ssh-dropzone]");
+  const importFile = q<HTMLInputElement>("[data-ssh-importfile]");
+  const importFileName = q<HTMLElement>("[data-ssh-importfilename]");
+  const importBtn = q<HTMLButtonElement>("[data-ssh-import-btn]");
+  const convertBtn = q<HTMLButtonElement>("[data-ssh-convert]");
+  const publicKey = q<HTMLTextAreaElement>("[data-ssh-public]");
+  const privateKey = q<HTMLTextAreaElement>("[data-ssh-private]");
+  const publicCopy = q<HTMLButtonElement>("[data-ssh-public-copy]");
+  const privateCopy = q<HTMLButtonElement>("[data-ssh-private-copy]");
+  const publicDownload = q<HTMLButtonElement>("[data-ssh-public-download]");
+  const privateDownload = q<HTMLButtonElement>("[data-ssh-private-download]");
+  const info = q<HTMLElement>("[data-ssh-info]");
+  const warnings = q<HTMLElement>("[data-ssh-warnings]");
+  const errorEl = q<HTMLElement>("[data-ssh-error]");
 
   if (
-    !algorithm ||
-    !keySize ||
-    !passphrase ||
-    !generateBtn ||
-    !importText ||
-    !importFile ||
-    !importFileName ||
-    !importBtn ||
-    !convertBtn ||
-    !publicKey ||
-    !privateKey ||
-    !publicCopy ||
-    !privateCopy ||
-    !publicDownload ||
-    !privateDownload ||
-    !info ||
-    !warnings
+    !algorithm || !keySize || !passphrase || !generateBtn || !importText || !dropzone ||
+    !importFile || !importFileName || !importBtn || !convertBtn || !publicKey || !privateKey ||
+    !publicCopy || !privateCopy || !publicDownload || !privateDownload || !info || !warnings || !errorEl
   ) {
     return;
   }
@@ -133,9 +120,18 @@ function initTool(): void {
   const privateArea: HTMLTextAreaElement = privateKey;
   const infoBox: HTMLElement = info;
   const warningsBox: HTMLElement = warnings;
+  const errorBox: HTMLElement = errorEl;
+  const actionButtons = [generateBtn, importBtn, convertBtn];
 
   let lastPublicName: string | null = null;
   let lastPrivateName: string | null = null;
+
+  function setOutputs(publicLine: string, privatePem: string): void {
+    publicArea.value = publicLine;
+    privateArea.value = privatePem;
+    publicCopy!.disabled = publicDownload!.disabled = !publicLine;
+    privateCopy!.disabled = privateDownload!.disabled = !privatePem;
+  }
 
   function setWarnings(list: string[]): void {
     warningsBox.textContent = "";
@@ -151,18 +147,26 @@ function initTool(): void {
 
   function setError(err: unknown): void {
     const message = err instanceof Error ? err.message : String(err);
-    warningsBox.textContent = "";
+    const key = sshErrorKey(message);
+    if (key) passInput.setAttribute("aria-invalid", "true");
+    const text = key === "ErrorPassphraseRequired"
+      ? strings.errorPassphraseRequired
+      : key === "ErrorWrongPassphrase"
+        ? strings.errorWrongPassphrase
+        : message;
+    errorBox.textContent = "";
     const strong = document.createElement("strong");
     strong.textContent = `${strings.error}:`;
-    warningsBox.append(strong, ` ${message}`);
-    warningsBox.hidden = false;
+    errorBox.append(strong, ` ${text}`);
+    errorBox.hidden = false;
   }
 
   function clearMessages(): void {
-    warningsBox.hidden = true;
-    warningsBox.textContent = "";
-    infoBox.hidden = true;
-    infoBox.textContent = "";
+    for (const box of [warningsBox, infoBox, errorBox]) {
+      box.hidden = true;
+      box.textContent = "";
+    }
+    passInput.removeAttribute("aria-invalid");
   }
 
   function showInfo(algorithmName: string, comment: string): void {
@@ -172,130 +176,124 @@ function initTool(): void {
     infoBox.hidden = false;
   }
 
-  function copyText(textarea: HTMLTextAreaElement, button: HTMLButtonElement): void {
-    const original = button.textContent;
-    void navigator.clipboard.writeText(textarea.value || "").then(() => {
-      button.textContent = strings.copied;
-      button.classList.add("copied");
-      setTimeout(() => {
-        button.textContent = original;
-        button.classList.remove("copied");
-      }, 1200);
-    });
+  /** Legacy parity: the passphrase is trimmed; empty → no encryption. */
+  function readPass(): string | null {
+    return passInput.value.trim() || null;
   }
 
-  async function readImportText(): Promise<string> {
-    const text = importArea.value.trim();
-    if (text) return text;
-    const file = fileInput.files && fileInput.files.length > 0 ? fileInput.files[0] : null;
-    if (!file) return "";
-    return await file.text();
+  /** Runs an action with all buttons disabled and `aria-busy` on the active one. */
+  async function busy(btn: HTMLButtonElement, action: () => Promise<void>): Promise<void> {
+    clearMessages();
+    for (const b of actionButtons) b.disabled = true;
+    btn.setAttribute("aria-busy", "true");
+    try {
+      await nextPaint();
+      await action();
+    } catch (err) {
+      setError(err);
+    } finally {
+      btn.removeAttribute("aria-busy");
+      for (const b of actionButtons) b.disabled = false;
+    }
   }
 
   async function generateAction(): Promise<void> {
-    clearMessages();
-    try {
-      const pass = passInput.value.trim();
-      const algorithmValue = algorithmSelect.value;
-      let privateKeyPem: string;
-      let publicKeyLine: string;
+    const pass = readPass();
+    const algorithmValue = algorithmSelect.value;
+    let privateKeyPem: string;
+    let publicKeyLine: string;
 
-      if (algorithmValue.startsWith("rsa")) {
-        await ensureRaw();
-        const bits = parseInt(keySizeSelect.value, 10) || 3072;
-        const pkcs8 = crypto.rsa_generate_private_key_pkcs8(bits);
-        privateKeyPem = crypto.openssh_rsa_private_key_from_pkcs8(pkcs8, null, pass || null, null);
-        publicKeyLine = crypto.openssh_private_key_to_public_key_line(privateKeyPem, pass || null, null);
-      } else {
-        const pair = await sshGenerate(algorithmValue as SshKeyType, "", pass);
-        privateKeyPem = pair.privateKey;
-        publicKeyLine = pair.publicKey;
-      }
-
-      privateArea.value = privateKeyPem;
-      publicArea.value = publicKeyLine;
-
-      await ensureRaw();
-      setWarnings(crypto.openssh_private_key_warnings(privateKeyPem, pass || null));
-
-      lastPublicName = "id_key.pub";
-      lastPrivateName = "id_key";
-    } catch (err) {
-      setError(err);
+    await ensureRaw();
+    if (algorithmValue.startsWith("rsa")) {
+      const pkcs8 = crypto.rsa_generate_private_key_pkcs8(rsaBits(algorithmValue, keySizeSelect.value));
+      privateKeyPem = crypto.openssh_rsa_private_key_from_pkcs8(pkcs8, null, pass, null);
+      publicKeyLine = crypto.openssh_private_key_to_public_key_line(privateKeyPem, pass, null);
+    } else {
+      const pair = await sshGenerate(algorithmValue as SshKeyType, "", pass ?? "");
+      privateKeyPem = pair.privateKey;
+      publicKeyLine = pair.publicKey;
     }
+
+    setOutputs(publicKeyLine, privateKeyPem);
+    setWarnings(crypto.openssh_private_key_warnings(privateKeyPem, pass));
+    lastPublicName = "id_key.pub";
+    lastPrivateName = "id_key";
   }
 
   async function importAction(): Promise<void> {
-    clearMessages();
-    try {
-      const pass = passInput.value.trim() || null;
-      const input = await readImportText();
-      const kind = guessInput(input);
-      if (kind === "empty") return;
+    const pass = readPass();
+    const input = importArea.value.trim();
+    const kind = guessSshInput(input);
+    if (kind === "empty") return;
 
-      await ensureRaw();
-      let publicKeyLine = "";
-      let privateKeyPem = "";
+    await ensureRaw();
+    let publicKeyLine = "";
+    let privateKeyPem = "";
 
-      if (kind === "openssh-private") {
-        privateKeyPem = input;
-        publicKeyLine = crypto.openssh_private_key_to_public_key_line(input, pass, null);
-        setWarnings(crypto.openssh_private_key_warnings(input, pass));
-      } else if (kind === "openssh-public") {
-        publicKeyLine = input;
-        const keyInfo = await sshPublicKeyInfo(input);
-        showInfo(keyInfo.algorithm, keyInfo.comment);
-        setWarnings(keyInfo.warnings);
-      } else if (kind === "spki-public") {
-        publicKeyLine = crypto.openssh_public_key_from_spki_pem(input, null);
-        const keyInfo = await sshPublicKeyInfo(publicKeyLine);
-        showInfo(keyInfo.algorithm, keyInfo.comment);
-        setWarnings(keyInfo.warnings);
-      } else if (kind === "pkcs8-private") {
-        privateKeyPem = crypto.openssh_private_key_from_pkcs8_pem(input, pass, null, pass);
-        publicKeyLine = crypto.openssh_private_key_to_public_key_line(privateKeyPem, pass, null);
-        setWarnings(crypto.openssh_private_key_warnings(privateKeyPem, pass));
-      } else {
-        throw new Error(strings.unsupportedFormat);
-      }
-
-      publicArea.value = publicKeyLine;
-      privateArea.value = privateKeyPem;
-
-      lastPublicName = "imported.pub";
-      lastPrivateName = "imported.key";
-    } catch (err) {
-      setError(err);
+    if (kind === "openssh-private") {
+      privateKeyPem = input;
+      publicKeyLine = crypto.openssh_private_key_to_public_key_line(input, pass, null);
+      setWarnings(crypto.openssh_private_key_warnings(input, pass));
+    } else if (kind === "openssh-public") {
+      // Full parse (base64 + key blob): the algorithm probe alone accepts garbage after the type.
+      crypto.openssh_public_key_bytes(input);
+      publicKeyLine = input;
+      const keyInfo = await sshPublicKeyInfo(input);
+      showInfo(keyInfo.algorithm, keyInfo.comment);
+      setWarnings(keyInfo.warnings);
+    } else if (kind === "spki-public") {
+      publicKeyLine = crypto.openssh_public_key_from_spki_pem(input, null);
+      const keyInfo = await sshPublicKeyInfo(publicKeyLine);
+      showInfo(keyInfo.algorithm, keyInfo.comment);
+      setWarnings(keyInfo.warnings);
+    } else if (kind === "pkcs8-private") {
+      privateKeyPem = crypto.openssh_private_key_from_pkcs8_pem(input, pass, null, pass);
+      publicKeyLine = crypto.openssh_private_key_to_public_key_line(privateKeyPem, pass, null);
+      setWarnings(crypto.openssh_private_key_warnings(privateKeyPem, pass));
+    } else {
+      throw new Error(strings.unsupportedFormat);
     }
+
+    setOutputs(publicKeyLine, privateKeyPem);
+    lastPublicName = "imported.pub";
+    lastPrivateName = "imported.key";
   }
 
   async function convertAction(): Promise<void> {
+    const pass = readPass();
+    const input = importArea.value.trim();
+    const kind = guessSshInput(input);
+
+    await ensureRaw();
+    let publicKeyLine = "";
+    let privateKeyPem = "";
+
+    if (kind === "openssh-private") {
+      privateKeyPem = await sshToPkcs8Pem(input, pass ?? "");
+      publicKeyLine = crypto.openssh_private_key_to_public_key_line(input, pass, null);
+    } else if (kind === "openssh-public") {
+      publicKeyLine = crypto.openssh_public_key_to_spki_pem(input);
+    } else if (kind === "spki-public") {
+      publicKeyLine = crypto.openssh_public_key_from_spki_pem(input, null);
+    } else if (kind === "pkcs8-private") {
+      privateKeyPem = crypto.openssh_private_key_from_pkcs8_pem(input, pass, null, pass);
+      publicKeyLine = crypto.openssh_private_key_to_public_key_line(privateKeyPem, pass, null);
+    } else {
+      throw new Error(strings.unsupportedFormat);
+    }
+
+    setOutputs(publicKeyLine, privateKeyPem);
+  }
+
+  /** A picked/dropped key file is loaded into the textarea, so what gets imported is visible. */
+  async function loadKeyFile(files: File[]): Promise<void> {
     clearMessages();
+    const file = files[0];
+    if (!file) return;
+    fileNameLabel.textContent = `${file.name} (${formatBytes(file.size)})`;
     try {
-      const pass = passInput.value.trim() || null;
-      const input = await readImportText();
-      const kind = guessInput(input);
-
-      await ensureRaw();
-      let publicKeyLine = "";
-      let privateKeyPem = "";
-
-      if (kind === "openssh-private") {
-        privateKeyPem = await sshToPkcs8Pem(input, pass ?? "");
-        publicKeyLine = crypto.openssh_private_key_to_public_key_line(input, pass, null);
-      } else if (kind === "openssh-public") {
-        publicKeyLine = crypto.openssh_public_key_to_spki_pem(input);
-      } else if (kind === "spki-public") {
-        publicKeyLine = crypto.openssh_public_key_from_spki_pem(input, null);
-      } else if (kind === "pkcs8-private") {
-        privateKeyPem = crypto.openssh_private_key_from_pkcs8_pem(input, pass, null, pass);
-        publicKeyLine = crypto.openssh_private_key_to_public_key_line(privateKeyPem, pass, null);
-      } else {
-        throw new Error(strings.unsupportedFormat);
-      }
-
-      publicArea.value = publicKeyLine;
-      privateArea.value = privateKeyPem;
+      if (file.size > MAX_KEY_FILE_BYTES) throw new Error(strings.unsupportedFormat);
+      importArea.value = (await file.text()).trim();
     } catch (err) {
       setError(err);
     }
@@ -304,31 +302,22 @@ function initTool(): void {
   algorithmSelect.addEventListener("change", () => {
     const isRsa = algorithmSelect.value.startsWith("rsa");
     keySizeSelect.disabled = !isRsa;
-    if (!isRsa) keySizeSelect.value = "default";
+    keySizeSelect.value = "default";
   });
 
-  fileInput.addEventListener("change", () => {
-    if (fileInput.files && fileInput.files.length > 0) {
-      fileNameLabel.textContent = fileInput.files[0].name;
-      fileNameLabel.classList.add("file-selected");
-    } else {
-      fileNameLabel.textContent = strings.fileDropSubtitle;
-      fileNameLabel.classList.remove("file-selected");
-    }
-  });
+  bindDropzone(dropzone, fileInput, (files) => void loadKeyFile(files));
+  passInput.addEventListener("input", () => passInput.removeAttribute("aria-invalid"));
 
-  generateBtn.addEventListener("click", () => void generateAction());
-  importBtn.addEventListener("click", () => void importAction());
-  convertBtn.addEventListener("click", () => void convertAction());
-  publicCopy.addEventListener("click", () => copyText(publicArea, publicCopy));
-  privateCopy.addEventListener("click", () => copyText(privateArea, privateCopy));
+  generateBtn.addEventListener("click", () => void busy(generateBtn, generateAction));
+  importBtn.addEventListener("click", () => void busy(importBtn, importAction));
+  convertBtn.addEventListener("click", () => void busy(convertBtn, convertAction));
+  publicCopy.addEventListener("click", () => void copyWithFeedback(publicCopy, publicArea.value, strings.copied));
+  privateCopy.addEventListener("click", () => void copyWithFeedback(privateCopy, privateArea.value, strings.copied));
   publicDownload.addEventListener("click", () => {
-    if (!publicArea.value) return;
-    downloadText(lastPublicName || "id_key.pub", publicArea.value);
+    if (publicArea.value) downloadText(lastPublicName || "id_key.pub", publicArea.value);
   });
   privateDownload.addEventListener("click", () => {
-    if (!privateArea.value) return;
-    downloadText(lastPrivateName || "id_key", privateArea.value);
+    if (privateArea.value) downloadText(lastPrivateName || "id_key", privateArea.value);
   });
 }
 

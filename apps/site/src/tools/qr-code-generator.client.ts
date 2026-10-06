@@ -1,11 +1,14 @@
 /**
  * QR Code Generator client controller. Generate-on-click (legacy parity: no
  * live regenerate). PNG preview + PNG download always; SVG download only for
- * square style without a logo. Color picker ↔ hex text sync, style button
- * group, logo drop zone with preview + clear. Errors are localized via the
- * strings island; WASM error messages are surfaced verbatim (legacy parity).
+ * square style without a logo. Color picker ↔ hex text sync (invalid hex →
+ * aria-invalid + hint, blocks generation), `.seg` style group (aria-pressed),
+ * logo drop zone (`bindDropzone`, png/jpeg/webp only) with preview + remove.
+ * WASM errors are mapped to localized messages (too long / generic).
  */
 import { qrPng, qrSvg } from "@/scripts/wasm/qrcode-client";
+import { bindDropzone, setDropzoneHasFile } from "@/scripts/tool-ui";
+import { classifyGenerateError, isDecodableImageType, normalizeHexColor } from "@/tools/qr-code";
 
 interface Strings {
   generate: string;
@@ -13,6 +16,8 @@ interface Strings {
   errorEmptyContent: string;
   errorInvalidImage: string;
   errorGenerateFailed: string;
+  errorTooLong: string;
+  errorInvalidColor: string;
 }
 
 function readStrings(): Strings | null {
@@ -27,63 +32,41 @@ function readStrings(): Strings | null {
 
 function init() {
   const root = document.querySelector<HTMLElement>("[data-qrg-tool]");
-  if (!root) return;
+  if (!root || root.dataset.initialized) return;
   const raw = readStrings();
   if (!raw) return;
+  root.dataset.initialized = "true";
   const strings: Strings = raw;
+  const q = <T extends Element>(sel: string) => root.querySelector<T>(sel);
 
-  const contentEl = root.querySelector<HTMLTextAreaElement>("[data-qrg-content]");
-  const fgEl = root.querySelector<HTMLInputElement>("[data-qrg-fg]");
-  const fgTextEl = root.querySelector<HTMLInputElement>("[data-qrg-fg-text]");
-  const bgEl = root.querySelector<HTMLInputElement>("[data-qrg-bg]");
-  const bgTextEl = root.querySelector<HTMLInputElement>("[data-qrg-bg-text]");
+  const content = q<HTMLTextAreaElement>("[data-qrg-content]");
+  const fgColor = q<HTMLInputElement>("[data-qrg-fg]");
+  const fgColorText = q<HTMLInputElement>("[data-qrg-fg-text]");
+  const bgColor = q<HTMLInputElement>("[data-qrg-bg]");
+  const bgColorText = q<HTMLInputElement>("[data-qrg-bg-text]");
   const styleBtns = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-qrg-style]"));
-  const ecEl = root.querySelector<HTMLSelectElement>("[data-qrg-ec]");
-  const sizeEl = root.querySelector<HTMLSelectElement>("[data-qrg-size]");
-  const dropEl = root.querySelector<HTMLElement>("[data-qrg-logodrop]");
-  const logoInputEl = root.querySelector<HTMLInputElement>("[data-qrg-logo]");
-  const logoClearEl = root.querySelector<HTMLButtonElement>("[data-qrg-logo-clear]");
-  const logoEmptyEl = root.querySelector<HTMLElement>("[data-qrg-logo-empty]");
-  const logoSelectedEl = root.querySelector<HTMLElement>("[data-qrg-logo-selected]");
-  const logoPreviewEl = root.querySelector<HTMLImageElement>("[data-qrg-logo-preview]");
-  const logoChooseEl = root.querySelector<HTMLButtonElement>("[data-qrg-logo-choose]");
-  const logoChangeEl = root.querySelector<HTMLButtonElement>("[data-qrg-logo-change]");
-  const generateBtn = root.querySelector<HTMLButtonElement>("[data-qrg-generate]");
-  const generateLabelEl = root.querySelector<HTMLElement>("[data-qrg-generate-label]");
-  const placeholderEl = root.querySelector<HTMLElement>("[data-qrg-placeholder]");
-  const previewImgEl = root.querySelector<HTMLImageElement>("[data-qrg-preview]");
-  const loadingEl = root.querySelector<HTMLElement>("[data-qrg-loading]");
-  const downloadPngEl = root.querySelector<HTMLAnchorElement>("[data-qrg-download-png]");
-  const downloadSvgEl = root.querySelector<HTMLAnchorElement>("[data-qrg-download-svg]");
-  const errorEl = root.querySelector<HTMLElement>("[data-qrg-error]");
+  const ecLevel = q<HTMLSelectElement>("[data-qrg-ec]");
+  const size = q<HTMLSelectElement>("[data-qrg-size]");
+  const drop = q<HTMLElement>("[data-qrg-logodrop]");
+  const logoInput = q<HTMLInputElement>("[data-qrg-logo]");
+  const logoClear = q<HTMLButtonElement>("[data-qrg-logo-clear]");
+  const logoSelected = q<HTMLElement>("[data-qrg-logo-selected]");
+  const logoPreview = q<HTMLImageElement>("[data-qrg-logo-preview]");
+  const generate = q<HTMLButtonElement>("[data-qrg-generate]");
+  const generateLabel = q<HTMLElement>("[data-qrg-generate-label]");
+  const placeholder = q<HTMLElement>("[data-qrg-placeholder]");
+  const previewImg = q<HTMLImageElement>("[data-qrg-preview]");
+  const loading = q<HTMLElement>("[data-qrg-loading]");
+  const downloadPng = q<HTMLAnchorElement>("[data-qrg-download-png]");
+  const downloadSvg = q<HTMLAnchorElement>("[data-qrg-download-svg]");
+  const errorEl = q<HTMLElement>("[data-qrg-error]");
 
   if (
-    !contentEl || !fgEl || !fgTextEl || !bgEl || !bgTextEl || !ecEl || !sizeEl ||
-    !dropEl || !logoInputEl || !logoClearEl || !logoEmptyEl || !logoSelectedEl || !logoPreviewEl ||
-    !generateBtn || !generateLabelEl || !placeholderEl || !previewImgEl || !loadingEl ||
-    !downloadPngEl || !downloadSvgEl
+    !content || !fgColor || !fgColorText || !bgColor || !bgColorText || !ecLevel || !size ||
+    !drop || !logoInput || !logoClear || !logoSelected || !logoPreview ||
+    !generate || !generateLabel || !placeholder || !previewImg || !loading ||
+    !downloadPng || !downloadSvg || !errorEl
   ) return;
-
-  const content: HTMLTextAreaElement = contentEl;
-  const fgColor: HTMLInputElement = fgEl;
-  const fgColorText: HTMLInputElement = fgTextEl;
-  const bgColor: HTMLInputElement = bgEl;
-  const bgColorText: HTMLInputElement = bgTextEl;
-  const ecLevel: HTMLSelectElement = ecEl;
-  const size: HTMLSelectElement = sizeEl;
-  const drop: HTMLElement = dropEl;
-  const logoInput: HTMLInputElement = logoInputEl;
-  const logoClear: HTMLButtonElement = logoClearEl;
-  const logoEmpty: HTMLElement = logoEmptyEl;
-  const logoSelected: HTMLElement = logoSelectedEl;
-  const logoPreview: HTMLImageElement = logoPreviewEl;
-  const generate: HTMLButtonElement = generateBtn;
-  const generateLabel: HTMLElement = generateLabelEl;
-  const placeholder: HTMLElement = placeholderEl;
-  const previewImg: HTMLImageElement = previewImgEl;
-  const loading: HTMLElement = loadingEl;
-  const downloadPng: HTMLAnchorElement = downloadPngEl;
-  const downloadSvg: HTMLAnchorElement = downloadSvgEl;
 
   let logoBytes: Uint8Array | null = null;
   let logoPreviewUrl: string | null = null;
@@ -92,109 +75,91 @@ function init() {
   let currentSvgUrl: string | null = null;
 
   function showError(msg: string) {
-    if (errorEl) {
-      errorEl.textContent = msg;
-      errorEl.hidden = false;
-    }
+    errorEl!.textContent = msg;
+    errorEl!.hidden = false;
   }
-
   function clearError() {
-    if (errorEl) errorEl.hidden = true;
+    errorEl!.hidden = true;
+    errorEl!.textContent = "";
   }
 
-  function syncColorInputs(colorInput: HTMLInputElement, textInput: HTMLInputElement) {
-    colorInput.addEventListener("input", () => {
-      textInput.value = colorInput.value.toUpperCase();
-    });
-    textInput.addEventListener("input", () => {
-      const val = textInput.value.trim();
-      if (/^#?[0-9A-Fa-f]{6}$/.test(val)) {
-        colorInput.value = val.startsWith("#") ? val : `#${val}`;
+  /** Two-way sync picker ↔ hex field; an invalid hex is flagged, not applied. */
+  function syncColorInputs(picker: HTMLInputElement, text: HTMLInputElement, hint: HTMLElement | null) {
+    const setInvalid = (invalid: boolean) => {
+      if (invalid) text.setAttribute("aria-invalid", "true");
+      else text.removeAttribute("aria-invalid");
+      if (hint) {
+        hint.textContent = invalid ? strings.errorInvalidColor : "";
+        hint.hidden = !invalid;
+        if (invalid && hint.id) text.setAttribute("aria-describedby", hint.id);
       }
+    };
+    picker.addEventListener("input", () => {
+      text.value = picker.value.toUpperCase();
+      setInvalid(false);
+    });
+    text.addEventListener("input", () => {
+      const hex = normalizeHexColor(text.value);
+      if (hex) picker.value = hex.toLowerCase();
+      // Don't flag while the user is still typing a short value.
+      setInvalid(!hex && text.value.trim().replace(/^#/, "").length >= 6);
+    });
+    text.addEventListener("change", () => {
+      const hex = normalizeHexColor(text.value);
+      if (hex) text.value = hex;
+      setInvalid(!hex);
     });
   }
-  syncColorInputs(fgColor, fgColorText);
-  syncColorInputs(bgColor, bgColorText);
+  const fgHint = root.querySelector<HTMLElement>("[data-qrg-fg-hint]");
+  const bgHint = root.querySelector<HTMLElement>("[data-qrg-bg-hint]");
+  if (fgHint) fgHint.id = "qrg-fg-hint";
+  if (bgHint) bgHint.id = "qrg-bg-hint";
+  syncColorInputs(fgColor, fgColorText, fgHint);
+  syncColorInputs(bgColor, bgColorText, bgHint);
 
   for (const btn of styleBtns) {
     btn.addEventListener("click", () => {
-      for (const b of styleBtns) b.classList.remove("qrg-active");
-      btn.classList.add("qrg-active");
+      for (const b of styleBtns) b.setAttribute("aria-pressed", String(b === btn));
       currentStyle = btn.dataset.style ?? "square";
     });
   }
 
-  function showLogoSelection(file: File) {
-    logoEmpty.hidden = true;
-    logoSelected.hidden = false;
-    if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl);
-    logoPreviewUrl = URL.createObjectURL(file);
-    logoPreview.src = logoPreviewUrl;
-    logoClear.hidden = false;
-  }
-
   function removeLogo() {
     logoBytes = null;
-    logoInput.value = "";
-    logoEmpty.hidden = false;
-    logoSelected.hidden = true;
+    logoInput!.value = "";
+    logoSelected!.hidden = true;
+    setDropzoneHasFile(drop!, false);
     if (logoPreviewUrl) {
       URL.revokeObjectURL(logoPreviewUrl);
       logoPreviewUrl = null;
     }
-    logoPreview.removeAttribute("src");
-    logoClear.hidden = true;
+    logoPreview!.removeAttribute("src");
   }
 
   async function handleLogoFile(file: File) {
     clearError();
-    if (!file.type.match("image.*")) {
+    // Only formats the WASM decoder supports (png/jpeg/webp): a GIF/SVG logo
+    // would preview fine but silently be dropped from the QR code.
+    if (!isDecodableImageType(file.type)) {
       // Legacy parity: keep any previously set logo, just flag the error.
-      logoInput.value = "";
       showError(strings.errorInvalidImage);
       return;
     }
-    logoBytes = new Uint8Array(await file.arrayBuffer());
-    showLogoSelection(file);
-    // Allow re-selecting the same file: selection state no longer depends on
-    // input.files, so the value can be reset immediately.
-    logoInput.value = "";
+    try {
+      logoBytes = new Uint8Array(await file.arrayBuffer());
+    } catch {
+      showError(strings.errorInvalidImage);
+      return;
+    }
+    if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl);
+    logoPreviewUrl = URL.createObjectURL(file);
+    logoPreview!.src = logoPreviewUrl;
+    logoSelected!.hidden = false;
+    setDropzoneHasFile(drop!, true);
   }
 
-  drop.addEventListener("click", (e) => {
-    if (e.target instanceof HTMLElement && e.target.closest("button")) return;
-    logoInput.click();
-  });
-  logoChooseEl?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    logoInput.click();
-  });
-  logoChangeEl?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    logoInput.click();
-  });
-  logoInput.addEventListener("change", () => {
-    const file = logoInput.files?.[0];
-    if (file) {
-      void handleLogoFile(file);
-    } else {
-      removeLogo();
-    }
-  });
-  drop.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    drop.classList.add("qrg-dragover");
-  });
-  drop.addEventListener("dragleave", (e) => {
-    e.preventDefault();
-    if (e.relatedTarget instanceof Node && drop.contains(e.relatedTarget)) return;
-    drop.classList.remove("qrg-dragover");
-  });
-  drop.addEventListener("drop", (e) => {
-    e.preventDefault();
-    drop.classList.remove("qrg-dragover");
-    const file = e.dataTransfer?.files?.[0];
-    if (file) void handleLogoFile(file);
+  bindDropzone(drop, logoInput, (files) => {
+    if (files[0]) void handleLogoFile(files[0]);
   });
   logoClear.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -203,23 +168,32 @@ function init() {
   });
 
   async function generateQrCode() {
-    const value = content.value.trim();
+    const value = content!.value.trim();
     if (!value) {
       showError(strings.errorEmptyContent);
+      content!.focus();
+      return;
+    }
+    const fg = normalizeHexColor(fgColorText!.value);
+    const bg = normalizeHexColor(bgColorText!.value);
+    if (!fg || !bg) {
+      showError(strings.errorInvalidColor);
+      (fg ? bgColorText! : fgColorText!).focus();
       return;
     }
 
-    generate.disabled = true;
-    generateLabel.textContent = strings.generating;
-    loading.hidden = false;
+    generate!.disabled = true;
+    generate!.setAttribute("aria-busy", "true");
+    generateLabel!.textContent = strings.generating;
+    loading!.hidden = false;
     clearError();
 
     try {
       const pngBytes = await qrPng(value, {
-        size: parseInt(size.value, 10),
-        fgColor: fgColor.value,
-        bgColor: bgColor.value,
-        ecLevel: ecLevel.value,
+        size: parseInt(size!.value, 10),
+        fgColor: fg,
+        bgColor: bg,
+        ecLevel: ecLevel!.value,
         style: currentStyle,
         logoData: logoBytes,
       });
@@ -228,41 +202,53 @@ function init() {
       if (currentPngUrl) URL.revokeObjectURL(currentPngUrl);
       currentPngUrl = URL.createObjectURL(pngBlob);
 
-      placeholder.hidden = true;
-      previewImg.hidden = false;
-      previewImg.src = currentPngUrl;
+      placeholder!.hidden = true;
+      previewImg!.hidden = false;
+      previewImg!.src = currentPngUrl;
 
-      downloadPng.href = currentPngUrl;
-      downloadPng.download = "qrcode.png";
-      downloadPng.hidden = false;
+      downloadPng!.href = currentPngUrl;
+      downloadPng!.download = "qrcode.png";
+      downloadPng!.hidden = false;
 
       // SVG only for the simple case: no logo and square style (legacy parity).
+      downloadSvg!.hidden = true;
       if (!logoBytes && currentStyle === "square") {
         try {
-          const svgString = await qrSvg(value, fgColor.value, bgColor.value, ecLevel.value);
+          const svgString = await qrSvg(value, fg, bg, ecLevel!.value);
           const svgBlob = new Blob([svgString], { type: "image/svg+xml" });
           if (currentSvgUrl) URL.revokeObjectURL(currentSvgUrl);
           currentSvgUrl = URL.createObjectURL(svgBlob);
-          downloadSvg.href = currentSvgUrl;
-          downloadSvg.download = "qrcode.svg";
-          downloadSvg.hidden = false;
+          downloadSvg!.href = currentSvgUrl;
+          downloadSvg!.download = "qrcode.svg";
+          downloadSvg!.hidden = false;
         } catch {
-          downloadSvg.hidden = true;
+          /* PNG is still available */
         }
-      } else {
-        downloadSvg.hidden = true;
       }
     } catch (e) {
-      showError(e instanceof Error ? e.message : strings.errorGenerateFailed);
+      const kind = classifyGenerateError(e instanceof Error ? e.message : String(e));
+      showError(
+        kind === "tooLong" ? strings.errorTooLong
+          : kind === "invalidColor" ? strings.errorInvalidColor
+          : strings.errorGenerateFailed,
+      );
     } finally {
-      generate.disabled = false;
-      generateLabel.textContent = strings.generate;
-      loading.hidden = true;
+      generate!.disabled = false;
+      generate!.removeAttribute("aria-busy");
+      generateLabel!.textContent = strings.generate;
+      loading!.hidden = true;
     }
   }
 
   generate.addEventListener("click", () => {
     void generateQrCode();
+  });
+  // Ctrl/Cmd+Enter in the content field generates (no live regenerate).
+  content.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      void generateQrCode();
+    }
   });
 }
 

@@ -9,6 +9,8 @@
   "OpenLink": "Open Link",
   "ErrorNotImage": "Please upload an image file.",
   "ErrorNoQr": "No QR code found in the image. Please try another image.",
+  "ErrorUnsupportedImage": "Unsupported image format. Use PNG, JPEG or WebP.",
+  "ErrorCopy": "Could not copy to the clipboard.",
   "PreviewAlt": "File preview",
   "Seo_Introduction": "The QR Code Scanner is a privacy-first online tool designed for developers. All processing happens locally in your browser using WebAssembly, ensuring your data never leaves your device.",
   "Seo_DetailedDescription": "This tool provides comprehensive functionality for qr code scanner operations. Built with modern web technologies and powered by Rust-compiled WebAssembly, it delivers native-like performance directly in your browser.\n\nThe interface is designed for efficiency and ease of use, with support for both text input and file processing. All operations are performed client-side, guaranteeing complete privacy and security for your sensitive data.",

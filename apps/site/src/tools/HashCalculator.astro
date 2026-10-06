@@ -10,6 +10,10 @@
 import { HASH_ALGORITHMS, DEFAULT_HASH_ALGORITHMS } from "@/tools/hash-algorithms";
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import FileButton from "@/components/tool/FileButton.astro";
+import Progress from "@/components/tool/Progress.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -40,54 +44,68 @@ const defaults = new Set(DEFAULT_HASH_ALGORITHMS);
 const stringsJson = JSON.stringify(strings);
 ---
 
-<div class="hash-tool" data-hash-tool>
-  <div class="hash-grid">
-    <section class="hash-input">
-      <label class="field-label" for="hash-textarea">{strings.inputLabel}</label>
-      <textarea id="hash-textarea" data-hash-textarea rows="8" placeholder={strings.inputPlaceholder}></textarea>
-
-      <div class="file-row">
-        <label class="file-btn">
-          <input type="file" data-hash-file hidden />
-          {strings.fileLabel}
-        </label>
-        <span class="file-name" data-hash-filename></span>
+<div class="ds-stack" data-hash-tool>
+  <div class="ds-tool-grid hash-grid">
+    <section class="ds-card ds-stack">
+      <Field label={strings.inputLabel} for="hash-textarea">
+        <textarea
+          id="hash-textarea"
+          class="ds-field-textarea mono"
+          data-hash-textarea
+          rows="8"
+          placeholder={strings.inputPlaceholder}
+        ></textarea>
+      </Field>
+      <div>
+        <FileButton
+          label={strings.fileLabel}
+          inputProps={{ "data-hash-file": true }}
+          nameProps={{ "data-hash-filename": true }}
+        />
+        <p class="ds-hint">{strings.fileHint}</p>
       </div>
-      <p class="file-hint">{strings.fileHint}</p>
     </section>
 
-    <section class="hash-algos">
-      <div class="algo-head">
-        <span class="field-label">{strings.algorithmsTitle}</span>
-        <span class="algo-count" data-hash-algo-count></span>
-      </div>
-      <input type="search" class="algo-search" data-hash-algo-search placeholder={strings.algorithmsSearchPlaceholder} autocomplete="off" />
-      <div class="algo-list" data-hash-algo-list>
-        {HASH_ALGORITHMS.map((alg) => (
-          <label class={`algo-item${defaults.has(alg.id) ? " checked" : ""}`}>
-            <input type="checkbox" value={alg.id} data-hash-algo checked={defaults.has(alg.id)} />
-            <span>{alg.label}</span>
-          </label>
-        ))}
-      </div>
-      <button type="button" class="link-btn" data-hash-algo-reset>{strings.algorithmsReset}</button>
+    <section class="ds-card hash-algos">
+      <Field label={strings.algorithmsTitle} asideProps={{ "data-hash-algo-count": true }}>
+        <input
+          type="search"
+          class="ds-field"
+          data-hash-algo-search
+          placeholder={strings.algorithmsSearchPlaceholder}
+          aria-label={strings.algorithmsSearchPlaceholder}
+          autocomplete="off"
+        />
+        <div class="algo-list" data-hash-algo-list role="group" aria-label={strings.algorithmsTitle}>
+          {HASH_ALGORITHMS.map((alg) => (
+            <label class="algo-item">
+              <input type="checkbox" class="ds-check" value={alg.id} data-hash-algo checked={defaults.has(alg.id)} />
+              <span>{alg.label}</span>
+            </label>
+          ))}
+        </div>
+      </Field>
+      <button type="button" class="ds-btn-link" data-hash-algo-reset>{strings.algorithmsReset}</button>
     </section>
   </div>
 
-  <div class="hash-actions">
-    <button type="button" class="primary-btn" data-hash-calculate>{strings.calculate}</button>
-    <button type="button" class="ghost-btn" data-hash-cancel hidden>{strings.cancel}</button>
-    <button type="button" class="ghost-btn" data-hash-clear>{strings.clear}</button>
+  <div class="ds-actions">
+    <button type="button" class="ds-btn ds-btn-primary" data-hash-calculate>{strings.calculate}</button>
+    <button type="button" class="ds-btn" data-hash-cancel hidden>{strings.cancel}</button>
+    <button type="button" class="ds-btn" data-hash-clear>{strings.clear}</button>
   </div>
 
-  <div class="hash-progress" data-hash-progress hidden>
-    <div class="progress-track"><div class="progress-fill" data-hash-progress-fill></div></div>
-    <span class="progress-label" data-hash-progress-label></span>
-  </div>
+  <Progress
+    data-hash-progress
+    barLabel={strings.fileProgressTitle}
+    barProps={{ "data-hash-progress-bar": true }}
+    fillProps={{ "data-hash-progress-fill": true }}
+    labelProps={{ "data-hash-progress-label": true }}
+  />
 
-  <p class="hash-error" data-hash-error role="alert" hidden></p>
+  <StatusMessage kind="error" data-hash-error />
 
-  <div class="hash-results" data-hash-results hidden></div>
+  <div class="ds-result-list" data-hash-results aria-live="polite" hidden></div>
 </div>
 
 <script is:inline type="application/json" data-hash-strings set:html={stringsJson} />
@@ -96,126 +114,45 @@ const stringsJson = JSON.stringify(strings);
 </script>
 
 <style>
+  /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
   .hash-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    margin-bottom: 1.25rem;
+    --ds-tool-grid-cols: minmax(0, 1.4fr) minmax(0, 1fr);
   }
-  @media (min-width: 900px) {
-    .hash-grid { grid-template-columns: 1.4fr 1fr; }
+  .hash-algos {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
   }
-  .field-label {
-    display: block;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--mdt-text-muted);
-    margin-bottom: 0.4rem;
-  }
-  .hash-input textarea {
-    width: 100%;
-    resize: vertical;
-    padding: 0.7rem;
-    border: 1px solid var(--mdt-border);
-    border-radius: var(--mdt-radius);
-    background: var(--mdt-surface-raised);
-    color: var(--mdt-text);
-    font-family: var(--mdt-font-mono);
-    font-size: 0.9rem;
-  }
-  .hash-input textarea:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
-  .file-row { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap; }
-  .file-btn {
-    display: inline-flex;
-    padding: 0.5rem 0.9rem;
-    border: 1px solid var(--mdt-border);
-    border-radius: var(--mdt-radius-sm);
-    cursor: pointer;
-    font-size: 0.88rem;
-  }
-  .file-btn:hover { border-color: var(--mdt-accent); }
-  .file-name { font-size: 0.85rem; color: var(--mdt-text-muted); font-family: var(--mdt-font-mono); }
-  .file-hint { font-size: 0.8rem; color: var(--mdt-text-muted); margin-top: 0.4rem; }
-
-  .hash-algos { display: flex; flex-direction: column; }
-  .algo-head { display: flex; justify-content: space-between; align-items: baseline; }
-  .algo-count { font-size: 0.78rem; color: var(--mdt-accent); font-weight: 600; }
-  .algo-search {
-    margin: 0.5rem 0;
-    padding: 0.5rem 0.7rem;
-    border: 1px solid var(--mdt-border);
-    border-radius: var(--mdt-radius-sm);
-    background: var(--mdt-surface-raised);
-    color: var(--mdt-text);
+  .hash-algos > :global(.ds-field-group) {
+    align-self: stretch;
   }
   .algo-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
-    gap: 0.3rem;
+    gap: 0.25rem;
     max-height: 16rem;
     overflow: auto;
+    margin-top: 0.6rem;
     padding: 0.2rem;
   }
   .algo-item {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.3rem 0.45rem;
-    border-radius: var(--mdt-radius-sm);
+    gap: 0.5rem;
+    padding: 0.35rem 0.45rem;
+    border-radius: var(--mdt-radius-xs);
     cursor: pointer;
-    font-size: 0.85rem;
     font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-meta);
+    color: var(--mdt-text-muted);
+    transition: background var(--mdt-dur-micro), color var(--mdt-dur-micro);
   }
-  .algo-item:hover { background: var(--mdt-surface-muted); }
-  .algo-item.checked { color: var(--mdt-accent); }
-  .algo-item input { accent-color: var(--mdt-accent); }
-
-  .hash-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
-  .primary-btn, .ghost-btn {
-    padding: 0.65rem 1.2rem;
-    border-radius: var(--mdt-radius);
-    font-weight: 600;
-    cursor: pointer;
-    border: 1px solid transparent;
+  .algo-item:hover {
+    background: var(--mdt-surface-inset);
+    color: var(--mdt-text);
   }
-  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
-  .primary-btn:hover { filter: brightness(1.05); }
-  .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .ghost-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
-  .ghost-btn:hover { border-color: var(--mdt-accent); }
-  .link-btn { background: none; border: none; color: var(--mdt-accent); cursor: pointer; font-size: 0.82rem; align-self: flex-start; margin-top: 0.3rem; }
-
-  .hash-progress { margin-bottom: 1.25rem; }
-  .progress-track { height: 0.5rem; background: var(--mdt-surface-muted); border-radius: 999px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--mdt-accent); width: 0%; transition: width 0.12s linear; }
-  .progress-label { display: block; font-size: 0.8rem; color: var(--mdt-text-muted); margin-top: 0.35rem; font-family: var(--mdt-font-mono); }
-
-  .hash-error {
-    padding: 0.7rem 0.9rem;
-    border: 1px solid var(--mdt-danger);
-    border-radius: var(--mdt-radius-sm);
-    color: var(--mdt-danger);
-    background: color-mix(in srgb, var(--mdt-danger) 8%, transparent);
-    font-size: 0.88rem;
-    margin-bottom: 1.25rem;
+  .algo-item:has(:checked) {
+    color: var(--mdt-cat);
   }
-
-  .hash-results { display: grid; gap: 0.5rem; }
-  .result-row {
-    display: grid;
-    grid-template-columns: 9rem 1fr auto;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.6rem 0.8rem;
-    border: 1px solid var(--mdt-border);
-    border-radius: var(--mdt-radius-sm);
-    background: var(--mdt-surface-raised);
-  }
-  .result-algo { font-family: var(--mdt-font-mono); font-size: 0.85rem; color: var(--mdt-text-muted); }
-  .result-hex {
-    font-family: var(--mdt-font-mono);
-    font-size: 0.85rem;
-    word-break: break-all;
-  }
-  .copy-btn { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
 </style>

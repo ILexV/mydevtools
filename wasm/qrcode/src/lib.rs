@@ -1,16 +1,17 @@
 use wasm_bindgen::prelude::*;
 use qrcode::{QrCode, EcLevel};
 use qrcode::render::svg;
-use image::{Rgba, RgbaImage, DynamicImage, GenericImageView};
+use image::{Rgba, RgbaImage, DynamicImage};
 use std::io::Cursor;
 use rxing;
 use rxing::Reader; // Import the Reader trait to enable .decode_with_hints()
 use rxing::Luma8LuminanceSource; // Import explicitly to avoid path issues
 
-/// Parse hex color string (#RRGGBB or RRGGBB) to Rgba
+/// Parse hex color string (#RRGGBB or RRGGBB) to Rgba. Rejects non-ASCII
+/// input up front so byte slicing below can never split a UTF-8 char (panic).
 fn parse_hex_color(hex: &str) -> Result<Rgba<u8>, String> {
     let hex = hex.trim_start_matches('#');
-    if hex.len() != 6 {
+    if hex.len() != 6 || !hex.bytes().all(|b| b.is_ascii_hexdigit()) {
         return Err(format!("Invalid hex color: {}", hex));
     }
     let r = u8::from_str_radix(&hex[0..2], 16).map_err(|_| "Invalid red component")?;
@@ -117,6 +118,10 @@ pub fn generate_qr_png(
     
     let qr_size = code.width();
     let module_size = size / (qr_size as u32 + 8); // +8 for quiet zone
+    if module_size == 0 {
+        // Too many modules for the requested pixel size: one module < 1 px.
+        return Err(format!("Image size too small: {} px for {} modules", size, qr_size + 8));
+    }
     let actual_size = module_size * (qr_size as u32 + 8);
     let offset = module_size * 4; // Quiet zone offset
     
@@ -133,7 +138,11 @@ pub fn generate_qr_png(
                 let px = offset + (x as u32) * module_size;
                 let py = offset + (y as u32) * module_size;
                 
-                match style {
+                // Finder patterns (three 7x7 corners) stay square in every style:
+                // dotted/rounded finders are not detected by ZXing-family scanners.
+                let finder = (x < 7 && y < 7) || (x >= qr_size - 7 && y < 7) || (x < 7 && y >= qr_size - 7);
+                let module_style = if finder { "square" } else { style };
+                match module_style {
                     "dots" => {
                         let cx = (px + module_size / 2) as i32;
                         let cy = (py + module_size / 2) as i32;
@@ -229,6 +238,9 @@ pub fn generate_qr_svg(
 ) -> Result<String, String> {
     console_error_panic_hook::set_once();
     
+    // Colors are interpolated into SVG attributes: accept only #RRGGBB.
+    parse_hex_color(fg_color)?;
+    parse_hex_color(bg_color)?;
     let ec = parse_ec_level(ec_level);
     
     let code = QrCode::with_error_correction_level(data.as_bytes(), ec)
@@ -257,7 +269,22 @@ pub fn decode_qr(image_bytes: &[u8]) -> Result<String, String> {
     
     // Use rxing's helper to prepare the image
     // Note: rxing suggests using luminance source. We can convert to luma8.
-    let luma_img = dyn_img.to_luma8();
+    let mut luma_img = dyn_img.to_luma8();
+    // rxing's HybridBinarizer falls back to the global-histogram binarizer
+    // below 40x40 px, and BinaryBitmap::get_black_matrix unwraps its error
+    // (panic → WASM trap on low-contrast tiny images). Upscale tiny images
+    // (nearest neighbour keeps module edges sharp) so that path is never hit.
+    const MIN_DECODE_DIM: u32 = 40;
+    let min_dim = luma_img.width().min(luma_img.height());
+    if min_dim < MIN_DECODE_DIM {
+        let k = MIN_DECODE_DIM.div_ceil(min_dim.max(1));
+        luma_img = image::imageops::resize(
+            &luma_img,
+            luma_img.width() * k,
+            luma_img.height() * k,
+            image::imageops::FilterType::Nearest,
+        );
+    }
     let width = luma_img.width();
     let height = luma_img.height();
     let raw_pixels = luma_img.into_raw();
@@ -271,4 +298,146 @@ pub fn decode_qr(image_bytes: &[u8]) -> Result<String, String> {
          .map_err(|e| format!("Decoding failed: {}", e))?;
 
     Ok(result.getText().to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn png(data: &str, ec: &str, style: &str, logo: Option<Vec<u8>>) -> Vec<u8> {
+        generate_qr_png(data, 512, "#000000", "#FFFFFF", ec, style, logo).expect("generate png")
+    }
+
+    fn solid_png(w: u32, h: u32, rgba: [u8; 4]) -> Vec<u8> {
+        let img = RgbaImage::from_pixel(w, h, Rgba(rgba));
+        let mut out = Vec::new();
+        DynamicImage::ImageRgba8(img)
+            .write_to(&mut Cursor::new(&mut out), image::ImageFormat::Png)
+            .unwrap();
+        out
+    }
+
+    #[test]
+    fn png_round_trip_all_styles_and_levels() {
+        for style in ["square", "dots", "rounded"] {
+            for ec in ["L", "M", "Q", "H"] {
+                let text = format!("https://example.com/?s={style}&ec={ec}");
+                let bytes = png(&text, ec, style, None);
+                assert_eq!(&bytes[..8], b"\x89PNG\r\n\x1a\n");
+                assert_eq!(decode_qr(&bytes).unwrap(), text, "style={style} ec={ec}");
+                // Smallest UI size (256 px) with a longer payload: smaller modules.
+                let long = format!("{text}&pad={}", "x".repeat(120));
+                let small = generate_qr_png(&long, 256, "#000000", "#FFFFFF", ec, style, None).unwrap();
+                assert_eq!(decode_qr(&small).unwrap(), long, "256px style={style} ec={ec}");
+            }
+        }
+    }
+
+    #[test]
+    fn png_round_trip_unicode_and_emoji() {
+        let text = "Привет, мир! 日本語 🚀✨";
+        assert_eq!(decode_qr(&png(text, "M", "square", None)).unwrap(), text);
+    }
+
+    #[test]
+    fn png_round_trip_with_logo_at_high_ec() {
+        let logo = solid_png(64, 64, [220, 40, 40, 255]);
+        let text = "logo round trip";
+        assert_eq!(decode_qr(&png(text, "H", "square", Some(logo))).unwrap(), text);
+    }
+
+    #[test]
+    fn png_respects_colors_and_size() {
+        let bytes = generate_qr_png("abc", 256, "#112233", "#ffeedd", "M", "square", None).unwrap();
+        let img = image::load_from_memory(&bytes).unwrap().to_rgba8();
+        assert!(img.width() <= 256 && img.width() > 200);
+        assert_eq!(img.width(), img.height());
+        assert_eq!(*img.get_pixel(0, 0), Rgba([0xff, 0xee, 0xdd, 255]));
+        assert!(img.pixels().any(|p| *p == Rgba([0x11, 0x22, 0x33, 255])));
+    }
+
+    #[test]
+    fn invalid_logo_bytes_are_ignored() {
+        let text = "bad logo";
+        let bytes = png(text, "H", "square", Some(vec![1, 2, 3, 4]));
+        assert_eq!(decode_qr(&bytes).unwrap(), text);
+    }
+
+    #[test]
+    fn capacity_limits_per_level() {
+        // Byte-mode capacity of version 40: L=2953, H=1273.
+        assert!(generate_qr_svg(&"a".repeat(2953), "#000000", "#FFFFFF", "L").is_ok());
+        let err = generate_qr_svg(&"a".repeat(2954), "#000000", "#FFFFFF", "L").unwrap_err();
+        assert!(err.contains("too long"), "{err}");
+        assert!(generate_qr_svg(&"a".repeat(1273), "#000000", "#FFFFFF", "H").is_ok());
+        assert!(generate_qr_png(&"a".repeat(1274), 512, "#000000", "#FFFFFF", "H", "square", None)
+            .unwrap_err()
+            .contains("too long"));
+    }
+
+    #[test]
+    fn max_version_fits_smallest_ui_size() {
+        // 177 modules + quiet zone at 256 px still renders (1 px per module).
+        assert!(generate_qr_png(&"a".repeat(2953), 256, "#000000", "#FFFFFF", "L", "square", None).is_ok());
+        assert!(generate_qr_png("abc", 10, "#000000", "#FFFFFF", "M", "square", None)
+            .unwrap_err()
+            .contains("too small"));
+    }
+
+    #[test]
+    fn invalid_colors_are_errors_not_panics() {
+        for bad in ["#12345", "#1234567", "zzzzzz", "", "#aéabc", "éééé"] {
+            assert!(parse_hex_color(bad).is_err(), "{bad:?}");
+            assert!(generate_qr_svg("x", bad, "#FFFFFF", "M").is_err(), "{bad:?}");
+            assert!(generate_qr_png("x", 256, "#000000", bad, "M", "square", None).is_err(), "{bad:?}");
+        }
+        assert_eq!(parse_hex_color("aBcDeF").unwrap(), Rgba([0xab, 0xcd, 0xef, 255]));
+    }
+
+    #[test]
+    fn svg_output_uses_colors() {
+        let svg = generate_qr_svg("hello", "#123456", "#FEDCBA", "Q").unwrap();
+        assert!(svg.contains("<svg"));
+        assert!(svg.contains("#123456") && svg.contains("#FEDCBA"));
+    }
+
+    #[test]
+    fn unknown_ec_level_defaults_to_m() {
+        assert_eq!(parse_ec_level("x"), EcLevel::M);
+        assert_eq!(parse_ec_level("h"), EcLevel::H);
+    }
+
+    #[test]
+    fn decode_rejects_garbage_and_blank_images() {
+        assert!(decode_qr(&[0, 1, 2, 3]).unwrap_err().starts_with("Failed to load image"));
+        assert!(decode_qr(&[]).is_err());
+        let blank = solid_png(100, 100, [255, 255, 255, 255]);
+        assert!(decode_qr(&blank).unwrap_err().starts_with("Decoding failed"));
+    }
+
+    #[test]
+    fn decode_tiny_uniform_images_is_an_error_not_a_panic() {
+        // < 40 px used to hit an unwrap() inside rxing's binarizer.
+        for (w, h) in [(1, 1), (1, 300), (39, 39), (20, 60)] {
+            for rgba in [[255, 255, 255, 255], [0, 0, 0, 255], [128, 128, 128, 0]] {
+                assert!(decode_qr(&solid_png(w, h, rgba)).is_err(), "{w}x{h} {rgba:?}");
+            }
+        }
+    }
+
+    #[test]
+    fn decode_small_qr_image_is_upscaled() {
+        // Version-1 code at 1 px per module (29x29 with quiet zone) still decodes.
+        let code = QrCode::with_error_correction_level(b"tiny", EcLevel::L).unwrap();
+        let w = code.width() as u32;
+        let colors = code.to_colors();
+        let img = RgbaImage::from_fn(w + 8, w + 8, |x, y| {
+            let dark = x >= 4 && y >= 4 && x < w + 4 && y < w + 4
+                && colors[((y - 4) * w + (x - 4)) as usize] == qrcode::Color::Dark;
+            if dark { Rgba([0, 0, 0, 255]) } else { Rgba([255, 255, 255, 255]) }
+        });
+        let mut out = Vec::new();
+        DynamicImage::ImageRgba8(img).write_to(&mut Cursor::new(&mut out), image::ImageFormat::Png).unwrap();
+        assert_eq!(decode_qr(&out).unwrap(), "tiny");
+    }
 }

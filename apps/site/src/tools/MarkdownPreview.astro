@@ -8,6 +8,7 @@
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -34,6 +35,7 @@ const s = {
   copyFailed: t(lang, ns, "CopyFailed"),
   renderError: t(lang, ns, "RenderError"),
   markedLoadFailed: t(lang, ns, "MarkedLoadFailed"),
+  toolbarLabel: t(lang, ns, "ToolbarLabel"),
 };
 const stringsJson = JSON.stringify({
   copied: s.copied,
@@ -43,141 +45,103 @@ const stringsJson = JSON.stringify({
 });
 ---
 
-<div class="md-tool" data-md-tool>
+<div class="ds-stack" data-md-tool>
   <!-- Toolbar -->
-  <div class="md-toolbar">
-    <div class="md-toolbar-groups">
-      <div class="md-btn-group" role="group">
-        <button type="button" class="md-tool-btn" data-md-insert="bold" title={s.bold} aria-label={s.bold}>
-          <strong>B</strong>
+  <div class="ds-card md-toolbar">
+    <div class="md-toolbar-groups" role="group" aria-label={s.toolbarLabel}>
+      <div class="md-btn-group">
+        <button type="button" class="ds-icon-btn" data-md-insert="bold" title={s.bold} aria-label={s.bold}>
+          <strong aria-hidden="true">B</strong>
         </button>
-        <button type="button" class="md-tool-btn" data-md-insert="italic" title={s.italic} aria-label={s.italic}>
-          <em>I</em>
+        <button type="button" class="ds-icon-btn" data-md-insert="italic" title={s.italic} aria-label={s.italic}>
+          <em aria-hidden="true">I</em>
         </button>
-        <button type="button" class="md-tool-btn" data-md-insert="heading" title={s.heading} aria-label={s.heading}>
-          <strong>H</strong>
+        <button type="button" class="ds-icon-btn" data-md-insert="heading" title={s.heading} aria-label={s.heading}>
+          <strong aria-hidden="true">H</strong>
         </button>
       </div>
-      <div class="md-btn-group" role="group">
-        <button type="button" class="md-tool-btn" data-md-insert="link" title={s.link} aria-label={s.link}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <div class="md-btn-group">
+        <button type="button" class="ds-icon-btn" data-md-insert="link" title={s.link} aria-label={s.link}>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
           </svg>
         </button>
-        <button type="button" class="md-tool-btn" data-md-insert="image" title={s.image} aria-label={s.image}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <button type="button" class="ds-icon-btn" data-md-insert="image" title={s.image} aria-label={s.image}>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
             <circle cx="8.5" cy="8.5" r="1.5" />
             <path d="m21 15-5-5L5 21" />
           </svg>
         </button>
       </div>
-      <div class="md-btn-group" role="group">
-        <button type="button" class="md-tool-btn" data-md-insert="code" title={s.code} aria-label={s.code}>
-          <span class="md-glyph-mono">&lt;/&gt;</span>
+      <div class="md-btn-group">
+        <button type="button" class="ds-icon-btn" data-md-insert="code" title={s.code} aria-label={s.code}>
+          <span class="md-glyph-mono" aria-hidden="true">&lt;/&gt;</span>
         </button>
-        <button type="button" class="md-tool-btn" data-md-insert="list" title={s.list} aria-label={s.list}>
-          <span class="md-glyph-list">≡</span>
+        <button type="button" class="ds-icon-btn" data-md-insert="list" title={s.list} aria-label={s.list}>
+          <span class="md-glyph-list" aria-hidden="true">≡</span>
         </button>
       </div>
     </div>
-    <label class="md-sync-toggle">
-      <span>{s.syncScroll}</span>
-      <input type="checkbox" data-md-sync-scroll checked />
-    </label>
-    <button type="button" class="md-clear-btn" data-md-clear>{s.clear}</button>
+    <div class="ds-actions">
+      <label class="ds-check-row">
+        <input type="checkbox" class="ds-check" data-md-sync-scroll checked />
+        <span>{s.syncScroll}</span>
+      </label>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-danger" data-md-clear>{s.clear}</button>
+    </div>
   </div>
 
   <!-- Split View -->
   <div class="md-grid">
     <div class="md-pane">
-      <label class="md-pane-label" for="md-preview-input">{s.editorLabel}</label>
+      <label class="ds-label" for="md-preview-input">{s.editorLabel}</label>
       <textarea
         id="md-preview-input"
+        class="ds-field-textarea mono md-input"
         data-md-input
         placeholder={s.editorPlaceholder}
         spellcheck="false"></textarea>
     </div>
     <div class="md-pane">
-      <span class="md-pane-label">{s.previewLabel}</span>
-      <div class="md-preview" data-md-output></div>
+      <span class="ds-label" id="md-preview-label">{s.previewLabel}</span>
+      <div class="md-preview" data-md-output role="region" aria-labelledby="md-preview-label" tabindex="0"></div>
     </div>
   </div>
 
   <!-- Actions -->
-  <div class="md-actions">
-    <button type="button" class="ghost-btn" data-md-copy-html>{s.copyHtml}</button>
-    <button type="button" class="ghost-btn" data-md-copy-md>{s.copyMarkdown}</button>
-    <button type="button" class="primary-btn" data-md-download>{s.download}</button>
+  <div class="ds-actions ds-actions-end">
+    <button type="button" class="ds-btn" data-md-copy-html>{s.copyHtml}</button>
+    <button type="button" class="ds-btn" data-md-copy-md>{s.copyMarkdown}</button>
+    <button type="button" class="ds-btn ds-btn-primary" data-md-download>{s.download}</button>
   </div>
 
-  <div class="md-error" data-md-error hidden></div>
+  <StatusMessage kind="error" data-md-error />
 </div>
 
 <script is:inline type="application/json" data-md-strings set:html={stringsJson} />
 <script>import "@/tools/markdown-preview.client.ts";</script>
 
 <style>
-  .md-tool { display: flex; flex-direction: column; gap: 1rem; }
-
-  /* Toolbar */
+  /* Layout + rendered-markdown typography; controls come from tool-ui.css (ds-*). */
   .md-toolbar {
     display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-    gap: 0.5rem; padding: 0.5rem;
-    border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius);
-    background: var(--mdt-surface-muted);
+    gap: 0.6rem; padding: 0.5rem 0.75rem;
   }
-  .md-toolbar-groups { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .md-btn-group { display: flex; }
-  .md-btn-group .md-tool-btn { border-radius: 0; margin-left: -1px; }
-  .md-btn-group .md-tool-btn:first-child { border-radius: var(--mdt-radius-sm) 0 0 var(--mdt-radius-sm); margin-left: 0; }
-  .md-btn-group .md-tool-btn:last-child { border-radius: 0 var(--mdt-radius-sm) var(--mdt-radius-sm) 0; }
-  .md-tool-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-width: 2rem; height: 2rem; padding: 0 0.4rem;
-    border: 1px solid var(--mdt-border); background: var(--mdt-surface-raised);
-    color: var(--mdt-text); cursor: pointer; font-size: 0.95rem;
-  }
-  .md-tool-btn:hover { border-color: var(--mdt-accent); color: var(--mdt-accent); position: relative; }
-  .md-tool-btn:focus-visible { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
-  .md-tool-btn svg { width: 1rem; height: 1rem; }
+  .md-toolbar-groups { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .md-btn-group { display: flex; gap: 0.25rem; }
   .md-glyph-mono { font-family: var(--mdt-font-mono); font-size: 0.78rem; }
   .md-glyph-list { font-size: 1.1rem; line-height: 1; }
-  .md-sync-toggle {
-    display: flex; align-items: center; gap: 0.4rem; cursor: pointer;
-    padding: 0.3rem 0.6rem; font-size: 0.78rem; font-weight: 600;
-    border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm);
-    background: var(--mdt-surface-raised); color: var(--mdt-text);
-  }
-  .md-sync-toggle:hover { background: var(--mdt-surface-muted); }
-  .md-sync-toggle input { accent-color: var(--mdt-accent); cursor: pointer; }
-  .md-clear-btn {
-    padding: 0.35rem 0.85rem; border-radius: var(--mdt-radius-sm); font-size: 0.85rem;
-    border: 1px solid var(--mdt-danger); background: var(--mdt-surface-raised);
-    color: var(--mdt-danger); cursor: pointer;
-  }
-  .md-clear-btn:hover { background: color-mix(in srgb, var(--mdt-danger) 10%, transparent); }
-  .md-clear-btn:focus-visible { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
 
   /* Split view — legacy: 600px fixed height, 1 col mobile / 2 cols ≥768px */
-  .md-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; height: 600px; }
-  @media (min-width: 768px) { .md-grid { grid-template-columns: 1fr 1fr; } }
-  .md-pane { display: flex; flex-direction: column; min-height: 0; }
-  .md-pane-label {
-    display: block; font-size: 0.88rem; font-weight: 700;
-    color: var(--mdt-text); margin-bottom: 0.35rem;
-  }
-  .md-pane textarea {
-    flex: 1; min-height: 0; width: 100%; resize: none;
-    padding: 1rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius);
-    background: var(--mdt-surface-raised); color: var(--mdt-text);
-    font-family: var(--mdt-font-mono); font-size: 0.95rem; line-height: 1.5;
-  }
-  .md-pane textarea:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  .md-grid { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr 1fr; gap: 1rem; height: 600px; }
+  @media (min-width: 768px) { .md-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: 1fr; } }
+  .md-pane { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+  .md-input { flex: 1; min-height: 0; resize: none; }
   .md-preview {
-    flex: 1; min-height: 0; width: 100%; overflow-y: auto;
-    padding: 1.25rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius);
+    flex: 1; min-height: 0; width: 100%; overflow-y: auto; overflow-wrap: anywhere;
+    padding: 1rem 1.25rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm);
     background: var(--mdt-surface-raised); color: var(--mdt-text);
     font-size: 0.92rem; line-height: 1.6;
   }
@@ -206,10 +170,10 @@ const stringsJson = JSON.stringify({
   }
   .md-preview :global(pre) {
     background: var(--mdt-surface-muted); padding: 0.9rem; border-radius: var(--mdt-radius-sm);
-    overflow-x: auto; margin: 0.8em 0;
+    overflow-x: auto; margin: 0.8em 0; overflow-wrap: normal;
   }
   .md-preview :global(pre code) { background: none; padding: 0; }
-  .md-preview :global(table) { border-collapse: collapse; width: 100%; margin: 0.8em 0; }
+  .md-preview :global(table) { border-collapse: collapse; width: 100%; margin: 0.8em 0; display: block; overflow-x: auto; }
   .md-preview :global(th), .md-preview :global(td) {
     border: 1px solid var(--mdt-border); padding: 0.45rem 0.6rem; text-align: left;
   }
@@ -218,28 +182,13 @@ const stringsJson = JSON.stringify({
     border-left: 4px solid var(--mdt-border); padding-left: 1rem;
     margin: 0.8em 0 0.8em 0; color: var(--mdt-text-muted);
   }
-  .md-preview :global(img) { max-width: 100%; }
+  .md-preview :global(img) { max-width: 100%; height: auto; }
+  .md-preview :global(input[type="checkbox"]) { margin-right: 0.4em; accent-color: var(--mdt-cat); }
+  .md-preview :global(li:has(> input[type="checkbox"])) { list-style: none; margin-left: -1.2em; }
+  .md-preview :global(kbd) {
+    font-family: var(--mdt-font-mono); font-size: 0.85em; padding: 0.1em 0.4em;
+    border: 1px solid var(--mdt-border); border-bottom-width: 2px; border-radius: var(--mdt-radius-xs);
+  }
   .md-preview :global(hr) { border: none; border-top: 1px solid var(--mdt-border); margin: 1.2em 0; }
 
-  /* Actions */
-  .md-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: flex-end; }
-  .primary-btn, .ghost-btn {
-    padding: 0.55rem 1.1rem; border-radius: var(--mdt-radius); font-weight: 600;
-    font-size: 0.88rem; cursor: pointer; border: 1px solid transparent;
-  }
-  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
-  .primary-btn:hover { filter: brightness(1.05); }
-  .ghost-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
-  .ghost-btn:hover { border-color: var(--mdt-accent); }
-  .primary-btn:focus-visible, .ghost-btn:focus-visible {
-    outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px;
-  }
-
-  .md-error {
-    padding: 0.7rem 0.9rem; border: 1px solid var(--mdt-danger);
-    border-radius: var(--mdt-radius-sm); color: var(--mdt-danger);
-    background: color-mix(in srgb, var(--mdt-danger) 8%, transparent);
-    font-size: 0.88rem;
-  }
-  .md-error[hidden] { display: none; }
 </style>

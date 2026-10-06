@@ -5,6 +5,8 @@
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -30,67 +32,58 @@ const s = {
   clear: t(lang, ns, "Clear"),
   copy: t(lang, ns, "Copy"),
   copied: t(lang, ns, "Copied"),
+  copyFailed: t(lang, ns, "CopyFailed"),
+  outputLabel: t(lang, ns, "OutputLabel"),
   outputPlaceholder: t(lang, ns, "OutputPlaceholder"),
 };
 const stringsJson = JSON.stringify(s);
 ---
 
-<div class="uuid-tool" data-uuid-tool>
-  <div class="uuid-controls">
-    <fieldset class="control-group">
-      <legend>{s.versionLabel}</legend>
-      <label class="radio"><input type="radio" name="uuid-version" value="v4" data-uuid-version checked /> {s.v4}</label>
-      <label class="radio"><input type="radio" name="uuid-version" value="v7" data-uuid-version /> {s.v7}</label>
-    </fieldset>
-    <fieldset class="control-group">
-      <legend>{s.formatLabel}</legend>
-      <label class="radio"><input type="radio" name="uuid-format" value="hyphenated" data-uuid-format checked /> {s.fHyphenated}</label>
-      <label class="radio"><input type="radio" name="uuid-format" value="plain" data-uuid-format /> {s.fPlain}</label>
-      <label class="radio"><input type="radio" name="uuid-format" value="braces" data-uuid-format /> {s.fBraces}</label>
-      <label class="radio"><input type="radio" name="uuid-format" value="urn" data-uuid-format /> {s.fUrn}</label>
-    </fieldset>
-    <fieldset class="control-group">
-      <legend>{s.caseLabel}</legend>
-      <label class="radio"><input type="radio" name="uuid-case" value="lower" data-uuid-case checked /> {s.cLower}</label>
-      <label class="radio"><input type="radio" name="uuid-case" value="upper" data-uuid-case /> {s.cUpper}</label>
-    </fieldset>
-    <div class="control-group">
-      <label class="count-row" for="uuid-count">{s.countLabel} <span data-uuid-count-val>1</span></label>
-      <input id="uuid-count" type="range" min="1" max="100" value="1" data-uuid-count />
+<div class="ds-stack uuid-tool" data-uuid-tool>
+  <section class="ds-card ds-stack">
+    <div class="ds-settings ds-settings-flat uuid-settings">
+      {[
+        { name: "uuid-version", legend: s.versionLabel, opts: [["v4", s.v4], ["v7", s.v7]] },
+        { name: "uuid-format", legend: s.formatLabel, opts: [["hyphenated", s.fHyphenated], ["plain", s.fPlain], ["braces", s.fBraces], ["urn", s.fUrn]] },
+        { name: "uuid-case", legend: s.caseLabel, opts: [["lower", s.cLower], ["upper", s.cUpper]] },
+      ].map((g) => (
+        <fieldset class="ds-check-group">
+          <legend class="ds-label">{g.legend}</legend>
+          {g.opts.map(([value, label], i) => (
+            <label class="ds-check-row">
+              <input type="radio" class="ds-radio" name={g.name} value={value} checked={i === 0} />
+              <span>{label}</span>
+            </label>
+          ))}
+        </fieldset>
+      ))}
+      <div class="ds-field-group">
+        <label class="ds-label" for="uuid-count">{s.countLabel}: <span class="uuid-count-val" data-uuid-count-val>1</span></label>
+        <input id="uuid-count" type="range" class="uuid-range" min="1" max="100" value="1" data-uuid-count />
+      </div>
     </div>
-  </div>
-  <ol class="uuid-list" data-uuid-list data-placeholder={s.outputPlaceholder}></ol>
+    <div class="ds-actions">
+      <button type="button" class="ds-btn ds-btn-primary" data-uuid-generate>{s.generate}</button>
+      <button type="button" class="ds-btn" data-uuid-copyall hidden>{s.copyAll}</button>
+      <button type="button" class="ds-btn" data-uuid-download hidden>{s.download}</button>
+      <button type="button" class="ds-btn ds-btn-danger" data-uuid-clear hidden>{s.clear}</button>
+    </div>
+    <StatusMessage kind="error" data-uuid-error />
+  </section>
 
-  <div class="uuid-actions">
-    <button type="button" class="primary-btn" data-uuid-generate>{s.generate}</button>
-    <button type="button" class="ghost-btn" data-uuid-copyall hidden>{s.copyAll}</button>
-    <button type="button" class="ghost-btn" data-uuid-download hidden>{s.download}</button>
-    <button type="button" class="ghost-btn" data-uuid-clear hidden>{s.clear}</button>
-  </div>
-
+  <OutputPanel label={s.outputLabel} class="ds-card">
+    <p class="ds-empty" data-uuid-empty>{s.outputPlaceholder}</p>
+    <ol class="ds-result-list uuid-list" data-uuid-list aria-live="polite" hidden></ol>
+  </OutputPanel>
 </div>
 
 <script is:inline type="application/json" data-uuid-strings set:html={stringsJson} />
 <script>import "@/tools/uuid-generator.client.ts";</script>
 
 <style>
-  .uuid-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
-  .control-group { border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); padding: 0.6rem 0.75rem; min-width: 0; }
-  .control-group legend { font-size: 0.78rem; font-weight: 600; color: var(--mdt-text-muted); padding: 0 0.3rem; }
-  .radio { display: flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0; font-size: 0.88rem; cursor: pointer; }
-  .radio input { accent-color: var(--mdt-accent); }
-  .count-row { display: block; font-size: 0.82rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.4rem; }
-  .count-row span { color: var(--mdt-accent); font-family: var(--mdt-font-mono); }
-  input[type="range"] { width: 100%; accent-color: var(--mdt-accent); }
-  .uuid-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
-  .primary-btn, .ghost-btn { padding: 0.6rem 1.1rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer; border: 1px solid transparent; }
-  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
-  .primary-btn:hover { filter: brightness(1.05); }
-  .ghost-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
-  .ghost-btn:hover { border-color: var(--mdt-accent); }
-  .uuid-list { display: grid; gap: 0.4rem; list-style: none; padding: 0; }
-  .uuid-list:empty::before { content: attr(data-placeholder); color: var(--mdt-text-muted); font-size: 0.88rem; }
-  .uuid-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-raised); }
-  .uuid-val { font-family: var(--mdt-font-mono); font-size: 0.85rem; word-break: break-all; }
-  .copy-btn { padding: 0.3rem 0.65rem; font-size: 0.8rem; }
+  /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
+  .uuid-settings { grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); }
+  .uuid-count-val { font-family: var(--mdt-font-mono); color: var(--mdt-cat); }
+  .uuid-range { width: 100%; accent-color: var(--mdt-cat); }
+  .uuid-list { margin: 0; padding: 0; list-style: none; max-height: 32rem; overflow: auto; }
 </style>

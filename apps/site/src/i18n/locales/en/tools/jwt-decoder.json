@@ -25,5 +25,15 @@
   "EncoderTitle": "JWT Encoder",
   "DecoderTitle": "JWT Decoder",
   "Copy": "Copy",
-  "Copied": "Copied!"
+  "Copied": "Copied!",
+  "TokenLabel": "Encoded JWT",
+  "InvalidToken": "Invalid JWT: {message}",
+  "EnterSecret": "Enter the secret (HS*) or RSA public key (RS*) to verify the signature.",
+  "UnsignedToken": "Unsigned token (alg: none) — it cannot be verified and must not be trusted.",
+  "UnsupportedAlgorithm": "Signature check for {alg} is not supported (HS256/384/512 and RS256/384/512 only).",
+  "ClaimExpired": "Expired {date}",
+  "ClaimExpiresAt": "Expires {date}",
+  "ClaimNotBefore": "Not valid before {date}",
+  "ClaimValidFrom": "Valid from {date}",
+  "ClaimIssuedAt": "Issued {date}"
 }

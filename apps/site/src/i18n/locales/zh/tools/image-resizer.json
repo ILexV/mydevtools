@@ -20,5 +20,8 @@
   "ErrorNotImage": "所选文件不是图片。",
   "ErrorLoadImage": "图片加载失败。",
   "ErrorInvalidDimensions": "尺寸无效。",
-  "ErrorResizeFailed": "调整大小失败。"
+  "ErrorResizeFailed": "调整大小失败。",
+  "Cancel": "取消",
+  "ErrorUnsupportedFormat": "不支持此图像格式。请使用 PNG、JPEG、WebP、GIF、BMP、ICO、TIFF 或 TGA。",
+  "ErrorDimensionsTooLarge": "尺寸过大：每边最多 16384 像素，总计不超过 6400 万像素。"
 }

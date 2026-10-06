@@ -1,0 +1,30 @@
+---
+/**
+ * FileButton — "choose file" button + selected file name (tool UI kit).
+ * `label.ds-btn.ds-file-btn` wraps a visually-hidden but focusable
+ * <input type="file"> (keyboard + focus ring work, unlike `hidden`), followed
+ * by an empty `.ds-file-name` the controller fills. Controller hooks go in
+ * `inputProps` / `nameProps` (e.g. { "data-hash-file": true }). Extra slot
+ * content (e.g. a clear link) renders after the name.
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"div"> {
+  label: string;
+  accept?: string;
+  multiple?: boolean;
+  inputProps?: HTMLAttributes<"input">;
+  nameProps?: HTMLAttributes<"span">;
+}
+
+const { label, accept, multiple, inputProps, nameProps, class: className, ...rest } = Astro.props as Props;
+---
+
+<div class:list={["ds-file-row", className]} {...rest}>
+  <label class="ds-btn ds-file-btn">
+    <input type="file" accept={accept} multiple={multiple} {...inputProps} />
+    {label}
+  </label>
+  <span class="ds-file-name" aria-live="polite" {...nameProps}></span>
+  <slot />
+</div>

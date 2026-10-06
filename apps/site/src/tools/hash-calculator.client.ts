@@ -9,6 +9,8 @@
 import { hashText, hashFile } from "@/scripts/wasm/hash-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { HASH_ALGORITHMS, DEFAULT_HASH_ALGORITHMS } from "@/tools/hash-algorithms";
+import { formatBytes, formatMs, progressPercent } from "@/lib/format";
+import { copyWithFeedback } from "@/scripts/tool-ui";
 
 const ALGO_STORAGE = "mdt.tools.hash-calculator.algos.v1";
 const LEGACY_ALGO_STORAGE = "mydevtools.tools.hash-calculator.selectedAlgorithms.v1";
@@ -56,18 +58,6 @@ function loadStoredAlgos(): Set<string> | null {
   }
 }
 
-function formatBytes(b: number): string {
-  if (b < 1024) return `${b} B`;
-  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
-  if (b < 1024 * 1024 * 1024) return `${(b / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(b / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-}
-
-function formatMs(ms: number): string {
-  if (ms < 1000) return `${Math.round(ms)} ms`;
-  return `${(ms / 1000).toFixed(2)} s`;
-}
-
 function init() {
   const root = document.querySelector<HTMLElement>("[data-hash-tool]");
   if (!root) return;
@@ -86,6 +76,7 @@ function init() {
   const cancelBtn = root.querySelector<HTMLButtonElement>("[data-hash-cancel]");
   const clearBtn = root.querySelector<HTMLButtonElement>("[data-hash-clear]");
   const progress = root.querySelector<HTMLElement>("[data-hash-progress]");
+  const progressBar = root.querySelector<HTMLElement>("[data-hash-progress-bar]");
   const progressFill = root.querySelector<HTMLElement>("[data-hash-progress-fill]");
   const progressLabel = root.querySelector<HTMLElement>("[data-hash-progress-label]");
   const errorBox = root.querySelector<HTMLElement>("[data-hash-error]");
@@ -106,14 +97,18 @@ function init() {
   function updateCount() {
     if (algoCount) {
       const n = selectedAlgos().length;
-      algoCount.textContent = strings!.algorithmsSelected.replace("{n}", String(n)).replace("%n", String(n)) || `${n}`;
+      // Locale strings are a bare word ("Selected") — append the count unless
+      // a translation carries its own {n}/%n placeholder.
+      const tpl = strings!.algorithmsSelected;
+      algoCount.textContent = /\{n\}|%n/.test(tpl)
+        ? tpl.replace("{n}", String(n)).replace("%n", String(n))
+        : tpl ? `${tpl}: ${n}` : `${n}`;
     }
   }
 
   function setSelected(set: Set<string>) {
     for (const c of algoCheckboxes()) {
       c.checked = set.has(c.value);
-      c.closest(".algo-item")?.classList.toggle("checked", c.checked);
     }
     updateCount();
     saveSelection();
@@ -135,7 +130,6 @@ function init() {
   algoList?.addEventListener("change", (e) => {
     const cb = (e.target as HTMLElement)?.closest?.("[data-hash-algo]") as HTMLInputElement | null;
     if (cb) {
-      cb.closest(".algo-item")?.classList.toggle("checked", cb.checked);
       updateCount();
       saveSelection();
     }
@@ -168,36 +162,50 @@ function init() {
     if (errorBox) errorBox.hidden = true;
   }
 
+  // Result rows use the shared `.ds-result-*` classes (global, so they style
+  // this runtime DOM — Astro scoped styles would not reach it).
   function renderResults(hashes: { id: string; hex: string }[]) {
     if (!results) return;
     const labelById = new Map(HASH_ALGORITHMS.map((a) => [a.id, a.label] as const));
-    results.innerHTML = hashes
-      .map(
-        (h) =>
-          `<div class="result-row"><span class="result-algo">${labelById.get(h.id) ?? h.id}</span>` +
-          `<span class="result-hex">${h.hex}</span>` +
-          `<button type="button" class="ghost-btn copy-btn" data-copy="${h.hex}">${strings!.copy}</button></div>`,
-      )
-      .join("");
+    results.replaceChildren(
+      ...hashes.map((h) => {
+        const row = document.createElement("div");
+        row.className = "ds-result-row";
+        const algo = document.createElement("span");
+        algo.className = "ds-result-key";
+        algo.textContent = labelById.get(h.id) ?? h.id;
+        const hex = document.createElement("span");
+        hex.className = "ds-result-value";
+        hex.textContent = h.hex;
+        const copy = document.createElement("button");
+        copy.type = "button";
+        copy.className = "ds-btn ds-btn-small ds-btn-ghost";
+        copy.dataset.copy = h.hex;
+        copy.textContent = strings.copy;
+        copy.setAttribute("aria-label", `${strings.copy} ${algo.textContent}`);
+        row.append(algo, hex, copy);
+        return row;
+      }),
+    );
     results.hidden = false;
   }
 
-  results?.addEventListener("click", async (e) => {
-    const btn = (e.target as HTMLElement)?.closest?.("[data-copy]") as HTMLButtonElement | null;
-    if (!btn) return;
-    try {
-      await navigator.clipboard.writeText(btn.getAttribute("data-copy") || "");
-      const orig = btn.textContent;
-      btn.textContent = strings!.copied;
-      setTimeout(() => { btn.textContent = orig; }, 1200);
-    } catch {
-      /* clipboard unavailable */
-    }
+  results?.addEventListener("click", (e) => {
+    const btn = (e.target as HTMLElement)?.closest?.<HTMLButtonElement>("[data-copy]");
+    if (btn) void copyWithFeedback(btn, btn.dataset.copy ?? "", strings.copied);
   });
 
   function setBusy(busy: boolean) {
-    if (calcBtn) calcBtn.disabled = busy;
+    if (calcBtn) {
+      calcBtn.disabled = busy;
+      calcBtn.setAttribute("aria-busy", String(busy));
+    }
     if (cancelBtn) cancelBtn.hidden = !busy;
+  }
+
+  function setProgress(pct: number) {
+    if (progressFill) progressFill.style.width = `${pct}%`;
+    progressBar?.setAttribute("aria-valuenow", String(Math.round(pct)));
   }
 
   async function handleCalculate() {
@@ -207,7 +215,7 @@ function init() {
       showError(strings.selectAtLeastOne);
       return;
     }
-    if (results) { results.hidden = true; results.innerHTML = ""; }
+    if (results) { results.hidden = true; results.replaceChildren(); }
 
     setBusy(true);
     abortController = new AbortController();
@@ -218,8 +226,7 @@ function init() {
         hashes = await hashFile(currentFile, algos, {
           signal: abortController.signal,
           onProgress: ({ processed, total, elapsedMs }) => {
-            const pct = total > 0 ? Math.min(100, (processed / total) * 100) : 0;
-            if (progressFill) progressFill.style.width = `${pct}%`;
+            setProgress(progressPercent(processed, total));
             if (progressLabel) {
               progressLabel.textContent = `${strings.fileProgress}: ${formatBytes(processed)} / ${formatBytes(total)} · ${formatMs(elapsedMs)}`;
             }
@@ -239,7 +246,7 @@ function init() {
     } finally {
       if (progress) {
         progress.hidden = true;
-        if (progressFill) progressFill.style.width = "0%";
+        setProgress(0);
       }
       setBusy(false);
       abortController = null;
@@ -254,7 +261,7 @@ function init() {
     if (fileInput) fileInput.value = "";
     currentFile = null;
     if (fileName) fileName.textContent = "";
-    if (results) { results.hidden = true; results.innerHTML = ""; }
+    if (results) { results.hidden = true; results.replaceChildren(); }
     clearError();
   });
 }

@@ -26,6 +26,8 @@
   "LinkBase64": "Base64",
   "LinkHex": "Hex",
   "LinkXml": "XML Beautifier",
+  "Error_CopyFailed": "Could not copy: the clipboard is unavailable.",
+  "OutputSummary": "Result: {0} characters",
   "Seo_Introduction": "The HTML Entity Encoder is a privacy-first online tool designed for developers and web designers. All processing happens locally in your browser, ensuring your data never leaves your device.",
   "Seo_DetailedDescription": "This tool provides comprehensive functionality for encoding special characters to HTML entities and decoding them back. It supports multiple formats including named entities (&amp;), decimal numeric references (&#38;), and hexadecimal references (&#x26;).\n\nThe interface is designed for efficiency and ease of use, with options to encode only special characters, only non-ASCII characters, or all characters. All operations are performed client-side, guaranteeing complete privacy and security for your sensitive data.",
   "Seo_Examples": "**Example 1**: Encode HTML special characters for safe display in web pages.\n- Input: `<div class=\"example\">Hello & Welcome!</div>`\n- Output: `&lt;div class=&quot;example&quot;&gt;Hello &amp; Welcome!&lt;/div&gt;`\n\n**Example 2**: Decode HTML entities back to readable text.\n- Input: `&copy; 2024 Company &amp; Partners`\n- Output: `© 2024 Company & Partners`\n\n**Example 3**: Encode non-ASCII characters for maximum compatibility.\n- Input: `Café résumé naïve`\n- Output: `Caf&#233; r&#233;sum&#233; na&#239;ve`",

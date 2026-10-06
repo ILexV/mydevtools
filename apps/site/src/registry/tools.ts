@@ -86,7 +86,7 @@ export const TOOLS: readonly Tool[] = [
 
   // ── text ──────────────────────────────────────────────────────────────────
   { slug: "word-counter", category: "text", wasm: null, capabilities: { copy: true } },
-  { slug: "text-case-converter", category: "text", wasm: "text_tools", capabilities: { copy: true } },
+  { slug: "text-case-converter", category: "text", wasm: null, capabilities: { copy: true } },
   { slug: "text-diff-viewer", category: "text", wasm: null, capabilities: { file: "optional", copy: true, externalDeps: true } },
 
   // ── jwt ───────────────────────────────────────────────────────────────────

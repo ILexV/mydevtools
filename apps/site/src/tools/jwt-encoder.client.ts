@@ -1,15 +1,19 @@
 /**
  * JWT Encoder client controller. Live-signs on every input/change (legacy
- * parity — no sign button): validates header/payload JSON inline, forces the
- * selected algorithm into the header for signing, and writes the token to the
- * read-only output. Copy button swaps its label for 1200ms.
+ * parity — no sign button): validates header/payload JSON inline (must be
+ * JSON objects), forces the selected algorithm into the header for signing,
+ * and writes the token to the read-only output. Segments come from
+ * `buildSigningInput` (order-preserving); the HMAC from WASM `jwt_sign_input`.
  */
-import { jwtSign } from "@/scripts/wasm/crypto-client";
+import { jwtSignInput } from "@/scripts/wasm/crypto-client";
+import { copyWithFeedback } from "@/scripts/tool-ui";
+import { buildSigningInput, jsonObjectProblem, type JwtHmacAlg } from "@/tools/jwt";
 
 interface Strings {
-  copy: string;
   copied: string;
+  copyFailed: string;
   invalidJson: string;
+  mustBeObject: string;
   encodeFailed: string;
 }
 
@@ -59,55 +63,58 @@ function init() {
   const algSelect: HTMLSelectElement = algorithmSelect;
   const outputArea: HTMLTextAreaElement = output;
   const copyButton: HTMLButtonElement = copyBtn;
+  const encodeErr: HTMLElement = encodeError;
   const headerErr: HTMLElement = headerError;
   const payloadErr: HTMLElement = payloadError;
-  const encodeErr: HTMLElement = encodeError;
 
   /** Monotonic guard so rapid typing can't apply a stale token out of order. */
   let signSeq = 0;
 
-  function validateJson(text: string, errEl: HTMLElement): boolean {
-    try {
-      JSON.parse(text);
-      errEl.hidden = true;
-      return true;
-    } catch {
-      errEl.textContent = strings.invalidJson;
-      errEl.hidden = false;
-      return false;
-    }
+  function setFieldError(area: HTMLTextAreaElement, errEl: HTMLElement, message: string | null) {
+    errEl.textContent = message ?? "";
+    errEl.hidden = message === null;
+    if (message === null) area.removeAttribute("aria-invalid");
+    else area.setAttribute("aria-invalid", "true");
+  }
+
+  function setEncodeError(message: string | null) {
+    encodeErr.textContent = message ?? "";
+    encodeErr.hidden = message === null;
+  }
+
+  function clearToken() {
+    outputArea.value = "";
+    copyButton.disabled = true;
   }
 
   async function generateToken() {
     const seq = ++signSeq;
-    const headerOk = validateJson(headerArea.value, headerErr);
-    const payloadOk = validateJson(payloadArea.value, payloadErr);
-    if (!headerOk || !payloadOk) {
-      outputArea.value = "";
-      copyButton.disabled = true;
-      encodeErr.hidden = true;
+    const alg = algSelect.value as JwtHmacAlg;
+    const built = buildSigningInput(headerArea.value, payloadArea.value, alg);
+
+    // Report both fields independently (a header error must not hide a payload one).
+    const messageFor = (r: "json" | "object" | null) =>
+      r === "json" ? strings.invalidJson : r === "object" ? strings.mustBeObject : null;
+    setFieldError(headerArea, headerErr, messageFor(jsonObjectProblem(headerArea.value)));
+    setFieldError(payloadArea, payloadErr, messageFor(jsonObjectProblem(payloadArea.value)));
+
+    if (!built.ok) {
+      clearToken();
+      setEncodeError(null);
       return;
     }
 
-    // Force the selected algorithm into the header for signing only — the
-    // header textarea is never rewritten (legacy parity).
-    const headerObj = JSON.parse(headerArea.value) as Record<string, unknown>;
-    headerObj.alg = algSelect.value;
-    const updatedHeader = JSON.stringify(headerObj);
-
     try {
-      const token = await jwtSign(updatedHeader, payloadArea.value, secretArea.value, algSelect.value);
+      const signature = await jwtSignInput(built.input, secretArea.value, alg);
       if (seq !== signSeq) return;
-      outputArea.value = token;
-      encodeErr.hidden = true;
+      outputArea.value = `${built.input}.${signature}`;
+      setEncodeError(null);
       copyButton.disabled = false;
     } catch (err) {
       if (seq !== signSeq) return;
-      outputArea.value = "";
-      copyButton.disabled = true;
+      clearToken();
       const msg = err instanceof Error ? err.message : String(err);
-      encodeErr.textContent = strings.encodeFailed.replace("{msg}", msg);
-      encodeErr.hidden = false;
+      setEncodeError(strings.encodeFailed.replace("{msg}", msg));
     }
   }
 
@@ -118,16 +125,8 @@ function init() {
 
   copyButton.addEventListener("click", async () => {
     if (!outputArea.value) return;
-    try {
-      await navigator.clipboard.writeText(outputArea.value);
-      const orig = copyButton.textContent;
-      copyButton.textContent = strings.copied;
-      setTimeout(() => {
-        copyButton.textContent = orig;
-      }, 1200);
-    } catch {
-      /* clipboard unavailable */
-    }
+    const ok = await copyWithFeedback(copyButton, outputArea.value, strings.copied);
+    if (!ok) setEncodeError(strings.copyFailed);
   });
 
   // Initial token from the prefilled header/payload (legacy init parity).

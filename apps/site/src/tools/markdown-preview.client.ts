@@ -3,10 +3,14 @@
  * into the preview pane with `marked` (vendored `lib/marked.min.js`, loaded on
  * demand, base-path aware). Legacy parity: marked options { breaks, gfm,
  * headerIds, mangle } (v11 ignores the removed headerIds/mangle — defaults
- * match), no debounce, no sanitization beyond marked, formatting inserts,
+ * match), no debounce, formatting inserts,
  * two-way proportional sync scroll, copy HTML/markdown (1200ms label swap),
- * download standalone .html, preloaded sample when empty.
+ * download standalone .html, preloaded sample when empty. Deviation: the
+ * marked output is sanitized (`markdown-sanitize.ts`) before insertion, so
+ * raw HTML/`javascript:` links in the markdown cannot execute.
  */
+import { sanitizeHtml } from "@/tools/markdown-sanitize";
+import { copyWithFeedback } from "@/scripts/tool-ui";
 
 interface MarkedGlobal {
   parse(src: string, options?: Record<string, unknown>): string;
@@ -81,7 +85,11 @@ function ensureMarked(): Promise<void> {
         script.dataset.loaded = "true";
         resolve();
       }, { once: true });
-      script.addEventListener("error", () => reject(new Error(`Failed to load ${src}`)), { once: true });
+      script.addEventListener("error", () => {
+        // Drop the failed tag so a retry injects a fresh one (no stuck promise).
+        script.remove();
+        reject(new Error(`Failed to load ${src}`));
+      }, { once: true });
       document.body.appendChild(script);
     }).catch((err: unknown) => {
       markedLoading = null;
@@ -121,7 +129,7 @@ function init(): void {
   function renderMarkdown(): void {
     try {
       if (window.marked) {
-        output.innerHTML = window.marked.parse(input.value, MARKED_OPTIONS);
+        output.replaceChildren(sanitizeHtml(window.marked.parse(input.value, MARKED_OPTIONS)));
       } else {
         output.textContent = "";
         const p = document.createElement("p");
@@ -176,17 +184,9 @@ function init(): void {
   }
 
   async function copyToClipboard(text: string, button: HTMLButtonElement): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(text);
-      const originalText = button.textContent;
-      button.textContent = strings.copied;
-      window.setTimeout(() => {
-        button.textContent = originalText;
-      }, 1200);
-    } catch {
-      errorDiv.textContent = strings.copyFailed;
-      errorDiv.hidden = false;
-    }
+    if (await copyWithFeedback(button, text, strings.copied)) return;
+    errorDiv.textContent = strings.copyFailed;
+    errorDiv.hidden = false;
   }
 
   /** Legacy download: standalone HTML document with inline print styles. */
@@ -261,8 +261,12 @@ function init(): void {
     URL.revokeObjectURL(url);
   }
 
-  // Live preview — legacy has no debounce.
-  input.addEventListener("input", renderMarkdown);
+  // Live preview — legacy has no debounce. If marked failed to load earlier
+  // (offline/flaky network), retry on the next edit instead of staying broken.
+  input.addEventListener("input", () => {
+    if (window.marked) renderMarkdown();
+    else void ensureMarked().catch(() => undefined).finally(renderMarkdown);
+  });
 
   // Toolbar inserts (legacy mappings).
   const INSERT_HANDLERS: Record<string, () => void> = {

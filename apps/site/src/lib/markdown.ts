@@ -1,14 +1,31 @@
 /**
  * Minimal Markdown→HTML for build-time SEO copy (`ToolSeoContent.astro`).
  * Port of the legacy `ToolSeoContent.razor` converter: supports `#`/`##`/`###`
- * headings, `**bold**`, `- ` bullet lists, and paragraphs. Input is trusted
- * locale JSON compiled at build time — no escaping (matches the legacy
- * `MarkupString` behavior).
+ * headings, `**bold**`, `- ` bullet lists, paragraphs and inline `code`.
+ * Prose is trusted locale JSON compiled at build time and passes through
+ * unescaped (legacy `MarkupString` behavior), but inline code spans ARE
+ * HTML-escaped: they hold literal markup/entities (`<div>`, `&lt;`) that must
+ * display as typed (html-entity-encoder examples rendered broken otherwise).
  */
+const CODE_TOKEN = "\u0000code";
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 export function seoMarkdownToHtml(markdown: string): string {
   if (!markdown) return "";
 
-  let html = markdown;
+  // Pull inline code out first so bold/heading rules never touch its content.
+  const codes: string[] = [];
+  let html = markdown.replace(/`([^`\n]+)`/g, (_m, code: string) => {
+    codes.push(`<code>${escapeHtml(code)}</code>`);
+    return `${CODE_TOKEN}${codes.length - 1}\u0000`;
+  });
   html = html.replace(/^### (.+)$/gm, "<h3>$1</h3>");
   html = html.replace(/^## (.+)$/gm, "<h2>$1</h2>");
   html = html.replace(/^# (.+)$/gm, "<h1>$1</h1>");
@@ -39,7 +56,9 @@ export function seoMarkdownToHtml(markdown: string): string {
   }
   if (inList) out.push("</ul>");
 
-  return out.join("\n");
+  return out
+    .join("\n")
+    .replace(new RegExp(`${CODE_TOKEN}(\\d+)\u0000`, "g"), (_m, i: string) => codes[Number(i)] ?? "");
 }
 
 export interface HowToStep {

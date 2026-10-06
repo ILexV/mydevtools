@@ -25,5 +25,15 @@
   "EncoderTitle": "JWT 인코더",
   "DecoderTitle": "JWT 디코더",
   "Copy": "복사",
-  "Copied": "복사됨!"
+  "Copied": "복사됨!",
+  "TokenLabel": "인코딩된 JWT",
+  "InvalidToken": "잘못된 JWT: {message}",
+  "EnterSecret": "서명을 검증하려면 시크릿(HS*) 또는 RSA 공개 키(RS*)를 입력하세요.",
+  "UnsignedToken": "서명되지 않은 토큰(alg: none) — 검증할 수 없으며 신뢰할 수 없습니다.",
+  "UnsupportedAlgorithm": "{alg} 서명 검증은 지원되지 않습니다(HS256/384/512, RS256/384/512만 지원).",
+  "ClaimExpired": "{date}에 만료됨",
+  "ClaimExpiresAt": "{date}에 만료",
+  "ClaimNotBefore": "{date} 이전에는 유효하지 않음",
+  "ClaimValidFrom": "{date}부터 유효",
+  "ClaimIssuedAt": "{date}에 발급됨"
 }

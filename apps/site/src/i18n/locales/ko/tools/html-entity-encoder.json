@@ -26,6 +26,8 @@
   "LinkBase64": "Base64",
   "LinkHex": "Hex",
   "LinkXml": "XML 뷰티파이어",
+  "Error_CopyFailed": "복사할 수 없습니다. 클립보드를 사용할 수 없습니다.",
+  "OutputSummary": "결과: {0}자",
   "Seo_Introduction": "HTML 엔티티 인코더는 개발자와 웹 디자이너를 위한 개인정보 보호 중심 도구입니다. 모든 처리는 브라우저에서 로컬로 수행되며 데이터는 기기를 떠나지 않습니다.",
   "Seo_DetailedDescription": "이 도구는 특수 문자를 HTML 엔티티로 인코딩하고 디코딩하는 완전한 기능을 제공합니다. 명명된 엔티티 (&amp;), 10진수 참조 (&#38;), 16진수 참조 (&#x26;) 등 여러 형식을 지원합니다.\n\n인터페이스는 효율성과 사용 편의성을 위해 설계되었으며 특수 문자만, 비 ASCII 문자만 또는 모든 문자를 인코딩하는 옵션이 있습니다. 모든 작업은 클라이언트 측에서 수행되어 데이터의 완전한 개인정보 보호와 보안을 보장합니다.",
   "Seo_Examples": "**예제 1**: 웹 페이지에서 안전하게 표시하기 위한 HTML 특수 문자 인코딩.\n- 입력: `<div class=\"example\">Hello & Welcome!</div>`\n- 출력: `&lt;div class=&quot;example&quot;&gt;Hello &amp; Welcome!&lt;/div&gt;`\n\n**예제 2**: HTML 엔티티를 읽을 수 있는 텍스트로 디코딩.\n- 입력: `&copy; 2024 Company &amp; Partners`\n- 출력: `© 2024 Company & Partners`\n\n**예제 3**: 최대 호환성을 위한 비 ASCII 문자 인코딩.\n- 입력: `Café résumé naïve`\n- 출력: `Caf&#233; r&#233;sum&#233; na&#239;ve`",

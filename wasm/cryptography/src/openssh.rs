@@ -748,7 +748,20 @@ pub fn openssh_public_key_bytes(line: &str) -> Result<Vec<u8>, JsValue> {
     }
 }
 
-/// Converts an OpenSSH public key line to SPKI DER (RSA/ECDSA only).
+/// Ed25519 public key (32 bytes) → SubjectPublicKeyInfo DER (RFC 8410).
+fn ed25519_public_key_to_spki_der(public_key: &[u8]) -> Result<Vec<u8>, JsValue> {
+    use ed25519_dalek::pkcs8::EncodePublicKey;
+    let bytes: [u8; 32] = public_key
+        .try_into()
+        .map_err(|_| JsValue::from_str("invalid ed25519 key"))?;
+    let vk = ed25519_dalek::VerifyingKey::from_bytes(&bytes)
+        .map_err(|_| JsValue::from_str("invalid ed25519 key"))?;
+    vk.to_public_key_der()
+        .map(|der| der.as_bytes().to_vec())
+        .map_err(|_| JsValue::from_str("encode failed"))
+}
+
+/// Converts an OpenSSH public key line to SPKI DER (RSA/ECDSA/Ed25519).
 #[wasm_bindgen]
 pub fn openssh_public_key_to_spki(line: &str) -> Result<Vec<u8>, JsValue> {
     let alg = openssh_public_key_algorithm(line)?;
@@ -770,7 +783,7 @@ pub fn openssh_public_key_to_spki(line: &str) -> Result<Vec<u8>, JsValue> {
                 .map(|der| der.as_bytes().to_vec())
                 .map_err(|_| JsValue::from_str("encode failed"))
         }
-        OPENSSH_ALG_ED25519 => Err(JsValue::from_str("ed25519 SPKI conversion not implemented yet")),
+        OPENSSH_ALG_ED25519 => ed25519_public_key_to_spki_der(&openssh_ed25519_parse_public_key(line)?),
         _ => Err(JsValue::from_str("unsupported key type")),
     }
 }
@@ -845,7 +858,7 @@ pub fn openssh_public_key_to_spki_pem(line: &str) -> Result<String, JsValue> {
     Ok(spki_to_pem(&spki))
 }
 
-/// Converts SPKI PEM to OpenSSH public key line (RSA/ECDSA only).
+/// Converts SPKI PEM to OpenSSH public key line (RSA/ECDSA/Ed25519).
 #[wasm_bindgen]
 pub fn openssh_public_key_from_spki_pem(pem: &str, comment: Option<String>) -> Result<String, JsValue> {
     let spki = pem_to_spki(pem)?;
@@ -865,6 +878,12 @@ fn openssh_public_key_from_spki_der(spki_der: &[u8], comment: Option<String>) ->
     if let Ok(p384_key) = P384PublicKey::from_public_key_der(spki_der) {
         let pub_bytes = p384_key.to_encoded_point(false).as_bytes().to_vec();
         return openssh_ecdsa_p384_public_key(&pub_bytes, comment);
+    }
+
+    if let Ok(ed_key) =
+        <ed25519_dalek::VerifyingKey as ed25519_dalek::pkcs8::DecodePublicKey>::from_public_key_der(spki_der)
+    {
+        return openssh_ed25519_public_key(ed_key.as_bytes(), comment);
     }
 
     Err(JsValue::from_str("unsupported SPKI"))
@@ -1118,7 +1137,7 @@ pub fn openssh_private_key_to_public_key_line(
     }
 }
 
-/// Converts an OpenSSH private key (new format) to SPKI DER (RSA/ECDSA only).
+/// Converts an OpenSSH private key (new format) to SPKI DER (RSA/ECDSA/Ed25519).
 #[wasm_bindgen]
 pub fn openssh_private_key_to_spki(pem: &str, passphrase: Option<String>) -> Result<Vec<u8>, JsValue> {
     let parsed = parse_openssh_private_key(pem, passphrase)?;
@@ -1139,7 +1158,7 @@ pub fn openssh_private_key_to_spki(pem: &str, passphrase: Option<String>) -> Res
                 .map(|der| der.as_bytes().to_vec())
                 .map_err(|_| JsValue::from_str("encode failed"))
         }
-        OPENSSH_ALG_ED25519 => Err(JsValue::from_str("ed25519 SPKI conversion not implemented yet")),
+        OPENSSH_ALG_ED25519 => ed25519_public_key_to_spki_der(&parsed.public_key),
         _ => Err(JsValue::from_str("unsupported key type")),
     }
 }
@@ -1502,5 +1521,84 @@ mod tests {
     #[test]
     fn openssh_public_key_invalid_rejected() {
         assert!(openssh_public_key_algorithm("ssh-ed25519 not_base64").is_err());
+    }
+
+    /// RFC 8410 §10.1 Ed25519 public key (SPKI PEM) and its raw 32 bytes.
+    const RFC8410_SPKI_PEM: &str =
+        "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAGb9ECWmEzf6FQbrBZ9w7lshQhqowtrbLDFw4rXAxZuE=\n-----END PUBLIC KEY-----";
+    const RFC8410_RAW_HEX: &str = "19bf44096984cdfe8541bac167dc3b96c85086aa30b6b6cb0c5c38ad703166e1";
+
+    fn rfc8410_raw() -> Vec<u8> {
+        (0..RFC8410_RAW_HEX.len())
+            .step_by(2)
+            .map(|i| u8::from_str_radix(&RFC8410_RAW_HEX[i..i + 2], 16).unwrap())
+            .collect()
+    }
+
+    #[test]
+    fn ed25519_public_line_to_spki_matches_rfc8410() {
+        let line = openssh_ed25519_public_key(&rfc8410_raw(), Some("rfc".to_string())).expect("line");
+        let pem = openssh_public_key_to_spki_pem(&line).expect("spki pem");
+        let norm = |s: &str| s.split_whitespace().collect::<String>();
+        assert_eq!(norm(&pem), norm(RFC8410_SPKI_PEM));
+    }
+
+    #[test]
+    fn ed25519_spki_pem_to_public_line_matches_rfc8410() {
+        let line = openssh_public_key_from_spki_pem(RFC8410_SPKI_PEM, Some("rfc".to_string())).expect("line");
+        assert!(line.starts_with("ssh-ed25519 "));
+        assert!(line.ends_with(" rfc"));
+        assert_eq!(openssh_ed25519_parse_public_key(&line).expect("parse"), rfc8410_raw());
+    }
+
+    #[test]
+    fn ed25519_private_key_spki_matches_public_line_spki() {
+        let pem = openssh_ed25519_private_key(&[42u8; 32], None, None, None).expect("private");
+        let line = openssh_private_key_to_public_key_line(&pem, None, None).expect("line");
+        assert_eq!(
+            openssh_private_key_to_spki(&pem, None).expect("spki from private"),
+            openssh_public_key_to_spki(&line).expect("spki from line")
+        );
+    }
+
+    #[test]
+    fn spki_roundtrip_all_supported_algorithms() {
+        let ed = openssh_ed25519_private_key(&[5u8; 32], None, None, None).expect("ed");
+        let p256 = openssh_ecdsa_p256_private_key(&[6u8; 32], None, None, None).expect("p256");
+        let p384 = openssh_ecdsa_p384_private_key(&[7u8; 48], None, None, None).expect("p384");
+        for pem in [ed, p256, p384] {
+            let line = openssh_private_key_to_public_key_line(&pem, None, Some("c".to_string())).expect("line");
+            let spki_pem = openssh_public_key_to_spki_pem(&line).expect("to spki");
+            let back = openssh_public_key_from_spki_pem(&spki_pem, Some("c".to_string())).expect("from spki");
+            assert_eq!(back, line);
+        }
+    }
+
+    #[test]
+    fn encrypted_private_key_roundtrip_keeps_public_key_and_comment() {
+        let pem = openssh_ed25519_private_key(&[8u8; 32], Some("me@host".to_string()), Some("pass phrase".to_string()), Some(4))
+            .expect("encrypted");
+        assert!(pem.contains("BEGIN OPENSSH PRIVATE KEY"));
+        let line = openssh_private_key_to_public_key_line(&pem, Some("pass phrase".to_string()), None).expect("line");
+        assert!(line.ends_with(" me@host"), "{line}");
+        assert_eq!(
+            openssh_private_key_comment(&pem, Some("pass phrase".to_string())).expect("comment"),
+            "me@host"
+        );
+        let pkcs8 = openssh_private_key_to_pkcs8_pem(&pem, Some("pass phrase".to_string())).expect("pkcs8");
+        let back = openssh_private_key_from_pkcs8_pem(&pkcs8, None, None, None, None).expect("back");
+        assert_eq!(
+            openssh_private_key_to_public_key_line(&back, None, Some("me@host".to_string())).expect("line2"),
+            line
+        );
+    }
+
+    #[test]
+    fn rsa_pkcs8_to_openssh_and_back() {
+        let pkcs8 = crate::rsa_pss::rsa_generate_private_key_pkcs8(2048).expect("rsa");
+        let pem = openssh_rsa_private_key_from_pkcs8(&pkcs8, Some("rsa".to_string()), None, None).expect("openssh");
+        let line = openssh_private_key_to_public_key_line(&pem, None, None).expect("line");
+        assert!(line.starts_with("ssh-rsa "));
+        assert_eq!(openssh_public_key_algorithm(&line).expect("alg"), OPENSSH_ALG_RSA);
     }
 }

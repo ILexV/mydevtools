@@ -24,6 +24,7 @@
   "Download": "Als TXT herunterladen",
   "Clear": "Löschen",
   "Copied": "Kopiert!",
+  "CopyFailed": "Kopieren in die Zwischenablage fehlgeschlagen. Text markieren und manuell kopieren.",
   "Seo_Introduction": "Der UUID Generator ist ein datenschutzorientiertes Online-Tool für Entwickler. Die gesamte Verarbeitung erfolgt lokal in Ihrem Browser mit WebAssembly, sodass Ihre Daten Ihr Gerät nie verlassen.",
   "Seo_DetailedDescription": "Dieses Tool bietet umfassende Funktionen zur UUID-Generierung. Es wurde mit modernen Webtechnologien erstellt und verwendet Rust-kompiliertes WebAssembly für nahezu native Leistung direkt im Browser.\n\nDie Benutzeroberfläche ist auf Effizienz und Benutzerfreundlichkeit ausgelegt. Alle Operationen werden clientseitig ausgeführt, was vollständige Privatsphäre und Sicherheit garantiert.",
   "Seo_Examples": "**Beispiel 1**: Verwenden Sie den UUID Generator für schnelle Erstellung von eindeutigen Bezeichnern.\n\n**Beispiel 2**: Generieren Sie IDs direkt ohne Serverkommunikation für maximale Privatsphäre.\n\n**Beispiel 3**: Integrieren Sie das Tool in Ihre täglichen Entwicklungsaufgaben für mehr Produktivität.",

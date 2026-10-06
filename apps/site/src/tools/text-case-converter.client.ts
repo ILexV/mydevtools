@@ -1,12 +1,15 @@
 /**
  * Text Case Converter client. Wires each case button to apply its transform
  * in-place to the textarea. Clear empties; Copy writes to clipboard with
- * transient feedback. All transforms come from `text-case.ts` (pure JS).
+ * transient `.is-copied` feedback (localized error if the Clipboard API is
+ * unavailable). All transforms come from `text-case.ts` (pure JS).
  */
 import { convertCase, type CaseType } from "@/tools/text-case";
+import { copyWithFeedback } from "@/scripts/tool-ui";
 
 interface Strings {
   copied: string;
+  copyFailed: string;
 }
 
 function readStrings(): Strings | null {
@@ -29,6 +32,12 @@ function init(): void {
   const textarea = root.querySelector<HTMLTextAreaElement>("[data-tcc-textarea]");
   if (!textarea) return;
   const input = textarea;
+  const errorEl = root.querySelector<HTMLElement>("[data-tcc-error]");
+  const showError = (message: string | null) => {
+    if (!errorEl) return;
+    errorEl.textContent = message ?? "";
+    errorEl.hidden = message === null;
+  };
 
   root.addEventListener("click", (e: MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -37,29 +46,22 @@ function init(): void {
       e.preventDefault();
       const type = caseBtn.dataset.tccCase as CaseType;
       input.value = convertCase(input.value, type);
+      showError(null);
       return;
     }
     if (target.closest("[data-tcc-clear]")) {
       e.preventDefault();
       input.value = "";
+      showError(null);
       input.focus();
       return;
     }
     const copyBtn = target.closest<HTMLButtonElement>("[data-tcc-copy]");
     if (copyBtn) {
       e.preventDefault();
-      void navigator.clipboard
-        .writeText(input.value)
-        .then(() => {
-          const orig = copyBtn.textContent;
-          copyBtn.textContent = strings.copied;
-          window.setTimeout(() => {
-            copyBtn.textContent = orig;
-          }, 1200);
-        })
-        .catch(() => {
-          /* clipboard unavailable */
-        });
+      void copyWithFeedback(copyBtn, input.value, strings.copied).then((ok) => {
+        showError(ok ? null : strings.copyFailed);
+      });
     }
   });
 }

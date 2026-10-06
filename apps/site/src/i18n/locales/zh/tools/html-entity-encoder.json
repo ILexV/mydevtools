@@ -26,6 +26,8 @@
   "LinkBase64": "Base64",
   "LinkHex": "Hex",
   "LinkXml": "XML 美化器",
+  "Error_CopyFailed": "无法复制：剪贴板不可用。",
+  "OutputSummary": "结果：{0} 个字符",
   "Seo_Introduction": "HTML 实体编码器是一款面向开发人员和网页设计师的隐私优先工具。所有处理都在您的浏览器中本地完成，数据永远不会离开您的设备。",
   "Seo_DetailedDescription": "此工具提供将特殊字符编码为 HTML 实体并解码的完整功能。它支持多种格式：命名实体 (&amp;)、十进制数字引用 (&#38;) 和十六进制引用 (&#x26;)。\n\n界面设计注重效率和易用性，可选择仅编码特殊字符、仅非 ASCII 字符或所有字符。所有操作都在客户端执行，保证您数据的完全隐私和安全。",
   "Seo_Examples": "**示例 1**：编码 HTML 特殊字符以在网页中安全显示。\n- 输入：`<div class=\"example\">Hello & Welcome!</div>`\n- 输出：`&lt;div class=&quot;example&quot;&gt;Hello &amp; Welcome!&lt;/div&gt;`\n\n**示例 2**：将 HTML 实体解码回可读文本。\n- 输入：`&copy; 2024 Company &amp; Partners`\n- 输出：`© 2024 Company & Partners`\n\n**示例 3**：编码非 ASCII 字符以实现最大兼容性。\n- 输入：`Café résumé naïve`\n- 输出：`Caf&#233; r&#233;sum&#233; na&#239;ve`",

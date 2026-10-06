@@ -25,5 +25,15 @@
   "EncoderTitle": "JWT Кодировщик",
   "DecoderTitle": "JWT Декодер",
   "Copy": "Копировать",
-  "Copied": "Скопировано!"
+  "Copied": "Скопировано!",
+  "TokenLabel": "Закодированный JWT",
+  "InvalidToken": "Некорректный JWT: {message}",
+  "EnterSecret": "Введите секрет (HS*) или открытый ключ RSA (RS*), чтобы проверить подпись.",
+  "UnsignedToken": "Неподписанный токен (alg: none) — его нельзя проверить и нельзя ему доверять.",
+  "UnsupportedAlgorithm": "Проверка подписи {alg} не поддерживается (только HS256/384/512 и RS256/384/512).",
+  "ClaimExpired": "Истёк {date}",
+  "ClaimExpiresAt": "Истекает {date}",
+  "ClaimNotBefore": "Недействителен до {date}",
+  "ClaimValidFrom": "Действителен с {date}",
+  "ClaimIssuedAt": "Выпущен {date}"
 }

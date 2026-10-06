@@ -118,3 +118,15 @@ export async function decodeText(options: EncodingOptions, input: string): Promi
   const bytes = await decodeToBytes(options, input);
   return wrap(() => enc.decode_bytes_to_text(bytes, options.charset));
 }
+
+/** Text → bytes in the given charset (throws WasmError for unrepresentable chars). */
+export async function textToBytes(text: string, charset: string): Promise<Uint8Array> {
+  await ensureReady();
+  return wrap(() => enc.encode_text_to_bytes(text, charset));
+}
+
+/** Bytes → text in the given charset (throws WasmError when not valid text). */
+export async function bytesToText(bytes: Uint8Array, charset: string): Promise<string> {
+  await ensureReady();
+  return wrap(() => enc.decode_bytes_to_text(bytes, charset));
+}

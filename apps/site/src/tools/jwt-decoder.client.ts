@@ -1,22 +1,34 @@
 /**
  * JWT Decoder client controller. Live-decodes the token on input via
  * `jwtDecode` (crypto WASM), splits pretty header/payload JSON into the two
- * output areas, shows the algorithm badge from the header, and verifies the
- * signature with `jwtVerify` on every input/secret change (legacy parity:
- * verify failures and empty secrets both render "invalid").
+ * output areas, shows the algorithm badge and exp/nbf/iat claims, and
+ * verifies the signature with `jwtVerify` on every input/secret change.
+ * Status: verified / invalid / unsigned (`alg: none`) / unsupported alg /
+ * "enter a secret" when the secret is empty (instead of a bare "invalid").
  */
 import { jwtDecode, jwtVerify } from "@/scripts/wasm/crypto-client";
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { algFromHeader, classifyAlg, normalizeToken, timeClaims } from "@/tools/jwt";
 
 interface Strings {
   signatureVerified: string;
   signatureInvalid: string;
+  invalidToken: string;
+  enterSecret: string;
+  unsignedToken: string;
+  unsupportedAlgorithm: string;
+  claimExpired: string;
+  claimExpiresAt: string;
+  claimNotBefore: string;
+  claimValidFrom: string;
+  claimIssuedAt: string;
 }
 
+type StatusKind = "success" | "error" | "warning" | "neutral";
+
 const ICON_VALID =
-  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>';
+  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>';
 const ICON_INVALID =
-  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>';
+  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>';
 
 function readStrings(): Strings | null {
   const el = document.querySelector<HTMLScriptElement>("[data-jwtd-strings]");
@@ -42,7 +54,8 @@ function init() {
   const errorBox = root.querySelector<HTMLElement>("[data-jwtd-error]");
   const status = root.querySelector<HTMLElement>("[data-jwtd-status]");
   const algBadge = root.querySelector<HTMLElement>("[data-jwtd-alg]");
-  if (!encoded || !header || !payload || !secret || !status || !algBadge) return;
+  const claims = root.querySelector<HTMLElement>("[data-jwtd-claims]");
+  if (!encoded || !header || !payload || !secret || !status || !algBadge || !errorBox || !claims) return;
 
   const encodedArea: HTMLTextAreaElement = encoded;
   const headerArea: HTMLTextAreaElement = header;
@@ -50,42 +63,76 @@ function init() {
   const secretArea: HTMLTextAreaElement = secret;
   const statusBox: HTMLElement = status;
   const algEl: HTMLElement = algBadge;
+  const errorEl: HTMLElement = errorBox;
+  const claimsList: HTMLElement = claims;
+  const dateFmt = new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
+    dateStyle: "medium",
+    timeStyle: "medium",
+  });
 
   let runId = 0;
+
+  function setError(message: string | null) {
+    errorEl.textContent = message ?? "";
+    errorEl.hidden = message === null;
+    if (message === null) encodedArea.removeAttribute("aria-invalid");
+    else encodedArea.setAttribute("aria-invalid", "true");
+  }
 
   function clearOutputs() {
     headerArea.value = "";
     payloadArea.value = "";
     algEl.textContent = "ALG";
     statusBox.hidden = true;
-    statusBox.classList.remove("is-valid", "is-invalid");
     statusBox.innerHTML = "";
+    claimsList.hidden = true;
+    claimsList.replaceChildren();
   }
 
-  function algFromHeader(headerJson: string): string {
-    try {
-      const obj = JSON.parse(headerJson) as { alg?: unknown };
-      return typeof obj.alg === "string" && obj.alg ? obj.alg : "HS256";
-    } catch {
-      return "HS256";
-    }
-  }
-
-  function showStatus(verified: boolean) {
+  function showStatus(kind: StatusKind, message: string, icon = "") {
     statusBox.hidden = false;
-    statusBox.classList.remove("is-valid", "is-invalid");
-    statusBox.classList.add(verified ? "is-valid" : "is-invalid");
-    statusBox.innerHTML = `${verified ? ICON_VALID : ICON_INVALID}<span>${
-      verified ? strings.signatureVerified : strings.signatureInvalid
-    }</span>`;
+    statusBox.className = `ds-alert ds-alert-${kind} jwtd-status`;
+    statusBox.innerHTML = icon;
+    const span = document.createElement("span");
+    span.textContent = message;
+    statusBox.appendChild(span);
+  }
+
+  function renderClaims(payloadJson: string) {
+    const items = timeClaims(payloadJson, Date.now() / 1000);
+    claimsList.replaceChildren(
+      ...items.map((c) => {
+        const li = document.createElement("li");
+        const code = document.createElement("code");
+        code.textContent = c.claim;
+        const text = document.createElement("span");
+        let date: string;
+        try {
+          date = dateFmt.format(new Date(c.seconds * 1000));
+        } catch {
+          date = String(c.seconds); // out of Date range
+        }
+        const template =
+          c.claim === "exp"
+            ? c.problem ? strings.claimExpired : strings.claimExpiresAt
+            : c.claim === "nbf"
+              ? c.problem ? strings.claimNotBefore : strings.claimValidFrom
+              : strings.claimIssuedAt;
+        text.textContent = template.replace("{date}", date);
+        text.className = `ds-status${c.problem ? " is-error" : ""}`;
+        li.append(code, text);
+        return li;
+      }),
+    );
+    claimsList.hidden = items.length === 0;
   }
 
   async function updateAll() {
     const id = ++runId;
-    const token = encodedArea.value.trim();
+    const token = normalizeToken(encodedArea.value);
 
     if (!token) {
-      if (errorBox) errorBox.hidden = true;
+      setError(null);
       clearOutputs();
       return;
     }
@@ -95,16 +142,13 @@ function init() {
       decodedJson = await jwtDecode(token);
     } catch (err) {
       if (id !== runId) return;
-      if (errorBox) {
-        errorBox.textContent =
-          err instanceof WasmError || err instanceof Error ? err.message : String(err);
-        errorBox.hidden = false;
-      }
+      const detail = err instanceof Error ? err.message : String(err);
+      setError(strings.invalidToken.replace("{message}", detail));
       clearOutputs();
       return;
     }
     if (id !== runId) return;
-    if (errorBox) errorBox.hidden = true;
+    setError(null);
 
     let headerJson = "";
     let payloadJson = "";
@@ -118,30 +162,43 @@ function init() {
 
     headerArea.value = headerJson;
     payloadArea.value = payloadJson;
+    renderClaims(payloadJson);
 
-    const alg = algFromHeader(headerJson);
+    const alg = algFromHeader(headerJson) ?? "HS256";
     algEl.textContent = alg;
+    const kind = classifyAlg(alg);
+
+    if (kind === "none") {
+      showStatus("warning", strings.unsignedToken, ICON_INVALID);
+      return;
+    }
+    if (kind === "unsupported") {
+      showStatus("warning", strings.unsupportedAlgorithm.replace("{alg}", alg));
+      return;
+    }
+    if (!secretArea.value) {
+      showStatus("neutral", strings.enterSecret);
+      return;
+    }
 
     let verified = false;
     try {
       verified = await jwtVerify(token, secretArea.value, alg);
     } catch {
-      verified = false;
+      verified = false; // malformed signature segment / bad PEM → not verified
     }
     if (id !== runId) return;
-    showStatus(verified);
+    showStatus(
+      verified ? "success" : "error",
+      verified ? strings.signatureVerified : strings.signatureInvalid,
+      verified ? ICON_VALID : ICON_INVALID,
+    );
   }
 
-  encodedArea.addEventListener("input", () => {
-    void updateAll();
-  });
-  secretArea.addEventListener("input", () => {
-    void updateAll();
-  });
+  encodedArea.addEventListener("input", () => void updateAll());
+  secretArea.addEventListener("input", () => void updateAll());
 
-  if (encodedArea.value) {
-    void updateAll();
-  }
+  if (encodedArea.value) void updateAll();
 }
 
 if (document.readyState === "loading") {

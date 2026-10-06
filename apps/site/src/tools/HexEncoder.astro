@@ -1,15 +1,20 @@
 ---
 /**
- * Hex Encoder / Decoder tool UI. Static shell; behavior lives in
- * `hex-encoder.client.ts`, which calls the shared `encoding-client`
- * (one-shot text ops) and `encoding-file-client` (worker-backed file ops with
- * progress + cancel).
+ * Hex Encoder / Decoder tool UI. Static shell on the shared tool UI kit
+ * (`ds-*`, docs/qa/tool-ui-kit.md); behavior lives in `hex-encoder.client.ts`,
+ * which calls the shared `encoding-client` (one-shot text ops) and
+ * `encoding-file-client` (worker-backed file ops with progress + cancel).
  *
  * Locale strings for the tool namespace are embedded as a JSON island so the
  * browser controller gets only its own strings.
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import FileDrop from "@/components/tool/FileDrop.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import Progress from "@/components/tool/Progress.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -21,7 +26,6 @@ const ns = "tools/hex-encoder";
 const s = {
   inputTextLabel: t(lang, ns, "InputTextLabel"),
   inputTextPlaceholder: t(lang, ns, "InputTextPlaceholder"),
-  inputFileLabel: t(lang, ns, "InputFileLabel"),
   fileHint: t(lang, ns, "FileHint"),
   charsetLabel: t(lang, ns, "CharsetLabel"),
   caseLabel: t(lang, ns, "CaseLabel"),
@@ -44,102 +48,130 @@ const s = {
   download: t(lang, ns, "Download"),
   fileProgressTitle: t(lang, ns, "FileProgressTitle"),
   cancel: t(lang, ns, "Cancel"),
+  previewTruncated: t(lang, ns, "PreviewTruncated"),
+  fileDecoded: t(lang, ns, "FileDecoded"),
+  statsOutput: t(lang, ns, "StatsOutput"),
+  errInvalidChar: t(lang, ns, "Error_InvalidChar"),
+  errNotRepresentable: t(lang, ns, "Error_NotRepresentable"),
+  errInvalidLength: t(lang, ns, "Error_InvalidLength"),
+  errWhitespace: t(lang, ns, "Error_Whitespace"),
+  errPadding: t(lang, ns, "Error_Padding"),
+  errNotText: t(lang, ns, "Error_NotText"),
+  errInvalidData: t(lang, ns, "Error_InvalidData"),
+  errCopyFailed: t(lang, ns, "Error_CopyFailed"),
   error: t(lang, "common", "Common_Error"),
   clearFile: t(lang, "common", "Common_ClearFile"),
+  dropTitle: t(lang, "common", "Common_FileDropTitle"),
+  chooseFile: t(lang, "common", "Common_FileChooseButton"),
 };
 const stringsJson = JSON.stringify(s);
 ---
 
-<div class="hex-tool" data-hex-tool>
-  <div class="hex-grid">
-    <section class="hex-input">
-      <label class="field-label" for="hex-input-text">{s.inputTextLabel}</label>
-      <textarea id="hex-input-text" data-hex-input rows="8" placeholder={s.inputTextPlaceholder}></textarea>
+<div class="ds-stack" data-hex-tool>
+  <div class="ds-tool-grid">
+    <section class="ds-card ds-stack">
+      <Field label={s.inputTextLabel} for="hex-input-text">
+        <textarea
+          id="hex-input-text"
+          class="ds-field-textarea mono"
+          data-hex-input
+          rows="8"
+          spellcheck="false"
+          placeholder={s.inputTextPlaceholder}
+        ></textarea>
+      </Field>
 
-      <div class="file-row">
-        <label class="file-btn">
-          <input type="file" data-hex-file hidden />
-          {s.inputFileLabel}
-        </label>
-        <span class="file-name" data-hex-filename></span>
-        <button type="button" class="link-btn" data-hex-file-clear hidden>{s.clearFile}</button>
-      </div>
-      <p class="file-hint">{s.fileHint}</p>
+      <FileDrop
+        compact
+        data-hex-drop
+        title={s.dropTitle}
+        sub={s.fileHint}
+        buttonLabel={s.chooseFile}
+        inputProps={{ "data-hex-file": true }}
+      >
+        <div class="ds-file-row">
+          <span class="ds-file-name" data-hex-filename aria-live="polite"></span>
+          <button type="button" class="ds-btn-link" data-hex-file-clear hidden>{s.clearFile}</button>
+        </div>
+      </FileDrop>
 
-      <div class="settings-grid">
-        <div class="setting">
-          <label class="field-label" for="hex-charset">{s.charsetLabel}</label>
-          <select id="hex-charset" data-hex-charset>
+      <div class="ds-settings">
+        <Field label={s.charsetLabel} for="hex-charset">
+          <select id="hex-charset" class="ds-field-select" data-hex-charset>
             <option value="utf-8">UTF-8</option>
             <option value="utf-16le">UTF-16LE</option>
             <option value="utf-16be">UTF-16BE</option>
             <option value="ascii">ASCII</option>
             <option value="latin1">ISO-8859-1 (Latin-1)</option>
           </select>
-        </div>
-
-        <div class="setting">
-          <label class="field-label" for="hex-case">{s.caseLabel}</label>
-          <select id="hex-case" data-hex-case>
+        </Field>
+        <Field label={s.caseLabel} for="hex-case">
+          <select id="hex-case" class="ds-field-select" data-hex-case>
             <option value="lower">{s.caseLower}</option>
             <option value="upper">{s.caseUpper}</option>
           </select>
-        </div>
-
-        <div class="setting setting-wide">
-          <label class="field-label" for="hex-output-mode">{s.outputModeLabel}</label>
-          <select id="hex-output-mode" data-hex-output-mode>
+        </Field>
+        <Field class="ds-settings-wide" label={s.outputModeLabel} for="hex-output-mode">
+          <select id="hex-output-mode" class="ds-field-select" data-hex-output-mode>
             <option value="preview">{s.outputModePreview}</option>
             <option value="full">{s.outputModeFull}</option>
           </select>
-        </div>
-
-        <fieldset class="check-group setting-wide">
-          <legend>{s.decodeOptionsLabel}</legend>
-          <label class="check-row">
-            <input type="checkbox" data-hex-ignore-whitespace checked />
+        </Field>
+        <fieldset class="ds-check-group ds-settings-wide">
+          <legend class="ds-label">{s.decodeOptionsLabel}</legend>
+          <label class="ds-check-row">
+            <input type="checkbox" class="ds-check" data-hex-ignore-whitespace checked />
             <span>{s.ignoreWhitespace}</span>
           </label>
-          <label class="check-row">
-            <input type="checkbox" data-hex-allow-separators checked />
+          <label class="ds-check-row">
+            <input type="checkbox" class="ds-check" data-hex-allow-separators checked />
             <span>{s.allowSeparators}</span>
           </label>
-          <label class="check-row">
-            <input type="checkbox" data-hex-allow-0x checked />
+          <label class="ds-check-row">
+            <input type="checkbox" class="ds-check" data-hex-allow-0x checked />
             <span>{s.allow0x}</span>
           </label>
         </fieldset>
       </div>
-
-      <div class="hex-actions">
-        <button type="button" class="primary-btn" data-hex-encode>{s.actionEncode}</button>
-        <button type="button" class="ghost-btn" data-hex-decode>{s.actionDecode}</button>
-        <button type="button" class="ghost-btn" data-hex-swap>{s.actionSwap}</button>
-        <button type="button" class="ghost-btn" data-hex-clear>{s.actionClear}</button>
-      </div>
-
-      <p class="hex-error" data-hex-error role="alert" hidden></p>
     </section>
 
-    <section class="hex-output">
-      <label class="field-label" for="hex-output">{s.outputLabel}</label>
-      <textarea id="hex-output" data-hex-output rows="18" readonly></textarea>
+    <section class="ds-card ds-stack">
+      <OutputPanel label={s.outputLabel} for="hex-output">
+        <Fragment slot="actions">
+          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-hex-copy>{s.copy}</button>
+          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-hex-download disabled>{s.download}</button>
+        </Fragment>
+        <textarea
+          id="hex-output"
+          class="ds-field-textarea mono enc-output"
+          data-hex-output
+          rows="16"
+          spellcheck="false"
+          readonly
+        ></textarea>
+        <p class="ds-hint" data-hex-stats aria-live="polite"></p>
+      </OutputPanel>
 
-      <div class="hex-progress" data-hex-progress hidden>
-        <div class="progress-head">
-          <span class="progress-title">{s.fileProgressTitle}</span>
-          <button type="button" class="ghost-btn small-btn" data-hex-cancel>{s.cancel}</button>
-        </div>
-        <div class="progress-track"><div class="progress-fill" data-hex-progress-fill></div></div>
-        <span class="progress-label" data-hex-progress-label></span>
-      </div>
-
-      <div class="output-actions">
-        <button type="button" class="ghost-btn" data-hex-copy>{s.copy}</button>
-        <button type="button" class="ghost-btn" data-hex-download disabled>{s.download}</button>
-      </div>
+      <Progress
+        data-hex-progress
+        title={s.fileProgressTitle}
+        cancelLabel={s.cancel}
+        cancelProps={{ "data-hex-cancel": true }}
+        barProps={{ "data-hex-progress-bar": true }}
+        fillProps={{ "data-hex-progress-fill": true }}
+        labelProps={{ "data-hex-progress-label": true }}
+      />
     </section>
   </div>
+
+  <div class="ds-actions">
+    <button type="button" class="ds-btn ds-btn-primary" data-hex-encode>{s.actionEncode}</button>
+    <button type="button" class="ds-btn" data-hex-decode>{s.actionDecode}</button>
+    <button type="button" class="ds-btn" data-hex-swap>{s.actionSwap}</button>
+    <button type="button" class="ds-btn" data-hex-clear>{s.actionClear}</button>
+  </div>
+
+  <StatusMessage kind="error" data-hex-error />
 </div>
 
 <script is:inline type="application/json" data-hex-strings set:html={stringsJson} />
@@ -148,129 +180,8 @@ const stringsJson = JSON.stringify(s);
 </script>
 
 <style>
-  .hex-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+  /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
+  .enc-output {
+    word-break: break-all;
   }
-  @media (min-width: 900px) {
-    .hex-grid { grid-template-columns: 1fr 1fr; }
-  }
-  .field-label {
-    display: block;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--mdt-text-muted);
-    margin-bottom: 0.4rem;
-  }
-  .hex-input textarea,
-  .hex-output textarea {
-    width: 100%;
-    resize: vertical;
-    padding: 0.7rem;
-    border: 1px solid var(--mdt-border);
-    border-radius: var(--mdt-radius);
-    background: var(--mdt-surface-raised);
-    color: var(--mdt-text);
-    font-family: var(--mdt-font-mono);
-    font-size: 0.9rem;
-  }
-  .hex-input textarea:focus,
-  .hex-output textarea:focus {
-    outline: 2px solid var(--mdt-focus-ring);
-    outline-offset: 1px;
-  }
-  .file-row { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap; }
-  .file-btn {
-    display: inline-flex;
-    padding: 0.5rem 0.9rem;
-    border: 1px solid var(--mdt-border);
-    border-radius: var(--mdt-radius-sm);
-    cursor: pointer;
-    font-size: 0.88rem;
-  }
-  .file-btn:hover { border-color: var(--mdt-accent); }
-  .file-name { font-size: 0.85rem; color: var(--mdt-text-muted); font-family: var(--mdt-font-mono); word-break: break-all; }
-  .file-hint { font-size: 0.8rem; color: var(--mdt-text-muted); margin-top: 0.4rem; }
-
-  .settings-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-    gap: 0.75rem;
-    margin-top: 1rem;
-    padding: 0.9rem;
-    border: 1px solid var(--mdt-border);
-    border-radius: var(--mdt-radius);
-    background: var(--mdt-surface-muted);
-  }
-  .setting-wide { grid-column: 1 / -1; }
-  .setting select {
-    width: 100%;
-    padding: 0.45rem 0.6rem;
-    border: 1px solid var(--mdt-border);
-    border-radius: var(--mdt-radius-sm);
-    background: var(--mdt-surface-raised);
-    color: var(--mdt-text);
-    font-size: 0.88rem;
-  }
-  .check-group {
-    border: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-  .check-group legend {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--mdt-text-muted);
-    padding: 0;
-    margin-bottom: 0.2rem;
-  }
-  .check-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.88rem;
-    cursor: pointer;
-  }
-  .check-row input { accent-color: var(--mdt-accent); }
-
-  .hex-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1rem; }
-  .primary-btn, .ghost-btn {
-    padding: 0.65rem 1.2rem;
-    border-radius: var(--mdt-radius);
-    font-weight: 600;
-    cursor: pointer;
-    border: 1px solid transparent;
-  }
-  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
-  .primary-btn:hover { filter: brightness(1.05); }
-  .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .ghost-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
-  .ghost-btn:hover { border-color: var(--mdt-accent); }
-  .ghost-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .small-btn { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
-  .link-btn { background: none; border: none; color: var(--mdt-accent); cursor: pointer; font-size: 0.82rem; padding: 0; }
-
-  .hex-error {
-    padding: 0.7rem 0.9rem;
-    border: 1px solid var(--mdt-danger);
-    border-radius: var(--mdt-radius-sm);
-    color: var(--mdt-danger);
-    background: color-mix(in srgb, var(--mdt-danger) 8%, transparent);
-    font-size: 0.88rem;
-    margin-top: 1rem;
-  }
-
-  .hex-output { display: flex; flex-direction: column; }
-  .hex-progress { margin-top: 0.75rem; }
-  .progress-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
-  .progress-title { font-size: 0.85rem; font-weight: 600; color: var(--mdt-text-muted); }
-  .progress-track { height: 0.5rem; background: var(--mdt-surface-muted); border-radius: 999px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--mdt-accent); width: 0%; transition: width 0.12s linear; }
-  .progress-label { display: block; font-size: 0.8rem; color: var(--mdt-text-muted); margin-top: 0.35rem; font-family: var(--mdt-font-mono); }
-
-  .output-actions { display: flex; gap: 0.6rem; margin-top: 0.75rem; justify-content: flex-end; }
 </style>

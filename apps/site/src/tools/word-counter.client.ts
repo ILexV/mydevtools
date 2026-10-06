@@ -1,34 +1,15 @@
 /**
- * Word Counter client. Recomputes stats on every input. Pure JS, no network.
- * Reading time = words/200 wpm; speaking time = words/130 wpm (legacy parity).
+ * Word Counter client. Recomputes stats on every input (rules in
+ * `word-stats.ts`). Pure JS, no network. Paste/copy go through the Clipboard
+ * API; failures surface a localized error instead of failing silently.
  */
-interface Stats {
-  words: number;
-  charsSpaces: number;
-  charsNoSpaces: number;
-  lines: number;
-  paragraphs: number;
-  sentences: number;
-}
-
-function computeStats(text: string): Stats {
-  const words = (text.match(/\S+/g) ?? []).length;
-  const charsSpaces = text.length;
-  const charsNoSpaces = text.replace(/\s/g, "").length;
-  const lines = text.length === 0 ? 0 : text.split(/\r?\n/).length;
-  const paragraphs = (text.split(/\n\s*\n/).filter((p) => p.trim().length > 0)).length;
-  const sentences = (text.match(/[^.!?]+[.!?]+/g) ?? []).length + ((/\S/.test(text) && !/[.!?]$/.test(text.trim())) ? 1 : 0);
-  return { words, charsSpaces, charsNoSpaces, lines, paragraphs, sentences };
-}
-
-function minutes(wpm: number, words: number): number {
-  if (words === 0) return 0;
-  return Math.max(1, Math.round(words / wpm));
-}
+import { computeStats, readingMinutes } from "@/tools/word-stats";
+import { copyWithFeedback } from "@/scripts/tool-ui";
 
 interface Strings {
-  copy: string;
   copied: string;
+  copyFailed: string;
+  pasteFailed: string;
   minutes: string;
 }
 
@@ -45,10 +26,12 @@ function readStrings(): Strings | null {
 function init() {
   const root = document.querySelector<HTMLElement>("[data-wc-tool]");
   if (!root) return;
-  const strings = readStrings();
+  const raw = readStrings();
   const textareaEl = root.querySelector<HTMLTextAreaElement>("[data-wc-textarea]");
-  if (!textareaEl) return;
+  if (!raw || !textareaEl) return;
+  const strings: Strings = raw;
   const textarea = textareaEl;
+  const errorEl = root.querySelector<HTMLElement>("[data-wc-error]");
 
   const els = {
     words: root.querySelector<HTMLElement>("[data-wc-words]"),
@@ -60,46 +43,51 @@ function init() {
     reading: root.querySelector<HTMLElement>("[data-wc-reading]"),
     speaking: root.querySelector<HTMLElement>("[data-wc-speaking]"),
   };
+  const nf = new Intl.NumberFormat(document.documentElement.lang || undefined);
+
+  function showError(message: string | null) {
+    if (!errorEl) return;
+    errorEl.textContent = message ?? "";
+    errorEl.hidden = message === null;
+  }
 
   function render() {
     const s = computeStats(textarea.value);
-    if (els.words) els.words.textContent = String(s.words);
-    if (els.charsSpaces) els.charsSpaces.textContent = String(s.charsSpaces);
-    if (els.charsNoSpaces) els.charsNoSpaces.textContent = String(s.charsNoSpaces);
-    if (els.lines) els.lines.textContent = String(s.lines);
-    if (els.paragraphs) els.paragraphs.textContent = String(s.paragraphs);
-    if (els.sentences) els.sentences.textContent = String(s.sentences);
-    const minSuffix = strings?.minutes ?? "min";
-    if (els.reading) els.reading.textContent = `${minutes(200, s.words)} ${minSuffix}`;
-    if (els.speaking) els.speaking.textContent = `${minutes(130, s.words)} ${minSuffix}`;
+    if (els.words) els.words.textContent = nf.format(s.words);
+    if (els.charsSpaces) els.charsSpaces.textContent = nf.format(s.charsSpaces);
+    if (els.charsNoSpaces) els.charsNoSpaces.textContent = nf.format(s.charsNoSpaces);
+    if (els.lines) els.lines.textContent = nf.format(s.lines);
+    if (els.paragraphs) els.paragraphs.textContent = nf.format(s.paragraphs);
+    if (els.sentences) els.sentences.textContent = nf.format(s.sentences);
+    if (els.reading) els.reading.textContent = `${nf.format(readingMinutes(s.words, 200))} ${strings.minutes}`;
+    if (els.speaking) els.speaking.textContent = `${nf.format(readingMinutes(s.words, 130))} ${strings.minutes}`;
   }
 
-  textarea.addEventListener("input", render);
+  textarea.addEventListener("input", () => {
+    showError(null);
+    render();
+  });
 
   root.querySelector<HTMLButtonElement>("[data-wc-clear]")?.addEventListener("click", () => {
     textarea.value = "";
+    showError(null);
     render();
     textarea.focus();
   });
 
-  root.querySelector<HTMLButtonElement>("[data-wc-copy]")?.addEventListener("click", async (e) => {
-    try {
-      await navigator.clipboard.writeText(textarea.value);
-      const btn = e.currentTarget as HTMLButtonElement;
-      const orig = btn.textContent;
-      btn.textContent = strings?.copied ?? "Copied";
-      setTimeout(() => { btn.textContent = orig; }, 1200);
-    } catch {
-      /* clipboard unavailable */
-    }
+  const copyBtn = root.querySelector<HTMLButtonElement>("[data-wc-copy]");
+  copyBtn?.addEventListener("click", async () => {
+    const ok = await copyWithFeedback(copyBtn, textarea.value, strings.copied);
+    showError(ok ? null : strings.copyFailed);
   });
 
   root.querySelector<HTMLButtonElement>("[data-wc-paste]")?.addEventListener("click", async () => {
     try {
       textarea.value = await navigator.clipboard.readText();
+      showError(null);
       render();
     } catch {
-      /* clipboard read blocked */
+      showError(strings.pasteFailed);
     }
   });
 

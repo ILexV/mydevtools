@@ -1,7 +1,8 @@
 /**
  * Unit Converter client. Drives category/from/to selects + value input → live
  * result, swap, copy, formula note, quick-conversion chips, and a common
- * conversions sidebar. All math via `units.ts`; matches legacy behavior.
+ * conversions sidebar. Math via `units.ts`; numbers are shown in the page
+ * locale (`formatNumberLocale`), unit names come localized from the island.
  *
  * The category `<select>` options are rendered server-side; this controller
  * only wires behavior and populates the per-category from/to unit selects.
@@ -9,25 +10,19 @@
 import {
   commonConversions,
   convertValue,
-  formatNumber,
+  formatNumberLocale,
+  isBelowAbsoluteZero,
   unitData,
-  unitName,
   type Category,
 } from "@/tools/units";
+import { copyWithFeedback } from "@/scripts/tool-ui";
 
 interface Strings {
-  categoryLabel: string;
-  catLength: string;
-  catWeight: string;
-  catTemperature: string;
-  catVolume: string;
-  fromLabel: string;
-  toLabel: string;
-  swap: string;
+  lang: string;
   copied: string;
-  quickConversions: string;
-  commonConversionsLabel: string;
-  formula: string;
+  copyFailed: string;
+  belowAbsoluteZero: string;
+  unitNames: Record<string, string>;
 }
 
 function readStrings(): Strings | null {
@@ -42,25 +37,18 @@ function readStrings(): Strings | null {
 
 function init() {
   const root = document.querySelector<HTMLElement>("[data-unit-tool]");
-  if (!root) return;
+  if (!root || root.dataset.initialized) return;
+  root.dataset.initialized = "1";
   const raw = readStrings();
   if (!raw) return;
   const strings: Strings = raw;
 
-  // Required elements: query, null-guard, then alias to a non-null *declared*
-  // type so closures (render/event fns) see them as non-null.
   const categorySelectEl = root.querySelector<HTMLSelectElement>("[data-unit-category]");
   const fromUnitSelectEl = root.querySelector<HTMLSelectElement>("[data-unit-from]");
   const toUnitSelectEl = root.querySelector<HTMLSelectElement>("[data-unit-to]");
   const fromValueInputEl = root.querySelector<HTMLInputElement>("[data-unit-from-value]");
   const toValueInputEl = root.querySelector<HTMLInputElement>("[data-unit-to-value]");
-  if (
-    !categorySelectEl ||
-    !fromUnitSelectEl ||
-    !toUnitSelectEl ||
-    !fromValueInputEl ||
-    !toValueInputEl
-  ) {
+  if (!categorySelectEl || !fromUnitSelectEl || !toUnitSelectEl || !fromValueInputEl || !toValueInputEl) {
     return;
   }
   const categorySelect = categorySelectEl;
@@ -69,94 +57,102 @@ function init() {
   const fromValueInput = fromValueInputEl;
   const toValueInput = toValueInputEl;
 
-  // Optional elements (guarded per-use).
   const swapBtn = root.querySelector<HTMLButtonElement>("[data-unit-swap]");
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-unit-copy]");
   const formulaEl = root.querySelector<HTMLElement>("[data-unit-formula]");
   const quickEl = root.querySelector<HTMLElement>("[data-unit-quick]");
   const commonEl = root.querySelector<HTMLElement>("[data-unit-common]");
+  const warningEl = root.querySelector<HTMLElement>("[data-unit-warning]");
+  const errorEl = root.querySelector<HTMLElement>("[data-unit-error]");
 
-  let currentCategory: Category =
-    (categorySelect.value as Category) || "length";
+  const fmt = (n: number): string => formatNumberLocale(n, strings.lang);
+  const name = (id: string): string => strings.unitNames[id] ?? id;
+
+  let currentCategory: Category = (categorySelect.value as Category) || "length";
 
   // Build the from/to unit <option>s for a category and pick the default pair
   // (first two units, mirroring the legacy defaults).
   function populateUnitSelects(category: Category) {
-    const units = unitData[category].units;
-    const keys = Object.keys(units);
-    const html = keys
-      .map((k) => `<option value="${k}">${units[k].name}</option>`)
-      .join("");
-    fromUnitSelect.innerHTML = html;
-    toUnitSelect.innerHTML = html;
+    const keys = Object.keys(unitData[category].units);
+    const options = (): HTMLOptionElement[] => keys.map((k) => new Option(name(k), k));
+    fromUnitSelect.replaceChildren(...options());
+    toUnitSelect.replaceChildren(...options());
     fromUnitSelect.value = keys[0];
     toUnitSelect.value = keys[1] ?? keys[0];
   }
 
   function updateFormula(value: number, from: string, to: string, result: number) {
     if (!formulaEl) return;
-    const fromName = unitName(currentCategory, from);
-    const toName = unitName(currentCategory, to);
     let formula: string;
     if (currentCategory === "temperature") {
-      if (from === to) {
-        formula = `${value} ${fromName} = ${value} ${toName}`;
-      } else {
-        formula = `${value} ${fromName} → ${formatNumber(result)} ${toName}`;
-      }
+      formula = `${fmt(value)} ${name(from)} ${from === to ? "=" : "→"} ${fmt(result)} ${name(to)}`;
     } else {
       const units = unitData[currentCategory].units;
       const fromFactor = units[from]?.factor;
       const toFactor = units[to]?.factor;
-      const ratio =
-        fromFactor != null && toFactor != null ? fromFactor / toFactor : 1;
-      formula = `${value} × ${formatNumber(ratio)} = ${formatNumber(result)} ${toName}`;
+      const ratio = fromFactor != null && toFactor != null ? fromFactor / toFactor : 1;
+      formula = `${fmt(value)} ${name(from)} × ${fmt(ratio)} = ${fmt(result)} ${name(to)}`;
     }
     formulaEl.textContent = formula;
   }
 
-  function updateQuickConversions() {
+  function updateQuickConversions(value: number) {
     if (!quickEl) return;
-    const value = parseFloat(fromValueInput.value) || 1;
     const fromUnit = fromUnitSelect.value;
     const keys = Object.keys(unitData[currentCategory].units);
-    quickEl.innerHTML = keys
-      .filter((u) => u !== fromUnit)
-      .map((u) => {
-        const result = convertValue(value, fromUnit, u, currentCategory);
-        const name = unitName(currentCategory, u);
-        return `<button type="button" class="chip" data-unit-quick-pick="${u}">${formatNumber(result)} ${name}</button>`;
-      })
-      .join("");
+    quickEl.replaceChildren(
+      ...keys
+        .filter((u) => u !== fromUnit)
+        .map((u) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "ds-chip-btn";
+          btn.dataset.unitQuickPick = u;
+          btn.setAttribute("aria-pressed", String(u === toUnitSelect.value));
+          btn.textContent = `${fmt(convertValue(value, fromUnit, u, currentCategory))} ${name(u)}`;
+          return btn;
+        }),
+    );
   }
 
   function updateCommonConversions() {
     if (!commonEl) return;
-    commonEl.innerHTML = commonConversions[currentCategory]
-      .map((conv) => {
+    commonEl.replaceChildren(
+      ...commonConversions[currentCategory].map((conv) => {
         const result = convertValue(conv.from, conv.fromUnit, conv.toUnit, currentCategory);
-        const data = `${conv.from}|${conv.fromUnit}|${conv.toUnit}`;
-        return `<button type="button" class="common-row" data-unit-common-pick="${data}"><span class="mono">${conv.from} ${conv.fromUnit} = ${formatNumber(result)} ${conv.toUnit}</span></button>`;
-      })
-      .join("");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "ds-btn";
+        btn.dataset.unitCommonPick = `${conv.from}|${conv.fromUnit}|${conv.toUnit}`;
+        btn.textContent = `${fmt(conv.from)} ${conv.fromUnit} = ${fmt(result)} ${conv.toUnit}`;
+        btn.title = `${name(conv.fromUnit)} → ${name(conv.toUnit)}`;
+        return btn;
+      }),
+    );
   }
 
   function updateConversion() {
-    const value = parseFloat(fromValueInput.value);
+    const value = fromValueInput.valueAsNumber;
     const fromUnit = fromUnitSelect.value;
     const toUnit = toUnitSelect.value;
 
-    if (Number.isNaN(value)) {
+    if (!Number.isFinite(value)) {
       toValueInput.value = "";
       if (formulaEl) formulaEl.textContent = "";
-      if (quickEl) quickEl.innerHTML = "";
+      quickEl?.replaceChildren();
+      if (warningEl) warningEl.hidden = true;
       return;
     }
 
     const result = convertValue(value, fromUnit, toUnit, currentCategory);
-    toValueInput.value = formatNumber(result);
+    toValueInput.value = fmt(result);
+    if (warningEl) {
+      const below = currentCategory === "temperature" && isBelowAbsoluteZero(value, fromUnit);
+      warningEl.textContent = below ? strings.belowAbsoluteZero : "";
+      warningEl.hidden = !below;
+    }
     updateFormula(value, fromUnit, toUnit, result);
-    updateQuickConversions();
+    updateQuickConversions(value);
   }
 
   function applyCategory(category: Category) {
@@ -167,9 +163,7 @@ function init() {
     updateCommonConversions();
   }
 
-  categorySelect.addEventListener("change", () => {
-    applyCategory(categorySelect.value as Category);
-  });
+  categorySelect.addEventListener("change", () => applyCategory(categorySelect.value as Category));
   fromUnitSelect.addEventListener("change", updateConversion);
   toUnitSelect.addEventListener("change", updateConversion);
   fromValueInput.addEventListener("input", updateConversion);
@@ -184,44 +178,31 @@ function init() {
   copyBtn?.addEventListener("click", async () => {
     const value = toValueInput.value;
     if (!value) return;
-    try {
-      await navigator.clipboard.writeText(value);
-      const original = copyBtn.innerHTML;
-      copyBtn.classList.add("copied");
-      copyBtn.innerHTML =
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7" /></svg>';
-      copyBtn.title = strings.copied;
-      window.setTimeout(() => {
-        copyBtn.innerHTML = original;
-        copyBtn.classList.remove("copied");
-      }, 1200);
-    } catch {
-      /* clipboard unavailable */
+    const ok = await copyWithFeedback(copyBtn, value, strings.copied);
+    if (errorEl) {
+      errorEl.textContent = ok ? "" : strings.copyFailed;
+      errorEl.hidden = ok;
     }
   });
 
   quickEl?.addEventListener("click", (e) => {
-    const btn = (e.target as HTMLElement)?.closest?.(
-      "[data-unit-quick-pick]",
-    ) as HTMLButtonElement | null;
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-unit-quick-pick]");
     if (!btn) return;
-    toUnitSelect.value = btn.getAttribute("data-unit-quick-pick") || toUnitSelect.value;
+    toUnitSelect.value = btn.dataset.unitQuickPick || toUnitSelect.value;
     updateConversion();
+    quickEl.querySelector<HTMLButtonElement>(`[data-unit-quick-pick="${toUnitSelect.value}"]`)?.focus();
   });
 
   commonEl?.addEventListener("click", (e) => {
-    const btn = (e.target as HTMLElement)?.closest?.(
-      "[data-unit-common-pick]",
-    ) as HTMLButtonElement | null;
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-unit-common-pick]");
     if (!btn) return;
-    const [val, fromUnit, toUnit] = (btn.getAttribute("data-unit-common-pick") || "").split("|");
+    const [val, fromUnit, toUnit] = (btn.dataset.unitCommonPick || "").split("|");
     fromValueInput.value = val;
     fromUnitSelect.value = fromUnit;
     toUnitSelect.value = toUnit;
     updateConversion();
   });
 
-  // Initialize (category select already has its options server-side).
   categorySelect.value = currentCategory;
   populateUnitSelects(currentCategory);
   fromValueInput.value = "1";

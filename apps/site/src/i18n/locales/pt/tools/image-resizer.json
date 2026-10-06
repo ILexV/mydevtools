@@ -20,5 +20,8 @@
   "ErrorNotImage": "O arquivo selecionado não é uma imagem.",
   "ErrorLoadImage": "Falha ao carregar a imagem.",
   "ErrorInvalidDimensions": "Dimensões inválidas.",
-  "ErrorResizeFailed": "Falha ao redimensionar."
+  "ErrorResizeFailed": "Falha ao redimensionar.",
+  "Cancel": "Cancelar",
+  "ErrorUnsupportedFormat": "Este formato de imagem não é suportado. Use PNG, JPEG, WebP, GIF, BMP, ICO, TIFF ou TGA.",
+  "ErrorDimensionsTooLarge": "Dimensões grandes demais: no máximo 16384 px por lado e 64 megapixels no total."
 }

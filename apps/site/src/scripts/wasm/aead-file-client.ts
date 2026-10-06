@@ -22,6 +22,27 @@ const KDF_ITERATIONS = 3;
 const KDF_PARALLELISM = 1;
 const TAG_LEN = 16;
 
+/**
+ * Where an AEAD run failed, so the UI can show a localized reason:
+ * `header` — not an `.aead` container (bad magic/version/truncated header);
+ * `auth` — chunk authentication failed (wrong password, tampered or
+ * truncated ciphertext); `crypto` — anything else from WASM.
+ */
+export type AeadFailure = "header" | "auth" | "crypto";
+
+export class AeadError extends WasmError {
+  readonly failure: AeadFailure;
+  constructor(failure: AeadFailure, message: string) {
+    super("unknown", message);
+    this.name = "AeadError";
+    this.failure = failure;
+  }
+}
+
+function errMessage(e: unknown): string {
+  return e instanceof Error ? e.message : String(e);
+}
+
 export type AeadAlgorithm = "aes-256-gcm" | "chacha20-poly1305" | "xchacha20-poly1305";
 
 export interface AeadProgress {
@@ -93,7 +114,7 @@ export async function aeadEncryptFile(
       KDF_PARALLELISM,
     );
   } catch (e) {
-    throw new WasmError("unknown", e instanceof Error ? e.message : String(e));
+    throw new AeadError("crypto", errMessage(e));
   }
 
   const chunks: Uint8Array[] = [header];
@@ -110,7 +131,7 @@ export async function aeadEncryptFile(
     try {
       ciphertext = crypto.aead_stream_encrypt_chunk(algId, key, noncePrefix, counter, bytes, new Uint8Array());
     } catch (e) {
-      throw new WasmError("unknown", e instanceof Error ? e.message : String(e));
+      throw new AeadError("crypto", errMessage(e));
     }
     chunks.push(ciphertext);
     processed += slice.size;
@@ -141,6 +162,12 @@ export async function aeadDecryptFile(
     const headerLen = info[5];
     headerBytes = new Uint8Array(await file.slice(0, headerLen).arrayBuffer());
     noncePrefix = crypto.aead_stream_extract_nonce_prefix(headerBytes);
+    // Unknown algorithm or a zero chunk size cannot come from this tool.
+    if (info[0] < 1 || info[0] > 3 || info[4] === 0) throw new Error("unsupported AEAD header");
+  } catch (e) {
+    throw new AeadError("header", errMessage(e));
+  }
+  try {
     key = crypto.aead_stream_derive_key_from_header(
       headerBytes,
       new TextEncoder().encode(password),
@@ -149,7 +176,7 @@ export async function aeadDecryptFile(
       KDF_PARALLELISM,
     );
   } catch (e) {
-    throw new WasmError("unknown", e instanceof Error ? e.message : String(e));
+    throw new AeadError("crypto", errMessage(e));
   }
 
   const algId = info[0];
@@ -169,7 +196,7 @@ export async function aeadDecryptFile(
     try {
       plaintext = crypto.aead_stream_decrypt_chunk(algId, key, noncePrefix, counter, bytes, new Uint8Array());
     } catch (e) {
-      throw new WasmError("unknown", e instanceof Error ? e.message : String(e));
+      throw new AeadError("auth", errMessage(e));
     }
     chunks.push(plaintext);
     offset += bytes.length;

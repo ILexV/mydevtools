@@ -165,12 +165,47 @@ export function convertValue(
 /**
  * Format a number for display. Uses exponential notation for very small or
  * very large magnitudes, otherwise trims trailing zeros via toPrecision(10).
- * Matches the legacy formatter exactly.
+ * Matches the legacy formatter, except that exact zero renders as "0" (legacy
+ * printed "0.000000e+0") and non-finite values pass through as text.
  */
 export function formatNumber(num: number): string {
+  if (num === 0) return "0";
+  if (!Number.isFinite(num)) return String(num);
   if (Math.abs(num) < 0.000001 || Math.abs(num) > 1000000) {
     return num.toExponential(6);
   }
   const formatted = parseFloat(num.toPrecision(10));
   return formatted.toString();
+}
+
+/**
+ * Locale-aware variant of `formatNumber` for the page language: same
+ * thresholds and 10 significant digits, locale decimal separator, no digit
+ * grouping (results stay copy-paste friendly), scientific notation for
+ * extremes (`1.5E9` / `1,5E9`).
+ */
+export function formatNumberLocale(num: number, locale: string): string {
+  if (num === 0) return "0";
+  if (!Number.isFinite(num)) return String(num);
+  const sci = Math.abs(num) < 0.000001 || Math.abs(num) > 1000000;
+  const nf = new Intl.NumberFormat(
+    locale,
+    sci
+      ? { notation: "scientific", maximumFractionDigits: 6, useGrouping: false }
+      : { maximumSignificantDigits: 10, useGrouping: false },
+  );
+  return nf.format(num);
+}
+
+/** Absolute zero per scale; values below it are physically impossible. */
+export function isBelowAbsoluteZero(value: number, unit: string): boolean {
+  if (unit === "c") return value < -273.15;
+  if (unit === "f") return value < -459.67;
+  if (unit === "k") return value < 0;
+  return false;
+}
+
+/** All unit ids across categories (for localized unit-name lookups). */
+export function allUnitIds(): string[] {
+  return categoryOrder.flatMap((c) => Object.keys(unitData[c].units));
 }

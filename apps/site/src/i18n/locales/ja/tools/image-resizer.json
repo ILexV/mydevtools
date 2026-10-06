@@ -20,5 +20,8 @@
   "ErrorNotImage": "選択されたファイルは画像ではありません。",
   "ErrorLoadImage": "画像の読み込みに失敗しました。",
   "ErrorInvalidDimensions": "寸法が無効です。",
-  "ErrorResizeFailed": "リサイズに失敗しました。"
+  "ErrorResizeFailed": "リサイズに失敗しました。",
+  "Cancel": "キャンセル",
+  "ErrorUnsupportedFormat": "この画像形式はサポートされていません。PNG、JPEG、WebP、GIF、BMP、ICO、TIFF、TGA を使用してください。",
+  "ErrorDimensionsTooLarge": "サイズが大きすぎます。1 辺 16384 px、合計 6400 万画素までです。"
 }

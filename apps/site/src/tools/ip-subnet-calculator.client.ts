@@ -5,11 +5,15 @@
  * Error_InvalidFormat message and hides results. Copy buttons (network,
  * broadcast) swap to the localized "Copied!" label for 1200ms.
  */
-import { calcIpv4 } from "@/scripts/wasm/ipcalc-client";
+import { calcIpv4, ensureIpcalcReady } from "@/scripts/wasm/ipcalc-client";
+import { copyWithFeedback } from "@/scripts/tool-ui";
 
 interface Strings {
+  lang: string;
   copied: string;
+  copyFailed: string;
   errorInvalidFormat: string;
+  errorLoad: string;
 }
 
 /** WASM `CalculationResult` JSON shape (wasm/ipcalc/src/ipv4.rs). */
@@ -43,7 +47,8 @@ function readStrings(): Strings | null {
 
 function init(): void {
   const rootEl = document.querySelector<HTMLElement>("[data-ip-tool]");
-  if (!rootEl) return;
+  if (!rootEl || rootEl.dataset.initialized) return;
+  rootEl.dataset.initialized = "1";
   const root: HTMLElement = rootEl;
 
   const raw = readStrings();
@@ -63,41 +68,64 @@ function init(): void {
     if (el) el.textContent = text;
   }
 
+  const nf = new Intl.NumberFormat(strings.lang);
+
+  function showError(msg: string): void {
+    errorBox.textContent = msg;
+    errorBox.hidden = !msg;
+    if (msg) input.setAttribute("aria-invalid", "true");
+    else input.removeAttribute("aria-invalid");
+  }
+
   async function calculate(): Promise<void> {
     const value = input.value.trim();
-    if (!value) return;
-
-    try {
-      const result = (await calcIpv4(value)) as Ipv4Result;
-
-      setValue("ip", result.ip);
-      setValue("netmask", result.netmask);
-      setValue("wildcard", result.wildcard);
-      setValue("network", result.network);
-      setValue("prefix", `/${result.prefix}`);
-      setValue("broadcast", result.broadcast);
-      setValue("hostMin", result.host_min);
-      setValue("hostMax", result.host_max);
-      setValue("usableHosts", result.usable_hosts.toLocaleString());
-      setValue("totalHosts", result.total_hosts.toLocaleString());
-      setValue("class", result.class);
-      setValue("ipBinary", result.ip_binary);
-      setValue("maskBinary", result.mask_binary);
-
-      const privateBadge = root.querySelector<HTMLElement>('[data-ip-badge="private"]');
-      const publicBadge = root.querySelector<HTMLElement>('[data-ip-badge="public"]');
-      if (privateBadge && publicBadge) {
-        privateBadge.hidden = !result.is_private;
-        publicBadge.hidden = result.is_private;
-      }
-
-      errorBox.hidden = true;
-      results.hidden = false;
-    } catch {
-      errorBox.textContent = strings.errorInvalidFormat;
-      errorBox.hidden = false;
+    if (!value) {
+      showError("");
       results.hidden = true;
+      return;
     }
+
+    // Load failure (network/offline) is not the user's fault — separate message.
+    try {
+      await ensureIpcalcReady();
+    } catch {
+      showError(strings.errorLoad);
+      results.hidden = true;
+      return;
+    }
+
+    let result: Ipv4Result;
+    try {
+      result = (await calcIpv4(value)) as Ipv4Result;
+    } catch {
+      showError(strings.errorInvalidFormat);
+      results.hidden = true;
+      return;
+    }
+
+    setValue("ip", result.ip);
+    setValue("netmask", result.netmask);
+    setValue("wildcard", result.wildcard);
+    setValue("network", result.network);
+    setValue("prefix", `/${result.prefix}`);
+    setValue("broadcast", result.broadcast);
+    setValue("hostMin", result.host_min);
+    setValue("hostMax", result.host_max);
+    setValue("usableHosts", nf.format(result.usable_hosts));
+    setValue("totalHosts", nf.format(result.total_hosts));
+    setValue("class", result.class);
+    setValue("ipBinary", result.ip_binary);
+    setValue("maskBinary", result.mask_binary);
+
+    const privateBadge = root.querySelector<HTMLElement>('[data-ip-badge="private"]');
+    const publicBadge = root.querySelector<HTMLElement>('[data-ip-badge="public"]');
+    if (privateBadge && publicBadge) {
+      privateBadge.hidden = !result.is_private;
+      publicBadge.hidden = result.is_private;
+    }
+
+    showError("");
+    results.hidden = false;
   }
 
   root.querySelector<HTMLButtonElement>("[data-ip-calculate]")?.addEventListener("click", () => {
@@ -116,24 +144,12 @@ function init(): void {
   });
 
   root.querySelectorAll<HTMLButtonElement>("[data-ip-copy]").forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       const key = btn.dataset.ipCopy;
       if (!key) return;
-      const target = root.querySelector<HTMLElement>(`[data-ip-value="${key}"]`);
-      const text = target?.textContent ?? "";
+      const text = root.querySelector<HTMLElement>(`[data-ip-value="${key}"]`)?.textContent ?? "";
       if (!text) return;
-      navigator.clipboard
-        .writeText(text)
-        .then(() => {
-          const original = btn.innerHTML;
-          btn.innerHTML = `<span class="ip-copied">${strings.copied}</span>`;
-          window.setTimeout(() => {
-            btn.innerHTML = original;
-          }, 1200);
-        })
-        .catch(() => {
-          /* clipboard unavailable */
-        });
+      if (!(await copyWithFeedback(btn, text, strings.copied))) showError(strings.copyFailed);
     });
   });
 }

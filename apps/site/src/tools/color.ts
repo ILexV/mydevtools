@@ -89,6 +89,81 @@ export function rgbToCmyk({ r, g, b }: RGB): CMYK {
   return { c: Math.round(c * 100), m: Math.round(m * 100), y: Math.round(y * 100), k: Math.round(k * 100) };
 }
 
+/** CMYK percentages (0–100) → RGB bytes, as the legacy `cmykToRgb`. */
+export function cmykToRgb({ c, m, y, k }: CMYK): RGB {
+  const f = (v: number): number => 1 - clamp(v, 0, 100) / 100;
+  const kk = f(k);
+  return { r: clampByte(255 * f(c) * kk), g: clampByte(255 * f(m) * kk), b: clampByte(255 * f(y) * kk) };
+}
+
+export type ColorFormat = "hex" | "rgb" | "hsl" | "cmyk";
+
+const NUM = String.raw`[+-]?(?:\d+\.?\d*|\.\d+)`;
+/** Function-call colour syntax: `name(a, b, c[, d])`, commas or spaces, optional `/ alpha`. */
+function parseArgs(input: string, names: string): string[] | null {
+  const m = input.match(new RegExp(String.raw`^(?:${names})\s*\(\s*([^)]*)\)$`, "i"));
+  if (!m) return null;
+  const body = m[1].replace(/\s*\/\s*[^,\s]+\s*$/, ""); // drop CSS4 "/ alpha"
+  const parts = body.split(/\s*,\s*|\s+/).filter((p) => p.length > 0);
+  return parts;
+}
+
+/** Parse one numeric component; `pct` = value carries/accepts a trailing %. Null when malformed. */
+function num(part: string | undefined, max: number, allowPct: boolean): { v: number; pct: boolean } | null {
+  if (part === undefined) return null;
+  const m = part.match(new RegExp(String.raw`^(${NUM})(%?)$`));
+  if (!m) return null;
+  const pct = m[2] === "%";
+  if (pct && !allowPct) return null;
+  const v = Number(m[1]);
+  if (!Number.isFinite(v) || v < 0 || v > (pct ? 100 : max)) return null;
+  return { v, pct };
+}
+
+/**
+ * Parse a manual colour string in any supported notation and auto-detect its
+ * format: `#rgb`/`#rrggbb` (hash optional), `rgb()/rgba()` (0–255 or %),
+ * `hsl()/hsla()` (hue in degrees, s/l in %), `cmyk()` (0–100, % optional).
+ * Alpha is accepted and ignored. Out-of-range or malformed input → null
+ * (shown as the localized "invalid colour" error).
+ */
+export function parseColor(input: string): { rgb: RGB; format: ColorFormat } | null {
+  const v = input.trim();
+  if (!v) return null;
+  const hex = parseHex(v);
+  if (hex) return { rgb: hex, format: "hex" };
+
+  const rgbArgs = parseArgs(v, "rgba?");
+  if (rgbArgs) {
+    if (rgbArgs.length < 3 || rgbArgs.length > 4) return null;
+    const ch = rgbArgs.slice(0, 3).map((p) => num(p, 255, true));
+    if (ch.some((c) => c === null)) return null;
+    const [r, g, b] = ch.map((c) => clampByte(c!.pct ? (c!.v * 255) / 100 : c!.v));
+    return { rgb: { r, g, b }, format: "rgb" };
+  }
+
+  const hslArgs = parseArgs(v, "hsla?");
+  if (hslArgs) {
+    if (hslArgs.length < 3 || hslArgs.length > 4) return null;
+    const h = hslArgs[0].match(new RegExp(String.raw`^(${NUM})(?:deg)?$`, "i"));
+    const s = num(hslArgs[1], 100, true);
+    const l = num(hslArgs[2], 100, true);
+    if (!h || !s || !l) return null;
+    const rgb = hslToRgb({ h: Number(h[1]), s: s.v, l: l.v });
+    return { rgb: { r: clampByte(rgb.r), g: clampByte(rgb.g), b: clampByte(rgb.b) }, format: "hsl" };
+  }
+
+  const cmykArgs = parseArgs(v, "cmyk");
+  if (cmykArgs) {
+    if (cmykArgs.length !== 4) return null;
+    const ch = cmykArgs.map((p) => num(p, 100, true));
+    if (ch.some((c) => c === null)) return null;
+    const [c, m, y, k] = ch.map((x) => x!.v);
+    return { rgb: cmykToRgb({ c, m, y, k }), format: "cmyk" };
+  }
+  return null;
+}
+
 export function toCmykString(rgb: RGB): string {
   const { c, m, y, k } = rgbToCmyk(rgb);
   return `cmyk(${c}%, ${m}%, ${y}%, ${k}%)`;
@@ -131,12 +206,16 @@ export function wcag(fg: RGB, bg: RGB): WcagResult {
   };
 }
 
-/** Shades stepping lightness from current hue/sat. */
+/**
+ * Shades palette: same hue/saturation, lightness stepped evenly from 10% to
+ * 90% (legacy palette range — pure black/white are omitted as useless).
+ */
 export function shades(c: RGB, steps = 9): { l: number; hex: string }[] {
   const { h, s } = rgbToHsl(c);
+  const n = Math.max(2, Math.floor(steps));
   const out: { l: number; hex: string }[] = [];
-  for (let i = 0; i < steps; i++) {
-    const l = Math.round((i * 100) / (steps - 1));
+  for (let i = 0; i < n; i++) {
+    const l = Math.round(10 + (i * 80) / (n - 1));
     out.push({ l, hex: toHex(hslToRgb({ h, s, l })) });
   }
   return out;

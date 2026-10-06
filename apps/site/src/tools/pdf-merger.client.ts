@@ -1,29 +1,38 @@
 /**
  * PDF Merger client controller. PDFs picked via file dialog (multiple),
- * drag-drop, or the "add files" button; every pick is appended to the list
- * (merge order = list order; no dedup, no reorder — legacy parity). Rows
- * show index/name/size/status with a per-file remove button; clear-all
+ * drag-drop (`bindDropzone`) or the "add files" button are appended to the
+ * list (merge order = list order; no dedup — legacy parity). Rows show
+ * index/name/size/status with move up/down and remove buttons; clear-all
  * empties the list. Non-PDF picks are rejected with a localized message
  * (valid files in the same pick are still added — legacy drop parity).
- * Merge is enabled with ≥2 files and runs `mergePdfs` on the file buffers
- * in list order. On success the merge button hides until the list changes
- * (legacy parity), row statuses flip to the success string, and the result
- * shows the merged size with a `merged.pdf` download (legacy filename).
- * The result object URL is revoked on replace and on clear/list mutation.
- * WASM errors surface their message (legacy parity).
+ * Merge is enabled with ≥2 files and runs `mergePdfs` on the buffers in list
+ * order. On success the merge button hides until the list changes (legacy
+ * parity), rows get a success badge, and the result shows the merged size
+ * with a `merged.pdf` download (legacy filename). A corrupted or
+ * password-protected input is named in a localized error and its row is
+ * marked. The result object URL is revoked on replace and on list mutation.
  */
 import { mergePdfs } from "@/scripts/wasm/pdf-client";
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { bindDropzone } from "@/scripts/tool-ui";
+import { formatBytes } from "@/lib/format";
+import { classifyPdfError, isPdfFile, moveItem } from "@/tools/pdf-files";
+import { appendMeta, badge, buildFileRow, iconButton, PDF_ICONS } from "@/tools/pdf-file-ui";
 
 interface Strings {
+  colSize: string;
   statusReady: string;
   removeFile: string;
+  moveUp: string;
+  moveDown: string;
   merge: string;
   merging: string;
   success: string;
   minFilesHint: string;
   errorNotPdf: string;
+  errorInvalidPdf: string;
+  errorEncrypted: string;
   errorMerge: string;
+  error: string;
 }
 
 function readStrings(): Strings | null {
@@ -36,74 +45,47 @@ function readStrings(): Strings | null {
   }
 }
 
-function formatBytes(bytes: number): string {
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let value = bytes;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit++;
-  }
-  return `${value.toFixed(unit === 0 ? 0 : 2)} ${units[unit]}`;
-}
-
-const REMOVE_ICON =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 18L18 6M6 6l12 12" /></svg>';
-
 function init() {
   const root = document.querySelector<HTMLElement>("[data-pdfm-tool]");
-  if (!root) return;
+  if (!root || root.dataset.initialized) return;
   const raw = readStrings();
   if (!raw) return;
   const strings: Strings = raw;
 
-  const dropZone = root.querySelector<HTMLElement>("[data-pdfm-dropzone]");
-  const fileInput = root.querySelector<HTMLInputElement>("[data-pdfm-file]");
-  const chooseBtn = root.querySelector<HTMLButtonElement>("[data-pdfm-choose]");
-  const listSection = root.querySelector<HTMLElement>("[data-pdfm-list]");
-  const itemsEl = root.querySelector<HTMLUListElement>("[data-pdfm-items]");
+  const zone = root.querySelector<HTMLElement>("[data-pdfm-dropzone]");
+  const input = root.querySelector<HTMLInputElement>("[data-pdfm-file]");
+  const listEl = root.querySelector<HTMLElement>("[data-pdfm-list]");
+  const items = root.querySelector<HTMLOListElement>("[data-pdfm-items]");
   const hintEl = root.querySelector<HTMLElement>("[data-pdfm-hint]");
   const addBtn = root.querySelector<HTMLButtonElement>("[data-pdfm-add]");
   const clearBtn = root.querySelector<HTMLButtonElement>("[data-pdfm-clear]");
-  const mergeBtn = root.querySelector<HTMLButtonElement>("[data-pdfm-merge]");
+  const merge = root.querySelector<HTMLButtonElement>("[data-pdfm-merge]");
   const mergeLabel = root.querySelector<HTMLElement>("[data-pdfm-merge-label]");
-  const resultSection = root.querySelector<HTMLElement>("[data-pdfm-result]");
+  const resultEl = root.querySelector<HTMLElement>("[data-pdfm-result]");
   const resultSizeEl = root.querySelector<HTMLElement>("[data-pdfm-result-size]");
-  const downloadBtn = root.querySelector<HTMLButtonElement>("[data-pdfm-download]");
+  const download = root.querySelector<HTMLButtonElement>("[data-pdfm-download]");
   const errorBox = root.querySelector<HTMLElement>("[data-pdfm-error]");
-
-  if (
-    !dropZone || !fileInput || !listSection || !itemsEl ||
-    !mergeBtn || !resultSection || !downloadBtn
-  ) return;
-  const zone: HTMLElement = dropZone;
-  const input: HTMLInputElement = fileInput;
-  const listEl: HTMLElement = listSection;
-  const items: HTMLUListElement = itemsEl;
-  const merge: HTMLButtonElement = mergeBtn;
-  const resultEl: HTMLElement = resultSection;
-  const download: HTMLButtonElement = downloadBtn;
+  if (!zone || !input || !listEl || !items || !merge || !resultEl || !download) return;
+  root.dataset.initialized = "true";
 
   let files: File[] = [];
   let resultUrl: string | null = null;
   let merging = false;
-
-  function isPdf(file: File): boolean {
-    return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
-  }
+  /** Row status after the last merge attempt: all merged, or one failed index. */
+  let merged = false;
+  let failedIndex: number | null = null;
 
   function showError(msg: string) {
-    if (errorBox) {
-      errorBox.textContent = msg;
-      errorBox.hidden = false;
-    }
+    if (!errorBox) return;
+    errorBox.textContent = msg;
+    errorBox.hidden = false;
   }
   function clearError() {
     if (errorBox) errorBox.hidden = true;
   }
 
   function hideResult() {
-    resultEl.hidden = true;
+    resultEl!.hidden = true;
     if (resultUrl) {
       URL.revokeObjectURL(resultUrl);
       resultUrl = null;
@@ -111,178 +93,163 @@ function init() {
   }
 
   function updateMergeState() {
-    merge.disabled = merging || files.length < 2;
-    merge.title = files.length < 2 ? strings.minFilesHint : "";
+    merge!.disabled = merging || files.length < 2;
+    merge!.title = files.length < 2 ? strings.minFilesHint : "";
     if (hintEl) hintEl.hidden = files.length >= 2;
+    if (clearBtn) clearBtn.disabled = merging;
+    if (addBtn) addBtn.disabled = merging;
+    zone!.setAttribute("aria-disabled", String(merging));
+    input!.disabled = merging;
   }
 
-  function renderList() {
-    items.replaceChildren();
-    listEl.hidden = files.length === 0;
+  /** Rebuild rows. `focus` = [row index, button role] to restore keyboard focus. */
+  function renderRows(focus?: [number, "up" | "down" | "remove"]) {
+    items!.replaceChildren();
+    listEl!.hidden = files.length === 0;
 
     files.forEach((file, index) => {
-      const li = document.createElement("li");
-      li.className = "pdfm-row";
+      const { li, meta, actions } = buildFileRow(file.name, index);
+      appendMeta(meta, formatBytes(file.size, 2), strings.colSize);
 
-      const idx = document.createElement("span");
-      idx.className = "pdfm-col-index";
-      idx.textContent = String(index + 1);
+      if (failedIndex === index) actions.append(badge(strings.error, "danger"));
+      else if (merged) {
+        // Long success sentence stays in the result alert; the row gets a
+        // compact check badge (text kept for screen readers / tooltip).
+        const ok = badge("", "success", strings.success);
+        ok.innerHTML = PDF_ICONS.check;
+        const sr = document.createElement("span");
+        sr.className = "visually-hidden";
+        sr.textContent = strings.success;
+        ok.append(sr);
+        actions.append(ok);
+      }
+      else actions.append(badge(strings.statusReady));
 
-      const name = document.createElement("span");
-      name.className = "pdfm-name";
-      name.textContent = file.name;
-      name.title = file.name;
-
-      const size = document.createElement("span");
-      size.className = "pdfm-size";
-      size.textContent = formatBytes(file.size);
-
-      const status = document.createElement("span");
-      status.className = "pdfm-status";
-      status.dataset.pdfmStatus = "";
-      status.textContent = strings.statusReady;
-
-      const action = document.createElement("span");
-      action.className = "pdfm-col-action";
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.className = "pdfm-remove";
+      const up = iconButton(PDF_ICONS.up, `${strings.moveUp}: ${file.name}`);
+      up.dataset.pdfmMove = "up";
+      up.dataset.index = String(index);
+      up.disabled = merging || index === 0;
+      const down = iconButton(PDF_ICONS.down, `${strings.moveDown}: ${file.name}`);
+      down.dataset.pdfmMove = "down";
+      down.dataset.index = String(index);
+      down.disabled = merging || index === files.length - 1;
+      const remove = iconButton(PDF_ICONS.close, `${strings.removeFile}: ${file.name}`);
       remove.dataset.pdfmRemove = String(index);
-      remove.setAttribute("aria-label", strings.removeFile);
-      remove.title = strings.removeFile;
-      remove.innerHTML = REMOVE_ICON;
-      action.appendChild(remove);
-
-      li.append(idx, name, size, status, action);
-      items.appendChild(li);
+      remove.disabled = merging;
+      actions.append(up, down, remove);
+      items!.appendChild(li);
     });
 
-    // Legacy parity: any list change restores the merge button, hides the
-    // previous result, and resets row statuses (rows are rebuilt as Ready).
-    merge.hidden = false;
+    if (focus) {
+      const [row, role] = focus;
+      const li = items!.children[Math.min(row, files.length - 1)];
+      const selector = role === "remove" ? "[data-pdfm-remove]" : `[data-pdfm-move="${role}"]`;
+      let target = li?.querySelector<HTMLButtonElement>(selector) ?? null;
+      if (target?.disabled) target = li?.querySelector<HTMLButtonElement>("[data-pdfm-remove]") ?? null;
+      (target ?? zone!.querySelector<HTMLElement>("input"))?.focus();
+    }
+  }
+
+  /** Any list change: back to "Ready", merge button returns, result hidden (legacy parity). */
+  function listChanged(focus?: [number, "up" | "down" | "remove"]) {
+    merged = false;
+    failedIndex = null;
+    merge!.hidden = false;
     hideResult();
+    renderRows(focus);
     updateMergeState();
   }
 
-  function addFiles(picked: FileList | File[]) {
-    const incoming = Array.from(picked);
-    if (incoming.length === 0) return;
-    const valid = incoming.filter(isPdf);
-    if (valid.length < incoming.length) {
-      showError(strings.errorNotPdf);
-    } else {
-      clearError();
-    }
+  function addFiles(incoming: File[]) {
+    if (merging || incoming.length === 0) return;
+    const valid = incoming.filter(isPdfFile);
+    if (valid.length < incoming.length) showError(strings.errorNotPdf);
+    else clearError();
     if (valid.length === 0) return;
     files = [...files, ...valid];
-    renderList();
+    listChanged();
   }
 
-  function clearAll() {
-    if (merging) return;
-    files = [];
-    input.value = "";
-    clearError();
-    renderList();
+  function errorMessage(e: unknown): string {
+    const message = e instanceof Error ? e.message : "";
+    const { kind, index } = classifyPdfError(message);
+    const name = index !== null ? files[index]?.name : undefined;
+    failedIndex = index;
+    if (name && kind === "encrypted") return strings.errorEncrypted.replace("{name}", name);
+    if (name && kind === "invalid") return strings.errorInvalidPdf.replace("{name}", name);
+    return message ? `${strings.errorMerge} (${message})` : strings.errorMerge;
   }
 
   async function handleMerge() {
     if (files.length < 2 || merging) return;
 
     merging = true;
-    merge.disabled = true;
+    merge!.setAttribute("aria-busy", "true");
     if (mergeLabel) mergeLabel.textContent = strings.merging;
     clearError();
     hideResult();
+    merged = false;
+    failedIndex = null;
+    updateMergeState();
+    renderRows();
 
     try {
-      const buffers = await Promise.all(
-        files.map(async (file) => new Uint8Array(await file.arrayBuffer())),
-      );
-      const merged = await mergePdfs(buffers);
-
-      const blob = new Blob([merged.slice()], { type: "application/pdf" });
+      const buffers = await Promise.all(files.map(async (file) => new Uint8Array(await file.arrayBuffer())));
+      const out = await mergePdfs(buffers);
+      const blob = new Blob([out.slice()], { type: "application/pdf" });
       resultUrl = URL.createObjectURL(blob);
-      if (resultSizeEl) resultSizeEl.textContent = formatBytes(blob.size);
-      resultEl.hidden = false;
-
+      if (resultSizeEl) resultSizeEl.textContent = formatBytes(blob.size, 2);
+      resultEl!.hidden = false;
+      merged = true;
       // Legacy parity: hide the merge button after success; it returns when
-      // the file list changes (renderList).
-      merge.hidden = true;
-
-      items.querySelectorAll<HTMLElement>("[data-pdfm-status]").forEach((el) => {
-        el.textContent = strings.success;
-        el.classList.add("pdfm-status-done");
-      });
+      // the file list changes.
+      merge!.hidden = true;
     } catch (e) {
-      const message =
-        e instanceof WasmError || e instanceof Error ? e.message : strings.errorMerge;
-      showError(message || strings.errorMerge);
+      showError(errorMessage(e));
     } finally {
       merging = false;
+      merge!.removeAttribute("aria-busy");
       if (mergeLabel) mergeLabel.textContent = strings.merge;
       updateMergeState();
+      renderRows();
+      if (merged) download!.focus();
     }
   }
 
-  function pickFiles() {
-    if (!merging) input.click();
-  }
-
-  // Clicking the zone (but not a button inside it) opens the file dialog.
-  zone.addEventListener("click", (e) => {
-    if (e.target instanceof HTMLElement && e.target.closest("button")) return;
-    pickFiles();
-  });
-  chooseBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    pickFiles();
-  });
+  bindDropzone(zone, input, addFiles);
   addBtn?.addEventListener("click", () => {
-    pickFiles();
-  });
-
-  input.addEventListener("change", () => {
-    if (input.files && input.files.length > 0) addFiles(input.files);
-    // Reset so re-picking the same files fires change again (legacy parity).
-    input.value = "";
-  });
-
-  zone.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    zone.classList.add("pdfm-dragover");
-  });
-  zone.addEventListener("dragleave", (e) => {
-    e.preventDefault();
-    if (e.relatedTarget instanceof Node && zone.contains(e.relatedTarget)) return;
-    zone.classList.remove("pdfm-dragover");
-  });
-  zone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    zone.classList.remove("pdfm-dragover");
-    if (e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files);
+    if (!merging) input.click();
   });
 
   items.addEventListener("click", (e) => {
-    const btn =
-      e.target instanceof Element
-        ? e.target.closest<HTMLButtonElement>("[data-pdfm-remove]")
-        : null;
+    const btn = e.target instanceof Element ? e.target.closest<HTMLButtonElement>("button") : null;
     if (!btn || merging) return;
-    const index = Number.parseInt(btn.dataset.pdfmRemove ?? "", 10);
-    if (Number.isNaN(index) || !files[index]) return;
-    files.splice(index, 1);
-    clearError();
-    renderList();
+    if (btn.dataset.pdfmRemove !== undefined) {
+      const index = Number.parseInt(btn.dataset.pdfmRemove, 10);
+      if (Number.isNaN(index) || !files[index]) return;
+      files.splice(index, 1);
+      clearError();
+      listChanged([index, "remove"]);
+      return;
+    }
+    const dir = btn.dataset.pdfmMove;
+    const index = Number.parseInt(btn.dataset.index ?? "", 10);
+    if ((dir !== "up" && dir !== "down") || Number.isNaN(index)) return;
+    const to = dir === "up" ? index - 1 : index + 1;
+    files = moveItem(files, index, to);
+    listChanged([to, dir]);
   });
 
   clearBtn?.addEventListener("click", () => {
-    clearAll();
+    if (merging) return;
+    files = [];
+    input.value = "";
+    clearError();
+    listChanged();
+    zone.querySelector<HTMLElement>("input")?.focus();
   });
 
-  merge.addEventListener("click", () => {
-    void handleMerge();
-  });
+  merge.addEventListener("click", () => void handleMerge());
 
   download.addEventListener("click", () => {
     if (!resultUrl) return;

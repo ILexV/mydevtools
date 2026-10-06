@@ -25,5 +25,15 @@
   "EncoderTitle": "JWT 编码器",
   "DecoderTitle": "JWT 解码器",
   "Copy": "复制",
-  "Copied": "已复制!"
+  "Copied": "已复制!",
+  "TokenLabel": "编码的 JWT",
+  "InvalidToken": "无效的 JWT：{message}",
+  "EnterSecret": "输入密钥 (HS*) 或 RSA 公钥 (RS*) 以验证签名。",
+  "UnsignedToken": "未签名的令牌 (alg: none)——无法验证，不可信任。",
+  "UnsupportedAlgorithm": "不支持 {alg} 签名验证（仅支持 HS256/384/512 和 RS256/384/512）。",
+  "ClaimExpired": "已于 {date} 过期",
+  "ClaimExpiresAt": "将于 {date} 过期",
+  "ClaimNotBefore": "{date} 之前无效",
+  "ClaimValidFrom": "自 {date} 起生效",
+  "ClaimIssuedAt": "签发于 {date}"
 }

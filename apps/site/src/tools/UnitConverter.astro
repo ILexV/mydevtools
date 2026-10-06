@@ -3,72 +3,94 @@
  * Unit Converter tool (pure JS). Length / Weight / Temperature / Volume
  * conversion. Live convert on input or select change, swap from↔to, copy
  * result, formula note, quick-conversion chips, and a common-conversions
- * sidebar. All math lives in `units.ts`.
+ * sidebar. All math lives in `units.ts`; unit names are localized here.
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+import { allUnitIds } from "@/tools/units";
 
 interface Props {
   lang: LocaleCode;
 }
 const { lang } = Astro.props as Props;
 const ns = "tools/unit-converter";
+const unitNames = Object.fromEntries(allUnitIds().map((id) => [id, t(lang, ns, `Unit_${id}`)]));
 const s = {
+  lang,
   categoryLabel: t(lang, ns, "CategoryLabel"),
-  catLength: t(lang, ns, "Category_Length"),
-  catWeight: t(lang, ns, "Category_Weight"),
-  catTemperature: t(lang, ns, "Category_Temperature"),
-  catVolume: t(lang, ns, "Category_Volume"),
   fromLabel: t(lang, ns, "FromLabel"),
   toLabel: t(lang, ns, "ToLabel"),
+  valueLabel: t(lang, ns, "ValueLabel"),
   swap: t(lang, ns, "Swap"),
+  copy: t(lang, ns, "Copy"),
   copied: t(lang, ns, "Copied"),
+  copyFailed: t(lang, ns, "CopyFailed"),
+  belowAbsoluteZero: t(lang, ns, "Warning_BelowAbsoluteZero"),
   quickConversions: t(lang, ns, "QuickConversions"),
   commonConversions: t(lang, ns, "CommonConversions"),
   formula: t(lang, ns, "Formula"),
+  unitNames,
 };
 const stringsJson = JSON.stringify(s);
 const categories = [
-  { value: "length", label: s.catLength },
-  { value: "weight", label: s.catWeight },
-  { value: "temperature", label: s.catTemperature },
-  { value: "volume", label: s.catVolume },
+  { value: "length", label: t(lang, ns, "Category_Length") },
+  { value: "weight", label: t(lang, ns, "Category_Weight") },
+  { value: "temperature", label: t(lang, ns, "Category_Temperature") },
+  { value: "volume", label: t(lang, ns, "Category_Volume") },
 ] as const;
 ---
 
 <div class="unit-tool" data-unit-tool>
-  <div class="unit-grid">
-    <div class="unit-main">
-      <section class="card converter">
-        <div class="field">
-          <label class="field-label" for="unit-category">{s.categoryLabel}</label>
-          <select id="unit-category" class="select" data-unit-category>
+  <div class="ds-tool-grid unit-grid">
+    <div class="ds-stack">
+      <section class="ds-card ds-stack">
+        <Field label={s.categoryLabel} for="unit-category">
+          <select id="unit-category" class="ds-field-select" data-unit-category>
             {categories.map((c) => <option value={c.value}>{c.label}</option>)}
           </select>
-        </div>
+        </Field>
 
         <div class="convert-row">
-          <div class="field">
-            <label class="field-label" for="unit-from">{s.fromLabel}</label>
-            <select id="unit-from" class="select" data-unit-from></select>
-            <input type="number" class="value-input" data-unit-from-value value="1" step="any" placeholder="0" />
+          <div class="ds-stack convert-side">
+            <Field label={s.fromLabel} for="unit-from">
+              <select id="unit-from" class="ds-field-select" data-unit-from></select>
+            </Field>
+            <input
+              type="number"
+              class="ds-field mono"
+              data-unit-from-value
+              value="1"
+              step="any"
+              placeholder="0"
+              inputmode="decimal"
+              aria-label={`${s.valueLabel} (${s.fromLabel})`}
+            />
           </div>
 
           <div class="swap-wrap">
-            <button type="button" class="swap-btn" data-unit-swap title={s.swap} aria-label={s.swap}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <button type="button" class="ds-icon-btn" data-unit-swap title={s.swap} aria-label={s.swap}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
               </svg>
             </button>
           </div>
 
-          <div class="field">
-            <label class="field-label" for="unit-to">{s.toLabel}</label>
-            <select id="unit-to" class="select" data-unit-to></select>
+          <div class="ds-stack convert-side">
+            <Field label={s.toLabel} for="unit-to">
+              <select id="unit-to" class="ds-field-select" data-unit-to></select>
+            </Field>
             <div class="to-wrap">
-              <input type="text" class="value-input to-value" data-unit-to-value readonly aria-label={s.toLabel} />
-              <button type="button" class="copy-btn" data-unit-copy title={s.copied} aria-label={s.copied}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <input
+                type="text"
+                class="ds-field mono"
+                data-unit-to-value
+                readonly
+                aria-label={`${s.valueLabel} (${s.toLabel})`}
+              />
+              <button type="button" class="ds-icon-btn" data-unit-copy title={s.copy} aria-label={s.copy}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                 </svg>
@@ -77,23 +99,24 @@ const categories = [
           </div>
         </div>
 
-        <div class="field quick">
-          <span class="field-label">{s.quickConversions}</span>
-          <div class="chips" data-unit-quick></div>
+        <p class="ds-status is-warning" data-unit-warning role="status" hidden></p>
+        <StatusMessage kind="error" data-unit-error />
+
+        <div class="ds-field-group">
+          <span class="ds-label" id="unit-quick-label">{s.quickConversions}</span>
+          <div class="ds-chip-list" data-unit-quick role="group" aria-labelledby="unit-quick-label"></div>
         </div>
       </section>
 
-      <section class="card formula-card">
-        <h2 class="card-title">{s.formula}</h2>
-        <div class="formula" data-unit-formula></div>
+      <section class="ds-card" aria-labelledby="unit-formula-title">
+        <div class="ds-card-head"><h2 class="ds-card-title" id="unit-formula-title">{s.formula}</h2></div>
+        <div class="ds-code-block" data-unit-formula aria-live="polite"></div>
       </section>
     </div>
 
-    <aside class="unit-side">
-      <section class="card common-card">
-        <h2 class="card-title">{s.commonConversions}</h2>
-        <div class="common-list" data-unit-common></div>
-      </section>
+    <aside class="ds-card" aria-labelledby="unit-common-title">
+      <div class="ds-card-head"><h2 class="ds-card-title" id="unit-common-title">{s.commonConversions}</h2></div>
+      <div class="common-list" data-unit-common></div>
     </aside>
   </div>
 </div>
@@ -102,73 +125,26 @@ const categories = [
 <script>import "@/tools/unit-converter.client.ts";</script>
 
 <style>
-  .unit-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
-  @media (min-width: 900px) { .unit-grid { grid-template-columns: 2fr 1fr; align-items: start; } }
-  .unit-main { display: grid; gap: 1.25rem; }
+  /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
+  .unit-grid { --ds-tool-grid-cols: minmax(0, 2fr) minmax(0, 1fr); align-items: start; }
 
-  .card { border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); padding: 1.1rem 1.2rem; }
-  .card-title { font-size: 0.95rem; margin: 0 0 0.7rem; color: var(--mdt-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .convert-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.9rem; align-items: end; }
+  @media (min-width: 640px) { .convert-row { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); } }
+  .convert-side { gap: 0.5rem; }
+  .swap-wrap { display: flex; justify-content: center; padding-bottom: 0.2rem; }
 
-  .field { display: flex; flex-direction: column; gap: 0.35rem; }
-  .field-label { font-size: 0.78rem; font-weight: 600; color: var(--mdt-text-muted); }
-  .converter > .field { margin-bottom: 1rem; }
-
-  .select, .value-input {
-    width: 100%;
-    padding: 0.55rem 0.7rem;
-    border: 1px solid var(--mdt-border);
-    border-radius: var(--mdt-radius-sm);
-    background: var(--mdt-surface);
-    color: var(--mdt-text);
-    font-size: 0.92rem;
-  }
-  .select:focus, .value-input:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
-  .value-input { font-family: var(--mdt-font-mono); font-size: 1rem; }
-  .to-value { background: var(--mdt-surface-muted); }
-
-  .convert-row { display: grid; grid-template-columns: 1fr; gap: 0.9rem; align-items: end; }
-  @media (min-width: 640px) { .convert-row { grid-template-columns: 1fr auto 1fr; } }
-
-  .swap-wrap { display: flex; justify-content: center; }
-  .swap-btn {
-    width: 2.6rem; height: 2.6rem; border-radius: 50%;
-    border: 1px solid var(--mdt-border); background: var(--mdt-surface); color: var(--mdt-text);
-    display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
-  }
-  .swap-btn:hover { border-color: var(--mdt-accent); color: var(--mdt-accent); }
-  .swap-btn:focus-visible { outline: 2px solid var(--mdt-focus-ring); outline-offset: 2px; }
-  .swap-btn svg { width: 1.25rem; height: 1.25rem; }
-
-  .to-wrap { position: relative; }
-  .to-wrap .value-input { padding-right: 2.4rem; }
-  .copy-btn {
-    position: absolute; top: 50%; right: 0.4rem; transform: translateY(-50%);
-    width: 2rem; height: 2rem; border: none; background: transparent; color: var(--mdt-text-muted);
-    display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: var(--mdt-radius-sm);
-  }
-  .copy-btn:hover { color: var(--mdt-text); }
-  .copy-btn:focus-visible { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
-  .copy-btn svg { width: 1rem; height: 1rem; }
-  .copy-btn.copied { color: var(--mdt-success); }
-
-  .quick { margin-top: 0.4rem; }
-  .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .chip {
-    padding: 0.35rem 0.7rem; font-size: 0.82rem; font-family: var(--mdt-font-mono);
-    border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm);
-    background: var(--mdt-surface); color: var(--mdt-text); cursor: pointer;
-  }
-  .chip:hover { border-color: var(--mdt-accent); color: var(--mdt-accent); }
-  .chip:focus-visible { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
-
-  .formula { font-family: var(--mdt-font-mono); font-size: 0.88rem; background: var(--mdt-surface-muted); padding: 0.8rem 0.9rem; border-radius: var(--mdt-radius-sm); min-height: 2.4rem; word-break: break-word; }
+  .to-wrap { display: flex; gap: 0.4rem; align-items: center; }
+  .to-wrap > input { flex: 1; min-width: 0; }
 
   .common-list { display: grid; gap: 0.5rem; }
-  .common-row {
-    width: 100%; text-align: left; padding: 0.5rem 0.7rem; cursor: pointer;
-    border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface);
+  /* Common rows are built by the controller as .ds-btn; left-aligned mono text. */
+  .common-list :global(.ds-btn) {
+    justify-content: flex-start;
+    width: 100%;
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-meta);
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
-  .common-row:hover { border-color: var(--mdt-accent); }
-  .common-row:focus-visible { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
-  .common-row .mono { font-family: var(--mdt-font-mono); font-size: 0.85rem; color: var(--mdt-text); }
 </style>

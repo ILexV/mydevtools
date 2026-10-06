@@ -20,5 +20,8 @@
   "ErrorNotImage": "선택한 파일이 이미지가 아닙니다.",
   "ErrorLoadImage": "이미지를 불러오지 못했습니다.",
   "ErrorInvalidDimensions": "잘못된 크기입니다.",
-  "ErrorResizeFailed": "크기 조정에 실패했습니다."
+  "ErrorResizeFailed": "크기 조정에 실패했습니다.",
+  "Cancel": "취소",
+  "ErrorUnsupportedFormat": "지원되지 않는 이미지 형식입니다. PNG, JPEG, WebP, GIF, BMP, ICO, TIFF 또는 TGA를 사용하세요.",
+  "ErrorDimensionsTooLarge": "크기가 너무 큽니다. 한 변 최대 16384px, 전체 6,400만 화소까지 가능합니다."
 }

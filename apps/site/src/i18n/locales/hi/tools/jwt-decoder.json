@@ -25,5 +25,15 @@
   "EncoderTitle": "JWT एनकोडर",
   "DecoderTitle": "JWT डिकोडर",
   "Copy": "कॉपी करें",
-  "Copied": "कॉपी किया गया!"
+  "Copied": "कॉपी किया गया!",
+  "TokenLabel": "एन्कोडेड JWT",
+  "InvalidToken": "अमान्य JWT: {message}",
+  "EnterSecret": "हस्ताक्षर सत्यापित करने के लिए सीक्रेट (HS*) या RSA पब्लिक की (RS*) दर्ज करें।",
+  "UnsignedToken": "बिना हस्ताक्षर वाला टोकन (alg: none) — इसे सत्यापित नहीं किया जा सकता और इस पर भरोसा नहीं करना चाहिए।",
+  "UnsupportedAlgorithm": "{alg} हस्ताक्षर जाँच समर्थित नहीं है (केवल HS256/384/512 और RS256/384/512)।",
+  "ClaimExpired": "{date} को समाप्त",
+  "ClaimExpiresAt": "{date} को समाप्त होगा",
+  "ClaimNotBefore": "{date} से पहले मान्य नहीं",
+  "ClaimValidFrom": "{date} से मान्य",
+  "ClaimIssuedAt": "{date} को जारी"
 }

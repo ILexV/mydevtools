@@ -27,5 +27,8 @@
   "Seo_HowToSteps": "### Passo 1: Prepare sua entrada\nDigite seus dados no campo de entrada ou carregue um arquivo do seu dispositivo.\n\n### Passo 2: Configure as opções\nAjuste as configurações da ferramenta de acordo com suas necessidades.\n\n### Passo 3: Processe e copie os resultados\nClique no botão de ação para processar sua entrada e copie os resultados para a área de transferência.",
   "Seo_Tips": "- Todo o processamento acontece no seu navegador para máxima privacidade\n- A ferramenta funciona offline após o carregamento inicial da página\n- Suas preferências são salvas localmente no seu navegador\n- Arquivos grandes são suportados com rastreamento de progresso",
   "CommentLabel": "Comentário",
-  "ErrorUnsupportedFormat": "Formato de chave não suportado"
+  "ErrorUnsupportedFormat": "Formato de chave não suportado",
+  "ErrorPassphraseRequired": "Esta chave está criptografada: informe a frase secreta.",
+  "ErrorWrongPassphrase": "Frase secreta incorreta ou chave corrompida.",
+  "KeySizeDefault": "Pelo algoritmo"
 }

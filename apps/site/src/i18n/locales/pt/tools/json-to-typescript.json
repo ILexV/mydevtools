@@ -17,6 +17,7 @@
   "ExportKeyword": "Palavra-chave export",
   "OptionalFields": "Campos opcionais (?)",
   "UseTypeAlias": "Usar type alias",
+  "EditorKeyboardHint": "No editor, Tab insere recuo. Pressione Esc e depois Tab para sair do editor.",
   "Seo_Introduction": "O Conversor JSON para TypeScript transforma dados JSON em interfaces e aliases de tipo TypeScript fortemente tipados em segundos. Todo o processo ocorre localmente no navegador — seus dados nunca saem da sua máquina.",
   "Seo_DetailedDescription": "O conversor analisa a estrutura de qualquer objeto ou array JSON e produz definições TypeScript idiomáticas. Objetos aninhados são extraídos automaticamente em interfaces nomeadas separadas.\n\n**Opções principais:**\n- **Nome raiz** — personalize o nome da interface de nível superior (padrão: `Root`).\n- **export** — adiciona `export` antes de cada interface ou alias de tipo gerado.\n- **Campos opcionais (?)** — marca propriedades com valor `null` como opcionais.\n- **type alias** — gera `type Foo = { … }` em vez de `interface Foo { … }`.",
   "Seo_Examples": "**Exemplo 1: Resposta de API → TypeScript**\nCole uma resposta REST API, defina o nome raiz e converta. Você obtém interfaces prontas para o seu projeto.\n\n**Exemplo 2: Configuração profundamente aninhada**\nArquivos de configuração JSON com múltiplos níveis são tratados automaticamente.\n\n**Exemplo 3: Array de objetos**\nSe o valor raiz for um array, o conversor gera um alias de tipo para o array e uma interface para o elemento.",

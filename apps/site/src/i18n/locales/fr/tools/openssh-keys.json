@@ -27,5 +27,8 @@
   "Seo_HowToSteps": "### Étape 1 : Préparez votre entrée\nEntrez vos données dans le champ de saisie ou téléchargez un fichier depuis votre appareil.\n\n### Étape 2 : Configurez les options\nAjustez les paramètres de l'outil selon vos besoins.\n\n### Étape 3 : Traitez et copiez les résultats\nCliquez sur le bouton d'action pour traiter votre entrée et copiez les résultats dans le presse-papiers.",
   "Seo_Tips": "- Tout le traitement se fait dans votre navigateur pour une confidentialité maximale\n- L'outil fonctionne hors ligne après le chargement initial de la page\n- Vos préférences sont enregistrées localement dans votre navigateur\n- Les fichiers volumineux sont pris en charge avec suivi de la progression",
   "CommentLabel": "Commentaire",
-  "ErrorUnsupportedFormat": "Format de clé non pris en charge"
+  "ErrorUnsupportedFormat": "Format de clé non pris en charge",
+  "ErrorPassphraseRequired": "Cette clé est chiffrée : saisissez sa phrase secrète.",
+  "ErrorWrongPassphrase": "Phrase secrète incorrecte ou clé corrompue.",
+  "KeySizeDefault": "Selon l’algorithme"
 }

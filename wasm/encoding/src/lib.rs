@@ -265,11 +265,19 @@ fn base64_decode_string(
         }
     }
 
+    // "optional" accepts both padded and unpadded input: strip trailing '='
+    // and decode with the no-pad engine (the padded engines require canonical
+    // padding, so they would reject unpadded input).
+    if padding == PaddingMode::Optional {
+        let trimmed_len = cleaned.trim_end_matches('=').len();
+        cleaned.truncate(trimmed_len);
+    }
+
     let engine = match (alphabet, padding) {
-        (Base64Alphabet::Standard, PaddingMode::None) => &general_purpose::STANDARD_NO_PAD,
-        (Base64Alphabet::Standard, _) => &general_purpose::STANDARD,
-        (Base64Alphabet::UrlSafe, PaddingMode::None) => &general_purpose::URL_SAFE_NO_PAD,
-        (Base64Alphabet::UrlSafe, _) => &general_purpose::URL_SAFE,
+        (Base64Alphabet::Standard, PaddingMode::Required) => &general_purpose::STANDARD,
+        (Base64Alphabet::Standard, _) => &general_purpose::STANDARD_NO_PAD,
+        (Base64Alphabet::UrlSafe, PaddingMode::Required) => &general_purpose::URL_SAFE,
+        (Base64Alphabet::UrlSafe, _) => &general_purpose::URL_SAFE_NO_PAD,
     };
 
     engine.decode(&cleaned)
@@ -332,10 +340,6 @@ pub fn hex_encode(bytes: &[u8], upper: bool) -> String {
     }
 }
 
-fn is_hex_digit(c: char) -> bool {
-    matches!(c, '0'..='9' | 'a'..='f' | 'A'..='F')
-}
-
 fn hex_value(c: char) -> Option<u8> {
     match c {
         '0'..='9' => Some((c as u8) - b'0'),
@@ -356,53 +360,50 @@ pub fn hex_decode(
         .map_err(|e| JsValue::from_str(&e))
 }
 
+/// Hex → bytes. Optional leniency: whitespace, `:`/`-` separators and a `0x`
+/// prefix on every token ("0x48 0x65", "0x4865"). Error positions are
+/// 0-based char indices into the ORIGINAL input so the UI can select the
+/// offending character.
 fn hex_decode_internal(
     input: &str,
     ignore_whitespace: bool,
     allow_separators: bool,
     allow_0x: bool,
 ) -> Result<Vec<u8>, String> {
-    let mut cleaned = input.to_string();
-    
-    // Remove 0x prefix if allowed
-    if allow_0x && cleaned.starts_with("0x") || cleaned.starts_with("0X") {
-        cleaned = cleaned[2..].to_string();
-    }
-
-    // Remove whitespace and separators
-    cleaned = cleaned
-        .chars()
-        .filter(|c| {
-            if ignore_whitespace && c.is_whitespace() {
-                return false;
-            }
-            if allow_separators && (*c == ':' || *c == '-') {
-                return false;
-            }
-            true
-        })
-        .collect();
-
-    // Validate hex digits
-    for (i, c) in cleaned.chars().enumerate() {
-        if !is_hex_digit(c) {
-            return Err(format!("Invalid hex character '{}' at position {}", c, i));
+    let chars: Vec<char> = input.chars().collect();
+    let mut digits: Vec<u8> = Vec::with_capacity(chars.len());
+    let mut token_start = true;
+    let mut i = 0;
+    while i < chars.len() {
+        let c = chars[i];
+        if ignore_whitespace && c.is_whitespace() {
+            token_start = true;
+            i += 1;
+            continue;
         }
+        if allow_separators && (c == ':' || c == '-') {
+            token_start = true;
+            i += 1;
+            continue;
+        }
+        if allow_0x && token_start && c == '0' && matches!(chars.get(i + 1), Some('x') | Some('X')) {
+            token_start = false;
+            i += 2;
+            continue;
+        }
+        match hex_value(c) {
+            Some(v) => digits.push(v),
+            None => return Err(format!("Invalid hex character '{}' at position {}", c, i)),
+        }
+        token_start = false;
+        i += 1;
     }
 
-    if cleaned.len() % 2 != 0 {
+    if digits.len() % 2 != 0 {
         return Err("Invalid hex length (must be even)".to_string());
     }
 
-    let mut bytes = Vec::with_capacity(cleaned.len() / 2);
-    let mut chars = cleaned.chars();
-    while let (Some(high), Some(low)) = (chars.next(), chars.next()) {
-        let high_val = hex_value(high).unwrap();
-        let low_val = hex_value(low).unwrap();
-        bytes.push((high_val << 4) | low_val);
-    }
-
-    Ok(bytes)
+    Ok(digits.chunks_exact(2).map(|p| (p[0] << 4) | p[1]).collect())
 }
 
 // ============================================================================
@@ -416,93 +417,83 @@ enum Base32Alphabet {
     ZBase32,
 }
 
+const BASE32_RFC4648_SYMBOLS: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+/// Crockford Base32: no I, L, O, U (https://www.crockford.com/base32.html).
+const BASE32_CROCKFORD_SYMBOLS: &str = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+/// z-base-32 (human-oriented, lowercase, never padded).
+const BASE32_ZBASE32_SYMBOLS: &str = "ybndrfg8ejkmcpqxot1uwisza345h769";
+
+/// Build the data-encoding codec for an alphabet. Decoding is
+/// case-insensitive for every alphabet; Crockford additionally maps the
+/// look-alikes I/L → 1 and O → 0 and ignores `-` group separators.
+fn base32_codec(alphabet: Base32Alphabet, padded: bool) -> data_encoding::Encoding {
+    let mut spec = data_encoding::Specification::new();
+    match alphabet {
+        Base32Alphabet::Rfc4648 => {
+            spec.symbols.push_str(BASE32_RFC4648_SYMBOLS);
+            spec.translate.from.push_str("abcdefghijklmnopqrstuvwxyz");
+            spec.translate.to.push_str("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+        }
+        Base32Alphabet::Crockford => {
+            spec.symbols.push_str(BASE32_CROCKFORD_SYMBOLS);
+            spec.translate.from.push_str("abcdefghjkmnpqrstvwxyzIiLlOo");
+            spec.translate.to.push_str("ABCDEFGHJKMNPQRSTVWXYZ111100");
+            spec.ignore.push('-');
+        }
+        Base32Alphabet::ZBase32 => {
+            spec.symbols.push_str(BASE32_ZBASE32_SYMBOLS);
+            spec.translate.from.push_str("YBNDRFGEJKMCPQXOTUWISZAH");
+            spec.translate.to.push_str("ybndrfgejkmcpqxotuwiszah");
+        }
+    }
+    if padded && alphabet != Base32Alphabet::ZBase32 {
+        spec.padding = Some('=');
+    }
+    spec.encoding().expect("static base32 specification is valid")
+}
+
 fn base32_encode_bytes(
     bytes: &[u8],
     alphabet: Base32Alphabet,
     padding: PaddingMode,
     case: Option<&str>,
 ) -> String {
-    use data_encoding::{BASE32, BASE32_NOPAD};
-    
-    let (encoded, use_padding) = match alphabet {
-        Base32Alphabet::Rfc4648 => {
-            match padding {
-                PaddingMode::None => (BASE32_NOPAD.encode(bytes), false),
-                _ => (BASE32.encode(bytes), true),
-            }
-        }
-        Base32Alphabet::Crockford => {
-            // Crockford uses RFC4648 but with different case handling
-            match padding {
-                PaddingMode::None => (BASE32_NOPAD.encode(bytes), false),
-                _ => (BASE32.encode(bytes), true),
-            }
-        }
-        Base32Alphabet::ZBase32 => {
-            // z-base-32 uses lowercase and no padding
-            let encoded = BASE32_NOPAD.encode(bytes).to_lowercase();
-            (encoded, false)
-        }
-    };
-
-    let mut result = encoded;
-    
-    // Handle padding
-    match padding {
-        PaddingMode::None => {
-            result = result.trim_end_matches('=').to_string();
-        }
-        PaddingMode::Optional | PaddingMode::Required => {
-            if !use_padding {
-                result = result.trim_end_matches('=').to_string();
-            }
-        }
-    }
-
-    // Handle case
+    let result = base32_codec(alphabet, padding != PaddingMode::None).encode(bytes);
     match case {
-        Some("upper") => result = result.to_uppercase(),
-        Some("lower") => result = result.to_lowercase(),
-        Some("auto") => {
-            // Keep as is (usually uppercase from BASE32)
-        }
-        _ => {}
+        Some("upper") => result.to_uppercase(),
+        Some("lower") => result.to_lowercase(),
+        // "auto"/None: the alphabet's canonical case.
+        _ => result,
     }
-
-    result
 }
 
 fn base32_decode_string(
     input: &str,
-    _alphabet: Base32Alphabet,
+    alphabet: Base32Alphabet,
     padding: PaddingMode,
     allow_whitespace: bool,
 ) -> Result<Vec<u8>, String> {
-    use data_encoding::{BASE32, BASE32_NOPAD};
-    
     let mut cleaned = input.to_string();
-    
+
     if allow_whitespace {
         cleaned = cleaned.chars().filter(|c| !c.is_whitespace()).collect();
     } else if cleaned.chars().any(|c| c.is_whitespace()) {
         return Err("Whitespace not allowed".to_string());
     }
 
-    // Normalize case for decoding (RFC4648 is case-insensitive)
-    cleaned = cleaned.to_uppercase();
-
-    // Handle padding
     if padding == PaddingMode::None && cleaned.contains('=') {
         return Err("Padding '=' is not allowed".to_string());
     }
+    // "optional" (and z-base-32, which has no padding) accepts padded and
+    // unpadded input.
+    let padded = padding == PaddingMode::Required && alphabet != Base32Alphabet::ZBase32;
+    if !padded {
+        let trimmed_len = cleaned.trim_end_matches('=').len();
+        cleaned.truncate(trimmed_len);
+    }
 
-    // Remove padding for decoding if needed
-    let decoder = match padding {
-        PaddingMode::None => &BASE32_NOPAD,
-        _ => &BASE32,
-    };
-
-    decoder.decode(cleaned.as_bytes())
+    base32_codec(alphabet, padded)
+        .decode(cleaned.as_bytes())
         .map_err(|e| format!("Base32 decode error: {}", e))
 }
 
@@ -705,9 +696,11 @@ fn url_decode_string(input: &str, mode: UrlMode) -> Result<Vec<u8>, String> {
             '%' => {
                 let high = chars.next().ok_or("Truncated % encoding")?;
                 let low = chars.next().ok_or("Truncated % encoding")?;
-                let byte = u8::from_str_radix(&format!("{}{}", high, low), 16)
-                    .map_err(|_| format!("Invalid hex in % encoding: {}{}", high, low))?;
-                bytes.push(byte);
+                // from_str_radix alone would accept a sign ("%+1").
+                match (hex_value(high), hex_value(low)) {
+                    (Some(h), Some(l)) => bytes.push((h << 4) | l),
+                    _ => return Err(format!("Invalid hex in % encoding: {}{}", high, low)),
+                }
             }
             '+' if mode == UrlMode::Form => {
                 bytes.push(b' ');
@@ -1143,5 +1136,210 @@ mod tests {
         let final_text = Charset::Utf8.decode_bytes_to_text(&base64_decoded).unwrap();
         
         assert_eq!(final_text, text);
+    }
+
+    // ============================================================================
+    // QA additions (2026-10-06): RFC 4648 vectors, padding modes, alphabets,
+    // hex leniency, URL strictness
+    // ============================================================================
+
+    /// RFC 4648 §10 test vectors ("", "f", "fo", … "foobar").
+    const RFC4648_INPUTS: [&str; 7] = ["", "f", "fo", "foo", "foob", "fooba", "foobar"];
+
+    #[test]
+    fn test_base64_rfc4648_vectors() {
+        let expected = ["", "Zg==", "Zm8=", "Zm9v", "Zm9vYg==", "Zm9vYmE=", "Zm9vYmFy"];
+        for (input, want) in RFC4648_INPUTS.iter().zip(expected) {
+            let enc = base64_encode_bytes(input.as_bytes(), Base64Alphabet::Standard, PaddingMode::Required, None);
+            assert_eq!(enc, want);
+            let dec = base64_decode_string(want, Base64Alphabet::Standard, PaddingMode::Required, false).unwrap();
+            assert_eq!(dec, input.as_bytes());
+        }
+    }
+
+    #[test]
+    fn test_base64_optional_padding_accepts_both_forms() {
+        for input in ["Zm8=", "Zm8"] {
+            let dec = base64_decode_string(input, Base64Alphabet::Standard, PaddingMode::Optional, false).unwrap();
+            assert_eq!(dec, b"fo");
+        }
+    }
+
+    #[test]
+    fn test_base64_padding_modes_reject() {
+        assert!(base64_decode_string("Zm8", Base64Alphabet::Standard, PaddingMode::Required, false).is_err());
+        let err = base64_decode_string("Zm8=", Base64Alphabet::Standard, PaddingMode::None, false).unwrap_err();
+        assert!(err.contains("Padding"));
+        assert!(base64_decode_string("Z", Base64Alphabet::Standard, PaddingMode::Optional, false).is_err());
+    }
+
+    #[test]
+    fn test_base64_whitespace_and_invalid_symbol() {
+        let wrapped = "Zm9v\nYmFy";
+        assert_eq!(
+            base64_decode_string(wrapped, Base64Alphabet::Standard, PaddingMode::Required, true).unwrap(),
+            b"foobar"
+        );
+        let err = base64_decode_string(wrapped, Base64Alphabet::Standard, PaddingMode::Required, false).unwrap_err();
+        assert!(err.contains("Whitespace"));
+        assert!(base64_decode_string("Zm9v!mFy", Base64Alphabet::Standard, PaddingMode::Required, false).is_err());
+    }
+
+    #[test]
+    fn test_base64_urlsafe_vs_standard_symbols() {
+        let bytes = [0xfb, 0xff, 0xbf];
+        assert_eq!(base64_encode_bytes(&bytes, Base64Alphabet::Standard, PaddingMode::Required, None), "+/+/");
+        assert_eq!(base64_encode_bytes(&bytes, Base64Alphabet::UrlSafe, PaddingMode::Required, None), "-_-_");
+        assert!(base64_decode_string("-_-_", Base64Alphabet::Standard, PaddingMode::Required, false).is_err());
+    }
+
+    #[test]
+    fn test_base64_line_wrap_76() {
+        let bytes = vec![0u8; 100];
+        let enc = base64_encode_bytes(&bytes, Base64Alphabet::Standard, PaddingMode::Required, Some(76));
+        let lines: Vec<&str> = enc.split('\n').collect();
+        assert_eq!(lines.len(), 2);
+        assert_eq!(lines[0].len(), 76);
+        let dec = base64_decode_string(&enc, Base64Alphabet::Standard, PaddingMode::Required, true).unwrap();
+        assert_eq!(dec, bytes);
+    }
+
+    #[test]
+    fn test_base32_rfc4648_vectors() {
+        let expected = ["", "MY======", "MZXQ====", "MZXW6===", "MZXW6YQ=", "MZXW6YTB", "MZXW6YTBOI======"];
+        for (input, want) in RFC4648_INPUTS.iter().zip(expected) {
+            let enc = base32_encode_bytes(input.as_bytes(), Base32Alphabet::Rfc4648, PaddingMode::Required, None);
+            assert_eq!(enc, want);
+            let dec = base32_decode_string(want, Base32Alphabet::Rfc4648, PaddingMode::Required, false).unwrap();
+            assert_eq!(dec, input.as_bytes());
+        }
+    }
+
+    #[test]
+    fn test_base32_optional_padding_and_case_insensitive() {
+        for input in ["MZXW6===", "MZXW6", "mzxw6"] {
+            let dec = base32_decode_string(input, Base32Alphabet::Rfc4648, PaddingMode::Optional, false).unwrap();
+            assert_eq!(dec, b"foo");
+        }
+        assert!(base32_decode_string("MZXW6", Base32Alphabet::Rfc4648, PaddingMode::Required, false).is_err());
+        assert!(base32_decode_string("MZXW6===", Base32Alphabet::Rfc4648, PaddingMode::None, false).is_err());
+    }
+
+    #[test]
+    fn test_base32_case_option() {
+        let lower = base32_encode_bytes(b"foo", Base32Alphabet::Rfc4648, PaddingMode::None, Some("lower"));
+        assert_eq!(lower, "mzxw6");
+        let upper = base32_encode_bytes(b"foo", Base32Alphabet::ZBase32, PaddingMode::None, Some("upper"));
+        assert_eq!(upper, upper.to_uppercase());
+        assert_eq!(base32_decode_string(&upper, Base32Alphabet::ZBase32, PaddingMode::None, false).unwrap(), b"foo");
+    }
+
+    #[test]
+    fn test_base32_crockford_alphabet() {
+        // "hello": RFC 4648 NBSWY3DP → Crockford D1JPRV3F (same 5-bit groups, other symbols).
+        let enc = base32_encode_bytes(b"hello", Base32Alphabet::Crockford, PaddingMode::None, None);
+        assert_eq!(enc, "D1JPRV3F");
+        // Lowercase, look-alikes (I/L → 1, O → 0) and '-' separators decode.
+        for input in ["D1JPRV3F", "d1jprv3f", "DIJPRV3F", "DLJP-RV3F"] {
+            let dec = base32_decode_string(input, Base32Alphabet::Crockford, PaddingMode::None, false).unwrap();
+            assert_eq!(dec, b"hello", "input {input}");
+        }
+        assert_eq!(base32_decode_string("0o", Base32Alphabet::Crockford, PaddingMode::None, false).unwrap(), vec![0]);
+        // 'U' is not in the Crockford alphabet.
+        assert!(base32_decode_string("UUUUUUUU", Base32Alphabet::Crockford, PaddingMode::None, false).is_err());
+    }
+
+    #[test]
+    fn test_base32_zbase32_alphabet() {
+        let enc = base32_encode_bytes(b"hello", Base32Alphabet::ZBase32, PaddingMode::Required, None);
+        assert_eq!(enc, "pb1sa5dx");
+        assert_eq!(base32_decode_string("pb1sa5dx", Base32Alphabet::ZBase32, PaddingMode::Required, false).unwrap(), b"hello");
+        // RFC 4648 text is not z-base-32.
+        assert_ne!(
+            base32_decode_string("NBSWY3DP", Base32Alphabet::ZBase32, PaddingMode::None, false).ok(),
+            Some(b"hello".to_vec())
+        );
+    }
+
+    #[test]
+    fn test_base32_alphabet_roundtrips_binary() {
+        let bytes: Vec<u8> = (0..=255u8).collect();
+        for alphabet in [Base32Alphabet::Rfc4648, Base32Alphabet::Crockford, Base32Alphabet::ZBase32] {
+            for padding in [PaddingMode::Required, PaddingMode::Optional, PaddingMode::None] {
+                let enc = base32_encode_bytes(&bytes, alphabet, padding, None);
+                let dec = base32_decode_string(&enc, alphabet, padding, false).unwrap();
+                assert_eq!(dec, bytes, "{alphabet:?} {padding:?}");
+            }
+        }
+    }
+
+    #[test]
+    fn test_hex_0x_prefix_handling() {
+        assert_eq!(hex_decode_internal("0x48656c6c6f", false, false, true).unwrap(), b"Hello");
+        assert_eq!(hex_decode_internal("0X4865", false, false, true).unwrap(), b"He");
+        assert_eq!(hex_decode_internal("0x48 0x65", true, false, true).unwrap(), b"He");
+        assert_eq!(hex_decode_internal("0x48:0x65", false, true, true).unwrap(), b"He");
+        // Disabled: both spellings are rejected (was: "0X" stripped regardless).
+        assert!(hex_decode_internal("0x48", false, false, false).is_err());
+        assert!(hex_decode_internal("0X48", false, false, false).is_err());
+        // "0x" only counts at a token start.
+        assert!(hex_decode_internal("480x65", false, false, true).is_err());
+    }
+
+    #[test]
+    fn test_hex_error_position_is_in_original_input() {
+        let err = hex_decode_internal("48 65 zz", true, false, false).unwrap_err();
+        assert!(err.contains("'z' at position 6"), "{err}");
+        let err = hex_decode_internal("48 65", false, false, false).unwrap_err();
+        assert!(err.contains("position 2"), "{err}");
+        let err = hex_decode_internal("48:65", true, false, false).unwrap_err();
+        assert!(err.contains("':' at position 2"), "{err}");
+    }
+
+    #[test]
+    fn test_hex_empty_and_dash_separator() {
+        assert_eq!(hex_decode_internal("", true, true, true).unwrap(), Vec::<u8>::new());
+        assert_eq!(hex_decode_internal("de-ad-BE-EF", false, true, false).unwrap(), vec![0xde, 0xad, 0xbe, 0xef]);
+    }
+
+    #[test]
+    fn test_url_decode_rejects_signed_escape() {
+        assert!(url_decode_string("%+1", UrlMode::Component).is_err());
+        assert!(url_decode_string("%4", UrlMode::Component).is_err());
+        assert_eq!(url_decode_string("%e2%82%AC", UrlMode::Component).unwrap(), "€".as_bytes());
+    }
+
+    #[test]
+    fn test_url_component_vs_uri_reserved() {
+        let input = "a b&c=d/é?#";
+        assert_eq!(url_encode_bytes(input.as_bytes(), UrlMode::Component), "a%20b%26c%3Dd%2F%C3%A9%3F%23");
+        assert_eq!(url_encode_bytes(input.as_bytes(), UrlMode::Uri), "a%20b&c=d/%C3%A9?#");
+        assert_eq!(url_encode_bytes(input.as_bytes(), UrlMode::Form), "a+b%26c%3Dd%2F%C3%A9%3F%23");
+        // '+' is literal outside form mode.
+        assert_eq!(url_decode_string("a+b", UrlMode::Component).unwrap(), b"a+b");
+        assert_eq!(url_decode_string("a+b", UrlMode::Form).unwrap(), b"a b");
+    }
+
+    #[test]
+    fn test_base58_known_vectors_and_invalid() {
+        // Bitcoin alphabet: "Hello World!" → 2NEpo7TZRRrLZSi2U; leading zero bytes → '1'.
+        assert_eq!(base58_encode_bytes(b"Hello World!", Base58Alphabet::Bitcoin), "2NEpo7TZRRrLZSi2U");
+        assert_eq!(base58_encode_bytes(&[0, 0, 1], Base58Alphabet::Bitcoin), "112");
+        // '0', 'O', 'I', 'l' are not in the Bitcoin alphabet.
+        for bad in ["0", "O", "I", "l"] {
+            assert!(base58_decode_string(bad, Base58Alphabet::Bitcoin, false).is_err(), "{bad}");
+        }
+        assert!(base58_decode_string("2NEp o7", Base58Alphabet::Bitcoin, false).is_err());
+        assert!(base58_decode_string("2NEp o7", Base58Alphabet::Bitcoin, true).is_ok());
+    }
+
+    #[test]
+    fn test_charset_errors_carry_positions() {
+        let err = Charset::Ascii.encode_text_to_bytes("abé").unwrap_err();
+        assert!(err.contains("position 2"), "{err}");
+        let err = Charset::Latin1.encode_text_to_bytes("ab€").unwrap_err();
+        assert!(err.contains("position 2"), "{err}");
+        assert!(Charset::Utf8.decode_bytes_to_text(&[0xff]).is_err());
+        assert_eq!(Charset::Latin1.decode_bytes_to_text(&[0xe9]).unwrap(), "é");
     }
 }

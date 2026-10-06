@@ -27,5 +27,8 @@
   "Seo_HowToSteps": "### Schritt 1: Bereiten Sie Ihre Eingabe vor\nGeben Sie Ihre Daten in das Eingabefeld ein oder laden Sie eine Datei von Ihrem Gerät hoch.\n\n### Schritt 2: Konfigurieren Sie die Optionen\nPassen Sie die Tool-Einstellungen an Ihre Bedürfnisse an.\n\n### Schritt 3: Verarbeiten und kopieren Sie die Ergebnisse\nKlicken Sie auf die Aktionstaste, um Ihre Eingabe zu verarbeiten, und kopieren Sie die Ergebnisse in die Zwischenablage.",
   "Seo_Tips": "- Die gesamte Verarbeitung erfolgt in Ihrem Browser für maximale Privatsphäre\n- Das Tool funktioniert offline nach dem ersten Laden der Seite\n- Ihre Einstellungen werden lokal in Ihrem Browser gespeichert\n- Große Dateien werden mit Fortschrittsverfolgung unterstützt",
   "CommentLabel": "Kommentar",
-  "ErrorUnsupportedFormat": "Nicht unterstütztes Schlüsselformat"
+  "ErrorUnsupportedFormat": "Nicht unterstütztes Schlüsselformat",
+  "ErrorPassphraseRequired": "Dieser Schlüssel ist verschlüsselt: Passphrase eingeben.",
+  "ErrorWrongPassphrase": "Falsche Passphrase oder beschädigter Schlüssel.",
+  "KeySizeDefault": "Laut Algorithmus"
 }

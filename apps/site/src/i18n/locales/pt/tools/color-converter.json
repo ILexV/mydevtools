@@ -24,6 +24,8 @@
   "Pass": "Aprovado",
   "Fail": "Reprovado",
   "PreviewText": "Texto de Exemplo",
+  "CopyFailed": "Não foi possível copiar para a área de transferência. Selecione o texto e copie manualmente.",
+  "Error_InvalidColor": "Cor inválida. Use HEX (#3b82f6), rgb(59, 130, 246), hsl(217, 91%, 60%) ou cmyk(76%, 47%, 0%, 4%).",
   "Seo_Introduction": "A ferramenta Color Converter é uma ferramenta online focada em privacidade projetada para desenvolvedores. Todo o processamento acontece localmente no seu navegador usando WebAssembly, garantindo que seus dados nunca saiam do seu dispositivo.",
   "Seo_DetailedDescription": "Esta ferramenta fornece funcionalidade abrangente para operações de color converter. Construída com tecnologias web modernas e alimentada por WebAssembly compilado do Rust, oferece desempenho nativo diretamente no seu navegador.\n\nA interface é projetada para eficiência e facilidade de uso, com suporte para entrada de texto e processamento de arquivos. Todas as operações são realizadas no lado do cliente, garantindo privacidade e segurança completas para seus dados sensíveis.",
   "Seo_Examples": "**Exemplo 1**: Use Color Converter para conversões rápidas no seu fluxo de trabalho de desenvolvimento.\n\n**Exemplo 2**: Processe arquivos diretamente sem enviá-los para nenhum servidor, mantendo privacidade completa.\n\n**Exemplo 3**: Integre a ferramenta em suas tarefas diárias de desenvolvimento para melhorar a produtividade.",

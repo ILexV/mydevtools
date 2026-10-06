@@ -27,5 +27,8 @@
   "Seo_HowToSteps": "### 步骤1：准备输入\n在输入字段中输入数据或从设备上传文件。\n\n### 步骤2：配置选项\n根据需要调整工具设置。\n\n### 步骤3：处理并复制结果\n点击操作按钮处理输入并将结果复制到剪贴板。",
   "Seo_Tips": "- 所有处理都在浏览器中进行，以实现最大隐私\n- 初始页面加载后，工具可离线工作\n- 您的偏好设置本地保存在浏览器中\n- 支持带进度跟踪的大文件",
   "CommentLabel": "注释",
-  "ErrorUnsupportedFormat": "不支持的密钥格式"
+  "ErrorUnsupportedFormat": "不支持的密钥格式",
+  "ErrorPassphraseRequired": "此密钥已加密：请输入密码短语。",
+  "ErrorWrongPassphrase": "密码短语错误或密钥已损坏。",
+  "KeySizeDefault": "按算法"
 }

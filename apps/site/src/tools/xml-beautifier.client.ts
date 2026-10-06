@@ -1,28 +1,30 @@
 /**
- * XML Beautifier client controller. Pure-JS DOMParser + custom serializer
- * (ported verbatim from legacy xml-beautifier.js) with CodeMirror 5 via
- * `ensureCodeMirror()` and a custom 'simplexml' mode + fold helper defined
- * inline (legacy never vendored an xml mode — parity).
+ * XML Beautifier client controller. CodeMirror 5 via `ensureCodeMirror()`
+ * with a custom 'simplexml' mode + fold helper defined inline (legacy never
+ * vendored an xml mode — parity); formatting via `formatXml` (DOMParser +
+ * pure serializer in `xml-format.ts`). Open/save, drop a file onto the
+ * editor, copy/clear, Ctrl/Cmd-Enter format, Esc→Tab leaves the editor.
  *
  * PRIVACY: legacy persisted the input text to localStorage on every change
  * (`xml-beautifier-input`). That is intentionally NOT ported — user data
  * never leaves the page. Only the indent / compact-mode settings are kept.
  */
-import { ensureCodeMirror } from "@/scripts/codemirror-loader";
+import {
+  bindEditorFileDrop,
+  downloadText,
+  ensureCodeMirror,
+  getCodeMirror,
+  makeEditorAccessible,
+  refreshOnThemeChange,
+  type CmEditor,
+} from "@/scripts/codemirror-loader";
+import { copyWithFeedback } from "@/scripts/tool-ui";
+import { formatXml, XmlParseError } from "@/tools/xml-format";
 
 /** Minimal typed surface of the vendored CodeMirror 5 global (no shipped types). */
 interface CodeMirrorPos {
   line: number;
   ch: number;
-}
-
-interface CodeMirrorEditor {
-  getValue(): string;
-  setValue(value: string): void;
-  setOption(name: string, value: unknown): void;
-  setSize(width: number | string | null, height: number | string | null): void;
-  refresh(): void;
-  getWrapperElement(): HTMLElement;
 }
 
 interface CodeMirrorStream {
@@ -41,7 +43,7 @@ interface SimpleXmlState {
 }
 
 interface CodeMirrorStatic {
-  (element: HTMLElement, options: Record<string, unknown>): CodeMirrorEditor;
+  (element: HTMLElement, options: Record<string, unknown>): CmEditor;
   modes: Record<string, unknown>;
   defineMode(name: string, factory: () => { startState: () => SimpleXmlState; token: (stream: CodeMirrorStream, state: SimpleXmlState) => string | null }): void;
   defineMIME(mime: string, mode: string): void;
@@ -52,9 +54,8 @@ interface CodeMirrorStatic {
 
 interface Strings {
   copied: string;
-  copyButton: string;
   errorInvalidXml: string;
-  inputPlaceholder: string;
+  inputLabel: string;
 }
 
 function readStrings(): Strings | null {
@@ -251,203 +252,24 @@ function defineSimpleXmlMode(CodeMirror: CodeMirrorStatic): void {
   CodeMirror.fold.simplexml = xmlFoldHelper;
 }
 
-function formatDoctype(doctype: DocumentType | null): string {
-  if (!doctype) return "";
-  let id = "";
-  if (doctype.publicId) {
-    id += ` PUBLIC "${doctype.publicId}"`;
-    if (doctype.systemId) {
-      id += ` "${doctype.systemId}"`;
-    }
-  } else if (doctype.systemId) {
-    id += ` SYSTEM "${doctype.systemId}"`;
-  }
-  return `<!DOCTYPE ${doctype.name}${id}>`;
-}
-
-function isIgnorableWhitespace(node: ChildNode): boolean {
-  return node.nodeType === 3 && !(node.nodeValue || "").trim();
-}
-
-function escapeText(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function escapeAttribute(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
-
-function serializeNode(node: ChildNode, depth: number, lines: string[], indentUnit: string): void {
-  const indent = indentUnit.repeat(depth);
-
-  switch (node.nodeType) {
-    case 1: {
-      // ELEMENT_NODE
-      const el = node as Element;
-      const attributes = Array.from(el.attributes || [])
-        .map((attr) => `${attr.name}="${escapeAttribute(attr.value)}"`)
-        .join(" ");
-
-      const name = el.nodeName;
-      const openTag = attributes ? `<${name} ${attributes}>` : `<${name}>`;
-      const children = Array.from(el.childNodes || []).filter((child) => !isIgnorableWhitespace(child));
-
-      if (children.length === 0) {
-        lines.push(indent + (attributes ? `<${name} ${attributes}/>` : `<${name}/>`));
-        return;
-      }
-
-      if (children.length === 1 && children[0].nodeType === 3) {
-        const text = escapeText((children[0].nodeValue || "").trim());
-        lines.push(indent + openTag + text + `</${name}>`);
-        return;
-      }
-
-      lines.push(indent + openTag);
-      children.forEach((child) => serializeNode(child, depth + 1, lines, indentUnit));
-      lines.push(indent + `</${name}>`);
-      return;
-    }
-    case 3: {
-      // TEXT_NODE
-      const text = (node.nodeValue || "").trim();
-      if (text) {
-        lines.push(indent + escapeText(text));
-      }
-      return;
-    }
-    case 4: {
-      // CDATA_SECTION_NODE
-      lines.push(indent + `<![CDATA[${node.nodeValue ?? ""}]]>`);
-      return;
-    }
-    case 8: {
-      // COMMENT_NODE
-      lines.push(indent + `<!--${node.nodeValue ?? ""}-->`);
-      return;
-    }
-    case 7: {
-      // PROCESSING_INSTRUCTION_NODE
-      const pi = node as ProcessingInstruction;
-      lines.push(indent + `<?${pi.target} ${pi.data}?>`);
-      return;
-    }
-    default:
-      return;
-  }
-}
-
-function serializeCompactNode(node: ChildNode): string {
-  switch (node.nodeType) {
-    case 1: {
-      // ELEMENT_NODE
-      const el = node as Element;
-      const attributes = Array.from(el.attributes || [])
-        .map((attr) => `${attr.name}="${escapeAttribute(attr.value)}"`)
-        .join(" ");
-
-      const name = el.nodeName;
-      const openTag = attributes ? `<${name} ${attributes}>` : `<${name}>`;
-      const children = Array.from(el.childNodes || []).filter((child) => !isIgnorableWhitespace(child));
-
-      if (children.length === 0) {
-        return attributes ? `<${name} ${attributes}/>` : `<${name}/>`;
-      }
-
-      const inner = children.map((child) => serializeCompactNode(child)).join("");
-      return openTag + inner + `</${name}>`;
-    }
-    case 3: {
-      // TEXT_NODE
-      return escapeText(node.nodeValue ?? "");
-    }
-    case 4: {
-      // CDATA_SECTION_NODE
-      return `<![CDATA[${node.nodeValue ?? ""}]]>`;
-    }
-    case 8: {
-      // COMMENT_NODE
-      return `<!--${node.nodeValue ?? ""}-->`;
-    }
-    case 7: {
-      // PROCESSING_INSTRUCTION_NODE
-      const pi = node as ProcessingInstruction;
-      return `<?${pi.target} ${pi.data}?>`;
-    }
-    default:
-      return "";
-  }
-}
-
-function formatXmlString(input: string, indentValue: number | string, compactMode: boolean): string {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(input, "application/xml");
-  const parseError = doc.getElementsByTagName("parsererror");
-  if (parseError && parseError.length > 0) {
-    throw new Error("Invalid XML");
-  }
-
-  const declarationMatch = input.match(/^\s*(<\?xml[^>]+\?>)/i);
-  const declaration = declarationMatch ? declarationMatch[1].trim() : null;
-
-  if (compactMode) {
-    const parts: string[] = [];
-    if (declaration) {
-      parts.push(declaration);
-    }
-    if (doc.doctype) {
-      parts.push(formatDoctype(doc.doctype));
-    }
-    const rootElement = doc.documentElement;
-    if (rootElement) {
-      parts.push(serializeCompactNode(rootElement));
-    }
-    return parts.join("\n");
-  }
-
-  const indentUnit = indentValue === "\t" ? "\t" : " ".repeat(indentValue as number);
-  const lines: string[] = [];
-
-  if (declaration) {
-    lines.push(declaration);
-  }
-
-  if (doc.doctype) {
-    lines.push(formatDoctype(doc.doctype));
-  }
-
-  const rootElement = doc.documentElement;
-  if (rootElement) {
-    serializeNode(rootElement, 0, lines, indentUnit);
-  }
-
-  return lines.join("\n");
-}
-
 async function init(): Promise<void> {
   const root = document.querySelector<HTMLElement>("[data-xml-tool]");
-  if (!root) return;
+  if (!root || root.dataset.initialized === "true") return;
   const raw = readStrings();
-  if (!raw) return;
-  const strings: Strings = raw;
-
   const editorEl = root.querySelector<HTMLElement>("[data-xml-editor]");
   const formatBtn = root.querySelector<HTMLButtonElement>("[data-xml-format]");
+  if (!raw || !editorEl || !formatBtn) return;
+  root.dataset.initialized = "true";
+  const strings: Strings = raw;
+  const editorHost: HTMLElement = editorEl;
+
   const clearBtn = root.querySelector<HTMLButtonElement>("[data-xml-clear]");
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-xml-copy]");
   const indentSelect = root.querySelector<HTMLSelectElement>("[data-xml-indent]");
-  const compactModeCheckbox = root.querySelector<HTMLInputElement>("[data-xml-compact]");
-  const openFileBtn = root.querySelector<HTMLButtonElement>("[data-xml-open]");
-  const saveFileBtn = root.querySelector<HTMLButtonElement>("[data-xml-save]");
+  const compactCheckbox = root.querySelector<HTMLInputElement>("[data-xml-compact]");
+  const saveBtn = root.querySelector<HTMLButtonElement>("[data-xml-save]");
   const fileInput = root.querySelector<HTMLInputElement>("[data-xml-file]");
-
-  if (!editorEl || !formatBtn) return;
-  const editorContainer: HTMLElement = editorEl;
+  const errorBox = root.querySelector<HTMLElement>("[data-xml-error]");
 
   try {
     await ensureCodeMirror();
@@ -455,15 +277,12 @@ async function init(): Promise<void> {
     console.error("XML Beautifier: failed to load CodeMirror", err);
     return;
   }
-  // Vendored CodeMirror 5 global — no shipped types, runtime-checked by the loader.
-  const CodeMirror = window.CodeMirror as unknown as CodeMirrorStatic | undefined;
+  const CodeMirror = getCodeMirror<CodeMirrorStatic>();
   if (!CodeMirror) return;
 
   defineSimpleXmlMode(CodeMirror);
 
-  // Exact CodeMirror options from legacy (placeholder is a no-op without the
-  // display/placeholder addon — kept for parity).
-  const editor = CodeMirror(editorContainer, {
+  const editor = CodeMirror(editorHost, {
     mode: { name: "simplexml" },
     lineNumbers: true,
     lineWrapping: true,
@@ -472,199 +291,113 @@ async function init(): Promise<void> {
     indentUnit: 4,
     tabSize: 4,
     theme: "default",
-    placeholder: strings.inputPlaceholder,
-    viewportMargin: Infinity,
     foldGutter: true,
     foldOptions: {
       rangeFinder: CodeMirror.fold.simplexml,
     },
     gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
   });
-
-  editor.setSize(null, "600px");
+  makeEditorAccessible(editor, strings.inputLabel, "xml-editor-hint");
+  refreshOnThemeChange([editor]);
 
   // Settings persistence (parity). Input text is intentionally NOT persisted.
-  let savedIndent: string | null = null;
-  let savedCompactMode: string | null = null;
   try {
-    savedIndent = localStorage.getItem("xml-beautifier-indent");
-    savedCompactMode = localStorage.getItem("xml-beautifier-compact-mode");
+    const savedIndent = localStorage.getItem("xml-beautifier-indent");
+    if (savedIndent && indentSelect && [...indentSelect.options].some((o) => o.value === savedIndent)) {
+      indentSelect.value = savedIndent;
+    }
+    if (compactCheckbox) compactCheckbox.checked = localStorage.getItem("xml-beautifier-compact-mode") === "true";
   } catch {
     /* storage unavailable */
   }
-  if (savedIndent && indentSelect) {
-    indentSelect.value = savedIndent;
+
+  function setError(message: string) {
+    editorHost.classList.toggle("is-error", Boolean(message));
+    if (errorBox) {
+      errorBox.textContent = message;
+      errorBox.hidden = !message;
+    }
   }
-  if (savedCompactMode && compactModeCheckbox) {
-    compactModeCheckbox.checked = savedCompactMode === "true";
-  }
 
-  const themeObserver = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.type === "attributes" && mutation.attributeName === "data-theme") {
-        editor.refresh();
-      }
-    });
-  });
-
-  themeObserver.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ["data-theme"],
-  });
-
-  editor.refresh();
-
-  function formatXml() {
+  function formatAction() {
     const input = editor.getValue().trim();
     if (!input) {
+      setError("");
       return;
     }
-
+    const indentValue = indentSelect?.value === "tab" ? "\t" : Number.parseInt(indentSelect?.value || "4", 10) || 4;
+    const compact = compactCheckbox?.checked ?? false;
     try {
-      const indentValue = indentSelect?.value === "tab" ? "\t" : parseInt(indentSelect?.value || "4", 10);
-      const formatted = formatXmlString(input, indentValue, compactModeCheckbox?.checked ?? false);
-
-      editor.setValue(formatted);
-
-      if (!compactModeCheckbox?.checked) {
-        if (indentValue === "\t") {
-          editor.setOption("indentWithTabs", true);
-        } else {
-          editor.setOption("indentWithTabs", false);
-          editor.setOption("indentUnit", indentValue);
-          editor.setOption("tabSize", indentValue);
-        }
+      editor.setValue(formatXml(input, indentValue, compact));
+      if (!compact) {
+        const unit = indentValue === "\t" ? 4 : indentValue;
+        editor.setOption("indentWithTabs", indentValue === "\t");
+        editor.setOption("indentUnit", unit);
+        editor.setOption("tabSize", unit);
       }
-
-      editorContainer.classList.remove("xml-error");
+      setError("");
     } catch (e) {
-      editorContainer.classList.add("xml-error");
-      console.error("XML Error:", (e as Error).message);
-      showNotification(strings.errorInvalidXml, "error");
+      const detail = e instanceof XmlParseError && e.message ? ` (${e.message})` : "";
+      setError(strings.errorInvalidXml + detail);
     }
   }
 
   function clearAll() {
     editor.setValue("");
-    editorContainer.classList.remove("xml-error");
+    setError("");
+    editor.focus();
   }
 
-  function copyToClipboard() {
-    if (!copyBtn) return;
-    const btn: HTMLButtonElement = copyBtn;
-
-    const text = editor.getValue();
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {
-        const originalText = btn.textContent;
-        btn.textContent = strings.copied;
-        setTimeout(() => {
-          btn.textContent = originalText || strings.copyButton;
-        }, 2000);
-      })
-      .catch((err) => {
-        console.error("Failed to copy:", err);
-      });
-  }
-
-  function showNotification(message: string, type = "info") {
-    const notification = document.createElement("div");
-    notification.className = `xml-notification xml-notification-${type}`;
-    notification.textContent = message;
-
-    const editorWrapper = editor.getWrapperElement();
-    editorWrapper.parentElement?.insertBefore(notification, editorWrapper);
-
-    setTimeout(() => {
-      notification.remove();
-    }, 3000);
-  }
-
-  function handleFileSelect(event: Event) {
-    const target = event.target as HTMLInputElement;
-    const file = target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        editor.setValue(e.target?.result as string);
-      };
-      reader.readAsText(file);
+  async function loadFile(file: File) {
+    try {
+      editor.setValue(await file.text());
+      setError("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     }
   }
 
-  function saveFile() {
-    const text = editor.getValue();
-    const blob = new Blob([text], { type: "application/xml" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "formatted.xml";
-    a.click();
-    URL.revokeObjectURL(url);
+  function saveSetting(key: string, value: string) {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      /* storage unavailable */
+    }
   }
 
-  formatBtn.addEventListener("click", formatXml);
+  formatBtn.addEventListener("click", formatAction);
   clearBtn?.addEventListener("click", clearAll);
-  copyBtn?.addEventListener("click", copyToClipboard);
-  openFileBtn?.addEventListener("click", () => fileInput?.click());
-  fileInput?.addEventListener("change", handleFileSelect);
-  saveFileBtn?.addEventListener("click", saveFile);
+  copyBtn?.addEventListener("click", () => {
+    void copyWithFeedback(copyBtn, editor.getValue(), strings.copied);
+  });
+  fileInput?.addEventListener("change", () => {
+    const file = fileInput.files?.[0];
+    if (file) void loadFile(file);
+    fileInput.value = "";
+  });
+  saveBtn?.addEventListener("click", () => downloadText(editor.getValue(), "formatted.xml", "application/xml"));
 
   indentSelect?.addEventListener("change", () => {
-    try {
-      localStorage.setItem("xml-beautifier-indent", indentSelect.value);
-    } catch {
-      /* storage unavailable */
-    }
-    const value = editor.getValue().trim();
-    if (value) {
-      formatXml();
-    }
+    saveSetting("xml-beautifier-indent", indentSelect.value);
+    if (editor.getValue().trim()) formatAction();
   });
-  compactModeCheckbox?.addEventListener("change", () => {
-    try {
-      localStorage.setItem("xml-beautifier-compact-mode", String(compactModeCheckbox.checked));
-    } catch {
-      /* storage unavailable */
-    }
-    const value = editor.getValue().trim();
-    if (value) {
-      formatXml();
-    }
+  compactCheckbox?.addEventListener("change", () => {
+    saveSetting("xml-beautifier-compact-mode", String(compactCheckbox.checked));
+    if (editor.getValue().trim()) formatAction();
   });
 
+  // Legacy also bound Ctrl/Cmd-K to clear; that chord is the site-wide command
+  // palette (captured on window), so only the format shortcut remains.
   editor.setOption("extraKeys", {
-    "Ctrl-Enter": formatXml,
-    "Cmd-Enter": formatXml,
-    "Ctrl-K": clearAll,
-    "Cmd-K": clearAll,
+    "Ctrl-Enter": formatAction,
+    "Cmd-Enter": formatAction,
   });
 
-  // Drag and drop
-  editorContainer.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    editorContainer.classList.add("drag-over");
-  });
-  editorContainer.addEventListener("dragleave", (e) => {
-    e.preventDefault();
-    editorContainer.classList.remove("drag-over");
-  });
-  editorContainer.addEventListener("drop", (e) => {
-    e.preventDefault();
-    editorContainer.classList.remove("drag-over");
-    const files = e.dataTransfer?.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      if (file.type === "application/xml" || file.name.endsWith(".xml")) {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          editor.setValue(ev.target?.result as string);
-        };
-        reader.readAsText(file);
-      }
-    }
-  });
+  bindEditorFileDrop(
+    editorHost,
+    (f) => /xml/.test(f.type) || f.name.toLowerCase().endsWith(".xml"),
+    (f) => void loadFile(f),
+  );
 }
 
 if (document.readyState === "loading") {

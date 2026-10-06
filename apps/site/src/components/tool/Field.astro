@@ -1,0 +1,49 @@
+---
+/**
+ * Field — labelled form control wrapper (tool UI kit, docs/qa/tool-ui-kit.md).
+ * Renders `.ds-field-group` > `.ds-label` + <slot/> (the control) + `.ds-hint`.
+ * Pass `for` = the control id so the label is programmatic. Optional
+ * `aside` slot/prop renders a right-aligned counter next to the label.
+ * Extra attributes (id, class, data-*) pass through to the wrapper.
+ * The hint gets a stable id — `hintId`, else `<for>-hint` — so the control can
+ * reference it: `aria-describedby="<for>-hint"`.
+ *
+ *   <Field label={s.inputLabel} for="b64-input" hint={s.inputHint}>
+ *     <textarea id="b64-input" class="ds-field-textarea mono" data-b64-input></textarea>
+ *   </Field>
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"div"> {
+  label: string;
+  /** id of the labelled control; omit only when the slot is not a single control. */
+  for?: string;
+  hint?: string;
+  /** Short text on the right of the label (e.g. "3 selected"). */
+  aside?: string;
+  /** Hint element id; defaults to `${for}-hint` when `for` is set. */
+  hintId?: string;
+  /** Attributes for the hint <p> (e.g. data-* hook so the controller can update it). */
+  hintProps?: HTMLAttributes<"p">;
+  /** Attributes for the aside <span> (e.g. data-* hook for a live counter). */
+  asideProps?: HTMLAttributes<"span">;
+}
+
+const { label, for: htmlFor, hint, hintId, aside, hintProps, asideProps, class: className, ...rest } = Astro.props as Props;
+const resolvedHintId = hintId ?? (htmlFor ? `${htmlFor}-hint` : undefined);
+const hasAside = aside !== undefined || asideProps !== undefined || Astro.slots.has("aside");
+const LabelTag = htmlFor ? "label" : "span";
+---
+
+<div class:list={["ds-field-group", className]} {...rest}>
+  {hasAside ? (
+    <div class="ds-label-row">
+      <LabelTag class="ds-label" for={htmlFor}>{label}</LabelTag>
+      <span class="ds-label-aside" {...asideProps}><slot name="aside">{aside}</slot></span>
+    </div>
+  ) : (
+    <LabelTag class="ds-label" for={htmlFor}>{label}</LabelTag>
+  )}
+  <slot />
+  {(hint || hintProps) && <p class="ds-hint" id={resolvedHintId} {...hintProps}>{hint}</p>}
+</div>

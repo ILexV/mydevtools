@@ -20,5 +20,8 @@
   "ErrorNotImage": "Выбранный файл не является изображением.",
   "ErrorLoadImage": "Не удалось загрузить изображение.",
   "ErrorInvalidDimensions": "Недопустимые размеры.",
-  "ErrorResizeFailed": "Не удалось изменить размер."
+  "ErrorResizeFailed": "Не удалось изменить размер.",
+  "Cancel": "Отмена",
+  "ErrorUnsupportedFormat": "Этот формат изображения не поддерживается. Используйте PNG, JPEG, WebP, GIF, BMP, ICO, TIFF или TGA.",
+  "ErrorDimensionsTooLarge": "Слишком большие размеры: не более 16384 px по стороне и 64 мегапикселей всего."
 }

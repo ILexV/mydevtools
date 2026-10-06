@@ -1,11 +1,24 @@
 /**
  * X.509 client controller. Generate self-signed certs / CSRs and parse PEM or
  * Base64-DER input via the main-thread `crypto-client` WASM helpers.
- * Legacy parity: algorithm fixed to ecdsa-p256 (1), no SAN inputs, pretty-JSON
- * output, warnings panel doubles as error panel, 1200ms copy label swap,
- * download names certificate.pem / request.csr.pem / x509.json.
+ * Legacy parity: Ed25519 by default (legacy passed algorithm id 1 = Ed25519),
+ * no SAN inputs, pretty-JSON output, copy/download, download names
+ * certificate.pem / request.csr.pem / x509.json.
+ * Fixes vs. legacy: the subject accepts a full DN (`CN=…,O=…,C=…`) instead of
+ * stuffing the whole string into the CN; "Validity (days)" is honoured
+ * (legacy certs were valid 1975–4096); errors are localized and kept apart
+ * from certificate warnings.
  */
-import { x509Parse, x509Warnings, x509SelfSigned, x509Csr, bytesToHex } from "@/scripts/wasm/crypto-client";
+import {
+  x509Parse,
+  x509Warnings,
+  x509SelfSignedEx,
+  x509CsrEx,
+  bytesToHex,
+  X509_ALG,
+} from "@/scripts/wasm/crypto-client";
+import { copyWithFeedback } from "@/scripts/tool-ui";
+import { base64ToBytes, derBase64ToPem, parseValidityDays, prettyJson } from "@/tools/x509-helpers";
 
 interface Strings {
   copy: string;
@@ -13,9 +26,10 @@ interface Strings {
   download: string;
   warningsTitle: string;
   invalidFormat: string;
+  errorValidityDays: string;
+  errorInvalidSubject: string;
+  error: string;
 }
-
-const ECDSA_P256 = 1;
 
 function readStrings(): Strings | null {
   const el = document.querySelector<HTMLScriptElement>("[data-x509-strings]");
@@ -27,43 +41,6 @@ function readStrings(): Strings | null {
   }
 }
 
-function escapeHtml(text: string): string {
-  return String(text)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function prettyJson(jsonText: string): string {
-  try {
-    return JSON.stringify(JSON.parse(jsonText), null, 2);
-  } catch {
-    return jsonText;
-  }
-}
-
-function base64ToBytes(text: string): Uint8Array {
-  const normalized = text.replace(/\s+/g, "");
-  const binary = atob(normalized);
-  const out = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    out[i] = binary.charCodeAt(i);
-  }
-  return out;
-}
-
-/** Wrap Base64-DER into PEM armor so the PEM warnings helper can read it. */
-function derBase64ToPem(base64: string): string {
-  const normalized = base64.replace(/\s+/g, "");
-  const lines: string[] = [];
-  for (let i = 0; i < normalized.length; i += 64) {
-    lines.push(normalized.slice(i, i + 64));
-  }
-  return `-----BEGIN CERTIFICATE-----\n${lines.join("\n")}\n-----END CERTIFICATE-----`;
-}
-
 function init() {
   const root = document.querySelector<HTMLElement>("[data-x509-tool]");
   if (!root) return;
@@ -72,6 +49,8 @@ function init() {
   const strings: Strings = raw;
 
   const subject = root.querySelector<HTMLInputElement>("[data-x509-subject]");
+  const algorithm = root.querySelector<HTMLSelectElement>("[data-x509-algorithm]");
+  const validity = root.querySelector<HTMLInputElement>("[data-x509-validity]");
   const generateSelfSignedBtn = root.querySelector<HTMLButtonElement>("[data-x509-generate-selfsigned]");
   const generateCsrBtn = root.querySelector<HTMLButtonElement>("[data-x509-generate-csr]");
   const parseInput = root.querySelector<HTMLTextAreaElement>("[data-x509-parse-input]");
@@ -80,94 +59,138 @@ function init() {
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-x509-copy]");
   const downloadBtn = root.querySelector<HTMLButtonElement>("[data-x509-download]");
   const warnings = root.querySelector<HTMLElement>("[data-x509-warnings]");
-  const warningsText = root.querySelector<HTMLElement>("[data-x509-warnings-text]");
+  const errorEl = root.querySelector<HTMLElement>("[data-x509-error]");
 
-  if (!subject || !parseInput || !output || !warnings || !warningsText) return;
+  if (!subject || !validity || !parseInput || !output || !warnings || !errorEl) return;
   const subjectInput: HTMLInputElement = subject;
+  const validityInput: HTMLInputElement = validity;
   const parseArea: HTMLTextAreaElement = parseInput;
   const outputArea: HTMLTextAreaElement = output;
   const warningsPanel: HTMLElement = warnings;
-  const warningsLabel: HTMLElement = warningsText;
+  const errorBox: HTMLElement = errorEl;
 
   let lastDownloadName: string | null = null;
+
+  function labelled(box: HTMLElement, title: string, text: string) {
+    box.textContent = "";
+    const strong = document.createElement("strong");
+    strong.textContent = `${title}:`;
+    box.append(strong, ` ${text}`);
+    box.hidden = false;
+  }
 
   function setWarnings(list: string[]) {
     if (!list || list.length === 0) {
       warningsPanel.hidden = true;
-      warningsLabel.textContent = "";
+      warningsPanel.textContent = "";
       return;
     }
-    warningsPanel.hidden = false;
-    warningsLabel.innerHTML = `<strong>${escapeHtml(strings.warningsTitle)}:</strong> ${list.map(escapeHtml).join("; ")}`;
+    labelled(warningsPanel, strings.warningsTitle, list.join("; "));
   }
 
   function setError(message: string) {
-    warningsPanel.hidden = false;
-    warningsLabel.innerHTML = `<strong>Error:</strong> ${escapeHtml(message)}`;
+    labelled(errorBox, strings.error, message);
   }
 
-  generateSelfSignedBtn?.addEventListener("click", async () => {
+  function clearMessages() {
     setWarnings([]);
-    try {
-      const { certificate, privateKey } = await x509SelfSigned(ECDSA_P256, subjectInput.value.trim(), [], []);
-      outputArea.value = `${certificate}\n${privateKey}`.trim();
-      lastDownloadName = "certificate.pem";
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    }
-  });
+    errorBox.hidden = true;
+    errorBox.textContent = "";
+    for (const el of [subjectInput, validityInput, parseArea]) el.removeAttribute("aria-invalid");
+  }
 
-  generateCsrBtn?.addEventListener("click", async () => {
-    setWarnings([]);
-    try {
-      const { csr, privateKey } = await x509Csr(ECDSA_P256, subjectInput.value.trim(), [], []);
-      outputArea.value = `${csr}\n${privateKey}`.trim();
-      lastDownloadName = "request.csr.pem";
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    }
-  });
+  function setOutput(text: string, downloadName: string | null) {
+    outputArea.value = text;
+    lastDownloadName = downloadName;
+    if (copyBtn) copyBtn.disabled = !text;
+    if (downloadBtn) downloadBtn.disabled = !text;
+  }
 
-  parseBtn?.addEventListener("click", async () => {
-    setWarnings([]);
+  /** Map WASM generation errors to localized text (raw detail kept after a dash). */
+  function generationError(e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
+    if (message.startsWith("invalid subject")) {
+      subjectInput.setAttribute("aria-invalid", "true");
+      setError(`${strings.errorInvalidSubject} — ${message.replace(/^invalid subject:\s*/, "")}`);
+    } else if (message.startsWith("invalid validity")) {
+      validityInput.setAttribute("aria-invalid", "true");
+      setError(strings.errorValidityDays);
+    } else {
+      setError(message);
+    }
+  }
+
+  function selectedAlgorithm(): number {
+    const value = Number(algorithm?.value);
+    return Object.values(X509_ALG).includes(value as 1 | 2 | 3) ? value : X509_ALG.ed25519;
+  }
+
+  async function withBusy(btn: HTMLButtonElement | null, action: () => Promise<void>) {
+    clearMessages();
+    btn?.setAttribute("aria-busy", "true");
     try {
+      await action();
+    } finally {
+      btn?.removeAttribute("aria-busy");
+    }
+  }
+
+  generateSelfSignedBtn?.addEventListener("click", () =>
+    void withBusy(generateSelfSignedBtn, async () => {
+      const days = parseValidityDays(validityInput.value);
+      if (days === null) {
+        validityInput.setAttribute("aria-invalid", "true");
+        setError(strings.errorValidityDays);
+        validityInput.focus();
+        return;
+      }
+      try {
+        const { certificate, privateKey } = await x509SelfSignedEx(selectedAlgorithm(), subjectInput.value, days);
+        setOutput(`${certificate}\n${privateKey}`.trim(), "certificate.pem");
+      } catch (e) {
+        generationError(e);
+      }
+    }),
+  );
+
+  generateCsrBtn?.addEventListener("click", () =>
+    void withBusy(generateCsrBtn, async () => {
+      try {
+        const { csr, privateKey } = await x509CsrEx(selectedAlgorithm(), subjectInput.value);
+        setOutput(`${csr}\n${privateKey}`.trim(), "request.csr.pem");
+      } catch (e) {
+        generationError(e);
+      }
+    }),
+  );
+
+  parseBtn?.addEventListener("click", () =>
+    void withBusy(parseBtn, async () => {
       const input = parseArea.value.trim();
       if (!input) return;
-
-      if (input.includes("BEGIN")) {
-        outputArea.value = prettyJson(await x509Parse(input));
-        setWarnings(await x509Warnings(input));
-      } else {
-        let bytes: Uint8Array;
-        try {
-          bytes = base64ToBytes(input);
-        } catch {
-          throw new Error(strings.invalidFormat);
+      try {
+        if (input.includes("BEGIN")) {
+          setOutput(prettyJson(await x509Parse(input)), "x509.json");
+          setWarnings(await x509Warnings(input));
+        } else {
+          const bytes = base64ToBytes(input);
+          setOutput(prettyJson(await x509Parse(bytesToHex(bytes))), "x509.json");
+          try {
+            setWarnings(await x509Warnings(derBase64ToPem(input)));
+          } catch {
+            /* warnings are best-effort for DER input */
+          }
         }
-        outputArea.value = prettyJson(await x509Parse(bytesToHex(bytes)));
-        try {
-          setWarnings(await x509Warnings(derBase64ToPem(input)));
-        } catch {
-          /* warnings are best-effort for DER input */
-        }
+      } catch {
+        // Malformed PEM/Base64/DER: one localized message instead of raw parser codes.
+        parseArea.setAttribute("aria-invalid", "true");
+        setError(strings.invalidFormat);
       }
-      lastDownloadName = "x509.json";
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    }
-  });
+    }),
+  );
 
-  copyBtn?.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(outputArea.value || "");
-      if (copyBtn) {
-        const orig = copyBtn.textContent;
-        copyBtn.textContent = strings.copied;
-        setTimeout(() => { copyBtn.textContent = orig; }, 1200);
-      }
-    } catch {
-      /* clipboard unavailable */
-    }
+  copyBtn?.addEventListener("click", () => {
+    if (outputArea.value) void copyWithFeedback(copyBtn, outputArea.value, strings.copied);
   });
 
   downloadBtn?.addEventListener("click", () => {
@@ -180,8 +203,12 @@ function init() {
     document.body.appendChild(a);
     a.click();
     a.remove();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   });
+
+  subjectInput.addEventListener("input", () => subjectInput.removeAttribute("aria-invalid"));
+  validityInput.addEventListener("input", () => validityInput.removeAttribute("aria-invalid"));
+  parseArea.addEventListener("input", () => parseArea.removeAttribute("aria-invalid"));
 }
 
 if (document.readyState === "loading") {

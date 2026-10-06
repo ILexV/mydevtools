@@ -41,12 +41,27 @@ export const CLASSIC_START =
 export type LoremType = "paragraphs" | "sentences" | "words";
 export type LoremFormat = "plain" | "html" | "markdown";
 
+/** Upper bound for `count` (matches the input's max; protects the tab from freezing). */
+export const MAX_COUNT = 1000;
+export const DEFAULT_COUNT = 5;
+
 export interface LoremOptions {
   type: LoremType;
   count: number;
   format: LoremFormat;
   startClassic: boolean;
   wrapParagraphs: boolean;
+  /** Random source in [0, 1); defaults to Math.random. Inject for deterministic output. */
+  rng?: () => number;
+}
+
+/**
+ * Normalize a requested count: non-finite → default (5, legacy), otherwise
+ * floored and clamped to 1..MAX_COUNT (0 / negatives → 1, huge → 1000).
+ */
+export function clampCount(count: number): number {
+  if (!Number.isFinite(count)) return DEFAULT_COUNT;
+  return Math.max(1, Math.min(MAX_COUNT, Math.floor(count)));
 }
 
 export interface LoremResult {
@@ -55,20 +70,22 @@ export interface LoremResult {
   chars: number;
 }
 
-function generateSentence(min = 5, max = 15): string {
-  const n = Math.floor(Math.random() * (max - min + 1)) + min;
+function randomWord(rng: () => number): string {
+  return LOREM_WORDS[Math.floor(rng() * LOREM_WORDS.length)];
+}
+
+function generateSentence(rng: () => number, min = 5, max = 15): string {
+  const n = Math.floor(rng() * (max - min + 1)) + min;
   const words: string[] = [];
-  for (let i = 0; i < n; i++) {
-    words.push(LOREM_WORDS[Math.floor(Math.random() * LOREM_WORDS.length)]);
-  }
+  for (let i = 0; i < n; i++) words.push(randomWord(rng));
   const joined = words.join(" ");
   return joined.charAt(0).toUpperCase() + joined.slice(1) + ".";
 }
 
-function generateParagraph(min = 3, max = 7): string {
-  const n = Math.floor(Math.random() * (max - min + 1)) + min;
+function generateParagraph(rng: () => number, min = 3, max = 7): string {
+  const n = Math.floor(rng() * (max - min + 1)) + min;
   const sentences: string[] = [];
-  for (let i = 0; i < n; i++) sentences.push(generateSentence());
+  for (let i = 0; i < n; i++) sentences.push(generateSentence(rng));
   return sentences.join(" ");
 }
 
@@ -81,13 +98,16 @@ function generateParagraph(min = 3, max = 7): string {
  * - `paragraphs` + classic: the first paragraph is the canonical sentence
  *   followed by one generated paragraph.
  *
+ * Count is normalized by `clampCount` (1..1000; non-numeric → 5).
+ *
  * Formatting: paragraphs in HTML mode are wrapped in `<p>` only when
  * `wrapParagraphs` is set (matches the "Wrap paragraphs with <p> tags" toggle);
  * markdown/plain paragraphs and all words/sentences output are joined plainly,
  * exactly as the legacy tool did once inline rich-text injection is excluded.
  */
 export function generateLorem(opts: LoremOptions): LoremResult {
-  const count = Number.isFinite(opts.count) && opts.count > 0 ? Math.floor(opts.count) : 5;
+  const count = clampCount(opts.count);
+  const rng = opts.rng ?? Math.random;
   const items: string[] = [];
 
   if (opts.type === "words") {
@@ -97,7 +117,7 @@ export function generateLorem(opts: LoremOptions): LoremResult {
       words = CLASSIC_START.replace(".", "").toLowerCase().replace(",", "").split(" ");
     }
     while (words.length < count) {
-      words.push(LOREM_WORDS[Math.floor(Math.random() * LOREM_WORDS.length)]);
+      words.push(randomWord(rng));
     }
     items.push(words.slice(0, count).join(" "));
   } else if (opts.type === "sentences") {
@@ -106,14 +126,14 @@ export function generateLorem(opts: LoremOptions): LoremResult {
       items.push(CLASSIC_START);
       remaining--;
     }
-    for (let i = 0; i < remaining; i++) items.push(generateSentence());
+    for (let i = 0; i < remaining; i++) items.push(generateSentence(rng));
   } else {
     let remaining = count;
     if (opts.startClassic) {
-      items.push(`${CLASSIC_START} ${generateParagraph()}`);
+      items.push(`${CLASSIC_START} ${generateParagraph(rng)}`);
       remaining--;
     }
-    for (let i = 0; i < remaining; i++) items.push(generateParagraph());
+    for (let i = 0; i < remaining; i++) items.push(generateParagraph(rng));
   }
 
   let text: string;

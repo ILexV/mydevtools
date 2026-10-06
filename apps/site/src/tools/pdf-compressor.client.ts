@@ -1,19 +1,25 @@
 /**
  * PDF Compressor client controller. PDFs picked via file dialog (multiple)
- * or drag-drop accumulate in a list (legacy parity). Non-PDF files are
- * rejected with a localized message. "Compress PDFs" processes every
- * not-yet-compressed file sequentially via the pdf WASM module
- * (`compressPdf`), showing a per-row spinner (legacy parity). Each result
- * row shows the compressed size with a "Saved N%" line — shown even when
- * the savings are negative, i.e. the "compressed" file is larger (legacy
+ * or drag-drop (`bindDropzone`) accumulate in a list (legacy parity).
+ * Non-PDF files are rejected with a localized message. "Compress PDFs"
+ * processes every not-yet-compressed file sequentially via the pdf WASM
+ * module (`compressPdf`) with a per-row spinner and a batch progress bar;
+ * Cancel stops after the current file (WASM runs on the main thread and
+ * cannot be interrupted mid-file). Each result row shows original →
+ * compressed size and a "Saved N%" badge — shown even when negative (legacy
  * parity) — and downloads as `compressed_<original name>` (legacy parity).
- * WASM errors surface their message, falling back to the common error
- * string (legacy parity).
+ * A corrupted or password-protected PDF gets an error badge and a localized
+ * message naming the file; the rest of the batch still runs.
  */
 import { compressPdf } from "@/scripts/wasm/pdf-client";
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { bindDropzone } from "@/scripts/tool-ui";
+import { formatBytes, progressPercent } from "@/lib/format";
+import { classifyPdfError, compressedFileName, isPdfFile, savingsPercent } from "@/tools/pdf-files";
+import { appendMeta, badge, buildFileRow, downloadLink, iconButton, PDF_ICONS, spinner } from "@/tools/pdf-file-ui";
 
 interface Strings {
+  tableOriginalSize: string;
+  tableCompressedSize: string;
   statusReady: string;
   savedPercent: string;
   compress: string;
@@ -21,6 +27,8 @@ interface Strings {
   download: string;
   removeFile: string;
   errorNotPdf: string;
+  errorInvalidPdf: string;
+  errorEncrypted: string;
   error: string;
 }
 
@@ -29,6 +37,7 @@ interface FileItem {
   compressedSize: number | null;
   url: string | null;
   processing: boolean;
+  error: string | null;
 }
 
 function readStrings(): Strings | null {
@@ -41,239 +50,167 @@ function readStrings(): Strings | null {
   }
 }
 
-/** Legacy formatting: `parseFloat((bytes / 1024^i).toFixed(2)) + ' ' + sizes[i]`. */
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
-}
-
-const DOWNLOAD_ICON =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>';
-const REMOVE_ICON =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 18L18 6M6 6l12 12" /></svg>';
-
 function init() {
   const root = document.querySelector<HTMLElement>("[data-pdfc-tool]");
-  if (!root) return;
+  if (!root || root.dataset.initialized) return;
   const raw = readStrings();
   if (!raw) return;
   const strings: Strings = raw;
 
-  const dropZone = root.querySelector<HTMLElement>("[data-pdfc-dropzone]");
-  const fileInput = root.querySelector<HTMLInputElement>("[data-pdfc-file]");
-  const chooseBtn = root.querySelector<HTMLButtonElement>("[data-pdfc-choose]");
-  const listSection = root.querySelector<HTMLElement>("[data-pdfc-list]");
-  const tbody = root.querySelector<HTMLTableSectionElement>("[data-pdfc-tbody]");
-  const compressBtn = root.querySelector<HTMLButtonElement>("[data-pdfc-compress]");
+  const zone = root.querySelector<HTMLElement>("[data-pdfc-dropzone]");
+  const input = root.querySelector<HTMLInputElement>("[data-pdfc-file]");
+  const listEl = root.querySelector<HTMLElement>("[data-pdfc-list]");
+  const itemsEl = root.querySelector<HTMLUListElement>("[data-pdfc-items]");
+  const compressEl = root.querySelector<HTMLButtonElement>("[data-pdfc-compress]");
   const compressLabel = root.querySelector<HTMLElement>("[data-pdfc-compress-label]");
+  const progress = root.querySelector<HTMLElement>("[data-pdfc-progress]");
+  const progressBar = root.querySelector<HTMLElement>("[data-pdfc-progress-bar]");
+  const progressFill = root.querySelector<HTMLElement>("[data-pdfc-progress-fill]");
+  const progressLabel = root.querySelector<HTMLElement>("[data-pdfc-progress-label]");
+  const cancelBtn = root.querySelector<HTMLButtonElement>("[data-pdfc-cancel]");
   const errorBox = root.querySelector<HTMLElement>("[data-pdfc-error]");
-
-  if (!dropZone || !fileInput || !listSection || !tbody || !compressBtn) return;
-  const zone: HTMLElement = dropZone;
-  const input: HTMLInputElement = fileInput;
-  const listEl: HTMLElement = listSection;
-  const body: HTMLTableSectionElement = tbody;
-  const compress: HTMLButtonElement = compressBtn;
+  if (!zone || !input || !listEl || !itemsEl || !compressEl) return;
+  const compress: HTMLButtonElement = compressEl;
+  root.dataset.initialized = "true";
 
   const files: FileItem[] = [];
   let compressing = false;
+  let cancelRequested = false;
 
   function showError(msg: string) {
-    if (errorBox) {
-      errorBox.textContent = msg;
-      errorBox.hidden = false;
-    }
+    if (!errorBox) return;
+    errorBox.textContent = msg;
+    errorBox.hidden = false;
   }
   function clearError() {
     if (errorBox) errorBox.hidden = true;
   }
 
+  function errorMessage(e: unknown, name: string): string {
+    const message = e instanceof Error ? e.message : "";
+    const { kind } = classifyPdfError(message);
+    if (kind === "encrypted") return strings.errorEncrypted.replace("{name}", name);
+    if (kind === "invalid") return strings.errorInvalidPdf.replace("{name}", name);
+    return `${name}: ${message || strings.error}`;
+  }
+
+  function setBusy(on: boolean) {
+    compressing = on;
+    compress.disabled = on;
+    compress.setAttribute("aria-busy", String(on));
+    if (compressLabel) compressLabel.textContent = on ? strings.processing : strings.compress;
+    zone!.setAttribute("aria-disabled", String(on));
+    input!.disabled = on;
+    if (progress) progress.hidden = !on;
+    if (cancelBtn) cancelBtn.disabled = false;
+  }
+
+  function setProgress(done: number, total: number, current: string) {
+    const pct = progressPercent(done, total);
+    if (progressFill) progressFill.style.width = `${pct}%`;
+    progressBar?.setAttribute("aria-valuenow", String(Math.round(pct)));
+    if (progressLabel) progressLabel.textContent = current ? `${done} / ${total} · ${current}` : `${done} / ${total}`;
+  }
+
   function render() {
-    body.textContent = "";
-    listEl.hidden = files.length === 0;
+    itemsEl!.replaceChildren();
+    listEl!.hidden = files.length === 0;
 
     files.forEach((item, index) => {
-      const tr = document.createElement("tr");
+      const { li, meta, actions } = buildFileRow(item.file.name, index);
+      appendMeta(meta, formatBytes(item.file.size, 2), strings.tableOriginalSize);
 
-      const indexCell = document.createElement("th");
-      indexCell.scope = "row";
-      indexCell.textContent = String(index + 1);
-      tr.appendChild(indexCell);
-
-      const nameCell = document.createElement("td");
-      const nameEl = document.createElement("div");
-      nameEl.className = "pdfc-name";
-      nameEl.title = item.file.name;
-      nameEl.textContent = item.file.name;
-      nameCell.appendChild(nameEl);
-      tr.appendChild(nameCell);
-
-      const origCell = document.createElement("td");
-      origCell.className = "pdfc-cell-num";
-      origCell.textContent = formatBytes(item.file.size);
-      tr.appendChild(origCell);
-
-      const compCell = document.createElement("td");
-      compCell.className = "pdfc-cell-num";
       if (item.compressedSize !== null) {
-        const wrap = document.createElement("div");
-        wrap.className = "pdfc-compressed";
-        const sizeEl = document.createElement("span");
-        sizeEl.className = "pdfc-compressed-size";
-        sizeEl.textContent = formatBytes(item.compressedSize);
-        const savedEl = document.createElement("span");
-        savedEl.className = "pdfc-saved";
+        appendMeta(meta, formatBytes(item.compressedSize, 2), strings.tableCompressedSize);
         // Legacy parity: rounded savings %, shown even when negative.
-        const savings = Math.round((1 - item.compressedSize / item.file.size) * 100);
-        savedEl.textContent = strings.savedPercent.replace("{pct}", String(savings));
-        wrap.appendChild(sizeEl);
-        wrap.appendChild(savedEl);
-        compCell.appendChild(wrap);
-      } else {
-        const pending = document.createElement("span");
-        pending.className = "pdfc-pending";
-        pending.textContent = "—";
-        compCell.appendChild(pending);
+        const pct = savingsPercent(item.file.size, item.compressedSize);
+        actions.append(badge(strings.savedPercent.replace("{pct}", String(pct)), pct > 0 ? "success" : "warning"));
       }
-      tr.appendChild(compCell);
-
-      const statusCell = document.createElement("td");
-      statusCell.className = "pdfc-cell-status";
       if (item.url) {
-        const a = document.createElement("a");
-        a.className = "pdfc-download";
-        a.href = item.url;
-        // Legacy parity: `compressed_<original name>`.
-        a.download = `compressed_${item.file.name}`;
-        a.title = strings.download;
-        a.setAttribute("aria-label", strings.download);
-        a.innerHTML = DOWNLOAD_ICON;
-        statusCell.appendChild(a);
+        actions.append(downloadLink(item.url, compressedFileName(item.file.name), `${strings.download}: ${item.file.name}`));
       } else if (item.processing) {
-        const spinner = document.createElement("span");
-        spinner.className = "pdfc-spinner";
-        statusCell.appendChild(spinner);
+        actions.append(spinner(strings.processing));
+      } else if (item.error) {
+        actions.append(badge(strings.error, "danger", item.error));
       } else {
-        const ready = document.createElement("span");
-        ready.className = "pdfc-ready";
-        ready.textContent = strings.statusReady;
-        statusCell.appendChild(ready);
+        actions.append(badge(strings.statusReady));
       }
-      tr.appendChild(statusCell);
 
-      const removeCell = document.createElement("td");
-      removeCell.className = "pdfc-cell-remove";
-      const removeBtn = document.createElement("button");
-      removeBtn.type = "button";
-      removeBtn.className = "pdfc-remove";
-      removeBtn.title = strings.removeFile;
-      removeBtn.setAttribute("aria-label", strings.removeFile);
-      removeBtn.innerHTML = REMOVE_ICON;
-      removeBtn.addEventListener("click", () => {
+      const remove = iconButton(PDF_ICONS.close, `${strings.removeFile}: ${item.file.name}`);
+      remove.disabled = compressing;
+      remove.addEventListener("click", () => {
+        if (compressing) return;
         if (item.url) URL.revokeObjectURL(item.url);
-        files.splice(index, 1);
+        files.splice(files.indexOf(item), 1);
         render();
+        // Keep keyboard focus in the list (or on the picker when it empties).
+        const next = itemsEl!.querySelectorAll<HTMLButtonElement>(".ds-file-item-actions button")[Math.min(index, files.length - 1)];
+        (next ?? zone!.querySelector<HTMLElement>("input"))?.focus();
       });
-      removeCell.appendChild(removeBtn);
-      tr.appendChild(removeCell);
-
-      body.appendChild(tr);
+      actions.append(remove);
+      itemsEl!.append(li);
     });
+    compress.disabled = compressing || !files.some((f) => f.compressedSize === null);
   }
 
   function addFiles(incoming: File[]) {
     clearError();
-    // Legacy acceptance filter (drop handler).
-    const accepted = incoming.filter(
-      (f) => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf"),
-    );
+    if (compressing) return;
+    const accepted = incoming.filter(isPdfFile);
     // Legacy silently filters non-PDFs on drop; surface a localized message instead.
     if (accepted.length < incoming.length) showError(strings.errorNotPdf);
     if (accepted.length === 0) return;
     for (const file of accepted) {
-      files.push({ file, compressedSize: null, url: null, processing: false });
+      files.push({ file, compressedSize: null, url: null, processing: false, error: null });
     }
     render();
   }
 
   async function handleCompress() {
-    if (compressing || files.length === 0) return;
+    if (compressing) return;
+    const queue = files.filter((f) => f.compressedSize === null); // Legacy: skip already compressed.
+    if (queue.length === 0) return;
 
     clearError();
-    compressing = true;
-    compress.disabled = true;
-    if (compressLabel) compressLabel.textContent = strings.processing;
+    cancelRequested = false;
+    setBusy(true);
+    const errors: string[] = [];
+    let done = 0;
+    setProgress(0, queue.length, queue[0]?.file.name ?? "");
 
-    try {
-      for (const item of files) {
-        if (item.compressedSize !== null) continue; // Legacy: skip already compressed.
-
-        item.processing = true;
-        render();
-
+    for (const item of queue) {
+      if (cancelRequested) break;
+      if (!files.includes(item)) continue;
+      item.processing = true;
+      item.error = null;
+      render();
+      setProgress(done, queue.length, item.file.name);
+      try {
         const bytes = new Uint8Array(await item.file.arrayBuffer());
         const compressed = await compressPdf(bytes);
-
         item.compressedSize = compressed.length;
         item.url = URL.createObjectURL(new Blob([compressed.slice()], { type: "application/pdf" }));
-        item.processing = false;
-        render();
+      } catch (e) {
+        item.error = errorMessage(e, item.file.name);
+        errors.push(item.error);
       }
-    } catch (e) {
-      for (const item of files) item.processing = false;
-      render();
-      const message = e instanceof WasmError || e instanceof Error ? e.message : "";
-      showError(message || strings.error);
-    } finally {
-      compressing = false;
-      compress.disabled = false;
-      if (compressLabel) compressLabel.textContent = strings.compress;
+      item.processing = false;
+      done++;
+      setProgress(done, queue.length, "");
+      // Yield so a Cancel click queued during the WASM call is handled.
+      await new Promise((r) => setTimeout(r, 0));
     }
+
+    setBusy(false);
+    render();
+    if (errors.length > 0) showError(errors.join("\n"));
   }
 
-  function pickFile() {
-    if (!compressing) input.click();
-  }
-
-  // Clicking the zone (but not a button inside it) opens the file dialog.
-  zone.addEventListener("click", (e) => {
-    if (e.target instanceof HTMLElement && e.target.closest("button")) return;
-    pickFile();
-  });
-  chooseBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    pickFile();
-  });
-
-  input.addEventListener("change", () => {
-    if (input.files && input.files.length > 0) {
-      addFiles(Array.from(input.files));
-      // Allow re-selecting the same files.
-      input.value = "";
-    }
-  });
-
-  zone.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    zone.classList.add("pdfc-dragover");
-  });
-  zone.addEventListener("dragleave", (e) => {
-    e.preventDefault();
-    if (e.relatedTarget instanceof Node && zone.contains(e.relatedTarget)) return;
-    zone.classList.remove("pdfc-dragover");
-  });
-  zone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    zone.classList.remove("pdfc-dragover");
-    const dropped = e.dataTransfer?.files;
-    if (dropped && dropped.length > 0) addFiles(Array.from(dropped));
-  });
-
-  compress.addEventListener("click", () => {
-    void handleCompress();
+  bindDropzone(zone, input, addFiles);
+  compress.addEventListener("click", () => void handleCompress());
+  cancelBtn?.addEventListener("click", () => {
+    cancelRequested = true;
+    cancelBtn.disabled = true;
   });
 }
 

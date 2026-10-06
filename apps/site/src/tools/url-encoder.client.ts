@@ -2,17 +2,25 @@
  * URL Encoder / Decoder client controller. Drives the `UrlEncoder.astro`
  * shell, calling the main-thread `encoding-client` (one-shot WASM ops).
  * Text-only: encode/decode act on the shared textarea via separate buttons
- * (legacy parity — no file input, no download).
+ * (legacy parity — no file input, no download). Errors are localized; a
+ * charset error selects the offending character.
  *
  * Loads only on the URL tool page (the component imports this script), so the
  * WASM module is fetched only there. SSR-safe: no-ops when the shell is absent.
  */
-import { encodeText, decodeText } from "@/scripts/wasm/encoding-client";
+import { formatBytes, formatString } from "@/lib/format";
+import { copyWithFeedback } from "@/scripts/tool-ui";
+import { decodeToBytes, bytesToText, encodeBytes, textToBytes, type EncodingOptions } from "@/scripts/wasm/encoding-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { classifyEncodingError } from "@/tools/encoding-ui";
 
 interface Strings {
-  copy: string;
   copied: string;
+  statsOutput: string;
+  errNotRepresentable: string;
+  errNotText: string;
+  errInvalidPercent: string;
+  errCopyFailed: string;
   error: string;
 }
 
@@ -26,21 +34,21 @@ function readStrings(): Strings | null {
   }
 }
 
-/** Pull a character/byte index out of a WASM error message, if present. */
-function errorIndex(message: string): number | null {
-  const match = message.match(/position (\d+)/) || message.match(/index (\d+)/) || message.match(/byte (\d+)/);
-  return match ? parseInt(match[1], 10) : null;
-}
-
 function init() {
   const root = document.querySelector<HTMLElement>("[data-url-tool]");
-  if (!root) return;
+  if (!root || root.dataset.initialized) return;
   const raw = readStrings();
   if (!raw) return;
   const strings: Strings = raw;
 
   const input = root.querySelector<HTMLTextAreaElement>("[data-url-input]");
   const output = root.querySelector<HTMLTextAreaElement>("[data-url-output]");
+  const errorBox = root.querySelector<HTMLElement>("[data-url-error]");
+  if (!input || !output || !errorBox) return;
+  root.dataset.initialized = "true";
+  const inputArea: HTMLTextAreaElement = input;
+  const outputArea: HTMLTextAreaElement = output;
+  const errorArea: HTMLElement = errorBox;
   const mode = root.querySelector<HTMLSelectElement>("[data-url-mode]");
   const charset = root.querySelector<HTMLSelectElement>("[data-url-charset]");
   const encodeBtn = root.querySelector<HTMLButtonElement>("[data-url-encode]");
@@ -48,99 +56,99 @@ function init() {
   const swapBtn = root.querySelector<HTMLButtonElement>("[data-url-swap]");
   const clearBtn = root.querySelector<HTMLButtonElement>("[data-url-clear]");
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-url-copy]");
-  const errorBox = root.querySelector<HTMLElement>("[data-url-error]");
+  const stats = root.querySelector<HTMLElement>("[data-url-stats]");
+  const lang = document.documentElement.lang || "en";
 
-  function showError(message: string, index: number | null) {
-    if (errorBox) {
-      errorBox.textContent = message;
-      errorBox.hidden = false;
-    }
-    if (input && index !== null && index >= 0) {
-      try {
-        input.focus();
-        input.setSelectionRange(index, Math.min(index + 1, input.value.length));
-      } catch {
-        /* selection unsupported */
-      }
-    }
+  function options(): EncodingOptions {
+    return { format: "url", mode: mode?.value || "component", charset: charset?.value || "utf-8" };
+  }
+
+  function showError(message: string) {
+    errorArea.textContent = message;
+    errorArea.hidden = false;
   }
   function clearError() {
-    if (errorBox) errorBox.hidden = true;
+    errorArea.hidden = true;
+    errorArea.textContent = "";
+    inputArea.removeAttribute("aria-invalid");
   }
-
-  function setBusy(busy: boolean) {
-    if (encodeBtn) encodeBtn.disabled = busy;
-    if (decodeBtn) decodeBtn.disabled = busy;
+  function setStats(chars: number | null, bytes = 0) {
+    if (stats) stats.textContent = chars === null ? "" : formatString(strings.statsOutput, chars.toLocaleString(lang), formatBytes(bytes));
   }
 
   function handleFailure(e: unknown) {
     if (e instanceof WasmError && e.code === "aborted") {
-      clearError(); // cancellation is not an error to surface
+      clearError();
       return;
     }
     const message = e instanceof Error ? e.message : String(e);
-    showError(`${strings.error}: ${message}`, errorIndex(message));
-  }
-
-  async function handleEncode() {
-    if (!input || !output) return;
-    clearError();
-    setBusy(true);
-    try {
-      output.value = await encodeText(
-        { format: "url", mode: mode?.value || "component", charset: charset?.value || "utf-8" },
-        input.value || "",
-      );
-    } catch (e) {
-      handleFailure(e);
-    } finally {
-      setBusy(false);
+    const { key, position } = classifyEncodingError(message);
+    outputArea.value = "";
+    setStats(null);
+    inputArea.setAttribute("aria-invalid", "true");
+    if (key === "Error_NotRepresentable") {
+      showError(formatString(strings.errNotRepresentable, (position ?? 0) + 1));
+      if (position !== undefined) {
+        try {
+          inputArea.focus();
+          inputArea.setSelectionRange(position, Math.min(position + 1, inputArea.value.length));
+        } catch {
+          /* selection unsupported */
+        }
+      }
+    } else if (key === "Error_NotText") {
+      showError(strings.errNotText);
+    } else {
+      showError(strings.errInvalidPercent);
     }
   }
 
-  async function handleDecode() {
-    if (!input || !output) return;
+  async function run(direction: "encode" | "decode", trigger: HTMLButtonElement | null) {
     clearError();
-    setBusy(true);
+    for (const b of [encodeBtn, decodeBtn]) if (b) b.disabled = true;
+    trigger?.setAttribute("aria-busy", "true");
     try {
-      output.value = await decodeText(
-        { format: "url", mode: mode?.value || "component", charset: charset?.value || "utf-8" },
-        input.value || "",
-      );
+      const opts = options();
+      if (direction === "encode") {
+        const bytes = await textToBytes(inputArea.value, opts.charset);
+        const out = await encodeBytes(opts, bytes);
+        outputArea.value = out;
+        setStats(out.length, bytes.length);
+      } else {
+        const bytes = await decodeToBytes(opts, inputArea.value);
+        outputArea.value = await bytesToText(bytes, opts.charset);
+        setStats(inputArea.value.length, bytes.length);
+      }
     } catch (e) {
       handleFailure(e);
     } finally {
-      setBusy(false);
+      for (const b of [encodeBtn, decodeBtn]) if (b) b.disabled = false;
+      trigger?.removeAttribute("aria-busy");
     }
   }
 
-  encodeBtn?.addEventListener("click", handleEncode);
-  decodeBtn?.addEventListener("click", handleDecode);
+  encodeBtn?.addEventListener("click", () => run("encode", encodeBtn));
+  decodeBtn?.addEventListener("click", () => run("decode", decodeBtn));
+  inputArea.addEventListener("input", () => inputArea.removeAttribute("aria-invalid"));
 
   swapBtn?.addEventListener("click", () => {
-    if (!input || !output) return;
     clearError();
-    const a = input.value;
-    input.value = output.value;
-    output.value = a;
+    const a = inputArea.value;
+    inputArea.value = outputArea.value;
+    outputArea.value = a;
+    setStats(null);
   });
 
   clearBtn?.addEventListener("click", () => {
-    if (input) input.value = "";
-    if (output) output.value = "";
+    inputArea.value = "";
+    outputArea.value = "";
+    setStats(null);
     clearError();
   });
 
   copyBtn?.addEventListener("click", async () => {
-    if (!output || !copyBtn) return;
-    try {
-      await navigator.clipboard.writeText(output.value || "");
-      const orig = copyBtn.textContent;
-      copyBtn.textContent = strings.copied;
-      setTimeout(() => { copyBtn.textContent = orig; }, 1200);
-    } catch {
-      /* clipboard unavailable */
-    }
+    const ok = await copyWithFeedback(copyBtn, outputArea.value, strings.copied);
+    if (!ok) showError(strings.errCopyFailed);
   });
 }
 

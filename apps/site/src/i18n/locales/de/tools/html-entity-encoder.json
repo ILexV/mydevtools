@@ -26,6 +26,8 @@
   "LinkBase64": "Base64",
   "LinkHex": "Hex",
   "LinkXml": "XML Beautifier",
+  "Error_CopyFailed": "Kopieren fehlgeschlagen: Die Zwischenablage ist nicht verfügbar.",
+  "OutputSummary": "Ergebnis: {0} Zeichen",
   "Seo_Introduction": "Der HTML Entity Encoder ist ein datenschutzorientiertes Tool für Entwickler und Webdesigner. Die gesamte Verarbeitung erfolgt lokal in Ihrem Browser, Daten verlassen niemals Ihr Gerät.",
   "Seo_DetailedDescription": "Dieses Tool bietet umfassende Funktionalität zum Kodieren von Sonderzeichen in HTML-Entities und deren Rückwandlung. Es unterstützt mehrere Formate: benannte Entities (&amp;), dezimale numerische Referenzen (&#38;) und hexadezimale Referenzen (&#x26;).\n\nDie Benutzeroberfläche ist auf Effizienz und Benutzerfreundlichkeit ausgelegt, mit Optionen zum Kodieren nur von Sonderzeichen, nur Nicht-ASCII-Zeichen oder aller Zeichen. Alle Operationen werden clientseitig durchgeführt und garantieren vollständigen Datenschutz und Sicherheit.",
   "Seo_Examples": "**Beispiel 1**: Kodierung von HTML-Sonderzeichen zur sicheren Anzeige in Webseiten.\n- Eingabe: `<div class=\"example\">Hello & Welcome!</div>`\n- Ausgabe: `&lt;div class=&quot;example&quot;&gt;Hello &amp; Welcome!&lt;/div&gt;`\n\n**Beispiel 2**: Dekodierung von HTML-Entities zurück in lesbaren Text.\n- Eingabe: `&copy; 2024 Company &amp; Partners`\n- Ausgabe: `© 2024 Company & Partners`\n\n**Beispiel 3**: Kodierung von Nicht-ASCII-Zeichen für maximale Kompatibilität.\n- Eingabe: `Café résumé naïve`\n- Ausgabe: `Caf&#233; r&#233;sum&#233; na&#239;ve`",

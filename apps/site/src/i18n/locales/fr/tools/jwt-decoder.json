@@ -25,5 +25,15 @@
   "EncoderTitle": "Encodeur JWT",
   "DecoderTitle": "Décodeur JWT",
   "Copy": "Copier",
-  "Copied": "Copié !"
+  "Copied": "Copié !",
+  "TokenLabel": "JWT encodé",
+  "InvalidToken": "JWT invalide : {message}",
+  "EnterSecret": "Saisissez le secret (HS*) ou la clé publique RSA (RS*) pour vérifier la signature.",
+  "UnsignedToken": "Jeton non signé (alg: none) : il ne peut pas être vérifié et n’est pas fiable.",
+  "UnsupportedAlgorithm": "La vérification de signature {alg} n’est pas prise en charge (HS256/384/512 et RS256/384/512 uniquement).",
+  "ClaimExpired": "Expiré le {date}",
+  "ClaimExpiresAt": "Expire le {date}",
+  "ClaimNotBefore": "Non valide avant le {date}",
+  "ClaimValidFrom": "Valide depuis le {date}",
+  "ClaimIssuedAt": "Émis le {date}"
 }

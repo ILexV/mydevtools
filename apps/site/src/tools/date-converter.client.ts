@@ -4,9 +4,12 @@
  * and formatting delegates to `dates.ts`.
  */
 import { parse, format, type InputType, type OutputFormat } from "@/tools/dates";
+import { copyWithFeedback } from "@/scripts/tool-ui";
 
 interface Strings {
+  lang: string;
   copied: string;
+  copyFailed: string;
   errorInvalid: string;
 }
 
@@ -22,7 +25,8 @@ function readStrings(): Strings | null {
 
 function init(): void {
   const root = document.querySelector<HTMLElement>("[data-date-tool]");
-  if (!root) return;
+  if (!root || root.dataset.initialized) return;
+  root.dataset.initialized = "1";
   const raw = readStrings();
   if (!raw) return;
   const strings: Strings = raw;
@@ -37,7 +41,6 @@ function init(): void {
   const nowBtn = root.querySelector<HTMLButtonElement>("[data-date-now]");
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-date-copy]");
   const errorEl = root.querySelector<HTMLElement>("[data-date-error]");
-  const errorText = root.querySelector<HTMLElement>("[data-date-error-text]");
 
   function toggleCustom(): void {
     if (!customWrap || !outputFormat) return;
@@ -47,7 +50,7 @@ function init(): void {
   function showError(msg: string): void {
     if (!errorEl) return;
     errorEl.hidden = !msg;
-    if (msg && errorText) errorText.textContent = msg;
+    errorEl.textContent = msg;
   }
 
   function convert(): void {
@@ -57,17 +60,20 @@ function init(): void {
     if (!val.trim()) {
       output.value = "";
       showError("");
+      input.removeAttribute("aria-invalid");
       return;
     }
     const date = parse(val, inputType.value as InputType);
     if (!date || Number.isNaN(date.getTime())) {
       showError(strings.errorInvalid);
+      input.setAttribute("aria-invalid", "true");
       output.value = "";
       return;
     }
     showError("");
+    input.removeAttribute("aria-invalid");
     const custom = customInput ? customInput.value : "";
-    output.value = format(date, outputFormat.value as OutputFormat, custom) ?? "";
+    output.value = format(date, outputFormat.value as OutputFormat, custom, strings.lang) ?? "";
   }
 
   function currentTime(): void {
@@ -88,16 +94,7 @@ function init(): void {
     if (!output || !copyBtn) return;
     const text = output.value;
     if (!text) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      const orig = copyBtn.textContent;
-      copyBtn.textContent = strings.copied;
-      setTimeout(() => {
-        copyBtn.textContent = orig;
-      }, 1200);
-    } catch {
-      /* clipboard unavailable */
-    }
+    if (!(await copyWithFeedback(copyBtn, text, strings.copied))) showError(strings.copyFailed);
   }
 
   convertBtn?.addEventListener("click", convert);

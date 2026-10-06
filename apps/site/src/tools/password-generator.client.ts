@@ -5,6 +5,8 @@
  * (newest first) with per-item copy. Legacy parity.
  */
 import { generatePassword } from "@/scripts/wasm/password-client";
+import { copyWithFeedback } from "@/scripts/tool-ui";
+import { hasCharset, sanitizeSettings, type PwSettings } from "@/tools/password-settings";
 
 interface Strings {
   copy: string;
@@ -12,23 +14,8 @@ interface Strings {
   errorNoCharset: string;
 }
 
-interface PwSettings {
-  length: number;
-  uppercase: boolean;
-  lowercase: boolean;
-  numbers: boolean;
-  special: boolean;
-  specialChars: string;
-}
-
 const SETTINGS_KEY = "mydevtools.tools.password-generator.settings.v1";
 const HISTORY_LIMIT = 10;
-const COPY_FEEDBACK_MS = 1200;
-
-const COPY_ICON =
-  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" /></svg>';
-const CHECK_ICON =
-  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>';
 
 function readStrings(): Strings | null {
   const el = document.querySelector<HTMLScriptElement>("[data-pw-strings]");
@@ -60,6 +47,7 @@ function init() {
   const historyList = root.querySelector<HTMLElement>("[data-pw-history-list]");
   const historyEmpty = root.querySelector<HTMLElement>("[data-pw-history-empty]");
   const clearHistoryBtn = root.querySelector<HTMLButtonElement>("[data-pw-clear-history]");
+  const errorBox = root.querySelector<HTMLElement>("[data-pw-error]");
 
   if (
     !lengthInput ||
@@ -110,52 +98,54 @@ function init() {
   }
 
   function loadSettings() {
-    let parsed: Partial<PwSettings>;
+    let parsed: unknown;
     try {
       const stored = localStorage.getItem(SETTINGS_KEY);
       if (!stored) return;
-      parsed = JSON.parse(stored) as Partial<PwSettings>;
+      parsed = JSON.parse(stored);
     } catch {
       return;
     }
-    if (typeof parsed.length === "number" && Number.isFinite(parsed.length)) {
-      const clamped = Math.min(128, Math.max(4, Math.round(parsed.length)));
-      lengthEl.value = String(clamped);
-      lengthValEl.textContent = String(clamped);
+    const restored = sanitizeSettings(parsed);
+    if (restored.length !== undefined) {
+      lengthEl.value = String(restored.length);
+      lengthValEl.textContent = String(restored.length);
     }
-    if (typeof parsed.uppercase === "boolean") upperEl.checked = parsed.uppercase;
-    if (typeof parsed.lowercase === "boolean") lowerEl.checked = parsed.lowercase;
-    if (typeof parsed.numbers === "boolean") numbersEl.checked = parsed.numbers;
-    if (typeof parsed.special === "boolean") specialEl.checked = parsed.special;
-    if (typeof parsed.specialChars === "string") specialCharsEl.value = parsed.specialChars;
+    if (restored.uppercase !== undefined) upperEl.checked = restored.uppercase;
+    if (restored.lowercase !== undefined) lowerEl.checked = restored.lowercase;
+    if (restored.numbers !== undefined) numbersEl.checked = restored.numbers;
+    if (restored.special !== undefined) specialEl.checked = restored.special;
+    if (restored.specialChars !== undefined) specialCharsEl.value = restored.specialChars;
+  }
+
+  function showError(msg: string) {
+    resultEl.value = "";
+    resultEl.setAttribute("aria-invalid", "true");
+    if (errorBox) {
+      errorBox.textContent = msg;
+      errorBox.hidden = false;
+    }
+  }
+  function clearError() {
+    resultEl.removeAttribute("aria-invalid");
+    if (errorBox) errorBox.hidden = true;
   }
 
   function addToHistory(password: string) {
     historyEmptyEl.hidden = true;
 
-    const item = document.createElement("li");
+    // Shared `.ds-result-*` classes: scoped Astro styles never reach this runtime DOM.
+    const item = document.createElement("div");
+    item.className = "ds-result-row ds-result-row-bare";
     const pass = document.createElement("span");
-    pass.className = "pw-history-pass";
+    pass.className = "ds-result-value";
     pass.textContent = password;
 
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "pw-history-copy";
-    btn.title = strings.copy;
-    btn.setAttribute("aria-label", strings.copy);
-    btn.innerHTML = COPY_ICON;
-    btn.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(password);
-        const original = btn.innerHTML;
-        btn.innerHTML = CHECK_ICON;
-        setTimeout(() => {
-          btn.innerHTML = original;
-        }, COPY_FEEDBACK_MS);
-      } catch {
-        /* clipboard unavailable */
-      }
-    });
+    btn.className = "ds-btn ds-btn-small ds-btn-ghost";
+    btn.textContent = strings.copy;
+    btn.addEventListener("click", () => void copyWithFeedback(btn, password, strings.copied));
 
     item.append(pass, btn);
     historyListEl.prepend(item);
@@ -168,8 +158,8 @@ function init() {
     const settings = readSettings();
     saveSettings();
 
-    if (!settings.uppercase && !settings.lowercase && !settings.numbers && !settings.special) {
-      resultEl.value = strings.errorNoCharset;
+    if (!hasCharset(settings)) {
+      showError(strings.errorNoCharset);
       return;
     }
 
@@ -182,10 +172,11 @@ function init() {
         special: settings.special,
         specialChars: settings.specialChars,
       });
+      clearError();
       resultEl.value = password;
       addToHistory(password);
     } catch (e) {
-      resultEl.value = e instanceof Error ? e.message : String(e);
+      showError(e instanceof Error ? e.message : String(e));
     }
   }
 
@@ -202,19 +193,10 @@ function init() {
     void generate();
   });
 
-  copyBtn.addEventListener("click", async () => {
+  copyBtn.addEventListener("click", () => {
     const value = resultEl.value;
-    if (!value || value === strings.errorNoCharset) return;
-    try {
-      await navigator.clipboard.writeText(value);
-      const original = copyBtn.textContent;
-      copyBtn.textContent = strings.copied;
-      setTimeout(() => {
-        copyBtn.textContent = original;
-      }, COPY_FEEDBACK_MS);
-    } catch {
-      /* clipboard unavailable */
-    }
+    if (!value) return;
+    void copyWithFeedback(copyBtn, value, strings.copied);
   });
 
   clearHistoryBtn.addEventListener("click", () => {

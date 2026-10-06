@@ -6,6 +6,10 @@
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+import { MAX_COUNT } from "@/tools/lorem-ipsum";
 
 interface Props {
   lang: LocaleCode;
@@ -13,6 +17,7 @@ interface Props {
 const { lang } = Astro.props as Props;
 const ns = "tools/lorem-ipsum-generator";
 const s = {
+  lang,
   generateTypeLabel: t(lang, ns, "GenerateTypeLabel"),
   paragraphs: t(lang, ns, "Paragraphs"),
   sentences: t(lang, ns, "Sentences"),
@@ -25,85 +30,76 @@ const s = {
   copyButton: t(lang, ns, "CopyButton"),
   downloadButton: t(lang, ns, "DownloadButton"),
   copied: t(lang, ns, "Copied"),
+  copyFailed: t(lang, ns, "CopyFailed"),
+  formatLabel: t(lang, ns, "FormatLabel"),
+  formatPlain: t(lang, ns, "Format_Plain"),
+  formatHtml: t(lang, ns, "Format_Html"),
+  formatMarkdown: t(lang, ns, "Format_Markdown"),
+  characters: t(lang, ns, "Characters"),
+  wordsStat: t(lang, ns, "WordsStat"),
 };
 const stringsJson = JSON.stringify(s);
 ---
 
-<div class="li-tool" data-lorem-tool>
-  <div class="li-controls">
-    <label class="field">
-      <span>{s.generateTypeLabel}</span>
-      <select data-li-type>
-        <option value="paragraphs">{s.paragraphs}</option>
-        <option value="sentences">{s.sentences}</option>
-        <option value="words">{s.words}</option>
-      </select>
-    </label>
-    <label class="field">
-      <span>{s.countLabel}</span>
-      <input type="number" min="1" max="1000" value="5" data-li-count />
-    </label>
-    <label class="field format-field">
-      <select data-li-format>
-        <option value="plain">Plain</option>
-        <option value="html">HTML</option>
-        <option value="markdown">Markdown</option>
-      </select>
-    </label>
-  </div>
+<div class="ds-stack" data-lorem-tool>
+  <section class="ds-card ds-stack">
+    <div class="ds-settings ds-settings-flat">
+      <Field label={s.generateTypeLabel} for="li-type">
+        <select id="li-type" class="ds-field-select" data-li-type>
+          <option value="paragraphs">{s.paragraphs}</option>
+          <option value="sentences">{s.sentences}</option>
+          <option value="words">{s.words}</option>
+        </select>
+      </Field>
+      <Field label={s.countLabel} for="li-count" hint={`1–${MAX_COUNT}`}>
+        <input id="li-count" type="number" class="ds-field mono" min="1" max={MAX_COUNT} step="1" value="5" inputmode="numeric" data-li-count />
+      </Field>
+      <Field label={s.formatLabel} for="li-format">
+        <select id="li-format" class="ds-field-select" data-li-format>
+          <option value="plain">{s.formatPlain}</option>
+          <option value="html">{s.formatHtml}</option>
+          <option value="markdown">{s.formatMarkdown}</option>
+        </select>
+      </Field>
+    </div>
 
-  <div class="li-toggles">
-    <label class="check">
-      <input type="checkbox" data-li-classic />
-      <span>{s.startWithClassic}</span>
-    </label>
-    <label class="check">
-      <input type="checkbox" data-li-wrap checked />
-      <span>{s.wrapParagraphs}</span>
-    </label>
-  </div>
+    <div class="li-toggles">
+      <label class="ds-check-row">
+        <input type="checkbox" class="ds-check" data-li-classic />
+        <span>{s.startWithClassic}</span>
+      </label>
+      <label class="ds-check-row">
+        <input type="checkbox" class="ds-check" data-li-wrap checked />
+        <span>{s.wrapParagraphs}</span>
+      </label>
+    </div>
 
-  <button type="button" class="primary-btn" data-li-generate>{s.generateButton}</button>
+    <div class="ds-actions">
+      <button type="button" class="ds-btn ds-btn-primary" data-li-generate>{s.generateButton}</button>
+    </div>
+  </section>
 
-  <label class="output-label" for="li-output">{s.outputLabel}</label>
-  <textarea id="li-output" data-li-output rows="14" readonly></textarea>
-
-  <div class="li-stats">
-    <span class="stat"><b data-li-words>0</b> {s.words}</span>
-    <span class="stat"><b data-li-chars>0</b> chars</span>
-  </div>
-
-  <div class="li-actions">
-    <button type="button" class="ghost-btn" data-li-copy>{s.copyButton}</button>
-    <button type="button" class="ghost-btn" data-li-download>{s.downloadButton}</button>
-  </div>
+  <OutputPanel label={s.outputLabel} for="li-output" class="ds-card">
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-li-copy>{s.copyButton}</button>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-li-download>{s.downloadButton}</button>
+    </Fragment>
+    <textarea id="li-output" class="ds-field-textarea li-output" data-li-output rows="14" readonly></textarea>
+    <p class="ds-status li-stats" role="status">
+      <span><b data-li-words>0</b> {s.wordsStat}</span>
+      <span><b data-li-chars>0</b> {s.characters}</span>
+    </p>
+  </OutputPanel>
+  <StatusMessage kind="error" data-li-error />
 </div>
 
 <script is:inline type="application/json" data-lorem-strings set:html={stringsJson} />
 <script>import "@/tools/lorem-ipsum-generator.client.ts";</script>
 
 <style>
-  .li-controls { display: flex; flex-wrap: wrap; gap: 0.9rem; align-items: flex-end; }
-  .field { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.85rem; color: var(--mdt-text-muted); }
-  .field select,
-  .field input { padding: 0.5rem 0.6rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-raised); color: var(--mdt-text); font-size: 0.9rem; min-width: 8rem; }
-  .field select:focus,
-  .field input:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
-  .format-field span { display: none; }
-  .li-toggles { display: flex; flex-wrap: wrap; gap: 1.2rem; margin: 0.9rem 0; }
-  .check { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.9rem; color: var(--mdt-text); cursor: pointer; }
-  .check input { width: 1.05rem; height: 1.05rem; accent-color: var(--mdt-accent); cursor: pointer; }
-  .primary-btn { padding: 0.55rem 1.2rem; border-radius: var(--mdt-radius-sm); border: 1px solid var(--mdt-accent); background: var(--mdt-accent); color: var(--mdt-accent-contrast); cursor: pointer; font-size: 0.9rem; font-weight: 600; }
-  .primary-btn:hover { opacity: 0.92; }
-  .primary-btn:focus-visible { outline: 2px solid var(--mdt-focus-ring); outline-offset: 2px; }
-  .output-label { display: block; margin: 1rem 0 0.4rem; font-size: 0.85rem; color: var(--mdt-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
-  .li-tool textarea { width: 100%; resize: vertical; padding: 0.75rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); color: var(--mdt-text); font-family: var(--mdt-font-mono); font-size: 0.9rem; }
-  .li-tool textarea:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
-  .li-stats { display: flex; gap: 1.2rem; margin: 0.6rem 0; }
-  .stat { font-size: 0.85rem; color: var(--mdt-text-muted); }
-  .stat b { font-family: var(--mdt-font-mono); font-size: 1rem; color: var(--mdt-text); margin-right: 0.25rem; }
-  .li-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.4rem; }
-  .ghost-btn { padding: 0.5rem 0.9rem; border-radius: var(--mdt-radius-sm); border: 1px solid var(--mdt-border); background: var(--mdt-surface-raised); color: var(--mdt-text); cursor: pointer; font-size: 0.85rem; }
-  .ghost-btn:hover { border-color: var(--mdt-accent); }
-  .ghost-btn:focus-visible { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
+  /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
+  .li-toggles { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
+  .li-output { min-height: 16rem; }
+  .li-stats { display: flex; flex-wrap: wrap; gap: 1.25rem; margin: 0.6rem 0 0; }
+  .li-stats b { font-family: var(--mdt-font-mono); color: var(--mdt-text); margin-right: 0.25rem; }
 </style>

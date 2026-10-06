@@ -1,0 +1,37 @@
+---
+/**
+ * OutputPanel — result area (tool UI kit): head row with the label and an
+ * `actions` slot (copy / download / swap — use `ds-btn ds-btn-small` or
+ * `ds-btn-ghost`), then the default slot (a readonly `.ds-field-textarea`,
+ * `.ds-code-block`, or `.ds-result-list` the controller fills).
+ * Opt-in `summaryProps` renders a `.ds-output-summary` live region
+ * (role="status", aria-live="polite") below the result; fill it with
+ * `setLiveText()` from `@/scripts/tool-ui` so screen readers hear each update.
+ *
+ *   <OutputPanel label={s.output} for="b64-out">
+ *     <Fragment slot="actions"><button class="ds-btn ds-btn-small" data-b64-copy>{s.copy}</button></Fragment>
+ *     <textarea id="b64-out" class="ds-field-textarea mono" readonly data-b64-output></textarea>
+ *   </OutputPanel>
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"section"> {
+  label: string;
+  /** id of the output control when it is a form field. */
+  for?: string;
+  /** Renders the live summary line; pass the controller hook here. */
+  summaryProps?: HTMLAttributes<"p">;
+}
+
+const { label, for: htmlFor, summaryProps, class: className, ...rest } = Astro.props as Props;
+const LabelTag = htmlFor ? "label" : "span";
+---
+
+<section class:list={["ds-output", className]} {...rest}>
+  <div class="ds-output-head">
+    <LabelTag class="ds-label" for={htmlFor}>{label}</LabelTag>
+    {Astro.slots.has("actions") && <div class="ds-actions"><slot name="actions" /></div>}
+  </div>
+  <slot />
+  {summaryProps && <p class="ds-output-summary" role="status" aria-live="polite" {...summaryProps}></p>}
+</section>

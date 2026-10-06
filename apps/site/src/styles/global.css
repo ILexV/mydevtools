@@ -6,6 +6,8 @@
    ========================================================================== */
 
 @import "./fonts.css";
+/* Shared tool UI layer (@layer tools) — see docs/qa/tool-ui-kit.md. */
+@import "./tool-ui.css";
 
 @layer reset, tokens, base, utilities, components, tools;
 
@@ -39,6 +41,12 @@
   select {
     font: inherit;
     color: inherit;
+  }
+  /* `hidden` is authoritative site-wide: controllers toggle `el.hidden`, and a
+     scoped `display:flex|grid` must never resurrect a hidden element.
+     `!important` in the earliest layer beats every later/unlayered rule. */
+  [hidden]:not([hidden="until-found"]) {
+    display: none !important;
   }
 }
 
@@ -139,6 +147,8 @@
     /* elevation — shadow means layer, never decor */
     --mdt-shadow-e1: 0 14px 34px -12px var(--mdt-shadow-cat, rgba(28, 22, 77, 0.35));
     --mdt-shadow-e2: 0 12px 40px rgba(4, 6, 12, 0.35);
+    /* modal scrim (.ds-scrim and native <dialog class="ds-dialog">::backdrop) */
+    --mdt-scrim: rgba(4, 6, 10, 0.55);
     /* motion */
     --mdt-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
     --mdt-dur-micro: 150ms;
@@ -293,15 +303,11 @@
     transform: translateY(-1px);
     border-color: var(--mdt-text-faint);
   }
-  /* `display:inline-flex` above beats the UA `[hidden]` rule — restore it. */
-  .ds-btn[hidden] {
-    display: none;
-  }
   .ds-btn:active {
     transform: translateY(0);
   }
   .ds-btn:disabled,
-  .btn[aria-disabled="true"] {
+  .ds-btn[aria-disabled="true"] {
     opacity: 0.45;
     pointer-events: none;
   }
@@ -525,7 +531,8 @@
   }
 
   /* ---------- feedback: alert / toast / progress / spinner / skeleton ---------- */
-  .alert {
+  .alert,
+  .ds-alert {
     display: flex;
     gap: 10px;
     align-items: flex-start;
@@ -540,17 +547,29 @@
     border-color: color-mix(in srgb, var(--mdt-accent) 30%, transparent);
     background: color-mix(in srgb, var(--mdt-accent) 8%, transparent);
   }
-  .alert-success {
+  /* Tool-page info is neutral: on tool pages --mdt-accent = category hue, and
+     red/orange/amber categories would make an accent-tinted note read as an
+     error/warning. `ds-alert-neutral` is the same tone (explicit name). */
+  .ds-alert-info,
+  .ds-alert-neutral {
+    color: var(--mdt-text);
+    border-color: var(--mdt-border);
+    background: var(--mdt-surface-inset);
+  }
+  .alert-success,
+  .ds-alert-success {
     color: var(--mdt-success);
     border-color: color-mix(in srgb, var(--mdt-success) 30%, transparent);
     background: color-mix(in srgb, var(--mdt-success) 9%, transparent);
   }
-  .alert-warning {
+  .alert-warning,
+  .ds-alert-warning {
     color: var(--mdt-warning);
     border-color: color-mix(in srgb, var(--mdt-warning) 30%, transparent);
     background: color-mix(in srgb, var(--mdt-warning) 9%, transparent);
   }
-  .alert-error {
+  .alert-error,
+  .ds-alert-error {
     color: var(--mdt-danger);
     border-color: color-mix(in srgb, var(--mdt-danger) 30%, transparent);
     background: color-mix(in srgb, var(--mdt-danger) 9%, transparent);
@@ -596,6 +615,10 @@
     transition: width var(--mdt-dur) var(--mdt-ease);
   }
   .ds-spinner {
+    /* inline-block: keeps its size outside flex/grid parents too. */
+    display: inline-block;
+    flex-shrink: 0;
+    vertical-align: middle;
     width: 18px;
     height: 18px;
     border-radius: 50%;
@@ -664,9 +687,15 @@
   .ds-scrim {
     position: fixed;
     inset: 0;
-    background: rgba(4, 6, 10, 0.55);
+    background: var(--mdt-scrim);
     backdrop-filter: blur(3px);
     z-index: 80;
+  }
+  /* Native modal <dialog class="ds-dialog"> (showModal): same scrim. Fallback
+     value for engines where ::backdrop does not inherit custom properties. */
+  .ds-dialog::backdrop {
+    background: var(--mdt-scrim, rgba(4, 6, 10, 0.55));
+    backdrop-filter: blur(3px);
   }
 
   /* segmented control */
@@ -700,6 +729,4 @@
   }
 }
 
-@layer tools {
-  /* Tool-specific global styles land here when shared by >1 tool page. */
-}
+/* @layer tools — shared tool UI lives in ./tool-ui.css (imported above). */

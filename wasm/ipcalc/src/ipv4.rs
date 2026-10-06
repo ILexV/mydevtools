@@ -55,8 +55,10 @@ impl Ipv4Cidr {
 
         // Try CIDR notation: "192.168.1.1/24"
         if let Some((ip_str, prefix_str)) = input.split_once('/') {
-            let ip = Ipv4Addr::from_str(ip_str).map_err(|_| ParseError::InvalidIp)?;
+            // Tolerate spaces around the slash ("10.0.0.1 / 8").
+            let ip = Ipv4Addr::from_str(ip_str.trim()).map_err(|_| ParseError::InvalidIp)?;
             let prefix = prefix_str
+                .trim()
                 .parse::<u8>()
                 .map_err(|_| ParseError::InvalidPrefix)?;
             if prefix > 32 {
@@ -126,15 +128,9 @@ impl Ipv4Cidr {
         } else if prefix == 32 {
             (network, network, 1) // Single host
         } else {
-            (
-                network + 1,
-                broadcast - 1,
-                if prefix == 0 {
-                    0
-                } else {
-                    (1u64 << (32 - prefix)) - 2
-                },
-            )
+            // /0../30: network and broadcast are not usable. /0 = 2^32 - 2
+            // (previously reported as 0).
+            (network + 1, broadcast - 1, (1u64 << (32 - prefix)) - 2)
         };
 
         let total_hosts = if prefix == 32 {
@@ -250,5 +246,149 @@ mod tests {
     fn test_calculate_slash_32() {
         let res = Ipv4Cidr::parse("10.10.10.1/32").unwrap().calculate();
         assert_eq!(res.usable_hosts, 1);
+    }
+
+    fn calc(input: &str) -> CalculationResult {
+        Ipv4Cidr::parse(input).unwrap().calculate()
+    }
+
+    #[test]
+    fn test_slash_0_whole_space() {
+        let res = calc("1.2.3.4/0");
+        assert_eq!(res.network, "0.0.0.0");
+        assert_eq!(res.broadcast, "255.255.255.255");
+        assert_eq!(res.netmask, "0.0.0.0");
+        assert_eq!(res.wildcard, "255.255.255.255");
+        assert_eq!(res.host_min, "0.0.0.1");
+        assert_eq!(res.host_max, "255.255.255.254");
+        assert_eq!(res.total_hosts, 4_294_967_296);
+        assert_eq!(res.usable_hosts, 4_294_967_294);
+    }
+
+    #[test]
+    fn test_slash_1_and_8() {
+        let res = calc("200.0.0.1/1");
+        assert_eq!(res.network, "128.0.0.0");
+        assert_eq!(res.broadcast, "255.255.255.255");
+        assert_eq!(res.usable_hosts, (1u64 << 31) - 2);
+        let res = calc("10.20.30.40/8");
+        assert_eq!(res.network, "10.0.0.0");
+        assert_eq!(res.broadcast, "10.255.255.255");
+        assert_eq!(res.host_min, "10.0.0.1");
+        assert_eq!(res.host_max, "10.255.255.254");
+        assert_eq!(res.total_hosts, 16_777_216);
+        assert_eq!(res.usable_hosts, 16_777_214);
+        assert_eq!(res.class, "A");
+    }
+
+    #[test]
+    fn test_slash_31_32_host_ranges() {
+        let res = calc("10.10.10.1/31");
+        assert_eq!(res.host_min, "10.10.10.0");
+        assert_eq!(res.host_max, "10.10.10.1");
+        assert_eq!(res.total_hosts, 2);
+        let res = calc("8.8.8.8/32");
+        assert_eq!(res.network, "8.8.8.8");
+        assert_eq!(res.broadcast, "8.8.8.8");
+        assert_eq!(res.host_min, "8.8.8.8");
+        assert_eq!(res.host_max, "8.8.8.8");
+        assert_eq!(res.netmask, "255.255.255.255");
+        assert_eq!(res.wildcard, "0.0.0.0");
+        assert_eq!(res.total_hosts, 1);
+        assert!(!res.is_private);
+    }
+
+    #[test]
+    fn test_usable_hosts_every_prefix() {
+        for p in 0u8..=32 {
+            let res = calc(&format!("10.0.0.0/{p}"));
+            let total = 1u64 << (32 - p as u32);
+            assert_eq!(res.total_hosts, total, "/{p}");
+            let usable = match p {
+                31 => 2,
+                32 => 1,
+                _ => total - 2,
+            };
+            assert_eq!(res.usable_hosts, usable, "/{p}");
+            assert_eq!(res.prefix, p);
+        }
+    }
+
+    #[test]
+    fn test_mask_notation_equals_cidr() {
+        let a = calc("172.16.0.1 255.240.0.0");
+        let b = calc("172.16.0.1/12");
+        assert_eq!(a.prefix, 12);
+        assert_eq!(a.network, b.network);
+        assert_eq!(a.broadcast, "172.31.255.255");
+        assert!(a.is_private);
+        assert_eq!(calc("1.2.3.4 0.0.0.0").prefix, 0);
+        assert_eq!(calc("1.2.3.4 255.255.255.255").prefix, 32);
+        assert_eq!(calc("1.2.3.4   255.255.255.128").prefix, 25);
+    }
+
+    #[test]
+    fn test_bare_ip_is_slash_32_and_whitespace_tolerated() {
+        assert_eq!(calc("192.168.0.1").prefix, 32);
+        assert_eq!(calc("  10.0.0.1/8  ").network, "10.0.0.0");
+        assert_eq!(calc("10.0.0.1 / 8").network, "10.0.0.0");
+    }
+
+    #[test]
+    fn test_invalid_inputs() {
+        let err = |s: &str| Ipv4Cidr::parse(s).unwrap_err().to_string();
+        assert_eq!(err("256.0.0.1/24"), "Invalid IPv4 address");
+        assert_eq!(err("10.0.0/24"), "Invalid IPv4 address");
+        assert_eq!(err("10.0.0.1/33"), "Invalid prefix length (0-32)");
+        assert_eq!(err("10.0.0.1/-1"), "Invalid prefix length (0-32)");
+        assert_eq!(err("10.0.0.1/"), "Invalid prefix length (0-32)");
+        assert_eq!(err("10.0.0.1/abc"), "Invalid prefix length (0-32)");
+        assert_eq!(err("10.0.0.1 255.0.255.0"), "Invalid netmask");
+        assert_eq!(err("10.0.0.1 255.255.255.1"), "Invalid netmask");
+        assert_eq!(err("10.0.0.1 300.0.0.0"), "Invalid netmask");
+        assert_eq!(err(""), "Invalid format (expected IP/Prefix or IP Mask)");
+        assert_eq!(err("hello"), "Invalid format (expected IP/Prefix or IP Mask)");
+        assert_eq!(err("1.2.3.4 5.6.7.8 9"), "Invalid format (expected IP/Prefix or IP Mask)");
+        // IPv6 is not supported by this calculator.
+        assert_eq!(err("2001:db8::1/64"), "Invalid IPv4 address");
+        assert_eq!(err("::1"), "Invalid format (expected IP/Prefix or IP Mask)");
+    }
+
+    #[test]
+    fn test_class_boundaries() {
+        let class = |s: &str| calc(s).class;
+        assert_eq!(class("0.0.0.0/8"), "A");
+        assert_eq!(class("127.255.255.255/32"), "A");
+        assert_eq!(class("128.0.0.0/16"), "B");
+        assert_eq!(class("191.255.0.0/16"), "B");
+        assert_eq!(class("192.0.0.0/24"), "C");
+        assert_eq!(class("223.255.255.0/24"), "C");
+        assert_eq!(class("224.0.0.1/32"), "D (Multicast)");
+        assert_eq!(class("239.255.255.255/32"), "D (Multicast)");
+        assert_eq!(class("240.0.0.1/32"), "E (Reserved)");
+        assert_eq!(class("255.255.255.255/32"), "E (Reserved)");
+    }
+
+    #[test]
+    fn test_private_ranges_rfc1918_boundaries() {
+        let private = |s: &str| calc(s).is_private;
+        assert!(private("10.0.0.0/32"));
+        assert!(private("10.255.255.255/32"));
+        assert!(!private("11.0.0.0/32"));
+        assert!(!private("172.15.255.255/32"));
+        assert!(private("172.16.0.0/32"));
+        assert!(private("172.31.255.255/32"));
+        assert!(!private("172.32.0.0/32"));
+        assert!(private("192.168.0.0/32"));
+        assert!(!private("192.169.0.0/32"));
+        assert!(!private("8.8.8.8/32"));
+    }
+
+    #[test]
+    fn test_binary_strings() {
+        let res = calc("192.168.1.10/24");
+        assert_eq!(res.ip_binary, "11000000.10101000.00000001.00001010");
+        assert_eq!(res.mask_binary, "11111111.11111111.11111111.00000000");
+        assert_eq!(calc("0.0.0.0/0").mask_binary, "00000000.00000000.00000000.00000000");
     }
 }

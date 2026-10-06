@@ -3,8 +3,11 @@
  * html-entity-encoder behavior: named/decimal/hex formats, special-chars /
  * non-ASCII / all modes, and reversal of named + numeric references.
  *
- * Iterates by UTF-16 code unit (legacy uses `text[i]` + `charCodeAt(0)`), so
- * surrogate pairs are handled one half at a time — intentional parity.
+ * Deviation from legacy (bug fix, QA 2026-10-06): encoding iterates by code
+ * point, so an emoji becomes one reference (`&#x1F600;`) instead of two
+ * surrogate halves (`&#xD83D;&#xDE00;`), which browsers render as U+FFFD.
+ * Decoding is a single pass (`&amp;lt;` → `&lt;`, not `<`) and still joins
+ * legacy surrogate-half references back into the original character.
  */
 
 export type EntityMode = "all" | "specialchars" | "nonascii";
@@ -19,6 +22,7 @@ export const namedEntities: Record<string, string> = {
   "&#x27;": "'",
   "&#x60;": "`",
   "&#39;": "'",
+  "&apos;": "'",
   "&nbsp;": "\u00A0",
   "&copy;": "\u00A9",
   "&reg;": "\u00AE",
@@ -68,9 +72,8 @@ export function encodeHtml(
     "'": format === "decimal" ? "&#39;" : "&#x27;",
   };
   let result = "";
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    const code = char.charCodeAt(0);
+  for (const char of text) {
+    const code = char.codePointAt(0) ?? 0;
 
     if (special[char] !== undefined && (mode === "all" || mode === "specialchars")) {
       result += special[char];
@@ -89,16 +92,18 @@ export function encodeHtml(
   return result;
 }
 
-/** Decode named, decimal (&#DDD;), and hex (&#xHH;) entities back to characters. */
+/**
+ * Decode named (from `namedEntities`), decimal (`&#DDD;`) and hex
+ * (`&#xHH;` / `&#XHH;`) references in one pass. Unknown names and
+ * out-of-range numbers (> U+10FFFF) are left untouched.
+ */
 export function decodeHtml(text: string): string {
-  let result = text.replace(/&#x([0-9a-fA-F]+);/g, (_m, hex: string) =>
-    String.fromCharCode(parseInt(hex, 16)),
-  );
-  result = result.replace(/&#(\d+);/g, (_m, dec: string) =>
-    String.fromCharCode(parseInt(dec, 10)),
-  );
-  for (const [entity, char] of Object.entries(namedEntities)) {
-    result = result.replace(new RegExp(entity.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"), char);
-  }
-  return result;
+  return text.replace(/&(#[xX][0-9a-fA-F]+|#\d+|[a-zA-Z][a-zA-Z0-9]*);/g, (match, body: string) => {
+    if (body[0] !== "#") return namedEntities[match] ?? match;
+    const hex = body[1] === "x" || body[1] === "X";
+    const code = Number.parseInt(body.slice(hex ? 2 : 1), hex ? 16 : 10);
+    if (!Number.isFinite(code) || code > 0x10ffff) return match;
+    // fromCharCode for BMP values keeps legacy surrogate-half pairs joinable.
+    return code <= 0xffff ? String.fromCharCode(code) : String.fromCodePoint(code);
+  });
 }

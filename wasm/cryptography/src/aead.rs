@@ -778,4 +778,65 @@ mod tests {
 
         assert!(aead_stream_derive_key_from_header(&header, b"password", 64 * 1024, 3, 1).is_err());
     }
+
+    /// Mirrors apps/site aead-file-client: header → Argon2id key → per-chunk
+    /// counter nonces; ciphertext = header ‖ chunk₀+tag ‖ chunk₁+tag ‖ …
+    #[test]
+    fn aead_stream_multi_chunk_roundtrip_all_algorithms() {
+        let chunk_size = 1000usize;
+        let plaintext: Vec<u8> = (0..2_500u32).map(|i| (i * 7 % 251) as u8).collect();
+        for (alg, prefix_len) in [
+            (AEAD_ALGO_AES256_GCM, 4usize),
+            (AEAD_ALGO_CHACHA20_POLY1305, 4),
+            (AEAD_ALGO_XCHACHA20_POLY1305, 16),
+        ] {
+            let salt = [0x11u8; 16];
+            let prefix = vec![0x22u8; prefix_len];
+            let header = aead_stream_header_pack(alg, KDF_ARGON2ID, &salt, &prefix, chunk_size as u32).expect("header");
+            // Small Argon2 params keep the debug test fast; the site uses 64 MiB / 3 / 1.
+            let key = aead_stream_derive_key_from_header(&header, "pässwörd 🔑".as_bytes(), 256, 1, 1).expect("key");
+            assert_eq!(key.len(), 32);
+
+            let mut container = header.clone();
+            for (i, chunk) in plaintext.chunks(chunk_size).enumerate() {
+                let ct = aead_stream_encrypt_chunk(alg, &key, &prefix, i as u64, chunk, b"").expect("enc");
+                assert_eq!(ct.len(), chunk.len() + AEAD_TAG_LEN as usize);
+                container.extend_from_slice(&ct);
+            }
+
+            // Decrypt exactly like the browser client: parse header, re-derive, walk chunks.
+            let info = aead_stream_header_info(&container[..container.len().min(128)]).expect("info");
+            assert_eq!(info[0], alg as u32);
+            assert_eq!(info[4], chunk_size as u32);
+            let header_len = info[5] as usize;
+            assert_eq!(header_len, 15 + 16 + prefix_len);
+            let hdr = &container[..header_len];
+            let key2 = aead_stream_derive_key_from_header(hdr, "pässwörd 🔑".as_bytes(), 256, 1, 1).expect("key2");
+            assert_eq!(key2, key);
+            let nonce_prefix = aead_stream_extract_nonce_prefix(hdr).expect("prefix");
+            let mut out = Vec::new();
+            for (i, ct) in container[header_len..].chunks(chunk_size + AEAD_TAG_LEN as usize).enumerate() {
+                out.extend(aead_stream_decrypt_chunk(alg, &key2, &nonce_prefix, i as u64, ct, b"").expect("dec"));
+            }
+            assert_eq!(out, plaintext);
+        }
+    }
+
+    #[test]
+    fn aead_stream_different_password_gives_different_key() {
+        let header = aead_stream_header_pack(AEAD_ALGO_AES256_GCM, KDF_ARGON2ID, &[1u8; 16], &[2u8; 4], 1024).expect("header");
+        let a = aead_stream_derive_key_from_header(&header, b"password", 256, 1, 1).expect("a");
+        let b = aead_stream_derive_key_from_header(&header, b"password ", 256, 1, 1).expect("b");
+        assert_ne!(a, b);
+    }
+
+    #[test]
+    fn aead_stream_nonces_differ_per_chunk() {
+        assert_ne!(
+            aead_derive_nonce_12(&[9u8; 4], 0).expect("n0"),
+            aead_derive_nonce_12(&[9u8; 4], 1).expect("n1")
+        );
+        assert_eq!(aead_derive_nonce_12(&[9u8; 4], 5).expect("n").len(), 12);
+        assert_eq!(aead_derive_nonce_24(&[9u8; 16], 5).expect("n").len(), 24);
+    }
 }

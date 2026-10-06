@@ -9,6 +9,8 @@
   "OpenLink": "Link öffnen",
   "ErrorNotImage": "Bitte laden Sie eine Bilddatei hoch.",
   "ErrorNoQr": "Kein QR-Code im Bild gefunden. Bitte versuchen Sie es mit einem anderen Bild.",
+  "ErrorUnsupportedImage": "Nicht unterstütztes Bildformat. Verwenden Sie PNG, JPEG oder WebP.",
+  "ErrorCopy": "Kopieren in die Zwischenablage fehlgeschlagen.",
   "PreviewAlt": "Dateivorschau",
   "Seo_Introduction": "Das QR Code Scanner-Tool ist ein datenschutzorientiertes Online-Tool für Entwickler. Die gesamte Verarbeitung erfolgt lokal in Ihrem Browser mit WebAssembly und stellt sicher, dass Ihre Daten niemals Ihr Gerät verlassen.",
   "Seo_DetailedDescription": "Dieses Tool bietet umfassende Funktionalität für qr code scanner-Operationen. Gebaut mit modernen Webtechnologien und angetrieben von Rust-kompiliertem WebAssembly, liefert es native Leistung direkt in Ihrem Browser.\n\nDie Benutzeroberfläche ist auf Effizienz und Benutzerfreundlichkeit ausgelegt, mit Unterstützung sowohl für Texteingabe als auch für Dateiverarbeitung. Alle Operationen werden clientseitig durchgeführt und garantieren vollständige Privatsphäre und Sicherheit für Ihre sensiblen Daten.",

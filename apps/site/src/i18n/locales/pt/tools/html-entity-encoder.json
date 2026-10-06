@@ -26,6 +26,8 @@
   "LinkBase64": "Base64",
   "LinkHex": "Hex",
   "LinkXml": "XML Beautifier",
+  "Error_CopyFailed": "Não foi possível copiar: a área de transferência não está disponível.",
+  "OutputSummary": "Resultado: {0} caracteres",
   "Seo_Introduction": "O HTML Entity Encoder é uma ferramenta focada em privacidade para desenvolvedores e designers web. Todo o processamento é feito localmente no seu navegador, os dados nunca saem do seu dispositivo.",
   "Seo_DetailedDescription": "Esta ferramenta fornece funcionalidade completa para codificar caracteres especiais em entidades HTML e decodificá-los. Suporta vários formatos: entidades nomeadas (&amp;), referências numéricas decimais (&#38;) e referências hexadecimais (&#x26;).\n\nA interface é projetada para eficiência e facilidade de uso, com opções para codificar apenas caracteres especiais, apenas caracteres não-ASCII, ou todos os caracteres. Todas as operações são realizadas no lado do cliente, garantindo privacidade e segurança completas para seus dados.",
   "Seo_Examples": "**Exemplo 1**: Codificação de caracteres HTML especiais para exibição segura em páginas web.\n- Entrada: `<div class=\"example\">Hello & Welcome!</div>`\n- Saída: `&lt;div class=&quot;example&quot;&gt;Hello &amp; Welcome!&lt;/div&gt;`\n\n**Exemplo 2**: Decodificação de entidades HTML de volta para texto legível.\n- Entrada: `&copy; 2024 Company &amp; Partners`\n- Saída: `© 2024 Company & Partners`\n\n**Exemplo 3**: Codificação de caracteres não-ASCII para máxima compatibilidade.\n- Entrada: `Café résumé naïve`\n- Saída: `Caf&#233; r&#233;sum&#233; na&#239;ve`",

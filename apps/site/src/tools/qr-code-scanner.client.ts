@@ -1,11 +1,16 @@
 /**
- * QR Code Scanner client controller. Image picked via file dialog, drag-drop,
- * or the change/clear buttons; bytes are decoded by the qrcode WASM module
- * (`qrDecode`). URL results expose an open-link action (legacy parity:
- * /^https?:\/\//i test). Copy button swaps its label for 1200ms.
+ * QR Code Scanner client controller. Image picked via the file button, drag
+ * & drop or a click on the drop zone (`bindDropzone`); bytes are decoded by the
+ * qrcode WASM module (`qrDecode`). Localized errors: not an image, unsupported
+ * format (crate decodes png/jpeg/webp), no QR found, read failure. URL results
+ * expose an open-link action (http/https only). A newer file supersedes an
+ * in-flight decode (sequence token), so a stale result never overwrites it.
  */
 import { qrDecode } from "@/scripts/wasm/qrcode-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { bindDropzone, copyWithFeedback, setDropzoneHasFile } from "@/scripts/tool-ui";
+import { formatBytes } from "@/lib/format";
+import { classifyDecodeError, isHttpUrl, isImageType } from "@/tools/qr-code";
 
 interface Strings {
   copy: string;
@@ -13,6 +18,8 @@ interface Strings {
   errorNotImage: string;
   errorNoQr: string;
   errorReading: string;
+  errorUnsupportedImage: string;
+  errorCopy: string;
 }
 
 function readStrings(): Strings | null {
@@ -25,172 +32,120 @@ function readStrings(): Strings | null {
   }
 }
 
-function formatBytes(bytes: number): string {
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let value = bytes;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit++;
-  }
-  return `${value.toFixed(unit === 0 ? 0 : 2)} ${units[unit]}`;
-}
-
 function init() {
   const root = document.querySelector<HTMLElement>("[data-qrs-tool]");
-  if (!root) return;
+  if (!root || root.dataset.initialized) return;
   const raw = readStrings();
   if (!raw) return;
+  root.dataset.initialized = "true";
   const strings: Strings = raw;
+  const q = <T extends Element>(sel: string) => root.querySelector<T>(sel);
 
-  const dropZone = root.querySelector<HTMLElement>("[data-qrs-dropzone]");
-  const fileInput = root.querySelector<HTMLInputElement>("[data-qrs-file]");
-  const clearBtn = root.querySelector<HTMLButtonElement>("[data-qrs-clear]");
-  const emptyState = root.querySelector<HTMLElement>("[data-qrs-empty]");
-  const selectedState = root.querySelector<HTMLElement>("[data-qrs-selected]");
-  const chooseBtn = root.querySelector<HTMLButtonElement>("[data-qrs-choose]");
-  const changeBtn = root.querySelector<HTMLButtonElement>("[data-qrs-change]");
-  const previewImg = root.querySelector<HTMLImageElement>("[data-qrs-preview]");
-  const nameEl = root.querySelector<HTMLElement>("[data-qrs-filename]");
-  const sizeEl = root.querySelector<HTMLElement>("[data-qrs-filesize]");
-  const resultSection = root.querySelector<HTMLElement>("[data-qrs-result]");
-  const output = root.querySelector<HTMLTextAreaElement>("[data-qrs-output]");
-  const copyBtn = root.querySelector<HTMLButtonElement>("[data-qrs-copy]");
-  const linkWrap = root.querySelector<HTMLElement>("[data-qrs-linkwrap]");
-  const openLink = root.querySelector<HTMLAnchorElement>("[data-qrs-openlink]");
-  const errorBox = root.querySelector<HTMLElement>("[data-qrs-error]");
+  const zone = q<HTMLElement>("[data-qrs-dropzone]");
+  const input = q<HTMLInputElement>("[data-qrs-file]");
+  const clearBtn = q<HTMLButtonElement>("[data-qrs-clear]");
+  const selectedEl = q<HTMLElement>("[data-qrs-selected]");
+  const preview = q<HTMLImageElement>("[data-qrs-preview]");
+  const nameEl = q<HTMLElement>("[data-qrs-filename]");
+  const sizeEl = q<HTMLElement>("[data-qrs-filesize]");
+  const busyEl = q<HTMLElement>("[data-qrs-busy]");
+  const resultEl = q<HTMLElement>("[data-qrs-result]");
+  const outputArea = q<HTMLTextAreaElement>("[data-qrs-output]");
+  const copyBtn = q<HTMLButtonElement>("[data-qrs-copy]");
+  const linkWrap = q<HTMLElement>("[data-qrs-linkwrap]");
+  const openLink = q<HTMLAnchorElement>("[data-qrs-openlink]");
+  const errorBox = q<HTMLElement>("[data-qrs-error]");
 
-  if (!dropZone || !fileInput || !emptyState || !selectedState || !previewImg || !resultSection || !output) return;
-  const zone: HTMLElement = dropZone;
-  const input: HTMLInputElement = fileInput;
-  const emptyEl: HTMLElement = emptyState;
-  const selectedEl: HTMLElement = selectedState;
-  const preview: HTMLImageElement = previewImg;
-  const resultEl: HTMLElement = resultSection;
-  const outputArea: HTMLTextAreaElement = output;
+  if (!zone || !input || !selectedEl || !preview || !resultEl || !outputArea || !errorBox) return;
 
   let previewUrl: string | null = null;
-  let decoding = false;
+  let seq = 0;
 
   function showError(msg: string) {
-    if (errorBox) {
-      errorBox.textContent = msg;
-      errorBox.hidden = false;
-    }
+    errorBox!.textContent = msg;
+    errorBox!.hidden = false;
   }
   function clearError() {
-    if (errorBox) errorBox.hidden = true;
+    errorBox!.hidden = true;
+    errorBox!.textContent = "";
+  }
+  function setBusy(on: boolean) {
+    if (busyEl) busyEl.hidden = !on;
+    zone!.setAttribute("aria-busy", String(on));
   }
 
   function hideResult() {
-    resultEl.hidden = true;
-    outputArea.value = "";
+    resultEl!.hidden = true;
+    outputArea!.value = "";
     if (linkWrap) linkWrap.hidden = true;
-    if (openLink) openLink.removeAttribute("href");
+    openLink?.removeAttribute("href");
   }
 
   function showResult(text: string) {
-    outputArea.value = text;
-    resultEl.hidden = false;
-    if (/^https?:\/\//i.test(text)) {
-      if (openLink) openLink.href = text;
-      if (linkWrap) linkWrap.hidden = false;
+    outputArea!.value = text;
+    resultEl!.hidden = false;
+    if (isHttpUrl(text) && openLink && linkWrap) {
+      openLink.href = text;
+      linkWrap.hidden = false;
     }
   }
 
   function showSelection(file: File) {
-    emptyEl.hidden = true;
-    selectedEl.hidden = false;
+    selectedEl!.hidden = false;
+    setDropzoneHasFile(zone!, true);
     if (nameEl) nameEl.textContent = file.name;
-    if (sizeEl) sizeEl.textContent = formatBytes(file.size);
+    if (sizeEl) sizeEl.textContent = formatBytes(file.size, 2);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     previewUrl = URL.createObjectURL(file);
-    preview.src = previewUrl;
-    if (clearBtn) clearBtn.hidden = false;
+    preview!.src = previewUrl;
   }
 
   function clearSelection() {
-    input.value = "";
-    emptyEl.hidden = false;
-    selectedEl.hidden = true;
+    seq++; // drop any in-flight decode result
+    setBusy(false);
+    input!.value = "";
+    selectedEl!.hidden = true;
+    setDropzoneHasFile(zone!, false);
     if (nameEl) nameEl.textContent = "";
     if (sizeEl) sizeEl.textContent = "";
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
       previewUrl = null;
     }
-    preview.removeAttribute("src");
-    if (clearBtn) clearBtn.hidden = true;
+    preview!.removeAttribute("src");
   }
 
   async function handleFile(file: File) {
     clearError();
     hideResult();
-
-    if (!file.type.startsWith("image/")) {
+    if (!isImageType(file.type)) {
       clearSelection();
       showError(strings.errorNotImage);
       return;
     }
 
     showSelection(file);
-    // Allow re-selecting the same file: the selection UI no longer depends on
-    // input.files, so the value can be reset immediately.
-    input.value = "";
-
-    decoding = true;
+    const mine = ++seq;
+    setBusy(true);
     try {
       const bytes = new Uint8Array(await file.arrayBuffer());
       const text = await qrDecode(bytes);
+      if (mine !== seq) return;
       showResult(text);
     } catch (e) {
+      if (mine !== seq) return;
       if (e instanceof WasmError) {
-        showError(strings.errorNoQr);
+        showError(classifyDecodeError(e.message) === "unsupportedImage" ? strings.errorUnsupportedImage : strings.errorNoQr);
       } else {
         showError(strings.errorReading);
       }
     } finally {
-      decoding = false;
+      if (mine === seq) setBusy(false);
     }
   }
 
-  function pickFile() {
-    if (!decoding) input.click();
-  }
-
-  // Clicking the zone (but not a button inside it) opens the file dialog.
-  zone.addEventListener("click", (e) => {
-    if (e.target instanceof HTMLElement && e.target.closest("button")) return;
-    pickFile();
-  });
-  chooseBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    pickFile();
-  });
-  changeBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    pickFile();
-  });
-
-  input.addEventListener("change", () => {
-    const file = input.files?.[0];
-    if (file) void handleFile(file);
-  });
-
-  zone.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    zone.classList.add("qrs-dragover");
-  });
-  zone.addEventListener("dragleave", (e) => {
-    e.preventDefault();
-    if (e.relatedTarget instanceof Node && zone.contains(e.relatedTarget)) return;
-    zone.classList.remove("qrs-dragover");
-  });
-  zone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    zone.classList.remove("qrs-dragover");
-    const file = e.dataTransfer?.files?.[0];
-    if (file) void handleFile(file);
+  bindDropzone(zone, input, (files) => {
+    if (files[0]) void handleFile(files[0]);
   });
 
   clearBtn?.addEventListener("click", (e) => {
@@ -202,16 +157,8 @@ function init() {
 
   copyBtn?.addEventListener("click", async () => {
     if (!outputArea.value) return;
-    try {
-      await navigator.clipboard.writeText(outputArea.value);
-      const orig = copyBtn.textContent;
-      copyBtn.textContent = strings.copied;
-      setTimeout(() => {
-        copyBtn.textContent = orig;
-      }, 1200);
-    } catch {
-      /* clipboard unavailable */
-    }
+    const ok = await copyWithFeedback(copyBtn, outputArea.value, strings.copied);
+    if (!ok) showError(strings.errorCopy);
   });
 }
 

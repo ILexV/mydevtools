@@ -26,6 +26,8 @@
   "LinkBase64": "Base64",
   "LinkHex": "Hex",
   "LinkXml": "XML ビューティファイア",
+  "Error_CopyFailed": "コピーできませんでした。クリップボードを利用できません。",
+  "OutputSummary": "結果: {0} 文字",
   "Seo_Introduction": "HTML エンティティ エンコーダーは、プライバシーを重視した開発者とウェブデザイナーのためのツールです。すべての処理はブラウザ内でローカルに行われ、データがデバイスを離れることはありません。",
   "Seo_DetailedDescription": "このツールは、特殊文字を HTML エンティティにエンコードし、デコードする完全な機能を提供します。名前付きエンティティ (&amp;)、10進数参照 (&#38;)、16進数参照 (&#x26;) など、複数の形式をサポートしています。\n\nインターフェースは効率性と使いやすさを重視して設計されており、特殊文字のみ、非 ASCII 文字のみ、またはすべての文字をエンコードするオプションがあります。すべての操作はクライアント側で実行され、データの完全なプライバシーとセキュリティを保証します。",
   "Seo_Examples": "**例 1**：ウェブページで安全に表示するための HTML 特殊文字のエンコード。\n- 入力：`<div class=\"example\">Hello & Welcome!</div>`\n- 出力：`&lt;div class=&quot;example&quot;&gt;Hello &amp; Welcome!&lt;/div&gt;`\n\n**例 2**：HTML エンティティを読みやすいテキストにデコード。\n- 入力：`&copy; 2024 Company &amp; Partners`\n- 出力：`© 2024 Company & Partners`\n\n**例 3**：最大の互換性のための非 ASCII 文字のエンコード。\n- 入力：`Café résumé naïve`\n- 出力：`Caf&#233; r&#233;sum&#233; na&#239;ve`",

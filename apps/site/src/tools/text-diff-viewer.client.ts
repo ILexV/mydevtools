@@ -19,6 +19,7 @@ declare global {
         newStr: string,
         oldHeader?: string,
         newHeader?: string,
+        options?: { context?: number; maxEditLength?: number },
       ): string;
     };
     Diff2HtmlUI?: new (
@@ -36,7 +37,17 @@ interface Strings {
   loading: string;
   errorEmpty: string;
   errorLibLoad: string;
+  noDifferences: string;
+  fileReadError: string;
+  diffTooBig: string;
 }
+
+/**
+ * Line-edit budget for jsdiff (Myers is O(N·D) on the main thread: 5k lines
+ * with 1.7k edits froze the tab for ~13 s). Equal to diff2html's
+ * `diffMaxChanges`, which would refuse to draw a bigger diff anyway.
+ */
+const MAX_LINE_EDITS = 1000;
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const CSS_HREF = `${BASE}/lib/diff2html.min.css`;
@@ -79,7 +90,12 @@ function loadScript(src: string): Promise<void> {
     script.dataset.loaded = "true";
     resolve();
   }, { once: true });
-  script.addEventListener("error", () => reject(new Error(`Failed to load ${src}`)), { once: true });
+  script.addEventListener("error", () => {
+    // Drop the failed tag so a later retry injects a fresh one instead of
+    // waiting forever on a script that will never fire `load`.
+    script.remove();
+    reject(new Error(`Failed to load ${src}`));
+  }, { once: true });
   document.body.appendChild(script);
   return promise;
 }
@@ -117,6 +133,8 @@ function init(): void {
   const modifiedText: HTMLTextAreaElement = modifiedArea;
   const outputEl: HTMLElement = outputArea;
 
+  const statusEl = root.querySelector<HTMLElement>("[data-diff-status]");
+  const errorEl = root.querySelector<HTMLElement>("[data-diff-error]");
   const originalFile = root.querySelector<HTMLInputElement>('[data-diff-file="original"]');
   const modifiedFile = root.querySelector<HTMLInputElement>('[data-diff-file="modified"]');
 
@@ -134,44 +152,63 @@ function init(): void {
     attributeFilter: ["data-theme"],
   });
 
-  function showAlert(message: string, kind: "info" | "error"): void {
-    outputEl.hidden = false;
+  /** Info (role=status) or error (role=alert) line above the diff; null clears both. */
+  function showAlert(message: string | null, kind: "info" | "error" = "info"): void {
+    if (statusEl) {
+      statusEl.textContent = kind === "info" ? (message ?? "") : "";
+      statusEl.hidden = kind !== "info" || message === null;
+    }
+    if (errorEl) {
+      errorEl.textContent = kind === "error" ? (message ?? "") : "";
+      errorEl.hidden = kind !== "error" || message === null;
+    }
+  }
+
+  function hideOutput(): void {
     outputEl.innerHTML = "";
-    const div = document.createElement("div");
-    div.className = `diff-alert diff-alert-${kind}`;
-    div.textContent = message;
-    outputEl.appendChild(div);
+    outputEl.hidden = true;
   }
 
   async function renderDiff(): Promise<void> {
     if (!currentOriginal && !currentModified) {
-      outputEl.innerHTML = "";
-      outputEl.hidden = true;
+      showAlert(null);
+      hideOutput();
+      return;
+    }
+    if (currentOriginal === currentModified) {
+      hideOutput();
+      showAlert(strings.noDifferences, "info");
       return;
     }
     showAlert(strings.loading, "info");
     try {
       await ensureDiffLibs();
     } catch {
+      hideOutput();
       showAlert(strings.errorLibLoad, "error");
       return;
     }
     const DiffNs = window.Diff;
     const DiffUI = window.Diff2HtmlUI;
     if (!DiffNs || !DiffUI) {
+      hideOutput();
       showAlert(strings.errorLibLoad, "error");
       return;
     }
-    const patch = DiffNs.createTwoFilesPatch(
-      "Original",
-      "Modified",
-      currentOriginal,
-      currentModified,
-      "",
-      "",
-    );
+    // Let the "Loading…" status paint before the synchronous diff blocks the thread.
+    await new Promise<void>((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+    let patch: string | undefined;
+    try {
+      // Over budget, jsdiff 5.1 yields no structured patch and createTwoFilesPatch throws.
+      patch = DiffNs.createTwoFilesPatch("Original", "Modified", currentOriginal, currentModified, "", "", {
+        maxEditLength: MAX_LINE_EDITS,
+      });
+    } catch {
+      patch = undefined;
+    }
     if (!patch) {
-      showAlert(strings.errorLibLoad, "error");
+      hideOutput();
+      showAlert(strings.diffTooBig.replace("{max}", String(MAX_LINE_EDITS)), "error");
       return;
     }
     // Legacy config; diffMax* caps are the large-diff optimization.
@@ -181,9 +218,10 @@ function init(): void {
       outputFormat: toolRoot.querySelector<HTMLInputElement>("[data-diff-mode]:checked")?.value ?? "side-by-side",
       highlight: true,
       renderNothingWhenEmpty: false,
-      diffMaxChanges: 1000,
+      diffMaxChanges: MAX_LINE_EDITS,
       diffMaxLineLength: 1000,
     };
+    showAlert(null);
     outputEl.innerHTML = "";
     outputEl.hidden = false;
     syncThemeClass();
@@ -212,7 +250,9 @@ function init(): void {
       currentOriginal = originalText.value;
       currentModified = modifiedText.value;
       if (!currentOriginal && !currentModified) {
+        hideOutput();
         showAlert(strings.errorEmpty, "error");
+        originalText.focus();
         return;
       }
       void renderDiff();
@@ -227,8 +267,8 @@ function init(): void {
       currentModified = "";
       if (originalFile) originalFile.value = "";
       if (modifiedFile) modifiedFile.value = "";
-      outputEl.innerHTML = "";
-      outputEl.hidden = true;
+      hideOutput();
+      showAlert(null);
     }
   });
 
@@ -255,6 +295,14 @@ function init(): void {
         else currentModified = text;
         // Auto-trigger once both sides have content (legacy parity).
         if (currentOriginal && currentModified) void renderDiff();
+      };
+      reader.onerror = () => {
+        hideOutput();
+        showAlert(strings.fileReadError, "error");
+      };
+      // Same file picked again must still fire `change`.
+      reader.onloadend = () => {
+        input.value = "";
       };
       reader.readAsText(file);
     });

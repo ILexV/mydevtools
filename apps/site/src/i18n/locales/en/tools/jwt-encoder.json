@@ -18,5 +18,8 @@
   "Seo_HowToSteps": "1. Edit the **Header** JSON (usually defaults are fine).\n2. Modify the **Payload** JSON with your claims (user ID, roles, etc.).\n3. Select a signing **Algorithm** (e.g., HS256).\n4. Enter a **Secret Key** to sign the token.\n5. Copy the generated **Encoded Token**.",
   "Seo_Tips": "- Use a strong, long secret key for production tokens.\n- Ensure your JSON is valid; the tool will warn you if syntax is incorrect.\n- Never put sensitive data like passwords in the payload, as it can be decoded by anyone.",
   "InvalidJson": "Invalid JSON",
-  "EncodeFailed": "Failed to generate JWT: {msg}"
+  "EncodeFailed": "Failed to generate JWT: {msg}",
+  "SignatureLabel": "Signature",
+  "MustBeObject": "Must be a JSON object, e.g. {\"sub\":\"123\"}",
+  "CopyFailed": "Could not copy to the clipboard."
 }

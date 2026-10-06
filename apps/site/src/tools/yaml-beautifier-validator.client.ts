@@ -3,22 +3,19 @@
  * legacy vendored build (`ensureCodeMirror`); `mode:'yaml'` is kept verbatim
  * from legacy — no yaml mode file was ever vendored, so CodeMirror no-ops to
  * plain text (parity). Format/validate run through the structured-data WASM
- * client; errors surface as the WASM message in the error box (legacy parity).
+ * client (loaded on first use); errors show the localized "invalid" label
+ * plus the parser detail; status badge valid/invalid; paste/copy/clear.
  */
-import { ensureCodeMirror } from "@/scripts/codemirror-loader";
-import { yamlFormat, yamlValidate } from "@/scripts/wasm/structured-data-client";
+import { ensureCodeMirror, getCodeMirror, makeEditorAccessible, refreshOnThemeChange } from "@/scripts/codemirror-loader";
+import { copyWithFeedback } from "@/scripts/tool-ui";
 
 interface Strings {
+  inputLabel: string;
+  outputLabel: string;
   valid: string;
   invalid: string;
   copied: string;
 }
-
-interface CodeMirrorEditor {
-  getValue(): string;
-  setValue(value: string): void;
-}
-type CodeMirrorFactory = (el: HTMLElement, options: Record<string, unknown>) => CodeMirrorEditor;
 
 function readStrings(): Strings | null {
   const el = document.querySelector<HTMLScriptElement>("[data-yaml-strings]");
@@ -30,15 +27,27 @@ function readStrings(): Strings | null {
   }
 }
 
+// WASM is imported lazily so the page doesn't fetch it until the first action.
+type SdClient = typeof import("@/scripts/wasm/structured-data-client");
+let clientPromise: Promise<SdClient> | null = null;
+function sdClient(): Promise<SdClient> {
+  clientPromise ??= import("@/scripts/wasm/structured-data-client").catch((e) => {
+    clientPromise = null;
+    throw e;
+  });
+  return clientPromise;
+}
+
 async function init() {
   const root = document.querySelector<HTMLElement>("[data-yaml-tool]");
-  if (!root) return;
+  if (!root || root.dataset.initialized === "true") return;
   const raw = readStrings();
-  if (!raw) return;
-  const strings: Strings = raw;
-
   const inputEl = root.querySelector<HTMLElement>("[data-yaml-input]");
   const outputEl = root.querySelector<HTMLElement>("[data-yaml-output]");
+  if (!raw || !inputEl || !outputEl) return;
+  root.dataset.initialized = "true";
+  const strings: Strings = raw;
+
   const formatBtn = root.querySelector<HTMLButtonElement>("[data-yaml-format]");
   const validateBtn = root.querySelector<HTMLButtonElement>("[data-yaml-validate]");
   const clearBtn = root.querySelector<HTMLButtonElement>("[data-yaml-clear]");
@@ -46,18 +55,17 @@ async function init() {
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-yaml-copy]");
   const status = root.querySelector<HTMLElement>("[data-yaml-status]");
   const errorBox = root.querySelector<HTMLElement>("[data-yaml-error]");
-  if (!inputEl || !outputEl) return;
-  const inputHost: HTMLElement = inputEl;
-  const outputHost: HTMLElement = outputEl;
 
-  // Idempotency: CodeMirror presence means already initialized.
-  if (root.querySelector(".CodeMirror")) return;
-
-  await ensureCodeMirror();
-  const CM = window.CodeMirror as CodeMirrorFactory | undefined;
+  try {
+    await ensureCodeMirror();
+  } catch (err) {
+    console.error("YAML tool: failed to load CodeMirror", err);
+    return;
+  }
+  const CM = getCodeMirror();
   if (!CM) return;
 
-  const inputEditor = CM(inputHost, {
+  const inputEditor = CM(inputEl, {
     mode: "yaml",
     theme: "default",
     lineNumbers: true,
@@ -66,99 +74,89 @@ async function init() {
     indentUnit: 2,
     tabSize: 2,
     lineWrapping: true,
-    viewportMargin: Infinity,
   });
-
-  const outputEditor = CM(outputHost, {
+  const outputEditor = CM(outputEl, {
     mode: "yaml",
     theme: "default",
     lineNumbers: true,
     readOnly: true,
     lineWrapping: true,
-    viewportMargin: Infinity,
   });
+  makeEditorAccessible(inputEditor, strings.inputLabel, "yaml-editor-hint");
+  makeEditorAccessible(outputEditor, strings.outputLabel);
+  refreshOnThemeChange([inputEditor, outputEditor]);
 
-  function showError(msg: string) {
-    if (errorBox) {
-      errorBox.textContent = msg;
-      errorBox.hidden = false;
-    }
-  }
-  function clearError() {
-    if (errorBox) errorBox.hidden = true;
+  function showError(detail: string | null) {
+    inputEl?.classList.toggle("is-error", detail !== null);
+    if (!errorBox) return;
+    errorBox.textContent = detail === null ? "" : detail ? `${strings.invalid}: ${detail}` : strings.invalid;
+    errorBox.hidden = detail === null;
   }
   function showStatus(kind: "valid" | "invalid" | null) {
     if (!status) return;
-    if (!kind) {
-      status.hidden = true;
+    status.hidden = kind === null;
+    status.textContent = kind === "valid" ? strings.valid : kind === "invalid" ? strings.invalid : "";
+    status.classList.toggle("ds-badge-success", kind === "valid");
+    status.classList.toggle("ds-badge-danger", kind === "invalid");
+  }
+  const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
+
+  async function run(btn: HTMLButtonElement | null, action: (client: SdClient, yaml: string) => Promise<void>) {
+    const yaml = inputEditor.getValue();
+    if (!yaml.trim()) {
+      showError(null);
+      showStatus(null);
+      outputEditor.setValue("");
       return;
     }
-    status.hidden = false;
-    status.textContent = kind === "valid" ? strings.valid : strings.invalid;
-    status.classList.toggle("is-valid", kind === "valid");
-    status.classList.toggle("is-invalid", kind === "invalid");
+    btn?.setAttribute("aria-busy", "true");
+    try {
+      await action(await sdClient(), yaml);
+      showError(null);
+    } catch (e) {
+      outputEditor.setValue("");
+      showError(message(e));
+      showStatus("invalid");
+    } finally {
+      btn?.removeAttribute("aria-busy");
+    }
   }
 
-  formatBtn?.addEventListener("click", async () => {
-    const yaml = inputEditor.getValue().trim();
-    if (!yaml) return;
-    try {
-      const result = await yamlFormat(yaml);
-      outputEditor.setValue(result);
-      clearError();
-      showStatus(null);
-    } catch (e) {
-      outputEditor.setValue("");
-      showError(e instanceof Error ? e.message : String(e));
-    }
-  });
-
-  validateBtn?.addEventListener("click", async () => {
-    const yaml = inputEditor.getValue().trim();
-    if (!yaml) return;
-    try {
-      await yamlValidate(yaml);
-      outputEditor.setValue(strings.valid);
-      clearError();
+  formatBtn?.addEventListener("click", () =>
+    void run(formatBtn, async (client, yaml) => {
+      outputEditor.setValue(await client.yamlFormat(yaml));
       showStatus("valid");
-    } catch (e) {
-      outputEditor.setValue("");
-      showError(e instanceof Error ? e.message : String(e));
-      showStatus("invalid");
-    }
-  });
+    }),
+  );
+
+  validateBtn?.addEventListener("click", () =>
+    void run(validateBtn, async (client, yaml) => {
+      await client.yamlValidate(yaml);
+      outputEditor.setValue(strings.valid);
+      showStatus("valid");
+    }),
+  );
 
   clearBtn?.addEventListener("click", () => {
     inputEditor.setValue("");
     outputEditor.setValue("");
-    clearError();
+    showError(null);
     showStatus(null);
+    inputEditor.focus();
   });
 
   pasteBtn?.addEventListener("click", async () => {
     try {
-      const text = await navigator.clipboard.readText();
-      inputEditor.setValue(text);
+      inputEditor.setValue(await navigator.clipboard.readText());
+      inputEditor.focus();
     } catch {
-      /* clipboard unavailable */
+      /* clipboard read denied/unavailable — user can paste with Ctrl/Cmd-V */
     }
   });
 
-  copyBtn?.addEventListener("click", async () => {
+  copyBtn?.addEventListener("click", () => {
     const text = outputEditor.getValue();
-    if (!text) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      if (copyBtn) {
-        const orig = copyBtn.textContent;
-        copyBtn.textContent = strings.copied;
-        setTimeout(() => {
-          copyBtn.textContent = orig;
-        }, 1200);
-      }
-    } catch {
-      /* clipboard unavailable */
-    }
+    if (text) void copyWithFeedback(copyBtn, text, strings.copied);
   });
 }
 

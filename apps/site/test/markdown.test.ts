@@ -21,6 +21,23 @@ test("seoMarkdownToHtml: list closes at end of input", () => {
   assert.match(html, /<ul>\n<li>only<\/li>\n<\/ul>$/);
 });
 
+test("seoMarkdownToHtml: inline code is escaped verbatim, prose is not", () => {
+  const html = seoMarkdownToHtml(
+    '- Input: `<div class="x">Hi & bye</div>`\n- Output: `&lt;b&gt; **not bold**`\nPlain **bold** & <em>trusted</em>',
+  );
+  assert.match(html, /<li>Input: <code>&lt;div class=&quot;x&quot;&gt;Hi &amp; bye&lt;\/div&gt;<\/code><\/li>/);
+  assert.match(html, /<li>Output: <code>&amp;lt;b&amp;gt; \*\*not bold\*\*<\/code><\/li>/);
+  assert.match(html, /<p>Plain <strong>bold<\/strong> & <em>trusted<\/em><\/p>/);
+});
+
+test("seoMarkdownToHtml: code-only line still becomes a paragraph", () => {
+  assert.equal(seoMarkdownToHtml("`a < b`"), "<p><code>a &lt; b</code></p>");
+});
+
+test("seoMarkdownToHtml: unmatched backtick is left as text", () => {
+  assert.equal(seoMarkdownToHtml("it`s fine"), "<p>it`s fine</p>");
+});
+
 test("seoMarkdownToHtml: empty input stays empty", () => {
   assert.equal(seoMarkdownToHtml(""), "");
 });

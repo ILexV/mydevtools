@@ -1,22 +1,33 @@
 /**
- * Image Compressor client controller. Image picked via file dialog, drag-drop,
- * or the change/clear buttons; compressed by the image-tools WASM module
- * (`compressImage`). Quality slider (1-100, default 80) is passed through
+ * Image Compressor client controller. Image picked via the drop zone
+ * (`bindDropzone`: drag-drop, zone click, keyboard-reachable file button);
+ * compressed by the image-tools WASM worker (`compressImage`, cancellable via
+ * AbortController). Quality slider (1-100, default 80) is passed through
  * as-is (legacy parity). Output format "original" maps from the source MIME
  * type (jpeg → jpeg, png → png, anything else → webp — legacy parity).
  * Result is previewed with an original → compressed size comparison and a
  * "Done! -N%" savings badge (shown only when savings > 0, legacy parity),
  * and downloaded as `<name>_min.<ext>` (jpeg → jpg — legacy parity).
- * WASM/compression errors surface their message (legacy parity).
  */
 import { compressImage } from "@/scripts/wasm/image-tools-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { bindDropzone, setDropzoneHasFile } from "@/scripts/tool-ui";
+import { formatBytes } from "@/lib/format";
+import {
+  compressedName,
+  isDecodableImage,
+  isImageFile,
+  mimeFor,
+  resolveCompressFormat,
+  savingsPercent,
+} from "@/tools/image-tools";
 
 interface Strings {
   compress: string;
   compressing: string;
   done: string;
   errorNotImage: string;
+  errorUnsupported: string;
   errorCompression: string;
 }
 
@@ -30,254 +41,174 @@ function readStrings(): Strings | null {
   }
 }
 
-function formatBytes(bytes: number): string {
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let value = bytes;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit++;
-  }
-  return `${value.toFixed(unit === 0 ? 0 : 2)} ${units[unit]}`;
-}
-
 function init() {
   const root = document.querySelector<HTMLElement>("[data-imgc-tool]");
-  if (!root) return;
-  const raw = readStrings();
-  if (!raw) return;
-  const strings: Strings = raw;
+  if (!root || root.dataset.initialized) return;
+  const strings = readStrings();
+  if (!strings) return;
+  const q = <T extends Element>(sel: string) => root.querySelector<T>(sel);
 
-  const dropZone = root.querySelector<HTMLElement>("[data-imgc-dropzone]");
-  const fileInput = root.querySelector<HTMLInputElement>("[data-imgc-file]");
-  const clearBtn = root.querySelector<HTMLButtonElement>("[data-imgc-clear]");
-  const emptyState = root.querySelector<HTMLElement>("[data-imgc-empty]");
-  const selectedState = root.querySelector<HTMLElement>("[data-imgc-selected]");
-  const chooseBtn = root.querySelector<HTMLButtonElement>("[data-imgc-choose]");
-  const changeBtn = root.querySelector<HTMLButtonElement>("[data-imgc-change]");
-  const previewImg = root.querySelector<HTMLImageElement>("[data-imgc-preview]");
-  const nameEl = root.querySelector<HTMLElement>("[data-imgc-filename]");
-  const sizeEl = root.querySelector<HTMLElement>("[data-imgc-filesize]");
-  const qualityInput = root.querySelector<HTMLInputElement>("[data-imgc-quality]");
-  const qualityValue = root.querySelector<HTMLElement>("[data-imgc-quality-value]");
-  const formatSelect = root.querySelector<HTMLSelectElement>("[data-imgc-format]");
-  const compressBtn = root.querySelector<HTMLButtonElement>("[data-imgc-compress]");
-  const compressLabel = root.querySelector<HTMLElement>("[data-imgc-compress-label]");
-  const resultSection = root.querySelector<HTMLElement>("[data-imgc-result]");
-  const badgeEl = root.querySelector<HTMLElement>("[data-imgc-badge]");
-  const outputImg = root.querySelector<HTMLImageElement>("[data-imgc-output]");
-  const originalSizeEl = root.querySelector<HTMLElement>("[data-imgc-original-size]");
-  const compressedSizeEl = root.querySelector<HTMLElement>("[data-imgc-compressed-size]");
-  const downloadBtn = root.querySelector<HTMLButtonElement>("[data-imgc-download]");
-  const errorBox = root.querySelector<HTMLElement>("[data-imgc-error]");
-
+  const zone = q<HTMLElement>("[data-imgc-dropzone]");
+  const input = q<HTMLInputElement>("[data-imgc-file]");
+  const selectedEl = q<HTMLElement>("[data-imgc-selected]");
+  const preview = q<HTMLImageElement>("[data-imgc-preview]");
+  const nameEl = q<HTMLElement>("[data-imgc-filename]");
+  const sizeEl = q<HTMLElement>("[data-imgc-filesize]");
+  const clearBtn = q<HTMLButtonElement>("[data-imgc-clear]");
+  const qualityRange = q<HTMLInputElement>("[data-imgc-quality]");
+  const qualityValue = q<HTMLElement>("[data-imgc-quality-value]");
+  const formatSel = q<HTMLSelectElement>("[data-imgc-format]");
+  const compressBtn = q<HTMLButtonElement>("[data-imgc-compress]");
+  const compressLabel = q<HTMLElement>("[data-imgc-compress-label]");
+  const progressEl = q<HTMLElement>("[data-imgc-progress]");
+  const cancelBtn = q<HTMLButtonElement>("[data-imgc-cancel]");
+  const errorBox = q<HTMLElement>("[data-imgc-error]");
+  const resultEl = q<HTMLElement>("[data-imgc-result]");
+  const badgeEl = q<HTMLElement>("[data-imgc-badge]");
+  const output = q<HTMLImageElement>("[data-imgc-output]");
+  const originalSizeEl = q<HTMLElement>("[data-imgc-original-size]");
+  const compressedSizeEl = q<HTMLElement>("[data-imgc-compressed-size]");
+  const downloadBtn = q<HTMLButtonElement>("[data-imgc-download]");
   if (
-    !dropZone || !fileInput || !emptyState || !selectedState || !previewImg ||
-    !qualityInput || !formatSelect || !compressBtn || !resultSection ||
-    !outputImg || !downloadBtn
+    !zone || !input || !selectedEl || !preview || !qualityRange || !formatSel ||
+    !compressBtn || !progressEl || !errorBox || !resultEl || !output || !downloadBtn
   ) return;
-  const zone: HTMLElement = dropZone;
-  const input: HTMLInputElement = fileInput;
-  const emptyEl: HTMLElement = emptyState;
-  const selectedEl: HTMLElement = selectedState;
-  const preview: HTMLImageElement = previewImg;
-  const qualityRange: HTMLInputElement = qualityInput;
-  const formatSel: HTMLSelectElement = formatSelect;
-  const compress: HTMLButtonElement = compressBtn;
-  const resultEl: HTMLElement = resultSection;
-  const output: HTMLImageElement = outputImg;
-  const download: HTMLButtonElement = downloadBtn;
+  root.dataset.initialized = "true";
 
   let currentFile: File | null = null;
   let previewUrl: string | null = null;
   let resultUrl: string | null = null;
   let resultName: string | null = null;
-  let compressing = false;
+  let job: AbortController | null = null;
 
   function showError(msg: string) {
-    if (errorBox) {
-      errorBox.textContent = msg;
-      errorBox.hidden = false;
-    }
+    errorBox!.textContent = msg;
+    errorBox!.hidden = false;
   }
   function clearError() {
-    if (errorBox) errorBox.hidden = true;
+    errorBox!.hidden = true;
+    errorBox!.textContent = "";
   }
 
   function hideResult() {
-    resultEl.hidden = true;
+    resultEl!.hidden = true;
     if (badgeEl) badgeEl.hidden = true;
-    if (resultUrl) {
-      URL.revokeObjectURL(resultUrl);
-      resultUrl = null;
-    }
+    if (resultUrl) URL.revokeObjectURL(resultUrl);
+    resultUrl = null;
     resultName = null;
-    output.removeAttribute("src");
+    output!.removeAttribute("src");
   }
 
-  function showSelection(file: File) {
-    emptyEl.hidden = true;
-    selectedEl.hidden = false;
-    if (nameEl) nameEl.textContent = file.name;
-    if (sizeEl) sizeEl.textContent = formatBytes(file.size);
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    previewUrl = URL.createObjectURL(file);
-    preview.src = previewUrl;
-    if (clearBtn) clearBtn.hidden = false;
+  function setBusy(busy: boolean) {
+    compressBtn!.disabled = busy || !currentFile;
+    compressBtn!.setAttribute("aria-busy", String(busy));
+    if (compressLabel) compressLabel.textContent = busy ? strings!.compressing : strings!.compress;
+    progressEl!.hidden = !busy;
+    zone!.setAttribute("aria-disabled", String(busy));
+    input!.disabled = busy;
+    if (clearBtn) clearBtn.disabled = busy;
   }
 
   function clearSelection() {
+    job?.abort();
     currentFile = null;
-    input.value = "";
-    emptyEl.hidden = false;
-    selectedEl.hidden = true;
+    input!.value = "";
+    selectedEl!.hidden = true;
+    setDropzoneHasFile(zone!, false);
     if (nameEl) nameEl.textContent = "";
     if (sizeEl) sizeEl.textContent = "";
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-      previewUrl = null;
-    }
-    preview.removeAttribute("src");
-    if (clearBtn) clearBtn.hidden = true;
-    compress.disabled = true;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+    preview!.removeAttribute("src");
+    compressBtn!.disabled = true;
   }
 
-  async function handleFile(file: File) {
+  function handleFiles(files: File[]) {
+    const file = files[0];
+    if (!file || job) return;
     clearError();
     hideResult();
-
-    if (!file.type.startsWith("image/")) {
+    if (!isDecodableImage(file)) {
       clearSelection();
-      showError(strings.errorNotImage);
+      showError(isImageFile(file) ? strings!.errorUnsupported : strings!.errorNotImage);
       return;
     }
-
     currentFile = file;
-    showSelection(file);
-    compress.disabled = false;
-    // Allow re-selecting the same file: the selection UI no longer depends on
-    // input.files, so the value can be reset immediately.
-    input.value = "";
+    selectedEl!.hidden = false;
+    setDropzoneHasFile(zone!, true);
+    if (nameEl) {
+      nameEl.textContent = file.name;
+      nameEl.title = file.name;
+    }
+    if (sizeEl) sizeEl.textContent = formatBytes(file.size, 2);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = URL.createObjectURL(file);
+    preview!.src = previewUrl;
+    compressBtn!.disabled = false;
   }
 
   async function handleCompress() {
-    if (!currentFile || compressing) return;
-    const file: File = currentFile;
-    const quality = Number.parseInt(qualityRange.value || "80", 10);
-
-    let targetFormat = formatSel.value;
-    if (targetFormat === "original") {
-      // Legacy parity: jpeg → jpeg, png → png, anything else → webp.
-      const type = file.type.split("/")[1];
-      targetFormat = type === "jpeg" ? "jpeg" : type === "png" ? "png" : "webp";
-    }
+    if (!currentFile || job) return;
+    const file = currentFile;
+    const quality = Number.parseInt(qualityRange!.value || "80", 10);
+    const targetFormat = resolveCompressFormat(formatSel!.value, file.type);
 
     clearError();
-    compressing = true;
-    compress.disabled = true;
-    if (compressLabel) compressLabel.textContent = strings.compressing;
     hideResult();
-
+    const ctrl = new AbortController();
+    job = ctrl;
+    setBusy(true);
     try {
       const bytes = new Uint8Array(await file.arrayBuffer());
-      const resultBytes = await compressImage(bytes, targetFormat, quality);
+      const resultBytes = await compressImage(bytes, targetFormat, quality, ctrl.signal);
+      if (ctrl.signal.aborted || currentFile !== file) return;
 
-      const blob = new Blob([resultBytes.slice()], { type: `image/${targetFormat}` });
-      if (resultUrl) URL.revokeObjectURL(resultUrl);
+      const blob = new Blob([resultBytes as BlobPart], { type: mimeFor(targetFormat) });
       resultUrl = URL.createObjectURL(blob);
-
-      output.src = resultUrl;
-      if (originalSizeEl) originalSizeEl.textContent = formatBytes(file.size);
-      if (compressedSizeEl) compressedSizeEl.textContent = formatBytes(blob.size);
+      output!.src = resultUrl;
+      if (originalSizeEl) originalSizeEl.textContent = formatBytes(file.size, 2);
+      if (compressedSizeEl) compressedSizeEl.textContent = formatBytes(blob.size, 2);
 
       // Legacy parity: "Done! -N%" badge, only when savings are positive.
-      const savedPct = Math.round((1 - blob.size / file.size) * 100);
+      const savedPct = savingsPercent(file.size, blob.size);
       if (badgeEl) {
-        if (savedPct > 0) {
-          badgeEl.textContent = `${strings.done} -${savedPct}%`;
-          badgeEl.hidden = false;
-        } else {
-          badgeEl.hidden = true;
-        }
+        badgeEl.textContent = `${strings!.done} -${savedPct}%`;
+        badgeEl.hidden = savedPct <= 0;
       }
-
-      const dotIndex = file.name.lastIndexOf(".");
-      const base = dotIndex !== -1 ? file.name.substring(0, dotIndex) : file.name;
-      resultName = `${base}_min.${targetFormat === "jpeg" ? "jpg" : targetFormat}`;
-
-      resultEl.hidden = false;
+      resultName = compressedName(file.name, targetFormat);
+      resultEl!.hidden = false;
     } catch (e) {
-      const message =
-        e instanceof WasmError || e instanceof Error ? e.message : strings.errorCompression;
-      showError(message || strings.errorCompression);
+      if (e instanceof WasmError && e.code === "aborted") return;
+      const detail = e instanceof Error ? e.message : "";
+      showError(detail ? `${strings!.errorCompression} ${detail}` : strings!.errorCompression);
     } finally {
-      compressing = false;
-      compress.disabled = false;
-      if (compressLabel) compressLabel.textContent = strings.compress;
+      if (job === ctrl) job = null;
+      setBusy(false);
     }
   }
 
-  function pickFile() {
-    if (!compressing) input.click();
-  }
-
-  // Clicking the zone (but not a button inside it) opens the file dialog.
-  zone.addEventListener("click", (e) => {
-    if (e.target instanceof HTMLElement && e.target.closest("button")) return;
-    pickFile();
-  });
-  chooseBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    pickFile();
-  });
-  changeBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    pickFile();
-  });
-
-  input.addEventListener("change", () => {
-    const file = input.files?.[0];
-    if (file) void handleFile(file);
-  });
+  bindDropzone(zone, input, handleFiles);
 
   // Show the source dimensions once the preview has decoded.
   preview.addEventListener("load", () => {
     if (!currentFile || !sizeEl || !preview.naturalWidth) return;
-    sizeEl.textContent = `${formatBytes(currentFile.size)} · ${preview.naturalWidth}×${preview.naturalHeight}`;
+    sizeEl.textContent = `${formatBytes(currentFile.size, 2)} · ${preview.naturalWidth}×${preview.naturalHeight}`;
   });
 
-  zone.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    zone.classList.add("imgc-dragover");
-  });
-  zone.addEventListener("dragleave", (e) => {
-    e.preventDefault();
-    if (e.relatedTarget instanceof Node && zone.contains(e.relatedTarget)) return;
-    zone.classList.remove("imgc-dragover");
-  });
-  zone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    zone.classList.remove("imgc-dragover");
-    const file = e.dataTransfer?.files?.[0];
-    if (file) void handleFile(file);
-  });
-
-  clearBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
+  clearBtn?.addEventListener("click", () => {
     clearSelection();
     hideResult();
     clearError();
   });
+  cancelBtn?.addEventListener("click", () => job?.abort());
 
   qualityRange.addEventListener("input", () => {
     if (qualityValue) qualityValue.textContent = `${qualityRange.value}%`;
   });
 
-  compress.addEventListener("click", () => {
-    void handleCompress();
-  });
+  compressBtn.addEventListener("click", () => void handleCompress());
 
-  download.addEventListener("click", () => {
+  downloadBtn.addEventListener("click", () => {
     if (!resultUrl || !resultName) return;
     const a = document.createElement("a");
     a.href = resultUrl;

@@ -24,6 +24,7 @@
   "Download": "Download as TXT",
   "Clear": "Clear",
   "Copied": "Copied!",
+  "CopyFailed": "Could not copy to the clipboard. Select the text and copy it manually.",
   "Seo_Introduction": "The UUID Generator is a privacy-first online tool designed for developers. All processing happens locally in your browser using WebAssembly, ensuring your data never leaves your device.",
   "Seo_DetailedDescription": "This tool provides comprehensive functionality for uuid generator operations. Built with modern web technologies and powered by Rust-compiled WebAssembly, it delivers native-like performance directly in your browser.\n\nThe interface is designed for efficiency and ease of use, with support for both text input and file processing. All operations are performed client-side, guaranteeing complete privacy and security for your sensitive data.",
   "Seo_Examples": "**Example 1**: Use the UUID Generator for quick conversions and transformations in your development workflow.\n\n**Example 2**: Process files directly without uploading them to any server, maintaining complete privacy.\n\n**Example 3**: Integrate the tool into your daily development tasks for improved productivity.",

@@ -1,0 +1,81 @@
+---
+/**
+ * FileDrop — drag-and-drop zone with a visible "choose file" button
+ * (tool UI kit, design spec §11 file drop). Static markup only; wire it in the
+ * controller with `bindDropzone(zone, input, onFiles)` from
+ * `@/scripts/tool-ui`, which toggles `.is-dragover`. The zone is a labelled
+ * `role="group"` (name = title), not a focusable button — keyboard users use
+ * the inner `.ds-file-btn`.
+ *
+ * - `compact`: one-row variant (`ds-dropzone-compact`) for text-first tools
+ *   where the file is a secondary input.
+ * - `changeLabel`: button text once a file is chosen ("Choose another file");
+ *   switch it with `setDropzoneHasFile(zone, true|false)`.
+ * Root attributes (data-* hook, id, class) pass through; input hooks go in
+ * `inputProps`. Default slot renders below the button (e.g. selected-file UI).
+ */
+import type { HTMLAttributes } from "astro/types";
+import Icon from "@/components/Icon.astro";
+
+interface Props extends HTMLAttributes<"div"> {
+  title: string;
+  buttonLabel: string;
+  /** Button text after a file is selected (see setDropzoneHasFile). */
+  changeLabel?: string;
+  /** Secondary line, e.g. accepted formats / size limit / privacy note. */
+  sub?: string;
+  accept?: string;
+  multiple?: boolean;
+  compact?: boolean;
+  inputProps?: HTMLAttributes<"input">;
+}
+
+const {
+  title,
+  buttonLabel,
+  changeLabel,
+  sub,
+  accept,
+  multiple,
+  compact = false,
+  inputProps,
+  class: className,
+  id,
+  ...rest
+} = Astro.props as Props;
+// Ids for aria-labelledby/-describedby (several zones may share a page). Derived
+// from the zone's props (data-* hooks, title) rather than random, so builds stay
+// reproducible and the service-worker content hash doesn't churn.
+const hashKey = (s: string) => {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193);
+  return (h >>> 0).toString(36);
+};
+const uid = id
+  ? String(id)
+  : `ds-drop-${hashKey(JSON.stringify([title, sub, accept, rest, inputProps]))}`;
+const titleId = `${uid}-title`;
+const subId = `${uid}-sub`;
+---
+
+<div
+  class:list={["ds-dropzone", { "ds-dropzone-compact": compact }, className]}
+  id={id}
+  role="group"
+  aria-labelledby={titleId}
+  aria-describedby={sub ? subId : undefined}
+  {...rest}
+>
+  <span class="ds-dropzone-icon" aria-hidden="true"><Icon name="upload" size={compact ? 18 : 22} /></span>
+  <p class="ds-dropzone-title" id={titleId}>{title}</p>
+  {sub && <p class="ds-dropzone-sub" id={subId}>{sub}</p>}
+  <label class="ds-btn ds-btn-small ds-file-btn">
+    <input type="file" accept={accept} multiple={multiple} {...inputProps} />
+    <span
+      class="ds-file-btn-text"
+      data-choose-label={changeLabel ? buttonLabel : undefined}
+      data-change-label={changeLabel}
+    >{buttonLabel}</span>
+  </label>
+  <slot />
+</div>

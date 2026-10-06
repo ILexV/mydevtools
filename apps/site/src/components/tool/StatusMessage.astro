@@ -1,0 +1,22 @@
+---
+/**
+ * StatusMessage — block-level message (tool UI kit) over `.ds-alert`.
+ * kind: error (role="alert") | success | warning | info (role="status").
+ * Hidden by default; controllers set textContent and toggle `hidden`.
+ * Root attributes (data-* hook, id, class) pass through.
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"p"> {
+  kind?: "error" | "success" | "warning" | "info";
+}
+
+const { kind = "error", class: className, hidden = true, role, ...rest } = Astro.props as Props;
+---
+
+<p
+  class:list={["ds-alert", `ds-alert-${kind}`, className]}
+  role={role ?? (kind === "error" ? "alert" : "status")}
+  hidden={hidden}
+  {...rest}
+><slot /></p>

@@ -19,35 +19,44 @@ macro_rules! console_log {
     ($($t:tt)*) => (println!($($t)*))
 }
 
+/// Stable marker in error messages for password-protected PDFs; the site
+/// controllers match it to show a localized "encrypted" message.
+pub const ENCRYPTED_ERROR: &str = "PDF is encrypted (password protected)";
+
+/// Load a PDF from bytes. Encrypted PDFs are decrypted with the empty user
+/// password (owner-password-only "protected" files); if that fails the PDF
+/// is rejected with `ENCRYPTED_ERROR` instead of silently producing garbage
+/// (renumbering/recompressing still-encrypted objects corrupts them).
+pub fn load_document(bytes: &[u8]) -> Result<Document, String> {
+    let mut doc = Document::load_from(Cursor::new(bytes))
+        .map_err(|e| format!("Failed to load PDF: {:?}", e))?;
+    if doc.is_encrypted() && doc.decrypt("").is_err() {
+        return Err(ENCRYPTED_ERROR.to_string());
+    }
+    Ok(doc)
+}
+
 #[wasm_bindgen]
 pub fn merge_pdfs(files: Vec<js_sys::Uint8Array>) -> Result<Vec<u8>, JsValue> {
+    let buffers: Vec<Vec<u8>> = files.iter().map(|f| f.to_vec()).collect();
+    merge_pdfs_bytes(&buffers).map_err(|e| JsValue::from_str(&e))
+}
+
+/// Merge PDFs in the given order (pages appended to the first document's page
+/// tree). Load errors name the 0-based input index: `PDF <i>: <reason>`.
+pub fn merge_pdfs_bytes(files: &[Vec<u8>]) -> Result<Vec<u8>, String> {
     console_log!("Starting merge of {} files", files.len());
 
     if files.is_empty() {
-        return Err(JsValue::from_str("No files provided"));
+        return Err("No files provided".to_string());
     }
 
     let mut documents: Vec<Document> = Vec::new();
 
     for (i, file) in files.iter().enumerate() {
-        let data = file.to_vec();
-        let cursor = Cursor::new(data);
-        match Document::load_from(cursor) {
-            Ok(doc) => {
-                console_log!("Loaded doc {} with {} pages", i, doc.get_pages().len());
-                documents.push(doc);
-            }
-            Err(e) => {
-                return Err(JsValue::from_str(&format!(
-                    "Failed to load PDF {}: {:?}",
-                    i, e
-                )))
-            }
-        }
-    }
-
-    if documents.is_empty() {
-        return Err(JsValue::from_str("No valid documents loaded"));
+        let doc = load_document(file).map_err(|e| format!("PDF {}: {}", i, e))?;
+        console_log!("Loaded doc {} with {} pages", i, doc.get_pages().len());
+        documents.push(doc);
     }
 
     // Start with the first document as the base
@@ -60,19 +69,19 @@ pub fn merge_pdfs(files: Vec<js_sys::Uint8Array>) -> Result<Vec<u8>, JsValue> {
     let catalog_id = target_doc
         .trailer
         .get(b"Root")
-        .map_err(|_| JsValue::from_str("Root missing in trailer"))?
+        .map_err(|_| "Root missing in trailer".to_string())?
         .as_reference()
-        .map_err(|_| JsValue::from_str("Root is not a reference"))?;
+        .map_err(|_| "Root is not a reference".to_string())?;
 
     let catalog = target_doc
         .get_object(catalog_id)
         .and_then(|obj| obj.as_dict())
-        .map_err(|_| JsValue::from_str("Catalog is not a dictionary"))?;
+        .map_err(|_| "Catalog is not a dictionary".to_string())?;
 
     let pages_id = catalog
         .get(b"Pages")
         .and_then(|obj| obj.as_reference())
-        .map_err(|_| JsValue::from_str("Pages reference missing in Catalog"))?;
+        .map_err(|_| "Pages reference missing in Catalog".to_string())?;
 
     for (i, mut doc) in documents.into_iter().enumerate() {
         // 1. Renumber objects in the source doc so they don't clash with target_doc
@@ -86,6 +95,19 @@ pub fn merge_pdfs(files: Vec<js_sys::Uint8Array>) -> Result<Vec<u8>, JsValue> {
         let page_ids: Vec<_> = pages.values().cloned().collect();
 
         console_log!("Merging doc {} with {} pages", i + 1, page_ids.len());
+
+        // 2b. Re-parent pages onto the target page tree. Inheritable
+        // attributes from the source tree are copied onto the page first so
+        // MediaBox/Resources/Rotate are not lost with the old parent.
+        for pid in &page_ids {
+            let inherited = inherited_page_attrs(&doc, *pid);
+            if let Ok(page) = doc.get_object_mut(*pid).and_then(|o| o.as_dict_mut()) {
+                for (key, value) in inherited {
+                    page.set(key, value);
+                }
+                page.set("Parent", Object::Reference(pages_id));
+            }
+        }
 
         // 3. Add all objects from source doc to target doc
         target_doc.objects.extend(doc.objects);
@@ -122,19 +144,53 @@ pub fn merge_pdfs(files: Vec<js_sys::Uint8Array>) -> Result<Vec<u8>, JsValue> {
             console_log!("Merge successful, output size: {} bytes", out_buffer.len());
             Ok(out_buffer)
         }
-        Err(e) => Err(JsValue::from_str(&format!("Failed to save PDF: {:?}", e))),
+        Err(e) => Err(format!("Failed to save PDF: {:?}", e)),
     }
+}
+
+/// Inheritable page attributes (PDF 32000 §7.7.3.4) missing on the page but
+/// set on an ancestor /Pages node, nearest ancestor first.
+fn inherited_page_attrs(doc: &Document, page_id: ObjectId) -> Vec<(Vec<u8>, Object)> {
+    const KEYS: [&[u8]; 4] = [b"Resources", b"MediaBox", b"CropBox", b"Rotate"];
+    let mut found: Vec<(Vec<u8>, Object)> = Vec::new();
+    let Ok(page) = doc.get_dictionary(page_id) else { return found };
+    let mut missing: Vec<&[u8]> = KEYS.iter().copied().filter(|k| !page.has(k)).collect();
+    let mut node = page;
+    for _ in 0..32 {
+        if missing.is_empty() {
+            break;
+        }
+        let Ok(parent) = node
+            .get(b"Parent")
+            .and_then(|p| p.as_reference())
+            .and_then(|id| doc.get_dictionary(id))
+        else {
+            break;
+        };
+        missing.retain(|k| match parent.get(k) {
+            Ok(v) => {
+                found.push((k.to_vec(), v.clone()));
+                false
+            }
+            Err(_) => true,
+        });
+        node = parent;
+    }
+    found
 }
 
 #[wasm_bindgen]
 pub fn compress_pdf(data: js_sys::Uint8Array) -> Result<Vec<u8>, JsValue> {
+    compress_pdf_bytes(&data.to_vec()).map_err(|e| JsValue::from_str(&e))
+}
+
+/// Lossless PDF size optimization: strips metadata/thumbnails, re-deflates
+/// streams at best level (kept only when smaller), strips JPEG APP markers,
+/// dedups identical objects, writes an xref stream.
+pub fn compress_pdf_bytes(bytes: &[u8]) -> Result<Vec<u8>, String> {
     console_log!("Starting PDF compression (Extreme Mode)");
 
-    let bytes = data.to_vec();
-    let cursor = Cursor::new(bytes);
-
-    let mut doc = Document::load_from(cursor)
-        .map_err(|e| JsValue::from_str(&format!("Failed to load PDF: {:?}", e)))?;
+    let mut doc = load_document(bytes)?;
 
     // 1. Ensure version is at least 1.5
     if doc.version.parse::<f32>().unwrap_or(1.0) < 1.5 {
@@ -241,7 +297,7 @@ pub fn compress_pdf(data: js_sys::Uint8Array) -> Result<Vec<u8>, JsValue> {
             );
             Ok(out_buffer)
         }
-        Err(e) => Err(JsValue::from_str(&format!("Failed to save PDF: {:?}", e))),
+        Err(e) => Err(format!("Failed to save PDF: {:?}", e)),
     }
 }
 
@@ -367,6 +423,18 @@ fn strip_jpeg_metadata(data: &[u8]) -> Option<Vec<u8>> {
     } else {
         None
     }
+}
+
+/// Stream bytes after decoding. Unlike lopdf's `decompressed_content`, an
+/// unfiltered (plain) stream yields its raw content instead of an error —
+/// otherwise uncompressed page contents / ToUnicode CMaps extract no text.
+fn stream_content(stream: &lopdf::Stream) -> Result<Vec<u8>, lopdf::Error> {
+    if stream.filters().map(|f| f.is_empty()).unwrap_or(true)
+        && stream.dict.get(b"Filter").is_err()
+    {
+        return Ok(stream.content.clone());
+    }
+    stream.decompressed_content()
 }
 
 fn extract_text_impl(doc: Document) -> Result<String, String> {
@@ -958,6 +1026,22 @@ fn extract_text_impl(doc: Document) -> Result<String, String> {
         doc: &'a Document,
         page_dict: &'a lopdf::Dictionary,
     ) -> Option<std::borrow::Cow<'a, lopdf::Dictionary>> {
+        // Resources is inheritable (PDF 32000 §7.7.3.4): walk up /Parent
+        // (bounded, cycle-safe) when the page itself has none.
+        let mut page_dict = page_dict;
+        for _ in 0..32 {
+            if page_dict.has(b"Resources") {
+                break;
+            }
+            match page_dict
+                .get(b"Parent")
+                .and_then(|p| p.as_reference())
+                .and_then(|id| doc.get_dictionary(id))
+            {
+                Ok(parent) => page_dict = parent,
+                Err(_) => return None,
+            }
+        }
         if let Ok(resources_obj) = page_dict.get(b"Resources") {
             // Try as reference first
             if let Ok(resources_ref) = resources_obj.as_reference() {
@@ -1040,7 +1124,7 @@ fn extract_text_impl(doc: Document) -> Result<String, String> {
                                                         if let Ok(tu_obj) = doc.get_object(tu_ref) {
                                                             if let Object::Stream(stream) = tu_obj {
                                                                 if let Ok(cmap_bytes) =
-                                                                    stream.decompressed_content()
+                                                                    stream_content(stream)
                                                                 {
                                                                     let cmap =
                                                                         parse_cmap(&cmap_bytes);
@@ -1083,7 +1167,7 @@ fn extract_text_impl(doc: Document) -> Result<String, String> {
                                                                             ) = ff2_stream_obj
                                                                             {
                                                                                 if let Ok(font_bytes) =
-                                                                                    stream.decompressed_content()
+                                                                                    stream_content(stream)
                                                                                 {
                                                                                     if let Some(gid_map) =
                                                                                         cmap_from_truetype_gid_map(&font_bytes)
@@ -1092,7 +1176,7 @@ fn extract_text_impl(doc: Document) -> Result<String, String> {
                                                                                         let cidtogid = font_dict.get(b"CIDToGIDMap");
                                                                                         let mut cidtogid_bytes: Option<Vec<u8>> = None;
                                                                                         if let Ok(Object::Stream(s)) = cidtogid.and_then(|o| o.as_reference().and_then(|r| doc.get_object(r))) {
-                                                                                            if let Ok(b) = s.decompressed_content() {
+                                                                                            if let Ok(b) = stream_content(s) {
                                                                                                 cidtogid_bytes = Some(b);
                                                                                             }
                                                                                         }
@@ -1154,7 +1238,7 @@ fn extract_text_impl(doc: Document) -> Result<String, String> {
                                                                                     )
                                                                                 {
                                                                                     if let Object::Stream(stream) = tu_obj {
-                                                                                         if let Ok(cmap_bytes) = stream.decompressed_content() {
+                                                                                         if let Ok(cmap_bytes) = stream_content(stream) {
                                                                                              let cmap = parse_cmap(&cmap_bytes);
                                                                                              if !cmap.is_empty() {
                                                                                                  font_maps.insert(font_key.clone(), cmap);
@@ -1194,7 +1278,7 @@ fn extract_text_impl(doc: Document) -> Result<String, String> {
                                                                                                 {
                                                                                                     if let Object::Stream(stream) = ff2_stream_obj {
                                                                                                         if let Ok(font_bytes) =
-                                                                                                            stream.decompressed_content()
+                                                                                                            stream_content(stream)
                                                                                                         {
                                                                                                             if let Some(gid_map) =
                                                                                                                 cmap_from_truetype_gid_map(&font_bytes)
@@ -1204,7 +1288,7 @@ fn extract_text_impl(doc: Document) -> Result<String, String> {
                                                                                                                 let mut cidtogid_bytes: Option<Vec<u8>> = None;
                                                                                                                 if let Ok(obj) = cidtogid_obj {
                                                                                                                     if let Ok(Object::Stream(s)) = obj.as_reference().and_then(|r| doc.get_object(r)) {
-                                                                                                                        if let Ok(b) = s.decompressed_content() {
+                                                                                                                        if let Ok(b) = stream_content(s) {
                                                                                                                             cidtogid_bytes = Some(b);
                                                                                                                         }
                                                                                                                     } else if let Ok(name) = obj.as_name() {
@@ -1269,7 +1353,7 @@ fn extract_text_impl(doc: Document) -> Result<String, String> {
                         if let Ok(content_ref) = contents_obj.as_reference() {
                             if let Ok(cobj) = doc.get_object(content_ref) {
                                 if let Object::Stream(stream) = cobj {
-                                    if let Ok(bts) = stream.decompressed_content() {
+                                    if let Ok(bts) = stream_content(stream) {
                                         content_bytes.extend_from_slice(&bts);
                                     }
                                 }
@@ -1279,7 +1363,7 @@ fn extract_text_impl(doc: Document) -> Result<String, String> {
                                 if let Ok(cref) = el.as_reference() {
                                     if let Ok(cobj) = doc.get_object(cref) {
                                         if let Object::Stream(stream) = cobj {
-                                            if let Ok(bts) = stream.decompressed_content() {
+                                            if let Ok(bts) = stream_content(stream) {
                                                 content_bytes.extend_from_slice(&bts);
                                             }
                                         }
@@ -1293,34 +1377,6 @@ fn extract_text_impl(doc: Document) -> Result<String, String> {
                                 let mut current_font: Option<String> = None;
                                 let mut page_text = String::new();
 
-                                // DEBUG: Add CMap information
-                                page_text
-                                    .push_str(&format!("=== DEBUG: Page {} ===\n", page_number));
-                                page_text.push_str(&format!(
-                                    "Found {} font(s) with CMaps:\n",
-                                    font_maps.len()
-                                ));
-                                for (fname, fmap) in font_maps.iter() {
-                                    page_text.push_str(&format!(
-                                        "  Font '{}': {} entries\n",
-                                        fname,
-                                        fmap.len()
-                                    ));
-                                    if fmap.len() > 0 {
-                                        // Show first 20 entries
-                                        let mut sorted_keys: Vec<_> = fmap.keys().collect();
-                                        sorted_keys.sort();
-                                        page_text.push_str("    First 20 mappings:\n");
-                                        for k in sorted_keys.iter().take(20) {
-                                            let v = &fmap[*k];
-                                            page_text.push_str(&format!(
-                                                "      {:02X?} -> '{}'\n",
-                                                k, v
-                                            ));
-                                        }
-                                    }
-                                }
-                                page_text.push_str("=== END DEBUG ===\n\n");
 
                                 // Track which fonts we've already attempted heuristics for on this page
                                 let mut heuristics_tried: std::collections::HashSet<String> =
@@ -2142,13 +2198,262 @@ fn extract_text_impl(doc: Document) -> Result<String, String> {
 }
 
 pub fn extract_text_bytes(bytes: &[u8]) -> Result<String, String> {
-    let cursor = Cursor::new(bytes);
-    let doc = Document::load_from(cursor).map_err(|e| format!("Failed to load PDF: {:?}", e))?;
-    extract_text_impl(doc)
+    extract_text_impl(load_document(bytes)?)
 }
 
 #[wasm_bindgen]
 pub fn extract_text(data: js_sys::Uint8Array) -> Result<String, JsValue> {
     let bytes = data.to_vec();
     extract_text_bytes(&bytes).map_err(|e| JsValue::from_str(&e))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use lopdf::content::Operation;
+    use lopdf::{dictionary, Stream};
+
+    /// Build a PDF in memory with one page per entry of `pages`, each showing
+    /// its text in Helvetica (WinAnsi). Adds an /Info dict so compression can
+    /// be checked for metadata stripping.
+    fn make_pdf(pages: &[&str]) -> Vec<u8> {
+        let mut doc = Document::with_version("1.4");
+        let pages_id = doc.new_object_id();
+        let font_id = doc.add_object(dictionary! {
+            "Type" => "Font",
+            "Subtype" => "Type1",
+            "BaseFont" => "Helvetica",
+            "Encoding" => "WinAnsiEncoding",
+        });
+        let resources_id = doc.add_object(dictionary! {
+            "Font" => dictionary! { "F1" => font_id },
+        });
+        let mut kids = Vec::new();
+        for text in pages {
+            let content = Content {
+                operations: vec![
+                    Operation::new("BT", vec![]),
+                    Operation::new("Tf", vec!["F1".into(), 24.into()]),
+                    Operation::new("Td", vec![72.into(), 720.into()]),
+                    Operation::new("Tj", vec![Object::string_literal(*text)]),
+                    Operation::new("ET", vec![]),
+                ],
+            };
+            let content_id =
+                doc.add_object(Stream::new(dictionary! {}, content.encode().unwrap()));
+            let page_id = doc.add_object(dictionary! {
+                "Type" => "Page",
+                "Parent" => pages_id,
+                "Contents" => content_id,
+            });
+            kids.push(page_id.into());
+        }
+        let count = kids.len() as i64;
+        doc.objects.insert(
+            pages_id,
+            Object::Dictionary(dictionary! {
+                "Type" => "Pages",
+                "Kids" => kids,
+                "Count" => count,
+                "Resources" => resources_id,
+                "MediaBox" => vec![0.into(), 0.into(), 612.into(), 792.into()],
+            }),
+        );
+        let catalog_id = doc.add_object(dictionary! {
+            "Type" => "Catalog",
+            "Pages" => pages_id,
+        });
+        let info_id = doc.add_object(dictionary! {
+            "Producer" => Object::string_literal("mydevtools-test"),
+        });
+        doc.trailer.set("Root", catalog_id);
+        doc.trailer.set("Info", info_id);
+        let mut out = Vec::new();
+        doc.save_to(&mut out).unwrap();
+        out
+    }
+
+    /// Same as `make_pdf`, but the trailer points at an /Encrypt dictionary
+    /// using AES-256 (V5/R6), which cannot be opened without a password here.
+    fn make_encrypted_pdf() -> Vec<u8> {
+        let mut doc = load_document(&make_pdf(&["Secret"])).unwrap();
+        let enc_id = doc.add_object(dictionary! {
+            "Filter" => "Standard",
+            "V" => 5,
+            "R" => 6,
+            "Length" => 256,
+            "P" => -4,
+        });
+        doc.trailer.set("Encrypt", enc_id);
+        let mut out = Vec::new();
+        doc.save_to(&mut out).unwrap();
+        out
+    }
+
+    fn page_count(bytes: &[u8]) -> usize {
+        Document::load_mem(bytes).unwrap().get_pages().len()
+    }
+
+    #[test]
+    fn fixture_is_a_valid_pdf_with_text() {
+        let pdf = make_pdf(&["Hello World"]);
+        assert!(pdf.starts_with(b"%PDF-"));
+        assert_eq!(page_count(&pdf), 1);
+        assert!(extract_text_bytes(&pdf).unwrap().contains("Hello World"));
+    }
+
+    #[test]
+    fn merge_appends_pages_in_input_order() {
+        let a = make_pdf(&["Alpha one"]);
+        let b = make_pdf(&["Bravo one", "Bravo two"]);
+        let c = make_pdf(&["Charlie one"]);
+        let merged = merge_pdfs_bytes(&[a, b, c]).unwrap();
+        assert!(merged.starts_with(b"%PDF-"));
+        assert_eq!(page_count(&merged), 4);
+        let text = extract_text_bytes(&merged).unwrap();
+        let pos = |s: &str| text.find(s).unwrap_or_else(|| panic!("{s} missing in {text:?}"));
+        assert!(pos("Alpha one") < pos("Bravo one"));
+        assert!(pos("Bravo one") < pos("Bravo two"));
+        assert!(pos("Bravo two") < pos("Charlie one"));
+    }
+
+    #[test]
+    fn merged_pages_belong_to_target_tree_and_keep_inherited_attrs() {
+        let merged = merge_pdfs_bytes(&[make_pdf(&["a"]), make_pdf(&["b", "c"])]).unwrap();
+        let doc = Document::load_mem(&merged).unwrap();
+        let root_pages = doc.catalog().unwrap().get(b"Pages").unwrap().as_reference().unwrap();
+        for (_, pid) in doc.get_pages() {
+            let page = doc.get_dictionary(pid).unwrap();
+            assert_eq!(page.get(b"Parent").unwrap().as_reference().unwrap(), root_pages);
+            // Pages 2-3 came from a second doc whose MediaBox/Resources lived on
+            // its own /Pages node; page 1 still inherits from the target tree.
+            let has_box = page.has(b"MediaBox")
+                || doc.get_dictionary(root_pages).unwrap().has(b"MediaBox");
+            assert!(has_box);
+        }
+        let second = doc.get_pages()[&2];
+        let page = doc.get_dictionary(second).unwrap();
+        assert!(page.has(b"MediaBox") && page.has(b"Resources"));
+        let root = doc.get_dictionary(root_pages).unwrap();
+        assert_eq!(root.get(b"Count").unwrap().as_i64().unwrap(), 3);
+    }
+
+    #[test]
+    fn merge_single_file_round_trips() {
+        let merged = merge_pdfs_bytes(&[make_pdf(&["Solo"])]).unwrap();
+        assert_eq!(page_count(&merged), 1);
+    }
+
+    #[test]
+    fn merge_rejects_empty_input() {
+        assert_eq!(merge_pdfs_bytes(&[]).unwrap_err(), "No files provided");
+    }
+
+    #[test]
+    fn merge_error_names_the_bad_input_index() {
+        let err = merge_pdfs_bytes(&[make_pdf(&["ok"]), b"not a pdf at all".to_vec()]).unwrap_err();
+        assert!(err.starts_with("PDF 1: Failed to load PDF"), "{err}");
+    }
+
+    #[test]
+    fn merge_rejects_encrypted_input() {
+        let err = merge_pdfs_bytes(&[make_pdf(&["ok"]), make_encrypted_pdf()]).unwrap_err();
+        assert_eq!(err, format!("PDF 1: {}", ENCRYPTED_ERROR));
+    }
+
+    #[test]
+    fn compress_keeps_pages_and_text_and_strips_info() {
+        let src = make_pdf(&["Keep me", "And me"]);
+        let out = compress_pdf_bytes(&src).unwrap();
+        assert!(out.starts_with(b"%PDF-"));
+        assert_eq!(page_count(&out), 2);
+        let text = extract_text_bytes(&out).unwrap();
+        assert!(text.contains("Keep me") && text.contains("And me"), "{text:?}");
+        let doc = Document::load_mem(&out).unwrap();
+        assert!(doc.trailer.get(b"Info").is_err());
+        assert!(doc.version.parse::<f32>().unwrap() >= 1.5);
+    }
+
+    #[test]
+    fn compress_shrinks_uncompressed_streams() {
+        // A long, repetitive uncompressed content stream must get deflated.
+        let long = "x".repeat(4000);
+        let src = make_pdf(&[long.as_str()]);
+        let out = compress_pdf_bytes(&src).unwrap();
+        assert!(out.len() < src.len(), "{} >= {}", out.len(), src.len());
+    }
+
+    #[test]
+    fn compress_rejects_garbage_and_truncated_input() {
+        assert!(compress_pdf_bytes(b"").unwrap_err().starts_with("Failed to load PDF"));
+        assert!(compress_pdf_bytes(b"hello").unwrap_err().starts_with("Failed to load PDF"));
+        let pdf = make_pdf(&["cut"]);
+        assert!(compress_pdf_bytes(&pdf[..pdf.len() / 3]).is_err());
+    }
+
+    #[test]
+    fn compress_and_extract_reject_encrypted_pdf() {
+        let enc = make_encrypted_pdf();
+        assert_eq!(compress_pdf_bytes(&enc).unwrap_err(), ENCRYPTED_ERROR);
+        assert_eq!(extract_text_bytes(&enc).unwrap_err(), ENCRYPTED_ERROR);
+    }
+
+    #[test]
+    fn extract_text_joins_pages_in_order_and_handles_unicode_free_input() {
+        let text = extract_text_bytes(&make_pdf(&["First page", "Second page"])).unwrap();
+        let first = text.find("First page").expect("first");
+        let second = text.find("Second page").expect("second");
+        assert!(first < second);
+    }
+
+    #[test]
+    fn extract_text_uses_inherited_resources_tounicode_cmap() {
+        // Font with a ToUnicode CMap (bytes 01/02 -> "Пр"), declared only on
+        // the /Pages node (inherited resources) and stored uncompressed.
+        let mut doc = Document::with_version("1.5");
+        let pages_id = doc.new_object_id();
+        let cmap = b"/CIDInit /ProcSet findresource begin\n12 dict begin\nbegincmap\n\
+1 begincodespacerange\n<00> <FF>\nendcodespacerange\n\
+2 beginbfchar\n<01> <041F>\n<02> <0440>\nendbfchar\n\
+endcmap\nend\nend\n";
+        let tu_id = doc.add_object(Stream::new(dictionary! {}, cmap.to_vec()));
+        let font_id = doc.add_object(dictionary! {
+            "Type" => "Font",
+            "Subtype" => "Type1",
+            "BaseFont" => "Custom",
+            "ToUnicode" => tu_id,
+        });
+        let content = Content {
+            operations: vec![
+                Operation::new("BT", vec![]),
+                Operation::new("Tf", vec!["F1".into(), 12.into()]),
+                Operation::new("Tj", vec![Object::String(vec![1, 2, 1], lopdf::StringFormat::Hexadecimal)]),
+                Operation::new("ET", vec![]),
+            ],
+        };
+        let content_id = doc.add_object(Stream::new(dictionary! {}, content.encode().unwrap()));
+        let page_id = doc.add_object(dictionary! {
+            "Type" => "Page", "Parent" => pages_id, "Contents" => content_id,
+        });
+        doc.objects.insert(
+            pages_id,
+            Object::Dictionary(dictionary! {
+                "Type" => "Pages", "Kids" => vec![page_id.into()], "Count" => 1,
+                "Resources" => dictionary! { "Font" => dictionary! { "F1" => font_id } },
+                "MediaBox" => vec![0.into(), 0.into(), 612.into(), 792.into()],
+            }),
+        );
+        let catalog_id = doc.add_object(dictionary! { "Type" => "Catalog", "Pages" => pages_id });
+        doc.trailer.set("Root", catalog_id);
+        let mut out = Vec::new();
+        doc.save_to(&mut out).unwrap();
+        let text = extract_text_bytes(&out).unwrap();
+        assert!(text.contains("ПрП"), "{text:?}");
+        assert!(!text.contains("DEBUG"), "debug dump leaked into output: {text:?}");
+    }
+
+    #[test]
+    fn extract_text_rejects_non_pdf() {
+        assert!(extract_text_bytes(b"\x89PNG\r\n\x1a\n").unwrap_err().starts_with("Failed to load PDF"));
+    }
 }

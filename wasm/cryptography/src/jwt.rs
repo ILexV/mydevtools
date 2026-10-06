@@ -84,6 +84,15 @@ pub fn jwt_verify(token: &str, secret: &str, alg: &str) -> Result<bool, JsValue>
     verify_signature(&message, &signature, secret, alg)
 }
 
+/// Signs a ready JWS signing input (`base64url(header).base64url(payload)`) and
+/// returns the base64url signature segment. Lets the JWT encoder build the
+/// header/payload segments itself (preserving claim order and extra header
+/// fields such as `kid`, which `jwt_sign` drops) and only delegate the HMAC.
+#[wasm_bindgen]
+pub fn jwt_sign_input(signing_input: &str, secret: &str, alg: &str) -> Result<String, JsValue> {
+    Ok(base64_url_encode(&sign_message(signing_input, secret, alg)?))
+}
+
 fn sign_message(message: &str, secret: &str, alg: &str) -> Result<Vec<u8>, JsValue> {
     match alg {
         "HS256" => {
@@ -183,4 +192,73 @@ fn base64_url_decode(input: &str) -> Result<Vec<u8>, String> {
 fn base64_url_encode(input: &[u8]) -> String {
     use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
     URL_SAFE_NO_PAD.encode(input)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // RFC 7515 / jwt.io reference token (HS256, secret "your-256-bit-secret").
+    const JWT_IO_HEADER: &str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
+    const JWT_IO_PAYLOAD: &str = "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ";
+    const JWT_IO_SIG: &str = "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+
+    fn jwt_io_token() -> String {
+        format!("{JWT_IO_HEADER}.{JWT_IO_PAYLOAD}.{JWT_IO_SIG}")
+    }
+
+    #[test]
+    fn sign_input_matches_jwt_io_vector() {
+        let input = format!("{JWT_IO_HEADER}.{JWT_IO_PAYLOAD}");
+        assert_eq!(jwt_sign_input(&input, "your-256-bit-secret", "HS256").unwrap(), JWT_IO_SIG);
+    }
+
+    #[test]
+    fn sign_input_hs384_hs512_lengths_and_empty_secret() {
+        let sig384 = jwt_sign_input("a.b", "k", "HS384").unwrap();
+        let sig512 = jwt_sign_input("a.b", "k", "HS512").unwrap();
+        assert_eq!(base64_url_decode(&sig384).unwrap().len(), 48);
+        assert_eq!(base64_url_decode(&sig512).unwrap().len(), 64);
+        // HMAC accepts an empty key (legacy behavior: token is still produced).
+        assert!(jwt_sign_input("a.b", "", "HS256").is_ok());
+    }
+
+    #[test]
+    fn verify_jwt_io_vector_and_tampering() {
+        let token = jwt_io_token();
+        assert!(jwt_verify(&token, "your-256-bit-secret", "HS256").unwrap());
+        assert!(!jwt_verify(&token, "wrong-secret", "HS256").unwrap());
+        let tampered = token.replacen(JWT_IO_PAYLOAD, "eyJzdWIiOiIwIn0", 1);
+        assert!(!jwt_verify(&tampered, "your-256-bit-secret", "HS256").unwrap());
+        // Wrong part count is "not verified", not an error.
+        assert!(!jwt_verify("a.b", "s", "HS256").unwrap());
+        assert!(!jwt_verify("a.b.c.d", "s", "HS256").unwrap());
+    }
+
+    #[test]
+    fn sign_then_verify_round_trip_all_hmac_algs() {
+        for alg in ["HS256", "HS384", "HS512"] {
+            let token = jwt_sign(r#"{"typ":"JWT","alg":"HS256"}"#, r#"{"sub":"ü"}"#, "s3cr3t", alg).unwrap();
+            assert_eq!(token.split('.').count(), 3);
+            assert!(jwt_verify(&token, "s3cr3t", alg).unwrap(), "{alg}");
+            assert!(!jwt_verify(&token, "other", alg).unwrap(), "{alg}");
+        }
+    }
+
+    #[test]
+    fn decode_jwt_io_vector_pretty_json() {
+        let decoded: serde_json::Value = serde_json::from_str(&jwt_decode(&jwt_io_token()).unwrap()).unwrap();
+        let header: serde_json::Value = serde_json::from_str(decoded["header"].as_str().unwrap()).unwrap();
+        let payload: serde_json::Value = serde_json::from_str(decoded["payload"].as_str().unwrap()).unwrap();
+        assert_eq!(header["alg"], "HS256");
+        assert_eq!(payload["name"], "John Doe");
+        assert_eq!(payload["iat"], 1516239022);
+    }
+
+    #[test]
+    fn decode_unsigned_alg_none_token() {
+        // {"alg":"none"}.{"sub":"x"}. — decodes; verification is the caller's concern.
+        let decoded = jwt_decode("eyJhbGciOiJub25lIn0.eyJzdWIiOiJ4In0.").unwrap();
+        assert!(decoded.contains("none"));
+    }
 }

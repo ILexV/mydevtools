@@ -25,5 +25,15 @@
   "EncoderTitle": "JWTエンコーダー",
   "DecoderTitle": "JWTデコーダー",
   "Copy": "コピー",
-  "Copied": "コピーしました!"
+  "Copied": "コピーしました!",
+  "TokenLabel": "エンコードされた JWT",
+  "InvalidToken": "無効な JWT: {message}",
+  "EnterSecret": "署名を検証するには、シークレット (HS*) または RSA 公開鍵 (RS*) を入力してください。",
+  "UnsignedToken": "署名なしトークン (alg: none) — 検証できないため信頼できません。",
+  "UnsupportedAlgorithm": "{alg} の署名検証には対応していません (HS256/384/512 と RS256/384/512 のみ)。",
+  "ClaimExpired": "{date} に期限切れ",
+  "ClaimExpiresAt": "{date} に期限切れ予定",
+  "ClaimNotBefore": "{date} より前は無効",
+  "ClaimValidFrom": "{date} から有効",
+  "ClaimIssuedAt": "{date} に発行"
 }

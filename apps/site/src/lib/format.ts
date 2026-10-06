@@ -50,3 +50,37 @@ export function formatPlural(
   if (typeof raw !== "string") return baseKey;
   return formatString(raw, n, ...values);
 }
+
+const BYTE_UNITS = ["B", "KB", "MB", "GB", "TB"] as const;
+
+/**
+ * Human file size with binary (1024) steps: `512 B`, `1.5 KB`, `3.2 MB`.
+ * Default precision matches the hash/encoding tools (1 digit, 2 from GB up);
+ * pass `fractionDigits` for a fixed precision (image/PDF tools use 2).
+ * Non-finite or negative input renders as `0 B`.
+ */
+export function formatBytes(bytes: number, fractionDigits?: number): string {
+  if (!Number.isFinite(bytes) || bytes < 0) return "0 B";
+  let value = bytes;
+  let unit = 0;
+  while (value >= 1024 && unit < BYTE_UNITS.length - 1) {
+    value /= 1024;
+    unit++;
+  }
+  if (unit === 0) return `${Math.round(value)} B`;
+  const digits = fractionDigits ?? (unit >= 3 ? 2 : 1);
+  return `${value.toFixed(digits)} ${BYTE_UNITS[unit]}`;
+}
+
+/** Elapsed time for progress labels: `850 ms`, `1.25 s`. */
+export function formatMs(ms: number): string {
+  if (!Number.isFinite(ms) || ms < 0) return "0 ms";
+  if (ms < 1000) return `${Math.round(ms)} ms`;
+  return `${(ms / 1000).toFixed(2)} s`;
+}
+
+/** Percentage (0–100, clamped) of `processed / total`; 0 when total is 0. */
+export function progressPercent(processed: number, total: number): number {
+  if (!(total > 0) || !Number.isFinite(processed)) return 0;
+  return Math.min(100, Math.max(0, (processed / total) * 100));
+}

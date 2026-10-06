@@ -1,0 +1,61 @@
+---
+/**
+ * Progress — long-running work indicator (tool UI kit): optional title,
+ * optional cancel button, the `.ds-progress` bar and a mono status label.
+ * Hidden by default; the controller toggles `hidden`, sets the fill width
+ * (`fillProps` hook) and label text (`labelProps` hook). The bar carries
+ * role="progressbar"; update `aria-valuenow` from the controller if possible.
+ * `indeterminate`: unknown duration (worker job without progress events) —
+ * renders the sliding bar and omits aria-valuenow/min/max.
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"div"> {
+  title?: string;
+  /** Accessible name for the bar (defaults to `title`). */
+  barLabel?: string;
+  cancelLabel?: string;
+  cancelProps?: HTMLAttributes<"button">;
+  barProps?: HTMLAttributes<"div">;
+  fillProps?: HTMLAttributes<"i">;
+  labelProps?: HTMLAttributes<"span">;
+  indeterminate?: boolean;
+}
+
+const {
+  title,
+  barLabel,
+  cancelLabel,
+  cancelProps,
+  barProps,
+  fillProps,
+  labelProps,
+  indeterminate = false,
+  class: className,
+  hidden = true,
+  ...rest
+} = Astro.props as Props;
+const showHead = Boolean(title || cancelLabel);
+---
+
+<div class:list={["ds-progress-block", className]} hidden={hidden} {...rest}>
+  {showHead && (
+    <div class="ds-progress-head">
+      {title && <span class="ds-progress-title">{title}</span>}
+      {cancelLabel && (
+        <button type="button" class="ds-btn ds-btn-small" {...cancelProps}>{cancelLabel}</button>
+      )}
+    </div>
+  )}
+  <div
+    class:list={["ds-progress", { "is-indeterminate": indeterminate }]}
+    role="progressbar"
+    aria-valuemin={indeterminate ? undefined : "0"}
+    aria-valuemax={indeterminate ? undefined : "100"}
+    aria-label={barLabel ?? title}
+    {...barProps}
+  >
+    <i {...fillProps}></i>
+  </div>
+  <span class="ds-progress-label" aria-live="polite" {...labelProps}></span>
+</div>

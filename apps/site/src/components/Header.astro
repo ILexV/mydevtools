@@ -250,9 +250,6 @@ const recentTitle = t(locale, "common", "CommandPalette_RecentTitle");
     transition: transform 380ms var(--mdt-ease);
   }
   .mobile-nav.open { transform: none; }
-  /* [hidden] must beat display:flex when the drawer is closed */
-  .mobile-nav[hidden],
-  .nav-scrim[hidden] { display: none; }
   .mnav-head {
     display: flex;
     align-items: center;

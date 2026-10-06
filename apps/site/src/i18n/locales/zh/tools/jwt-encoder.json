@@ -18,5 +18,8 @@
   "Seo_HowToSteps": "1. 编辑 **头部** JSON（通常默认设置即可）。\n2. 使用您的声明（用户 ID、角色等）修改 **载荷** JSON。\n3. 选择签名 **算法**（例如 HS256）。\n4. 输入 **密钥** 以签署令牌。\n5. 复制生成的 **已编码令牌**。",
   "Seo_Tips": "- 为生产令牌使用强且长的密钥。\n- 确保您的 JSON 有效；如果语法不正确，工具会警告您。\n- 切勿在载荷中放入敏感数据（如密码），因为它可以被任何人解码。",
   "InvalidJson": "无效的 JSON",
-  "EncodeFailed": "无法生成 JWT：{msg}"
+  "EncodeFailed": "无法生成 JWT：{msg}",
+  "SignatureLabel": "签名",
+  "MustBeObject": "必须是 JSON 对象，例如 {\"sub\":\"123\"}",
+  "CopyFailed": "无法复制到剪贴板。"
 }

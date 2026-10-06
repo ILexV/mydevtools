@@ -4,7 +4,8 @@
  * wires copy/download. SSR-safe — no-ops when the shell is absent. All UI text
  * comes from the `data-lorem-strings` island.
  */
-import { generateLorem, type LoremFormat, type LoremType } from "@/tools/lorem-ipsum";
+import { generateLorem, clampCount, type LoremFormat, type LoremType } from "@/tools/lorem-ipsum";
+import { copyWithFeedback } from "@/scripts/tool-ui";
 
 interface Strings {
   generateTypeLabel: string;
@@ -19,6 +20,8 @@ interface Strings {
   copyButton: string;
   downloadButton: string;
   copied: string;
+  copyFailed: string;
+  lang: string;
 }
 
 function readStrings(): Strings | null {
@@ -33,7 +36,8 @@ function readStrings(): Strings | null {
 
 function init(): void {
   const root = document.querySelector<HTMLElement>("[data-lorem-tool]");
-  if (!root) return;
+  if (!root || root.dataset.initialized) return;
+  root.dataset.initialized = "1";
   const raw = readStrings();
   if (!raw) return;
   const strings: Strings = raw;
@@ -49,23 +53,32 @@ function init(): void {
   const generateBtn = root.querySelector<HTMLButtonElement>("[data-li-generate]");
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-li-copy]");
   const downloadBtn = root.querySelector<HTMLButtonElement>("[data-li-download]");
+  const errorEl = root.querySelector<HTMLElement>("[data-li-error]");
   if (!typeEl || !countEl || !formatEl || !outputEl) return;
   const type = typeEl;
   const count = countEl;
   const format = formatEl;
   const output = outputEl;
 
+  const nf = new Intl.NumberFormat(strings.lang);
+
+  function showError(msg: string): void {
+    if (!errorEl) return;
+    errorEl.textContent = msg;
+    errorEl.hidden = !msg;
+  }
+
   function generate(): void {
     const result = generateLorem({
       type: type.value as LoremType,
-      count: parseInt(count.value, 10) || 5,
+      count: count.value.trim() === "" ? NaN : Number(count.value),
       format: format.value as LoremFormat,
       startClassic: !!classicEl?.checked,
       wrapParagraphs: !!wrapEl?.checked,
     });
     output.value = result.text;
-    if (wordsEl) wordsEl.textContent = String(result.words);
-    if (charsEl) charsEl.textContent = String(result.chars);
+    if (wordsEl) wordsEl.textContent = nf.format(result.words);
+    if (charsEl) charsEl.textContent = nf.format(result.chars);
   }
 
   generateBtn?.addEventListener("click", generate);
@@ -74,19 +87,14 @@ function init(): void {
   classicEl?.addEventListener("change", generate);
   wrapEl?.addEventListener("change", generate);
   count.addEventListener("input", generate);
+  // Reflect the effective (clamped) count once editing is done: 0 → 1, 5000 → 1000.
+  count.addEventListener("change", () => {
+    if (count.value.trim() !== "") count.value = String(clampCount(Number(count.value)));
+  });
 
-  copyBtn?.addEventListener("click", async (e) => {
-    try {
-      await navigator.clipboard.writeText(output.value);
-      const btn = e.currentTarget as HTMLButtonElement;
-      const orig = btn.textContent;
-      btn.textContent = strings.copied;
-      setTimeout(() => {
-        btn.textContent = orig;
-      }, 1200);
-    } catch {
-      /* clipboard unavailable */
-    }
+  copyBtn?.addEventListener("click", async () => {
+    const ok = await copyWithFeedback(copyBtn, output.value, strings.copied);
+    showError(ok ? "" : strings.copyFailed);
   });
 
   downloadBtn?.addEventListener("click", () => {
@@ -98,7 +106,7 @@ function init(): void {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 
   generate();

@@ -20,5 +20,8 @@
   "ErrorNotImage": "Die ausgewählte Datei ist kein Bild.",
   "ErrorLoadImage": "Bild konnte nicht geladen werden.",
   "ErrorInvalidDimensions": "Ungültige Abmessungen.",
-  "ErrorResizeFailed": "Größenänderung fehlgeschlagen."
+  "ErrorResizeFailed": "Größenänderung fehlgeschlagen.",
+  "Cancel": "Abbrechen",
+  "ErrorUnsupportedFormat": "Dieses Bildformat wird nicht unterstützt. Verwenden Sie PNG, JPEG, WebP, GIF, BMP, ICO, TIFF oder TGA.",
+  "ErrorDimensionsTooLarge": "Abmessungen zu groß: höchstens 16384 px pro Seite und insgesamt 64 Megapixel."
 }

@@ -24,6 +24,7 @@
   "Download": "Télécharger en TXT",
   "Clear": "Effacer",
   "Copied": "Copié !",
+  "CopyFailed": "Impossible de copier dans le presse-papiers. Sélectionnez le texte et copiez-le manuellement.",
   "Seo_Introduction": "Le générateur UUID est un outil en ligne respectueux de la vie privée pour les développeurs. Tout le traitement se fait localement dans votre navigateur via WebAssembly.",
   "Seo_DetailedDescription": "Cet outil offre des fonctionnalités complètes pour la génération d'UUID. Construit avec des technologies web modernes et WebAssembly (Rust), il offre des performances natives directement dans votre navigateur.\n\nL'interface est conçue pour l'efficacité. Toutes les opérations sont effectuées côté client, garantissant une confidentialité totale.",
   "Seo_Examples": "**Exemple 1**: Utilisez le générateur pour créer rapidement des identifiants uniques.\n\n**Exemple 2**: Générez des IDs sans communication serveur pour une confidentialité maximale.\n\n**Exemple 3**: Intégrez l'outil dans vos tâches de développement quotidiennes.",

@@ -17,6 +17,7 @@
   "ExportKeyword": "export 关键字",
   "OptionalFields": "可选字段 (?)",
   "UseTypeAlias": "使用 type 别名",
+  "EditorKeyboardHint": "在编辑器中按 Tab 键可缩进。按 Esc 再按 Tab 可移出编辑器。",
   "Seo_Introduction": "JSON 转 TypeScript 转换器可在几秒内将 JSON 数据转换为强类型的 TypeScript 接口和类型别名。所有转换均在浏览器本地完成 — 您的数据永远不会离开您的计算机。",
   "Seo_DetailedDescription": "转换器分析任意 JSON 对象或数组的结构，并生成符合惯用法的 TypeScript 定义。嵌套对象会自动提取为单独的命名接口。\n\n**主要选项：**\n- **根类型名称** — 自定义顶层接口的名称（默认：`Root`）。\n- **export** — 在每个生成的接口或类型别名前添加 `export`。\n- **可选字段 (?)** — 将值为 `null` 的属性标记为可选。\n- **type 别名** — 生成 `type Foo = { … }` 而非 `interface Foo { … }`。",
   "Seo_Examples": "**示例 1：API 响应 → TypeScript**\n粘贴 REST API 响应，设置根名称并转换，获得可直接用于项目的接口。\n\n**示例 2：深层嵌套配置**\n具有多层嵌套的 JSON 配置文件会被自动处理，每个嵌套对象都成为独立的命名接口。\n\n**示例 3：对象数组**\n如果根值是数组，转换器会生成数组的类型别名和元素的接口，例如 `export type Users = UserItem[];`",

@@ -265,6 +265,164 @@ pub fn x509_csr_pem(
     Ok(vec![csr_pem, key_pem])
 }
 
+/// Upper bound for the validity period of generated certificates (~100 years).
+pub const X509_MAX_VALIDITY_DAYS: u32 = 36_500;
+
+/// Splits a DN like `CN=example.com, O=My Org\, Inc, C=US` on unescaped commas.
+fn split_dn(subject: &str) -> Vec<String> {
+    let mut parts = Vec::new();
+    let mut cur = String::new();
+    let mut chars = subject.chars().peekable();
+    while let Some(ch) = chars.next() {
+        match ch {
+            '\\' if chars.peek().is_some() => cur.push(chars.next().unwrap_or_default()),
+            ',' => parts.push(std::mem::take(&mut cur)),
+            _ => cur.push(ch),
+        }
+    }
+    parts.push(cur);
+    parts
+}
+
+/// Parses the X.509 tool's subject field. Accepts a bare common name
+/// (`example.com`, legacy behaviour) or an RFC 4514-style list of
+/// `CN`, `O`, `OU`, `C`, `ST`, `L` attributes (`CN=x,O=y,C=US`; keys are
+/// case-insensitive, `\,` escapes a comma). Empty → `None` (rcgen default DN).
+/// Errors are plain strings so native tests can assert on them.
+pub(crate) fn parse_subject_dn(subject: &str) -> Result<Option<DistinguishedName>, String> {
+    let subject = subject.trim();
+    if subject.is_empty() {
+        return Ok(None);
+    }
+    let mut dn = DistinguishedName::new();
+    if !subject.contains('=') {
+        dn.push(DnType::CommonName, subject);
+        return Ok(Some(dn));
+    }
+    for part in split_dn(subject) {
+        let part = part.trim();
+        if part.is_empty() {
+            continue;
+        }
+        let (key, value) = part
+            .split_once('=')
+            .ok_or_else(|| format!("invalid subject: missing '=' in \"{part}\""))?;
+        let value = value.trim();
+        if value.is_empty() {
+            return Err(format!("invalid subject: empty value for {}", key.trim()));
+        }
+        let dn_type = match key.trim().to_ascii_uppercase().as_str() {
+            "CN" => DnType::CommonName,
+            "O" => DnType::OrganizationName,
+            "OU" => DnType::OrganizationalUnitName,
+            "C" => {
+                if value.len() != 2 || !value.chars().all(|c| c.is_ascii_alphabetic()) {
+                    return Err(format!("invalid subject: country must be 2 letters, got \"{value}\""));
+                }
+                DnType::CountryName
+            }
+            "ST" => DnType::StateOrProvinceName,
+            "L" => DnType::LocalityName,
+            other => return Err(format!("invalid subject: unsupported attribute \"{other}\"")),
+        };
+        let value = if matches!(dn_type, DnType::CountryName) { value.to_ascii_uppercase() } else { value.to_string() };
+        dn.push(dn_type, value);
+    }
+    Ok(Some(dn))
+}
+
+fn build_params_ex(
+    subject: &str,
+    san_dns: Vec<String>,
+    san_ip: Vec<String>,
+) -> Result<CertificateParams, String> {
+    let mut params = if san_dns.is_empty() {
+        CertificateParams::default()
+    } else {
+        CertificateParams::new(san_dns).map_err(|_| "invalid san".to_string())?
+    };
+    if let Some(dn) = parse_subject_dn(subject)? {
+        params.distinguished_name = dn;
+    }
+    for ip in san_ip {
+        let ip: IpAddr = ip.parse().map_err(|_| "invalid ip".to_string())?;
+        params.subject_alt_names.push(SanType::IpAddress(ip));
+    }
+    Ok(params)
+}
+
+fn key_pair_for(algorithm: u8) -> Result<KeyPair, String> {
+    let alg = match algorithm {
+        X509_ALG_ED25519 => &rcgen::PKCS_ED25519,
+        X509_ALG_ECDSA_P256 => &rcgen::PKCS_ECDSA_P256_SHA256,
+        X509_ALG_ECDSA_P384 => &rcgen::PKCS_ECDSA_P384_SHA384,
+        _ => return Err("unsupported algorithm".to_string()),
+    };
+    KeyPair::generate_for(alg).map_err(|_| "key generation failed".to_string())
+}
+
+pub(crate) fn self_signed_ex(
+    algorithm: u8,
+    subject: &str,
+    validity_days: u32,
+    now_unix: i64,
+    san_dns: Vec<String>,
+    san_ip: Vec<String>,
+) -> Result<Vec<String>, String> {
+    if validity_days == 0 || validity_days > X509_MAX_VALIDITY_DAYS {
+        return Err(format!("invalid validity: {validity_days} days (1..={X509_MAX_VALIDITY_DAYS})"));
+    }
+    let mut params = build_params_ex(subject, san_dns, san_ip)?;
+    let not_before =
+        ::time::OffsetDateTime::from_unix_timestamp(now_unix).map_err(|_| "invalid current time".to_string())?;
+    params.not_before = not_before;
+    params.not_after = not_before + ::time::Duration::days(i64::from(validity_days));
+    let key_pair = key_pair_for(algorithm)?;
+    let cert = params.self_signed(&key_pair).map_err(|_| "certificate failed".to_string())?;
+    Ok(vec![cert.pem(), key_pair.serialize_pem()])
+}
+
+pub(crate) fn csr_ex(
+    algorithm: u8,
+    subject: &str,
+    san_dns: Vec<String>,
+    san_ip: Vec<String>,
+) -> Result<Vec<String>, String> {
+    let params = build_params_ex(subject, san_dns, san_ip)?;
+    let key_pair = key_pair_for(algorithm)?;
+    let csr = params.serialize_request(&key_pair).map_err(|_| "encode failed".to_string())?;
+    let csr_pem = csr.pem().map_err(|_| "encode failed".to_string())?;
+    Ok(vec![csr_pem, key_pair.serialize_pem()])
+}
+
+/// Self-signed certificate with a full subject DN and an explicit validity
+/// window `[now, now + validity_days]` (the legacy `x509_self_signed_pem`
+/// only sets a CN and keeps rcgen's 1975–4096 default validity).
+///
+/// algorithm: 1 = Ed25519, 2 = ECDSA P-256, 3 = ECDSA P-384. Returns [cert_pem, key_pem].
+#[wasm_bindgen]
+pub fn x509_self_signed_pem_ex(
+    algorithm: u8,
+    subject: &str,
+    validity_days: u32,
+    now_unix: i64,
+    san_dns: Vec<String>,
+    san_ip: Vec<String>,
+) -> Result<Vec<String>, JsValue> {
+    self_signed_ex(algorithm, subject, validity_days, now_unix, san_dns, san_ip).map_err(|e| JsValue::from_str(&e))
+}
+
+/// CSR with a full subject DN (see `parse_subject_dn`). Returns [csr_pem, key_pem].
+#[wasm_bindgen]
+pub fn x509_csr_pem_ex(
+    algorithm: u8,
+    subject: &str,
+    san_dns: Vec<String>,
+    san_ip: Vec<String>,
+) -> Result<Vec<String>, JsValue> {
+    csr_ex(algorithm, subject, san_dns, san_ip).map_err(|e| JsValue::from_str(&e))
+}
+
 /// Parses certificate from PEM and returns JSON string with basic fields.
 #[wasm_bindgen]
 pub fn x509_parse_pem(pem: &str) -> Result<String, JsValue> {
@@ -409,5 +567,98 @@ mod tests {
     fn x509_parse_rejects_invalid_data() {
         assert!(x509_parse_pem("not a pem").is_err());
         assert!(x509_parse_der(&[0u8; 8]).is_err());
+    }
+
+    const NOW: i64 = 1_767_225_600; // 2026-01-01T00:00:00Z
+
+    fn parse_cert(pem: &str) -> serde_json::Value {
+        serde_json::from_str(&x509_parse_pem(pem).expect("parse")).expect("json")
+    }
+
+    #[test]
+    fn subject_dn_bare_name_is_common_name() {
+        let out = self_signed_ex(X509_ALG_ED25519, "example.com", 30, NOW, vec![], vec![]).expect("cert");
+        assert_eq!(parse_cert(&out[0])["subject"], "CN=example.com");
+    }
+
+    #[test]
+    fn subject_dn_full_attributes() {
+        let out = self_signed_ex(
+            X509_ALG_ECDSA_P256,
+            "CN=example.com, O=My Org\\, Inc, OU=Dev, L=Omsk, ST=Omsk Oblast, c=ru",
+            30,
+            NOW,
+            vec![],
+            vec![],
+        )
+        .expect("cert");
+        let json = parse_cert(&out[0]);
+        let subject = json["subject"].as_str().unwrap();
+        for part in ["CN=example.com", "O=My Org, Inc", "OU=Dev", "L=Omsk", "ST=Omsk Oblast", "C=RU"] {
+            assert!(subject.contains(part), "{part} missing in {subject}");
+        }
+        // Self-signed: issuer == subject.
+        assert_eq!(json["issuer"], json["subject"]);
+        assert_eq!(json["signatureAlgorithmOid"], "1.2.840.10045.4.3.2"); // ecdsa-with-SHA256
+    }
+
+    #[test]
+    fn subject_dn_rejects_bad_input() {
+        assert!(parse_subject_dn("CN=a, XX=b").unwrap_err().contains("unsupported attribute"));
+        assert!(parse_subject_dn("CN=").unwrap_err().contains("empty value"));
+        assert!(parse_subject_dn("CN=a, C=USA").unwrap_err().contains("country"));
+        assert!(parse_subject_dn("CN=a, junk").unwrap_err().contains("missing '='"));
+        assert!(parse_subject_dn("   ").unwrap().is_none());
+        // Unicode values are kept verbatim.
+        assert!(parse_subject_dn("CN=пример.рф, O=Компания 😀").unwrap().is_some());
+    }
+
+    #[test]
+    fn validity_window_matches_days() {
+        let out = self_signed_ex(X509_ALG_ED25519, "CN=v", 365, NOW, vec![], vec![]).expect("cert");
+        let der = parse_pem_to_der(&out[0]).expect("der");
+        let (_, cert) = parse_x509_certificate(&der).expect("cert");
+        let nb = cert.validity().not_before.timestamp();
+        let na = cert.validity().not_after.timestamp();
+        assert_eq!(nb, NOW);
+        assert_eq!(na - nb, 365 * 86_400);
+        // Fresh cert: no warnings now, "expired" after the window.
+        assert!(x509_warnings_pem(&out[0], NOW + 1).expect("w").is_empty());
+        let late = x509_warnings_pem(&out[0], NOW + 366 * 86_400).expect("w");
+        assert!(late.iter().any(|w| w.contains("expired")));
+    }
+
+    #[test]
+    fn validity_days_out_of_range_rejected() {
+        assert!(self_signed_ex(X509_ALG_ED25519, "CN=v", 0, NOW, vec![], vec![]).is_err());
+        assert!(self_signed_ex(X509_ALG_ED25519, "CN=v", X509_MAX_VALIDITY_DAYS + 1, NOW, vec![], vec![]).is_err());
+        assert!(self_signed_ex(X509_ALG_ED25519, "CN=v", X509_MAX_VALIDITY_DAYS, NOW, vec![], vec![]).is_ok());
+    }
+
+    #[test]
+    fn csr_ex_carries_subject() {
+        let out = csr_ex(X509_ALG_ECDSA_P384, "CN=req.example, O=Org", vec!["req.example".into()], vec![]).expect("csr");
+        assert!(out[0].contains("BEGIN CERTIFICATE REQUEST"));
+        assert!(out[1].contains("BEGIN PRIVATE KEY"));
+        let (_, pem) = x509_parser::pem::parse_x509_pem(out[0].as_bytes()).expect("pem");
+        let (_, req) = X509CertificationRequest::from_der(&pem.contents).expect("csr der");
+        let subject = req.certification_request_info.subject.to_string();
+        assert!(subject.contains("CN=req.example") && subject.contains("O=Org"), "{subject}");
+    }
+
+    #[test]
+    fn unsupported_algorithm_rejected() {
+        assert!(self_signed_ex(9, "CN=v", 1, NOW, vec![], vec![]).unwrap_err().contains("unsupported algorithm"));
+    }
+
+    #[test]
+    fn parse_der_matches_parse_pem() {
+        let out = self_signed_ex(X509_ALG_ED25519, "CN=der", 10, NOW, vec!["der.local".into()], vec!["10.0.0.1".into()]).expect("cert");
+        let der = parse_pem_to_der(&out[0]).expect("der");
+        assert_eq!(x509_parse_der(&der).expect("der json"), x509_parse_pem(&out[0]).expect("pem json"));
+        let json = parse_cert(&out[0]);
+        let sans: Vec<&str> = json["subjectAltNames"].as_array().unwrap().iter().map(|v| v.as_str().unwrap()).collect();
+        assert_eq!(sans, vec!["DNS:der.local", "IP:10.0.0.1"]);
+        assert_eq!(json["publicKeyAlgorithmOid"], "1.3.101.112"); // Ed25519
     }
 }

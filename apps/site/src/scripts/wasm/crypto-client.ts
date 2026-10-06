@@ -84,6 +84,16 @@ export async function jwtSign(
   return wrap(() => crypto.jwt_sign(headerJson, payloadJson, secret, alg));
 }
 
+/**
+ * HMAC signature (base64url) over a prepared JWS signing input
+ * `base64url(header).base64url(payload)` — used by the JWT encoder, which
+ * builds the segments itself to keep claim order and extra header fields.
+ */
+export async function jwtSignInput(signingInput: string, secret: string, alg: string): Promise<string> {
+  await ensureReady();
+  return wrap(() => crypto.jwt_sign_input(signingInput, secret, alg));
+}
+
 /* ── OpenSSH ─────────────────────────────────────────────────────────────── */
 
 export type SshKeyType = "ed25519" | "ecdsa-p256" | "ecdsa-p384" | "rsa";
@@ -174,7 +184,7 @@ export interface X509GenerateResult {
   certificate: string;
 }
 
-/** Self-signed certificate + private key (PEM). algorithm: 1=ecdsa-p256, 2=ecdsa-p384, 3=ed25519. */
+/** Self-signed certificate + private key (PEM). algorithm: 1=ed25519, 2=ecdsa-p256, 3=ecdsa-p384 (wasm/cryptography/src/x509.rs). */
 export async function x509SelfSigned(
   algorithm: number,
   subjectCn: string,
@@ -203,6 +213,43 @@ export async function x509Csr(
   await ensureReady();
   return wrap(() => {
     const [privateKey, csr] = crypto.x509_csr_pem(algorithm, subjectCn || null, sanDns, sanIp);
+    return { privateKey, csr };
+  });
+}
+
+/** X.509 key algorithms (wasm/cryptography/src/x509.rs constants). */
+export const X509_ALG = { ed25519: 1, ecdsaP256: 2, ecdsaP384: 3 } as const;
+
+/**
+ * Self-signed certificate with a full subject DN (`CN=…,O=…,C=…` or a bare
+ * CN) valid for `[now, now + validityDays]`. Rejects 0 / > 36500 days and
+ * malformed DNs (messages start with "invalid validity" / "invalid subject").
+ */
+export async function x509SelfSignedEx(
+  algorithm: number,
+  subject: string,
+  validityDays: number,
+  sanDns: string[] = [],
+  sanIp: string[] = [],
+): Promise<X509GenerateResult> {
+  await ensureReady();
+  return wrap(() => {
+    const now = BigInt(Math.floor(Date.now() / 1000));
+    const [certificate, privateKey] = crypto.x509_self_signed_pem_ex(algorithm, subject, validityDays, now, sanDns, sanIp);
+    return { privateKey, certificate };
+  });
+}
+
+/** CSR with a full subject DN + private key (PEM). */
+export async function x509CsrEx(
+  algorithm: number,
+  subject: string,
+  sanDns: string[] = [],
+  sanIp: string[] = [],
+): Promise<X509CsrResult> {
+  await ensureReady();
+  return wrap(() => {
+    const [csr, privateKey] = crypto.x509_csr_pem_ex(algorithm, subject, sanDns, sanIp);
     return { privateKey, csr };
   });
 }

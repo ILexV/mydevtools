@@ -7,14 +7,23 @@ import init, { calc_ipv4 } from "@/generated/wasm/ipcalc/ipcalc.js";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 
 let ready: Promise<void> | null = null;
-function ensureReady(): Promise<void> {
-  if (!ready) ready = init().then(() => undefined);
+/** Load + instantiate the module once; a failed load is retried on the next call. */
+export function ensureIpcalcReady(): Promise<void> {
+  if (!ready) {
+    ready = init().then(
+      () => undefined,
+      (e: unknown) => {
+        ready = null;
+        throw e;
+      },
+    );
+  }
   return ready;
 }
 
 /** WASM-defined result JSON (network, broadcast, mask, hosts — see legacy ip-subnet-calculator). */
 export async function calcIpv4(input: string): Promise<unknown> {
-  await ensureReady();
+  await ensureIpcalcReady();
   try {
     return calc_ipv4(input);
   } catch (e) {

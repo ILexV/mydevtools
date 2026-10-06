@@ -9,6 +9,9 @@
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import FileDrop from "@/components/tool/FileDrop.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -32,8 +35,7 @@ const s = {
   logoHint: t(lang, ns, "LogoHint"),
   logoDropText: t(lang, ns, "LogoDropText"),
   chooseFile: t(lang, "common", "Common_FileChooseButton"),
-  changeFile: t(lang, "common", "Common_FileChangeButton"),
-  clearFile: t(lang, "common", "Common_ClearFile"),
+  logoRemove: t(lang, ns, "LogoRemove"),
   generate: t(lang, ns, "Generate"),
   generating: t(lang, ns, "Generating"),
   previewSection: t(lang, ns, "PreviewSection"),
@@ -41,194 +43,145 @@ const s = {
   errorEmptyContent: t(lang, ns, "ErrorEmptyContent"),
   errorInvalidImage: t(lang, ns, "ErrorInvalidImage"),
   errorGenerateFailed: t(lang, ns, "ErrorGenerateFailed"),
+  errorTooLong: t(lang, ns, "ErrorTooLong"),
+  errorInvalidColor: t(lang, ns, "ErrorInvalidColor"),
 };
 const stringsJson = JSON.stringify(s);
+const qrIcon = [
+  "M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z",
+  "M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z",
+];
+const downloadIcon = "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4";
 ---
 
-<div class="qrg-tool" data-qrg-tool>
-  <p class="qrg-error" data-qrg-error role="alert" hidden></p>
+<div class="ds-tool-grid qrg-grid" data-qrg-tool>
+  <div class="ds-stack">
+    <section class="ds-card">
+      <Field label={s.contentLabel} for="qrg-content">
+        <textarea
+          id="qrg-content"
+          class="ds-field-textarea mono qrg-content"
+          data-qrg-content
+          rows="3"
+          placeholder={s.contentPlaceholder}
+        ></textarea>
+      </Field>
+    </section>
 
-  <div class="qrg-grid">
-    <div class="qrg-settings">
-      <section class="qrg-section">
-        <label class="field-label" for="qrg-content">{s.contentLabel}</label>
-        <textarea id="qrg-content" data-qrg-content rows="3" placeholder={s.contentPlaceholder}></textarea>
-      </section>
-
-      <section class="qrg-section">
-        <h3 class="qrg-heading">{s.colorsSection}</h3>
-        <div class="qrg-color-grid">
-          <div>
-            <span class="field-label">{s.foregroundColor}</span>
-            <div class="qrg-color-row">
-              <input type="color" data-qrg-fg value="#000000" aria-label={s.foregroundColor} />
-              <input type="text" data-qrg-fg-text value="#000000" maxlength="7" spellcheck="false" aria-label={s.foregroundColor} />
-            </div>
+    <section class="ds-card">
+      <div class="ds-card-head"><h3 class="ds-card-title">{s.colorsSection}</h3></div>
+      <div class="ds-settings ds-settings-flat">
+        <Field label={s.foregroundColor} for="qrg-fg-text" hintProps={{ "data-qrg-fg-hint": true, class: "ds-hint ds-hint-error", hidden: true }}>
+          <div class="ds-input-group">
+            <input type="color" class="ds-color-well" data-qrg-fg value="#000000" aria-label={s.foregroundColor} />
+            <input type="text" id="qrg-fg-text" class="ds-field mono qrg-hex" data-qrg-fg-text value="#000000" maxlength="7" spellcheck="false" autocomplete="off" />
           </div>
-          <div>
-            <span class="field-label">{s.backgroundColor}</span>
-            <div class="qrg-color-row">
-              <input type="color" data-qrg-bg value="#FFFFFF" aria-label={s.backgroundColor} />
-              <input type="text" data-qrg-bg-text value="#FFFFFF" maxlength="7" spellcheck="false" aria-label={s.backgroundColor} />
-            </div>
+        </Field>
+        <Field label={s.backgroundColor} for="qrg-bg-text" hintProps={{ "data-qrg-bg-hint": true, class: "ds-hint ds-hint-error", hidden: true }}>
+          <div class="ds-input-group">
+            <input type="color" class="ds-color-well" data-qrg-bg value="#FFFFFF" aria-label={s.backgroundColor} />
+            <input type="text" id="qrg-bg-text" class="ds-field mono qrg-hex" data-qrg-bg-text value="#FFFFFF" maxlength="7" spellcheck="false" autocomplete="off" />
           </div>
-        </div>
-      </section>
-
-      <section class="qrg-section">
-        <h3 class="qrg-heading">{s.optionsSection}</h3>
-        <span class="field-label">{s.styleLabel}</span>
-        <div class="qrg-style-group" role="group" aria-label={s.styleLabel}>
-          <button type="button" class="ghost-btn qrg-style-btn qrg-active" data-qrg-style data-style="square">{s.styleSquare}</button>
-          <button type="button" class="ghost-btn qrg-style-btn" data-qrg-style data-style="dots">{s.styleDots}</button>
-          <button type="button" class="ghost-btn qrg-style-btn" data-qrg-style data-style="rounded">{s.styleRounded}</button>
-        </div>
-        <div class="qrg-options-grid">
-          <label class="setting">
-            <span class="field-label">{s.errorCorrectionLabel}</span>
-            <select data-qrg-ec>
-              <option value="L">L - 7%</option>
-              <option value="M" selected>M - 15%</option>
-              <option value="Q">Q - 25%</option>
-              <option value="H">H - 30%</option>
-            </select>
-          </label>
-          <label class="setting">
-            <span class="field-label">{s.sizeLabel}</span>
-            <select data-qrg-size>
-              <option value="256">256 × 256</option>
-              <option value="512" selected>512 × 512</option>
-              <option value="1024">1024 × 1024</option>
-              <option value="2048">2048 × 2048</option>
-            </select>
-          </label>
-        </div>
-      </section>
-
-      <section class="qrg-section">
-        <h3 class="qrg-heading">{s.logoSection}</h3>
-        <div class="qrg-drop" data-qrg-logodrop>
-          <input type="file" accept="image/png,image/jpeg,image/webp" data-qrg-logo hidden />
-          <button type="button" class="qrg-clear" data-qrg-logo-clear aria-label={s.clearFile} title={s.clearFile} hidden>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-
-          <div class="qrg-drop-empty" data-qrg-logo-empty>
-            <svg class="qrg-drop-icon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-            <p class="qrg-drop-text">{s.logoDropText}</p>
-            <button type="button" class="primary-btn" data-qrg-logo-choose>{s.chooseFile}</button>
-          </div>
-
-          <div class="qrg-drop-selected" data-qrg-logo-selected hidden>
-            <img class="qrg-logo-preview" data-qrg-logo-preview alt={s.logoSection} />
-            <button type="button" class="primary-btn" data-qrg-logo-change>{s.changeFile}</button>
-          </div>
-        </div>
-        <p class="file-hint">{s.logoHint}</p>
-      </section>
-
-      <button type="button" class="primary-btn qrg-generate" data-qrg-generate>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z" />
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z" />
-        </svg>
-        <span data-qrg-generate-label>{s.generate}</span>
-      </button>
-    </div>
-
-    <section class="qrg-section qrg-preview-section">
-      <h3 class="qrg-heading qrg-preview-heading">{s.previewSection}</h3>
-      <div class="qrg-preview-box" data-qrg-preview-box>
-        <span class="qrg-placeholder" data-qrg-placeholder>{s.previewPlaceholder}</span>
-        <img class="qrg-preview-img" data-qrg-preview alt="QR Code" hidden />
-        <div class="qrg-loading" data-qrg-loading hidden>
-          <span class="qrg-spinner" aria-hidden="true"></span>
-        </div>
-      </div>
-      <div class="qrg-downloads">
-        <a class="qrg-download-png" data-qrg-download-png hidden>
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-          PNG
-        </a>
-        <a class="qrg-download-svg" data-qrg-download-svg hidden>
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-          SVG
-        </a>
+        </Field>
       </div>
     </section>
+
+    <section class="ds-card ds-stack">
+      <div class="ds-card-head qrg-card-head"><h3 class="ds-card-title">{s.optionsSection}</h3></div>
+      <Field label={s.styleLabel}>
+        <div class="seg" role="group" aria-label={s.styleLabel}>
+          <button type="button" aria-pressed="true" data-qrg-style data-style="square">{s.styleSquare}</button>
+          <button type="button" aria-pressed="false" data-qrg-style data-style="dots">{s.styleDots}</button>
+          <button type="button" aria-pressed="false" data-qrg-style data-style="rounded">{s.styleRounded}</button>
+        </div>
+      </Field>
+      <div class="ds-settings ds-settings-flat">
+        <Field label={s.errorCorrectionLabel} for="qrg-ec">
+          <select id="qrg-ec" class="ds-field-select" data-qrg-ec>
+            <option value="L">L - 7%</option>
+            <option value="M" selected>M - 15%</option>
+            <option value="Q">Q - 25%</option>
+            <option value="H">H - 30%</option>
+          </select>
+        </Field>
+        <Field label={s.sizeLabel} for="qrg-size">
+          <select id="qrg-size" class="ds-field-select" data-qrg-size>
+            <option value="256">256 × 256</option>
+            <option value="512" selected>512 × 512</option>
+            <option value="1024">1024 × 1024</option>
+            <option value="2048">2048 × 2048</option>
+          </select>
+        </Field>
+      </div>
+    </section>
+
+    <section class="ds-card">
+      <div class="ds-card-head"><h3 class="ds-card-title">{s.logoSection}</h3></div>
+      <FileDrop
+        changeLabel={t(lang, "common", "Common_FileChangeButton")}
+        title={s.logoDropText}
+        buttonLabel={s.chooseFile}
+        sub={s.logoHint}
+        accept="image/png,image/jpeg,image/webp"
+        data-qrg-logodrop
+        inputProps={{ "data-qrg-logo": true, "aria-label": s.logoSection }}
+      >
+        <div class="qrg-logo-selected" data-qrg-logo-selected hidden>
+          <img class="qrg-logo-preview" data-qrg-logo-preview alt={s.logoSection} />
+          <button type="button" class="ds-btn ds-btn-small ds-btn-danger" data-qrg-logo-clear>{s.logoRemove}</button>
+        </div>
+      </FileDrop>
+    </section>
+
+    <button type="button" class="ds-btn ds-btn-primary ds-btn-block qrg-generate" data-qrg-generate>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20" aria-hidden="true">
+        {qrIcon.map((d) => <path stroke-linecap="round" stroke-linejoin="round" d={d} />)}
+      </svg>
+      <span data-qrg-generate-label>{s.generate}</span>
+    </button>
+    <StatusMessage kind="error" data-qrg-error />
   </div>
+
+  <section class="ds-card qrg-preview-section" aria-labelledby="qrg-preview-title">
+    <div class="ds-card-head"><h3 class="ds-card-title" id="qrg-preview-title">{s.previewSection}</h3></div>
+    <div class="qrg-preview-box" data-qrg-preview-box aria-live="polite">
+      <span class="ds-empty" data-qrg-placeholder>{s.previewPlaceholder}</span>
+      <img class="qrg-preview-img" data-qrg-preview alt="QR Code" hidden />
+      <div class="qrg-loading" data-qrg-loading hidden>
+        <span class="ds-spinner qrg-spinner" aria-hidden="true"></span>
+      </div>
+    </div>
+    <div class="ds-actions qrg-downloads">
+      <a class="ds-btn ds-btn-primary" data-qrg-download-png hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={downloadIcon}></path></svg>
+        PNG
+      </a>
+      <a class="ds-btn" data-qrg-download-svg hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={downloadIcon}></path></svg>
+        SVG
+      </a>
+    </div>
+  </section>
 </div>
 
 <script is:inline type="application/json" data-qrg-strings set:html={stringsJson} />
 <script>import "@/tools/qr-code-generator.client.ts";</script>
 
 <style>
-  .qrg-tool { max-width: 64rem; margin: 0 auto; }
-  .qrg-error { margin-bottom: 1rem; padding: 0.7rem 0.9rem; border: 1px solid var(--mdt-danger); border-radius: var(--mdt-radius-sm); color: var(--mdt-danger); background: color-mix(in srgb, var(--mdt-danger) 8%, transparent); font-size: 0.88rem; }
-  .qrg-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; align-items: start; }
-  @media (min-width: 1024px) { .qrg-grid { grid-template-columns: 1fr 1fr; } }
-  .qrg-settings { display: flex; flex-direction: column; gap: 1rem; }
-  .qrg-section { padding: 1rem 1.25rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); }
-  .qrg-heading { margin: 0 0 0.8rem; font-size: 0.95rem; font-weight: 700; }
-  .field-label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--mdt-text-muted); margin-bottom: 0.35rem; }
-  textarea { width: 100%; resize: vertical; padding: 0.7rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); color: var(--mdt-text); font-family: var(--mdt-font-mono); font-size: 0.95rem; }
-  textarea:focus { outline: 2px solid var(--mdt-focus-ring); outline-offset: 1px; }
-  .qrg-color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
-  .qrg-color-row { display: flex; align-items: center; gap: 0.5rem; }
-  .qrg-color-row input[type="color"] { width: 3rem; height: 2.6rem; flex-shrink: 0; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); cursor: pointer; padding: 0; background: none; }
-  .qrg-color-row input[type="text"] { width: 100%; padding: 0.5rem 0.6rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-raised); color: var(--mdt-text); font-family: var(--mdt-font-mono); font-size: 0.85rem; text-transform: uppercase; }
-  .qrg-style-group { display: flex; gap: 0.4rem; margin-bottom: 0.9rem; }
-  .qrg-style-btn { flex: 1; padding: 0.45rem 0.5rem; font-size: 0.85rem; }
-  .qrg-style-btn.qrg-active { background: var(--mdt-accent); border-color: var(--mdt-accent); color: var(--mdt-accent-contrast); }
-  .qrg-options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
-  .setting select { width: 100%; padding: 0.45rem 0.5rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-raised); color: var(--mdt-text); }
-  .file-hint { font-size: 0.78rem; color: var(--mdt-text-muted); margin: 0.5rem 0 0; }
-  .qrg-drop {
-    position: relative;
-    border: 2px dashed var(--mdt-border);
-    border-radius: var(--mdt-radius);
-    padding: 1.5rem 1rem;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
+  .qrg-grid { --ds-tool-grid-cols: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .qrg-card-head { margin-bottom: 0; }
+  .qrg-content { min-height: 5rem; }
+  .qrg-hex { text-transform: uppercase; }
+  .qrg-logo-selected { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
+  .qrg-logo-preview {
+    max-width: 10rem;
+    max-height: 7rem;
+    object-fit: contain;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
   }
-  .qrg-drop:hover { border-color: var(--mdt-accent); }
-  .qrg-drop.qrg-dragover { border-color: var(--mdt-accent); background: color-mix(in srgb, var(--mdt-accent) 8%, transparent); }
-  .qrg-clear {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    border: none;
-    border-radius: 999px;
-    background: transparent;
-    color: var(--mdt-text-muted);
-    cursor: pointer;
-  }
-  .qrg-clear:hover { color: var(--mdt-danger); background: var(--mdt-surface-muted); }
-  .qrg-drop-empty, .qrg-drop-selected { display: flex; flex-direction: column; align-items: center; gap: 0.7rem; }
-  .qrg-drop-icon { width: 2.5rem; height: 2.5rem; color: var(--mdt-text-muted); }
-  .qrg-drop-text { font-size: 0.95rem; font-weight: 500; margin: 0; }
-  .qrg-logo-preview { max-width: 12rem; max-height: 8rem; object-fit: contain; border-radius: var(--mdt-radius-sm); box-shadow: 0 1px 4px rgb(0 0 0 / 0.15); }
-  .primary-btn, .ghost-btn { padding: 0.55rem 1rem; border-radius: var(--mdt-radius); font-weight: 600; cursor: pointer; border: 1px solid transparent; }
-  .primary-btn { background: var(--mdt-accent); color: var(--mdt-accent-contrast); }
-  .primary-btn:hover { filter: brightness(1.05); }
-  .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .ghost-btn { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
-  .ghost-btn:hover { border-color: var(--mdt-accent); }
-  .qrg-generate { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.8rem 1.25rem; font-size: 1rem; }
   .qrg-preview-section { text-align: center; }
-  @media (min-width: 1024px) { .qrg-preview-section { position: sticky; top: 1rem; } }
-  .qrg-preview-heading { text-align: center; }
+  @media (min-width: 900px) { .qrg-preview-section { position: sticky; top: 1rem; } }
   .qrg-preview-box {
     position: relative;
     aspect-ratio: 1;
@@ -237,13 +190,12 @@ const stringsJson = JSON.stringify(s);
     justify-content: center;
     padding: 1rem;
     margin-bottom: 1rem;
-    border: 2px dashed var(--mdt-border);
+    border: 1.5px dashed var(--mdt-border);
     border-radius: var(--mdt-radius);
     background: var(--mdt-surface-muted);
     overflow: hidden;
   }
-  .qrg-placeholder { font-size: 0.85rem; color: var(--mdt-text-muted); }
-  .qrg-preview-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: var(--mdt-radius-sm); box-shadow: 0 1px 4px rgb(0 0 0 / 0.15); }
+  .qrg-preview-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: var(--mdt-radius-sm); }
   .qrg-loading {
     position: absolute;
     inset: 0;
@@ -252,31 +204,6 @@ const stringsJson = JSON.stringify(s);
     justify-content: center;
     background: color-mix(in srgb, var(--mdt-surface-raised) 70%, transparent);
   }
-  .qrg-spinner {
-    width: 2.5rem;
-    height: 2.5rem;
-    border: 3px solid var(--mdt-border);
-    border-top-color: var(--mdt-accent);
-    border-radius: 999px;
-    animation: qrg-spin 0.8s linear infinite;
-  }
-  @keyframes qrg-spin { to { transform: rotate(360deg); } }
-  .qrg-downloads { display: flex; gap: 0.75rem; justify-content: center; }
-  .qrg-download-png, .qrg-download-svg {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    min-width: 7.5rem;
-    justify-content: center;
-    padding: 0.55rem 1rem;
-    border-radius: var(--mdt-radius);
-    font-weight: 600;
-    text-decoration: none;
-    cursor: pointer;
-    border: 1px solid transparent;
-  }
-  .qrg-download-png { background: var(--mdt-success); color: var(--mdt-accent-contrast); }
-  .qrg-download-png:hover { filter: brightness(1.05); }
-  .qrg-download-svg { background: var(--mdt-surface-raised); border-color: var(--mdt-border); color: var(--mdt-text); }
-  .qrg-download-svg:hover { border-color: var(--mdt-accent); }
+  .qrg-spinner { width: 2.5rem; height: 2.5rem; border-width: 3px; }
+  .qrg-downloads { justify-content: center; }
 </style>

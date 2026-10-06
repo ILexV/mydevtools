@@ -9,6 +9,7 @@
  * absent.
  */
 import { hmacCompute, type HmacAlgorithm } from "@/scripts/wasm/crypto-client";
+import { copyWithFeedback } from "@/scripts/tool-ui";
 
 interface Strings {
   copy: string;
@@ -62,12 +63,17 @@ function init() {
     if (copyBtn) copyBtn.hidden = !visible;
   }
 
+  // Live recalc fires per keystroke; only the newest run may write output.
+  let runId = 0;
+
   async function calculate() {
+    const run = ++runId;
     const keyVal = keyArea.value;
     const msgVal = messageArea.value;
 
     // Legacy: silently clear output until both inputs are present.
     if (!keyVal || !msgVal) {
+      clearError();
       outputArea.value = "";
       setCopyVisible(false);
       return;
@@ -76,10 +82,12 @@ function init() {
     try {
       const alg = (algorithm?.value ?? "sha256") as HmacAlgorithm;
       const hex = await hmacCompute(alg, keyVal, msgVal, "text", "hex");
+      if (run !== runId) return;
       outputArea.value = hex;
       clearError();
       setCopyVisible(true);
     } catch (e) {
+      if (run !== runId) return;
       outputArea.value = "";
       setCopyVisible(false);
       showError(e instanceof Error ? e.message : strings.error);
@@ -92,6 +100,7 @@ function init() {
   calculateBtn?.addEventListener("click", calculate);
 
   clearBtn?.addEventListener("click", () => {
+    runId++;
     keyArea.value = "";
     messageArea.value = "";
     outputArea.value = "";
@@ -99,19 +108,9 @@ function init() {
     clearError();
   });
 
-  copyBtn?.addEventListener("click", async () => {
-    const btn = copyBtn;
-    if (!btn || !outputArea.value) return;
-    try {
-      await navigator.clipboard.writeText(outputArea.value);
-      const original = btn.textContent;
-      btn.textContent = strings.copied;
-      setTimeout(() => {
-        btn.textContent = original;
-      }, 1200);
-    } catch {
-      /* clipboard unavailable */
-    }
+  copyBtn?.addEventListener("click", () => {
+    if (!copyBtn || !outputArea.value) return;
+    void copyWithFeedback(copyBtn, outputArea.value, strings.copied);
   });
 }
 

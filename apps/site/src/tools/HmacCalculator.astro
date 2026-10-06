@@ -9,6 +9,9 @@
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -33,71 +36,57 @@ const strings = {
 const stringsJson = JSON.stringify(strings);
 ---
 
-<div class="hmac-tool" data-hmac-tool>
-  <div class="hmac-grid">
-    <div class="hmac-field">
-      <label class="hmac-label" for="hmac-key">{strings.keyLabel}</label>
+<div class="ds-stack" data-hmac-tool>
+  <div class="ds-tool-grid">
+    <Field label={strings.keyLabel} for="hmac-key">
       <textarea
         id="hmac-key"
-        class="hmac-textarea"
+        class="ds-field-textarea mono"
         data-hmac-key
         placeholder={strings.keyPlaceholder}
         spellcheck="false"
+        autocomplete="off"
         rows="7"></textarea>
-    </div>
-    <div class="hmac-field">
-      <label class="hmac-label" for="hmac-message">{strings.messageLabel}</label>
+    </Field>
+    <Field label={strings.messageLabel} for="hmac-message">
       <textarea
         id="hmac-message"
-        class="hmac-textarea"
+        class="ds-field-textarea mono"
         data-hmac-message
         placeholder={strings.messagePlaceholder}
         spellcheck="false"
         rows="7"></textarea>
-    </div>
+    </Field>
   </div>
 
   <div class="hmac-controls">
-    <div class="hmac-field hmac-field--alg">
-      <label class="hmac-label" for="hmac-algorithm">{strings.algorithmLabel}</label>
-      <select id="hmac-algorithm" class="hmac-select" data-hmac-algorithm>
+    <Field label={strings.algorithmLabel} for="hmac-algorithm" class="hmac-alg">
+      <select id="hmac-algorithm" class="ds-field-select" data-hmac-algorithm>
         <option value="sha256" selected>SHA-256</option>
         <option value="sha512">SHA-512</option>
       </select>
-    </div>
-    <div class="hmac-actions">
-      <button type="button" class="mdt-btn mdt-btn--primary" data-hmac-calculate>
-        {strings.calculate}
-      </button>
-      <button type="button" class="mdt-btn mdt-btn--ghost" data-hmac-clear>
-        {strings.clear}
-      </button>
+    </Field>
+    <div class="ds-actions">
+      <button type="button" class="ds-btn ds-btn-primary" data-hmac-calculate>{strings.calculate}</button>
+      <button type="button" class="ds-btn" data-hmac-clear>{strings.clear}</button>
     </div>
   </div>
 
-  <div class="hmac-field">
-    <label class="hmac-label" for="hmac-output">{strings.outputLabel}</label>
-    <div class="hmac-output-wrap">
-      <textarea
-        id="hmac-output"
-        class="hmac-textarea hmac-output"
-        data-hmac-output
-        readonly
-        spellcheck="false"
-        rows="3"
-        placeholder="…"></textarea>
-      <button
-        type="button"
-        class="mdt-btn mdt-btn--ghost hmac-copy"
-        data-hmac-copy
-        aria-label={strings.copy}
-        hidden>
-        {strings.copy}
-      </button>
-    </div>
-  </div>
+  <OutputPanel label={strings.outputLabel} for="hmac-output">
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-hmac-copy hidden>{strings.copy}</button>
+    </Fragment>
+    <textarea
+      id="hmac-output"
+      class="ds-field-textarea mono hmac-output"
+      data-hmac-output
+      readonly
+      spellcheck="false"
+      rows="3"
+      placeholder="…"></textarea>
+  </OutputPanel>
 
-  <p class="hmac-error" data-hmac-error role="alert" hidden></p>
+  <StatusMessage kind="error" data-hmac-error />
 </div>
 
 <script is:inline type="application/json" data-hmac-strings set:html={stringsJson} />
@@ -106,99 +95,18 @@ const stringsJson = JSON.stringify(strings);
 </script>
 
 <style>
-  .hmac-tool {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-  }
-
-  .hmac-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-
-  @media (max-width: 720px) {
-    .hmac-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .hmac-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-
-  .hmac-field--alg {
-    max-width: 16rem;
-  }
-
-  .hmac-label {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--mdt-text);
-  }
-
-  .hmac-textarea,
-  .hmac-select {
-    width: 100%;
-    padding: 0.65rem 0.8rem;
-    border: 1px solid var(--mdt-border);
-    border-radius: var(--mdt-radius-sm);
-    background: var(--mdt-surface);
-    color: var(--mdt-text);
-    font-family: var(--mdt-font-mono);
-    font-size: 0.92rem;
-    line-height: 1.5;
-    resize: vertical;
-  }
-
-  .hmac-textarea:focus,
-  .hmac-select:focus {
-    outline: 2px solid var(--mdt-focus-ring);
-    outline-offset: 1px;
-    border-color: var(--mdt-accent);
-  }
-
-  .hmac-select {
-    font-family: inherit;
-  }
-
+  /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
   .hmac-controls {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
-    gap: 1rem;
     justify-content: space-between;
+    gap: 1rem;
   }
-
-  .hmac-actions {
-    display: flex;
-    gap: 0.6rem;
+  .hmac-controls > :global(.hmac-alg) {
+    width: min(16rem, 100%);
   }
-
-  .hmac-output-wrap {
-    position: relative;
-  }
-
   .hmac-output {
-    background: var(--mdt-surface-muted);
-    padding-right: 5.5rem;
-  }
-
-  .hmac-copy {
-    position: absolute;
-    top: 0.45rem;
-    right: 0.45rem;
-  }
-
-  .hmac-error {
-    padding: 0.7rem 0.9rem;
-    border: 1px solid var(--mdt-danger);
-    border-radius: var(--mdt-radius-sm);
-    color: var(--mdt-danger);
-    background: color-mix(in srgb, var(--mdt-danger) 8%, transparent);
-    font-size: 0.88rem;
+    min-height: 4.5rem;
   }
 </style>

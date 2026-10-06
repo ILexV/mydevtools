@@ -4,10 +4,19 @@
  * change. Match highlighting via a backdrop layer under the transparent
  * textarea (scroll-synced). Match list with capture groups (render limit 50,
  * legacy parity), quick examples table, and saved patterns persisted in
- * localStorage under `mydevtools_regex_saved` (legacy key + entry shape).
+ * localStorage under `mydevtools_regex_saved` (legacy key + entry shape) —
+ * only on explicit "Save pattern" (the sample text is stored with it).
+ * Match positions from WASM are UTF-16 offsets (see wasm/regex_tool).
  */
 import { regexTest } from "@/scripts/wasm/regex-client";
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import {
+  buildHighlightHtml,
+  buildRustPattern,
+  escapeHtml,
+  parseSavedPatterns,
+  truncateText,
+  type SavedPattern,
+} from "@/tools/regex-tester-core";
 
 interface Strings {
   noMatches: string;
@@ -17,6 +26,8 @@ interface Strings {
   matchNumber: string;
   groupLabel: string;
   moreMatches: string;
+  engineError: string;
+  storageError: string;
 }
 
 /** WASM `test_regex` result JSON (wasm/regex_tool/src/lib.rs). */
@@ -35,13 +46,7 @@ interface RegexMatch {
 interface RegexResult {
   matches: RegexMatch[];
   error: string | null;
-}
-
-interface SavedPattern {
-  name: string;
-  pattern: string;
-  sample?: string;
-  flags?: string[];
+  truncated?: boolean;
 }
 
 const STORAGE_KEY = "mydevtools_regex_saved";
@@ -58,9 +63,9 @@ const COMMON_REGEXES: Array<{ name: string; pattern: string; sample: string }> =
 ];
 
 const LOAD_ICON =
-  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="rx-icon" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>';
+  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>';
 const DELETE_ICON =
-  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="rx-icon" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>';
+  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>';
 
 function readStrings(): Strings | null {
   const el = document.querySelector<HTMLScriptElement>("[data-rx-strings]");
@@ -72,34 +77,21 @@ function readStrings(): Strings | null {
   }
 }
 
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
 function getSavedPatterns(): SavedPattern[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      console.warn("Saved regex patterns corrupted (not an array). Resetting.");
-      return [];
-    }
-    return (parsed as unknown[]).filter(
-      (item): item is SavedPattern =>
-        !!item &&
-        typeof item === "object" &&
-        typeof (item as SavedPattern).name === "string" &&
-        typeof (item as SavedPattern).pattern === "string",
-    );
-  } catch (err) {
-    console.error("Error reading saved regex patterns:", err);
-    return [];
+    return parseSavedPatterns(localStorage.getItem(STORAGE_KEY));
+  } catch {
+    return []; // storage blocked (privacy mode / sandbox)
+  }
+}
+
+/** Persist saved patterns; false when storage is unavailable or full. */
+function setSavedPatterns(list: SavedPattern[]): boolean {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -115,6 +107,7 @@ function init(): void {
   const backdropEl = root.querySelector<HTMLElement>("[data-rx-backdrop]");
   const resultsEl = root.querySelector<HTMLElement>("[data-rx-results]");
   const countEl = root.querySelector<HTMLElement>("[data-rx-count]");
+  const errorBoxEl = root.querySelector<HTMLElement>("[data-rx-error]");
   const examplesBodyEl = root.querySelector<HTMLElement>("[data-rx-examples-body]");
   const savedBodyEl = root.querySelector<HTMLElement>("[data-rx-saved-body]");
   const savedEmptyEl = root.querySelector<HTMLElement>("[data-rx-saved-empty]");
@@ -124,7 +117,8 @@ function init(): void {
   const cheatsheetToggleEl = root.querySelector<HTMLButtonElement>("[data-rx-cheatsheet-toggle]");
   const flagEls = Array.from(root.querySelectorAll<HTMLInputElement>("[data-rx-flag]"));
 
-  if (!patternEl || !textEl || !backdropEl || !resultsEl || !countEl || !examplesBodyEl || !savedBodyEl || !savedEmptyEl || !dialogEl || !saveNameEl) return;
+  if (!patternEl || !textEl || !backdropEl || !resultsEl || !countEl || !examplesBodyEl || !savedBodyEl || !savedEmptyEl || !dialogEl || !saveNameEl || !errorBoxEl) return;
+  const errorBox: HTMLElement = errorBoxEl;
   const pattern: HTMLInputElement = patternEl;
   const text: HTMLTextAreaElement = textEl;
   const backdrop: HTMLElement = backdropEl;
@@ -145,61 +139,48 @@ function init(): void {
     backdrop.scrollLeft = text.scrollLeft;
   }
 
+  /** `patternInvalid` = false for non-pattern errors (storage) so the field isn't flagged. */
+  function setError(message: string | null, patternInvalid = true): void {
+    errorBox.textContent = message ?? "";
+    errorBox.hidden = message === null;
+    if (message === null || !patternInvalid) pattern.removeAttribute("aria-invalid");
+    else pattern.setAttribute("aria-invalid", "true");
+  }
+
   function showNoMatches(): void {
-    results.innerHTML = `<p class="rx-empty">${escapeHtml(strings.noMatches)}</p>`;
+    setError(null);
+    results.innerHTML = `<p class="ds-empty">${escapeHtml(strings.noMatches)}</p>`;
     countBadge.textContent = "0";
   }
 
   function showError(message: string): void {
-    results.innerHTML = `<p class="rx-error">${escapeHtml(message)}</p>`;
+    setError(message);
+    results.innerHTML = "";
     countBadge.textContent = "!";
-    backdrop.innerHTML = escapeHtml(text.value);
+    backdrop.innerHTML = buildHighlightHtml(text.value, []);
   }
 
-  function updateHighlight(value: string, matches: RegexMatch[]): void {
-    let html = "";
-    let lastIndex = 0;
-
-    for (const m of matches) {
-      if (m.start < lastIndex) continue;
-      html += escapeHtml(value.substring(lastIndex, m.start));
-      html += `<mark class="rx-mark">${escapeHtml(value.substring(m.start, m.end))}</mark>`;
-      lastIndex = m.end;
-    }
-    html += escapeHtml(value.substring(lastIndex));
-
-    if (value.endsWith("\n")) {
-      html += "<br>&nbsp;";
-    }
-
-    backdrop.innerHTML = html;
-  }
-
-  function renderMatchDetails(matches: RegexMatch[]): void {
-    countBadge.textContent = String(matches.length);
+  function renderMatchDetails(matches: RegexMatch[], truncated: boolean): void {
+    setError(null);
+    countBadge.textContent = truncated ? `${matches.length}+` : String(matches.length);
 
     if (matches.length === 0) {
-      results.innerHTML = `<p class="rx-empty">${escapeHtml(strings.noMatches)}</p>`;
+      results.innerHTML = `<p class="ds-empty">${escapeHtml(strings.noMatches)}</p>`;
       return;
     }
 
     const visible = matches.slice(0, RENDER_LIMIT);
     let html = "";
     visible.forEach((m, idx) => {
-      const matchText = m.text || "";
-      const display = matchText.length > 100 ? matchText.substring(0, 100) + "..." : matchText;
-
       let groupsHtml = "";
-      if (m.captures && m.captures.length > 0) {
-        for (const c of m.captures) {
-          const groupName = c.name ? c.name : strings.groupLabel;
-          groupsHtml += `
+      for (const c of m.captures ?? []) {
+        const groupName = c.name ? c.name : strings.groupLabel;
+        groupsHtml += `
             <div class="rx-group">
               <span class="rx-group-name">${escapeHtml(groupName)}:</span>
               <span class="rx-group-text">${escapeHtml(c.text)}</span>
               <span class="rx-group-pos">[${c.start}-${c.end}]</span>
             </div>`;
-        }
       }
 
       html += `
@@ -208,13 +189,14 @@ function init(): void {
             <span>${escapeHtml(strings.matchNumber.replace("{n}", String(idx + 1)))}</span>
             <span class="rx-pos">[${m.start}-${m.end}]</span>
           </div>
-          <div class="rx-match-text">${escapeHtml(display)}</div>
+          <div class="rx-match-text">${escapeHtml(truncateText(m.text || ""))}</div>
           ${groupsHtml}
         </div>`;
     });
 
     if (matches.length > RENDER_LIMIT) {
-      html += `<div class="rx-more">${escapeHtml(strings.moreMatches.replace("{count}", String(matches.length - RENDER_LIMIT)))}</div>`;
+      const more = `${matches.length - RENDER_LIMIT}${truncated ? "+" : ""}`;
+      html += `<div class="rx-more">${escapeHtml(strings.moreMatches.replace("{count}", more))}</div>`;
     }
 
     results.innerHTML = html;
@@ -228,19 +210,14 @@ function init(): void {
     syncScroll();
 
     if (!patternValue) {
-      backdrop.innerHTML = escapeHtml(textValue);
+      backdrop.innerHTML = buildHighlightHtml(textValue, []);
       showNoMatches();
       return;
     }
 
     try {
-      // Legacy: strip JS-only flags (g/y) and embed the rest inline.
-      let allFlags = "";
-      for (const flag of flags) if (flag.checked) allFlags += flag.value;
-      const rustFlags = allFlags.replace(/[gy]/g, "");
-      const fullPattern = rustFlags ? `(?${rustFlags})${patternValue}` : patternValue;
-
-      const result = (await regexTest(fullPattern, textValue)) as RegexResult;
+      const activeFlags = flags.filter((f) => f.checked).map((f) => f.value);
+      const result = (await regexTest(buildRustPattern(patternValue, activeFlags), textValue)) as RegexResult;
       if (seq !== runSeq) return; // stale — a newer run already applied
 
       if (result.error) {
@@ -248,13 +225,13 @@ function init(): void {
         return;
       }
 
-      updateHighlight(textValue, result.matches);
-      renderMatchDetails(result.matches);
+      backdrop.innerHTML = buildHighlightHtml(textValue, result.matches);
+      syncScroll();
+      renderMatchDetails(result.matches, result.truncated === true);
     } catch (err) {
       if (seq !== runSeq) return;
-      console.error(err);
-      const message = err instanceof WasmError ? err.message : err instanceof Error ? err.message : String(err);
-      showError(`WASM Error: ${message}`);
+      const message = err instanceof Error ? err.message : String(err);
+      showError(strings.engineError.replace("{message}", message));
     }
   }
 
@@ -282,8 +259,8 @@ function init(): void {
         <td><code class="rx-cell-pattern">${escapeHtml(item.pattern)}</code></td>
         <td>
           <div class="rx-cell-actions">
-            <button type="button" class="rx-icon-btn" data-rx-load-saved="${idx}" title="${escapeHtml(strings.loadButton)}" aria-label="${escapeHtml(strings.loadButton)}">${LOAD_ICON}</button>
-            <button type="button" class="rx-icon-btn rx-danger" data-rx-delete-saved="${idx}" title="${escapeHtml(strings.deleteButton)}" aria-label="${escapeHtml(strings.deleteButton)}">${DELETE_ICON}</button>
+            <button type="button" class="ds-icon-btn" data-rx-load-saved="${idx}" title="${escapeHtml(strings.loadButton)}" aria-label="${escapeHtml(`${strings.loadButton}: ${item.name}`)}">${LOAD_ICON}</button>
+            <button type="button" class="ds-icon-btn" data-rx-delete-saved="${idx}" title="${escapeHtml(strings.deleteButton)}" aria-label="${escapeHtml(`${strings.deleteButton}: ${item.name}`)}">${DELETE_ICON}</button>
           </div>
         </td>`;
       savedBody.appendChild(tr);
@@ -292,7 +269,17 @@ function init(): void {
 
   function saveCurrentPattern(): void {
     const name = saveName.value.trim();
-    if (!name || !pattern.value) return;
+    if (!name) {
+      saveName.setAttribute("aria-invalid", "true");
+      saveName.focus();
+      return;
+    }
+    saveName.removeAttribute("aria-invalid");
+    if (!pattern.value) {
+      dialog.close();
+      pattern.focus();
+      return;
+    }
 
     const saved = getSavedPatterns();
     saved.push({
@@ -301,11 +288,13 @@ function init(): void {
       sample: text.value,
       flags: flags.filter((f) => f.checked).map((f) => f.value),
     });
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
-
+    dialog.close();
+    if (!setSavedPatterns(saved)) {
+      setError(strings.storageError, false);
+      return;
+    }
     saveName.value = "";
     renderSavedPatterns();
-    dialog.close();
   }
 
   function loadPattern(data: SavedPattern): void {
@@ -337,18 +326,23 @@ function init(): void {
     });
   }
 
-  saveName.addEventListener("keydown", (e: KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      saveCurrentPattern();
-    }
+  // Enter in the name field submits the <form method="dialog">.
+  root.querySelector<HTMLFormElement>("[data-rx-save-form]")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    saveCurrentPattern();
   });
+  saveName.addEventListener("input", () => saveName.removeAttribute("aria-invalid"));
 
   root.addEventListener("click", (e: MouseEvent) => {
     const target = e.target as HTMLElement;
 
     if (target.closest("[data-rx-save-open]")) {
       e.preventDefault();
+      if (!pattern.value) {
+        pattern.focus(); // nothing to save yet
+        return;
+      }
+      saveName.removeAttribute("aria-invalid");
       dialog.showModal();
       saveName.focus();
       return;
@@ -356,11 +350,6 @@ function init(): void {
     if (target.closest("[data-rx-save-cancel]")) {
       e.preventDefault();
       dialog.close();
-      return;
-    }
-    if (target.closest("[data-rx-save-confirm]")) {
-      e.preventDefault();
-      saveCurrentPattern();
       return;
     }
 
@@ -389,7 +378,7 @@ function init(): void {
       if (window.confirm(strings.deleteConfirm)) {
         const saved = getSavedPatterns();
         saved.splice(idx, 1);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+        if (!setSavedPatterns(saved)) setError(strings.storageError, false);
         renderSavedPatterns();
       }
     }
@@ -404,7 +393,7 @@ function init(): void {
       <td><code class="rx-cell-pattern">${escapeHtml(ex.pattern)}</code></td>
       <td>
         <div class="rx-cell-actions">
-          <button type="button" class="rx-icon-btn" data-rx-load-example="${idx}" title="${escapeHtml(strings.loadButton)}" aria-label="${escapeHtml(strings.loadButton)}">${LOAD_ICON}</button>
+          <button type="button" class="ds-icon-btn" data-rx-load-example="${idx}" title="${escapeHtml(strings.loadButton)}" aria-label="${escapeHtml(`${strings.loadButton}: ${ex.name}`)}">${LOAD_ICON}</button>
         </div>
       </td>`;
     examplesBody.appendChild(tr);

@@ -20,5 +20,8 @@
   "ErrorNotImage": "चयनित फ़ाइल एक छवि नहीं है।",
   "ErrorLoadImage": "छवि लोड करने में विफल।",
   "ErrorInvalidDimensions": "अमान्य आयाम।",
-  "ErrorResizeFailed": "आकार बदलना विफल रहा।"
+  "ErrorResizeFailed": "आकार बदलना विफल रहा।",
+  "Cancel": "रद्द करें",
+  "ErrorUnsupportedFormat": "यह इमेज फ़ॉर्मेट समर्थित नहीं है। PNG, JPEG, WebP, GIF, BMP, ICO, TIFF या TGA का उपयोग करें।",
+  "ErrorDimensionsTooLarge": "आयाम बहुत बड़े हैं: प्रति भुजा अधिकतम 16384 px और कुल 64 मेगापिक्सेल।"
 }

@@ -6,9 +6,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { hasCharset, sanitizeSettings, PW_MAX_LENGTH, PW_MIN_LENGTH } from "../src/tools/password-settings.ts";
-import { aeadProgressView, decryptedName, encryptedName, formatDuration } from "../src/tools/aead-file-helpers.ts";
+import { aeadAlgorithmId, aeadProgressView, bytesToHex, decryptedName, encryptedName, formatDuration } from "../src/tools/aead-file-helpers.ts";
 import { guessSshInput, rsaBits, sshErrorKey } from "../src/tools/openssh-keys-helpers.ts";
-import { base64ToBytes, derBase64ToPem, isCsrPem, parseValidityDays, prettyJson, X509_MAX_VALIDITY_DAYS } from "../src/tools/x509-helpers.ts";
+import { base64ToBytes, derBase64ToPem, isCsrPem, parseSanList, parseValidityDays, prettyJson, X509_MAX_VALIDITY_DAYS } from "../src/tools/x509-helpers.ts";
 import { hasEdgeWhitespace, passwordCandidates } from "../src/tools/crypto-password.ts";
 import { HASH_ALGORITHMS, DEFAULT_HASH_ALGORITHMS } from "../src/tools/hash-algorithms.ts";
 
@@ -57,6 +57,14 @@ test("aead: formatDuration", () => {
   assert.equal(formatDuration(Number.NaN), "--:--");
   assert.equal(formatDuration(-1), "--:--");
   assert.equal(formatDuration(Number.POSITIVE_INFINITY), "--:--");
+});
+
+test("aead: container algorithm ids and header hex", () => {
+  assert.equal(aeadAlgorithmId("aes-256-gcm"), 1);
+  assert.equal(aeadAlgorithmId("chacha20-poly1305"), 2);
+  assert.equal(aeadAlgorithmId("xchacha20-poly1305"), 3);
+  assert.equal(bytesToHex(new Uint8Array([0x4d, 0x44, 0x54, 0x33, 0x00, 0x0f, 0xff])), "4d445433000fff");
+  assert.equal(bytesToHex(new Uint8Array()), "");
 });
 
 test("aead: progress view (percent, speed, ETA)", () => {
@@ -173,4 +181,29 @@ test("x509: isCsrPem recognises PKCS#10 armor only", () => {
   assert.equal(isCsrPem("-----BEGIN NEW CERTIFICATE REQUEST-----\nAA=="), true);
   assert.equal(isCsrPem("-----BEGIN CERTIFICATE-----\nAA=="), false);
   assert.equal(isCsrPem("MIIB"), false);
+});
+
+test("x509: parseSanList sorts DNS / IP / e-mail, lines or commas, dedupes", () => {
+  const r = parseSanList("example.com, www.example.com\n*.Example.com\n192.168.1.10;2001:DB8::0:1\n admin@Example.com\nexample.com");
+  assert.deepEqual(r.dns, ["example.com", "www.example.com", "*.example.com"]);
+  assert.deepEqual(r.ip, ["192.168.1.10", "2001:db8::1"]);
+  assert.deepEqual(r.email, ["admin@example.com"]);
+  assert.deepEqual(r.invalid, []);
+  assert.deepEqual(parseSanList("  \n , "), { dns: [], ip: [], email: [], invalid: [] });
+});
+
+test("x509: parseSanList accepts parser/OpenSSL prefixes, IDN and trailing dot", () => {
+  const r = parseSanList("DNS:api.example.com IP:10.0.0.1 IP:::1 EMAIL:ops@example.com email:a@b.example localhost bücher.example host.example.");
+  assert.deepEqual(r.dns, ["api.example.com", "localhost", "xn--bcher-kva.example", "host.example"]);
+  assert.deepEqual(r.ip, ["10.0.0.1", "::1"]);
+  assert.deepEqual(r.email, ["ops@example.com", "a@b.example"]);
+  assert.deepEqual(r.invalid, []);
+});
+
+test("x509: parseSanList rejects malformed entries", () => {
+  const bad = ["300.1.1.1", "1.2.3", "01.2.3.4", "2001:db8::g", "fe80::1%eth0", "-bad.example", "bad-.example", "a..b", "*.com", "*", "foo.*.example", "under_score.example", "x@", "@x.example", "a@*.example", "a..b@x.example", "DNS:", "IP:example.com", `${"a".repeat(64)}.example`];
+  for (const entry of bad) {
+    assert.deepEqual(parseSanList(entry), { dns: [], ip: [], email: [], invalid: [entry] }, entry);
+  }
+  assert.deepEqual(parseSanList("ok.example, 999.0.0.1").invalid, ["999.0.0.1"]);
 });

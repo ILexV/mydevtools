@@ -15,7 +15,6 @@
   "CaseLower": "minúsculas",
   "CountLabel": "Número de UUIDs",
   "Generate": "Gerar",
-  "GenerateOne": "Gerar um",
   "GenerateBatch": "Gerar lote",
   "OutputLabel": "UUIDs gerados",
   "OutputPlaceholder": "Seus UUIDs aparecerão aqui",

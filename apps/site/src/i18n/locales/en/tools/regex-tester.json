@@ -9,7 +9,6 @@
   "FlagsLabel": "Flags",
   "MatchesLabel": "Matches",
   "NoMatches": "No matches found",
-  "ErrorTitle": "Regex Error",
   "ExamplesTitle": "Examples",
   "Instructions": "Enter a Rust-flavor regular expression and test string below. Matches will be highlighted.",
   "SavePatternButton": "Save Pattern",

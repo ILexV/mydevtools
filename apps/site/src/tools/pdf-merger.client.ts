@@ -11,8 +11,12 @@
  * with a `merged.pdf` download (legacy filename). A corrupted or
  * password-protected input is named in a localized error and its row is
  * marked. The result object URL is revoked on replace and on list mutation.
+ * While merging, an indeterminate progress block shows elapsed seconds and
+ * a Cancel button: it aborts the job (terminates the pdf worker), the list
+ * stays as it was and an info note says the merge was cancelled.
  */
 import { mergePdfs } from "@/scripts/wasm/pdf-client";
+import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
 import { classifyPdfError, isPdfFile, moveItem } from "@/tools/pdf-files";
@@ -26,6 +30,7 @@ interface Strings {
   moveDown: string;
   merge: string;
   merging: string;
+  mergeCanceled: string;
   success: string;
   minFilesHint: string;
   errorNotPdf: string;
@@ -65,12 +70,17 @@ function init() {
   const resultSizeEl = root.querySelector<HTMLElement>("[data-pdfm-result-size]");
   const download = root.querySelector<HTMLButtonElement>("[data-pdfm-download]");
   const errorBox = root.querySelector<HTMLElement>("[data-pdfm-error]");
+  const noteBox = root.querySelector<HTMLElement>("[data-pdfm-note]");
+  const progress = root.querySelector<HTMLElement>("[data-pdfm-progress]");
+  const progressLabel = root.querySelector<HTMLElement>("[data-pdfm-progress-label]");
+  const cancelBtn = root.querySelector<HTMLButtonElement>("[data-pdfm-cancel]");
   if (!zone || !input || !listEl || !items || !merge || !resultEl || !download) return;
   root.dataset.initialized = "true";
 
   let files: File[] = [];
   let resultUrl: string | null = null;
   let merging = false;
+  let job: AbortController | null = null;
   /** Row status after the last merge attempt: all merged, or one failed index. */
   let merged = false;
   let failedIndex: number | null = null;
@@ -82,6 +92,12 @@ function init() {
   }
   function clearError() {
     if (errorBox) errorBox.hidden = true;
+    if (noteBox) noteBox.hidden = true;
+  }
+  function showNote(msg: string) {
+    if (!noteBox) return;
+    noteBox.textContent = msg;
+    noteBox.hidden = false;
   }
 
   function hideResult() {
@@ -193,9 +209,21 @@ function init() {
     updateMergeState();
     renderRows();
 
+    const ctrl = new AbortController();
+    job = ctrl;
+    const started = performance.now();
+    const tick = () => {
+      if (progressLabel) progressLabel.textContent = `${Math.floor((performance.now() - started) / 1000)} s`;
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
+    if (cancelBtn) cancelBtn.disabled = false;
+    if (progress) progress.hidden = false;
+
     try {
       const buffers = await Promise.all(files.map(async (file) => new Uint8Array(await file.arrayBuffer())));
-      const out = await mergePdfs(buffers);
+      if (ctrl.signal.aborted) throw new WasmError("aborted", "Aborted");
+      const out = await mergePdfs(buffers, ctrl.signal);
       const blob = new Blob([out.slice()], { type: "application/pdf" });
       resultUrl = URL.createObjectURL(blob);
       if (resultSizeEl) resultSizeEl.textContent = formatBytes(blob.size, 2);
@@ -205,14 +233,20 @@ function init() {
       // the file list changes.
       merge!.hidden = true;
     } catch (e) {
-      showError(errorMessage(e));
+      if (e instanceof WasmError && e.code === "aborted") showNote(strings.mergeCanceled);
+      else showError(errorMessage(e));
     } finally {
+      clearInterval(timer);
+      if (progress) progress.hidden = true;
+      job = null;
       merging = false;
       merge!.removeAttribute("aria-busy");
       if (mergeLabel) mergeLabel.textContent = strings.merge;
       updateMergeState();
       renderRows();
       if (merged) download!.focus();
+      // Cancel hid its own button: return keyboard focus to Merge.
+      else if (ctrl.signal.aborted) merge!.focus();
     }
   }
 
@@ -250,6 +284,10 @@ function init() {
   });
 
   merge.addEventListener("click", () => void handleMerge());
+  cancelBtn?.addEventListener("click", () => {
+    cancelBtn.disabled = true;
+    job?.abort();
+  });
 
   download.addEventListener("click", () => {
     if (!resultUrl) return;

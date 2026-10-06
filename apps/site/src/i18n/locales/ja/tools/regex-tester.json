@@ -9,7 +9,6 @@
   "FlagsLabel": "フラグ",
   "MatchesLabel": "マッチ",
   "NoMatches": "マッチが見つかりません",
-  "ErrorTitle": "正規表現エラー",
   "ExamplesTitle": "例",
   "Instructions": "Rust フレーバーの正規表現とテスト文字列を以下に入力してください。マッチはハイライト表示されます。",
   "SavePatternButton": "パターンを保存",

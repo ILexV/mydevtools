@@ -15,7 +15,6 @@
   "CaseLower": "小文字",
   "CountLabel": "UUID の数",
   "Generate": "生成",
-  "GenerateOne": "1つ生成",
   "GenerateBatch": "一括生成",
   "OutputLabel": "生成された UUID",
   "OutputPlaceholder": "ここに UUID が表示されます",

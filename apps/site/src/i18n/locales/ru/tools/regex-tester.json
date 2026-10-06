@@ -9,7 +9,6 @@
   "FlagsLabel": "Флаги",
   "MatchesLabel": "Совпадения",
   "NoMatches": "Совпадений не найдено",
-  "ErrorTitle": "Ошибка",
   "ExamplesTitle": "Примеры",
   "Instructions": "Введите регулярное выражение и текст. Совпадения будут подсвечены.",
   "SavePatternButton": "Сохранить шаблон",

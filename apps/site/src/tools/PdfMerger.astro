@@ -8,13 +8,16 @@
  * success badge, and the result offers the merged size plus a `merged.pdf`
  * download (legacy filename). Non-PDF picks are rejected with a localized
  * message; a corrupted / password-protected input is named in a localized
- * error and marked in the list.
+ * error and marked in the list. While merging, an indeterminate Progress
+ * with elapsed seconds and Cancel (terminates the pdf worker) is shown; a
+ * cancelled merge leaves the list intact with an info note.
  * UI: tool UI kit (FileDrop, ds-file-list rows built by the controller,
- * StatusMessage).
+ * Progress, StatusMessage).
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
 import FileDrop from "@/components/tool/FileDrop.astro";
+import Progress from "@/components/tool/Progress.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
 import Icon from "@/components/Icon.astro";
 
@@ -36,6 +39,8 @@ const s = {
   moveDown: t(lang, ns, "MoveDown"),
   merge: t(lang, ns, "MergeButton"),
   merging: t(lang, ns, "Merging"),
+  cancel: t(lang, ns, "Cancel"),
+  mergeCanceled: t(lang, ns, "MergeCanceled"),
   success: t(lang, ns, "Success"),
   resultLabel: t(lang, ns, "ResultLabel"),
   resultName: "merged.pdf",
@@ -73,6 +78,15 @@ const stringsJson = JSON.stringify(s);
     </div>
   </section>
 
+  <Progress
+    indeterminate
+    title={s.merging}
+    cancelLabel={s.cancel}
+    data-pdfm-progress
+    cancelProps={{ "data-pdfm-cancel": true }}
+    labelProps={{ "data-pdfm-progress-label": true }}
+  />
+
   <section class="ds-card ds-stack" data-pdfm-result hidden aria-labelledby="pdfm-result-title">
     <h2 class="ds-card-title" id="pdfm-result-title">{s.resultLabel}</h2>
     <StatusMessage kind="success" hidden={false}>{s.success}</StatusMessage>
@@ -87,6 +101,7 @@ const stringsJson = JSON.stringify(s);
   </section>
 
   <StatusMessage kind="error" data-pdfm-error />
+  <StatusMessage kind="info" data-pdfm-note />
 </div>
 
 <script is:inline type="application/json" data-pdfm-strings set:html={stringsJson} />

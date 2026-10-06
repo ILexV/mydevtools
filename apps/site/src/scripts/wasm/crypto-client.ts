@@ -238,7 +238,8 @@ export const X509_ALG = { ed25519: 1, ecdsaP256: 2, ecdsaP384: 3 } as const;
 /**
  * Self-signed certificate with a full subject DN (`CN=…,O=…,C=…` or a bare
  * CN) valid for `[now, now + validityDays]`. Rejects 0 / > 36500 days and
- * malformed DNs (messages start with "invalid validity" / "invalid subject").
+ * malformed DNs (messages start with "invalid validity" / "invalid subject")
+ * and bad SAN entries ("invalid san: <entry>"). Empty SAN lists add no extension.
  */
 export async function x509SelfSignedEx(
   algorithm: number,
@@ -246,25 +247,27 @@ export async function x509SelfSignedEx(
   validityDays: number,
   sanDns: string[] = [],
   sanIp: string[] = [],
+  sanEmail: string[] = [],
 ): Promise<X509GenerateResult> {
   await ensureReady();
   return wrap(() => {
     const now = BigInt(Math.floor(Date.now() / 1000));
-    const [certificate, privateKey] = crypto.x509_self_signed_pem_ex(algorithm, subject, validityDays, now, sanDns, sanIp);
+    const [certificate, privateKey] = crypto.x509_self_signed_pem_ex(algorithm, subject, validityDays, now, sanDns, sanIp, sanEmail);
     return { privateKey, certificate };
   });
 }
 
-/** CSR with a full subject DN + private key (PEM). */
+/** CSR with a full subject DN + private key (PEM); SANs go into the extensionRequest attribute. */
 export async function x509CsrEx(
   algorithm: number,
   subject: string,
   sanDns: string[] = [],
   sanIp: string[] = [],
+  sanEmail: string[] = [],
 ): Promise<X509CsrResult> {
   await ensureReady();
   return wrap(() => {
-    const [csr, privateKey] = crypto.x509_csr_pem_ex(algorithm, subject, sanDns, sanIp);
+    const [csr, privateKey] = crypto.x509_csr_pem_ex(algorithm, subject, sanDns, sanIp, sanEmail);
     return { privateKey, csr };
   });
 }

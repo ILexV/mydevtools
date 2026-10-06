@@ -3,7 +3,6 @@
   "Description": "在 HEX、RGB、HSL 和 CMYK 之间转换颜色，生成 9 级色阶，并在浏览器中检查两种颜色的 WCAG 对比度。",
   "Keywords": "color converter, HEX to RGB, RGB to HSL, CMYK color, color picker online, CSS color converter, color code converter",
   "ColorPicker": "颜色选择器",
-  "InputFormat": "输入格式",
   "ManualInput": "手动输入",
   "InputHint": "示例：#3b82f6, rgb(59, 130, 246), hsl(217, 91%, 60%), cmyk(76%, 47%, 0%, 4%)",
   "Convert": "转换",

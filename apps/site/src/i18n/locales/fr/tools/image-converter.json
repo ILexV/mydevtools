@@ -3,7 +3,6 @@
   "Title": "Convertisseur d'images",
   "Keywords": "convertisseur d'images, PNG en JPG, JPG en WebP, PNG en ICO, convertisseur de favicon, TGA en PNG, TIFF en PNG, BMP en PNG, convertir le format d'une image",
   "Description": "Convertissez des images entre PNG, JPEG, WebP, GIF, BMP, ICO, TIFF et TGA dans le navigateur, avec réglage de la qualité pour JPEG et WebP. Sans envoi.",
-  "SelectFormat": "Sélectionnez le format de sortie",
   "Convert": "Convertir",
   "Download": "Télécharger",
   "DragDrop": "Glissez-déposez une image ici ou cliquez pour sélectionner",

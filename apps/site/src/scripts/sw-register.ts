@@ -6,7 +6,7 @@
  * Update lifecycle:
  *   1. Browser/`registration.update()` finds a new SW with a new CACHE_VERSION.
  *   2. New SW installs + precaches, then enters `waiting` (we do not auto-skip).
- *   3. We show a toast; the user taps "Reload" → we `postMessage("SKIP_WAITING")`.
+ *   3. We show a localized banner; the user taps "Update" → we `postMessage("SKIP_WAITING")`.
  *   4. New SW activates, purges old precache, claims clients → `controllerchange`
  *      fires → we reload once into the fresh shell.
  *
@@ -16,53 +16,25 @@
  */
 import { BASE_URL } from "@/lib/url";
 
-const TOAST_TEXT = "A new version is available.";
-const TOAST_BUTTON = "Reload";
-
-function styleToast(el: HTMLElement): void {
-  el.style.cssText = [
-    "position:fixed",
-    "z-index:1000",
-    "left:50%",
-    "bottom:1.25rem",
-    "transform:translateX(-50%)",
-    "display:flex",
-    "align-items:center",
-    "gap:0.75rem",
-    "max-width:min(92vw,32rem)",
-    "padding:0.7rem 0.85rem",
-    "border-radius:var(--mdt-radius-sm,0.5rem)",
-    "border:1px solid var(--mdt-border,#283039)",
-    "background:var(--mdt-surface-raised,#1b2029)",
-    "color:var(--mdt-text,#e6eaf0)",
-    "font-size:0.9rem",
-    "box-shadow:var(--mdt-shadow,0 8px 24px rgba(0,0,0,0.25))",
-  ].join(";");
-}
-
+/**
+ * Reveal the localized update banner (`#sw-update-prompt`, rendered by
+ * InstallPrompt.astro). "Update" promotes the waiting worker; "Later" just
+ * hides the banner — the new version still activates once every tab is closed.
+ */
 function showUpdate(waiting: ServiceWorker): void {
-  const toast = document.getElementById("sw-update-toast");
-  if (!toast || toast.dataset.bound === "1") return;
-  toast.dataset.bound = "1";
-  toast.hidden = false;
-  toast.textContent = TOAST_TEXT;
-  styleToast(toast);
+  const banner = document.getElementById("sw-update-prompt");
+  if (!banner || banner.dataset.bound === "1") return;
+  banner.dataset.bound = "1";
+  banner.hidden = false;
 
-  const btn = document.createElement("button");
-  btn.textContent = TOAST_BUTTON;
-  btn.style.cssText = [
-    "flex-shrink:0",
-    "border:0",
-    "border-radius:0.4rem",
-    "padding:0.4rem 0.85rem",
-    "font-weight:600",
-    "font-size:0.85rem",
-    "cursor:pointer",
-    "background:var(--mdt-accent,#2f6df0)",
-    "color:var(--mdt-accent-contrast,#ffffff)",
-  ].join(";");
-  btn.addEventListener("click", () => waiting.postMessage("SKIP_WAITING"));
-  toast.appendChild(btn);
+  const update = document.getElementById("sw-update-btn") as HTMLButtonElement | null;
+  update?.addEventListener("click", () => {
+    update.disabled = true;
+    waiting.postMessage("SKIP_WAITING");
+  });
+  document.getElementById("sw-update-dismiss")?.addEventListener("click", () => {
+    banner.hidden = true;
+  });
 }
 
 if (import.meta.env.PROD && "serviceWorker" in navigator) {
@@ -87,9 +59,11 @@ if (import.meta.env.PROD && "serviceWorker" in navigator) {
   });
 
   // New SW took over after SKIP_WAITING — reload once into the fresh shell.
+  // Skip the first-visit claim (no prior controller): that page is already fresh.
+  const hadController = !!navigator.serviceWorker.controller;
   let refreshing = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (refreshing) return;
+    if (refreshing || !hadController) return;
     refreshing = true;
     location.reload();
   });

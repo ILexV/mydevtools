@@ -15,7 +15,6 @@
   "CaseLower": "소문자",
   "CountLabel": "UUID 개수",
   "Generate": "생성",
-  "GenerateOne": "하나 생성",
   "GenerateBatch": "일괄 생성",
   "OutputLabel": "생성된 UUID",
   "OutputPlaceholder": "UUID가 여기에 표시됩니다",

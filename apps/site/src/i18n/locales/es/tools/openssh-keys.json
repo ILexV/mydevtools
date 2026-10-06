@@ -13,7 +13,6 @@
   "ImportFileLabel": "Archivo de clave",
   "ImportFileHint": "Compatible con OpenSSH public/private y PKCS#8 PEM.",
   "ImportButton": "Importar",
-  "ConvertSectionTitle": "Convertir",
   "ConvertButton": "Convertir",
   "PublicKeyLabel": "Clave pública",
   "PrivateKeyLabel": "Clave privada",

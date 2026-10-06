@@ -3,12 +3,14 @@
  * Base64-DER certificates and PKCS#10 CSRs (subject, key, SANs, extensions,
  * self-signature check) via the main-thread `crypto-client` WASM helpers.
  * Legacy parity: Ed25519 by default (legacy passed algorithm id 1 = Ed25519),
- * no SAN inputs, pretty-JSON output, copy/download, download names
+ * pretty-JSON output, copy/download, download names
  * certificate.pem / request.csr.pem / x509.json.
  * Fixes vs. legacy: the subject accepts a full DN (`CN=…,O=…,C=…`) instead of
  * stuffing the whole string into the CN; "Validity (days)" is honoured
  * (legacy certs were valid 1975–4096); errors are localized and kept apart
- * from certificate warnings.
+ * from certificate warnings; Subject Alternative Names (DNS / IP / e-mail,
+ * validated by parseSanList) go into the certificate / CSR extensionRequest —
+ * the CN is not copied into the SANs automatically, an empty list only warns.
  */
 import {
   x509Parse,
@@ -20,7 +22,7 @@ import {
   X509_ALG,
 } from "@/scripts/wasm/crypto-client";
 import { copyWithFeedback } from "@/scripts/tool-ui";
-import { base64ToBytes, derBase64ToPem, isCsrPem, parseValidityDays, prettyJson } from "@/tools/x509-helpers";
+import { base64ToBytes, derBase64ToPem, isCsrPem, parseSanList, parseValidityDays, prettyJson, type SanList } from "@/tools/x509-helpers";
 
 interface Strings {
   copy: string;
@@ -30,6 +32,8 @@ interface Strings {
   invalidFormat: string;
   errorValidityDays: string;
   errorInvalidSubject: string;
+  errorInvalidSan: string;
+  warningNoSan: string;
   error: string;
   warningCsrSignature: string;
 }
@@ -54,6 +58,7 @@ function init() {
   const subject = root.querySelector<HTMLInputElement>("[data-x509-subject]");
   const algorithm = root.querySelector<HTMLSelectElement>("[data-x509-algorithm]");
   const validity = root.querySelector<HTMLInputElement>("[data-x509-validity]");
+  const san = root.querySelector<HTMLTextAreaElement>("[data-x509-san]");
   const generateSelfSignedBtn = root.querySelector<HTMLButtonElement>("[data-x509-generate-selfsigned]");
   const generateCsrBtn = root.querySelector<HTMLButtonElement>("[data-x509-generate-csr]");
   const parseInput = root.querySelector<HTMLTextAreaElement>("[data-x509-parse-input]");
@@ -64,7 +69,8 @@ function init() {
   const warnings = root.querySelector<HTMLElement>("[data-x509-warnings]");
   const errorEl = root.querySelector<HTMLElement>("[data-x509-error]");
 
-  if (!subject || !validity || !parseInput || !output || !warnings || !errorEl) return;
+  if (!subject || !validity || !san || !parseInput || !output || !warnings || !errorEl) return;
+  const sanArea: HTMLTextAreaElement = san;
   const subjectInput: HTMLInputElement = subject;
   const validityInput: HTMLInputElement = validity;
   const parseArea: HTMLTextAreaElement = parseInput;
@@ -99,7 +105,7 @@ function init() {
     setWarnings([]);
     errorBox.hidden = true;
     errorBox.textContent = "";
-    for (const el of [subjectInput, validityInput, parseArea]) el.removeAttribute("aria-invalid");
+    for (const el of [subjectInput, validityInput, sanArea, parseArea]) el.removeAttribute("aria-invalid");
   }
 
   function setOutput(text: string, downloadName: string | null) {
@@ -115,12 +121,36 @@ function init() {
     if (message.startsWith("invalid subject")) {
       subjectInput.setAttribute("aria-invalid", "true");
       setError(`${strings.errorInvalidSubject} — ${message.replace(/^invalid subject:\s*/, "")}`);
+    } else if (message.startsWith("invalid san")) {
+      sanArea.setAttribute("aria-invalid", "true");
+      setError(fillSanError(message.replace(/^invalid san:\s*/, "")));
     } else if (message.startsWith("invalid validity")) {
       validityInput.setAttribute("aria-invalid", "true");
       setError(strings.errorValidityDays);
     } else {
       setError(message);
     }
+  }
+
+  function fillSanError(entries: string): string {
+    return strings.errorInvalidSan.replace("{entries}", () => entries);
+  }
+
+  /** Validated SAN list, or null after showing a localized error for rejected entries. */
+  function readSans(): SanList | null {
+    const sans = parseSanList(sanArea.value);
+    if (sans.invalid.length > 0) {
+      sanArea.setAttribute("aria-invalid", "true");
+      setError(fillSanError(sans.invalid.join(", ")));
+      sanArea.focus();
+      return null;
+    }
+    return sans;
+  }
+
+  /** Non-blocking hint: without SANs, browsers/TLS clients reject the name. */
+  function warnIfNoSans(sans: SanList) {
+    if (sans.dns.length + sans.ip.length + sans.email.length === 0) setWarnings([strings.warningNoSan]);
   }
 
   function selectedAlgorithm(): number {
@@ -147,9 +177,19 @@ function init() {
         validityInput.focus();
         return;
       }
+      const sans = readSans();
+      if (!sans) return;
       try {
-        const { certificate, privateKey } = await x509SelfSignedEx(selectedAlgorithm(), subjectInput.value, days);
+        const { certificate, privateKey } = await x509SelfSignedEx(
+          selectedAlgorithm(),
+          subjectInput.value,
+          days,
+          sans.dns,
+          sans.ip,
+          sans.email,
+        );
         setOutput(`${certificate}\n${privateKey}`.trim(), "certificate.pem");
+        warnIfNoSans(sans);
       } catch (e) {
         generationError(e);
       }
@@ -158,9 +198,12 @@ function init() {
 
   generateCsrBtn?.addEventListener("click", () =>
     void withBusy(generateCsrBtn, async () => {
+      const sans = readSans();
+      if (!sans) return;
       try {
-        const { csr, privateKey } = await x509CsrEx(selectedAlgorithm(), subjectInput.value);
+        const { csr, privateKey } = await x509CsrEx(selectedAlgorithm(), subjectInput.value, sans.dns, sans.ip, sans.email);
         setOutput(`${csr}\n${privateKey}`.trim(), "request.csr.pem");
+        warnIfNoSans(sans);
       } catch (e) {
         generationError(e);
       }
@@ -231,6 +274,7 @@ function init() {
 
   subjectInput.addEventListener("input", () => subjectInput.removeAttribute("aria-invalid"));
   validityInput.addEventListener("input", () => validityInput.removeAttribute("aria-invalid"));
+  sanArea.addEventListener("input", () => sanArea.removeAttribute("aria-invalid"));
   parseArea.addEventListener("input", () => parseArea.removeAttribute("aria-invalid"));
 }
 

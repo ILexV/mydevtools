@@ -1,8 +1,9 @@
 ---
 /**
  * X.509 certificate tool (cryptography WASM domain). Self-signed certificate /
- * CSR generation (subject DN or bare CN, key algorithm, validity days — legacy
- * ignored the DN attributes and the days field), PEM or Base64-DER parsing of
+ * CSR generation (subject DN or bare CN, Subject Alternative Names — DNS /
+ * IP / e-mail, key algorithm, validity days — legacy ignored the DN attributes
+ * and the days field and had no SAN input), PEM or Base64-DER parsing of
  * certificates and PKCS#10 CSRs to a pretty JSON summary, validity / CSR
  * signature warnings, copy/download.
  * Behavior lives in `x509.client.ts` (crypto-client helpers, main-thread WASM).
@@ -22,6 +23,10 @@ const s = {
   selfSignedSectionTitle: t(lang, ns, "SelfSignedSectionTitle"),
   subjectLabel: t(lang, ns, "SubjectLabel"),
   subjectHint: t(lang, ns, "SubjectHint"),
+  sanLabel: t(lang, ns, "SanLabel"),
+  sanHint: t(lang, ns, "SanHint"),
+  errorInvalidSan: t(lang, ns, "ErrorInvalidSan"),
+  warningNoSan: t(lang, ns, "WarningNoSan"),
   validityDaysLabel: t(lang, ns, "ValidityDaysLabel"),
   generateSelfSigned: t(lang, ns, "GenerateSelfSigned"),
   generateCsr: t(lang, ns, "GenerateCsr"),
@@ -59,6 +64,18 @@ const stringsJson = JSON.stringify(s);
           aria-describedby="x509-subject-hint"
           placeholder="CN=example.com,O=My Org,C=US"
         />
+      </Field>
+      <Field label={s.sanLabel} for="x509-san" hint={s.sanHint} class="ds-settings-wide">
+        <textarea
+          id="x509-san"
+          class="ds-field-textarea mono"
+          data-x509-san
+          rows="3"
+          spellcheck="false"
+          autocomplete="off"
+          autocapitalize="off"
+          aria-describedby="x509-san-hint"
+          placeholder={"example.com\nwww.example.com\n192.168.1.10"}></textarea>
       </Field>
       <Field label={s.algorithmLabel} for="x509-algorithm">
         <select id="x509-algorithm" class="ds-field-select" data-x509-algorithm>

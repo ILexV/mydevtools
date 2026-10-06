@@ -2,9 +2,11 @@
  * AEAD file tool helpers (pure, unit-tested in test/crypto-tools.test.ts):
  * output file names (`<name>.aead` on encrypt; strip `.aead` or append
  * `.dec` on decrypt — legacy parity), the progress line
- * `X / Y • speed/s • ETA m:ss`, and duration formatting.
+ * `X / Y • speed/s • ETA m:ss`, duration formatting, and the container
+ * algorithm id / header hex used by the AEAD worker.
  */
 import { formatBytes, progressPercent } from "../lib/format.ts";
+import type { AeadAlgorithm } from "../scripts/wasm/aead-file-protocol.ts";
 
 export const AEAD_EXTENSION = ".aead";
 
@@ -43,4 +45,18 @@ export function aeadProgressView(processed: number, total: number, elapsedMs: nu
     percent: progressPercent(processed, total),
     text: `${formatBytes(processed, 2)} / ${formatBytes(total, 2)} • ${formatBytes(speed, 2)}/s • ETA ${formatDuration(remaining)}`,
   };
+}
+
+/** Container algorithm id written into the MDT header: 1 AES-256-GCM, 2 ChaCha20-Poly1305, 3 XChaCha20-Poly1305. */
+export function aeadAlgorithmId(algorithm: AeadAlgorithm): number {
+  if (algorithm === "chacha20-poly1305") return 2;
+  if (algorithm === "xchacha20-poly1305") return 3;
+  return 1;
+}
+
+/** Lowercase hex of the container header (shown in the output panel). */
+export function bytesToHex(bytes: Uint8Array): string {
+  let out = "";
+  for (const b of bytes) out += b.toString(16).padStart(2, "0");
+  return out;
 }

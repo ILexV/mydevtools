@@ -9,7 +9,6 @@
   "FlagsLabel": "Flags",
   "MatchesLabel": "Correspondências",
   "NoMatches": "Nenhuma correspondência encontrada",
-  "ErrorTitle": "Erro de Regex",
   "ExamplesTitle": "Exemplos",
   "Instructions": "Digite uma expressão regular no estilo Rust e uma string de teste abaixo. As correspondências serão destacadas.",
   "SavePatternButton": "Salvar padrão",

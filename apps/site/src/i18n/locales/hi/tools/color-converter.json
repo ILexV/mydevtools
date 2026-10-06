@@ -3,7 +3,6 @@
   "Description": "HEX, RGB, HSL और CMYK के बीच रंग बदलें, 9 शेड वाला पैलेट बनाएं और ब्राउज़र में दो रंगों का WCAG कंट्रास्ट जांचें।",
   "Keywords": "color converter, HEX to RGB, RGB to HSL, CMYK color, color picker online, CSS color converter, color code converter",
   "ColorPicker": "रंग पिकर",
-  "InputFormat": "इनपुट प्रारूप",
   "ManualInput": "मैन्युअल इनपुट",
   "InputHint": "उदाहरण: #3b82f6, rgb(59, 130, 246), hsl(217, 91%, 60%), cmyk(76%, 47%, 0%, 4%)",
   "Convert": "कन्वर्ट",

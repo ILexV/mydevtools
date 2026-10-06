@@ -125,7 +125,7 @@ test("cryptography wasm: AEAD container flow (aead-file-client) incl. failures",
 test("cryptography wasm: X.509 Ex API + error prefixes used by x509.client", { skip }, async () => {
   const c = await load("cryptography");
   const now = BigInt(Math.floor(Date.now() / 1000));
-  const [certPem, keyPem] = c.x509_self_signed_pem_ex(2, "CN=t.example, O=Org, C=de", 90, now, [], []);
+  const [certPem, keyPem] = c.x509_self_signed_pem_ex(2, "CN=t.example, O=Org, C=de", 90, now, [], [], []);
   assert.match(keyPem, /BEGIN PRIVATE KEY/);
   const cert = new X509Certificate(certPem);
   assert.match(cert.subject, /CN=t\.example/);
@@ -134,11 +134,18 @@ test("cryptography wasm: X.509 Ex API + error prefixes used by x509.client", { s
   assert.ok(cert.verify(cert.publicKey));
   assert.deepEqual(c.x509_warnings_pem(certPem, now + 1n), []);
   assert.ok(c.x509_warnings_pem(certPem, now + 91n * 86_400n).includes("certificate expired"));
-  assert.throws(() => c.x509_self_signed_pem_ex(1, "CN=a, XX=b", 1, now, [], []), /^invalid subject/);
-  assert.throws(() => c.x509_self_signed_pem_ex(1, "CN=a", 0, now, [], []), /^invalid validity/);
-  const [csr] = c.x509_csr_pem_ex(3, "csr.example", [], []);
+  assert.throws(() => c.x509_self_signed_pem_ex(1, "CN=a, XX=b", 1, now, [], [], []), /^invalid subject/);
+  assert.throws(() => c.x509_self_signed_pem_ex(1, "CN=a", 0, now, [], [], []), /^invalid validity/);
+  const [csr] = c.x509_csr_pem_ex(3, "csr.example", [], [], []);
   assert.match(csr, /BEGIN CERTIFICATE REQUEST/);
   assert.throws(() => c.x509_parse_pem("-----BEGIN CERTIFICATE-----\nAAAA\n-----END CERTIFICATE-----"));
+  // SANs (DNS / IP / e-mail) as read by Node's own X.509 parser; bad entries → "invalid san:".
+  const [sanPem] = c.x509_self_signed_pem_ex(2, "CN=san.example", 1, now, ["san.example", "*.san.example"], ["192.0.2.7", "2001:db8::7"], ["ops@san.example"]);
+  assert.equal(
+    new X509Certificate(sanPem).subjectAltName,
+    "DNS:san.example, DNS:*.san.example, IP Address:192.0.2.7, IP Address:2001:DB8:0:0:0:0:0:7, email:ops@san.example",
+  );
+  assert.throws(() => c.x509_csr_pem_ex(2, "CN=x", [], ["1.2.3"], []), /^invalid san: 1\.2\.3/);
 });
 
 test("cryptography wasm: OpenSSH error messages mapped by sshErrorKey", { skip }, async () => {
@@ -249,7 +256,7 @@ test("cryptography wasm: legacy MDT2 file from the old site still decrypts (trim
 
 test("cryptography wasm: CSR (PKCS#10) parsing — own CSRs and OpenSSL fixtures", { skip }, async () => {
   const c = await load("cryptography");
-  const [csrPem] = c.x509_csr_pem_ex(2, "CN=csr.example, O=Org, C=de", ["csr.example"], ["192.0.2.1"]);
+  const [csrPem] = c.x509_csr_pem_ex(2, "CN=csr.example, O=Org, C=de", ["csr.example"], ["192.0.2.1"], []);
   const own = JSON.parse(c.x509_parse_csr_pem(csrPem));
   assert.equal(own.publicKey, "ECDSA P-256");
   assert.equal(own.signatureValid, true);
@@ -264,7 +271,7 @@ test("cryptography wasm: CSR (PKCS#10) parsing — own CSRs and OpenSSL fixtures
   assert.equal(ed.publicKey, "Ed25519");
   assert.equal(ed.signatureValid, true);
   // A certificate is not a CSR (the controller tries the certificate parser first for DER).
-  const [certPem] = c.x509_self_signed_pem_ex(1, "CN=c", 1, BigInt(Math.floor(Date.now() / 1000)), [], []);
+  const [certPem] = c.x509_self_signed_pem_ex(1, "CN=c", 1, BigInt(Math.floor(Date.now() / 1000)), [], [], []);
   assert.throws(() => c.x509_parse_csr_pem(certPem), /not a certificate request/);
 });
 

@@ -13,7 +13,6 @@
   "ImportFileLabel": "密钥文件",
   "ImportFileHint": "支持 OpenSSH 公钥/私钥和 PKCS#8 PEM 文件。",
   "ImportButton": "导入",
-  "ConvertSectionTitle": "转换",
   "ConvertButton": "转换",
   "PublicKeyLabel": "公钥",
   "PrivateKeyLabel": "私钥",

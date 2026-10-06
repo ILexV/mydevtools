@@ -15,7 +15,6 @@
   "CaseLower": "小写",
   "CountLabel": "UUID 数量",
   "Generate": "生成",
-  "GenerateOne": "生成一个",
   "GenerateBatch": "批量生成",
   "OutputLabel": "生成的 UUID",
   "OutputPlaceholder": "您的 UUID 将显示在这里",

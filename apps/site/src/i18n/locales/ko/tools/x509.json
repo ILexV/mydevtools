@@ -7,7 +7,6 @@
   "SubjectHint": "형식: CN=Name,O=Org,C=Country",
   "ValidityDaysLabel": "유효 기간 (일)",
   "GenerateSelfSigned": "인증서 생성",
-  "CsrSectionTitle": "CSR",
   "GenerateCsr": "CSR 생성",
   "ParseSectionTitle": "파싱",
   "ParseLabel": "PEM/DER 붙여넣기",
@@ -23,9 +22,13 @@
   "ErrorValidityDays": "유효 기간은 1~36500 사이의 정수 일수여야 합니다.",
   "ErrorInvalidSubject": "주체가 올바르지 않습니다. 이름 또는 CN=…,O=…,OU=…,L=…,ST=…,C=XX 형식을 사용하세요.",
   "Seo_Introduction": "X.509 인증서 도구는 자체 서명 인증서와 인증서 서명 요청(CSR, PKCS#10)을 만들고, 기존 인증서와 CSR을 읽기 쉬운 JSON으로 해석합니다. 키 생성과 파일 해석은 브라우저에서 이뤄지며 아무것도 업로드되지 않습니다.",
-  "Seo_DetailedDescription": "생성기는 고유 이름 형식의 주체(`CN=…,O=…,OU=…,L=…,ST=…,C=XX`, 이름만 쓰면 CN이 됨), 키 알고리즘(Ed25519, ECDSA P-256, ECDSA P-384), 인증서의 경우 1~36500일의 유효 기간을 받습니다. **인증서 생성**은 자체 서명된 `-----BEGIN CERTIFICATE-----` PEM을, **CSR 생성**은 `-----BEGIN CERTIFICATE REQUEST-----` PEM을 출력하며, 두 경우 모두 새 개인 키가 PKCS#8 `-----BEGIN PRIVATE KEY-----` 블록으로 이어집니다. Subject Alternative Names는 추가하지 않으므로 이 인증서는 공개 사이트가 아니라 테스트와 내부 도구용입니다.\n\n**파싱**은 PEM 또는 Base64 DER 형식의 인증서나 CSR을 받습니다. 인증서는 주체, 발급자, `notBefore` / `notAfter`, 서명·공개 키 알고리즘 OID, Subject Alternative Names를 보여 주고, 만료되었거나 아직 유효하지 않은 인증서, SHA-1·MD5 서명, 3072비트 미만 RSA, 약한 곡선에 경고를 표시합니다. CSR은 주체, 키 종류(예: `ECDSA P-256`, `RSA 2048`), 서명 알고리즘, 요청된 SAN, key usage, extended key usage, basic constraints를 보여 주고 요청 자체의 서명을 검증합니다(`signatureValid`). 서명이 맞지 않으면 서명 후 요청이 변경되었거나 손상되었다는 경고가 나옵니다.\n\n출력은 복사하거나 `certificate.pem`, `request.csr.pem`, `x509.json`, `csr.json`으로 내려받을 수 있습니다.",
+  "Seo_DetailedDescription": "생성기는 고유 이름 형식의 주체(`CN=…,O=…,OU=…,L=…,ST=…,C=XX`, 이름만 쓰면 CN이 됨), 키 알고리즘(Ed25519, ECDSA P-256, ECDSA P-384), 인증서의 경우 1~36500일의 유효 기간을 받습니다. **인증서 생성**은 자체 서명된 `-----BEGIN CERTIFICATE-----` PEM을, **CSR 생성**은 `-----BEGIN CERTIFICATE REQUEST-----` PEM을 출력하며, 두 경우 모두 새 개인 키가 PKCS#8 `-----BEGIN PRIVATE KEY-----` 블록으로 이어집니다. **주체 대체 이름 (SAN)** 필드의 호스트 이름, IP 주소, 이메일 주소(한 줄에 하나씩 또는 쉼표로 구분)는 subjectAltName 확장에, CSR에서는 extensionRequest 속성에 기록됩니다. CN은 자동으로 복사되지 않으므로 클라이언트가 사용할 모든 이름을 입력하세요.\n\n**파싱**은 PEM 또는 Base64 DER 형식의 인증서나 CSR을 받습니다. 인증서는 주체, 발급자, `notBefore` / `notAfter`, 서명·공개 키 알고리즘 OID, Subject Alternative Names를 보여 주고, 만료되었거나 아직 유효하지 않은 인증서, SHA-1·MD5 서명, 3072비트 미만 RSA, 약한 곡선에 경고를 표시합니다. CSR은 주체, 키 종류(예: `ECDSA P-256`, `RSA 2048`), 서명 알고리즘, 요청된 SAN, key usage, extended key usage, basic constraints를 보여 주고 요청 자체의 서명을 검증합니다(`signatureValid`). 서명이 맞지 않으면 서명 후 요청이 변경되었거나 손상되었다는 경고가 나옵니다.\n\n출력은 복사하거나 `certificate.pem`, `request.csr.pem`, `x509.json`, `csr.json`으로 내려받을 수 있습니다.",
   "Seo_Examples": "**CA에 보내기 전에 CSR 확인**: `CERTIFICATE REQUEST` PEM을 붙여넣고 **파싱**을 누릅니다. OpenSSL로 만든 `api.example.com` 요청은 `\"publicKey\": \"RSA 2048\"`, 요청된 DNS 이름과 IP, `\"extendedKeyUsage\": [\"serverAuth\", \"clientAuth\"]`, `\"signatureValid\": true`를 보여 줍니다.\n\n**로컬 서비스용 테스트 인증서**: `CN=api.example.com,O=Example GmbH,C=DE`를 입력하고 ECDSA P-256을 고른 뒤 365일 그대로 **인증서 생성**을 누릅니다. 결과를 파싱하면 주체 `CN=api.example.com, O=Example GmbH, C=DE`와 정확히 365일 간격의 유효 기간이 표시됩니다.\n\n**인증서 만료일 확인**: 서버 인증서(PEM 또는 설정 파일의 Base64 DER)를 붙여넣고 **파싱**을 누릅니다. `notAfter`가 만료일이며, 만료된 인증서는 **경고**에 표시됩니다.\n\n**키와 CSR을 한 번에**: 주체를 입력하고 키 알고리즘을 고른 뒤 **CSR 생성**을 누릅니다. 개인 키 블록은 직접 보관하고 요청 블록만 제출합니다.",
-  "Seo_HowToSteps": "### 1단계: 주체 입력\n**주체 (CN)**에 `CN=example.com,O=My Org,C=US` 같은 값이나 호스트 이름만 입력합니다.\n\n### 2단계: 키와 유효 기간 선택\n**키 알고리즘**을 고르고, 인증서라면 **유효 기간 (일)**을 정합니다.\n\n### 3단계: 생성\n자체 서명 인증서는 **인증서 생성**, 서명 요청은 **CSR 생성**을 클릭합니다.\n\n### 4단계: 기존 파일 파싱\n인증서나 CSR을 **PEM/DER 붙여넣기**에 붙여넣고 **파싱**을 눌러 필드와 **경고**를 확인합니다.",
-  "Seo_Tips": "- 브라우저는 TLS용 Ed25519 인증서를 받지 않습니다. 브라우저로 열 서비스에는 ECDSA P-256을 고르세요.\n- 자체 서명 인증서는 직접 설치한 곳에서만 신뢰됩니다. 공개 사이트라면 CSR을 인증 기관에 제출하세요.\n- 개인 키는 인증서나 CSR 바로 아래에 출력됩니다. 따로 보관하고 CA에는 절대 보내지 마세요.\n- 최신 클라이언트는 호스트 이름을 Subject Alternative Names와 대조합니다. 이 생성기의 CSR에는 SAN이 없으니 필요하면 CA나 OpenSSL로 추가하세요.\n- `\"signatureValid\": null`은 CSR의 서명 알고리즘이 검증을 지원하지 않는다는 뜻이며, 검증 실패가 아닙니다.",
-  "WarningCsrSignature": "CSR 서명이 검증되지 않습니다. 요청이 변경되었거나 손상되었습니다"
+  "Seo_HowToSteps": "### 1단계: 주체 입력\n**주체 (CN)**에 `CN=example.com,O=My Org,C=US` 같은 값이나 호스트 이름만 입력합니다. **주체 대체 이름 (SAN)**에는 클라이언트가 사용할 모든 호스트 이름과 IP를 입력합니다.\n\n### 2단계: 키와 유효 기간 선택\n**키 알고리즘**을 고르고, 인증서라면 **유효 기간 (일)**을 정합니다.\n\n### 3단계: 생성\n자체 서명 인증서는 **인증서 생성**, 서명 요청은 **CSR 생성**을 클릭합니다.\n\n### 4단계: 기존 파일 파싱\n인증서나 CSR을 **PEM/DER 붙여넣기**에 붙여넣고 **파싱**을 눌러 필드와 **경고**를 확인합니다.",
+  "Seo_Tips": "- 브라우저는 TLS용 Ed25519 인증서를 받지 않습니다. 브라우저로 열 서비스에는 ECDSA P-256을 고르세요.\n- 자체 서명 인증서는 직접 설치한 곳에서만 신뢰됩니다. 공개 사이트라면 CSR을 인증 기관에 제출하세요.\n- 개인 키는 인증서나 CSR 바로 아래에 출력됩니다. 따로 보관하고 CA에는 절대 보내지 마세요.\n- 브라우저는 CN을 무시하고 호스트 이름을 Subject Alternative Names와만 대조합니다. 서비스에 접속하는 모든 이름과 IP를 입력하세요(예: `example.com`, `www.example.com`, `127.0.0.1`).\n- `\"signatureValid\": null`은 CSR의 서명 알고리즘이 검증을 지원하지 않는다는 뜻이며, 검증 실패가 아닙니다.",
+  "WarningCsrSignature": "CSR 서명이 검증되지 않습니다. 요청이 변경되었거나 손상되었습니다",
+  "SanLabel": "주체 대체 이름 (SAN)",
+  "SanHint": "한 줄에 하나씩 또는 쉼표로 구분: DNS 이름(example.com, *.example.com), IP 주소, 이메일 주소. 브라우저는 CN이 아니라 이 항목으로 호스트 이름을 확인합니다.",
+  "ErrorInvalidSan": "잘못된 주체 대체 이름(SAN): {entries}. DNS 이름(example.com, *.example.com), IPv4/IPv6 주소 또는 이메일 주소를 사용하세요.",
+  "WarningNoSan": "주체 대체 이름(SAN)이 없음: 브라우저와 대부분의 TLS 클라이언트는 이 인증서를 호스트 이름용으로 거부합니다"
 }

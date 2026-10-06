@@ -9,7 +9,6 @@
   "FlagsLabel": "标志",
   "MatchesLabel": "匹配项",
   "NoMatches": "未找到匹配项",
-  "ErrorTitle": "正则表达式错误",
   "ExamplesTitle": "示例",
   "Instructions": "在下方输入 Rust 风格的正则表达式和测试字符串。匹配项将高亮显示。",
   "SavePatternButton": "保存模式",

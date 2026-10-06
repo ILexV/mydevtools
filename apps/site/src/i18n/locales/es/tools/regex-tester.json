@@ -9,7 +9,6 @@
   "FlagsLabel": "Banderas",
   "MatchesLabel": "Coincidencias",
   "NoMatches": "No se encontraron coincidencias",
-  "ErrorTitle": "Error",
   "ExamplesTitle": "Ejemplos",
   "Instructions": "Ingrese una expresión regular y un texto de prueba. Las coincidencias se resaltarán.",
   "SavePatternButton": "Guardar patrón",

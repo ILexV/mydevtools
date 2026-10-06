@@ -1,6 +1,6 @@
 /**
- * AEAD file crypto client controller. Drives `aead-file-client` (chunked
- * streaming WASM) for encrypt/decrypt with progress + cancel, header hex
+ * AEAD file crypto client controller. Drives `aead-file-client` (Argon2id +
+ * chunked streaming WASM in a Web Worker) for encrypt/decrypt with progress + cancel, header hex
  * output, and blob download (1 MiB chunks, Argon2id, `<name>.aead` /
  * strip-`.aead`-or-append-`.dec` download names). Encryption writes MDT3 and
  * uses the password exactly as typed (a hint flags edge whitespace);

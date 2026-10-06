@@ -3,7 +3,6 @@
   "TargetFormatLabel": "Target Format",
   "Title": "Image Converter",
   "Description": "Convert images between PNG, JPEG, WebP, GIF, BMP, ICO, TIFF and TGA in your browser, with quality control for JPEG and WebP. No upload.",
-  "SelectFormat": "Select output format",
   "Convert": "Convert",
   "Download": "Download",
   "DragDrop": "Drag & drop an image here or click to select",

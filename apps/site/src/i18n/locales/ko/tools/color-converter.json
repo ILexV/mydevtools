@@ -3,7 +3,6 @@
   "Description": "HEX, RGB, HSL, CMYK 간 색상 변환, 9단계 색조 팔레트 생성, 두 색상의 WCAG 대비를 브라우저에서 확인합니다.",
   "Keywords": "color converter, HEX to RGB, RGB to HSL, CMYK color, color picker online, CSS color converter, color code converter",
   "ColorPicker": "색상 선택기",
-  "InputFormat": "입력 형식",
   "ManualInput": "수동 입력",
   "InputHint": "예시: #3b82f6, rgb(59, 130, 246), hsl(217, 91%, 60%), cmyk(76%, 47%, 0%, 4%)",
   "Convert": "변환",

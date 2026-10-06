@@ -9,7 +9,6 @@
   "FlagsLabel": "Drapeaux",
   "MatchesLabel": "Correspondances",
   "NoMatches": "Aucune correspondance trouvée",
-  "ErrorTitle": "Erreur Regex",
   "ExamplesTitle": "Exemples",
   "Instructions": "Entrez une expression régulière de style Rust et une chaîne de test ci-dessous. Les correspondances seront surlignées.",
   "SavePatternButton": "Enregistrer le motif",

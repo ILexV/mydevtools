@@ -6,7 +6,7 @@
  * Checks (exits nonzero on any error):
  *  1. Every JSON file parses.
  *  2. Every locale has the SAME namespace set as `en` (the canonical locale):
- *     shared (common/home/categories) + tools/<slug>.
+ *     shared (common/home) + tools/<slug>.
  *  3. Shared namespaces have the SAME key set across all locales.
  *  4. No empty string values anywhere.
  *  5. Warnings (non-fatal): tool Title/Description left in English for non-en.

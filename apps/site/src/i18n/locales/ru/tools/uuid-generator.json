@@ -15,7 +15,6 @@
   "CaseLower": "нижний",
   "CountLabel": "Количество UUID",
   "Generate": "Сгенерировать",
-  "GenerateOne": "Сгенерировать один",
   "GenerateBatch": "Сгенерировать пакет",
   "OutputLabel": "Сгенерированные UUID",
   "OutputPlaceholder": "Здесь появятся ваши UUID",

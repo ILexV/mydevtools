@@ -5,6 +5,10 @@
  * `[data-pwa-install]` button (home hero) AND the browser has fired
  * `beforeinstallprompt`, the app is not already installed/standalone, and the
  * user has not dismissed it (`pwa-install-dismissed`, legacy key reused).
+ *
+ * Also hosts the "new version available" banner (`#sw-update-prompt`), shown by
+ * `scripts/sw-register.ts` when an updated service worker is waiting; it shares
+ * the banner styles below.
  */
 import type { LocaleCode } from "@/registry/locales";
 import { t } from "@/i18n/messages";
@@ -30,6 +34,20 @@ const { locale } = Astro.props as Props;
   </button>
   <button type="button" class="ds-btn pwa-install-dismiss" id="pwa-install-dismiss">
     {t(locale, "common", "PWA_InstallDismiss")}
+  </button>
+</div>
+
+<div id="sw-update-prompt" class="pwa-install" hidden role="status" aria-live="polite">
+  <span class="pwa-install-icon" aria-hidden="true"><Icon name="download" size={18} /></span>
+  <span class="pwa-install-text">
+    <strong>{t(locale, "common", "PWA_UpdateAvailableTitle")}</strong>
+    <span>{t(locale, "common", "PWA_UpdateAvailableDescription")}</span>
+  </span>
+  <button type="button" class="ds-btn ds-btn-primary pwa-install-btn" id="sw-update-btn">
+    {t(locale, "common", "PWA_UpdateButton")}
+  </button>
+  <button type="button" class="ds-btn pwa-install-dismiss" id="sw-update-dismiss">
+    {t(locale, "common", "PWA_UpdateDismiss")}
   </button>
 </div>
 

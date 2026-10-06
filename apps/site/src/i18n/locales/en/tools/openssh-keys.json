@@ -13,7 +13,6 @@
   "ImportFileLabel": "Key file",
   "ImportFileHint": "Supports OpenSSH public/private and PKCS#8 PEM files.",
   "ImportButton": "Import",
-  "ConvertSectionTitle": "Convert",
   "ConvertButton": "Convert",
   "PublicKeyLabel": "Public key",
   "PrivateKeyLabel": "Private key",

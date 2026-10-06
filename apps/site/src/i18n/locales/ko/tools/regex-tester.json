@@ -9,7 +9,6 @@
   "FlagsLabel": "플래그",
   "MatchesLabel": "일치 항목",
   "NoMatches": "일치하는 항목이 없습니다",
-  "ErrorTitle": "정규식 오류",
   "ExamplesTitle": "예제",
   "Instructions": "Rust 스타일 정규식과 테스트 문자열을 아래에 입력하세요. 일치하는 항목이 강조 표시됩니다.",
   "SavePatternButton": "패턴 저장",

@@ -53,6 +53,15 @@ impl fmt::Display for ParseError {
 }
 
 impl Ipv4Cidr {
+    /// Build from a raw address and an already validated prefix (0..=32).
+    pub fn from_parts(address: u32, prefix_len: u8) -> Self {
+        Self { address, prefix_len }
+    }
+
+    pub fn prefix_len(&self) -> u8 {
+        self.prefix_len
+    }
+
     pub fn parse(input: &str) -> Result<Self, ParseError> {
         let input = input.trim();
 

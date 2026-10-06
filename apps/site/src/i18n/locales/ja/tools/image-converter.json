@@ -3,7 +3,6 @@
   "Title": "画像コンバーター",
   "Keywords": "画像変換, PNG JPG 変換, JPG WebP 変換, PNG ICO 変換, ファビコン 作成, TGA PNG 変換, TIFF PNG 変換, BMP PNG 変換, 画像形式 変換",
   "Description": "PNG・JPEG・WebP・GIF・BMP・ICO・TIFF・TGA の画像形式をブラウザで相互変換。JPEG と WebP は品質を調整可能。アップロード不要。",
-  "SelectFormat": "出力フォーマットを選択",
   "Convert": "変換",
   "Download": "ダウンロード",
   "DragDrop": "画像をここにドラッグ＆ドロップするか、クリックして選択",

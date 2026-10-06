@@ -76,12 +76,9 @@ const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
       import "@/scripts/pwa-install.ts";
     </script>
 
-    <!-- PWA: register the build-generated service worker (production only). -->
+    <!-- PWA: register the build-generated service worker (production only); update banner lives in InstallPrompt. -->
     <script>
       import "@/scripts/sw-register.ts";
     </script>
-
-    <!-- Service-worker update prompt. -->
-    <div id="sw-update-toast" hidden role="status" aria-live="polite"></div>
   </body>
 </html>

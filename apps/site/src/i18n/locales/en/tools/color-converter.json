@@ -3,7 +3,6 @@
   "Description": "Convert colors between HEX, RGB, HSL and CMYK, get a 9-step shades palette and check WCAG contrast between two colors in your browser.",
   "Keywords": "color converter, HEX to RGB, RGB to HSL, CMYK color, color picker online, CSS color converter, color code converter",
   "ColorPicker": "Color Picker",
-  "InputFormat": "Input Format",
   "ManualInput": "Manual Input",
   "InputHint": "Examples: #3b82f6, rgb(59, 130, 246), hsl(217, 91%, 60%), cmyk(76%, 47%, 0%, 4%)",
   "Convert": "Convert",

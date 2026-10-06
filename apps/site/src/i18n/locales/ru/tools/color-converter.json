@@ -3,7 +3,6 @@
   "Description": "Конвертация цветов между HEX, RGB, HSL и CMYK, палитра из 9 оттенков и проверка контраста двух цветов по WCAG прямо в браузере.",
   "Keywords": "color converter, HEX to RGB, RGB to HSL, CMYK color, color picker online, CSS color converter, color code converter",
   "ColorPicker": "Выбор цвета",
-  "InputFormat": "Формат ввода",
   "ManualInput": "Ручной ввод",
   "InputHint": "Примеры: #3b82f6, rgb(59, 130, 246), hsl(217, 91%, 60%), cmyk(76%, 47%, 0%, 4%)",
   "Convert": "Конвертировать",

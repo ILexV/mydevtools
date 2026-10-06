@@ -15,7 +15,6 @@
   "CaseLower": "lowercase",
   "CountLabel": "Number of UUIDs",
   "Generate": "Generate",
-  "GenerateOne": "Generate One",
   "GenerateBatch": "Generate Batch",
   "OutputLabel": "Generated UUIDs",
   "OutputPlaceholder": "Your UUIDs will appear here",

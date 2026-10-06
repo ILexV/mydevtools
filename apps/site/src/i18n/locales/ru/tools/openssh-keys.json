@@ -13,7 +13,6 @@
   "ImportFileLabel": "Файл ключа",
   "ImportFileHint": "Поддерживаются OpenSSH public/private и PKCS#8 PEM.",
   "ImportButton": "Импортировать",
-  "ConvertSectionTitle": "Конвертация",
   "ConvertButton": "Конвертировать",
   "PublicKeyLabel": "Публичный ключ",
   "PrivateKeyLabel": "Приватный ключ",

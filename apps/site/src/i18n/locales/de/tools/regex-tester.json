@@ -9,7 +9,6 @@
   "FlagsLabel": "Flags",
   "MatchesLabel": "Treffer",
   "NoMatches": "Keine Treffer gefunden",
-  "ErrorTitle": "Regex-Fehler",
   "ExamplesTitle": "Beispiele",
   "Instructions": "Geben Sie einen regulären Ausdruck im Rust-Format und eine Testzeichenkette unten ein. Treffer werden hervorgehoben.",
   "SavePatternButton": "Muster speichern",

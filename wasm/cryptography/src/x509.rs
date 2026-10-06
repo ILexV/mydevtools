@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 
-use rcgen::{CertificateParams, DistinguishedName, DnType, KeyPair, SanType, SignatureAlgorithm};
+use rcgen::{CertificateParams, DistinguishedName, DnType, Ia5String, KeyPair, SanType, SignatureAlgorithm};
 use std::net::IpAddr;
 use x509_parser::extensions::GeneralName;
 use x509_parser::prelude::*;
@@ -331,22 +331,36 @@ pub(crate) fn parse_subject_dn(subject: &str) -> Result<Option<DistinguishedName
     Ok(Some(dn))
 }
 
+/// Subject Alternative Names for generated certificates / CSRs: DNS names
+/// (incl. `*.` wildcards), IP addresses and e-mail addresses (rfc822Name).
+/// Written as the subjectAltName extension (CSR: inside extensionRequest).
 fn build_params_ex(
     subject: &str,
     san_dns: Vec<String>,
     san_ip: Vec<String>,
+    san_email: Vec<String>,
 ) -> Result<CertificateParams, String> {
-    let mut params = if san_dns.is_empty() {
-        CertificateParams::default()
-    } else {
-        CertificateParams::new(san_dns).map_err(|_| "invalid san".to_string())?
-    };
+    let mut params = CertificateParams::default();
     if let Some(dn) = parse_subject_dn(subject)? {
         params.distinguished_name = dn;
     }
+    for name in san_dns {
+        let value = Ia5String::try_from(name.as_str()).map_err(|_| format!("invalid san: {name}"))?;
+        if name.is_empty() {
+            return Err("invalid san: empty DNS name".to_string());
+        }
+        params.subject_alt_names.push(SanType::DnsName(value));
+    }
     for ip in san_ip {
-        let ip: IpAddr = ip.parse().map_err(|_| "invalid ip".to_string())?;
-        params.subject_alt_names.push(SanType::IpAddress(ip));
+        let addr: IpAddr = ip.parse().map_err(|_| format!("invalid san: {ip}"))?;
+        params.subject_alt_names.push(SanType::IpAddress(addr));
+    }
+    for email in san_email {
+        if !email.contains('@') {
+            return Err(format!("invalid san: {email}"));
+        }
+        let value = Ia5String::try_from(email.as_str()).map_err(|_| format!("invalid san: {email}"))?;
+        params.subject_alt_names.push(SanType::Rfc822Name(value));
     }
     Ok(params)
 }
@@ -368,11 +382,12 @@ pub(crate) fn self_signed_ex(
     now_unix: i64,
     san_dns: Vec<String>,
     san_ip: Vec<String>,
+    san_email: Vec<String>,
 ) -> Result<Vec<String>, String> {
     if validity_days == 0 || validity_days > X509_MAX_VALIDITY_DAYS {
         return Err(format!("invalid validity: {validity_days} days (1..={X509_MAX_VALIDITY_DAYS})"));
     }
-    let mut params = build_params_ex(subject, san_dns, san_ip)?;
+    let mut params = build_params_ex(subject, san_dns, san_ip, san_email)?;
     let not_before =
         ::time::OffsetDateTime::from_unix_timestamp(now_unix).map_err(|_| "invalid current time".to_string())?;
     params.not_before = not_before;
@@ -387,8 +402,9 @@ pub(crate) fn csr_ex(
     subject: &str,
     san_dns: Vec<String>,
     san_ip: Vec<String>,
+    san_email: Vec<String>,
 ) -> Result<Vec<String>, String> {
-    let params = build_params_ex(subject, san_dns, san_ip)?;
+    let params = build_params_ex(subject, san_dns, san_ip, san_email)?;
     let key_pair = key_pair_for(algorithm)?;
     let csr = params.serialize_request(&key_pair).map_err(|_| "encode failed".to_string())?;
     let csr_pem = csr.pem().map_err(|_| "encode failed".to_string())?;
@@ -408,19 +424,22 @@ pub fn x509_self_signed_pem_ex(
     now_unix: i64,
     san_dns: Vec<String>,
     san_ip: Vec<String>,
+    san_email: Vec<String>,
 ) -> Result<Vec<String>, JsValue> {
-    self_signed_ex(algorithm, subject, validity_days, now_unix, san_dns, san_ip).map_err(|e| JsValue::from_str(&e))
+    self_signed_ex(algorithm, subject, validity_days, now_unix, san_dns, san_ip, san_email).map_err(|e| JsValue::from_str(&e))
 }
 
-/// CSR with a full subject DN (see `parse_subject_dn`). Returns [csr_pem, key_pem].
+/// CSR with a full subject DN (see `parse_subject_dn`) and optional SANs
+/// (requested via the PKCS#9 extensionRequest attribute). Returns [csr_pem, key_pem].
 #[wasm_bindgen]
 pub fn x509_csr_pem_ex(
     algorithm: u8,
     subject: &str,
     san_dns: Vec<String>,
     san_ip: Vec<String>,
+    san_email: Vec<String>,
 ) -> Result<Vec<String>, JsValue> {
-    csr_ex(algorithm, subject, san_dns, san_ip).map_err(|e| JsValue::from_str(&e))
+    csr_ex(algorithm, subject, san_dns, san_ip, san_email).map_err(|e| JsValue::from_str(&e))
 }
 
 /// Parses certificate from PEM and returns JSON string with basic fields.
@@ -720,7 +739,7 @@ mod tests {
 
     #[test]
     fn subject_dn_bare_name_is_common_name() {
-        let out = self_signed_ex(X509_ALG_ED25519, "example.com", 30, NOW, vec![], vec![]).expect("cert");
+        let out = self_signed_ex(X509_ALG_ED25519, "example.com", 30, NOW, vec![], vec![], vec![]).expect("cert");
         assert_eq!(parse_cert(&out[0])["subject"], "CN=example.com");
     }
 
@@ -731,6 +750,7 @@ mod tests {
             "CN=example.com, O=My Org\\, Inc, OU=Dev, L=Omsk, ST=Omsk Oblast, c=ru",
             30,
             NOW,
+            vec![],
             vec![],
             vec![],
         )
@@ -758,7 +778,7 @@ mod tests {
 
     #[test]
     fn validity_window_matches_days() {
-        let out = self_signed_ex(X509_ALG_ED25519, "CN=v", 365, NOW, vec![], vec![]).expect("cert");
+        let out = self_signed_ex(X509_ALG_ED25519, "CN=v", 365, NOW, vec![], vec![], vec![]).expect("cert");
         let der = parse_pem_to_der(&out[0]).expect("der");
         let (_, cert) = parse_x509_certificate(&der).expect("cert");
         let nb = cert.validity().not_before.timestamp();
@@ -773,14 +793,14 @@ mod tests {
 
     #[test]
     fn validity_days_out_of_range_rejected() {
-        assert!(self_signed_ex(X509_ALG_ED25519, "CN=v", 0, NOW, vec![], vec![]).is_err());
-        assert!(self_signed_ex(X509_ALG_ED25519, "CN=v", X509_MAX_VALIDITY_DAYS + 1, NOW, vec![], vec![]).is_err());
-        assert!(self_signed_ex(X509_ALG_ED25519, "CN=v", X509_MAX_VALIDITY_DAYS, NOW, vec![], vec![]).is_ok());
+        assert!(self_signed_ex(X509_ALG_ED25519, "CN=v", 0, NOW, vec![], vec![], vec![]).is_err());
+        assert!(self_signed_ex(X509_ALG_ED25519, "CN=v", X509_MAX_VALIDITY_DAYS + 1, NOW, vec![], vec![], vec![]).is_err());
+        assert!(self_signed_ex(X509_ALG_ED25519, "CN=v", X509_MAX_VALIDITY_DAYS, NOW, vec![], vec![], vec![]).is_ok());
     }
 
     #[test]
     fn csr_ex_carries_subject() {
-        let out = csr_ex(X509_ALG_ECDSA_P384, "CN=req.example, O=Org", vec!["req.example".into()], vec![]).expect("csr");
+        let out = csr_ex(X509_ALG_ECDSA_P384, "CN=req.example, O=Org", vec!["req.example".into()], vec![], vec![]).expect("csr");
         assert!(out[0].contains("BEGIN CERTIFICATE REQUEST"));
         assert!(out[1].contains("BEGIN PRIVATE KEY"));
         let (_, pem) = x509_parser::pem::parse_x509_pem(out[0].as_bytes()).expect("pem");
@@ -791,18 +811,55 @@ mod tests {
 
     #[test]
     fn unsupported_algorithm_rejected() {
-        assert!(self_signed_ex(9, "CN=v", 1, NOW, vec![], vec![]).unwrap_err().contains("unsupported algorithm"));
+        assert!(self_signed_ex(9, "CN=v", 1, NOW, vec![], vec![], vec![]).unwrap_err().contains("unsupported algorithm"));
     }
 
     #[test]
     fn parse_der_matches_parse_pem() {
-        let out = self_signed_ex(X509_ALG_ED25519, "CN=der", 10, NOW, vec!["der.local".into()], vec!["10.0.0.1".into()]).expect("cert");
+        let out = self_signed_ex(X509_ALG_ED25519, "CN=der", 10, NOW, vec!["der.local".into()], vec!["10.0.0.1".into()], vec![]).expect("cert");
         let der = parse_pem_to_der(&out[0]).expect("der");
         assert_eq!(x509_parse_der(&der).expect("der json"), x509_parse_pem(&out[0]).expect("pem json"));
         let json = parse_cert(&out[0]);
         let sans: Vec<&str> = json["subjectAltNames"].as_array().unwrap().iter().map(|v| v.as_str().unwrap()).collect();
         assert_eq!(sans, vec!["DNS:der.local", "IP:10.0.0.1"]);
         assert_eq!(json["publicKeyAlgorithmOid"], "1.3.101.112"); // Ed25519
+    }
+
+    fn sans_of(v: &serde_json::Value) -> Vec<String> {
+        v["subjectAltNames"].as_array().unwrap().iter().map(|s| s.as_str().unwrap().to_string()).collect()
+    }
+
+    #[test]
+    fn san_dns_ip_email_in_certificate_and_csr() {
+        let dns = vec!["example.com".to_string(), "*.example.com".to_string()];
+        let ip = vec!["192.0.2.1".to_string(), "2001:db8::1".to_string()];
+        let email = vec!["admin@example.com".to_string()];
+        let expected = ["DNS:example.com", "DNS:*.example.com", "IP:192.0.2.1", "IP:2001:db8::1", "EMAIL:admin@example.com"];
+        let cert = self_signed_ex(X509_ALG_ECDSA_P256, "CN=example.com", 30, NOW, dns.clone(), ip.clone(), email.clone())
+            .expect("cert");
+        assert_eq!(sans_of(&parse_cert(&cert[0])), expected);
+        let csr = csr_ex(X509_ALG_ECDSA_P256, "CN=example.com", dns, ip, email).expect("csr");
+        let v = csr_value(&csr[0]);
+        assert_eq!(sans_of(&v), expected);
+        assert_eq!(v["signatureValid"], true);
+    }
+
+    #[test]
+    fn san_without_entries_has_no_extension() {
+        let cert = self_signed_ex(X509_ALG_ED25519, "CN=plain", 1, NOW, vec![], vec![], vec![]).expect("cert");
+        assert!(sans_of(&parse_cert(&cert[0])).is_empty());
+    }
+
+    #[test]
+    fn san_invalid_entries_rejected() {
+        let err = |dns: Vec<&str>, ip: Vec<&str>, email: Vec<&str>| {
+            let v = |l: Vec<&str>| l.into_iter().map(String::from).collect::<Vec<_>>();
+            csr_ex(X509_ALG_ED25519, "CN=x", v(dns), v(ip), v(email)).unwrap_err()
+        };
+        assert_eq!(err(vec![], vec!["300.1.1.1"], vec![]), "invalid san: 300.1.1.1");
+        assert_eq!(err(vec!["bücher.example"], vec![], vec![]), "invalid san: bücher.example");
+        assert_eq!(err(vec![""], vec![], vec![]), "invalid san: empty DNS name");
+        assert_eq!(err(vec![], vec![], vec!["no-at-sign"]), "invalid san: no-at-sign");
     }
 
     /* ── CSR parsing ── */
@@ -818,7 +875,7 @@ mod tests {
             (X509_ALG_ECDSA_P256, "ECDSA P-256", "1.2.840.10045.2.1"),
             (X509_ALG_ECDSA_P384, "ECDSA P-384", "1.2.840.10045.2.1"),
         ] {
-            let out = csr_ex(alg, "CN=req.example, O=Org, C=de", vec!["req.example".into()], vec!["10.1.2.3".into()]).expect("csr");
+            let out = csr_ex(alg, "CN=req.example, O=Org, C=de", vec!["req.example".into()], vec!["10.1.2.3".into()], vec![]).expect("csr");
             let v = csr_value(&out[0]);
             assert_eq!(v["publicKey"], label);
             assert_eq!(v["publicKeyAlgorithmOid"], oid);
@@ -859,7 +916,7 @@ mod tests {
 
     #[test]
     fn csr_tampered_signature_is_reported_invalid() {
-        let out = csr_ex(X509_ALG_ECDSA_P256, "CN=tamper.example", vec![], vec![]).expect("csr");
+        let out = csr_ex(X509_ALG_ECDSA_P256, "CN=tamper.example", vec![], vec![], vec![]).expect("csr");
         let mut der = csr_der_from_pem(&out[0]).expect("der");
         // Flip a byte inside the subject CN ("tamper" → "uamper"): still parses, signature breaks.
         let pos = der.windows(6).position(|w| w == b"tamper").expect("cn bytes");
@@ -873,12 +930,12 @@ mod tests {
 
     #[test]
     fn csr_parse_rejects_non_requests() {
-        let cert = self_signed_ex(X509_ALG_ED25519, "CN=c", 1, NOW, vec![], vec![]).expect("cert");
+        let cert = self_signed_ex(X509_ALG_ED25519, "CN=c", 1, NOW, vec![], vec![], vec![]).expect("cert");
         assert_eq!(csr_der_from_pem(&cert[0]).unwrap_err(), "not a certificate request");
         let cert_der = parse_pem_to_der(&cert[0]).expect("der");
         assert_eq!(csr_json(&cert_der).unwrap_err(), "invalid certificate request");
         assert_eq!(csr_json(b"garbage").unwrap_err(), "invalid certificate request");
-        let legacy_label = csr_ex(X509_ALG_ED25519, "CN=old", vec![], vec![]).expect("csr")[0]
+        let legacy_label = csr_ex(X509_ALG_ED25519, "CN=old", vec![], vec![], vec![]).expect("csr")[0]
             .replace("CERTIFICATE REQUEST", "NEW CERTIFICATE REQUEST");
         assert_eq!(csr_value(&legacy_label)["subject"], "CN=old");
     }

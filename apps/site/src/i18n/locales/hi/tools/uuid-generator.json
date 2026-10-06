@@ -15,7 +15,6 @@
   "CaseLower": "छोटे अक्षर",
   "CountLabel": "UUID की संख्या",
   "Generate": "उत्पन्न करें",
-  "GenerateOne": "एक उत्पन्न करें",
   "GenerateBatch": "बैच उत्पन्न करें",
   "OutputLabel": "उत्पन्न UUIDs",
   "OutputPlaceholder": "आपके UUID यहाँ दिखाई देंगे",

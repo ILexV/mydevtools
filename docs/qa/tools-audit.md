@@ -67,13 +67,12 @@
 - [x] CRC32/Adler-32/xxHash/FNV-1a и др. выводятся числом в hex, как в zlib/xxhsum.
 - [x] WebKit: горизонтальный скролл на ja/375 из-за длинных option в select (`contain: paint`).
 - [x] Склонения: lorem, base64 («1 байт / 2 байта»).
+- [x] 2026-10-06: AEAD (Argon2id + шифрование) в Web Worker, отмена мгновенная; pdf-merger — кнопка отмены; x509 — поле SAN (DNS/IP/email, в CSR через extensionRequest); ip-subnet-calculator — разбиение на подсети IPv4/IPv6 (до 256 строк + общее число через BigInt).
+- [x] 2026-10-06: удалены неиспользуемые ключи локалей (home 39, common 14, tools 51 на язык) и пустой namespace `categories`; баннер «доступна новая версия» локализован (`PWA_Update*`), лишняя перезагрузка при первом визите убрана.
+- [x] 2026-10-06: визуальные baselines пересняты на Linux (`*-chromium-linux.png`), win32 удалены.
 
 ## Открытые вопросы владельцу
 
-- `home.json`: SEO-блок (`SeoContent_Title/P1/P2` + 6 карточек `Feature*`) выведен на главной 2026-10-06; 39 неиспользуемых ключей (наследие Blazor: `SeoContent_Bullet_*`, `WhyChoose*`, `Badge_*`, `FeaturePwa*`, `ReadyToTry*`, избранное/недавние и др.) удалены из всех локалей 2026-10-06 — осталось 36.
-- AEAD: деривация ключа Argon2id и шифрование всё ещё в main thread (≈1 с).
-- x509: нет полей SAN при генерации; pdf-merger без кнопки отмены; IPv6 без разбиения на подсети.
-- Визуальные baselines `e2e/pages.spec.ts-snapshots/` (win32) устарели после редизайна инструментов — перегенерировать на Windows (`npm run test:visual:update`).
 - Real-device mobile pass.
 
 ## Правила для агентов

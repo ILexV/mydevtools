@@ -13,7 +13,6 @@
   "ImportFileLabel": "की फ़ाइल",
   "ImportFileHint": "OpenSSH पब्लिक/प्राइवेट और PKCS#8 PEM फ़ाइलों का समर्थन करता है।",
   "ImportButton": "इम्पोर्ट",
-  "ConvertSectionTitle": "कन्वर्ट",
   "ConvertButton": "कन्वर्ट",
   "PublicKeyLabel": "पब्लिक की",
   "PrivateKeyLabel": "प्राइवेट की",

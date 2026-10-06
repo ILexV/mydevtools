@@ -17,7 +17,6 @@
   "CompactMode": "紧凑模式（压缩）",
   "OutputLabel": "格式化后的 JSON",
   "LineNumbers": "显示行号",
-  "Collapsible": "可折叠块",
   "EditorKeyboardHint": "在编辑器中按 Tab 键可缩进。按 Esc 再按 Tab 可移出编辑器。",
   "Seo_Introduction": "粘贴或打开一个 JSON 文档，把它整理成缩进统一、便于阅读的文本，或者再压缩回一行。编辑器提供语法高亮、对象和数组折叠，并显示解析错误的位置，数据不会被发送到任何地方。",
   "Seo_DetailedDescription": "**格式化** 按每层 2 个空格、4 个空格或一个制表符重写文档，**紧凑模式（压缩）** 会去掉所有无意义的空格和换行。**排序键** 对所有嵌套层级中每个对象的键进行排序，便于用 diff 比较两个 JSON 文件。在支持 `JSON.rawJSON` 的浏览器（当前版本的 Chrome、Edge 和 Firefox）中，数字会与源文本完全一致地输出 —— `12345678901234567890` 和 `1.0` 不会被四舍五入或简写。\n\n输入由浏览器的严格 JSON 解析器检查：注释、尾随逗号和单引号都会被拒绝，错误信息会指出问题所在，例如 Chrome 中的 `Expected double-quoted property name in JSON at position 7 (line 1 column 8)`。即使是数 MB 的文件（包括压缩成一行的 JSON），编辑器依然流畅，并可用 Ctrl/Cmd+F 在其中搜索。\n\n打开 .json 文件或将其拖放到编辑器中，然后复制结果，或下载为 `formatted.json`。缩进、排序和紧凑模式的设置会保存在当前浏览器中；JSON 文本本身从不存储或上传。",

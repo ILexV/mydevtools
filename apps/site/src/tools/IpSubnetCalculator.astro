@@ -7,6 +7,8 @@
  * with a colon): CIDR or bare address → compressed/expanded address, network,
  * prefix mask, first/last address, exact address count (BigInt) + type badge.
  * Calculate on button click or Enter; example buttons fill + run; copy buttons.
+ * Subnet split (IPv4 and IPv6): divide the network into /N subnets — total
+ * count (BigInt-safe) + the first 256 subnets (wasm/ipcalc/src/split.rs).
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
@@ -59,6 +61,19 @@ const s = {
   copyFailed: t(lang, ns, "CopyFailed"),
   errorLoad: t(lang, ns, "Error_LoadFailed"),
   errorInvalidFormat: t(lang, ns, "Error_InvalidFormat"),
+  splitTitle: t(lang, ns, "SplitTitle"),
+  splitPrefixLabel: t(lang, ns, "SplitPrefixLabel"),
+  splitPrefixHint: t(lang, ns, "SplitPrefixHint"),
+  split: t(lang, ns, "Split"),
+  splitCount: t(lang, ns, "SplitCount"),
+  splitAddressesPer: t(lang, ns, "SplitAddressesPer"),
+  splitUsablePer: t(lang, ns, "SplitUsablePer"),
+  splitTruncated: t(lang, ns, "SplitTruncated"),
+  splitColSubnet: t(lang, ns, "SplitColSubnet"),
+  splitColHostRange: t(lang, ns, "SplitColHostRange"),
+  splitColRange: t(lang, ns, "SplitColRange"),
+  splitCopyList: t(lang, ns, "SplitCopyList"),
+  errorSplitPrefix: t(lang, ns, "Error_SplitPrefix"),
 };
 const stringsJson = JSON.stringify(s);
 const copyIcon =
@@ -183,6 +198,46 @@ const copyIcon =
           <dd data-ip-value="maskBinary"></dd>
         </dl>
       </div>
+
+      <div class="ip-split ds-stack" data-ip-split>
+        <h2 class="ds-card-title" id="ip-split-title">{s.splitTitle}</h2>
+        <Field label={s.splitPrefixLabel} for="ip-split-prefix" hint={s.splitPrefixHint} hintProps={{ "data-ip-split-hint": "" }}>
+          <div class="ds-input-group ip-split-row">
+            <input
+              id="ip-split-prefix"
+              type="text"
+              class="ds-field mono ip-split-input"
+              data-ip-split-prefix
+              inputmode="numeric"
+              autocomplete="off"
+              spellcheck="false"
+              aria-describedby="ip-split-prefix-hint ip-split-error"
+            />
+            <button type="button" class="ds-btn" data-ip-split-run>{s.split}</button>
+          </div>
+        </Field>
+        <StatusMessage kind="error" id="ip-split-error" data-ip-split-error />
+        <div class="ds-stack ip-split-out" data-ip-split-out hidden>
+          <div class="ip-split-summary">
+            <ul class="ip-split-facts" data-ip-split-summary></ul>
+            <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-ip-split-copy>{s.splitCopyList}</button>
+          </div>
+          <p class="ds-hint" data-ip-split-truncated hidden></p>
+          <div class="ip-split-scroll">
+            <table class="ip-split-table">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">{s.splitColSubnet}</th>
+                  <th scope="col" data-ip-split-range-head></th>
+                  <th scope="col" data-ip-split-bcast-head>{s.broadcast}</th>
+                </tr>
+              </thead>
+              <tbody data-ip-split-rows></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </section>
   </div>
 </div>
@@ -232,6 +287,25 @@ const copyIcon =
   }
   .ip-binary-list dt { color: var(--mdt-text-muted); }
   .ip-binary-list dd { margin: 0; white-space: nowrap; }
+  .ip-split { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--mdt-border); }
+  .ip-split-input { max-width: 8rem; }
+  .ip-split-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  .ip-split-facts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; font-size: var(--mdt-fs-meta); }
+  .ip-split-facts :global(strong) { font-family: var(--mdt-font-mono); }
+  .ip-split-scroll { max-height: 24rem; overflow: auto; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); }
+  .ip-split-table { width: 100%; border-collapse: collapse; font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-label); }
+  .ip-split-table th {
+    position: sticky;
+    top: 0;
+    background: var(--mdt-surface-inset);
+    font-family: var(--mdt-font-sans);
+    font-weight: 600;
+    color: var(--mdt-text-muted);
+    text-align: left;
+  }
+  .ip-split-table :is(th, td) { padding: 0.35rem 0.6rem; overflow-wrap: anywhere; vertical-align: top; }
+  .ip-split-table :global(tr + tr td) { border-top: 1px solid var(--mdt-border); }
+  .ip-split-table :global(td:first-child), .ip-split-table th:first-child { color: var(--mdt-text-muted); width: 1%; white-space: nowrap; }
   @media (max-width: 420px) {
     .ip-table th { width: 6.5rem; }
     .ip-binary-list { grid-template-columns: minmax(0, 1fr); }

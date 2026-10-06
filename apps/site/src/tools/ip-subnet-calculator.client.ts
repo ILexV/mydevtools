@@ -4,8 +4,12 @@
  * the input contains a colon) and renders the matching results table. Invalid
  * input surfaces the localized Error_InvalidFormat message and hides results.
  * The IPv6 address count (up to 2^128) is formatted as BigInt in page locale.
+ * Subnet split: after a successful calculation the "new prefix" field is
+ * pre-filled (defaultSplitPrefix) and Split / Enter lists the first 256
+ * subnets of the WASM `SplitResult` with the BigInt-formatted total count.
  */
-import { calcIpv4, calcIpv6, ensureIpcalcReady, isIpv6Input } from "@/scripts/wasm/ipcalc-client";
+import { calcIpv4, calcIpv6, ensureIpcalcReady, isIpv6Input, splitSubnets } from "@/scripts/wasm/ipcalc-client";
+import { defaultSplitPrefix, maxPrefix, parseSplitPrefix } from "@/tools/ip-subnet";
 import { copyWithFeedback } from "@/scripts/tool-ui";
 
 interface Strings {
@@ -15,6 +19,30 @@ interface Strings {
   errorInvalidFormat: string;
   errorLoad: string;
   scopes: Record<string, string>;
+  splitPrefixHint: string;
+  splitCount: string;
+  splitAddressesPer: string;
+  splitUsablePer: string;
+  splitTruncated: string;
+  splitColHostRange: string;
+  splitColRange: string;
+  errorSplitPrefix: string;
+}
+
+/** WASM `SplitResult` JSON shape (wasm/ipcalc/src/split.rs). */
+interface SplitResult {
+  prefix: number;
+  new_prefix: number;
+  count: string;
+  addresses_per_subnet: string;
+  usable_per_subnet?: string;
+  subnets: { cidr: string; first: string; last: string; broadcast?: string }[];
+  truncated: boolean;
+}
+
+/** Replace `{name}` placeholders in a localized template. */
+function fill(template: string, params: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (m, key: string) => (key in params ? String(params[key]) : m));
 }
 
 /** WASM `CalculationResult` JSON shape (wasm/ipcalc/src/ipv4.rs). */
@@ -139,11 +167,110 @@ function init(): void {
     setScope("[data-ip-scope-v6]", result.scope);
   }
 
+  const splitPrefixEl = root.querySelector<HTMLInputElement>("[data-ip-split-prefix]");
+  const splitErrorEl = root.querySelector<HTMLElement>("[data-ip-split-error]");
+  const splitOutEl = root.querySelector<HTMLElement>("[data-ip-split-out]");
+  const splitHintEl = root.querySelector<HTMLElement>("[data-ip-split-hint]");
+  /** Network last calculated successfully: the split always applies to it. */
+  let current: { input: string; prefix: number; v6: boolean } | null = null;
+  let lastSplitList = "";
+
+  function showSplitError(msg: string): void {
+    if (!splitErrorEl || !splitPrefixEl) return;
+    splitErrorEl.textContent = msg;
+    splitErrorEl.hidden = !msg;
+    if (msg) splitPrefixEl.setAttribute("aria-invalid", "true");
+    else splitPrefixEl.removeAttribute("aria-invalid");
+  }
+
+  /** Reset the split block for a newly calculated network. */
+  function prepareSplit(prefix: number, v6: boolean): void {
+    if (!splitPrefixEl) return;
+    splitPrefixEl.value = String(defaultSplitPrefix(prefix, v6));
+    if (splitHintEl) splitHintEl.textContent = fill(strings.splitPrefixHint, { min: prefix, max: maxPrefix(v6) });
+    showSplitError("");
+    if (splitOutEl) splitOutEl.hidden = true;
+    lastSplitList = "";
+  }
+
+  function renderSplit(result: SplitResult, v6: boolean): void {
+    if (!splitOutEl) return;
+    const summary = root.querySelector<HTMLElement>("[data-ip-split-summary]");
+    const truncated = root.querySelector<HTMLElement>("[data-ip-split-truncated]");
+    const rows = root.querySelector<HTMLElement>("[data-ip-split-rows]");
+    const rangeHead = root.querySelector<HTMLElement>("[data-ip-split-range-head]");
+    const bcastHead = root.querySelector<HTMLElement>("[data-ip-split-bcast-head]");
+    const count = nf.format(BigInt(result.count));
+
+    if (summary) {
+      summary.textContent = "";
+      const facts: [string, string][] = [
+        [strings.splitCount, count],
+        [strings.splitAddressesPer, nf.format(BigInt(result.addresses_per_subnet))],
+      ];
+      if (result.usable_per_subnet !== undefined) facts.push([strings.splitUsablePer, nf.format(BigInt(result.usable_per_subnet))]);
+      for (const [label, value] of facts) {
+        const li = document.createElement("li");
+        const strong = document.createElement("strong");
+        strong.textContent = value;
+        li.append(`${label}: `, strong);
+        summary.append(li);
+      }
+    }
+    if (truncated) {
+      truncated.hidden = !result.truncated;
+      truncated.textContent = result.truncated
+        ? fill(strings.splitTruncated, { shown: nf.format(result.subnets.length), count })
+        : "";
+    }
+    if (rangeHead) rangeHead.textContent = v6 ? strings.splitColRange : strings.splitColHostRange;
+    if (bcastHead) bcastHead.hidden = v6;
+    if (rows) {
+      const frag = document.createDocumentFragment();
+      result.subnets.forEach((sub, i) => {
+        const tr = document.createElement("tr");
+        const cells = [nf.format(i + 1), sub.cidr, sub.first === sub.last ? sub.first : `${sub.first} – ${sub.last}`];
+        if (!v6) cells.push(sub.broadcast ?? "");
+        for (const text of cells) {
+          const td = document.createElement("td");
+          td.textContent = text;
+          tr.append(td);
+        }
+        frag.append(tr);
+      });
+      rows.replaceChildren(frag);
+    }
+    lastSplitList = result.subnets.map((sub) => sub.cidr).join("\n");
+    splitOutEl.hidden = false;
+  }
+
+  async function split(): Promise<void> {
+    if (!current || !splitPrefixEl) return;
+    const { input: networkInput, prefix, v6 } = current;
+    const newPrefix = parseSplitPrefix(splitPrefixEl.value, prefix, v6);
+    if (newPrefix === null) {
+      showSplitError(fill(strings.errorSplitPrefix, { min: prefix, max: maxPrefix(v6) }));
+      if (splitOutEl) splitOutEl.hidden = true;
+      return;
+    }
+    let result: SplitResult;
+    try {
+      result = (await splitSubnets(networkInput, newPrefix)) as SplitResult;
+    } catch {
+      showSplitError(fill(strings.errorSplitPrefix, { min: prefix, max: maxPrefix(v6) }));
+      if (splitOutEl) splitOutEl.hidden = true;
+      return;
+    }
+    showSplitError("");
+    renderSplit(result, v6);
+  }
+
   async function calculate(): Promise<void> {
     const value = input.value.trim();
     if (!value) {
       showError("");
       results.hidden = true;
+      current = null;
       return;
     }
 
@@ -168,6 +295,9 @@ function init(): void {
 
     if (v6) renderV6(result as Ipv6Result);
     else renderV4(result as Ipv4Result);
+    const prefix = (result as { prefix: number }).prefix;
+    current = { input: value, prefix, v6 };
+    prepareSplit(prefix, v6);
     const v4Table = root.querySelector<HTMLElement>("[data-ip-v4]");
     const v6Table = root.querySelector<HTMLElement>("[data-ip-v6]");
     const binary = root.querySelector<HTMLElement>("[data-ip-binary]");
@@ -185,6 +315,19 @@ function init(): void {
 
   input.addEventListener("keydown", (e: KeyboardEvent) => {
     if (e.key === "Enter") void calculate();
+  });
+
+  root.querySelector<HTMLButtonElement>("[data-ip-split-run]")?.addEventListener("click", () => {
+    void split();
+  });
+  splitPrefixEl?.addEventListener("keydown", (e: KeyboardEvent) => {
+    if (e.key === "Enter") void split();
+  });
+  splitPrefixEl?.addEventListener("input", () => showSplitError(""));
+  const splitCopyBtn = root.querySelector<HTMLButtonElement>("[data-ip-split-copy]");
+  splitCopyBtn?.addEventListener("click", async () => {
+    if (!lastSplitList) return;
+    if (!(await copyWithFeedback(splitCopyBtn, lastSplitList, strings.copied))) showSplitError(strings.copyFailed);
   });
 
   root.querySelectorAll<HTMLButtonElement>("[data-ip-example]").forEach((btn) => {

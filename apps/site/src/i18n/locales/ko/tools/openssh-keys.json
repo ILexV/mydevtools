@@ -13,7 +13,6 @@
   "ImportFileLabel": "키 파일",
   "ImportFileHint": "OpenSSH 공개/개인 키 및 PKCS#8 PEM 파일을 지원합니다.",
   "ImportButton": "가져오기",
-  "ConvertSectionTitle": "변환",
   "ConvertButton": "변환",
   "PublicKeyLabel": "공개 키",
   "PrivateKeyLabel": "개인 키",

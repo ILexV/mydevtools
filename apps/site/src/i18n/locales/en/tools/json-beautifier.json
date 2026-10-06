@@ -16,7 +16,6 @@
   "CompactMode": "Compact mode (minify)",
   "OutputLabel": "Formatted JSON",
   "LineNumbers": "Show line numbers",
-  "Collapsible": "Collapsible blocks",
   "Keywords": "JSON beautifier, JSON formatter, pretty print JSON, JSON minifier, JSON validator, sort JSON keys, format JSON online",
   "EditorKeyboardHint": "In the editor, Tab indents. Press Esc, then Tab to move focus out.",
   "Seo_Introduction": "Paste or open a JSON document and turn it into readable, consistently indented text — or minify it back to a single line. The editor highlights syntax, folds objects and arrays and shows the parser's error position, without sending your data anywhere.",

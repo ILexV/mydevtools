@@ -66,6 +66,15 @@ fn expanded(addr: u128) -> String {
 }
 
 impl Ipv6Cidr {
+    pub fn prefix_len(&self) -> u8 {
+        self.prefix_len
+    }
+
+    /// Network address (entered address with host bits cleared).
+    pub fn network(&self) -> u128 {
+        self.address & mask_for(self.prefix_len)
+    }
+
     /// Parses `addr/prefix` or a bare address (treated as /128). Zone ids
     /// (`fe80::1%eth0`) are rejected — they are interface-local, not routable.
     pub fn parse(input: &str) -> Result<Self, Ipv6ParseError> {

@@ -98,7 +98,7 @@ const stringsJson = JSON.stringify(s);
       <Icon name="zap" size={16} />
       <span data-imgc-compress-label>{s.compress}</span>
     </button>
-    <p class="ds-action-row-aside imgc-need" id="imgc-need-file">{s.needFile}</p>
+    <p class="ds-action-row-aside ds-action-row-aside-when-disabled" id="imgc-need-file">{s.needFile}</p>
   </div>
 
   <Progress
@@ -161,6 +161,4 @@ const stringsJson = JSON.stringify(s);
   }
   .imgc-output { max-width: 100%; max-height: 24rem; object-fit: contain; }
   /* Prerequisite hint: only while Compress is disabled for lack of a file (not while busy). */
-  .imgc-need { display: none; }
-  .ds-action-row:has(> [data-imgc-compress]:disabled:not([aria-busy="true"])) > .imgc-need { display: block; }
 </style>

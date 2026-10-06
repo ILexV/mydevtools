@@ -54,7 +54,7 @@ const stringsJson = JSON.stringify(s);
 
 <div class="ds-workbench" data-date-tool>
   <ToolPanel title={s.inputLabel} for="date-input">
-    <div class="ds-editor is-empty" data-date-input-host>
+    <div class="ds-editor ds-editor-compact is-empty" data-date-input-host>
       <textarea id="date-input" class="ds-field-textarea mono date-textarea" data-date-input rows="3" spellcheck="false" autocomplete="off" aria-describedby="date-input-empty"></textarea>
       <EmptyState hint={s.emptyHint} hintId="date-input-empty" exampleLabel={s.loadExample} buttonProps={{ "data-date-example": true }} />
     </div>
@@ -106,7 +106,7 @@ const stringsJson = JSON.stringify(s);
 
 <style>
   /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
-  /* Timestamps are one line: a short editor (still tall enough for the
-     empty-state hint + "Load example" overlay) instead of the 20rem default. */
-  .date-textarea { min-height: 7.5rem; }
+  /* Timestamps are one line: the input uses `.ds-editor-compact`; the
+     output matches its height. */
+  textarea[data-date-output] { min-height: 8rem; }
 </style>

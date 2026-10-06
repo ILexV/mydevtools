@@ -69,10 +69,10 @@ function init() {
           val.textContent = u;
           const btn = document.createElement("button");
           btn.type = "button";
-          btn.className = "ds-btn ds-btn-small ds-btn-ghost";
+          btn.className = "ds-icon-btn";
           btn.dataset.copy = u;
-          btn.textContent = strings.copy;
           btn.setAttribute("aria-label", `${strings.copy} #${i + 1}`);
+          btn.title = strings.copy;
           prepareCopyButton(btn, strings.copied);
           li.append(idx, val, btn);
           return li;

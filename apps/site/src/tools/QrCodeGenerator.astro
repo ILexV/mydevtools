@@ -61,7 +61,7 @@ const downloadIcon = "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
 
 <div class="ds-workbench qrg-grid" data-qrg-tool>
   <ToolPanel title={s.contentLabel} for="qrg-content">
-    <div class="ds-editor is-empty" data-qrg-content-host>
+    <div class="ds-editor ds-editor-compact is-empty" data-qrg-content-host>
       <textarea
         id="qrg-content"
         class="ds-field-textarea mono qrg-content"
@@ -168,8 +168,6 @@ const downloadIcon = "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
 <script>import "@/tools/qr-code-generator.client.ts";</script>
 
 <style>
-  .qrg-content { min-height: 8rem; }
-  .ds-editor > .qrg-content { min-height: 8rem; }
   /* Settings group headings inside the content panel (sentence case, not micro-labels). */
   .qrg-subhead {
     margin: 0.5rem 0 0;

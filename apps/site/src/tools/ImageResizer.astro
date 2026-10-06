@@ -111,7 +111,7 @@ const stringsJson = JSON.stringify(s);
           <Icon name="images" size={16} />
           <span data-imgr-resize-label>{s.resize}</span>
         </button>
-        <p class="ds-action-row-aside imgr-need" id="imgr-need-file">{s.needFile}</p>
+        <p class="ds-action-row-aside ds-action-row-aside-when-disabled" id="imgr-need-file">{s.needFile}</p>
       </div>
       <Progress
         data-imgr-progress
@@ -155,8 +155,6 @@ const stringsJson = JSON.stringify(s);
   }
   .imgr-result-info { font-size: clamp(1.25rem, 1rem + 0.9vw, 1.6rem); }
   /* Prerequisite hint: only while Resize is disabled for lack of an image (not while busy). */
-  .imgr-need { display: none; }
-  .ds-action-row:has(> [data-imgr-resize]:disabled:not([aria-busy="true"])) > .imgr-need { display: block; }
   .imgr-dims { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .imgr-result-wrap {
     display: flex;

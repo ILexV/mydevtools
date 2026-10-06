@@ -206,6 +206,15 @@
     line-height: 1.45;
     color: var(--mdt-text-faint);
   }
+  /* Prerequisite hint ("Choose an image first") shown only while the row's
+     primary button is disabled and not busy; link it from the button with
+     aria-describedby. Disappears once the input is ready. */
+  .ds-action-row-aside-when-disabled {
+    display: none;
+  }
+  .ds-action-row:has(> .ds-btn-primary:disabled:not([aria-busy="true"])) > .ds-action-row-aside-when-disabled {
+    display: block;
+  }
   @media (max-width: 30rem) {
     .ds-action-row > .ds-btn-primary {
       flex: 1 1 100%;
@@ -233,6 +242,11 @@
     .ds-editor > .ds-field-textarea {
       min-height: 11rem;
     }
+  }
+  /* Compact editor for short inputs (a timestamp, QR content): 8rem is still
+     tall enough for the empty-state hint + "Load example" overlay. */
+  .ds-editor-compact > .ds-field-textarea {
+    min-height: 8rem;
   }
 
   /* Empty state: short hint + optional "Load example" button. Lives as a

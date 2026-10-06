@@ -9,8 +9,9 @@
 const restoreTimers = new WeakMap<HTMLElement, number>();
 
 const SVG_NS = "http://www.w3.org/2000/svg";
-/** Same paths as components/Icon.astro (`check`, `alert`). */
+/** Same paths as components/Icon.astro (`copy`, `check`, `alert`). */
 const FACE_ICONS = {
+  copy: '<rect x="7" y="7" width="9" height="9" rx="1.5"/><path d="M13 7V4.5A1.5 1.5 0 0 0 11.5 3h-6A1.5 1.5 0 0 0 4 4.5v6A1.5 1.5 0 0 0 5.5 12H7"/>',
   check: '<path d="m4 10.5 4 4 8-9"/>',
   alert: '<path d="M10 3 17.5 16H2.5L10 3Z"/><path d="M10 8v4M10 14.2v.1"/>',
 } as const;
@@ -45,7 +46,9 @@ function fillFace(face: HTMLElement, icon: keyof typeof FACE_ICONS, label: strin
  * share one grid cell, so swapping faces never changes the width. The fail
  * face is always icon-only — long failure text ("Не удалось скопировать")
  * would widen header buttons; it goes to aria-label/title + announce()
- * instead. Icon-only buttons (no text) get icon-only faces. Idempotent.
+ * instead. Icon-only buttons (no text) get icon-only faces; an empty one
+ * (e.g. a row button created by a controller with just aria-label) gets
+ * the copy icon as its idle face. Idempotent.
  * `failedLabel` is accepted for backward compatibility and ignored here.
  * Call it at bind time (or render CopyButton.astro) so the width is final
  * before the first click; copyWithFeedback() also calls it lazily.
@@ -66,6 +69,7 @@ export function prepareCopyButton(
     const idle = document.createElement("span");
     idle.className = "ds-copy-face ds-copy-face-idle";
     idle.append(...Array.from(btn.childNodes));
+    if (iconOnly && !idle.querySelector("svg")) idle.replaceChildren(faceIcon("copy", 18));
     const done = document.createElement("span");
     done.className = "ds-copy-face ds-copy-face-done";
     const fail = document.createElement("span");
@@ -209,11 +213,17 @@ export async function copyWithFeedback(
  * `change` again — keep the File objects you receive, not `input.files`). Keyboard users reach the picker through the visible
  * `.ds-file-btn` inside the zone (the FileDrop component renders it), so the
  * zone itself is not a focusable button. Returns an unbind function.
+ *
+ * `clickToOpen: false` keeps drop + the input's `change` wiring but stops
+ * background clicks from opening the picker — for zones that wrap an editor
+ * (a textarea you drop a file onto) whose clicks must place the caret; a
+ * separate "Open" button then calls `input.click()`.
  */
 export function bindDropzone(
   zone: HTMLElement,
   input: HTMLInputElement | null,
   onFiles: (files: File[]) => void,
+  { clickToOpen = true }: { clickToOpen?: boolean } = {},
 ): () => void {
   let depth = 0;
   const setOver = (on: boolean) => zone.classList.toggle("is-dragover", on);
@@ -244,7 +254,7 @@ export function bindDropzone(
   const onClick = (e: MouseEvent) => {
     // Inner buttons (clear/change) and the input itself handle their own clicks.
     const target = e.target as HTMLElement | null;
-    if (!input || isDisabled() || target?.closest("button, a, input, label")) return;
+    if (!clickToOpen || !input || isDisabled() || target?.closest("button, a, input, label")) return;
     input.click();
   };
   const onChange = () => {

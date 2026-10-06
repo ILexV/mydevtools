@@ -361,12 +361,7 @@ function initTool(): void {
   // The import editor is the drop target (no click-to-pick: clicks belong to the
   // textarea); the header "Open" button is the picker.
   const syncImport = bindEmptyState(dropzone, importArea);
-  bindDropzone(dropzone, null, (files) => void loadKeyFile(files));
-  fileInput.addEventListener("change", () => {
-    const files = Array.from(fileInput.files ?? []);
-    fileInput.value = "";
-    if (files.length > 0) void loadKeyFile(files);
-  });
+  bindDropzone(dropzone, fileInput, (files) => void loadKeyFile(files), { clickToOpen: false });
   passInput.addEventListener("input", () => {
     passInput.removeAttribute("aria-invalid");
     updateWhitespaceHint();

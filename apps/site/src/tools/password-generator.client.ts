@@ -149,8 +149,9 @@ function init() {
 
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "ds-btn ds-btn-small ds-btn-ghost";
-    btn.textContent = strings.copy;
+    btn.className = "ds-icon-btn";
+    btn.setAttribute("aria-label", strings.copy);
+    btn.title = strings.copy;
     prepareCopyButton(btn, strings.copied);
     btn.addEventListener("click", () =>
       void copyWithFeedback(btn, password, strings.copied, undefined, { failedLabel: strings.copyFailed }));

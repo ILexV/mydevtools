@@ -67,7 +67,8 @@ cargo test --workspace --manifest-path wasm/Cargo.toml
 - Strings reach client code via the JSON island in the `.astro` shell, not via runtime fetches. Do not add tool text outside locale JSON.
 - Browser code: bind once per root (guard), cache lazy import promises, keep user data in the browser, surface localized errors, treat `AbortError` separately, use workers + chunking + progress + `AbortController` for large files. No SharedArrayBuffer.
 - Privacy: do not persist tool input (json/xml beautifiers deliberately don't); store only explicit user settings.
-- Styling: use Prism tokens (`--mdt-*`) and `ds-*` classes; per-tool styles in scoped `<style>` blocks; tool pages scope the category accent via `--mdt-cat`. Only Baseline CSS (browserslist: `defaults, supports es6-module, supports wasm`).
+- Tool UI: build tools from the shared layer — `src/styles/tool-ui.css` (`ds-*` classes), `src/components/tool/{Field,FileButton,FileDrop,Progress,OutputPanel,StatusMessage}.astro`, `src/scripts/tool-ui.ts` (`copyWithFeedback`, `bindDropzone`), editors themed by `src/styles/codemirror.css`. Catalog, mapping and rules: `docs/qa/tool-ui-kit.md`. Don't re-declare buttons/fields/file/progress styles locally; style controller-created DOM with `ds-*` classes (Astro scoped CSS doesn't reach it); toggle visibility with `el.hidden` (global `[hidden]` wins); runtime states are `is-*`.
+- Styling: use Prism tokens (`--mdt-*`) and `ds-*` classes; keep only layout-specific CSS in scoped `<style>` blocks; tool pages scope the category accent via `--mdt-cat`. Only Baseline CSS (browserslist: `defaults, supports es6-module, supports wasm`).
 - Rust boundaries validate input and return `Result<_, JsValue>`. Do not hand-edit wasm-bindgen output.
 - Make surgical changes and follow a neighboring tool. Comments in English.
 

@@ -1,8 +1,9 @@
 ---
 /**
  * Regex Tester (WASM, Rust regex engine). Pattern + flags + test string with
- * live match highlighting (backdrop layer under a transparent textarea),
- * match list with capture groups, quick examples, and saved patterns in
+ * live match highlighting (backdrop layer under a transparent textarea;
+ * capture groups in recurring spectrum colours with a toggle legend),
+ * match list with expandable per-group details, quick examples, and saved patterns in
  * localStorage. Live testing on input (150ms debounce, legacy parity).
  * Workbench: pattern panel (Save/Cheat sheet in its header → pattern → flags
  * → test string with empty state + "Load example") | matches panel (count as
@@ -41,6 +42,7 @@ const loadExample = t(lang, "common", "Common_LoadExample");
 const emptyHint = t(lang, ns, "EmptyHint");
 const outputEmpty = t(lang, ns, "OutputEmpty");
 const matchCountLabel = t(lang, ns, "MatchCountLabel");
+const groupsLegendLabel = t(lang, ns, "GroupsLegendLabel");
 
 const flags = [
   { value: "g", label: t(lang, ns, "FlagGlobal"), checked: true },
@@ -67,11 +69,16 @@ const stringsJson = JSON.stringify({
   deleteButton: t(lang, ns, "DeleteButton"),
   deleteConfirm: t(lang, ns, "DeleteConfirm"),
   matchNumber: t(lang, ns, "MatchNumber"),
-  groupLabel: t(lang, ns, "GroupLabel"),
   moreMatches: t(lang, ns, "MoreMatches"),
   engineError: t(lang, ns, "EngineError"),
   storageError: t(lang, ns, "StorageError"),
   preparing: t(lang, "common", "Common_Preparing"),
+  wholeMatch: t(lang, ns, "GroupWholeMatch"),
+  notMatched: t(lang, ns, "GroupNotMatched"),
+  emptyString: t(lang, ns, "GroupEmptyString"),
+  groupsSummary: t(lang, ns, "GroupsSummary"),
+  captureLimit: t(lang, ns, "CaptureLimitNotice"),
+  announceMatches: t(lang, ns, "AnnounceMatches"),
 });
 ---
 
@@ -155,7 +162,11 @@ const stringsJson = JSON.stringify({
       <EmptyState hint={outputEmpty} />
       <div class="ds-result-headline ds-when-filled">
         <span class="ds-result-headline-label" id="rx-count-label">{matchCountLabel}</span>
-        <output class="ds-result-headline-value" data-rx-count aria-labelledby="rx-count-label" aria-live="polite" aria-atomic="true"></output>
+        <output class="ds-result-headline-value" data-rx-count aria-labelledby="rx-count-label"></output>
+      </div>
+      <div class="rx-legend ds-when-filled" data-rx-legend role="group" aria-labelledby="rx-legend-label" hidden>
+        <span class="ds-label" id="rx-legend-label">{groupsLegendLabel}</span>
+        <div class="ds-chip-list" data-rx-legend-list></div>
       </div>
       <div class="rx-results ds-when-filled" data-rx-results></div>
     </ToolPanel>
@@ -211,6 +222,123 @@ const stringsJson = JSON.stringify({
 
 <script is:inline type="application/json" data-rx-strings set:html={stringsJson} />
 <script>import "@/tools/regex-tester.client.ts";</script>
+
+<style is:global>
+  /* Runtime DOM (highlight marks, legend, group rows) — global, scoped under
+     the tool root. Six recurring capture colours reuse the category hues
+     (violet, blue, cyan, teal, amber, rose); each is AA on panels, so it
+     doubles as ink for labels, while fills are light tints that keep the
+     textarea's own text readable in both themes. */
+  .rx-tool {
+    --rx-cap-0: var(--mdt-cat-encoding);
+    --rx-cap-1: var(--mdt-cat-structured-data);
+    --rx-cap-2: var(--mdt-cat-converters);
+    --rx-cap-3: var(--mdt-cat-generators);
+    --rx-cap-4: var(--mdt-cat-hashing);
+    --rx-cap-5: var(--mdt-cat-images);
+    --rx-fill: 22%;
+    --rx-fill-sel: 40%;
+    --rx-fill-dim: 9%;
+  }
+  :root[data-theme="dark"] .rx-tool { --rx-fill: 30%; --rx-fill-sel: 48%; --rx-fill-dim: 12%; }
+  .rx-tool .rx-c0 { --rx-c: var(--rx-cap-0); }
+  .rx-tool .rx-c1 { --rx-c: var(--rx-cap-1); }
+  .rx-tool .rx-c2 { --rx-c: var(--rx-cap-2); }
+  .rx-tool .rx-c3 { --rx-c: var(--rx-cap-3); }
+  .rx-tool .rx-c4 { --rx-c: var(--rx-cap-4); }
+  .rx-tool .rx-c5 { --rx-c: var(--rx-cap-5); }
+  /* Enclosing (outer) group of a nested capture: 2px underline in its colour. */
+  .rx-tool .rx-u0 { --rx-ul: inset 0 -2px 0 var(--rx-cap-0); }
+  .rx-tool .rx-u1 { --rx-ul: inset 0 -2px 0 var(--rx-cap-1); }
+  .rx-tool .rx-u2 { --rx-ul: inset 0 -2px 0 var(--rx-cap-2); }
+  .rx-tool .rx-u3 { --rx-ul: inset 0 -2px 0 var(--rx-cap-3); }
+  .rx-tool .rx-u4 { --rx-ul: inset 0 -2px 0 var(--rx-cap-4); }
+  .rx-tool .rx-u5 { --rx-ul: inset 0 -2px 0 var(--rx-cap-5); }
+
+  /* Whole match: subdued neutral shading + hairline, so captures stand out. */
+  .rx-tool .rx-backdrop mark.rx-mark {
+    color: transparent; border-radius: 2px;
+    background: color-mix(in srgb, var(--mdt-text) 8%, transparent);
+    box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--mdt-text) 35%, transparent);
+  }
+  .rx-tool .rx-backdrop mark.rx-cap {
+    border-radius: 0;
+    background: color-mix(in srgb, var(--rx-c) var(--rx-fill), transparent);
+    box-shadow: var(--rx-ul, none);
+  }
+  .rx-tool .rx-backdrop mark.rx-cap.is-dim { background: color-mix(in srgb, var(--rx-c) var(--rx-fill-dim), transparent); }
+  /* Selected group: stronger fill plus an outline — emphasis is not colour-only. */
+  .rx-tool .rx-backdrop mark.rx-cap.is-sel {
+    background: color-mix(in srgb, var(--rx-c) var(--rx-fill-sel), transparent);
+    outline: 1.5px solid var(--rx-c); outline-offset: 0;
+  }
+
+  /* Legend: "1", "2 · name" toggle chips with a colour swatch; 44px targets. */
+  .rx-tool .rx-legend { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.75rem; }
+  .rx-tool .rx-legend .ds-label { margin-bottom: 0; }
+  .rx-tool .rx-legend-item {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    min-height: 2.75rem; min-width: 2.75rem; justify-content: center;
+    max-width: 100%; overflow-wrap: anywhere; text-align: start;
+  }
+  .rx-tool .rx-legend-item[aria-pressed="true"] {
+    color: var(--mdt-text); font-weight: 700;
+    border-color: var(--rx-c); box-shadow: inset 0 0 0 1px var(--rx-c);
+    background: color-mix(in srgb, var(--rx-c) 14%, transparent);
+  }
+  .rx-tool .rx-swatch {
+    flex: none; width: 0.8rem; height: 0.8rem; border-radius: 3px;
+    background: color-mix(in srgb, var(--rx-c) var(--rx-fill-sel), transparent);
+    box-shadow: inset 0 0 0 1.5px var(--rx-c);
+  }
+
+  /* Per-match group details: label | value or state | range. */
+  .rx-tool .rx-groups { margin-top: 0.4rem; }
+  .rx-tool .rx-groups-toggle {
+    cursor: pointer; min-height: 2.75rem; display: flex; align-items: center; gap: 0.4rem;
+    font-family: var(--mdt-font-sans); font-size: var(--mdt-fs-label); font-weight: 600;
+    color: var(--mdt-text-muted); border-radius: var(--mdt-radius-xs);
+  }
+  .rx-tool .rx-groups-toggle { list-style: none; }
+  .rx-tool .rx-groups-toggle::-webkit-details-marker { display: none; }
+  .rx-tool .rx-groups-toggle::before {
+    content: ""; width: 0.4rem; height: 0.4rem; margin: 0 0.15rem 0 0.1rem;
+    border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg); transition: transform var(--mdt-dur-micro);
+  }
+  .rx-tool .rx-groups[open] > .rx-groups-toggle::before { transform: rotate(45deg); }
+  @media (prefers-reduced-motion: reduce) { .rx-tool .rx-groups-toggle::before { transition: none; } }
+  .rx-tool .rx-groups-toggle:hover { color: var(--mdt-text); }
+  .rx-tool .rx-groups-body { display: flex; flex-direction: column; gap: 0.15rem; }
+  .rx-tool .rx-group {
+    display: grid; grid-template-columns: minmax(5.5rem, auto) minmax(0, 1fr) auto;
+    gap: 0.5rem; align-items: baseline;
+    padding: 0.3rem 0.5rem; border-radius: var(--mdt-radius-xs);
+    border-left: 3px solid transparent;
+  }
+  .rx-tool .rx-group.rx-g0 { border-left-color: color-mix(in srgb, var(--mdt-text) 30%, transparent); }
+  .rx-tool .rx-group[data-rx-group-row] { border-left-color: color-mix(in srgb, var(--rx-c) 60%, transparent); }
+  .rx-tool .rx-group-name {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-weight: 600; color: var(--mdt-text-muted); overflow-wrap: anywhere;
+  }
+  .rx-tool .rx-group-text { overflow-wrap: anywhere; white-space: pre-wrap; min-width: 0; color: var(--mdt-text); }
+  .rx-tool .rx-group-state { font-style: italic; color: var(--mdt-text-faint); font-family: var(--mdt-font-sans); }
+  .rx-tool .rx-group-pos { color: var(--mdt-text-faint); white-space: nowrap; }
+  .rx-tool .rx-group.is-sel {
+    background: color-mix(in srgb, var(--rx-c) 12%, transparent);
+    border-left-color: var(--rx-c); box-shadow: inset 3px 0 0 var(--rx-c);
+  }
+  .rx-tool .rx-group.is-sel .rx-group-name { color: var(--mdt-text); font-weight: 700; }
+  @media (max-width: 30rem) {
+    .rx-tool .rx-group { grid-template-columns: minmax(0, 1fr) auto; }
+    .rx-tool .rx-group-name { grid-column: 1 / -1; }
+  }
+  @media (forced-colors: active) {
+    .rx-tool .rx-legend-item[aria-pressed="true"] { outline: 3px solid Highlight; }
+    .rx-tool .rx-group.is-sel { outline: 2px solid Highlight; }
+  }
+</style>
 
 <style>
   /* Layout + regex-specific visuals (pattern delimiters, highlight backdrop,
@@ -279,11 +407,6 @@ const stringsJson = JSON.stringify({
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--mdt-cat) 15%, transparent);
   }
   .rx-text::placeholder { color: var(--mdt-text-faint); }
-  .rx-backdrop :global(mark.rx-mark) {
-    background: color-mix(in srgb, var(--mdt-warning) 40%, transparent);
-    color: transparent; border-radius: 2px;
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--mdt-warning) 40%, transparent);
-  }
 
   /* High Contrast: the UA paints the textarea with an opaque Canvas background,
      which hid the highlight backdrop. Opt both layers out of forced colors with
@@ -305,6 +428,8 @@ const stringsJson = JSON.stringify({
       outline: 2px solid Highlight; outline-offset: 0;
       text-decoration: underline 3px Highlight; text-underline-offset: 2px;
     }
+    /* Selected capture group: thicker outline (shape, not colour). */
+    .rx-backdrop :global(mark.rx-mark.is-sel) { outline-width: 4px; }
   }
 
   .rx-error { overflow-wrap: anywhere; white-space: pre-wrap; font-family: var(--mdt-font-mono); }
@@ -327,16 +452,6 @@ const stringsJson = JSON.stringify({
     border-radius: var(--mdt-radius-xs); padding: 0.35rem 0.5rem;
     white-space: pre-wrap; overflow-wrap: anywhere; color: var(--mdt-text);
   }
-  .rx-results :global(.rx-group) {
-    display: flex; flex-wrap: wrap; gap: 0.25rem 0.5rem; align-items: baseline;
-    margin: 0.35rem 0 0 0.5rem; padding-left: 0.6rem;
-    border-left: 2px solid color-mix(in srgb, var(--mdt-cat) 35%, transparent);
-  }
-  .rx-results :global(.rx-group-name) { font-weight: 600; color: var(--mdt-text-muted); }
-  .rx-results :global(.rx-group-text) {
-    overflow-wrap: anywhere; min-width: 0; color: var(--mdt-text);
-  }
-  .rx-results :global(.rx-group-pos) { margin-left: auto; color: var(--mdt-text-faint); white-space: nowrap; }
   .rx-results :global(.rx-more) { padding-top: 0.5rem; text-align: center; font-size: var(--mdt-fs-label); color: var(--mdt-text-muted); }
 
   .rx-table-wrap { overflow-x: auto; min-width: 0; }

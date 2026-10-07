@@ -10,7 +10,10 @@
  *
  * Guide layout: "How to use" steps become a numbered step rail in the category
  * accent, Tips is a collapsed <details> (content stays in the HTML for SEO),
- * and ≥1100px shows a sticky "On this page" TOC with scroll-spy (≥2 sections).
+ * and ≥1100px shows a sticky "On this page" TOC with scroll-spy (≥2 sections);
+ * narrower screens get the same links as a native <details> above the guide.
+ * Guide + TOC form one centred 64rem grid (46rem prose, 15rem TOC, 3rem gap);
+ * related tools ([slug].astro) stay outside it at full content width.
  */
 import type { LocaleCode } from "@/registry/locales";
 import { t } from "@/i18n/messages";
@@ -53,6 +56,21 @@ const tocLabel = t(locale, "common", "Common_OnThisPage");
 
 {(introduction || sections.length > 0) && (
   <div class="tool-seo" data-has-toc={showToc ? "" : undefined}>
+    {showToc && (
+      <details class="seo-toc-compact">
+        <summary>
+          <span>{tocLabel}</span>
+          <svg class="seo-tips-chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <nav aria-label={tocLabel} data-seo-toc>
+          <ol>
+            {sections.map((s) => (
+              <li><a href={`#${s.id}`} data-toc-link={s.id}>{s.title}</a></li>
+            ))}
+          </ol>
+        </nav>
+      </details>
+    )}
     <div class="seo-main">
       {introduction && <p class="seo-intro">{introduction}</p>}
       {detailed && (
@@ -114,17 +132,19 @@ const tocLabel = t(locale, "common", "Common_OnThisPage");
   /**
    * "On this page" TOC for the tool guide: highlights the section currently
    * read (scroll spy via IntersectionObserver) and opens the collapsed Tips
-   * <details> when its anchor is followed. Smooth scrolling comes from the
-   * global `html { scroll-behavior }`, which reduced motion already disables.
+   * <details> when its anchor is followed. Drives both TOCs (wide sidebar and
+   * the compact <details> list) from one observer. Smooth scrolling comes from
+   * the global `html { scroll-behavior }`, which reduced motion disables.
    */
   function bindSeoToc(): void {
-    const toc = document.querySelector<HTMLElement>("[data-seo-toc]");
-    if (!toc || toc.dataset.bound) return;
-    toc.dataset.bound = "1";
+    const tocs = [...document.querySelectorAll<HTMLElement>("[data-seo-toc]")];
+    if (!tocs.length || tocs[0].dataset.bound) return;
+    for (const toc of tocs) toc.dataset.bound = "1";
 
-    const links = [...toc.querySelectorAll<HTMLAnchorElement>("[data-toc-link]")];
-    const headings = links
-      .map((a) => document.getElementById(a.dataset.tocLink ?? ""))
+    const links = tocs.flatMap((toc) => [...toc.querySelectorAll<HTMLAnchorElement>("[data-toc-link]")]);
+    const ids = [...new Set(links.map((a) => a.dataset.tocLink ?? ""))];
+    const headings = ids
+      .map((id) => document.getElementById(id))
       .filter((h): h is HTMLElement => h !== null);
 
     const openTarget = (id: string) => {
@@ -287,21 +307,30 @@ const tocLabel = t(locale, "common", "Common_OnThisPage");
     padding: 0.9rem 1.25rem 0.35rem;
   }
 
-  /* "On this page" — wide screens only, sticky beside the guide. */
+  /* "On this page" — sticky sidebar ≥1100px; below that the compact
+     <details> list above the guide. Guide + TOC are one centred grid. */
   .tool-seo .seo-toc { display: none; }
   @media (min-width: 1100px) {
+    .tool-seo {
+      max-width: 64rem;
+      margin-inline: auto;
+    }
     .tool-seo[data-has-toc] {
-      grid-template-columns: minmax(0, 46rem) 14.5rem;
-      justify-content: space-between;
+      grid-template-columns: minmax(0, 46rem) 15rem;
+      justify-content: center;
       column-gap: 3rem;
       align-items: start;
     }
+    .tool-seo .seo-toc-compact { display: none; }
     .tool-seo .seo-toc {
       display: block;
       position: sticky;
-      top: calc(var(--mdt-header-h) + 1.5rem);
-      padding-left: 1rem;
-      border-left: 1px solid var(--mdt-border);
+      top: calc(var(--mdt-header-h) + 1rem);
+      /* Long translated TOCs scroll inside the sidebar, never past the viewport. */
+      max-height: calc(100dvh - var(--mdt-header-h) - 2rem);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
     }
   }
   .tool-seo .seo-toc-title {
@@ -309,15 +338,20 @@ const tocLabel = t(locale, "common", "Common_OnThisPage");
     font-weight: 600;
     color: var(--mdt-text);
     margin-bottom: 0.6rem;
+    padding-left: calc(1rem + 1px);
   }
-  .tool-seo .seo-toc ol {
+  .tool-seo .seo-toc ol,
+  .tool-seo .seo-toc-compact ol {
     list-style: none;
-    padding: 0;
+    padding: 0 0 0 1rem;
     margin: 0;
     display: grid;
     gap: 0.15rem;
+    /* The rule lives on the list so the scroll container doesn't clip the active marker. */
+    border-left: 1px solid var(--mdt-border);
   }
-  .tool-seo .seo-toc a {
+  .tool-seo .seo-toc a,
+  .tool-seo .seo-toc-compact a {
     position: relative;
     display: block;
     padding: 0.3rem 0;
@@ -325,12 +359,16 @@ const tocLabel = t(locale, "common", "Common_OnThisPage");
     line-height: 1.4;
     color: var(--mdt-text-muted);
     text-decoration: none;
+    overflow-wrap: anywhere;
     transition: color var(--mdt-dur-micro);
   }
-  .tool-seo .seo-toc a:hover { color: var(--mdt-text); }
-  .tool-seo .seo-toc a.is-active { color: var(--mdt-cat); font-weight: 600; }
-  /* Active marker sits on the TOC's left rule. */
-  .tool-seo .seo-toc a.is-active::before {
+  .tool-seo .seo-toc a:hover,
+  .tool-seo .seo-toc-compact a:hover { color: var(--mdt-text); }
+  .tool-seo .seo-toc a.is-active,
+  .tool-seo .seo-toc-compact a.is-active { color: var(--mdt-cat); font-weight: 600; }
+  /* Active marker sits on the list's left rule. */
+  .tool-seo .seo-toc a.is-active::before,
+  .tool-seo .seo-toc-compact a.is-active::before {
     content: "";
     position: absolute;
     left: calc(-1rem - 1px);
@@ -340,6 +378,36 @@ const tocLabel = t(locale, "common", "Common_OnThisPage");
     border-radius: 2px;
     background: var(--mdt-cat);
   }
+
+  /* Compact "On this page": native disclosure, closed by default. */
+  .tool-seo .seo-toc-compact {
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius);
+    background: var(--mdt-surface-raised);
+  }
+  .tool-seo .seo-toc-compact summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 2.75rem;
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    list-style: none;
+    border-radius: var(--mdt-radius);
+    font-size: var(--mdt-fs-meta);
+    font-weight: 600;
+    color: var(--mdt-text);
+  }
+  .tool-seo .seo-toc-compact summary::-webkit-details-marker { display: none; }
+  .tool-seo .seo-toc-compact[open] .seo-tips-chev { transform: rotate(180deg); }
+  .tool-seo .seo-toc-compact[open] summary {
+    border-bottom: 1px solid var(--mdt-border-soft);
+    border-radius: var(--mdt-radius) var(--mdt-radius) 0 0;
+  }
+  .tool-seo .seo-toc-compact nav { padding: 0.75rem 1rem 0.85rem; }
+  .tool-seo .seo-toc-compact a { padding: 0.55rem 0; }
+  .tool-seo .seo-toc-compact a.is-active::before { top: 0.55rem; bottom: 0.55rem; }
 
   /* Injected markdown body (seoMarkdownToHtml). */
   .tool-seo .seo-md {

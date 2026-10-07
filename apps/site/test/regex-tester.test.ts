@@ -82,3 +82,59 @@ test("applyGlobalFlag: without g only the first match is kept", async () => {
   assert.deepEqual(applyGlobalFlag(m, false), [{ start: 0, end: 1 }]);
   assert.deepEqual(applyGlobalFlag([], false), []);
 });
+
+test("buildHighlightHtml: capture groups get hue fills, unmatched/empty groups add no marks", async () => {
+  const { buildHighlightHtml: hl } = await import("../src/tools/regex-tester-core.ts");
+  // `(\d+)-(x)?(y*)` on "12-" : group 2 unmatched, group 3 empty.
+  const html = hl("12-", [{
+    start: 0, end: 3,
+    captures: [
+      { index: 1, matched: true, text: "12", start: 0, end: 2 },
+      { index: 2, matched: false },
+      { index: 3, matched: true, text: "", start: 3, end: 3 },
+    ],
+  }]);
+  assert.equal(html, '<mark class="rx-mark rx-cap rx-c0">12</mark><mark class="rx-mark">-</mark>');
+});
+
+test("buildHighlightHtml: nested groups — inner fill, outer underline, selected group wins", async () => {
+  const { buildHighlightHtml: hl } = await import("../src/tools/regex-tester-core.ts");
+  // `(a(b)c)` on "abc": group 1 = 0..3, group 2 = 1..2.
+  const m = {
+    start: 0, end: 3,
+    captures: [
+      { index: 1, matched: true, text: "abc", start: 0, end: 3 },
+      { index: 2, matched: true, text: "b", start: 1, end: 2 },
+    ],
+  };
+  assert.equal(
+    hl("abc", [m]),
+    '<mark class="rx-mark rx-cap rx-c0">a</mark><mark class="rx-mark rx-cap rx-c1 rx-u0">b</mark><mark class="rx-mark rx-cap rx-c0">c</mark>',
+  );
+  // Selecting the outer group: it takes the fill everywhere, inner becomes underline.
+  assert.equal(
+    hl("abc", [m], { selected: 1 }),
+    '<mark class="rx-mark rx-cap rx-c0 is-sel">a</mark><mark class="rx-mark rx-cap rx-c0 rx-u1 is-sel">b</mark><mark class="rx-mark rx-cap rx-c0 is-sel">c</mark>',
+  );
+  // Selecting another group dims this one.
+  assert.match(hl("abc", [m], { selected: 3 }), /rx-c1 rx-u0 is-dim/);
+});
+
+test("buildHighlightHtml: capture spans on Cyrillic + emoji (UTF-16) and the capture budget", async () => {
+  const { buildHighlightHtml: hl } = await import("../src/tools/regex-tester-core.ts");
+  const text = "😀 мир";
+  const start = text.indexOf("мир"); // 3: the emoji is 2 UTF-16 units
+  const m = { start, end: start + 3, captures: [{ index: 1, name: "w", matched: true, text: "ми", start, end: start + 2 }] };
+  assert.equal(hl(text, [m]), '😀 <mark class="rx-mark rx-cap rx-c0">ми</mark><mark class="rx-mark">р</mark>');
+  assert.equal(hl(text, [m], { captureLimit: 0 }), '😀 <mark class="rx-mark">мир</mark>');
+});
+
+test("captureHue / captureLabel / captureState", async () => {
+  const { captureHue, captureLabel, captureState } = await import("../src/tools/regex-tester-core.ts");
+  assert.deepEqual([1, 2, 6, 7, 13].map(captureHue), [0, 1, 5, 0, 0]);
+  assert.equal(captureLabel(2, "year"), "2 · year");
+  assert.equal(captureLabel(3, null), "3");
+  assert.equal(captureState({ index: 1, matched: false }), "unmatched");
+  assert.equal(captureState({ index: 1, matched: true, text: "", start: 4, end: 4 }), "empty");
+  assert.equal(captureState({ index: 1, matched: true, text: "a", start: 4, end: 5 }), "value");
+});

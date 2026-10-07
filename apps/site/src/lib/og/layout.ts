@@ -3,7 +3,7 @@
  * (share preview cards, 1200×630 PNG). No fonts, no Vite, no I/O — unit-tested
  * in `test/og.test.ts`; the renderer (`render.ts`) and `Seo.astro` build on them.
  */
-import type { LocaleCode } from "../../registry/locales.ts";
+import { LOCALE_CODES, type LocaleCode } from "../../registry/locales.ts";
 
 /** Social card size recommended by Open Graph / X (Twitter) `summary_large_image`. */
 export const OG_WIDTH = 1200;
@@ -13,20 +13,15 @@ export const OG_HEIGHT = 630;
 export const OG_HOME_SLUG = "home";
 
 /**
- * Locales whose script the bundled fonts cover (Inter/Manrope latin + cyrillic).
- * zh/ja/ko/hi would need a multi-MB CJK/Devanagari font, so their pages reuse
- * the English card instead of shipping tofu boxes.
+ * Locales that get their own card: all of them. Latin/Cyrillic come from the
+ * self-hosted Inter/Manrope subsets, zh/ja/ko/hi from build-only Noto fonts
+ * (see render.ts) — a glyph none of them has fails the build.
  */
-export const OG_LOCALES: readonly LocaleCode[] = ["en", "ru", "es", "de", "pt", "fr"];
-
-/** Locale whose card a page uses: itself if its script is renderable, else English. */
-export function ogLocaleFor(lang: LocaleCode): LocaleCode {
-  return OG_LOCALES.includes(lang) ? lang : "en";
-}
+export const OG_LOCALES: readonly LocaleCode[] = LOCALE_CODES;
 
 /** Base-relative path of a card image, e.g. `og/ru/hash-calculator.png`. */
 export function ogImagePath(lang: LocaleCode, slug: string): string {
-  return `og/${ogLocaleFor(lang)}/${slug}.png`;
+  return `og/${lang}/${slug}.png`;
 }
 
 /**
@@ -35,9 +30,53 @@ export function ogImagePath(lang: LocaleCode, slug: string): string {
  */
 export function firstSentence(text: string): string {
   const clean = text.replace(/[ \t\r\n]+/g, " ").trim();
-  // ≥24 chars before the stop so "e.g." / "z. B." early in a sentence don't cut it.
-  const m = clean.match(/^.{24,}?[.!?](?=\s|$)/);
-  return (m ? m[0] : clean).trim();
+  // ≥24 chars before a Latin stop so "e.g." / "z. B." early in a sentence don't cut it;
+  // full-width CJK stops and the Devanagari danda end a sentence without a following space.
+  const latin = clean.match(/^.{24,}?[.!?](?=\s|$)/)?.[0];
+  const wide = clean.match(/^.{6,}?[。！？।]/)?.[0];
+  const m = latin && wide ? (latin.length <= wide.length ? latin : wide) : (latin ?? wide);
+  return (m ?? clean).trim();
+}
+
+/** Characters that must not start a line (CJK kinsoku: closing marks, small kana, prolonged sound). */
+const NO_LINE_START = /^[、。，．・：；？！）」』】〕〉》〙〗’”ー～…‥々ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ)\]},.:;!?%]/u;
+/** Characters that must not end a line (opening brackets/quotes). */
+const NO_LINE_END = /[（「『【〔〈《〘〖‘“(\[{]$/u;
+
+/** A line-break unit and the separator inserted before it when it doesn't start a line. */
+interface BreakUnit {
+  text: string;
+  sep: string;
+}
+
+/**
+ * Break opportunities: spaces for space-separated scripts (Korean keeps
+ * words whole, like `word-break: keep-all`; Devanagari clusters are never
+ * split), dictionary words via Intl.Segmenter for Chinese/Japanese, with
+ * kinsoku punctuation glued to its neighbour.
+ */
+export function breakUnits(text: string, lang?: string): BreakUnit[] {
+  if (lang !== "zh" && lang !== "ja") {
+    // Break only at ordinary spaces: no-break spaces (U+00A0/202F) keep words together.
+    return text
+      .split(/[ \t\r\n]+/)
+      .filter(Boolean)
+      .map((w, i) => ({ text: w, sep: i ? " " : "" }));
+  }
+  const units: BreakUnit[] = [];
+  let sep = "";
+  for (const { segment } of new Intl.Segmenter(lang, { granularity: "word" }).segment(text)) {
+    if (/^[ \t\r\n]+$/.test(segment)) {
+      sep = units.length ? " " : "";
+      continue;
+    }
+    const prev = units[units.length - 1];
+    if (prev && !sep && (NO_LINE_START.test(segment) || NO_LINE_END.test(prev.text))) prev.text += segment;
+    else if (prev && sep && NO_LINE_END.test(prev.text)) prev.text += sep + segment;
+    else units.push({ text: segment, sep });
+    sep = "";
+  }
+  return units;
 }
 
 /**
@@ -56,30 +95,33 @@ export function parseDarkTokens(css: string): Record<string, string> {
 }
 
 /**
- * Greedy word wrap into at most `maxLines` lines no wider than `maxWidth`
- * (width from the injected `measure`). Overflow is cut with an ellipsis on the
- * last line; a single over-long word is kept whole (callers shrink the size).
+ * Greedy wrap into at most `maxLines` lines no wider than `maxWidth` (width
+ * from the injected `measure`; break units from `breakUnits(text, lang)`).
+ * Overflow is cut with an ellipsis on the last line; a single over-long unit
+ * is kept whole (callers shrink the size).
  */
 export function wrapText(
   text: string,
   measure: (s: string) => number,
   maxWidth: number,
   maxLines: number,
+  lang?: string,
 ): { lines: string[]; truncated: boolean } {
-  // Break only at ordinary spaces: no-break spaces (U+00A0/202F) keep words together.
-  const words = text.split(/[ \t\r\n]+/).filter(Boolean);
-  const lines: string[] = [];
+  const units = breakUnits(text, lang);
+  const lines: BreakUnit[][] = [];
+  const join = (line: BreakUnit[]) => line.map((u, k) => (k ? u.sep : "") + u.text).join("");
   let i = 0;
-  while (i < words.length && lines.length < maxLines) {
-    let line = words[i++];
-    while (i < words.length && measure(`${line} ${words[i]}`) <= maxWidth) line += ` ${words[i++]}`;
+  while (i < units.length && lines.length < maxLines) {
+    const line = [units[i++]];
+    while (i < units.length && measure(join([...line, units[i]])) <= maxWidth) line.push(units[i++]);
     lines.push(line);
   }
-  const truncated = i < words.length;
+  const truncated = i < units.length;
+  const out = lines.map(join);
   if (truncated) {
-    let last = lines[lines.length - 1];
-    while (last.includes(" ") && measure(`${last}…`) > maxWidth) last = last.slice(0, last.lastIndexOf(" "));
-    lines[lines.length - 1] = `${last.replace(/[\s,;:.–—-]+$/, "")}…`;
+    const lastUnits = lines[lines.length - 1];
+    while (lastUnits.length > 1 && measure(`${join(lastUnits)}…`) > maxWidth) lastUnits.pop();
+    out[out.length - 1] = `${join(lastUnits).replace(/[\s,;:.–—\-、。，．：；・]+$/u, "")}…`;
   }
-  return { lines, truncated };
+  return { lines: out, truncated };
 }

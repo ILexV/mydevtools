@@ -2,21 +2,30 @@
  * Regex Tester client. Live regex testing via the Rust regex WASM engine
  * (`regex-client`): 150ms debounce on pattern/text input, immediate on flag
  * change. Match highlighting via a backdrop layer under the transparent
- * textarea (scroll-synced). Match list with capture groups (render limit 50,
- * legacy parity), quick examples table, and saved patterns persisted in
+ * textarea (scroll-synced): subdued whole-match shading plus capture groups
+ * in six recurring spectrum colours (inner group = fill, enclosing group =
+ * underline). A group legend (toggle buttons) emphasizes one group in the
+ * text and in the per-match details (value / empty string / not matched,
+ * UTF-16 range). Match list render limit 50 (legacy parity); capture colours
+ * for the first 1,000 matches only. The match count is announced once, after
+ * typing settles. Quick examples table, and saved patterns persisted in
  * localStorage under `mydevtools_regex_saved` (legacy key + entry shape) —
  * only on explicit "Save pattern" (the sample text is stored with it).
  * Match positions from WASM are UTF-16 offsets (see wasm/regex_tool).
  */
 import { regexTest } from "@/scripts/wasm/regex-client";
-import { bindEmptyState, bindLoadExample, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
+import { announce, bindEmptyState, bindLoadExample, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
 import {
   applyGlobalFlag,
   buildHighlightHtml,
   buildRustPattern,
+  captureHue,
+  captureLabel,
+  captureState,
   escapeHtml,
   parseSavedPatterns,
   truncateText,
+  type CaptureSpan,
   type SavedPattern,
 } from "@/tools/regex-tester-core";
 
@@ -26,35 +35,44 @@ interface Strings {
   deleteButton: string;
   deleteConfirm: string;
   matchNumber: string;
-  groupLabel: string;
   moreMatches: string;
   engineError: string;
   storageError: string;
   preparing: string;
+  /** Group 0 label suffix, e.g. "whole match" → "0 · whole match". */
+  wholeMatch: string;
+  notMatched: string;
+  emptyString: string;
+  /** "Capture groups ({count})" — per-match details toggle. */
+  groupsSummary: string;
+  /** "Capture colours are shown for the first {count} matches." */
+  captureLimit: string;
+  /** "Matches found: {count}" — polite announcement once typing settles. */
+  announceMatches: string;
 }
 
-/** WASM `test_regex` result JSON (wasm/regex_tool/src/lib.rs). */
-interface CaptureGroup {
-  name: string | null;
-  text: string;
-  start: number;
-  end: number;
-}
+/** WASM `test_regex` result JSON (wasm/regex_tool/src/lib.rs); every group 1..n per match. */
 interface RegexMatch {
   text: string;
   start: number;
   end: number;
-  captures: CaptureGroup[];
+  captures: CaptureSpan[];
 }
 interface RegexResult {
   matches: RegexMatch[];
   error: string | null;
   truncated?: boolean;
+  /** Names of groups 1..n (null/undefined = unnamed). */
+  groups?: Array<string | null | undefined>;
 }
 
 const STORAGE_KEY = "mydevtools_regex_saved";
 const DEBOUNCE_MS = 150;
 const RENDER_LIMIT = 50;
+/** Matches whose capture groups are coloured in the backdrop (DOM budget for huge match counts). */
+const CAPTURE_HIGHLIGHT_LIMIT = 1000;
+/** Quiet period after the last result before the match count is announced. */
+const ANNOUNCE_DELAY_MS = 1200;
 
 /** Legacy COMMON_REGEXES (1:1). */
 const COMMON_REGEXES: Array<{ name: string; pattern: string; sample: string }> = [
@@ -122,6 +140,8 @@ function init(): void {
   const matchesPanel = root.querySelector<HTMLElement>("[data-rx-matches]");
   const exampleBtn = root.querySelector<HTMLButtonElement>("[data-rx-example]");
   const flagEls = Array.from(root.querySelectorAll<HTMLInputElement>("[data-rx-flag]"));
+  const legendEl = root.querySelector<HTMLElement>("[data-rx-legend]");
+  const legendListEl = root.querySelector<HTMLElement>("[data-rx-legend-list]");
 
   if (!patternEl || !textEl || !backdropEl || !resultsEl || !countEl || !examplesBodyEl || !savedBodyEl || !savedEmptyEl || !dialogEl || !saveNameEl || !errorBoxEl) return;
   const errorBox: HTMLElement = errorBoxEl;
@@ -145,6 +165,15 @@ function init(): void {
 
   let debounceTimer = 0;
   let runSeq = 0;
+  let announceTimer = 0;
+  let lastAnnounced = "";
+  /** Last successful run, kept so legend selection can re-colour without re-running WASM. */
+  let lastText = "";
+  let lastMatches: RegexMatch[] = [];
+  /** Group names 1..n of the current pattern (legend source). */
+  let groupNames: Array<string | null> = [];
+  /** Emphasized capture group (1-based) or null. */
+  let selectedGroup: number | null = null;
 
   function syncScroll(): void {
     backdrop.scrollTop = text.scrollTop;
@@ -159,6 +188,59 @@ function init(): void {
     else pattern.setAttribute("aria-invalid", "true");
   }
 
+  /** Announce the match count once the user pauses (never per keystroke, never twice in a row). */
+  function scheduleAnnounce(message: string): void {
+    window.clearTimeout(announceTimer);
+    announceTimer = window.setTimeout(() => {
+      if (message === lastAnnounced) return;
+      lastAnnounced = message;
+      announce(message);
+    }, ANNOUNCE_DELAY_MS);
+  }
+
+  /** Repaint the highlight backdrop from the last result (selection changes reuse it). */
+  function paintBackdrop(): void {
+    backdrop.innerHTML = buildHighlightHtml(lastText, lastMatches, {
+      selected: selectedGroup,
+      captureLimit: CAPTURE_HIGHLIGHT_LIMIT,
+    });
+    syncScroll();
+  }
+
+  /** Legend buttons `1`, `2 · name`… (aria-pressed toggles); rebuilt only when the group set changes. */
+  function renderLegend(names: Array<string | null>): void {
+    const same = names.length === groupNames.length && names.every((n, i) => n === groupNames[i]);
+    groupNames = names;
+    if (selectedGroup !== null && selectedGroup > names.length) selectedGroup = null;
+    if (!legendEl || !legendListEl) return;
+    legendEl.hidden = names.length === 0;
+    if (same && legendListEl.childElementCount === names.length) return;
+    legendListEl.innerHTML = names
+      .map((name, i) => {
+        const index = i + 1;
+        const pressed = index === selectedGroup;
+        return `<button type="button" class="ds-chip-btn rx-legend-item rx-c${captureHue(index)}" data-rx-group="${index}" aria-pressed="${pressed}"><span class="rx-swatch" aria-hidden="true"></span><span class="rx-legend-text">${escapeHtml(captureLabel(index, name))}</span></button>`;
+      })
+      .join("");
+  }
+
+  /** Reflect the selected group on legend buttons and detail rows (no re-render, keeps open <details>). */
+  function applySelection(): void {
+    legendListEl?.querySelectorAll<HTMLElement>("[data-rx-group]").forEach((btn) => {
+      btn.setAttribute("aria-pressed", String(Number(btn.dataset.rxGroup) === selectedGroup));
+    });
+    results.classList.toggle("has-selection", selectedGroup !== null);
+    results.querySelectorAll<HTMLElement>("[data-rx-group-row]").forEach((row) => {
+      row.classList.toggle("is-sel", Number(row.dataset.rxGroupRow) === selectedGroup);
+    });
+  }
+
+  function clearResultState(): void {
+    lastText = text.value;
+    lastMatches = [];
+    paintBackdrop();
+  }
+
   function showNoMatches(): void {
     setError(null);
     results.innerHTML = `<p class="ds-empty">${escapeHtml(strings.noMatches)}</p>`;
@@ -169,7 +251,26 @@ function init(): void {
     setError(message);
     results.innerHTML = "";
     countBadge.textContent = "—";
-    backdrop.innerHTML = buildHighlightHtml(text.value, []);
+    renderLegend([]);
+    clearResultState();
+    window.clearTimeout(announceTimer); // the error itself is a role=alert
+  }
+
+  /** One details row: group label (+ colour swatch), exact value or state, UTF-16 range. */
+  function groupRowHtml(index: number, label: string, c: CaptureSpan | null, value: string, start: number, end: number): string {
+    const state = c ? captureState(c) : end > start ? "value" : "empty";
+    const hue = index > 0 ? ` rx-c${captureHue(index)}` : " rx-g0";
+    const sel = index > 0 && index === selectedGroup ? " is-sel" : "";
+    let valueHtml: string;
+    if (state === "unmatched") valueHtml = `<em class="rx-group-state">${escapeHtml(strings.notMatched)}</em>`;
+    else if (state === "empty") valueHtml = `<em class="rx-group-state">${escapeHtml(strings.emptyString)}</em>`;
+    else valueHtml = `<span class="rx-group-text">${escapeHtml(truncateText(value))}</span>`;
+    const pos = state === "unmatched" ? "—" : `[${start}–${end}]`;
+    return `<div class="rx-group${hue}${sel}"${index > 0 ? ` data-rx-group-row="${index}"` : ""}>
+      <span class="rx-group-name">${index > 0 ? '<span class="rx-swatch" aria-hidden="true"></span>' : ""}${escapeHtml(label)}</span>
+      ${valueHtml}
+      <span class="rx-group-pos">${pos}</span>
+    </div>`;
   }
 
   function renderMatchDetails(matches: RegexMatch[], truncated: boolean): void {
@@ -184,25 +285,30 @@ function init(): void {
     const visible = matches.slice(0, RENDER_LIMIT);
     let html = "";
     visible.forEach((m, idx) => {
-      let groupsHtml = "";
-      for (const c of m.captures ?? []) {
-        const groupName = c.name ? c.name : strings.groupLabel;
-        groupsHtml += `
-            <div class="rx-group">
-              <span class="rx-group-name">${escapeHtml(groupName)}:</span>
-              <span class="rx-group-text">${escapeHtml(c.text)}</span>
-              <span class="rx-group-pos">[${c.start}-${c.end}]</span>
-            </div>`;
+      const head = `
+          <span class="rx-match-title">${escapeHtml(strings.matchNumber.replace("{n}", String(idx + 1)))}</span>
+          <span class="rx-pos">[${m.start}–${m.end}]</span>`;
+      const caps = m.captures ?? [];
+      if (caps.length === 0) {
+        html += `
+        <div class="rx-match">
+          <div class="rx-match-head">${head}</div>
+          <div class="rx-match-text">${escapeHtml(truncateText(m.text || ""))}</div>
+        </div>`;
+        return;
       }
-
+      let rows = groupRowHtml(0, `0 · ${strings.wholeMatch}`, null, m.text || "", m.start, m.end);
+      for (const c of caps) {
+        rows += groupRowHtml(c.index, captureLabel(c.index, c.name), c, c.text ?? "", c.start ?? 0, c.end ?? 0);
+      }
       html += `
         <div class="rx-match">
-          <div class="rx-match-head">
-            <span>${escapeHtml(strings.matchNumber.replace("{n}", String(idx + 1)))}</span>
-            <span class="rx-pos">[${m.start}-${m.end}]</span>
-          </div>
+          <div class="rx-match-head">${head}</div>
           <div class="rx-match-text">${escapeHtml(truncateText(m.text || ""))}</div>
-          ${groupsHtml}
+          <details class="rx-groups"${idx === 0 ? " open" : ""}>
+            <summary class="rx-groups-toggle">${escapeHtml(strings.groupsSummary.replace("{count}", String(caps.length)))}</summary>
+            <div class="rx-groups-body">${rows}</div>
+          </details>
         </div>`;
     });
 
@@ -210,8 +316,12 @@ function init(): void {
       const more = `${matches.length - RENDER_LIMIT}${truncated ? "+" : ""}`;
       html += `<div class="rx-more">${escapeHtml(strings.moreMatches.replace("{count}", more))}</div>`;
     }
+    if (groupNames.length > 0 && matches.length > CAPTURE_HIGHLIGHT_LIMIT) {
+      html += `<div class="rx-more">${escapeHtml(strings.captureLimit.replace("{count}", CAPTURE_HIGHLIGHT_LIMIT.toLocaleString(document.documentElement.lang || undefined)))}</div>`;
+    }
 
     results.innerHTML = html;
+    applySelection();
   }
 
   async function runTest(): Promise<void> {
@@ -223,8 +333,10 @@ function init(): void {
 
     syncMatches();
     if (!patternValue) {
-      backdrop.innerHTML = buildHighlightHtml(textValue, []);
+      renderLegend([]);
+      clearResultState();
       showNoMatches();
+      window.clearTimeout(announceTimer);
       return;
     }
 
@@ -244,9 +356,13 @@ function init(): void {
 
       const global = activeFlags.includes("g");
       const matches = applyGlobalFlag(result.matches, global);
-      backdrop.innerHTML = buildHighlightHtml(textValue, matches);
-      syncScroll();
-      renderMatchDetails(matches, global && result.truncated === true);
+      renderLegend((result.groups ?? []).map((n) => n ?? null));
+      lastText = textValue;
+      lastMatches = matches;
+      paintBackdrop();
+      const truncated = global && result.truncated === true;
+      renderMatchDetails(matches, truncated);
+      scheduleAnnounce(strings.announceMatches.replace("{count}", truncated ? `${matches.length}+` : String(matches.length)));
     } catch (err) {
       if (seq !== runSeq) return;
       const message = err instanceof Error ? err.message : String(err);
@@ -352,6 +468,15 @@ function init(): void {
 
   root.addEventListener("click", (e: MouseEvent) => {
     const target = e.target as HTMLElement;
+
+    const legendBtn = target.closest<HTMLElement>("[data-rx-group]");
+    if (legendBtn) {
+      const index = Number(legendBtn.dataset.rxGroup);
+      selectedGroup = selectedGroup === index ? null : index;
+      applySelection();
+      paintBackdrop();
+      return;
+    }
 
     if (target.closest("[data-rx-save-open]")) {
       e.preventDefault();

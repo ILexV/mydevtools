@@ -14,12 +14,20 @@ pub struct RegexMatch {
     pub captures: Vec<CaptureGroup>,
 }
 
+/// One capture group of a match. Every group of the pattern (1..=n) is
+/// reported, in pattern order: a group that did not participate in the match
+/// (optional / other alternation branch) has `matched: false` and no
+/// text/range, which keeps it distinct from a group that matched "".
 #[derive(Serialize, Debug, PartialEq)]
 pub struct CaptureGroup {
+    /// Group number as in the pattern (1-based; 0 is the whole match).
+    pub index: usize,
+    /// User-defined name, verbatim, for `(?<name>…)` / `(?P<name>…)`.
     pub name: Option<String>,
-    pub text: String,
-    pub start: usize,
-    pub end: usize,
+    pub matched: bool,
+    pub text: Option<String>,
+    pub start: Option<usize>,
+    pub end: Option<usize>,
 }
 
 #[derive(Serialize, Debug, PartialEq)]
@@ -28,6 +36,9 @@ pub struct RegexResult {
     pub error: Option<String>,
     /// True when matching stopped at `MAX_MATCHES`.
     pub truncated: bool,
+    /// Names of capture groups 1..=n (None = unnamed). Known even without
+    /// matches, so the UI can draw a group legend for any valid pattern.
+    pub groups: Vec<Option<String>>,
 }
 
 /// Incremental byte-offset → UTF-16 code-unit offset converter. JS strings are
@@ -64,7 +75,7 @@ pub fn run_regex(pattern: &str, text: &str) -> RegexResult {
     let re = match Regex::new(pattern) {
         Ok(re) => re,
         Err(e) => {
-            return RegexResult { matches: Vec::new(), error: Some(e.to_string()), truncated: false };
+            return RegexResult { matches: Vec::new(), error: Some(e.to_string()), truncated: false, groups: Vec::new() };
         }
     };
     let names: Vec<Option<String>> = re.capture_names().map(|n| n.map(str::to_string)).collect();
@@ -81,20 +92,25 @@ pub fn run_regex(pattern: &str, text: &str) -> RegexResult {
         let start = cursor.advance_to(full.start());
         let mut captures = Vec::new();
         for i in 1..cap.len() {
-            if let Some(c) = cap.get(i) {
-                captures.push(CaptureGroup {
-                    name: names.get(i).cloned().flatten(),
-                    text: c.as_str().to_string(),
-                    start: cursor.peek(c.start()),
-                    end: cursor.peek(c.end()),
-                });
-            }
+            let name = names.get(i).cloned().flatten();
+            captures.push(match cap.get(i) {
+                Some(c) => CaptureGroup {
+                    index: i,
+                    name,
+                    matched: true,
+                    text: Some(c.as_str().to_string()),
+                    start: Some(cursor.peek(c.start())),
+                    end: Some(cursor.peek(c.end())),
+                },
+                None => CaptureGroup { index: i, name, matched: false, text: None, start: None, end: None },
+            });
         }
         let end = cursor.peek(full.end());
         matches.push(RegexMatch { text: full.as_str().to_string(), start, end, captures });
     }
 
-    RegexResult { matches, error: None, truncated }
+    let groups = names.into_iter().skip(1).collect();
+    RegexResult { matches, error: None, truncated, groups }
 }
 
 #[wasm_bindgen]
@@ -136,8 +152,9 @@ mod tests {
         let r = run_regex(r"(ж(ё))", "ааж ё жё");
         let m = &r.matches[0];
         assert_eq!((m.start, m.end), (6, 8));
-        assert_eq!((m.captures[0].start, m.captures[0].end), (6, 8));
-        assert_eq!((m.captures[1].start, m.captures[1].end), (7, 8));
+        assert_eq!((m.captures[0].start, m.captures[0].end), (Some(6), Some(8)));
+        assert_eq!((m.captures[1].start, m.captures[1].end), (Some(7), Some(8)));
+        assert_eq!((m.captures[0].index, m.captures[1].index), (1, 2));
     }
 
     #[test]
@@ -148,16 +165,38 @@ mod tests {
         assert_eq!((m.start, m.end), (3, 10));
         assert_eq!(m.captures.len(), 2);
         assert_eq!(m.captures[0].name.as_deref(), Some("year"));
-        assert_eq!((m.captures[0].start, m.captures[0].end, m.captures[0].text.as_str()), (3, 7, "2024"));
+        assert_eq!((m.captures[0].start, m.captures[0].end, m.captures[0].text.as_deref()), (Some(3), Some(7), Some("2024")));
         assert_eq!(m.captures[1].name, None);
-        assert_eq!((m.captures[1].start, m.captures[1].end), (8, 10));
+        assert_eq!((m.captures[1].start, m.captures[1].end), (Some(8), Some(10)));
+        assert_eq!(r.groups, vec![Some("year".to_string()), None]);
     }
 
     #[test]
-    fn optional_group_that_did_not_participate_is_skipped() {
-        let r = run_regex(r"a(b)?", "a");
+    fn group_offsets_after_emoji_are_utf16() {
+        // 😀 = 2 UTF-16 units, "й" = 1; group 1 starts right after the emoji.
+        let r = run_regex(r"😀(й+)", "x😀йй");
+        let g = &r.matches[0].captures[0];
+        assert_eq!((g.start, g.end, g.text.as_deref()), (Some(3), Some(5), Some("йй")));
+    }
+
+    #[test]
+    fn optional_group_that_did_not_participate_is_reported_unmatched() {
+        let r = run_regex(r"a(b)?(c*)", "a");
         assert_eq!(r.matches.len(), 1);
-        assert!(r.matches[0].captures.is_empty());
+        let caps = &r.matches[0].captures;
+        assert_eq!(caps.len(), 2);
+        assert!(!caps[0].matched);
+        assert_eq!((caps[0].index, caps[0].text.as_deref(), caps[0].start), (1, None, None));
+        // Participating but empty: matched with "" and a zero-length range.
+        assert!(caps[1].matched);
+        assert_eq!((caps[1].text.as_deref(), caps[1].start, caps[1].end), (Some(""), Some(1), Some(1)));
+    }
+
+    #[test]
+    fn groups_listed_without_matches_and_on_error() {
+        assert_eq!(run_regex(r"(x)(?<n>y)", "abc").groups, vec![None, Some("n".to_string())]);
+        assert!(run_regex(r"(x", "abc").groups.is_empty());
+        assert!(run_regex(r"x", "abc").groups.is_empty());
     }
 
     #[test]

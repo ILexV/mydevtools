@@ -1,0 +1,109 @@
+---
+/**
+ * ImageCompare — before/after image comparison slider (tool UI kit, round 5)
+ * for image-compressor / image-converter / image-resizer. Original and result
+ * are overlaid in identical framing (before left, after right); the result
+ * is clipped to the right of a 2px divider
+ * with a 44px handle, driven by a labelled native `<input type=range>`
+ * (0–100, localized aria-valuetext, keyboard arrows/Home/End) and pointer
+ * drag. Fit / 1:1 toggle: 1:1 shows source pixels as CSS pixels inside a
+ * focusable scroll viewport. Transparency sits on a checkerboard.
+ * Starts `hidden`; the controller (`bindImageCompare` in
+ * `@/scripts/image-compare`) fills and reveals it after the first result.
+ *
+ *   <ImageCompare strings={compare} data-imgc-compare />
+ */
+import type { HTMLAttributes } from "astro/types";
+
+export interface ImageCompareStrings {
+  /** Section label above the frame ("Before and after"). */
+  title: string;
+  original: string;
+  result: string;
+  /** Accessible name of the range ("Comparison divider"). */
+  slider: string;
+  /** aria-valuetext template with `{percent}` ("Result visible: {percent}%"). */
+  valueText: string;
+  /** Group label of the Fit / 1:1 toggle. */
+  zoom: string;
+  fit: string;
+  /** Visible "1:1" button text and its accessible name (must contain "1:1"). */
+  actual: string;
+  actualName: string;
+  /** Accessible name of the 1:1 scroll viewport. */
+  viewport: string;
+  /** Visually hidden prefix of the signed "+N%" change, when shown. */
+  change?: string;
+  /** Optional hint under the toolbar (resizer: fit scales both images). */
+  note?: string;
+}
+
+interface Props extends HTMLAttributes<"section"> {
+  strings: ImageCompareStrings;
+  /** Prefix for internal ids (unique per page; one comparison per tool). */
+  idPrefix?: string;
+}
+
+const { strings: s, idPrefix: uid = "ic", class: className, ...rest } = Astro.props as Props;
+const runtime = JSON.stringify({ valueText: s.valueText, change: s.change ?? "", viewport: s.viewport });
+---
+
+<section
+  class:list={["ds-compare", className]}
+  data-image-compare
+  data-ic-strings={runtime}
+  aria-labelledby={`${uid}-title`}
+  hidden
+  {...rest}
+>
+  <div class="ds-compare-bar">
+    <span class="ds-label" id={`${uid}-title`}>{s.title}</span>
+    <div class="seg ds-compare-zoom" role="group" aria-label={s.zoom}>
+      <button type="button" aria-pressed="true" data-ic-mode="fit">{s.fit}</button>
+      <button type="button" aria-pressed="false" data-ic-mode="actual" aria-label={s.actualName}>{s.actual}</button>
+    </div>
+  </div>
+  {s.note && <p class="ds-hint" data-ic-note>{s.note}</p>}
+
+  <input
+    type="range"
+    class="ds-compare-range"
+    min="0"
+    max="100"
+    step="1"
+    value="50"
+    aria-label={s.slider}
+    aria-valuetext={s.valueText.replace("{percent}", "50")}
+    data-ic-range
+  />
+  <div class="ds-compare-frame" data-ic-frame>
+    <div class="ds-compare-viewport" data-ic-viewport>
+      <div class="ds-compare-stage" data-ic-stage>
+        <div class="ds-compare-layer" data-ic-original-layer>
+          <img class="ds-compare-img" data-ic-original alt={s.original} draggable="false" decoding="async" />
+        </div>
+        <div class="ds-compare-layer ds-compare-layer-result" data-ic-result-layer>
+          <img class="ds-compare-img" data-ic-result alt={s.result} draggable="false" decoding="async" />
+        </div>
+        <div class="ds-compare-divider" data-ic-divider aria-hidden="true">
+          <span class="ds-compare-handle" data-ic-handle>
+            <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 6 3.5 10l4 4M12.5 6l4 4-4 4" /></svg>
+          </span>
+        </div>
+      </div>
+    </div>
+    <span class="ds-compare-tag ds-compare-tag-start" data-ic-original-tag aria-hidden="true">{s.original}</span>
+    <span class="ds-compare-tag ds-compare-tag-end" aria-hidden="true">{s.result}</span>
+  </div>
+
+  <dl class="ds-compare-meta">
+    <div class="ds-compare-meta-item" data-ic-original-meta-item>
+      <dt>{s.original}</dt>
+      <dd class="mono" data-ic-original-meta></dd>
+    </div>
+    <div class="ds-compare-meta-item ds-compare-meta-end">
+      <dt>{s.result}</dt>
+      <dd class="mono" data-ic-result-meta></dd>
+    </div>
+  </dl>
+</section>

@@ -6,13 +6,22 @@
  * Text is converted to vector outlines with fontkitten from the self-hosted
  * @fontsource-variable WOFF2 files, and the SVG is rasterized by sharp (both
  * already used by astro itself). No system fonts, no network, deterministic.
+ *
+ * zh/ja/ko/hi cards fall back to build-only Noto Sans SC/JP/KR (variable,
+ * unicode-range WOFF2 chunks) and Noto Sans Devanagari (static WOFF, shaped
+ * by HarfBuzz: conjuncts, matras, reph). Noto is SIL OFL 1.1; the font files
+ * are devDependencies read only here — dist gets rendered glyph outlines in
+ * PNGs, never the fonts, so nothing is redistributed (licences stay in
+ * node_modules/@fontsource*).
  */
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
+import { inflateSync } from "node:zlib";
 import { create, type Font } from "fontkitten";
+import * as hb from "harfbuzzjs";
 import sharp from "sharp";
 import {
   OG_HEIGHT as H,
@@ -100,6 +109,118 @@ function weighted(bytes: Buffer, wght: number): Font {
   return font as Font;
 }
 
+/** Script fonts for locales whose script Inter/Manrope lack (Han, kana, Hangul, Devanagari). */
+export type ScriptFont = "sc" | "jp" | "kr" | "devanagari";
+const SCRIPT_FOR_LANG: Readonly<Record<string, ScriptFont>> = { zh: "sc", ja: "jp", ko: "kr", hi: "devanagari" };
+
+/** Script fallback of a card locale (undefined → Latin/Cyrillic subsets suffice). */
+export function scriptFor(lang: string | undefined): ScriptFont | undefined {
+  return lang ? SCRIPT_FOR_LANG[lang] : undefined;
+}
+
+interface Chunk {
+  file: string;
+  ranges: [number, number][];
+}
+const chunkLists = new Map<string, Chunk[]>();
+
+/**
+ * unicode-range chunks of a CJK @fontsource-variable package, parsed from its
+ * index.css (Google Fonts slices Han/kana/Hangul into ~100–120 WOFF2 files).
+ */
+function cjkChunks(script: Exclude<ScriptFont, "devanagari">): Chunk[] {
+  let list = chunkLists.get(script);
+  if (!list) {
+    const pkg = `@fontsource-variable/noto-sans-${script}`;
+    const dir = dirname(req.resolve(`${pkg}/LICENSE`));
+    const css = readFileSync(join(dir, "index.css"), "utf8");
+    list = [...css.matchAll(/url\(\.\/files\/([^)]+\.woff2)\)[^;]*;\s*unicode-range:\s*([^;]+);/g)].map((m) => ({
+      file: join(dir, "files", m[1]),
+      ranges: m[2].split(",").map((r) => {
+        const [a, b] = r.trim().replace(/^U\+/i, "").split("-");
+        return [parseInt(a, 16), parseInt(b ?? a, 16)] as [number, number];
+      }),
+    }));
+    if (!list.length) throw new Error(`og: no unicode-range chunks parsed from ${pkg}/index.css`);
+    chunkLists.set(script, list);
+  }
+  return list;
+}
+
+const chunkFonts = new Map<string, Font>();
+
+/** Weighted CJK chunk font whose unicode-range covers `cp` (loaded on first use). */
+function cjkFontFor(script: Exclude<ScriptFont, "devanagari">, cp: number, wght: number): Font | undefined {
+  const chunk = cjkChunks(script).find((c) => c.ranges.some(([a, b]) => cp >= a && cp <= b));
+  if (!chunk) return undefined;
+  const key = `${chunk.file}:${wght}`;
+  let font = chunkFonts.get(key);
+  if (!font) chunkFonts.set(key, (font = weighted(readFileSync(chunk.file), wght)));
+  return font.hasGlyphForCodePoint(cp) ? font : undefined;
+}
+
+/** WOFF 1.0 → plain sfnt (HarfBuzz reads only sfnt): inflate each table, rebuild the directory. */
+function woffToSfnt(woff: Uint8Array): Uint8Array {
+  const v = new DataView(woff.buffer, woff.byteOffset, woff.byteLength);
+  if (v.getUint32(0) !== 0x774f4646) throw new Error("og: not a WOFF 1.0 file");
+  const n = v.getUint16(12);
+  const tables = Array.from({ length: n }, (_, i) => {
+    const o = 44 + i * 20;
+    const off = v.getUint32(o + 4);
+    const comp = v.getUint32(o + 8);
+    const raw = woff.subarray(off, off + comp);
+    return { tag: v.getUint32(o), sum: v.getUint32(o + 16), data: comp < v.getUint32(o + 12) ? inflateSync(raw) : raw };
+  });
+  const size = tables.reduce((acc, t) => acc + ((t.data.length + 3) & ~3), 12 + 16 * n);
+  const out = new Uint8Array(size);
+  const dv = new DataView(out.buffer);
+  const pow = 2 ** Math.floor(Math.log2(n));
+  dv.setUint32(0, v.getUint32(4));
+  dv.setUint16(4, n);
+  dv.setUint16(6, pow * 16);
+  dv.setUint16(8, Math.log2(pow));
+  dv.setUint16(10, n * 16 - pow * 16);
+  let off = 12 + 16 * n;
+  tables.forEach((t, i) => {
+    dv.setUint32(12 + i * 16, t.tag);
+    dv.setUint32(16 + i * 16, t.sum);
+    dv.setUint32(20 + i * 16, off);
+    dv.setUint32(24 + i * 16, t.data.length);
+    out.set(t.data, off);
+    off += (t.data.length + 3) & ~3;
+  });
+  return out;
+}
+
+interface HbFace {
+  /** Blob/face are kept reachable: harfbuzzjs frees their wasm memory on GC (FinalizationRegistry). */
+  blob: hb.Blob;
+  face: hb.Face;
+  font: hb.Font;
+  upem: number;
+  paths: Map<number, string>;
+}
+const hbFaces = new Map<number, HbFace>();
+
+/** HarfBuzz font for Noto Sans Devanagari at the nearest static weight (100…900). */
+function devanagariFace(wght: number): HbFace {
+  const w = Math.max(100, Math.min(900, Math.round(wght / 100) * 100));
+  let face = hbFaces.get(w);
+  if (!face) {
+    const dir = dirname(req.resolve("@fontsource/noto-sans-devanagari/LICENSE"));
+    const bytes = readFileSync(join(dir, "files", `noto-sans-devanagari-devanagari-${w}-normal.woff`));
+    const blob = new hb.Blob(woffToSfnt(bytes));
+    const hbFace = new hb.Face(blob);
+    face = { blob, face: hbFace, font: new hb.Font(hbFace), upem: hbFace.upem, paths: new Map() };
+    hbFaces.set(w, face);
+  }
+  return face;
+}
+
+/** Devanagari block, extensions, Vedic marks, ZWNJ/ZWJ and the dotted circle — one shaping run. */
+const isDevanagari = (cp: number) =>
+  (cp >= 0x0900 && cp <= 0x097f) || (cp >= 0xa8e0 && cp <= 0xa8ff) || (cp >= 0x1cd0 && cp <= 0x1cff) || cp === 0x200c || cp === 0x200d || cp === 0x25cc;
+
 const chains = new Map<string, Font[]>();
 
 /** Fallback chain of subset fonts for a family/weight; mono falls back to Inter (arrows, ±). */
@@ -120,15 +241,17 @@ function chain(family: Family, wght: number): Font[] {
   return fonts;
 }
 
-/** Thrown when no bundled font has a glyph (caller falls back to English text). */
+/** Thrown when no bundled font has a glyph — generation fails loudly, no English fallback. */
 export class MissingGlyphError extends Error {}
 
-interface TextStyle {
+export interface TextStyle {
   family: Family;
   weight: number;
   size: number;
-  /** Letter spacing in em. */
+  /** Letter spacing in em (not applied inside script-font runs: it would break CJK rhythm and the Devanagari headline). */
   tracking?: number;
+  /** Script fallback after the Latin/Cyrillic subsets (card locale zh/ja/ko/hi). */
+  script?: ScriptFont;
 }
 
 /** Arrows missing from every fontsource subset (monograms "→QR", "m↔ft"): drawn as strokes. */
@@ -138,27 +261,58 @@ const SYNTH_ARROWS = new Set([0x2190, 0x2192, 0x2194]);
 const SUBSTITUTES: Record<number, number> = { 0x2011: 0x2d, 0x2010: 0x2d, 0x202f: 0x20, 0x2009: 0x20 };
 
 interface Shaped {
-  glyphs: ({ font: Font; id: number; x: number } | { arrow: number; x: number; w: number })[];
+  glyphs: (
+    | { font: Font; id: number; x: number }
+    | { hb: HbFace; id: number; x: number; dy: number }
+    | { arrow: number; x: number; w: number }
+  )[];
   width: number;
 }
 
-/** One-to-one char → glyph layout (no kerning/shaping; fine for Latin/Cyrillic). */
+/**
+ * Text → positioned glyphs. Latin/Cyrillic/CJK map one char → one glyph (no
+ * kerning; CJK needs no shaping for horizontal text); Devanagari runs go
+ * through HarfBuzz (GSUB/GPOS) so conjuncts and matras match the browser.
+ */
 function shape(text: string, style: TextStyle): Shaped {
   const fonts = chain(style.family, style.weight);
   const track = (style.tracking ?? 0) * style.size;
   const glyphs: Shaped["glyphs"] = [];
+  const chars = [...text];
   let x = 0;
-  for (const ch of text) {
-    let cp = ch.codePointAt(0)!;
+  /** Spacing added after the last glyph (none after script-font glyphs), trimmed from the width. */
+  let trailing = 0;
+  for (let i = 0; i < chars.length; i++) {
+    let cp = chars[i].codePointAt(0)!;
+    if (style.script === "devanagari" && isDevanagari(cp)) {
+      let j = i;
+      while (j + 1 < chars.length && isDevanagari(chars[j + 1].codePointAt(0)!)) j++;
+      x = shapeDevanagari(chars.slice(i, j + 1).join(""), style, x, glyphs, text);
+      trailing = 0;
+      i = j;
+      continue;
+    }
     let font = fonts.find((f) => f.hasGlyphForCodePoint(cp));
     if (!font && SUBSTITUTES[cp] !== undefined) {
       cp = SUBSTITUTES[cp];
       font = fonts.find((f) => f.hasGlyphForCodePoint(cp));
     }
+    if (!font && style.script && style.script !== "devanagari") {
+      const cjk = cjkFontFor(style.script, cp, style.weight);
+      if (cjk) {
+        const glyph = cjk.glyphForCodePoint(cp);
+        varyGlyph.get(cjk)?.(glyph.id);
+        glyphs.push({ font: cjk, id: glyph.id, x });
+        x += glyph.advanceWidth * (style.size / cjk.unitsPerEm);
+        trailing = 0;
+        continue;
+      }
+    }
     if (!font && SYNTH_ARROWS.has(cp)) {
       const w = measure("0", style);
       glyphs.push({ arrow: cp, x, w });
       x += w + track;
+      trailing = track;
       continue;
     }
     if (!font) throw new MissingGlyphError(`og: no glyph for U+${cp.toString(16)} in "${text}"`);
@@ -167,8 +321,28 @@ function shape(text: string, style: TextStyle): Shaped {
     const scale = style.size / font.unitsPerEm;
     glyphs.push({ font, id: glyph.id, x });
     x += glyph.advanceWidth * scale + track;
+    trailing = track;
   }
-  return { glyphs, width: Math.max(0, x - track) };
+  return { glyphs, width: Math.max(0, x - trailing) };
+}
+
+/** Shape one Devanagari run with HarfBuzz at x; returns the pen position after it. Fails on .notdef. */
+function shapeDevanagari(run: string, style: TextStyle, x: number, out: Shaped["glyphs"], text: string): number {
+  const face = devanagariFace(style.weight);
+  const buf = new hb.Buffer();
+  buf.addText(run);
+  buf.setDirection(hb.Direction.LTR);
+  buf.setScript("Deva");
+  buf.setLanguage("hi");
+  hb.shape(face.font, buf);
+  const scale = style.size / face.upem;
+  const pos = buf.getGlyphPositions();
+  buf.getGlyphInfos().forEach((g, k) => {
+    if (g.codepoint === 0) throw new MissingGlyphError(`og: no Devanagari glyph for "${run}" in "${text}"`);
+    out.push({ hb: face, id: g.codepoint, x: x + pos[k].xOffset * scale, dy: pos[k].yOffset * scale });
+    x += pos[k].xAdvance * scale;
+  });
+  return x;
 }
 
 /** Stroked arrow (← → ↔) filling one monospace cell at the x-height middle. */
@@ -213,6 +387,14 @@ function textSvg(
   const paths = glyphs
     .map((g) => {
       if ("arrow" in g) return arrowSvg(g.arrow, x0 + g.x, g.w, baseline, style.size, fill);
+      if ("hb" in g) {
+        const { hb: face, id } = g;
+        let d = face.paths.get(id);
+        if (d === undefined) face.paths.set(id, (d = face.font.glyphToPath(id)));
+        if (!d) return "";
+        const s = style.size / face.upem;
+        return `<path transform="translate(${r(x0 + g.x)} ${r(baseline - g.dy)}) scale(${r(s, 5)} ${r(-s, 5)})" d="${d}"/>`;
+      }
       const { font, id, x: gx } = g;
       const d = outline(font, id);
       if (!d) return "";
@@ -243,6 +425,8 @@ function logo(svg: string, x: number, y: number, size: number): string {
 }
 
 export interface CardInput {
+  /** Card locale: picks the script fallback font and line breaking (zh/ja segment words, others break at spaces). */
+  lang?: string;
   /** Localized tool name (or app name for home). */
   title: string;
   /** Short tagline (first sentence of the description). */
@@ -270,16 +454,19 @@ const TILE = 184;
 const TEXT_X = PAD + TILE + 56;
 const TEXT_W = W - PAD - TEXT_X;
 
-/** Fit the title into ≤2 lines, shrinking from 76px down to 52px. */
-function fitTitle(title: string, max: number): { lines: string[]; style: TextStyle } {
-  let style: TextStyle = { family: "display", weight: 800, size: max, tracking: -0.02 };
+/**
+ * Fit the title into ≤`maxLines` lines, shrinking from `max` down to 52px.
+ * Latin/Cyrillic: 76px, 2 lines; CJK/Devanagari (taller, wider glyphs): 64px, 3 lines.
+ */
+function fitTitle(title: string, max: number, maxLines: number, lang?: string): { lines: string[]; style: TextStyle } {
+  let style: TextStyle = { family: "display", weight: 800, size: max, tracking: -0.02, script: scriptFor(lang) };
   for (let size = max; size >= 52; size -= 4) {
     style = { ...style, size };
     const m = (s: string) => measure(s, style);
-    const { lines, truncated } = wrapText(title, m, TEXT_W, 2);
+    const { lines, truncated } = wrapText(title, m, TEXT_W, maxLines, lang);
     if (!truncated && lines.every((l) => m(l) <= TEXT_W)) return { lines, style };
   }
-  return { lines: wrapText(title, (s) => measure(s, style), TEXT_W, 2).lines, style };
+  return { lines: wrapText(title, (s) => measure(s, style), TEXT_W, maxLines, lang).lines, style };
 }
 
 /** Compose the card SVG (vector outlines only — no <text>, so no system fonts). */
@@ -294,13 +481,17 @@ export function cardSvg(input: CardInput, assets: CardAssets): string {
   const hues = input.spectrum.map((id) => tk[`cat-${id}`] ?? border);
   const tileY = 196;
   const isHome = !input.monogram;
+  const script = scriptFor(input.lang);
+  // CJK ideographs sit on a full em and Devanagari matras reach above/below the
+  // headline, so those scripts get a smaller title, a third line and looser leading.
+  const wide = script !== undefined;
 
   // Title + tagline block, vertically centred on the tile.
-  const { lines: titleLines, style: titleStyle } = fitTitle(input.title, isHome ? 92 : 76);
-  const tagStyle: TextStyle = { family: "body", weight: 400, size: 30 };
-  const tag = wrapText(input.tagline, (s) => measure(s, tagStyle), TEXT_W, 2).lines;
-  const titleLead = titleStyle.size * 1.08;
-  const tagLead = 42;
+  const { lines: titleLines, style: titleStyle } = fitTitle(input.title, isHome ? 92 : wide ? 64 : 76, wide && !isHome ? 3 : 2, input.lang);
+  const tagStyle: TextStyle = { family: "body", weight: 400, size: 30, script };
+  const tag = wrapText(input.tagline, (s) => measure(s, tagStyle), TEXT_W, 2, input.lang).lines;
+  const titleLead = titleStyle.size * (script === "devanagari" ? 1.3 : wide ? 1.2 : 1.08);
+  const tagLead = script === "devanagari" ? 48 : wide ? 46 : 42;
   const blockH = titleLines.length * titleLead + 22 + tag.length * tagLead;
   let y = tileY + TILE / 2 - blockH / 2 + titleStyle.size * 0.86;
   const parts: string[] = [];
@@ -334,7 +525,7 @@ export function cardSvg(input: CardInput, assets: CardAssets): string {
     header.push(textSvg(input.brand, { family: "display", weight: 700, size: 30, tracking: -0.01 }, PAD + 64, 95, text));
   }
   if (input.categoryLabel) {
-    const catStyle: TextStyle = { family: "body", weight: 500, size: 24 };
+    const catStyle: TextStyle = { family: "body", weight: 500, size: 24, script };
     const w = measure(input.categoryLabel, catStyle);
     header.push(`<circle cx="${r(W - PAD - w - 20)}" cy="86" r="6" fill="${accent}"/>`);
     header.push(textSvg(input.categoryLabel, catStyle, W - PAD, 94, accent, "end"));
@@ -353,7 +544,7 @@ export function cardSvg(input: CardInput, assets: CardAssets): string {
       return `<rect x="${r(PAD + i * segW)}" y="${thick ? lineY - 2 : lineY}" width="${r(segW + 0.5)}" height="${thick ? 7 : 3}" fill="${h}"/>`;
     })
     .join("");
-  const footStyle: TextStyle = { family: "body", weight: 400, size: 22 };
+  const footStyle: TextStyle = { family: "body", weight: 400, size: 22, script };
   const footer =
     spectrumSvg +
     textSvg(input.siteLabel, { family: "mono", weight: 500, size: 21 }, PAD, 590, faint) +

@@ -7,7 +7,7 @@
  * fields (?), type alias. Actions: convert/copy/download/clear.
  */
 import { t } from "@/i18n/messages";
-import { editorPhrases } from "@/tools/editor-phrases";
+import { diagnosticStrings, editorPhrases } from "@/tools/editor-phrases";
 import type { LocaleCode } from "@/registry/locales";
 import CopyButton from "@/components/tool/CopyButton.astro";
 import EmptyState from "@/components/tool/EmptyState.astro";
@@ -49,6 +49,7 @@ const stringsJson = JSON.stringify({
   inputLabel: s.inputLabel,
   outputLabel: s.outputLabel,
   phrases: editorPhrases(lang),
+  diag: diagnosticStrings(lang),
 });
 ---
 
@@ -93,7 +94,8 @@ const stringsJson = JSON.stringify({
       <button type="button" class="ds-btn ds-btn-primary" data-jts-convert>{s.convertButton}</button>
     </div>
 
-    <StatusMessage kind="error" data-jts-error />
+    <!-- Parse-error panel (codemirror-kit setDiagnostic): no live role — live checks stay quiet, Convert announces. -->
+    <StatusMessage kind="error" role="none" class="mdt-diag" id="jts-editor-error" data-jts-error />
   </ToolPanel>
 
   <OutputPanel panel label={s.outputLabel} emptyHint={s.outputPlaceholder} data-jts-output-panel>

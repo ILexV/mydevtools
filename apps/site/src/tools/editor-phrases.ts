@@ -6,7 +6,7 @@
  * Strings live once in `tools/json-beautifier` (keys `Editor_*`) and are
  * shared by json/xml/yaml beautifiers and json-to-typescript.
  */
-import { t } from "@/i18n/messages";
+import { getNamespace, t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
 
 /** CodeMirror source phrase → locale key. */
@@ -44,5 +44,19 @@ export function editorPhrases(lang: LocaleCode): Record<string, string> {
   if (lang === "en") return {};
   const out: Record<string, string> = {};
   for (const [phrase, key] of Object.entries(PHRASE_KEYS)) out[phrase] = t(lang, "tools/json-beautifier", key);
+  return out;
+}
+
+/**
+ * Parse-error diagnostic templates (`Diag_*` keys in `tools/json-beautifier`,
+ * shared by all editor tools) for the client island, keyed without the
+ * prefix: At, NoLocation, GoTo, Syntax, TrailingComma, XmlMismatchedTag, …
+ * Consumed by `diagnosticMessage()` in `parse-diagnostics.ts`.
+ */
+export function diagnosticStrings(lang: LocaleCode): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const key of Object.keys(getNamespace("en", "tools/json-beautifier"))) {
+    if (key.startsWith("Diag_")) out[key.slice(5)] = t(lang, "tools/json-beautifier", key);
+  }
   return out;
 }

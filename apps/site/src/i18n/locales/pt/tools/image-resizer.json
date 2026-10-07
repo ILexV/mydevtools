@@ -25,5 +25,17 @@
   "ErrorResizeFailed": "Falha ao redimensionar.",
   "Cancel": "Cancelar",
   "ErrorUnsupportedFormat": "Este formato de imagem não é suportado. Use PNG, JPEG, WebP, GIF, BMP, ICO, TIFF ou TGA.",
-  "ErrorDimensionsTooLarge": "Dimensões grandes demais: no máximo 16384 px por lado e 64 megapixels no total."
+  "ErrorDimensionsTooLarge": "Dimensões grandes demais: no máximo 16384 px por lado e 64 megapixels no total.",
+  "CompareTitle": "Antes e depois",
+  "CompareOriginal": "Original",
+  "CompareResult": "Resultado",
+  "CompareSlider": "Divisor da comparação",
+  "CompareValueText": "Resultado visível: {percent}%",
+  "CompareZoom": "Zoom",
+  "CompareFit": "Ajustar",
+  "CompareActual": "1:1",
+  "CompareActualName": "Pixels reais 1:1",
+  "CompareViewport": "Comparação 1:1, rolável",
+  "CompareChange": "Variação do tamanho do arquivo",
+  "CompareScaledNote": "“Ajustar” dimensiona as duas imagens no mesmo quadro, por isso parecem do mesmo tamanho. Mude para 1:1 para ver as dimensões reais em pixels."
 }

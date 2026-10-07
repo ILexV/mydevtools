@@ -131,3 +131,13 @@ export function parseResizeDimensions(
   }
   return { width, height };
 }
+
+/**
+ * Signed size change for the result headline / comparison: "−42%" when the
+ * output is smaller, "+12%" when it grew (never presented as savings), "0%".
+ * Uses the true minus sign (U+2212) like the rest of the image tools.
+ */
+export function formatSizeChange(originalSize: number, newSize: number): string {
+  const saved = savingsPercent(originalSize, newSize);
+  return saved > 0 ? `−${saved}%` : saved < 0 ? `+${-saved}%` : "0%";
+}

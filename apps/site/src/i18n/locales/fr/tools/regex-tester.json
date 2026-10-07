@@ -52,5 +52,12 @@
   "Seo_HowToSteps": "### Étape 1 : Saisissez un motif\nTapez l’expression dans **Modèle**, sans barres obliques autour. **Aide-mémoire** liste les éléments les plus courants.\n\n### Étape 2 : Réglez les drapeaux\nDans **Drapeaux**, cochez **Insensible à la casse**, **Multiligne** ou **Point tout compris** selon le besoin ; décochez **Global** pour ne voir que la première correspondance.\n\n### Étape 3 : Ajoutez un texte de test\nCollez le texte dans **Chaîne de test** — les correspondances sont surlignées pendant la saisie.\n\n### Étape 4 : Examinez les correspondances\nLa liste **Correspondances** affiche chacune avec sa position `[start-end]` et ses groupes de capture.\n\n### Étape 5 : Enregistrez ou réutilisez\nCliquez sur **Enregistrer le motif** pour garder l’expression, puis **Charger** depuis **Motifs enregistrés**, ou partez d’un des **Exemples**.",
   "Seo_Tips": "- Les motifs JavaScript ou PCRE avec lookaround ou `\\1` doivent être réécrits : capturez le texte voisin dans un groupe ou vérifiez la condition dans le code.\n- `/` n’a pas besoin d’échappement, mais un point littéral si : écrivez `\\.` pour « . ».\n- Les drapeaux en ligne fonctionnent aussi dans le motif : `(?i)error` équivaut à `error` avec le drapeau i.\n- Les motifs enregistrés restent dans ce navigateur uniquement ; effacer les données du site les supprime.\n- Entourez les mots de `\\b` (`\\bcolou?r\\b`) pour que `colours` ne soit pas reconnu comme `colour`.",
   "EngineError": "Impossible de charger le moteur d’expressions régulières : {message}",
-  "StorageError": "Enregistrement impossible : le stockage du navigateur est indisponible ou plein."
+  "StorageError": "Enregistrement impossible : le stockage du navigateur est indisponible ou plein.",
+  "GroupsLegendLabel": "Groupes de capture",
+  "GroupWholeMatch": "correspondance complète",
+  "GroupNotMatched": "non capturé",
+  "GroupEmptyString": "chaîne vide",
+  "GroupsSummary": "Groupes de capture ({count})",
+  "CaptureLimitNotice": "Les couleurs des groupes sont affichées pour les {count} premières correspondances.",
+  "AnnounceMatches": "Correspondances trouvées : {count}"
 }

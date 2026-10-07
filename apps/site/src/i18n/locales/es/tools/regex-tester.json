@@ -52,5 +52,12 @@
   "Seo_HowToSteps": "### Paso 1: Escribe un patrón\nEscribe la expresión en **Patrón** sin barras alrededor. **Chuleta** muestra los tokens más habituales.\n\n### Paso 2: Ajusta los flags\nEn **Banderas**, marca **Ignorar mayúsculas**, **Multilínea** o **Punto coincide todo** según necesites; desmarca **Global** para ver solo la primera coincidencia.\n\n### Paso 3: Añade texto de prueba\nPega el texto en **Texto de prueba**: las coincidencias se resaltan mientras escribes.\n\n### Paso 4: Revisa las coincidencias\nLa lista **Coincidencias** muestra cada coincidencia con su posición `[start-end]` y sus grupos de captura.\n\n### Paso 5: Guarda o reutiliza\nPulsa **Guardar patrón** para conservar la expresión y luego **Cargar** desde **Patrones guardados**, o parte de uno de los **Ejemplos**.",
   "Seo_Tips": "- Los patrones de JavaScript o PCRE con look-around o `\\1` hay que reescribirlos: captura el texto que los rodea en un grupo o comprueba la condición en el código.\n- `/` no necesita escape, pero un punto literal sí: escribe `\\.` para «.».\n- Los flags en línea también funcionan dentro del patrón: `(?i)error` equivale a `error` con el flag i.\n- Los patrones guardados solo existen en este navegador; borrar los datos del sitio los elimina.\n- Rodea las palabras con `\\b` (`\\bcolou?r\\b`) para que `colours` no coincida como `colour`.",
   "EngineError": "No se pudo cargar el motor de expresiones regulares: {message}",
-  "StorageError": "No se pudo guardar: el almacenamiento del navegador no está disponible o está lleno."
+  "StorageError": "No se pudo guardar: el almacenamiento del navegador no está disponible o está lleno.",
+  "GroupsLegendLabel": "Grupos de captura",
+  "GroupWholeMatch": "coincidencia completa",
+  "GroupNotMatched": "sin coincidencia",
+  "GroupEmptyString": "cadena vacía",
+  "GroupsSummary": "Grupos de captura ({count})",
+  "CaptureLimitNotice": "Los colores de los grupos se muestran en las primeras {count} coincidencias.",
+  "AnnounceMatches": "Coincidencias encontradas: {count}"
 }

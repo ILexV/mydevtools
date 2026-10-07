@@ -23,5 +23,16 @@
   "Seo_Tips": "- スクリーンショットや文字には PNG、写真には JPEG か WebP を使いましょう。\n- ファビコンは 256×256 px 以上の正方形の画像から作りましょう。それより大きい画像は 256 px に縮小されます。\n- JPEG を PNG に変換しても失われた細部は戻らず、ファイルが大きくなるだけです。\n- TIFF と TGA の結果はブラウザでプレビューできませんが、ダウンロードしたファイルは完全です。\n- アニメーション GIF はアニメーションが失われ、最初のフレームだけが残ります。",
   "Cancel": "キャンセル",
   "ErrorUnsupportedFormat": "この画像形式はサポートされていません。PNG、JPEG、WebP、GIF、BMP、ICO、TIFF、TGA を使用してください。",
-  "WebpLosslessNote": "お使いのブラウザーは非可逆 WebP をエンコードできないため、可逆 WebP で保存しました。品質設定は適用されていません。写真を小さくするには JPEG を選んでください。"
+  "WebpLosslessNote": "お使いのブラウザーは非可逆 WebP をエンコードできないため、可逆 WebP で保存しました。品質設定は適用されていません。写真を小さくするには JPEG を選んでください。",
+  "CompareTitle": "ビフォー・アフター",
+  "CompareOriginal": "元画像",
+  "CompareResult": "結果",
+  "CompareSlider": "比較の境界線",
+  "CompareValueText": "結果の表示：{percent}%",
+  "CompareZoom": "表示倍率",
+  "CompareFit": "全体表示",
+  "CompareActual": "1:1",
+  "CompareActualName": "実ピクセル 1:1",
+  "CompareViewport": "1:1 比較（スクロール可能）",
+  "CompareChange": "ファイルサイズの変化"
 }

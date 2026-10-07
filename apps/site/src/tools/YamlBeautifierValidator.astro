@@ -6,7 +6,7 @@
  * label + parser detail (line/column).
  */
 import { t } from "@/i18n/messages";
-import { editorPhrases } from "@/tools/editor-phrases";
+import { diagnosticStrings, editorPhrases } from "@/tools/editor-phrases";
 import type { LocaleCode } from "@/registry/locales";
 import CopyButton from "@/components/tool/CopyButton.astro";
 import EmptyState from "@/components/tool/EmptyState.astro";
@@ -38,7 +38,7 @@ const s = {
   paste: t(lang, ns, "Paste"),
   keyboardHint: t(lang, ns, "EditorKeyboardHint"),
 };
-const stringsJson = JSON.stringify({ ...s, phrases: editorPhrases(lang) });
+const stringsJson = JSON.stringify({ ...s, phrases: editorPhrases(lang), diag: diagnosticStrings(lang) });
 ---
 
 <div class="ds-workbench" data-yaml-tool>
@@ -63,7 +63,8 @@ const stringsJson = JSON.stringify({ ...s, phrases: editorPhrases(lang) });
       <button type="button" class="ds-btn" data-yaml-validate>{s.validate}</button>
     </div>
 
-    <StatusMessage kind="error" data-yaml-error />
+    <!-- Parse-error panel (codemirror-kit setDiagnostic): no live role — errors are announced once on Format/Validate. -->
+    <StatusMessage kind="error" role="none" class="mdt-diag" id="yaml-editor-error" data-yaml-error />
   </ToolPanel>
 
   <OutputPanel panel label={s.outputLabel} emptyHint={s.outputEmpty} data-yaml-output-panel>

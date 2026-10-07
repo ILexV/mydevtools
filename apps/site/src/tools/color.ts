@@ -1,7 +1,7 @@
 /**
- * Color conversions + WCAG contrast. Pure math, no DOM. Mirrors the legacy
- * color-converter behavior: hex/rgb/hsl/cmyk round-trips, shades palette,
- * and AA/AAA contrast checking.
+ * Color conversions + WCAG contrast. Pure math, no DOM: hex/rgb/hsl/cmyk
+ * round-trips with alpha detection, alpha compositing onto an opaque
+ * backdrop, linear-light tint/shade palette and AA/AAA contrast checking.
  */
 
 export interface RGB { r: number; g: number; b: number; }
@@ -99,13 +99,27 @@ export function cmykToRgb({ c, m, y, k }: CMYK): RGB {
 export type ColorFormat = "hex" | "rgb" | "hsl" | "cmyk";
 
 const NUM = String.raw`[+-]?(?:\d+\.?\d*|\.\d+)`;
-/** Function-call colour syntax: `name(a, b, c[, d])`, commas or spaces, optional `/ alpha`. */
-function parseArgs(input: string, names: string): string[] | null {
+/**
+ * Function-call colour syntax: `name(a, b, c[, d])`, commas or spaces, optional
+ * CSS4 `/ alpha`. The slash alpha is returned separately; a comma-style 4th
+ * argument stays in `parts` for the caller to interpret.
+ */
+function parseArgs(input: string, names: string): { parts: string[]; slashAlpha?: string } | null {
   const m = input.match(new RegExp(String.raw`^(?:${names})\s*\(\s*([^)]*)\)$`, "i"));
   if (!m) return null;
-  const body = m[1].replace(/\s*\/\s*[^,\s]+\s*$/, ""); // drop CSS4 "/ alpha"
+  const slash = m[1].match(/\s*\/\s*([^,\s]+)\s*$/);
+  const body = slash ? m[1].slice(0, slash.index) : m[1];
   const parts = body.split(/\s*,\s*|\s+/).filter((p) => p.length > 0);
-  return parts;
+  return { parts, slashAlpha: slash?.[1] };
+}
+
+/** Alpha component (opacity): number 0–1 or percentage 0–100%. Missing → 1, malformed → null. */
+function parseAlpha(part: string | undefined): number | null {
+  if (part === undefined) return 1;
+  const m = part.match(new RegExp(String.raw`^(${NUM})(%?)$`));
+  if (!m) return null;
+  const v = Number(m[1]) / (m[2] === "%" ? 100 : 1);
+  return Number.isFinite(v) && v >= 0 && v <= 1 ? v : null;
 }
 
 /** Parse one numeric component; `pct` = value carries/accepts a trailing %. Null when malformed. */
@@ -124,42 +138,49 @@ function num(part: string | undefined, max: number, allowPct: boolean): { v: num
  * Parse a manual colour string in any supported notation and auto-detect its
  * format: `#rgb`/`#rrggbb` (hash optional), `rgb()/rgba()` (0–255 or %),
  * `hsl()/hsla()` (hue in degrees, s/l in %), `cmyk()` (0–100, % optional).
- * Alpha is accepted and ignored. Out-of-range or malformed input → null
- * (shown as the localized "invalid colour" error).
+ * Alpha (rgba/hsla 4th argument or CSS4 `/ alpha`) is returned as `alpha`
+ * (0–1, default 1) but never baked into `rgb` — outputs stay opaque and
+ * blending needs an explicit opaque backdrop (see `compositeOver`).
+ * Out-of-range or malformed input → null (localized "invalid colour" error).
  */
-export function parseColor(input: string): { rgb: RGB; format: ColorFormat } | null {
+export function parseColor(input: string): { rgb: RGB; format: ColorFormat; alpha: number } | null {
   const v = input.trim();
   if (!v) return null;
   const hex = parseHex(v);
-  if (hex) return { rgb: hex, format: "hex" };
+  if (hex) return { rgb: hex, format: "hex", alpha: 1 };
 
   const rgbArgs = parseArgs(v, "rgba?");
   if (rgbArgs) {
-    if (rgbArgs.length < 3 || rgbArgs.length > 4) return null;
-    const ch = rgbArgs.slice(0, 3).map((p) => num(p, 255, true));
-    if (ch.some((c) => c === null)) return null;
+    const { parts } = rgbArgs;
+    if (parts.length < 3 || parts.length > 4 || (parts.length === 4 && rgbArgs.slashAlpha)) return null;
+    const ch = parts.slice(0, 3).map((p) => num(p, 255, true));
+    const alpha = parseAlpha(parts[3] ?? rgbArgs.slashAlpha);
+    if (ch.some((c) => c === null) || alpha === null) return null;
     const [r, g, b] = ch.map((c) => clampByte(c!.pct ? (c!.v * 255) / 100 : c!.v));
-    return { rgb: { r, g, b }, format: "rgb" };
+    return { rgb: { r, g, b }, format: "rgb", alpha };
   }
 
   const hslArgs = parseArgs(v, "hsla?");
   if (hslArgs) {
-    if (hslArgs.length < 3 || hslArgs.length > 4) return null;
-    const h = hslArgs[0].match(new RegExp(String.raw`^(${NUM})(?:deg)?$`, "i"));
-    const s = num(hslArgs[1], 100, true);
-    const l = num(hslArgs[2], 100, true);
-    if (!h || !s || !l) return null;
+    const { parts } = hslArgs;
+    if (parts.length < 3 || parts.length > 4 || (parts.length === 4 && hslArgs.slashAlpha)) return null;
+    const h = parts[0].match(new RegExp(String.raw`^(${NUM})(?:deg)?$`, "i"));
+    const s = num(parts[1], 100, true);
+    const l = num(parts[2], 100, true);
+    const alpha = parseAlpha(parts[3] ?? hslArgs.slashAlpha);
+    if (!h || !s || !l || alpha === null) return null;
     const rgb = hslToRgb({ h: Number(h[1]), s: s.v, l: l.v });
-    return { rgb: { r: clampByte(rgb.r), g: clampByte(rgb.g), b: clampByte(rgb.b) }, format: "hsl" };
+    return { rgb: { r: clampByte(rgb.r), g: clampByte(rgb.g), b: clampByte(rgb.b) }, format: "hsl", alpha };
   }
 
   const cmykArgs = parseArgs(v, "cmyk");
   if (cmykArgs) {
-    if (cmykArgs.length !== 4) return null;
-    const ch = cmykArgs.map((p) => num(p, 100, true));
+    const { parts } = cmykArgs;
+    if (parts.length !== 4 || cmykArgs.slashAlpha) return null;
+    const ch = parts.map((p) => num(p, 100, true));
     if (ch.some((c) => c === null)) return null;
     const [c, m, y, k] = ch.map((x) => x!.v);
-    return { rgb: cmykToRgb({ c, m, y, k }), format: "cmyk" };
+    return { rgb: cmykToRgb({ c, m, y, k }), format: "cmyk", alpha: 1 };
   }
   return null;
 }
@@ -207,16 +228,67 @@ export function wcag(fg: RGB, bg: RGB): WcagResult {
 }
 
 /**
- * Shades palette: same hue/saturation, lightness stepped evenly from 10% to
- * 90% (legacy palette range — pure black/white are omitted as useless).
+ * Contrast ratio text with two decimals ("4.48") that never contradicts the
+ * pass/fail verdict: if rounding would lift a failing ratio onto a WCAG
+ * threshold (3, 4.5, 7 — e.g. 4.4996 → "4.50"), it truncates instead ("4.49").
  */
-export function shades(c: RGB, steps = 9): { l: number; hex: string }[] {
-  const { h, s } = rgbToHsl(c);
-  const n = Math.max(2, Math.floor(steps));
-  const out: { l: number; hex: string }[] = [];
-  for (let i = 0; i < n; i++) {
-    const l = Math.round(10 + (i * 80) / (n - 1));
-    out.push({ l, hex: toHex(hslToRgb({ h, s, l })) });
-  }
-  return out;
+export function formatRatio(ratio: number): string {
+  const text = ratio.toFixed(2);
+  const shown = Number(text);
+  if ([3, 4.5, 7].some((t) => ratio < t && shown >= t)) return (Math.floor(ratio * 100) / 100).toFixed(2);
+  return text;
+}
+
+/**
+ * Alpha compositing (source-over) of a translucent colour onto an opaque
+ * backdrop, in gamma-encoded sRGB like browsers paint it. Used to resolve
+ * rgba()/hsla() foregrounds before contrast checks — never guess a backdrop.
+ */
+export function compositeOver(fg: RGB, alpha: number, backdrop: RGB): RGB {
+  const a = clamp(alpha, 0, 1);
+  const mix = (f: number, b: number): number => clampByte(f * a + b * (1 - a));
+  return { r: mix(fg.r, backdrop.r), g: mix(fg.g, backdrop.g), b: mix(fg.b, backdrop.b) };
+}
+
+/** sRGB byte → linear-light 0–1 (IEC 61966-2-1 transfer function). */
+function srgbToLinear(n: number): number {
+  const c = clamp(n, 0, 255) / 255;
+  return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+}
+
+/** Linear-light 0–1 → sRGB byte (unrounded). */
+function linearToSrgb(v: number): number {
+  const c = clamp(v, 0, 1);
+  return 255 * (c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055);
+}
+
+/**
+ * Mix two colours in linear-light sRGB: `t` = share of `b` (0 → a, 1 → b).
+ * Physically correct light mixing for tints (towards white) and shades
+ * (towards black); not perceptually uniform. Returns rounded bytes.
+ */
+export function mixLinear(a: RGB, b: RGB, t: number): RGB {
+  const k = clamp(t, 0, 1);
+  const ch = (x: number, y: number): number =>
+    clampByte(linearToSrgb(srgbToLinear(x) * (1 - k) + srgbToLinear(y) * k));
+  return { r: ch(a.r, b.r), g: ch(a.g, b.g), b: ch(a.b, b.b) };
+}
+
+export type SwatchKind = "shade" | "base" | "tint";
+export interface PaletteSwatch { kind: SwatchKind; pct: number; hex: string; }
+
+/**
+ * Tint/shade palette, dark → light: shades (mixed with black) at the given
+ * percentages descending, the original colour, then tints (mixed with white)
+ * ascending. Default 20/40/60/80 % → nine swatches; mixing in linear light.
+ */
+export function tintsAndShades(c: RGB, steps: readonly number[] = [20, 40, 60, 80]): PaletteSwatch[] {
+  const black: RGB = { r: 0, g: 0, b: 0 };
+  const white: RGB = { r: 255, g: 255, b: 255 };
+  const asc = [...steps].sort((x, y) => x - y);
+  return [
+    ...[...asc].reverse().map((pct) => ({ kind: "shade" as const, pct, hex: toHex(mixLinear(c, black, pct / 100)) })),
+    { kind: "base" as const, pct: 0, hex: toHex(c) },
+    ...asc.map((pct) => ({ kind: "tint" as const, pct, hex: toHex(mixLinear(c, white, pct / 100)) })),
+  ];
 }

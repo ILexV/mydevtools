@@ -3,15 +3,32 @@
  * vendored jsdiff (global `Diff`) and renders it with vendored diff2html-ui
  * (global `Diff2HtmlUI`). Both are loaded on demand from `public/lib`,
  * base-path aware, sequentially in legacy order (jsdiff → diff2html-ui),
- * with the load promise cached. View modes: side-by-side (default) /
- * line-by-line. Loading a file fills its side and auto-compares once both
- * sides have content. Dark theme toggles diff2html's `d2h-dark-color-scheme`
+ * with the load promise cached. View modes (native radios styled as a
+ * segmented control): Unified below 768px, Side by side above, until the user
+ * picks one explicitly (kept across resizes, not persisted). The result sits
+ * in its own scroller with a decorative 10px change rail (deletion/insertion
+ * ticks + viewport outline; click jumps to a change) and Previous/Next change
+ * buttons with "Change 2 of 7". Intra-line highlights are bounded for long
+ * lines (note shown when falling back to line-only); differing line endings
+ * and final newlines are reported, not silently normalized. Loading a file
+ * fills its side and auto-compares once both sides have content. Dark theme toggles diff2html's `d2h-dark-color-scheme`
  * class (the vendored CSS ships dark variables behind that class).
  * Workbench empty states: each side shows a hint + "Load example" (fills both
  * sides with localized sample text, on click only); the result panel shows a
  * compact placeholder until there is a diff or a status message.
  */
 import { bindEmptyState, bindLoadExample, revealOutput, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
+import {
+  countPatchLines,
+  detectEol,
+  endsWithNewline,
+  eolLabel,
+  groupChangeBlocks,
+  intraLineBudget,
+  nearestBlock,
+  type ChangeBlock,
+  type RowKind,
+} from "@/tools/text-diff-core";
 
 declare global {
   interface Window {
@@ -49,19 +66,21 @@ interface Strings {
   /** "{0} added" / "{0} removed" — screen-reader text for the headline counts. */
   linesAdded?: string;
   linesRemoved?: string;
+  /** "Change {current} of {total}". */
+  changePosition: string;
+  longLineNote: string;
+  budgetNote: string;
+  eolNote: string;
+  finalNewlineOriginal: string;
+  finalNewlineModified: string;
 }
 
-/** Added / removed line counts of a unified diff (file headers `+++`/`---` excluded). */
-function countPatchLines(patch: string): { added: number; removed: number } {
-  let added = 0;
-  let removed = 0;
-  for (const line of patch.split("\n")) {
-    if (line.startsWith("+++") || line.startsWith("---")) continue;
-    if (line.startsWith("+")) added++;
-    else if (line.startsWith("-")) removed++;
-  }
-  return { added, removed };
-}
+/** Changed lines longer than this get line-only highlighting (diff2html `maxLineLengthHighlight`). */
+const INTRA_LINE_MAX = 2000;
+/** Total changed characters above which intra-line highlighting is skipped entirely. */
+const INTRA_TOTAL_BUDGET = 200_000;
+/** Viewport width from which Side by side is the default view. */
+const WIDE_QUERY = "(min-width: 768px)";
 
 /**
  * Line-edit budget for jsdiff (Myers is O(N·D) on the main thread: 5k lines
@@ -149,15 +168,25 @@ function init(): void {
   const originalArea = root.querySelector<HTMLTextAreaElement>('[data-diff-text="original"]');
   const modifiedArea = root.querySelector<HTMLTextAreaElement>('[data-diff-text="modified"]');
   const outputArea = root.querySelector<HTMLElement>("[data-diff-output]");
-  if (!originalArea || !modifiedArea || !outputArea) return;
+  const resultArea = root.querySelector<HTMLElement>("[data-diff-result]");
+  if (!originalArea || !modifiedArea || !outputArea || !resultArea) return;
   const originalText: HTMLTextAreaElement = originalArea;
   const modifiedText: HTMLTextAreaElement = modifiedArea;
   const outputEl: HTMLElement = outputArea;
+  const resultEl: HTMLElement = resultArea;
 
   const statusEl = root.querySelector<HTMLElement>("[data-diff-status]");
   const errorEl = root.querySelector<HTMLElement>("[data-diff-error]");
+  const notesEl = root.querySelector<HTMLElement>("[data-diff-notes]");
   const originalFile = root.querySelector<HTMLInputElement>('[data-diff-file="original"]');
   const modifiedFile = root.querySelector<HTMLInputElement>('[data-diff-file="modified"]');
+  const railEl = root.querySelector<HTMLElement>("[data-diff-rail]");
+  const railViewEl = root.querySelector<HTMLElement>("[data-diff-rail-view]");
+  const navEl = root.querySelector<HTMLElement>("[data-diff-nav]");
+  const prevBtn = root.querySelector<HTMLButtonElement>("[data-diff-prev]");
+  const nextBtn = root.querySelector<HTMLButtonElement>("[data-diff-next]");
+  const positionEl = root.querySelector<HTMLElement>("[data-diff-position]");
+  const modeRadios = Array.from(root.querySelectorAll<HTMLInputElement>("[data-diff-mode]"));
 
   const outputPanel = root.querySelector<HTMLElement>("[data-diff-output-panel]");
   const hostOf = (side: string) => toolRoot.querySelector<HTMLElement>(`[data-diff-host="${side}"]`);
@@ -167,6 +196,8 @@ function init(): void {
   const syncModified = modifiedHost ? bindEmptyState(modifiedHost, modifiedText) : () => {};
   root.querySelectorAll<HTMLButtonElement>("[data-diff-example]").forEach((btn) => {
     bindLoadExample(btn, () => {
+      rawFile.original = null;
+      rawFile.modified = null;
       setFieldValue(originalText, strings.exampleOriginal ?? "");
       setFieldValue(modifiedText, strings.exampleModified ?? "");
     });
@@ -181,6 +212,25 @@ function init(): void {
 
   let currentOriginal = originalText.value;
   let currentModified = modifiedText.value;
+  /**
+   * Raw text of a side loaded from a file (CR/CRLF intact; the textarea
+   * normalizes to LF). Used only to report line-ending differences; dropped
+   * once the field no longer holds that file's text.
+   */
+  const rawFile: { original: string | null; modified: string | null } = { original: null, modified: null };
+
+  // ── View mode: Unified (narrow) / Side by side (wide) until chosen explicitly ──
+  const wide = window.matchMedia(WIDE_QUERY);
+  let explicitMode = false;
+  function setMode(value: string): void {
+    for (const r of modeRadios) r.checked = r.value === value;
+  }
+  setMode(wide.matches ? "side-by-side" : "line-by-line");
+  wide.addEventListener("change", () => {
+    if (explicitMode) return;
+    setMode(wide.matches ? "side-by-side" : "line-by-line");
+    if (!outputEl.hidden) void renderDiff();
+  });
 
   const syncThemeClass = (): void => {
     outputEl.classList.toggle(
@@ -204,6 +254,39 @@ function init(): void {
       errorEl.hidden = kind !== "error" || message === null;
     }
     syncOutput();
+  }
+
+  /** Notes under the headline: long-line fallback, line endings, final newline. */
+  function showNotes(notes: string[]): void {
+    if (!notesEl) return;
+    notesEl.replaceChildren(
+      ...notes.map((n) => {
+        const li = document.createElement("li");
+        li.textContent = n;
+        return li;
+      }),
+    );
+    notesEl.hidden = notes.length === 0;
+  }
+
+  /** Line-ending and final-newline differences (reported, never silently normalized). */
+  function eolNotes(): string[] {
+    dropStaleRaw();
+    const notes: string[] = [];
+    const rawO = rawFile.original ?? currentOriginal;
+    const rawM = rawFile.modified ?? currentModified;
+    const eolO = detectEol(rawO);
+    const eolM = detectEol(rawM);
+    if (eolO !== "none" && eolM !== "none" && eolLabel(eolO, rawO) !== eolLabel(eolM, rawM)) {
+      notes.push(strings.eolNote.replace("{original}", eolLabel(eolO, rawO)).replace("{modified}", eolLabel(eolM, rawM)));
+    }
+    if (currentOriginal && currentModified) {
+      const nlO = endsWithNewline(rawO);
+      const nlM = endsWithNewline(rawM);
+      if (nlO && !nlM) notes.push(strings.finalNewlineOriginal);
+      if (nlM && !nlO) notes.push(strings.finalNewlineModified);
+    }
+    return notes;
   }
 
   const summaryEl = root.querySelector<HTMLElement>("[data-diff-summary]");
@@ -231,10 +314,172 @@ function init(): void {
     setCount(removedEl, "−", removed, strings.linesRemoved);
   }
 
+  // ── Change blocks: rail ticks + Previous/Next navigation ──
+
+  interface BlockView extends ChangeBlock {
+    rows: HTMLElement[];
+    top: number;
+    bottom: number;
+  }
+  let blocks: BlockView[] = [];
+  let current = -1;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  /** Kind of a diff row from its code cell classes (d2h-del / d2h-ins / d2h-info / context). */
+  function rowKind(tr: HTMLTableRowElement): RowKind {
+    const cell = tr.cells[tr.cells.length - 1];
+    if (!cell) return "context";
+    if (cell.classList.contains("d2h-del")) return "del";
+    if (cell.classList.contains("d2h-ins")) return "ins";
+    if (cell.classList.contains("d2h-info")) return "info";
+    return "context";
+  }
+
+  /**
+   * Rows of the drawn diff, merged across sides: side-by-side renders two
+   * row-aligned tables, so row i of both forms one visual line.
+   */
+  function collectRows(): { kinds: RowKind[]; rows: HTMLElement[][] } {
+    const sides = Array.from(outputEl.querySelectorAll<HTMLElement>(".d2h-file-side-diff"));
+    const tables = sides.length ? sides : Array.from(outputEl.querySelectorAll<HTMLElement>(".d2h-file-diff"));
+    const perSide = tables.map((t) => Array.from(t.querySelectorAll<HTMLTableRowElement>("tbody tr")));
+    const n = Math.max(0, ...perSide.map((r) => r.length));
+    const kinds: RowKind[] = [];
+    const rows: HTMLElement[][] = [];
+    for (let i = 0; i < n; i++) {
+      const trs = perSide.map((r) => r[i]).filter(Boolean);
+      const ks = trs.map(rowKind);
+      const del = ks.includes("del");
+      const ins = ks.includes("ins");
+      kinds.push(del && ins ? "both" : del ? "del" : ins ? "ins" : ks.includes("info") ? "info" : "context");
+      rows.push(trs);
+    }
+    return { kinds, rows };
+  }
+
+  /** Content-relative vertical extent of an element inside the result scroller. */
+  function extentOf(el: HTMLElement): { top: number; bottom: number } {
+    const box = el.getBoundingClientRect();
+    const host = outputEl.getBoundingClientRect();
+    const top = box.top - host.top + outputEl.scrollTop;
+    return { top, bottom: top + box.height };
+  }
+
+  function buildBlocks(): void {
+    const { kinds, rows } = collectRows();
+    blocks = groupChangeBlocks(kinds).map((b) => {
+      const blockRows = rows.slice(b.first, b.last + 1).flat();
+      return { ...b, rows: blockRows, top: 0, bottom: 0 };
+    });
+    current = blocks.length ? 0 : -1;
+    measureBlocks();
+    updateNav();
+  }
+
+  /** Re-measure block extents and redraw rail ticks (after draw / resize). */
+  function measureBlocks(): void {
+    for (const b of blocks) {
+      const first = b.rows[0];
+      const last = b.rows[b.rows.length - 1];
+      if (!first || !last) continue;
+      b.top = extentOf(first).top;
+      b.bottom = extentOf(last).bottom;
+    }
+    drawRail();
+  }
+
+  function drawRail(): void {
+    if (!railEl) return;
+    railEl.querySelectorAll(".diff-rail-tick").forEach((t) => t.remove());
+    const total = outputEl.scrollHeight || 1;
+    const frag = document.createDocumentFragment();
+    for (const b of blocks) {
+      for (const kind of ["del", "ins"] as const) {
+        if (kind === "del" ? !b.hasDel : !b.hasIns) continue;
+        const tick = document.createElement("i");
+        tick.className = `diff-rail-tick is-${kind}`;
+        tick.style.top = `${(b.top / total) * 100}%`;
+        tick.style.height = `${((b.bottom - b.top) / total) * 100}%`;
+        frag.append(tick);
+      }
+    }
+    railEl.append(frag);
+    syncRailView();
+  }
+
+  let railFrame = 0;
+  /** Viewport outline on the rail = visible part of the result scroller. */
+  function syncRailView(): void {
+    if (!railViewEl) return;
+    const total = outputEl.scrollHeight || 1;
+    const scrollable = outputEl.scrollHeight > outputEl.clientHeight + 1;
+    railViewEl.hidden = !scrollable;
+    railViewEl.style.top = `${(outputEl.scrollTop / total) * 100}%`;
+    railViewEl.style.height = `${(outputEl.clientHeight / total) * 100}%`;
+  }
+  outputEl.addEventListener("scroll", () => {
+    if (railFrame) return;
+    railFrame = requestAnimationFrame(() => {
+      railFrame = 0;
+      syncRailView();
+    });
+  }, { passive: true });
+  new ResizeObserver(() => {
+    if (!outputEl.hidden && blocks.length) measureBlocks();
+  }).observe(outputEl);
+
+  function updateNav(): void {
+    if (navEl) navEl.hidden = blocks.length === 0;
+    if (positionEl) {
+      positionEl.textContent = blocks.length
+        ? strings.changePosition.replace("{current}", String(current + 1)).replace("{total}", String(blocks.length))
+        : "";
+    }
+    if (prevBtn) prevBtn.disabled = current <= 0;
+    if (nextBtn) nextBtn.disabled = current >= blocks.length - 1;
+    outputEl.querySelectorAll(".is-current-change").forEach((el) => el.classList.remove("is-current-change"));
+    for (const tr of blocks[current]?.rows ?? []) tr.classList.add("is-current-change");
+  }
+
+  /** Make change `index` current and scroll it into the result viewport (no page jump). */
+  function goTo(index: number): void {
+    if (index < 0 || index >= blocks.length) return;
+    current = index;
+    updateNav();
+    const b = blocks[index];
+    outputEl.scrollTo({
+      top: Math.max(0, b.top - Math.min(48, outputEl.clientHeight / 4)),
+      behavior: reduceMotion.matches ? "auto" : "smooth",
+    });
+  }
+  prevBtn?.addEventListener("click", () => goTo(current - 1));
+  nextBtn?.addEventListener("click", () => goTo(current + 1));
+  if (railEl) {
+    const rail: HTMLElement = railEl;
+    // Decorative shortcut (aria-hidden): jump to the change nearest the click.
+    rail.addEventListener("click", (e: MouseEvent) => {
+      const box = rail.getBoundingClientRect();
+      if (box.height <= 0) return;
+      const y = ((e.clientY - box.top) / box.height) * outputEl.scrollHeight;
+      goTo(nearestBlock(blocks, y));
+    });
+  }
+
+  function setResultVisible(visible: boolean): void {
+    outputEl.hidden = !visible;
+    resultEl.hidden = !visible;
+    if (!visible) {
+      blocks = [];
+      current = -1;
+      updateNav();
+    }
+  }
+
   function hideOutput(): void {
     renderSummary(null);
+    showNotes([]);
     outputEl.innerHTML = "";
-    outputEl.hidden = true;
+    setResultVisible(false);
     syncOutput();
   }
 
@@ -247,6 +492,7 @@ function init(): void {
     if (currentOriginal === currentModified) {
       hideOutput();
       showAlert(strings.noDifferences, "info");
+      showNotes(eolNotes());
       return;
     }
     showAlert(strings.loading, "info");
@@ -280,7 +526,13 @@ function init(): void {
       showAlert(strings.diffTooBig.replace("{max}", String(MAX_LINE_EDITS)), "error");
       return;
     }
-    // Legacy config; diffMax* caps are the large-diff optimization.
+    const budget = intraLineBudget(patch, INTRA_LINE_MAX, INTRA_TOTAL_BUDGET);
+    const notes = eolNotes();
+    if (budget.longLines) notes.unshift(strings.longLineNote.replace("{max}", INTRA_LINE_MAX.toLocaleString(document.documentElement.lang || undefined)));
+    if (budget.overBudget) notes.unshift(strings.budgetNote);
+    // diffMaxChanges caps the line count (same budget as jsdiff above). No
+    // diffMaxLineLength: it would replace the whole diff with an English
+    // "too big" message; long lines are bounded via maxLineLengthHighlight.
     const configuration = {
       drawFileList: false,
       matching: "lines",
@@ -288,12 +540,13 @@ function init(): void {
       highlight: true,
       renderNothingWhenEmpty: false,
       diffMaxChanges: MAX_LINE_EDITS,
-      diffMaxLineLength: 1000,
+      maxLineLengthHighlight: budget.highlightMax,
     };
     showAlert(null);
     renderSummary(patch);
+    showNotes(notes);
     outputEl.innerHTML = "";
-    outputEl.hidden = false;
+    setResultVisible(true);
     syncOutput();
     syncThemeClass();
     const ui = new DiffUI(outputEl, patch, configuration);
@@ -303,6 +556,8 @@ function init(): void {
     } catch (e) {
       console.warn("Syntax highlighting failed", e);
     }
+    outputEl.scrollTop = 0;
+    buildBlocks();
   }
 
   root.addEventListener("click", (e: MouseEvent) => {
@@ -337,6 +592,8 @@ function init(): void {
       modifiedText.value = "";
       currentOriginal = "";
       currentModified = "";
+      rawFile.original = null;
+      rawFile.modified = null;
       if (originalFile) originalFile.value = "";
       if (modifiedFile) modifiedFile.value = "";
       syncOriginal();
@@ -347,11 +604,19 @@ function init(): void {
     }
   });
 
-  root.querySelectorAll<HTMLInputElement>("[data-diff-mode]").forEach((radio) => {
+  /** Forget raw file text once its field was edited (normalized text no longer matches). */
+  function dropStaleRaw(): void {
+    const norm = (t: string) => t.replace(/\r\n?/g, "\n");
+    if (rawFile.original !== null && norm(rawFile.original) !== currentOriginal) rawFile.original = null;
+    if (rawFile.modified !== null && norm(rawFile.modified) !== currentModified) rawFile.modified = null;
+  }
+
+  for (const radio of modeRadios) {
     radio.addEventListener("change", () => {
+      explicitMode = true;
       if (currentOriginal || currentModified) void renderDiff();
     });
-  });
+  }
 
   const bindFile = (
     input: HTMLInputElement | null,
@@ -368,11 +633,16 @@ function init(): void {
         area.value = text;
         if (isOriginal) syncOriginal();
         else syncModified();
-        // Read back the field value: textarea normalizes CRLF → LF, so the
-        // auto-compare matches a later manual Compare (CRLF file vs LF file
-        // used to show every line as changed only on auto-compare).
-        if (isOriginal) currentOriginal = area.value;
-        else currentModified = area.value;
+        // Diff the field value (textarea normalizes CRLF → LF, so the
+        // auto-compare matches a later manual Compare); the raw text is kept
+        // only to report differing line endings.
+        if (isOriginal) {
+          currentOriginal = area.value;
+          rawFile.original = text;
+        } else {
+          currentModified = area.value;
+          rawFile.modified = text;
+        }
         // Auto-trigger once both sides have content (legacy parity).
         if (currentOriginal && currentModified) void renderDiff();
       };

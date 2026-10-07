@@ -1,13 +1,16 @@
 /**
  * YAML Beautifier/Validator client controller. CodeMirror 6 editors (lazy
  * editor kit, `@codemirror/lang-yaml` highlight + folding). Format/validate run through the structured-data WASM
- * client (loaded on first use); errors show the localized "invalid" label
- * plus the parser detail; status badge valid/invalid; paste/copy/clear.
+ * client (loaded on first use); parse errors become an input-editor
+ * diagnostic at the yaml-rust marker (`yamlDiagnostic`: localized reason,
+ * line/column, Go to error); status badge valid/invalid; paste/copy/clear.
  * Workbench empty states: input overlay + "Load example" (only on click),
  * compact output placeholder until there is a result.
  */
 import { loadEditorKit, type MdtEditor } from "@/scripts/codemirror-loader";
 import { bindLoadExample, copyWithFeedback, revealOutput, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
+import { presentDiagnostic, type DiagnosticStrings } from "@/tools/parse-diagnostics";
+import { yamlDiagnostic } from "@/tools/yaml-diagnostics";
 
 interface Strings {
   inputLabel: string;
@@ -19,6 +22,8 @@ interface Strings {
   /** `Common_Preparing` — first-run WASM load feedback. */
   preparing?: string;
   phrases?: Record<string, string>;
+  /** `Diag_*` templates (`diagnosticStrings`). */
+  diag: DiagnosticStrings;
 }
 
 /** "Load example" sample: messy but valid YAML (uneven indent, flow list, anchor/alias). */
@@ -66,6 +71,8 @@ async function init() {
   if (!raw || !inputEl || !outputEl) return;
   root.dataset.initialized = "true";
   const strings: Strings = raw;
+  // Unlocated generic error reads "YAML is invalid (location unknown)" (+ the raw parser detail).
+  const diagStrings: DiagnosticStrings = { ...strings.diag, SyntaxNoLocation: strings.invalid };
 
   const formatBtn = root.querySelector<HTMLButtonElement>("[data-yaml-format]");
   const validateBtn = root.querySelector<HTMLButtonElement>("[data-yaml-validate]");
@@ -89,6 +96,7 @@ async function init() {
         phrases: strings.phrases,
         hintId: "yaml-editor-hint",
         indent: 2,
+        diagnostics: errorBox ? { box: errorBox, goToLabel: strings.diag.GoTo ?? "" } : undefined,
         onSubmit: () => formatBtn?.click(),
         onChange: () => syncInput(),
       }),
@@ -119,11 +127,13 @@ async function init() {
   syncOutput();
   if (exampleBtn) bindLoadExample(exampleBtn, () => inputEditor.setValue(EXAMPLE), inputEditor.view.contentDOM);
 
-  function showError(detail: string | null) {
-    inputEl?.classList.toggle("is-error", detail !== null);
-    if (!errorBox) return;
-    errorBox.textContent = detail === null ? "" : detail ? `${strings.invalid}: ${detail}` : strings.invalid;
-    errorBox.hidden = detail === null;
+  /** Parser error (string from the WASM) → diagnostic on the input text that was parsed; null clears. */
+  function showError(error: string | null, yaml = "") {
+    if (error === null) {
+      inputEditor.setDiagnostic(null);
+      return;
+    }
+    inputEditor.setDiagnostic(presentDiagnostic(diagStrings, yamlDiagnostic(yaml, error), yaml), { announce: true });
   }
   function showStatus(kind: "valid" | "invalid" | null) {
     if (!status) return;
@@ -153,8 +163,9 @@ async function init() {
       revealOutput(outputPanel);
     } catch (e) {
       outputEditor.setValue("");
-      showError(message(e));
       showStatus("invalid");
+      // The input changed while WASM loaded/ran: its marker would point at the wrong text.
+      if (inputEditor.getValue() === yaml) showError(message(e), yaml);
     } finally {
       btn?.removeAttribute("aria-busy");
     }

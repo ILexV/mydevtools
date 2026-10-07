@@ -52,5 +52,12 @@
   "Seo_HowToSteps": "### Schritt 1: Muster eingeben\nGeben Sie den Ausdruck ohne umschließende Schrägstriche in **Muster** ein. Der **Spickzettel** listet die häufigsten Token.\n\n### Schritt 2: Flags setzen\nAktivieren Sie unter **Flags** nach Bedarf **Unempfindlich**, **Mehrzeilig** oder **Punkt matcht alles**; deaktivieren Sie **Global**, um nur den ersten Treffer zu sehen.\n\n### Schritt 3: Testtext hinzufügen\nFügen Sie Text in **Testzeichenkette** ein – Treffer werden beim Tippen hervorgehoben.\n\n### Schritt 4: Treffer prüfen\nDie Liste **Treffer** zeigt jeden Treffer mit Position `[start-end]` und Capture-Gruppen.\n\n### Schritt 5: Speichern oder wiederverwenden\nKlicken Sie auf **Muster speichern**, um den Ausdruck zu behalten, und **Laden** Sie ihn später aus **Gespeicherte Muster** – oder starten Sie mit einem der **Beispiele**.",
   "Seo_Tips": "- JavaScript- oder PCRE-Muster mit Look-around oder `\\1` müssen umgeschrieben werden: Erfassen Sie den umgebenden Text in einer Gruppe oder prüfen Sie die Bedingung im Code.\n- `/` muss nicht maskiert werden, ein wörtlicher Punkt schon: Schreiben Sie `\\.` für „.“.\n- Inline-Flags funktionieren auch im Muster: `(?i)error` entspricht `error` mit dem Flag i.\n- Gespeicherte Muster liegen nur in diesem Browser; das Löschen der Website-Daten entfernt sie.\n- Setzen Sie `\\b` um Wörter (`\\bcolou?r\\b`), damit `colours` nicht als `colour` getroffen wird.",
   "EngineError": "Die Regex-Engine konnte nicht geladen werden: {message}",
-  "StorageError": "Speichern fehlgeschlagen: Browser-Speicher ist nicht verfügbar oder voll."
+  "StorageError": "Speichern fehlgeschlagen: Browser-Speicher ist nicht verfügbar oder voll.",
+  "GroupsLegendLabel": "Erfassungsgruppen",
+  "GroupWholeMatch": "gesamter Treffer",
+  "GroupNotMatched": "nicht beteiligt",
+  "GroupEmptyString": "leere Zeichenkette",
+  "GroupsSummary": "Erfassungsgruppen ({count})",
+  "CaptureLimitNotice": "Gruppenfarben werden für die ersten {count} Treffer angezeigt.",
+  "AnnounceMatches": "Gefundene Treffer: {count}"
 }

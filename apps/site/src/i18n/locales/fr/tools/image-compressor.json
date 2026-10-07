@@ -27,5 +27,15 @@
   "Seo_Tips": "- Pour les photos, le WebP ou le JPEG à une qualité de 60–80 permet généralement le plus de gain ; gardez le PNG pour les captures d'écran et les graphismes avec transparence.\n- En dessous de la qualité 90, le PNG passe à une palette de 256 couleurs : bien pour les aplats, mais les dégradés peuvent présenter des bandes et le fichier n'est pas toujours plus petit.\n- Enregistrer un PNG transparent en JPEG remplit les zones transparentes de blanc ; choisissez PNG ou WebP pour conserver la transparence.\n- Les données EXIF, y compris les coordonnées GPS, sont supprimées du résultat — utile avant de publier des photos.\n- Si la note sur le WebP sans perte s'affiche, votre navigateur ne sait pas encoder le WebP avec perte ; choisissez JPEG pour une photo plus légère.",
   "Cancel": "Annuler",
   "ErrorUnsupportedFormat": "Ce format d’image n’est pas pris en charge. Utilisez PNG, JPEG, WebP, GIF, BMP, ICO, TIFF ou TGA.",
-  "WebpLosslessNote": "Votre navigateur ne sait pas encoder le WebP avec perte : un WebP sans perte a été enregistré et le réglage de qualité n'a pas été appliqué. Choisissez JPEG pour une photo plus légère."
+  "WebpLosslessNote": "Votre navigateur ne sait pas encoder le WebP avec perte : un WebP sans perte a été enregistré et le réglage de qualité n'a pas été appliqué. Choisissez JPEG pour une photo plus légère.",
+  "CompareTitle": "Avant et après",
+  "CompareOriginal": "Original",
+  "CompareResult": "Résultat",
+  "CompareSlider": "Séparateur de comparaison",
+  "CompareValueText": "Résultat visible : {percent} %",
+  "CompareZoom": "Zoom",
+  "CompareFit": "Ajuster",
+  "CompareActual": "1:1",
+  "CompareActualName": "Pixels réels 1:1",
+  "CompareViewport": "Comparaison 1:1, défilable"
 }

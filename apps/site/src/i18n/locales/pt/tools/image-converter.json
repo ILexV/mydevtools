@@ -23,5 +23,16 @@
   "Seo_Tips": "- Use PNG para capturas de tela e texto, JPEG ou WebP para fotos.\n- Para um favicon, comece com uma imagem quadrada de pelo menos 256×256 px; imagens maiores são reduzidas para 256 px.\n- Converter JPEG em PNG não recupera detalhes perdidos — só deixa o arquivo maior.\n- Resultados TIFF e TGA não têm pré-visualização no navegador, mas o arquivo baixado está completo.\n- GIFs animados perdem a animação: só o primeiro quadro é mantido.",
   "Cancel": "Cancelar",
   "ErrorUnsupportedFormat": "Este formato de imagem não é suportado. Use PNG, JPEG, WebP, GIF, BMP, ICO, TIFF ou TGA.",
-  "WebpLosslessNote": "Seu navegador não codifica WebP com perdas, então foi salvo um WebP sem perdas e a qualidade não foi aplicada. Escolha JPEG para uma foto menor."
+  "WebpLosslessNote": "Seu navegador não codifica WebP com perdas, então foi salvo um WebP sem perdas e a qualidade não foi aplicada. Escolha JPEG para uma foto menor.",
+  "CompareTitle": "Antes e depois",
+  "CompareOriginal": "Original",
+  "CompareResult": "Resultado",
+  "CompareSlider": "Divisor da comparação",
+  "CompareValueText": "Resultado visível: {percent}%",
+  "CompareZoom": "Zoom",
+  "CompareFit": "Ajustar",
+  "CompareActual": "1:1",
+  "CompareActualName": "Pixels reais 1:1",
+  "CompareViewport": "Comparação 1:1, rolável",
+  "CompareChange": "Variação do tamanho do arquivo"
 }

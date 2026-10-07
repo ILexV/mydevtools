@@ -23,5 +23,16 @@
   "Seo_Tips": "- 스크린샷과 텍스트에는 PNG, 사진에는 JPEG나 WebP를 쓰세요.\n- 파비콘은 256×256 px 이상의 정사각형 이미지로 시작하세요. 더 큰 이미지는 256 px로 축소됩니다.\n- JPEG를 PNG로 바꿔도 잃어버린 디테일은 돌아오지 않고 파일만 커집니다.\n- TIFF와 TGA 결과는 브라우저에서 미리볼 수 없지만 다운로드한 파일은 온전합니다.\n- 애니메이션 GIF는 애니메이션이 사라지고 첫 프레임만 남습니다.",
   "Cancel": "취소",
   "ErrorUnsupportedFormat": "지원되지 않는 이미지 형식입니다. PNG, JPEG, WebP, GIF, BMP, ICO, TIFF 또는 TGA를 사용하세요.",
-  "WebpLosslessNote": "브라우저가 손실 WebP 인코딩을 지원하지 않아 무손실 WebP로 저장했으며 품질 설정은 적용되지 않았습니다. 사진을 더 작게 하려면 JPEG를 선택하세요."
+  "WebpLosslessNote": "브라우저가 손실 WebP 인코딩을 지원하지 않아 무손실 WebP로 저장했으며 품질 설정은 적용되지 않았습니다. 사진을 더 작게 하려면 JPEG를 선택하세요.",
+  "CompareTitle": "전후 비교",
+  "CompareOriginal": "원본",
+  "CompareResult": "결과",
+  "CompareSlider": "비교 구분선",
+  "CompareValueText": "결과 표시: {percent}%",
+  "CompareZoom": "확대/축소",
+  "CompareFit": "맞춤",
+  "CompareActual": "1:1",
+  "CompareActualName": "실제 픽셀 1:1",
+  "CompareViewport": "1:1 비교, 스크롤 가능",
+  "CompareChange": "파일 크기 변화"
 }

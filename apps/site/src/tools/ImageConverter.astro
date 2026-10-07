@@ -7,6 +7,8 @@
  * `convertImage`, preview the result with size and download it under the
  * original name with the new extension. Worker-backed and cancellable; UI on
  * the shared tool kit (FileDrop, ds-file-item, Progress, StatusMessage).
+ * Before/after ImageCompare slider under the headline (dimensions, original
+ * size, signed size change); hidden when the browser can't display the result.
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
@@ -16,6 +18,7 @@ import FileDrop from "@/components/tool/FileDrop.astro";
 import Progress from "@/components/tool/Progress.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
 import ToolPanel from "@/components/tool/ToolPanel.astro";
+import ImageCompare from "@/components/tool/ImageCompare.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -47,6 +50,19 @@ const s = {
 /** "Output Size:" → "Output Size" for the headline label (ASCII or full-width colon). */
 const plainLabel = (label: string) => label.replace(/\s*[:：]\s*$/, "");
 const stringsJson = JSON.stringify(s);
+const compare = {
+  title: t(lang, ns, "CompareTitle"),
+  original: t(lang, ns, "CompareOriginal"),
+  result: t(lang, ns, "CompareResult"),
+  slider: t(lang, ns, "CompareSlider"),
+  valueText: t(lang, ns, "CompareValueText"),
+  zoom: t(lang, ns, "CompareZoom"),
+  fit: t(lang, ns, "CompareFit"),
+  actual: t(lang, ns, "CompareActual"),
+  actualName: t(lang, ns, "CompareActualName"),
+  viewport: t(lang, ns, "CompareViewport"),
+  change: t(lang, ns, "CompareChange"),
+};
 ---
 
 <div class="ds-stack imgv-tool" data-imgv-tool>
@@ -124,9 +140,7 @@ const stringsJson = JSON.stringify(s);
         {s.download}
       </button>
     </div>
-    <div class="imgv-output-wrap" data-imgv-output-wrap>
-      <img class="imgv-output" data-imgv-output alt={s.previewAlt} />
-    </div>
+    <ImageCompare strings={compare} idPrefix="imgv-cmp" data-imgv-compare />
     <StatusMessage kind="info" data-imgv-webp-note>{s.webpLosslessNote}</StatusMessage>
   </ToolPanel>
 </div>
@@ -148,18 +162,5 @@ const stringsJson = JSON.stringify(s);
   }
   .imgv-range { width: 100%; }
   .imgv-quality-scale { display: flex; justify-content: space-between; font-size: var(--mdt-fs-label); color: var(--mdt-text-faint); }
-  .imgv-output-wrap {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 12rem;
-    padding: 1rem;
-    border: 1px solid var(--mdt-border);
-    border-radius: var(--mdt-radius-md);
-    /* Checkerboard behind transparent results. */
-    background-image: conic-gradient(var(--mdt-surface-muted) 25%, transparent 0 50%, var(--mdt-surface-muted) 0 75%, transparent 0);
-    background-size: 1rem 1rem;
-  }
-  .imgv-output { max-width: 100%; max-height: 24rem; object-fit: contain; }
   /* Prerequisite hint: only while Convert is disabled for lack of a file (not while busy). */
 </style>

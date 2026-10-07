@@ -23,5 +23,16 @@
   "Seo_Tips": "- 截图和文字用 PNG，照片用 JPEG 或 WebP。\n- 制作 favicon 时，请从至少 256×256 px 的正方形图片开始；更大的图片会缩小到 256 px。\n- JPEG 转 PNG 无法找回已丢失的细节——只会让文件变大。\n- TIFF 和 TGA 结果在浏览器中没有预览，但下载的文件是完整的。\n- 动画 GIF 会失去动画：只保留第一帧。",
   "Cancel": "取消",
   "ErrorUnsupportedFormat": "不支持此图像格式。请使用 PNG、JPEG、WebP、GIF、BMP、ICO、TIFF 或 TGA。",
-  "WebpLosslessNote": "您的浏览器无法编码有损 WebP，因此已保存为无损 WebP，质量设置未生效。如需更小的照片文件，请选择 JPEG。"
+  "WebpLosslessNote": "您的浏览器无法编码有损 WebP，因此已保存为无损 WebP，质量设置未生效。如需更小的照片文件，请选择 JPEG。",
+  "CompareTitle": "前后对比",
+  "CompareOriginal": "原图",
+  "CompareResult": "结果",
+  "CompareSlider": "对比分隔线",
+  "CompareValueText": "结果可见：{percent}%",
+  "CompareZoom": "缩放",
+  "CompareFit": "适应",
+  "CompareActual": "1:1",
+  "CompareActualName": "实际像素 1:1",
+  "CompareViewport": "1:1 对比，可滚动",
+  "CompareChange": "文件大小变化"
 }

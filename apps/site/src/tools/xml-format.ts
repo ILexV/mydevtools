@@ -31,10 +31,13 @@ const PI = 7;
 const COMMENT = 8;
 const DOCTYPE = 10;
 
+/** DOMParser rejected the input: `message` = first error line, `engineText` = full `<parsererror>` text (for its line/column). */
 export class XmlParseError extends Error {
-  constructor(detail: string) {
+  readonly engineText: string;
+  constructor(detail: string, engineText = detail) {
     super(detail);
     this.name = "XmlParseError";
+    this.engineText = engineText;
   }
 }
 
@@ -157,6 +160,6 @@ export function parserErrorDetail(text: string): string {
 export function formatXml(input: string, indent: number | "\t", compact: boolean): string {
   const doc = new DOMParser().parseFromString(input, "application/xml");
   const err = doc.getElementsByTagName("parsererror")[0];
-  if (err) throw new XmlParseError(parserErrorDetail(err.textContent ?? ""));
+  if (err) throw new XmlParseError(parserErrorDetail(err.textContent ?? ""), err.textContent ?? "");
   return serializeXmlDocument(doc as unknown as XmlNodeLike, xmlDeclaration(input), indent, compact);
 }

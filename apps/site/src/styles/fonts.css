@@ -57,3 +57,89 @@
   src: url("@fontsource-variable/manrope/files/manrope-cyrillic-wght-normal.woff2") format("woff2-variations");
   unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
+
+/* Metric-matched fallbacks (round 5, CLS/LCP): local Arial (Liberation Sans is
+   metric-compatible) or Roboto (Android, no Arial) scaled to Inter/Manrope, so
+   the swap to the web font keeps line widths and heights — no layout shift and
+   no new, larger LCP candidate when the font arrives. Values derived with
+   fontkitten from the real files (avg advance of en+ru UI copy; ascent/descent
+   = hhea metrics / upm / size-adjust):
+     Inter 400 / Arial 105.89% · Inter 700 / Arial Bold 102.35% ·
+     Inter 400 / Roboto 106.84% · Inter 700 / Roboto Bold 108.39% ·
+     Manrope 700 / Arial Bold 99.27% · Manrope 700 / Roboto Bold 105.12%.
+   Inter: upm 2048, ascent 1984, descent 494, gap 0; Manrope: upm 2000, 2132/600/0.
+   Latin + Cyrillic only — CJK/Devanagari keep the system stack. Used in the
+   --mdt-font-sans / --mdt-font-display stacks right after the web font. */
+@font-face {
+  font-family: "Inter Fallback";
+  font-weight: 100 549;
+  src: local("Arial"), local("ArialMT"), local("Liberation Sans"), local("LiberationSans");
+  size-adjust: 105.89%;
+  ascent-override: 91.49%;
+  descent-override: 22.78%;
+  line-gap-override: 0%;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0301, U+0304, U+0308, U+0329, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2000-206F,
+    U+20AC, U+2116, U+2122, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter Fallback";
+  font-weight: 550 900;
+  src: local("Arial Bold"), local("Arial-BoldMT"), local("Liberation Sans Bold"), local("LiberationSans-Bold");
+  size-adjust: 102.35%;
+  ascent-override: 94.65%;
+  descent-override: 23.57%;
+  line-gap-override: 0%;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0301, U+0304, U+0308, U+0329, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2000-206F,
+    U+20AC, U+2116, U+2122, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter Fallback Roboto";
+  font-weight: 100 549;
+  src: local("Roboto"), local("Roboto-Regular"), local("Roboto Regular");
+  size-adjust: 106.84%;
+  ascent-override: 90.68%;
+  descent-override: 22.58%;
+  line-gap-override: 0%;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0301, U+0304, U+0308, U+0329, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2000-206F,
+    U+20AC, U+2116, U+2122, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter Fallback Roboto";
+  font-weight: 550 900;
+  src: local("Roboto Bold"), local("Roboto-Bold");
+  size-adjust: 108.39%;
+  ascent-override: 89.38%;
+  descent-override: 22.25%;
+  line-gap-override: 0%;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0301, U+0304, U+0308, U+0329, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2000-206F,
+    U+20AC, U+2116, U+2122, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* Headings are 650–800: one bold face per fallback covers the display stack. */
+@font-face {
+  font-family: "Manrope Fallback";
+  font-weight: 100 900;
+  src: local("Arial Bold"), local("Arial-BoldMT"), local("Liberation Sans Bold"), local("LiberationSans-Bold");
+  size-adjust: 99.27%;
+  ascent-override: 107.39%;
+  descent-override: 30.22%;
+  line-gap-override: 0%;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0301, U+0304, U+0308, U+0329, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2000-206F,
+    U+20AC, U+2116, U+2122, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Manrope Fallback Roboto";
+  font-weight: 100 900;
+  src: local("Roboto Bold"), local("Roboto-Bold");
+  size-adjust: 105.12%;
+  ascent-override: 101.41%;
+  descent-override: 28.54%;
+  line-gap-override: 0%;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0301, U+0304, U+0308, U+0329, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2000-206F,
+    U+20AC, U+2116, U+2122, U+2212, U+2215, U+FEFF, U+FFFD;
+}

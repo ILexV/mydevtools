@@ -7,12 +7,14 @@
  * WASM WebP and a note says quality wasn't applied. Result is
  * previewed with its byte size (formats the browser can't display, e.g.
  * TIFF/TGA, hide the preview) and downloaded under the original name with the
- * new extension (jpeg → jpg).
+ * new extension (jpeg → jpg). A before/after ImageCompare slider
+ * (`bindImageCompare`) shows source vs. result; reset on new file/result/clear.
  */
 import { convertImage } from "@/scripts/wasm/image-tools-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, revealOutput, setDropzoneHasFile, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
+import { bindImageCompare } from "@/scripts/image-compare";
 import { convertedName, isDecodableImage, isImageFile, mimeFor } from "@/tools/image-tools";
 
 interface Strings {
@@ -60,16 +62,18 @@ function init() {
   const cancelBtn = q<HTMLButtonElement>("[data-imgv-cancel]");
   const errorBox = q<HTMLElement>("[data-imgv-error]");
   const resultEl = q<HTMLElement>("[data-imgv-result]");
-  const outputWrap = q<HTMLElement>("[data-imgv-output-wrap]");
-  const output = q<HTMLImageElement>("[data-imgv-output]");
+  const compareEl = q<HTMLElement>("[data-imgv-compare]");
   const outputSizeEl = q<HTMLElement>("[data-imgv-output-size]");
   const downloadBtn = q<HTMLButtonElement>("[data-imgv-download]");
   const webpNote = q<HTMLElement>("[data-imgv-webp-note]");
   if (
     !zone || !input || !selectedEl || !preview || !qualityRange || !formatSel ||
-    !actionBtn || !progressEl || !errorBox || !resultEl || !output || !downloadBtn
+    !actionBtn || !progressEl || !errorBox || !resultEl || !compareEl || !downloadBtn
   ) return;
   root.dataset.initialized = "true";
+  // Headline shows the output size; the comparison adds dimensions, the
+  // original size and the signed change.
+  const compare = bindImageCompare(compareEl, { originalDims: true, originalSize: true, resultDims: true, change: true });
 
   let currentFile: File | null = null;
   let previewUrl: string | null = null;
@@ -89,10 +93,10 @@ function init() {
   function hideResult() {
     resultEl!.hidden = true;
     if (webpNote) webpNote.hidden = true;
+    compare.reset();
     if (resultUrl) URL.revokeObjectURL(resultUrl);
     resultUrl = null;
     resultName = null;
-    output!.removeAttribute("src");
   }
 
   function setBusy(busy: boolean) {
@@ -173,11 +177,13 @@ function init() {
 
       const blob = new Blob([resultBytes as BlobPart], { type: mimeFor(targetFormat) });
       resultUrl = URL.createObjectURL(blob);
-      if (outputWrap) outputWrap.hidden = false;
-      output!.src = resultUrl;
       if (outputSizeEl) outputSizeEl.textContent = formatBytes(blob.size, 2);
       if (webpNote) webpNote.hidden = !(targetFormat === "webp" && !webpLossy);
       resultName = convertedName(file.name, targetFormat);
+      // Decode before revealing; a result the browser can't display (TIFF,
+      // TGA) keeps the comparison hidden, an undisplayable source shows result only.
+      await compare.show(previewUrl ? { url: previewUrl, size: file.size } : null, { url: resultUrl, size: blob.size });
+      if (ctrl.signal.aborted || currentFile !== file) return;
       resultEl!.hidden = false;
       revealOutput(resultEl);
     } catch (e) {
@@ -209,9 +215,6 @@ function init() {
   // instead of showing a broken image.
   preview.addEventListener("error", () => {
     if (preview.getAttribute("src")) preview.hidden = true;
-  });
-  output.addEventListener("error", () => {
-    if (output.getAttribute("src") && outputWrap) outputWrap.hidden = true;
   });
 
   qualityRange.addEventListener("input", () => {

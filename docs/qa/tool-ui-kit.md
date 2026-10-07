@@ -254,6 +254,27 @@ CodeMirror: `<div class="ds-editor is-empty"><div class="mdt-cm" …></div><Empt
 - text-diff-viewer — «Изменённые строки +4 −3» (успех/опасность; для скринридера — скрытый текст «добавлено: 4»).
 - Уже были: word-counter, color-converter, cron, ip-subnet, image-resizer/converter, pdf-merger, unit-converter.
 
+## Раунд 5: сравнение изображений `ImageCompare` (2026-10-07, агент `r5-1`)
+
+Компонент `components/tool/ImageCompare.astro` + контроллер `scripts/image-compare.ts` (`bindImageCompare(root, meta)` → `{ show(original, result), reset() }`); стили — раздел «Round 5 — ImageCompare» в конце `styles/tool-ui.css` (`ds-compare*`). Используют image-compressor, image-converter, image-resizer.
+
+- Разметка: `<ImageCompare strings={…} idPrefix="imgc-cmp" data-imgc-compare />`; строки — ключи `Compare*` в locale JSON инструмента (`CompareTitle/Original/Result/Slider/ValueText/Zoom/Fit/Actual/ActualName/Viewport`, опционально `CompareChange` — скрытая подпись к «±N%», `CompareScaledNote` — подсказка под тулбаром). Стартует `hidden`: до первого результата заглушки нет.
+- Наложение в одной рамке: оригинал («до») слева от разделителя, результат («после») справа (`clip-path` по `--ic-pos`); разделитель 2px, ручка 44px. У каждого слоя своя «шахматка», прозрачность не просвечивает другим изображением.
+- Управление — нативный `<input type=range>` 0–100 (старт 50, визуально скрыт, фокус рисуется на ручке), `aria-label` + локализованный `aria-valuetext` («Result visible: 50%», шаблон `{percent}`; значение range — позиция разделителя слева, в тексте — видимая доля результата, 100 − N); стрелки/Home/End — нативные. Drag — pointer capture: в Fit по всей рамке (`touch-action: pan-y`, касание двигает ручку только после горизонтального движения), в 1:1 — только за ручку. Стиль пишется раз за кадр (rAF).
+- Fit / 1:1 (`.seg`, `aria-pressed`). 1:1: `.is-actual`, пиксель источника = CSS-пиксель, вьюпорт с прокруткой получает `tabindex=0`, `role=region`, `aria-label`; ручка держится по вертикальному центру видимой области, разделитель прокручивается в вид при вводе с клавиатуры. Лупы по hover нет.
+- `show()` декодирует оба изображения (`img.decode()`) до показа панели — инструменты раскрывают результат только после него. Нечитаемый браузером результат (TIFF/TGA) → сравнение скрыто; нечитаемый оригинал → `.is-single` (только результат).
+- Мета под рамкой: что не сказано в главной метрике (`meta`: `originalDims/originalSize/resultDims/resultSize/change`). Компрессор — только размеры в px (в шапке уже размеры файлов и −N%); конвертер — px обеих сторон, размер оригинала и знаковое изменение; ресайзер — px и размер оригинала + изменение (в шапке уже px и размер результата). Рост файла — «+N%» нейтральным цветом, не «экономия» (`formatSizeChange` в `tools/image-tools.ts`).
+- Компонент не владеет object URL: инструмент вызывает `reset()` (снимает `src`, отменяет rAF/устаревший `show`) перед `revokeObjectURL` на новом файле, новом результате и «Очистить».
+
+## Раунд 5: точные указатели ошибок разбора в редакторах (2026-10-07, агент `r5-3`)
+
+json-beautifier, json-to-typescript, xml-beautifier, yaml-beautifier-validator. Модель — `tools/parse-diagnostics.ts` (`ParseDiagnostic {messageKey, args, from, to, detail}`, офсеты UTF-16 = офсеты CodeMirror; `from: null` — место неизвестно, `from === to` — точка вставки).
+
+- Позиции — только от своих сканеров/парсера, не из текста исключений движка: `locateJsonError` (строгий сканер RFC 8259), `locateXmlError` (минимальная проверка well-formedness; если сканер «не уверен» — line/col из `<parsererror>` через `xmlEngineDiagnostic`), `yamlDiagnostic` (маркер yaml-rust из WASM). Колонки — 1-based по code points; табы = 1, CRLF/CR/LF, EOF.
+- Редактор: `createEditor({ diagnostics: { box, goToLabel, keepPanelOnEdit? } })`, затем `editor.setDiagnostic(presentDiagnostic(strings, diag, text), { announce })` / `setDiagnostic(null)`. Подчёркивание токена (или каретка вставки на EOF), подсветка строки, отметка в гуттере, `aria-invalid` + `aria-describedby` на сообщение; любая правка снимает подсветку. «Go to error» (44px) — `revealDiagnostic()`: фокус, выделение, прокрутка `nearest` с учётом sticky-шапки.
+- Панель — `<StatusMessage kind="error" role="none" class="mdt-diag" id="…-editor-error">` (без live-роли): озвучка один раз через `announce()` только по явному действию (Format/Validate/Convert/Ctrl-Enter), не при вводе и не при автоформате от настроек. Живая проверка (json-to-typescript) — `keepPanelOnEdit`: панель тускнеет (`.is-stale`) до перепроверки.
+- Строки — ключи `Diag_*` в `tools/json-beautifier` (все 10 языков), в остров попадают через `diagnosticStrings(lang)` (`tools/editor-phrases.ts`); `SyntaxNoLocation` — локальная подмена инструмента («Invalid JSON. Please check your input.»). Стили — `styles/codemirror.css` (`cm-mdt-diag-*`, `.mdt-diag*`). Тесты — `test/parse-diagnostics.test.ts`.
+
 ## Компоненты (`src/components/tool/`)
 
 Опциональный сахар над классами; без клиентского JS. Все пробрасывают `id`/`class`/`data-*` на корень; хуки для внутренних элементов — через `*Props`.

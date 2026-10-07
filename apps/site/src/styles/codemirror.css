@@ -11,7 +11,8 @@
  * (`tok-*` classes from `mdtHighlighter`) and forced-colors. Colors come
  * only from `--mdt-*` tokens, so light/dark follow the site theme.
  *
- * Host states: `.is-error` (invalid input), `.is-dragover` (file drag),
+ * Host states: `.is-error` (invalid input — a quiet frame only; the parse
+ * diagnostic marks the exact token, line and gutter), `.is-dragover` (file drag),
  * `:focus-within` (focus ring). Height: `--mdt-cm-height` on the host
  * (default clamp(20rem, 50vh, 25rem) = 320–400px so an empty editor isn't a
  * vast blank; at most 400px, default 20rem, on narrow screens). Wrap the host
@@ -55,11 +56,7 @@
   box-shadow: 0 0 0 1px var(--mdt-focus-ring);
 }
 .mdt-cm.is-error {
-  border-color: var(--mdt-danger);
-  background: color-mix(in srgb, var(--mdt-danger) 5%, var(--mdt-surface-raised));
-}
-.mdt-cm.is-error:focus-within {
-  box-shadow: 0 0 0 1px var(--mdt-danger);
+  border-color: color-mix(in srgb, var(--mdt-danger) 40%, var(--mdt-border));
 }
 .mdt-cm.is-dragover {
   border-color: var(--mdt-cat);
@@ -112,7 +109,116 @@
   color: var(--mdt-danger);
 }
 
+/*
+ * Parse-error diagnostics (`setDiagnostic` in codemirror-kit.ts): the error
+ * line is lightly tinted, the offending token gets a wavy danger underline,
+ * an EOF / missing-token position gets an insertion caret, and the line's
+ * gutter cells are marked. The message panel (`.mdt-diag` on the tool's
+ * error alert) carries the localized text and a 44px "Go to error" button.
+ */
+.mdt-cm .cm-mdt-diag-line {
+  background: color-mix(in srgb, var(--mdt-danger) 8%, transparent);
+}
+.mdt-cm .cm-mdt-diag-mark {
+  background: color-mix(in srgb, var(--mdt-danger) 22%, transparent);
+  border-radius: 2px;
+  text-decoration: underline wavy var(--mdt-danger);
+  text-decoration-skip-ink: none;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+.mdt-cm .cm-mdt-diag-insert {
+  position: relative;
+  display: inline-block;
+  width: 0;
+  height: 1em;
+  vertical-align: text-bottom;
+}
+.mdt-cm .cm-mdt-diag-insert::before {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: -0.2em;
+  bottom: -0.15em;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--mdt-danger);
+}
+.mdt-cm .cm-mdt-diag-insert::after {
+  content: "";
+  position: absolute;
+  left: -3px;
+  bottom: -0.45em;
+  border: 5px solid transparent;
+  border-top: 0;
+  border-bottom-color: var(--mdt-danger);
+}
+.mdt-cm .cm-gutterElement.cm-mdt-diag-gutter {
+  background: color-mix(in srgb, var(--mdt-danger) 14%, transparent);
+}
+.mdt-cm .cm-lineNumbers .cm-gutterElement.cm-mdt-diag-gutter {
+  color: var(--mdt-danger);
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--mdt-danger);
+}
+
+/* Message panel: text wraps, the button drops below it on narrow screens. */
+.mdt-diag {
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  row-gap: 8px;
+}
+.mdt-diag-text {
+  display: flex;
+  flex: 1 1 16rem;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.mdt-diag-message {
+  font-weight: 600;
+}
+.mdt-diag-detail {
+  color: var(--mdt-text-muted);
+  font-family: var(--mdt-font-mono);
+  font-size: 0.8125rem;
+}
+.mdt-diag .mdt-diag-goto {
+  flex: none;
+  min-height: 2.75rem;
+  border-color: color-mix(in srgb, var(--mdt-danger) 40%, var(--mdt-border));
+  background: var(--mdt-surface-raised);
+}
+.mdt-diag .mdt-diag-goto:hover {
+  border-color: var(--mdt-danger);
+}
+/* Live-checked editor edited since the last check: fades until re-validated. */
+.mdt-diag.is-stale {
+  opacity: 0.6;
+}
+@media (max-width: 480px) {
+  .mdt-diag .mdt-diag-goto {
+    flex: 1 1 100%;
+  }
+}
+
 @media (forced-colors: active) {
+  .mdt-cm .cm-mdt-diag-mark {
+    text-decoration-color: Mark;
+    forced-color-adjust: none;
+    color: CanvasText;
+    background: Canvas;
+  }
+  .mdt-cm .cm-mdt-diag-insert::before {
+    background: Mark;
+    forced-color-adjust: none;
+  }
+  .mdt-cm .cm-lineNumbers .cm-gutterElement.cm-mdt-diag-gutter {
+    outline: 2px solid Mark;
+    outline-offset: -2px;
+  }
   .mdt-cm:focus-within {
     outline: 2px solid Highlight;
     outline-offset: 1px;

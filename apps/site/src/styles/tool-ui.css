@@ -1327,3 +1327,234 @@
     }
   }
 }
+
+/* ============================================================================
+   Round 5 — ImageCompare (components/tool/ImageCompare.astro +
+   scripts/image-compare.ts): before/after slider for the image tools.
+   Result layer is clipped right of `--ic-pos` (original left, result right) (set per animation frame by the
+   controller); `.is-actual` = 1:1 pixels in a scroll viewport; `.is-single` =
+   result only (original not displayable). Checkerboard behind each layer so
+   transparent pixels never reveal the other image.
+   ========================================================================== */
+@layer tools {
+  .ds-compare {
+    --ic-max-h: min(28rem, 62vh);
+    --ic-pos: 50%;
+    --ic-checker: conic-gradient(var(--mdt-surface-muted) 25%, transparent 0 50%, var(--mdt-surface-muted) 0 75%, transparent 0);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-width: 0;
+  }
+  .ds-compare-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 0.75rem;
+    min-width: 0;
+  }
+  .ds-compare-zoom {
+    flex: none;
+  }
+  .ds-compare-zoom > button {
+    min-height: 2.25rem;
+    min-width: 3.5rem;
+    padding-inline: 0.85rem;
+  }
+  /* The native range is the keyboard/AT control; the drawn handle shows it. */
+  .ds-compare-range {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .ds-compare-frame {
+    position: relative;
+    width: min(100%, calc(var(--ic-max-h) * var(--ic-ratio-n, 1.5)));
+    aspect-ratio: var(--ic-ratio, 3 / 2);
+    margin-inline: auto;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-md);
+    overflow: hidden;
+    background: var(--mdt-surface-inset);
+  }
+  .ds-compare-viewport {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    /* Horizontal drags move the divider; vertical swipes still scroll the page. */
+    touch-action: pan-y;
+    cursor: ew-resize;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .ds-compare-stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+  .ds-compare-layer {
+    position: absolute;
+    inset: 0;
+    background-color: var(--mdt-surface);
+    background-image: var(--ic-checker);
+    background-size: 1rem 1rem;
+  }
+  .ds-compare-layer-result {
+    clip-path: inset(0 0 0 var(--ic-pos));
+  }
+  .ds-compare-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: contain;
+  }
+  .ds-compare-divider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--ic-pos);
+    width: 2px;
+    margin-left: -1px;
+    background: var(--mdt-surface-raised);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--mdt-text) 40%, transparent);
+    pointer-events: none;
+  }
+  .ds-compare-handle {
+    position: absolute;
+    left: 50%;
+    top: var(--ic-handle-y, 50%);
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    translate: -50% -50%;
+    border: 2px solid var(--mdt-cat);
+    border-radius: 50%;
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-cat);
+    box-shadow: 0 2px 10px var(--mdt-scrim);
+    pointer-events: auto;
+    touch-action: pan-y;
+    cursor: ew-resize;
+  }
+  .ds-compare-range:focus-visible + .ds-compare-frame .ds-compare-handle {
+    outline: var(--mdt-focus-width) solid var(--mdt-cat);
+    outline-offset: var(--mdt-focus-offset);
+  }
+  .ds-compare-tag {
+    position: absolute;
+    top: 0.5rem;
+    max-width: calc(50% - 1.5rem);
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--mdt-radius-xs);
+    background: color-mix(in srgb, var(--mdt-surface-raised) 90%, transparent);
+    color: var(--mdt-text);
+    font-size: var(--mdt-fs-label);
+    font-weight: 600;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    pointer-events: none;
+  }
+  .ds-compare-tag-start {
+    left: 0.5rem;
+  }
+  .ds-compare-tag-end {
+    right: 0.5rem;
+    text-align: end;
+  }
+  .ds-compare-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem 1rem;
+    margin: 0;
+    font-size: var(--mdt-fs-label);
+    color: var(--mdt-text-muted);
+  }
+  .ds-compare-meta-item {
+    min-width: 0;
+  }
+  .ds-compare-meta dt {
+    font-weight: 600;
+    color: var(--mdt-text);
+  }
+  .ds-compare-meta dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .ds-compare-meta-end {
+    text-align: end;
+  }
+  .ds-compare-change {
+    font-weight: 600;
+    color: var(--mdt-text);
+  }
+  .ds-compare-change.is-smaller {
+    color: var(--mdt-cat);
+  }
+
+  /* 1:1 — one source pixel per CSS pixel, scrollable both ways. */
+  .ds-compare.is-actual .ds-compare-frame {
+    width: 100%;
+    aspect-ratio: auto;
+  }
+  .ds-compare.is-actual .ds-compare-viewport {
+    position: relative;
+    inset: auto;
+    max-height: min(36rem, 70vh);
+    overflow: auto;
+    overscroll-behavior: contain;
+    touch-action: auto;
+    cursor: auto;
+  }
+  .ds-compare.is-actual .ds-compare-stage {
+    width: var(--ic-w);
+    height: var(--ic-h);
+    margin-inline: auto;
+  }
+  .ds-compare.is-actual .ds-compare-img {
+    inset: 0 auto auto 0;
+    object-fit: none;
+    image-rendering: pixelated;
+  }
+  .ds-compare.is-actual [data-ic-original] {
+    width: var(--ic-ow);
+    height: var(--ic-oh);
+  }
+  .ds-compare.is-actual [data-ic-result] {
+    width: var(--ic-rw);
+    height: var(--ic-rh);
+  }
+
+  /* Result only: the original could not be displayed by the browser. */
+  .ds-compare.is-single :is(.ds-compare-range, [data-ic-original-layer], .ds-compare-divider, [data-ic-original-tag], [data-ic-original-meta-item]) {
+    display: none;
+  }
+  .ds-compare.is-single .ds-compare-viewport {
+    cursor: auto;
+  }
+
+  @media (pointer: coarse) {
+    .ds-compare-zoom > button {
+      min-height: 2.75rem;
+    }
+  }
+  @media (forced-colors: active) {
+    .ds-compare-divider {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
+    .ds-compare-handle {
+      border-color: CanvasText;
+    }
+  }
+}

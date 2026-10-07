@@ -2,7 +2,9 @@
  * JSON Beautifier client controller. CodeMirror 6 editor (lazy kit via
  * `loadEditorKit`) + `formatJson` (indent 2/4/tab, sort keys, compact,
  * exact number preservation). Open/save .json, drop a file onto the editor,
- * copy/clear, Ctrl/Cmd-Enter format, Esc→Tab leaves the editor.
+ * copy/clear, Ctrl/Cmd-Enter format, Esc→Tab leaves the editor. Invalid
+ * JSON: `locateJsonError` finds the exact token + reason, shown as an editor
+ * diagnostic ("Trailing comma — line 3, column 17" + Go to error).
  *
  * PRIVACY: legacy persisted the input text to localStorage; that is
  * intentionally NOT ported. Only the formatting settings persist.
@@ -10,7 +12,9 @@
  */
 import { bindEditorFileDrop, downloadText, loadEditorKit, type MdtEditor } from "@/scripts/codemirror-loader";
 import { bindLoadExample, copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
+import { locateJsonError } from "@/tools/json-diagnostics";
 import { formatJson } from "@/tools/json-format";
+import { presentDiagnostic, shiftDiagnostic, type DiagnosticStrings } from "@/tools/parse-diagnostics";
 
 interface Strings {
   errorInvalidJson: string;
@@ -18,6 +22,8 @@ interface Strings {
   copyFailed?: string;
   inputLabel: string;
   phrases?: Record<string, string>;
+  /** `Diag_*` templates (`diagnosticStrings`). */
+  diag: DiagnosticStrings;
 }
 
 /** "Load example" sample: compact, unsorted JSON so Format / Sort keys visibly change it. */
@@ -66,6 +72,8 @@ async function init() {
   if (!strings || !host || !formatBtn) return;
   root.dataset.initialized = "true";
   const str: Strings = strings;
+  // Unknown-location fallback reads "Invalid JSON. Please check your input. (…)".
+  const diagStrings: DiagnosticStrings = { ...str.diag, SyntaxNoLocation: str.errorInvalidJson };
   const editorHost: HTMLElement = host;
 
   const clearBtn = root.querySelector<HTMLButtonElement>("[data-json-clear]");
@@ -88,7 +96,8 @@ async function init() {
       phrases: str.phrases,
       hintId: "json-editor-hint",
       indent: 4,
-      onSubmit: () => formatAction(),
+      diagnostics: errorBox ? { box: errorBox, goToLabel: str.diag.GoTo ?? "" } : undefined,
+      onSubmit: () => formatAction(true),
       onChange: () => syncEmpty(),
     });
   } catch (err) {
@@ -111,16 +120,15 @@ async function init() {
   if (sortKeys) sortKeys.checked = storageGet(KEYS.sort) === "true";
   if (compact) compact.checked = storageGet(KEYS.compact) === "true";
 
+  /** Non-parse failures (file read): message without a location. */
   function setError(message: string) {
-    editorHost.classList.toggle("is-error", Boolean(message));
-    if (errorBox) {
-      errorBox.textContent = message;
-      errorBox.hidden = !message;
-    }
+    editor.setDiagnostic(message ? { message, from: null, to: null } : null);
   }
 
-  function formatAction() {
-    const input = editor.getValue().trim();
+  /** `announce`: only explicit Format / Ctrl-Enter reads the error out (not settings auto-format). */
+  function formatAction(announce = false) {
+    const value = editor.getValue();
+    const input = value.trim();
     if (!input) {
       setError("");
       return;
@@ -133,8 +141,13 @@ async function init() {
       if (!compact?.checked) editor.setIndent(indent === "tab" ? "tab" : Number.parseInt(indent, 10) || 4);
       setError("");
     } catch (e) {
-      const detail = e instanceof Error && e.message ? ` (${e.message})` : "";
-      setError(str.errorInvalidJson + detail);
+      // Position from our own scanner (engine messages differ per browser); offsets
+      // are into the trimmed text, shifted back to the document.
+      const found = locateJsonError(input);
+      const diag = found
+        ? shiftDiagnostic(found, value.length - value.trimStart().length)
+        : { messageKey: "Syntax", from: null, to: null, detail: e instanceof Error ? e.message : String(e) };
+      editor.setDiagnostic(presentDiagnostic(diagStrings, diag, value), { announce });
     }
   }
 
@@ -153,7 +166,7 @@ async function init() {
     }
   }
 
-  formatBtn.addEventListener("click", formatAction);
+  formatBtn.addEventListener("click", () => formatAction(true));
   clearBtn?.addEventListener("click", clearAll);
   copyBtn?.addEventListener("click", () => {
     void copyWithFeedback(copyBtn, editor.getValue(), str.copied, undefined, { failedLabel: str.copyFailed });

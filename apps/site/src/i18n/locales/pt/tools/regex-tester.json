@@ -52,5 +52,12 @@
   "Seo_HowToSteps": "### Passo 1: Digite o padrão\nEscreva a expressão em **Padrão**, sem barras em volta. **Cola** lista os tokens mais comuns.\n\n### Passo 2: Ajuste as flags\nEm **Flags**, marque **Ignorar maiúsculas**, **Multilinha** ou **Ponto corresponde a tudo** conforme necessário; desmarque **Global** para ver só a primeira correspondência.\n\n### Passo 3: Adicione o texto de teste\nCole o texto em **String de Teste** — as correspondências são destacadas enquanto você digita.\n\n### Passo 4: Analise as correspondências\nA lista **Correspondências** mostra cada uma com a posição `[start-end]` e os grupos de captura.\n\n### Passo 5: Salve ou reutilize\nClique em **Salvar padrão** para guardar a expressão e depois use **Carregar** em **Padrões salvos**, ou comece por um dos **Exemplos**.",
   "Seo_Tips": "- Padrões de JavaScript ou PCRE com lookaround ou `\\1` precisam ser reescritos: capture o texto vizinho em um grupo ou verifique a condição no código.\n- `/` não precisa de escape, mas um ponto literal sim: escreva `\\.` para “.”.\n- Flags inline também funcionam dentro do padrão: `(?i)error` equivale a `error` com a flag i.\n- Os padrões salvos ficam só neste navegador; limpar os dados do site os apaga.\n- Use `\\b` em volta das palavras (`\\bcolou?r\\b`) para que `colours` não seja casado como `colour`.",
   "EngineError": "Não foi possível carregar o mecanismo de regex: {message}",
-  "StorageError": "Não foi possível salvar: o armazenamento do navegador está indisponível ou cheio."
+  "StorageError": "Não foi possível salvar: o armazenamento do navegador está indisponível ou cheio.",
+  "GroupsLegendLabel": "Grupos de captura",
+  "GroupWholeMatch": "correspondência completa",
+  "GroupNotMatched": "não participou",
+  "GroupEmptyString": "string vazia",
+  "GroupsSummary": "Grupos de captura ({count})",
+  "CaptureLimitNotice": "As cores dos grupos aparecem nas primeiras {count} correspondências.",
+  "AnnounceMatches": "Correspondências encontradas: {count}"
 }

@@ -10,7 +10,9 @@
  * `mdtHighlighter` (`tok-*` classes themed in `styles/codemirror.css`),
  * Ctrl/Cmd-Enter submit, Tab indents with the built-in Esc→Tab focus escape
  * (read-only editors never capture Tab), aria-label/-describedby on the
- * content element.
+ * content element, and parse-error diagnostics (`setDiagnostic`: underlined
+ * token or EOF insertion marker, tinted line, gutter marker, message panel
+ * with "Go to error", aria-invalid; cleared by the next edit).
  */
 import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
@@ -24,16 +26,31 @@ import {
   type LanguageSupport,
 } from "@codemirror/language";
 import { highlightSelectionMatches, search, searchKeymap } from "@codemirror/search";
-import { Compartment, EditorState, type Extension } from "@codemirror/state";
 import {
+  Compartment,
+  EditorSelection,
+  EditorState,
+  RangeSet,
+  StateEffect,
+  StateField,
+  type Extension,
+  type Range,
+} from "@codemirror/state";
+import {
+  Decoration,
   drawSelection,
   EditorView,
+  GutterMarker,
+  gutterLineClass,
   highlightSpecialChars,
   keymap,
   lineNumbers,
+  WidgetType,
+  type DecorationSet,
   type KeyBinding,
 } from "@codemirror/view";
 import { tagHighlighter, tags as t } from "@lezer/highlight";
+import { announce } from "@/scripts/tool-ui";
 
 export type EditorLanguage = "json" | "xml" | "yaml" | "typescript" | "text";
 export type IndentStyle = number | "tab";
@@ -53,6 +70,32 @@ export interface EditorOptions {
   onChange?: () => void;
   /** Localized CodeMirror UI phrases (`editor-phrases.ts`); empty = English. */
   phrases?: Record<string, string>;
+  /** Message panel for `setDiagnostic` (an element with an id, no live role). */
+  diagnostics?: DiagnosticPanelOptions;
+}
+
+export interface DiagnosticPanelOptions {
+  box: HTMLElement;
+  /** "Go to error" button label. */
+  goToLabel: string;
+  /**
+   * Live-validating tools (re-check shortly after typing): an edit only marks
+   * the panel stale instead of hiding it, so it doesn't flicker per keystroke.
+   */
+  keepPanelOnEdit?: boolean;
+}
+
+/**
+ * Parse error as the editor shows it: final localized text plus document
+ * offsets (`from === null` = location unknown; `from === to` = insertion
+ * point such as a missing bracket at EOF).
+ */
+export interface EditorDiagnostic {
+  message: string;
+  /** Raw parser detail, shown muted after the message. */
+  detail?: string;
+  from: number | null;
+  to: number | null;
 }
 
 /** Small editor surface the tool controllers use. */
@@ -62,6 +105,13 @@ export interface MdtEditor {
   setValue(text: string): void;
   setIndent(style: IndentStyle): void;
   focus(): void;
+  /**
+   * Show (or clear with null) a parse diagnostic. `announce` reads it out once
+   * through the shared polite live region — pass it only on explicit submit.
+   */
+  setDiagnostic(diagnostic: EditorDiagnostic | null, options?: { announce?: boolean }): void;
+  /** Focus the editor, select the diagnostic range and scroll it into view. */
+  revealDiagnostic(): void;
 }
 
 // Per-language chunks: a page only downloads the grammar it uses.
@@ -181,6 +231,73 @@ const mdtTheme = EditorView.theme({
   ".cm-specialChar": { color: "var(--mdt-danger)" },
 });
 
+interface DiagnosticState {
+  from: number | null;
+  to: number;
+  deco: DecorationSet;
+  gutter: RangeSet<GutterMarker>;
+}
+
+const setDiagnosticEffect = StateEffect.define<{ from: number | null; to: number } | null>();
+
+/** Zero-width EOF / missing-token marker (a short danger caret, styled in codemirror.css). */
+class InsertionMarker extends WidgetType {
+  eq(): boolean {
+    return true;
+  }
+  toDOM(): HTMLElement {
+    const span = document.createElement("span");
+    span.className = "cm-mdt-diag-insert";
+    span.setAttribute("aria-hidden", "true");
+    return span;
+  }
+}
+
+/** Gutter cells (line number, fold) of the error line get `cm-mdt-diag-gutter`. */
+class DiagnosticGutterMarker extends GutterMarker {
+  elementClass = "cm-mdt-diag-gutter";
+}
+const diagnosticGutterMarker = new DiagnosticGutterMarker();
+
+/**
+ * Parse-error highlight state: wavy-underlined token (or insertion marker),
+ * tinted line and gutter marker. Any document change clears it — a stale
+ * position would point at the wrong text.
+ */
+const diagnosticField = StateField.define<DiagnosticState | null>({
+  create: () => null,
+  update(value, tr) {
+    for (const e of tr.effects) {
+      if (!e.is(setDiagnosticEffect)) continue;
+      if (!e.value) return null;
+      const { doc } = tr.state;
+      const { from } = e.value;
+      if (from === null) return { from: null, to: 0, deco: Decoration.none, gutter: RangeSet.empty };
+      const to = Math.max(from, e.value.to);
+      const line = doc.lineAt(from);
+      const ranges: Range<Decoration>[] = [Decoration.line({ class: "cm-mdt-diag-line" }).range(line.from)];
+      ranges.push(
+        to > from
+          ? Decoration.mark({ class: "cm-mdt-diag-mark" }).range(from, to)
+          : Decoration.widget({ widget: new InsertionMarker(), side: 1 }).range(from),
+      );
+      return { from, to, deco: Decoration.set(ranges, true), gutter: RangeSet.of([diagnosticGutterMarker.range(line.from)]) };
+    }
+    return tr.docChanged ? null : value;
+  },
+  provide: (f) => [
+    EditorView.decorations.from(f, (v) => v?.deco ?? Decoration.none),
+    gutterLineClass.from(f, (v) => v?.gutter ?? RangeSet.empty),
+  ],
+});
+
+/** Keep scrolled-to ranges (Go to error, cursor) clear of the sticky site header. */
+const stickyHeaderMargin = EditorView.scrollMargins.of(() => {
+  const header = document.querySelector<HTMLElement>("header.site-header");
+  const bottom = header?.getBoundingClientRect().bottom ?? 0;
+  return bottom > 0 ? { top: bottom + 8 } : null;
+});
+
 /** Creates an editor inside `host` (language chunk loaded on demand). */
 export async function createEditor(host: HTMLElement, opts: EditorOptions): Promise<MdtEditor> {
   const language = await loadLanguage(opts.language);
@@ -197,8 +314,18 @@ export async function createEditor(host: HTMLElement, opts: EditorOptions): Prom
   if (!readOnly) keys.push(indentWithTab);
 
   const attrs: Record<string, string> = { "aria-label": opts.label };
-  if (opts.hintId) attrs["aria-describedby"] = opts.hintId;
   if (readOnly) attrs["aria-readonly"] = "true";
+  // aria-describedby = keyboard hint (+ the error message while a diagnostic is shown).
+  const panel = opts.diagnostics;
+  const errorId = panel?.box.id;
+  const dynamicAttrs = EditorView.contentAttributes.compute([diagnosticField], (state) => {
+    const active = state.field(diagnosticField) !== null;
+    const ids = [opts.hintId, active ? errorId : undefined].filter(Boolean).join(" ");
+    const out: Record<string, string> = {};
+    if (ids) out["aria-describedby"] = ids;
+    if (active) out["aria-invalid"] = "true";
+    return out;
+  });
 
   const onChange = opts.onChange;
   const extensions: Extension[] = [
@@ -214,6 +341,9 @@ export async function createEditor(host: HTMLElement, opts: EditorOptions): Prom
     indent.of(indentExtensions(opts.indent ?? 2)),
     keymap.of(keys),
     EditorView.contentAttributes.of(attrs),
+    dynamicAttrs,
+    diagnosticField,
+    stickyHeaderMargin,
     mdtTheme,
     language,
   ];
@@ -230,8 +360,67 @@ export async function createEditor(host: HTMLElement, opts: EditorOptions): Prom
       if (u.docChanged) onChange();
     }));
   }
+  // An edit cleared the highlight (diagnosticField) — sync the message panel.
+  extensions.push(EditorView.updateListener.of((u) => {
+    if (u.docChanged && u.startState.field(diagnosticField) && !u.state.field(diagnosticField)) onDiagnosticEdited();
+  }));
 
   const view = new EditorView({ parent: host, state: EditorState.create({ doc: "", extensions }) });
+
+  function revealDiagnostic(): void {
+    const d = view.state.field(diagnosticField);
+    if (!d || d.from === null) return;
+    const range = EditorSelection.range(d.from, d.to);
+    // "nearest": the editor scroller (and the page, only if needed) move the minimum.
+    view.dispatch({ selection: EditorSelection.create([range]), effects: EditorView.scrollIntoView(range, { y: "nearest", yMargin: 24 }) });
+    view.focus(); // CodeMirror focuses with preventScroll
+  }
+
+  /** Message panel: text (+ muted raw detail) and a 44px "Go to error" button when the location is known. */
+  function renderPanel(d: EditorDiagnostic | null): void {
+    host.classList.toggle("is-error", d !== null);
+    if (!panel) return;
+    const { box } = panel;
+    box.classList.remove("is-stale");
+    if (!d) {
+      box.hidden = true;
+      box.replaceChildren();
+      return;
+    }
+    const text = document.createElement("span");
+    text.className = "mdt-diag-text";
+    const message = document.createElement("span");
+    message.className = "mdt-diag-message";
+    message.textContent = d.message;
+    text.append(message);
+    if (d.detail) {
+      const detail = document.createElement("span");
+      detail.className = "mdt-diag-detail";
+      detail.dir = "auto";
+      detail.textContent = d.detail;
+      text.append(detail);
+    }
+    box.replaceChildren(text);
+    if (d.from !== null) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "ds-btn mdt-diag-goto";
+      btn.textContent = panel.goToLabel;
+      btn.addEventListener("click", revealDiagnostic);
+      box.append(btn);
+    }
+    box.hidden = false;
+  }
+
+  function onDiagnosticEdited(): void {
+    if (panel?.keepPanelOnEdit && !panel.box.hidden) {
+      host.classList.remove("is-error");
+      panel.box.classList.add("is-stale");
+      panel.box.querySelector<HTMLButtonElement>(".mdt-diag-goto")?.setAttribute("disabled", "");
+      return;
+    }
+    renderPanel(null);
+  }
   // Theme switches change fonts/colors only via CSS vars; re-measure anyway.
   new MutationObserver(() => view.requestMeasure()).observe(document.documentElement, {
     attributes: true,
@@ -252,5 +441,14 @@ export async function createEditor(host: HTMLElement, opts: EditorOptions): Prom
       view.dispatch({ effects: indent.reconfigure(indentExtensions(style)) });
     },
     focus: () => view.focus(),
+    setDiagnostic(d, options) {
+      const len = view.state.doc.length;
+      const from = d && d.from !== null ? Math.min(Math.max(0, d.from), len) : null;
+      const to = from === null ? 0 : Math.min(Math.max(from, d?.to ?? from), len);
+      view.dispatch({ effects: setDiagnosticEffect.of(d ? { from, to } : null) });
+      renderPanel(d);
+      if (d && options?.announce) announce(d.detail ? `${d.message}. ${d.detail}` : d.message);
+    },
+    revealDiagnostic,
   };
 }

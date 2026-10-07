@@ -27,5 +27,15 @@
   "Seo_Tips": "- 写真なら WebP か JPEG の品質 60～80 が最も効果的なことが多いです。スクリーンショットや透過のあるグラフィックは PNG のままにしましょう。\n- PNG は品質 90 未満で 256 色パレットに切り替わります。単色主体の図には向きますが、グラデーションに縞が出ることがあり、必ずしもファイルが小さくなるとは限りません。\n- 透過 PNG を JPEG で保存すると透明部分は白で塗りつぶされます。透過を残すなら PNG か WebP を選んでください。\n- GPS 座標を含む EXIF データは結果から削除されます。写真を公開する前に便利です。\n- ロスレス WebP についての注記が出た場合、そのブラウザは非可逆 WebP をエンコードできません。写真を小さくしたいときは JPEG を選んでください。",
   "Cancel": "キャンセル",
   "ErrorUnsupportedFormat": "この画像形式はサポートされていません。PNG、JPEG、WebP、GIF、BMP、ICO、TIFF、TGA を使用してください。",
-  "WebpLosslessNote": "お使いのブラウザーは非可逆 WebP をエンコードできないため、可逆 WebP で保存しました。品質設定は適用されていません。写真を小さくするには JPEG を選んでください。"
+  "WebpLosslessNote": "お使いのブラウザーは非可逆 WebP をエンコードできないため、可逆 WebP で保存しました。品質設定は適用されていません。写真を小さくするには JPEG を選んでください。",
+  "CompareTitle": "ビフォー・アフター",
+  "CompareOriginal": "元画像",
+  "CompareResult": "結果",
+  "CompareSlider": "比較の境界線",
+  "CompareValueText": "結果の表示：{percent}%",
+  "CompareZoom": "表示倍率",
+  "CompareFit": "全体表示",
+  "CompareActual": "1:1",
+  "CompareActualName": "実ピクセル 1:1",
+  "CompareViewport": "1:1 比較（スクロール可能）"
 }

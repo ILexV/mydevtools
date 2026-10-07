@@ -2,13 +2,16 @@
  * JSON to TypeScript client: dual CodeMirror 6 editors (JSON input, read-only
  * TS output) via the lazy editor kit; conversion by `jsonToTypeScript`
  * (`json-to-typescript.ts`). Live conversion on input (debounced) and on
- * option change; copy, download (`types.ts`), clear; localized invalid-JSON
- * error with the parser detail; Esc→Tab leaves the editors. Workbench empty
+ * option change; copy, download (`types.ts`), clear; invalid JSON becomes an
+ * exact-position editor diagnostic (`locateJsonError`) — silent while typing,
+ * announced on Convert / Ctrl-Enter; Esc→Tab leaves the editors. Workbench empty
  * states: input overlay + "Load example" (only on click), output placeholder.
  */
 import { downloadText, loadEditorKit, type MdtEditor } from "@/scripts/codemirror-loader";
 import { bindLoadExample, copyWithFeedback, revealOutput, syncEmptyState } from "@/scripts/tool-ui";
+import { locateJsonError } from "@/tools/json-diagnostics";
 import { jsonToTypeScript, type ConvertOptions } from "@/tools/json-to-typescript";
+import { presentDiagnostic, shiftDiagnostic, type DiagnosticStrings } from "@/tools/parse-diagnostics";
 
 interface Strings {
   errorInvalidJson: string;
@@ -17,6 +20,8 @@ interface Strings {
   inputLabel: string;
   outputLabel: string;
   phrases?: Record<string, string>;
+  /** `Diag_*` templates (`diagnosticStrings`). */
+  diag: DiagnosticStrings;
 }
 
 const LIVE_DELAY_MS = 250;
@@ -54,7 +59,8 @@ async function init() {
   if (!stringsRaw || !inputEl || !outputEl || !convertBtn) return;
   root.dataset.initialized = "true";
   const strings: Strings = stringsRaw;
-  const inputHost: HTMLElement = inputEl;
+  // Unknown-location fallback reads "Invalid JSON. Please check your input. (…)".
+  const diagStrings: DiagnosticStrings = { ...strings.diag, SyntaxNoLocation: strings.errorInvalidJson };
 
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-jts-copy]");
   const clearBtn = root.querySelector<HTMLButtonElement>("[data-jts-clear]");
@@ -79,7 +85,9 @@ async function init() {
         phrases: strings.phrases,
         hintId: "jts-editor-hint",
         indent: 2,
-        onSubmit: () => doConvert(),
+        // Live conversion re-checks 250 ms after typing: keep the panel (faded) meanwhile.
+        diagnostics: errorBox ? { box: errorBox, goToLabel: strings.diag.GoTo ?? "", keepPanelOnEdit: true } : undefined,
+        onSubmit: () => doConvert(true),
         onChange: () => {
           syncInput();
           scheduleConvert();
@@ -128,38 +136,36 @@ async function init() {
     };
   }
 
-  function setError(message: string) {
-    inputHost.classList.toggle("is-error", Boolean(message));
-    if (errorBox) {
-      errorBox.textContent = message;
-      errorBox.hidden = !message;
-    }
-  }
-
   let liveTimer: number | undefined;
-  function doConvert() {
+  /** `announce`: explicit Convert / Ctrl-Enter only — live checks while typing stay silent. */
+  function doConvert(announce = false) {
     window.clearTimeout(liveTimer);
-    const src = inputEditor.getValue().trim();
+    const value = inputEditor.getValue();
+    const src = value.trim();
     if (!src) {
-      setError("");
+      inputEditor.setDiagnostic(null);
       outputEditor.setValue("");
       return;
     }
     try {
       outputEditor.setValue(jsonToTypeScript(src, getOpts()));
-      setError("");
+      inputEditor.setDiagnostic(null);
     } catch (e) {
       outputEditor.setValue("");
-      setError(strings.errorInvalidJson + (e instanceof Error && e.message ? ` (${e.message})` : ""));
+      const found = locateJsonError(src);
+      const diag = found
+        ? shiftDiagnostic(found, value.length - value.trimStart().length)
+        : { messageKey: "Syntax", from: null, to: null, detail: e instanceof Error ? e.message : String(e) };
+      inputEditor.setDiagnostic(presentDiagnostic(diagStrings, diag, value), { announce });
     }
   }
   function scheduleConvert() {
     window.clearTimeout(liveTimer);
-    liveTimer = window.setTimeout(doConvert, LIVE_DELAY_MS);
+    liveTimer = window.setTimeout(() => doConvert(), LIVE_DELAY_MS);
   }
 
   convertBtn.addEventListener("click", () => {
-    doConvert();
+    doConvert(true);
     // Explicit Convert only (live typing never scrolls).
     if (outputEditor.getValue()) revealOutput(outputPanel);
   });
@@ -170,7 +176,7 @@ async function init() {
   clearBtn?.addEventListener("click", () => {
     inputEditor.setValue("");
     outputEditor.setValue("");
-    setError("");
+    inputEditor.setDiagnostic(null);
     inputEditor.focus();
   });
   downloadBtn?.addEventListener("click", () => {
@@ -178,7 +184,7 @@ async function init() {
     if (text) downloadText(text, "types.ts", "text/plain");
   });
 
-  for (const el of [exportChk, optionalChk, useTypeChk]) el?.addEventListener("change", doConvert);
+  for (const el of [exportChk, optionalChk, useTypeChk]) el?.addEventListener("change", () => doConvert());
   rootNameInput?.addEventListener("input", scheduleConvert);
 }
 

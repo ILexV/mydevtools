@@ -10,11 +10,15 @@
  * negative value would otherwise wrap to a huge u32). Output format is
  * guessed from the source extension (jpg→jpeg, unknown→png). Download name:
  * `<base>_<w>x<h>.<ext>` (jpeg→jpg). Object URLs are revoked on replace/clear.
+ * Result is shown in a before/after ImageCompare slider (`bindImageCompare`);
+ * the headline carries result dimensions + size, the comparison the original's
+ * and the signed size change.
  */
 import { convertImage, resizeImage } from "@/scripts/wasm/image-tools-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, revealOutput, setDropzoneHasFile, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
+import { bindImageCompare } from "@/scripts/image-compare";
 import {
   guessResizeFormat,
   isDecodableImage,
@@ -74,15 +78,16 @@ function init() {
   const progressEl = q<HTMLElement>("[data-imgr-progress]");
   const cancelBtn = q<HTMLButtonElement>("[data-imgr-cancel]");
   const outputEl = q<HTMLElement>("[data-imgr-output]");
-  const resultPreview = q<HTMLImageElement>("[data-imgr-result-preview]");
+  const compareEl = q<HTMLElement>("[data-imgr-compare]");
   const outputInfo = q<HTMLElement>("[data-imgr-output-info]");
   const dlBtn = q<HTMLButtonElement>("[data-imgr-download]");
   if (
     !errEl || !zone || !input || !selectedEl || !preview || !settingsEl || !widthEl ||
     !heightEl || !lockEl || !formatEl || !actionBtn || !progressEl || !outputEl ||
-    !resultPreview || !dlBtn
+    !compareEl || !dlBtn
   ) return;
   root.dataset.initialized = "true";
+  const compare = bindImageCompare(compareEl, { originalDims: true, originalSize: true, resultDims: false, change: true });
 
   let currentFile: File | null = null;
   let originalWidth = 0;
@@ -107,7 +112,7 @@ function init() {
 
   function hideOutput() {
     syncEmptyState(outputEl!, true);
-    resultPreview!.removeAttribute("src");
+    compare.reset();
     if (outputInfo) outputInfo.textContent = "";
     if (resultUrl) URL.revokeObjectURL(resultUrl);
     resultUrl = null;
@@ -257,11 +262,13 @@ function init() {
       if (ctrl.signal.aborted || currentFile !== file) return;
 
       const blob = new Blob([resultBytes as BlobPart], { type: mimeFor(format) });
-      if (resultUrl) URL.revokeObjectURL(resultUrl);
+      // New result: drop the previous comparison and its object URL first.
+      hideOutput();
       resultUrl = URL.createObjectURL(blob);
-      resultPreview!.src = resultUrl;
       if (outputInfo) outputInfo.textContent = `${width}×${height}, ${formatBytes(blob.size, 2)}`;
       resultName = resizedName(file.name, width, height, format);
+      if (previewUrl) await compare.show({ url: previewUrl, size: file.size }, { url: resultUrl, size: blob.size });
+      if (currentFile !== file) return;
       syncEmptyState(outputEl!, false);
       revealOutput(outputEl);
     } catch (e) {

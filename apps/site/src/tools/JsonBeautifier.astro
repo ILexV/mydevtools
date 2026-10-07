@@ -5,11 +5,11 @@
  * (indent 2/4/tab, sort keys, compact/minify — `json-format.ts`), open/save
  * .json file, drag & drop onto the editor, copy/clear. Pure JS — no WASM.
  * PRIVACY: legacy localStorage input persistence intentionally dropped; only
- * the formatting settings persist. Errors: persistent localized alert +
- * editor error state.
+ * the formatting settings persist. Errors: exact-position editor diagnostic
+ * (underline, line tint, gutter) + localized message with "Go to error".
  */
 import { t } from "@/i18n/messages";
-import { editorPhrases } from "@/tools/editor-phrases";
+import { diagnosticStrings, editorPhrases } from "@/tools/editor-phrases";
 import type { LocaleCode } from "@/registry/locales";
 import CopyButton from "@/components/tool/CopyButton.astro";
 import EmptyState from "@/components/tool/EmptyState.astro";
@@ -50,6 +50,7 @@ const stringsJson = JSON.stringify({
   copyFailed: s.copyFailed,
   inputLabel: s.inputLabel,
   phrases: editorPhrases(lang),
+  diag: diagnosticStrings(lang),
 });
 ---
 
@@ -94,7 +95,8 @@ const stringsJson = JSON.stringify({
       <button type="button" class="ds-btn ds-btn-primary" data-json-format>{s.format}</button>
     </div>
 
-    <StatusMessage kind="error" data-json-error />
+    <!-- Parse-error panel (codemirror-kit setDiagnostic): no live role — errors are announced once on Format. -->
+    <StatusMessage kind="error" role="none" class="mdt-diag" id="json-editor-error" data-json-error />
   </ToolPanel>
 </div>
 

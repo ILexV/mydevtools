@@ -27,5 +27,15 @@
   "Seo_Tips": "- 照片使用 WebP 或 JPEG、质量 60–80 通常最省空间；截图和带透明度的图形请保留 PNG。\n- PNG 质量低于 90 时会改用 256 色调色板：适合纯色图形，但渐变可能出现色带，文件也不一定更小。\n- 将透明 PNG 保存为 JPEG 时，透明区域会被填充为白色；要保留透明度请选择 PNG 或 WebP。\n- 结果中会去除 EXIF 数据（包括 GPS 坐标）——发布照片前很有用。\n- 如果看到关于无损 WebP 的提示，说明浏览器无法进行有损 WebP 编码；想让照片更小请选择 JPEG。",
   "Cancel": "取消",
   "ErrorUnsupportedFormat": "不支持此图像格式。请使用 PNG、JPEG、WebP、GIF、BMP、ICO、TIFF 或 TGA。",
-  "WebpLosslessNote": "您的浏览器无法编码有损 WebP，因此已保存为无损 WebP，质量设置未生效。如需更小的照片文件，请选择 JPEG。"
+  "WebpLosslessNote": "您的浏览器无法编码有损 WebP，因此已保存为无损 WebP，质量设置未生效。如需更小的照片文件，请选择 JPEG。",
+  "CompareTitle": "前后对比",
+  "CompareOriginal": "原图",
+  "CompareResult": "结果",
+  "CompareSlider": "对比分隔线",
+  "CompareValueText": "结果可见：{percent}%",
+  "CompareZoom": "缩放",
+  "CompareFit": "适应",
+  "CompareActual": "1:1",
+  "CompareActualName": "实际像素 1:1",
+  "CompareViewport": "1:1 对比，可滚动"
 }

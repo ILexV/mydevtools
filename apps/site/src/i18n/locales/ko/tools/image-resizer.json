@@ -25,5 +25,17 @@
   "ErrorResizeFailed": "크기 조정에 실패했습니다.",
   "Cancel": "취소",
   "ErrorUnsupportedFormat": "지원되지 않는 이미지 형식입니다. PNG, JPEG, WebP, GIF, BMP, ICO, TIFF 또는 TGA를 사용하세요.",
-  "ErrorDimensionsTooLarge": "크기가 너무 큽니다. 한 변 최대 16384px, 전체 6,400만 화소까지 가능합니다."
+  "ErrorDimensionsTooLarge": "크기가 너무 큽니다. 한 변 최대 16384px, 전체 6,400만 화소까지 가능합니다.",
+  "CompareTitle": "전후 비교",
+  "CompareOriginal": "원본",
+  "CompareResult": "결과",
+  "CompareSlider": "비교 구분선",
+  "CompareValueText": "결과 표시: {percent}%",
+  "CompareZoom": "확대/축소",
+  "CompareFit": "맞춤",
+  "CompareActual": "1:1",
+  "CompareActualName": "실제 픽셀 1:1",
+  "CompareViewport": "1:1 비교, 스크롤 가능",
+  "CompareChange": "파일 크기 변화",
+  "CompareScaledNote": "‘맞춤’은 두 이미지를 같은 프레임에 맞춰 조정하므로 크기가 같아 보입니다. 실제 픽셀 크기를 보려면 1:1로 전환하세요."
 }

@@ -25,5 +25,17 @@
   "ErrorResizeFailed": "リサイズに失敗しました。",
   "Cancel": "キャンセル",
   "ErrorUnsupportedFormat": "この画像形式はサポートされていません。PNG、JPEG、WebP、GIF、BMP、ICO、TIFF、TGA を使用してください。",
-  "ErrorDimensionsTooLarge": "サイズが大きすぎます。1 辺 16384 px、合計 6400 万画素までです。"
+  "ErrorDimensionsTooLarge": "サイズが大きすぎます。1 辺 16384 px、合計 6400 万画素までです。",
+  "CompareTitle": "ビフォー・アフター",
+  "CompareOriginal": "元画像",
+  "CompareResult": "結果",
+  "CompareSlider": "比較の境界線",
+  "CompareValueText": "結果の表示：{percent}%",
+  "CompareZoom": "表示倍率",
+  "CompareFit": "全体表示",
+  "CompareActual": "1:1",
+  "CompareActualName": "実ピクセル 1:1",
+  "CompareViewport": "1:1 比較（スクロール可能）",
+  "CompareChange": "ファイルサイズの変化",
+  "CompareScaledNote": "「全体表示」では両方の画像を同じ枠に合わせて拡大縮小するため、同じ大きさに見えます。実際のピクセルサイズは 1:1 に切り替えて確認してください。"
 }

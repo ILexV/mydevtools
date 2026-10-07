@@ -7,6 +7,8 @@ import Footer from "@/components/Footer.astro";
 import Palette from "@/components/Palette.astro";
 import InstallPrompt from "@/components/InstallPrompt.astro";
 import "@/styles/global.css";
+// Same Vite asset as the fonts.css url() → identical hashed URL, so the preload is reused.
+import interCyrillicUrl from "@fontsource-variable/inter/files/inter-cyrillic-wght-normal.woff2?url";
 
 interface Props {
   locale: LocaleCode;
@@ -33,6 +35,13 @@ const {
   howToSteps,
 } = Astro.props as Props;
 const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
+/**
+ * Font preload for Cyrillic routes only: on /ru/ the LCP text (hero subtitle,
+ * tool description) waits for Inter's Cyrillic subset, which the browser only
+ * discovers after the CSS (+~0.7 s on slow 4G in the round-5 traces). Latin
+ * routes paint LCP with the fallback, so no preload there — no blanket preloads.
+ */
+const preloadFonts = locale === "ru" ? [interCyrillicUrl] : [];
 ---
 
 <!doctype html>
@@ -48,6 +57,7 @@ const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
       categoryName={categoryName}
       howToSteps={howToSteps}
     />
+    {preloadFonts.map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}
 
     <script is:inline>
       (function () {

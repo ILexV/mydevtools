@@ -27,5 +27,15 @@
   "Seo_Tips": "- 사진은 보통 품질 60~80의 WebP나 JPEG가 용량을 가장 많이 줄입니다. 스크린샷과 투명도가 있는 그래픽은 PNG로 두세요.\n- PNG는 품질 90 미만에서 256색 팔레트로 바뀝니다. 단순한 그래픽에는 괜찮지만 그라데이션에 계단 현상이 생길 수 있고 파일이 항상 작아지지는 않습니다.\n- 투명 PNG를 JPEG로 저장하면 투명한 영역이 흰색으로 채워집니다. 투명도를 유지하려면 PNG나 WebP를 고르세요.\n- GPS 좌표를 포함한 EXIF 데이터는 결과에서 제거되므로 사진을 공개하기 전에 유용합니다.\n- 무손실 WebP 관련 안내가 보이면 브라우저가 손실 WebP를 인코딩하지 못하는 것입니다. 사진을 더 작게 만들려면 JPEG를 선택하세요.",
   "Cancel": "취소",
   "ErrorUnsupportedFormat": "지원되지 않는 이미지 형식입니다. PNG, JPEG, WebP, GIF, BMP, ICO, TIFF 또는 TGA를 사용하세요.",
-  "WebpLosslessNote": "브라우저가 손실 WebP 인코딩을 지원하지 않아 무손실 WebP로 저장했으며 품질 설정은 적용되지 않았습니다. 사진을 더 작게 하려면 JPEG를 선택하세요."
+  "WebpLosslessNote": "브라우저가 손실 WebP 인코딩을 지원하지 않아 무손실 WebP로 저장했으며 품질 설정은 적용되지 않았습니다. 사진을 더 작게 하려면 JPEG를 선택하세요.",
+  "CompareTitle": "전후 비교",
+  "CompareOriginal": "원본",
+  "CompareResult": "결과",
+  "CompareSlider": "비교 구분선",
+  "CompareValueText": "결과 표시: {percent}%",
+  "CompareZoom": "확대/축소",
+  "CompareFit": "맞춤",
+  "CompareActual": "1:1",
+  "CompareActualName": "실제 픽셀 1:1",
+  "CompareViewport": "1:1 비교, 스크롤 가능"
 }

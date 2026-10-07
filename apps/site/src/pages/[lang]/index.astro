@@ -337,7 +337,7 @@ const aboutFeatures = [
     font-size: clamp(2.3rem, 4.8vw, 3.8rem);
     line-height: 1.03;
     letter-spacing: -0.04em;
-    max-width: 15ch;
+    max-width: 10em; /* em, not ch: ch follows the active font, so the fallback wrapped differently (CLS) */
   }
   h1 span { display: block; }
   /* Spectrum-tinted second line — the prism metaphor in type. */

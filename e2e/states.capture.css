@@ -1,0 +1,5 @@
+/* Applied only while an element-level capture in states.spec.ts is taken.
+   Element screenshots of tall panels scroll the page, and the sticky site
+   header would then paint over the panel's top edge. `relative` keeps the
+   header's in-flow box (no layout shift) and only removes the stickiness. */
+.site-header { position: relative !important; }

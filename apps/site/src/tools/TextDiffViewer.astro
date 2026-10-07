@@ -2,10 +2,11 @@
 /**
  * Text Diff Viewer. Two inputs (paste text or load a file per side), a unified
  * diff built with vendored jsdiff and rendered by vendored diff2html-ui (both
- * loaded on demand by the client). View modes: side-by-side (default) /
- * line-by-line. Actions: compare, clear. Large diffs are capped via
- * diffMaxChanges / diffMaxLineLength (legacy parity). A headline above the
- * diff counts added/removed lines ("+12 −4").
+ * loaded on demand by the client). View modes: a segmented control of native
+ * radios, Unified / Side by side (responsive default). Actions: compare,
+ * clear. Large diffs are capped via jsdiff maxEditLength / diffMaxChanges. A
+ * headline counts added/removed lines ("+12 −4") next to Previous/Next change
+ * navigation; the result scroller has a decorative change rail beside it.
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
@@ -44,7 +45,15 @@ const stringsJson = JSON.stringify({
   exampleModified: t(lang, ns, "ExampleModified"),
   linesAdded: t(lang, ns, "LinesAdded"),
   linesRemoved: t(lang, ns, "LinesRemoved"),
+  changePosition: t(lang, ns, "ChangePosition"),
+  longLineNote: t(lang, ns, "LongLineNote"),
+  budgetNote: t(lang, ns, "IntraLineBudgetNote"),
+  eolNote: t(lang, ns, "LineEndingsNote"),
+  finalNewlineOriginal: t(lang, ns, "FinalNewlineOriginalOnly"),
+  finalNewlineModified: t(lang, ns, "FinalNewlineModifiedOnly"),
 });
+const prevChange = t(lang, ns, "PrevChange");
+const nextChange = t(lang, ns, "NextChange");
 const uploadIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>`;
 const sides = [
   { key: "original", label: originalLabel, choose: chooseOriginal, hint: t(lang, ns, "OriginalEmptyHint") },
@@ -86,14 +95,14 @@ const sides = [
       <button type="button" class="ds-btn ds-btn-primary" data-diff-compare>{t(lang, ns, "CompareButton")}</button>
       <button type="button" class="ds-btn" data-diff-clear>{t(lang, ns, "ClearButton")}</button>
     </div>
-    <fieldset class="ds-check-group diff-modes">
+    <fieldset class="diff-seg">
       <legend class="visually-hidden">{viewModeLabel}</legend>
-      <label class="ds-check-row">
-        <input type="radio" class="ds-radio" name="diff-view-mode" value="line-by-line" data-diff-mode />
+      <label class="diff-seg-opt">
+        <input type="radio" class="diff-seg-input" name="diff-view-mode" value="line-by-line" data-diff-mode />
         <span>{lineByLine}</span>
       </label>
-      <label class="ds-check-row">
-        <input type="radio" class="ds-radio" name="diff-view-mode" value="side-by-side" data-diff-mode checked />
+      <label class="diff-seg-opt">
+        <input type="radio" class="diff-seg-input" name="diff-view-mode" value="side-by-side" data-diff-mode checked />
         <span>{sideBySide}</span>
       </label>
     </fieldset>
@@ -102,14 +111,31 @@ const sides = [
   <OutputPanel panel class="ds-workbench-wide" label={outputLabel} emptyHint={t(lang, ns, "OutputEmpty")} data-diff-output-panel>
     <StatusMessage kind="info" data-diff-status />
     <StatusMessage kind="error" data-diff-error />
-    <div class="ds-result-headline" data-diff-summary hidden>
-      <span class="ds-result-headline-label">{t(lang, ns, "ChangesLabel")}</span>
-      <span class="ds-result-headline-value diff-counts">
-        <span class="diff-count-add" data-diff-added></span>
-        <span class="diff-count-del" data-diff-removed></span>
-      </span>
+    <div class="diff-head">
+      <div class="ds-result-headline" data-diff-summary hidden>
+        <span class="ds-result-headline-label">{t(lang, ns, "ChangesLabel")}</span>
+        <span class="ds-result-headline-value diff-counts">
+          <span class="diff-count-add" data-diff-added></span>
+          <span class="diff-count-del" data-diff-removed></span>
+        </span>
+      </div>
+      <div class="diff-nav" data-diff-nav hidden>
+        <button type="button" class="ds-btn diff-nav-btn" data-diff-prev aria-label={prevChange} title={prevChange}>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6" /></svg>
+        </button>
+        <output class="diff-position" data-diff-position aria-live="polite"></output>
+        <button type="button" class="ds-btn diff-nav-btn" data-diff-next aria-label={nextChange} title={nextChange}>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+        </button>
+      </div>
     </div>
-    <div class="diff-output" data-diff-output hidden></div>
+    <ul class="diff-notes" data-diff-notes hidden></ul>
+    <div class="diff-result" data-diff-result hidden>
+      <div class="diff-output" data-diff-output hidden></div>
+      <div class="diff-rail" data-diff-rail aria-hidden="true">
+        <i class="diff-rail-view" data-diff-rail-view hidden></i>
+      </div>
+    </div>
   </OutputPanel>
 </div>
 
@@ -123,10 +149,51 @@ const sides = [
     display: flex; flex-wrap: wrap; align-items: center;
     justify-content: space-between; gap: 0.75rem;
   }
-  .diff-modes {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 1rem;
-    padding: 0.4rem 0.85rem; border-radius: var(--mdt-radius-sm);
+  /* Segmented control built from native radios (keyboard: arrows switch). */
+  .diff-seg {
+    display: inline-flex; margin: 0; padding: 3px; gap: 3px; min-width: 0; max-width: 100%;
     background: var(--mdt-surface-inset); border: 1px solid var(--mdt-border);
+    border-radius: 9px;
+  }
+  .diff-seg-opt {
+    position: relative; display: inline-flex; align-items: center; justify-content: center;
+    min-height: 2.5rem; padding: 0.25rem 0.9rem; border-radius: 7px;
+    font-size: var(--mdt-fs-label); font-weight: 600; color: var(--mdt-text-muted);
+    cursor: pointer; text-align: center;
+    transition: color var(--mdt-dur-micro), background var(--mdt-dur-micro);
+  }
+  .diff-seg-opt:hover { color: var(--mdt-text); }
+  /* Radio stays in the accessibility tree and focus order, painted invisible. */
+  .diff-seg-input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+  .diff-seg-opt:has(:checked) {
+    color: var(--mdt-cat); background: var(--mdt-surface);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--mdt-cat) 45%, var(--mdt-border));
+  }
+  .diff-seg-opt:has(:focus-visible) { outline: 2px solid var(--mdt-cat); outline-offset: 2px; }
+  @media (forced-colors: active) {
+    .diff-seg-opt:has(:checked) { outline: 2px solid Highlight; }
+  }
+  @media (prefers-reduced-motion: reduce) { .diff-seg-opt { transition: none; } }
+
+  /* Headline + change navigation share one row; nav wraps under it on phones. */
+  .diff-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 0.5rem 1rem; }
+  .diff-head > .ds-result-headline { margin-bottom: 0; }
+  .diff-nav { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .diff-nav-btn { min-width: 2.75rem; min-height: 2.75rem; padding: 0; justify-content: center; }
+  .diff-position {
+    min-width: 7.5rem; text-align: center; font-size: var(--mdt-fs-label);
+    font-variant-numeric: tabular-nums; color: var(--mdt-text-muted);
+  }
+  .diff-notes {
+    margin: 0.25rem 0 0; padding: 0 0 0 1.1rem;
+    font-size: var(--mdt-fs-label); color: var(--mdt-text-muted);
+  }
+  .diff-notes li + li { margin-top: 0.2rem; }
+
+  /* Result scroller + 10px change rail beside it. */
+  .diff-result {
+    display: grid; grid-template-columns: minmax(0, 1fr) 10px; gap: 6px;
+    margin-top: 0.75rem;
   }
 
   /* Headline "+12 −4": added in success, removed in danger colour. */
@@ -137,9 +204,17 @@ const sides = [
   .diff-output {
     border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius);
     background: var(--mdt-surface); color: var(--mdt-text);
-    overflow-x: auto; max-width: 100%;
+    /* position: relative — diff2html's absolutely positioned line numbers
+       must scroll with the rows inside this scroller. */
+    position: relative; overflow: auto; max-width: 100%; min-width: 0;
+    max-height: min(75vh, 48rem); overscroll-behavior: contain;
     font-size: 0.82rem;
   }
+  .diff-rail {
+    position: relative; cursor: pointer; border-radius: 5px;
+    background: var(--mdt-surface-inset); border: 1px solid var(--mdt-border-soft);
+  }
+
 
   /* diff2html runtime DOM → :global under the scoped container. */
   .diff-output :global(.d2h-wrapper) { min-width: 0; }
@@ -154,5 +229,71 @@ const sides = [
   .diff-output :global(.d2h-code-linenumber),
   .diff-output :global(.d2h-code-side-linenumber) {
     font-family: var(--mdt-font-mono);
+  }
+</style>
+
+<style is:global>
+  /* Runtime DOM (diff2html markup, rail ticks) — global, scoped under the tool
+     root. One semantic in both themes: weak full-line tint for deleted /
+     inserted lines, stronger fill for the changed characters, derived from
+     the theme-aware danger/success tokens (diff2html's yellow "changed" tint
+     is folded into the same red/green). Light and dark variable sets get the
+     same values because the tokens already switch per theme. */
+  [data-diff-tool] .diff-output {
+    --diff-del-line: color-mix(in srgb, var(--mdt-danger) 9%, var(--mdt-surface));
+    --diff-ins-line: color-mix(in srgb, var(--mdt-success) 10%, var(--mdt-surface));
+    --diff-del-char: color-mix(in srgb, var(--mdt-danger) 30%, var(--mdt-surface));
+    --diff-ins-char: color-mix(in srgb, var(--mdt-success) 32%, var(--mdt-surface));
+    --diff-del-edge: color-mix(in srgb, var(--mdt-danger) 35%, var(--mdt-surface));
+    --diff-ins-edge: color-mix(in srgb, var(--mdt-success) 35%, var(--mdt-surface));
+  }
+  [data-diff-tool] .diff-output,
+  [data-diff-tool] .diff-output.d2h-dark-color-scheme {
+    --d2h-bg-color: var(--mdt-surface); --d2h-dark-bg-color: var(--mdt-surface);
+    --d2h-color: var(--mdt-text); --d2h-dark-color: var(--mdt-text);
+    --d2h-border-color: var(--mdt-border); --d2h-dark-border-color: var(--mdt-border);
+    --d2h-line-border-color: var(--mdt-border-soft); --d2h-dark-line-border-color: var(--mdt-border-soft);
+    --d2h-dim-color: var(--mdt-text-faint); --d2h-dark-dim-color: var(--mdt-text-faint);
+    --d2h-file-header-bg-color: var(--mdt-surface-muted); --d2h-dark-file-header-bg-color: var(--mdt-surface-muted);
+    --d2h-file-header-border-color: var(--mdt-border); --d2h-dark-file-header-border-color: var(--mdt-border);
+    --d2h-empty-placeholder-bg-color: var(--mdt-surface-muted); --d2h-dark-empty-placeholder-bg-color: var(--mdt-surface-muted);
+    --d2h-empty-placeholder-border-color: var(--mdt-border-soft); --d2h-dark-empty-placeholder-border-color: var(--mdt-border-soft);
+    --d2h-info-bg-color: var(--mdt-surface-inset); --d2h-dark-info-bg-color: var(--mdt-surface-inset);
+    --d2h-info-border-color: var(--mdt-border); --d2h-dark-info-border-color: var(--mdt-border);
+    --d2h-del-bg-color: var(--diff-del-line); --d2h-dark-del-bg-color: var(--diff-del-line);
+    --d2h-ins-bg-color: var(--diff-ins-line); --d2h-dark-ins-bg-color: var(--diff-ins-line);
+    --d2h-change-del-color: var(--diff-del-line); --d2h-dark-change-del-color: var(--diff-del-line);
+    --d2h-change-ins-color: var(--diff-ins-line); --d2h-dark-change-ins-color: var(--diff-ins-line);
+    --d2h-del-highlight-bg-color: var(--diff-del-char); --d2h-dark-del-highlight-bg-color: var(--diff-del-char);
+    --d2h-ins-highlight-bg-color: var(--diff-ins-char); --d2h-dark-ins-highlight-bg-color: var(--diff-ins-char);
+    --d2h-del-border-color: var(--diff-del-edge); --d2h-dark-del-border-color: var(--diff-del-edge);
+    --d2h-ins-border-color: var(--diff-ins-edge); --d2h-dark-ins-border-color: var(--diff-ins-edge);
+    --d2h-del-label-color: var(--mdt-danger); --d2h-dark-del-label-color: var(--mdt-danger);
+    --d2h-ins-label-color: var(--mdt-success); --d2h-dark-ins-label-color: var(--mdt-success);
+  }
+  [data-diff-tool] .diff-output :is(.d2h-code-line, .d2h-code-side-line) :is(ins, del) {
+    text-decoration: none; border-radius: 2px;
+  }
+  /* Keep whitespace exactly as typed (tabs, runs of spaces). */
+  [data-diff-tool] .diff-output :is(.d2h-code-line-ctn) { white-space: pre; tab-size: 4; }
+  /* Current change (Previous/Next / rail): accent bar on the line-number cell. */
+  [data-diff-tool] .diff-output tr.is-current-change > td:first-child {
+    box-shadow: inset 3px 0 0 var(--mdt-cat);
+  }
+
+  [data-diff-tool] .diff-rail-tick {
+    position: absolute; min-height: 3px; width: 4px;
+    border-radius: 1px; pointer-events: none;
+  }
+  [data-diff-tool] .diff-rail-tick.is-del { left: 0; background: var(--mdt-danger); }
+  [data-diff-tool] .diff-rail-tick.is-ins { right: 0; background: var(--mdt-success); }
+  [data-diff-tool] .diff-rail-view {
+    position: absolute; left: -1px; right: -1px; pointer-events: none;
+    border: 1.5px solid color-mix(in srgb, var(--mdt-text) 55%, transparent);
+    border-radius: 4px; background: color-mix(in srgb, var(--mdt-text) 6%, transparent);
+  }
+  @media (forced-colors: active) {
+    [data-diff-tool] .diff-rail-tick { forced-color-adjust: none; background: CanvasText; }
+    [data-diff-tool] .diff-rail-view { border-color: Highlight; }
   }
 </style>

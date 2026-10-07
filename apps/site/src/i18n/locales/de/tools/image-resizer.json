@@ -25,5 +25,17 @@
   "ErrorResizeFailed": "Größenänderung fehlgeschlagen.",
   "Cancel": "Abbrechen",
   "ErrorUnsupportedFormat": "Dieses Bildformat wird nicht unterstützt. Verwenden Sie PNG, JPEG, WebP, GIF, BMP, ICO, TIFF oder TGA.",
-  "ErrorDimensionsTooLarge": "Abmessungen zu groß: höchstens 16384 px pro Seite und insgesamt 64 Megapixel."
+  "ErrorDimensionsTooLarge": "Abmessungen zu groß: höchstens 16384 px pro Seite und insgesamt 64 Megapixel.",
+  "CompareTitle": "Vorher und nachher",
+  "CompareOriginal": "Original",
+  "CompareResult": "Ergebnis",
+  "CompareSlider": "Trennlinie des Vergleichs",
+  "CompareValueText": "Ergebnis sichtbar: {percent} %",
+  "CompareZoom": "Zoom",
+  "CompareFit": "Einpassen",
+  "CompareActual": "1:1",
+  "CompareActualName": "Originalpixel 1:1",
+  "CompareViewport": "Vergleich 1:1, scrollbar",
+  "CompareChange": "Änderung der Dateigröße",
+  "CompareScaledNote": "„Einpassen“ skaliert beide Bilder in denselben Rahmen, sodass sie gleich groß wirken. Wechseln Sie zu 1:1, um die tatsächlichen Pixelmaße zu sehen."
 }

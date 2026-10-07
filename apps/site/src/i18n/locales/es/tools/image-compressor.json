@@ -27,5 +27,15 @@
   "Seo_Tips": "- Para fotos, WebP o JPEG con calidad 60–80 suele ahorrar más; reserva PNG para capturas de pantalla y gráficos con transparencia.\n- PNG por debajo de calidad 90 pasa a una paleta de 256 colores: va bien para gráficos planos, pero los degradados pueden mostrar bandas y el archivo no siempre es más pequeño.\n- Guardar un PNG transparente como JPEG rellena las zonas transparentes de blanco; elige PNG o WebP para conservar la transparencia.\n- Los datos EXIF, incluidas las coordenadas GPS, se eliminan del resultado, algo útil antes de publicar fotos.\n- Si ves el aviso sobre WebP sin pérdida, tu navegador no puede codificar WebP con pérdida; elige JPEG para una foto más ligera.",
   "Cancel": "Cancelar",
   "ErrorUnsupportedFormat": "Este formato de imagen no es compatible. Usa PNG, JPEG, WebP, GIF, BMP, ICO, TIFF o TGA.",
-  "WebpLosslessNote": "Tu navegador no puede codificar WebP con pérdida, así que se guardó un WebP sin pérdida y no se aplicó la calidad. Elige JPEG para una foto más ligera."
+  "WebpLosslessNote": "Tu navegador no puede codificar WebP con pérdida, así que se guardó un WebP sin pérdida y no se aplicó la calidad. Elige JPEG para una foto más ligera.",
+  "CompareTitle": "Antes y después",
+  "CompareOriginal": "Original",
+  "CompareResult": "Resultado",
+  "CompareSlider": "Divisor de comparación",
+  "CompareValueText": "Resultado visible: {percent} %",
+  "CompareZoom": "Zoom",
+  "CompareFit": "Ajustar",
+  "CompareActual": "1:1",
+  "CompareActualName": "Píxeles reales 1:1",
+  "CompareViewport": "Comparación 1:1, desplazable"
 }

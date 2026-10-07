@@ -3,6 +3,8 @@
  * `@codemirror/lang-xml` highlight + element folding); formatting via `formatXml` (DOMParser +
  * pure serializer in `xml-format.ts`). Open/save, drop a file onto the
  * editor, copy/clear, Ctrl/Cmd-Enter format, Esc→Tab leaves the editor.
+ * Malformed XML: `locateXmlError` (own well-formedness scan) gives the exact
+ * token + reason; the DOMParser line/column is only a fallback.
  *
  * PRIVACY: legacy persisted the input text to localStorage on every change
  * (`xml-beautifier-input`). That is intentionally NOT ported — user data
@@ -11,6 +13,8 @@
  */
 import { bindEditorFileDrop, downloadText, loadEditorKit, type MdtEditor } from "@/scripts/codemirror-loader";
 import { bindLoadExample, copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
+import { presentDiagnostic, shiftDiagnostic, type DiagnosticStrings, type ParseDiagnostic } from "@/tools/parse-diagnostics";
+import { locateXmlError, xmlEngineDiagnostic } from "@/tools/xml-diagnostics";
 import { formatXml, XmlParseError } from "@/tools/xml-format";
 
 /** "Load example" sample: unindented XML with a declaration, attributes, CDATA and a comment. */
@@ -26,6 +30,8 @@ interface Strings {
   errorInvalidXml: string;
   inputLabel: string;
   phrases?: Record<string, string>;
+  /** `Diag_*` templates (`diagnosticStrings`). */
+  diag: DiagnosticStrings;
 }
 
 function readStrings(): Strings | null {
@@ -47,6 +53,8 @@ async function init(): Promise<void> {
   if (!raw || !editorEl || !formatBtn) return;
   root.dataset.initialized = "true";
   const strings: Strings = raw;
+  // Unknown-location fallback reads "Invalid XML. Please check your input. (…)".
+  const diagStrings: DiagnosticStrings = { ...strings.diag, SyntaxNoLocation: strings.errorInvalidXml };
   const editorHost: HTMLElement = editorEl;
 
   const clearBtn = root.querySelector<HTMLButtonElement>("[data-xml-clear]");
@@ -68,7 +76,8 @@ async function init(): Promise<void> {
       phrases: strings.phrases,
       hintId: "xml-editor-hint",
       indent: 4,
-      onSubmit: () => formatAction(),
+      diagnostics: errorBox ? { box: errorBox, goToLabel: strings.diag.GoTo ?? "" } : undefined,
+      onSubmit: () => formatAction(true),
       onChange: () => syncEmpty(),
     });
   } catch (err) {
@@ -94,16 +103,15 @@ async function init(): Promise<void> {
     /* storage unavailable */
   }
 
+  /** Non-parse failures (file read): message without a location. */
   function setError(message: string) {
-    editorHost.classList.toggle("is-error", Boolean(message));
-    if (errorBox) {
-      errorBox.textContent = message;
-      errorBox.hidden = !message;
-    }
+    editor.setDiagnostic(message ? { message, from: null, to: null } : null);
   }
 
-  function formatAction() {
-    const input = editor.getValue().trim();
+  /** `announce`: only explicit Format / Ctrl-Enter reads the error out (not settings auto-format). */
+  function formatAction(announce = false) {
+    const value = editor.getValue();
+    const input = value.trim();
     if (!input) {
       setError("");
       return;
@@ -115,8 +123,13 @@ async function init(): Promise<void> {
       if (!compact) editor.setIndent(indentValue === "\t" ? "tab" : indentValue);
       setError("");
     } catch (e) {
-      const detail = e instanceof XmlParseError && e.message ? ` (${e.message})` : "";
-      setError(strings.errorInvalidXml + detail);
+      const detail = e instanceof XmlParseError ? e.message : e instanceof Error ? e.message : String(e);
+      const engineText = e instanceof XmlParseError ? e.engineText : "";
+      // Own scan first (engine wording/columns differ per browser); offsets are into
+      // the trimmed text, shifted back to the document.
+      const diag: ParseDiagnostic = locateXmlError(input) ?? xmlEngineDiagnostic(input, engineText, detail);
+      const shifted = shiftDiagnostic(diag, value.length - value.trimStart().length);
+      editor.setDiagnostic(presentDiagnostic(diagStrings, shifted, value), { announce });
     }
   }
 
@@ -143,7 +156,7 @@ async function init(): Promise<void> {
     }
   }
 
-  formatBtn.addEventListener("click", formatAction);
+  formatBtn.addEventListener("click", () => formatAction(true));
   clearBtn?.addEventListener("click", clearAll);
   copyBtn?.addEventListener("click", () => {
     void copyWithFeedback(copyBtn, editor.getValue(), strings.copied, undefined, { failedLabel: strings.copyFailed });

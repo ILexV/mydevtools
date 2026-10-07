@@ -1,8 +1,10 @@
 /**
  * Color Converter client. Picker ↔ manual input (hex/rgb/hsl/cmyk, auto-detected
- * by `parseColor`) → formats list + shades + preview; separate WCAG contrast
- * checker. Live update while typing; Convert/Enter surfaces the localized
- * "invalid colour" error. All math in `color.ts`; DOM built with ds-* classes.
+ * by `parseColor`) → formats list + tint/shade swatches (click copies HEX) +
+ * preview; separate WCAG contrast checker whose fg/bg change only through their
+ * pickers, Swap or the explicit "use converted colour" buttons (converting never
+ * overwrites the pair). Alpha input is blended only onto the opaque background.
+ * All math in `color.ts`; DOM built with ds-* classes.
  */
 import {
   parseColor,
@@ -11,7 +13,9 @@ import {
   toRgbString,
   toHslString,
   toCmykString,
-  shades,
+  tintsAndShades,
+  compositeOver,
+  formatRatio,
   wcag,
   type RGB,
 } from "@/tools/color";
@@ -28,6 +32,28 @@ interface Strings {
   aaaLarge: string;
   pass: string;
   fail: string;
+  pairCaption: string;
+  alphaNote: string;
+  swatchShade: string;
+  swatchTint: string;
+  swatchOriginal: string;
+}
+
+const fill = (tpl: string, params: Record<string, string>): string =>
+  tpl.replace(/\{(\w+)\}/g, (m, k: string) => params[k] ?? m);
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+/** Pass/Fail glyph (check / cross) so the WCAG verdict never relies on colour alone. */
+function verdictIcon(ok: boolean): SVGSVGElement {
+  const svg = document.createElementNS(SVG_NS, "svg");
+  for (const [k, v] of Object.entries({
+    viewBox: "0 0 20 20", width: "14", height: "14", fill: "none", stroke: "currentColor",
+    "stroke-width": "2.2", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true",
+  })) svg.setAttribute(k, v);
+  const path = document.createElementNS(SVG_NS, "path");
+  path.setAttribute("d", ok ? "m4 10.5 4 4 8-9" : "M5 5l10 10M15 5 5 15");
+  svg.append(path);
+  return svg;
 }
 
 const DEFAULT_HEX = "#3b82f6";
@@ -46,6 +72,7 @@ function init(): void {
   const root = document.querySelector<HTMLElement>("[data-color-tool]");
   if (!root || root.dataset.initialized) return;
   root.dataset.initialized = "1";
+  const toolRoot: HTMLElement = root;
   const raw = readStrings();
   if (!raw) return;
   const strings: Strings = raw;
@@ -64,6 +91,13 @@ function init(): void {
   const wcagEl = root.querySelector<HTMLElement>("[data-color-wcag]");
   const previewEl = root.querySelector<HTMLElement>("[data-color-preview]");
   const ratioCopyBtn = root.querySelector<HTMLButtonElement>("[data-color-ratio-copy]");
+  const alphaNoteEl = root.querySelector<HTMLElement>("[data-color-alpha-note]");
+  const pairEl = root.querySelector<HTMLElement>("[data-color-pair]");
+  const useFgBtn = root.querySelector<HTMLButtonElement>("[data-color-use-fg]");
+  const useBgBtn = root.querySelector<HTMLButtonElement>("[data-color-use-bg]");
+  const swapBtn = root.querySelector<HTMLButtonElement>("[data-color-swap]");
+  /** Last converted colour (opaque rgb + separate alpha) for the "use converted" buttons. */
+  let current: { rgb: RGB; alpha: number } = { rgb: parseHex(DEFAULT_HEX)!, alpha: 1 };
 
   function showError(msg: string): void {
     if (errorEl) {
@@ -109,38 +143,66 @@ function init(): void {
     );
   }
 
-  function renderShades(rgb: RGB, hex: string): void {
+  /** Nine swatch buttons (shades → original → tints); each copies its HEX via the kit copy faces. */
+  function renderShades(rgb: RGB): void {
     if (!shadesEl) return;
     shadesEl.replaceChildren(
-      ...shades(rgb).map((sh) => {
+      ...tintsAndShades(rgb).map((sw) => {
+        const hex = sw.hex.toUpperCase();
+        const name =
+          sw.kind === "base"
+            ? strings.swatchOriginal
+            : fill(sw.kind === "tint" ? strings.swatchTint : strings.swatchShade, { pct: String(sw.pct) });
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "color-swatch";
-        btn.dataset.swatch = sh.hex;
-        btn.setAttribute("aria-pressed", String(sh.hex === hex));
-        btn.setAttribute("aria-label", `${sh.hex.toUpperCase()} (L ${sh.l}%)`);
+        btn.className = sw.kind === "base" ? "color-swatch is-base" : "color-swatch";
+        btn.dataset.swatch = sw.hex;
+        btn.setAttribute("aria-label", `${strings.copy} ${name} ${hex}`);
         const chip = document.createElement("span");
         chip.className = "color-swatch-chip";
-        chip.style.background = sh.hex;
-        const label = document.createElement("span");
-        label.className = "color-swatch-label";
-        const code = document.createElement("span");
-        code.textContent = sh.hex.toUpperCase();
-        const l = document.createElement("span");
-        l.textContent = `${sh.l}%`;
-        label.append(code, l);
-        btn.append(chip, label);
+        chip.style.background = sw.hex;
+        // Pre-built faces (idle label, done, fail): prepareCopyButton fills done/fail only.
+        const faces = document.createElement("span");
+        faces.className = "ds-copy-faces";
+        faces.dataset.iconOnly = "false";
+        const idle = document.createElement("span");
+        idle.className = "ds-copy-face ds-copy-face-idle";
+        const nameEl = document.createElement("span");
+        nameEl.className = "color-swatch-name";
+        nameEl.textContent = name;
+        const hexEl = document.createElement("span");
+        hexEl.className = "color-swatch-hex";
+        hexEl.textContent = hex;
+        idle.append(nameEl, hexEl);
+        const done = document.createElement("span");
+        done.className = "ds-copy-face ds-copy-face-done";
+        const failFace = document.createElement("span");
+        failFace.className = "ds-copy-face ds-copy-face-fail";
+        faces.append(idle, done, failFace);
+        btn.append(chip, faces);
+        prepareCopyButton(btn, strings.copied);
         return btn;
       }),
     );
   }
 
-  function apply(rgb: RGB): void {
+  /** Alpha < 1: say it is not in the outputs and how the contrast buttons treat it. */
+  function renderAlphaNote(alpha: number): void {
+    if (!alphaNoteEl) return;
+    const show = alpha < 1;
+    alphaNoteEl.hidden = !show;
+    alphaNoteEl.textContent = show ? fill(strings.alphaNote, { alpha: String(Math.round(alpha * 1000) / 1000) }) : "";
+  }
+
+  function apply(rgb: RGB, alpha = 1): void {
     const hex = toHex(rgb);
+    current = { rgb, alpha };
     if (picker) picker.value = hex;
     if (swatchEl) swatchEl.style.background = hex;
     renderFormats(rgb, hex);
-    renderShades(rgb, hex);
+    renderShades(rgb);
+    renderAlphaNote(alpha);
+    for (const chip of toolRoot.querySelectorAll<HTMLElement>("[data-color-use-chip]")) chip.style.background = hex;
     setInvalid(false);
     showError("");
   }
@@ -149,7 +211,7 @@ function init(): void {
   function onType(): void {
     if (!input) return;
     const parsed = parseColor(input.value);
-    if (parsed) apply(parsed.rgb);
+    if (parsed) apply(parsed.rgb, parsed.alpha);
     else setInvalid(input.value.trim().length > 0);
   }
 
@@ -158,7 +220,7 @@ function init(): void {
     if (!input) return;
     const parsed = parseColor(input.value);
     if (parsed) {
-      apply(parsed.rgb);
+      apply(parsed.rgb, parsed.alpha);
       // Explicit Convert / Enter: bring the converted formats into view on phones.
       revealOutput(formatsEl?.closest<HTMLElement>(".ds-card"));
     } else {
@@ -196,14 +258,12 @@ function init(): void {
     if (!ok) showError(strings.copyFailed);
   });
 
-  shadesEl?.addEventListener("click", (e) => {
-    const sw = (e.target as HTMLElement).closest<HTMLElement>("[data-swatch]");
+  shadesEl?.addEventListener("click", async (e) => {
+    const sw = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-swatch]");
     const hex = sw?.dataset.swatch;
-    const rgb = hex ? parseHex(hex) : null;
-    if (!hex || !rgb) return;
-    if (input) input.value = hex;
-    apply(rgb);
-    shadesEl.querySelector<HTMLElement>(`[data-swatch="${hex}"]`)?.focus();
+    if (!sw || !hex) return;
+    const ok = await copyWithFeedback(sw, hex.toUpperCase(), strings.copied);
+    if (!ok) showError(strings.copyFailed);
   });
 
   function renderContrast(): void {
@@ -212,15 +272,17 @@ function init(): void {
     const b = parseHex(bg.value);
     if (!f || !b) return;
     const r = wcag(f, b);
-    if (ratioEl) ratioEl.textContent = `${r.ratio.toFixed(2)}:1`;
+    // Verdicts use the unrounded ratio; formatRatio never shows a failure as "4.50".
+    if (ratioEl) ratioEl.textContent = `${formatRatio(r.ratio)}:1`;
+    if (pairEl) pairEl.textContent = fill(strings.pairCaption, { fg: fg.value.toUpperCase(), bg: bg.value.toUpperCase() });
     if (wcagEl) {
       const items: [string, boolean][] = [
         [strings.aaNormal, r.aaNormal],
-        [strings.aaLarge, r.aaLarge],
         [strings.aaaNormal, r.aaaNormal],
+        [strings.aaLarge, r.aaLarge],
         [strings.aaaLarge, r.aaaLarge],
       ];
-      // Quiet labelled grid under the headline ratio: level on the left, ✓ Pass / ✗ Fail right.
+      // Labelled results beside the preview (never inside it): level left, icon + Pass/Fail right.
       wcagEl.replaceChildren(
         ...items.map(([label, ok]) => {
           const li = document.createElement("li");
@@ -229,7 +291,7 @@ function init(): void {
           level.textContent = label;
           const status = document.createElement("span");
           status.className = `ds-status ${ok ? "is-success" : "is-error"}`;
-          status.textContent = `${ok ? "✓" : "✗"} ${ok ? strings.pass : strings.fail}`;
+          status.append(verdictIcon(ok), ok ? strings.pass : strings.fail);
           li.append(level, status);
           return li;
         }),
@@ -251,8 +313,28 @@ function init(): void {
   fg?.addEventListener("input", renderContrast);
   bg?.addEventListener("input", renderContrast);
 
+  swapBtn?.addEventListener("click", () => {
+    if (!fg || !bg) return;
+    [fg.value, bg.value] = [bg.value, fg.value];
+    renderContrast();
+  });
+  // Explicit, one side only. Translucent colour as text: blend onto the opaque
+  // background picker (the only known backdrop); as background it is used opaque.
+  useFgBtn?.addEventListener("click", () => {
+    if (!fg || !bg) return;
+    const backdrop = parseHex(bg.value);
+    const rgb = current.alpha < 1 && backdrop ? compositeOver(current.rgb, current.alpha, backdrop) : current.rgb;
+    fg.value = toHex(rgb);
+    renderContrast();
+  });
+  useBgBtn?.addEventListener("click", () => {
+    if (!bg) return;
+    bg.value = toHex(current.rgb);
+    renderContrast();
+  });
+
   const initial = parseColor(input?.value || DEFAULT_HEX) ?? parseColor(DEFAULT_HEX)!;
-  apply(initial.rgb);
+  apply(initial.rgb, initial.alpha);
   renderContrast();
 }
 

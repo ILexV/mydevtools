@@ -10,13 +10,17 @@
  * Result leads with the size change as a headline ("−N %", "+N %" when the
  * output grew) over original → compressed sizes,
  * and downloaded as `<name>_min.<ext>` (jpeg → jpg — legacy parity).
+ * A before/after ImageCompare slider (`bindImageCompare`) shows source vs.
+ * result; it is reset (and old object URLs revoked) on new file/result/clear.
  */
 import { compressImage } from "@/scripts/wasm/image-tools-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, revealOutput, setDropzoneHasFile, startPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
+import { bindImageCompare } from "@/scripts/image-compare";
 import {
   compressedName,
+  formatSizeChange,
   isDecodableImage,
   isImageFile,
   mimeFor,
@@ -69,16 +73,18 @@ function init() {
   const errorBox = q<HTMLElement>("[data-imgc-error]");
   const resultEl = q<HTMLElement>("[data-imgc-result]");
   const badgeEl = q<HTMLElement>("[data-imgc-badge]");
-  const output = q<HTMLImageElement>("[data-imgc-output]");
+  const compareEl = q<HTMLElement>("[data-imgc-compare]");
   const originalSizeEl = q<HTMLElement>("[data-imgc-original-size]");
   const compressedSizeEl = q<HTMLElement>("[data-imgc-compressed-size]");
   const downloadBtn = q<HTMLButtonElement>("[data-imgc-download]");
   const webpNote = q<HTMLElement>("[data-imgc-webp-note]");
   if (
     !zone || !input || !selectedEl || !preview || !qualityRange || !formatSel ||
-    !compressBtn || !progressEl || !errorBox || !resultEl || !output || !downloadBtn
+    !compressBtn || !progressEl || !errorBox || !resultEl || !compareEl || !downloadBtn
   ) return;
   root.dataset.initialized = "true";
+  // Headline already shows both sizes and the change: comparison adds dimensions.
+  const compare = bindImageCompare(compareEl, { originalDims: true, resultDims: true });
 
   let currentFile: File | null = null;
   let previewUrl: string | null = null;
@@ -98,10 +104,10 @@ function init() {
   function hideResult() {
     resultEl!.hidden = true;
     if (webpNote) webpNote.hidden = true;
+    compare.reset();
     if (resultUrl) URL.revokeObjectURL(resultUrl);
     resultUrl = null;
     resultName = null;
-    output!.removeAttribute("src");
   }
 
   function setBusy(busy: boolean) {
@@ -176,18 +182,19 @@ function init() {
 
       const blob = new Blob([resultBytes as BlobPart], { type: mimeFor(targetFormat) });
       resultUrl = URL.createObjectURL(blob);
-      output!.src = resultUrl;
       if (originalSizeEl) originalSizeEl.textContent = formatBytes(file.size, 2);
       if (compressedSizeEl) compressedSizeEl.textContent = formatBytes(blob.size, 2);
 
       // Headline: "−N %" when smaller, "+N %" when the output grew.
-      const savedPct = savingsPercent(file.size, blob.size);
       if (badgeEl) {
-        badgeEl.textContent = savedPct > 0 ? `−${savedPct}%` : savedPct < 0 ? `+${-savedPct}%` : "0%";
-        badgeEl.classList.toggle("is-smaller", savedPct > 0);
+        badgeEl.textContent = formatSizeChange(file.size, blob.size);
+        badgeEl.classList.toggle("is-smaller", savingsPercent(file.size, blob.size) > 0);
       }
       if (webpNote) webpNote.hidden = !(targetFormat === "webp" && !webpLossy);
       resultName = compressedName(file.name, targetFormat);
+      // Decode both images before revealing, so the panel doesn't jump.
+      if (previewUrl) await compare.show({ url: previewUrl, size: file.size }, { url: resultUrl, size: blob.size });
+      if (ctrl.signal.aborted || currentFile !== file) return;
       resultEl!.hidden = false;
       revealOutput(resultEl);
     } catch (e) {

@@ -2,8 +2,10 @@
 /**
  * Color Converter tool (pure JS). Picker + manual input in any notation
  * (hex / rgb() / hsl() / cmyk(), auto-detected) → HEX/RGB/HSL/CMYK with
- * per-format copy rows, a WCAG contrast checker whose ratio is the headline
- * result (AA/AAA outcomes in a quieter grid below), and a shades palette.
+ * per-format copy rows, a WCAG contrast checker (fg/bg pair with Swap and
+ * "use converted colour" buttons, 16/24 px preview, ratio headline + four
+ * AA/AAA Pass/Fail results) and a linear-light tint/shade palette whose
+ * swatches copy their HEX.
  * Visuals come from the shared tool UI layer (ds-*, docs/qa/tool-ui-kit.md).
  */
 import { t } from "@/i18n/messages";
@@ -43,6 +45,17 @@ const s = {
   pass: t(lang, ns, "Pass"),
   fail: t(lang, ns, "Fail"),
   previewText: t(lang, ns, "PreviewText"),
+  swap: t(lang, ns, "Swap"),
+  useConverted: t(lang, ns, "UseConverted"),
+  useAsForeground: t(lang, ns, "UseAsForeground"),
+  useAsBackground: t(lang, ns, "UseAsBackground"),
+  pairCaption: t(lang, ns, "PairCaption"),
+  largeTextNote: t(lang, ns, "LargeTextNote"),
+  alphaNote: t(lang, ns, "AlphaNote"),
+  paletteHint: t(lang, ns, "PaletteHint"),
+  swatchShade: t(lang, ns, "Swatch_Shade"),
+  swatchTint: t(lang, ns, "Swatch_Tint"),
+  swatchOriginal: t(lang, ns, "Swatch_Original"),
 };
 const stringsJson = JSON.stringify(s);
 const DEFAULT = "#3b82f6";
@@ -69,6 +82,7 @@ const DEFAULT = "#3b82f6";
         </Field>
       </div>
       <p class="ds-hint" id="color-input-hint">{s.inputHint}</p>
+      <p class="ds-hint color-alpha-note" data-color-alpha-note hidden></p>
       <div class="ds-action-row">
         <button type="button" class="ds-btn ds-btn-primary" data-color-convert>{s.convert}</button>
         <button type="button" class="ds-btn" data-color-clear>{s.clear}</button>
@@ -85,16 +99,37 @@ const DEFAULT = "#3b82f6";
   <ToolPanel title={s.contrastChecker}>
     <div class="contrast-body">
       <div class="contrast-inputs">
-        <Field label={s.foreground} for="color-fg">
-          <input id="color-fg" type="color" class="ds-color-well ds-color-well-wide" data-color-fg value="#1e3a8a" />
-        </Field>
-        <Field label={s.background} for="color-bg">
-          <input id="color-bg" type="color" class="ds-color-well ds-color-well-wide" data-color-bg value="#ffffff" />
-        </Field>
-        <div class="color-preview-text" data-color-preview>
-          <span class="color-preview-normal">{s.previewText}</span>
-          <span class="color-preview-large">{s.previewText}</span>
+        <div class="contrast-wells">
+          <div class="contrast-well">
+            <Field label={s.foreground} for="color-fg">
+              <input id="color-fg" type="color" class="ds-color-well ds-color-well-wide" data-color-fg value="#1e3a8a" />
+            </Field>
+            <button type="button" class="ds-btn ds-btn-small ds-btn-ghost contrast-use" data-color-use-fg aria-label={s.useAsForeground}>
+              <span class="contrast-use-chip" data-color-use-chip aria-hidden="true"></span>{s.useConverted}
+            </button>
+          </div>
+          <div class="contrast-well">
+            <Field label={s.background} for="color-bg">
+              <input id="color-bg" type="color" class="ds-color-well ds-color-well-wide" data-color-bg value="#ffffff" />
+            </Field>
+            <button type="button" class="ds-btn ds-btn-small ds-btn-ghost contrast-use" data-color-use-bg aria-label={s.useAsBackground}>
+              <span class="contrast-use-chip" data-color-use-chip aria-hidden="true"></span>{s.useConverted}
+            </button>
+          </div>
         </div>
+        <div class="contrast-pair-row">
+          <button type="button" class="ds-btn ds-btn-small" data-color-swap>
+            <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h11l-3-3M16 13H5l3 3" /></svg>
+            {s.swap}
+          </button>
+          <span class="contrast-pair mono" data-color-pair aria-live="polite"></span>
+        </div>
+        <!-- Pure sample of the tested pair: no status labels inside. -->
+        <div class="color-preview-text" data-color-preview>
+          <p class="color-preview-line color-preview-normal"><span>{s.previewText}</span><span class="color-preview-size">16 px</span></p>
+          <p class="color-preview-line color-preview-large"><span>{s.previewText}</span><span class="color-preview-size">24 px</span></p>
+        </div>
+        <p class="ds-hint">{s.largeTextNote}</p>
       </div>
       <div class="ds-result-headline contrast-headline">
         <span class="ds-result-headline-label" id="color-ratio-label">{s.ratio}</span>
@@ -111,6 +146,7 @@ const DEFAULT = "#3b82f6";
   </ToolPanel>
 
   <ToolPanel title={s.shadesPalette}>
+    <p class="ds-hint palette-hint">{s.paletteHint}</p>
     <div class="shade-strip" data-color-shades></div>
   </ToolPanel>
 </div>
@@ -139,24 +175,47 @@ const DEFAULT = "#3b82f6";
   @media (min-width: 720px) {
     .contrast-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
   }
-  .contrast-inputs {
+  .contrast-wells {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
     gap: 1rem;
   }
+  .contrast-well { display: grid; gap: 0.4rem; justify-items: start; min-width: 0; }
+  .contrast-well > :global(.ds-field-group) { width: 100%; }
+  .contrast-use { white-space: normal; text-align: start; gap: 0.45rem; }
+  .contrast-use-chip {
+    flex-shrink: 0;
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 3px;
+    border: 1px solid var(--mdt-border);
+  }
+  .contrast-pair-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.9rem; }
+  .contrast-pair-row .ds-btn { gap: 0.4rem; }
+  .contrast-pair { font-size: var(--mdt-fs-label); color: var(--mdt-text-muted); overflow-wrap: anywhere; }
+  .contrast-inputs { display: grid; gap: 0.85rem; min-width: 0; }
+  .contrast-inputs > .ds-hint { margin: -0.35rem 0 0; }
+  /* Preview: regular weight at 16 and 24 CSS px, the sizes the AA/AAA rows refer to. */
   .color-preview-text {
-    grid-column: 1 / -1;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.25rem 1rem;
-    min-height: 3.25rem;
-    padding: 0.6rem 0.9rem;
+    display: grid;
+    gap: 0.35rem;
+    padding: 0.75rem 0.9rem;
     border: 1px solid var(--mdt-border);
     border-radius: var(--mdt-radius-sm);
     overflow-wrap: anywhere;
   }
-  .color-preview-large { font-size: 1.5rem; font-weight: 700; }
+  .color-preview-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin: 0;
+    font-weight: 400;
+    line-height: 1.3;
+  }
+  .color-preview-normal { font-size: 16px; }
+  .color-preview-large { font-size: 24px; }
+  .color-preview-size { flex-shrink: 0; font-family: var(--mdt-font-mono); font-size: 12px; }
   .contrast-headline {
     padding: 0.9rem 1rem;
     border: 1px solid var(--mdt-border);
@@ -166,12 +225,16 @@ const DEFAULT = "#3b82f6";
   /* AA/AAA outcomes: quiet labelled 2×2 grid (controller builds the items). */
   .wcag-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.35rem 1rem;
     padding: 0.6rem 0 0;
     margin: 0.4rem 0 0;
     border-top: 1px solid var(--mdt-border);
     list-style: none;
+  }
+  /* Wide: column 1 = normal text (AA, AAA), column 2 = large text (AA, AAA). */
+  @media (min-width: 1000px) {
+    .wcag-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, auto); grid-auto-flow: column; }
   }
   .wcag-grid :global(li) {
     display: flex;
@@ -180,17 +243,28 @@ const DEFAULT = "#3b82f6";
     min-width: 0;
   }
   .wcag-grid :global(.wcag-level) { min-width: 0; overflow-wrap: anywhere; }
-  .wcag-grid :global(.ds-status) { flex-shrink: 0; font-weight: 600; font-size: var(--mdt-fs-label); }
+  .wcag-grid :global(.ds-status) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-shrink: 0;
+    font-weight: 600;
+    font-size: var(--mdt-fs-label);
+  }
 
-  /* Swatches are built by the controller → :global inside the tool root. */
+  /* Swatches are built by the controller → :global inside the tool root.
+     Each is a copy button: chip on top, label stack (Tint/Shade % + HEX) in
+     kit copy faces below, so "✓ Copied" replaces the label, not the colour. */
+  .palette-hint { margin: 0 0 0.75rem; }
   .shade-strip {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(max(64px, 5.5rem), 1fr));
     gap: 0.5rem;
   }
   .shade-strip :global(.color-swatch) {
     display: flex;
     flex-direction: column;
+    min-width: 0;
     padding: 0;
     overflow: hidden;
     border: 1px solid var(--mdt-border);
@@ -199,6 +273,7 @@ const DEFAULT = "#3b82f6";
     color: var(--mdt-text);
     cursor: pointer;
     font: inherit;
+    text-align: start;
     transition: border-color var(--mdt-dur-micro), transform var(--mdt-dur-micro);
   }
   .shade-strip :global(.color-swatch:hover) {
@@ -208,15 +283,23 @@ const DEFAULT = "#3b82f6";
   @media (prefers-reduced-motion: reduce) {
     .shade-strip :global(.color-swatch:hover) { transform: none; }
   }
-  .shade-strip :global(.color-swatch[aria-pressed="true"]) { border-color: var(--mdt-cat); }
-  .shade-strip :global(.color-swatch-chip) { display: block; height: 2.6rem; }
-  .shade-strip :global(.color-swatch-label) {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.25rem;
-    padding: 0.3rem 0.45rem;
-    font-family: var(--mdt-font-mono);
-    font-size: var(--mdt-fs-micro);
+  .shade-strip :global(.color-swatch.is-base) { border-color: var(--mdt-cat); }
+  .shade-strip :global(.color-swatch.is-copied) { border-color: var(--mdt-success); }
+  .shade-strip :global(.color-swatch-chip) {
+    display: block;
+    height: 2.75rem;
+    border-bottom: 1px solid var(--mdt-border);
   }
-  .shade-strip :global(.color-swatch-label span:last-child) { color: var(--mdt-text-muted); }
+  .shade-strip :global(.color-swatch .ds-copy-faces) { display: grid; padding: 0.35rem 0.5rem 0.4rem; }
+  .shade-strip :global(.color-swatch .ds-copy-face) { justify-content: flex-start; min-width: 0; }
+  .shade-strip :global(.color-swatch .ds-copy-face-idle) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.05rem;
+    white-space: normal;
+  }
+  .shade-strip :global(.color-swatch .ds-copy-face-done) { color: var(--mdt-success); font-size: var(--mdt-fs-label); font-weight: 600; }
+  .shade-strip :global(.color-swatch-name) { font-size: var(--mdt-fs-micro); color: var(--mdt-text-muted); overflow-wrap: anywhere; }
+  .shade-strip :global(.color-swatch.is-base .color-swatch-name) { color: var(--mdt-text); font-weight: 600; }
+  .shade-strip :global(.color-swatch-hex) { font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-micro); }
 </style>

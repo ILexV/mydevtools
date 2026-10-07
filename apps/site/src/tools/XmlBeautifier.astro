@@ -7,7 +7,7 @@
  * persisted (legacy localStorage input persistence dropped for privacy).
  */
 import { t } from "@/i18n/messages";
-import { editorPhrases } from "@/tools/editor-phrases";
+import { diagnosticStrings, editorPhrases } from "@/tools/editor-phrases";
 import type { LocaleCode } from "@/registry/locales";
 import CopyButton from "@/components/tool/CopyButton.astro";
 import EmptyState from "@/components/tool/EmptyState.astro";
@@ -45,6 +45,7 @@ const stringsJson = JSON.stringify({
   errorInvalidXml: t(lang, ns, "ErrorInvalidXml"),
   inputLabel: s.inputLabel,
   phrases: editorPhrases(lang),
+  diag: diagnosticStrings(lang),
 });
 ---
 
@@ -88,7 +89,8 @@ const stringsJson = JSON.stringify({
       <button type="button" class="ds-btn ds-btn-primary" data-xml-format>{s.formatButton}</button>
     </div>
 
-    <StatusMessage kind="error" data-xml-error />
+    <!-- Parse-error panel (codemirror-kit setDiagnostic): no live role — errors are announced once on Format. -->
+    <StatusMessage kind="error" role="none" class="mdt-diag" id="xml-editor-error" data-xml-error />
   </ToolPanel>
 </div>
 

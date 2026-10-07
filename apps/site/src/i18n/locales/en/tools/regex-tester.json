@@ -52,5 +52,12 @@
   "Seo_HowToSteps": "### Step 1: Enter a pattern\nType the expression into **Pattern** without surrounding slashes. **Cheat Sheet** lists the most common tokens.\n\n### Step 2: Set the flags\nUnder **Flags**, tick **Insensitive**, **Multi-line** or **Dot all** as needed; untick **Global** to see only the first match.\n\n### Step 3: Add test text\nPaste text into **Test String** — matches are highlighted as you type.\n\n### Step 4: Inspect the matches\nThe **Matches** list shows each match with its `[start-end]` position and capture groups.\n\n### Step 5: Save or reuse\nPress **Save Pattern** to keep the expression, then **Load** it from **Saved Patterns** or start from one of the **Examples**.",
   "Seo_Tips": "- JavaScript or PCRE patterns that use look-around or `\\1` must be rewritten: capture the surrounding text in a group, or check the condition in code.\n- `/` needs no escaping, but a literal dot does: write `\\.` for “.”.\n- Inline flags work inside the pattern too: `(?i)error` is the same as `error` with the i flag.\n- Saved patterns live only in this browser; clearing site data deletes them.\n- Use `\\b` around words (`\\bcolou?r\\b`) so `colours` is not matched as `colour`.",
   "EngineError": "The regex engine failed to load: {message}",
-  "StorageError": "Could not save: browser storage is unavailable or full."
+  "StorageError": "Could not save: browser storage is unavailable or full.",
+  "GroupsLegendLabel": "Capture groups",
+  "GroupWholeMatch": "whole match",
+  "GroupNotMatched": "not matched",
+  "GroupEmptyString": "empty string",
+  "GroupsSummary": "Capture groups ({count})",
+  "CaptureLimitNotice": "Capture colours are shown for the first {count} matches.",
+  "AnnounceMatches": "Matches found: {count}"
 }

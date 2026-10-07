@@ -13,7 +13,10 @@ import {
   cmykToRgb,
   contrastRatio,
   wcag,
-  shades,
+  formatRatio,
+  compositeOver,
+  mixLinear,
+  tintsAndShades,
   type RGB,
 } from "../src/tools/color.ts";
 
@@ -129,15 +132,64 @@ test("contrast/WCAG: black on white = 21, same colour = 1, thresholds", () => {
   assert.equal(contrastRatio(parseHex("#2f6df0")!, white).toFixed(2), "4.60");
 });
 
-test("shades: 9 steps 10..90 % lightness, same hue, valid hex", () => {
-  const out = shades(parseHex("#3b82f6")!);
-  assert.equal(out.length, 9);
-  assert.deepEqual(out.map((s) => s.l), [10, 20, 30, 40, 50, 60, 70, 80, 90]);
-  for (const s of out) {
-    assert.match(s.hex, /^#[0-9a-f]{6}$/);
-    if (s.l > 15 && s.l < 85) assert.ok(Math.abs(rgbToHsl(parseHex(s.hex)!).h - 217) <= 2, s.hex);
+test("parseColor: alpha is detected separately and never baked into rgb", () => {
+  assert.equal(parseColor("#3b82f6")!.alpha, 1);
+  assert.equal(parseColor("rgb(1, 2, 3)")!.alpha, 1);
+  assert.deepEqual(parseColor("rgba(255, 0, 0, 0.5)"), { rgb: { r: 255, g: 0, b: 0 }, format: "rgb", alpha: 0.5 });
+  assert.equal(parseColor("rgb(255 128 0 / 25%)")!.alpha, 0.25);
+  assert.equal(parseColor("hsla(0, 100%, 50%, .3)")!.alpha, 0.3);
+  assert.equal(parseColor("hsl(0 100% 50% / 1)")!.alpha, 1);
+  // Malformed / out-of-range alpha, or both comma and slash alpha → rejected.
+  for (const bad of ["rgba(1, 2, 3, abc)", "rgb(1 2 3 / 2)", "rgba(1, 2, 3, 120%)", "rgba(1, 2, 3, 0.5 / 1)", "cmyk(0 0 0 0 / 50%)"]) {
+    assert.equal(parseColor(bad), null, bad);
   }
-  assert.equal(shades({ r: 0, g: 0, b: 0 }, 3).length, 3);
-  // Achromatic stays grey.
-  for (const s of shades({ r: 128, g: 128, b: 128 })) assert.equal(rgbToHsl(parseHex(s.hex)!).s, 0);
+});
+
+test("compositeOver: source-over on an opaque backdrop in sRGB", () => {
+  const black: RGB = { r: 0, g: 0, b: 0 };
+  const white: RGB = { r: 255, g: 255, b: 255 };
+  assert.deepEqual(compositeOver(black, 0.5, white), { r: 128, g: 128, b: 128 });
+  assert.deepEqual(compositeOver({ r: 255, g: 0, b: 0 }, 1, white), { r: 255, g: 0, b: 0 });
+  assert.deepEqual(compositeOver({ r: 255, g: 0, b: 0 }, 0, black), black);
+});
+
+test("formatRatio: two decimals that never round a failure onto a threshold", () => {
+  assert.equal(formatRatio(21), "21.00");
+  assert.equal(formatRatio(contrastRatio(parseHex("#777777")!, parseHex("#ffffff")!)), "4.48");
+  assert.equal(formatRatio(4.4996), "4.49");
+  assert.equal(formatRatio(2.9999), "2.99");
+  assert.equal(formatRatio(6.996), "6.99");
+  assert.equal(formatRatio(4.5), "4.50");
+  assert.equal(formatRatio(1.234), "1.23");
+});
+
+test("mixLinear: mixes in linear-light sRGB, endpoints exact", () => {
+  const black: RGB = { r: 0, g: 0, b: 0 };
+  const white: RGB = { r: 255, g: 255, b: 255 };
+  // 50 % black/white in linear light is #bcbcbc (gamma-space mixing would give #808080).
+  assert.deepEqual(mixLinear(black, white, 0.5), { r: 188, g: 188, b: 188 });
+  const blue = parseHex("#3b82f6")!;
+  assert.deepEqual(mixLinear(blue, white, 0), blue);
+  assert.deepEqual(mixLinear(blue, white, 1), white);
+  assert.deepEqual(mixLinear(blue, black, 1), black);
+  assert.deepEqual(mixLinear(blue, white, 7), white, "t is clamped");
+});
+
+test("tintsAndShades: 4 shades, original, 4 tints at 20/40/60/80 %, dark → light", () => {
+  const blue = parseHex("#3b82f6")!;
+  const out = tintsAndShades(blue);
+  assert.equal(out.length, 9);
+  assert.deepEqual(out.map((s) => `${s.kind}${s.pct}`), [
+    "shade80", "shade60", "shade40", "shade20", "base0", "tint20", "tint40", "tint60", "tint80",
+  ]);
+  assert.equal(out[4].hex, "#3b82f6");
+  assert.equal(out[0].hex, "#173c77");
+  assert.equal(out[8].hex, "#e8edfd");
+  // Luminance rises strictly from the darkest shade to the lightest tint.
+  const lum = out.map((s) => contrastRatio(parseHex(s.hex)!, { r: 0, g: 0, b: 0 }));
+  for (let i = 1; i < lum.length; i++) assert.ok(lum[i] > lum[i - 1], out[i].hex);
+  for (const s of out) assert.match(s.hex, /^#[0-9a-f]{6}$/);
+  // Achromatic input stays grey.
+  for (const s of tintsAndShades({ r: 128, g: 128, b: 128 })) assert.equal(rgbToHsl(parseHex(s.hex)!).s, 0);
+  assert.equal(tintsAndShades(blue, [50]).length, 3);
 });

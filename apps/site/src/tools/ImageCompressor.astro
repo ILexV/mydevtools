@@ -10,7 +10,8 @@
  * documented deviation). UI: shared tool kit (FileDrop, ds-file-item, Progress);
  * file-first flow: disabled Compress shows a "choose an image first" hint, the
  * result panel leads with the size change (headline "−42%") and
- * original → compressed sizes + Download.
+ * original → compressed sizes + Download, then a before/after ImageCompare
+ * slider (dimensions only there — the headline already carries the sizes).
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
@@ -20,6 +21,7 @@ import FileDrop from "@/components/tool/FileDrop.astro";
 import Progress from "@/components/tool/Progress.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
 import ToolPanel from "@/components/tool/ToolPanel.astro";
+import ImageCompare from "@/components/tool/ImageCompare.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -54,6 +56,18 @@ const s = {
 /** "Compressed:" → "Compressed" for the headline label (ASCII or full-width colon). */
 const plainLabel = (label: string) => label.replace(/\s*[:：]\s*$/, "");
 const stringsJson = JSON.stringify(s);
+const compare = {
+  title: t(lang, ns, "CompareTitle"),
+  original: t(lang, ns, "CompareOriginal"),
+  result: t(lang, ns, "CompareResult"),
+  slider: t(lang, ns, "CompareSlider"),
+  valueText: t(lang, ns, "CompareValueText"),
+  zoom: t(lang, ns, "CompareZoom"),
+  fit: t(lang, ns, "CompareFit"),
+  actual: t(lang, ns, "CompareActual"),
+  actualName: t(lang, ns, "CompareActualName"),
+  viewport: t(lang, ns, "CompareViewport"),
+};
 ---
 
 <div class="ds-stack imgc-tool" data-imgc-tool>
@@ -127,9 +141,7 @@ const stringsJson = JSON.stringify(s);
         <span><span aria-hidden="true">→ </span>{plainLabel(s.compressedSize)} <strong class="mono imgc-after" data-imgc-compressed-size></strong></span>
       </p>
     </div>
-    <div class="imgc-output-wrap">
-      <img class="imgc-output" data-imgc-output alt={s.previewAlt} />
-    </div>
+    <ImageCompare strings={compare} idPrefix="imgc-cmp" data-imgc-compare />
     <StatusMessage kind="info" data-imgc-webp-note>{s.webpLosslessNote}</StatusMessage>
   </ToolPanel>
 </div>
@@ -153,18 +165,5 @@ const stringsJson = JSON.stringify(s);
   /* Savings headline: category colour when smaller, neutral when it grew. */
   .imgc-savings.is-smaller { color: var(--mdt-cat); }
   .imgc-after { color: var(--mdt-text); font-weight: 600; }
-  .imgc-output-wrap {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 12rem;
-    padding: 1rem;
-    border: 1px solid var(--mdt-border);
-    border-radius: var(--mdt-radius-md);
-    /* Checkerboard behind transparent results. */
-    background-image: conic-gradient(var(--mdt-surface-muted) 25%, transparent 0 50%, var(--mdt-surface-muted) 0 75%, transparent 0);
-    background-size: 1rem 1rem;
-  }
-  .imgc-output { max-width: 100%; max-height: 24rem; object-fit: contain; }
   /* Prerequisite hint: only while Compress is disabled for lack of a file (not while busy). */
 </style>

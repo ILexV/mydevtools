@@ -25,5 +25,17 @@
   "ErrorResizeFailed": "调整大小失败。",
   "Cancel": "取消",
   "ErrorUnsupportedFormat": "不支持此图像格式。请使用 PNG、JPEG、WebP、GIF、BMP、ICO、TIFF 或 TGA。",
-  "ErrorDimensionsTooLarge": "尺寸过大：每边最多 16384 像素，总计不超过 6400 万像素。"
+  "ErrorDimensionsTooLarge": "尺寸过大：每边最多 16384 像素，总计不超过 6400 万像素。",
+  "CompareTitle": "前后对比",
+  "CompareOriginal": "原图",
+  "CompareResult": "结果",
+  "CompareSlider": "对比分隔线",
+  "CompareValueText": "结果可见：{percent}%",
+  "CompareZoom": "缩放",
+  "CompareFit": "适应",
+  "CompareActual": "1:1",
+  "CompareActualName": "实际像素 1:1",
+  "CompareViewport": "1:1 对比，可滚动",
+  "CompareChange": "文件大小变化",
+  "CompareScaledNote": "“适应”会把两张图片缩放到同一画框中，因此看起来大小相同。切换到 1:1 可查看实际像素尺寸。"
 }

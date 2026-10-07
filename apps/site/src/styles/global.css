@@ -158,11 +158,11 @@
 
   :root {
     /* typography — self-hosted variable fonts, CJK falls back to system */
-    --mdt-font-sans: "Inter Variable", system-ui, -apple-system, "Segoe UI", Roboto,
+    --mdt-font-sans: "Inter Variable", "Inter Fallback", "Inter Fallback Roboto", system-ui, -apple-system, "Segoe UI", Roboto,
       "PingFang SC", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", "Noto Sans KR",
       "Noto Sans SC", "Helvetica Neue", Arial, sans-serif;
     /* display — H1 and section headings; falls back to the sans stack (CJK/hi) */
-    --mdt-font-display: "Manrope Variable", "Inter Variable", system-ui, -apple-system,
+    --mdt-font-display: "Manrope Variable", "Manrope Fallback", "Manrope Fallback Roboto", "Inter Variable", system-ui, -apple-system,
       "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans", "Yu Gothic", "Noto Sans JP",
       "Noto Sans KR", "Noto Sans SC", "Helvetica Neue", Arial, sans-serif;
     --mdt-font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", "Cascadia Code",

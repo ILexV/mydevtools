@@ -5,15 +5,15 @@ import type { LocaleCode } from "@/registry/locales";
 import { categoryLabel } from "@/registry/catalog";
 import { t } from "@/i18n/messages";
 import { OG_HOME_SLUG, OG_LOCALES, firstSentence } from "@/lib/og/layout";
-import { type CardAssets, type CardInput, MissingGlyphError, renderCard } from "@/lib/og/render";
+import { type CardAssets, type CardInput, renderCard } from "@/lib/og/render";
 import globalCss from "@/styles/global.css?raw";
 import faviconSvg from "../../../../public/icons/favicon.svg?raw";
 
 /**
  * Open Graph / Twitter share image endpoint: one 1200×630 PNG social preview
  * card per tool and locale (+ `home`), emitted at build time as
- * `dist/og/<lang>/<slug>.png` and referenced by `Seo.astro`. Only locales the
- * bundled fonts can render (`OG_LOCALES`); zh/ja/ko/hi pages use the en card.
+ * `dist/og/<lang>/<slug>.png` and referenced by `Seo.astro`. Every locale
+ * (`OG_LOCALES`) gets native-script cards; a missing glyph fails the build.
  */
 export function getStaticPaths() {
   return OG_LOCALES.flatMap((lang) =>
@@ -28,6 +28,7 @@ const SITE_LABEL = `${new URL(import.meta.env.SITE).host}${import.meta.env.BASE_
 /** Localized card content for a tool (or the home page). */
 function cardInput(lang: LocaleCode, slug: string): CardInput {
   const common = {
+    lang,
     brand: t(lang, "common", "AppName"),
     footnote: t(lang, "common", "NoDataSent"),
     siteLabel: SITE_LABEL,
@@ -49,15 +50,9 @@ function cardInput(lang: LocaleCode, slug: string): CardInput {
   };
 }
 
-/** Render one card; a string the fonts can't draw falls back to the English card. */
-async function render(lang: LocaleCode, slug: string): Promise<Buffer> {
-  try {
-    return await renderCard(cardInput(lang, slug), ASSETS);
-  } catch (err) {
-    if (!(err instanceof MissingGlyphError) || lang === "en") throw err;
-    console.warn(`${err.message} — og/${lang}/${slug}.png uses English text`);
-    return renderCard(cardInput("en", slug), ASSETS);
-  }
+/** Render one card; a string the fonts can't draw throws (MissingGlyphError) — no silent English fallback. */
+function render(lang: LocaleCode, slug: string): Promise<Buffer> {
+  return renderCard(cardInput(lang, slug), ASSETS);
 }
 
 let batch: Map<string, Promise<Buffer>> | null = null;

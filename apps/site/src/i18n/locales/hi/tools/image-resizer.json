@@ -25,5 +25,17 @@
   "ErrorResizeFailed": "आकार बदलना विफल रहा।",
   "Cancel": "रद्द करें",
   "ErrorUnsupportedFormat": "यह इमेज फ़ॉर्मेट समर्थित नहीं है। PNG, JPEG, WebP, GIF, BMP, ICO, TIFF या TGA का उपयोग करें।",
-  "ErrorDimensionsTooLarge": "आयाम बहुत बड़े हैं: प्रति भुजा अधिकतम 16384 px और कुल 64 मेगापिक्सेल।"
+  "ErrorDimensionsTooLarge": "आयाम बहुत बड़े हैं: प्रति भुजा अधिकतम 16384 px और कुल 64 मेगापिक्सेल।",
+  "CompareTitle": "पहले और बाद में",
+  "CompareOriginal": "मूल",
+  "CompareResult": "परिणाम",
+  "CompareSlider": "तुलना विभाजक",
+  "CompareValueText": "परिणाम दिखाई दे रहा है: {percent}%",
+  "CompareZoom": "ज़ूम",
+  "CompareFit": "फ़िट",
+  "CompareActual": "1:1",
+  "CompareActualName": "वास्तविक पिक्सेल 1:1",
+  "CompareViewport": "1:1 तुलना, स्क्रॉल करने योग्य",
+  "CompareChange": "फ़ाइल आकार में बदलाव",
+  "CompareScaledNote": "“फ़िट” दोनों छवियों को एक ही फ़्रेम में स्केल करता है, इसलिए वे एक जैसे आकार की दिखती हैं। वास्तविक पिक्सेल आयाम देखने के लिए 1:1 पर जाएँ।"
 }

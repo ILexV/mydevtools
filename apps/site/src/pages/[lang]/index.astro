@@ -307,8 +307,11 @@ const aboutFeatures = [
     min-width: 0;
     animation: rise 0.6s var(--mdt-ease) both;
   }
+  /* Entrance starts partly visible, not at opacity 0: Chrome doesn't count an
+     invisible paint, so a fade from 0 pushed LCP (the hero subtitle on /ru/)
+     back by the whole 0.6 s animation. */
   @keyframes rise {
-    from { opacity: 0; transform: translateY(14px); }
+    from { opacity: 0.35; transform: translateY(14px); }
   }
   .hero-eyebrow {
     display: inline-flex;

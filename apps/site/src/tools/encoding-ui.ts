@@ -37,13 +37,29 @@ export function classifyEncodingError(message: string): ClassifiedError {
   if (/Invalid UTF-8|UTF-16(LE|BE)|not representable in ASCII/.test(message)) {
     return { key: "Error_NotText" };
   }
-  if (/^Invalid hex character/.test(message)) return { key: "Error_InvalidChar", position };
+  if (/^Invalid (hex|Base32|Base58|Base64) character/.test(message)) return { key: "Error_InvalidChar", position };
   if (/Whitespace not allowed/.test(message)) return { key: "Error_Whitespace" };
   if (/Padding '=' is not allowed/.test(message)) return { key: "Error_Padding" };
   if (/Invalid (Base64|hex) length|Invalid (last symbol|length|padding)|Truncated % encoding/i.test(message)) {
     return { key: "Error_InvalidLength" };
   }
   return { key: "Error_InvalidData", position };
+}
+
+/**
+ * Crate error positions are 0-based Unicode code point (Rust `char`) indices;
+ * textarea selection uses UTF-16 code units, so astral chars (emoji) count
+ * twice there. Converts the caret position for `setSelectionRange`.
+ */
+export function charIndexToUtf16(text: string, charIndex: number): number {
+  let units = 0;
+  let chars = 0;
+  for (const ch of text) {
+    if (chars >= charIndex) break;
+    units += ch.length;
+    chars++;
+  }
+  return units;
 }
 
 /**

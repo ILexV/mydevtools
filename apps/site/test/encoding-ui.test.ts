@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { classifyEncodingError, previewText, outputFileName } from "../src/tools/encoding-ui.ts";
+import { charIndexToUtf16, classifyEncodingError, previewText, outputFileName } from "../src/tools/encoding-ui.ts";
 
 // Messages exactly as produced by wasm/encoding (lib.rs) and its crates.
 test("classifyEncodingError: crate messages → locale keys", () => {
@@ -16,6 +16,9 @@ test("classifyEncodingError: crate messages → locale keys", () => {
     ["Padding '=' is not allowed", "Error_Padding", undefined],
     ["Invalid Base64 length (padding required)", "Error_InvalidLength", undefined],
     ["Base64 decode error: Invalid padding", "Error_InvalidLength", undefined],
+    ["Invalid Base64 character '!' at position 4", "Error_InvalidChar", 4],
+    ["Invalid Base32 character '$' at position 5", "Error_InvalidChar", 5],
+    ["Invalid Base58 character '0' at position 3", "Error_InvalidChar", 3],
     ["Base64 decode error: Invalid symbol 33, offset 4.", "Error_InvalidData", undefined],
     ["Base32 decode error: invalid length at 5", "Error_InvalidLength", undefined],
     ["Base32 decode error: invalid symbol at 2", "Error_InvalidData", undefined],
@@ -29,6 +32,13 @@ test("classifyEncodingError: crate messages → locale keys", () => {
     assert.equal(got.key, key, msg);
     assert.equal(got.position, position, msg);
   }
+});
+
+test("charIndexToUtf16: code point index → UTF-16 caret offset", () => {
+  assert.equal(charIndexToUtf16("abc", 2), 2);
+  assert.equal(charIndexToUtf16("ЖЖ$", 2), 2); // BMP multi-byte: 1 unit each
+  assert.equal(charIndexToUtf16("a😀$", 2), 3); // astral: 2 units
+  assert.equal(charIndexToUtf16("ab", 9), 2); // clamps to the end
 });
 
 test("previewText: preview mode truncates with suffix, full mode never does", () => {

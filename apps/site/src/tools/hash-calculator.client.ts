@@ -5,11 +5,17 @@
  * Loads ONLY on the hash tool page (the component imports this script), so the
  * WASM module is fetched only there (Stage 7 Gate 7 — network check). SSR-safe:
  * no-ops when the shell is absent.
+ *
+ * Checksum verification: the optional "Expected hash" is compared against the
+ * cached digests of the last calculation (selected algorithms only, never
+ * rehashed). Editing the source text/file or the algorithm selection marks the
+ * cache stale, which clears match marks until the next result arrives.
  */
 import { hashText, hashFile } from "@/scripts/wasm/hash-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { HASH_ALGORITHMS, DEFAULT_HASH_ALGORITHMS } from "@/tools/hash-algorithms";
-import { formatBytes, formatMs, progressPercent } from "@/lib/format";
+import { formatBytes, formatMs, formatString, progressPercent } from "@/lib/format";
+import { matchingDigests, parseExpectedHash } from "@/tools/hash-compare";
 import {
   bindEmptyState,
   bindLoadExample,
@@ -17,6 +23,7 @@ import {
   prepareCopyButton,
   revealOutput,
   setFieldValue,
+  setLiveText,
   startPreparing,
   syncEmptyState,
 } from "@/scripts/tool-ui";
@@ -36,7 +43,19 @@ interface Strings {
   selectAtLeastOne: string;
   fileProgress: string;
   preparing?: string;
+  expectedErrorWhitespace: string;
+  expectedErrorNonHex: string;
+  compareMatches: string;
+  compareNoMatch: string;
+  comparePending: string;
+  compareStale: string;
+  rowMatches: string;
 }
+
+const ICON_MATCH =
+  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16" stroke-width="2.25" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>';
+const ICON_MISMATCH =
+  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>';
 
 function readStrings(): Strings | null {
   const island = document.querySelector<HTMLScriptElement>("[data-hash-strings]");
@@ -96,11 +115,25 @@ function init() {
   const output = root.querySelector<HTMLElement>("[data-hash-output]");
   const inputHost = root.querySelector<HTMLElement>("[data-hash-input-host]");
   const exampleBtn = root.querySelector<HTMLButtonElement>("[data-hash-example]");
+  const expectedInput = root.querySelector<HTMLInputElement>("[data-hash-expected]");
+  const expectedError = root.querySelector<HTMLElement>("[data-hash-expected-error]");
+  const compareSummary = root.querySelector<HTMLElement>("[data-hash-compare-summary]");
+  const compareLive = root.querySelector<HTMLElement>("[data-hash-compare-live]");
   const syncInput = inputHost && textarea ? bindEmptyState(inputHost, textarea) : () => {};
   if (exampleBtn && textarea) bindLoadExample(exampleBtn, () => setFieldValue(textarea, EXAMPLE));
 
   let currentFile: File | null = null;
   let abortController: AbortController | null = null;
+  /** Digests of the last finished calculation (selected algorithms at that time). */
+  let cachedDigests: { id: string; hex: string }[] | null = null;
+  /** Source or algorithms changed since `cachedDigests` were computed. */
+  let digestsStale = false;
+  /** A calculation is running: no "press Calculate" prompt meanwhile. */
+  let calculating = false;
+  let announceTimer: number | undefined;
+  let lastAnnounced = "";
+  const labelById = new Map(HASH_ALGORITHMS.map((a) => [a.id, a.label] as const));
+  const listFmt = new Intl.ListFormat(document.documentElement.lang || undefined, { type: "conjunction" });
 
   const algoCheckboxes = () =>
     Array.from(root!.querySelectorAll<HTMLInputElement>("[data-hash-algo]"));
@@ -129,6 +162,7 @@ function init() {
     }
     updateCount();
     saveSelection();
+    invalidateDigests();
   }
 
   function saveSelection() {
@@ -149,6 +183,7 @@ function init() {
     if (cb) {
       updateCount();
       saveSelection();
+      invalidateDigests();
     }
   });
 
@@ -167,7 +202,9 @@ function init() {
   fileInput?.addEventListener("change", () => {
     currentFile = fileInput.files?.[0] ?? null;
     if (fileName) fileName.textContent = currentFile ? `${currentFile.name} (${formatBytes(currentFile.size)})` : "";
+    invalidateDigests();
   });
+  textarea?.addEventListener("input", () => invalidateDigests());
 
   function showError(msg: string) {
     if (errorBox) {
@@ -183,14 +220,21 @@ function init() {
   // this runtime DOM — Astro scoped styles would not reach it).
   function renderResults(hashes: { id: string; hex: string }[]) {
     if (!results) return;
-    const labelById = new Map(HASH_ALGORITHMS.map((a) => [a.id, a.label] as const));
     results.replaceChildren(
       ...hashes.map((h) => {
         const row = document.createElement("div");
         row.className = "ds-result-row";
+        row.dataset.hashId = h.id;
+        const key = document.createElement("span");
+        key.className = "ds-result-key hash-row-key";
         const algo = document.createElement("span");
-        algo.className = "ds-result-key";
         algo.textContent = labelById.get(h.id) ?? h.id;
+        const badge = document.createElement("span");
+        badge.className = "ds-badge ds-badge-success hash-match-badge";
+        badge.hidden = true;
+        badge.innerHTML = ICON_MATCH;
+        badge.append(strings.rowMatches);
+        key.append(algo, badge);
         const hex = document.createElement("span");
         hex.className = "ds-result-value";
         hex.textContent = h.hex;
@@ -201,7 +245,7 @@ function init() {
         copy.textContent = strings.copy;
         copy.setAttribute("aria-label", `${strings.copy} ${algo.textContent}`);
         prepareCopyButton(copy, strings.copied);
-        row.append(algo, hex, copy);
+        row.append(key, hex, copy);
         return row;
       }),
     );
@@ -211,7 +255,82 @@ function init() {
   function clearResults() {
     results?.replaceChildren();
     if (output) syncEmptyState(output, true);
+    cachedDigests = null;
+    digestsStale = false;
+    renderComparison();
   }
+
+  /** Source/algorithm edit: prior matches no longer describe the input. */
+  function invalidateDigests() {
+    if (!cachedDigests || digestsStale) return;
+    digestsStale = true;
+    renderComparison();
+  }
+
+  function setSummary(text: string, icon: string, success: boolean) {
+    if (!compareSummary) return;
+    compareSummary.hidden = !text;
+    compareSummary.classList.toggle("is-success", success);
+    compareSummary.innerHTML = icon;
+    compareSummary.append(text);
+  }
+
+  /** Announce the settled comparison once (debounced; repeated text is skipped). */
+  function announce(text: string) {
+    if (announceTimer !== undefined) window.clearTimeout(announceTimer);
+    announceTimer = window.setTimeout(() => {
+      if (!compareLive || text === lastAnnounced) return;
+      lastAnnounced = text;
+      if (text) setLiveText(compareLive, text);
+    }, 700);
+  }
+
+  /**
+   * Compare the expected hash with the cached digests and paint the result:
+   * row tint + badge on matches, summary line, input validation error. Cheap —
+   * runs on every keystroke in the expected field, never rehashes.
+   */
+  function renderComparison() {
+    const parsed = parseExpectedHash(expectedInput?.value ?? "");
+    const invalidMsg =
+      parsed.kind === "invalid"
+        ? parsed.reason === "whitespace" ? strings.expectedErrorWhitespace : strings.expectedErrorNonHex
+        : "";
+    if (expectedError) {
+      expectedError.textContent = invalidMsg;
+      expectedError.hidden = !invalidMsg;
+    }
+    if (invalidMsg) expectedInput?.setAttribute("aria-invalid", "true");
+    else expectedInput?.removeAttribute("aria-invalid");
+
+    const usable = parsed.kind === "ok" && cachedDigests !== null && !digestsStale;
+    const matches = usable && cachedDigests ? new Set(matchingDigests(parsed.hex, cachedDigests)) : new Set<string>();
+    results?.querySelectorAll<HTMLElement>(".ds-result-row").forEach((row) => {
+      const hit = matches.has(row.dataset.hashId ?? "");
+      row.classList.toggle("is-match", hit);
+      const badge = row.querySelector<HTMLElement>(".hash-match-badge");
+      if (badge) badge.hidden = !hit;
+    });
+
+    let summary = "";
+    let icon = "";
+    if (parsed.kind === "ok") {
+      if (!cachedDigests) summary = calculating ? "" : strings.comparePending;
+      else if (digestsStale) summary = strings.compareStale;
+      else if (matches.size > 0) {
+        const names = (cachedDigests ?? []).filter((d) => matches.has(d.id)).map((d) => labelById.get(d.id) ?? d.id);
+        summary = formatString(strings.compareMatches, listFmt.format(names));
+        icon = ICON_MATCH;
+      } else {
+        summary = strings.compareNoMatch;
+        icon = ICON_MISMATCH;
+      }
+    }
+    setSummary(summary, icon, matches.size > 0);
+    announce(invalidMsg || summary);
+  }
+
+  expectedInput?.addEventListener("input", () => renderComparison());
 
   results?.addEventListener("click", (e) => {
     const btn = (e.target as HTMLElement)?.closest?.<HTMLButtonElement>("[data-copy]");
@@ -224,6 +343,7 @@ function init() {
       calcBtn.setAttribute("aria-busy", String(busy));
     }
     if (cancelBtn) cancelBtn.hidden = !busy;
+    calculating = busy;
   }
 
   function setProgress(pct: number) {
@@ -238,9 +358,9 @@ function init() {
       showError(strings.selectAtLeastOne);
       return;
     }
+    setBusy(true); // before clearResults(): no "press Calculate" prompt while hashing
     clearResults();
 
-    setBusy(true);
     abortController = new AbortController();
     // First run loads the hash WASM in the worker: "Preparing…" next to Calculate if slow.
     const prepared = startPreparing("hash", {
@@ -267,6 +387,9 @@ function init() {
       }
       prepared();
       renderResults(hashes);
+      cachedDigests = hashes;
+      digestsStale = false;
+      renderComparison();
       revealOutput(output);
     } catch (e) {
       if (e instanceof WasmError && e.code === "aborted") {
@@ -282,6 +405,7 @@ function init() {
       }
       setBusy(false);
       abortController = null;
+      renderComparison(); // settle the summary (e.g. back to "press Calculate" after cancel/error)
     }
   }
 

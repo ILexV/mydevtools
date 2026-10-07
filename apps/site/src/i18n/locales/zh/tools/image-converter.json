@@ -11,6 +11,7 @@
   "OutputSize": "输出大小：",
   "ErrorNotImage": "请上传图片文件。",
   "ErrorConversion": "转换失败。",
+  "ErrorDamagedImage": "此文件不是受支持的图片，或文件已损坏。",
   "PreviewAlt": "文件预览",
   "ResultLabel": "转换后的图片",
   "QualityLow": "低",

@@ -287,9 +287,20 @@ test("cron-generator namespace has every key the shared core needs, in all local
         "scheduleDayOrWeekday",
         "partMinute",
         "partWeekday",
+        "partsLabel",
+        "timelineShowMore",
+        "timelineHorizon",
+        "timelineReboot",
+        "timelineContext",
+        "timelineRules",
+        "announceUpdated",
       ]) {
         assert.equal(typeof s[key], "string", `${lang}/${ns}: ${key}`);
       }
+      // Timeline placeholders: years in "no runs", count + years in the horizon note, time/zone/offset.
+      assert.ok(s.noUpcomingRuns.includes("{0}"), `${lang}/${ns}: noUpcomingRuns {0}`);
+      assert.ok(s.timelineHorizon.includes("{0}") && s.timelineHorizon.includes("{1}"), `${lang}/${ns}: timelineHorizon`);
+      for (const ph of ["{0}", "{1}", "{2}"]) assert.ok(s.timelineContext.includes(ph), `${lang}/${ns}: timelineContext ${ph}`);
       assert.equal(s.months.length, 12, `${lang}/${ns} months`);
       assert.equal(s.weekdays.length, 7, `${lang}/${ns} weekdays`);
       // Every plural/description template renders without throwing.

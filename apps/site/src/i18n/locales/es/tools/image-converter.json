@@ -11,6 +11,7 @@
   "OutputSize": "Tamaño:",
   "ErrorNotImage": "Sube un archivo de imagen.",
   "ErrorConversion": "Error en la conversión.",
+  "ErrorDamagedImage": "Este archivo no es una imagen compatible o está dañado.",
   "PreviewAlt": "Vista previa del archivo",
   "ResultLabel": "Imagen convertida",
   "QualityLow": "Baja",

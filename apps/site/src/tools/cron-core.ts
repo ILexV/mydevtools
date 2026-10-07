@@ -190,12 +190,15 @@ function dayMatches(s: CronSchedule, date: Date): boolean {
   return domOk && dowOk;
 }
 
+/** Search horizon of `cronNextRuns` in years: schedules with no run inside it show "no runs". */
+export const CRON_SEARCH_YEARS = 30;
+
 /**
  * Next `count` run times strictly after `from` (local time), scanning day by
  * day up to `maxYears` ahead. Returns fewer (possibly zero) when the schedule
  * never fires in that window (e.g. `0 0 30 2 *`).
  */
-export function cronNextRuns(schedule: CronSchedule, from: Date, count: number, maxYears = 30): Date[] {
+export function cronNextRuns(schedule: CronSchedule, from: Date, count: number, maxYears = CRON_SEARCH_YEARS): Date[] {
   const runs: Date[] = [];
   const day = new Date(from.getFullYear(), from.getMonth(), from.getDate());
   const limit = new Date(from.getFullYear() + maxYears, from.getMonth(), from.getDate());
@@ -492,25 +495,35 @@ export function toLocalIso(date: Date): string {
   );
 }
 
-/** Next-run date formats offered by the date-format select (persisted as `cron-date-format`). */
+const DATE_TIME = { hour: "2-digit", minute: "2-digit", second: "2-digit" } as const;
+
+/** Intl options per next-run date format (`iso` is built by `toLocalIso`). */
+const CRON_DATE_FORMATS: Record<string, Intl.DateTimeFormatOptions & { fixedLocale?: string }> = {
+  compact: { day: "2-digit", month: "2-digit", year: "numeric", ...DATE_TIME, hour12: false },
+  american: { month: "2-digit", day: "2-digit", year: "numeric", ...DATE_TIME, hour12: true, fixedLocale: "en-US" },
+  "full-month": { weekday: "short", year: "numeric", month: "long", day: "numeric", ...DATE_TIME, hour12: false },
+  verbose: { weekday: "long", year: "numeric", month: "long", day: "numeric", ...DATE_TIME, hour12: false },
+  "locale-12h": { weekday: "short", year: "numeric", month: "short", day: "numeric", ...DATE_TIME, hour12: true },
+  locale: { weekday: "short", year: "numeric", month: "short", day: "numeric", ...DATE_TIME, hour12: false },
+};
+
+const dateFormatCache = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * Next-run date formats offered by the date-format select (persisted as
+ * `cron-date-format`). Presentation only: the runs themselves are always
+ * computed in the browser's local time zone. Formatters are cached per locale.
+ */
 export function formatCronDate(date: Date, format: string, lang: string): string {
-  const locale = lang === "zh" ? "zh-CN" : lang;
-  const time = { hour: "2-digit", minute: "2-digit", second: "2-digit" } as const;
-  switch (format) {
-    case "iso":
-      return toLocalIso(date);
-    case "compact":
-      return date.toLocaleString(locale, { day: "2-digit", month: "2-digit", year: "numeric", ...time, hour12: false });
-    case "american":
-      return date.toLocaleString("en-US", { month: "2-digit", day: "2-digit", year: "numeric", ...time, hour12: true });
-    case "full-month":
-      return date.toLocaleString(locale, { weekday: "short", year: "numeric", month: "long", day: "numeric", ...time, hour12: false });
-    case "verbose":
-      return date.toLocaleString(locale, { weekday: "long", year: "numeric", month: "long", day: "numeric", ...time, hour12: false });
-    case "locale-12h":
-      return date.toLocaleString(locale, { weekday: "short", year: "numeric", month: "short", day: "numeric", ...time, hour12: true });
-    case "locale":
-    default:
-      return date.toLocaleString(locale, { weekday: "short", year: "numeric", month: "short", day: "numeric", ...time, hour12: false });
+  if (format === "iso") return toLocalIso(date);
+  const key = format in CRON_DATE_FORMATS ? format : "locale";
+  const { fixedLocale, ...options } = CRON_DATE_FORMATS[key];
+  const locale = fixedLocale ?? (lang === "zh" ? "zh-CN" : lang);
+  const cacheKey = `${locale}|${key}`;
+  let fmt = dateFormatCache.get(cacheKey);
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat(locale, options);
+    dateFormatCache.set(cacheKey, fmt);
   }
+  return fmt.format(date);
 }

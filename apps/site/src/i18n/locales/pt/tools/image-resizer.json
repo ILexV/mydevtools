@@ -20,7 +20,7 @@
   "ResultInfo": "Informações do resultado",
   "PreviewAlt": "Pré-visualização da imagem selecionada",
   "ErrorNotImage": "O arquivo selecionado não é uma imagem.",
-  "ErrorLoadImage": "Falha ao carregar a imagem.",
+  "ErrorDamagedImage": "Este arquivo não é uma imagem compatível ou está danificado.",
   "ErrorInvalidDimensions": "Dimensões inválidas.",
   "ErrorResizeFailed": "Falha ao redimensionar.",
   "Cancel": "Cancelar",

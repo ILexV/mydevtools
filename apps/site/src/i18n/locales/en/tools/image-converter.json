@@ -11,6 +11,7 @@
   "OutputSize": "Output Size:",
   "ErrorNotImage": "Please upload an image file.",
   "ErrorConversion": "Conversion failed.",
+  "ErrorDamagedImage": "This file isn't a supported image or is damaged.",
   "PreviewAlt": "File preview",
   "ResultLabel": "Converted Image",
   "QualityLow": "Low",

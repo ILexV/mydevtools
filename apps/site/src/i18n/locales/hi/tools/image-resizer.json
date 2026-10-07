@@ -20,7 +20,7 @@
   "ResultInfo": "परिणाम जानकारी",
   "PreviewAlt": "चयनित छवि का पूर्वावलोकन",
   "ErrorNotImage": "चयनित फ़ाइल एक छवि नहीं है।",
-  "ErrorLoadImage": "छवि लोड करने में विफल।",
+  "ErrorDamagedImage": "यह फ़ाइल समर्थित इमेज नहीं है या क्षतिग्रस्त है।",
   "ErrorInvalidDimensions": "अमान्य आयाम।",
   "ErrorResizeFailed": "आकार बदलना विफल रहा।",
   "Cancel": "रद्द करें",

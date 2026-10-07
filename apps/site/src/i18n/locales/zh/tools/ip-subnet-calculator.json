@@ -58,5 +58,20 @@
   "SplitColHostRange": "主机范围",
   "SplitColRange": "地址范围",
   "SplitCopyList": "复制列表",
-  "Error_SplitPrefix": "请输入 /{min} 到 /{max} 之间的前缀长度。"
+  "Error_SplitPrefix": "请输入 /{min} 到 /{max} 之间的前缀长度。",
+  "Bar_Caption": "地址空间",
+  "Bar_Network": "网络地址",
+  "Bar_Usable": "可用主机",
+  "Bar_Broadcast": "广播地址",
+  "Bar_PointToPoint": "可用地址（点对点，RFC 3021）",
+  "Bar_Single": "单个地址",
+  "Broadcast_NoneP2p": "无（点对点链路，RFC 3021）",
+  "Broadcast_NoneSingle": "无（单个主机）",
+  "Bar_Range": "前缀范围（IPv6 没有广播地址）",
+  "Bar_TickNote": "条形上下的标记表示两端的单个地址，未按比例绘制。",
+  "Split_BarCaption": "子网分布图",
+  "Split_BarListed": "子网 #1–#{last}，颜色与表格 # 列一致",
+  "Split_BarListedOne": "子网 #1，即整个网络",
+  "Split_BarRemainder": "子网 #{from}–#{last}（合并显示）",
+  "Split_BarTickNote": "子网 #1–#{last} 太小，无法绘制；标记仅表示其位置，未按比例绘制。"
 }

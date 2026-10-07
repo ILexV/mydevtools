@@ -156,6 +156,8 @@ export interface CopyFeedbackOptions {
  * Restores after `ms`; re-clicks restart the timer. Pass `copiedLabel = null`
  * for icon-only buttons that should keep their name. Resolves the outcome
  * (false = nothing was copied; callers may still show their own error).
+ * Empty `text` is a silent no-op that resolves false without any feedback
+ * (syncEmptyState() also disables a panel's copy buttons while it is empty).
  */
 export async function copyWithFeedback(
   btn: HTMLElement,
@@ -164,6 +166,8 @@ export async function copyWithFeedback(
   ms = 1500,
   options: CopyFeedbackOptions = {},
 ): Promise<boolean> {
+  // Nothing to copy: neutral no-op — never flash "Copied" for an empty clipboard write.
+  if (text.length === 0) return false;
   const failedLabel = options.failedLabel ?? btn.dataset.copyFailedLabel ?? null;
   prepareCopyButton(btn, copiedLabel, failedLabel);
   const ok = await writeClipboard(text);
@@ -306,12 +310,38 @@ export function setLiveText(el: HTMLElement, text: string): void {
 }
 
 /**
+ * Copy buttons (CopyButton / prepareCopyButton faces) in the head actions of
+ * the panel that owns `host`: the host itself when it is a ToolPanel /
+ * OutputPanel, or its parent panel when the host is a direct-child
+ * `.ds-editor`.
+ */
+function panelCopyButtons(host: HTMLElement): HTMLButtonElement[] {
+  const head = ":scope > :is(.ds-panel-head, .ds-output-head)";
+  const panel = host.querySelector(head) ? host : host.parentElement?.querySelector(head) ? host.parentElement : null;
+  if (!panel) return [];
+  return Array.from(panel.querySelectorAll<HTMLButtonElement>(`${head} :is(.ds-panel-actions, .ds-actions) > button`))
+    .filter((btn) => btn.querySelector(":scope > .ds-copy-faces"));
+}
+
+/**
  * Mark an empty-state host (`.ds-editor`, output panel) as empty or filled:
  * toggles `is-empty`, which shows its direct-child `.ds-empty-state` and
- * hides its `.ds-when-filled` children. Call after every programmatic write.
+ * hides its `.ds-when-filled` children. Also disables the panel's copy
+ * buttons while it is empty (nothing to copy) and re-enables only the ones
+ * it disabled itself, so a controller's own `disabled` logic is kept.
+ * Call after every programmatic write.
  */
 export function syncEmptyState(host: HTMLElement, isEmpty: boolean): void {
   host.classList.toggle("is-empty", isEmpty);
+  for (const btn of panelCopyButtons(host)) {
+    if (isEmpty && !btn.disabled) {
+      btn.disabled = true;
+      btn.dataset.dsEmptyDisabled = "";
+    } else if (!isEmpty && btn.dataset.dsEmptyDisabled !== undefined) {
+      btn.disabled = false;
+      delete btn.dataset.dsEmptyDisabled;
+    }
+  }
 }
 
 /**

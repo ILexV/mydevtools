@@ -40,7 +40,7 @@
   "Error_InvalidData": "The input is not valid {0}.",
   "PreviewTruncated": "(preview truncated, use Download for full output)",
   "FileDecoded": "Decoded {0} → {1}",
-  "StatsOutput": "Characters: {0} · {1}",
+  "StatsOutput": "Characters: {0} · Size: {1}",
   "Error_CopyFailed": "Could not copy: the clipboard is unavailable.",
   "Seo_Introduction": "Encode text or files to Base32 and decode them back with three alphabets: RFC 4648, Crockford and z-base-32. Everything runs in your browser through a WebAssembly module compiled from Rust, so secrets you paste are not uploaded.",
   "Seo_DetailedDescription": "Base32 stores 5 bits per character and uses only letters and digits, so the result survives case changes and is easy to type or read aloud. The **RFC 4648** alphabet (`A–Z`, `2–7`) is the one used for TOTP secrets in authenticator apps and for Tor onion addresses. **Crockford** (`0–9`, `A–Z` without I, L, O and U) is made for humans: on decode it reads `I` and `L` as `1`, `O` as `0` and ignores hyphens. **z-base-32** uses a lowercase alphabet ordered for readability and is never padded.\n\nPadding with `=` to a multiple of 8 characters can be required, optional or omitted. **Letter case** forces upper- or lowercase output, while **Auto** keeps the alphabet's usual case. Decoding ignores letter case in every alphabet and, with **Allow whitespace/newlines**, skips spaces and line breaks.\n\nText is converted to bytes in the chosen charset (UTF-8, UTF-16LE, UTF-16BE, ASCII or ISO-8859-1). Files can be chosen or dropped onto the page and are read in a Web Worker with a progress bar and **Cancel**. If the decoded bytes are not valid text, the tool says so and **Download** still saves the raw bytes.",

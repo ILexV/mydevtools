@@ -2,14 +2,14 @@
  * Cron Expression Parser client: wires the input, quick presets, live parse
  * (300ms debounce), copy-description and the persisted date-format select
  * (localStorage `cron-date-format`, shared with cron-generator). Validation,
- * description and next 5 runs come from the pure `cron-core.ts`; field errors
- * are localized and mark the input `aria-invalid`. The results panel shows a
- * compact placeholder while there is no valid expression.
+ * description and next runs come from the pure `cron-core.ts`; the timeline and
+ * field capsules are rendered by the shared `cron-ui.ts`. Field errors are
+ * localized and mark the input `aria-invalid`. Explicit submissions (button,
+ * Enter, preset) announce "Schedule updated" once; while the input differs
+ * from the evaluated expression the results are marked stale.
  */
 import {
-  CRON_FIELDS,
   cronErrorMessage,
-  cronNextRuns,
   describeCron,
   expandCronPreset,
   parseCron,
@@ -18,19 +18,23 @@ import {
   type CronStrings,
 } from "@/tools/cron-core";
 import { copyWithFeedback, revealOutput, syncEmptyState } from "@/scripts/tool-ui";
-import { renderNextRuns, restoreDateFormat, saveDateFormat } from "@/tools/cron-ui";
+import {
+  createCronTimeline,
+  restoreDateFormat,
+  saveDateFormat,
+  setFieldCapsules,
+  type CronTimelineStrings,
+} from "@/tools/cron-ui";
 
 type Strings = CronStrings &
-  CronErrorStrings & {
+  CronErrorStrings &
+  CronTimelineStrings & {
     copy: string;
     copied: string;
     copyFailed?: string;
     parseToSeeResult: string;
-    noUpcomingRuns: string;
     fieldNames: Record<CronFieldName, string>;
   };
-
-const NEXT_RUNS = 5;
 
 function readStrings(): Strings | null {
   const el = document.querySelector<HTMLScriptElement>("[data-cronp-strings]");
@@ -65,11 +69,12 @@ function init() {
   const clearBtn = root.querySelector<HTMLButtonElement>("[data-cronp-clear]");
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-cronp-copy]");
   const outputPanel = root.querySelector<HTMLElement>("[data-cronp-output-panel]");
-  const partEls = Object.fromEntries(
-    CRON_FIELDS.map((f) => [f, root.querySelector<HTMLElement>(`[data-cronp-part-${f}]`)]),
-  ) as Record<CronFieldName, HTMLElement | null>;
+  const capsList = root.querySelector<HTMLElement>("[data-cronp-caps]");
+  const timeline = createCronTimeline(nextExecutions, strings, restoreDateFormat(dateFormatSelect));
 
   let hasResult = false;
+  /** Expression the visible results belong to (null = none). */
+  let evaluated: string | null = null;
 
   function setError(msg: string) {
     errorBox.textContent = msg;
@@ -78,12 +83,9 @@ function init() {
     else input.removeAttribute("aria-invalid");
   }
 
-  function setParts(expr: string | null) {
-    const fields = expr ? expr.split(/\s+/) : [];
-    for (const [i, f] of CRON_FIELDS.entries()) {
-      const el = partEls[f];
-      if (el) el.textContent = fields[i] || "*";
-    }
+  /** Results no longer match the input (typing before the debounced parse). */
+  function syncStale() {
+    outputPanel?.classList.toggle("is-stale", hasResult && evaluated !== input.value.trim());
   }
 
   /** Toggle the results placeholder (shown while there is no valid expression). */
@@ -95,16 +97,19 @@ function init() {
   function resetResults() {
     setHasResult(false);
     humanReadable.textContent = "";
-    nextExecutions.replaceChildren();
-    setParts(null);
+    timeline.clear();
+    setFieldCapsules(capsList, null);
+    evaluated = null;
+    syncStale();
   }
 
-  function parseAction() {
+  /** Evaluate the input; returns true when a valid schedule was rendered. */
+  function parseAction(): boolean {
     const expression = input.value.trim();
     if (!expression) {
       setError("");
       resetResults();
-      return;
+      return false;
     }
 
     let schedule;
@@ -117,20 +122,17 @@ function init() {
     } catch (e) {
       setError(cronErrorMessage(e, strings, strings.fieldNames));
       resetResults();
-      return;
+      return false;
     }
 
     setError("");
     setHasResult(true);
     humanReadable.textContent = description;
-    setParts(expanded);
-    const format = dateFormatSelect?.value || "locale";
-    if (!schedule) {
-      renderNextRuns(nextExecutions, strings.scheduleReboot, format, strings.lang);
-      return;
-    }
-    const runs = cronNextRuns(schedule, new Date(), NEXT_RUNS);
-    renderNextRuns(nextExecutions, runs.length ? runs : strings.noUpcomingRuns, format, strings.lang);
+    setFieldCapsules(capsList, expanded);
+    timeline.show({ schedule });
+    evaluated = expression;
+    syncStale();
+    return true;
   }
 
   function clearAction() {
@@ -142,7 +144,7 @@ function init() {
 
   /** Explicit parse (button, preset, Enter): bring a fresh result into view on phones. */
   function parseAndReveal() {
-    parseAction();
+    if (parseAction()) timeline.announceUpdate();
     if (outputPanel && !outputPanel.classList.contains("is-empty")) revealOutput(outputPanel);
   }
 
@@ -159,6 +161,7 @@ function init() {
 
   let parseTimeout: number | undefined;
   input.addEventListener("input", () => {
+    syncStale();
     window.clearTimeout(parseTimeout);
     parseTimeout = window.setTimeout(parseAction, 300);
   });
@@ -166,13 +169,14 @@ function init() {
   input.addEventListener("keydown", (ev) => {
     if (ev.key === "Enter") {
       window.clearTimeout(parseTimeout);
-      parseAction();
+      if (parseAction()) timeline.announceUpdate();
     }
   });
 
   dateFormatSelect?.addEventListener("change", () => {
     saveDateFormat(dateFormatSelect.value);
-    if (input.value.trim()) parseAction();
+    // Presentation only: re-render the same snapshot, no re-evaluation.
+    timeline.setFormat(dateFormatSelect.value);
   });
 
   copyBtn?.addEventListener("click", () => {
@@ -181,8 +185,7 @@ function init() {
     void copyWithFeedback(copyBtn, value, strings.copied, undefined, { failedLabel: strings.copyFailed });
   });
 
-  // Restore saved date format, then parse the default expression.
-  restoreDateFormat(dateFormatSelect);
+  // Date format was restored above; parse the default expression silently.
   if (input.value) parseAction();
 }
 

@@ -13,7 +13,7 @@ import {
   setLiveText,
   syncEmptyState,
 } from "@/scripts/tool-ui";
-import { formatString } from "@/lib/format";
+import { formatBytes, formatString } from "@/lib/format";
 import { encodeHtml, decodeHtml, type EntityMode, type EntityFormat } from "@/tools/entities";
 
 /** "Load example" sample: markup with quotes, ampersand and non-ASCII (language-neutral). */
@@ -23,6 +23,7 @@ interface Strings {
   copied: string;
   copyFailed?: string;
   errCopyFailed: string;
+  /** Shared encoder stats: "Characters: {0} · Size: {1}" (entity text chars · plain text UTF-8 size). */
   outputSummary: string;
   lang: string;
 }
@@ -63,14 +64,20 @@ function init() {
   const syncInput = inputHost ? bindEmptyState(inputHost, input) : () => {};
   if (exampleBtn) bindLoadExample(exampleBtn, () => setFieldValue(input, EXAMPLE));
 
+  /** Which box holds the plain (decoded) text: encode → input, decode → output; swap flips it. */
+  let plainSide: "input" | "output" = "input";
+
   // Announce each result (the readonly textarea's value change is silent) and
-  // toggle the output placeholder / Copy availability.
+  // toggle the output placeholder / Copy availability. Stats match the other
+  // encoders: entity-text character count · plain-text UTF-8 size.
   const announce = () => {
     if (outputPanel) syncEmptyState(outputPanel, output.value === "");
     if (copyBtn) copyBtn.disabled = output.value === "";
     if (!summary) return;
-    const n = Array.from(output.value).length;
-    setLiveText(summary, output.value ? formatString(strings.outputSummary, n.toLocaleString(strings.lang)) : "");
+    const [encoded, plain] = plainSide === "input" ? [output.value, input.value] : [input.value, output.value];
+    const n = Array.from(encoded).length;
+    const size = formatBytes(new TextEncoder().encode(plain).length);
+    setLiveText(summary, output.value ? formatString(strings.outputSummary, n.toLocaleString(strings.lang), size) : "");
   };
 
   root.querySelector<HTMLButtonElement>("[data-ent-encode]")?.addEventListener("click", () => {
@@ -78,6 +85,7 @@ function init() {
     const mode = (modeSel?.value ?? "specialchars") as EntityMode;
     const format = (formatSel?.value ?? "named") as EntityFormat;
     output.value = encodeHtml(input.value, mode, format);
+    plainSide = "input";
     announce();
     revealOutput(outputPanel);
   });
@@ -85,6 +93,7 @@ function init() {
   root.querySelector<HTMLButtonElement>("[data-ent-decode]")?.addEventListener("click", () => {
     clearError();
     output.value = decodeHtml(input.value);
+    plainSide = "output";
     announce();
     revealOutput(outputPanel);
   });
@@ -94,6 +103,7 @@ function init() {
     const prev = input.value;
     input.value = output.value;
     output.value = prev;
+    plainSide = plainSide === "input" ? "output" : "input";
     syncInput();
     announce();
   });

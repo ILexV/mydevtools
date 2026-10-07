@@ -48,6 +48,7 @@ const s = {
   errorNotImage: t(lang, ns, "ErrorNotImage"),
   errorUnsupported: t(lang, ns, "ErrorUnsupportedFormat"),
   errorCompression: t(lang, ns, "ErrorCompression"),
+  errorDamaged: t(lang, ns, "ErrorDamagedImage"),
   webpLosslessNote: t(lang, ns, "WebpLosslessNote"),
   needFile: t(lang, ns, "NeedFile"),
   sizeChange: t(lang, ns, "SizeChangeLabel"),
@@ -81,9 +82,10 @@ const compare = {
     inputProps={{ "data-imgc-file": true }}
   />
 
-  <div class="ds-file-item" data-imgc-selected hidden>
+  <div class="ds-file-item imgc-row" data-imgc-selected hidden>
     <div class="imgc-file">
       <img class="imgc-thumb" data-imgc-preview alt={s.previewAlt} />
+      <span class="imgc-thumb imgc-thumb-icon" data-imgc-thumb-icon hidden><Icon name="images" size={24} /></span>
       <div class="imgc-file-text">
         <div class="ds-file-item-name" data-imgc-filename></div>
         <div class="ds-file-item-meta" data-imgc-filesize></div>
@@ -153,6 +155,11 @@ const compare = {
   .imgc-tool { max-width: 48rem; margin: 0 auto; }
   .imgc-file { display: flex; align-items: center; gap: 0.8rem; min-width: 0; }
   .imgc-file-text { min-width: 0; }
+  /* Single-file row keeps its lone × on the right on phones too (the kit drops
+     row actions below the name at ≤30rem for multi-action PDF rows). */
+  @media (max-width: 30rem) {
+    .imgc-row { grid-template-columns: minmax(0, 1fr) auto; }
+  }
   .imgc-thumb {
     flex: none;
     width: 3.5rem;
@@ -161,6 +168,10 @@ const compare = {
     border-radius: var(--mdt-radius-sm);
     background: var(--mdt-surface-muted);
   }
+  /* Generic icon when the thumbnail can't be decoded (no broken-image glyph / spilled alt). */
+  .imgc-thumb-icon { display: grid; place-items: center; color: var(--mdt-text-faint); }
+  /* Technical detail under a localized error (muted secondary line). */
+  .imgc-tool :global(.img-error-detail) { display: block; margin-top: 2px; overflow-wrap: anywhere; }
   .imgc-range { width: 100%; }
   /* Savings headline: category colour when smaller, neutral when it grew. */
   .imgc-savings.is-smaller { color: var(--mdt-cat); }

@@ -1,0 +1,31 @@
+---
+/**
+ * Five labelled cron field capsules (minute, hour, day of month, month,
+ * weekday) shared by cron-parser and cron-generator: value above, localized
+ * label below, one fixed hue per field (`cron-ui.css`). A labelled list, not
+ * controls; values are filled by `setFieldCapsules()` from `cron-ui.ts`.
+ * Replaces the parser's former "Expression Parts" table.
+ */
+import { CRON_FIELDS, type CronFieldName } from "@/tools/cron-core";
+
+interface Props {
+  /** Accessible name of the list (e.g. "Expression parts"). */
+  label: string;
+  /** Localized field names, in field order. */
+  names: Record<CronFieldName, string>;
+  /** Extra classes (e.g. `ds-when-filled`). */
+  class?: string;
+  /** Extra attributes (data-* hook for the controller). */
+  [attr: string]: unknown;
+}
+const { label, names, class: className, ...rest } = Astro.props as Props;
+---
+
+<ul class:list={["cron-caps", className]} aria-label={label} {...rest}>
+  {CRON_FIELDS.map((field) => (
+    <li class="cron-cap" data-field={field}>
+      <span class="cron-cap-label">{names[field]}</span>
+      <code class="cron-cap-value" dir="ltr" data-cron-cap={field}></code>
+    </li>
+  ))}
+</ul>

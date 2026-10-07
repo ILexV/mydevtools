@@ -34,7 +34,7 @@
   "Error_Padding": "当前填充设置下不允许使用填充“=”。",
   "Error_NotText": "解码后的字节不是所选字符集中的有效文本。请使用“下载”保存原始字节。",
   "Error_InvalidData": "输入不是有效的 {0}。",
-  "StatsOutput": "字符数：{0} · {1}",
+  "StatsOutput": "字符数：{0} · 大小：{1}",
   "Error_CopyFailed": "无法复制：剪贴板不可用。",
   "Seo_Introduction": "将文本或小文件编码为 Base58，并使用 Bitcoin、Flickr 或 Ripple 字母表解码还原。转换由 Rust 编译的 WebAssembly 在浏览器中完成，粘贴的密钥和标识符不会离开你的设备。",
   "Seo_DetailedDescription": "Base58 使用 58 个字母和数字，去掉了容易混淆的 `0`、`O`、`I`、`l` 以及 `+` 和 `/`，因此编码结果便于阅读、重新输入，也能双击整段选中。比特币地址、IPFS CIDv0 哈希和 Solana 密钥都采用这种编码。提供三种字母表：**Bitcoin**（最常用）、**Flickr**（小写字母排在大写之前，用于短链接）和 **Ripple**（XRP Ledger）。\n\n与 Base64 不同，Base58 把整个输入当作一个大整数处理：没有填充，每个前导零字节在 Bitcoin 字母表中变成一个前导 `1`。计算量随输入大小呈平方增长，因此编码上限为 1 MiB，解码上限为 2,000,000 个字符；更大的文件请使用 Base64 或 Hex。\n\n这是纯 Base58：工具不会添加或校验比特币地址和 WIF 私钥中 4 字节的 Base58Check 校验和，因此解码地址时会一并得到版本字节、数据和校验和。在所选字符集中不是有效文本的字节，可以用 **下载** 保存。",

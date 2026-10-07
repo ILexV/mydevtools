@@ -24,5 +24,14 @@
   "Seo_DetailedDescription": "可任意组合 39 种算法（列表支持按名称筛选；**重置为默认值** 恢复 MD5、SHA-1 和 SHA-256）。所选算法保存在浏览器的 localStorage 中。文本按输入原样的 UTF-8 字节计算，包括空格和换行；每个结果以小写十六进制单独占一行，并带有复制按钮。\n\n选择了文件时，文本框会被忽略。Rust/WebAssembly 模块在 Web Worker 中以 1 MiB 分块读取文件，页面保持可操作；进度条显示已处理字节数和耗时，**取消** 可停止任务。所有选中的算法共用同一次读取，选五种算法也只读一遍文件。\n\n密码学哈希（SHA-2、SHA-3、BLAKE2/BLAKE3、Streebog）适合做完整性校验；MD5 和 SHA-1 只用于比对旧的校验值。CRC32、Adler-32、xxHash、FNV-1a、FxHash、SeaHash 和 MetroHash 是快速的非密码学校验和，SipHash/HighwayHash 使用全零密钥计算。本工具不计算带密钥的 MAC，也不做密码哈希。",
   "Seo_Examples": "**短字符串的哈希**：`hello` 的 MD5 为 `5d41402abc4b2a76b9719d911017c592`，SHA-1 为 `aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d`，SHA-256 为 `2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824`。\n\n**末尾换行会改变哈希**：`hello` 后按回车得到 SHA-256 `5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03`，与 `echo hello | sha256sum` 相同；`printf hello | sha256sum` 则与上一个值一致。\n\n**校验下载文件**：选择下载的文件，保留 SHA-256，并与下载链接旁公布的校验值比较。空输入的结果始终是 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`。\n\n**非 ASCII 文本**：`привет` 按 UTF-8 计算，SHA-256 为 `e58f1e8c55fa105bdd3f40e5037eb0b039b5998d52c05e6cd98878dd2da5cab2`，与对含该词的 UTF-8 文件运行 `sha256sum` 的结果相同。",
   "Seo_HowToSteps": "### 步骤1：输入文本或选择文件\n在 **输入文本** 中输入或粘贴内容，或在 **文件（可选）** 中选择文件。选择了文件时以文件为准。\n\n### 步骤2：选择算法\n在 **算法** 中勾选需要的算法。可用搜索框筛选，或点击 **重置为默认值** 回到 MD5、SHA-1 和 SHA-256。\n\n### 步骤3：计算\n点击 **计算**。处理文件时进度条显示已读取的部分；**取消** 可中止计算。\n\n### 步骤4：复制结果\n每种算法单独一行，点击对应哈希旁的 **复制**。",
-  "Seo_Tips": "- 想得到与 `sha256sum 文件` 相同的结果，请直接对文件计算，而不是粘贴其内容：复制时换行符可能改变，末尾换行也可能丢失。\n- 整数型校验和（CRC32、Adler-32、xxHash、FNV-1a）以十六进制数值显示，与 zlib、`crc32` 和 `xxhsum` 的输出一致：`hello` 的 CRC32 为 `3610a686`。\n- MD5 和 SHA-1 已可实际构造碰撞，只应用于比对已有校验值；新的校验请用 SHA-256、SHA-3 或 BLAKE3。\n- 对大文件选择多种算法只增加 CPU 时间，不会多读文件：文件只读取一次。\n- 签名 API 请求或校验 Webhook 需要带密钥的哈希，请使用 HMAC 计算器。\n- 首次访问后，页面在没有网络时也能使用。"
+  "Seo_Tips": "- 想得到与 `sha256sum 文件` 相同的结果，请直接对文件计算，而不是粘贴其内容：复制时换行符可能改变，末尾换行也可能丢失。\n- 整数型校验和（CRC32、Adler-32、xxHash、FNV-1a）以十六进制数值显示，与 zlib、`crc32` 和 `xxhsum` 的输出一致：`hello` 的 CRC32 为 `3610a686`。\n- MD5 和 SHA-1 已可实际构造碰撞，只应用于比对已有校验值；新的校验请用 SHA-256、SHA-3 或 BLAKE3。\n- 对大文件选择多种算法只增加 CPU 时间，不会多读文件：文件只读取一次。\n- 签名 API 请求或校验 Webhook 需要带密钥的哈希，请使用 HMAC 计算器。\n- 首次访问后，页面在没有网络时也能使用。",
+  "ExpectedLabel": "预期哈希（可选）",
+  "ExpectedHint": "用于与所选算法比较的十六进制摘要。忽略大小写和首尾空格。",
+  "ExpectedErrorWhitespace": "请删除值中间的空格：只粘贴摘要，而不是校验和文件中的整行。",
+  "ExpectedErrorNonHex": "只能使用十六进制字符（0–9、a–f），不要带前缀。",
+  "CompareMatches": "与 {0} 匹配",
+  "CompareNoMatch": "没有所选算法匹配。",
+  "ComparePending": "点击“计算”进行比较。",
+  "CompareStale": "输入或算法已更改。请重新计算以进行比较。",
+  "RowMatches": "匹配"
 }

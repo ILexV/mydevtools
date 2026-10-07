@@ -108,6 +108,15 @@ function init(): void {
   const outputPanel = root.querySelector<HTMLElement>("[data-md-output-panel]");
   const exampleBtn = root.querySelector<HTMLButtonElement>("[data-md-example]");
   const syncInput = inputHost ? bindEmptyState(inputHost, input) : () => {};
+  const copyHtmlBtn = root.querySelector<HTMLButtonElement>("[data-md-copy-html]");
+  const copyMdBtn = root.querySelector<HTMLButtonElement>("[data-md-copy-md]");
+  const downloadBtn = root.querySelector<HTMLButtonElement>("[data-md-download]");
+
+  /** Copy HTML / Copy Markdown / Download HTML need markdown: no empty exports. */
+  function syncExports(): void {
+    const empty = input.value.trim() === "";
+    for (const b of [copyHtmlBtn, copyMdBtn, downloadBtn]) if (b) b.disabled = empty;
+  }
 
   /** Sanitized HTML with original heading levels — what Copy HTML / Download export. */
   let exportHtml = "";
@@ -116,6 +125,7 @@ function init(): void {
     // Empty editor → compact preview placeholder; programmatic writes resync the editor too.
     syncInput();
     if (outputPanel) syncEmptyState(outputPanel, input.value === "");
+    syncExports();
     try {
       if (window.marked) {
         const fragment = sanitizeHtml(window.marked.parse(input.value, MARKED_OPTIONS));
@@ -287,21 +297,18 @@ function init(): void {
     });
   }
 
-  const copyHtmlBtn = root.querySelector<HTMLButtonElement>("[data-md-copy-html]");
   if (copyHtmlBtn) {
     copyHtmlBtn.addEventListener("click", () => {
       void copyToClipboard(exportHtml, copyHtmlBtn);
     });
   }
 
-  const copyMdBtn = root.querySelector<HTMLButtonElement>("[data-md-copy-md]");
   if (copyMdBtn) {
     copyMdBtn.addEventListener("click", () => {
       void copyToClipboard(input.value, copyMdBtn);
     });
   }
 
-  const downloadBtn = root.querySelector<HTMLButtonElement>("[data-md-download]");
   if (downloadBtn) {
     downloadBtn.addEventListener("click", downloadAsHTML);
   }

@@ -93,7 +93,7 @@
     /* text */
     --mdt-text: #151a26;
     --mdt-text-muted: #57627a;
-    --mdt-text-faint: #6b7484; /* AA on panel — micro labels */
+    --mdt-text-faint: #646d7d; /* micro labels/hints: ≥4.5:1 on panel, canvas, inset and surface-muted */
     /* borders / lines */
     --mdt-border: #e2e5f0;
     --mdt-border-soft: #eceef6;

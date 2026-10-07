@@ -58,5 +58,20 @@
   "SplitColHostRange": "Rango de hosts",
   "SplitColRange": "Rango de direcciones",
   "SplitCopyList": "Copiar lista",
-  "Error_SplitPrefix": "Introduce una longitud de prefijo de /{min} a /{max}."
+  "Error_SplitPrefix": "Introduce una longitud de prefijo de /{min} a /{max}.",
+  "Bar_Caption": "Espacio de direcciones",
+  "Bar_Network": "Dirección de red",
+  "Bar_Usable": "Hosts utilizables",
+  "Bar_Broadcast": "Dirección de difusión",
+  "Bar_PointToPoint": "Direcciones utilizables (punto a punto, RFC 3021)",
+  "Bar_Single": "Dirección única",
+  "Broadcast_NoneP2p": "Ninguna (enlace punto a punto, RFC 3021)",
+  "Broadcast_NoneSingle": "Ninguna (host único)",
+  "Bar_Range": "Rango del prefijo (IPv6 no tiene difusión)",
+  "Bar_TickNote": "Las marcas sobre y bajo la barra indican direcciones sueltas en sus extremos; no están a escala.",
+  "Split_BarCaption": "Mapa de subredes",
+  "Split_BarListed": "Subredes n.º 1–{last}, con los colores de la columna # de la tabla",
+  "Split_BarListedOne": "Subred n.º 1, la red completa",
+  "Split_BarRemainder": "Subredes n.º {from}–{last}, agrupadas",
+  "Split_BarTickNote": "Las subredes n.º 1–{last} son demasiado pequeñas para dibujarlas; la marca indica su posición y no está a escala."
 }

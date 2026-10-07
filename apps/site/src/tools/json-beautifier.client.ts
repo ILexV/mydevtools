@@ -105,9 +105,15 @@ async function init() {
     return;
   }
 
-  /** Empty-state overlay follows the document (typing, Open, drop, Clear). */
+  /**
+   * Empty-state overlay follows the document (typing, Open, drop, Clear).
+   * Save/Copy stay disabled while the editor is empty (no 0-byte formatted.json).
+   */
   function syncEmpty() {
-    if (emptyHost) syncEmptyState(emptyHost, editor.getValue() === "");
+    const empty = editor.getValue() === "";
+    if (emptyHost) syncEmptyState(emptyHost, empty);
+    if (saveBtn) saveBtn.disabled = empty;
+    if (copyBtn) copyBtn.disabled = empty;
   }
   syncEmpty();
   if (exampleBtn) bindLoadExample(exampleBtn, () => editor.setValue(EXAMPLE), editor.view.contentDOM);

@@ -1,16 +1,19 @@
 /**
  * Cron Expression Generator client: reads the five field inputs, builds the
  * expression on Generate (or Enter in a field), validates it with the shared
- * `cron-core.ts`, renders the description and next 5 runs (persisted date
- * format, shared with cron-parser). Invalid fields get a localized error and
- * `aria-invalid`; copy uses the shared `.is-copied` feedback. The result
- * panel shows a compact placeholder until an expression is generated.
+ * `cron-core.ts`, renders field capsules, the description and the shared
+ * next-run timeline (`cron-ui.ts`; persisted date format, shared with
+ * cron-parser). A successful Generate announces "Schedule updated" once;
+ * editing a field afterwards marks the result stale (muted + visible hint)
+ * until the fields match the generated expression again. Invalid fields get a
+ * localized error and `aria-invalid`; copy uses the shared `.is-copied`
+ * feedback. The default fields are generated once on load (silently); the
+ * result panel shows a compact placeholder only while the fields are invalid.
  */
 import {
   CRON_FIELDS,
   CronError,
   cronErrorMessage,
-  cronNextRuns,
   describeCron,
   parseCron,
   type CronErrorStrings,
@@ -18,17 +21,21 @@ import {
   type CronStrings,
 } from "@/tools/cron-core";
 import { copyWithFeedback, revealOutput, syncEmptyState } from "@/scripts/tool-ui";
-import { renderNextRuns, restoreDateFormat, saveDateFormat } from "@/tools/cron-ui";
+import {
+  createCronTimeline,
+  restoreDateFormat,
+  saveDateFormat,
+  setFieldCapsules,
+  type CronTimelineStrings,
+} from "@/tools/cron-ui";
 
 type Strings = CronStrings &
-  CronErrorStrings & {
+  CronErrorStrings &
+  CronTimelineStrings & {
     copied: string;
     copyFailed?: string;
-    noUpcomingRuns: string;
     fieldNames: Record<CronFieldName, string>;
   };
-
-const NEXT_RUNS = 5;
 
 function readStrings(): Strings | null {
   const el = document.querySelector<HTMLScriptElement>("[data-crong-strings]");
@@ -67,9 +74,20 @@ function init() {
   const generateBtn = root.querySelector<HTMLButtonElement>("[data-crong-generate]");
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-crong-copy]");
   const outputPanel = root.querySelector<HTMLElement>("[data-crong-output-panel]");
+  const capsList = root.querySelector<HTMLElement>("[data-crong-caps]");
+  const staleHint = root.querySelector<HTMLElement>("[data-crong-stale]");
+  const timeline = createCronTimeline(nextExecutions, strings, restoreDateFormat(dateFormatSelect));
   const setFilled = (filled: boolean) => {
     if (outputPanel) syncEmptyState(outputPanel, !filled);
   };
+  const currentExpression = () => CRON_FIELDS.map((f) => inputs[f]?.value.trim() || "*").join(" ");
+
+  /** Result no longer matches the fields: mute it and show the "generate again" hint. */
+  function syncStale() {
+    const stale = !!output.value && currentExpression() !== output.value;
+    outputPanel?.classList.toggle("is-stale", stale);
+    if (staleHint) staleHint.hidden = !stale;
+  }
 
   function setError(msg: string, field?: CronFieldName) {
     error.textContent = msg;
@@ -82,8 +100,9 @@ function init() {
     }
   }
 
-  function generateAction() {
-    const expression = CRON_FIELDS.map((f) => inputs[f]?.value.trim() || "*").join(" ");
+  /** Build + evaluate the expression; returns true when a valid schedule was rendered. */
+  function generateAction(): boolean {
+    const expression = currentExpression();
 
     let schedule;
     let text: string;
@@ -94,32 +113,32 @@ function init() {
       setError(cronErrorMessage(e, strings, strings.fieldNames), e instanceof CronError ? e.field : undefined);
       output.value = "";
       description.textContent = "";
-      nextExecutions.replaceChildren();
+      timeline.clear();
+      setFieldCapsules(capsList, null);
       setFilled(false);
-      return;
+      syncStale();
+      return false;
     }
 
     setError("");
     output.value = expression;
     description.textContent = text;
+    setFieldCapsules(capsList, expression);
+    timeline.show({ schedule });
     setFilled(true);
-    const format = dateFormatSelect.value || "locale";
-    if (!schedule) {
-      renderNextRuns(nextExecutions, strings.scheduleReboot, format, strings.lang);
-      return;
-    }
-    const runs = cronNextRuns(schedule, new Date(), NEXT_RUNS);
-    renderNextRuns(nextExecutions, runs.length ? runs : strings.noUpcomingRuns, format, strings.lang);
+    syncStale();
+    return true;
   }
 
   generateBtn?.addEventListener("click", () => {
-    generateAction();
+    if (generateAction()) timeline.announceUpdate();
     if (outputPanel && !outputPanel.classList.contains("is-empty")) revealOutput(outputPanel);
   });
   for (const f of CRON_FIELDS) {
     inputs[f]?.addEventListener("keydown", (ev) => {
-      if (ev.key === "Enter") generateAction();
+      if (ev.key === "Enter" && generateAction()) timeline.announceUpdate();
     });
+    inputs[f]?.addEventListener("input", syncStale);
   }
 
   copyBtn?.addEventListener("click", () => {
@@ -129,10 +148,13 @@ function init() {
 
   dateFormatSelect.addEventListener("change", () => {
     saveDateFormat(dateFormatSelect.value);
-    if (output.value.trim()) generateAction();
+    // Presentation only: re-render the same snapshot, no re-evaluation.
+    timeline.setFormat(dateFormatSelect.value);
   });
 
-  restoreDateFormat(dateFormatSelect);
+  // Like cron-parser: render the valid default fields once on load, silently
+  // (no "Schedule updated" announcement, no scroll); invalid defaults stay empty.
+  generateAction();
 }
 
 if (document.readyState === "loading") {

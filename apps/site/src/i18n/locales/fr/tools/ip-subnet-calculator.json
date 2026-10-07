@@ -58,5 +58,20 @@
   "SplitColHostRange": "Plage d'hôtes",
   "SplitColRange": "Plage d'adresses",
   "SplitCopyList": "Copier la liste",
-  "Error_SplitPrefix": "Saisissez une longueur de préfixe de /{min} à /{max}."
+  "Error_SplitPrefix": "Saisissez une longueur de préfixe de /{min} à /{max}.",
+  "Bar_Caption": "Espace d’adressage",
+  "Bar_Network": "Adresse réseau",
+  "Bar_Usable": "Hôtes utilisables",
+  "Bar_Broadcast": "Adresse de diffusion",
+  "Bar_PointToPoint": "Adresses utilisables (point à point, RFC 3021)",
+  "Bar_Single": "Adresse unique",
+  "Broadcast_NoneP2p": "Aucune (liaison point à point, RFC 3021)",
+  "Broadcast_NoneSingle": "Aucune (hôte unique)",
+  "Bar_Range": "Plage du préfixe (IPv6 n’a pas de diffusion)",
+  "Bar_TickNote": "Les repères au-dessus et au-dessous de la barre signalent des adresses isolées aux extrémités ; ils ne sont pas à l’échelle.",
+  "Split_BarCaption": "Carte des sous-réseaux",
+  "Split_BarListed": "Sous-réseaux nº 1–{last}, aux couleurs de la colonne # du tableau",
+  "Split_BarListedOne": "Sous-réseau nº 1, le réseau entier",
+  "Split_BarRemainder": "Sous-réseaux nº {from}–{last}, regroupés",
+  "Split_BarTickNote": "Les sous-réseaux nº 1–{last} sont trop petits pour être dessinés ; le repère indique leur position et n’est pas à l’échelle."
 }

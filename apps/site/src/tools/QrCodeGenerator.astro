@@ -1,13 +1,13 @@
 ---
 /**
  * QR Code Generator (qrcode WASM domain). Content + colors (picker ↔ hex
- * text sync), style (square/dots/rounded), error-correction level, size,
- * optional logo (drop zone with preview + clear). Generate button produces a
- * PNG preview (blob URL) with PNG download; SVG download only for square
- * style without logo (legacy parity). No live regenerate — legacy generates
- * on button click only. Workbench: content (empty state + "Load example") →
- * colours / options / logo → Generate | preview panel with PNG/SVG downloads
- * in its header and a compact placeholder until a code exists.
+ * text sync, luminance contrast hint), style (square/dots/rounded),
+ * error-correction level, size (pixels-per-module warning), optional logo
+ * (drop zone with preview + clear + real-device advice). Live preview: the
+ * PNG regenerates automatically (debounced, IME-aware) — no Generate button;
+ * while updating the previous image stays with an "Updating…" chip and the
+ * PNG/SVG downloads in the panel header are disabled. SVG only for square
+ * style without logo (legacy parity).
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
@@ -41,11 +41,16 @@ const s = {
   chooseFile: t(lang, "common", "Common_FileChooseButton"),
   loadExample: t(lang, "common", "Common_LoadExample"),
   logoRemove: t(lang, ns, "LogoRemove"),
-  generate: t(lang, ns, "Generate"),
-  generating: t(lang, ns, "Generating"),
+  updating: t(lang, ns, "Updating"),
+  previewAlt: t(lang, ns, "PreviewAlt"),
+  announceReady: t(lang, ns, "AnnounceReady"),
+  contrastValue: t(lang, ns, "ContrastValue"),
+  contrastLow: t(lang, ns, "ContrastLow"),
+  contrastInverted: t(lang, ns, "ContrastInverted"),
+  moduleSizeSmall: t(lang, ns, "ModuleSizeSmall"),
+  logoAdvice: t(lang, ns, "LogoAdvice"),
   previewSection: t(lang, ns, "PreviewSection"),
   previewPlaceholder: t(lang, ns, "PreviewPlaceholder"),
-  errorEmptyContent: t(lang, ns, "ErrorEmptyContent"),
   errorInvalidImage: t(lang, ns, "ErrorInvalidImage"),
   errorGenerateFailed: t(lang, ns, "ErrorGenerateFailed"),
   errorTooLong: t(lang, ns, "ErrorTooLong"),
@@ -53,10 +58,6 @@ const s = {
   preparing: t(lang, "common", "Common_Preparing"),
 };
 const stringsJson = JSON.stringify(s);
-const qrIcon = [
-  "M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z",
-  "M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z",
-];
 const downloadIcon = "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4";
 ---
 
@@ -72,6 +73,7 @@ const downloadIcon = "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
       ></textarea>
       <EmptyState hint={s.contentPlaceholder} hintId="qrg-content-empty" exampleLabel={s.loadExample} buttonProps={{ "data-qrg-example": true }} />
     </div>
+    <StatusMessage kind="error" id="qrg-error" data-qrg-error />
 
     <h3 class="qrg-subhead">{s.colorsSection}</h3>
     <div class="ds-settings ds-settings-flat">
@@ -87,6 +89,10 @@ const downloadIcon = "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
           <input type="text" id="qrg-bg-text" class="ds-field mono qrg-hex" data-qrg-bg-text value="#FFFFFF" maxlength="7" spellcheck="false" autocomplete="off" />
         </div>
       </Field>
+    </div>
+    <div class="qrg-contrast">
+      <p class="qrg-contrast-value" id="qrg-contrast" data-qrg-contrast></p>
+      <p class="qrg-warn" id="qrg-contrast-warn" data-qrg-contrast-warn hidden></p>
     </div>
 
     <h3 class="qrg-subhead">{s.optionsSection}</h3>
@@ -106,7 +112,7 @@ const downloadIcon = "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
           <option value="H">H - 30%</option>
         </select>
       </Field>
-      <Field label={s.sizeLabel} for="qrg-size">
+      <Field label={s.sizeLabel} for="qrg-size" hintProps={{ "data-qrg-size-hint": true, class: "ds-hint qrg-warn", hidden: true }}>
         <select id="qrg-size" class="ds-field-select" data-qrg-size>
           <option value="256">256 × 256</option>
           <option value="512" selected>512 × 512</option>
@@ -132,16 +138,7 @@ const downloadIcon = "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
         <button type="button" class="ds-btn ds-btn-small ds-btn-danger" data-qrg-logo-clear>{s.logoRemove}</button>
       </div>
     </FileDrop>
-
-    <div class="ds-action-row">
-      <button type="button" class="ds-btn ds-btn-primary qrg-generate" data-qrg-generate>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20" aria-hidden="true">
-          {qrIcon.map((d) => <path stroke-linecap="round" stroke-linejoin="round" d={d} />)}
-        </svg>
-        <span data-qrg-generate-label>{s.generate}</span>
-      </button>
-    </div>
-    <StatusMessage kind="error" data-qrg-error />
+    <p class="ds-hint qrg-warn" id="qrg-logo-advice" data-qrg-logo-advice hidden>{s.logoAdvice}</p>
   </ToolPanel>
 
   <ToolPanel title={s.previewSection} class="qrg-preview-section">
@@ -155,12 +152,11 @@ const downloadIcon = "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
         SVG
       </a>
     </Fragment>
-    <div class="qrg-preview-box" data-qrg-preview-box aria-live="polite">
+    <div class="qrg-preview-box" data-qrg-preview-box>
       <span class="ds-empty-state-hint" data-qrg-placeholder>{s.previewPlaceholder}</span>
-      <img class="qrg-preview-img" data-qrg-preview alt="QR Code" hidden />
-      <div class="qrg-loading" data-qrg-loading hidden>
-        <span class="ds-spinner qrg-spinner" aria-hidden="true"></span>
-      </div>
+      <img class="qrg-preview-img" data-qrg-preview alt={s.previewAlt} hidden />
+      <!-- Stale-image marker: the previous code stays visible while the next one renders. -->
+      <span class="qrg-updating" data-qrg-loading hidden>{s.updating}</span>
     </div>
   </ToolPanel>
 </div>
@@ -210,13 +206,46 @@ const downloadIcon = "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
   }
   .qrg-preview-box > [data-qrg-placeholder] { font-size: var(--mdt-fs-meta); color: var(--mdt-text-faint); }
   .qrg-preview-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: var(--mdt-radius-sm); }
-  .qrg-loading {
+  .qrg-preview-box.is-stale > .qrg-preview-img { opacity: 0.55; }
+  /* "Updating…" chip over the retained image (text, not just dimming). */
+  .qrg-updating {
     position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: color-mix(in srgb, var(--mdt-surface-raised) 70%, transparent);
+    top: 0.6rem;
+    inset-inline-end: 0.6rem;
+    padding: 0.2rem 0.6rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: 999px;
+    background: var(--mdt-surface-raised);
+    font-size: var(--mdt-fs-label);
+    color: var(--mdt-text-muted);
   }
-  .qrg-spinner { width: 2.5rem; height: 2.5rem; border-width: 3px; }
+  .qrg-contrast { display: grid; gap: 0.35rem; margin-top: -0.25rem; }
+  .qrg-contrast > p { margin: 0; }
+  .qrg-contrast-value { font-size: var(--mdt-fs-label); color: var(--mdt-text-muted); font-variant-numeric: tabular-nums; }
+</style>
+
+<style is:global>
+  /* Global (but tool-scoped): the size hint is rendered by Field.astro, outside this component's scope. */
+  /* Scanning advice: warning tone + leading "!" glyph so the state is not colour-only. */
+  [data-qrg-tool] .qrg-warn {
+    display: flex;
+    gap: 0.4rem;
+    font-size: var(--mdt-fs-label);
+    line-height: 1.45;
+    color: var(--mdt-warning);
+  }
+  [data-qrg-tool] .qrg-warn::before { content: "!"; content: "!" / ""; flex: none; display: inline-grid; place-items: center; width: 1.05rem; height: 1.05rem; margin-top: 0.05rem; border: 1.5px solid currentColor; border-radius: 50%; font-size: 0.7rem; font-weight: 700; line-height: 1; }
+  [data-qrg-tool] .qrg-warn[hidden] { display: none; }
+  /* Korean: break between words, not inside them. */
+  [data-qrg-tool]:lang(ko) .qrg-warn { word-break: keep-all; }
+  /* Equal / reversed luminance: stronger block-level recommendation. */
+  [data-qrg-tool] .qrg-warn.is-strong {
+    padding: 0.6rem 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--mdt-warning) 35%, transparent);
+    border-radius: var(--mdt-radius-sm);
+    background: color-mix(in srgb, var(--mdt-warning) 9%, transparent);
+    color: var(--mdt-text);
+  }
+  [data-qrg-tool] .qrg-warn.is-strong::before { color: var(--mdt-warning); }
+  [data-qrg-tool] #qrg-logo-advice { margin-top: 0.5rem; }
 </style>

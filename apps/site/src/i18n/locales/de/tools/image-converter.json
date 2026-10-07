@@ -11,6 +11,7 @@
   "OutputSize": "Ausgabegröße:",
   "ErrorNotImage": "Bitte lade eine Bilddatei hoch.",
   "ErrorConversion": "Konvertierung fehlgeschlagen.",
+  "ErrorDamagedImage": "Diese Datei ist kein unterstütztes Bild oder ist beschädigt.",
   "PreviewAlt": "Dateivorschau",
   "ResultLabel": "Konvertiertes Bild",
   "QualityLow": "Niedrig",

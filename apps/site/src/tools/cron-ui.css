@@ -1,0 +1,179 @@
+/*
+ * Shared styles for the cron-parser / cron-generator results (imported by both
+ * .astro shells; unlayered, every selector is `.cron-*`): field capsules with
+ * one fixed hue per field, the vertical next-run timeline (8px dots, 1px
+ * connector, equal 12px gaps = sequence, not elapsed time) and the stale state
+ * shown after edits until the schedule is evaluated again.
+ */
+
+/* Field hue mapping (frozen for both tools): existing category hues, never the
+   tool identity `--mdt-cat` (structured-data). */
+.cron-caps {
+  --cron-hue-minute: var(--mdt-cat-encoding);
+  --cron-hue-hour: var(--mdt-cat-generators);
+  --cron-hue-day: var(--mdt-cat-jwt);
+  --cron-hue-month: var(--mdt-cat-design);
+  --cron-hue-weekday: var(--mdt-cat-hashing);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cron-cap {
+  --cron-hue: var(--mdt-text-faint);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  flex: 1 1 5.5rem;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0.45rem 0.7rem 0.5rem;
+  border: 1px solid var(--mdt-border);
+  border-block-start: 3px solid var(--cron-hue);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--cron-hue) 6%, var(--mdt-surface-raised));
+}
+.cron-cap[data-field="minute"] { --cron-hue: var(--cron-hue-minute); }
+.cron-cap[data-field="hour"] { --cron-hue: var(--cron-hue-hour); }
+.cron-cap[data-field="day"] { --cron-hue: var(--cron-hue-day); }
+.cron-cap[data-field="month"] { --cron-hue: var(--cron-hue-month); }
+.cron-cap[data-field="weekday"] { --cron-hue: var(--cron-hue-weekday); }
+/* Visual order: value above, label below (DOM keeps "label, value" for screen readers). */
+.cron-cap-value {
+  order: -1;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--mdt-font-mono);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--mdt-text);
+  overflow-wrap: anywhere;
+  unicode-bidi: isolate;
+}
+.cron-cap-label {
+  font-size: var(--mdt-fs-label);
+  line-height: 1.3;
+  color: var(--mdt-text-muted);
+}
+
+/* ---------- next-run timeline ---------- */
+/* Heading + date-format select: the select drops below instead of squeezing the label. */
+.cron-label-row {
+  flex-wrap: wrap;
+  align-items: center;
+}
+.cron-timeline {
+  --cron-dot: 8px;
+  --cron-gap: 12px;
+  /* Dot centre sits on the first text line. */
+  --cron-dot-top: calc(0.75em - var(--cron-dot) / 2);
+  display: grid;
+  gap: var(--cron-gap);
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+}
+.cron-run {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.1rem 1rem;
+  padding-inline-start: 1.5rem;
+  line-height: 1.5;
+  min-width: 0;
+}
+/* Dot (decorative pseudo-element; the <ol> carries the order). */
+.cron-run::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: var(--cron-dot-top);
+  width: var(--cron-dot);
+  height: var(--cron-dot);
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 1.5px solid var(--mdt-cat);
+  background: var(--mdt-surface-raised);
+}
+.cron-run:first-child::before {
+  background: var(--mdt-cat);
+}
+/* 1px connector from this dot to the next one. */
+.cron-run:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(var(--cron-dot) / 2 - 0.5px);
+  top: calc(var(--cron-dot-top) + var(--cron-dot));
+  bottom: calc(-1 * (var(--cron-gap) + var(--cron-dot-top)));
+  width: 1px;
+  background: var(--mdt-border);
+}
+.cron-run:focus-visible {
+  outline: 2px solid var(--mdt-focus-ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.cron-run-abs {
+  font-family: var(--mdt-font-mono);
+  font-size: 0.9rem;
+  color: var(--mdt-text);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.cron-run-rel {
+  margin-inline-start: auto;
+  font-size: var(--mdt-fs-label);
+  color: var(--mdt-text-muted);
+  white-space: nowrap;
+}
+.cron-timeline-more {
+  margin-top: 0.6rem;
+  margin-inline-start: 1rem;
+}
+@media (pointer: coarse) {
+  .cron-timeline-more { min-height: 2.75rem; }
+}
+.cron-timeline-note {
+  margin-top: 0.6rem;
+}
+.cron-timeline-empty {
+  font-family: var(--mdt-font-sans);
+  text-align: start;
+  padding: 0.5rem 0;
+  line-height: 1.5;
+}
+.cron-timeline-context {
+  margin-top: 0.85rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--mdt-border-soft);
+}
+
+/* ---------- stale results (edited since the last evaluation) ---------- */
+/* Muted, not faded: text keeps AA contrast; the visible hint says why. */
+.is-stale :is(.cron-run-abs, .cron-cap-value, .cron-stale-dim) {
+  color: var(--mdt-text-muted);
+}
+.is-stale .cron-run::before {
+  border-color: var(--mdt-text-faint);
+  background: var(--mdt-surface-raised);
+}
+.is-stale .cron-cap {
+  border-block-start-style: dashed;
+}
+.cron-stale-hint {
+  margin: 0;
+  color: var(--mdt-warning);
+}
+@media (forced-colors: active) {
+  .cron-cap { border-block-start-color: CanvasText; }
+  .cron-run::before { border-color: CanvasText; }
+  .cron-run:first-child::before { background: CanvasText; }
+}

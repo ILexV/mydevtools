@@ -134,6 +134,21 @@
     line-height: 1.3;
     color: var(--mdt-text);
   }
+  /* Head degradation in long locales: the title takes the free space and
+     wraps its own text (basis 7rem) before the actions drop to a second
+     row; if they still don't fit, the actions become one right-aligned
+     full-width row under the title. A panel with meta keeps title + meta
+     together on the left. */
+  .ds-panel-head > .ds-panel-title {
+    flex: 1 1 7rem;
+    overflow-wrap: break-word;
+  }
+  .ds-panel-head:has(> .ds-panel-meta) > .ds-panel-title {
+    flex: 0 1 auto;
+  }
+  .ds-panel-head > .ds-panel-actions {
+    flex: 0 1 auto;
+  }
   .ds-panel-title::before {
     content: "";
     flex-shrink: 0;
@@ -182,6 +197,15 @@
     }
     .ds-panel-actions > .ds-btn-small:has(> .ds-copy-faces > .ds-copy-face-idle > svg) {
       min-width: 2.25rem;
+    }
+    /* Ghost text buttons that carry an icon (Download, Upload, Library…)
+       collapse to the icon like CopyButton; font-size 0 hides the text
+       visually but keeps it as the accessible name. */
+    .ds-panel-actions > .ds-btn-ghost:has(> svg):not(:has(> .ds-copy-faces)) {
+      min-width: 2.75rem;
+      padding-inline: 0;
+      gap: 0;
+      font-size: 0;
     }
   }
 
@@ -335,6 +359,32 @@
   }
   .ds-hint-error {
     color: var(--mdt-danger);
+  }
+  /* Cross-link to a sibling tool (cron generator ↔ parser, JWT encoder ↔
+     decoder): `<p class="ds-related-hint">Lead text <a href>Tool name</a></p>`.
+     The link wraps as one unit (inline-block) with the arrow after it, never
+     before a wrapped name; its colour is the category hue pulled toward the
+     text colour so 13px text stays ≥4.5:1 in both themes. */
+  .ds-related-hint {
+    margin: 0;
+    font-size: var(--mdt-fs-meta);
+    line-height: 1.5;
+    color: var(--mdt-text-muted);
+  }
+  .ds-related-hint a {
+    display: inline-block;
+    color: color-mix(in srgb, var(--mdt-cat) 72%, var(--mdt-text));
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+    text-underline-offset: 3px;
+  }
+  .ds-related-hint a::after {
+    content: "\00a0→";
+    content: "\00a0→" / "";
+  }
+  .ds-related-hint a:hover {
+    text-decoration-color: currentColor;
   }
 
   /* Invalid control: set aria-invalid="true" from the controller. */
@@ -1158,15 +1208,68 @@
     color: var(--mdt-text-muted);
   }
 
-  /* Touch: panel actions and row copy controls grow to 44px targets. */
-  @media (pointer: coarse) {
+  /* Touch targets (WCAG 2.5.5, 44px) on touch screens and phones (≤480px):
+     small/ghost buttons ("Load example", panel-head Clear/Copy/Open), icon
+     buttons, selects and check rows grow to 44px; chips and inline link
+     buttons keep their look and get an invisible 44px hit box instead.
+     Desktop with a fine pointer is unchanged. */
+  @media (pointer: coarse), (max-width: 30rem) {
+    .ds-btn-small,
     .ds-panel-actions > :is(.ds-btn, .ds-icon-btn),
-    .ds-result-row > :is(.ds-btn, .ds-icon-btn) {
+    .ds-result-row > :is(.ds-btn, .ds-icon-btn),
+    .ds-field-select {
       min-height: 2.75rem;
     }
+    .ds-panel-actions > .ds-btn-small:has(> .ds-copy-faces > .ds-copy-face-idle > svg) {
+      min-width: 2.75rem;
+    }
+    .ds-icon-btn,
     .ds-result-row > .ds-icon-btn {
       width: 2.75rem;
       height: 2.75rem;
+    }
+    .ds-input-group > .ds-icon-btn {
+      width: 2.75rem;
+      min-height: 2.75rem;
+    }
+    /* Check rows: the whole label is the target (no visual box to grow). */
+    .ds-check-row {
+      min-height: 2.75rem;
+    }
+    .ds-check-group {
+      gap: 0;
+    }
+    /* Inline link buttons (Reset, Clear file): padding grows the box to 44px,
+       equal negative margins keep the surrounding line and layout as is. */
+    .ds-btn-link,
+    .ds-related-hint a {
+      display: inline-block;
+      min-width: 2.75rem;
+      padding-block: 0.75rem;
+      margin-block: -0.75rem;
+      text-align: center;
+    }
+    /* Chips: the button becomes a transparent 44px box; the visible pill is
+       an inset ::before painted with the same --ds-chip-* fill/border. */
+    .ds-chip-list {
+      row-gap: 0;
+    }
+    .ds-chip-btn {
+      position: relative;
+      isolation: isolate;
+      min-height: 2.75rem;
+      background: transparent;
+      border-color: transparent;
+    }
+    .ds-chip-btn::before {
+      content: "";
+      position: absolute;
+      inset: 0.4375rem -1px;
+      z-index: -1;
+      border-radius: inherit;
+      background: var(--ds-chip-bg);
+      border: 1px solid var(--ds-chip-border);
+      transition: border-color var(--mdt-dur-micro), background var(--mdt-dur-micro);
     }
   }
 
@@ -1245,13 +1348,18 @@
     flex-wrap: wrap;
     gap: 0.4rem;
   }
+  /* Fill/border go through --ds-chip-bg / --ds-chip-border so the touch
+     layout (see "touch targets" below) can paint them on an inset ::before
+     pill while the button itself grows to a 44px hit area. */
   .ds-chip-btn {
+    --ds-chip-bg: var(--mdt-surface-inset);
+    --ds-chip-border: var(--mdt-border);
     font-family: var(--mdt-font-mono);
     font-size: var(--mdt-fs-label);
     line-height: 1.3;
     color: var(--mdt-text-muted);
-    background: var(--mdt-surface-inset);
-    border: 1px solid var(--mdt-border);
+    background: var(--ds-chip-bg);
+    border: 1px solid var(--ds-chip-border);
     border-radius: var(--mdt-radius-xs);
     padding: 4px 10px;
     cursor: pointer;
@@ -1259,13 +1367,15 @@
       background var(--mdt-dur-micro);
   }
   .ds-chip-btn:hover {
-    color: var(--mdt-cat);
-    border-color: color-mix(in srgb, var(--mdt-cat) 45%, var(--mdt-border));
+    color: color-mix(in srgb, var(--mdt-cat) 72%, var(--mdt-text));
+    --ds-chip-border: color-mix(in srgb, var(--mdt-cat) 45%, var(--mdt-border));
   }
+  /* Hover / active preset: text is the category hue mixed toward --mdt-text
+     so small mono labels stay ≥4.5:1 (raw light cat hues are ~3.8:1 here). */
   .ds-chip-btn[aria-pressed="true"] {
-    color: var(--mdt-cat);
-    border-color: color-mix(in srgb, var(--mdt-cat) 45%, var(--mdt-border));
-    background: color-mix(in srgb, var(--mdt-cat) 12%, transparent);
+    color: color-mix(in srgb, var(--mdt-cat) 72%, var(--mdt-text));
+    --ds-chip-border: color-mix(in srgb, var(--mdt-cat) 45%, var(--mdt-border));
+    --ds-chip-bg: color-mix(in srgb, var(--mdt-cat) 12%, transparent);
   }
   .ds-chip-btn:disabled {
     opacity: 0.45;
@@ -1300,9 +1410,12 @@
       forced-color-adjust: none;
       background: Highlight;
     }
-    .ds-dropzone.is-dragover,
-    .ds-chip-btn[aria-pressed="true"] {
+    .ds-dropzone.is-dragover {
       border-color: Highlight;
+    }
+    /* Via the token so the touch layout's ::before pill gets it too. */
+    .ds-chip-btn[aria-pressed="true"] {
+      --ds-chip-border: Highlight;
     }
     .ds-btn[aria-busy="true"]::before {
       border-color: CanvasText;

@@ -11,6 +11,7 @@
   "OutputSize": "출력 크기:",
   "ErrorNotImage": "이미지 파일을 업로드하세요.",
   "ErrorConversion": "변환에 실패했습니다.",
+  "ErrorDamagedImage": "지원되는 이미지 파일이 아니거나 파일이 손상되었습니다.",
   "PreviewAlt": "파일 미리보기",
   "ResultLabel": "변환된 이미지",
   "QualityLow": "낮음",

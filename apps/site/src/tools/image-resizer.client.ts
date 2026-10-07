@@ -12,7 +12,10 @@
  * `<base>_<w>x<h>.<ext>` (jpeg→jpg). Object URLs are revoked on replace/clear.
  * Result is shown in a before/after ImageCompare slider (`bindImageCompare`);
  * the headline carries result dimensions + size, the comparison the original's
- * and the signed size change.
+ * and the signed size change. A file neither the browser nor WASM can decode
+ * stays listed in an error state (generic icon, localized "not a supported
+ * image or damaged" under the row, Resize hint switched to that error) — never
+ * the raw decoder text and never a contradicting "Choose an image first".
  */
 import { convertImage, resizeImage } from "@/scripts/wasm/image-tools-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
@@ -22,22 +25,24 @@ import { bindImageCompare } from "@/scripts/image-compare";
 import {
   guessResizeFormat,
   isDecodableImage,
+  isImageDecodeError,
   isImageFile,
   lockedDimension,
   mimeFor,
   parseResizeDimensions,
   resizedName,
 } from "@/tools/image-tools";
+import { showImageError } from "@/tools/image-error-ui";
 
 interface Strings {
   resize: string;
   resizing: string;
   errorNotImage: string;
   errorUnsupported: string;
-  errorLoadImage: string;
   errorInvalidDimensions: string;
   errorTooLarge: string;
   errorResizeFailed: string;
+  errorDamaged: string;
   /** `Common_Preparing` — first-run WASM load feedback. */
   preparing?: string;
 }
@@ -65,6 +70,8 @@ function init() {
   const clearBtn = q<HTMLButtonElement>("[data-imgr-clear]");
   const selectedEl = q<HTMLElement>("[data-imgr-selected]");
   const preview = q<HTMLImageElement>("[data-imgr-preview]");
+  const thumbIcon = q<HTMLElement>("[data-imgr-thumb-icon]");
+  const needFileHint = q<HTMLElement>("[data-imgr-need-file]");
   const nameEl = q<HTMLElement>("[data-imgr-filename]");
   const sizeEl = q<HTMLElement>("[data-imgr-filesize]");
   const settingsEl = q<HTMLElement>("[data-imgr-settings]");
@@ -99,9 +106,25 @@ function init() {
   let resultName: string | null = null;
   let job: AbortController | null = null;
 
-  function showError(msg: string) {
-    errEl!.textContent = msg;
-    errEl!.hidden = false;
+  function showError(msg: string, detail?: string) {
+    showImageError(errEl!, msg, detail);
+  }
+  /** Thumbnail ↔ generic icon (while undisplayable / undecodable). */
+  function showThumb(on: boolean) {
+    preview!.hidden = !on;
+    if (thumbIcon) thumbIcon.hidden = on;
+  }
+  /**
+   * Bad-file state: the listed file can't be decoded. The disabled Resize
+   * button then points at the error instead of "Choose an image first".
+   */
+  function setFileBroken(broken: boolean) {
+    if (needFileHint) needFileHint.hidden = broken;
+    actionBtn!.setAttribute("aria-describedby", broken ? "imgr-error" : "imgr-need-file");
+    if (broken) {
+      showThumb(false);
+      showError(strings!.errorDamaged);
+    }
   }
   function clearError() {
     errEl!.hidden = true;
@@ -146,6 +169,8 @@ function init() {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     previewUrl = null;
     preview!.removeAttribute("src");
+    showThumb(true);
+    setFileBroken(false);
     actionBtn!.disabled = true;
     hideOutput();
   }
@@ -175,7 +200,8 @@ function init() {
     if (sizeEl) sizeEl.textContent = formatBytes(file.size, 2);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     previewUrl = URL.createObjectURL(file);
-    preview!.hidden = false;
+    setFileBroken(false);
+    showThumb(true);
     // The preview doubles as the dimension probe (legacy used a separate Image).
     preview!.src = previewUrl;
   }
@@ -183,6 +209,7 @@ function init() {
   preview.addEventListener("load", () => {
     const file = currentFile;
     if (!file || !preview.naturalWidth) return;
+    showThumb(true);
     originalWidth = preview.naturalWidth;
     originalHeight = preview.naturalHeight;
     widthEl.value = String(originalWidth);
@@ -197,6 +224,8 @@ function init() {
   preview.addEventListener("error", () => {
     const file = currentFile;
     if (!file || !preview.getAttribute("src")) return;
+    // Generic icon meanwhile — no broken-image glyph or spilled alt text.
+    showThumb(false);
     if (wasmPreviewFor !== file) {
       // The browser can't decode it (e.g. TIFF/TGA): decode to PNG in the
       // worker; the PNG preview then drives the usual dimension probe.
@@ -204,8 +233,7 @@ function init() {
       void wasmPreview(file);
       return;
     }
-    preview.hidden = true;
-    showError(strings.errorLoadImage);
+    setFileBroken(true);
   });
 
   async function wasmPreview(file: File) {
@@ -217,8 +245,7 @@ function init() {
       preview!.src = previewUrl;
     } catch {
       if (currentFile !== file) return;
-      preview!.hidden = true;
-      showError(strings!.errorLoadImage);
+      setFileBroken(true);
     }
   }
 
@@ -275,7 +302,9 @@ function init() {
       if (e instanceof WasmError && e.code === "aborted") return;
       hideOutput();
       const detail = e instanceof Error ? e.message : "";
-      showError(detail ? `${strings!.errorResizeFailed} ${detail}` : strings!.errorResizeFailed);
+      // Undecodable input: plain localized message, raw decoder text dropped.
+      if (isImageDecodeError(detail)) showError(strings!.errorDamaged);
+      else showError(strings!.errorResizeFailed, detail);
     } finally {
       if (job === ctrl) job = null;
       setBusy(false);

@@ -102,6 +102,8 @@ function initTool(): void {
   const info = q<HTMLElement>("[data-ssh-info]");
   const warnings = q<HTMLElement>("[data-ssh-warnings]");
   const errorEl = q<HTMLElement>("[data-ssh-error]");
+  /** Error box inside the Import card (import / convert / key file), separate from generation errors. */
+  const importErrorEl = q<HTMLElement>("[data-ssh-import-error]");
   const noteEl = q<HTMLElement>("[data-ssh-note]");
   const wsHint = q<HTMLElement>("[data-ssh-passphrase-ws]");
   const progress = q<HTMLElement>("[data-ssh-progress]");
@@ -154,7 +156,8 @@ function initTool(): void {
     warningsBox.hidden = false;
   }
 
-  function setError(err: unknown): void {
+  /** Localized error into `box` (default: the generation error next to the keys). */
+  function setError(err: unknown, box: HTMLElement = errorBox): void {
     const message = err instanceof Error ? err.message : String(err);
     const key = sshErrorKey(message);
     if (key) passInput.setAttribute("aria-invalid", "true");
@@ -163,20 +166,22 @@ function initTool(): void {
       : key === "ErrorWrongPassphrase"
         ? strings.errorWrongPassphrase
         : message;
-    errorBox.textContent = "";
+    box.textContent = "";
     const strong = document.createElement("strong");
     strong.textContent = `${strings.error}:`;
-    errorBox.append(strong, ` ${text}`);
-    errorBox.hidden = false;
+    box.append(strong, ` ${text}`);
+    box.hidden = false;
+    if (box !== errorBox) importArea.setAttribute("aria-invalid", "true");
   }
 
   function clearMessages(): void {
-    for (const box of [warningsBox, infoBox, errorBox, noteEl]) {
+    for (const box of [warningsBox, infoBox, errorBox, importErrorEl, noteEl]) {
       if (!box) continue;
       box.hidden = true;
       box.textContent = "";
     }
     passInput.removeAttribute("aria-invalid");
+    importArea.removeAttribute("aria-invalid");
   }
 
   function showInfo(algorithmName: string, comment: string): void {
@@ -234,7 +239,7 @@ function initTool(): void {
       if (publicArea.value || privateArea.value) revealOutput(publicArea.value ? publicPanel : privatePanel);
     } catch (err) {
       if (err instanceof WasmError && err.code === "aborted") showNote(strings.generationCanceled);
-      else setError(err);
+      else setError(err, btn !== generateBtn && importErrorEl ? importErrorEl : errorBox);
     } finally {
       btn.removeAttribute("aria-busy");
       for (const b of actionButtons) b.disabled = false;
@@ -355,7 +360,7 @@ function initTool(): void {
       importArea.value = (await file.text()).trim();
       syncImport();
     } catch (err) {
-      setError(err);
+      setError(err, importErrorEl ?? errorBox);
     }
   }
 

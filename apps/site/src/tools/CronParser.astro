@@ -2,8 +2,9 @@
 /**
  * Cron Expression Parser (pure JS). Parses a 5-field cron expression (or an
  * @preset like @daily/@reboot) into validation, a human-readable description,
- * the next 5 execution times (local time, selectable date format persisted in
- * localStorage), and a per-field breakdown. Live parsing on input (300ms
+ * a vertical timeline of the next 5 runs ("Show next 5" up to 10; absolute time
+ * + "in …", evaluation time zone; date format persisted in localStorage) and
+ * five coloured field capsules. Live parsing on input (300ms
  * debounce), quick presets, copy description. Parsing/description/next runs
  * live in the shared pure `cron-core.ts`; DOM wiring in `cron-parser.client.ts`.
  */
@@ -15,6 +16,8 @@ import CopyButton from "@/components/tool/CopyButton.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
 import ToolPanel from "@/components/tool/ToolPanel.astro";
+import CronFieldCapsules from "@/tools/CronFieldCapsules.astro";
+import "@/tools/cron-ui.css";
 
 interface Props {
   lang: LocaleCode;
@@ -77,6 +80,12 @@ const clientStrings = {
   errorUnknownPreset: t(lang, ns, "ErrorUnknownPreset"),
   errorFieldValue: t(lang, ns, "ErrorFieldValue"),
   noUpcomingRuns: t(lang, ns, "NoUpcomingRuns"),
+  timelineShowMore: t(lang, ns, "TimelineShowMore"),
+  timelineHorizon: t(lang, ns, "TimelineHorizon"),
+  timelineReboot: t(lang, ns, "TimelineReboot"),
+  timelineContext: t(lang, ns, "TimelineContext"),
+  timelineRules: t(lang, ns, "TimelineRules"),
+  announceUpdated: t(lang, ns, "AnnounceUpdated"),
   fieldNames: {
     minute: s.partMinute,
     hour: s.partHour,
@@ -98,9 +107,7 @@ const generatorUrl = localizedPath(lang, "cron-generator");
 ---
 
 <div class="ds-stack" data-cronp-tool>
-  <p class="ds-alert ds-alert-info">
-    {s.linkToGenerator} → <a href={generatorUrl}>{s.generatorTitle}</a>
-  </p>
+  <p class="ds-related-hint">{s.linkToGenerator} <a href={generatorUrl}>{s.generatorTitle}</a></p>
 
   <div class="ds-workbench">
     <ToolPanel title={s.inputLabel} for="cronp-input">
@@ -146,12 +153,14 @@ const generatorUrl = localizedPath(lang, "cron-generator");
     <OutputPanel panel label={s.resultsLabel} emptyHint={s.parseToSeeResult} data-cronp-output-panel>
       <div class="ds-result-headline ds-when-filled">
         <span class="ds-result-headline-label">{s.humanReadableLabel}</span>
-        <output class="ds-result-headline-value cron-headline" data-cronp-human aria-live="polite"></output>
+        <output class="ds-result-headline-value cron-headline cron-stale-dim" data-cronp-human></output>
         <CopyButton iconOnly label={s.copy} copiedLabel={s.copied} failedLabel={s.copyFailed} data-cronp-copy />
       </div>
 
+      <CronFieldCapsules class="ds-when-filled" label={s.partsLabel} names={clientStrings.fieldNames} data-cronp-caps />
+
       <div class="ds-field-group ds-when-filled">
-        <div class="ds-label-row">
+        <div class="ds-label-row cron-label-row">
           <span class="ds-label" id="cronp-next-label">{s.nextExecutionsLabel}</span>
           <select class="ds-field-select cron-format" data-cronp-date-format aria-label={s.dateFormatLabel}>
             <option value="locale">{s.dateFormatLocale}</option>
@@ -163,18 +172,7 @@ const generatorUrl = localizedPath(lang, "cron-generator");
             <option value="verbose">{s.dateFormatVerbose}</option>
           </select>
         </div>
-        <div data-cronp-next aria-live="polite"></div>
-      </div>
-
-      <div class="ds-field-group ds-when-filled">
-        <span class="ds-label" id="cronp-parts-label">{s.partsLabel}</span>
-        <dl class="ds-result-list cron-parts" aria-labelledby="cronp-parts-label">
-        <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{s.partMinute}</dt><dd class="ds-result-value" data-cronp-part-minute>*</dd></div>
-        <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{s.partHour}</dt><dd class="ds-result-value" data-cronp-part-hour>*</dd></div>
-        <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{s.partDay}</dt><dd class="ds-result-value" data-cronp-part-day>*</dd></div>
-        <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{s.partMonth}</dt><dd class="ds-result-value" data-cronp-part-month>*</dd></div>
-        <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{s.partWeekday}</dt><dd class="ds-result-value" data-cronp-part-weekday>*</dd></div>
-        </dl>
+        <div data-cronp-next aria-labelledby="cronp-next-label" role="group"></div>
       </div>
     </OutputPanel>
   </div>
@@ -189,12 +187,5 @@ const generatorUrl = localizedPath(lang, "cron-generator");
   .cron-format { width: auto; max-width: 100%; min-width: 0; }
   /* The description is prose, not a number: calmer than the default headline size. */
   .cron-headline { font-family: var(--mdt-font-sans); font-size: 1.15rem; line-height: 1.4; }
-  /* Field breakdown: aligned name column (rows are "key + value", no button). */
-  .cron-parts .ds-result-row-info { grid-template-columns: minmax(0, 9rem) minmax(0, 1fr); }
-  .cron-parts dd { margin: 0; color: var(--mdt-cat); font-weight: 600; }
-
-  /* Next-run list (rows are created by the controller → :global). */
-  [data-cronp-tool] :global(.cron-next) { margin: 0; padding-left: 2.2rem; }
-  [data-cronp-tool] :global(.cron-next li + li) { margin-top: 0.3rem; }
-  [data-cronp-tool] :global(.cron-next li::marker) { color: var(--mdt-text-faint); }
+  /* Timeline + field capsules: shared `cron-ui.css`. */
 </style>

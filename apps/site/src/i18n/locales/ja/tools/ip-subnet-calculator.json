@@ -58,5 +58,20 @@
   "SplitColHostRange": "ホスト範囲",
   "SplitColRange": "アドレス範囲",
   "SplitCopyList": "リストをコピー",
-  "Error_SplitPrefix": "/{min} から /{max} までのプレフィックス長を入力してください。"
+  "Error_SplitPrefix": "/{min} から /{max} までのプレフィックス長を入力してください。",
+  "Bar_Caption": "アドレス空間",
+  "Bar_Network": "ネットワークアドレス",
+  "Bar_Usable": "使用可能なホスト",
+  "Bar_Broadcast": "ブロードキャストアドレス",
+  "Bar_PointToPoint": "使用可能なアドレス（ポイントツーポイント、RFC 3021）",
+  "Bar_Single": "単一アドレス",
+  "Broadcast_NoneP2p": "なし（ポイントツーポイントリンク、RFC 3021）",
+  "Broadcast_NoneSingle": "なし（単一ホスト）",
+  "Bar_Range": "プレフィックスの範囲（IPv6 にブロードキャストはありません）",
+  "Bar_TickNote": "バーの上下の目印は両端の単一アドレスを示し、縮尺どおりではありません。",
+  "Split_BarCaption": "サブネットマップ",
+  "Split_BarListed": "サブネット #1–#{last}（表の # 列と同じ色）",
+  "Split_BarListedOne": "サブネット #1（ネットワーク全体）",
+  "Split_BarRemainder": "サブネット #{from}–#{last}（まとめて表示）",
+  "Split_BarTickNote": "サブネット #1–#{last} は小さすぎて描画できません。目印は位置を示すもので、縮尺どおりではありません。"
 }

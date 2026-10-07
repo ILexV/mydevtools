@@ -43,6 +43,7 @@ const s = {
   errorNotImage: t(lang, ns, "ErrorNotImage"),
   errorUnsupported: t(lang, ns, "ErrorUnsupportedFormat"),
   errorConversion: t(lang, ns, "ErrorConversion"),
+  errorDamaged: t(lang, ns, "ErrorDamagedImage"),
   webpLosslessNote: t(lang, ns, "WebpLosslessNote"),
   needFile: t(lang, ns, "NeedFile"),
   preparing: t(lang, "common", "Common_Preparing"),
@@ -76,9 +77,10 @@ const compare = {
     inputProps={{ "data-imgv-file": true }}
   />
 
-  <div class="ds-file-item" data-imgv-selected hidden>
+  <div class="ds-file-item imgv-row" data-imgv-selected hidden>
     <div class="imgv-file">
       <img class="imgv-thumb" data-imgv-preview alt={s.previewAlt} />
+      <span class="imgv-thumb imgv-thumb-icon" data-imgv-thumb-icon hidden><Icon name="images" size={24} /></span>
       <div class="imgv-file-text">
         <div class="ds-file-item-name" data-imgv-filename></div>
         <div class="ds-file-item-meta" data-imgv-filesize></div>
@@ -152,6 +154,11 @@ const compare = {
   .imgv-tool { max-width: 48rem; margin: 0 auto; }
   .imgv-file { display: flex; align-items: center; gap: 0.8rem; min-width: 0; }
   .imgv-file-text { min-width: 0; }
+  /* Single-file row keeps its lone × on the right on phones too (the kit drops
+     row actions below the name at ≤30rem for multi-action PDF rows). */
+  @media (max-width: 30rem) {
+    .imgv-row { grid-template-columns: minmax(0, 1fr) auto; }
+  }
   .imgv-thumb {
     flex: none;
     width: 3.5rem;
@@ -160,6 +167,10 @@ const compare = {
     border-radius: var(--mdt-radius-sm);
     background: var(--mdt-surface-muted);
   }
+  /* Generic icon when the thumbnail can't be decoded (no broken-image glyph / spilled alt). */
+  .imgv-thumb-icon { display: grid; place-items: center; color: var(--mdt-text-faint); }
+  /* Technical detail under a localized error (muted secondary line). */
+  .imgv-tool :global(.img-error-detail) { display: block; margin-top: 2px; overflow-wrap: anywhere; }
   .imgv-range { width: 100%; }
   .imgv-quality-scale { display: flex; justify-content: space-between; font-size: var(--mdt-fs-label); color: var(--mdt-text-faint); }
   /* Prerequisite hint: only while Convert is disabled for lack of a file (not while busy). */

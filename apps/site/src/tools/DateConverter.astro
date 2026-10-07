@@ -4,7 +4,9 @@
  * ISO 8601 strings, and human-readable formats (ISO/European/UTC/Local/RFC
  * 2822/Unix sec/ms/Custom). Custom-format tokens: yyyy MM dd HH mm ss SSS.
  * Workbench: input panel (editor with empty state + example, settings, Convert /
- * Now) | output panel (compact placeholder until a date is converted, Copy).
+ * Now) | output panel (compact placeholder until a date is converted, Copy),
+ * then the assumed-zone note, a relative-time line and "Same instant" world-clock
+ * rows (UTC, device, New York, Tokyo) as a <dl> of <time datetime> values.
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
@@ -48,6 +50,12 @@ const s = {
   outputEmpty: t(lang, ns, "OutputEmpty"),
   errorInvalid: t(lang, ns, "Error_Invalid"),
   copyFailed: t(lang, ns, "CopyFailed"),
+  sameInstant: t(lang, ns, "SameInstantTitle"),
+  zoneUtc: t(lang, ns, "Zone_Utc"),
+  zoneDevice: t(lang, ns, "Zone_Device"),
+  relativeLine: t(lang, ns, "RelativeLine"),
+  assumedUtc: t(lang, ns, "AssumedZone_Utc"),
+  assumedLocal: t(lang, ns, "AssumedZone_Local"),
 };
 const stringsJson = JSON.stringify(s);
 ---
@@ -95,9 +103,15 @@ const stringsJson = JSON.stringify(s);
 
   <OutputPanel panel label={s.outputLabel} for="date-output" emptyHint={s.outputEmpty} data-date-output-panel>
     <Fragment slot="actions">
-      <CopyButton ghost label={s.copy} copiedLabel={s.copied} data-date-copy />
+      <CopyButton ghost label={s.copy} copiedLabel={s.copied} data-date-copy disabled />
     </Fragment>
-    <textarea id="date-output" class="ds-field-textarea mono date-textarea ds-when-filled" data-date-output rows="3" readonly aria-live="polite"></textarea>
+    <textarea id="date-output" class="ds-field-textarea mono date-textarea ds-when-filled" data-date-output rows="2" readonly aria-live="polite"></textarea>
+    <div class="date-instant ds-when-filled" data-date-instant>
+      <p class="ds-hint date-assumed" data-date-assumed hidden></p>
+      <p class="date-relative" data-date-relative-line><time data-date-relative></time></p>
+      <h3 class="ds-label date-instant-title" id="date-same-instant">{s.sameInstant}</h3>
+      <dl class="date-zones" aria-labelledby="date-same-instant" data-date-zones></dl>
+    </div>
   </OutputPanel>
 </div>
 
@@ -108,5 +122,31 @@ const stringsJson = JSON.stringify(s);
   /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
   /* Timestamps are one line: the input uses `.ds-editor-compact`; the
      output matches its height. */
-  textarea[data-date-output] { min-height: 8rem; }
+  textarea[data-date-output] { min-height: 5rem; }
+  .date-instant { display: grid; gap: 0.75rem; min-width: 0; }
+  .date-assumed, .date-relative { margin: 0; }
+  .date-relative { font-size: var(--mdt-fs-meta); color: var(--mdt-text-muted); }
+  .date-instant-title { margin: 0.25rem 0 -0.25rem; }
+</style>
+
+<style is:global>
+  /* "Same instant" rows are controller-built: global, scoped to the tool root. */
+  [data-date-tool] .date-zones { margin: 0; padding: 0; border-top: 1px solid var(--mdt-border); }
+  [data-date-tool] .date-zone-row {
+    display: grid;
+    grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+    gap: 0.25rem 1rem;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--mdt-border);
+  }
+  [data-date-tool] .date-zone-row dt { display: grid; gap: 0.1rem; min-width: 0; }
+  [data-date-tool] .date-zone-name { font-size: var(--mdt-fs-meta); font-weight: 600; color: var(--mdt-text); }
+  [data-date-tool] .date-zone-id { font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-label); color: var(--mdt-text-muted); overflow-wrap: anywhere; }
+  [data-date-tool] .date-zone-row dd { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.15rem 0.75rem; margin: 0; min-width: 0; }
+  /* Dates wrap instead of ellipsizing (long localized weekday/month names). */
+  [data-date-tool] .date-zone-time { font-size: var(--mdt-fs-meta); color: var(--mdt-text); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+  [data-date-tool] .date-zone-offset { font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-label); color: var(--mdt-text-muted); white-space: nowrap; }
+  @media (max-width: 560px) {
+    [data-date-tool] .date-zone-row { grid-template-columns: minmax(0, 1fr); }
+  }
 </style>

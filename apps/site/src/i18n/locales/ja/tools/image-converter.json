@@ -11,6 +11,7 @@
   "OutputSize": "出力サイズ:",
   "ErrorNotImage": "画像ファイルをアップロードしてください。",
   "ErrorConversion": "変換に失敗しました。",
+  "ErrorDamagedImage": "このファイルは対応している画像ではないか、破損しています。",
   "PreviewAlt": "ファイルプレビュー",
   "ResultLabel": "変換された画像",
   "QualityLow": "低",

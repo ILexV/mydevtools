@@ -5,7 +5,9 @@
  * worker-backed `hash-client` (text + file with progress/cancel, no UI blocking).
  *
  * Workbench: input panel (text or Open file → algorithms → Calculate) | result
- * rows (algorithm → digest → copy) with an empty state.
+ * panel: optional "Expected hash" verification field (checksum compare against
+ * the cached digests of the selected algorithms, see `hash-compare.ts`), the
+ * match summary, then result rows (algorithm + "Matches" badge → digest → copy).
  *
  * Locale strings for the current tool namespace are embedded as a JSON island
  * (Stage 5: browser controller gets only its own namespace strings).
@@ -49,6 +51,15 @@ const strings = {
   selectAtLeastOne: t(lang, ns, "SelectAtLeastOneAlgorithm"),
   fileProgress: t(lang, ns, "FileProgressTitle"),
   preparing: t(lang, "common", "Common_Preparing"),
+  expectedLabel: t(lang, ns, "ExpectedLabel"),
+  expectedHint: t(lang, ns, "ExpectedHint"),
+  expectedErrorWhitespace: t(lang, ns, "ExpectedErrorWhitespace"),
+  expectedErrorNonHex: t(lang, ns, "ExpectedErrorNonHex"),
+  compareMatches: t(lang, ns, "CompareMatches"),
+  compareNoMatch: t(lang, ns, "CompareNoMatch"),
+  comparePending: t(lang, ns, "ComparePending"),
+  compareStale: t(lang, ns, "CompareStale"),
+  rowMatches: t(lang, ns, "RowMatches"),
 };
 const defaults = new Set(DEFAULT_HASH_ALGORITHMS);
 const stringsJson = JSON.stringify(strings);
@@ -117,7 +128,22 @@ const stringsJson = JSON.stringify(strings);
   </ToolPanel>
 
   <OutputPanel panel label={strings.resultsLabel} emptyHint={strings.outputEmpty} data-hash-output>
+    <Field label={strings.expectedLabel} for="hash-expected" hint={strings.expectedHint} class="hash-expected">
+      <input
+        id="hash-expected"
+        type="text"
+        class="ds-field mono"
+        data-hash-expected
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        aria-describedby="hash-expected-error hash-expected-hint"
+      />
+      <p class="ds-hint ds-hint-error hash-expected-error" id="hash-expected-error" data-hash-expected-error hidden></p>
+    </Field>
+    <p class="hash-compare-summary" data-hash-compare-summary hidden></p>
     <div class="ds-result-list ds-when-filled" data-hash-results aria-live="polite"></div>
+    <p class="visually-hidden" role="status" aria-live="polite" data-hash-compare-live></p>
   </OutputPanel>
 </div>
 
@@ -174,4 +200,40 @@ const stringsJson = JSON.stringify(strings);
   @media (prefers-reduced-motion: reduce) {
     .algo-item { transition: none; }
   }
+  /* Expected-hash field sits above the empty hint while there is no result. */
+  [data-hash-tool] :global([data-hash-output] > .ds-empty-state) { order: 1; }
+  [data-hash-tool] :global([data-hash-output] > .ds-panel-head) { order: -1; }
+  .hash-expected .ds-hint-error { margin-top: 6px; }
+  .hash-compare-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    font-size: var(--mdt-fs-meta);
+    font-weight: 600;
+    color: var(--mdt-text-muted);
+    overflow-wrap: anywhere;
+  }
+  .hash-compare-summary.is-success { color: var(--mdt-success); }
+  .hash-compare-summary :global(svg) { width: 1.1rem; height: 1.1rem; flex-shrink: 0; }
+</style>
+
+<!-- Runtime rows (controller-created): global, scoped under the tool root. -->
+<style is:global>
+  [data-hash-tool] [data-hash-results] { --ds-result-key-w: 8rem; }
+  [data-hash-tool] .hash-row-key { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.5rem; }
+  [data-hash-tool] .ds-result-row.is-match {
+    margin-inline: -0.6rem;
+    padding-inline: 0.6rem;
+    border-radius: var(--mdt-radius-sm);
+    background: color-mix(in srgb, var(--mdt-success) 9%, transparent);
+    box-shadow: inset 3px 0 0 var(--mdt-success);
+  }
+  [data-hash-tool] .hash-match-badge {
+    font-family: var(--mdt-font-sans);
+    font-weight: 600;
+    letter-spacing: 0;
+    white-space: normal;
+  }
+  [data-hash-tool] .hash-match-badge svg { width: 0.9rem; height: 0.9rem; flex-shrink: 0; }
 </style>

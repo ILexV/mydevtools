@@ -57,7 +57,7 @@ const stringsJson = JSON.stringify({
   <div class="ds-workbench ds-workbench-stretch md-workbench">
     <ToolPanel title={s.editorLabel} for="md-preview-input">
       <Fragment slot="actions">
-        <CopyButton ghost label={s.copyMarkdown} copiedLabel={s.copied} data-md-copy-md />
+        <CopyButton ghost label={s.copyMarkdown} copiedLabel={s.copied} data-md-copy-md disabled />
         <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-md-clear>{s.clear}</button>
       </Fragment>
       <div class="md-toolbar">
@@ -115,8 +115,8 @@ const stringsJson = JSON.stringify({
 
     <OutputPanel panel label={s.previewLabel} emptyHint={s.previewEmpty} data-md-output-panel>
       <Fragment slot="actions">
-        <CopyButton ghost label={s.copyHtml} copiedLabel={s.copied} data-md-copy-html />
-        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-md-download>{s.download}</button>
+        <CopyButton ghost label={s.copyHtml} copiedLabel={s.copied} data-md-copy-html disabled />
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-md-download disabled>{s.download}</button>
       </Fragment>
       <div class="md-preview ds-when-filled" data-md-output role="region" aria-label={s.previewLabel} tabindex="0"></div>
     </OutputPanel>

@@ -58,5 +58,20 @@
   "SplitColHostRange": "होस्ट रेंज",
   "SplitColRange": "पता रेंज",
   "SplitCopyList": "सूची कॉपी करें",
-  "Error_SplitPrefix": "/{min} से /{max} तक की प्रीफ़िक्स लंबाई दर्ज करें।"
+  "Error_SplitPrefix": "/{min} से /{max} तक की प्रीफ़िक्स लंबाई दर्ज करें।",
+  "Bar_Caption": "एड्रेस स्पेस",
+  "Bar_Network": "नेटवर्क एड्रेस",
+  "Bar_Usable": "उपयोग योग्य होस्ट",
+  "Bar_Broadcast": "ब्रॉडकास्ट एड्रेस",
+  "Bar_PointToPoint": "उपयोग योग्य एड्रेस (पॉइंट-टू-पॉइंट, RFC 3021)",
+  "Bar_Single": "एकल एड्रेस",
+  "Broadcast_NoneP2p": "कोई नहीं (पॉइंट-टू-पॉइंट लिंक, RFC 3021)",
+  "Broadcast_NoneSingle": "कोई नहीं (एकल होस्ट)",
+  "Bar_Range": "प्रीफ़िक्स रेंज (IPv6 में ब्रॉडकास्ट नहीं होता)",
+  "Bar_TickNote": "बार के ऊपर-नीचे के निशान किनारों पर एकल एड्रेस दिखाते हैं; ये पैमाने के अनुसार नहीं हैं।",
+  "Split_BarCaption": "सबनेट मैप",
+  "Split_BarListed": "सबनेट #1–#{last}, तालिका के # कॉलम जैसे रंग",
+  "Split_BarListedOne": "सबनेट #1, पूरा नेटवर्क",
+  "Split_BarRemainder": "सबनेट #{from}–#{last}, एक साथ",
+  "Split_BarTickNote": "सबनेट #1–#{last} बनाने के लिए बहुत छोटे हैं; निशान केवल उनकी स्थिति दिखाता है, पैमाने के अनुसार नहीं।"
 }

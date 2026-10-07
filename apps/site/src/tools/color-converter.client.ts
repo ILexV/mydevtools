@@ -26,6 +26,7 @@ interface Strings {
   copied: string;
   copyFailed: string;
   invalidColor: string;
+  emptyNoColor: string;
   aaNormal: string;
   aaLarge: string;
   aaaNormal: string;
@@ -96,8 +97,29 @@ function init(): void {
   const useFgBtn = root.querySelector<HTMLButtonElement>("[data-color-use-fg]");
   const useBgBtn = root.querySelector<HTMLButtonElement>("[data-color-use-bg]");
   const swapBtn = root.querySelector<HTMLButtonElement>("[data-color-swap]");
-  /** Last converted colour (opaque rgb + separate alpha) for the "use converted" buttons. */
-  let current: { rgb: RGB; alpha: number } = { rgb: parseHex(DEFAULT_HEX)!, alpha: 1 };
+  /** Last converted colour (opaque rgb + separate alpha) for the "use converted" buttons; null while the input is invalid. */
+  let current: { rgb: RGB; alpha: number } | null = { rgb: parseHex(DEFAULT_HEX)!, alpha: 1 };
+
+  /**
+   * Show the converted result or its empty state. Invalid/empty input clears the
+   * formats, preview swatch and tints/shades (no stale copyable values) and
+   * disables "use converted colour"; the contrast pickers keep working.
+   */
+  function setResultVisible(visible: boolean): void {
+    for (const empty of toolRoot.querySelectorAll<HTMLElement>("[data-color-empty]")) empty.hidden = visible;
+    const hint = toolRoot.querySelector<HTMLElement>("[data-color-palette-hint]");
+    if (hint) hint.hidden = !visible;
+    if (swatchEl) swatchEl.hidden = !visible;
+    if (useFgBtn) useFgBtn.disabled = !visible;
+    if (useBgBtn) useBgBtn.disabled = !visible;
+    if (!visible) {
+      current = null;
+      formatsEl?.replaceChildren();
+      shadesEl?.replaceChildren();
+      renderAlphaNote(1);
+      for (const chip of toolRoot.querySelectorAll<HTMLElement>("[data-color-use-chip]")) chip.style.background = "";
+    }
+  }
 
   function showError(msg: string): void {
     if (errorEl) {
@@ -203,6 +225,7 @@ function init(): void {
     renderShades(rgb);
     renderAlphaNote(alpha);
     for (const chip of toolRoot.querySelectorAll<HTMLElement>("[data-color-use-chip]")) chip.style.background = hex;
+    setResultVisible(true);
     setInvalid(false);
     showError("");
   }
@@ -212,7 +235,10 @@ function init(): void {
     if (!input) return;
     const parsed = parseColor(input.value);
     if (parsed) apply(parsed.rgb, parsed.alpha);
-    else setInvalid(input.value.trim().length > 0);
+    else {
+      setInvalid(input.value.trim().length > 0);
+      setResultVisible(false);
+    }
   }
 
   /** Explicit convert (button / Enter): invalid or empty → visible error. */
@@ -225,6 +251,7 @@ function init(): void {
       revealOutput(formatsEl?.closest<HTMLElement>(".ds-card"));
     } else {
       setInvalid(true);
+      setResultVisible(false);
       showError(strings.invalidColor);
     }
   }
@@ -248,7 +275,10 @@ function init(): void {
       input.value = "";
       input.focus();
     }
-    apply(parseHex(DEFAULT_HEX)!);
+    // Empty input → the same empty states as invalid input (no default colour behind an empty field).
+    setInvalid(false);
+    showError("");
+    setResultVisible(false);
   });
 
   formatsEl?.addEventListener("click", async (e) => {
@@ -321,20 +351,24 @@ function init(): void {
   // Explicit, one side only. Translucent colour as text: blend onto the opaque
   // background picker (the only known backdrop); as background it is used opaque.
   useFgBtn?.addEventListener("click", () => {
-    if (!fg || !bg) return;
+    if (!fg || !bg || !current) return;
     const backdrop = parseHex(bg.value);
     const rgb = current.alpha < 1 && backdrop ? compositeOver(current.rgb, current.alpha, backdrop) : current.rgb;
     fg.value = toHex(rgb);
     renderContrast();
   });
   useBgBtn?.addEventListener("click", () => {
-    if (!bg) return;
+    if (!bg || !current) return;
     bg.value = toHex(current.rgb);
     renderContrast();
   });
 
-  const initial = parseColor(input?.value || DEFAULT_HEX) ?? parseColor(DEFAULT_HEX)!;
-  apply(initial.rgb, initial.alpha);
+  // The markup pre-fills DEFAULT_HEX; an input the browser restored as empty starts with empty states.
+  if (input && !input.value.trim()) setResultVisible(false);
+  else {
+    const initial = parseColor(input?.value || DEFAULT_HEX) ?? parseColor(DEFAULT_HEX)!;
+    apply(initial.rgb, initial.alpha);
+  }
   renderContrast();
 }
 

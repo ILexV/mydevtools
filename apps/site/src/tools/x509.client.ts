@@ -133,6 +133,7 @@ function init() {
   /** Map WASM generation errors to localized text (raw detail kept after a dash). */
   function generationError(e: unknown) {
     const message = e instanceof Error ? e.message : String(e);
+    setOutput("", null); // no stale certificate behind a generation error
     if (message.startsWith("invalid subject")) {
       subjectInput.setAttribute("aria-invalid", "true");
       setError(`${strings.errorInvalidSubject} — ${message.replace(/^invalid subject:\s*/, "")}`);
@@ -155,6 +156,7 @@ function init() {
   function readSans(): SanList | null {
     const sans = parseSanList(sanArea.value);
     if (sans.invalid.length > 0) {
+      setOutput("", null); // invalid SANs: drop the previous result, disable Copy/Download
       sanArea.setAttribute("aria-invalid", "true");
       setError(fillSanError(sans.invalid.join(", ")));
       sanArea.focus();
@@ -173,25 +175,57 @@ function init() {
     return Object.values(X509_ALG).includes(value as 1 | 2 | 3) ? value : X509_ALG.ed25519;
   }
 
-  async function withBusy(btn: HTMLButtonElement | null, action: () => Promise<void>) {
+  /** Thrown by `guard` when a newer Generate / Parse run superseded this one. */
+  const STALE = Symbol("stale-x509-run");
+  /** Id of the latest Generate / Parse run; only that run may write output, errors or warnings. */
+  let latestRun = 0;
+  const actionButtons = [generateSelfSignedBtn, generateCsrBtn, parseBtn].filter((b): b is HTMLButtonElement => !!b);
+
+  /**
+   * Latest-request gate + busy state for Generate / Parse (they share the output).
+   * The action gets `guard(promise)`: it rejects with STALE once a newer run has
+   * started, so an in-flight result can never overwrite a newer error or result.
+   * All action buttons are disabled (and the clicked one `aria-busy`) meanwhile.
+   */
+  async function withBusy(
+    btn: HTMLButtonElement | null,
+    action: (guard: <T>(p: Promise<T>) => Promise<T>) => Promise<void>,
+  ) {
+    const run = ++latestRun;
+    const live = () => run === latestRun;
+    const guard = <T,>(p: Promise<T>): Promise<T> =>
+      p.then(
+        (v) => {
+          if (!live()) throw STALE;
+          return v;
+        },
+        (e: unknown) => {
+          throw live() ? e : STALE;
+        },
+      );
     clearMessages();
     btn?.setAttribute("aria-busy", "true");
+    for (const b of actionButtons) b.disabled = true;
     try {
-      await withPreparing("cryptography", action(), {
+      await withPreparing("cryptography", action(guard), {
         host: btn?.closest<HTMLElement>(".ds-action-row") ?? outputPanel,
         label: strings.preparing,
       });
       // Explicit Generate / Parse: bring a fresh result into view on phones.
-      if (outputArea.value) revealOutput(outputPanel);
+      if (live() && outputArea.value) revealOutput(outputPanel);
+    } catch (e) {
+      if (e !== STALE) throw e;
     } finally {
       btn?.removeAttribute("aria-busy");
+      if (live()) for (const b of actionButtons) b.disabled = false;
     }
   }
 
   generateSelfSignedBtn?.addEventListener("click", () =>
-    void withBusy(generateSelfSignedBtn, async () => {
+    void withBusy(generateSelfSignedBtn, async (guard) => {
       const days = parseValidityDays(validityInput.value);
       if (days === null) {
+        setOutput("", null); // invalid validity: drop the previous result, disable Copy/Download
         validityInput.setAttribute("aria-invalid", "true");
         setError(strings.errorValidityDays);
         validityInput.focus();
@@ -200,38 +234,35 @@ function init() {
       const sans = readSans();
       if (!sans) return;
       try {
-        const { certificate, privateKey } = await x509SelfSignedEx(
-          selectedAlgorithm(),
-          subjectInput.value,
-          days,
-          sans.dns,
-          sans.ip,
-          sans.email,
+        const { certificate, privateKey } = await guard(
+          x509SelfSignedEx(selectedAlgorithm(), subjectInput.value, days, sans.dns, sans.ip, sans.email),
         );
         setOutput(`${certificate}\n${privateKey}`.trim(), "certificate.pem");
         warnIfNoSans(sans);
       } catch (e) {
+        if (e === STALE) return;
         generationError(e);
       }
     }),
   );
 
   generateCsrBtn?.addEventListener("click", () =>
-    void withBusy(generateCsrBtn, async () => {
+    void withBusy(generateCsrBtn, async (guard) => {
       const sans = readSans();
       if (!sans) return;
       try {
-        const { csr, privateKey } = await x509CsrEx(selectedAlgorithm(), subjectInput.value, sans.dns, sans.ip, sans.email);
+        const { csr, privateKey } = await guard(x509CsrEx(selectedAlgorithm(), subjectInput.value, sans.dns, sans.ip, sans.email));
         setOutput(`${csr}\n${privateKey}`.trim(), "request.csr.pem");
         warnIfNoSans(sans);
       } catch (e) {
+        if (e === STALE) return;
         generationError(e);
       }
     }),
   );
 
   parseBtn?.addEventListener("click", () =>
-    void withBusy(parseBtn, async () => {
+    void withBusy(parseBtn, async (guard) => {
       const input = parseArea.value.trim();
       if (!input) return;
       /** CSR summary + a warning when its self-signature does not verify. */
@@ -245,30 +276,34 @@ function init() {
       };
       try {
         if (isCsrPem(input)) {
-          showCsr(await x509ParseCsr(input));
+          showCsr(await guard(x509ParseCsr(input)));
         } else if (input.includes("BEGIN")) {
-          setOutput(prettyJson(await x509Parse(input)), "x509.json");
-          setWarnings(await x509Warnings(input));
+          setOutput(prettyJson(await guard(x509Parse(input))), "x509.json");
+          setWarnings(await guard(x509Warnings(input)));
         } else {
           const hexDer = bytesToHex(base64ToBytes(input));
           let certJson: string | null = null;
           try {
-            certJson = await x509Parse(hexDer);
-          } catch {
+            certJson = await guard(x509Parse(hexDer));
+          } catch (e) {
+            if (e === STALE) throw e;
             // Not a certificate: Base64 DER may be a CSR.
-            showCsr(await x509ParseCsr(hexDer));
+            showCsr(await guard(x509ParseCsr(hexDer)));
           }
           if (certJson !== null) {
             setOutput(prettyJson(certJson), "x509.json");
             try {
-              setWarnings(await x509Warnings(derBase64ToPem(input)));
+              setWarnings(await guard(x509Warnings(derBase64ToPem(input))));
             } catch {
               /* warnings are best-effort for DER input */
             }
           }
         }
-      } catch {
+      } catch (e) {
+        if (e === STALE) return;
         // Malformed PEM/Base64/DER: one localized message instead of raw parser codes.
+        // Drop the previous result too, so Copy/Download can't export a stale certificate.
+        setOutput("", null);
         parseArea.setAttribute("aria-invalid", "true");
         setError(strings.invalidFormat);
       }

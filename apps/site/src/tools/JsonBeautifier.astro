@@ -61,8 +61,8 @@ const stringsJson = JSON.stringify({
         <input type="file" accept=".json,application/json" data-json-file />
         {s.open}
       </label>
-      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-json-save>{s.save}</button>
-      <CopyButton ghost label={s.copy} copiedLabel={s.copied} failedLabel={s.copyFailed} data-json-copy />
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-json-save disabled>{s.save}</button>
+      <CopyButton ghost label={s.copy} copiedLabel={s.copied} failedLabel={s.copyFailed} data-json-copy disabled />
       <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-json-clear>{s.clear}</button>
     </Fragment>
 

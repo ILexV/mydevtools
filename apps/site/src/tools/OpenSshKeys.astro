@@ -139,7 +139,7 @@ const stringsJson = JSON.stringify(clientStrings);
             rows="6"
             spellcheck="false"
             autocomplete="off"
-            aria-describedby="ssh-import-empty ssh-import-hint"></textarea>
+            aria-describedby="ssh-import-empty ssh-import-hint ssh-import-error"></textarea>
           <EmptyState hint={s.importEmpty} hintId="ssh-import-empty" />
         </div>
         <p class="ds-hint" id="ssh-import-hint">{s.importFileHint}</p>
@@ -148,6 +148,8 @@ const stringsJson = JSON.stringify(clientStrings);
         <button type="button" class="ds-btn ds-btn-primary" data-ssh-import-btn>{s.importButton}</button>
         <button type="button" class="ds-btn" data-ssh-convert>{s.convertButton}</button>
       </div>
+      <!-- Import/convert/file errors stay in this card, not next to the generated keys. -->
+      <StatusMessage kind="error" id="ssh-import-error" data-ssh-import-error />
     </ToolPanel>
   </div>
 

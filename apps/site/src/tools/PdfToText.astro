@@ -9,14 +9,20 @@
  * localized message, the batch continues.
  * UI: tool UI kit (FileDrop + ds-file-list rows built by the controller,
  * Progress with cancel that aborts the current file in the pdf worker,
- * StatusMessage).
+ * StatusMessage). After Extract a result panel (OutputPanel) shows the batch
+ * summary (files · pages · characters), a read-only preview of the first
+ * ~2,000 characters of one file (picker when several), Copy and Download TXT.
  */
-import { t } from "@/i18n/messages";
+import { t, pluralVariants } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
 import FileDrop from "@/components/tool/FileDrop.astro";
 import Progress from "@/components/tool/Progress.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
 import ToolPanel from "@/components/tool/ToolPanel.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import CopyButton from "@/components/tool/CopyButton.astro";
+import Field from "@/components/tool/Field.astro";
+import Icon from "@/components/Icon.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -41,6 +47,20 @@ const s = {
   errorExtraction: t(lang, ns, "ErrorExtraction"),
   error: t(lang, "common", "Common_Error"),
   preparing: t(lang, "common", "Common_Preparing"),
+  lang,
+  resultLabel: t(lang, ns, "ResultLabel"),
+  previewFile: t(lang, ns, "PreviewFile"),
+  previewTruncated: t(lang, ns, "PreviewTruncated"),
+  previewEmpty: t(lang, ns, "PreviewEmpty"),
+  summaryFiles: t(lang, ns, "SummaryFiles"),
+  summaryPages: t(lang, ns, "SummaryPages"),
+  summaryChars: t(lang, ns, "SummaryChars"),
+  resultAnnounce: t(lang, ns, "ResultAnnounce"),
+  copy: t(lang, "common", "Common_Copy"),
+  copied: t(lang, "common", "Common_Copied"),
+  copyFailed: t(lang, "common", "Common_CopyFailed"),
+  // summaryFiles_one / summaryPages_few / … — Intl.PluralRules variants per locale.
+  ...pluralVariants(lang, ns),
 };
 const stringsJson = JSON.stringify(s);
 ---
@@ -75,6 +95,25 @@ const stringsJson = JSON.stringify(s);
     labelProps={{ "data-pdft-progress-label": true }}
   />
 
+  <OutputPanel panel label={s.resultLabel} for="pdft-preview" data-pdft-result hidden>
+    <Fragment slot="actions">
+      <CopyButton ghost label={s.copy} copiedLabel={s.copied} failedLabel={s.copyFailed} data-pdft-copy />
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-pdft-download>
+        <Icon name="download" size={15} />
+        {s.downloadTxt}
+      </button>
+    </Fragment>
+    <div class="ds-result-headline">
+      <span class="ds-result-headline-label" data-pdft-summary-files></span>
+      <strong class="ds-result-headline-value pdft-summary" data-pdft-summary></strong>
+    </div>
+    <Field label={s.previewFile} for="pdft-preview-file" data-pdft-preview-pick hidden>
+      <select id="pdft-preview-file" class="ds-field-select" data-pdft-preview-file></select>
+    </Field>
+    <textarea id="pdft-preview" class="ds-field-textarea mono pdft-preview" rows="8" readonly spellcheck="false" data-pdft-preview></textarea>
+    <p class="ds-output-summary" data-pdft-preview-note hidden></p>
+  </OutputPanel>
+
   <StatusMessage kind="error" class="pdf-errors" data-pdft-error />
 </div>
 
@@ -85,4 +124,6 @@ const stringsJson = JSON.stringify(s);
   .pdft-tool { max-width: 48rem; margin: 0 auto; }
   .pdft-tool :global(.pdf-errors) { white-space: pre-line; }
   .pdft-tool :global(.pdf-meta-value) { white-space: nowrap; }
+  .pdft-summary { font-size: clamp(1.25rem, 1rem + 0.9vw, 1.6rem); }
+  .pdft-preview { min-height: 0; resize: vertical; }
 </style>

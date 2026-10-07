@@ -7,8 +7,14 @@
  * against an optional secret or RSA public key (alg from the header:
  * HS256/384/512, RS256/384/512). `alg: none` is reported as unsigned, never
  * as verified. Helpers in `jwt.ts`.
- * Workbench: token panel (empty state + "Load example" demo token) and the
- * signature panel (alg as panel meta) | decoded header/payload panel.
+ * Workbench: token panel (empty state + "Load example" demo token, then a
+ * colourized read-only preview of the header.payload.signature parts that
+ * collapses after 3 lines) and the signature panel (alg as panel meta) |
+ * decoded header/payload panel with the time-claims block: temporal status
+ * badge (expired / not yet valid / expires soon / within bounds / none /
+ * invalid, see `jwt-time.ts`), exp/nbf/iat rows (date with zone + relative
+ * time) and the "time checks are not authenticity" note. Part hues are
+ * tool-local annotation variables (--jwtd-header/-payload/-signature).
  */
 import { t } from "@/i18n/messages";
 import { localizedPath } from "@/lib/url";
@@ -36,6 +42,13 @@ const s = {
   decodedLabel: t(lang, ns, "DecodedLabel"),
   outputEmpty: t(lang, ns, "OutputEmpty"),
   loadExample: t(lang, "common", "Common_LoadExample"),
+  previewLabel: t(lang, ns, "PreviewLabel"),
+  partHeader: t(lang, ns, "PartHeader"),
+  partPayload: t(lang, ns, "PartPayload"),
+  partSignature: t(lang, ns, "PartSignature"),
+  previewExpand: t(lang, ns, "PreviewExpand"),
+  timeClaimsLabel: t(lang, ns, "TimeClaimsLabel"),
+  timeNote: t(lang, ns, "TimeNote"),
 };
 const stringsJson = JSON.stringify({
   signatureVerified: t(lang, ns, "SignatureVerified"),
@@ -49,13 +62,35 @@ const stringsJson = JSON.stringify({
   claimNotBefore: t(lang, ns, "ClaimNotBefore"),
   claimValidFrom: t(lang, ns, "ClaimValidFrom"),
   claimIssuedAt: t(lang, ns, "ClaimIssuedAt"),
+  previewExpand: t(lang, ns, "PreviewExpand"),
+  previewCollapse: t(lang, ns, "PreviewCollapse"),
+  timeStatus: {
+    expired: t(lang, ns, "TimeStatusExpired"),
+    "not-yet-valid": t(lang, ns, "TimeStatusNotYetValid"),
+    "expires-soon": t(lang, ns, "TimeStatusExpiresSoon"),
+    valid: t(lang, ns, "TimeStatusValid"),
+    unbounded: t(lang, ns, "TimeStatusUnbounded"),
+    invalid: t(lang, ns, "TimeStatusInvalid"),
+  },
+  timeStatusAnnounce: t(lang, ns, "TimeStatusAnnounce"),
+  claimLabels: {
+    exp: t(lang, ns, "ClaimLabelExp"),
+    nbf: t(lang, ns, "ClaimLabelNbf"),
+    iat: t(lang, ns, "ClaimLabelIat"),
+  },
+  claimErrorType: t(lang, ns, "ClaimErrorType"),
+  claimErrorRange: t(lang, ns, "ClaimErrorRange"),
+  warnNbfAfterExp: t(lang, ns, "WarnNbfAfterExp"),
+  warnIatAfterExp: t(lang, ns, "WarnIatAfterExp"),
+  warnIatInFuture: t(lang, ns, "WarnIatInFuture"),
+  warnMilliseconds: t(lang, ns, "WarnMilliseconds"),
   preparing: t(lang, "common", "Common_Preparing"),
 });
 const encoderUrl = localizedPath(lang, "jwt-encoder");
 ---
 
 <div class="ds-stack" data-jwtd-tool>
-  <p class="ds-hint jwt-link-note"><a href={encoderUrl}>{s.linkToEncoder}</a></p>
+  <p class="ds-related-hint"><a href={encoderUrl}>{s.linkToEncoder}</a></p>
 
   <div class="ds-workbench">
     <div class="ds-stack">
@@ -80,6 +115,22 @@ const encoderUrl = localizedPath(lang, "jwt-encoder");
             buttonProps={{ "data-jwtd-example": true }}
           />
         </div>
+        <div class="jwtd-preview" data-jwtd-preview role="group" aria-label={s.previewLabel} hidden>
+          <ul class="jwtd-legend">
+            <li class="jwtd-part-label" data-part="header">{s.partHeader}</li>
+            <li class="jwtd-part-label" data-part="payload">{s.partPayload}</li>
+            <li class="jwtd-part-label" data-part="signature">{s.partSignature}</li>
+          </ul>
+          <p class="jwtd-preview-token is-collapsed" id="jwtd-preview-token" data-jwtd-preview-token></p>
+          <button
+            type="button"
+            class="ds-btn ds-btn-small ds-btn-ghost jwtd-preview-toggle"
+            data-jwtd-preview-toggle
+            aria-controls="jwtd-preview-token"
+            aria-expanded="false"
+            hidden
+          >{s.previewExpand}</button>
+        </div>
         <StatusMessage kind="error" id="jwtd-error" class="jwtd-error" data-jwtd-error />
       </ToolPanel>
 
@@ -88,19 +139,31 @@ const encoderUrl = localizedPath(lang, "jwt-encoder");
           <label class="ds-label" for="jwtd-secret">{s.secretLabel}</label>
           <textarea id="jwtd-secret" class="ds-field-textarea mono" data-jwtd-secret rows="3" placeholder={s.secretPlaceholder} spellcheck="false" autocomplete="off"></textarea>
         </div>
-        <p class="ds-alert jwtd-status" data-jwtd-status role="status" aria-live="polite" hidden></p>
+        <div class="jwtd-sig" data-jwtd-sig hidden>
+          <span class="jwtd-part-label" data-part="signature">{s.partSignature}</span>
+          <p class="ds-alert jwtd-status" data-jwtd-status role="status" aria-live="polite" hidden></p>
+        </div>
       </ToolPanel>
     </div>
 
     <OutputPanel panel label={s.decodedLabel} emptyHint={s.outputEmpty} data-jwtd-output>
       <div class="ds-field-group ds-when-filled">
-        <label class="ds-label" for="jwtd-header">{s.decodedHeaderLabel}</label>
+        <label class="ds-label jwtd-part-label" data-part="header" for="jwtd-header">{s.decodedHeaderLabel}</label>
         <textarea id="jwtd-header" class="ds-field-textarea mono" data-jwtd-header rows="5" readonly spellcheck="false"></textarea>
       </div>
       <div class="ds-field-group ds-when-filled">
-        <label class="ds-label" for="jwtd-payload">{s.decodedPayloadLabel}</label>
+        <label class="ds-label jwtd-part-label" data-part="payload" for="jwtd-payload">{s.decodedPayloadLabel}</label>
         <textarea id="jwtd-payload" class="ds-field-textarea mono" data-jwtd-payload rows="10" readonly spellcheck="false"></textarea>
-        <ul class="jwtd-claims" data-jwtd-claims aria-live="polite" hidden></ul>
+      </div>
+      <div class="jwtd-time ds-when-filled" data-jwtd-time hidden>
+        <div class="jwtd-time-head">
+          <span class="ds-label">{s.timeClaimsLabel}</span>
+          <span class="ds-badge jwtd-time-badge" data-jwtd-time-status></span>
+        </div>
+        <ul class="ds-result-list jwtd-claims" data-jwtd-claims hidden></ul>
+        <ul class="jwtd-diag" data-jwtd-diag hidden></ul>
+        <p class="ds-hint jwtd-time-note">{s.timeNote}</p>
+        <p class="visually-hidden" role="status" aria-live="polite" data-jwtd-time-live></p>
       </div>
     </OutputPanel>
   </div>
@@ -111,16 +174,96 @@ const encoderUrl = localizedPath(lang, "jwt-encoder");
 
 <style>
   /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
-  .jwt-link-note { margin: 0; }
-  .jwt-link-note a { color: var(--mdt-cat); font-weight: 600; }
+  /* Annotation hues for the three JWT parts (fixed mapping, category tokens). */
+  [data-jwtd-tool] {
+    --jwtd-header: var(--mdt-cat-images);
+    --jwtd-payload: var(--mdt-cat-encoding);
+    --jwtd-signature: var(--mdt-cat-converters);
+  }
   .jwtd-token { word-break: break-all; }
   .ds-editor > .jwtd-token { min-height: 12rem; }
   .jwtd-error { overflow-wrap: anywhere; }
+
+  /* Part label with a 3px hue rule: legend, decoded headings, signature. */
+  .jwtd-part-label {
+    border-left: 3px solid var(--jwtd-part, var(--mdt-border));
+    padding-left: 0.5rem;
+    line-height: 1.3;
+  }
+  .jwtd-part-label[data-part="header"] { --jwtd-part: var(--jwtd-header); }
+  .jwtd-part-label[data-part="payload"] { --jwtd-part: var(--jwtd-payload); }
+  .jwtd-part-label[data-part="signature"] { --jwtd-part: var(--jwtd-signature); }
+
+  .jwtd-preview { display: grid; gap: 0.5rem; justify-items: start; min-width: 0; }
+  .jwtd-legend {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1rem;
+    font-size: var(--mdt-fs-label);
+    color: var(--mdt-text-muted);
+  }
+  .jwtd-preview-token {
+    --jwtd-lh: 1.55;
+    justify-self: stretch;
+    margin: 0;
+    font-family: var(--mdt-font-mono);
+    font-size: 13px;
+    line-height: var(--jwtd-lh);
+    overflow-wrap: anywhere;
+    word-break: break-all;
+    color: var(--mdt-text-muted);
+  }
+  .jwtd-preview-token.is-collapsed {
+    max-height: calc(3 * var(--jwtd-lh) * 13px);
+    overflow: hidden;
+  }
+  .jwtd-preview-token :global([data-part="header"]) { color: var(--jwtd-header); }
+  .jwtd-preview-token :global([data-part="payload"]) { color: var(--jwtd-payload); }
+  .jwtd-preview-token :global([data-part="signature"]) { color: var(--jwtd-signature); }
+  .jwtd-preview-token :global(.jwtd-dot) { color: var(--mdt-text-faint); font-weight: 700; }
+  @media (pointer: coarse) {
+    .jwtd-preview-toggle { min-height: 2.75rem; }
+  }
+
+  .jwtd-sig { display: grid; gap: 0.5rem; }
+  .jwtd-sig > .jwtd-part-label { font-size: var(--mdt-fs-label); font-weight: 600; color: var(--mdt-text-muted); }
   .jwtd-status { display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-weight: 700; }
   /* Neutral prompt ("enter a secret") uses the shared ds-alert-neutral tone. */
   .jwtd-status.ds-alert-neutral { font-weight: 500; }
   .jwtd-status :global(svg) { width: 1.25rem; height: 1.25rem; flex-shrink: 0; }
-  .jwtd-claims { list-style: none; margin: 0.6rem 0 0; padding: 0; display: grid; gap: 0.25rem; }
-  .jwtd-claims :global(li) { display: flex; gap: 0.5rem; align-items: baseline; flex-wrap: wrap; }
-  .jwtd-claims :global(code) { font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-label); color: var(--mdt-text-muted); min-width: 2rem; }
+
+  .jwtd-time { display: grid; gap: 0.6rem; min-width: 0; }
+  .jwtd-time-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 0.75rem; }
+  .jwtd-time-head > .ds-label { margin: 0; }
+  .jwtd-time-badge { font-family: var(--mdt-font-sans, inherit); font-size: var(--mdt-fs-label); font-weight: 600; padding: 4px 10px; white-space: normal; }
+  .jwtd-time-badge :global(svg) { width: 1rem; height: 1rem; flex-shrink: 0; }
+  .jwtd-time-note { margin: 0; }
+  .jwtd-diag {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.3rem;
+    font-size: var(--mdt-fs-label);
+    color: var(--mdt-warning);
+    overflow-wrap: anywhere;
+  }
+</style>
+
+<!-- Runtime rows (controller-created): global, scoped under the tool root. -->
+<style is:global>
+  [data-jwtd-tool] .jwtd-claims { --ds-result-key-w: 8rem; }
+  [data-jwtd-tool] .jwtd-claim-key { display: grid; gap: 0.1rem; }
+  [data-jwtd-tool] .jwtd-claim-key > code { font: inherit; }
+  [data-jwtd-tool] .jwtd-claim-name {
+    font-family: var(--mdt-font-sans, inherit);
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--mdt-text-muted);
+  }
+  [data-jwtd-tool] .jwtd-claim-rel { font-size: var(--mdt-fs-label); white-space: nowrap; text-align: end; }
+  [data-jwtd-tool] .jwtd-claim-error { display: block; font-family: var(--mdt-font-sans, inherit); font-size: var(--mdt-fs-label); color: var(--mdt-danger); }
 </style>

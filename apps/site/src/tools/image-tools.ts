@@ -141,3 +141,15 @@ export function formatSizeChange(originalSize: number, newSize: number): string 
   const saved = savingsPercent(originalSize, newSize);
   return saved > 0 ? `−${saved}%` : saved < 0 ? `+${-saved}%` : "0%";
 }
+
+/**
+ * True when an image-tools failure means the input couldn't be decoded — not
+ * an image, a damaged file or an unsupported variant. wasm/image_tools
+ * `decode` prefixes these with "Failed to load image:" (unknown bytes are
+ * retried as TGA, so a text file reads "…decoder for Tga…"); browsers report
+ * "could not be decoded". Controllers show a localized "isn't a supported
+ * image or is damaged" message instead of the raw decoder text.
+ */
+export function isImageDecodeError(message: string): boolean {
+  return /^Failed to load image\b/i.test(message) || /could not be decoded|source image cannot be decoded/i.test(message);
+}

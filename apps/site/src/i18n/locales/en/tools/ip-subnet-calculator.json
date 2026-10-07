@@ -58,5 +58,20 @@
   "SplitColHostRange": "Host range",
   "SplitColRange": "Address range",
   "SplitCopyList": "Copy list",
-  "Error_SplitPrefix": "Enter a prefix length from /{min} to /{max}."
+  "Error_SplitPrefix": "Enter a prefix length from /{min} to /{max}.",
+  "Bar_Caption": "Address space",
+  "Bar_Network": "Network address",
+  "Bar_Usable": "Usable hosts",
+  "Bar_Broadcast": "Broadcast address",
+  "Bar_PointToPoint": "Usable addresses (point-to-point, RFC 3021)",
+  "Bar_Single": "Single address",
+  "Broadcast_NoneP2p": "None (point-to-point link, RFC 3021)",
+  "Broadcast_NoneSingle": "None (single host)",
+  "Bar_Range": "Prefix range (IPv6 has no broadcast)",
+  "Bar_TickNote": "Marks above and below the bar show single addresses at its edges; they are not drawn to scale.",
+  "Split_BarCaption": "Subnet map",
+  "Split_BarListed": "Subnets #1–#{last}, coloured like the # column of the table",
+  "Split_BarListedOne": "Subnet #1, the whole network",
+  "Split_BarRemainder": "Subnets #{from}–#{last}, combined",
+  "Split_BarTickNote": "Subnets #1–#{last} are too small to draw; the mark shows their position and is not to scale."
 }

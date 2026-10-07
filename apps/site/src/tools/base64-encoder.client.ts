@@ -7,7 +7,7 @@
  * Workbench empty states: input overlay with "Load example" (only on click),
  * compact output placeholder until there is a result.
  */
-import { formatBytes, formatString, pluralSuffix, progressPercent } from "@/lib/format";
+import { formatBytes, formatString, progressPercent } from "@/lib/format";
 import {
   bindDropzone,
   bindLoadExample,
@@ -21,7 +21,7 @@ import { encodeBytes, decodeToBytes, textToBytes, type EncodingOptions } from "@
 import { encodeFile, decodeFile } from "@/scripts/wasm/encoding-file-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { detectFileType, isLikelyText } from "@/tools/base64";
-import { classifyEncodingError, outputFileName, previewText, type EncodingErrorKey } from "@/tools/encoding-ui";
+import { charIndexToUtf16, classifyEncodingError, outputFileName, previewText, type EncodingErrorKey } from "@/tools/encoding-ui";
 import { onReady } from "@/tools/encoding-tool";
 
 interface Strings {
@@ -31,12 +31,9 @@ interface Strings {
   imageDetected: string;
   binaryDetected: string;
   binaryDownloadHint: string;
-  statsChars: string;
-  statsBytes: string;
-  statsCharsForms: Record<string, string>;
-  statsBytesForms: Record<string, string>;
-  statsEncoded: string;
-  statsDecoded: string;
+  /** "Characters: {0} · Size: {1}" — encoded chars · raw data size (all encoders). */
+  statsOutput: string;
+  /** "{w}×{h} px", appended to the stats line for a decoded image. */
   statsImage: string;
   previewTruncated: string;
   fileDecoded: string;
@@ -57,10 +54,7 @@ const PREVIEW_LIMIT = 200_000;
 /** "Load example" sample: a small language-neutral JSON payload (no secrets). */
 const EXAMPLE = '{"user":"ada","role":"editor","exp":1767225600}';
 
-/** Keys of `Strings` that hold plain message templates (not plural-form maps). */
-type MessageKey = Exclude<{ [K in keyof Strings]-?: Strings[K] extends string ? K : never }[keyof Strings], undefined>;
-
-const ERROR_STRING: Record<EncodingErrorKey, MessageKey> = {
+const ERROR_STRING: Record<EncodingErrorKey, keyof Strings> = {
   Error_InvalidChar: "errInvalidChar",
   Error_NotRepresentable: "errNotRepresentable",
   Error_InvalidLength: "errInvalidLength",
@@ -79,11 +73,10 @@ const DECODER_LABEL: Record<string, string> = {
   latin1: "windows-1252",
 };
 
-/** "{n} …" in the plural form for `n` in the page locale; falls back to the generic string. */
-function countLabel(forms: Record<string, string> | undefined, fallback: string, n: number): string {
+/** Shared encoder stats line: encoded character count · raw data size. */
+function statsLine(template: string, encodedChars: number, dataBytes: number): string {
   const lang = document.documentElement.lang || "en";
-  const template = forms?.[pluralSuffix(lang, n)] ?? fallback;
-  return template.replace("{n}", n.toLocaleString(lang));
+  return formatString(template, encodedChars.toLocaleString(lang), formatBytes(dataBytes));
 }
 
 function readStrings(): Strings | null {
@@ -257,10 +250,11 @@ function init() {
     showError(formatString(strings[ERROR_STRING[key]] ?? strings.error, arg));
     if (currentFile) return;
     inputArea.setAttribute("aria-invalid", "true");
-    if (position !== undefined && key === "Error_NotRepresentable") {
+    if (position !== undefined && (key === "Error_NotRepresentable" || key === "Error_InvalidChar")) {
       try {
+        const value = inputArea.value;
         inputArea.focus();
-        inputArea.setSelectionRange(position, Math.min(position + 1, inputArea.value.length));
+        inputArea.setSelectionRange(charIndexToUtf16(value, position), charIndexToUtf16(value, position + 1));
       } catch {
         /* selection unsupported */
       }
@@ -270,14 +264,14 @@ function init() {
   function showEncoded(text: string, rawBytes: number, sourceName: string | null) {
     clearDetect();
     setOutput(previewText(text, outputMode?.value ?? "preview", PREVIEW_LIMIT, strings.previewTruncated).text);
-    setStats(`${countLabel(strings.statsBytesForms, strings.statsBytes, rawBytes)} ${strings.statsEncoded.replace("{size}", formatBytes(text.length))}`);
+    setStats(statsLine(strings.statsOutput, text.length, rawBytes));
     setLastDownload({ blob: new Blob([text], { type: "text/plain" }), name: outputFileName(sourceName, "b64") });
   }
 
   /** Decoded bytes → text output, or image preview / binary info (legacy parity). */
   function showDecoded(bytes: Uint8Array, encodedChars: number, sourceName: string | null) {
     clearDetect();
-    const decodedStat = `${countLabel(strings.statsCharsForms, strings.statsChars, encodedChars)} ${strings.statsDecoded.replace("{size}", formatBytes(bytes.length))}`;
+    const decodedStat = statsLine(strings.statsOutput, encodedChars, bytes.length);
     const detected = detectFileType(bytes);
     const base = sourceName ? sourceName.replace(/\.(b64|base64|txt)$/i, "") : "decoded";
     if (!detected && isLikelyText(bytes)) {
@@ -302,12 +296,10 @@ function init() {
       previewUrl = URL.createObjectURL(blob);
       detectImg.alt = kind.label;
       detectImg.onload = () => {
-        setStats(
-          strings.statsImage
-            .replace("{size}", formatBytes(bytes.length))
-            .replace("{w}", String(detectImg.naturalWidth))
-            .replace("{h}", String(detectImg.naturalHeight)),
-        );
+        const dims = strings.statsImage
+          .replace("{w}", String(detectImg.naturalWidth))
+          .replace("{h}", String(detectImg.naturalHeight));
+        setStats(`${decodedStat} · ${dims}`);
       };
       detectImg.src = previewUrl;
       detectImg.hidden = false;

@@ -31,6 +31,7 @@ const s = {
   copied: t(lang, "common", "Common_Copied"),
   copyFailed: t(lang, ns, "CopyFailed"),
   invalidColor: t(lang, ns, "Error_InvalidColor"),
+  emptyNoColor: t(lang, ns, "Empty_NoColor"),
   convertedFormats: t(lang, ns, "ConvertedFormats"),
   shadesPalette: t(lang, ns, "ShadesPalette"),
   contrastChecker: t(lang, ns, "ContrastChecker"),
@@ -93,6 +94,7 @@ const DEFAULT = "#3b82f6";
 
     <ToolPanel title={s.convertedFormats}>
       <div class="ds-result-list" data-color-formats></div>
+      <p class="ds-empty" data-color-empty hidden>{s.emptyNoColor}</p>
     </ToolPanel>
   </div>
 
@@ -146,8 +148,9 @@ const DEFAULT = "#3b82f6";
   </ToolPanel>
 
   <ToolPanel title={s.shadesPalette}>
-    <p class="ds-hint palette-hint">{s.paletteHint}</p>
+    <p class="ds-hint palette-hint" data-color-palette-hint>{s.paletteHint}</p>
     <div class="shade-strip" data-color-shades></div>
+    <p class="ds-empty" data-color-empty hidden>{s.emptyNoColor}</p>
   </ToolPanel>
 </div>
 

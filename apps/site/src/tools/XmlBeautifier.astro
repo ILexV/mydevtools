@@ -56,8 +56,8 @@ const stringsJson = JSON.stringify({
         <input type="file" accept=".xml,application/xml,text/xml" data-xml-file />
         {s.openButton}
       </label>
-      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-xml-save>{s.saveButton}</button>
-      <CopyButton ghost label={s.copyButton} copiedLabel={s.copied} failedLabel={s.copyFailed} data-xml-copy />
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-xml-save disabled>{s.saveButton}</button>
+      <CopyButton ghost label={s.copyButton} copiedLabel={s.copied} failedLabel={s.copyFailed} data-xml-copy disabled />
       <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-xml-clear>{s.clearButton}</button>
     </Fragment>
 

@@ -12,6 +12,9 @@
  * and downloaded as `<name>_min.<ext>` (jpeg → jpg — legacy parity).
  * A before/after ImageCompare slider (`bindImageCompare`) shows source vs.
  * result; it is reset (and old object URLs revoked) on new file/result/clear.
+ * A file that can't be decoded gets a localized "not a supported image or
+ * damaged" error (no raw decoder text) and its thumbnail falls back to the
+ * generic image icon instead of the browser's broken-image glyph.
  */
 import { compressImage } from "@/scripts/wasm/image-tools-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
@@ -22,11 +25,13 @@ import {
   compressedName,
   formatSizeChange,
   isDecodableImage,
+  isImageDecodeError,
   isImageFile,
   mimeFor,
   resolveCompressFormat,
   savingsPercent,
 } from "@/tools/image-tools";
+import { showImageError } from "@/tools/image-error-ui";
 
 interface Strings {
   compress: string;
@@ -35,6 +40,7 @@ interface Strings {
   errorNotImage: string;
   errorUnsupported: string;
   errorCompression: string;
+  errorDamaged: string;
   webpLosslessNote: string;
   preparing: string;
 }
@@ -60,6 +66,7 @@ function init() {
   const input = q<HTMLInputElement>("[data-imgc-file]");
   const selectedEl = q<HTMLElement>("[data-imgc-selected]");
   const preview = q<HTMLImageElement>("[data-imgc-preview]");
+  const thumbIcon = q<HTMLElement>("[data-imgc-thumb-icon]");
   const nameEl = q<HTMLElement>("[data-imgc-filename]");
   const sizeEl = q<HTMLElement>("[data-imgc-filesize]");
   const clearBtn = q<HTMLButtonElement>("[data-imgc-clear]");
@@ -92,9 +99,13 @@ function init() {
   let resultName: string | null = null;
   let job: AbortController | null = null;
 
-  function showError(msg: string) {
-    errorBox!.textContent = msg;
-    errorBox!.hidden = false;
+  function showError(msg: string, detail?: string) {
+    showImageError(errorBox!, msg, detail);
+  }
+  /** Thumbnail ↔ generic icon (undecodable file or no file). */
+  function showThumb(on: boolean) {
+    preview!.hidden = !on;
+    if (thumbIcon) thumbIcon.hidden = on;
   }
   function clearError() {
     errorBox!.hidden = true;
@@ -131,6 +142,7 @@ function init() {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     previewUrl = null;
     preview!.removeAttribute("src");
+    showThumb(true);
     compressBtn!.disabled = true;
   }
 
@@ -154,6 +166,7 @@ function init() {
     if (sizeEl) sizeEl.textContent = formatBytes(file.size, 2);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     previewUrl = URL.createObjectURL(file);
+    showThumb(true);
     preview!.src = previewUrl;
     compressBtn!.disabled = false;
   }
@@ -200,7 +213,9 @@ function init() {
     } catch (e) {
       if (e instanceof WasmError && e.code === "aborted") return;
       const detail = e instanceof Error ? e.message : "";
-      showError(detail ? `${strings!.errorCompression} ${detail}` : strings!.errorCompression);
+      // Undecodable input: plain localized message, raw decoder text dropped.
+      if (isImageDecodeError(detail)) showError(strings!.errorDamaged);
+      else showError(strings!.errorCompression, detail);
     } finally {
       prepared();
       if (job === ctrl) job = null;
@@ -214,6 +229,11 @@ function init() {
   preview.addEventListener("load", () => {
     if (!currentFile || !sizeEl || !preview.naturalWidth) return;
     sizeEl.textContent = `${formatBytes(currentFile.size, 2)} · ${preview.naturalWidth}×${preview.naturalHeight}`;
+  });
+
+  // Broken/undecodable file: generic icon instead of the broken-image glyph + spilled alt text.
+  preview.addEventListener("error", () => {
+    if (preview.getAttribute("src")) showThumb(false);
   });
 
   clearBtn?.addEventListener("click", () => {

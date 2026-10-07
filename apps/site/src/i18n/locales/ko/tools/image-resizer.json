@@ -20,7 +20,7 @@
   "ResultInfo": "결과 정보",
   "PreviewAlt": "선택한 이미지 미리보기",
   "ErrorNotImage": "선택한 파일이 이미지가 아닙니다.",
-  "ErrorLoadImage": "이미지를 불러오지 못했습니다.",
+  "ErrorDamagedImage": "지원되는 이미지 파일이 아니거나 파일이 손상되었습니다.",
   "ErrorInvalidDimensions": "잘못된 크기입니다.",
   "ErrorResizeFailed": "크기 조정에 실패했습니다.",
   "Cancel": "취소",

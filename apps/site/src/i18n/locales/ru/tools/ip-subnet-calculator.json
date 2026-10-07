@@ -58,5 +58,20 @@
   "SplitColHostRange": "Диапазон хостов",
   "SplitColRange": "Диапазон адресов",
   "SplitCopyList": "Копировать список",
-  "Error_SplitPrefix": "Введите длину префикса от /{min} до /{max}."
+  "Error_SplitPrefix": "Введите длину префикса от /{min} до /{max}.",
+  "Bar_Caption": "Адресное пространство",
+  "Bar_Network": "Адрес сети",
+  "Bar_Usable": "Адреса для хостов",
+  "Bar_Broadcast": "Широковещательный адрес",
+  "Bar_PointToPoint": "Используемые адреса (точка-точка, RFC 3021)",
+  "Bar_Single": "Один адрес",
+  "Broadcast_NoneP2p": "Нет (линк точка-точка, RFC 3021)",
+  "Broadcast_NoneSingle": "Нет (один хост)",
+  "Bar_Range": "Диапазон префикса (в IPv6 нет широковещательного адреса)",
+  "Bar_TickNote": "Метки над и под полосой отмечают одиночные адреса по её краям; они нарисованы не в масштабе.",
+  "Split_BarCaption": "Карта подсетей",
+  "Split_BarListed": "Подсети №1–№{last}, цвета как в столбце # таблицы",
+  "Split_BarListedOne": "Подсеть №1 — вся сеть",
+  "Split_BarRemainder": "Подсети №{from}–№{last} вместе",
+  "Split_BarTickNote": "Подсети №1–№{last} слишком малы для отрисовки; метка показывает их положение, не в масштабе."
 }

@@ -11,6 +11,7 @@
   "OutputSize": "Taille de sortie :",
   "ErrorNotImage": "Veuillez téléverser un fichier image.",
   "ErrorConversion": "Échec de la conversion.",
+  "ErrorDamagedImage": "Ce fichier n'est pas une image prise en charge ou est endommagé.",
   "PreviewAlt": "Aperçu du fichier",
   "ResultLabel": "Image convertie",
   "QualityLow": "Faible",

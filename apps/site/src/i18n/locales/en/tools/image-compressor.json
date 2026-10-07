@@ -19,6 +19,7 @@
   "SizeChangeLabel": "Size change",
   "ErrorNotImage": "Please upload an image file.",
   "ErrorCompression": "Compression failed.",
+  "ErrorDamagedImage": "This file isn't a supported image or is damaged.",
   "NeedFile": "Choose an image first.",
   "Seo_Introduction": "Shrink a JPEG, PNG or WebP image right in the browser: choose a quality from 1 to 100 and an output format, compare the original and compressed sizes, then download the _min file. The image is never uploaded.",
   "Seo_DetailedDescription": "The compressor re-encodes one image at a time. **Keep Original Format** keeps JPEG as JPEG and PNG as PNG and saves any other input as WebP; you can also force JPEG, PNG or WebP. Quality works per format: JPEG uses it directly, PNG below 90 is reduced to a 256-colour palette (90 and above stays lossless), and WebP is encoded lossy by the browser at the chosen quality.\n\nRe-encoding drops EXIF and other metadata such as camera model and GPS location; the EXIF orientation is applied to the pixels first, so phone photos keep their rotation. Transparent areas turn white when you save to JPEG. If the browser has no lossy WebP encoder (some Safari versions), a lossless WebP is saved and a note says the quality setting was not applied.\n\nCompression runs in a Web Worker with Rust/WebAssembly and the browser's own WebP encoder, so the page stays responsive on large images and **Cancel** stops the job immediately. The file is read locally and never sent to a server.",

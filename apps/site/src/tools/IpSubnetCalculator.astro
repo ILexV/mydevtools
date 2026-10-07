@@ -35,6 +35,8 @@ const s = {
   wildcard: t(lang, ns, "Wildcard"),
   network: t(lang, ns, "Network"),
   broadcast: t(lang, ns, "Broadcast"),
+  broadcastNoneP2p: t(lang, ns, "Broadcast_NoneP2p"),
+  broadcastNoneSingle: t(lang, ns, "Broadcast_NoneSingle"),
   hostMin: t(lang, ns, "HostMin"),
   hostMax: t(lang, ns, "HostMax"),
   hosts: t(lang, ns, "Hosts"),
@@ -83,6 +85,19 @@ const s = {
   splitCopyList: t(lang, ns, "SplitCopyList"),
   errorSplitPrefix: t(lang, ns, "Error_SplitPrefix"),
   preparing: t(lang, "common", "Common_Preparing"),
+  barCaption: t(lang, ns, "Bar_Caption"),
+  barNetwork: t(lang, ns, "Bar_Network"),
+  barUsable: t(lang, ns, "Bar_Usable"),
+  barBroadcast: t(lang, ns, "Bar_Broadcast"),
+  barP2p: t(lang, ns, "Bar_PointToPoint"),
+  barSingle: t(lang, ns, "Bar_Single"),
+  barRange: t(lang, ns, "Bar_Range"),
+  barTickNote: t(lang, ns, "Bar_TickNote"),
+  splitBarCaption: t(lang, ns, "Split_BarCaption"),
+  splitBarListed: t(lang, ns, "Split_BarListed"),
+  splitBarListedOne: t(lang, ns, "Split_BarListedOne"),
+  splitBarRemainder: t(lang, ns, "Split_BarRemainder"),
+  splitBarTickNote: t(lang, ns, "Split_BarTickNote"),
 };
 const stringsJson = JSON.stringify(s);
 ---
@@ -122,6 +137,9 @@ const stringsJson = JSON.stringify(s);
           <strong class="ds-result-headline-value" data-ip-value="usableHosts"></strong>
           <p class="ds-result-headline-meta"><span>{s.total}: <span class="mono" data-ip-value="totalHosts"></span></span></p>
         </div>
+        <figure class="ip-bar" data-ip-bar="v4" aria-labelledby="ip-bar-cap-v4">
+          <figcaption class="ds-label" id="ip-bar-cap-v4">{s.barCaption}</figcaption>
+        </figure>
         <div class="ds-result-list ip-list">
         <div class="ds-result-row">
           <span class="ds-result-key">{s.address}</span>
@@ -142,7 +160,7 @@ const stringsJson = JSON.stringify(s);
         </div>
         <div class="ds-result-row">
           <span class="ds-result-key">{s.broadcast}</span>
-          <span class="ds-result-value"><span data-ip-value="broadcast"></span></span>
+          <span class="ds-result-value"><span data-ip-value="broadcast"></span><span class="ip-dim ip-none" data-ip-broadcast-none hidden></span></span>
           <CopyButton iconOnly label={`${s.copy}: ${s.broadcast}`} copiedLabel={s.copied} data-ip-copy="broadcast" />
         </div>
         <div class="ds-result-row">
@@ -176,6 +194,9 @@ const stringsJson = JSON.stringify(s);
           <strong class="ds-result-headline-value ip-v6-count" data-ip-value="v6count"></strong>
           <p class="ds-result-headline-meta"><span class="mono">2<sup data-ip-value="v6pow"></sup></span></p>
         </div>
+        <figure class="ip-bar" data-ip-bar="v6" aria-labelledby="ip-bar-cap-v6">
+          <figcaption class="ds-label" id="ip-bar-cap-v6">{s.barCaption}</figcaption>
+        </figure>
         <div class="ds-result-list ip-list">
         <div class="ds-result-row">
           <span class="ds-result-key">{s.address}</span>
@@ -233,6 +254,9 @@ const stringsJson = JSON.stringify(s);
           <ul class="ip-split-facts" data-ip-split-summary></ul>
           <CopyButton ghost label={s.splitCopyList} copiedLabel={s.copied} data-ip-split-copy />
         </div>
+        <figure class="ip-bar" data-ip-bar="split" aria-labelledby="ip-bar-cap-split">
+          <figcaption class="ds-label" id="ip-bar-cap-split">{s.splitBarCaption}</figcaption>
+        </figure>
         <p class="ds-hint" data-ip-split-truncated hidden></p>
         <div class="ip-split-scroll">
           <table class="ip-split-table">
@@ -261,9 +285,15 @@ const stringsJson = JSON.stringify(s);
   /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
   .ip-list { --ds-result-key-w: 8.5rem; }
   .ip-list :global(.ds-result-key) { font-family: var(--mdt-font-sans); letter-spacing: 0; color: var(--mdt-text-muted); }
-  /* Up to 39 digits (2^128): smaller headline so it wraps less on phones. */
-  @media (max-width: 560px) { .ip-v6-count { font-size: 1.3rem; } }
+  /* Long values wrap only at the <wbr> the controller puts after separators,
+     never mid-group (overflow-wrap stays only as a last resort). */
+  .ip-list .ds-result-value, .ip-v6-count { word-break: normal; }
+  /* Up to 39 digits (2^128): counts over 12 digits step the headline down. */
+  .ip-v6-count.is-long { font-size: clamp(1.15rem, 0.95rem + 0.8vw, 1.5rem); }
+  @media (max-width: 560px) { .ip-v6-count { font-size: 1.3rem; } .ip-v6-count.is-long { font-size: 1.1rem; } }
   .ip-dim { color: var(--mdt-text-muted); }
+  /* "None (point-to-point …)" is prose, not a value: sans like the row keys. */
+  .ip-none { font-family: var(--mdt-font-sans); }
   .ip-list .ds-badge { margin-left: 0.4rem; vertical-align: middle; }
   .ip-list [data-ip-scope-v6] { margin-left: 0; }
 
@@ -303,5 +333,102 @@ const stringsJson = JSON.stringify(s);
   .ip-split-table :global(td:first-child), .ip-split-table th:first-child { color: var(--mdt-text-muted); width: 1%; white-space: nowrap; }
   @media (max-width: 420px) {
     .ip-binary-list { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>
+
+<style is:global>
+  /* Address-space diagram (controller-built DOM, so global but scoped to the tool).
+     Annotation hues reuse category accents via tool-local variables; --mdt-cat
+     stays the tool identity. Never colour-only: legend text + counts + ticks. */
+  .ip-tool {
+    --ip-net: var(--mdt-cat-encoding);
+    --ip-host: var(--mdt-cat-regex);
+    --ip-bcast: var(--mdt-cat-jwt);
+    --ip-range: var(--mdt-cat-structured-data);
+    --ip-hue-0: var(--mdt-cat-cryptography);
+    --ip-hue-1: var(--mdt-cat-jwt);
+    --ip-hue-2: var(--mdt-cat-hashing);
+    --ip-hue-3: var(--mdt-cat-regex);
+    --ip-hue-4: var(--mdt-cat-generators);
+    --ip-hue-5: var(--mdt-cat-converters);
+    --ip-hue-6: var(--mdt-cat-structured-data);
+    --ip-hue-7: var(--mdt-cat-encoding);
+    --ip-hue-8: var(--mdt-cat-design);
+  }
+  .ip-tool .ip-bar { display: grid; gap: 0.5rem; margin: 0; min-width: 0; container-type: inline-size; }
+  .ip-tool .ip-bar-track {
+    position: relative;
+    height: 16px;
+    margin: 4px 0;
+    border-radius: 3px;
+    background: var(--mdt-surface-inset);
+    box-shadow: inset 0 0 0 1px var(--mdt-border);
+  }
+  .ip-tool .ip-bar-seg {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: var(--ip-seg, var(--mdt-text-faint));
+    /* 1px surface gap separates neighbouring segments without relying on hue. */
+    box-shadow: inset -1px 0 0 var(--mdt-surface-raised);
+  }
+  .ip-tool .ip-bar-seg.is-first { border-radius: 3px 0 0 3px; }
+  .ip-tool .ip-bar-seg.is-last { border-radius: 0 3px 3px 0; box-shadow: none; }
+  .ip-tool .ip-bar-seg.is-first.is-last { border-radius: 3px; }
+  .ip-tool [data-kind="network"] { --ip-seg: var(--ip-net); }
+  .ip-tool [data-kind="usable"], .ip-tool [data-kind="p2p"], .ip-tool [data-kind="single"] { --ip-seg: var(--ip-host); }
+  .ip-tool [data-kind="broadcast"] { --ip-seg: var(--ip-bcast); }
+  .ip-tool [data-kind="range"] { --ip-seg: var(--ip-range); }
+  .ip-tool .ip-bar-seg[data-kind="rest"] {
+    background: repeating-linear-gradient(135deg, var(--mdt-text-muted) 0 2px, transparent 2px 6px);
+    opacity: 0.55;
+  }
+  /* Tick = position marker for a segment too thin to draw (explicitly not to scale). */
+  .ip-tool .ip-bar-tick {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    width: 3px;
+    border-radius: 1px;
+    background: var(--ip-seg, var(--mdt-text));
+    box-shadow: 0 0 0 1px var(--mdt-surface-raised);
+  }
+  .ip-tool .ip-bar-labels { position: relative; height: 1rem; margin-top: -0.25rem; font-family: var(--mdt-font-mono); font-size: 0.6875rem; color: var(--mdt-text-muted); }
+  .ip-tool .ip-bar-labels span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .ip-tool .ip-bar-labels .is-dense { display: none; }
+  @container (min-width: 30rem) { .ip-tool .ip-bar-labels .is-dense { display: inline; } }
+  .ip-tool .ip-bar-legend { display: flex; flex-wrap: wrap; gap: 0.35rem 1.25rem; margin: 0; padding: 0; list-style: none; font-size: var(--mdt-fs-meta); }
+  .ip-tool .ip-bar-legend li { display: flex; align-items: flex-start; gap: 0.45rem; min-width: 0; }
+  .ip-tool .ip-bar-legend-text { min-width: 0; overflow-wrap: anywhere; }
+  .ip-tool .ip-bar-legend-count { font-family: var(--mdt-font-mono); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  /* 39-digit IPv6 counts may still break on phones rather than overflow. */
+  @container (max-width: 26rem) { .ip-tool .ip-bar-legend-count { white-space: normal; overflow-wrap: anywhere; } }
+  .ip-tool .ip-bar-swatch {
+    flex: none;
+    width: 0.75rem;
+    height: 0.75rem;
+    margin-top: 0.2em;
+    border-radius: 2px;
+    background: var(--ip-seg, var(--mdt-text-muted));
+  }
+  /* Tiny segments: tick-shaped swatch mirrors the tick in the bar. */
+  .ip-tool .ip-bar-swatch.is-tick { width: 3px; height: 0.9rem; margin-top: 0.1em; margin-inline: calc(0.375rem - 1.5px); border-radius: 1px; }
+  .ip-tool .ip-bar-swatch[data-kind="listed"] {
+    background: linear-gradient(90deg, var(--ip-hue-0) 0 33%, var(--ip-hue-1) 33% 66%, var(--ip-hue-2) 66%);
+  }
+  .ip-tool .ip-bar-swatch[data-kind="rest"] {
+    background: repeating-linear-gradient(135deg, var(--mdt-text-muted) 0 2px, transparent 2px 4px);
+    box-shadow: inset 0 0 0 1px var(--mdt-border);
+  }
+  .ip-tool .ip-bar-note { margin: 0; }
+  /* Split table: row # carries the segment hue (rows 1–16), linking table and map. */
+  .ip-tool .ip-split-swatch {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-inline-end: 0.4rem;
+    border-radius: 2px;
+    background: var(--ip-seg);
+    vertical-align: 0.05em;
   }
 </style>

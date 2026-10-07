@@ -61,3 +61,24 @@ export function classifyPdfError(message: string): PdfError {
   if (/Failed to load PDF/i.test(message)) return { kind: "invalid", index };
   return { kind: "other", index };
 }
+
+/**
+ * Page count of pdf-to-text output: the pdf crate joins pages with one blank
+ * line ("\n\n") and never emits a blank line inside a page, so an empty
+ * (scanned) page still counts. Used for the "N pages" result summary.
+ */
+export function countExtractedPages(text: string): number {
+  return text.split("\n\n").length;
+}
+
+/**
+ * Preview slice for the pdf-to-text result textarea: at most `limit` UTF-16
+ * units, never cutting a surrogate pair; `truncated` when text was dropped.
+ */
+export function previewText(text: string, limit = 2000): { text: string; truncated: boolean } {
+  if (text.length <= limit) return { text, truncated: false };
+  let end = limit;
+  const code = text.charCodeAt(end - 1);
+  if (code >= 0xd800 && code <= 0xdbff) end--;
+  return { text: text.slice(0, end), truncated: true };
+}

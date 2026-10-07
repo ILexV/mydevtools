@@ -20,7 +20,7 @@
   "ResultInfo": "Result Info",
   "PreviewAlt": "Selected image preview",
   "ErrorNotImage": "Selected file is not an image.",
-  "ErrorLoadImage": "Failed to load image.",
+  "ErrorDamagedImage": "This file isn't a supported image or is damaged.",
   "ErrorInvalidDimensions": "Invalid dimensions.",
   "ErrorResizeFailed": "Resize failed.",
   "Cancel": "Cancel",

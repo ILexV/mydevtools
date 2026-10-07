@@ -87,7 +87,8 @@ const stringsJson = JSON.stringify({
 
 <style>
   /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
-  .tcc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
-  @media (min-width: 560px) { .tcc-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  /* Equal-width case buttons: as many ~12.5rem columns as fit (one column on
+     phones), so labels stay on one line and every row has the same height. */
+  .tcc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr)); gap: 0.5rem; }
   .tcc-grid > :global(.ds-btn) { justify-content: center; min-width: 0; white-space: normal; overflow-wrap: anywhere; hyphens: auto; text-align: center; }
 </style>

@@ -20,7 +20,7 @@
   "ResultInfo": "结果信息",
   "PreviewAlt": "所选图片预览",
   "ErrorNotImage": "所选文件不是图片。",
-  "ErrorLoadImage": "图片加载失败。",
+  "ErrorDamagedImage": "此文件不是受支持的图片，或文件已损坏。",
   "ErrorInvalidDimensions": "尺寸无效。",
   "ErrorResizeFailed": "调整大小失败。",
   "Cancel": "取消",

@@ -55,7 +55,7 @@ const decoderUrl = localizedPath(lang, "jwt-decoder");
 ---
 
 <div class="ds-stack" data-jwte-tool>
-  <p class="ds-hint jwt-link-note">{s.linkToDecoder} <a href={decoderUrl}>{s.decoderTitle}</a></p>
+  <p class="ds-related-hint">{s.linkToDecoder} <a href={decoderUrl}>{s.decoderTitle}</a></p>
 
   <div class="ds-workbench">
     <ToolPanel title={s.inputTitle}>
@@ -101,8 +101,6 @@ const decoderUrl = localizedPath(lang, "jwt-decoder");
 
 <style>
   /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
-  .jwt-link-note { margin: 0; }
-  .jwt-link-note a { color: var(--mdt-cat); font-weight: 600; }
   .jwte-sig { margin: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
   @media (max-width: 560px) { .jwte-sig { grid-template-columns: minmax(0, 1fr); } }
   .jwte-secret { min-height: 4.5rem; }

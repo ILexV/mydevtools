@@ -8,6 +8,7 @@ import {
   extensionFor,
   guessResizeFormat,
   isDecodableImage,
+  isImageDecodeError,
   isImageFile,
   lockedDimension,
   mimeFor,
@@ -100,4 +101,12 @@ test("parseResizeDimensions accepts positive integers within limits only", () =>
   assert.deepEqual(parseResizeDimensions(String(MAX_RESIZE_DIMENSION + 1), "1"), { error: "too-large" });
   assert.deepEqual(parseResizeDimensions("16384", "16384"), { error: "too-large" }, "pixel budget");
   assert.deepEqual(parseResizeDimensions("8192", "8192"), { width: 8192, height: 8192 });
+});
+
+test("isImageDecodeError: WASM decode / browser decode failures, not encoder errors", () => {
+  assert.equal(isImageDecodeError("Failed to load image: The encoder or decoder for Tga does not support the color type `Unknown(109)`"), true);
+  assert.equal(isImageDecodeError("Failed to load image: empty input"), true);
+  assert.equal(isImageDecodeError("InvalidStateError: The source image could not be decoded."), true);
+  assert.equal(isImageDecodeError("Failed to encode PNG: out of memory"), false);
+  assert.equal(isImageDecodeError(""), false);
 });

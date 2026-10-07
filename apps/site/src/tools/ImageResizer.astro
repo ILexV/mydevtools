@@ -10,6 +10,9 @@
  * UI on the shared tool kit (FileDrop, ds-file-item, Progress, StatusMessage).
  * Before/after ImageCompare slider in the output panel: Fit scales both images
  * into one frame (labelled), 1:1 shows each at its real pixel size.
+ * Errors render inside the Original Image card under the file row; an
+ * undecodable file stays listed with the generic icon and a localized
+ * "not a supported image or damaged" message (no "Choose an image first" hint).
  */
 import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
@@ -46,11 +49,11 @@ const s = {
   resultInfo: t(lang, ns, "ResultInfo"),
   previewAlt: t(lang, ns, "PreviewAlt"),
   errorNotImage: t(lang, ns, "ErrorNotImage"),
-  errorLoadImage: t(lang, ns, "ErrorLoadImage"),
   errorInvalidDimensions: t(lang, ns, "ErrorInvalidDimensions"),
   errorUnsupported: t(lang, ns, "ErrorUnsupportedFormat"),
   errorTooLarge: t(lang, ns, "ErrorDimensionsTooLarge"),
   errorResizeFailed: t(lang, ns, "ErrorResizeFailed"),
+  errorDamaged: t(lang, ns, "ErrorDamagedImage"),
   needFile: t(lang, ns, "NeedFile"),
   outputEmpty: t(lang, ns, "OutputEmpty"),
   preparing: t(lang, "common", "Common_Preparing"),
@@ -73,8 +76,6 @@ const compare = {
 ---
 
 <div class="ds-stack imgr-tool" data-imgr-tool>
-  <StatusMessage kind="error" data-imgr-error />
-
   <div class="ds-workbench">
     <ToolPanel title={s.originalInfo}>
       <FileDrop
@@ -87,9 +88,10 @@ const compare = {
         inputProps={{ "data-imgr-file": true }}
       />
 
-      <div class="ds-file-item" data-imgr-selected hidden>
+      <div class="ds-file-item imgr-row" data-imgr-selected hidden>
         <div class="imgr-file">
           <img class="imgr-thumb" data-imgr-preview alt={s.previewAlt} />
+      <span class="imgr-thumb imgr-thumb-icon" data-imgr-thumb-icon hidden><Icon name="images" size={24} /></span>
           <div class="imgr-file-text">
             <div class="ds-file-item-name" data-imgr-filename></div>
             <div class="ds-file-item-meta" data-imgr-filesize></div>
@@ -101,6 +103,9 @@ const compare = {
           </button>
         </div>
       </div>
+
+      <!-- Errors sit in the Original Image card, right under the file row they concern. -->
+      <StatusMessage kind="error" id="imgr-error" data-imgr-error />
 
       <div class="ds-stack" data-imgr-settings hidden>
         <div class="ds-settings ds-settings-flat imgr-dims">
@@ -129,7 +134,7 @@ const compare = {
           <Icon name="images" size={16} />
           <span data-imgr-resize-label>{s.resize}</span>
         </button>
-        <p class="ds-action-row-aside ds-action-row-aside-when-disabled" id="imgr-need-file">{s.needFile}</p>
+        <p class="ds-action-row-aside ds-action-row-aside-when-disabled" id="imgr-need-file" data-imgr-need-file>{s.needFile}</p>
       </div>
       <Progress
         data-imgr-progress
@@ -161,6 +166,11 @@ const compare = {
   .imgr-tool { max-width: 64rem; margin: 0 auto; }
   .imgr-file { display: flex; align-items: center; gap: 0.8rem; min-width: 0; }
   .imgr-file-text { min-width: 0; }
+  /* Single-file row keeps its lone × on the right on phones too (the kit drops
+     row actions below the name at ≤30rem for multi-action PDF rows). */
+  @media (max-width: 30rem) {
+    .imgr-row { grid-template-columns: minmax(0, 1fr) auto; }
+  }
   .imgr-thumb {
     flex: none;
     width: 3.5rem;
@@ -169,6 +179,10 @@ const compare = {
     border-radius: var(--mdt-radius-sm);
     background: var(--mdt-surface-muted);
   }
+  /* Generic icon when the thumbnail can't be decoded (no broken-image glyph / spilled alt). */
+  .imgr-thumb-icon { display: grid; place-items: center; color: var(--mdt-text-faint); }
+  /* Technical detail under a localized error (muted secondary line). */
+  .imgr-tool :global(.img-error-detail) { display: block; margin-top: 2px; overflow-wrap: anywhere; }
   .imgr-result-info { font-size: clamp(1.25rem, 1rem + 0.9vw, 1.6rem); }
   /* Prerequisite hint: only while Resize is disabled for lack of an image (not while busy). */
   .imgr-dims { grid-template-columns: repeat(2, minmax(0, 1fr)); }

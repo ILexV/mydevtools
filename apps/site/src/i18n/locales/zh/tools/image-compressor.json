@@ -19,6 +19,7 @@
   "SizeChangeLabel": "大小变化",
   "ErrorNotImage": "请上传图片文件。",
   "ErrorCompression": "压缩失败。",
+  "ErrorDamagedImage": "此文件不是受支持的图片，或文件已损坏。",
   "NeedFile": "请先选择一张图片。",
   "Seo_Introduction": "直接在浏览器中缩小 JPEG、PNG 或 WebP 图片：选择 1 到 100 的质量和输出格式，对比原始大小与压缩后大小，然后下载 _min 文件。图片不会上传。",
   "Seo_DetailedDescription": "压缩器每次重新编码一张图片。**保持原始格式** 会让 JPEG 仍为 JPEG、PNG 仍为 PNG，其他输入格式一律保存为 WebP；也可以强制输出 JPEG、PNG 或 WebP。质量参数因格式而异：JPEG 直接使用该值；PNG 低于 90 时缩减为 256 色调色板（90 及以上保持无损）；WebP 由浏览器按所选质量进行有损编码。\n\n重新编码会去除 EXIF 及其他元数据，例如相机型号和 GPS 位置；EXIF 方向会先应用到像素上，因此手机照片的旋转方向保持不变。保存为 JPEG 时，透明区域会变成白色。如果浏览器没有有损 WebP 编码器（部分 Safari 版本），则会保存无损 WebP，并提示质量设置未生效。\n\n压缩在 Web Worker 中运行，使用 Rust/WebAssembly 和浏览器自带的 WebP 编码器，处理大图时页面依然流畅，点击 **取消** 可立即停止。文件在本地读取，绝不会发送到服务器。",

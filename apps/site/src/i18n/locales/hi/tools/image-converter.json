@@ -11,6 +11,7 @@
   "OutputSize": "आउटपुट साइज़:",
   "ErrorNotImage": "कृपया एक छवि फ़ाइल अपलोड करें।",
   "ErrorConversion": "रूपांतरण विफल।",
+  "ErrorDamagedImage": "यह फ़ाइल समर्थित इमेज नहीं है या क्षतिग्रस्त है।",
   "PreviewAlt": "फ़ाइल पूर्वावलोकन",
   "ResultLabel": "परिवर्तित छवि",
   "QualityLow": "कम",

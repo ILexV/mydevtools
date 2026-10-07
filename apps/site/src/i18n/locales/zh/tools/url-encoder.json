@@ -17,7 +17,7 @@
   "Error_NotRepresentable": "位置 {0} 处的字符无法用所选字符集表示。",
   "Error_NotText": "解码后的字节不是所选字符集中的有效文本。",
   "Error_InvalidPercent": "百分号编码无效：“%”后面必须跟两个十六进制数字。",
-  "StatsOutput": "字符数：{0} · {1}",
+  "StatsOutput": "字符数：{0} · 大小：{1}",
   "Error_CopyFailed": "无法复制：剪贴板不可用。",
   "Seo_Introduction": "将文本进行百分号编码以用于 URL，并把 %XX 序列解码回可读文本。三种模式分别对应 JavaScript 的 encodeURIComponent、encodeURI 和 HTML 表单编码，处理由 Rust 编译的 WebAssembly 模块在浏览器中完成。",
   "Seo_DetailedDescription": "**组件** 模式会转义除字母、数字和 `- _ . ! ~ * ' ( )` 之外的所有字符，因此 `/`、`?`、`&`、`=` 也会被编码，适用于单个查询参数值或单个路径段。**URI** 模式保留完整地址的结构（`: / ? # & = + $ , ; @`），只转义空格和在 URL 中永远无效的字符。**表单** 模式遵循 `application/x-www-form-urlencoded`：空格变为 `+`，除字母、数字和 `- _ . *` 外全部转义；解码时也会把 `+` 还原为空格。\n\n编码前，文本会按所选字符集转换为字节。UTF-8 是 Web 标准；ISO-8859-1（Latin-1）、UTF-16LE 和 UTF-16BE 用于旧系统，字符集无法表示的字符会连同位置一起报错。解码是严格的：每个 `%` 后必须跟两个十六进制数字，因此孤立的 `100%` 会报错，而不会被悄悄放过。状态行会显示输出的字符数和字节数。",

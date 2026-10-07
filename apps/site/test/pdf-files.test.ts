@@ -7,6 +7,8 @@ import {
   savingsPercent,
   moveItem,
   classifyPdfError,
+  countExtractedPages,
+  previewText,
 } from "../src/tools/pdf-files.ts";
 
 test("isPdfFile: MIME type or .pdf extension (case-insensitive)", () => {
@@ -53,4 +55,18 @@ test("classifyPdfError: maps pdf crate messages to kinds + merge index", () => {
   assert.deepEqual(classifyPdfError("PDF 0: Failed to load PDF: Xref"), { kind: "invalid", index: 0 });
   assert.deepEqual(classifyPdfError("Failed to save PDF: Io"), { kind: "other", index: null });
   assert.deepEqual(classifyPdfError(""), { kind: "other", index: null });
+});
+
+test("countExtractedPages: pages joined by a blank line, empty pages count", () => {
+  assert.equal(countExtractedPages(""), 1);
+  assert.equal(countExtractedPages("A\nB"), 1);
+  assert.equal(countExtractedPages("A\n\nB"), 2);
+  assert.equal(countExtractedPages("A\n\n\n\nB"), 3);
+  assert.equal(countExtractedPages("A\n\n\nB"), 2);
+});
+
+test("previewText: limit, truncated flag, no split surrogate pair", () => {
+  assert.deepEqual(previewText("abc", 5), { text: "abc", truncated: false });
+  assert.deepEqual(previewText("abcdef", 3), { text: "abc", truncated: true });
+  assert.deepEqual(previewText("ab\u{1F600}cd", 3), { text: "ab", truncated: true });
 });

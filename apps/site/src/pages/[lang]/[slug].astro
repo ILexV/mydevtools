@@ -414,7 +414,9 @@ const ActiveTool = TOOL_COMPONENTS[slug];
     .mono[data-len="2"] { font-size: 14px; }
     .mono[data-len="3"] { font-size: 12px; }
     .mono[data-len="4"] { font-size: 10px; }
-    h1 { font-size: 1.4rem; }
+    /* At 22px the desktop -0.03em tracking shrinks Manrope's word space to
+       ~3px ("decassedetexte" in fr/de/es): relax tracking, widen spaces. */
+    h1 { font-size: 1.4rem; letter-spacing: -0.02em; word-spacing: 0.06em; }
     .tool-desc { margin-top: 0.6rem; }
     .privacy-note { align-self: center; margin-top: 0.75rem; }
     .tool-actions { margin-top: 0.75rem; }

@@ -30,6 +30,8 @@ interface Props extends HTMLAttributes<"div"> {
 }
 
 const { label, for: htmlFor, hint, hintId, aside, hintProps, asideProps, class: className, ...rest } = Astro.props as Props;
+// Merge a `class` from hintProps into the hint's own class (a spread would emit a second, ignored class attribute).
+const { class: hintClass, ...hintRest } = hintProps ?? {};
 const resolvedHintId = hintId ?? (htmlFor ? `${htmlFor}-hint` : undefined);
 const hasAside = aside !== undefined || asideProps !== undefined || Astro.slots.has("aside");
 const LabelTag = htmlFor ? "label" : "span";
@@ -45,5 +47,5 @@ const LabelTag = htmlFor ? "label" : "span";
     <LabelTag class="ds-label" for={htmlFor}>{label}</LabelTag>
   )}
   <slot />
-  {(hint || hintProps) && <p class="ds-hint" id={resolvedHintId} {...hintProps}>{hint}</p>}
+  {(hint || hintProps) && <p class:list={["ds-hint", hintClass]} id={resolvedHintId} {...hintRest}>{hint}</p>}
 </div>

@@ -33,7 +33,7 @@
   "Error_InvalidData": "The input is not valid {0}.",
   "PreviewTruncated": "(preview truncated, use Download for full output)",
   "FileDecoded": "Decoded {0} → {1}",
-  "StatsOutput": "Characters: {0} · {1}",
+  "StatsOutput": "Characters: {0} · Size: {1}",
   "Error_CopyFailed": "Could not copy: the clipboard is unavailable.",
   "Seo_Introduction": "Turn text or any file into a hexadecimal string and decode hex dumps back into text or bytes. The conversion runs in your browser via WebAssembly compiled from Rust, so file contents are never uploaded.",
   "Seo_DetailedDescription": "Each byte becomes two hex digits, so the output shows exactly which bytes a string contains: handy for checking UTF-8 sequences, byte order marks, line endings and invisible characters. Text is converted with the chosen charset (UTF-8, UTF-16LE, UTF-16BE, ASCII or ISO-8859-1), and **Hex case** switches between `lowercase` and `UPPERCASE` digits.\n\nThe decoder accepts hex in the shapes you usually copy from debuggers, packet captures and certificates: continuous (`48656c6c6f`), split by spaces or line breaks, separated by colons or dashes (`48:65:6c`, `48-65-6c`), and with a `0x` prefix on each byte (`0x48 0x65`). Each of these can be switched off under **Decode options** for strict validation. An odd number of digits or a non-hex character produces an error, and the offending character is selected in the input.\n\nFiles can be chosen or dropped onto the page and are read in a Web Worker with a progress bar and **Cancel**. If the decoded bytes are not valid text in the selected charset, for example a binary dump, the tool says so and **Download** saves the raw bytes.",

@@ -69,10 +69,21 @@
   "PartMonth": "Month",
   "PartWeekday": "Weekday",
   "ErrorFieldValue": "{0}: invalid value \"{1}\" (allowed {2}–{3})",
-  "NoUpcomingRuns": "No upcoming runs found — this schedule may never fire (e.g. February 30).",
+  "NoUpcomingRuns": "No runs within the next {0} years — this schedule never matches a real date (for example, February 31).",
   "Seo_Introduction": "Fill in five fields and get a ready cron line for crontab, CI schedules or job schedulers, together with a plain-language description and the next five run times to confirm it does what you meant.",
   "Seo_DetailedDescription": "Each field accepts the usual syntax — `*`, numbers, ranges `9-17`, lists `1,15`, steps `*/10`, names `JAN`–`DEC` and `MON`–`FRI`, `L` for the last day of the month — and an empty field counts as `*`. Values are checked against the field's range; an error highlights the field at fault and names the allowed values.\n\nAfter **Generate Expression** (or Enter in any field) you get the expression, a description in your language — `*/10 9-17 * * 1-5` reads “Every 10 minutes from 09:00 to 17:50 Monday through Friday” — and the next five runs in your local time zone, in the date format you choose (it is remembered in this browser). Day of month and day of week are combined with OR, as in Vixie cron.\n\nTo decode an existing line instead, use the Cron Expression Parser. All calculations run locally in the browser.",
   "Seo_Examples": "**Weekly maintenance**: Minute `0`, Hour `3`, Day of Week `0` → `0 3 * * 0` — “At 03:00 on Sundays”.\n\n**Polling during business hours**: Minute `*/10`, Hour `9-17`, Day of Week `1-5` → `*/10 9-17 * * 1-5` — “Every 10 minutes from 09:00 to 17:50 Monday through Friday”.\n\n**Month-end job**: Minute `30`, Hour `23`, Day of Month `L` → `30 23 L * *` — “At 23:30 on the last day of the month”.\n\n**Twice a year**: Minute `0`, Hour `0`, Day of Month `1`, Month `1,7` → `0 0 1 1,7 *` — “At 00:00 on the 1st of the month in January and July”.",
   "Seo_HowToSteps": "### Step 1: Fill in the fields\nEnter values in **Minute (0-59)**, **Hour (0-23)**, **Day of Month (1-31)**, **Month (1-12)** and **Day of Week (0-6)**.\n\n### Step 2: Generate\nClick **Generate Expression** or press Enter in any field.\n\n### Step 3: Check the result\nRead the **Description** and the **Next Executions Preview** to make sure the schedule is right.\n\n### Step 4: Copy the expression\nClick **Copy** next to **Generated Expression** and paste it into crontab or your scheduler config.",
-  "Seo_Tips": "- Minute starts as `0` and the other fields as `*`; changing Minute to `*` makes the job run every minute of the selected hours.\n- If you fill in both Day of Month and Day of Week, the job runs when either matches.\n- Both `0` and `7` mean Sunday in the Day of Week field.\n- Cron uses the server's time zone; the preview uses your browser's.\n- Only five fields are generated — schedulers that expect seconds (Quartz, some CI systems) need a different format."
+  "Seo_Tips": "- Minute starts as `0` and the other fields as `*`; changing Minute to `*` makes the job run every minute of the selected hours.\n- If you fill in both Day of Month and Day of Week, the job runs when either matches.\n- Both `0` and `7` mean Sunday in the Day of Week field.\n- Cron uses the server's time zone; the preview uses your browser's.\n- Only five fields are generated — schedulers that expect seconds (Quartz, some CI systems) need a different format.",
+  "TimelineShowMore": "Show next {0}",
+  "TimelineShowMore_one": "Show next run",
+  "TimelineHorizon": "Only {0} runs within the next {1} years — the search stops there.",
+  "TimelineHorizon_one": "Only {0} run within the next {1} years — the search stops there.",
+  "TimelineReboot": "@reboot runs once each time the cron daemon starts, so there are no future times to list.",
+  "TimelineContext": "Calculated at {0}, time zone {1} ({2}).",
+  "TimelineRules": "Times are local. When both day of month and weekday are restricted, a day matching either one runs (standard cron). A time skipped by a daylight-saving change moves forward; a repeated hour runs once.",
+  "AnnounceUpdated": "Schedule updated",
+  "StaleHint": "Fields changed — generate again to update the schedule.",
+  "DateFormatLabel": "Date format",
+  "PartsLabel": "Expression Parts"
 }

@@ -229,6 +229,29 @@ fn base64_encode_bytes(
     result
 }
 
+/// Alphabet pre-check shared by the Base64/Base32/Base58 text decoders: the
+/// first character outside the format's symbol set (padding `=` counts as a
+/// symbol where the format has it) is reported as
+/// "Invalid <name> character 'c' at position i" before any length/padding
+/// check, so a typo is not misreported as truncated input. `i` is a 0-based
+/// char index into the ORIGINAL input (whitespace included), like hex.
+fn check_symbols(
+    input: &str,
+    name: &str,
+    allow_whitespace: bool,
+    is_symbol: impl Fn(char) -> bool,
+) -> Result<(), String> {
+    for (i, c) in input.chars().enumerate() {
+        if allow_whitespace && c.is_whitespace() {
+            continue;
+        }
+        if !is_symbol(c) {
+            return Err(format!("Invalid {} character '{}' at position {}", name, c, i));
+        }
+    }
+    Ok(())
+}
+
 fn base64_decode_string(
     input: &str,
     alphabet: Base64Alphabet,
@@ -244,6 +267,15 @@ fn base64_decode_string(
     } else if cleaned.chars().any(|c| c.is_whitespace()) {
         return Err("Whitespace not allowed".to_string());
     }
+
+    check_symbols(input, "Base64", allow_whitespace, |c| {
+        c.is_ascii_alphanumeric()
+            || c == '='
+            || match alphabet {
+                Base64Alphabet::Standard => c == '+' || c == '/',
+                Base64Alphabet::UrlSafe => c == '-' || c == '_',
+            }
+    })?;
 
     if padding == PaddingMode::None && cleaned.contains('=') {
         return Err("Padding '=' is not allowed".to_string());
@@ -481,6 +513,20 @@ fn base32_decode_string(
         return Err("Whitespace not allowed".to_string());
     }
 
+    // Case-insensitive like the codec; Crockford also accepts I/L/O and `-`.
+    check_symbols(input, "Base32", allow_whitespace, |c| {
+        c == '='
+            || match alphabet {
+                Base32Alphabet::Rfc4648 => c.is_ascii_alphabetic() || ('2'..='7').contains(&c),
+                Base32Alphabet::Crockford => {
+                    (c.is_ascii_alphanumeric() && !c.eq_ignore_ascii_case(&'u')) || c == '-'
+                }
+                Base32Alphabet::ZBase32 => {
+                    c.is_ascii() && BASE32_ZBASE32_SYMBOLS.contains(c.to_ascii_lowercase())
+                }
+            }
+    })?;
+
     if padding == PaddingMode::None && cleaned.contains('=') {
         return Err("Padding '=' is not allowed".to_string());
     }
@@ -579,6 +625,11 @@ fn base58_decode_string(
     } else if cleaned.chars().any(|c| c.is_whitespace()) {
         return Err("Whitespace not allowed".to_string());
     }
+
+    // All three alphabets use the same 58 symbols (alphanumerics minus 0 O I l).
+    check_symbols(input, "Base58", allow_whitespace, |c| {
+        c.is_ascii_alphanumeric() && !matches!(c, '0' | 'O' | 'I' | 'l')
+    })?;
 
     bs58::decode(&cleaned)
         .with_alphabet(base58_alphabet(alphabet))
@@ -1331,6 +1382,38 @@ mod tests {
         }
         assert!(base58_decode_string("2NEp o7", Base58Alphabet::Bitcoin, false).is_err());
         assert!(base58_decode_string("2NEp o7", Base58Alphabet::Bitcoin, true).is_ok());
+    }
+
+    #[test]
+    fn test_invalid_symbol_reported_before_length_with_char_position() {
+        // A bad symbol wins over the length/padding checks; the position is a
+        // 0-based char index into the original input (multi-byte chars count once).
+        let err = base32_decode_string("MZXW6$==", Base32Alphabet::Rfc4648, PaddingMode::Required, false).unwrap_err();
+        assert_eq!(err, "Invalid Base32 character '$' at position 5");
+        let err = base32_decode_string("ЖЖMZ$", Base32Alphabet::Rfc4648, PaddingMode::Optional, false).unwrap_err();
+        assert!(err.ends_with("'Ж' at position 0"), "{err}");
+        assert!(base32_decode_string("mzxw6ylp", Base32Alphabet::Rfc4648, PaddingMode::None, false).is_ok());
+        // Crockford look-alikes and `-` separators pass the symbol check.
+        assert!(base32_decode_string("ilo0-ILO0", Base32Alphabet::Crockford, PaddingMode::None, false).is_ok());
+        let err = base32_decode_string("UUUUUUUU", Base32Alphabet::Crockford, PaddingMode::None, false).unwrap_err();
+        assert!(err.contains("character 'U' at position 0"), "{err}");
+        let err = base32_decode_string("ybnl", Base32Alphabet::ZBase32, PaddingMode::None, false).unwrap_err();
+        assert!(err.contains("'l' at position 3"), "{err}");
+
+        let err = base64_decode_string("@@@ not base64 !!!", Base64Alphabet::Standard, PaddingMode::Optional, true).unwrap_err();
+        assert_eq!(err, "Invalid Base64 character '@' at position 0");
+        let err = base64_decode_string("Zm 9v!mFy", Base64Alphabet::Standard, PaddingMode::Required, true).unwrap_err();
+        assert!(err.ends_with("'!' at position 5"), "{err}");
+        let err = base64_decode_string("€Zm9", Base64Alphabet::Standard, PaddingMode::Required, false).unwrap_err();
+        assert!(err.ends_with("position 0"), "{err}");
+        let err = base64_decode_string("-_-_", Base64Alphabet::Standard, PaddingMode::Required, false).unwrap_err();
+        assert!(err.contains("character '-' at position 0"), "{err}");
+        // Length errors still surface for well-formed symbols.
+        let err = base64_decode_string("SGVsbG8", Base64Alphabet::Standard, PaddingMode::Required, false).unwrap_err();
+        assert!(err.contains("length"), "{err}");
+
+        let err = base58_decode_string("2NEp😀0", Base58Alphabet::Bitcoin, false).unwrap_err();
+        assert_eq!(err, "Invalid Base58 character '😀' at position 4");
     }
 
     #[test]

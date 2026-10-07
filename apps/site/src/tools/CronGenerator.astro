@@ -2,9 +2,11 @@
 /**
  * Cron Expression Generator (pure JS). Five field inputs (minute / hour /
  * day-of-month / month / day-of-week) → Generate builds the cron expression,
- * validates it, renders a human-readable description and the next 5 execution
- * times (local time, selectable date format persisted in localStorage). Copy
- * button with 1200ms feedback. Parsing/description/next runs live in the
+ * validates it, renders five coloured field capsules, a human-readable
+ * description and a vertical timeline of the next runs (shared with
+ * cron-parser: "Show next 5" up to 10, evaluation time zone, date format
+ * persisted in localStorage). Field edits mark the result stale until the next
+ * Generate. Copy button with 1200ms feedback. Parsing/description/next runs live in the
  * shared pure `cron-core.ts`; DOM wiring in `cron-generator.client.ts`.
  */
 import { t, pluralVariants } from "@/i18n/messages";
@@ -16,6 +18,8 @@ import Field from "@/components/tool/Field.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
 import ToolPanel from "@/components/tool/ToolPanel.astro";
+import CronFieldCapsules from "@/tools/CronFieldCapsules.astro";
+import "@/tools/cron-ui.css";
 
 interface Props {
   lang: LocaleCode;
@@ -35,6 +39,9 @@ const s = {
   generatedExpressionLabel: t(lang, ns, "GeneratedExpressionLabel"),
   descriptionLabel: t(lang, ns, "DescriptionLabel"),
   nextExecutionsPreviewLabel: t(lang, ns, "NextExecutionsPreviewLabel"),
+  dateFormatLabel: t(lang, ns, "DateFormatLabel"),
+  partsLabel: t(lang, ns, "PartsLabel"),
+  staleHint: t(lang, ns, "StaleHint"),
   generateToSeeResult: t(lang, ns, "GenerateToSeeResult"),
   actionGenerate: t(lang, ns, "ActionGenerate"),
   copy: t(lang, ns, "Copy"),
@@ -59,6 +66,12 @@ const clientStrings = {
   errorUnknownPreset: t(lang, ns, "ErrorUnknownPreset"),
   errorFieldValue: t(lang, ns, "ErrorFieldValue"),
   noUpcomingRuns: t(lang, ns, "NoUpcomingRuns"),
+  timelineShowMore: t(lang, ns, "TimelineShowMore"),
+  timelineHorizon: t(lang, ns, "TimelineHorizon"),
+  timelineReboot: t(lang, ns, "TimelineReboot"),
+  timelineContext: t(lang, ns, "TimelineContext"),
+  timelineRules: t(lang, ns, "TimelineRules"),
+  announceUpdated: t(lang, ns, "AnnounceUpdated"),
   fieldNames: {
     minute: t(lang, ns, "PartMinute"),
     hour: t(lang, ns, "PartHour"),
@@ -80,9 +93,7 @@ const parserUrl = localizedPath(lang, "cron-parser");
 ---
 
 <div class="ds-stack" data-crong-tool>
-  <p class="ds-alert ds-alert-info">
-    {s.linkToParser} → <a href={parserUrl}>{s.parserTitle}</a>
-  </p>
+  <p class="ds-related-hint">{s.linkToParser} <a href={parserUrl}>{s.parserTitle}</a></p>
 
   <div class="ds-workbench">
     <ToolPanel title={s.generatorTitle}>
@@ -168,19 +179,23 @@ const parserUrl = localizedPath(lang, "cron-parser");
 
     <OutputPanel panel label={s.generatedExpressionLabel} emptyHint={s.generateToSeeResult} data-crong-output-panel>
       <div class="ds-result-headline ds-when-filled">
-        <output class="ds-result-headline-value" data-crong-output></output>
+        <output class="ds-result-headline-value cron-stale-dim" data-crong-output dir="ltr"></output>
         <CopyButton iconOnly label={s.copy} copiedLabel={s.copied} failedLabel={s.copyFailed} data-crong-copy />
       </div>
 
+      <p class="ds-hint cron-stale-hint" data-crong-stale hidden>{s.staleHint}</p>
+
+      <CronFieldCapsules class="ds-when-filled" label={s.partsLabel} names={clientStrings.fieldNames} data-crong-caps />
+
       <div class="ds-field-group ds-when-filled">
         <span class="ds-label">{s.descriptionLabel}</span>
-        <p class="crong-description" data-crong-description aria-live="polite"></p>
+        <p class="crong-description cron-stale-dim" data-crong-description></p>
       </div>
 
       <div class="ds-field-group ds-when-filled">
-        <div class="ds-label-row">
-          <span class="ds-label">{s.nextExecutionsPreviewLabel}</span>
-          <select class="ds-field-select crong-format" data-crong-date-format aria-label={s.nextExecutionsPreviewLabel}>
+        <div class="ds-label-row cron-label-row">
+          <span class="ds-label" id="crong-next-label">{s.nextExecutionsPreviewLabel}</span>
+          <select class="ds-field-select crong-format" data-crong-date-format aria-label={s.dateFormatLabel}>
             <option value="locale">{s.dateFormatLocale}</option>
             <option value="locale-12h">{s.dateFormatLocale12h}</option>
             <option value="full-month">{s.dateFormatFullMonth}</option>
@@ -190,7 +205,7 @@ const parserUrl = localizedPath(lang, "cron-parser");
             <option value="verbose">{s.dateFormatVerbose}</option>
           </select>
         </div>
-        <div data-crong-next aria-live="polite"></div>
+        <div data-crong-next aria-labelledby="crong-next-label" role="group"></div>
       </div>
     </OutputPanel>
   </div>
@@ -204,9 +219,5 @@ const parserUrl = localizedPath(lang, "cron-parser");
   .crong-fields { display: grid; gap: 0.85rem; }
   .crong-description { margin: 0; line-height: 1.5; color: var(--mdt-text); overflow-wrap: anywhere; }
   .crong-format { width: auto; max-width: 100%; min-width: 0; }
-
-  /* Next-run list (rows are created by the controller → :global). */
-  [data-crong-tool] :global(.cron-next) { margin: 0; padding-left: 2.2rem; }
-  [data-crong-tool] :global(.cron-next li + li) { margin-top: 0.3rem; }
-  [data-crong-tool] :global(.cron-next li::marker) { color: var(--mdt-text-faint); }
+  /* Timeline + field capsules: shared `cron-ui.css`. */
 </style>

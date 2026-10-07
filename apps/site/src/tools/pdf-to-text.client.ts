@@ -10,13 +10,16 @@
  * corrupted or password-protected PDF gets an error badge and a localized
  * message naming the file; the rest of the batch still runs. Already
  * extracted files are skipped on re-extract (legacy parity); object URLs are
- * revoked on remove.
+ * revoked on remove. After a run the result panel shows the batch summary
+ * (files · pages · characters), a preview of one file's text (first ~2,000
+ * characters, picker when several), Copy / Download TXT, is revealed on
+ * mobile (`revealOutput`) and the summary is announced politely.
  */
 import { extractText } from "@/scripts/wasm/pdf-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
-import { bindDropzone, withPreparing } from "@/scripts/tool-ui";
-import { formatBytes, progressPercent } from "@/lib/format";
-import { classifyPdfError, isPdfFile, textFileName } from "@/tools/pdf-files";
+import { announce, bindDropzone, copyWithFeedback, revealOutput, withPreparing } from "@/scripts/tool-ui";
+import { formatBytes, formatPlural, formatString, progressPercent } from "@/lib/format";
+import { classifyPdfError, countExtractedPages, isPdfFile, previewText, textFileName } from "@/tools/pdf-files";
 import { appendMeta, badge, buildFileRow, downloadLink, iconButton, PDF_ICONS, spinner } from "@/tools/pdf-file-ui";
 
 interface Strings {
@@ -33,11 +36,23 @@ interface Strings {
   error: string;
   /** `Common_Preparing` — first-run WASM load feedback. */
   preparing?: string;
+  lang: string;
+  previewTruncated: string;
+  previewEmpty: string;
+  summaryFiles: string;
+  summaryPages: string;
+  summaryChars: string;
+  resultAnnounce: string;
+  copied: string;
+  /** Plural variants (`summaryFiles_one`, `summaryChars_few`, …). */
+  [key: string]: string | undefined;
 }
 
 interface PdfItem {
   file: File;
   url: string | null;
+  /** Extracted text (kept for the preview / Copy); null until extracted. */
+  text: string | null;
   processing: boolean;
   error: string | null;
 }
@@ -71,6 +86,15 @@ function init() {
   const progressLabel = root.querySelector<HTMLElement>("[data-pdft-progress-label]");
   const cancelBtn = root.querySelector<HTMLButtonElement>("[data-pdft-cancel]");
   const errorBox = root.querySelector<HTMLElement>("[data-pdft-error]");
+  const resultEl = root.querySelector<HTMLElement>("[data-pdft-result]");
+  const summaryEl = root.querySelector<HTMLElement>("[data-pdft-summary]");
+  const summaryFilesEl = root.querySelector<HTMLElement>("[data-pdft-summary-files]");
+  const pickEl = root.querySelector<HTMLElement>("[data-pdft-preview-pick]");
+  const pickSelect = root.querySelector<HTMLSelectElement>("[data-pdft-preview-file]");
+  const previewEl = root.querySelector<HTMLTextAreaElement>("[data-pdft-preview]");
+  const previewNote = root.querySelector<HTMLElement>("[data-pdft-preview-note]");
+  const copyBtn = root.querySelector<HTMLButtonElement>("[data-pdft-copy]");
+  const downloadBtn = root.querySelector<HTMLButtonElement>("[data-pdft-download]");
   if (!zone || !input || !listEl || !itemsEl || !extractEl) return;
   const extract: HTMLButtonElement = extractEl;
   root.dataset.initialized = "true";
@@ -78,6 +102,9 @@ function init() {
   const files: PdfItem[] = [];
   let extracting = false;
   let job: AbortController | null = null;
+  /** File shown in the result preview (Copy / Download act on it). */
+  let previewItem: PdfItem | null = null;
+  const num = (n: number) => n.toLocaleString(strings.lang);
 
   function showError(msg: string) {
     if (!errorBox) return;
@@ -147,6 +174,69 @@ function init() {
       itemsEl!.append(li);
     });
     extract.disabled = extracting || !files.some((f) => !f.url);
+    renderResult();
+  }
+
+  /** Extracted files of the list (result panel input), in list order. */
+  function extracted(): PdfItem[] {
+    return files.filter((f) => f.text !== null);
+  }
+
+  /** Batch summary parts: "2 files", "3 pages · 1,204 characters". */
+  function summaryParts(done: PdfItem[]) {
+    const pages = done.reduce((n, f) => n + countExtractedPages(f.text ?? ""), 0);
+    const chars = done.reduce((n, f) => n + (f.text ?? "").length, 0);
+    return {
+      files: formatPlural(strings, "summaryFiles", done.length, strings.lang, num(done.length)),
+      pages: formatPlural(strings, "summaryPages", pages, strings.lang, num(pages)),
+      chars: formatPlural(strings, "summaryChars", chars, strings.lang, num(chars)),
+    };
+  }
+
+  /** Result panel: summary, preview picker (2+ files) and the previewed text. */
+  function renderResult() {
+    if (!resultEl) return;
+    const done = extracted();
+    resultEl.hidden = done.length === 0;
+    if (done.length === 0) {
+      previewItem = null;
+      return;
+    }
+    if (!previewItem || !done.includes(previewItem)) previewItem = done[0] ?? null;
+    const parts = summaryParts(done);
+    if (summaryFilesEl) summaryFilesEl.textContent = parts.files;
+    if (summaryEl) summaryEl.textContent = `${parts.pages} · ${parts.chars}`;
+    if (pickEl && pickSelect) {
+      pickEl.hidden = done.length < 2;
+      pickSelect.replaceChildren(
+        ...done.map((f, i) => {
+          const opt = document.createElement("option");
+          opt.value = String(i);
+          opt.textContent = f.file.name;
+          opt.selected = f === previewItem;
+          return opt;
+        }),
+      );
+    }
+    renderPreview();
+  }
+
+  function renderPreview() {
+    const text = previewItem?.text ?? "";
+    const { text: shown, truncated } = previewText(text);
+    if (previewEl) {
+      previewEl.value = shown;
+      // Fit short texts (no tall empty box), cap long ones; the user can resize.
+      previewEl.rows = Math.min(14, Math.max(4, shown.split("\n").length + 1));
+    }
+    if (previewNote) {
+      const note = text.trim() === ""
+        ? strings.previewEmpty
+        : truncated ? formatString(strings.previewTruncated, num(shown.length), num(text.length)) : "";
+      previewNote.textContent = note;
+      previewNote.hidden = note === "";
+    }
+    if (copyBtn) copyBtn.disabled = text === "";
   }
 
   function addFiles(incoming: File[]) {
@@ -156,7 +246,7 @@ function init() {
     const valid = incoming.filter(isPdfFile);
     if (valid.length < incoming.length) showError(strings.errorNotPdf);
     if (valid.length === 0) return;
-    for (const file of valid) files.push({ file, url: null, processing: false, error: null });
+    for (const file of valid) files.push({ file, url: null, text: null, processing: false, error: null });
     render();
   }
 
@@ -187,6 +277,8 @@ function init() {
           label: strings.preparing,
         });
         item.url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+        item.text = text;
+        previewItem = item; // Preview the newest result.
       } catch (e) {
         if (e instanceof WasmError && e.code === "aborted") {
           // Cancelled mid-file: the row goes back to "ready".
@@ -205,9 +297,31 @@ function init() {
     setBusy(false);
     render();
     if (errors.length > 0) showError(errors.join("\n"));
+    const finished = extracted();
+    if (finished.length > 0 && resultEl && !resultEl.hidden) {
+      const parts = summaryParts(finished);
+      announce(formatString(strings.resultAnnounce, `${parts.files}, ${parts.pages}, ${parts.chars}`));
+      revealOutput(resultEl);
+    }
   }
 
   bindDropzone(zone, input, addFiles);
+  pickSelect?.addEventListener("change", () => {
+    previewItem = extracted()[Number(pickSelect.value)] ?? previewItem;
+    renderPreview();
+  });
+  copyBtn?.addEventListener("click", () => {
+    if (previewItem?.text) void copyWithFeedback(copyBtn, previewItem.text, strings.copied);
+  });
+  downloadBtn?.addEventListener("click", () => {
+    if (!previewItem?.url) return;
+    const a = document.createElement("a");
+    a.href = previewItem.url;
+    a.download = textFileName(previewItem.file.name);
+    document.body.append(a);
+    a.click();
+    a.remove();
+  });
   extract.addEventListener("click", () => void handleExtract());
   cancelBtn?.addEventListener("click", () => {
     cancelBtn.disabled = true;

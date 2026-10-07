@@ -20,7 +20,7 @@
   "ResultInfo": "結果情報",
   "PreviewAlt": "選択した画像のプレビュー",
   "ErrorNotImage": "選択されたファイルは画像ではありません。",
-  "ErrorLoadImage": "画像の読み込みに失敗しました。",
+  "ErrorDamagedImage": "このファイルは対応している画像ではないか、破損しています。",
   "ErrorInvalidDimensions": "寸法が無効です。",
   "ErrorResizeFailed": "リサイズに失敗しました。",
   "Cancel": "キャンセル",

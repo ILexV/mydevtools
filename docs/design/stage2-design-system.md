@@ -19,7 +19,7 @@
 | `--line` / `--line-soft` | `#232a3b` / `#1b2130` | `#e2e5f0` / `#eceef6` | границы / hairlines |
 | `--text` | `#eef1f7` (17.3:1 AAA) | `#151a26` (16.2:1 AAA) | основной текст |
 | `--muted` | `#97a1b5` (6.9 AA) | `#57627a` (6.1 AA) | вторичный текст |
-| `--faint` | `#626d84` (3.4, только метки) | `#6b7484` (4.7 AA) | mono-метки, placeholder |
+| `--faint` | `#626d84` (3.4, только метки) | `#646d7d` (4.7 AA) | mono-метки, placeholder |
 | `--brand1` | `#7c6cff` | `#6a5af9` | primary action, акцент бренда |
 | `--brand2` | `#38e1c6` | `#0a8a6f` | второй конец градиента (декор/large) |
 | `--ok` | `#34d399` (10.2 AAA) | `#0a7a52` (5.0 AA) | success, privacy |

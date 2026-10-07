@@ -58,5 +58,20 @@
   "SplitColHostRange": "호스트 범위",
   "SplitColRange": "주소 범위",
   "SplitCopyList": "목록 복사",
-  "Error_SplitPrefix": "/{min}부터 /{max}까지의 프리픽스 길이를 입력하세요."
+  "Error_SplitPrefix": "/{min}부터 /{max}까지의 프리픽스 길이를 입력하세요.",
+  "Bar_Caption": "주소 공간",
+  "Bar_Network": "네트워크 주소",
+  "Bar_Usable": "사용 가능한 호스트",
+  "Bar_Broadcast": "브로드캐스트 주소",
+  "Bar_PointToPoint": "사용 가능한 주소(점대점, RFC 3021)",
+  "Bar_Single": "단일 주소",
+  "Broadcast_NoneP2p": "없음(점대점 링크, RFC 3021)",
+  "Broadcast_NoneSingle": "없음(단일 호스트)",
+  "Bar_Range": "프리픽스 범위(IPv6에는 브로드캐스트가 없음)",
+  "Bar_TickNote": "막대 위아래의 표시는 양 끝의 단일 주소를 나타내며 실제 비율이 아닙니다.",
+  "Split_BarCaption": "서브넷 맵",
+  "Split_BarListed": "서브넷 #1–#{last}, 표의 # 열과 같은 색",
+  "Split_BarListedOne": "서브넷 #1, 네트워크 전체",
+  "Split_BarRemainder": "서브넷 #{from}–#{last}(묶어서 표시)",
+  "Split_BarTickNote": "서브넷 #1–#{last}은(는) 너무 작아 그릴 수 없습니다. 표시는 위치만 나타내며 실제 비율이 아닙니다."
 }

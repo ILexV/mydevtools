@@ -58,5 +58,20 @@
   "SplitColHostRange": "Faixa de hosts",
   "SplitColRange": "Faixa de endereços",
   "SplitCopyList": "Copiar lista",
-  "Error_SplitPrefix": "Informe um comprimento de prefixo de /{min} a /{max}."
+  "Error_SplitPrefix": "Informe um comprimento de prefixo de /{min} a /{max}.",
+  "Bar_Caption": "Espaço de endereços",
+  "Bar_Network": "Endereço de rede",
+  "Bar_Usable": "Hosts utilizáveis",
+  "Bar_Broadcast": "Endereço de broadcast",
+  "Bar_PointToPoint": "Endereços utilizáveis (ponto a ponto, RFC 3021)",
+  "Bar_Single": "Endereço único",
+  "Broadcast_NoneP2p": "Nenhum (enlace ponto a ponto, RFC 3021)",
+  "Broadcast_NoneSingle": "Nenhum (host único)",
+  "Bar_Range": "Intervalo do prefixo (IPv6 não tem broadcast)",
+  "Bar_TickNote": "As marcas acima e abaixo da barra indicam endereços isolados nas extremidades; não estão em escala.",
+  "Split_BarCaption": "Mapa de sub-redes",
+  "Split_BarListed": "Sub-redes nº 1–{last}, com as cores da coluna # da tabela",
+  "Split_BarListedOne": "Sub-rede nº 1, a rede inteira",
+  "Split_BarRemainder": "Sub-redes nº {from}–{last}, agrupadas",
+  "Split_BarTickNote": "As sub-redes nº 1–{last} são pequenas demais para desenhar; a marca indica a posição delas e não está em escala."
 }

@@ -34,7 +34,7 @@
   "Error_Padding": "Padding “=” is not allowed with the current padding setting.",
   "Error_NotText": "The decoded bytes are not valid text in the selected charset. Use Download to save the raw bytes.",
   "Error_InvalidData": "The input is not valid {0}.",
-  "StatsOutput": "Characters: {0} · {1}",
+  "StatsOutput": "Characters: {0} · Size: {1}",
   "Error_CopyFailed": "Could not copy: the clipboard is unavailable.",
   "Seo_Introduction": "Encode text or small files to Base58 and decode them back using the Bitcoin, Flickr or Ripple alphabet. The conversion runs in your browser via WebAssembly compiled from Rust, so the keys and identifiers you paste stay on your device.",
   "Seo_DetailedDescription": "Base58 uses 58 letters and digits and leaves out the look-alikes `0`, `O`, `I` and `l` as well as `+` and `/`, so encoded values are easy to read, retype and select with a double click. It is the encoding behind Bitcoin addresses, IPFS CIDv0 hashes and Solana keys. Three alphabets are available: **Bitcoin** (the most common), **Flickr** (lowercase letters before uppercase, used in short links) and **Ripple** (XRP Ledger).\n\nUnlike Base64, Base58 treats the whole input as one big number, so there is no padding and each leading zero byte becomes a leading `1` in the Bitcoin alphabet. This math grows quadratically with input size, which is why encoding is limited to 1 MiB and decoding to 2,000,000 characters; for larger files use Base64 or Hex.\n\nThis is plain Base58: the tool neither adds nor verifies the 4-byte Base58Check checksum of Bitcoin addresses and WIF keys, so decoding an address returns the version byte, payload and checksum together. Bytes that are not valid text in the selected charset can still be saved with **Download**.",

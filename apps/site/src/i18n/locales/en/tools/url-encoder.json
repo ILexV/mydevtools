@@ -17,7 +17,7 @@
   "Error_NotRepresentable": "The character at position {0} cannot be represented in the selected charset.",
   "Error_NotText": "The decoded bytes are not valid text in the selected charset.",
   "Error_InvalidPercent": "Invalid percent-encoding: “%” must be followed by two hex digits.",
-  "StatsOutput": "Characters: {0} · {1}",
+  "StatsOutput": "Characters: {0} · Size: {1}",
   "Error_CopyFailed": "Could not copy: the clipboard is unavailable.",
   "Seo_Introduction": "Percent-encode text for URLs and decode %XX sequences back into readable text. Three modes match JavaScript's encodeURIComponent, encodeURI and HTML form encoding, and the work is done in your browser by a WebAssembly module compiled from Rust.",
   "Seo_DetailedDescription": "**Component** mode escapes everything except letters, digits and `- _ . ! ~ * ' ( )`, so `/`, `?`, `&` and `=` are encoded too: use it for one query parameter value or one path segment. **URI** mode keeps the structure of a full address (`: / ? # & = + $ , ; @`) and escapes only spaces and characters that are never valid in a URL. **Form** mode follows `application/x-www-form-urlencoded`: spaces become `+` and everything except letters, digits and `- _ . *` is escaped; on decode it also turns `+` back into a space.\n\nBefore encoding, text is converted to bytes in the chosen charset. UTF-8 is the web standard; ISO-8859-1 (Latin-1), UTF-16LE and UTF-16BE are there for legacy systems, and a character the charset cannot represent is reported with its position. Decoding is strict: every `%` must be followed by two hex digits, so a stray `100%` is reported instead of being passed through silently. The status line shows the output length in characters and bytes.",

@@ -9,13 +9,17 @@
  * TIFF/TGA, hide the preview) and downloaded under the original name with the
  * new extension (jpeg → jpg). A before/after ImageCompare slider
  * (`bindImageCompare`) shows source vs. result; reset on new file/result/clear.
+ * Undecodable input gets a localized "not a supported image or damaged"
+ * error (no raw decoder text); a thumbnail the browser can't show (TIFF,
+ * TGA, damaged file) falls back to the generic image icon.
  */
 import { convertImage } from "@/scripts/wasm/image-tools-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, revealOutput, setDropzoneHasFile, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
 import { bindImageCompare } from "@/scripts/image-compare";
-import { convertedName, isDecodableImage, isImageFile, mimeFor } from "@/tools/image-tools";
+import { convertedName, isDecodableImage, isImageDecodeError, isImageFile, mimeFor } from "@/tools/image-tools";
+import { showImageError } from "@/tools/image-error-ui";
 
 interface Strings {
   convert: string;
@@ -23,6 +27,7 @@ interface Strings {
   errorNotImage: string;
   errorUnsupported: string;
   errorConversion: string;
+  errorDamaged: string;
   webpLosslessNote: string;
   /** `Common_Preparing` — first-run WASM load feedback. */
   preparing?: string;
@@ -49,6 +54,7 @@ function init() {
   const input = q<HTMLInputElement>("[data-imgv-file]");
   const selectedEl = q<HTMLElement>("[data-imgv-selected]");
   const preview = q<HTMLImageElement>("[data-imgv-preview]");
+  const thumbIcon = q<HTMLElement>("[data-imgv-thumb-icon]");
   const nameEl = q<HTMLElement>("[data-imgv-filename]");
   const sizeEl = q<HTMLElement>("[data-imgv-filesize]");
   const clearBtn = q<HTMLButtonElement>("[data-imgv-clear]");
@@ -81,9 +87,13 @@ function init() {
   let resultName: string | null = null;
   let job: AbortController | null = null;
 
-  function showError(msg: string) {
-    errorBox!.textContent = msg;
-    errorBox!.hidden = false;
+  function showError(msg: string, detail?: string) {
+    showImageError(errorBox!, msg, detail);
+  }
+  /** Thumbnail ↔ generic icon (format the browser can't display, damaged file). */
+  function showThumb(on: boolean) {
+    preview!.hidden = !on;
+    if (thumbIcon) thumbIcon.hidden = on;
   }
   function clearError() {
     errorBox!.hidden = true;
@@ -120,6 +130,7 @@ function init() {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     previewUrl = null;
     preview!.removeAttribute("src");
+    showThumb(true);
     actionBtn!.disabled = true;
   }
 
@@ -143,7 +154,7 @@ function init() {
     if (sizeEl) sizeEl.textContent = formatBytes(file.size, 2);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     previewUrl = URL.createObjectURL(file);
-    preview!.hidden = false;
+    showThumb(true);
     preview!.src = previewUrl;
     actionBtn!.disabled = false;
   }
@@ -189,7 +200,9 @@ function init() {
     } catch (e) {
       if (e instanceof WasmError && e.code === "aborted") return;
       const detail = e instanceof Error ? e.message : "";
-      showError(detail ? `${strings!.errorConversion} ${detail}` : strings!.errorConversion);
+      // Undecodable input: plain localized message, raw decoder text dropped.
+      if (isImageDecodeError(detail)) showError(strings!.errorDamaged);
+      else showError(strings!.errorConversion, detail);
     } finally {
       if (job === ctrl) job = null;
       setBusy(false);
@@ -211,10 +224,10 @@ function init() {
   });
   cancelBtn?.addEventListener("click", () => job?.abort());
 
-  // TIFF/TGA (and some ICO) can't be displayed by browsers: hide the preview
-  // instead of showing a broken image.
+  // TIFF/TGA (and some ICO) can't be displayed by browsers: show the generic
+  // icon instead of a broken image.
   preview.addEventListener("error", () => {
-    if (preview.getAttribute("src")) preview.hidden = true;
+    if (preview.getAttribute("src")) showThumb(false);
   });
 
   qualityRange.addEventListener("input", () => {

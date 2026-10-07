@@ -1,9 +1,13 @@
 /**
  * Date Converter client. Wires input/type/format selects + custom-format field
  * to live conversion, current-time fill, copy, and error display. All parsing
- * and formatting delegates to `dates.ts`.
+ * and formatting delegates to `dates.ts`. Below the machine-readable output:
+ * the assumed zone for zone-less input, a relative-time line (refreshed once a
+ * minute while the page is visible, never announced) and "Same instant" rows
+ * from `date-zones.ts`. "Now" captures one instant; it is not a running clock.
  */
 import { parse, format, type InputType, type OutputFormat } from "@/tools/dates";
+import { assumedZone, relativeUnit, sameInstantZones, utcOffset, zonedDateTime, zoneName } from "@/tools/date-zones";
 import {
   bindEmptyState,
   bindLoadExample,
@@ -21,7 +25,28 @@ interface Strings {
   copied: string;
   copyFailed: string;
   errorInvalid: string;
+  zoneUtc: string;
+  zoneDevice: string;
+  relativeLine: string;
+  assumedUtc: string;
+  assumedLocal: string;
 }
+
+/** Replace `{name}` placeholders in a localized template. */
+function fill(template: string, params: Record<string, string>): string {
+  return template.replace(/\{(\w+)\}/g, (m, key: string) => (key in params ? params[key] : m));
+}
+
+/** Device IANA zone, or undefined when the engine does not expose one. */
+function deviceZone(): string | undefined {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const RELATIVE_REFRESH_MS = 60_000;
 
 function readStrings(): Strings | null {
   const el = document.querySelector<HTMLScriptElement>("[data-date-strings]");
@@ -55,11 +80,89 @@ function init(): void {
   const outputPanel = root.querySelector<HTMLElement>("[data-date-output-panel]");
   const exampleBtn = root.querySelector<HTMLButtonElement>("[data-date-example]");
   const syncInput = inputHost && input ? bindEmptyState(inputHost, input) : () => {};
+  const assumedEl = root.querySelector<HTMLElement>("[data-date-assumed]");
+  const relativeEl = root.querySelector<HTMLTimeElement>("[data-date-relative]");
+  const zonesEl = root.querySelector<HTMLElement>("[data-date-zones]");
+  const rtf = new Intl.RelativeTimeFormat(strings.lang, { numeric: "auto" });
+  const device = deviceZone();
+  /** Instant currently shown (ms since epoch), null while empty/invalid. */
+  let instant: number | null = null;
+  let refreshTimer: number | undefined;
 
-  /** Write the result and collapse/expand the output panel's empty state. */
+  /** Relative-time line ("3 years ago", "in 2 hours") for the shown instant vs. now. */
+  function renderRelative(): void {
+    if (!relativeEl || instant === null) return;
+    const { value, unit } = relativeUnit(instant, Date.now());
+    relativeEl.textContent = fill(strings.relativeLine, { relative: rtf.format(value, unit) });
+  }
+
+  /** Minute refresh only while something is shown and the page is visible. */
+  function scheduleRefresh(): void {
+    window.clearInterval(refreshTimer);
+    refreshTimer = undefined;
+    if (instant === null || document.visibilityState !== "visible") return;
+    refreshTimer = window.setInterval(renderRelative, RELATIVE_REFRESH_MS);
+  }
+
+  /** "Same instant" rows: one <div><dt>zone</dt><dd><time>…</time> offset</dd></div> per zone. */
+  function renderZones(date: Date, iso: string): void {
+    if (!zonesEl) return;
+    const frag = document.createDocumentFragment();
+    for (const row of sameInstantZones(device)) {
+      const wrap = document.createElement("div");
+      wrap.className = "date-zone-row";
+      const dt = document.createElement("dt");
+      const name = row.utc ? strings.zoneUtc : zoneName(date, row.zone, strings.lang) || row.zone;
+      const nameEl = document.createElement("span");
+      nameEl.className = "date-zone-name";
+      nameEl.textContent = row.device ? fill(strings.zoneDevice, { zone: name }) : name;
+      const idEl = document.createElement("span");
+      idEl.className = "date-zone-id";
+      idEl.dir = "ltr";
+      idEl.textContent = row.zone;
+      dt.append(nameEl, idEl);
+      const dd = document.createElement("dd");
+      const time = document.createElement("time");
+      time.className = "date-zone-time";
+      time.dateTime = iso;
+      time.textContent = zonedDateTime(date, row.zone, strings.lang);
+      const offset = document.createElement("span");
+      offset.className = "date-zone-offset";
+      offset.dir = "ltr";
+      offset.textContent = utcOffset(date, row.zone);
+      dd.append(time, offset);
+      wrap.append(dt, dd);
+      frag.append(wrap);
+    }
+    zonesEl.replaceChildren(frag);
+  }
+
+  /** Fill (or clear with null) the assumed-zone note, relative line and zone rows. */
+  function renderInstant(date: Date | null, raw = "", type: InputType = "auto"): void {
+    instant = date ? date.getTime() : null;
+    if (date) {
+      const iso = date.toISOString();
+      if (relativeEl) relativeEl.dateTime = iso;
+      renderRelative();
+      renderZones(date, iso);
+      const assumed = assumedZone(raw, type);
+      if (assumedEl) {
+        assumedEl.hidden = assumed === null;
+        assumedEl.textContent =
+          assumed === "utc" ? strings.assumedUtc : assumed === "local" ? fill(strings.assumedLocal, { zone: device ?? "" }) : "";
+      }
+    }
+    scheduleRefresh();
+  }
+
+  /**
+   * Write the result and collapse/expand the output panel's empty state. Copy is
+   * enabled only while there is a converted result (disabled when empty/cleared/invalid).
+   */
   function setOutput(text: string): void {
     if (output) output.value = text;
     if (outputPanel) syncEmptyState(outputPanel, text === "");
+    if (copyBtn) copyBtn.disabled = text === "";
   }
 
   function toggleCustom(): void {
@@ -79,6 +182,7 @@ function init(): void {
     const val = input.value;
     if (!val.trim()) {
       setOutput("");
+      renderInstant(null);
       showError("");
       input.removeAttribute("aria-invalid");
       return;
@@ -88,12 +192,15 @@ function init(): void {
       showError(strings.errorInvalid);
       input.setAttribute("aria-invalid", "true");
       setOutput("");
+      renderInstant(null);
       return;
     }
     showError("");
     input.removeAttribute("aria-invalid");
     const custom = customInput ? customInput.value : "";
-    setOutput(format(date, outputFormat.value as OutputFormat, custom, strings.lang) ?? "");
+    const text = format(date, outputFormat.value as OutputFormat, custom, strings.lang) ?? "";
+    setOutput(text);
+    renderInstant(text ? date : null, val, inputType.value as InputType);
   }
 
   function currentTime(): void {
@@ -136,6 +243,10 @@ function init(): void {
   customInput?.addEventListener("input", convert);
   inputType?.addEventListener("change", convert);
   outputFormat?.addEventListener("change", convert);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") renderRelative();
+    scheduleRefresh();
+  });
 
   convert();
 }

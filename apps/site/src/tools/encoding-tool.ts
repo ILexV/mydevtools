@@ -27,7 +27,7 @@ import {
 } from "@/scripts/wasm/encoding-client";
 import { encodeFile, decodeFile } from "@/scripts/wasm/encoding-file-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
-import { classifyEncodingError, outputFileName, previewText, type EncodingErrorKey } from "@/tools/encoding-ui";
+import { charIndexToUtf16, classifyEncodingError, outputFileName, previewText, type EncodingErrorKey } from "@/tools/encoding-ui";
 
 /** "preview" output mode truncates the textarea at this many chars. */
 const PREVIEW_CHAR_LIMIT = 200_000;
@@ -243,8 +243,10 @@ export function initEncodingTool(config: EncodingToolConfig): void {
     inputArea.setAttribute("aria-invalid", "true");
     if (position !== undefined && position >= 0 && key !== "Error_NotText") {
       try {
+        const value = inputArea.value;
+        const start = charIndexToUtf16(value, position);
         inputArea.focus();
-        inputArea.setSelectionRange(position, Math.min(position + 1, inputArea.value.length));
+        inputArea.setSelectionRange(start, charIndexToUtf16(value, position + 1));
       } catch {
         /* selection unsupported */
       }

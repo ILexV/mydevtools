@@ -4,7 +4,7 @@
 //
 // Invoked by `npm run test:smoke` and the `npm run verify` chain.
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 
 const DIST = new URL("../dist/", import.meta.url);
@@ -25,14 +25,16 @@ test("dist: every locale home + offline + 404 + manifest + sw + icons", { skip }
   assert.ok(has("icons/icon-192.png"), "icon 192");
   assert.ok(has("icons/icon-512.png"), "icon 512");
   assert.equal(read("CNAME").trim(), "mydevtools.app", "custom domain CNAME");
+  const key = readdirSync(DIST).find((f) => /^[0-9a-f]{32}\.txt$/.test(f));
+  assert.ok(key && read(key).trim() === key.slice(0, 32), "IndexNow key file");
 });
 
 test("custom domain: assets, canonical and sitemap use the mydevtools.app root", { skip }, () => {
   const html = read("ru/index.html");
   assert.match(html, /href="\/_astro\/[^"]+\.css"/, "root-relative stylesheet");
   assert.ok(!html.includes("/mydevtools/"), "no stale /mydevtools/ subpath");
-  assert.ok(html.includes('rel="canonical" href="https://mydevtools.app/ru"'), "canonical on custom domain");
-  assert.ok(read("sitemap.xml").includes("<loc>https://mydevtools.app/en</loc>"), "sitemap on custom domain");
+  assert.ok(html.includes('rel="canonical" href="https://mydevtools.app/ru/"'), "canonical on custom domain");
+  assert.ok(read("sitemap.xml").includes("<loc>https://mydevtools.app/en/</loc>"), "sitemap on custom domain");
 });
 
 test("manifest: valid, base-aware, has 192 + 512 icons", { skip }, () => {

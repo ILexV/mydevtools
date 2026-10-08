@@ -34,16 +34,12 @@ function logoUrl(): string {
   return absoluteUrl(withBase("icons/icon-512.png"));
 }
 
-function trim(path: string): string {
-  return path.replace(/\/+$/, "");
-}
-
 /** Build the JSON-LD object array for the current page context. */
 export function buildJsonLd(input: SeoInput): Record<string, unknown>[] {
   const { locale, path = "", title, description, isHome, categoryName, howToSteps } = input;
 
   if (isHome) {
-    const siteUrl = absoluteUrl(trim(localizedPath(locale)));
+    const siteUrl = absoluteUrl(localizedPath(locale));
     return [
       {
         "@context": "https://schema.org",
@@ -79,8 +75,8 @@ export function buildJsonLd(input: SeoInput): Record<string, unknown>[] {
   }
 
   // Tool page.
-  const toolUrl = absoluteUrl(trim(localizedPath(locale, path)));
-  const homeUrl = absoluteUrl(trim(localizedPath(locale)));
+  const toolUrl = absoluteUrl(localizedPath(locale, path));
+  const homeUrl = absoluteUrl(localizedPath(locale));
 
   const app: Record<string, unknown> = {
     "@context": "https://schema.org",

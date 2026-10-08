@@ -8,6 +8,10 @@
  *
  *   node scripts/deploy-pages.mjs            → DRY RUN (verify artifact, no push)
  *   node scripts/deploy-pages.mjs --push     → actually publish to origin:gh-pages
+ *   … --push --no-indexnow                   → publish without pinging IndexNow
+ *
+ * After a push, pages whose HTML changed vs the previous gh-pages are sent to
+ * IndexNow (Bing, Yandex, …) — see scripts/indexnow.mjs.
  *
  * GitHub Pages must be configured: Settings → Pages → Source = branch `gh-pages`
  * → root `/`, custom domain mydevtools.app. dist carries `CNAME`, so the force-push
@@ -26,6 +30,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { changedUrls, readSite, submit } from "./indexnow.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const dist = join(root, "apps", "site", "dist");
@@ -48,6 +53,14 @@ must("icons/icon-512.png", "icon");
 // Without this GitHub Pages runs Jekyll, which skips `_astro/` → all CSS/JS 404.
 must(".nojekyll", "Jekyll bypass marker");
 must("CNAME", "custom domain (mydevtools.app)");
+must("sitemap.xml", "sitemap");
+let site;
+try {
+  site = readSite(dist);
+} catch (e) {
+  console.error(`✘ ${e.message}`);
+  process.exit(1);
+}
 const LANGS = ["en", "ru", "es", "de", "pt", "zh", "fr", "ja", "ko", "hi"];
 const missingLangs = LANGS.filter((l) => !existsSync(join(dist, l, "index.html")));
 if (missingLangs.length) {
@@ -102,6 +115,10 @@ console.log(`  files:     ${fileCount}`);
 console.log(`  sw precache: ${precache} entries`);
 console.log(`  commit:    ${head}  (${stamp})`);
 console.log(`  target:    ${origin}  →  gh-pages (root /)`);
+// Compare with the gh-pages that is about to be replaced.
+const indexNow = !process.argv.includes("--no-indexnow");
+const changed = indexNow ? changedUrls(site.urls, dist) : [];
+if (indexNow) console.log(`  IndexNow:  ${changed.length}/${site.urls.length} changed pages`);
 
 if (!push) {
   console.log("\nDRY RUN — nothing was pushed.");
@@ -123,3 +140,14 @@ if (pushed.status !== 0) {
 }
 console.log("\n✓ Published to gh-pages. GitHub Pages updates within ~1 min.");
 console.log("  Verify: Settings → Pages → branch `gh-pages` / root, then open the Pages URL.");
+
+// ── 6. IndexNow (best effort: a failed ping never fails the deploy) ────────
+if (indexNow && changed.length) {
+  console.log(`\nIndexNow: waiting for the key file on ${site.host}, then submitting ${changed.length} URLs…`);
+  try {
+    const r = await submit({ ...site, urls: changed });
+    console.log(`✓ IndexNow accepted ${r.count} URLs (HTTP ${r.status}).`);
+  } catch (e) {
+    console.warn(`⚠ IndexNow failed: ${e.message}\n  Retry: node scripts/indexnow.mjs --submit`);
+  }
+}

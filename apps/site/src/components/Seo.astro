@@ -42,7 +42,7 @@ const {
 } = Astro.props as Props;
 
 const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
-const canonical = absoluteUrl(localizedPath(locale, path).replace(/\/+$/, ""));
+const canonical = absoluteUrl(localizedPath(locale, path));
 const siteName = t(locale, "common", "AppName");
 const fullTitle = title === siteName ? title : `${title} — ${siteName}`;
 // Per-page share card from pages/og/[lang]/[slug].png.ts: the tool card when
@@ -66,9 +66,9 @@ const jsonLdString = JSON.stringify(jsonLd);
 <link rel="canonical" href={canonical} />
 
 {LOCALES.map((l) => (
-  <link rel="alternate" hreflang={l.bcp47} href={absoluteUrl(localizedPath(l.code, path).replace(/\/+$/, ""))} />
+  <link rel="alternate" hreflang={l.bcp47} href={absoluteUrl(localizedPath(l.code, path))} />
 ))}
-<link rel="alternate" hreflang="x-default" href={absoluteUrl(localizedPath("en", path).replace(/\/+$/, ""))} />
+<link rel="alternate" hreflang="x-default" href={absoluteUrl(localizedPath("en", path))} />
 
 <meta property="og:type" content="website" />
 <meta property="og:title" content={fullTitle} />

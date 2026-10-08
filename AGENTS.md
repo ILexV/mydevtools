@@ -13,7 +13,7 @@ The former .NET 10 Blazor SSR site (`MyDevToolsApp/`) and the React UI kit (`pac
 - Routes: `src/pages/index.astro` (root language redirect), `[lang]/index.astro` (home), `[lang]/[slug].astro` (tool page via `getStaticPaths` over LOCALES × TOOLS; picks the component from the `TOOL_COMPONENTS` map), plus `404.astro`, `offline.astro`, `design.astro` (design-system showcase), `sitemap.xml.ts`, `manifest.webmanifest.ts`.
 - Tool flow: `/{lang}/{slug}/` → `src/tools/<PascalName>.astro` (markup + localized strings as an inline JSON island) → `src/tools/<slug>.client.ts` controller → optional `src/scripts/wasm/<domain>-client.ts` → dynamic import of `src/generated/wasm/<domain>/` bindings; heavy/file work runs in `src/workers/*.worker.ts` (protocol in `scripts/wasm/worker-protocol.ts`: start/progress/result/error/cancel, 1 MiB chunks).
 - Localization: JSON in `src/i18n/locales/<lang>/{common,home,categories}.json` and `tools/<slug>.json`. Rendered at build time with `t()` from `src/i18n/messages.ts` (fallback locale → en → key, `{param}` interpolation); pluralization via `src/lib/format.ts` (`Intl.PluralRules`). Languages: `en`, `ru`, `es`, `de`, `pt`, `zh`, `fr`, `ja`, `ko`, `hi`.
-- SEO/PWA: `components/Seo.astro` (head, canonical, hreflang ×10 + x-default, JSON-LD), `ToolSeoContent.astro` (visible SEO block from locale `Seo_*` keys), base-aware manifest, service worker generated after build by `build-sw.mjs` from `scripts/sw-template.js`, PWA install prompt (`InstallPrompt.astro`, `scripts/pwa-install.ts`).
+- SEO/PWA: `components/Seo.astro` (head, canonical, hreflang ×10 + x-default, JSON-LD — all URLs keep the trailing slash the site is served with; a slash-less canonical 301-redirects), `sitemap.xml.ts` (lastmod per page from git via `lib/lastmod.ts`), `ToolSeoContent.astro` (visible SEO block from locale `Seo_*` keys), base-aware manifest, service worker generated after build by `build-sw.mjs` from `scripts/sw-template.js`, PWA install prompt (`InstallPrompt.astro`, `scripts/pwa-install.ts`).
 - Client state: favorites, recent tools, theme, locale and per-tool settings live in versioned `localStorage` keys (schema: `docs/inventory/client-state.md`). Some legacy keys are imported once on first visit.
 - Design: "Prism" design system — tokens and layers in `src/styles/global.css` (`--mdt-*` variables, `ds-*` component classes), self-hosted Inter/JetBrains Mono, icons in `components/Icon.astro`. Spec: `docs/design/stage2-design-system.md`.
 
@@ -51,6 +51,8 @@ npm run preview:site                         # http://localhost:4321/en/
 npm run build:pages                          # validate:i18n → build:wasm → build:site → test:smoke
 npm run deploy:pages                         # dry run: verifies dist, no push
 npm run deploy:pages -- --push               # force-push dist as an orphan commit to origin/gh-pages
+                                             #   then pings IndexNow with pages changed vs old gh-pages (--no-indexnow to skip)
+node scripts/indexnow.mjs [--all] [--submit] # IndexNow dry run / manual resubmit (key: apps/site/public/<32-hex>.txt)
 
 npm run test:visual                          # Playwright pixel baselines (Chromium)
 npm run test:crossbrowser                    # Chromium/Firefox/WebKit functional matrix

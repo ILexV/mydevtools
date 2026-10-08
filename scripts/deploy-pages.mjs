@@ -148,6 +148,6 @@ if (indexNow && changed.length) {
     const r = await submit({ ...site, urls: changed });
     console.log(`✓ IndexNow accepted ${r.count} URLs (HTTP ${r.status}).`);
   } catch (e) {
-    console.warn(`⚠ IndexNow failed: ${e.message}\n  Retry: node scripts/indexnow.mjs --submit`);
+    console.warn(`⚠ IndexNow failed: ${e.message}\n  Retry (gh-pages is already updated, so resubmit all): node scripts/indexnow.mjs --all --submit`);
   }
 }

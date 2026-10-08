@@ -84,16 +84,19 @@ export async function submit({ key, host, urls }) {
     if (i === 35) throw new Error(`key file not live: ${keyLocation}`);
     await new Promise((r) => setTimeout(r, 5000));
   }
-  const res = await fetch(ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json; charset=utf-8" },
-    body: JSON.stringify({ host, key, keyLocation, urlList: urls.slice(0, 10000) }),
-  });
-  // 200 OK / 202 Accepted (key validation pending) are both success.
-  if (res.status !== 200 && res.status !== 202) {
-    throw new Error(`IndexNow HTTP ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  const body = JSON.stringify({ host, key, keyLocation, urlList: urls.slice(0, 10000) });
+  // A new key answers 403 SiteVerificationNotCompleted until the engine has
+  // fetched it: retry for up to ~5 min instead of failing the first deploy.
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json; charset=utf-8" }, body });
+    // 200 OK / 202 Accepted (key validation pending) are both success.
+    if (res.status === 200 || res.status === 202) return { status: res.status, count: urls.length };
+    const text = (await res.text()).slice(0, 300);
+    if (res.status !== 403 || !text.includes("SiteVerificationNotCompleted") || attempt >= 10) {
+      throw new Error(`IndexNow HTTP ${res.status}: ${text}`);
+    }
+    await new Promise((r) => setTimeout(r, 30000));
   }
-  return { status: res.status, count: urls.length };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

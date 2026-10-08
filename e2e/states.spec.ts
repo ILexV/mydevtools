@@ -13,7 +13,7 @@ import { test, expect, type Page, type Locator } from "@playwright/test";
  * never a sleep. Fixtures are fixed; password randomness is seeded.
  */
 
-const BASE = "/mydevtools";
+const BASE = "";
 const FIXTURES = path.join(__dirname, "fixtures");
 const MOBILE = { width: 375, height: 812 };
 // The chromium project spreads devices["Desktop Chrome"] (1280×720) over the global viewport.

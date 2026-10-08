@@ -14,7 +14,7 @@ const supported = LOCALES.map((l) => l.code);
 const defaultUrl = localizedPath(DEFAULT_LOCALE);
 // Inline script: pick best locale client-side, then redirect. Tiny and
 // dependency-free so first paint → redirect is immediate. Relative URL works
-// under the GitHub Pages base (current dir is already `/mydevtools/`).
+// under any `base` (the current dir is already the site root).
 const detectScript = `(function(){try{
 var S=${JSON.stringify(supported)};
 var langs=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language])||[];

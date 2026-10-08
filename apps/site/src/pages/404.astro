@@ -1,12 +1,12 @@
 ---
 /**
  * `404.html` — GitHub Pages fallback (page not found) for every unmatched URL
- * under `/mydevtools/`, at any depth. Standalone (no BaseLayout): the locale is
+ * under the site base, at any depth. Standalone (no BaseLayout): the locale is
  * only known client-side, so the shell, canonical and hreflang of BaseLayout
  * would all be wrong. Every asset/link is absolute via `withBase()`.
  *
  * Smart recovery first: a URL containing a known tool slug (legacy or mistyped,
- * e.g. `/mydevtools/tools/uuid-generator`) is redirected to `/{lang}/{slug}/`
+ * e.g. `/tools/uuid-generator`) is redirected to `/{lang}/{slug}/`
  * before paint. Otherwise the page renders in the detected locale (URL segment
  * → saved `mdt.locale` → navigator.language → en) with a client-side tool
  * search, popular and recent tools. No-JS fallback: English text + links.

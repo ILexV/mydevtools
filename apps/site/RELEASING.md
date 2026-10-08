@@ -31,8 +31,8 @@ All commands run from the repo root.
 # 1. Full reproducible build: i18n check → WASM → Astro site → dist smoke.
 npm run build:pages
 
-# 2. Preview the built dist locally under the /mydevtools/ base before publishing.
-npm run preview:site          # http://localhost:4321/mydevtools/en/
+# 2. Preview the built dist locally at the site root before publishing.
+npm run preview:site          # http://localhost:4321/en/
 
 # 3. Dry-run the deploy (verifies artifact completeness, does NOT push).
 npm run deploy:pages
@@ -42,7 +42,7 @@ npm run deploy:pages -- --push
 ```
 
 After the first push: GitHub → **Settings → Pages → Source = branch `gh-pages` / root `/`**.
-The site is served at `https://<user>.github.io/mydevtools/`.
+The site is served at `https://mydevtools.app/` (custom domain from `public/CNAME`; `https://ilexv.github.io/mydevtools/` redirects there).
 
 ## Browser support policy
 
@@ -86,7 +86,7 @@ Open the published Pages URL in a fresh browser profile (no local cache):
 - Home loads, search works, language switcher works.
 - A text tool, a file/WASM tool, and an image tool operate correctly.
 - Console/Network clean; WASM loads only on tool pages.
-- Service worker registers (`/mydevtools/sw.js`), offline shell works after a visit.
+- Service worker registers (`/sw.js`), offline shell works after a visit.
 - A second publish + hard refresh serves the new version (SW update prompt).
 
 ## Visual regression (optional, local/CI)

@@ -28,8 +28,8 @@ if (!existsSync(DIST)) {
   process.exit(1);
 }
 
-// 2. Read `base` from astro.config.mjs via regex (no Astro import); default /mydevtools/.
-let base = "/mydevtools/";
+// 2. Read `base` from astro.config.mjs via regex (no Astro import); default "/" (custom domain root).
+let base = "/";
 try {
   const cfg = await readFile(resolve(ROOT, "astro.config.mjs"), "utf8");
   const m = cfg.match(/base\s*:\s*["']([^"']+)["']/);

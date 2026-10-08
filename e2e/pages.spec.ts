@@ -7,7 +7,7 @@ import { test, expect, type Page } from "@playwright/test";
  * ready) is set in playwright.config.ts; here we only navigate + settle.
  */
 
-const BASE = "/mydevtools";
+const BASE = "";
 
 async function settle(page: Page, path: string) {
   await page.goto(`${BASE}${path}`, { waitUntil: "networkidle" });

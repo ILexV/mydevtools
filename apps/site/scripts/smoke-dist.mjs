@@ -24,12 +24,21 @@ test("dist: every locale home + offline + 404 + manifest + sw + icons", { skip }
   assert.ok(has("sw.js"), "service worker");
   assert.ok(has("icons/icon-192.png"), "icon 192");
   assert.ok(has("icons/icon-512.png"), "icon 512");
+  assert.equal(read("CNAME").trim(), "mydevtools.app", "custom domain CNAME");
+});
+
+test("custom domain: assets, canonical and sitemap use the mydevtools.app root", { skip }, () => {
+  const html = read("ru/index.html");
+  assert.match(html, /href="\/_astro\/[^"]+\.css"/, "root-relative stylesheet");
+  assert.ok(!html.includes("/mydevtools/"), "no stale /mydevtools/ subpath");
+  assert.ok(html.includes('rel="canonical" href="https://mydevtools.app/ru"'), "canonical on custom domain");
+  assert.ok(read("sitemap.xml").includes("<loc>https://mydevtools.app/en</loc>"), "sitemap on custom domain");
 });
 
 test("manifest: valid, base-aware, has 192 + 512 icons", { skip }, () => {
   const m = JSON.parse(read("manifest.webmanifest"));
-  assert.equal(m.start_url, "/mydevtools/?source=pwa");
-  assert.equal(m.scope, "/mydevtools/");
+  assert.equal(m.start_url, "/?source=pwa");
+  assert.equal(m.scope, "/");
   assert.ok(m.icons.length >= 2, ">= 2 icons");
   assert.ok(m.icons.some((i) => i.sizes === "192x192"), "has 192");
   assert.ok(m.icons.some((i) => i.sizes === "512x512"), "has 512");
@@ -41,7 +50,8 @@ test("sw.js: no leftover placeholders, versioned precache, base-prefixed", { ski
   assert.ok(!sw.includes("__CACHE_VERSION__"), "no VERSION placeholder");
   assert.ok(!sw.includes("__OFFLINE_URL__"), "no OFFLINE placeholder");
   assert.ok(sw.includes("mdt-sw-precache-"), "versioned precache cache name");
-  assert.ok(sw.includes("/mydevtools/"), "base-prefixed precache URLs");
+  assert.ok(sw.includes('"/offline/"'), "root-based offline URL");
+  assert.ok(!sw.includes("/mydevtools/"), "no stale GitHub Pages subpath");
 });
 
 test("JSON-LD: WebSite on home, SoftwareApplication on tool", { skip }, () => {
@@ -59,8 +69,8 @@ test("offline page: fallback copy present", { skip }, () => {
 
 test("og:image: tool page card is a 1200×630 PNG ≤ 80 KB, not precached", { skip }, () => {
   const ogPath = (html) => {
-    const m = html.match(/<meta property="og:image" content="https?:\/\/[^/]+\/mydevtools\/([^"]+)"/);
-    assert.ok(m, "og:image meta with base-prefixed absolute URL");
+    const m = html.match(/<meta property="og:image" content="https:\/\/mydevtools\.app\/([^"]+)"/);
+    assert.ok(m, "og:image meta with an absolute mydevtools.app URL");
     return m[1];
   };
   const rel = ogPath(read("ru/hash-calculator/index.html"));

@@ -8,7 +8,7 @@ import { test, expect, type Page } from "@playwright/test";
  * theme toggle actually flips `data-theme`.
  */
 
-const BASE = "/mydevtools";
+const BASE = "";
 
 /** Pages that exercise the distinct layout families. */
 const PAGES: ReadonlyArray<readonly [string, string]> = [

@@ -2,13 +2,13 @@
 
 ## Project Overview
 
-MyDevTools is a privacy-first collection of 39 multilingual developer utilities. The **live site** is a static Astro build in `apps/site`, published to GitHub Pages at https://ilexv.github.io/mydevtools/ (branch `gh-pages`). All computation runs in the browser: vanilla TypeScript controllers plus lazy-loaded Rust/WASM, no server runtime.
+MyDevTools is a privacy-first collection of 39 multilingual developer utilities. The **live site** is a static Astro build in `apps/site`, published to GitHub Pages at https://mydevtools.app/ (custom domain via `apps/site/public/CNAME`, branch `gh-pages`; the old https://ilexv.github.io/mydevtools/ redirects there). All computation runs in the browser: vanilla TypeScript controllers plus lazy-loaded Rust/WASM, no server runtime.
 
 The former .NET 10 Blazor SSR site (`MyDevToolsApp/`) and the React UI kit (`packages/ui-kit`, `apps/storybook`) are **legacy**: kept for reference, not deployed, and not used by the Astro site. Do not add features there.
 
 ## Architecture & Data Flow
 
-- Config: `apps/site/astro.config.mjs` — `output: "static"`, `site: https://ilexv.github.io`, `base: "/mydevtools/"`, `trailingSlash: "always"`, `build.format: "directory"` (each route emits `index.html` so deep links survive Pages). `@/*` aliases `src/`.
+- Config: `apps/site/astro.config.mjs` — `output: "static"`, `site: https://mydevtools.app`, `base: "/"`, `trailingSlash: "always"`, `build.format: "directory"` (each route emits `index.html` so deep links survive Pages). `@/*` aliases `src/`.
 - Registries are the single source of truth (`apps/site/src/registry/`): `tools.ts` (39 tools: slug, category, WASM domain, capabilities), `categories.ts` (13), `locales.ts` (10 languages, native names, og:locale, hreflang), `catalog.ts` (grouping/related), `validate.ts` (build-time assertions). Routes, home catalog, search, command palette, related tools and sitemap are all derived from them.
 - Routes: `src/pages/index.astro` (root language redirect), `[lang]/index.astro` (home), `[lang]/[slug].astro` (tool page via `getStaticPaths` over LOCALES × TOOLS; picks the component from the `TOOL_COMPONENTS` map), plus `404.astro`, `offline.astro`, `design.astro` (design-system showcase), `sitemap.xml.ts`, `manifest.webmanifest.ts`.
 - Tool flow: `/{lang}/{slug}/` → `src/tools/<PascalName>.astro` (markup + localized strings as an inline JSON island) → `src/tools/<slug>.client.ts` controller → optional `src/scripts/wasm/<domain>-client.ts` → dynamic import of `src/generated/wasm/<domain>/` bindings; heavy/file work runs in `src/workers/*.worker.ts` (protocol in `scripts/wasm/worker-protocol.ts`: start/progress/result/error/cancel, 1 MiB chunks).
@@ -41,12 +41,12 @@ npm install                                  # all workspaces
 npm run build:wasm                           # wasm/build.ps1 → apps/site/src/generated/wasm (all 11 domains)
 pwsh -Command './wasm/build.ps1 -Configuration Release -WasmOutRoot apps/site/src/generated/wasm -Domains ipcalc'   # one domain
 
-npm run dev -w @mydevtools/site              # http://localhost:3312/mydevtools/
+npm run dev -w @mydevtools/site              # http://localhost:3312/
 npm run check:site                           # astro check
 npm run validate:i18n                        # locale JSON parity/empty/untranslated
 npm run verify -w @mydevtools/site           # check + i18n + unit + build + dist smoke
 npm run build:site                           # astro build + service worker
-npm run preview:site                         # http://localhost:4321/mydevtools/en/
+npm run preview:site                         # http://localhost:4321/en/
 
 npm run build:pages                          # validate:i18n → build:wasm → build:site → test:smoke
 npm run deploy:pages                         # dry run: verifies dist, no push
@@ -63,7 +63,7 @@ cargo test --workspace --manifest-path wasm/Cargo.toml
 
 - Naming across layers: registry slug `hash-calculator` → `src/tools/HashCalculator.astro` → `src/tools/hash-calculator.client.ts` → `src/i18n/locales/<lang>/tools/hash-calculator.json`. TS uses camelCase; Rust modules/exports use snake_case.
 - Adding a tool: entry in `registry/tools.ts`, import + key in `TOOL_COMPONENTS` in `pages/[lang]/[slug].astro`, locale JSON for all 10 languages, a WASM client if needed. `validate.ts` fails the build on unknown categories or missing locale namespaces.
-- Never hard-code absolute paths: use `withBase()` / `localizedPath()` from `src/lib/url.ts` (everything is served under `/mydevtools/`).
+- Never hard-code absolute paths: use `withBase()` / `localizedPath()` from `src/lib/url.ts` (keeps the site movable between a subpath and the domain root).
 - Strings reach client code via the JSON island in the `.astro` shell, not via runtime fetches. Do not add tool text outside locale JSON.
 - Browser code: bind once per root (guard), cache lazy import promises, keep user data in the browser, surface localized errors, treat `AbortError` separately, use workers + chunking + progress + `AbortController` for large files. No SharedArrayBuffer.
 - Privacy: do not persist tool input (json/xml beautifiers deliberately don't); store only explicit user settings.
@@ -78,7 +78,7 @@ cargo test --workspace --manifest-path wasm/Cargo.toml
 - One-time setup: `rustup target add wasm32-unknown-unknown`, `cargo install wasm-bindgen-cli --version 0.2.108 --locked`; on Linux without sudo, `dotnet tool install -g PowerShell` provides `pwsh`.
 - The `cryptography` crate depends on `ring`, which compiles C for wasm32 and needs **clang + llvm-ar** (gcc cannot target wasm). On Debian/Ubuntu: `sudo apt install clang llvm`.
 - Pass several domains to `build.ps1` from bash via `pwsh -Command './wasm/build.ps1 … -Domains a,b'` — with `pwsh -File`-style invocation the comma list is taken as one folder name.
-- Pages specifics: `.nojekyll` is mandatory (otherwise Jekyll drops `_astro/` and CSS/JS 404); the deploy script refuses to publish without it. No build runs on GitHub — dist is built locally and pushed.
+- Pages specifics: `public/CNAME` (`mydevtools.app`) is mandatory — the deploy force-pushes an orphan commit, so without it the custom domain is dropped; the deploy script refuses to publish without it. `.nojekyll` is mandatory (otherwise Jekyll drops `_astro/` and CSS/JS 404); the deploy script refuses to publish without it. No build runs on GitHub — dist is built locally and pushed.
 - Trust code, registries and scripts over prose; legacy docs (`ARCHITECTURE.md`, `DEVELOPMENT.md`, `TOOL_DEVELOPMENT_GUIDE.md`, `WASM_INTEGRATION.md`, etc.) describe the Blazor site.
 
 ## Testing & QA

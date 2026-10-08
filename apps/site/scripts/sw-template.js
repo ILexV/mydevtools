@@ -2,11 +2,11 @@
  * MyDevTools Service Worker (build-time template).
  *
  * SCOPE
- *   The site is served from GitHub Pages under the base path /mydevtools/.
- *   This file is emitted at /mydevtools/sw.js, so its controlling scope is
- *   /mydevtools/ — it never touches other repos on github.io. Every precache
- *   URL is an absolute path prefixed with /mydevtools/ (no trailing slash for
- *   files). The trailing-slash offline URL (/mydevtools/offline/) is the one
+ *   The site is served from GitHub Pages at the root of mydevtools.app
+ *   (Astro `base`). This file is emitted at <base>sw.js, so its controlling
+ *   scope is the whole site. Every precache URL is an absolute path prefixed
+ *   with the base (no trailing slash for files). The trailing-slash offline
+ *   URL (<base>offline/) is the one
  *   navigation entry point the fallback serves.
  *
  * STRATEGIES
@@ -34,7 +34,7 @@
  * by build-sw.mjs before dist/sw.js is written (see the assignment block below):
  *   - CACHE_VERSION    becomes a quoted 8-char content hash, e.g. "a1b2c3d4"
  *   - PRECACHE_MANIFEST becomes a JSON array of { url, revision }
- *   - OFFLINE_URL      becomes a quoted offline URL, e.g. "/mydevtools/offline/"
+ *   - OFFLINE_URL      becomes a quoted offline URL, e.g. "/offline/"
  */
 /* eslint-disable no-restricted-globals */
 

@@ -4,12 +4,12 @@ import { defineConfig } from "astro/config";
 
 const src = fileURLToPath(new URL("./src", import.meta.url));
 
-// GitHub Pages: repo ILexV/mydevtools → served at https://ilexv.github.io/mydevtools/
-// `base` MUST match the Pages subpath; `site` is the origin used for canonical/sitemap.
+// GitHub Pages with the custom domain mydevtools.app (public/CNAME) → served from the
+// domain root. `base` MUST match the served path; `site` is the origin for canonical/sitemap.
 // A single `@` → src alias covers `@/components`, `@/tools`, `@/registry`, etc.
 export default defineConfig({
-  site: "https://ilexv.github.io",
-  base: "/mydevtools/",
+  site: "https://mydevtools.app",
+  base: "/",
   output: "static",
   trailingSlash: "always",
   build: {

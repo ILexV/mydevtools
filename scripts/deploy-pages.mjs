@@ -10,8 +10,8 @@
  *   node scripts/deploy-pages.mjs --push     → actually publish to origin:gh-pages
  *
  * GitHub Pages must be configured: Settings → Pages → Source = branch `gh-pages`
- * → root `/`. The site is then served at https://<user>.github.io/<repo>/,
- * matching `base: "/mydevtools/"` in astro.config.mjs.
+ * → root `/`, custom domain mydevtools.app. dist carries `CNAME`, so the force-push
+ * keeps the domain; the site is served from the root, matching `base: "/"`.
  *
  * The push authenticates through your normal git credential helper (token /
  * SSH). This script stores no secrets.
@@ -47,6 +47,7 @@ must("404.html", "404 page");
 must("icons/icon-512.png", "icon");
 // Without this GitHub Pages runs Jekyll, which skips `_astro/` → all CSS/JS 404.
 must(".nojekyll", "Jekyll bypass marker");
+must("CNAME", "custom domain (mydevtools.app)");
 const LANGS = ["en", "ru", "es", "de", "pt", "zh", "fr", "ja", "ko", "hi"];
 const missingLangs = LANGS.filter((l) => !existsSync(join(dist, l, "index.html")));
 if (missingLangs.length) {

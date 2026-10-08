@@ -437,7 +437,7 @@ export interface CardInput {
   category?: string;
   /** Localized category label shown top-right. */
   categoryLabel?: string;
-  /** Footer left, e.g. `ilexv.github.io/mydevtools`. */
+  /** Footer left, e.g. `mydevtools.app`. */
   siteLabel: string;
   /** Footer right, e.g. the localized privacy promise. */
   footnote: string;

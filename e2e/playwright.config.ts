@@ -66,7 +66,7 @@ export default defineConfig({
   webServer: {
     command: "npx astro preview --port 4123",
     cwd: "../apps/site",
-    url: "http://localhost:4123/mydevtools/en/",
+    url: "http://localhost:4123/en/",
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
   },

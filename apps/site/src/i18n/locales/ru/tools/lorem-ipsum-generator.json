@@ -1,6 +1,7 @@
 {
   "Title": "Генератор Lorem Ipsum",
   "Description": "Генерация текста-заполнителя Lorem Ipsum абзацами, предложениями или словами (1–1000): обычный текст, HTML с тегами <p> или Markdown, со счётчиком слов.",
+  "Seo_Title": "Генератор Lorem Ipsum — текст-заполнитель, HTML | MyDevTools",
   "Keywords": "lorem ipsum generator, placeholder text, dummy text generator, lorem ipsum online, filler text, fake text generator",
   "GenerateTypeLabel": "Генерировать по",
   "Paragraphs": "Абзацам",

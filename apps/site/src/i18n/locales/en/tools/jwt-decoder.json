@@ -1,6 +1,7 @@
 {
   "Title": "JWT Decoder",
   "Description": "Decode a JWT header and payload in your browser, check exp/nbf/iat dates and verify HS256/384/512 or RS256/384/512 signatures. Tokens stay on your device.",
+  "Seo_Title": "JWT Decoder Online — Decode & Verify Signature | MyDevTools",
   "Keywords": "jwt decoder, decode jwt, verify jwt signature, json web token decoder, jwt payload viewer, jwt expiration check, HS256, RS256",
   "EncodedLabel": "Generated JWT",
   "EncodedPlaceholder": "Paste a JWT here...",

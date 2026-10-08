@@ -1,6 +1,7 @@
 {
   "Title": "Markdown 预览",
   "Description": "编写 Markdown 并在旁边实时预览 HTML：支持 GitHub 风格的表格、任务列表和删除线。可复制净化后的 HTML 或下载 .html 文件。",
+  "Seo_Title": "Markdown 编辑器 — 实时预览 | MyDevTools",
   "Keywords": "Markdown 预览, 在线 Markdown 编辑器, Markdown 转 HTML, 实时 Markdown, GFM 预览, Markdown 表格, README 预览, markdown preview",
   "EditorLabel": "Markdown 编辑器",
   "PreviewLabel": "预览",

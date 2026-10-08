@@ -5,6 +5,7 @@
   "ClearButton": "クリア",
   "CopyButton": "コピー",
   "Description": "テキストを camelCase、snake_case、kebab-case、タイトルケース、文のケース、大文字、小文字にワンクリックで変換。XMLHttpRequest のような識別子も正しく分割します。",
+  "Seo_Title": "大文字小文字変換 — キャメルケース等 | MyDevTools",
   "InverseCase": "逆ケース",
   "KebabCase": "ケバブケース",
   "LowerCase": "小文字",

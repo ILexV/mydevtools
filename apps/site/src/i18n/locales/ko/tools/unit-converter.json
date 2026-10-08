@@ -1,6 +1,7 @@
 {
   "Title": "단위 변환기",
   "Description": "길이, 무게, 온도, 부피를 미터법·영국식·미국 단위 사이에서 입력하는 즉시 변환하고, 변환 공식과 참고용 변환도 보여 줍니다.",
+  "Seo_Title": "단위 변환기 — 길이·무게·온도 | MyDevTools",
   "Keywords": "unit converter, length converter, weight converter, temperature converter, metric imperial, online unit conversion, measurement converter",
   "CategoryLabel": "카테고리",
   "Category_Length": "길이",

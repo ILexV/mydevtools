@@ -1,6 +1,7 @@
 {
   "Title": "मार्कडाउन पूर्वावलोकन",
   "Description": "लाइव HTML पूर्वावलोकन के साथ Markdown लिखें: GFM टेबल, टास्क लिस्ट, strikethrough। साफ़ (sanitized) HTML कॉपी करें या .html फ़ाइल डाउनलोड करें।",
+  "Seo_Title": "Markdown प्रीव्यू ऑनलाइन — लाइव HTML, GFM टेबल | MyDevTools",
   "Keywords": "मार्कडाउन पूर्वावलोकन, markdown preview, ऑनलाइन markdown एडिटर, markdown to html, लाइव markdown, gfm preview, markdown टेबल, readme preview",
   "EditorLabel": "मार्कडाउन एडिटर",
   "PreviewLabel": "पूर्वावलोकन",

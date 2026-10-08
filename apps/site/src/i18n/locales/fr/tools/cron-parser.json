@@ -1,6 +1,7 @@
 {
   "Title": "Analyseur d'Expression Cron",
   "Description": "Expliquez une expression cron en langage clair, validez chaque champ et affichez les 5 prochaines exécutions dans votre fuseau horaire. Préréglages et @macros.",
+  "Seo_Title": "Analyseur cron en ligne — expliquer et valider | MyDevTools",
   "Keywords": "analyseur d'expression cron, valider cron, expliquer expression cron, syntaxe crontab, prochaine exécution cron, vérifier planification cron, cron parser, cron expression",
   "LinkToGenerator": "Besoin de construire une expression cron? Essayez le",
   "GeneratorTitle": "Générateur de Cron",

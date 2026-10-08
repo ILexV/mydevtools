@@ -5,6 +5,7 @@
   "ClearButton": "清除",
   "CopyButton": "复制",
   "Description": "一键将文本转换为 camelCase、snake_case、kebab-case、标题大小写、句子大小写、全大写或全小写，能正确拆分 XMLHttpRequest 这类标识符。",
+  "Seo_Title": "在线大小写转换 — 驼峰与下划线命名 | MyDevTools",
   "InverseCase": "反转大小写",
   "KebabCase": "烤肉串式",
   "LowerCase": "小写",

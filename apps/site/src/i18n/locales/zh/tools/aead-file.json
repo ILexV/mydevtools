@@ -1,6 +1,7 @@
 {
   "Title": "AEAD 文件加密/解密",
   "Description": "用密码通过 AES-256-GCM 或 (X)ChaCha20-Poly1305 与 Argon2id 加密文件，并可再解密。文件不会离开浏览器。",
+  "Seo_Title": "AEAD 文件加密解密 — 文件不上传 | MyDevTools",
   "Keywords": "密码加密文件, AES-256-GCM, ChaCha20-Poly1305, XChaCha20-Poly1305, Argon2id, 认证加密, 解密 aead 文件",
   "EncryptSectionTitle": "加密",
   "DecryptSectionTitle": "解密",

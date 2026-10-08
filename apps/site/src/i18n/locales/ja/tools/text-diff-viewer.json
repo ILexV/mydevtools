@@ -1,6 +1,7 @@
 {
   "Title": "テキスト差分ビューアー",
   "Description": "2 つのテキストやファイルを行単位で比較し、追加・削除・変更された行を横並びまたは unified diff で表示。行内の変更箇所は単語単位でハイライトします。",
+  "Seo_Title": "テキスト比較 — 差分をハイライト | MyDevTools",
   "Keywords": "テキスト比較, 差分チェック, diff ツール, ファイル比較, 横並び比較, unified diff, コード比較, diff checker",
   "OriginalLabel": "元のテキスト",
   "ModifiedLabel": "変更されたテキスト",

@@ -1,6 +1,7 @@
 {
   "Title": "URL エンコーダー / デコーダー",
   "Description": "URL やクエリ文字列をコンポーネント・URI・フォームの各モードでパーセントエンコード／デコード。UTF-8・UTF-16・Latin-1 に対応し、ブラウザ内で処理。",
+  "Seo_Title": "URLエンコード/デコード | MyDevTools",
   "Keywords": "URL encoder, URL decoder, percent encoding, URL encode online, URL decode online, URI encoder, query string encoder",
   "InputLabel": "入力",
   "OutputLabel": "出力",

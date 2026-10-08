@@ -1,6 +1,7 @@
 {
   "Title": "HMAC 계산기",
   "Description": "비밀 키로 메시지의 HMAC-SHA256 또는 HMAC-SHA512를 입력하는 즉시 계산합니다. 16진수 출력, UTF-8 입력, 빈 메시지도 지원.",
+  "Seo_Title": "HMAC-SHA256 계산기 | MyDevTools",
   "Keywords": "HMAC 계산기, HMAC-SHA256, HMAC-SHA512, HMAC 생성기, 웹훅 서명, API 요청 서명, 메시지 인증 코드",
   "KeyLabel": "시크릿 키",
   "KeyPlaceholder": "시크릿 키 입력...",

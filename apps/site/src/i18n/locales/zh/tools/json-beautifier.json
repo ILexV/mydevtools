@@ -1,6 +1,7 @@
 {
   "Title": "JSON 格式化",
   "Description": "在浏览器中格式化、压缩和校验 JSON：支持 2/4 空格或制表符缩进、递归排序键、大数字原样保留，可打开和保存 .json 文件。",
+  "Seo_Title": "在线 JSON 格式化 — 校验与压缩 | MyDevTools",
   "Keywords": "JSON 格式化, JSON 美化, JSON 压缩, JSON 校验, JSON 在线格式化, JSON 排序键, JSON beautifier, JSON formatter, pretty print JSON",
   "InputLabel": "输入 JSON",
   "FormatButton": "格式化",

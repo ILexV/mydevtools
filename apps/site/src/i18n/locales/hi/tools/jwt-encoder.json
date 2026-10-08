@@ -1,6 +1,7 @@
 {
   "Title": "JWT एन्कोडर",
   "Description": "ब्राउज़र में HS256, HS384 या HS512 से JWT बनाएँ और साइन करें। Header और payload JSON संपादित करें; claims का क्रम और kid जैसे फ़ील्ड बने रहते हैं।",
+  "Seo_Title": "JWT एन्कोडर — HS256 से टोकन बनाएं और साइन करें | MyDevTools",
   "Keywords": "JWT एन्कोडर, jwt encoder, JWT जनरेटर, JWT बनाएँ, JWT साइन करें, HS256 JWT, HMAC JWT, json web token generator",
   "LinkToDecoder": "टोकन डिकोड करना चाहते हैं?",
   "DecoderTitle": "JWT डिकोडर पर जाएं",

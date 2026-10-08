@@ -1,6 +1,7 @@
 {
   "Title": "이미지 압축기",
   "Description": "브라우저에서 JPEG, PNG, WebP 이미지를 압축합니다. 품질 1–100 설정, 형식 유지 또는 변경, 크기 비교 후 다운로드. 업로드 없음.",
+  "Seo_Title": "이미지 용량 줄이기 — 업로드 없음 | MyDevTools",
   "Keywords": "이미지 압축, JPEG 압축, PNG 압축, WebP 압축, 이미지 용량 줄이기, JPEG WebP 변환, EXIF 제거, 웹용 이미지 최적화",
   "Compressing": "압축 중...",
   "Processing": "처리 중...",

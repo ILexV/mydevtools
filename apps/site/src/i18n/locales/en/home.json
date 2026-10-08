@@ -29,6 +29,7 @@
   "Category_JwtAndTokens": "JWT & Tokens",
   "FeatureWasmTitle": "WebAssembly Where It Matters",
   "Subtitle": "Free developer tools for JSON, Base64, hashes, JWT, regex, images, PDF and more. Everything runs locally in your browser, and your data is never uploaded.",
+  "Seo_Title": "MyDevTools — Free Online Developer Tools: JSON, JWT, Regex",
   "FeatureAlgorithmsTitle": "Your Own Toolset",
   "FeatureOfflineDescription": "Once a page has been opened, it keeps working without a connection. Install the PWA for quick access.",
   "Stat_Tools": "Tools",

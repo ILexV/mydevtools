@@ -1,6 +1,7 @@
 {
   "Title": "二维码生成器",
   "Description": "根据网址或文本生成二维码：自定义颜色，方形/点状/圆角样式，L–H 纠错等级，中心徽标，可下载 PNG 或 SVG。",
+  "Seo_Title": "在线二维码生成 — 可加 Logo | MyDevTools",
   "Keywords": "二维码生成器, 制作二维码, 带徽标的二维码, 自定义二维码颜色, 二维码 SVG, Wi-Fi 二维码, 二维码纠错, 离线二维码生成",
   "ContentLabel": "内容",
   "ContentPlaceholder": "输入要编码的文本或 URL...",

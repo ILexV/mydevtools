@@ -5,6 +5,7 @@
   "ClearButton": "지우기",
   "CopyButton": "복사",
   "Description": "텍스트를 camelCase, snake_case, kebab-case, 제목 케이스, 문장 케이스, 대문자, 소문자로 변환합니다. XMLHttpRequest 같은 식별자도 올바르게 나눕니다.",
+  "Seo_Title": "대소문자 변환 — 카멜케이스 | MyDevTools",
   "InverseCase": "반전 대소문자",
   "KebabCase": "케밥 케이스",
   "LowerCase": "소문자",

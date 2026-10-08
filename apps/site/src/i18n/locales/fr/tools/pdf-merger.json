@@ -1,6 +1,7 @@
 {
   "Title": "Fusionner PDF",
   "Description": "Fusionnez deux PDF ou plus en un seul merged.pdf dans le navigateur, dans l'ordre choisi avec monter/descendre. Les pages gardent taille et rotation.",
+  "Seo_Title": "Fusionner PDF en ligne — sans envoi au serveur | MyDevTools",
   "Keywords": "fusionner des PDF, combiner des fichiers PDF, assembler des PDF, fusion PDF hors ligne, fusionner des PDF dans le navigateur, réordonner des fichiers PDF, regrouper des documents en un PDF",
   "DropZoneTitle": "Glissez et déposez des fichiers PDF ici",
   "MergeButton": "Fusionner les PDF",

@@ -1,6 +1,7 @@
 {
   "Title": "QRコード生成",
   "Description": "URL やテキストから QR コードを作成。色、四角・ドット・丸みのスタイル、誤り訂正 L～H、中央ロゴに対応し、PNG か SVG で保存。",
+  "Seo_Title": "QRコード作成 — ロゴ・色を指定 | MyDevTools",
   "Keywords": "QRコード 作成, QRコード 生成, ロゴ入り QRコード, QRコード 色 変更, QRコード SVG, Wi-Fi QRコード, QRコード 誤り訂正, QRコード 作成 オフライン",
   "ContentLabel": "内容",
   "ContentPlaceholder": "エンコードするテキストまたは URL を入力...",

@@ -1,6 +1,7 @@
 {
   "Title": "Probador de Regex",
   "Description": "Prueba expresiones regulares en vivo con el motor regex de Rust (WebAssembly): resaltado, grupos de captura y con nombre, flags i/m/s y patrones guardados.",
+  "Seo_Title": "Probar regex online — grupos de captura en vivo | MyDevTools",
   "Keywords": "probador de regex, probar expresiones regulares, regex online, rust regex, grupos de captura, grupos con nombre, depurador regex, regex tester",
   "PatternLabel": "Patrón",
   "PatternPlaceholder": "Ingresar expresión regular...",

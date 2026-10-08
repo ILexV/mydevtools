@@ -1,6 +1,7 @@
 {
   "Title": "Text-Vergleich",
   "Description": "Zwei Texte oder Dateien zeilenweise vergleichen: hinzugefügte, entfernte und geänderte Zeilen nebeneinander oder als Unified Diff mit Hervorhebung auf Wortebene.",
+  "Seo_Title": "Texte vergleichen online — Unterschiede finden | MyDevTools",
   "Keywords": "Text vergleichen, Diff online, zwei Dateien vergleichen, Unterschiede finden, diff checker, side by side diff, unified diff, Code vergleichen",
   "OriginalLabel": "Originaltext",
   "ModifiedLabel": "Geänderter Text",

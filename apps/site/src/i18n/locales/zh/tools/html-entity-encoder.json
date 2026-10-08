@@ -1,6 +1,7 @@
 {
   "Title": "HTML 实体编码器 / 解码器",
   "Description": "把 HTML 特殊字符转义为命名、十进制或十六进制实体，并将实体解码回文本。可正确处理表情符号，完全在浏览器中运行。",
+  "Seo_Title": "HTML 实体编码解码 — 转义字符 | MyDevTools",
   "Keywords": "HTML entity encoder, HTML entity decoder, HTML escape, HTML unescape, HTML special characters, encode HTML online, HTML entities",
   "InputLabel": "要编码/解码的文本",
   "OutputTitle": "输出",

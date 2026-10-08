@@ -1,6 +1,7 @@
 {
   "Title": "Gerador de Lorem Ipsum",
   "Description": "Gere texto Lorem Ipsum por parágrafos, frases ou palavras (1–1000) como texto simples, HTML com tags <p> ou Markdown, com contagem de palavras.",
+  "Seo_Title": "Gerador Lorem Ipsum — texto, HTML ou Markdown | MyDevTools",
   "Keywords": "lorem ipsum generator, placeholder text, dummy text generator, lorem ipsum online, filler text, fake text generator",
   "GenerateTypeLabel": "Gerar por",
   "Paragraphs": "Parágrafos",

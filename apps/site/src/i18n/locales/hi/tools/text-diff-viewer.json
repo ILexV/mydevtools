@@ -1,6 +1,7 @@
 {
   "Title": "टेक्स्ट डिफ व्यूअर",
   "Description": "दो टेक्स्ट या फ़ाइलों की लाइन-दर-लाइन तुलना करें: जोड़ी, हटाई और बदली गई लाइनें साइड बाय साइड या unified diff में, शब्द-स्तर हाइलाइट के साथ।",
+  "Seo_Title": "टेक्स्ट डिफ चेकर — दो टेक्स्ट की तुलना करें | MyDevTools",
   "Keywords": "टेक्स्ट तुलना, text diff, diff checker, दो फ़ाइलों की तुलना, side by side diff, unified diff, कोड diff, अंतर खोजें, diff viewer",
   "OriginalLabel": "मूल टेक्स्ट",
   "ModifiedLabel": "संशोधित टेक्स्ट",

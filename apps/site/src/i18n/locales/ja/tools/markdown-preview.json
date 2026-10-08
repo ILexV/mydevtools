@@ -1,6 +1,7 @@
 {
   "Title": "Markdown プレビュー",
   "Description": "Markdown を書きながら隣で HTML をリアルタイムにプレビュー。GitHub 形式の表、タスクリスト、取り消し線に対応し、安全化した HTML のコピーや .html ファイルのダウンロードも可能。",
+  "Seo_Title": "Markdown エディタ・プレビュー | MyDevTools",
   "Keywords": "Markdown プレビュー, Markdown エディター オンライン, Markdown HTML 変換, リアルタイム Markdown, GFM プレビュー, Markdown 表, README プレビュー, markdown preview",
   "EditorLabel": "Markdown エディター",
   "PreviewLabel": "プレビュー",

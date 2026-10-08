@@ -1,6 +1,7 @@
 {
   "Title": "AEAD шифрование/дешифрование файлов",
   "Description": "Шифрование файла паролем: AES-256-GCM или (X)ChaCha20-Poly1305 с Argon2id, и обратная расшифровка. Файлы не покидают браузер.",
+  "Seo_Title": "Шифрование файла паролем — AES, без загрузки | MyDevTools",
   "Keywords": "зашифровать файл паролем, AES-256-GCM, ChaCha20-Poly1305, XChaCha20-Poly1305, Argon2id, аутентифицированное шифрование, расшифровать aead",
   "EncryptSectionTitle": "Шифрование",
   "DecryptSectionTitle": "Дешифрование",

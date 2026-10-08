@@ -1,6 +1,7 @@
 {
   "Title": "JSON 포맷터",
   "Description": "브라우저에서 JSON을 포맷·압축·검증합니다. 2/4칸 공백 또는 탭 들여쓰기, 재귀적 키 정렬, 큰 숫자 원형 유지, .json 파일 열기와 저장 지원.",
+  "Seo_Title": "JSON 포맷터 — 검증 및 압축 | MyDevTools",
   "Keywords": "JSON 포맷터, JSON 정렬, JSON 뷰티파이어, JSON 압축, JSON minify, JSON 검증, JSON 키 정렬, JSON formatter, pretty print JSON, 온라인 JSON 포맷",
   "InputLabel": "입력 JSON",
   "FormatButton": "포맷",

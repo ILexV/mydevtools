@@ -13,6 +13,7 @@
  * the hero is offscreen or the tab is hidden. Reduced motion → one static
  * frame, no packets.
  */
+import { whenIdle } from "@/scripts/idle";
 
 interface Pt {
   x: number;
@@ -68,6 +69,7 @@ export function initHeroPrism(band: HTMLElement): void {
   let last = 0;
   let nextAmbient = 0;
   let sprite: HTMLCanvasElement | null = null;
+  let started = false; // set once the page is idle (see whenIdle below)
 
   function readColors(): string[] {
     const cs = getComputedStyle(document.documentElement);
@@ -298,6 +300,11 @@ export function initHeroPrism(band: HTMLElement): void {
 
   function frame(now: number): void {
     raf = 0;
+    // Phones: ~30 fps halves the per-frame cost of the full-band canvas.
+    if (!wide.matches && last && now - last < 30) {
+      schedule();
+      return;
+    }
     const dt = last ? Math.min(64, now - last) : 16;
     last = now;
     tilt += (tiltTarget - tilt) * Math.min(1, dt / 250);
@@ -322,7 +329,7 @@ export function initHeroPrism(band: HTMLElement): void {
   }
 
   function running(): boolean {
-    return visible && !document.hidden && !motion.matches;
+    return started && visible && !document.hidden && !motion.matches;
   }
 
   function schedule(): void {
@@ -330,14 +337,17 @@ export function initHeroPrism(band: HTMLElement): void {
   }
 
   function refresh(): void {
+    if (!started) return; // observers fire on attach; nothing to draw before idle
     measure();
     if (!running()) drawScene(0); // fixed phase → deterministic static frame
     schedule();
   }
 
   sprite = makeSprite();
-  // Measure after first paint so the hero text/LCP is never blocked by canvas setup.
-  requestAnimationFrame(() => {
+  // Decorative: start after load + idle so canvas setup and the 60 fps loop
+  // never compete with first paint, LCP or TBT; the canvas fades in then.
+  whenIdle(() => {
+    started = true;
     refresh();
     canvas.classList.add("is-ready");
   });

@@ -5,6 +5,7 @@
   "ClearButton": "Очистить",
   "CopyButton": "Копировать",
   "Description": "Преобразование текста в camelCase, snake_case, kebab-case, Title Case, регистр предложений, ВЕРХНИЙ и нижний. Корректно делит идентификаторы вроде XMLHttpRequest.",
+  "Seo_Title": "Изменить регистр текста — camelCase, snake_case | MyDevTools",
   "InverseCase": "Инверсия регистра",
   "KebabCase": "Kebab Case",
   "LowerCase": "нижний регистр",

@@ -1,6 +1,7 @@
 {
   "Title": "Compressor de PDF",
   "Description": "Reduza arquivos PDF sem perdas no navegador: recompressão de streams, fusão de objetos duplicados e remoção de metadados. Processamento em lote, sem upload.",
+  "Seo_Title": "Comprimir PDF online — sem perda e sem upload | MyDevTools",
   "Keywords": "compressor de PDF, reduzir tamanho de PDF, comprimir PDF offline, compressão de PDF sem perdas, remover metadados de PDF, otimizar PDF, diminuir PDF no navegador",
   "DropZoneTitle": "Arraste e solte arquivos PDF aqui",
   "CompressButton": "Comprimir PDFs",

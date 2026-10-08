@@ -1,6 +1,7 @@
 {
   "Title": "UUID/GUID Generator",
   "Description": "Generate random UUID v4 or time-ordered UUID v7 in batches of up to 100, as hyphenated, plain, braced or URN strings, with copy and TXT download.",
+  "Seo_Title": "UUID Generator Online — Random GUID v4 & v7 | MyDevTools",
   "Keywords": "UUID generator, GUID generator, UUID v4, UUID v7, random UUID, UUID online, generate GUID, unique identifier",
   "VersionLabel": "UUID Version",
   "Version4": "Version 4 (Random)",

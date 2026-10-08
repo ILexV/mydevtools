@@ -5,6 +5,7 @@
   "ClearButton": "Effacer",
   "CopyButton": "Copier",
   "Description": "Convertissez un texte en camelCase, snake_case, kebab-case, casse de titre, casse de phrase, MAJUSCULES ou minuscules. Découpe bien XMLHttpRequest.",
+  "Seo_Title": "Convertisseur de casse — camelCase, snake_case | MyDevTools",
   "InverseCase": "Casse inversée",
   "KebabCase": "Kebab Case",
   "LowerCase": "minuscules",

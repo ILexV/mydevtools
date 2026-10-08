@@ -1,6 +1,7 @@
 {
   "Title": "Cron-Ausdruck Parser",
   "Description": "Einen Cron-Ausdruck in Klartext erklären, jedes Feld validieren und die nächsten 5 Ausführungen in Ihrer Zeitzone anzeigen. Mit Voreinstellungen und @-Makros.",
+  "Seo_Title": "Cron-Ausdruck erklären — nächste Ausführungen | MyDevTools",
   "Keywords": "Cron-Ausdruck Parser, Cron Validator, Cron-Ausdruck erklären, crontab Syntax, nächste Cron Ausführung, Cron prüfen, cron parser, cron expression",
   "LinkToGenerator": "Müssen Sie einen Cron-Ausdruck erstellen? Probieren Sie den",
   "GeneratorTitle": "Cron-Generator",

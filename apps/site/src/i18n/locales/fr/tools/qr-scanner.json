@@ -1,6 +1,7 @@
 {
   "Title": "Scanner QR",
   "Description": "Lisez un QR code avec la caméra ou depuis une image PNG, JPEG ou WebP dans le navigateur, puis copiez le texte ou ouvrez les liens http(s). Rien n'est envoyé.",
+  "Seo_Title": "Lecteur de QR code en ligne — caméra ou image | MyDevTools",
   "Keywords": "lecteur de QR code, scanner un QR code avec la caméra, lire un QR code depuis une image, décodeur de QR code, scanner un QR code depuis une capture d'écran, scanner un QR code avec la webcam, décoder un QR code en ligne",
   "DropZone": "Glissez-déposez une image avec un QR code ici",
   "ResultLabel": "Contenu scanné",

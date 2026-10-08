@@ -1,6 +1,7 @@
 {
   "Title": "Base58 编码器 / 解码器",
   "Description": "使用 Bitcoin、Flickr 或 Ripple 字母表编码和解码 Base58，支持文本和不超过 1 MiB 的文件。在浏览器本地运行，不上传任何数据。",
+  "Seo_Title": "Base58 在线编码解码 | MyDevTools",
   "Keywords": "Base58 编码, Base58 解码, Bitcoin Base58, Flickr Base58, Ripple Base58, Base58 地址解码, Base58 在线转换",
   "InputTextLabel": "输入（文本）",
   "FileHint": "如果选择了文件，将使用文件而非文本输入。",

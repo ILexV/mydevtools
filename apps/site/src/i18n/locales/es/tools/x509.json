@@ -1,6 +1,7 @@
 {
   "Title": "Certificados X.509",
   "Description": "Crea certificados X.509 autofirmados y CSR con claves Ed25519 o ECDSA, y decodifica certificados o CSR en PEM/DER, todo localmente en tu navegador.",
+  "Seo_Title": "Generar certificado autofirmado y CSR — X.509 | MyDevTools",
   "Keywords": "decodificador de certificados x509, generador de certificado autofirmado, generador de CSR, decodificar CSR, PKCS#10, PEM a JSON, analizar certificado, certificado ECDSA",
   "SelfSignedSectionTitle": "Autofirmado",
   "SubjectLabel": "Subject (CN)",

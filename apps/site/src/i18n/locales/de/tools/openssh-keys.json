@@ -1,6 +1,7 @@
 {
   "Title": "OpenSSH-Schlüssel",
   "Description": "SSH-Schlüsselpaare (Ed25519, ECDSA, RSA) mit optionaler Passphrase erzeugen und zwischen OpenSSH, PKCS#8 und SPKI PEM konvertieren – im Browser.",
+  "Seo_Title": "SSH-Schlüssel generieren — Ed25519, ECDSA, RSA | MyDevTools",
   "Keywords": "SSH-Schlüssel generieren, ssh-keygen online, Ed25519-Schlüssel, RSA 4096 SSH-Schlüssel, ECDSA-Schlüssel, OpenSSH zu PKCS#8, SPKI zu OpenSSH, öffentlicher SSH-Schlüssel",
   "GenerateSectionTitle": "Generieren",
   "AlgorithmLabel": "Algorithmus",

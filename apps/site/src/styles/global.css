@@ -786,7 +786,9 @@
   .seg > button[aria-pressed="true"],
   .seg > button.on {
     background: color-mix(in srgb, var(--mdt-cat) 16%, transparent);
-    color: var(--mdt-cat);
+    /* Pure category hue on its own 16% tint is < 4.5:1 for some hues in light
+       theme (indigo 4.0); mixing toward text keeps the hue and passes AA. */
+    color: color-mix(in srgb, var(--mdt-cat) 72%, var(--mdt-text));
   }
 }
 

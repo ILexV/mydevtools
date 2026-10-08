@@ -1,6 +1,7 @@
 {
   "Title": "JSON 转 TypeScript 转换器",
   "Description": "根据 JSON 示例生成 TypeScript interface 或类型别名：嵌套类型、合并数组元素、可选字段、export 关键字。在浏览器中运行。",
+  "Seo_Title": "JSON转TypeScript类型生成 | MyDevTools",
   "Keywords": "JSON 转 TypeScript, JSON 转 interface, TypeScript 接口生成, JSON 生成 TypeScript 类型, TypeScript 类型别名, JSON to TypeScript, json2ts",
   "InputLabel": "JSON 输入",
   "OutputLabel": "TypeScript 输出",

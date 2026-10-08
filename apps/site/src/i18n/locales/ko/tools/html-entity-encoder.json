@@ -1,6 +1,7 @@
 {
   "Title": "HTML 엔티티 인코더 / 디코더",
   "Description": "HTML 특수 문자를 명명된, 10진수, 16진수 엔티티로 이스케이프하고 엔티티를 텍스트로 디코딩합니다. 이모지도 올바르게 처리. 모두 브라우저에서 동작.",
+  "Seo_Title": "HTML 엔티티 인코딩/디코딩 | MyDevTools",
   "Keywords": "HTML entity encoder, HTML entity decoder, HTML escape, HTML unescape, HTML special characters, encode HTML online, HTML entities",
   "InputLabel": "인코딩/디코딩할 텍스트",
   "OutputTitle": "출력",

@@ -1,6 +1,7 @@
 {
   "Title": "単位変換ツール",
   "Description": "長さ・重さ・温度・体積を、メートル法・ヤードポンド法・米国単位の間で入力と同時に換算。換算式と代表的な換算例も表示します。",
+  "Seo_Title": "単位変換 — 長さ・重さ・温度 | MyDevTools",
   "Keywords": "unit converter, length converter, weight converter, temperature converter, metric imperial, online unit conversion, measurement converter",
   "CategoryLabel": "カテゴリー",
   "Category_Length": "長さ",

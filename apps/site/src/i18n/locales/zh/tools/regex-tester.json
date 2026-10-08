@@ -1,6 +1,7 @@
 {
   "Title": "正则表达式测试器",
   "Description": "使用 Rust regex 引擎（WebAssembly）实时测试正则表达式：高亮匹配、捕获组和命名组、i/m/s 标志以及保存的模式。",
+  "Seo_Title": "正则表达式在线测试 — 实时匹配高亮 | MyDevTools",
   "Keywords": "正则表达式测试, 正则测试工具, regex tester, rust regex, 在线正则, 捕获组, 命名组, 正则调试",
   "PatternLabel": "模式",
   "PatternPlaceholder": "输入正则表达式模式...",

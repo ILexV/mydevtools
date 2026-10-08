@@ -29,6 +29,19 @@ test("dist: every locale home + offline + 404 + manifest + sw + icons", { skip }
   assert.ok(key && read(key).trim() === key.slice(0, 32), "IndexNow key file");
 });
 
+test("seo titles: every sitemap page has a branded, unique, ≤ 65-char <title>", { skip }, () => {
+  const seen = new Map();
+  for (const [, loc] of read("sitemap.xml").matchAll(/<loc>([^<]+)<\/loc>/g)) {
+    const path = new URL(loc).pathname;
+    const title = read(`${path.slice(1)}index.html`).match(/<title>([^<]*)<\/title>/)?.[1] ?? "";
+    assert.ok(/\| MyDevTools$|^MyDevTools — ./.test(title), `branded title: ${path} → ${title}`);
+    assert.ok([...title].length <= 65, `title ≤ 65 chars: ${path} → ${title}`);
+    const lang = path.split("/")[1];
+    assert.ok(!seen.has(`${lang}|${title}`), `unique title in ${lang}: ${title}`);
+    seen.set(`${lang}|${title}`, path);
+  }
+});
+
 test("custom domain: assets, canonical and sitemap use the mydevtools.app root", { skip }, () => {
   const html = read("ru/index.html");
   assert.match(html, /href="\/_astro\/[^"]+\.css"/, "root-relative stylesheet");

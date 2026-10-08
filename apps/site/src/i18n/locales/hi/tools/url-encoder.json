@@ -1,6 +1,7 @@
 {
   "Title": "URL एनकोडर / डिकोडर",
   "Description": "URL और क्वेरी स्ट्रिंग को घटक, URI या फ़ॉर्म मोड में प्रतिशत-एनकोड और डिकोड करें, UTF-8, UTF-16 या Latin-1 वर्णसेट के साथ। ब्राउज़र में लोकल।",
+  "Seo_Title": "URL एनकोडर/डिकोडर ऑनलाइन — परसेंट-एनकोडिंग | MyDevTools",
   "Keywords": "URL encoder, URL decoder, percent encoding, URL encode online, URL decode online, URI encoder, query string encoder",
   "InputLabel": "इनपुट",
   "OutputLabel": "आउटपुट",

@@ -1,6 +1,7 @@
 {
   "Title": "OpenSSH कीज़",
   "Description": "Ed25519, ECDSA या RSA SSH की-पेयर बनाएँ (पासफ़्रेज़ वैकल्पिक) और OpenSSH, PKCS#8 व SPKI PEM के बीच बदलें — सब ब्राउज़र में।",
+  "Seo_Title": "SSH की जनरेटर — Ed25519, ECDSA, RSA की-पेयर | MyDevTools",
   "Keywords": "ssh की जनरेटर, ऑनलाइन ssh-keygen, Ed25519 की, RSA 4096 ssh की, ECDSA की, OpenSSH से PKCS#8, SPKI से OpenSSH, ssh पब्लिक की",
   "GenerateSectionTitle": "जनरेट",
   "AlgorithmLabel": "एल्गोरिदम",

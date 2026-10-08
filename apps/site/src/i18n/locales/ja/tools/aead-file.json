@@ -1,6 +1,7 @@
 {
   "Title": "AEAD ファイル暗号化/復号化",
   "Description": "AES-256-GCM または (X)ChaCha20-Poly1305 と Argon2id でファイルをパスワード暗号化し、復号も可能。ファイルはブラウザから出ません。",
+  "Seo_Title": "ファイル暗号化・復号 — ブラウザ完結 | MyDevTools",
   "Keywords": "ファイル 暗号化 パスワード, AES-256-GCM, ChaCha20-Poly1305, XChaCha20-Poly1305, Argon2id, 認証付き暗号, aead 復号",
   "EncryptSectionTitle": "暗号化",
   "DecryptSectionTitle": "復号化",

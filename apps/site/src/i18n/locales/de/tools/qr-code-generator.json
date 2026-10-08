@@ -1,6 +1,7 @@
 {
   "Title": "QR-Code Generator",
   "Description": "QR-Code aus URL oder Text erstellen: Farben, Stile quadratisch/Punkte/abgerundet, Fehlerkorrektur L–H, Logo in der Mitte, Download als PNG oder SVG.",
+  "Seo_Title": "QR-Code Generator — Farben, Logo, PNG und SVG | MyDevTools",
   "Keywords": "QR-Code Generator, QR-Code erstellen, QR-Code mit Logo, QR-Code Farben anpassen, QR-Code SVG, WLAN QR-Code, QR Fehlerkorrektur, QR-Code offline erstellen",
   "ContentLabel": "Inhalt",
   "ContentPlaceholder": "Text oder URL zum Kodieren eingeben...",

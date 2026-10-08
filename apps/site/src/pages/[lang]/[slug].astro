@@ -76,6 +76,9 @@ if (!resolved) throw new Error(`Unknown tool slug in route: ${slug}`);
 const { tool, namespace } = resolved;
 const title = t(lang, namespace, "Title");
 const description = t(lang, namespace, "Description");
+// Search-result title; t() returns the key itself when a locale lacks it.
+const seoTitleRaw = t(lang, namespace, "Seo_Title");
+const seoTitle = seoTitleRaw === "Seo_Title" ? undefined : seoTitleRaw;
 const catLabel = categoryLabel(lang, tool.category);
 // Same monogram + length step as ToolCard so the tile morphs 1:1 (view transition).
 const monoLen = Math.min(4, [...tool.monogram].length);
@@ -138,7 +141,7 @@ const TOOL_COMPONENTS: Record<string, any> = {
 const ActiveTool = TOOL_COMPONENTS[slug];
 ---
 
-<BaseLayout locale={lang} path={slug} title={title} description={description} keywords={[tool.slug]} categoryName={catLabel} howToSteps={howToSteps}>
+<BaseLayout locale={lang} path={slug} title={title} description={description} keywords={[tool.slug]} categoryName={catLabel} howToSteps={howToSteps} seoTitle={seoTitle}>
   <span data-visit-slug data-slug={slug} hidden></span>
   <div class="scroll-progress" aria-hidden="true"></div>
   <main class="tool" style={`--mdt-cat: var(--mdt-cat-${tool.category})`}>

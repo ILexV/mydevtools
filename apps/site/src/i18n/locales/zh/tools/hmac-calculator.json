@@ -1,6 +1,7 @@
 {
   "Title": "HMAC 计算器",
   "Description": "用密钥实时计算消息的 HMAC-SHA256 或 HMAC-SHA512，边输入边更新。十六进制输出、UTF-8 输入，支持空消息。",
+  "Seo_Title": "HMAC-SHA256 在线计算 | MyDevTools",
   "Keywords": "HMAC 计算器, HMAC-SHA256, HMAC-SHA512, HMAC 生成, Webhook 签名, API 请求签名, 消息认证码",
   "KeyLabel": "密钥",
   "KeyPlaceholder": "输入您的密钥...",

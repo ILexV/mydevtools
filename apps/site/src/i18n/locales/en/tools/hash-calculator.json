@@ -1,6 +1,7 @@
 {
   "Title": "Hash Calculator",
   "Description": "Hash text or a file with MD5, SHA-1, SHA-256, SHA-3, BLAKE3, CRC32 and 33 more algorithms at once. Runs locally in your browser via WebAssembly.",
+  "Seo_Title": "Hash Generator Online — MD5, SHA-256, SHA-3 | MyDevTools",
   "InputLabel": "Input Text",
   "InputPlaceholder": "Enter text to hash...",
   "FileLabel": "File (optional)",

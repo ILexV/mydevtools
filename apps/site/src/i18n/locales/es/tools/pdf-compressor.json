@@ -1,6 +1,7 @@
 {
   "Title": "Compresor de PDF",
   "Description": "Reduce archivos PDF sin pérdida en el navegador: recomprime flujos, une objetos duplicados y elimina metadatos. Procesamiento por lotes, sin subidas.",
+  "Seo_Title": "Comprimir PDF sin pérdida — sin subidas | MyDevTools",
   "Keywords": "compresor de PDF, reducir tamaño de PDF, comprimir PDF sin conexión, compresión de PDF sin pérdida, eliminar metadatos de PDF, optimizar PDF, comprimir PDF en el navegador",
   "DropZoneTitle": "Arrastra y suelta archivos PDF aquí",
   "CompressButton": "Comprimir PDFs",

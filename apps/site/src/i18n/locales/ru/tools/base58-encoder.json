@@ -1,6 +1,7 @@
 {
   "Title": "Base58 кодер / декодер",
   "Description": "Кодирование и декодирование Base58 с алфавитами Bitcoin, Flickr или Ripple для текста и файлов до 1 МиБ. Локально в браузере, без загрузки на сервер.",
+  "Seo_Title": "Base58 кодировщик и декодер онлайн — Bitcoin | MyDevTools",
   "Keywords": "Base58 кодировщик, Base58 декодер, Base58 Bitcoin, Base58 Flickr, Base58 Ripple, декодировать Base58 адрес, Base58 онлайн",
   "InputTextLabel": "Ввод (текст)",
   "FileHint": "Если выбран файл, он будет использован вместо текстового ввода.",

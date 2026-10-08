@@ -1,6 +1,7 @@
 {
   "Title": "QR Code Scanner",
   "Description": "Read a QR code with your camera or from a PNG, JPEG or WebP image in the browser, then copy the text or open http(s) links. Nothing is uploaded.",
+  "Seo_Title": "QR Code Scanner — Camera or Image, No Upload | MyDevTools",
   "Keywords": "QR code scanner, QR scanner camera, read QR code from image, QR code decoder, scan QR from screenshot, scan QR code with webcam, decode QR code online",
   "DropZone": "Drag & drop an image with a QR code here",
   "ResultLabel": "Scanned Content",

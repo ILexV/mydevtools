@@ -1,6 +1,7 @@
 {
   "Title": "Chaves OpenSSH",
   "Description": "Gere pares de chaves SSH Ed25519, ECDSA ou RSA, com ou sem senha, e converta entre OpenSSH, PKCS#8 e SPKI PEM no navegador.",
+  "Seo_Title": "Gerador de chaves SSH — Ed25519, ECDSA, RSA | MyDevTools",
   "Keywords": "gerador de chave ssh, ssh-keygen online, chave Ed25519, chave ssh RSA 4096, chave ECDSA, OpenSSH para PKCS#8, SPKI para OpenSSH, chave pública ssh",
   "GenerateSectionTitle": "Gerar",
   "AlgorithmLabel": "Algoritmo",

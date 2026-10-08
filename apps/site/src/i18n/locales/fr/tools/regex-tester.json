@@ -1,6 +1,7 @@
 {
   "Title": "Testeur Regex",
   "Description": "Testez vos expressions régulières en direct avec le moteur regex de Rust (WebAssembly) : surlignage, groupes nommés, drapeaux i/m/s, motifs enregistrés.",
+  "Seo_Title": "Tester une regex en ligne — groupes de capture | MyDevTools",
   "Keywords": "testeur regex, tester une expression régulière, regex en ligne, rust regex, groupes de capture, groupes nommés, débogueur regex, regex tester",
   "PatternLabel": "Modèle",
   "PatternPlaceholder": "Entrez un modèle regex...",

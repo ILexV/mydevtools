@@ -1,6 +1,7 @@
 {
   "Title": "हैश कैलकुलेटर",
   "Description": "टेक्स्ट या फ़ाइल का हैश MD5, SHA-1, SHA-256, SHA-3, BLAKE3, CRC32 समेत 39 एल्गोरिदम से एक साथ निकालें — WebAssembly से ब्राउज़र में ही।",
+  "Seo_Title": "हैश कैलकुलेटर ऑनलाइन — MD5, SHA-256, BLAKE3 | MyDevTools",
   "Keywords": "हैश कैलकुलेटर, ऑनलाइन हैश, MD5, SHA-1, SHA-256, SHA-512, SHA-3, BLAKE3, CRC32, xxHash, फ़ाइल चेकसम",
   "InputLabel": "इनपुट टेक्स्ट",
   "InputPlaceholder": "हैश करने के लिए टेक्स्ट दर्ज करें...",

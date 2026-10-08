@@ -1,6 +1,7 @@
 {
   "Title": "마크다운 미리보기",
   "Description": "마크다운을 작성하며 옆에서 HTML을 실시간 미리 봅니다. GitHub 형식 표, 작업 목록, 취소선을 지원하며 안전하게 정리된 HTML 복사나 .html 다운로드가 가능합니다.",
+  "Seo_Title": "마크다운 실시간 미리보기 | MyDevTools",
   "Keywords": "마크다운 미리보기, 온라인 마크다운 에디터, 마크다운 HTML 변환, 실시간 마크다운, GFM 미리보기, 마크다운 표, README 미리보기, markdown preview",
   "EditorLabel": "마크다운 에디터",
   "PreviewLabel": "미리보기",

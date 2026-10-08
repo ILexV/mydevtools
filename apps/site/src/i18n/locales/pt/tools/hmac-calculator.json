@@ -1,6 +1,7 @@
 {
   "Title": "Calculadora HMAC",
   "Description": "Calcule HMAC-SHA256 ou HMAC-SHA512 de uma mensagem com chave secreta, ao vivo enquanto digita. Saída em hex, entrada UTF-8, aceita mensagem vazia.",
+  "Seo_Title": "Calculadora HMAC online — SHA-256 e SHA-512 | MyDevTools",
   "Keywords": "calculadora HMAC, HMAC-SHA256, HMAC-SHA512, gerador HMAC, assinatura de webhook, assinatura de requisições API, código de autenticação de mensagem",
   "KeyLabel": "Chave Secreta",
   "KeyPlaceholder": "Digite sua chave secreta...",

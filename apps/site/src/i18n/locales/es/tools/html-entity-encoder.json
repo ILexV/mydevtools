@@ -1,6 +1,7 @@
 {
   "Title": "Codificador / decodificador de entidades HTML",
   "Description": "Escapa caracteres especiales de HTML como entidades con nombre, decimales o hex y decodifica entidades a texto. Maneja bien los emoji. Todo en tu navegador.",
+  "Seo_Title": "Codificar entidades HTML — escapar, decodificar | MyDevTools",
   "Keywords": "HTML entity encoder, HTML entity decoder, HTML escape, HTML unescape, HTML special characters, encode HTML online, HTML entities",
   "InputLabel": "Texto a codificar/decodificar",
   "OutputTitle": "Resultado",

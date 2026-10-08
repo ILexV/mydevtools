@@ -1,6 +1,7 @@
 {
   "Title": "HMAC 計算機",
   "Description": "秘密鍵でメッセージの HMAC-SHA256 / HMAC-SHA512 を入力中にリアルタイム計算。16 進数出力、UTF-8 入力、空メッセージにも対応。",
+  "Seo_Title": "HMAC-SHA256 計算ツール | MyDevTools",
   "Keywords": "HMAC 計算, HMAC-SHA256, HMAC-SHA512, HMAC 生成, Webhook 署名, API リクエスト署名, メッセージ認証コード",
   "KeyLabel": "シークレットキー",
   "KeyPlaceholder": "シークレットキーを入力...",

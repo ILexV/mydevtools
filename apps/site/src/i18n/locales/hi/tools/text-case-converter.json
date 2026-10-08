@@ -5,6 +5,7 @@
   "ClearButton": "साफ़ करें",
   "CopyButton": "कॉपी",
   "Description": "टेक्स्ट को camelCase, snake_case, kebab-case, Title Case, Sentence case, UPPER या lower case में बदलें। XMLHttpRequest जैसे नाम सही बँटते हैं।",
+  "Seo_Title": "टेक्स्ट केस कनवर्टर — camelCase, snake_case आदि | MyDevTools",
   "InverseCase": "उल्टा केस",
   "KebabCase": "केबाब केस",
   "LowerCase": "लोअर केस",

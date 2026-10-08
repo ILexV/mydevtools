@@ -1,6 +1,7 @@
 {
   "Title": "QR 코드 생성기",
   "Description": "URL이나 텍스트로 QR 코드를 만듭니다. 색상, 사각형·점·둥근 스타일, 오류 정정 L–H, 중앙 로고 지원, PNG·SVG 다운로드.",
+  "Seo_Title": "QR코드 만들기 — 로고·색상 지정 | MyDevTools",
   "Keywords": "QR 코드 생성기, QR 코드 만들기, 로고 QR 코드, QR 코드 색상 변경, QR 코드 SVG, 와이파이 QR 코드, QR 오류 정정, 오프라인 QR 생성기",
   "ContentLabel": "내용",
   "ContentPlaceholder": "인코딩할 텍스트 또는 URL 입력...",

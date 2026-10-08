@@ -1,6 +1,7 @@
 {
   "Title": "Redimensionador de Imagem",
   "Description": "Redimensione uma imagem para dimensões exatas em pixels, com trava de proporção e reamostragem Lanczos3, e salve em JPEG, PNG ou WebP. Roda no navegador.",
+  "Seo_Title": "Redimensionar imagem online — JPEG, PNG, WebP | MyDevTools",
   "Keywords": "redimensionar imagem, redimensionador de imagem, mudar dimensões da imagem, redimensionar foto, manter proporção, escalar imagem, redimensionar por largura, criar miniatura",
   "OriginalInfo": "Imagem Original",
   "TargetFormatLabel": "Formato",

@@ -1,6 +1,7 @@
 {
   "Title": "Calculateur de Hash",
   "Description": "Hachez un texte ou un fichier avec MD5, SHA-1, SHA-256, SHA-3, BLAKE3, CRC32 et 33 autres algorithmes à la fois, localement dans le navigateur.",
+  "Seo_Title": "Calculateur de hash — MD5, SHA-256, BLAKE3 | MyDevTools",
   "Keywords": "calculateur de hash, hash en ligne, MD5, SHA-1, SHA-256, SHA-512, SHA-3, BLAKE3, CRC32, xxHash, somme de contrôle fichier",
   "InputLabel": "Texte d'entrée",
   "InputPlaceholder": "Entrez le texte à hacher...",

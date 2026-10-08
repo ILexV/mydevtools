@@ -1,6 +1,7 @@
 {
   "Title": "Visualizador de Diferenças de Texto",
   "Description": "Compare dois textos ou arquivos linha por linha: linhas adicionadas, removidas e alteradas lado a lado ou em diff unificado, com destaque por palavra.",
+  "Seo_Title": "Comparar textos online — diff lado a lado | MyDevTools",
   "Keywords": "comparar textos, diff de texto, comparar arquivos online, diff lado a lado, diff unificado, diff de código, verificador de diferenças, text diff, diff checker",
   "OriginalLabel": "Texto Original",
   "ModifiedLabel": "Texto Modificado",

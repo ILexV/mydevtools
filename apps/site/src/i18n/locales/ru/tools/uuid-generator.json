@@ -1,6 +1,7 @@
 {
   "Title": "Генератор UUID/GUID",
   "Description": "Генерация случайных UUID v4 и упорядоченных по времени UUID v7 пакетами до 100 штук: с дефисами, без, в скобках или URN, копирование и TXT.",
+  "Seo_Title": "Генератор UUID онлайн — GUID v4 и v7 | MyDevTools",
   "Keywords": "UUID generator, GUID generator, UUID v4, UUID v7, random UUID, UUID online, generate GUID, unique identifier",
   "VersionLabel": "Версия UUID",
   "Version4": "Версия 4 (Случайный)",

@@ -1,6 +1,7 @@
 {
   "Title": "Hex кодирование / декодирование",
   "Description": "Перевод текста и файлов в шестнадцатеричный вид и обратно. Кодировка и регистр; декодирует hex с пробелами, двоеточиями, дефисами и 0x. В браузере.",
+  "Seo_Title": "Hex кодирование и декодирование — текст в hex | MyDevTools",
   "Keywords": "hex encoder, hex decoder, hexadecimal converter, text to hex, hex to text, hex encoding online, hexadecimal online tool",
   "InputTextLabel": "Текст",
   "FileHint": "Если выбран файл, текстовое поле игнорируется.",

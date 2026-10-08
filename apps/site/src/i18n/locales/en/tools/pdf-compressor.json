@@ -1,6 +1,7 @@
 {
   "Title": "PDF Compressor",
   "Description": "Shrink PDF files losslessly in your browser: recompress streams, merge duplicate objects and strip metadata. Batch processing, no upload.",
+  "Seo_Title": "Compress PDF Online — Lossless, No Upload | MyDevTools",
   "Keywords": "PDF compressor, reduce PDF size, compress PDF offline, lossless PDF compression, remove PDF metadata, optimize PDF, shrink PDF in browser",
   "DropZoneTitle": "Drag and drop PDF files here",
   "CompressButton": "Compress PDFs",

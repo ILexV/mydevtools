@@ -1,6 +1,7 @@
 {
   "Title": "JSON Formatter",
   "Description": "JSON im Browser formatieren, minifizieren und validieren: 2/4 Leerzeichen oder Tab, rekursive Schlüsselsortierung, exakte große Zahlen, .json-Dateien.",
+  "Seo_Title": "JSON Formatter online — formatieren, validieren | MyDevTools",
   "Keywords": "JSON formatieren, JSON Formatter, JSON Beautifier, JSON minifizieren, JSON validieren, JSON Validator, JSON Schlüssel sortieren, JSON pretty print online",
   "InputLabel": "Eingabe JSON",
   "FormatButton": "Formatieren",

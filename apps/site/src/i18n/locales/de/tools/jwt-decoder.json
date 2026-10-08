@@ -1,6 +1,7 @@
 {
   "Title": "JWT-Decoder",
   "Description": "JWT-Header und -Payload im Browser dekodieren, exp/nbf/iat prüfen und HS256/384/512- oder RS256/384/512-Signaturen verifizieren. Tokens bleiben auf dem Gerät.",
+  "Seo_Title": "JWT Decoder online — Signatur prüfen | MyDevTools",
   "Keywords": "JWT Decoder, JWT dekodieren, JWT Signatur prüfen, JSON Web Token, JWT Payload anzeigen, JWT Ablauf prüfen, HS256, RS256",
   "EncodedLabel": "Generiertes JWT",
   "EncodedPlaceholder": "JWT hier einfügen...",

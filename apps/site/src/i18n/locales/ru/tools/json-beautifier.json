@@ -1,6 +1,7 @@
 {
   "Title": "Форматирование JSON",
   "Description": "Форматирование, минификация и проверка JSON в браузере: отступ 2/4 пробела или табуляция, сортировка ключей, точные большие числа, файлы .json.",
+  "Seo_Title": "Форматирование JSON онлайн — проверка и сжатие | MyDevTools",
   "Keywords": "форматирование JSON, JSON beautifier, JSON formatter, минификация JSON, проверка JSON, валидатор JSON, сортировка ключей JSON",
   "InputLabel": "Входной JSON",
   "FormatButton": "Форматировать",

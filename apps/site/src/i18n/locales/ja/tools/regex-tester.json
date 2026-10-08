@@ -1,6 +1,7 @@
 {
   "Title": "正規表現テスター",
   "Description": "Rust の regex エンジン（WebAssembly）で正規表現をリアルタイムにテスト。マッチのハイライト、キャプチャグループと名前付きグループ、i/m/s フラグ、パターン保存に対応。",
+  "Seo_Title": "正規表現テスト — マッチをハイライト | MyDevTools",
   "Keywords": "正規表現テスター, 正規表現 テスト, regex tester, rust regex, 正規表現 オンライン, キャプチャグループ, 名前付きグループ, regex デバッグ",
   "PatternLabel": "パターン",
   "PatternPlaceholder": "正規表現パターンを入力...",

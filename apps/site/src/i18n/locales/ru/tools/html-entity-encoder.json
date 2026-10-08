@@ -1,6 +1,7 @@
 {
   "Title": "HTML-сущности: кодирование и декодирование",
   "Description": "Экранирование спецсимволов HTML в именованные, десятичные или шестнадцатеричные сущности и декодирование обратно. Корректно работает с эмодзи. В браузере.",
+  "Seo_Title": "HTML-сущности: кодирование и декодирование | MyDevTools",
   "Keywords": "HTML entity encoder, HTML entity decoder, HTML escape, HTML unescape, HTML special characters, encode HTML online, HTML entities",
   "InputLabel": "Текст для кодирования/декодирования",
   "OutputTitle": "Результат",

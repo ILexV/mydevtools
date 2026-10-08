@@ -1,6 +1,7 @@
 {
   "Title": "PDF 合并",
   "Description": "在浏览器中将两个或更多 PDF 合并为一个 merged.pdf，顺序可通过上移/下移调整。页面保持原尺寸和旋转，文件不会上传。",
+  "Seo_Title": "在线 PDF 合并 — 文件不上传 | MyDevTools",
   "Keywords": "PDF 合并, 合并 PDF 文件, 拼接 PDF, 离线合并 PDF, 浏览器内合并 PDF, 调整 PDF 顺序, 多个文档合成一个 PDF",
   "DropZoneTitle": "将 PDF 文件拖放到此处",
   "MergeButton": "合并 PDF",

@@ -1,6 +1,7 @@
 {
   "Title": "XML फॉर्मेटेर",
   "Description": "ब्राउज़र में XML को 2/4 स्पेस या टैब इंडेंट से फॉर्मेट या मिनिफाई करें; कमेंट, CDATA और प्रोसेसिंग इंस्ट्रक्शन बने रहते हैं, पार्स त्रुटियाँ दिखती हैं।",
+  "Seo_Title": "XML फ़ॉर्मेटर ऑनलाइन — प्रिटी-प्रिंट, मिनिफ़ाई | MyDevTools",
   "Keywords": "XML फॉर्मेटर, XML ब्यूटीफायर, XML मिनिफायर, XML वैलिडेटर, XML इंडेंट, XML formatter, XML beautifier, pretty print XML, format XML online, ऑनलाइन XML फॉर्मेट",
   "InputLabel": "इनपुट XML",
   "FormatButton": "फॉर्मेट",

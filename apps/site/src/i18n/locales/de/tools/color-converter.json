@@ -1,6 +1,7 @@
 {
   "Title": "Farbkonverter",
   "Description": "Farben zwischen HEX, RGB, HSL und CMYK umrechnen, eine Palette mit 9 Abstufungen erzeugen und den WCAG-Kontrast zweier Farben im Browser prüfen.",
+  "Seo_Title": "Farbkonverter — HEX, RGB, HSL, CMYK, Kontrast | MyDevTools",
   "Keywords": "color converter, HEX to RGB, RGB to HSL, CMYK color, color picker online, CSS color converter, color code converter",
   "ColorPicker": "Farbauswahl",
   "ManualInput": "Manuelle Eingabe",

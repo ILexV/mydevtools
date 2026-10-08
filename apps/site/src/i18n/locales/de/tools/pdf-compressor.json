@@ -1,6 +1,7 @@
 {
   "Title": "PDF Komprimieren",
   "Description": "PDF-Dateien verlustfrei im Browser verkleinern: Streams neu komprimieren, doppelte Objekte zusammenführen, Metadaten entfernen. Stapelbetrieb, ohne Upload.",
+  "Seo_Title": "PDF komprimieren — verlustfrei, ohne Upload | MyDevTools",
   "Keywords": "PDF komprimieren, PDF verkleinern, PDF offline komprimieren, PDF verlustfrei komprimieren, PDF Metadaten entfernen, PDF optimieren, PDF im Browser verkleinern",
   "DropZoneTitle": "PDF-Dateien hierher ziehen",
   "CompressButton": "PDFs komprimieren",

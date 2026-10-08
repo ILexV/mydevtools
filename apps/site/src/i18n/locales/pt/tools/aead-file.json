@@ -1,6 +1,7 @@
 {
   "Title": "Criptografar/Descriptografar Arquivo AEAD",
   "Description": "Criptografe um arquivo com senha usando AES-256-GCM ou (X)ChaCha20-Poly1305 e Argon2id, e descriptografe depois. O arquivo não sai do navegador.",
+  "Seo_Title": "Criptografar arquivos AES-256-GCM — sem upload | MyDevTools",
   "Keywords": "criptografar arquivo com senha, AES-256-GCM, ChaCha20-Poly1305, XChaCha20-Poly1305, Argon2id, criptografia autenticada, descriptografar arquivo aead",
   "EncryptSectionTitle": "Criptografar",
   "DecryptSectionTitle": "Descriptografar",

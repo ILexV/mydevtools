@@ -1,6 +1,7 @@
 {
   "Title": "HTML-Entities kodieren / dekodieren",
   "Description": "HTML-Sonderzeichen als benannte, dezimale oder hexadezimale Entities maskieren und Entities zurück in Text wandeln. Emoji korrekt. Komplett im Browser.",
+  "Seo_Title": "HTML-Entities kodieren und dekodieren online | MyDevTools",
   "Keywords": "HTML entity encoder, HTML entity decoder, HTML escape, HTML unescape, HTML special characters, encode HTML online, HTML entities",
   "InputLabel": "Text zum Kodieren/Dekodieren",
   "OutputTitle": "Ausgabe",

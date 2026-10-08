@@ -1,6 +1,7 @@
 {
   "Title": "PDF to Text",
   "Description": "Extract the text layer of PDF files into UTF-8 .txt files in your browser, with Unicode font mapping and batch processing. No upload, no OCR.",
+  "Seo_Title": "PDF to Text Converter — Extract Text, No Upload | MyDevTools",
   "Keywords": "PDF to text, extract text from PDF, PDF text extractor, PDF to TXT, copy text from PDF, batch PDF text extraction, offline PDF to text",
   "DropZoneTitle": "Upload PDF",
   "ExtractButton": "Extract Text",

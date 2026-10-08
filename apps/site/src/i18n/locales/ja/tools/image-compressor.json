@@ -1,6 +1,7 @@
 {
   "Title": "画像圧縮",
   "Description": "JPEG・PNG・WebP 画像をブラウザで圧縮。品質 1～100 を設定し、形式を維持または変更して、サイズを比べてダウンロード。アップロード不要。",
+  "Seo_Title": "画像圧縮 — JPEG・PNG対応 | MyDevTools",
   "Keywords": "画像圧縮, JPEG 圧縮, PNG 圧縮, WebP 圧縮, 画像 容量 削減, JPEG を WebP に変換, EXIF 削除, Web 用 画像 最適化",
   "Compressing": "圧縮中...",
   "Processing": "処理中...",

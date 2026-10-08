@@ -1,6 +1,7 @@
 {
   "Title": "IP子网计算器",
   "Description": "IPv4 与 IPv6 子网计算器：根据 CIDR 或 IP 加掩码计算网络地址、广播地址、子网掩码、主机范围、地址数量和地址类型。",
+  "Seo_Title": "子网掩码计算器 — IPv4/IPv6 | MyDevTools",
   "Keywords": "子网计算器, IP 计算器, CIDR 计算器, IPv6 子网计算器, IPv6 前缀, 子网掩码, 通配符掩码, 广播地址, IPv4 子网划分",
   "InputLabel": "IP地址 / CIDR",
   "Calculate": "计算",

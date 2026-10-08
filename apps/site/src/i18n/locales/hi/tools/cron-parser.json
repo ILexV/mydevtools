@@ -1,6 +1,7 @@
 {
   "Title": "Cron अभिव्यक्ति पार्सर",
   "Description": "Cron अभिव्यक्ति को आसान भाषा में समझें, हर फ़ील्ड वैलिडेट करें और अगले 5 रन टाइम अपने लोकल टाइम ज़ोन में देखें। प्रीसेट और @मैक्रो शामिल।",
+  "Seo_Title": "Cron एक्सप्रेशन पार्सर — आसान भाषा में व्याख्या | MyDevTools",
   "Keywords": "cron अभिव्यक्ति पार्सर, cron expression parser, cron वैलिडेटर, cron समझाएँ, crontab सिंटैक्स, अगला cron रन, cron शेड्यूल चेकर, cron validator",
   "LinkToGenerator": "क्या आपको Cron अभिव्यक्ति बनाने की आवश्यकता है?",
   "GeneratorTitle": "Cron जनरेटर",

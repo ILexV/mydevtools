@@ -1,6 +1,7 @@
 {
   "Title": "Base64 エンコーダー / デコーダー",
   "Description": "テキストやファイルを Base64 にエンコード／デコード。標準・URLセーフのアルファベット、パディング、76文字折り返し、画像プレビューに対応。ブラウザ内で処理します。",
+  "Seo_Title": "Base64 エンコード/デコード | MyDevTools",
   "Keywords": "Base64 エンコード, Base64 デコード, Base64 変換 オンライン, URLセーフ Base64, Base64 画像 変換, ファイル Base64 変換",
   "InputTextLabel": "入力 (テキスト)",
   "FileHint": "ファイルを選択した場合、テキスト入力の代わりに使用されます。",

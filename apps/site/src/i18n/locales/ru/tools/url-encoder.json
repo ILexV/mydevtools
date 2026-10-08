@@ -1,6 +1,7 @@
 {
   "Title": "URL кодирование / декодирование",
   "Description": "Percent-кодирование и декодирование URL и строк запроса в режимах component, URI и form, с кодировками UTF-8, UTF-16 и Latin-1. Локально в браузере.",
+  "Seo_Title": "URL кодирование и декодирование онлайн | MyDevTools",
   "Keywords": "URL encoder, URL decoder, percent encoding, URL encode online, URL decode online, URI encoder, query string encoder",
   "InputLabel": "Ввод",
   "OutputLabel": "Вывод",

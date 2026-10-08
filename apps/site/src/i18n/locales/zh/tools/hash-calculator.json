@@ -1,6 +1,7 @@
 {
   "Title": "哈希计算器",
   "Description": "一次性用 MD5、SHA-1、SHA-256、SHA-3、BLAKE3、CRC32 等 39 种算法计算文本或文件的哈希，通过 WebAssembly 在浏览器本地完成。",
+  "Seo_Title": "哈希计算器 — MD5/SHA-256 | MyDevTools",
   "Keywords": "哈希计算器, 在线哈希, MD5, SHA-1, SHA-256, SHA-512, SHA-3, BLAKE3, CRC32, xxHash, 文件校验和",
   "InputLabel": "输入文本",
   "InputPlaceholder": "输入要哈希的文本...",

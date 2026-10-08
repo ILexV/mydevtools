@@ -1,6 +1,7 @@
 {
   "Title": "정규식 테스터",
   "Description": "Rust regex 엔진(WebAssembly)으로 정규식을 실시간 테스트합니다. 일치 항목 강조, 캡처 그룹과 이름 있는 그룹, i/m/s 플래그, 패턴 저장을 지원합니다.",
+  "Seo_Title": "정규식 테스트 — 실시간 매칭 | MyDevTools",
   "Keywords": "정규식 테스터, 정규 표현식 테스트, regex tester, rust regex, 온라인 정규식, 캡처 그룹, 이름 있는 그룹, 정규식 디버거",
   "PatternLabel": "패턴",
   "PatternPlaceholder": "정규식 패턴 입력...",

@@ -1,6 +1,7 @@
 {
   "Title": "URL 编码 / 解码",
   "Description": "以组件、URI 或表单模式对 URL 和查询字符串进行百分号编码与解码，支持 UTF-8、UTF-16 和 Latin-1 字符集，在浏览器本地运行。",
+  "Seo_Title": "URL 在线编码解码 — 百分号编码 | MyDevTools",
   "Keywords": "URL encoder, URL decoder, percent encoding, URL encode online, URL decode online, URI encoder, query string encoder",
   "InputLabel": "输入",
   "OutputLabel": "输出",

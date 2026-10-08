@@ -1,6 +1,7 @@
 {
   "Title": "रेगेक्स टेस्टर",
   "Description": "Rust regex इंजन (WebAssembly) से रेगुलर एक्सप्रेशन लाइव टेस्ट करें: मैच हाइलाइट, capture और named groups, i/m/s फ़्लैग और सहेजे पैटर्न।",
+  "Seo_Title": "Regex टेस्टर ऑनलाइन — लाइव मैच हाइलाइट और ग्रुप | MyDevTools",
   "Keywords": "रेगेक्स टेस्टर, regex tester, रेगुलर एक्सप्रेशन टेस्ट, regex online, rust regex, capture groups, named groups, regex डिबगर",
   "PatternLabel": "पैटर्न",
   "PatternPlaceholder": "रेगेक्स पैटर्न दर्ज करें...",

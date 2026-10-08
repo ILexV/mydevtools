@@ -1,6 +1,7 @@
 {
   "Title": "PDF en Texte",
   "Description": "Extrayez la couche texte de fichiers PDF en fichiers .txt UTF-8 dans le navigateur, avec mappage Unicode des polices, par lots. Sans envoi ni OCR.",
+  "Seo_Title": "Convertir PDF en texte — extraction en local | MyDevTools",
   "Keywords": "PDF en texte, extraire le texte d'un PDF, extracteur de texte PDF, PDF en TXT, copier le texte d'un PDF, extraction de texte PDF par lots, PDF en texte hors ligne",
   "DropZoneTitle": "Télécharger PDF",
   "ExtractButton": "Extraire le texte",

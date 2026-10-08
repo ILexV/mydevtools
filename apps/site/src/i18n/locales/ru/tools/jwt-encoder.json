@@ -1,6 +1,7 @@
 {
   "Title": "Кодировщик JWT",
   "Description": "Создание и подпись JWT с HS256, HS384 или HS512 в браузере. Редактируйте JSON заголовка и payload — порядок claims и поля вроде kid сохраняются.",
+  "Seo_Title": "Генератор JWT онлайн — создание и подпись HS256 | MyDevTools",
   "Keywords": "jwt генератор, создать jwt, подписать jwt онлайн, jwt encoder, HS256 jwt, HMAC jwt, генератор json web token, сгенерировать токен",
   "LinkToDecoder": "Нужно декодировать токен?",
   "DecoderTitle": "Перейти к декодеру JWT",

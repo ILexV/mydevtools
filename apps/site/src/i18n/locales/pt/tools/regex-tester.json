@@ -1,6 +1,7 @@
 {
   "Title": "Testador de Regex",
   "Description": "Teste expressões regulares ao vivo com o motor regex do Rust (WebAssembly): destaque de correspondências, grupos nomeados, flags i/m/s e padrões salvos.",
+  "Seo_Title": "Testar regex online — grupos de captura ao vivo | MyDevTools",
   "Keywords": "testador de regex, testar expressão regular, regex online, rust regex, grupos de captura, grupos nomeados, depurador de regex, regex tester",
   "PatternLabel": "Padrão",
   "PatternPlaceholder": "Digite o padrão regex...",

@@ -1,6 +1,7 @@
 {
   "Title": "画像リサイザー",
   "Description": "画像をピクセル単位の正確なサイズにリサイズ。縦横比の固定と Lanczos3 リサンプリングに対応し、JPEG・PNG・WebP で保存。ブラウザ内で処理。",
+  "Seo_Title": "画像リサイズ — ピクセル指定 | MyDevTools",
   "Keywords": "画像リサイズ, 画像 サイズ変更, 画像 解像度 変更, 写真 リサイズ, 縦横比 固定, 画像 縮小, 幅を指定して リサイズ, サムネイル 作成",
   "OriginalInfo": "元の画像",
   "TargetFormatLabel": "フォーマット",

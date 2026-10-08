@@ -1,6 +1,7 @@
 {
   "Title": "Cron 式パーサー",
   "Description": "cron 式をわかりやすい言葉で説明し、各フィールドを検証して、次の 5 回の実行時刻をローカルのタイムゾーンで表示。プリセットと @ マクロにも対応。",
+  "Seo_Title": "Cron式 チェック — 次回実行日時 | MyDevTools",
   "Keywords": "cron 式 解析, cron パーサー, cron 式 チェック, cron 式 意味, crontab 書き方, cron 次回実行, cron parser",
   "LinkToGenerator": "Cron 式を構築する必要がありますか？",
   "GeneratorTitle": "Cron ジェネレーター",

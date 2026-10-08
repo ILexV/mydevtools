@@ -1,6 +1,7 @@
 {
   "Title": "X.509 인증서",
   "Description": "Ed25519 또는 ECDSA 키로 자체 서명 X.509 인증서와 CSR을 만들고, PEM/DER 인증서나 CSR을 브라우저에서 바로 해석합니다.",
+  "Seo_Title": "X.509 인증서·CSR 생성/분석 | MyDevTools",
   "Keywords": "X.509 인증서 디코더, 자체 서명 인증서 생성, CSR 생성기, CSR 디코더, PKCS#10, PEM JSON 변환, 인증서 분석, ECDSA 인증서",
   "SelfSignedSectionTitle": "자체 서명",
   "SubjectLabel": "주체 (CN)",

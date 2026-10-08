@@ -1,6 +1,7 @@
 {
   "Title": "Bildgrößenänderung",
   "Description": "Bildgröße auf exakte Pixelmaße ändern, mit Sperre des Seitenverhältnisses und Lanczos3-Resampling, Ausgabe als JPEG, PNG oder WebP. Läuft im Browser.",
+  "Seo_Title": "Bildgröße ändern online — exakte Pixel, lokal | MyDevTools",
   "Keywords": "Bildgröße ändern, Bild skalieren, Bildabmessungen ändern, Foto verkleinern, Seitenverhältnis beibehalten, Bild auf Breite skalieren, Bild verkleinern, Thumbnail erstellen",
   "OriginalInfo": "Originalbild",
   "TargetFormatLabel": "Format",

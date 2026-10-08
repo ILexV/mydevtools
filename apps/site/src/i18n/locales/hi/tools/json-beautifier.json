@@ -1,6 +1,7 @@
 {
   "Title": "JSON फॉर्मेटेर",
   "Description": "ब्राउज़र में JSON को फॉर्मेट, मिनिफाई और वैलिडेट करें: 2/4 स्पेस या टैब इंडेंट, रिकर्सिव की सॉर्टिंग, बड़े नंबर बिल्कुल वैसे ही, .json फ़ाइल खोलें और सहेजें।",
+  "Seo_Title": "JSON फ़ॉर्मेटर — फ़ॉर्मेट, मिनिफ़ाई और वैलिडेट | MyDevTools",
   "Keywords": "JSON फॉर्मेटर, JSON ब्यूटीफायर, JSON मिनिफायर, JSON वैलिडेटर, JSON कीज़ सॉर्ट, JSON formatter, JSON beautifier, pretty print JSON, format JSON online, ऑनलाइन JSON फॉर्मेट",
   "InputLabel": "इनपुट JSON",
   "FormatButton": "फॉर्मेट",

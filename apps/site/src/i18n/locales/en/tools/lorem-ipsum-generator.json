@@ -1,6 +1,7 @@
 {
   "Title": "Lorem Ipsum Generator",
   "Description": "Generate Lorem Ipsum placeholder text by paragraphs, sentences or words (1–1000) as plain text, HTML with <p> tags or Markdown, with word counts.",
+  "Seo_Title": "Lorem Ipsum Generator — Placeholder Text & HTML | MyDevTools",
   "Keywords": "lorem ipsum generator, placeholder text, dummy text generator, lorem ipsum online, filler text, fake text generator",
   "GenerateTypeLabel": "Generate by",
   "Paragraphs": "Paragraphs",

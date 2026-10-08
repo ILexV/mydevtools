@@ -1,6 +1,7 @@
 {
   "Title": "JSON フォーマッター",
   "Description": "ブラウザで JSON を整形・圧縮・検証。2/4 スペースやタブのインデント、キーの再帰ソート、大きな数値をそのまま保持し、.json ファイルの読み込みと保存にも対応。",
+  "Seo_Title": "JSON 整形 — 構文チェック・圧縮 | MyDevTools",
   "Keywords": "JSON 整形, JSON フォーマッター, JSON 圧縮, JSON 検証, JSON 整形 オンライン, JSON キー ソート, JSON beautifier, JSON formatter, pretty print JSON",
   "InputLabel": "入力 JSON",
   "FormatButton": "整形",

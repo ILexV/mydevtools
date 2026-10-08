@@ -1,6 +1,7 @@
 {
   "Title": "Base32 인코더 / 디코더",
   "Description": "RFC 4648, Crockford, z-base-32 알파벳으로 Base32를 인코딩·디코딩합니다. 패딩과 대소문자 옵션 지원, 텍스트와 파일 모두 브라우저에서 처리.",
+  "Seo_Title": "Base32 인코딩/디코딩 | MyDevTools",
   "Keywords": "Base32 인코더, Base32 디코더, Base32 RFC 4648, Crockford Base32, z-base-32, TOTP 시크릿 디코딩, Base32 온라인",
   "InputTextLabel": "입력 (텍스트)",
   "FileHint": "파일을 선택하면 텍스트 입력 대신 사용됩니다.",

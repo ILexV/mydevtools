@@ -1,6 +1,7 @@
 {
   "Title": "单位转换器",
   "Description": "边输入边换算长度、重量、温度和体积，支持公制、英制和美制单位，并显示换算公式和常用参考换算。",
+  "Seo_Title": "在线单位换算 — 长度、重量、温度 | MyDevTools",
   "Keywords": "unit converter, length converter, weight converter, temperature converter, metric imperial, online unit conversion, measurement converter",
   "CategoryLabel": "类别",
   "Category_Length": "长度",

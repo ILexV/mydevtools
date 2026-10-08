@@ -28,6 +28,12 @@ interface Props {
   categoryName?: string;
   /** `Seo_HowToSteps` markdown — emits HowTo JSON-LD on tool pages. */
   howToSteps?: string;
+  /**
+   * Keyword-rich search-result title from locale `Seo_Title` ("JWT Decoder Online —
+   * Decode & Verify Tokens | MyDevTools"); used as <title>, og:title, twitter:title.
+   * The visible h1 / JSON-LD name keep the short tool `Title`.
+   */
+  seoTitle?: string;
 }
 
 const {
@@ -39,12 +45,13 @@ const {
   isHome = false,
   categoryName,
   howToSteps,
+  seoTitle,
 } = Astro.props as Props;
 
 const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
 const canonical = absoluteUrl(localizedPath(locale, path));
 const siteName = t(locale, "common", "AppName");
-const fullTitle = title === siteName ? title : `${title} — ${siteName}`;
+const fullTitle = seoTitle?.trim() || (title === siteName ? title : `${title} — ${siteName}`);
 // Per-page share card from pages/og/[lang]/[slug].png.ts: the tool card when
 // `path` is a tool slug, the home card on home; other pages keep the static
 // icons/og-image.png (also 1200×630).

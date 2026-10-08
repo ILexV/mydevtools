@@ -1,6 +1,7 @@
 {
   "Title": "AEAD File Encrypt/Decrypt",
   "Description": "Encrypt a file with a password using AES-256-GCM or (X)ChaCha20-Poly1305 and Argon2id, then decrypt it again. Files never leave your browser.",
+  "Seo_Title": "Encrypt File with Password — AES-GCM, No Upload | MyDevTools",
   "Keywords": "encrypt file with password, AES-256-GCM, ChaCha20-Poly1305, XChaCha20-Poly1305, Argon2id, authenticated encryption, decrypt aead file",
   "EncryptSectionTitle": "Encrypt",
   "DecryptSectionTitle": "Decrypt",

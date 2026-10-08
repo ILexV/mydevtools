@@ -1,6 +1,7 @@
 {
   "Title": "Cron 式ジェネレーター",
   "Description": "分・時・日・月・曜日をフィールドごとに入力して cron 式を作成。検証、わかりやすい説明、次の 5 回の実行時刻も表示します。",
+  "Seo_Title": "Cron式 作成 — 次回実行を表示 | MyDevTools",
   "Keywords": "cron 式 生成, cron ジェネレーター, crontab 生成, cron 式 作成, cron スケジュール 作成, cron 書き方, cron generator",
   "LinkToParser": "Cron 式を解析する必要がありますか？",
   "ParserTitle": "Cron パーサー",

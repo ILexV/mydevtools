@@ -1,6 +1,7 @@
 {
   "Title": "QR 코드 스캐너",
   "Description": "브라우저에서 카메라나 PNG, JPEG, WebP 이미지로 QR 코드를 읽어 텍스트를 복사하거나 http(s) 링크를 엽니다. 아무것도 업로드되지 않습니다.",
+  "Seo_Title": "QR코드 스캔 — 카메라·이미지 | MyDevTools",
   "Keywords": "QR 코드 스캐너, 카메라 QR 스캐너, 이미지에서 QR 코드 읽기, QR 코드 디코더, 스크린샷 QR 스캔, 웹캠으로 QR 코드 스캔, 온라인 QR 코드 해독",
   "DropZone": "QR 코드가 있는 이미지를 여기로 드래그 앤 드롭",
   "ResultLabel": "스캔된 내용",

@@ -1,6 +1,7 @@
 {
   "Title": "Cron Expression Generator",
   "Description": "Build a cron expression field by field — minute, hour, day, month, weekday — with validation, a plain-language description and the next 5 run times.",
+  "Seo_Title": "Cron Expression Generator — Build & Validate | MyDevTools",
   "Keywords": "cron expression generator, cron builder, crontab generator, create cron schedule, cron syntax helper",
   "LinkToParser": "Need to parse a cron expression? Try the",
   "ParserTitle": "Cron Parser",

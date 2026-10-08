@@ -1,6 +1,7 @@
 {
   "Title": "Lorem Ipsum 생성기",
   "Description": "Lorem Ipsum 자리 표시자 텍스트를 단락, 문장, 단어(1–1000) 단위로 생성합니다. 일반 텍스트, <p> 태그 HTML, Markdown 출력과 단어 수 세기를 지원합니다.",
+  "Seo_Title": "Lorem Ipsum 더미 텍스트 | MyDevTools",
   "Keywords": "lorem ipsum generator, placeholder text, dummy text generator, lorem ipsum online, filler text, fake text generator",
   "GenerateTypeLabel": "생성 기준",
   "Paragraphs": "단락",

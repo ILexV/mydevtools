@@ -1,6 +1,7 @@
 {
   "Title": "YAML 포맷터/검증기",
   "Description": "YAML을 검증하고 2칸 들여쓰기의 깔끔한 블록 스타일로 다시 포맷합니다. 오류는 행과 열로 표시되며 WebAssembly로 로컬에서 실행됩니다.",
+  "Seo_Title": "YAML 포맷터·검증기 | MyDevTools",
   "Keywords": "YAML 검증기, YAML 포맷터, YAML 문법 검사, YAML 유효성 검사, YAML 린터, YAML 정렬, YAML validator, YAML formatter, 온라인 YAML 검사",
   "InputLabel": "YAML 입력",
   "Format": "포맷",

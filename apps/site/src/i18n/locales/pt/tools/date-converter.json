@@ -1,6 +1,7 @@
 {
   "Title": "Conversor de Data",
   "Description": "Converta timestamps Unix em segundos ou milissegundos para ISO 8601, RFC 5322, UTC, hora local ou um formato próprio, e vice-versa, enquanto digita.",
+  "Seo_Title": "Converter timestamp Unix em data — ISO 8601 | MyDevTools",
   "Keywords": "date converter, Unix timestamp, epoch converter, ISO 8601, RFC 2822, timestamp to date, date to timestamp, online date tool",
   "InputLabel": "Data / Timestamp",
   "OutputLabel": "Data Convertida",

@@ -1,6 +1,7 @@
 {
   "Title": "颜色转换器",
   "Description": "在 HEX、RGB、HSL 和 CMYK 之间转换颜色，生成 9 级色阶，并在浏览器中检查两种颜色的 WCAG 对比度。",
+  "Seo_Title": "颜色转换器 — HEX/RGB/HSL | MyDevTools",
   "Keywords": "color converter, HEX to RGB, RGB to HSL, CMYK color, color picker online, CSS color converter, color code converter",
   "ColorPicker": "颜色选择器",
   "ManualInput": "手动输入",

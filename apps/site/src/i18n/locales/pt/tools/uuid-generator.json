@@ -1,6 +1,7 @@
 {
   "Title": "Gerador de UUID/GUID",
   "Description": "Gere UUID v4 aleatórios ou UUID v7 ordenados por tempo em lotes de até 100: com hífens, sem hífens, com chaves ou URN, com cópia e download TXT.",
+  "Seo_Title": "Gerador de UUID online — v4 e v7, até 100 | MyDevTools",
   "Keywords": "UUID generator, GUID generator, UUID v4, UUID v7, random UUID, UUID online, generate GUID, unique identifier",
   "VersionLabel": "Versão UUID",
   "Version4": "Versão 4 (Aleatório)",

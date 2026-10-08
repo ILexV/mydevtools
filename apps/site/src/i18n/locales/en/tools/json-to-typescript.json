@@ -1,6 +1,7 @@
 {
   "Title": "JSON to TypeScript Converter",
   "Description": "Generate TypeScript interfaces or type aliases from a JSON sample: nested types, merged array items, optional fields, export keyword. Runs in your browser.",
+  "Seo_Title": "JSON to TypeScript — Generate Interfaces Online | MyDevTools",
   "Keywords": "JSON to TypeScript, JSON to interface, TypeScript interface generator, JSON to type, generate TypeScript types from JSON, TypeScript type alias",
   "InputLabel": "JSON Input",
   "OutputLabel": "TypeScript Output",

@@ -1,6 +1,7 @@
 {
   "Title": "Codificador / Decodificador Base58",
   "Description": "Codifica y decodifica Base58 con el alfabeto de Bitcoin, Flickr o Ripple para texto y archivos de hasta 1 MiB. En local, en tu navegador, sin subir nada.",
+  "Seo_Title": "Codificar/decodificar Base58 online — Bitcoin | MyDevTools",
   "Keywords": "codificador Base58, decodificador Base58, Base58 Bitcoin, Base58 Flickr, Base58 Ripple, decodificar dirección Base58, Base58 online",
   "InputTextLabel": "Entrada (texto)",
   "FileHint": "Si seleccionas un archivo, se usará en lugar del texto.",

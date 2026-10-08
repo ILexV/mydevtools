@@ -1,6 +1,7 @@
 {
   "Title": "Image Resizer",
   "Description": "Resize an image to exact pixel dimensions with aspect-ratio lock and Lanczos3 resampling, then save as JPEG, PNG or WebP. Runs in your browser.",
+  "Seo_Title": "Resize Image Online — Exact Pixels, No Upload | MyDevTools",
   "Keywords": "image resizer, resize image, change image dimensions, resize photo, aspect ratio lock, scale image, resize to width, thumbnail maker",
   "OriginalInfo": "Original Image",
   "TargetFormatLabel": "Format",

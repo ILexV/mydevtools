@@ -1,6 +1,7 @@
 {
   "Title": "JWT Kodierer",
   "Description": "JWTs mit HS256, HS384 oder HS512 im Browser erstellen und signieren. Header- und Payload-JSON bearbeiten; Claim-Reihenfolge und Felder wie kid bleiben erhalten.",
+  "Seo_Title": "JWT Generator online — Token signieren | MyDevTools",
   "Keywords": "JWT Generator, JWT erstellen, JWT signieren online, JWT Encoder, HS256 JWT, HMAC JWT, JSON Web Token Generator, Token erzeugen",
   "LinkToDecoder": "Müssen Sie einen Token dekodieren?",
   "DecoderTitle": "Zum JWT Dekodierer",

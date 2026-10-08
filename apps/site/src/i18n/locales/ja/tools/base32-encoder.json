@@ -1,6 +1,7 @@
 {
   "Title": "Base32 エンコーダー / デコーダー",
   "Description": "RFC 4648・Crockford・z-base-32 の各アルファベットで Base32 をエンコード／デコード。パディングと大文字小文字を設定でき、テキストもファイルもブラウザ内で処理。",
+  "Seo_Title": "Base32 エンコード/デコード | MyDevTools",
   "Keywords": "Base32 エンコード, Base32 デコード, Base32 RFC 4648, Crockford Base32, z-base-32, TOTP シークレット デコード, Base32 オンライン",
   "InputTextLabel": "入力 (テキスト)",
   "FileHint": "ファイルを選択した場合、テキスト入力の代わりに使用されます。",

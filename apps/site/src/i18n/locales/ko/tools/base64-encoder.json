@@ -1,6 +1,7 @@
 {
   "Title": "Base64 인코더 / 디코더",
   "Description": "텍스트나 파일을 Base64로 인코딩하고 다시 디코딩합니다. 표준·URL 안전 알파벳, 패딩, 76자 줄 바꿈, 이미지 미리보기 지원. 브라우저에서 처리.",
+  "Seo_Title": "Base64 인코딩/디코딩 | MyDevTools",
   "Keywords": "Base64 인코더, Base64 디코더, Base64 온라인 인코딩, Base64 디코딩, URL 안전 Base64, Base64 이미지 변환, 파일 Base64 변환",
   "InputTextLabel": "입력 (텍스트)",
   "FileHint": "파일을 선택하면 텍스트 입력 대신 사용됩니다.",

@@ -1,6 +1,7 @@
 {
   "Title": "UUID/GUID 생성기",
   "Description": "무작위 UUID v4 또는 시간순 UUID v7을 최대 100개까지 한 번에 생성합니다. 하이픈, 하이픈 없음, 중괄호, URN 형식과 복사·TXT 다운로드를 지원합니다.",
+  "Seo_Title": "UUID 생성기 — v4·v7 일괄 | MyDevTools",
   "Keywords": "UUID generator, GUID generator, UUID v4, UUID v7, random UUID, UUID online, generate GUID, unique identifier",
   "VersionLabel": "UUID 버전",
   "Version4": "버전 4 (무작위)",

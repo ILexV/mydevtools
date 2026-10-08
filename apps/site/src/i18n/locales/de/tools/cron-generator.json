@@ -1,6 +1,7 @@
 {
   "Title": "Cron-Ausdruck Generator",
   "Description": "Einen Cron-Ausdruck Feld für Feld erstellen – Minute, Stunde, Tag, Monat, Wochentag – mit Validierung, Klartext-Beschreibung und den nächsten 5 Ausführungen.",
+  "Seo_Title": "Cron Generator online — Cron-Ausdruck erstellen | MyDevTools",
   "Keywords": "Cron-Ausdruck Generator, Cron Generator, crontab Generator, Cron Zeitplan erstellen, Cron Syntax Hilfe, cron builder, cron expression generator",
   "LinkToParser": "Müssen Sie einen Cron-Ausdruck parsen? Probieren Sie den",
   "ParserTitle": "Cron-Parser",

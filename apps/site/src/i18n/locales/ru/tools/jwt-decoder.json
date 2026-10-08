@@ -1,6 +1,7 @@
 {
   "Title": "JWT Декодер",
   "Description": "Декодирование заголовка и payload JWT в браузере, проверка дат exp/nbf/iat и подписей HS256/384/512 или RS256/384/512. Токены не покидают устройство.",
+  "Seo_Title": "JWT декодер онлайн — проверка подписи | MyDevTools",
   "Keywords": "jwt декодер, расшифровать jwt, проверить подпись jwt, json web token, payload jwt, срок действия jwt, HS256, RS256, jwt decoder",
   "EncodedLabel": "Сгенерированный JWT",
   "EncodedPlaceholder": "Вставьте JWT сюда...",

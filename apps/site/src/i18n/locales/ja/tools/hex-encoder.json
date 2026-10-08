@@ -1,6 +1,7 @@
 {
   "Title": "16進数エンコーダー / デコーダー",
   "Description": "テキストやファイルを16進数に変換し、元に戻します。文字セットと大文字小文字を選択でき、スペース・コロン・ハイフン・0x 付きの hex もデコード可能。",
+  "Seo_Title": "16進数変換 — テキストとHex | MyDevTools",
   "Keywords": "hex encoder, hex decoder, hexadecimal converter, text to hex, hex to text, hex encoding online, hexadecimal online tool",
   "InputTextLabel": "テキスト",
   "FileHint": "ファイルを選択した場合、テキスト入力は無視されます。",

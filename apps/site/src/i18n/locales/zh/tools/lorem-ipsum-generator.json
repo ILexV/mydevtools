@@ -1,6 +1,7 @@
 {
   "Title": "Lorem Ipsum 生成器",
   "Description": "按段落、句子或单词（1–1000）生成 Lorem Ipsum 占位文本，可输出纯文本、带 <p> 标签的 HTML 或 Markdown，并统计词数和字符数。",
+  "Seo_Title": "Lorem Ipsum 占位文本生成 | MyDevTools",
   "Keywords": "lorem ipsum generator, placeholder text, dummy text generator, lorem ipsum online, filler text, fake text generator",
   "GenerateTypeLabel": "生成方式",
   "Paragraphs": "段落",

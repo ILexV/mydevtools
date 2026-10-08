@@ -1,6 +1,7 @@
 {
   "Title": "Cron 表达式解析器",
   "Description": "用通俗语言解释 cron 表达式，逐字段严格校验，并按本地时区列出接下来 5 次运行时间。内置常用快速预设，支持 @daily 等 @ 宏。",
+  "Seo_Title": "Cron 表达式解析 — 下次运行时间 | MyDevTools",
   "Keywords": "cron 表达式解析, cron 表达式校验, cron 表达式含义, crontab 语法, cron 下次执行时间, cron 在线解析, cron parser",
   "LinkToGenerator": "需要构建 Cron 表达式？试试",
   "GeneratorTitle": "Cron 生成器",

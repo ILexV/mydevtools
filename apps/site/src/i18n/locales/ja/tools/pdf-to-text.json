@@ -1,6 +1,7 @@
 {
   "Title": "PDF テキスト変換",
   "Description": "PDF のテキストレイヤーをブラウザで UTF-8 の .txt に抽出。Unicode フォントマッピングと一括処理に対応。アップロード不要、OCR なし。",
+  "Seo_Title": "PDFテキスト抽出 — ローカル処理 | MyDevTools",
   "Keywords": "PDF テキスト 抽出, PDF から テキスト, PDF 文字 抽出, PDF TXT 変換, PDF テキスト コピー, PDF 一括 テキスト抽出, PDF テキスト化 オフライン",
   "DropZoneTitle": "PDFをアップロード",
   "ExtractButton": "テキストを抽出",

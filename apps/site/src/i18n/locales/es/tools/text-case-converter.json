@@ -5,6 +5,7 @@
   "ClearButton": "Borrar",
   "CopyButton": "Copiar",
   "Description": "Convierte texto a camelCase, snake_case, kebab-case, Title Case, tipo oración, MAYÚSCULAS o minúsculas. Divide bien identificadores como XMLHttpRequest.",
+  "Seo_Title": "Mayúsculas y minúsculas — camelCase, snake_case | MyDevTools",
   "InverseCase": "Invertir mayúsculas",
   "KebabCase": "Kebab Case",
   "LowerCase": "minúsculas",

@@ -1,6 +1,7 @@
 {
   "Title": "PDF para Texto",
   "Description": "Extraia a camada de texto de arquivos PDF para arquivos .txt em UTF-8 no navegador, com mapeamento Unicode de fontes e em lote. Sem upload, sem OCR.",
+  "Seo_Title": "PDF para texto online — extrair sem upload | MyDevTools",
   "Keywords": "PDF para texto, extrair texto de PDF, extrator de texto PDF, PDF para TXT, copiar texto de PDF, extração de texto de PDF em lote, PDF para texto offline",
   "DropZoneTitle": "Enviar PDF",
   "ExtractButton": "Extrair Texto",

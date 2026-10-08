@@ -1,6 +1,7 @@
 {
   "Title": "Cron Expression Parser",
   "Description": "Explain a cron expression in plain language, validate every field and list the next 5 run times in your local time zone. Presets and @macros included.",
+  "Seo_Title": "Cron Expression Parser — Explain & Next Runs | MyDevTools",
   "Keywords": "cron expression parser, cron validator, explain cron expression, crontab syntax, next cron run, cron schedule checker",
   "LinkToGenerator": "Need to build a cron expression? Try the",
   "GeneratorTitle": "Cron Generator",

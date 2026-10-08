@@ -1,6 +1,7 @@
 {
   "Title": "PDF 압축",
   "Description": "브라우저에서 PDF를 무손실로 줄입니다. 스트림 재압축, 중복 객체 병합, 메타데이터 제거. 여러 파일 일괄 처리, 업로드 없음.",
+  "Seo_Title": "PDF 용량 줄이기 — 업로드 없음 | MyDevTools",
   "Keywords": "PDF 압축, PDF 용량 줄이기, 오프라인 PDF 압축, 무손실 PDF 압축, PDF 메타데이터 제거, PDF 최적화, 브라우저 PDF 압축",
   "DropZoneTitle": "PDF 파일을 여기로 드래그 앤 드롭하세요",
   "CompressButton": "PDF 압축",

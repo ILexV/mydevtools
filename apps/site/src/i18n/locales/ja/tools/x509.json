@@ -1,6 +1,7 @@
 {
   "Title": "X.509 証明書",
   "Description": "Ed25519 または ECDSA 鍵で自己署名 X.509 証明書と CSR を作成し、PEM/DER の証明書や CSR をブラウザ内で解析します。",
+  "Seo_Title": "X.509 証明書・CSR 作成と解析 | MyDevTools",
   "Keywords": "X.509 証明書 デコード, 自己署名証明書 作成, CSR 作成, CSR デコード, PKCS#10, PEM JSON 変換, 証明書 解析, ECDSA 証明書",
   "SelfSignedSectionTitle": "自己署名",
   "SubjectLabel": "サブジェクト (CN)",

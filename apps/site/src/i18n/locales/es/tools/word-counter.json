@@ -1,6 +1,7 @@
 {
   "Title": "Contador de Palabras y Caracteres",
   "Description": "Cuenta palabras, caracteres, líneas, párrafos y oraciones mientras escribes, con tiempo de lectura y de habla. Emojis y texto chino/japonés se cuentan bien.",
+  "Seo_Title": "Contador de palabras y caracteres online | MyDevTools",
   "Keywords": "contador de palabras, contador de caracteres, contar letras, contador de oraciones, contar párrafos, tiempo de lectura, tiempo de habla, estadísticas de texto, word counter",
   "InputPlaceholder": "Escriba o pegue su texto aquí para contar palabras, caracteres y más...",
   "ClearButton": "Limpiar",

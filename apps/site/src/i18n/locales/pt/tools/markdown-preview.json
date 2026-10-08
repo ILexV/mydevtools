@@ -1,6 +1,7 @@
 {
   "Title": "Visualizador Markdown",
   "Description": "Escreva Markdown com pré-visualização HTML ao vivo lado a lado: tabelas GFM, listas de tarefas e tachado. Copie HTML sanitizado ou baixe um arquivo .html.",
+  "Seo_Title": "Editor Markdown online — prévia ao vivo | MyDevTools",
   "Keywords": "visualizador markdown, editor markdown online, markdown para html, editor markdown ao vivo, pré-visualização gfm, tabela markdown, preview de readme, markdown preview",
   "EditorLabel": "Editor Markdown",
   "PreviewLabel": "Pré-visualização",

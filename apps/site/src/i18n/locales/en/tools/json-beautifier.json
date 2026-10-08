@@ -1,6 +1,7 @@
 {
   "Title": "JSON Beautifier",
   "Description": "Format, minify and validate JSON in your browser: 2/4-space or tab indent, recursive key sorting, exact big numbers, open and save .json files.",
+  "Seo_Title": "JSON Formatter & Validator Online — Minify | MyDevTools",
   "InputLabel": "Input JSON",
   "FormatButton": "Format",
   "ClearButton": "Clear",

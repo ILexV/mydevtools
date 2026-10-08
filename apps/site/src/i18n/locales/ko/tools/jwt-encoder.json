@@ -1,6 +1,7 @@
 {
   "Title": "JWT 인코더",
   "Description": "브라우저에서 HS256, HS384, HS512로 JWT를 만들고 서명합니다. 헤더와 페이로드 JSON을 편집하며 클레임 순서와 kid 같은 추가 헤더 필드가 유지됩니다.",
+  "Seo_Title": "JWT 생성기 — HS256 서명 | MyDevTools",
   "Keywords": "JWT 생성, JWT 인코더, JWT 만들기, 온라인 JWT 서명, HS256 JWT, HMAC JWT, JSON Web Token 생성기, jwt encoder",
   "LinkToDecoder": "토큰을 디코딩해야 하나요?",
   "DecoderTitle": "JWT 디코더로 이동",

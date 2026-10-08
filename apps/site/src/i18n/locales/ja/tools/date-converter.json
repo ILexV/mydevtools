@@ -1,6 +1,7 @@
 {
   "Title": "日付変換",
   "Description": "秒・ミリ秒の Unix タイムスタンプを ISO 8601、RFC 5322、UTC、ローカル時刻、カスタム形式に変換。逆変換も入力と同時に行います。",
+  "Seo_Title": "UNIXタイムスタンプ 日付変換 | MyDevTools",
   "Keywords": "date converter, Unix timestamp, epoch converter, ISO 8601, RFC 2822, timestamp to date, date to timestamp, online date tool",
   "InputLabel": "日付 / タイムスタンプ",
   "OutputLabel": "変換後の日付",

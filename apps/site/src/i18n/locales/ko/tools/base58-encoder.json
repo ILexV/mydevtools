@@ -1,6 +1,7 @@
 {
   "Title": "Base58 인코더 / 디코더",
   "Description": "Bitcoin, Flickr, Ripple 알파벳으로 Base58을 인코딩·디코딩합니다. 텍스트와 1 MiB 이하 파일 지원, 브라우저에서 로컬로 처리하며 업로드하지 않습니다.",
+  "Seo_Title": "Base58 인코딩/디코딩 | MyDevTools",
   "Keywords": "Base58 인코더, Base58 디코더, Bitcoin Base58, Flickr Base58, Ripple Base58, Base58 주소 디코딩, Base58 온라인 변환",
   "InputTextLabel": "입력 (텍스트)",
   "FileHint": "파일을 선택하면 텍스트 입력 대신 사용됩니다.",

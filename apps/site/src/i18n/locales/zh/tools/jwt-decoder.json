@@ -1,6 +1,7 @@
 {
   "Title": "JWT 解码器",
   "Description": "在浏览器中解码 JWT 的头部和载荷，检查 exp/nbf/iat 时间，并验证 HS256/384/512 或 RS256/384/512 签名。令牌不会离开您的设备。",
+  "Seo_Title": "JWT 在线解析 — 解码并验证签名 | MyDevTools",
   "Keywords": "JWT 解码, JWT 解析, 验证 JWT 签名, JSON Web Token 解码器, JWT 载荷查看, JWT 过期检查, HS256, RS256, jwt decoder",
   "EncodedLabel": "生成的 JWT",
   "EncodedPlaceholder": "在此处粘贴 JWT...",

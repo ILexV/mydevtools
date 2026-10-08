@@ -1,6 +1,7 @@
 {
   "Title": "Regex-Tester",
   "Description": "Reguläre Ausdrücke live mit der Rust-Regex-Engine (WebAssembly) testen: Treffer-Hervorhebung, Capture- und benannte Gruppen, Flags i/m/s und gespeicherte Muster.",
+  "Seo_Title": "Regex Tester online — reguläre Ausdrücke testen | MyDevTools",
   "Keywords": "Regex Tester, reguläre Ausdrücke testen, Regex online, Rust Regex, Capture-Gruppen, benannte Gruppen, Regex Debugger, regulärer Ausdruck prüfen",
   "PatternLabel": "Muster",
   "PatternPlaceholder": "Regex-Muster eingeben...",

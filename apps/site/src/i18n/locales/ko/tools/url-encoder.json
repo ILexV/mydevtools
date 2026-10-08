@@ -1,6 +1,7 @@
 {
   "Title": "URL 인코더 / 디코더",
   "Description": "URL과 쿼리 문자열을 컴포넌트, URI, 폼 모드로 퍼센트 인코딩·디코딩합니다. UTF-8, UTF-16, Latin-1 문자셋 지원, 브라우저에서 로컬로 처리.",
+  "Seo_Title": "URL 인코딩/디코딩 | MyDevTools",
   "Keywords": "URL encoder, URL decoder, percent encoding, URL encode online, URL decode online, URI encoder, query string encoder",
   "InputLabel": "입력",
   "OutputLabel": "출력",

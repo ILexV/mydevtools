@@ -1,6 +1,7 @@
 {
   "Title": "Base32 Kodierer / Dekodierer",
   "Description": "Base32 kodieren und dekodieren mit RFC-4648-, Crockford- oder z-base-32-Alphabet, Padding und Groß-/Kleinschreibung – für Text und Dateien im Browser.",
+  "Seo_Title": "Base32 kodieren und dekodieren online | MyDevTools",
   "Keywords": "Base32 Encoder, Base32 Decoder, Base32 RFC 4648, Crockford Base32, z-base-32, TOTP-Secret dekodieren, Base32 online",
   "InputTextLabel": "Eingabe (Text)",
   "FileHint": "Wenn eine Datei ausgewählt ist, wird diese anstelle der Texteingabe verwendet.",

@@ -1,6 +1,7 @@
 {
   "Title": "AEAD फ़ाइल एन्क्रिप्ट/डिक्रिप्ट",
   "Description": "AES-256-GCM या (X)ChaCha20-Poly1305 और Argon2id से फ़ाइल को पासवर्ड से एन्क्रिप्ट करें और फिर डिक्रिप्ट करें। फ़ाइल ब्राउज़र से बाहर नहीं जाती।",
+  "Seo_Title": "फ़ाइल एन्क्रिप्शन — AES-256-GCM, कोई अपलोड नहीं | MyDevTools",
   "Keywords": "पासवर्ड से फ़ाइल एन्क्रिप्ट, AES-256-GCM, ChaCha20-Poly1305, XChaCha20-Poly1305, Argon2id, ऑथेंटिकेटेड एन्क्रिप्शन, aead फ़ाइल डिक्रिप्ट",
   "EncryptSectionTitle": "एन्क्रिप्ट",
   "DecryptSectionTitle": "डिक्रिप्ट",

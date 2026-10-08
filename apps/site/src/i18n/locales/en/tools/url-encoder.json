@@ -1,6 +1,7 @@
 {
   "Title": "URL Encoder / Decoder",
   "Description": "Percent-encode and decode URLs and query strings in component, URI or form mode, with UTF-8, UTF-16 or Latin-1 charsets. Runs locally in your browser.",
+  "Seo_Title": "URL Encode & Decode Online — Percent-Encoding | MyDevTools",
   "Keywords": "URL encoder, URL decoder, percent encoding, URL encode online, URL decode online, URI encoder, query string encoder",
   "InputLabel": "Input",
   "OutputLabel": "Output",

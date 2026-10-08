@@ -1,6 +1,7 @@
 {
   "Title": "Comparateur de Texte",
   "Description": "Comparez deux textes ou fichiers ligne par ligne : lignes ajoutées, supprimées et modifiées côte à côte ou en diff unifié, avec surlignage des mots.",
+  "Seo_Title": "Comparer deux textes — diff côte à côte | MyDevTools",
   "Keywords": "comparer deux textes, diff de texte, comparateur de fichiers en ligne, diff côte à côte, diff unifié, diff de code, différences entre textes, text diff, diff checker",
   "OriginalLabel": "Texte original",
   "ModifiedLabel": "Texte modifié",

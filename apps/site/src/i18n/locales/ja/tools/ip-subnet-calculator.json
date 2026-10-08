@@ -1,6 +1,7 @@
 {
   "Title": "IPサブネット計算機",
   "Description": "IPv4/IPv6 サブネット計算機。CIDR または IP とマスクから、ネットワーク、ブロードキャスト、マスク、ホスト範囲、アドレス数、アドレス種別を求めます。",
+  "Seo_Title": "サブネット計算 — IPv4/IPv6 | MyDevTools",
   "Keywords": "サブネット計算, IP 計算機, CIDR 計算, IPv6 サブネット計算, IPv6 プレフィックス, サブネットマスク, ワイルドカードマスク, ブロードキャストアドレス, IPv4 サブネッティング",
   "InputLabel": "IPアドレス / CIDR",
   "Calculate": "計算する",

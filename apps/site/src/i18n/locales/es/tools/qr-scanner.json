@@ -1,6 +1,7 @@
 {
   "Title": "Escáner de Códigos QR",
   "Description": "Lee un código QR con la cámara o desde una imagen PNG, JPEG o WebP en el navegador; copia el texto o abre enlaces http(s). No se sube nada.",
+  "Seo_Title": "Lector de códigos QR online — cámara o imagen | MyDevTools",
   "Keywords": "escáner de códigos QR, escáner QR con cámara, leer código QR desde imagen, decodificador de código QR, escanear QR desde captura, escanear código QR con webcam, decodificar código QR online",
   "DropZone": "Arrastra y suelta una imagen con un código QR aquí",
   "ResultLabel": "Contenido Escaneado",

@@ -1,6 +1,7 @@
 {
   "Title": "YAML फॉर्मेटर/वैलिडेटर",
   "Description": "YAML वैलिडेट करें और उसे 2 स्पेस इंडेंट वाली साफ़ ब्लॉक स्टाइल में दोबारा फॉर्मेट करें; त्रुटियाँ लाइन और कॉलम के साथ। WebAssembly से लोकल रूप से चलता है।",
+  "Seo_Title": "YAML फ़ॉर्मेटर और वैलिडेटर ऑनलाइन | MyDevTools",
   "Keywords": "YAML वैलिडेटर, YAML फॉर्मेटर, YAML सिंटैक्स चेकर, YAML जाँच, YAML लिंटर, YAML validator, YAML formatter, YAML beautifier, validate YAML online, ऑनलाइन YAML फॉर्मेट",
   "InputLabel": "YAML इनपुट",
   "Format": "फॉर्मेट",

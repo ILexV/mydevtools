@@ -8,6 +8,7 @@
 import { computeLab, LAB_KINDS, type LabKind } from "@/lib/hero-lab";
 import { formatString } from "@/lib/format";
 import { copyWithFeedback } from "@/scripts/tool-ui";
+import { whenIdle } from "@/scripts/idle";
 
 interface LabStrings {
   copied: string;
@@ -97,7 +98,9 @@ export function initHeroLab(band: HTMLElement): void {
 
   // One-shot demo: type the multilingual sample so the outputs visibly react.
   const demo = strings.samples[1];
-  if (demo && !reduced.matches) {
+  // Starts once the page is idle: the typing burst must not land in the load window.
+  if (demo && !reduced.matches) whenIdle(() => {
+    if (touched) return;
     demoTimer = window.setTimeout(() => {
       if (touched) return;
       const chars = Array.from(demo);
@@ -111,6 +114,6 @@ export function initHeroLab(band: HTMLElement): void {
       };
       input.value = "";
       tick();
-    }, 1600);
-  }
+    }, 600);
+  });
 }

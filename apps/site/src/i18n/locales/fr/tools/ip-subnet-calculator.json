@@ -1,6 +1,7 @@
 {
   "Title": "Calculateur de Sous-réseau IP",
   "Description": "Calculateur de sous-réseaux IPv4 et IPv6 : réseau, broadcast, masque, plage d'hôtes, nombre d'adresses et type à partir d'un CIDR ou IP + masque.",
+  "Seo_Title": "Calcul de sous-réseau IP — IPv4, IPv6 et CIDR | MyDevTools",
   "Keywords": "calculateur de sous-réseau, calculateur CIDR, calculateur IPv6, préfixe IPv6, masque de sous-réseau, masque générique, adresse de broadcast, sous-réseaux IPv4",
   "InputLabel": "Adresse IP / CIDR",
   "Calculate": "Calculer",

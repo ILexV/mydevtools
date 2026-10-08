@@ -1,6 +1,7 @@
 {
   "Title": "XML 포맷터",
   "Description": "브라우저에서 XML을 2/4칸 공백 또는 탭으로 보기 좋게 정리하거나 압축합니다. 주석, CDATA, 처리 명령을 유지하고 파싱 오류를 알려 줍니다.",
+  "Seo_Title": "XML 포맷터 — 정렬 및 압축 | MyDevTools",
   "Keywords": "XML 포맷터, XML 정렬, XML 뷰티파이어, XML 압축, XML minify, XML 검증, XML 들여쓰기, XML formatter, pretty print XML, 온라인 XML 포맷",
   "InputLabel": "입력 XML",
   "FormatButton": "포맷",

@@ -1,6 +1,7 @@
 {
   "Title": "Redimensionneur d'images",
   "Description": "Redimensionnez une image à des dimensions exactes en pixels, avec ratio verrouillé et rééchantillonnage Lanczos3, puis enregistrez en JPEG, PNG ou WebP.",
+  "Seo_Title": "Redimensionner une image — JPEG, PNG, WebP | MyDevTools",
   "Keywords": "redimensionner une image, redimensionneur d'images, changer les dimensions d'une image, redimensionner une photo, conserver le ratio, mettre à l'échelle une image, redimensionner en largeur, créer une miniature",
   "OriginalInfo": "Image originale",
   "TargetFormatLabel": "Format",

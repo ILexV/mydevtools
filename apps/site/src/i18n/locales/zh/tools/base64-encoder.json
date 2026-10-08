@@ -1,6 +1,7 @@
 {
   "Title": "Base64 编码 / 解码",
   "Description": "将文本或文件编码为 Base64 并解码还原：标准或 URL 安全字母表、填充控制、每 76 字符换行、图片预览。全部在浏览器中完成。",
+  "Seo_Title": "Base64 编码解码 — 图片预览 | MyDevTools",
   "Keywords": "Base64 编码, Base64 解码, Base64 在线编码, Base64 在线解码, URL 安全 Base64, Base64 转图片, 文件转 Base64",
   "InputTextLabel": "输入（文本）",
   "FileHint": "如果选择了文件，将使用文件而非文本输入。",

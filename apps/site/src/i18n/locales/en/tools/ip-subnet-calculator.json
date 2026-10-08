@@ -1,6 +1,7 @@
 {
   "Title": "IP Subnet Calculator",
   "Description": "IPv4 and IPv6 subnet calculator: network, broadcast, netmask, host range, address count and address type from CIDR or IP + mask input.",
+  "Seo_Title": "IP Subnet Calculator — IPv4/IPv6 CIDR, Netmask | MyDevTools",
   "Keywords": "IP subnet calculator, CIDR calculator, IPv6 subnet calculator, IPv6 prefix calculator, subnet mask, wildcard mask, broadcast address, IPv4 subnetting",
   "InputLabel": "IP Address / CIDR",
   "Calculate": "Calculate",

@@ -1,6 +1,7 @@
 {
   "Title": "URL Kodierer / Dekodierer",
   "Description": "URLs und Query-Strings per Prozentkodierung im Modus Komponente, URI oder Form kodieren und dekodieren, mit UTF-8, UTF-16 oder Latin-1. Lokal im Browser.",
+  "Seo_Title": "URL Encoder und Decoder online — URL kodieren | MyDevTools",
   "Keywords": "URL encoder, URL decoder, percent encoding, URL encode online, URL decode online, URI encoder, query string encoder",
   "InputLabel": "Eingabe",
   "OutputLabel": "Ausgabe",

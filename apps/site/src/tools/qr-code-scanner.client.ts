@@ -104,7 +104,8 @@ function init() {
     resultEl!.hidden = true;
     outputArea!.value = "";
     if (linkWrap) linkWrap.hidden = true;
-    openLink?.removeAttribute("href");
+    // Hidden while there is no URL; "#" keeps the anchor crawlable (Lighthouse crawlable-anchors).
+    openLink?.setAttribute("href", "#");
   }
 
   function showResult(text: string) {

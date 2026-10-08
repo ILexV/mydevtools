@@ -1,6 +1,7 @@
 {
   "Title": "PDF a Texto",
   "Description": "Extrae la capa de texto de archivos PDF a .txt en UTF-8 en el navegador, con mapeo Unicode de fuentes y procesamiento por lotes. Sin subidas ni OCR.",
+  "Seo_Title": "PDF a texto online — extraer texto sin subidas | MyDevTools",
   "Keywords": "PDF a texto, extraer texto de PDF, extractor de texto PDF, PDF a TXT, copiar texto de PDF, extracción de texto PDF por lotes, PDF a texto sin conexión",
   "DropZoneTitle": "Subir PDF",
   "ExtractButton": "Extraer texto",

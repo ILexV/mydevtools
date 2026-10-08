@@ -1,6 +1,7 @@
 {
   "Title": "JWT 디코더",
   "Description": "브라우저에서 JWT 헤더와 페이로드를 디코딩하고 exp/nbf/iat 날짜를 확인하며 HS256/384/512, RS256/384/512 서명을 검증합니다. 토큰은 기기 밖으로 나가지 않습니다.",
+  "Seo_Title": "JWT 디코더 — 서명 검증 | MyDevTools",
   "Keywords": "JWT 디코더, JWT 디코딩, JWT 서명 검증, JSON Web Token 디코더, JWT 페이로드 확인, JWT 만료 확인, HS256, RS256, jwt decoder",
   "EncodedLabel": "생성된 JWT",
   "EncodedPlaceholder": "JWT를 여기에 붙여넣으세요...",

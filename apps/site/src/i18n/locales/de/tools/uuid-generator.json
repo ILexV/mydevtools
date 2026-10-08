@@ -1,6 +1,7 @@
 {
   "Title": "UUID/GUID Generator",
   "Description": "Zufällige UUID v4 oder zeitlich sortierte UUID v7 in Stapeln bis 100 erzeugen — mit Bindestrichen, ohne, in Klammern oder als URN, mit Kopieren und TXT-Download.",
+  "Seo_Title": "UUID Generator online — GUID v4 und v7 erzeugen | MyDevTools",
   "Keywords": "UUID generator, GUID generator, UUID v4, UUID v7, random UUID, UUID online, generate GUID, unique identifier",
   "VersionLabel": "UUID-Version",
   "Version4": "Version 4 (Zufällig)",

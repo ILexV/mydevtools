@@ -1,6 +1,7 @@
 {
   "Title": "OpenSSH 鍵",
   "Description": "Ed25519・ECDSA・RSA の SSH 鍵ペアを生成（パスフレーズ任意）し、OpenSSH・PKCS#8・SPKI PEM 間で変換。すべてブラウザ内で処理。",
+  "Seo_Title": "SSH鍵生成・変換 — Ed25519 | MyDevTools",
   "Keywords": "SSH 鍵 生成, ssh-keygen オンライン, Ed25519 鍵, RSA 4096 SSH 鍵, ECDSA 鍵, OpenSSH PKCS#8 変換, SPKI OpenSSH 変換, SSH 公開鍵",
   "GenerateSectionTitle": "生成",
   "AlgorithmLabel": "アルゴリズム",

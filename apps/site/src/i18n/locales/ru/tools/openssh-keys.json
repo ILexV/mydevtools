@@ -1,6 +1,7 @@
 {
   "Title": "Ключи OpenSSH",
   "Description": "Генерация пар SSH-ключей Ed25519, ECDSA и RSA (с парольной фразой или без) и конвертация между OpenSSH, PKCS#8 и SPKI PEM — в браузере.",
+  "Seo_Title": "Генератор SSH-ключей — Ed25519, ECDSA, RSA | MyDevTools",
   "Keywords": "генератор ssh ключей, ssh-keygen онлайн, ключ Ed25519, ssh ключ RSA 4096, ECDSA ключ, OpenSSH в PKCS#8, SPKI в OpenSSH, публичный ssh ключ",
   "GenerateSectionTitle": "Генерация",
   "AlgorithmLabel": "Алгоритм",

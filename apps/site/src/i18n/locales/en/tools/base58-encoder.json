@@ -1,6 +1,7 @@
 {
   "Title": "Base58 Encoder / Decoder",
   "Description": "Encode and decode Base58 with the Bitcoin, Flickr or Ripple alphabet for text and files up to 1 MiB. Runs locally in your browser, nothing is uploaded.",
+  "Seo_Title": "Base58 Encoder & Decoder — Bitcoin Alphabet | MyDevTools",
   "Keywords": "Base58 encoder, Base58 decoder, Bitcoin Base58, Flickr Base58, Ripple Base58, decode Base58 address, Base58 online converter",
   "InputTextLabel": "Input (text)",
   "FileHint": "If a file is selected, it will be used instead of the text input.",

@@ -1,6 +1,7 @@
 {
   "Title": "PDF 結合",
   "Description": "2 つ以上の PDF をブラウザで 1 つの merged.pdf に結合。順序は上下移動ボタンで指定。ページのサイズと回転は維持。アップロード不要。",
+  "Seo_Title": "PDF結合 — アップロード不要 | MyDevTools",
   "Keywords": "PDF 結合, PDF 合体, PDF まとめる, PDF 結合 オフライン, PDF 結合 ブラウザ, PDF 順番 並べ替え, 複数 PDF を 1 つに",
   "DropZoneTitle": "ここにPDFファイルをドラッグ＆ドロップ",
   "MergeButton": "PDFを結合",

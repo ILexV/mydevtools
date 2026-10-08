@@ -1,6 +1,7 @@
 {
   "Title": "XML 格式化",
   "Description": "在浏览器中美化或压缩 XML，支持 2/4 空格或制表符缩进；保留注释、CDATA 和处理指令，并报告带行号和列号的解析错误。",
+  "Seo_Title": "在线 XML 格式化 — 美化与压缩 | MyDevTools",
   "Keywords": "XML 格式化, XML 美化, XML 压缩, XML 校验, XML 在线格式化, XML 缩进, XML beautifier, XML formatter, pretty print XML",
   "InputLabel": "输入 XML",
   "FormatButton": "格式化",

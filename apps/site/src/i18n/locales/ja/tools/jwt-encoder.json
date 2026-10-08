@@ -1,6 +1,7 @@
 {
   "Title": "JWTエンコーダー",
   "Description": "ブラウザーで HS256、HS384、HS512 の JWT を作成・署名。ヘッダーとペイロードの JSON を編集でき、クレームの順序や kid などの追加ヘッダーも保持されます。",
+  "Seo_Title": "JWT 生成 — HS256 署名 | MyDevTools",
   "Keywords": "JWT 作成, JWT 生成, JWT エンコーダー, JWT 署名 オンライン, HS256 JWT, HMAC JWT, JSON Web Token ジェネレーター, jwt encoder",
   "LinkToDecoder": "トークンをデコードしますか？",
   "DecoderTitle": "JWTデコーダーへ移動",

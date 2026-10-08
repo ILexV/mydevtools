@@ -1,6 +1,7 @@
 {
   "Title": "Lorem-Ipsum-Generator",
   "Description": "Lorem-Ipsum-Blindtext nach Absätzen, Sätzen oder Wörtern (1–1000) erzeugen — als Klartext, HTML mit <p>-Tags oder Markdown, mit Wort- und Zeichenzählung.",
+  "Seo_Title": "Lorem Ipsum Generator — Blindtext erstellen | MyDevTools",
   "Keywords": "lorem ipsum generator, placeholder text, dummy text generator, lorem ipsum online, filler text, fake text generator",
   "GenerateTypeLabel": "Generieren nach",
   "Paragraphs": "Absätze",

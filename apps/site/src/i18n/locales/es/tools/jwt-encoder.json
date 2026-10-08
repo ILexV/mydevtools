@@ -1,6 +1,7 @@
 {
   "Title": "Codificador JWT",
   "Description": "Crea y firma JWT con HS256, HS384 o HS512 en tu navegador. Edita el JSON del header y del payload; se conservan el orden de claims y campos como kid.",
+  "Seo_Title": "Crear y firmar JWT online — HS256, HS384, HS512 | MyDevTools",
   "Keywords": "generador JWT, crear jwt, firmar jwt online, codificador jwt, HS256 jwt, HMAC jwt, generador json web token, jwt encoder",
   "LinkToDecoder": "¿Necesitas decodificar un token?",
   "DecoderTitle": "Ir al Decodificador JWT",

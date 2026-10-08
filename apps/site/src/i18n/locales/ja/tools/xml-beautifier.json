@@ -1,6 +1,7 @@
 {
   "Title": "XML フォーマッター",
   "Description": "ブラウザで XML を整形・圧縮。2/4 スペースやタブのインデントに対応し、コメント、CDATA、処理命令を保持してパースエラーも表示します。",
+  "Seo_Title": "XML整形 — 圧縮・エラー検出 | MyDevTools",
   "Keywords": "XML 整形, XML フォーマッター, XML 圧縮, XML 検証, XML 整形 オンライン, XML インデント, XML beautifier, XML formatter, pretty print XML",
   "InputLabel": "入力 XML",
   "FormatButton": "フォーマット",

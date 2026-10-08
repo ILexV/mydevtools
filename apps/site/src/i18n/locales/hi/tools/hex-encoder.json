@@ -1,6 +1,7 @@
 {
   "Title": "Hex एनकोडर / डिकोडर",
   "Description": "टेक्स्ट या फ़ाइलों को हेक्साडेसिमल में बदलें और वापस लाएँ। वर्णसेट और केस चुनें; स्पेस, कोलन, हाइफ़न या 0x उपसर्ग वाले hex को डिकोड करें। ब्राउज़र में।",
+  "Seo_Title": "Hex एनकोडर/डिकोडर — टेक्स्ट से हेक्साडेसिमल | MyDevTools",
   "Keywords": "hex encoder, hex decoder, hexadecimal converter, text to hex, hex to text, hex encoding online, hexadecimal online tool",
   "InputTextLabel": "टेक्स्ट",
   "FileHint": "यदि कोई फ़ाइल चुनी जाती है, तो टेक्स्ट इनपुट को अनदेखा कर दिया जाता है।",

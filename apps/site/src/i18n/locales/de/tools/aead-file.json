@@ -1,6 +1,7 @@
 {
   "Title": "AEAD Datei-Verschlüsselung",
   "Description": "Datei mit Passwort per AES-256-GCM oder (X)ChaCha20-Poly1305 und Argon2id verschlüsseln und wieder entschlüsseln. Die Datei bleibt im Browser.",
+  "Seo_Title": "Datei verschlüsseln mit Passwort — ohne Upload | MyDevTools",
   "Keywords": "Datei mit Passwort verschlüsseln, AES-256-GCM, ChaCha20-Poly1305, XChaCha20-Poly1305, Argon2id, authentifizierte Verschlüsselung, aead entschlüsseln",
   "EncryptSectionTitle": "Verschlüsseln",
   "DecryptSectionTitle": "Entschlüsseln",

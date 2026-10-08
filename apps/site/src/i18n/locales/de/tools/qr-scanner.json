@@ -1,6 +1,7 @@
 {
   "Title": "QR-Code-Scanner",
   "Description": "QR-Code mit der Kamera oder aus einem PNG-, JPEG- oder WebP-Bild im Browser lesen, Text kopieren oder http(s)-Links öffnen. Nichts wird hochgeladen.",
+  "Seo_Title": "QR-Code Scanner online — Kamera oder Bild | MyDevTools",
   "Keywords": "QR-Code-Scanner, QR-Scanner Kamera, QR-Code aus Bild lesen, QR-Code Decoder, QR aus Screenshot scannen, QR-Code mit Webcam scannen, QR-Code online dekodieren",
   "DropZone": "Bild mit QR-Code hierher ziehen & ablegen",
   "ResultLabel": "Gescannte Inhalte",

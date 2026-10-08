@@ -1,6 +1,7 @@
 {
   "Title": "PDF 转文本",
   "Description": "在浏览器中将 PDF 的文本层提取为 UTF-8 编码的 .txt 文件，支持字体 Unicode 映射和批量处理。无需上传，不使用 OCR。",
+  "Seo_Title": "PDF 转文本 — 提取文字，不上传 | MyDevTools",
   "Keywords": "PDF 转文本, 从 PDF 提取文字, PDF 文本提取, PDF 转 TXT, 复制 PDF 文字, 批量提取 PDF 文本, 离线 PDF 转文本",
   "DropZoneTitle": "上传 PDF",
   "ExtractButton": "提取文本",

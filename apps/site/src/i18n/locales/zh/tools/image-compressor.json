@@ -1,6 +1,7 @@
 {
   "Title": "图像压缩器",
   "Description": "在浏览器中压缩 JPEG、PNG 或 WebP 图片：质量可设 1–100，可保留或更换格式，对比压缩前后大小后下载。文件不会上传。",
+  "Seo_Title": "在线图片压缩 — 不上传服务器 | MyDevTools",
   "Keywords": "图片压缩, 压缩 JPEG, 压缩 PNG, WebP 压缩, 减小图片体积, JPEG 转 WebP, 去除 EXIF, 网页图片优化",
   "Compressing": "压缩中...",
   "Processing": "处理中...",

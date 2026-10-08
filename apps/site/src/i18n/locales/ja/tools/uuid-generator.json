@@ -1,6 +1,7 @@
 {
   "Title": "UUID/GUID ジェネレーター",
   "Description": "ランダムな UUID v4 や時刻順の UUID v7 を最大 100 個まで一括生成。ハイフン付き・なし・波括弧・URN 形式に対応し、コピーと TXT 保存ができます。",
+  "Seo_Title": "UUID生成 — v4・v7 一括作成 | MyDevTools",
   "Keywords": "UUID generator, GUID generator, UUID v4, UUID v7, random UUID, UUID online, generate GUID, unique identifier",
   "VersionLabel": "UUID バージョン",
   "Version4": "バージョン 4 (ランダム)",

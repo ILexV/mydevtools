@@ -1,6 +1,7 @@
 {
   "Title": "HMAC-Rechner",
   "Description": "HMAC-SHA256 oder HMAC-SHA512 einer Nachricht mit geheimem Schlüssel berechnen – live beim Tippen. Hex-Ausgabe, UTF-8-Eingabe, auch leere Nachrichten.",
+  "Seo_Title": "HMAC Generator online — HMAC-SHA256 und SHA512 | MyDevTools",
   "Keywords": "HMAC-Rechner, HMAC-SHA256, HMAC-SHA512, HMAC-Generator, Webhook-Signatur, API-Request signieren, Message Authentication Code",
   "KeyLabel": "Geheimer Schlüssel",
   "KeyPlaceholder": "Geheimen Schlüssel eingeben...",

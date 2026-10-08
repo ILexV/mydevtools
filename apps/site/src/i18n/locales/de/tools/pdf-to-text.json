@@ -1,6 +1,7 @@
 {
   "Title": "PDF in Text",
   "Description": "Textebene von PDF-Dateien im Browser als UTF-8-.txt-Dateien extrahieren, mit Unicode-Zuordnung der Schriften und Stapelbetrieb. Ohne Upload, ohne OCR.",
+  "Seo_Title": "PDF in Text umwandeln — Text extrahieren, lokal | MyDevTools",
   "Keywords": "PDF in Text, Text aus PDF extrahieren, PDF Text Extraktor, PDF in TXT, Text aus PDF kopieren, PDF Text im Stapel extrahieren, PDF in Text offline",
   "DropZoneTitle": "PDF hochladen",
   "ExtractButton": "Text extrahieren",

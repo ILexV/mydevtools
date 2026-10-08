@@ -1,6 +1,7 @@
 {
   "Title": "Base64 Kodierer / Dekodierer",
   "Description": "Text oder Dateien in Base64 kodieren und zurück dekodieren: Standard- oder URL-sicheres Alphabet, Padding, 76-Zeichen-Umbruch, Bildvorschau. Im Browser.",
+  "Seo_Title": "Base64 dekodieren und kodieren online | MyDevTools",
   "Keywords": "Base64 Encoder, Base64 Decoder, Base64 online kodieren, Base64 dekodieren, URL-sicheres Base64, Base64 zu Bild, Datei in Base64",
   "InputTextLabel": "Eingabe (Text)",
   "FileHint": "Wenn eine Datei ausgewählt ist, wird diese anstelle der Texteingabe verwendet.",

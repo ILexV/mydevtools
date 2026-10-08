@@ -1,6 +1,7 @@
 {
   "Title": "YAML Форматировщик/Валидатор",
   "Description": "Проверка YAML и форматирование в чистый блочный стиль с отступом 2 пробела; ошибки — со строкой и столбцом. Работает локально на WebAssembly.",
+  "Seo_Title": "YAML валидатор и форматирование онлайн | MyDevTools",
   "Keywords": "проверка YAML, валидатор YAML, форматирование YAML, YAML validator, YAML formatter, YAML линтер, синтаксис YAML",
   "InputLabel": "Ввод YAML",
   "Format": "Форматировать",

@@ -1,6 +1,7 @@
 {
   "Title": "XML-Formatierer",
   "Description": "XML im Browser formatieren oder minifizieren, mit 2/4 Leerzeichen oder Tab; Kommentare, CDATA und Processing Instructions bleiben, Parse-Fehler werden gemeldet.",
+  "Seo_Title": "XML formatieren online — Formatter und Minifier | MyDevTools",
   "Keywords": "XML formatieren, XML Formatter, XML Beautifier, XML minifizieren, XML validieren, XML einrücken, XML pretty print online",
   "InputLabel": "XML-Eingabe",
   "FormatButton": "Formatieren",

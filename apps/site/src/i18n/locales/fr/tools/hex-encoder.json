@@ -1,6 +1,7 @@
 {
   "Title": "Encodeur / Décodeur Hex",
   "Description": "Convertissez texte ou fichiers en hexadécimal et inversement. Jeu de caractères et casse au choix ; décode l'hex avec espaces, deux-points, tirets ou 0x.",
+  "Seo_Title": "Convertir texte en hexadécimal et inversement | MyDevTools",
   "Keywords": "hex encoder, hex decoder, hexadecimal converter, text to hex, hex to text, hex encoding online, hexadecimal online tool",
   "InputTextLabel": "Texte",
   "FileHint": "Si un fichier est sélectionné, l'entrée texte est ignorée.",

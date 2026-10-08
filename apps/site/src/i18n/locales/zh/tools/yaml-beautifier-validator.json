@@ -1,6 +1,7 @@
 {
   "Title": "YAML 格式化/验证器",
   "Description": "校验 YAML 并将其重新格式化为 2 空格缩进的整洁块样式；错误会显示行号和列号。通过 WebAssembly 在本地运行。",
+  "Seo_Title": "YAML 格式化校验 — 定位错误行 | MyDevTools",
   "Keywords": "YAML 校验, YAML 验证, YAML 格式化, YAML 美化, YAML 语法检查, YAML 在线格式化, YAML validator, YAML formatter, YAML linter",
   "InputLabel": "YAML 输入",
   "Format": "格式化",

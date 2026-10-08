@@ -1,6 +1,7 @@
 {
   "Title": "Base58 エンコーダー / デコーダー",
   "Description": "Bitcoin・Flickr・Ripple のアルファベットで Base58 をエンコード／デコード。テキストと 1 MiB までのファイルに対応し、ブラウザ内でローカルに処理します。",
+  "Seo_Title": "Base58 エンコード/デコード | MyDevTools",
   "Keywords": "Base58 エンコード, Base58 デコード, Bitcoin Base58, Flickr Base58, Ripple Base58, Base58 アドレス デコード, Base58 オンライン",
   "InputTextLabel": "入力 (テキスト)",
   "FileHint": "ファイルを選択した場合、テキスト入力の代わりに使用されます。",

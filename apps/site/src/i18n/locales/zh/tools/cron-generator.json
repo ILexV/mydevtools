@@ -1,6 +1,7 @@
 {
   "Title": "Cron 表达式生成器",
   "Description": "按分钟、小时、日期、月份、星期逐字段构建 cron 表达式，实时校验取值，并给出通俗说明和按本地时区计算的接下来 5 次运行时间。",
+  "Seo_Title": "Cron 表达式生成器 — 逐字段构建 | MyDevTools",
   "Keywords": "cron 表达式生成器, cron 生成, crontab 生成器, cron 在线生成, 创建 cron 定时任务, cron 语法, cron generator",
   "LinkToParser": "需要解析 Cron 表达式？试试",
   "ParserTitle": "Cron 解析器",

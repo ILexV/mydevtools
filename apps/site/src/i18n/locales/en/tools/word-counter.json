@@ -1,6 +1,7 @@
 {
   "Title": "Word / Character Counter",
   "Description": "Count words, characters, lines, paragraphs and sentences as you type, with reading and speaking time. Emoji and Chinese/Japanese text are counted correctly.",
+  "Seo_Title": "Word Counter — Count Words, Characters & Lines | MyDevTools",
   "Keywords": "word counter, character counter, letter count, sentence counter, paragraph counter, reading time calculator, speaking time, text statistics",
   "InputPlaceholder": "Type or paste your text here to count words, characters, and more...",
   "ClearButton": "Clear",

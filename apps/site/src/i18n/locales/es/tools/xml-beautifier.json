@@ -1,6 +1,7 @@
 {
   "Title": "Embellecedor XML",
   "Description": "Formatea o minifica XML en el navegador con sangría de 2/4 espacios o tabulación; conserva comentarios, CDATA e instrucciones de procesamiento y avisa de errores.",
+  "Seo_Title": "Formatear XML online — embellecer y minificar | MyDevTools",
   "Keywords": "formatear XML, formateador XML, embellecedor XML, XML beautifier, minificar XML, validar XML, indentar XML, XML pretty print online",
   "InputLabel": "XML de entrada",
   "FormatButton": "Formatear",

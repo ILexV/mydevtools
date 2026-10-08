@@ -1,6 +1,7 @@
 {
   "Title": "Générateur de QR Code",
   "Description": "Créez un QR code à partir d'une URL ou d'un texte : couleurs, style carré/points/arrondi, correction d'erreur L–H, logo central, export PNG ou SVG.",
+  "Seo_Title": "Générateur de QR code — logo, PNG et SVG | MyDevTools",
   "Keywords": "générateur de QR code, créer un QR code, QR code avec logo, QR code couleurs personnalisées, QR code SVG, QR code Wi-Fi, correction d'erreur QR, générateur de QR code hors ligne",
   "ContentLabel": "Contenu",
   "ContentPlaceholder": "Entrez du texte ou une URL à encoder...",

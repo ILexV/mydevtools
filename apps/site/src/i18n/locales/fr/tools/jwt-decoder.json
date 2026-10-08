@@ -1,6 +1,7 @@
 {
   "Title": "Décodeur JWT",
   "Description": "Décodez l’en-tête et la charge utile d’un JWT dans le navigateur, vérifiez les dates exp/nbf/iat et les signatures HS256/384/512 ou RS256/384/512.",
+  "Seo_Title": "Décodeur JWT en ligne — vérifier la signature | MyDevTools",
   "Keywords": "décodeur jwt, décoder un jwt, vérifier signature jwt, json web token, lire payload jwt, expiration jwt, jwt decoder, HS256, RS256",
   "EncodedLabel": "JWT généré",
   "EncodedPlaceholder": "Collez un JWT ici...",

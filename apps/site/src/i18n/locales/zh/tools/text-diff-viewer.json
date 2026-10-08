@@ -1,6 +1,7 @@
 {
   "Title": "文本差异查看器",
   "Description": "逐行比较两段文本或两个文件：以并排或统一 diff 视图显示新增、删除和修改的行，并高亮行内变化的单词。",
+  "Seo_Title": "在线文本对比 — 逐行差异高亮 | MyDevTools",
   "Keywords": "文本对比, 文本比较, diff 工具, 文件对比, 并排对比, unified diff, 代码对比, diff checker, 在线 diff",
   "OriginalLabel": "原始文本",
   "ModifiedLabel": "修改后的文本",

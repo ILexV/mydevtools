@@ -75,7 +75,7 @@ const downloadIcon = "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
     </div>
     <StatusMessage kind="error" id="qrg-error" data-qrg-error />
 
-    <h3 class="qrg-subhead">{s.colorsSection}</h3>
+    <h2 class="qrg-subhead">{s.colorsSection}</h2>
     <div class="ds-settings ds-settings-flat">
       <Field label={s.foregroundColor} for="qrg-fg-text" hintProps={{ "data-qrg-fg-hint": true, class: "ds-hint ds-hint-error", hidden: true }}>
         <div class="ds-input-group">
@@ -95,7 +95,7 @@ const downloadIcon = "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
       <p class="qrg-warn" id="qrg-contrast-warn" data-qrg-contrast-warn hidden></p>
     </div>
 
-    <h3 class="qrg-subhead">{s.optionsSection}</h3>
+    <h2 class="qrg-subhead">{s.optionsSection}</h2>
     <Field label={s.styleLabel}>
       <div class="seg" role="group" aria-label={s.styleLabel}>
         <button type="button" aria-pressed="true" data-qrg-style data-style="square">{s.styleSquare}</button>
@@ -122,7 +122,7 @@ const downloadIcon = "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
       </Field>
     </div>
 
-    <h3 class="qrg-subhead">{s.logoSection}</h3>
+    <h2 class="qrg-subhead">{s.logoSection}</h2>
     <FileDrop
       compact
       changeLabel={t(lang, "common", "Common_FileChangeButton")}

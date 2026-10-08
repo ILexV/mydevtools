@@ -1,6 +1,7 @@
 {
   "Title": "Hex Encoder / Decoder",
   "Description": "Convert text or files to hexadecimal and back. Pick charset and case; decode hex with spaces, colons, dashes or 0x prefixes. Runs in your browser.",
+  "Seo_Title": "Hex Encoder & Decoder — Text and Files to Hex | MyDevTools",
   "Keywords": "hex encoder, hex decoder, hexadecimal converter, text to hex, hex to text, hex encoding online, hexadecimal online tool",
   "InputTextLabel": "Text",
   "FileHint": "If a file is selected, the text input is ignored.",

@@ -1,6 +1,7 @@
 {
   "Title": "YAML Beautifier/Validator",
   "Description": "Validate YAML and reformat it into clean block style with 2-space indentation; errors show line and column. Runs locally via WebAssembly.",
+  "Seo_Title": "YAML Validator & Formatter Online | MyDevTools",
   "Keywords": "YAML validator, YAML formatter, YAML beautifier, YAML linter, YAML syntax checker, format YAML online, validate YAML",
   "InputLabel": "YAML Input",
   "Format": "Format",

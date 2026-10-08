@@ -1,6 +1,7 @@
 {
   "Title": "PDF 병합",
   "Description": "브라우저에서 PDF 파일 2개 이상을 merged.pdf 하나로 병합합니다. 위/아래 이동으로 순서 지정, 페이지 크기와 회전 유지. 업로드 없음.",
+  "Seo_Title": "PDF 합치기 — 업로드 없음 | MyDevTools",
   "Keywords": "PDF 병합, PDF 합치기, PDF 파일 결합, 오프라인 PDF 병합, 브라우저 PDF 병합, PDF 순서 변경, 여러 문서를 PDF 하나로",
   "DropZoneTitle": "PDF 파일을 여기로 드래그 앤 드롭하세요",
   "MergeButton": "PDF 병합",

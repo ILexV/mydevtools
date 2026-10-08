@@ -1,6 +1,7 @@
 {
   "Title": "XML Beautifier",
   "Description": "Pretty-print or minify XML in your browser with 2/4-space or tab indent; keeps comments, CDATA and processing instructions and reports parse errors.",
+  "Seo_Title": "XML Formatter Online — Pretty Print & Minify | MyDevTools",
   "Keywords": "XML beautifier, XML formatter, pretty print XML, XML minifier, XML validator, format XML online, indent XML",
   "InputLabel": "Input XML",
   "FormatButton": "Format",

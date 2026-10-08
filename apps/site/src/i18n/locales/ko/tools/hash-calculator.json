@@ -1,6 +1,7 @@
 {
   "Title": "해시 계산기",
   "Description": "텍스트나 파일의 해시를 MD5, SHA-1, SHA-256, SHA-3, BLAKE3, CRC32 등 39가지 알고리즘으로 한 번에 계산합니다. WebAssembly로 브라우저에서 처리.",
+  "Seo_Title": "해시 계산기 MD5·SHA-256 | MyDevTools",
   "Keywords": "해시 계산기, 온라인 해시, MD5, SHA-1, SHA-256, SHA-512, SHA-3, BLAKE3, CRC32, xxHash, 파일 체크섬",
   "InputLabel": "입력 텍스트",
   "InputPlaceholder": "해시할 텍스트 입력...",

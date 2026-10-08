@@ -1,6 +1,7 @@
 {
   "Title": "Chiffrement AEAD",
   "Description": "Chiffrez un fichier par mot de passe avec AES-256-GCM ou (X)ChaCha20-Poly1305 et Argon2id, puis déchiffrez-le. Le fichier reste dans le navigateur.",
+  "Seo_Title": "Chiffrer un fichier en AES-256-GCM — en local | MyDevTools",
   "Keywords": "chiffrer un fichier avec mot de passe, AES-256-GCM, ChaCha20-Poly1305, XChaCha20-Poly1305, Argon2id, chiffrement authentifié, déchiffrer fichier aead",
   "EncryptSectionTitle": "Chiffrer",
   "DecryptSectionTitle": "Déchiffrer",

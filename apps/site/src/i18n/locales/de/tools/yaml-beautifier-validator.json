@@ -1,6 +1,7 @@
 {
   "Title": "YAML-Validator",
   "Description": "YAML validieren und in sauberen Blockstil mit 2 Leerzeichen Einrückung umformatieren; Fehler zeigen Zeile und Spalte. Läuft lokal per WebAssembly.",
+  "Seo_Title": "YAML Validator online — prüfen und formatieren | MyDevTools",
   "Keywords": "YAML validieren, YAML Validator, YAML formatieren, YAML Formatter, YAML Linter, YAML Syntax prüfen, YAML online prüfen, YAML Beautifier",
   "InputLabel": "YAML-Eingabe",
   "Format": "Formatieren",

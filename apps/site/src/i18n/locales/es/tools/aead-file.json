@@ -1,6 +1,7 @@
 {
   "Title": "Cifrar/descifrar archivos AEAD",
   "Description": "Cifra un archivo con contraseña usando AES-256-GCM o (X)ChaCha20-Poly1305 y Argon2id, y vuelve a descifrarlo. El archivo no sale del navegador.",
+  "Seo_Title": "Cifrar archivos con AES-256-GCM — sin subidas | MyDevTools",
   "Keywords": "cifrar archivo con contraseña, AES-256-GCM, ChaCha20-Poly1305, XChaCha20-Poly1305, Argon2id, cifrado autenticado, descifrar archivo aead",
   "EncryptSectionTitle": "Cifrar",
   "DecryptSectionTitle": "Descifrar",

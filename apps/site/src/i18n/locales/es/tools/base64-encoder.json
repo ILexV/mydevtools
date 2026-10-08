@@ -1,6 +1,7 @@
 {
   "Title": "Codificador / Decodificador Base64",
   "Description": "Codifica texto o archivos en Base64 y decodifícalos: alfabeto estándar o URL-safe, relleno, saltos cada 76 caracteres y vista previa de imágenes. En tu navegador.",
+  "Seo_Title": "Codificar/decodificar Base64 — texto, archivos | MyDevTools",
   "Keywords": "codificador Base64, decodificador Base64, Base64 online, decodificar Base64, Base64 URL-safe, Base64 a imagen, archivo a Base64",
   "InputTextLabel": "Entrada (texto)",
   "FileHint": "Si seleccionas un archivo, se usará en lugar del texto.",

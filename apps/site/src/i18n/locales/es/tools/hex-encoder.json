@@ -1,6 +1,7 @@
 {
   "Title": "Codificador / Decodificador Hex",
   "Description": "Convierte texto o archivos a hexadecimal y viceversa. Elige codificación y mayúsculas; decodifica hex con espacios, dos puntos, guiones o 0x. En tu navegador.",
+  "Seo_Title": "Convertidor de texto a hexadecimal y viceversa | MyDevTools",
   "Keywords": "hex encoder, hex decoder, hexadecimal converter, text to hex, hex to text, hex encoding online, hexadecimal online tool",
   "InputTextLabel": "Texto",
   "FileHint": "Si se selecciona un archivo, se ignora el texto.",

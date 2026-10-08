@@ -1,6 +1,7 @@
 {
   "Title": "Gerador de Expressões Cron",
   "Description": "Monte uma expressão cron campo a campo — minuto, hora, dia, mês, dia da semana — com validação, descrição em linguagem simples e as próximas 5 execuções.",
+  "Seo_Title": "Gerador de cron online — criar e validar | MyDevTools",
   "Keywords": "gerador de expressão cron, gerador cron, gerador crontab, criar agendamento cron, montar expressão cron, cron generator, cron builder, sintaxe cron",
   "LinkToParser": "Precisa analisar uma expressão cron? Tente o",
   "ParserTitle": "Analisador de Cron",

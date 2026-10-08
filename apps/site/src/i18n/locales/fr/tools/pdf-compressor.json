@@ -1,6 +1,7 @@
 {
   "Title": "Compresseur PDF",
   "Description": "Réduisez la taille de vos PDF sans perte dans le navigateur : flux recompressés, objets en double fusionnés, métadonnées supprimées. Par lots, sans envoi.",
+  "Seo_Title": "Compresser un PDF — sans perte et en local | MyDevTools",
   "Keywords": "compresseur PDF, réduire la taille d'un PDF, compresser un PDF hors ligne, compression PDF sans perte, supprimer les métadonnées PDF, optimiser un PDF, alléger un PDF dans le navigateur",
   "DropZoneTitle": "Glissez et déposez des fichiers PDF ici",
   "CompressButton": "Compresser les PDF",

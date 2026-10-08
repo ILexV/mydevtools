@@ -1,6 +1,7 @@
 {
   "Title": "Cron 표현식 파서",
   "Description": "Cron 표현식을 쉬운 말로 설명하고 각 필드를 검증하며, 다음 5회 실행 시간을 로컬 시간대로 보여 줍니다. 빠른 프리셋과 @매크로도 지원합니다.",
+  "Seo_Title": "Cron 표현식 해석 — 실행 시간 | MyDevTools",
   "Keywords": "cron 표현식 해석, cron 파서, cron 검증, crontab 문법, cron 다음 실행 시간, cron 스케줄 확인, cron expression parser, cron 설명",
   "LinkToGenerator": "Cron 표현식을 구축해야 합니까?",
   "GeneratorTitle": "Cron 생성기",

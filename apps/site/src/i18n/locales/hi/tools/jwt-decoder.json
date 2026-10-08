@@ -1,6 +1,7 @@
 {
   "Title": "JWT डिकोडर",
   "Description": "ब्राउज़र में JWT का header और payload डिकोड करें, exp/nbf/iat तारीख़ें देखें और HS256/384/512 या RS256/384/512 सिग्नेचर वेरीफाई करें।",
+  "Seo_Title": "JWT डिकोडर ऑनलाइन — डिकोड और सिग्नेचर जांचें | MyDevTools",
   "Keywords": "JWT डिकोडर, jwt decoder, JWT डिकोड करें, JWT सिग्नेचर वेरीफाई, json web token, JWT payload, JWT expiry जाँच, HS256, RS256",
   "EncodedLabel": "जनरेट किया गया JWT",
   "EncodedPlaceholder": "JWT यहाँ पेस्ट करें...",

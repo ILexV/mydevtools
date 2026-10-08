@@ -1,6 +1,7 @@
 {
   "Title": "Codificador JWT",
   "Description": "Crie e assine JWTs com HS256, HS384 ou HS512 no navegador. Edite o JSON do cabeçalho e do payload; a ordem das claims e campos como kid são mantidos.",
+  "Seo_Title": "Criar e assinar JWT — HS256, HS384, HS512 | MyDevTools",
   "Keywords": "codificador jwt, gerador de jwt, criar jwt, assinar jwt online, jwt HS256, jwt HMAC, gerar json web token, jwt encoder, jwt generator",
   "LinkToDecoder": "Precisa decodificar um token?",
   "DecoderTitle": "Ir para o Decodificador JWT",

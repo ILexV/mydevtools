@@ -1,6 +1,7 @@
 {
   "Title": "Калькулятор хэшей",
   "Description": "Хэш текста или файла сразу в MD5, SHA-1, SHA-256, SHA-3, BLAKE3, CRC32 и ещё 33 алгоритмах. Считается локально в браузере через WebAssembly.",
+  "Seo_Title": "Генератор хеша онлайн — MD5, SHA-256, SHA-3 | MyDevTools",
   "Keywords": "калькулятор хэшей, хэш онлайн, MD5, SHA-1, SHA-256, SHA-512, SHA-3, BLAKE3, CRC32, xxHash, контрольная сумма файла",
   "InputLabel": "Входной текст",
   "InputPlaceholder": "Введите текст для хэширования...",

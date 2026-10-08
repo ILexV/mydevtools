@@ -1,6 +1,7 @@
 {
   "Title": "Embellisseur XML",
   "Description": "Indentez ou minifiez du XML dans le navigateur (2/4 espaces ou tabulation) ; conserve commentaires, CDATA et instructions de traitement, signale les erreurs.",
+  "Seo_Title": "Formater XML en ligne — indenter et minifier | MyDevTools",
   "Keywords": "formater XML, formateur XML, XML beautifier, XML formatter, minifier XML, valider XML, validateur XML, indenter XML, pretty print XML, formater XML en ligne",
   "InputLabel": "XML d'entrée",
   "FormatButton": "Formater",

@@ -1,6 +1,7 @@
 {
   "Title": "JSON से TypeScript कनवर्टर",
   "Description": "JSON सैंपल से TypeScript इंटरफ़ेस या टाइप एलियास बनाएँ: नेस्टेड टाइप, ऐरे आइटम का मर्ज, वैकल्पिक फ़ील्ड, export कीवर्ड। आपके ब्राउज़र में चलता है।",
+  "Seo_Title": "JSON से TypeScript कनवर्टर — इंटरफ़ेस बनाएं | MyDevTools",
   "Keywords": "JSON से TypeScript, JSON to TypeScript, JSON to interface, TypeScript इंटरफ़ेस जनरेटर, JSON से टाइप बनाएँ, TypeScript टाइप जनरेटर, TypeScript type alias, generate TypeScript types from JSON",
   "InputLabel": "JSON इनपुट",
   "OutputLabel": "TypeScript आउटपुट",

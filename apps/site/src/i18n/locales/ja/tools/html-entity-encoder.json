@@ -1,6 +1,7 @@
 {
   "Title": "HTML エンティティ エンコーダー / デコーダー",
   "Description": "HTML の特殊文字を名前付き・10進数・16進数のエンティティにエスケープし、エンティティをテキストに戻します。絵文字も正しく処理。すべてブラウザ内で動作。",
+  "Seo_Title": "HTMLエスケープ変換 — 実体参照 | MyDevTools",
   "Keywords": "HTML entity encoder, HTML entity decoder, HTML escape, HTML unescape, HTML special characters, encode HTML online, HTML entities",
   "InputLabel": "エンコード/デコードするテキスト",
   "OutputTitle": "出力",

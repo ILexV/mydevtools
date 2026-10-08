@@ -1,6 +1,7 @@
 {
   "Title": "Text Diff Viewer",
   "Description": "Compare two texts or files line by line: added, removed and changed lines shown side by side or as a unified diff, with word-level highlights.",
+  "Seo_Title": "Text Diff Checker — Compare Two Texts Online | MyDevTools",
   "Keywords": "text diff, diff checker, compare text, compare two files, side by side diff, unified diff, code diff, diff viewer online",
   "OriginalLabel": "Original Text",
   "ModifiedLabel": "Modified Text",

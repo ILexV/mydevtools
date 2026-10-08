@@ -1,6 +1,7 @@
 {
   "Title": "Lorem Ipsum 生成",
   "Description": "Lorem Ipsum のダミーテキストを段落・文・単語単位（1～1000）で生成。プレーンテキスト、<p> タグ付き HTML、Markdown に対応し、語数と文字数も表示します。",
+  "Seo_Title": "Lorem Ipsum ダミー文章生成 | MyDevTools",
   "Keywords": "lorem ipsum generator, placeholder text, dummy text generator, lorem ipsum online, filler text, fake text generator",
   "GenerateTypeLabel": "生成タイプ",
   "Paragraphs": "段落",

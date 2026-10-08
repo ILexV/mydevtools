@@ -1,6 +1,7 @@
 {
   "Title": "JSON zu TypeScript Konverter",
   "Description": "TypeScript-Interfaces oder Type-Aliase aus einem JSON-Beispiel erzeugen: verschachtelte Typen, zusammengeführte Array-Elemente, optionale Felder, export.",
+  "Seo_Title": "JSON zu TypeScript — Interfaces generieren | MyDevTools",
   "Keywords": "JSON zu TypeScript, JSON in TypeScript umwandeln, TypeScript Interface Generator, JSON zu Interface, TypeScript Typen aus JSON generieren, JSON to TypeScript, TypeScript Type-Alias",
   "InputLabel": "JSON-Eingabe",
   "OutputLabel": "TypeScript-Ausgabe",

@@ -1,6 +1,7 @@
 {
   "Title": "PDF Merger",
   "Description": "Merge two or more PDF files into one merged.pdf in your browser, in the order you set with move up/down. Pages keep size and rotation. No upload.",
+  "Seo_Title": "Merge PDF Files Online — No Upload | MyDevTools",
   "Keywords": "merge PDF, combine PDF files, join PDF, PDF merger offline, merge PDF in browser, reorder PDF files, combine documents into one PDF",
   "DropZoneTitle": "Drag and drop PDF files here",
   "MergeButton": "Merge PDFs",

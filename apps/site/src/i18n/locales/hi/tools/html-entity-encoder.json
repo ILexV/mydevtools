@@ -1,6 +1,7 @@
 {
   "Title": "HTML एंटिटी एन्कोडर / डीकोडर",
   "Description": "HTML के विशेष वर्णों को नामित, दशमलव या हेक्स एंटिटी में एस्केप करें और एंटिटी को वापस टेक्स्ट में डीकोड करें। इमोजी सही तरह से। पूरी तरह ब्राउज़र में।",
+  "Seo_Title": "HTML एंटिटी एनकोडर/डिकोडर — विशेष वर्ण एस्केप | MyDevTools",
   "Keywords": "HTML entity encoder, HTML entity decoder, HTML escape, HTML unescape, HTML special characters, encode HTML online, HTML entities",
   "InputLabel": "एन्कोड/डीकोड करने के लिए टेक्स्ट",
   "OutputTitle": "आउटपुट",

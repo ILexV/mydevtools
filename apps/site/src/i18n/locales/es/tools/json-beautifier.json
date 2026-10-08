@@ -1,6 +1,7 @@
 {
   "Title": "Embellecedor JSON",
   "Description": "Formatea, minifica y valida JSON en el navegador: sangría de 2/4 espacios o tabulación, orden recursivo de claves, números grandes exactos y archivos .json.",
+  "Seo_Title": "Formatear JSON online — validar y minificar | MyDevTools",
   "Keywords": "formatear JSON, formateador JSON, embellecedor JSON, JSON beautifier, minificar JSON, validar JSON, validador JSON, ordenar claves JSON, JSON pretty print online",
   "InputLabel": "JSON de entrada",
   "FormatButton": "Formatear",

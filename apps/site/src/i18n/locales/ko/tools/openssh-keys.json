@@ -1,6 +1,7 @@
 {
   "Title": "OpenSSH 키",
   "Description": "Ed25519, ECDSA, RSA SSH 키 쌍을 만들고(암호문 선택), OpenSSH·PKCS#8·SPKI PEM 형식 간에 변환합니다. 모두 브라우저에서 처리.",
+  "Seo_Title": "SSH 키 생성 — Ed25519 | MyDevTools",
   "Keywords": "SSH 키 생성기, 온라인 ssh-keygen, Ed25519 키, RSA 4096 SSH 키, ECDSA 키, OpenSSH PKCS#8 변환, SPKI OpenSSH 변환, SSH 공개 키",
   "GenerateSectionTitle": "생성",
   "AlgorithmLabel": "알고리즘",

@@ -1,6 +1,7 @@
 {
   "Title": "Hash-Rechner",
   "Description": "Hash von Text oder Datei mit MD5, SHA-1, SHA-256, SHA-3, BLAKE3, CRC32 und 33 weiteren Algorithmen gleichzeitig – lokal im Browser per WebAssembly.",
+  "Seo_Title": "Hash Generator online — MD5, SHA-256, SHA-3 | MyDevTools",
   "Keywords": "Hash-Rechner, Hash online, MD5, SHA-1, SHA-256, SHA-512, SHA-3, BLAKE3, CRC32, xxHash, Datei-Prüfsumme",
   "InputLabel": "Eingabetext",
   "InputPlaceholder": "Text zum Hashen eingeben...",

@@ -1,6 +1,7 @@
 {
   "Title": "Сертификаты X.509",
   "Description": "Создание self‑signed сертификатов X.509 и CSR с ключами Ed25519 или ECDSA, разбор сертификатов и CSR из PEM/DER — локально в браузере.",
+  "Seo_Title": "Сертификаты X.509 — декодер и генератор CSR | MyDevTools",
   "Keywords": "декодер сертификата x509, генератор самоподписанного сертификата, генератор CSR, разбор CSR, PKCS#10, PEM в JSON, просмотр сертификата, сертификат ECDSA",
   "SelfSignedSectionTitle": "Self‑signed",
   "SubjectLabel": "Субъект (CN)",

@@ -1,6 +1,7 @@
 {
   "Title": "IP-Subnetz-Rechner",
   "Description": "IPv4- und IPv6-Subnetzrechner: Netz, Broadcast, Netzmaske, Hostbereich, Adressanzahl und Adresstyp aus CIDR oder IP mit Maske.",
+  "Seo_Title": "Subnetzrechner IPv4 und IPv6 — CIDR, Netzmaske | MyDevTools",
   "Keywords": "Subnetzrechner, IP-Rechner, CIDR-Rechner, IPv6-Subnetzrechner, IPv6-Präfix, Subnetzmaske, Wildcard-Maske, Broadcast-Adresse, IPv4-Subnetting",
   "InputLabel": "IP-Adresse / CIDR",
   "Calculate": "Berechnen",

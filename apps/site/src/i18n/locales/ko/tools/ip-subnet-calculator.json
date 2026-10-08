@@ -1,6 +1,7 @@
 {
   "Title": "IP 서브넷 계산기",
   "Description": "IPv4·IPv6 서브넷 계산기: CIDR 또는 IP와 마스크로 네트워크, 브로드캐스트, 넷마스크, 호스트 범위, 주소 수, 주소 유형을 계산합니다.",
+  "Seo_Title": "서브넷 계산기 — IPv4·IPv6 | MyDevTools",
   "Keywords": "서브넷 계산기, IP 계산기, CIDR 계산기, IPv6 서브넷 계산기, IPv6 프리픽스, 서브넷 마스크, 와일드카드 마스크, 브로드캐스트 주소, IPv4 서브네팅",
   "InputLabel": "IP 주소 / CIDR",
   "Calculate": "계산",

@@ -22,6 +22,8 @@ interface Props {
   categoryName?: string;
   /** `Seo_HowToSteps` markdown — forwarded to Seo for HowTo JSON-LD. */
   howToSteps?: string;
+  /** Search-result `<title>` (locale `Seo_Title`); defaults to "title — site". */
+  seoTitle?: string;
 }
 
 const {
@@ -33,6 +35,7 @@ const {
   isHome = false,
   categoryName,
   howToSteps,
+  seoTitle,
 } = Astro.props as Props;
 const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
 /**
@@ -56,6 +59,7 @@ const preloadFonts = locale === "ru" ? [interCyrillicUrl] : [];
       isHome={isHome}
       categoryName={categoryName}
       howToSteps={howToSteps}
+      seoTitle={seoTitle}
     />
     {preloadFonts.map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}
 

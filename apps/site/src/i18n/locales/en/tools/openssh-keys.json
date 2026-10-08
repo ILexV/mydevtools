@@ -1,6 +1,7 @@
 {
   "Title": "OpenSSH Keys",
   "Description": "Generate Ed25519, ECDSA or RSA SSH key pairs, optionally passphrase-protected, and convert between OpenSSH, PKCS#8 and SPKI PEM — in your browser.",
+  "Seo_Title": "SSH Key Generator Online — Ed25519, ECDSA, RSA | MyDevTools",
   "Keywords": "ssh key generator, ssh-keygen online, Ed25519 key, RSA 4096 ssh key, ECDSA ssh key, OpenSSH to PKCS#8, SPKI to OpenSSH, ssh public key",
   "GenerateSectionTitle": "Generate",
   "AlgorithmLabel": "Algorithm",

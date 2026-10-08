@@ -1,6 +1,7 @@
 {
   "Title": "Base32 编码器 / 解码器",
   "Description": "使用 RFC 4648、Crockford 或 z-base-32 字母表编码和解码 Base32，支持填充与大小写选项，适用于文本和文件，全部在浏览器中完成。",
+  "Seo_Title": "Base32 编码解码 — 文本与文件 | MyDevTools",
   "Keywords": "Base32 编码, Base32 解码, Base32 RFC 4648, Crockford Base32, z-base-32, TOTP 密钥解码, Base32 在线",
   "InputTextLabel": "输入（文本）",
   "FileHint": "如果选择了文件，将使用文件而非文本输入。",

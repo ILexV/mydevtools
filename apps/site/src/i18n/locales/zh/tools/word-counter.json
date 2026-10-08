@@ -1,6 +1,7 @@
 {
   "Title": "单词/字符计数器",
   "Description": "实时统计单词数、字符数、行数、段落数和句子数，并估算阅读和演讲时间。正确处理表情符号以及中文、日文文本。",
+  "Seo_Title": "在线字数统计 — 字符与单词计数 | MyDevTools",
   "Keywords": "字数统计, 字符计数器, 单词计数, 句子计数, 段落计数, 阅读时间计算, 演讲时间, word counter, character counter",
   "InputPlaceholder": "在此输入或粘贴文本以统计单词数、字符数等...",
   "ClearButton": "清除",

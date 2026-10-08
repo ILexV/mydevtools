@@ -1,6 +1,7 @@
 {
   "Title": "Convertisseur de Couleurs",
   "Description": "Convertissez des couleurs entre HEX, RGB, HSL et CMYK, obtenez une palette de 9 nuances et vérifiez le contraste WCAG de deux couleurs.",
+  "Seo_Title": "Convertisseur de couleurs HEX, RGB, HSL, CMYK | MyDevTools",
   "Keywords": "color converter, HEX to RGB, RGB to HSL, CMYK color, color picker online, CSS color converter, color code converter",
   "ColorPicker": "Sélecteur de couleur",
   "ManualInput": "Saisie manuelle",

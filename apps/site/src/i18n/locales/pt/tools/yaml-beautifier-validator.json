@@ -1,6 +1,7 @@
 {
   "Title": "Formatador/Validador YAML",
   "Description": "Valide YAML e reformate-o em estilo de bloco limpo com indentação de 2 espaços; erros mostram linha e coluna. Roda localmente via WebAssembly.",
+  "Seo_Title": "Validador YAML online — formatar e ver erros | MyDevTools",
   "Keywords": "validar YAML, validador YAML, formatar YAML, formatador YAML, YAML validator, YAML formatter, YAML linter, verificar sintaxe YAML, YAML online",
   "InputLabel": "Entrada YAML",
   "Format": "Formatar",

@@ -31,6 +31,8 @@ const heroLead = t(lang, "home", "Lead");
 const heroSubtitle = t(lang, "home", "Subtitle"); // meta description
 const heroCta = t(lang, "home", "CTA_Start");
 const siteName = t(lang, "common", "AppName");
+// Keyword-rich search-result title for the locale home (`home.json` Seo_Title).
+const seoTitle = t(lang, "home", "Seo_Title");
 const favTitle = t(lang, "common", "CommandPalette_FavoritesTitle");
 const recentTitle = t(lang, "common", "CommandPalette_RecentTitle");
 const statTools = t(lang, "home", "Stat_Tools");
@@ -75,7 +77,7 @@ const aboutFeatures = [
 ] as const;
 ---
 
-<BaseLayout locale={lang} title={siteName} description={heroSubtitle} isHome>
+<BaseLayout locale={lang} title={siteName} description={heroSubtitle} seoTitle={seoTitle} isHome>
   <main>
     <section class="hero-band" data-hero-band>
       <div class="ambient" aria-hidden="true"></div>
@@ -497,7 +499,9 @@ const aboutFeatures = [
     font-family: var(--mdt-font-mono);
     font-size: var(--mdt-fs-label);
     font-weight: 600;
-    color: var(--row);
+    /* Row hue mixed toward text: raw category hues on the tinted row are
+       3.6–4.3:1 in light theme (Lighthouse color-contrast); this passes AA. */
+    color: color-mix(in srgb, var(--row) 72%, var(--mdt-text));
     text-decoration: none;
     white-space: nowrap;
   }

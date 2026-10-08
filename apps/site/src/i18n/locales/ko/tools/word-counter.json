@@ -1,6 +1,7 @@
 {
   "Title": "단어/문자 수 세기",
   "Description": "입력하는 동안 단어, 문자, 줄, 단락, 문장 수를 세고 읽기·말하기 시간을 계산합니다. 이모지와 중국어·일본어 텍스트도 정확히 셉니다.",
+  "Seo_Title": "글자수 세기 — 단어·줄 수 | MyDevTools",
   "Keywords": "글자 수 세기, 단어 수 세기, 문자 수 계산기, 문장 수, 단락 수, 읽기 시간 계산, 말하기 시간, word counter, character counter",
   "InputPlaceholder": "여기에 텍스트를 입력하거나 붙여넣어 단어 수, 문자 수 등을 계산하세요...",
   "ClearButton": "지우기",

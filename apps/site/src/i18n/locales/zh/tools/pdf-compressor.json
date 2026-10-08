@@ -1,6 +1,7 @@
 {
   "Title": "PDF 压缩",
   "Description": "在浏览器中无损压缩 PDF 文件：重新压缩数据流、合并重复对象、去除文档元数据，文字和版式保持不变。支持批量处理，文件不会上传。",
+  "Seo_Title": "在线 PDF 压缩 — 无损，不上传 | MyDevTools",
   "Keywords": "PDF 压缩, 减小 PDF 大小, 离线压缩 PDF, PDF 无损压缩, 删除 PDF 元数据, 优化 PDF, 浏览器内压缩 PDF",
   "DropZoneTitle": "将 PDF 文件拖放到此处",
   "CompressButton": "压缩 PDF",

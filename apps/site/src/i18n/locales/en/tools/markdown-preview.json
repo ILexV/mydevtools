@@ -1,6 +1,7 @@
 {
   "Title": "Markdown Preview",
   "Description": "Write Markdown with a live HTML preview side by side: GitHub Flavored tables, task lists, strikethrough. Copy sanitized HTML or download an .html file.",
+  "Seo_Title": "Markdown Preview Online — Live GFM to HTML | MyDevTools",
   "Keywords": "markdown preview, markdown editor online, markdown to html, live markdown editor, gfm preview, markdown table, readme preview",
   "EditorLabel": "Markdown Editor",
   "PreviewLabel": "Preview",

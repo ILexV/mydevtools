@@ -1,6 +1,7 @@
 {
   "Title": "Datumsrechner",
   "Description": "Unix-Zeitstempel in Sekunden oder Millisekunden in ISO 8601, RFC 5322, UTC, Ortszeit oder ein eigenes Format umwandeln und zurück — live im Browser.",
+  "Seo_Title": "Unix Timestamp Umrechner — Zeitstempel in Datum | MyDevTools",
   "Keywords": "date converter, Unix timestamp, epoch converter, ISO 8601, RFC 2822, timestamp to date, date to timestamp, online date tool",
   "InputLabel": "Datum / Zeitstempel",
   "OutputLabel": "Konvertiertes Datum",

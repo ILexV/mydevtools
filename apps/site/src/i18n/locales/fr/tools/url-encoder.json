@@ -1,6 +1,7 @@
 {
   "Title": "Encodeur / Décodeur URL",
   "Description": "Encodez et décodez URL et chaînes de requête en encodage pourcent, modes composant, URI ou formulaire, en UTF-8, UTF-16 ou Latin-1. En local dans le navigateur.",
+  "Seo_Title": "Encoder/décoder une URL en ligne — UTF-8 | MyDevTools",
   "Keywords": "URL encoder, URL decoder, percent encoding, URL encode online, URL decode online, URI encoder, query string encoder",
   "InputLabel": "Entrée",
   "OutputLabel": "Sortie",

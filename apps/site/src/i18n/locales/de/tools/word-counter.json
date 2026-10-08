@@ -1,6 +1,7 @@
 {
   "Title": "Wort- und Zeichenzähler",
   "Description": "Wörter, Zeichen, Zeilen, Absätze und Sätze beim Tippen zählen, dazu Lese- und Sprechzeit. Emojis sowie chinesischer und japanischer Text werden korrekt gezählt.",
+  "Seo_Title": "Wörter zählen online — Wort- und Zeichenzähler | MyDevTools",
   "Keywords": "Wortzähler, Zeichenzähler, Zeichen zählen, Wörter zählen, Satzzähler, Absätze zählen, Lesezeit berechnen, Sprechzeit, Textstatistik, word counter",
   "InputPlaceholder": "Geben Sie hier Ihren Text ein oder fügen Sie ihn ein, um Wörter, Zeichen und mehr zu zählen...",
   "ClearButton": "Löschen",

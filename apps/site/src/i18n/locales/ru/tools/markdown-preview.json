@@ -1,6 +1,7 @@
 {
   "Title": "Markdown превью",
   "Description": "Редактор Markdown с живым HTML-превью рядом: таблицы GFM, списки задач, зачёркивание. Копируйте очищенный HTML или скачивайте файл .html.",
+  "Seo_Title": "Markdown редактор онлайн с превью и HTML | MyDevTools",
   "Keywords": "markdown превью, markdown редактор онлайн, markdown в html, просмотр markdown, gfm, таблица markdown, предпросмотр readme, markdown preview",
   "EditorLabel": "Редактор Markdown",
   "PreviewLabel": "Превью",

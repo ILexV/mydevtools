@@ -1,6 +1,7 @@
 {
   "Title": "Hex 编码 / 解码",
   "Description": "将文本或文件转换为十六进制并还原。可选字符集和大小写；解码时支持空格、冒号、连字符或 0x 前缀分隔的 hex。在浏览器中运行。",
+  "Seo_Title": "Hex 编码解码 — 文本转十六进制 | MyDevTools",
   "Keywords": "hex encoder, hex decoder, hexadecimal converter, text to hex, hex to text, hex encoding online, hexadecimal online tool",
   "InputTextLabel": "文本",
   "FileHint": "如果选择了文件，文本输入将被忽略。",

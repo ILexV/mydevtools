@@ -1,6 +1,7 @@
 {
   "Title": "YAML ビューティファイア/バリデータ",
   "Description": "YAML を検証し、2 スペースインデントのすっきりしたブロックスタイルに整形。エラーは行と列で表示。WebAssembly でローカル実行します。",
+  "Seo_Title": "YAML 整形・構文チェック | MyDevTools",
   "Keywords": "YAML 検証, YAML バリデーター, YAML 整形, YAML フォーマッター, YAML 構文チェック, YAML 整形 オンライン, YAML validator, YAML formatter, YAML linter",
   "InputLabel": "YAML 入力",
   "Format": "フォーマット",

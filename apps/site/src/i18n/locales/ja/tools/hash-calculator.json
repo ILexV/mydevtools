@@ -1,6 +1,7 @@
 {
   "Title": "ハッシュ計算機",
   "Description": "テキストやファイルのハッシュを MD5、SHA-1、SHA-256、SHA-3、BLAKE3、CRC32 など 39 種類で一度に計算。WebAssembly でブラウザ内処理。",
+  "Seo_Title": "ハッシュ計算 MD5/SHA-256 | MyDevTools",
   "Keywords": "ハッシュ計算, ハッシュ 生成, MD5, SHA-1, SHA-256, SHA-512, SHA-3, BLAKE3, CRC32, xxHash, ファイル チェックサム",
   "InputLabel": "入力テキスト",
   "InputPlaceholder": "ハッシュ化するテキストを入力...",

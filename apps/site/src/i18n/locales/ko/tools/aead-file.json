@@ -1,6 +1,7 @@
 {
   "Title": "AEAD 파일 암호화/복호화",
   "Description": "AES-256-GCM 또는 (X)ChaCha20-Poly1305와 Argon2id로 파일을 비밀번호 암호화하고 다시 복호화합니다. 파일은 브라우저를 떠나지 않습니다.",
+  "Seo_Title": "파일 암호화 복호화 — 업로드 없음 | MyDevTools",
   "Keywords": "파일 비밀번호 암호화, AES-256-GCM, ChaCha20-Poly1305, XChaCha20-Poly1305, Argon2id, 인증 암호화, aead 파일 복호화",
   "EncryptSectionTitle": "암호화",
   "DecryptSectionTitle": "복호화",

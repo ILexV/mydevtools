@@ -1,6 +1,7 @@
 {
   "Title": "X.509 证书",
   "Description": "使用 Ed25519 或 ECDSA 密钥创建自签名 X.509 证书和 CSR，并解析 PEM/DER 格式的证书或 CSR，全部在浏览器本地完成。",
+  "Seo_Title": "X.509 证书与 CSR 生成解析 | MyDevTools",
   "Keywords": "X.509 证书解析, 自签名证书生成, CSR 生成, CSR 解析, PKCS#10, PEM 转 JSON, 证书查看器, ECDSA 证书",
   "SelfSignedSectionTitle": "自签名",
   "SubjectLabel": "主题 (CN)",

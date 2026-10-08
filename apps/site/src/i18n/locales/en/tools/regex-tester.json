@@ -1,6 +1,7 @@
 {
   "Title": "Regex Tester",
   "Description": "Test regular expressions live with the Rust regex engine (WebAssembly): match highlighting, capture and named groups, i/m/s flags and saved patterns.",
+  "Seo_Title": "Regex Tester Online — Live Matches & Groups | MyDevTools",
   "Keywords": "regex tester, regular expression tester, rust regex, regex online, test regex, capture groups, named groups, regex debugger",
   "PatternLabel": "Pattern",
   "PatternPlaceholder": "Enter regex pattern...",

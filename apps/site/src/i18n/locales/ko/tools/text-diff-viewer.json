@@ -1,6 +1,7 @@
 {
   "Title": "텍스트 차이 뷰어",
   "Description": "두 텍스트나 파일을 줄 단위로 비교해 추가·삭제·변경된 줄을 나란히 또는 unified diff로 보여 주고, 줄 안의 바뀐 단어를 강조합니다.",
+  "Seo_Title": "텍스트 비교 — 차이점 강조 | MyDevTools",
   "Keywords": "텍스트 비교, 텍스트 차이, diff 도구, 파일 비교, 나란히 비교, unified diff, 코드 비교, diff checker",
   "OriginalLabel": "원본 텍스트",
   "ModifiedLabel": "수정된 텍스트",

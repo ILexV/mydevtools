@@ -1,6 +1,7 @@
 {
   "Title": "JWT 编码器",
   "Description": "在浏览器中用 HS256、HS384 或 HS512 创建并签名 JWT。编辑头部和载荷 JSON，保留声明顺序以及 kid 等额外头部字段。",
+  "Seo_Title": "JWT 在线生成 — HS256 签名 | MyDevTools",
   "Keywords": "JWT 生成, JWT 编码器, 创建 JWT, 在线签名 JWT, HS256 JWT, HMAC JWT, JSON Web Token 生成器, jwt encoder",
   "LinkToDecoder": "需要解码令牌？",
   "DecoderTitle": "前往 JWT 解码器",

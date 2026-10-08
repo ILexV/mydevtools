@@ -1,6 +1,7 @@
 {
   "Title": "カラーコンバーター",
   "Description": "HEX・RGB・HSL・CMYK 間で色を変換し、9 段階のシェードパレットを作成、2 色の WCAG コントラスト比をブラウザで確認できます。",
+  "Seo_Title": "カラーコード変換 — RGB・HEX | MyDevTools",
   "Keywords": "color converter, HEX to RGB, RGB to HSL, CMYK color, color picker online, CSS color converter, color code converter",
   "ColorPicker": "カラーピッカー",
   "ManualInput": "手動入力",

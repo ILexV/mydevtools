@@ -1,6 +1,7 @@
 {
   "Title": "Calculadora de Sub-rede IP",
   "Description": "Calculadora de sub-redes IPv4 e IPv6: rede, broadcast, máscara, faixa de hosts, número de endereços e tipo a partir de CIDR ou IP e máscara.",
+  "Seo_Title": "Calculadora de sub-rede IP — IPv4, IPv6 e CIDR | MyDevTools",
   "Keywords": "calculadora de sub-rede, calculadora CIDR, calculadora IPv6, prefixo IPv6, máscara de sub-rede, máscara wildcard, endereço de broadcast, sub-redes IPv4",
   "InputLabel": "Endereço IP / CIDR",
   "Calculate": "Calcular",

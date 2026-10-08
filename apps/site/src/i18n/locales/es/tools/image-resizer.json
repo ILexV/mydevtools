@@ -1,6 +1,7 @@
 {
   "Title": "Redimensionar Imagen",
   "Description": "Redimensiona una imagen a píxeles exactos con bloqueo de proporción y remuestreo Lanczos3, y guárdala como JPEG, PNG o WebP. Funciona en tu navegador.",
+  "Seo_Title": "Redimensionar imagen online — JPEG, PNG, WebP | MyDevTools",
   "Keywords": "redimensionar imagen, cambiar tamaño de imagen, cambiar dimensiones de foto, redimensionar foto, mantener proporción, escalar imagen, ajustar ancho de imagen, crear miniaturas",
   "OriginalInfo": "Imagen Original",
   "TargetFormatLabel": "Formato",

@@ -1,6 +1,7 @@
 {
   "Title": "Конвертер JSON в TypeScript",
   "Description": "Генерация интерфейсов и type-алиасов TypeScript по образцу JSON: вложенные типы, объединение элементов массива, опциональные поля, export.",
+  "Seo_Title": "JSON в TypeScript — генерация интерфейсов | MyDevTools",
   "Keywords": "JSON в TypeScript, генератор интерфейсов TypeScript, JSON to TypeScript, типы TypeScript из JSON, интерфейс из JSON, type alias",
   "InputLabel": "JSON",
   "OutputLabel": "TypeScript",

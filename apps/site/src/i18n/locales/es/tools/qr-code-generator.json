@@ -1,6 +1,7 @@
 {
   "Title": "Generador de Códigos QR",
   "Description": "Crea un código QR a partir de una URL o texto con colores, estilos cuadrado/puntos/redondeado, corrección L–H, logotipo central y descarga PNG o SVG.",
+  "Seo_Title": "Generador de códigos QR — con logo, PNG y SVG | MyDevTools",
   "Keywords": "generador de códigos QR, crear código QR, código QR con logotipo, código QR de colores, código QR SVG, código QR Wi-Fi, corrección de errores QR, generador QR sin conexión",
   "ContentLabel": "Contenido",
   "ContentPlaceholder": "Ingresa texto o URL para codificar...",

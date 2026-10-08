@@ -1,6 +1,7 @@
 {
   "Title": "JWT デコーダー",
   "Description": "ブラウザーで JWT のヘッダーとペイロードをデコードし、exp/nbf/iat の日時を確認、HS256/384/512 や RS256/384/512 の署名を検証。トークンは端末から出ません。",
+  "Seo_Title": "JWT デコード — 署名検証 | MyDevTools",
   "Keywords": "JWT デコード, JWT 解析, JWT 署名検証, JSON Web Token デコーダー, JWT ペイロード確認, JWT 有効期限, HS256, RS256, jwt decoder",
   "EncodedLabel": "生成された JWT",
   "EncodedPlaceholder": "JWT をここに貼り付け...",

@@ -1,6 +1,7 @@
 {
   "Title": "Encodeur / Décodeur Base64",
   "Description": "Encodez texte ou fichiers en Base64 et décodez-les : alphabet standard ou URL, remplissage, retour à 76 caractères, aperçu d'image. Dans votre navigateur.",
+  "Seo_Title": "Encoder/décoder Base64 — texte et fichiers | MyDevTools",
   "Keywords": "encodeur Base64, décodeur Base64, Base64 en ligne, décoder Base64, Base64 URL-safe, Base64 vers image, fichier en Base64",
   "InputTextLabel": "Entrée (texte)",
   "FileHint": "Si un fichier est sélectionné, il sera utilisé à la place de l'entrée texte.",

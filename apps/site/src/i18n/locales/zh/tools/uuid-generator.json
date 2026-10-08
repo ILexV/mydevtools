@@ -1,6 +1,7 @@
 {
   "Title": "UUID/GUID 生成器",
   "Description": "批量生成随机 UUID v4 或按时间排序的 UUID v7（最多 100 个），支持带连字符、无连字符、花括号和 URN 格式，可复制或下载 TXT。",
+  "Seo_Title": "UUID 在线生成器 — v4/v7 | MyDevTools",
   "Keywords": "UUID generator, GUID generator, UUID v4, UUID v7, random UUID, UUID online, generate GUID, unique identifier",
   "VersionLabel": "UUID 版本",
   "Version4": "版本 4 (随机)",

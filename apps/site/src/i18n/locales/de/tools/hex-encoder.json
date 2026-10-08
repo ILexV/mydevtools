@@ -1,6 +1,7 @@
 {
   "Title": "Hex Kodierer / Dekodierer",
   "Description": "Text oder Dateien in Hexadezimal umwandeln und zurück. Zeichensatz und Schreibweise wählbar; dekodiert Hex mit Leerzeichen, Doppelpunkten, Bindestrichen oder 0x.",
+  "Seo_Title": "Hex Encoder und Decoder — Text in Hex umwandeln | MyDevTools",
   "Keywords": "hex encoder, hex decoder, hexadecimal converter, text to hex, hex to text, hex encoding online, hexadecimal online tool",
   "InputTextLabel": "Text",
   "FileHint": "Wenn eine Datei ausgewählt ist, wird die Texteingabe ignoriert.",

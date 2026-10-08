@@ -4,6 +4,7 @@
   "ClearButton": "Clear",
   "CopyButton": "Copy",
   "Description": "Convert text to camelCase, snake_case, kebab-case, Title Case, Sentence case, UPPER or lower case. Splits identifiers like XMLHttpRequest correctly.",
+  "Seo_Title": "Case Converter — camelCase, snake_case & More | MyDevTools",
   "InverseCase": "Inverse Case",
   "KebabCase": "Kebab Case",
   "LowerCase": "lower case",

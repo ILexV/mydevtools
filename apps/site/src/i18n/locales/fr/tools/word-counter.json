@@ -1,6 +1,7 @@
 {
   "Title": "Compteur de Mots et Caractères",
   "Description": "Comptez mots, caractères, lignes, paragraphes et phrases pendant la saisie, avec temps de lecture et de parole. Emoji, chinois et japonais bien comptés.",
+  "Seo_Title": "Compteur de mots et caractères en ligne | MyDevTools",
   "Keywords": "compteur de mots, compteur de caractères, nombre de caractères, compteur de phrases, compteur de paragraphes, temps de lecture, temps de parole, word counter, statistiques de texte",
   "InputPlaceholder": "Tapez ou collez votre texte ici pour compter les mots, les caractères et plus...",
   "ClearButton": "Effacer",

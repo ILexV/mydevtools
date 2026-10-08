@@ -1,6 +1,7 @@
 {
   "Title": "Encodeur / décodeur d'entités HTML",
   "Description": "Échappez les caractères spéciaux HTML en entités nommées, décimales ou hexadécimales et décodez-les en texte. Gère les emoji. Entièrement dans le navigateur.",
+  "Seo_Title": "Encoder les entités HTML — échapper et décoder | MyDevTools",
   "Keywords": "HTML entity encoder, HTML entity decoder, HTML escape, HTML unescape, HTML special characters, encode HTML online, HTML entities",
   "InputLabel": "Texte à encoder/décoder",
   "OutputTitle": "Résultat",

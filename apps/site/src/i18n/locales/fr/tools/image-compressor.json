@@ -1,6 +1,7 @@
 {
   "Title": "Compresseur d'images",
   "Description": "Compressez une image JPEG, PNG ou WebP dans le navigateur : qualité de 1 à 100, format conservé ou changé, tailles comparées, puis téléchargement. Sans envoi.",
+  "Seo_Title": "Compresser une image JPG, PNG, WebP — en local | MyDevTools",
   "Keywords": "compresseur d'images, compresser JPEG, compresser PNG, compression WebP, réduire la taille d'une image, JPEG en WebP, supprimer EXIF, optimiser les images pour le web",
   "Compressing": "Compression en cours...",
   "Processing": "Traitement en cours...",

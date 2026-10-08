@@ -3,6 +3,7 @@
   "Title": "图像转换器",
   "Keywords": "图片格式转换, PNG 转 JPG, JPG 转 WebP, PNG 转 ICO, favicon 转换, TGA 转 PNG, TIFF 转 PNG, BMP 转 PNG, 转换图片格式",
   "Description": "在浏览器中将图片在 PNG、JPEG、WebP、GIF、BMP、ICO、TIFF 和 TGA 之间互相转换，JPEG 和 WebP 可调质量。文件不会上传。",
+  "Seo_Title": "在线图片格式转换 — 本地处理 | MyDevTools",
   "Convert": "转换",
   "Download": "下载",
   "DragDrop": "拖放图像到此处或点击选择",

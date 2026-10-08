@@ -1,6 +1,7 @@
 {
   "Title": "Cron 표현식 생성기",
   "Description": "분, 시, 일, 월, 요일 필드별로 cron 표현식을 만듭니다. 값 검증, 쉬운 말 설명, 로컬 시간대 기준 다음 5회 실행 시간을 함께 제공합니다.",
+  "Seo_Title": "Cron 표현식 생성기 — 검증 | MyDevTools",
   "Keywords": "cron 표현식 생성기, cron 생성기, crontab 생성기, cron 스케줄 만들기, cron 문법 도우미, cron expression generator, cron builder",
   "LinkToParser": "Cron 표현식을 분석해야 합니까?",
   "ParserTitle": "Cron 파서",

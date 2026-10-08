@@ -1,6 +1,7 @@
 {
   "Title": "Codificador / Decodificador Base32",
   "Description": "Codifica y decodifica Base32 con los alfabetos RFC 4648, Crockford o z-base-32, opciones de relleno y mayúsculas, para texto y archivos, en tu navegador.",
+  "Seo_Title": "Codificar/decodificar Base32 online — Crockford | MyDevTools",
   "Keywords": "codificador Base32, decodificador Base32, Base32 RFC 4648, Base32 Crockford, z-base-32, decodificar secreto TOTP, Base32 online",
   "InputTextLabel": "Entrada (texto)",
   "FileHint": "Si seleccionas un archivo, se usará en lugar del texto.",

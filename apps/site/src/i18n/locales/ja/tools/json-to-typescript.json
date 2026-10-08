@@ -1,6 +1,7 @@
 {
   "Title": "JSON → TypeScript コンバーター",
   "Description": "JSON サンプルから TypeScript の interface / type エイリアスを生成。ネスト型、配列要素のマージ、オプショナル、export に対応しブラウザで動作。",
+  "Seo_Title": "JSON→TypeScript 型生成 | MyDevTools",
   "Keywords": "JSON TypeScript 変換, JSON から interface, TypeScript interface 生成, JSON 型生成, TypeScript 型定義 自動生成, TypeScript type エイリアス, JSON to TypeScript",
   "InputLabel": "JSON 入力",
   "OutputLabel": "TypeScript 出力",

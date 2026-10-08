@@ -1,6 +1,7 @@
 {
   "Title": "Encodeur Base32",
   "Description": "Encodez et décodez du Base32 avec les alphabets RFC 4648, Crockford ou z-base-32, remplissage et casse réglables, pour texte et fichiers, dans le navigateur.",
+  "Seo_Title": "Encoder/décoder Base32 en ligne — Crockford | MyDevTools",
   "Keywords": "encodeur Base32, décodeur Base32, Base32 RFC 4648, Base32 Crockford, z-base-32, décoder secret TOTP, Base32 en ligne",
   "InputTextLabel": "Entrée (texte)",
   "FileHint": "Si un fichier est sélectionné, il sera utilisé à la place de l'entrée texte.",

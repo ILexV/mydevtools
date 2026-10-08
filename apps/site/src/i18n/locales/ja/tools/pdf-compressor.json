@@ -1,6 +1,7 @@
 {
   "Title": "PDF 圧縮",
   "Description": "PDF をブラウザでロスレス圧縮。ストリームの再圧縮、重複オブジェクトの統合、メタデータ削除を行います。一括処理対応、アップロード不要。",
+  "Seo_Title": "PDF圧縮 — アップロード不要 | MyDevTools",
   "Keywords": "PDF 圧縮, PDF 容量 削減, PDF 圧縮 オフライン, PDF ロスレス 圧縮, PDF メタデータ 削除, PDF 最適化, PDF 軽量化 ブラウザ",
   "DropZoneTitle": "ここに PDF ファイルをドラッグ＆ドロップ",
   "CompressButton": "PDF を圧縮",

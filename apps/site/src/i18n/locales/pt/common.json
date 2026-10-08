@@ -5,6 +5,7 @@
   "Common_Output": "Saída",
   "Common_Loading": "Carregando...",
   "Common_Error": "Erro",
+  "Common_ProcessingFailed": "Não foi possível processar os dados.",
   "Common_FileDropTitle": "Arraste e solte um arquivo aqui",
   "Common_FileDropSubtitle": "ou escolha um arquivo do seu dispositivo",
   "Common_FileChooseButton": "Escolher arquivo",

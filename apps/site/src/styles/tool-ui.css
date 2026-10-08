@@ -262,6 +262,11 @@
     display: block;
     min-height: 20rem;
   }
+  .ds-editor.is-dragover > .ds-field-textarea {
+    border-color: var(--mdt-cat);
+    border-style: dashed;
+    box-shadow: 0 0 0 1px var(--mdt-cat);
+  }
   @media (max-width: 560px) {
     .ds-editor > .ds-field-textarea {
       min-height: 11rem;

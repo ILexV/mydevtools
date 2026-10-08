@@ -101,7 +101,7 @@ export const TOOLS: readonly Tool[] = [
   { slug: "regex-tester", monogram: ".*", category: "regex", wasm: "regex_tool", capabilities: { copy: true } },
 
   // ── hashing ───────────────────────────────────────────────────────────────
-  { slug: "hash-calculator", monogram: "sha", category: "hashing", wasm: "hash", capabilities: { file: "optional", chunked: true, progress: true, cancel: true, copy: true } },
+  { slug: "hash-calculator", monogram: "sha", category: "hashing", wasm: "hash", capabilities: { file: "optional", chunked: true, progress: true, cancel: true, copy: true, download: true } },
   { slug: "password-generator", monogram: "***", category: "hashing", wasm: "password", capabilities: { copy: true } },
 
   // ── cryptography ──────────────────────────────────────────────────────────

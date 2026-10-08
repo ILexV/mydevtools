@@ -2,12 +2,11 @@
 /**
  * Hash Calculator tool UI (Stage 9 reference + Stage 7 Gate 7 proof).
  * Static shell; behavior lives in `hash-calculator.client.ts`, which calls the
- * worker-backed `hash-client` (text + file with progress/cancel, no UI blocking).
+ * worker-backed `hash-client` (text or sequential files, progress/cancel).
  *
- * Workbench: input panel (text or Open file → algorithms → Calculate) | result
- * panel: optional "Expected hash" verification field (checksum compare against
- * the cached digests of the selected algorithms, see `hash-compare.ts`), the
- * match summary, then result rows (algorithm + "Matches" badge → digest → copy).
+ * Workbench: text/file selection → algorithms → Calculate | per-source
+ * digests, expected-checksum comparison, terminal errors/cancellation and
+ * TXT/CSV/JSON downloads. Only algorithm choices persist in localStorage.
  *
  * Locale strings for the current tool namespace are embedded as a JSON island
  * (Stage 5: browser controller gets only its own namespace strings).
@@ -21,6 +20,7 @@ import OutputPanel from "@/components/tool/OutputPanel.astro";
 import EmptyState from "@/components/tool/EmptyState.astro";
 import Progress from "@/components/tool/Progress.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
+import Icon from "@/components/Icon.astro";
 
 interface Props {
   lang: LocaleCode;
@@ -49,7 +49,6 @@ const strings = {
   algorithmsSearchPlaceholder: t(lang, ns, "AlgorithmsSearchPlaceholder"),
   algorithmsReset: t(lang, ns, "AlgorithmsReset"),
   selectAtLeastOne: t(lang, ns, "SelectAtLeastOneAlgorithm"),
-  fileProgress: t(lang, ns, "FileProgressTitle"),
   preparing: t(lang, "common", "Common_Preparing"),
   expectedLabel: t(lang, ns, "ExpectedLabel"),
   expectedHint: t(lang, ns, "ExpectedHint"),
@@ -60,8 +59,21 @@ const strings = {
   comparePending: t(lang, ns, "ComparePending"),
   compareStale: t(lang, ns, "CompareStale"),
   rowMatches: t(lang, ns, "RowMatches"),
+  selectedFiles: t(lang, ns, "SelectedFiles"),
+  removeFile: t(lang, ns, "RemoveFile"),
+  textResult: t(lang, ns, "TextResult"),
+  statusReady: t(lang, ns, "StatusReady"),
+  statusHashing: t(lang, ns, "StatusHashing"),
+  statusDone: t(lang, ns, "StatusDone"),
+  statusCanceled: t(lang, ns, "StatusCanceled"),
+  statusError: t(lang, ns, "StatusError"),
+  processingError: t(lang, ns, "ProcessingError"),
+  progressStats: t(lang, ns, "ProgressStats"),
+  resultStats: t(lang, ns, "ResultStats"),
+  exportLabel: t(lang, ns, "ExportLabel"),
+  exportFormat: t(lang, ns, "ExportFormat"),
 };
-const defaults = new Set(DEFAULT_HASH_ALGORITHMS);
+const defaults: Record<string, true> = Object.fromEntries(DEFAULT_HASH_ALGORITHMS.map((id) => [id, true]));
 const stringsJson = JSON.stringify(strings);
 ---
 
@@ -69,7 +81,7 @@ const stringsJson = JSON.stringify(strings);
   <ToolPanel title={strings.inputLabel} for="hash-textarea" meta="" metaProps={{ "data-hash-filename": true }}>
     <Fragment slot="actions">
       <label class="ds-btn ds-btn-small ds-btn-ghost ds-file-btn">
-        <input type="file" data-hash-file aria-label={strings.fileLabel} />{strings.open}
+        <input type="file" multiple data-hash-file aria-label={strings.fileLabel} />{strings.open}
       </label>
       <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-hash-clear>{strings.clear}</button>
     </Fragment>
@@ -89,6 +101,7 @@ const stringsJson = JSON.stringify(strings);
       />
     </div>
     <p class="ds-hint hash-file-hint" id="hash-file-hint">{strings.fileHint}</p>
+    <ul class="ds-file-list" data-hash-files aria-label={strings.fileLabel} hidden></ul>
 
     <div class="ds-settings hash-algos">
       <Field label={strings.algorithmsTitle} asideProps={{ "data-hash-algo-count": true }}>
@@ -103,7 +116,7 @@ const stringsJson = JSON.stringify(strings);
         <div class="algo-list" data-hash-algo-list role="group" aria-label={strings.algorithmsTitle}>
           {HASH_ALGORITHMS.map((alg) => (
             <label class="algo-item">
-              <input type="checkbox" class="ds-check" value={alg.id} data-hash-algo checked={defaults.has(alg.id)} />
+              <input type="checkbox" class="ds-check" value={alg.id} data-hash-algo checked={defaults[alg.id] === true} />
               <span>{alg.label}</span>
             </label>
           ))}
@@ -128,6 +141,16 @@ const stringsJson = JSON.stringify(strings);
   </ToolPanel>
 
   <OutputPanel panel label={strings.resultsLabel} emptyHint={strings.outputEmpty} data-hash-output>
+    <Fragment slot="actions">
+      <select class="ds-field-select hash-export-format" data-hash-export-format aria-label={strings.exportFormat}>
+        <option value="txt">TXT</option>
+        <option value="csv">CSV</option>
+        <option value="json">JSON</option>
+      </select>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-hash-export disabled>
+        <Icon name="download" size={16} />{strings.exportLabel}
+      </button>
+    </Fragment>
     <Field label={strings.expectedLabel} for="hash-expected" hint={strings.expectedHint} class="hash-expected">
       <input
         id="hash-expected"
@@ -159,6 +182,9 @@ const stringsJson = JSON.stringify(strings);
   }
   .hash-file-hint {
     margin-top: -0.5rem;
+  }
+  .hash-export-format {
+    width: auto;
   }
   .hash-algos {
     display: flex;

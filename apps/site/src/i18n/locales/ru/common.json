@@ -5,6 +5,7 @@
   "Common_Output": "Вывод",
   "Common_Loading": "Загрузка...",
   "Common_Error": "Ошибка",
+  "Common_ProcessingFailed": "Не удалось обработать данные.",
   "Common_FileDropTitle": "Перетащите файл сюда",
   "Common_FileDropSubtitle": "или выберите файл на устройстве",
   "Common_FileChooseButton": "Выбрать файл",

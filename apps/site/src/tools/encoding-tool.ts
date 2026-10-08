@@ -48,6 +48,7 @@ export interface EncodingToolStrings {
   errInvalidData: string;
   errCopyFailed: string;
   error: string;
+  processingFailed: string;
   fileSizeLimitEncode?: string;
   fileSizeLimitDecode?: string;
   /** `Common_Preparing` — first-run WASM load feedback. */
@@ -196,6 +197,7 @@ export function initEncodingTool(config: EncodingToolConfig): void {
       decodeBtn?.removeAttribute("aria-busy");
     }
     if (fileInput) fileInput.disabled = busy;
+    if (fileClearBtn) fileClearBtn.disabled = busy;
     if (drop) drop.setAttribute("aria-disabled", String(busy));
   }
 
@@ -220,6 +222,14 @@ export function initEncodingTool(config: EncodingToolConfig): void {
   function handleError(e: unknown) {
     if (e instanceof WasmError && e.code === "aborted") {
       clearError(); // cancellation is not an error to surface
+      return;
+    }
+    if (e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")) {
+      setOutput("");
+      setStats(null);
+      setLastDownload(null);
+      inputArea.removeAttribute("aria-invalid");
+      showError(strings.processingFailed);
       return;
     }
     const message = e instanceof Error ? e.message : String(e);

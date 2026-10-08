@@ -1,7 +1,8 @@
 /**
  * Encoding file protocol (worker, Stage 7/9). One job at a time per worker.
  * The File arrives via structured clone; the worker reads it in 1 MiB chunks
- * with progress + cooperative cancel, then encodes/decodes in one pass.
+ * with progress, then encodes/decodes in one pass. Cancellation terminates the
+ * worker; every terminal outcome releases the worker and its WASM heap.
  *
  * Chunk-wise streaming encoding (legacy carry logic) is intentionally not
  * replicated: parity holds for valid inputs, and the output is a single string
@@ -11,9 +12,13 @@
 import type { EncodingOptions } from "@/scripts/wasm/encoding-client";
 import type { WasmErrorCode } from "@/scripts/wasm/worker-protocol";
 
-export type EncodingWorkerRequest =
-  | { type: "start"; id: number; direction: "encode" | "decode"; options: EncodingOptions; file: File }
-  | { type: "cancel"; id: number };
+export interface EncodingWorkerRequest {
+  type: "start";
+  id: number;
+  direction: "encode" | "decode";
+  options: EncodingOptions;
+  file: File;
+}
 
 export type EncodingWorkerResponse =
   | { type: "progress"; id: number; processed: number; total: number; elapsedMs: number }

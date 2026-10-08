@@ -236,12 +236,14 @@ export function bindDropzone(
   const isDisabled = () => zone.getAttribute("aria-disabled") === "true" || input?.disabled === true;
 
   const onEnter = (e: DragEvent) => {
+    if (!clickToOpen && !e.dataTransfer?.types.includes("Files")) return;
     e.preventDefault();
     if (isDisabled()) return;
     depth++;
     setOver(true);
   };
   const onOver = (e: DragEvent) => {
+    if (!clickToOpen && !e.dataTransfer?.types.includes("Files")) return;
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = isDisabled() ? "none" : "copy";
   };
@@ -250,6 +252,7 @@ export function bindDropzone(
     if (depth === 0) setOver(false);
   };
   const onDrop = (e: DragEvent) => {
+    if (!clickToOpen && !e.dataTransfer?.types.includes("Files")) return;
     e.preventDefault();
     depth = 0;
     setOver(false);

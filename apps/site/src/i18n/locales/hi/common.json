@@ -5,6 +5,7 @@
   "Common_Output": "आउटपुट",
   "Common_Loading": "लोड हो रहा है...",
   "Common_Error": "त्रुटि",
+  "Common_ProcessingFailed": "डेटा संसाधित नहीं किया जा सका।",
   "Common_FileDropTitle": "फ़ाइल को यहाँ ड्रैग और ड्रॉप करें",
   "Common_FileDropSubtitle": "या अपने डिवाइस से फ़ाइल चुनें",
   "Common_FileChooseButton": "फ़ाइल चुनें",

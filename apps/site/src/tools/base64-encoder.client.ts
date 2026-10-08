@@ -46,6 +46,7 @@ interface Strings {
   errInvalidData: string;
   errCopyFailed: string;
   error: string;
+  processingFailed: string;
   /** `Common_Preparing` — first-run WASM load feedback. */
   preparing?: string;
 }
@@ -218,6 +219,7 @@ function init() {
       decodeBtn?.removeAttribute("aria-busy");
     }
     if (fileInput) fileInput.disabled = busy;
+    if (clearFileBtn) clearFileBtn.disabled = busy;
     drop?.setAttribute("aria-disabled", String(busy));
   }
 
@@ -241,6 +243,12 @@ function init() {
   function handleError(e: unknown) {
     if (e instanceof WasmError && e.code === "aborted") {
       clearError();
+      return;
+    }
+    if (e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")) {
+      resetOutput();
+      inputArea.removeAttribute("aria-invalid");
+      showError(strings.processingFailed);
       return;
     }
     const message = e instanceof Error ? e.message : String(e);

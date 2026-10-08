@@ -1,6 +1,6 @@
 /**
- * DOM builders shared by the PDF tool controllers (pdf-compressor,
- * pdf-merger, pdf-to-text): selected-file rows on the global `ds-file-item*`
+ * DOM builders shared by PDF and hash tool controllers: selected-file rows
+ * on the global `ds-file-item*`
  * classes (controller-created DOM — Astro scoped CSS would not reach it),
  * icon buttons/links, status badges and the row spinner. Browser-only.
  */

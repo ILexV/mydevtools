@@ -5,6 +5,7 @@
   "Common_Output": "输出",
   "Common_Loading": "加载中...",
   "Common_Error": "错误",
+  "Common_ProcessingFailed": "无法处理数据。",
   "Common_FileDropTitle": "拖放文件到此处",
   "Common_FileDropSubtitle": "或从您的设备选择文件",
   "Common_FileChooseButton": "选择文件",

@@ -1,0 +1,1 @@
+function e(e){return e.length>0&&/^\s|\s$/u.test(e)}function t(e){if(!e)return[];let t=e.trim();return t&&t!==e?[e,t]:[e]}export{t as n,e as t};

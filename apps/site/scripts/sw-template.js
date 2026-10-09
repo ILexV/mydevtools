@@ -64,9 +64,10 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(PRECACHE);
-      // cache.addAll is atomic: dedupe URLs so repeats don't confuse it.
+      // Bypass HTTP cache when preparing a new generation: unchanged URLs
+      // (especially locale homes) may still contain the previous deployment.
       const urls = [...new Set(PRECACHE_MANIFEST.map((e) => e.url))];
-      await cache.addAll(urls);
+      await cache.addAll(urls.map((url) => new Request(url, { cache: "reload" })));
       // Intentionally NOT calling self.skipWaiting() — updates are
       // message-driven so a controlling page can choose when to swap over.
     })()

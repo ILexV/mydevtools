@@ -163,12 +163,12 @@ if (precachePaths.has("offline/index.html")) {
   entries.push({ url: OFFLINE_URL, revision });
 }
 
-// Deterministic version over the sorted manifest.
+// Deterministic version over both content and the worker's runtime behavior.
+const template = await readFile(resolve(ROOT, "scripts", "sw-template.js"), "utf8");
 entries.sort((a, b) => (a.url < b.url ? -1 : a.url > b.url ? 1 : 0));
-const CACHE_VERSION = createHash("sha1").update(JSON.stringify(entries)).digest("hex").slice(0, 8);
+const CACHE_VERSION = createHash("sha1").update(JSON.stringify(entries)).update(template).digest("hex").slice(0, 8);
 
 // 5. Inject placeholders into the template and write dist/sw.js.
-const template = await readFile(resolve(ROOT, "scripts", "sw-template.js"), "utf8");
 const sw = template
   .split("__PRECACHE_MANIFEST__").join(JSON.stringify(entries))
   .split("__CACHE_VERSION__").join(JSON.stringify(CACHE_VERSION))

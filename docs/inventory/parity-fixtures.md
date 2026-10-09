@@ -230,7 +230,17 @@ Installed **Firefox 153.0** and **WebKit 26.5** passed against the final rebuilt
 - A 1,048,613-byte AEAD fixture was encrypted, rejected with the localized wrong-password error, then decrypted successfully. Full byte comparison found no difference; SHA-256 was `03be94f37fb385d978994eecb8f42cf1a3226903acbaef1034cff44445707057`. All three terminal AEAD workers were terminated; the downloaded Blob remained readable.
 - Successful core recovery/roundtrip/camera paths had zero unexpected console/page errors and zero failed tracked requests. All five core routes in `en` and `ru` had zero horizontal overflow at 375 px.
 
-## 7. Remaining gaps (not covered by this verification)
+## 7. Publication and warm HTTP-cache regression (2026-10-09)
+
+Source `e229054` and Pages `f7eb509` published the 41-tool catalog. All 20 live Explorer routes imported actual JSONL/explicit-TSV fixtures in their own locale, preserved `9007199254740993` and `東京`, used the expected canonical URLs and made zero WASM requests. Compiled site assets matched the verified local build; successful paths had zero console/page errors and failed tracked requests. Live Base64 encoded `hello` as `aGVsbG8=`, the file Hash Calculator matched its MD5/SHA-1/SHA-256 golden digests, and PNG → JPEG produced a real 40,386-byte, 512 × 512 image.
+
+The visible PWA Update button promoted `5662ccd5 → 9a49e8eb` and removed the old cache. Inspecting the **new cache contents** nevertheless exposed an old 39-tool `/en/index.html` response, downloaded before the publication: `cache.addAll(urls)` had reused the browser's still-fresh HTTP cache. A new cache name alone did not prove fresh offline data.
+
+Fix: install with `Request(url, { cache: "reload" })` while retaining atomic `cache.addAll`; derive the cache version from both the manifest and the worker template, so a strategy-only repair does not overwrite the active generation during installation.
+
+A throwaway native-browser regression server served cacheable 39-tool HTML, then switched to 41-tool HTML with both Explorer links. A normal browser fetch still returned the old response; the actual fixed worker installed the new response into precache. Exactly two home network fetches occurred (initial warm-up and forced reload). The probe tab/server were closed. This exercises the real HTTP/ServiceWorker caches rather than a Node cache-option forwarding mock.
+
+## 8. Remaining gaps (not covered by this verification)
 
 - **Full browser matrix** — catalog/core UI sweeps use Chromium; the hash
   benchmark also uses Firefox, and Explorer checks include Firefox/WebKit.

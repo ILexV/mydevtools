@@ -74,6 +74,13 @@ Compile targets:
 > `src/generated/` is gitignored, so `npm run build:wasm` (all 11 domains,
 > `ipcalc` included) must run on a fresh checkout and whenever Rust sources change.
 
+The service-worker cache version hashes both the precache revisions and the
+worker template. Installation uses `Request(..., { cache: "reload" })` so
+stable URLs (especially locale `index.html` files) are fetched afresh instead
+of copying an earlier release from the browser's HTTP cache. After accepting
+an update, check the **contents** of a cached locale home, not only the new
+cache name: its offline catalog must contain newly published tools.
+
 ## Smoke test (post-deploy)
 
 > **`.nojekyll` is mandatory.** GitHub Pages runs Jekyll on branch deploys,

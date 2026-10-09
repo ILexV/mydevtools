@@ -10,9 +10,9 @@
  *   4. New SW activates, purges old precache, claims clients → `controllerchange`
  *      fires → we reload once into the fresh shell.
  *
- * `scripts/build-sw.mjs` regenerates the precache list + version each build, so
- * there is no manual asset list to maintain and no infinite stale cache: every
- * deploy bumps the version and the activate step deletes the old precache cache.
+ * build-sw.mjs regenerates the precache list and versions both its contents and
+ * the worker template. A content/strategy change gets its own cache generation;
+ * activation deletes previous generations after the user confirms the update.
  */
 import { BASE_URL } from "@/lib/url";
 

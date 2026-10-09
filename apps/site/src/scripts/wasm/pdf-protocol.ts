@@ -2,6 +2,8 @@
  * Message protocol between `pdf-client` and `pdf.worker`. PDF bytes travel as
  * transferred ArrayBuffers (merge: one buffer per input, in merge order).
  */
+import type { WasmErrorCode } from "@/scripts/wasm/worker-protocol";
+
 export type PdfWorkerRequest =
   | { id: number; op: "compress"; input: ArrayBuffer }
   | { id: number; op: "extract"; input: ArrayBuffer }
@@ -10,4 +12,4 @@ export type PdfWorkerRequest =
 export type PdfWorkerResponse =
   | { id: number; ok: true; output: ArrayBuffer }
   | { id: number; ok: true; text: string }
-  | { id: number; ok: false; message: string };
+  | { id: number; ok: false; message: string; code?: WasmErrorCode };

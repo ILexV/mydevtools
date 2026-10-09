@@ -191,6 +191,17 @@ self.addEventListener("message", async (ev: MessageEvent<AeadWorkerRequest>) => 
   const req = ev.data;
   try {
     await ensureReady();
+  } catch (e) {
+    post({
+      id: req.id,
+      type: "error",
+      failure: "crypto",
+      code: "init-failed",
+      message: e instanceof Error ? e.message : String(e),
+    });
+    return;
+  }
+  try {
     post(req.op === "encrypt" ? await encrypt(req) : await decrypt(req));
   } catch (e) {
     const failure: AeadFailure = e instanceof AeadFail ? e.failure : "crypto";

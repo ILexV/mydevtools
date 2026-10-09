@@ -33,6 +33,7 @@ interface Strings {
   errorEncrypted: string;
   error: string;
   preparing: string;
+  processingFailed: string;
 }
 
 interface FileItem {
@@ -94,6 +95,9 @@ function init() {
   }
 
   function errorMessage(e: unknown, name: string): string {
+    if (e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")) {
+      return `${name}: ${strings.processingFailed}`;
+    }
     const message = e instanceof Error ? e.message : "";
     const { kind } = classifyPdfError(message);
     if (kind === "encrypted") return strings.errorEncrypted.replace("{name}", name);

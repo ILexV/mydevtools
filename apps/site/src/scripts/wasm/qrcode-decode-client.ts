@@ -25,10 +25,15 @@ export async function qrDecode(imageBytes: Uint8Array, signal?: AbortSignal): Pr
   return res.text;
 }
 
-/** Decode one camera frame (ImageBitmap, transferred and closed by the worker). */
+/** Decode one camera frame (ImageBitmap, transferred and always released). */
 export async function qrDecodeBitmap(bitmap: ImageBitmap, signal?: AbortSignal): Promise<string> {
-  const res = await decoder.run({ kind: "bitmap", bitmap }, [bitmap], signal);
-  return res.text;
+  try {
+    const res = await decoder.run({ kind: "bitmap", bitmap }, [bitmap], signal);
+    return res.text;
+  } finally {
+    // Safe after transfer and essential when worker construction/posting fails.
+    bitmap.close();
+  }
 }
 
 /** Decode one camera frame from raw RGBA pixels (fallback without OffscreenCanvas). */

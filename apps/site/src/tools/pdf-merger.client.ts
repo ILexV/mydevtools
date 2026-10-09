@@ -40,6 +40,7 @@ interface Strings {
   error: string;
   /** `Common_Preparing` — first-run WASM load feedback. */
   preparing?: string;
+  processingFailed: string;
 }
 
 function readStrings(): Strings | null {
@@ -189,6 +190,10 @@ function init() {
   }
 
   function errorMessage(e: unknown): string {
+    if (e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")) {
+      failedIndex = null;
+      return strings.processingFailed;
+    }
     const message = e instanceof Error ? e.message : "";
     const { kind, index } = classifyPdfError(message);
     const name = index !== null ? files[index]?.name : undefined;

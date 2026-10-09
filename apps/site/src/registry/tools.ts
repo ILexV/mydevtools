@@ -1,5 +1,5 @@
 /**
- * Tool registry — the single source of truth for all 39 tools.
+ * Tool registry — the single source of truth for the tool catalog.
  *
  * Adding a tool = one entry here + locale JSON under
  * `src/i18n/locales/<lang>/tools/<slug>.json` (all 10 langs). Build-time
@@ -83,6 +83,8 @@ export const TOOLS: readonly Tool[] = [
   // ── structured-data ───────────────────────────────────────────────────────
   { slug: "json-beautifier", monogram: "{}", category: "structured-data", wasm: null, capabilities: { codeEditor: true, copy: true } },
   { slug: "json-to-typescript", monogram: "TS", category: "structured-data", wasm: null, capabilities: { codeEditor: true, copy: true, download: true } },
+  { slug: "json-explorer", monogram: "J{}", category: "structured-data", wasm: null, capabilities: { file: "single", chunked: true, progress: true, cancel: true, download: true } },
+  { slug: "csv-explorer", monogram: "CSV", category: "structured-data", wasm: null, capabilities: { file: "single", chunked: true, progress: true, cancel: true, download: true } },
   { slug: "xml-beautifier", monogram: "</>", category: "structured-data", wasm: null, capabilities: { codeEditor: true, copy: true } },
   { slug: "yaml-beautifier-validator", monogram: "Y:", category: "structured-data", wasm: "structured_data", capabilities: { codeEditor: true, copy: true } },
   { slug: "cron-generator", monogram: "*/5", category: "structured-data", wasm: null, capabilities: { copy: true } },

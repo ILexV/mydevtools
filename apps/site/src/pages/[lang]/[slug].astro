@@ -1,7 +1,7 @@
 ---
 /**
  * `/{lang}/{slug}/` — tool page (Prism shell, design spec §9).
- * All 39 × 10 routes from the tool registry (validated at build). Tool head:
+ * All localized routes come from the tool registry (validated at build). Tool head:
  * breadcrumb, per-tool monogram tile + H1 + description + privacy note, favorite/share.
  * Tile/H1 carry `tool-icon-<slug>` / `tool-title-<slug>` view-transition names
  * (pair with ToolCard for the catalog → tool morph).
@@ -38,6 +38,8 @@ import OpenSshKeys from "@/tools/OpenSshKeys.astro";
 import X509Tool from "@/tools/X509Tool.astro";
 import JsonBeautifier from "@/tools/JsonBeautifier.astro";
 import JsonToTypeScript from "@/tools/JsonToTypeScript.astro";
+import JsonExplorer from "@/tools/JsonExplorer.astro";
+import CsvExplorer from "@/tools/CsvExplorer.astro";
 import XmlBeautifier from "@/tools/XmlBeautifier.astro";
 import YamlBeautifierValidator from "@/tools/YamlBeautifierValidator.astro";
 import CronGenerator from "@/tools/CronGenerator.astro";
@@ -121,6 +123,8 @@ const TOOL_COMPONENTS: Record<string, any> = {
   "json-beautifier": JsonBeautifier,
   "json-to-typescript": JsonToTypeScript,
   "xml-beautifier": XmlBeautifier,
+  "json-explorer": JsonExplorer,
+  "csv-explorer": CsvExplorer,
   "yaml-beautifier-validator": YamlBeautifierValidator,
   "cron-generator": CronGenerator,
   "cron-parser": CronParser,

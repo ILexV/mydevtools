@@ -2,14 +2,14 @@
 
 ## Project Overview
 
-MyDevTools is a privacy-first collection of 39 multilingual developer utilities. The **live site** is a static Astro build in `apps/site`, published to GitHub Pages at https://mydevtools.app/ (custom domain via `apps/site/public/CNAME`, branch `gh-pages`; the old https://ilexv.github.io/mydevtools/ redirects there). All computation runs in the browser: vanilla TypeScript controllers plus lazy-loaded Rust/WASM, no server runtime.
+MyDevTools is a privacy-first collection of 41 multilingual developer utilities. The **live site** is a static Astro build in `apps/site`, published to GitHub Pages at https://mydevtools.app/ (custom domain via `apps/site/public/CNAME`, branch `gh-pages`; the old https://ilexv.github.io/mydevtools/ redirects there). All computation runs in the browser: vanilla TypeScript controllers plus lazy-loaded Rust/WASM, no server runtime.
 
 The former .NET 10 Blazor SSR site (`MyDevToolsApp/`) and the React UI kit (`packages/ui-kit`, `apps/storybook`) are **legacy**: kept for reference, not deployed, and not used by the Astro site. Do not add features there.
 
 ## Architecture & Data Flow
 
 - Config: `apps/site/astro.config.mjs` — `output: "static"`, `site: https://mydevtools.app`, `base: "/"`, `trailingSlash: "always"`, `build.format: "directory"` (each route emits `index.html` so deep links survive Pages). `@/*` aliases `src/`.
-- Registries are the single source of truth (`apps/site/src/registry/`): `tools.ts` (39 tools: slug, category, WASM domain, capabilities), `categories.ts` (13), `locales.ts` (10 languages, native names, og:locale, hreflang), `catalog.ts` (grouping/related), `validate.ts` (build-time assertions). Routes, home catalog, search, command palette, related tools and sitemap are all derived from them.
+- Registries are the single source of truth (`apps/site/src/registry/`): `tools.ts` (41 tools: slug, category, WASM domain, capabilities), `categories.ts` (13), `locales.ts` (10 languages, native names, og:locale, hreflang), `catalog.ts` (grouping/related), `validate.ts` (build-time assertions). Routes, home catalog, search, command palette, related tools and sitemap are all derived from them.
 - Routes: `src/pages/index.astro` (root language redirect), `[lang]/index.astro` (home), `[lang]/[slug].astro` (tool page via `getStaticPaths` over LOCALES × TOOLS; picks the component from the `TOOL_COMPONENTS` map), plus `404.astro`, `offline.astro`, `design.astro` (design-system showcase), `sitemap.xml.ts`, `manifest.webmanifest.ts`.
 - Tool flow: `/{lang}/{slug}/` → `src/tools/<PascalName>.astro` (markup + localized strings as an inline JSON island) → `src/tools/<slug>.client.ts` controller → optional `src/scripts/wasm/<domain>-client.ts` → dynamic import of `src/generated/wasm/<domain>/` bindings; heavy/file work runs in `src/workers/*.worker.ts` (protocol in `scripts/wasm/worker-protocol.ts`: start/progress/result/error/cancel, 1 MiB chunks).
 - Localization: JSON in `src/i18n/locales/<lang>/{common,home,categories}.json` and `tools/<slug>.json`. Rendered at build time with `t()` from `src/i18n/messages.ts` (fallback locale → en → key, `{param}` interpolation); pluralization via `src/lib/format.ts` (`Intl.PluralRules`). Languages: `en`, `ru`, `es`, `de`, `pt`, `zh`, `fr`, `ja`, `ko`, `hi`.

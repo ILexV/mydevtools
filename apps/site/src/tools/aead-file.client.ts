@@ -34,6 +34,7 @@ interface Strings {
   noteLegacyFormat: string;
   /** `Common_Preparing` — first-run WASM load feedback. */
   preparing?: string;
+  processingFailed: string;
 }
 
 function readStrings(): Strings | null {
@@ -100,6 +101,7 @@ function init() {
   let lastBlob: Blob | null = null;
   let lastName: string | null = null;
   let abortController: AbortController | null = null;
+  let operationEpoch = 0;
 
   function showError(msg: string) {
     errorEl.textContent = msg;
@@ -180,7 +182,7 @@ function init() {
     } else if (e instanceof AeadError && e.failure === "header") {
       showError(strings.errorInvalidContainer);
     } else {
-      showError(e instanceof Error ? e.message : String(e));
+      showError(strings.processingFailed);
     }
   }
 
@@ -206,10 +208,15 @@ function init() {
     const pw = readPassword();
     if (pw === null) return;
 
+    // Programmatic or rapid reruns supersede the old operation immediately.
+    // Its catch/finally paths are epoch-guarded so they cannot clear fresh UI.
+    abortController?.abort();
+    const mine = ++operationEpoch;
+    const ctrl = new AbortController();
+    abortController = ctrl;
     resetOutput();
     const trigger = mode === "encrypt" ? encryptButton : decryptButton;
     setBusy(true, trigger);
-    abortController = new AbortController();
     showProgress(file);
     // First-run "Preparing…" until the AEAD worker reports progress or finishes.
     const prepared = startPreparing("cryptography:aead", {
@@ -218,8 +225,9 @@ function init() {
     });
     try {
       const opts = {
-        signal: abortController.signal,
-        onProgress: (info: Parameters<typeof updateProgress>[0]) => {
+        signal: ctrl.signal,
+        onProgress: (info: AeadProgress) => {
+          if (mine !== operationEpoch) return;
           prepared();
           updateProgress(info);
         },
@@ -235,6 +243,7 @@ function init() {
         if (res.passwordIndex > 0) notes.push(strings.noteTrimmedPassword);
         if (res.format === 2) notes.push(strings.noteLegacyFormat);
       }
+      if (mine !== operationEpoch) return;
       const outName = mode === "encrypt" ? encryptedName(file.name) : decryptedName(file.name);
       lastBlob = blob;
       lastName = outName;
@@ -245,12 +254,14 @@ function init() {
       showNotes(notes);
       revealOutput(outputPanel);
     } catch (e) {
-      handleError(e);
+      if (mine === operationEpoch) handleError(e);
     } finally {
       prepared();
-      progressPanel.hidden = true;
-      setBusy(false, null);
-      abortController = null;
+      if (mine === operationEpoch) {
+        progressPanel.hidden = true;
+        setBusy(false, null);
+        if (abortController === ctrl) abortController = null;
+      }
     }
   }
 

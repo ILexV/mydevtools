@@ -1,5 +1,7 @@
 # 📘 MyDevTools.app — Privacy-First Developer Tools
 
+> Этот README описывает legacy-сайт на Blazor. Актуальный фронтенд — статический Astro в [`apps/site`](apps/site): 41 инструмент и 10 языков, без серверного runtime. Новые `json-explorer` и `csv-explorer` обрабатывают файлы локально в workers. Текущие ограничения и результаты проверок: [`docs/inventory/tools.md`](docs/inventory/tools.md), [`docs/inventory/parity-fixtures.md`](docs/inventory/parity-fixtures.md); публикация — [`apps/site/RELEASING.md`](apps/site/RELEASING.md).
+
 [![.NET 10](https://img.shields.io/badge/.NET-10-blue)](https://dotnet.microsoft.com/)
 [![Blazor](https://img.shields.io/badge/Blazor-SSR-purple)](https://blazor.net/)
 

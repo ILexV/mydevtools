@@ -36,6 +36,7 @@ interface Strings {
   error: string;
   /** `Common_Preparing` — first-run WASM load feedback. */
   preparing?: string;
+  processingFailed: string;
   lang: string;
   previewTruncated: string;
   previewEmpty: string;
@@ -116,6 +117,9 @@ function init() {
   }
 
   function errorMessage(e: unknown, name: string): string {
+    if (e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")) {
+      return `${name}: ${strings.processingFailed}`;
+    }
     const message = e instanceof Error ? e.message : "";
     const { kind } = classifyPdfError(message);
     if (kind === "encrypted") return strings.errorEncrypted.replace("{name}", name);

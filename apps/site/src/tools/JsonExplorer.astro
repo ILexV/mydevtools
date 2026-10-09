@@ -1,0 +1,151 @@
+---
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+import FileDrop from "@/components/tool/FileDrop.astro";
+import Field from "@/components/tool/Field.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import Progress from "@/components/tool/Progress.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import "@/styles/explorer-ui.css";
+
+interface Props { lang: LocaleCode }
+const { lang } = Astro.props as Props;
+const ns = "tools/json-explorer";
+const key = (name: string) => t(lang, ns, name);
+const s = {
+  inputTitle: key("InputTitle"), dropTitle: key("DropTitle"), chooseFile: key("ChooseFile"), changeFile: key("ChangeFile"),
+  dropHint: key("DropHint"), formatLabel: key("FormatLabel"), formatAuto: key("FormatAuto"), formatJson: key("FormatJson"), formatJsonl: key("FormatJsonl"),
+  ordinaryLimitLabel: key("OrdinaryLimitLabel"), recordLimitLabel: key("RecordLimitLabel"), depthLimitLabel: key("DepthLimitLabel"),
+  process: key("Process"), cancel: key("Cancel"), clear: key("Clear"), progressTitle: key("ProgressTitle"),
+  resultsTitle: key("ResultsTitle"), emptyResults: key("EmptyResults"), filtersTitle: key("FiltersTitle"), searchLabel: key("SearchLabel"),
+  searchPlaceholder: key("SearchPlaceholder"), scopeLabel: key("ScopeLabel"), scopeBoth: key("ScopeBoth"), scopeKeys: key("ScopeKeys"), scopeValues: key("ScopeValues"),
+  fieldPathLabel: key("FieldPathLabel"), fieldPathPlaceholder: key("FieldPathPlaceholder"), fieldValueLabel: key("FieldValueLabel"), fieldValuePlaceholder: key("FieldValuePlaceholder"),
+  caseSensitive: key("CaseSensitive"), projectionLabel: key("ProjectionLabel"), projectionPlaceholder: key("ProjectionPlaceholder"), projectionHelp: key("ProjectionHelp"), applyFilters: key("ApplyFilters"), resetFilters: key("ResetFilters"),
+  tableLabel: key("TableLabel"), selectedTitle: key("SelectedTitle"), selectedEmpty: key("SelectedEmpty"), treeTitle: key("TreeTitle"), treeEmpty: key("TreeEmpty"), loadMore: key("LoadMore"),
+  exportTitle: key("ExportTitle"), exportJsonl: key("ExportJsonl"), exportCsv: key("ExportCsv"), formulaProtection: key("FormulaProtection"), exportHelp: key("ExportHelp"),
+  columnDisclosure: key("ColumnDisclosure"), limitsDisclosure: key("LimitsDisclosure"), privacy: key("Privacy"),
+  loadingRows: key("LoadingRows"), emptyRows: key("EmptyRows"), rowLabel: key("RowLabel"),
+  statusReady: key("StatusReady"), statusOpening: key("StatusOpening"), statusFiltering: key("StatusFiltering"), statusDone: key("StatusDone"), statusCanceled: key("StatusCanceled"), statusExporting: key("StatusExporting"), statusExported: key("StatusExported"),
+  stats: key("Stats"), progressStats: key("ProgressStats"), selectedMeta: key("SelectedMeta"), exportTooLarge: key("ExportTooLarge"), fileRequired: key("FileRequired"), columnsTruncated: key("ColumnsTruncated"),
+  processingFailed: t(lang, "common", "Common_ProcessingFailed"),
+  errorInvalidJson: key("ErrorInvalidJson"), errorMalformedJsonl: key("ErrorMalformedJsonl"), errorEmptyJson: key("ErrorEmptyJson"), errorInvalidUtf8: key("ErrorInvalidUtf8"),
+  errorDepthLimit: key("ErrorDepthLimit"), errorRecordLimit: key("ErrorRecordLimit"), errorOrdinaryLimit: key("ErrorOrdinaryLimit"), errorFieldLimit: key("ErrorFieldLimit"),
+  errorInvalidPath: key("ErrorInvalidPath"), errorSessionMissing: key("ErrorSessionMissing"), errorRowRange: key("ErrorRowRange"), errorTreeUnavailable: key("ErrorTreeUnavailable"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="ds-workbench json-explorer" data-json-explorer>
+  <ToolPanel title={s.inputTitle}>
+    <FileDrop
+      title={s.dropTitle}
+      buttonLabel={s.chooseFile}
+      changeLabel={s.changeFile}
+      sub={s.dropHint}
+      accept=".json,.jsonl,.ndjson,application/json,application/x-ndjson"
+      data-json-explorer-drop
+      inputProps={{ "data-json-explorer-file": true }}
+    >
+      <p class="ds-hint json-file-name" data-json-explorer-file-name hidden></p>
+    </FileDrop>
+
+    <div class="ds-settings json-settings">
+      <Field label={s.formatLabel} for="json-explorer-format">
+        <select id="json-explorer-format" class="ds-field-select" data-json-explorer-format>
+          <option value="auto">{s.formatAuto}</option><option value="json">{s.formatJson}</option><option value="jsonl">{s.formatJsonl}</option>
+        </select>
+      </Field>
+      <Field label={s.ordinaryLimitLabel} for="json-explorer-ordinary-limit">
+        <select id="json-explorer-ordinary-limit" class="ds-field-select" data-json-explorer-ordinary-limit>
+          <option value="8388608">8 MiB</option><option value="16777216">16 MiB</option><option value="33554432" selected>32 MiB</option><option value="67108864">64 MiB</option>
+        </select>
+      </Field>
+      <Field label={s.recordLimitLabel} for="json-explorer-record-limit">
+        <select id="json-explorer-record-limit" class="ds-field-select" data-json-explorer-record-limit>
+          <option value="1048576">1 MiB</option><option value="2097152">2 MiB</option><option value="4194304" selected>4 MiB</option><option value="8388608">8 MiB</option>
+        </select>
+      </Field>
+      <Field label={s.depthLimitLabel} for="json-explorer-depth-limit">
+        <select id="json-explorer-depth-limit" class="ds-field-select" data-json-explorer-depth-limit>
+          <option value="64">64</option><option value="128">128</option><option value="256" selected>256</option>
+        </select>
+      </Field>
+    </div>
+    <p class="ds-hint">{s.limitsDisclosure}</p>
+    <p class="ds-hint">{s.privacy}</p>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-json-explorer-process disabled>{s.process}</button>
+      <button type="button" class="ds-btn" data-json-explorer-cancel hidden>{s.cancel}</button>
+      <button type="button" class="ds-btn ds-btn-ghost" data-json-explorer-clear>{s.clear}</button>
+    </div>
+    <Progress title={s.progressTitle} barLabel={s.progressTitle} data-json-explorer-progress barProps={{ "data-json-explorer-progress-bar": true }} fillProps={{ "data-json-explorer-progress-fill": true }} labelProps={{ "data-json-explorer-progress-label": true }} />
+    <StatusMessage kind="error" data-json-explorer-error />
+    <StatusMessage kind="info" data-json-explorer-status />
+  </ToolPanel>
+
+  <OutputPanel panel label={s.resultsTitle} emptyHint={s.emptyResults} data-json-explorer-output>
+    <div class="ds-when-filled json-result-stack">
+      <p class="json-stats" data-json-explorer-stats></p>
+      <details class="json-filter-card" open>
+        <summary>{s.filtersTitle}</summary>
+        <div class="json-filter-grid">
+          <Field label={s.searchLabel} for="json-explorer-search">
+            <input id="json-explorer-search" type="search" class="ds-field" placeholder={s.searchPlaceholder} data-json-explorer-search autocomplete="off" />
+          </Field>
+          <Field label={s.scopeLabel} for="json-explorer-scope">
+            <select id="json-explorer-scope" class="ds-field-select" data-json-explorer-scope><option value="both">{s.scopeBoth}</option><option value="keys">{s.scopeKeys}</option><option value="values">{s.scopeValues}</option></select>
+          </Field>
+          <Field label={s.fieldPathLabel} for="json-explorer-field-path">
+            <input id="json-explorer-field-path" class="ds-field mono" placeholder={s.fieldPathPlaceholder} data-json-explorer-field-path autocomplete="off" spellcheck="false" />
+          </Field>
+          <Field label={s.fieldValueLabel} for="json-explorer-field-value">
+            <input id="json-explorer-field-value" class="ds-field" placeholder={s.fieldValuePlaceholder} data-json-explorer-field-value autocomplete="off" />
+          </Field>
+        </div>
+        <label class="ds-check-row"><input type="checkbox" class="ds-check" data-json-explorer-case /> {s.caseSensitive}</label>
+        <Field label={s.projectionLabel} for="json-explorer-projection" hint={s.projectionHelp}>
+          <textarea id="json-explorer-projection" class="ds-field-textarea mono json-projection" rows="4" placeholder={s.projectionPlaceholder} data-json-explorer-projection spellcheck="false"></textarea>
+        </Field>
+        <div class="ds-action-row"><button type="button" class="ds-btn ds-btn-primary" data-json-explorer-apply>{s.applyFilters}</button><button type="button" class="ds-btn" data-json-explorer-reset>{s.resetFilters}</button></div>
+      </details>
+      <p class="ds-hint">{s.columnDisclosure}</p>
+      <StatusMessage kind="warning" data-json-explorer-column-warning />
+      <section aria-label={s.tableLabel}><div class="ds-explorer-table" data-json-explorer-table></div></section>
+
+      <section class="json-inspector" aria-labelledby="json-selected-title">
+        <h3 id="json-selected-title">{s.selectedTitle}</h3><p class="ds-hint" data-json-explorer-selected-empty>{s.selectedEmpty}</p><p class="ds-hint" data-json-explorer-selected-meta hidden></p><pre class="ds-code-block" data-json-explorer-selected hidden></pre>
+      </section>
+      <section class="json-tree" data-json-explorer-tree-section hidden aria-labelledby="json-tree-title">
+        <h3 id="json-tree-title">{s.treeTitle}</h3><p class="ds-hint" data-json-explorer-tree-empty>{s.treeEmpty}</p><div data-json-explorer-tree></div>
+      </section>
+      <section class="json-export" aria-labelledby="json-export-title">
+        <h3 id="json-export-title">{s.exportTitle}</h3><p class="ds-hint">{s.exportHelp}</p>
+        <label class="ds-check-row"><input type="checkbox" class="ds-check" data-json-explorer-formula checked /> {s.formulaProtection}</label>
+        <div class="ds-action-row"><button type="button" class="ds-btn" data-json-explorer-export-jsonl>{s.exportJsonl}</button><button type="button" class="ds-btn" data-json-explorer-export-csv>{s.exportCsv}</button></div>
+      </section>
+    </div>
+  </OutputPanel>
+</div>
+<script is:inline type="application/json" data-json-explorer-strings set:html={stringsJson} />
+<script>import "@/tools/json-explorer.client.ts";</script>
+
+<style>
+  .json-settings, .json-filter-grid { grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); }
+  .json-file-name { margin: 0.5rem 0 0; overflow-wrap: anywhere; }
+  .json-result-stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; min-width: 0; }
+  .json-stats { margin: 0; font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-meta); color: var(--mdt-text-muted); }
+  .json-filter-card { border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); padding: 0.8rem; }
+  .json-filter-card > summary { cursor: pointer; font-weight: 650; }
+  .json-filter-grid { display: grid; gap: 0.75rem; margin-top: 0.9rem; }
+  .json-projection { min-height: 6rem; }
+  .json-inspector, .json-tree, .json-export { display: grid; gap: 0.55rem; min-width: 0; }
+  .json-inspector h3, .json-tree h3, .json-export h3 { margin: 0; font-size: var(--mdt-fs-body); }
+  .json-inspector pre { max-height: 24rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+</style>
+<style is:global>
+  [data-json-explorer-tree] ul { list-style: none; padding-inline-start: 1.1rem; margin: 0.25rem 0; }
+  [data-json-explorer-tree] summary { cursor: pointer; font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-meta); overflow-wrap: anywhere; }
+  [data-json-explorer-tree] .json-tree-type { color: var(--mdt-text-muted); margin-inline-start: 0.4rem; }
+  [data-json-explorer-tree] .json-tree-preview { color: var(--mdt-cat); margin-inline-start: 0.4rem; }
+</style>

@@ -435,3 +435,14 @@ json-beautifier, json-to-typescript, xml-beautifier, yaml-beautifier-validator. 
 2. Удалить из `<style>` все правила, ставшие общими; оставить раскладку.
 3. Контроллер: классы в `innerHTML`/`className`/`classList` — на `ds-*`/`is-*`; копирование — `copyWithFeedback`; drop — `bindDropzone`; `formatBytes` — из `@/lib/format`.
 4. Браузер: light/dark, 1440/375, фокус с клавиатуры (Tab до file-кнопки — кольцо на label), disabled/busy, ошибка, `hidden`-элементы действительно скрыты.
+
+## Виртуализированные таблицы Explorer
+
+`scripts/explorer-table.ts` + `scripts/explorer-window.ts` + `styles/explorer-ui.css` — общий слой для JSON/JSONL и CSV/TSV. Контракт задаётся именованными типами `ExplorerTable`, `ExplorerTableOptions`, `ExplorerColumn` и `ExplorerWindow`; данные читает worker конкретного инструмента.
+
+- Высота строки — 40 px; физический scroll track ограничен 8 000 000 px, логические индексы не ограничены высотой CSS. В DOM остаются только видимые строки и небольшой overscan.
+- Один запрос диапазона за раз. Новый диапазон заменяет ожидающий; смена представления/импорт инвалидирует устаревшие ответы через revision.
+- Горизонтальный scroll синхронизирует заголовок. Клавиши ↑/↓, PageUp/PageDown, Home/End перемещают логическое окно; Enter/Space выбирают запись.
+- Внешние grid-контейнеры должны использовать `minmax(0, 1fr)` и `min-width: 0`: иначе min-content ширина таблицы растягивает страницу на мобильном экране вместо внутренней прокрутки.
+- Полные фильтры и экспорт выполняются по исходному файлу в worker, а не по строкам текущего viewport. Данные/запросы не сохраняются.
+

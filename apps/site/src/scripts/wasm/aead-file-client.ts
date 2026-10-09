@@ -49,66 +49,178 @@ export interface AeadDecryptResult {
 }
 
 type ResultMessage = Extract<AeadWorkerResponse, { type: "result" }>;
+type ErrorMessage = Extract<AeadWorkerResponse, { type: "error" }>;
 type Job = AeadWorkerRequest extends infer R ? (R extends unknown ? Omit<R, "id"> : never) : never;
 
-let worker: Worker | null = null;
+interface PendingJob {
+  resolve(value: ResultMessage): void;
+  reject(reason: unknown): void;
+  options: AeadRunOptions;
+  onAbort(): void;
+}
+
+interface WorkerState {
+  worker: Worker;
+  pending: Map<number, PendingJob>;
+  closed: boolean;
+  onMessage: (event: MessageEvent<AeadWorkerResponse>) => void;
+  onError: (event: ErrorEvent) => void;
+  onMessageError: () => void;
+}
+
+let active: WorkerState | null = null;
 let nextId = 1;
-
-function getWorker(): Worker {
-  if (!worker) {
-    worker = new Worker(new URL("../../workers/aead-file.worker.ts", import.meta.url), { type: "module" });
-  }
-  return worker;
-}
-
-function killWorker(): void {
-  worker?.terminate();
-  worker = null;
-}
 
 function abortError(): DOMException {
   return new DOMException("Aborted", "AbortError");
 }
 
-function runJob(job: Job, opts: AeadRunOptions): Promise<ResultMessage> {
-  if (opts.signal?.aborted) return Promise.reject(abortError());
-  const w = getWorker();
-  const id = nextId++;
-  const { promise, resolve, reject } = Promise.withResolvers<ResultMessage>();
+function failureMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : typeof error === "string" && error ? error : fallback;
+}
 
-  const onMsg = (ev: MessageEvent<AeadWorkerResponse>) => {
-    const m = ev.data;
-    if (m.id !== id) return;
-    if (m.type === "progress") {
-      opts.onProgress?.({ processed: m.processed, total: m.total, elapsedMs: m.elapsedMs });
-      return;
-    }
-    cleanup();
-    if (m.type === "result") resolve(m);
-    else reject(new AeadError(m.failure, m.message));
-  };
-  const onError = (ev: ErrorEvent) => {
-    // Worker crashed (e.g. WASM out-of-memory trap): drop it for the next job.
-    cleanup();
-    killWorker();
-    reject(new AeadError("crypto", ev.message || "Worker error"));
-  };
-  const onAbort = () => {
-    // Argon2id/chunk calls are synchronous WASM: terminate to stop immediately.
-    cleanup();
-    killWorker();
-    reject(abortError());
-  };
-  function cleanup() {
-    w.removeEventListener("message", onMsg);
-    w.removeEventListener("error", onError);
-    opts.signal?.removeEventListener("abort", onAbort);
+function detach(state: WorkerState): void {
+  state.worker.removeEventListener("message", state.onMessage);
+  state.worker.removeEventListener("error", state.onError);
+  state.worker.removeEventListener("messageerror", state.onMessageError);
+}
+
+function release(state: WorkerState): void {
+  if (state.closed) return;
+  state.closed = true;
+  if (active === state) active = null;
+  detach(state);
+  try {
+    state.worker.terminate();
+  } catch {
+    // Pending promises are settled independently below; termination is best-effort.
+  }
+}
+
+function cleanupJob(state: WorkerState, id: number, pending: PendingJob): void {
+  state.pending.delete(id);
+  pending.options.signal?.removeEventListener("abort", pending.onAbort);
+}
+
+function failState(state: WorkerState, error: unknown): void {
+  if (state.closed) return;
+  const pendingJobs = [...state.pending.values()];
+  state.pending.clear();
+  for (const pending of pendingJobs) {
+    pending.options.signal?.removeEventListener("abort", pending.onAbort);
+  }
+  release(state);
+  for (const pending of pendingJobs) pending.reject(error);
+}
+
+function finishJob(state: WorkerState, id: number, pending: PendingJob, message: ResultMessage | ErrorMessage): void {
+  cleanupJob(state, id, pending);
+  // AEAD's Argon2 allocation is intentionally one-shot. Once no request is
+  // using this worker, terminate it to release its large WASM memory; the
+  // structured-cloned result Blob remains owned by the main thread.
+  if (state.pending.size === 0) release(state);
+  if (message.type === "result") {
+    pending.resolve(message);
+  } else if (message.code) {
+    pending.reject(new WasmError(message.code, message.message));
+  } else {
+    pending.reject(new AeadError(message.failure, message.message));
+  }
+}
+
+function createWorkerState(): WorkerState {
+  let instance: Worker;
+  try {
+    instance = new Worker(new URL("../../workers/aead-file.worker.ts", import.meta.url), { type: "module" });
+  } catch (error) {
+    throw new WasmError("worker-failed", failureMessage(error, "Crypto worker could not be started"));
   }
 
-  w.addEventListener("message", onMsg);
-  w.addEventListener("error", onError);
+  function onMessage(event: MessageEvent<AeadWorkerResponse>): void {
+    const message = event.data;
+    if (!message || typeof message.id !== "number") return;
+    const pending = state.pending.get(message.id);
+    if (!pending) return;
+    if (message.type === "progress") {
+      pending.options.onProgress?.({
+        processed: message.processed,
+        total: message.total,
+        elapsedMs: message.elapsedMs,
+      });
+      return;
+    }
+    if (message.type === "error" && (message.code === "worker-failed" || message.code === "init-failed")) {
+      failState(state, new WasmError(message.code, message.message));
+      return;
+    }
+    finishJob(state, message.id, pending, message);
+  }
+  function onError(event: ErrorEvent): void {
+    failState(state, new WasmError("worker-failed", event.message || "Crypto worker failed"));
+  }
+  function onMessageError(): void {
+    failState(state, new WasmError("worker-failed", "Crypto worker response could not be decoded"));
+  }
+
+  const state: WorkerState = {
+    worker: instance,
+    pending: new Map(),
+    closed: false,
+    onMessage,
+    onError,
+    onMessageError,
+  };
+
+  try {
+    instance.addEventListener("message", state.onMessage);
+    instance.addEventListener("error", state.onError);
+    instance.addEventListener("messageerror", state.onMessageError);
+  } catch (error) {
+    detach(state);
+    try {
+      instance.terminate();
+    } catch {
+      // The rejected run still reports the original startup failure.
+    }
+    throw new WasmError("worker-failed", failureMessage(error, "Crypto worker could not be started"));
+  }
+  return state;
+}
+
+function runJob(job: Job, opts: AeadRunOptions): Promise<ResultMessage> {
+  if (opts.signal?.aborted) return Promise.reject(abortError());
+  let state = active;
+  if (!state) {
+    try {
+      state = createWorkerState();
+      active = state;
+    } catch (error) {
+      return Promise.reject(
+        error instanceof WasmError
+          ? error
+          : new WasmError("worker-failed", failureMessage(error, "Crypto worker could not be started")),
+      );
+    }
+  }
+  const current = state;
+  const id = nextId++;
+  const { promise, resolve, reject } = Promise.withResolvers<ResultMessage>();
+  const onAbort = () => failState(current, abortError());
+  const pending: PendingJob = { resolve, reject, options: opts, onAbort };
+  current.pending.set(id, pending);
   opts.signal?.addEventListener("abort", onAbort, { once: true });
-  w.postMessage({ ...job, id } as AeadWorkerRequest);
+  if (opts.signal?.aborted) {
+    onAbort();
+    return promise;
+  }
+  try {
+    current.worker.postMessage({ ...job, id } as AeadWorkerRequest);
+  } catch (error) {
+    failState(
+      current,
+      new WasmError("worker-failed", failureMessage(error, "Crypto worker request could not be sent")),
+    );
+  }
   return promise;
 }
 

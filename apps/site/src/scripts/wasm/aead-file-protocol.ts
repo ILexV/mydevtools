@@ -6,6 +6,8 @@
  * result comes back as a Blob. Cancel = the client terminates the worker
  * (the synchronous Argon2id call can't be interrupted cooperatively).
  */
+import type { WasmErrorCode } from "@/scripts/wasm/worker-protocol";
+
 export type AeadAlgorithm = "aes-256-gcm" | "chacha20-poly1305" | "xchacha20-poly1305";
 
 /**
@@ -23,4 +25,4 @@ export type AeadWorkerRequest =
 export type AeadWorkerResponse =
   | { id: number; type: "progress"; processed: number; total: number; elapsedMs: number }
   | { id: number; type: "result"; blob: Blob; headerHex: string; format: 2 | 3; passwordIndex: number }
-  | { id: number; type: "error"; failure: AeadFailure; message: string };
+  | { id: number; type: "error"; failure: AeadFailure; message: string; code?: WasmErrorCode };

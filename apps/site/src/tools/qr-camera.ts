@@ -9,6 +9,7 @@
  * are reported as kinds (denied / notFound / inUse / insecure / generic).
  */
 import { qrDecodeBitmap, qrDecodeImageData } from "@/scripts/wasm/qrcode-decode-client";
+import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { cameraFrameSize, classifyCameraError, type CameraErrorKind } from "@/tools/qr-code";
 
 /** Pause between frame grabs (ms); decode time adds to it, frames are never queued. */
@@ -18,6 +19,7 @@ export interface CameraScannerOptions {
   video: HTMLVideoElement;
   onResult(text: string): void;
   onError(kind: CameraErrorKind): void;
+  onProcessingError(): void;
   /** Called with the available video inputs once permission is granted. */
   onDevices?(devices: MediaDeviceInfo[], activeId: string | undefined): void;
   /** The page was hidden and the camera released (UI should reset). */
@@ -40,13 +42,16 @@ export function createCameraScanner(opts: CameraScannerOptions): CameraScanner {
   let stream: MediaStream | null = null;
   let session = 0; // bumps on every start/stop: stale async work checks it
   let active = false; // between start() and stop(), incl. the permission prompt
-  let timer: ReturnType<typeof setTimeout> | null = null;
+  let timer: number | null = null;
   let fallbackCanvas: HTMLCanvasElement | null = null;
+  let decodeController: AbortController | null = null;
   const useBitmap = typeof OffscreenCanvas !== "undefined" && typeof createImageBitmap === "function";
 
   function stop(): void {
     session++;
     active = false;
+    decodeController?.abort();
+    decodeController = null;
     if (timer) clearTimeout(timer);
     timer = null;
     stream?.getTracks().forEach((t) => t.stop());
@@ -55,10 +60,10 @@ export function createCameraScanner(opts: CameraScannerOptions): CameraScanner {
     video.srcObject = null;
   }
 
-  async function grab(width: number, height: number): Promise<string> {
+  async function grab(width: number, height: number, signal: AbortSignal): Promise<string> {
     if (useBitmap) {
       const bitmap = await createImageBitmap(video, { resizeWidth: width, resizeHeight: height, resizeQuality: "medium" });
-      return qrDecodeBitmap(bitmap);
+      return qrDecodeBitmap(bitmap, signal);
     }
     if (!fallbackCanvas) fallbackCanvas = document.createElement("canvas");
     fallbackCanvas.width = width;
@@ -66,25 +71,34 @@ export function createCameraScanner(opts: CameraScannerOptions): CameraScanner {
     const ctx = fallbackCanvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) throw new Error("no 2D context");
     ctx.drawImage(video, 0, 0, width, height);
-    return qrDecodeImageData(ctx.getImageData(0, 0, width, height));
+    return qrDecodeImageData(ctx.getImageData(0, 0, width, height), signal);
   }
 
   function schedule(mine: number): void {
-    timer = setTimeout(() => void tick(mine), FRAME_INTERVAL_MS);
+    timer = window.setTimeout(() => void tick(mine), FRAME_INTERVAL_MS);
   }
 
   async function tick(mine: number): Promise<void> {
     if (mine !== session) return;
     const size = video.readyState >= 2 ? cameraFrameSize(video.videoWidth, video.videoHeight) : null;
     if (!size) return schedule(mine);
+    const signal = decodeController?.signal;
+    if (!signal) return;
     try {
-      const text = await grab(size.width, size.height);
+      const text = await grab(size.width, size.height, signal);
       if (mine !== session) return;
       stop();
       opts.onResult(text);
       return;
-    } catch {
-      // No code in this frame (or a frame-level failure): try the next one.
+    } catch (error) {
+      if (mine !== session) return;
+      if (error instanceof WasmError && error.code === "unknown") {
+        // A valid frame with no decodable QR code is expected while scanning.
+      } else {
+        stop();
+        opts.onProcessingError();
+        return;
+      }
     }
     if (mine === session) schedule(mine);
   }
@@ -133,6 +147,8 @@ export function createCameraScanner(opts: CameraScannerOptions): CameraScanner {
         // Device list is optional (switcher stays hidden).
       }
     }
+    if (mine !== session) return;
+    decodeController = new AbortController();
     schedule(mine);
   }
 

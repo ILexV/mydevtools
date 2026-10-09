@@ -37,6 +37,7 @@ interface Strings {
   errorCameraInUse: string;
   errorCameraInsecure: string;
   errorCameraGeneric: string;
+  processingFailed: string;
 }
 
 function readStrings(): Strings | null {
@@ -169,7 +170,9 @@ function init() {
       revealOutput(resultEl);
     } catch (e) {
       if (mine !== seq) return;
-      if (e instanceof WasmError) {
+      if (e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")) {
+        showError(strings.processingFailed);
+      } else if (e instanceof WasmError) {
         showError(classifyDecodeError(e.message) === "unsupportedImage" ? strings.errorUnsupportedImage : strings.errorNoQr);
       } else {
         showError(strings.errorReading);
@@ -207,6 +210,11 @@ function init() {
         onError(kind) {
           hideCameraUi();
           showError(cameraMessages[kind]);
+          cameraStart?.focus();
+        },
+        onProcessingError() {
+          hideCameraUi();
+          showError(strings.processingFailed);
           cameraStart?.focus();
         },
         onDevices(devices, activeId) {

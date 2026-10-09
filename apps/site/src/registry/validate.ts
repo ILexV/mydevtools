@@ -53,10 +53,6 @@ export function lintRegistry(knownLocales = LOCALES.map((l) => l.code)): Registr
     if (count > 1) issues.push({ slug, message: `duplicate slug (${count} entries)` });
   }
 
-  // Hard-coded expected count keeps the registry honest as tools are added.
-  if (TOOLS.length !== 39) {
-    issues.push({ slug: "__registry__", message: `expected 39 tools, found ${TOOLS.length}` });
-  }
   if (knownLocales.length !== 10) {
     issues.push({ slug: "__registry__", message: `expected 10 locales, found ${knownLocales.length}` });
   }

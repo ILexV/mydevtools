@@ -22,6 +22,16 @@ self.addEventListener("message", async (ev: MessageEvent<PdfWorkerRequest>) => {
   const req = ev.data;
   try {
     await ensureReady();
+  } catch (e) {
+    post({
+      id: req.id,
+      ok: false,
+      code: "init-failed",
+      message: e instanceof Error ? e.message : String(e),
+    });
+    return;
+  }
+  try {
     if (req.op === "extract") {
       post({ id: req.id, ok: true, text: extract_text(new Uint8Array(req.input)) });
       return;

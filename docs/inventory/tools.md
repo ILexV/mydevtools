@@ -105,3 +105,14 @@
 - `markdown-preview`: local marked.min.js (self-hosted, OK).
 - `image-compressor`: CDN JSZip.
 - All other libs are local (CodeMirror, wasm-bindgen).
+
+## Astro catalog additions (2026-10-08)
+
+The Stage 1 table above records the legacy 39-tool baseline. The current Astro registry has **41 tools: 25 WASM-backed and 16 TypeScript-only**, in the same 13 categories. Both additions belong to `structured-data`, run locally in dedicated workers, and have UI/error/SEO strings in all 10 locales.
+
+| Slug | Input and execution | View and export | Explicit boundaries |
+|---|---|---|---|
+| `json-explorer` | Chunked UTF-8 JSONL; lossless ordinary JSON with a user-selected size/depth limit. Numeric spelling is preserved. | Virtualized records, lazy JSON tree, key/value search, JSON Pointer filters and field projection; full filtered JSONL/CSV export. | Ordinary JSON: 8/16/32/64 MiB; JSONL record: 1–8 MiB; depth ≤256; automatic fields: first 10,000 records, ≤100 pointers; export ≤256 MiB. Explicit field selection can project fields outside the automatic sample. |
+| `csv-explorer` | Chunked CSV/TSV; automatic or explicit comma/semicolon/tab/pipe delimiter; UTF-8, UTF-16 and selected legacy encodings. | Virtualized table, exact numeric comparisons, selected columns, full filtered CSV/JSONL export. | Field ≤2 MiB, record ≤8 MiB, ≤512 columns, ≤100,000,000 records, export ≤512 MiB. Sorting, grouping/aggregates, type conversion and Parquet are not implemented. |
+
+Both tables cap the physical scroll track at 8,000,000 px and retain a bounded visible window rather than one DOM node per input row. Cancellation terminates the worker and releases its file/index state; a new import creates a fresh worker.

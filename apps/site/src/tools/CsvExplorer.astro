@@ -1,0 +1,191 @@
+---
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import FileDrop from "@/components/tool/FileDrop.astro";
+import Icon from "@/components/Icon.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import Progress from "@/components/tool/Progress.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import "@/styles/explorer-ui.css";
+
+interface Props { lang: LocaleCode }
+const { lang } = Astro.props as Props;
+const ns = "tools/csv-explorer";
+const clientKeys = [
+  "DropChange", "ProgressStats", "StatusOpening", "StatusFiltering", "StatusExporting", "StatusReady",
+  "StatusDone", "StatusCanceled", "SummaryPattern", "FilteredSummary", "HeaderWarning", "NoColumns",
+  "TableEmpty", "TableLoading", "RowLabel", "InspectorEmpty", "InspectorRow", "InspectorTruncated",
+  "RawWarning", "ErrorEmpty", "ErrorEncoding", "ErrorMalformed", "ErrorFieldTooLarge", "ErrorRecordTooLarge",
+  "ErrorTooManyColumns", "ErrorWorker", "ErrorSession", "ErrorGeneric", "DelimiterComma", "DelimiterSemicolon",
+  "DelimiterTab", "DelimiterPipe",
+] as const;
+const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
+const stringsJson = JSON.stringify({ ...strings, Lang: lang });
+---
+
+<div class="ds-workbench csv-workbench" data-csv-tool>
+  <ToolPanel title={t(lang, ns, "DropTitle")}>
+    <FileDrop
+      title={t(lang, ns, "DropTitle")}
+      buttonLabel={t(lang, ns, "DropButton")}
+      changeLabel={t(lang, ns, "DropChange")}
+      sub={t(lang, ns, "DropHint")}
+      accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values,text/plain"
+      data-csv-dropzone
+      inputProps={{ "data-csv-file": true }}
+    />
+    <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
+
+    <section class="csv-section" aria-labelledby="csv-import-settings">
+      <h3 class="ds-label" id="csv-import-settings">{t(lang, ns, "SettingsTitle")}</h3>
+      <div class="ds-settings">
+        <Field label={t(lang, ns, "DelimiterLabel")} for="csv-delimiter">
+          <select id="csv-delimiter" class="ds-field-select" data-csv-delimiter>
+            <option value="auto">{t(lang, ns, "DelimiterAuto")}</option>
+            <option value=",">{t(lang, ns, "DelimiterComma")}</option>
+            <option value=";">{t(lang, ns, "DelimiterSemicolon")}</option>
+            <option value={"\t"}>{t(lang, ns, "DelimiterTab")}</option>
+            <option value="|">{t(lang, ns, "DelimiterPipe")}</option>
+          </select>
+        </Field>
+        <Field label={t(lang, ns, "EncodingLabel")} for="csv-encoding">
+          <select id="csv-encoding" class="ds-field-select" data-csv-encoding>
+            <option value="auto">{t(lang, ns, "EncodingAuto")}</option>
+            <option value="utf-8">{t(lang, ns, "EncodingUtf8")}</option>
+            <option value="utf-16le">{t(lang, ns, "EncodingUtf16Le")}</option>
+            <option value="utf-16be">{t(lang, ns, "EncodingUtf16Be")}</option>
+            <option value="latin1">{t(lang, ns, "EncodingLatin1")}</option>
+          </select>
+        </Field>
+        <label class="ds-check-row ds-settings-checks">
+          <input class="ds-check" type="checkbox" data-csv-header checked />
+          <span>{t(lang, ns, "HeaderLabel")}</span>
+        </label>
+      </div>
+    </section>
+
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn" data-csv-clear>{t(lang, ns, "Clear")}</button>
+    </div>
+    <Progress
+      title={t(lang, ns, "ProgressTitle")}
+      barLabel={t(lang, ns, "ProgressTitle")}
+      cancelLabel={t(lang, ns, "Cancel")}
+      data-csv-progress
+      cancelProps={{ "data-csv-cancel": true }}
+      barProps={{ "data-csv-progress-bar": true }}
+      fillProps={{ "data-csv-progress-fill": true }}
+      labelProps={{ "data-csv-progress-label": true }}
+    />
+    <StatusMessage kind="info" data-csv-status />
+    <StatusMessage kind="error" data-csv-error />
+  </ToolPanel>
+
+  <OutputPanel panel label={t(lang, ns, "ResultsTitle")} emptyHint={t(lang, ns, "ResultsEmpty")} data-csv-output>
+    <div class="ds-when-filled csv-results" data-csv-loaded hidden>
+      <p class="csv-summary" data-csv-summary aria-live="polite"></p>
+      <p class="ds-hint" data-csv-header-warning hidden></p>
+
+      <section class="csv-section" aria-labelledby="csv-filter-title">
+        <h3 class="ds-label" id="csv-filter-title">{t(lang, ns, "FilterTitle")}</h3>
+        <div class="ds-settings csv-filter-grid">
+          <Field label={t(lang, ns, "FilterQueryLabel")} for="csv-filter-query">
+            <input id="csv-filter-query" class="ds-field" type="search" autocomplete="off" data-csv-filter-query placeholder={t(lang, ns, "FilterPlaceholder")} />
+          </Field>
+          <Field label={t(lang, ns, "OperatorLabel")} for="csv-filter-operator">
+            <select id="csv-filter-operator" class="ds-field-select" data-csv-filter-operator>
+              <option value="contains">{t(lang, ns, "OperatorContains")}</option>
+              <option value="equals">{t(lang, ns, "OperatorEquals")}</option>
+              <option value="gt">{t(lang, ns, "OperatorGt")}</option>
+              <option value="gte">{t(lang, ns, "OperatorGte")}</option>
+              <option value="lt">{t(lang, ns, "OperatorLt")}</option>
+              <option value="lte">{t(lang, ns, "OperatorLte")}</option>
+            </select>
+          </Field>
+          <label class="ds-check-row ds-settings-checks">
+            <input class="ds-check" type="checkbox" data-csv-case-sensitive />
+            <span>{t(lang, ns, "CaseSensitive")}</span>
+          </label>
+          <fieldset class="ds-check-group ds-settings-wide">
+            <legend class="ds-label">{t(lang, ns, "FilterColumns")}</legend>
+            <div class="csv-column-list" data-csv-filter-columns></div>
+          </fieldset>
+        </div>
+        <div class="ds-action-row csv-filter-actions">
+          <button type="button" class="ds-btn ds-btn-primary" data-csv-apply-filter>{t(lang, ns, "ApplyFilter")}</button>
+          <button type="button" class="ds-btn" data-csv-clear-filter>{t(lang, ns, "ClearFilter")}</button>
+        </div>
+      </section>
+
+      <section class="csv-section" aria-labelledby="csv-visible-title">
+        <div class="csv-section-head">
+          <h3 class="ds-label" id="csv-visible-title">{t(lang, ns, "VisibleColumns")}</h3>
+          <span class="csv-quiet-actions">
+            <button type="button" class="ds-btn-link" data-csv-columns-all>{t(lang, ns, "SelectAll")}</button>
+            <button type="button" class="ds-btn-link" data-csv-columns-none>{t(lang, ns, "SelectNone")}</button>
+          </span>
+        </div>
+        <div class="csv-column-list" data-csv-visible-columns></div>
+      </section>
+
+      <div class="ds-explorer-table" data-csv-table></div>
+
+      <section class="csv-section" aria-labelledby="csv-inspector-title">
+        <h3 class="ds-label" id="csv-inspector-title">{t(lang, ns, "InspectorTitle")}</h3>
+        <p class="ds-hint" data-csv-inspector-empty>{t(lang, ns, "InspectorEmpty")}</p>
+        <p class="csv-inspector-row" data-csv-inspector-row hidden></p>
+        <dl class="csv-inspector" data-csv-inspector hidden></dl>
+        <p class="ds-hint" data-csv-inspector-note hidden>{t(lang, ns, "InspectorTruncated")}</p>
+      </section>
+
+      <section class="csv-section" aria-labelledby="csv-export-title">
+        <h3 class="ds-label" id="csv-export-title">{t(lang, ns, "ExportTitle")}</h3>
+        <div class="ds-settings">
+          <Field label={t(lang, ns, "ExportFormat")} for="csv-export-format">
+            <select id="csv-export-format" class="ds-field-select" data-csv-export-format>
+              <option value="csv">CSV</option>
+              <option value="jsonl">JSONL</option>
+            </select>
+          </Field>
+          <div class="ds-settings-checks">
+            <label class="ds-check-row"><input class="ds-check" type="checkbox" data-csv-export-header checked /><span>{t(lang, ns, "IncludeHeader")}</span></label>
+            <label class="ds-check-row"><input class="ds-check" type="checkbox" data-csv-export-protect checked /><span>{t(lang, ns, "ProtectFormulas")}</span></label>
+            <label class="ds-check-row"><input class="ds-check" type="checkbox" data-csv-export-bom checked /><span>{t(lang, ns, "Utf8Bom")}</span></label>
+          </div>
+        </div>
+        <p class="ds-hint">{t(lang, ns, "ProtectHint")}</p>
+        <p class="ds-hint csv-warning" data-csv-raw-warning hidden>{t(lang, ns, "RawWarning")}</p>
+        <p class="ds-hint">{t(lang, ns, "ExportMemory")}</p>
+        <div class="ds-action-row">
+          <button type="button" class="ds-btn ds-btn-primary" data-csv-download><Icon name="download" size={16} />{t(lang, ns, "Download")}</button>
+        </div>
+      </section>
+    </div>
+  </OutputPanel>
+</div>
+
+<script is:inline type="application/json" data-csv-strings set:html={stringsJson} />
+<script>import "@/tools/csv-explorer.client.ts";</script>
+
+<style>
+  .csv-workbench { align-items: start; }
+  .csv-section { display: grid; gap: 0.65rem; min-width: 0; }
+  .csv-section + .csv-section { padding-top: 0.9rem; border-top: 1px solid var(--mdt-border-soft); }
+  .csv-results { display: grid; gap: 1rem; min-width: 0; }
+  .csv-summary, .csv-inspector-row { margin: 0; font-size: var(--mdt-fs-label); color: var(--mdt-text-muted); font-variant-numeric: tabular-nums; }
+  .csv-filter-grid { grid-template-columns: minmax(min(14rem, 100%), 2fr) minmax(min(10rem, 100%), 1fr); }
+  .csv-column-list { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; max-height: 9rem; overflow: auto; padding: 0.35rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-xs); }
+  .csv-section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+  .csv-quiet-actions { display: inline-flex; gap: 0.75rem; }
+  .csv-inspector { display: grid; grid-template-columns: minmax(8rem, 0.35fr) minmax(0, 1fr); gap: 0; margin: 0; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-xs); overflow: auto; max-height: 22rem; }
+  .csv-inspector :global(dt), .csv-inspector :global(dd) { margin: 0; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--mdt-border-soft); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .csv-inspector :global(dt) { color: var(--mdt-text-muted); background: var(--mdt-surface-inset); }
+  .csv-inspector :global(dd) { font-family: var(--mdt-font-mono); }
+  .csv-warning { color: var(--mdt-danger); }
+  @media (max-width: 42rem) {
+    .csv-filter-grid { grid-template-columns: minmax(0, 1fr); }
+    .csv-inspector { grid-template-columns: minmax(6rem, 0.4fr) minmax(0, 1fr); }
+  }
+</style>

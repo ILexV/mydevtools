@@ -49,3 +49,16 @@ All other persisted state is settings/preferences only — safe to keep. The new
 - **Key naming is inconsistent** (namespaced-versioned vs flat legacy). New build: pick one scheme (recommend namespaced `mdt.<feature>.<field>.v1`).
 - `cron-date-format` shared by generator + parser via one key — preserve coupling.
 - `favorites.js` ships an inline `TOOLS_REGISTRY` (~38 tools × 10 names + icon + popular) duplicating the catalog → in the new build this comes from the single `tools.ts` registry, not duplicated.
+
+## Current Astro Explorer state (2026-10-08)
+
+The inventory above describes the legacy baseline. `json-explorer` persists only these explicit settings through the existing versioned storage helper:
+
+| Key | Stored setting |
+|---|---|
+| `mdt.tools.json-explorer.format.v1` | `auto`, `json` or `jsonl` |
+| `mdt.tools.json-explorer.ordinary-limit.v1` | Ordinary JSON size limit |
+| `mdt.tools.json-explorer.record-limit.v1` | JSONL record size limit |
+| `mdt.tools.json-explorer.depth-limit.v1` | JSON depth limit |
+
+Files, record contents, search/filter values, discovered schema and projected fields are **not persisted**. `csv-explorer` settings and data are session-only; importing either format does not write its contents to browser storage.

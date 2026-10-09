@@ -41,9 +41,21 @@ function decode(req: QrDecodeRequest): string {
 
 self.addEventListener("message", async (ev: MessageEvent<QrDecodeRequest>) => {
   const req = ev.data;
-  let msg: QrDecodeResponse;
   try {
     await ensureReady();
+  } catch (e) {
+    if (req.kind === "bitmap") req.bitmap.close();
+    (self as DedicatedWorkerGlobalScope).postMessage({
+      id: req.id,
+      ok: false,
+      code: "init-failed",
+      message: e instanceof Error ? e.message : String(e),
+    } satisfies QrDecodeResponse);
+    return;
+  }
+
+  let msg: QrDecodeResponse;
+  try {
     msg = { id: req.id, ok: true, text: decode(req) };
   } catch (e) {
     if (req.kind === "bitmap") req.bitmap.close();

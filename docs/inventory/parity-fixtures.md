@@ -186,11 +186,55 @@ The runner closes its browser/server and reports failures rather than
 substituting another digest or backend. Edge, Safari/WebKit and 5 GiB files
 were not exercised in this pass.
 
-## 6. Remaining gaps (not covered by this verification)
+## 6. JSON/CSV Explorer and PDF/QR/AEAD lifecycle (2026-10-08)
 
-- **Full browser matrix** — the built UI sweep above uses Chromium. The hash
-  benchmark also exercises Firefox; this does not establish full-catalog
-  Safari/WebKit, branded Chrome or Edge behavior.
+Verification uses the locally built Astro site at `http://127.0.0.1:4345/`, not a new public deployment. Both tools are TypeScript-only: home and Explorer routes made zero WASM requests.
+
+Final `npm run verify -w @mydevtools/site` passed: Astro check (306 files, zero errors), i18n validation (zero errors), **383 unit tests**, **424 built pages** and **8 dist smoke tests**. Existing diagnostics remain: deprecated `document.execCommand` hint and unchanged German UUID title warning.
+
+### Explorer scale and output correctness
+
+Native browser `File`/`Blob` fixtures were imported through the actual file controls. Large inputs repeat a native Blob block and append a unique final record; these are functional scale checks, not standalone disk-I/O benchmarks or peak-RAM measurements.
+
+| Format | Input bytes | Source records | Rendered data rows after indexing |
+|---|---:|---:|---:|
+| JSONL | 58,000,032 | 2,000,001 | 22 |
+| CSV | 20,000,021 | 2,000,001 | 22 |
+| JSONL | 5,368,750,051 | 328,385 | 22 |
+| CSV | 5,369,556,120 | 328,897 | 22 |
+
+- `End`, `ArrowUp` and `Home` reached the exact last, penultimate and first logical records despite the 8,000,000 px physical scroll-track cap. Last-record inspection displayed the complete source value.
+- Both >5 GiB files survived cancel/new-run scenarios and were fully indexed. A filter matching only the final sentinel re-scanned the complete input; both JSONL and CSV exports were compared with exact expected bytes, including CSV BOM/CRLF and BOM-free JSONL.
+- JSON checks covered BOM/CRLF/blank physical lines, `9007199254740993`, numeric spelling `1.0`/`1e3`, escaped JSON Pointer keys, whitespace in keys, missing projected fields, full selected-record text, and lazy 100-node pages without duplicates on double activation.
+- CSV checks covered quoted multiline fields, exact comparisons above `Number.MAX_SAFE_INTEGER`, formula-safe CSV versus original JSONL values, and embedded U+FEFF. Explicit Tab selection plus a real UTF-16LE/BOM file produced the expected two-column table and byte-exact UTF-8 JSONL export.
+- Malformed input followed by valid import was exercised on all 20 Explorer routes at 375 px: localized JSON physical-line/column diagnostics, localized CSV errors, correct `html lang` (`zh-Hans` for `zh`), zero document/body horizontal overflow, zero WASM requests. The recorded successful sweep had zero console/page errors and zero failed tracked requests.
+- Actual catalog links, `en → ru` language switching and localized command-palette navigation opened functioning new controllers. Desktop/mobile light and dark surfaces were viewed. A min-content grid-width defect and literal `\t` option defect were reproduced and fixed.
+- Only four versioned JSON safety/format settings survived reload. File contents, file selection and search input did not persist; CSV settings remain session-only. Limits are listed in `tools.md` and in each localized UI.
+
+### Firefox and WebKit Explorer coverage
+
+Installed **Firefox 153.0** and **WebKit 26.5** passed against the final rebuilt preview with Playwright 1.62.0. Both Explorer routes were exercised in `en`/`ru`, dark/light themes and at 375 × 812.
+
+- Native file-input imports and native `DataTransfer` drops passed. Each engine/tool imported a separate 1,000,000-row fixture, kept 22 live data rows, and selected exact records 999,999 / 999,998 / 0 with End / ArrowUp / Home.
+- Exact JSONL/CSV downloads, >2^53 numeric values, quoted multiline CSV, embedded U+FEFF, semicolon auto-detection and UTF-16BE/BOM decoding passed. Actual-tab TSV imports passed in both locales after the option fix.
+- Lazy ordinary-JSON trees paged from 100 to 150 nested children. Cancel → immediate valid import and real startup-worker failure → immediate valid import both recovered on each tool/engine.
+- Loaded million-row tables and post-fix JSON pages contained horizontal scrolling inside the 301 px viewport while document/body width remained 375 px. No unexpected console errors or failed network requests were observed; deliberate startup-fault page errors and harness service-worker-block warnings were excluded.
+- All probe browser contexts/processes were closed and temporary scripts removed. These checks establish Explorer behavior in those engines, not full-catalog coverage or physical-device behavior.
+
+### Core worker failures, cancellation and recovery
+
+- Real Blob-throw worker startup failures followed by valid runs were exercised for PDF compressor, PDF merger, PDF-to-text, QR upload and AEAD encryption in every locale: **50 localized failure/recovery pairs**. Each infrastructure failure matched `Common_ProcessingFailed`, not an invalid-PDF/no-QR-code/wrong-password message.
+- Compressor output (548-byte `%PDF-` file) and merger output (927-byte `%PDF-` file) were fed back through the real PDF WASM extractor. The expected fixture text appeared once and twice respectively; text extraction also matched the original fixture.
+- A real 7,436-byte QR PNG was generated and decoded. Camera Stop terminated the pending decode worker, stopped the actual canvas-capture MediaStream track, closed its ImageBitmap and cleared `video.srcObject`; restarting decoded the expected payload. **No physical camera or hardware permission/device-switching behavior was exercised.**
+- PDF, QR and AEAD were canceled with a real worker dispatch pending, then rerun successfully. Only dispatch timing was delayed; outputs were never mocked. Shared-helper smoke also proved that aborting one request or explicitly terminating the worker settles all peer pending promises, and a fresh worker computes the real SHA-256 of `abc`.
+- A 1,048,613-byte AEAD fixture was encrypted, rejected with the localized wrong-password error, then decrypted successfully. Full byte comparison found no difference; SHA-256 was `03be94f37fb385d978994eecb8f42cf1a3226903acbaef1034cff44445707057`. All three terminal AEAD workers were terminated; the downloaded Blob remained readable.
+- Successful core recovery/roundtrip/camera paths had zero unexpected console/page errors and zero failed tracked requests. All five core routes in `en` and `ru` had zero horizontal overflow at 375 px.
+
+## 7. Remaining gaps (not covered by this verification)
+
+- **Full browser matrix** — catalog/core UI sweeps use Chromium; the hash
+  benchmark also uses Firefox, and Explorer checks include Firefox/WebKit.
+  This does not establish full-catalog Safari/WebKit, branded Chrome or Edge behavior.
 - **Real-device mobile touch** — keyboard open, safe-area insets, drag/drop,
   orientation change need a physical device pass; emulated touch verified only.
 - **Field CWV (CrUX)** — lab metrics only until real traffic accumulates.

@@ -1,7 +1,7 @@
 /* ============================================================================
    global.css — Prism design system (Stage 6).
    Layers: reset → tokens → base → utilities → components → tools.
-   Token API keeps the stable `--mdt-*` names (all 39 tool pages consume them);
+   Token API keeps the stable `--mdt-*` names consumed by every tool page;
    values are the Prism palette from docs/design/stage2-design-system.md §2–6.
    ========================================================================== */
 

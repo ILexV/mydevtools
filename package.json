@@ -5,7 +5,8 @@
   "packageManager": "npm@11.12.1",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "cloudflare/*"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
@@ -18,6 +19,9 @@
     "build:pages": "npm run validate:i18n && npm run build:wasm && npm run build:site && npm run test:smoke -w @mydevtools/site",
     "deploy:pages": "node scripts/deploy-pages.mjs",
     "test:smoke": "npm run test:smoke -w @mydevtools/site",
+    "check:analytics": "npm run check -w @mydevtools/analytics-worker",
+    "test:analytics": "npm test -w @mydevtools/analytics-worker",
+    "build:analytics": "npm run build -w @mydevtools/analytics-worker",
     "test:visual": "npm run build:site && playwright test -c e2e/playwright.config.ts",
     "test:crossbrowser": "npm run build:site && playwright test -c e2e/playwright.config.ts cross-browser",
     "test:visual:update": "npm run build:site && playwright test -c e2e/playwright.config.ts --update-snapshots",

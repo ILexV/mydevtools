@@ -15,6 +15,7 @@
  * SPKI/PKCS#8 import) go through the generated module directly, initialized
  * once here.
  */
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import init, * as crypto from "@/generated/wasm/cryptography/cryptography.js";
 import { sshPublicKeyInfo, sshToPkcs8Pem } from "@/scripts/wasm/crypto-client";
 import { sshGenerateInWorker } from "@/scripts/wasm/keygen-client";
@@ -262,6 +263,7 @@ function initTool(): void {
     tick();
     const timer = setInterval(tick, 1000);
     if (progress) progress.hidden = false;
+    const operation = startToolOperation("openssh-keys");
     try {
       const key = await sshGenerateInWorker(
         { keyType, rsaBits: rsaBits(algorithmValue, keySizeSelect.value), passphrase: pass },
@@ -271,6 +273,10 @@ function initTool(): void {
       setWarnings(key.warnings);
       lastPublicName = "id_key.pub";
       lastPrivateName = "id_key";
+      operation.complete();
+    } catch (err) {
+      if (!(err instanceof WasmError && err.code === "aborted")) operation.fail();
+      throw err;
     } finally {
       clearInterval(timer);
       if (progress) progress.hidden = true;
@@ -279,7 +285,17 @@ function initTool(): void {
   }
 
   async function importAction(): Promise<void> {
-    await withPassFallback((pass) => importWith(pass));
+    const kind = guessSshInput(importArea.value.trim());
+    if (kind === "empty") return;
+    if (kind === "unknown") throw new Error(strings.unsupportedFormat);
+    const operation = startToolOperation("openssh-keys");
+    try {
+      await withPassFallback((pass) => importWith(pass));
+      operation.complete();
+    } catch (err) {
+      operation.fail();
+      throw err;
+    }
   }
 
   async function importWith(pass: string | null): Promise<void> {
@@ -321,7 +337,16 @@ function initTool(): void {
   }
 
   async function convertAction(): Promise<void> {
-    await withPassFallback((pass) => convertWith(pass));
+    const kind = guessSshInput(importArea.value.trim());
+    if (kind === "empty" || kind === "unknown") throw new Error(strings.unsupportedFormat);
+    const operation = startToolOperation("openssh-keys");
+    try {
+      await withPassFallback((pass) => convertWith(pass));
+      operation.complete();
+    } catch (err) {
+      operation.fail();
+      throw err;
+    }
   }
 
   async function convertWith(pass: string | null): Promise<void> {

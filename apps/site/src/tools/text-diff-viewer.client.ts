@@ -17,6 +17,7 @@
  * sides with localized sample text, on click only); the result panel shows a
  * compact placeholder until there is a diff or a status message.
  */
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { bindEmptyState, bindLoadExample, revealOutput, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
 import {
   countPatchLines,
@@ -218,6 +219,7 @@ function init(): void {
    * once the field no longer holds that file's text.
    */
   const rawFile: { original: string | null; modified: string | null } = { original: null, modified: null };
+  let renderSequence = 0;
 
   // ── View mode: Unified (narrow) / Side by side (wide) until chosen explicitly ──
   const wide = window.matchMedia(WIDE_QUERY);
@@ -483,24 +485,30 @@ function init(): void {
     syncOutput();
   }
 
-  async function renderDiff(): Promise<void> {
+  async function renderDiff(explicit = false): Promise<void> {
+    const sequence = ++renderSequence;
     if (!currentOriginal && !currentModified) {
       showAlert(null);
       hideOutput();
       return;
     }
+    const operation = explicit ? startToolOperation("text-diff-viewer") : null;
     if (currentOriginal === currentModified) {
       hideOutput();
       showAlert(strings.noDifferences, "info");
       showNotes(eolNotes());
+      operation?.complete();
       return;
     }
     showAlert(strings.loading, "info");
     try {
       await ensureDiffLibs();
+      if (sequence !== renderSequence) return;
     } catch {
+      if (sequence !== renderSequence) return;
       hideOutput();
       showAlert(strings.errorLibLoad, "error");
+      operation?.fail();
       return;
     }
     const DiffNs = window.Diff;
@@ -508,10 +516,12 @@ function init(): void {
     if (!DiffNs || !DiffUI) {
       hideOutput();
       showAlert(strings.errorLibLoad, "error");
+      operation?.fail();
       return;
     }
     // Let the "Loading…" status paint before the synchronous diff blocks the thread.
     await new Promise<void>((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+    if (sequence !== renderSequence) return;
     let patch: string | undefined;
     try {
       // Over budget, jsdiff 5.1 yields no structured patch and createTwoFilesPatch throws.
@@ -524,6 +534,7 @@ function init(): void {
     if (!patch) {
       hideOutput();
       showAlert(strings.diffTooBig.replace("{max}", String(MAX_LINE_EDITS)), "error");
+      operation?.fail();
       return;
     }
     const budget = intraLineBudget(patch, INTRA_LINE_MAX, INTRA_TOTAL_BUDGET);
@@ -549,15 +560,21 @@ function init(): void {
     setResultVisible(true);
     syncOutput();
     syncThemeClass();
-    const ui = new DiffUI(outputEl, patch, configuration);
-    ui.draw();
     try {
-      ui.highlightCode();
-    } catch (e) {
-      console.warn("Syntax highlighting failed", e);
+      const ui = new DiffUI(outputEl, patch, configuration);
+      ui.draw();
+      try {
+        ui.highlightCode();
+      } catch (e) {
+        console.warn("Syntax highlighting failed", e);
+      }
+      outputEl.scrollTop = 0;
+      buildBlocks();
+      operation?.complete();
+    } catch (error) {
+      operation?.fail();
+      throw error;
     }
-    outputEl.scrollTop = 0;
-    buildBlocks();
   }
 
   root.addEventListener("click", (e: MouseEvent) => {
@@ -582,7 +599,7 @@ function init(): void {
         return;
       }
       // Explicit Compare: bring the result into view on phones once drawn.
-      void renderDiff().then(() => revealOutput(outputPanel));
+      void renderDiff(true).then(() => revealOutput(outputPanel));
       return;
     }
 

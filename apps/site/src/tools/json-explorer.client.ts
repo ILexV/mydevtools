@@ -1,3 +1,4 @@
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { createExplorerTable, type ExplorerColumn } from "@/scripts/explorer-table";
 import { bindDropzone, setDropzoneHasFile, syncEmptyState } from "@/scripts/tool-ui";
 import { JSON_EXPLORER_LIMITS, type JsonExplorerDiagnostic, type JsonViewFilter, type TreeChild } from "@/tools/json-explorer-core";
@@ -281,6 +282,9 @@ function init(): void {
     const runGeneration = generation;
     setBusy(true);
     showStatus(strings.statusOpening);
+    const operation = file.size > 0 && !(format.value === "json" && file.size > Number(ordinaryLimit.value))
+      ? startToolOperation("json-explorer")
+      : null;
     try {
       const result = await worker.open({
         file,
@@ -293,10 +297,12 @@ function init(): void {
       ready = true;
       updateResult(result);
       showStatus(formatTemplate(strings.statusDone, { rows: new Intl.NumberFormat().format(result.sourceRows) }));
+      operation?.complete();
     } catch (error) {
       if (runGeneration !== generation) return;
       showError(error);
       invalidateSession();
+      operation?.fail();
     } finally {
       if (runGeneration === generation) {
         hideProgress();

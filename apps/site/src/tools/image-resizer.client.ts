@@ -18,6 +18,7 @@
  * the raw decoder text and never a contradicting "Choose an image first".
  */
 import { convertImage, resizeImage } from "@/scripts/wasm/image-tools-client";
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, revealOutput, setDropzoneHasFile, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
@@ -277,6 +278,7 @@ function init() {
     const format = formatEl!.value;
 
     clearError();
+    const operation = startToolOperation("image-resizer");
     const ctrl = new AbortController();
     job = ctrl;
     setBusy(true);
@@ -295,11 +297,13 @@ function init() {
       if (outputInfo) outputInfo.textContent = `${width}×${height}, ${formatBytes(blob.size, 2)}`;
       resultName = resizedName(file.name, width, height, format);
       if (previewUrl) await compare.show({ url: previewUrl, size: file.size }, { url: resultUrl, size: blob.size });
-      if (currentFile !== file) return;
+      if (ctrl.signal.aborted || currentFile !== file) return;
       syncEmptyState(outputEl!, false);
       revealOutput(outputEl);
+      operation.complete();
     } catch (e) {
-      if (e instanceof WasmError && e.code === "aborted") return;
+      if (ctrl.signal.aborted || (e instanceof WasmError && e.code === "aborted")) return;
+      operation.fail();
       hideOutput();
       const detail = e instanceof Error ? e.message : "";
       // Undecodable input: plain localized message, raw decoder text dropped.

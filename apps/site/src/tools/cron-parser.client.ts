@@ -18,6 +18,7 @@ import {
   type CronStrings,
 } from "@/tools/cron-core";
 import { copyWithFeedback, revealOutput, syncEmptyState } from "@/scripts/tool-ui";
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import {
   createCronTimeline,
   restoreDateFormat,
@@ -104,7 +105,7 @@ function init() {
   }
 
   /** Evaluate the input; returns true when a valid schedule was rendered. */
-  function parseAction(): boolean {
+  function parseAction(trackOperation = false): boolean {
     const expression = input.value.trim();
     if (!expression) {
       setError("");
@@ -113,26 +114,33 @@ function init() {
     }
 
     let schedule;
-    let description: string;
-    let expanded: string | null;
     try {
       schedule = parseCron(expression, strings);
-      description = describeCron(expression, strings);
-      expanded = expandCronPreset(expression);
     } catch (e) {
       setError(cronErrorMessage(e, strings, strings.fieldNames));
       resetResults();
       return false;
     }
 
-    setError("");
-    setHasResult(true);
-    humanReadable.textContent = description;
-    setFieldCapsules(capsList, expanded);
-    timeline.show({ schedule });
-    evaluated = expression;
-    syncStale();
-    return true;
+    const operation = trackOperation ? startToolOperation("cron-parser") : null;
+    try {
+      const description = describeCron(expression, strings);
+      const expanded = expandCronPreset(expression);
+      setError("");
+      setHasResult(true);
+      humanReadable.textContent = description;
+      setFieldCapsules(capsList, expanded);
+      timeline.show({ schedule });
+      evaluated = expression;
+      syncStale();
+      operation?.complete();
+      return true;
+    } catch (e) {
+      operation?.fail();
+      setError(cronErrorMessage(e, strings, strings.fieldNames));
+      resetResults();
+      return false;
+    }
   }
 
   function clearAction() {
@@ -144,7 +152,7 @@ function init() {
 
   /** Explicit parse (button, preset, Enter): bring a fresh result into view on phones. */
   function parseAndReveal() {
-    if (parseAction()) timeline.announceUpdate();
+    if (parseAction(true)) timeline.announceUpdate();
     if (outputPanel && !outputPanel.classList.contains("is-empty")) revealOutput(outputPanel);
   }
 
@@ -169,7 +177,7 @@ function init() {
   input.addEventListener("keydown", (ev) => {
     if (ev.key === "Enter") {
       window.clearTimeout(parseTimeout);
-      if (parseAction()) timeline.announceUpdate();
+      if (parseAction(true)) timeline.announceUpdate();
     }
   });
 

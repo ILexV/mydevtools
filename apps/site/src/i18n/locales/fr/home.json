@@ -2,7 +2,7 @@
   "Category_Cryptography": "Cryptographie",
   "Category_Encoding": "Encodage",
   "Category_ColorsAndDesign": "Couleurs & Design",
-  "NoDataSent": "Aucune donnée n'est envoyée au serveur",
+  "NoDataSent": "Vos saisies et fichiers restent dans le navigateur",
   "FeatureLanguagesTitle": "Multilingue",
   "SeoContent_P2": "La confidentialité découle de l'architecture : le site est un ensemble de pages statiques et chaque outil traite vos données dans le navigateur. Les outils gourmands en calcul, comme le hachage, le chiffrement et le traitement d'images, de PDF et de QR codes, utilisent des modules WebAssembly compilés depuis Rust ; les plus légers, comme le formateur JSON ou la comparaison de textes, sont en JavaScript simple. Les mots de passe, clés et fichiers que vous manipulez ne sont jamais envoyés.",
   "FeatureAlgorithmsDescription": "Ajoutez une étoile aux outils que vous utilisez le plus. Favoris et outils récents sont conservés dans votre navigateur.",

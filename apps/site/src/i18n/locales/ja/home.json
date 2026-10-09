@@ -2,7 +2,7 @@
   "Category_Cryptography": "暗号化",
   "Category_Encoding": "エンコーディング",
   "Category_ColorsAndDesign": "色とデザイン",
-  "NoDataSent": "サーバーへのデータ送信はありません",
+  "NoDataSent": "入力内容とファイルはブラウザ内に留まります",
   "FeatureLanguagesTitle": "多言語対応",
   "SeoContent_P2": "プライバシーは仕組みそのものから生まれます。サイトは静的ページの集まりで、各ツールは入力をブラウザの中で処理します。ハッシュ計算、暗号化、画像・PDF・QR の処理など計算量の多いツールは Rust からコンパイルした WebAssembly モジュールで動き、JSON 整形やテキスト比較のような軽いツールは通常の JavaScript です。扱うパスワード、鍵、ファイルがアップロードされることはありません。",
   "FeatureAlgorithmsDescription": "よく使うツールに星を付けましょう。お気に入りと最近使ったツールはブラウザに保存されます。",

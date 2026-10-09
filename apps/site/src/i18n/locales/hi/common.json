@@ -1,6 +1,6 @@
 {
   "AppName": "MyDevTools",
-  "NoDataSent": "कोई डेटा सर्वर पर नहीं भेजा जाता",
+  "NoDataSent": "आपका इनपुट और फ़ाइलें ब्राउज़र में ही रहते हैं",
   "Common_Download": "डाउनलोड",
   "Common_Output": "आउटपुट",
   "Common_Loading": "लोड हो रहा है...",

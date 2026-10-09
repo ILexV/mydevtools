@@ -16,6 +16,7 @@ import {
   setFieldValue,
   syncEmptyState,
 } from "@/scripts/tool-ui";
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 
 /** Language-neutral example: 2023-11-14T22:13:20Z as Unix seconds (auto-detected). */
 const EXAMPLE = "1700000000";
@@ -176,7 +177,7 @@ function init(): void {
     errorEl.textContent = msg;
   }
 
-  function convert(): void {
+  function convert(trackOperation = false): void {
     if (!input || !inputType || !outputFormat || !output) return;
     toggleCustom();
     const val = input.value;
@@ -195,12 +196,20 @@ function init(): void {
       renderInstant(null);
       return;
     }
-    showError("");
-    input.removeAttribute("aria-invalid");
-    const custom = customInput ? customInput.value : "";
-    const text = format(date, outputFormat.value as OutputFormat, custom, strings.lang) ?? "";
-    setOutput(text);
-    renderInstant(text ? date : null, val, inputType.value as InputType);
+
+    const operation = trackOperation ? startToolOperation("date-converter") : null;
+    try {
+      showError("");
+      input.removeAttribute("aria-invalid");
+      const custom = customInput ? customInput.value : "";
+      const text = format(date, outputFormat.value as OutputFormat, custom, strings.lang) ?? "";
+      setOutput(text);
+      renderInstant(text ? date : null, val, inputType.value as InputType);
+      operation?.complete();
+    } catch (error) {
+      operation?.fail();
+      throw error;
+    }
   }
 
   function currentTime(): void {
@@ -215,7 +224,7 @@ function init(): void {
       input.value = now.toISOString();
     }
     syncInput();
-    convert();
+    convert(true);
   }
 
   async function copy(): Promise<void> {
@@ -231,7 +240,7 @@ function init(): void {
     if (output?.value) revealOutput(outputPanel);
   };
   convertBtn?.addEventListener("click", () => {
-    convert();
+    convert(true);
     revealIfFilled();
   });
   nowBtn?.addEventListener("click", () => {
@@ -239,10 +248,10 @@ function init(): void {
     revealIfFilled();
   });
   copyBtn?.addEventListener("click", () => void copy());
-  input?.addEventListener("input", convert);
-  customInput?.addEventListener("input", convert);
-  inputType?.addEventListener("change", convert);
-  outputFormat?.addEventListener("change", convert);
+  input?.addEventListener("input", () => convert());
+  customInput?.addEventListener("input", () => convert());
+  inputType?.addEventListener("change", () => convert());
+  outputFormat?.addEventListener("change", () => convert());
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") renderRelative();
     scheduleRefresh();

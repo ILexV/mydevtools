@@ -2,7 +2,7 @@
   "Category_Cryptography": "암호화",
   "Category_Encoding": "인코딩",
   "Category_ColorsAndDesign": "색상 및 디자인",
-  "NoDataSent": "서버로 데이터가 전송되지 않습니다",
+  "NoDataSent": "입력 내용과 파일은 브라우저 밖으로 전송되지 않습니다",
   "FeatureLanguagesTitle": "다국어 지원",
   "SeoContent_P2": "개인정보 보호는 구조에서 나옵니다. 사이트는 정적 페이지로 이루어져 있고, 각 도구는 입력을 브라우저 안에서 처리합니다. 해시, 암호화, 이미지·PDF·QR 처리처럼 계산이 많은 도구는 Rust로 컴파일한 WebAssembly 모듈로 동작하고, JSON 포매터나 텍스트 비교 같은 가벼운 도구는 일반 JavaScript입니다. 작업하는 비밀번호, 키, 파일은 업로드되지 않습니다.",
   "FeatureAlgorithmsDescription": "자주 쓰는 도구에 별표를 표시하세요. 즐겨찾기와 최근 사용한 도구는 브라우저에 저장됩니다.",

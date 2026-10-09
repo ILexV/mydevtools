@@ -2,6 +2,8 @@
 
 > Этот README описывает legacy-сайт на Blazor. Актуальный фронтенд — статический Astro в [`apps/site`](apps/site): 41 инструмент и 10 языков, без серверного runtime. Новые `json-explorer` и `csv-explorer` обрабатывают файлы локально в workers. Текущие ограничения и результаты проверок: [`docs/inventory/tools.md`](docs/inventory/tools.md), [`docs/inventory/parity-fixtures.md`](docs/inventory/parity-fixtures.md); публикация — [`apps/site/RELEASING.md`](apps/site/RELEASING.md).
 
+Опциональные анонимные счётчики действий реализованы отдельно от обработки данных и выключены по умолчанию (`ANALYTICS_ENABLED`). В них передаются только ID инструмента и тип события — не ввод, файлы, секреты или идентификаторы посетителей. Настройка Cloudflare, покрытие инструментов, отчёты и ограничения: [`docs/analytics.md`](docs/analytics.md).
+
 [![.NET 10](https://img.shields.io/badge/.NET-10-blue)](https://dotnet.microsoft.com/)
 [![Blazor](https://img.shields.io/badge/Blazor-SSR-purple)](https://blazor.net/)
 
@@ -444,10 +446,10 @@ dotnet run
 
 ### Privacy-First подход
 
-1. **Никакие данные не покидают браузер пользователя**
+1. **Введённые данные и файлы не покидают браузер пользователя**
 2. **Нет server-side API** для обработки данных
 3. **Нет логирования** пользовательского контента
-4. **Нет аналитики** без согласия пользователя
+4. **Анонимные счётчики операций опциональны**: флаг сборки выключен по умолчанию; Do Not Track и Global Privacy Control отключают отправку. Без cookies и идентификаторов посетителей.
 
 ### WASM Security (будущее)
 

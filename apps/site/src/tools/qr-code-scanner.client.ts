@@ -16,6 +16,7 @@
  * page it stays and explains why the camera is unavailable.
  */
 import { qrDecode } from "@/scripts/wasm/qrcode-decode-client";
+import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, copyWithFeedback, revealOutput, setDropzoneHasFile } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
@@ -87,6 +88,7 @@ function init() {
   let previewUrl: string | null = null;
   let seq = 0;
   let decodeJob: AbortController | null = null;
+  let cameraOperation: ToolOperation | null = null;
 
   function showError(msg: string) {
     errorBox!.textContent = msg;
@@ -155,6 +157,7 @@ function init() {
       return;
     }
 
+    const operation = startToolOperation("qr-scanner");
     showSelection(file);
     const mine = ++seq;
     decodeJob?.abort(); // superseded: stop the old decode instead of waiting for it
@@ -168,8 +171,11 @@ function init() {
       showResult(text);
       // Picking/dropping a file is the explicit action: bring the result into view on phones.
       revealOutput(resultEl);
+      operation.complete();
     } catch (e) {
       if (mine !== seq) return;
+      if (ctrl.signal.aborted || (e instanceof WasmError && e.code === "aborted")) return;
+      operation.fail();
       if (e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")) {
         showError(strings.processingFailed);
       } else if (e instanceof WasmError) {
@@ -205,17 +211,22 @@ function init() {
           hideCameraUi();
           if (cameraStartLabel) cameraStartLabel.textContent = strings.scanAgain;
           showResult(text);
+          cameraOperation?.complete();
+          cameraOperation = null;
           outputArea!.focus();
         },
         onError(kind) {
           hideCameraUi();
           showError(cameraMessages[kind]);
           cameraStart?.focus();
+          cameraOperation = null;
         },
         onProcessingError() {
           hideCameraUi();
           showError(strings.processingFailed);
           cameraStart?.focus();
+          cameraOperation?.fail();
+          cameraOperation = null;
         },
         onDevices(devices, activeId) {
           if (!cameraSelect || !cameraSelectWrap) return;
@@ -230,13 +241,17 @@ function init() {
           );
           cameraSelectWrap.hidden = devices.length < 2;
         },
-        onInterrupted: hideCameraUi,
+        onInterrupted() {
+          cameraOperation = null;
+          hideCameraUi();
+        },
       })
     : null;
 
   function closeCamera() {
     if (camera?.running) camera.stop();
     hideCameraUi();
+    cameraOperation = null;
   }
 
   // Hide the button only where getUserMedia is genuinely unsupported; on an
@@ -248,6 +263,9 @@ function init() {
     clearSelection();
     hideResult();
     clearError();
+    if (window.isSecureContext && cameraSupported()) {
+      cameraOperation = startToolOperation("qr-scanner");
+    }
     if (cameraSection) cameraSection.hidden = false;
     cameraStart.setAttribute("aria-expanded", "true");
     void camera.start();

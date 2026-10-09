@@ -6,6 +6,7 @@
  * strength meter of each generated password; an explicit Generate click
  * scrolls the result into view on phones (revealOutput).
  */
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { generatePassword } from "@/scripts/wasm/password-client";
 import { copyWithFeedback, prepareCopyButton, revealOutput, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
 import { formatPlural } from "@/lib/format";
@@ -219,6 +220,7 @@ function init() {
       showError(strings.errorNoCharset);
       return;
     }
+    const operation = reveal ? startToolOperation("password-generator") : null;
 
     try {
       const password = await withPreparing(
@@ -238,7 +240,9 @@ function init() {
       renderStrength(settings);
       addToHistory(password);
       if (reveal) revealOutput(resultPanel);
+      operation?.complete();
     } catch (e) {
+      operation?.fail();
       showError(e instanceof Error ? e.message : String(e));
     }
   }

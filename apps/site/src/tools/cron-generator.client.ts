@@ -21,6 +21,7 @@ import {
   type CronStrings,
 } from "@/tools/cron-core";
 import { copyWithFeedback, revealOutput, syncEmptyState } from "@/scripts/tool-ui";
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import {
   createCronTimeline,
   restoreDateFormat,
@@ -101,14 +102,12 @@ function init() {
   }
 
   /** Build + evaluate the expression; returns true when a valid schedule was rendered. */
-  function generateAction(): boolean {
+  function generateAction(trackOperation = false): boolean {
     const expression = currentExpression();
 
     let schedule;
-    let text: string;
     try {
       schedule = parseCron(expression, strings);
-      text = describeCron(expression, strings);
     } catch (e) {
       setError(cronErrorMessage(e, strings, strings.fieldNames), e instanceof CronError ? e.field : undefined);
       output.value = "";
@@ -120,23 +119,38 @@ function init() {
       return false;
     }
 
-    setError("");
-    output.value = expression;
-    description.textContent = text;
-    setFieldCapsules(capsList, expression);
-    timeline.show({ schedule });
-    setFilled(true);
-    syncStale();
-    return true;
+    const operation = trackOperation ? startToolOperation("cron-generator") : null;
+    try {
+      const text = describeCron(expression, strings);
+      setError("");
+      output.value = expression;
+      description.textContent = text;
+      setFieldCapsules(capsList, expression);
+      timeline.show({ schedule });
+      setFilled(true);
+      syncStale();
+      operation?.complete();
+      return true;
+    } catch (e) {
+      operation?.fail();
+      setError(cronErrorMessage(e, strings, strings.fieldNames), e instanceof CronError ? e.field : undefined);
+      output.value = "";
+      description.textContent = "";
+      timeline.clear();
+      setFieldCapsules(capsList, null);
+      setFilled(false);
+      syncStale();
+      return false;
+    }
   }
 
   generateBtn?.addEventListener("click", () => {
-    if (generateAction()) timeline.announceUpdate();
+    if (generateAction(true)) timeline.announceUpdate();
     if (outputPanel && !outputPanel.classList.contains("is-empty")) revealOutput(outputPanel);
   });
   for (const f of CRON_FIELDS) {
     inputs[f]?.addEventListener("keydown", (ev) => {
-      if (ev.key === "Enter" && generateAction()) timeline.announceUpdate();
+      if (ev.key === "Enter" && generateAction(true)) timeline.announceUpdate();
     });
     inputs[f]?.addEventListener("input", syncStale);
   }

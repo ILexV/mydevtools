@@ -16,6 +16,7 @@
  * mobile (`revealOutput`) and the summary is announced politely.
  */
 import { extractText } from "@/scripts/wasm/pdf-client";
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { announce, bindDropzone, copyWithFeedback, revealOutput, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes, formatPlural, formatString, progressPercent } from "@/lib/format";
@@ -258,6 +259,7 @@ function init() {
     if (extracting) return;
     const queue = files.filter((f) => !f.url); // Legacy parity: skip already extracted.
     if (queue.length === 0) return;
+    const operation = startToolOperation("pdf-to-text");
 
     clearError();
     const ctrl = new AbortController();
@@ -306,6 +308,10 @@ function init() {
       const parts = summaryParts(finished);
       announce(formatString(strings.resultAnnounce, `${parts.files}, ${parts.pages}, ${parts.chars}`));
       revealOutput(resultEl);
+    }
+    if (!ctrl.signal.aborted) {
+      if (errors.length > 0) operation.fail();
+      else operation.complete();
     }
   }
 

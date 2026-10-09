@@ -1,3 +1,4 @@
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { formatBytes, formatMs, formatString, progressPercent } from "@/lib/format";
 import { createExplorerTable, type ExplorerColumn, type ExplorerTable } from "@/scripts/explorer-table";
 import { bindDropzone, setDropzoneHasFile, syncEmptyState } from "@/scripts/tool-ui";
@@ -375,7 +376,7 @@ function init(): void {
     showError(error);
   }
 
-  async function openFile(file: File): Promise<void> {
+  async function openFile(file: File, explicit = false): Promise<void> {
     const token = ++generation;
     activeAbort?.abort();
     api.terminate();
@@ -387,6 +388,7 @@ function init(): void {
     setBusy(true, strings.StatusOpening);
     const controller = new AbortController();
     activeAbort = controller;
+    const operation = explicit && file.size > 0 ? startToolOperation("csv-explorer") : null;
     try {
       const result = await api.open(file, {
         delimiter: delimiter.value as CsvDelimiterOption,
@@ -412,6 +414,7 @@ function init(): void {
       createTable();
       setBusy(false);
       showStatus(strings.StatusDone);
+      operation?.complete();
     } catch (error) {
       if (token !== generation) return;
       activeAbort = null;
@@ -421,6 +424,7 @@ function init(): void {
       } else {
         invalidateResult(file.size === 0 ? { code: "empty" } : error);
         if (file.size === 0 && errorBox) errorBox.textContent = strings.ErrorEmpty;
+        operation?.fail();
       }
     }
   }
@@ -505,7 +509,7 @@ function init(): void {
     }
   }
 
-  bindDropzone(zone, fileInput, (files) => void openFile(files[0]));
+  bindDropzone(zone, fileInput, (files) => void openFile(files[0], true));
   clearButton.addEventListener("click", () => resetSession());
   cancelButton?.addEventListener("click", () => {
     if (!busy) return;

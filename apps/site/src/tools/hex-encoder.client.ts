@@ -27,4 +27,13 @@ function readOptions(root: HTMLElement): EncodingOptions {
 /** "Load example" sample: non-ASCII on purpose, so multi-byte UTF-8 shows in the hex. */
 const EXAMPLE = "café ☕ #42";
 
-onReady(() => initEncodingTool({ prefix: "hex", formatName: "hex", ext: "hex", readOptions, example: EXAMPLE }));
+onReady(() =>
+  initEncodingTool({
+    prefix: "hex",
+    toolId: "hex-encoder",
+    formatName: "hex",
+    ext: "hex",
+    readOptions,
+    example: EXAMPLE,
+  }),
+);

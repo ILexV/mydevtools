@@ -1,6 +1,6 @@
 {
   "AppName": "MyDevTools",
-  "NoDataSent": "Keine Daten werden an den Server gesendet",
+  "NoDataSent": "Eingaben und Dateien bleiben im Browser",
   "Common_Download": "Herunterladen",
   "Common_Output": "Ausgabe",
   "Common_Loading": "Wird geladen...",

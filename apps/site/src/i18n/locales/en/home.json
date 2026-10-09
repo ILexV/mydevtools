@@ -5,7 +5,7 @@
   "SeoContent_P2": "Privacy comes from the architecture: the site is a set of static pages, and every tool processes your input inside the browser. Compute-heavy tools such as hashing, encryption, image, PDF and QR processing run in WebAssembly modules compiled from Rust; lighter ones, like the JSON formatter or the text diff, are plain JavaScript. The passwords, keys and files you work with are never uploaded.",
   "Category_Generators": "Generators",
   "Category_ColorsAndDesign": "Colors & Design",
-  "NoDataSent": "No data is sent to the server",
+  "NoDataSent": "Your inputs and files stay in your browser",
   "Category_Cryptography": "Cryptography",
   "FeatureAlgorithmsDescription": "Star the tools you use most. Favorites and recently used tools are kept in your browser.",
   "FeatureWasmDescription": "Hashing, encryption, image and PDF processing run in Rust-compiled WebAssembly; simpler tools are lightweight JavaScript.",

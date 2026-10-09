@@ -12,6 +12,7 @@
  * validated by parseSanList) go into the certificate / CSR extensionRequest —
  * the CN is not copied into the SANs automatically, an empty list only warns.
  */
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import {
   x509Parse,
   x509ParseCsr,
@@ -233,14 +234,17 @@ function init() {
       }
       const sans = readSans();
       if (!sans) return;
+      const operation = startToolOperation("x509");
       try {
         const { certificate, privateKey } = await guard(
           x509SelfSignedEx(selectedAlgorithm(), subjectInput.value, days, sans.dns, sans.ip, sans.email),
         );
         setOutput(`${certificate}\n${privateKey}`.trim(), "certificate.pem");
         warnIfNoSans(sans);
+        operation.complete();
       } catch (e) {
         if (e === STALE) return;
+        operation.fail();
         generationError(e);
       }
     }),
@@ -250,12 +254,15 @@ function init() {
     void withBusy(generateCsrBtn, async (guard) => {
       const sans = readSans();
       if (!sans) return;
+      const operation = startToolOperation("x509");
       try {
         const { csr, privateKey } = await guard(x509CsrEx(selectedAlgorithm(), subjectInput.value, sans.dns, sans.ip, sans.email));
         setOutput(`${csr}\n${privateKey}`.trim(), "request.csr.pem");
         warnIfNoSans(sans);
+        operation.complete();
       } catch (e) {
         if (e === STALE) return;
+        operation.fail();
         generationError(e);
       }
     }),
@@ -265,11 +272,16 @@ function init() {
     void withBusy(parseBtn, async (guard) => {
       const input = parseArea.value.trim();
       if (!input) return;
+      const operation = startToolOperation("x509");
+      let signatureFailed = false;
       /** CSR summary + a warning when its self-signature does not verify. */
       const showCsr = (json: string) => {
         setOutput(prettyJson(json), "csr.json");
         try {
-          if (JSON.parse(json).signatureValid === false) setWarnings([strings.warningCsrSignature]);
+          if (JSON.parse(json).signatureValid === false) {
+            signatureFailed = true;
+            setWarnings([strings.warningCsrSignature]);
+          }
         } catch {
           /* summary is always JSON; ignore */
         }
@@ -299,8 +311,11 @@ function init() {
             }
           }
         }
+        if (signatureFailed) operation.fail();
+        else operation.complete();
       } catch (e) {
         if (e === STALE) return;
+        operation.fail();
         // Malformed PEM/Base64/DER: one localized message instead of raw parser codes.
         // Drop the previous result too, so Copy/Download can't export a stale certificate.
         setOutput("", null);

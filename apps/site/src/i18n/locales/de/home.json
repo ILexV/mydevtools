@@ -2,7 +2,7 @@
   "Category_Cryptography": "Kryptographie",
   "Category_Encoding": "Kodierung",
   "Category_ColorsAndDesign": "Farben & Design",
-  "NoDataSent": "Keine Daten werden an den Server gesendet",
+  "NoDataSent": "Eingaben und Dateien bleiben im Browser",
   "FeatureLanguagesTitle": "Mehrsprachig",
   "SeoContent_P2": "Der Datenschutz ergibt sich aus der Architektur: Die Website besteht aus statischen Seiten, und jedes Tool verarbeitet Ihre Eingaben im Browser. Rechenintensive Tools wie Hashing, Verschlüsselung sowie Bild-, PDF- und QR-Verarbeitung laufen in aus Rust kompilierten WebAssembly-Modulen; leichtere wie der JSON-Formatierer oder der Textvergleich sind einfaches JavaScript. Passwörter, Schlüssel und Dateien, mit denen Sie arbeiten, werden nie hochgeladen.",
   "FeatureAlgorithmsDescription": "Markieren Sie häufig genutzte Tools mit einem Stern. Favoriten und zuletzt genutzte Tools werden im Browser gespeichert.",

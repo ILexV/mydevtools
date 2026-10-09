@@ -1,6 +1,6 @@
 {
   "AppName": "MyDevTools",
-  "NoDataSent": "서버로 데이터가 전송되지 않습니다",
+  "NoDataSent": "입력 내용과 파일은 브라우저 밖으로 전송되지 않습니다",
   "Common_Download": "다운로드",
   "Common_Output": "출력",
   "Common_Loading": "로딩 중...",

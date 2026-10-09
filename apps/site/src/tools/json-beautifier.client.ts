@@ -10,6 +10,7 @@
  * intentionally NOT ported. Only the formatting settings persist.
  * Empty editor shows a hint + "Load example" overlay (sample inserted only on click).
  */
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { bindEditorFileDrop, downloadText, loadEditorKit, type MdtEditor } from "@/scripts/codemirror-loader";
 import { bindLoadExample, copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
 import { locateJsonError } from "@/tools/json-diagnostics";
@@ -140,12 +141,14 @@ async function init() {
       return;
     }
     const indent = indentSelect?.value ?? "4";
+    const operation = announce ? startToolOperation("json-beautifier") : null;
     try {
       const formatted = formatJson(input, { indent, sortKeys: Boolean(sortKeys?.checked), compact: Boolean(compact?.checked) });
       editor.setValue(formatted);
       // Keep the editor's own indentation in line with the chosen style.
       if (!compact?.checked) editor.setIndent(indent === "tab" ? "tab" : Number.parseInt(indent, 10) || 4);
       setError("");
+      operation?.complete();
     } catch (e) {
       // Position from our own scanner (engine messages differ per browser); offsets
       // are into the trimmed text, shifted back to the document.
@@ -154,6 +157,7 @@ async function init() {
         ? shiftDiagnostic(found, value.length - value.trimStart().length)
         : { messageKey: "Syntax", from: null, to: null, detail: e instanceof Error ? e.message : String(e) };
       editor.setDiagnostic(presentDiagnostic(diagStrings, diag, value), { announce });
+      operation?.fail();
     }
   }
 

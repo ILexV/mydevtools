@@ -13,6 +13,7 @@
  * above the list sums the batch: total "−N%" with original → compressed sizes.
  */
 import { compressPdf } from "@/scripts/wasm/pdf-client";
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, revealOutput, startPreparing } from "@/scripts/tool-ui";
 import { formatBytes, progressPercent } from "@/lib/format";
@@ -198,6 +199,7 @@ function init() {
     const queue = files.filter((f) => f.compressedSize === null); // Legacy: skip already compressed.
     if (queue.length === 0) return;
 
+    const operation = startToolOperation("pdf-compressor");
     clearError();
     const ctrl = new AbortController();
     job = ctrl;
@@ -238,6 +240,10 @@ function init() {
     render();
     if (errors.length > 0) showError(errors.join("\n"));
     if (summaryEl && !summaryEl.hidden) revealOutput(summaryEl);
+    if (!ctrl.signal.aborted) {
+      if (errors.length > 0) operation.fail();
+      else operation.complete();
+    }
   }
 
   function withPdfPreparing<T>(work: Promise<T>): Promise<T> {

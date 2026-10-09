@@ -9,6 +9,7 @@
  * Wrong password / tampered or truncated file / non-.aead input surface as
  * localized errors (AeadError.failure), not raw WASM strings.
  */
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import {
   aeadEncryptFile,
   aeadDecryptFile,
@@ -207,6 +208,7 @@ function init() {
     }
     const pw = readPassword();
     if (pw === null) return;
+    const operation = startToolOperation("aead-file");
 
     // Programmatic or rapid reruns supersede the old operation immediately.
     // Its catch/finally paths are epoch-guarded so they cannot clear fresh UI.
@@ -253,8 +255,12 @@ function init() {
       if (outputPanel) syncEmptyState(outputPanel, false);
       showNotes(notes);
       revealOutput(outputPanel);
+      operation.complete();
     } catch (e) {
-      if (mine === operationEpoch) handleError(e);
+      if (mine === operationEpoch) {
+        handleError(e);
+        if (!(e instanceof DOMException && e.name === "AbortError")) operation.fail();
+      }
     } finally {
       prepared();
       if (mine === operationEpoch) {

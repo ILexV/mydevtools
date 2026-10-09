@@ -2,7 +2,7 @@
   "Category_Cryptography": "Criptografía",
   "Category_Encoding": "Codificación",
   "Category_ColorsAndDesign": "Colores y diseño",
-  "NoDataSent": "No se envían datos al servidor",
+  "NoDataSent": "Tus datos de entrada y archivos no salen del navegador",
   "FeatureLanguagesTitle": "Multilingüe",
   "SeoContent_P2": "La privacidad viene de la arquitectura: el sitio es un conjunto de páginas estáticas y cada herramienta procesa tus datos dentro del navegador. Las herramientas de cálculo intensivo, como hashing, cifrado y procesamiento de imágenes, PDF y QR, usan módulos WebAssembly compilados desde Rust; las más ligeras, como el formateador JSON o la comparación de textos, son JavaScript simple. Las contraseñas, claves y archivos con los que trabajas nunca se suben.",
   "FeatureAlgorithmsDescription": "Marca con estrella las herramientas que más usas. Los favoritos y las herramientas recientes se guardan en tu navegador.",

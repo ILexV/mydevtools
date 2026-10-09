@@ -1,0 +1,20 @@
+{
+  "name": "@mydevtools/analytics-worker",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "wrangler deploy --env \"\" --dry-run --outdir dist",
+    "check": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "dev": "wrangler dev --env staging",
+    "deploy": "wrangler deploy --env \"\"",
+    "deploy:staging": "wrangler deploy --env staging"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261009.1",
+    "@types/node": "26.6.4",
+    "typescript": "6.0.3",
+    "wrangler": "4.149.0"
+  }
+}

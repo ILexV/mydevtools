@@ -22,6 +22,10 @@ export default defineConfig({
     port: 3312,
   },
   vite: {
+    define: {
+      // Opt-in only after the same-origin Cloudflare ingestion route is deployed.
+      "import.meta.env.ANALYTICS_ENABLED": JSON.stringify(process.env.ANALYTICS_ENABLED === "true"),
+    },
     resolve: {
       alias: {
         "@": src,

@@ -7,6 +7,7 @@
  */
 import { convertCase, type CaseType } from "@/tools/text-case";
 import { bindEmptyState, bindLoadExample, copyWithFeedback, setFieldValue } from "@/scripts/tool-ui";
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 
 interface Strings {
   copied: string;
@@ -55,8 +56,15 @@ function init(): void {
     if (caseBtn) {
       e.preventDefault();
       const type = caseBtn.dataset.tccCase as CaseType;
-      input.value = convertCase(input.value, type);
-      showError(null);
+      const operation = startToolOperation("text-case-converter");
+      try {
+        input.value = convertCase(input.value, type);
+        showError(null);
+        operation.complete();
+      } catch (error) {
+        operation.fail();
+        throw error;
+      }
       return;
     }
     if (target.closest("[data-tcc-clear]")) {

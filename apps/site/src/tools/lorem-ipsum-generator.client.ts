@@ -4,6 +4,7 @@
  * wires copy/download. SSR-safe — no-ops when the shell is absent. All UI text
  * comes from the `data-lorem-strings` island.
  */
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { generateLorem, clampCount, type LoremFormat, type LoremType } from "@/tools/lorem-ipsum";
 import { copyWithFeedback, revealOutput } from "@/scripts/tool-ui";
 import { formatPlural } from "@/lib/format";
@@ -75,34 +76,41 @@ function init(): void {
     errorEl.hidden = !msg;
   }
 
-  function generate(): void {
+  function generate(explicit = false): void {
     // <p> wrapping only applies to HTML paragraphs — grey the toggle out otherwise.
     if (wrapEl) wrapEl.disabled = !(format.value === "html" && type.value === "paragraphs");
-    const result = generateLorem({
-      type: type.value as LoremType,
-      count: count.value.trim() === "" ? NaN : Number(count.value),
-      format: format.value as LoremFormat,
-      startClassic: !!classicEl?.checked,
-      wrapParagraphs: !!wrapEl?.checked,
-    });
-    output.value = result.text;
-    if (wordsEl) wordsEl.textContent = nf.format(result.words);
-    if (charsEl) charsEl.textContent = nf.format(result.chars);
-    // "1 слово / 3 слова / 5 слов": label follows the locale's plural category.
-    if (wordsLabelEl) wordsLabelEl.textContent = formatPlural(strings, "wordsStat", result.words, strings.lang);
-    if (charsLabelEl) charsLabelEl.textContent = formatPlural(strings, "characters", result.chars, strings.lang);
+    const operation = explicit ? startToolOperation("lorem-ipsum-generator") : null;
+    try {
+      const result = generateLorem({
+        type: type.value as LoremType,
+        count: count.value.trim() === "" ? NaN : Number(count.value),
+        format: format.value as LoremFormat,
+        startClassic: !!classicEl?.checked,
+        wrapParagraphs: !!wrapEl?.checked,
+      });
+      output.value = result.text;
+      if (wordsEl) wordsEl.textContent = nf.format(result.words);
+      if (charsEl) charsEl.textContent = nf.format(result.chars);
+      // "1 слово / 3 слова / 5 слов": label follows the locale's plural category.
+      if (wordsLabelEl) wordsLabelEl.textContent = formatPlural(strings, "wordsStat", result.words, strings.lang);
+      if (charsLabelEl) charsLabelEl.textContent = formatPlural(strings, "characters", result.chars, strings.lang);
+      operation?.complete();
+    } catch (error) {
+      operation?.fail();
+      throw error;
+    }
   }
 
   generateBtn?.addEventListener("click", () => {
-    generate();
-    // Explicit Generate only; live option changes never scroll.
+    generate(true);
+    // Explicit Generate only; live option changes never scroll or emit analytics.
     revealOutput(output.closest<HTMLElement>(".ds-card, .ds-output"));
   });
-  type.addEventListener("change", generate);
-  format.addEventListener("change", generate);
-  classicEl?.addEventListener("change", generate);
-  wrapEl?.addEventListener("change", generate);
-  count.addEventListener("input", generate);
+  type.addEventListener("change", () => generate());
+  format.addEventListener("change", () => generate());
+  classicEl?.addEventListener("change", () => generate());
+  wrapEl?.addEventListener("change", () => generate());
+  count.addEventListener("input", () => generate());
   // Reflect the effective (clamped) count once editing is done: 0 → 1, 5000 → 1000.
   count.addEventListener("change", () => {
     if (count.value.trim() !== "") count.value = String(clampCount(Number(count.value)));

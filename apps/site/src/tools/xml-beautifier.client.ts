@@ -11,6 +11,7 @@
  * never leaves the page. Only the indent / compact-mode settings are kept.
  * Empty editor shows a hint + "Load example" overlay (sample inserted only on click).
  */
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { bindEditorFileDrop, downloadText, loadEditorKit, type MdtEditor } from "@/scripts/codemirror-loader";
 import { bindLoadExample, copyWithFeedback, syncEmptyState } from "@/scripts/tool-ui";
 import { presentDiagnostic, shiftDiagnostic, type DiagnosticStrings, type ParseDiagnostic } from "@/tools/parse-diagnostics";
@@ -124,10 +125,12 @@ async function init(): Promise<void> {
     }
     const indentValue = indentSelect?.value === "tab" ? "\t" : Number.parseInt(indentSelect?.value || "4", 10) || 4;
     const compact = compactCheckbox?.checked ?? false;
+    const operation = announce ? startToolOperation("xml-beautifier") : null;
     try {
       editor.setValue(formatXml(input, indentValue, compact));
       if (!compact) editor.setIndent(indentValue === "\t" ? "tab" : indentValue);
       setError("");
+      operation?.complete();
     } catch (e) {
       const detail = e instanceof XmlParseError ? e.message : e instanceof Error ? e.message : String(e);
       const engineText = e instanceof XmlParseError ? e.engineText : "";
@@ -136,6 +139,7 @@ async function init(): Promise<void> {
       const diag: ParseDiagnostic = locateXmlError(input) ?? xmlEngineDiagnostic(input, engineText, detail);
       const shifted = shiftDiagnostic(diag, value.length - value.trimStart().length);
       editor.setDiagnostic(presentDiagnostic(diagStrings, shifted, value), { announce });
+      operation?.fail();
     }
   }
 

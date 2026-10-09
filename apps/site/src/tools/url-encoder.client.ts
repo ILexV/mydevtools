@@ -9,6 +9,7 @@
  * WASM module is fetched only there. SSR-safe: no-ops when the shell is absent.
  * Workbench empty states: input overlay + "Load example", output placeholder.
  */
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { formatBytes, formatString } from "@/lib/format";
 import {
   bindEmptyState,
@@ -134,6 +135,7 @@ function init() {
     clearError();
     for (const b of [encodeBtn, decodeBtn]) if (b) b.disabled = true;
     trigger?.setAttribute("aria-busy", "true");
+    const operation = startToolOperation("url-encoder");
     try {
       const opts = options();
       const prep = { host: trigger?.closest<HTMLElement>(".ds-action-row") ?? outputPanel, label: strings.preparing };
@@ -148,7 +150,9 @@ function init() {
         setStats(inputArea.value.length, bytes.length);
       }
       revealOutput(outputPanel);
+      operation.complete();
     } catch (e) {
+      if (!(e instanceof WasmError && e.code === "aborted")) operation.fail();
       handleFailure(e);
     } finally {
       for (const b of [encodeBtn, decodeBtn]) if (b) b.disabled = false;

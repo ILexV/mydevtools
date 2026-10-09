@@ -4,6 +4,7 @@
  * `entities.ts`; pure JS, no network, no WASM. Workbench empty states: input
  * overlay with "Load example" (only on click) and a compact output placeholder.
  */
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import {
   bindEmptyState,
   bindLoadExample,
@@ -84,18 +85,32 @@ function init() {
     clearError();
     const mode = (modeSel?.value ?? "specialchars") as EntityMode;
     const format = (formatSel?.value ?? "named") as EntityFormat;
-    output.value = encodeHtml(input.value, mode, format);
-    plainSide = "input";
-    announce();
-    revealOutput(outputPanel);
+    const operation = startToolOperation("html-entity-encoder");
+    try {
+      output.value = encodeHtml(input.value, mode, format);
+      plainSide = "input";
+      announce();
+      revealOutput(outputPanel);
+      operation.complete();
+    } catch (error) {
+      operation.fail();
+      throw error;
+    }
   });
 
   root.querySelector<HTMLButtonElement>("[data-ent-decode]")?.addEventListener("click", () => {
     clearError();
-    output.value = decodeHtml(input.value);
-    plainSide = "output";
-    announce();
-    revealOutput(outputPanel);
+    const operation = startToolOperation("html-entity-encoder");
+    try {
+      output.value = decodeHtml(input.value);
+      plainSide = "output";
+      announce();
+      revealOutput(outputPanel);
+      operation.complete();
+    } catch (error) {
+      operation.fail();
+      throw error;
+    }
   });
 
   root.querySelector<HTMLButtonElement>("[data-ent-swap]")?.addEventListener("click", () => {

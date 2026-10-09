@@ -1,0 +1,62 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "mydevtools-analytics",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-09",
+  "tsconfig": "./tsconfig.json",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    {
+      "pattern": "mydevtools.app/api/analytics/*",
+      "zone_name": "mydevtools.app"
+    }
+  ],
+  "vars": {
+    "ALLOWED_BROWSER_ORIGIN": "https://mydevtools.app"
+  },
+  "analytics_engine_datasets": [
+    {
+      "binding": "TOOL_ANALYTICS",
+      "dataset": "mydevtools_tool_usage"
+    }
+  ],
+  "observability": {
+    "enabled": false,
+    "issues": {
+      "enabled": false
+    },
+    "logs": {
+      "enabled": false,
+      "invocation_logs": false,
+      "persist": false
+    },
+    "traces": {
+      "enabled": false,
+      "persist": false
+    }
+  },
+  "logpush": false,
+  "send_metrics": false,
+  "dependencies_instrumentation": {
+    "enabled": false
+  },
+  "minify": true,
+  "env": {
+    "staging": {
+      "name": "mydevtools-analytics-staging",
+      "workers_dev": true,
+      "preview_urls": true,
+      "routes": [],
+      "vars": {
+        "ALLOWED_BROWSER_ORIGIN": "self"
+      },
+      "analytics_engine_datasets": [
+        {
+          "binding": "TOOL_ANALYTICS",
+          "dataset": "mydevtools_tool_usage_staging"
+        }
+      ]
+    }
+  }
+}

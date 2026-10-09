@@ -26,6 +26,7 @@ import {
   type AddressSegmentKind,
 } from "@/tools/ip-subnet";
 import { copyWithFeedback, revealOutput, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 
 interface Strings {
   lang: string;
@@ -466,16 +467,25 @@ function init(): void {
       if (splitOutEl) splitOutEl.hidden = true;
       return;
     }
+
+    const operation = startToolOperation("ip-subnet-calculator");
     let result: SplitResult;
     try {
       result = (await splitSubnets(networkInput, newPrefix)) as SplitResult;
     } catch {
+      operation.fail();
       showSplitError(fill(strings.errorSplitPrefix, { min: prefix, max: maxPrefix(v6) }));
       if (splitOutEl) splitOutEl.hidden = true;
       return;
     }
-    showSplitError("");
-    renderSplit(result, v6);
+    try {
+      showSplitError("");
+      renderSplit(result, v6);
+      operation.complete();
+    } catch (error) {
+      operation.fail();
+      throw error;
+    }
   }
 
   /** Resolves true when results were rendered (explicit callers then reveal them). */
@@ -501,30 +511,39 @@ function init(): void {
     }
 
     const v6 = isIpv6Input(value);
-    let result: unknown;
+    const operation = startToolOperation("ip-subnet-calculator");
+    let result: Ipv4Result | Ipv6Result;
     try {
-      result = v6 ? await calcIpv6(value) : await calcIpv4(value);
+      // The selected WASM function defines which of the two in-process result shapes is returned.
+      result = v6 ? (await calcIpv6(value)) as Ipv6Result : (await calcIpv4(value)) as Ipv4Result;
     } catch {
+      operation.fail();
       showError(strings.errorInvalidFormat);
       setResultsVisible(false);
       return false;
     }
 
-    if (v6) renderV6(result as Ipv6Result);
-    else renderV4(result as Ipv4Result);
-    const prefix = (result as { prefix: number }).prefix;
-    current = { input: value, prefix, v6 };
-    prepareSplit(prefix, v6);
-    const v4Table = root.querySelector<HTMLElement>("[data-ip-v4]");
-    const v6Table = root.querySelector<HTMLElement>("[data-ip-v6]");
-    const binary = root.querySelector<HTMLElement>("[data-ip-binary]");
-    if (v4Table) v4Table.hidden = v6;
-    if (binary) binary.hidden = v6;
-    if (v6Table) v6Table.hidden = !v6;
+    try {
+      if (v6) renderV6(result as Ipv6Result);
+      else renderV4(result as Ipv4Result);
+      const prefix = result.prefix;
+      current = { input: value, prefix, v6 };
+      prepareSplit(prefix, v6);
+      const v4Table = root.querySelector<HTMLElement>("[data-ip-v4]");
+      const v6Table = root.querySelector<HTMLElement>("[data-ip-v6]");
+      const binary = root.querySelector<HTMLElement>("[data-ip-binary]");
+      if (v4Table) v4Table.hidden = v6;
+      if (binary) binary.hidden = v6;
+      if (v6Table) v6Table.hidden = !v6;
 
-    showError("");
-    setResultsVisible(true);
-    return true;
+      showError("");
+      setResultsVisible(true);
+      operation.complete();
+      return true;
+    } catch (error) {
+      operation.fail();
+      throw error;
+    }
   }
 
   /** Explicit Calculate / Enter / example chip: bring the results into view on phones. */

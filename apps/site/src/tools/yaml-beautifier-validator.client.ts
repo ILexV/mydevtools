@@ -7,6 +7,7 @@
  * Workbench empty states: input overlay + "Load example" (only on click),
  * compact output placeholder until there is a result.
  */
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { loadEditorKit, type MdtEditor } from "@/scripts/codemirror-loader";
 import { bindLoadExample, copyWithFeedback, revealOutput, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
 import { presentDiagnostic, type DiagnosticStrings } from "@/tools/parse-diagnostics";
@@ -152,6 +153,7 @@ async function init() {
       outputEditor.setValue("");
       return;
     }
+    const operation = startToolOperation("yaml-beautifier-validator");
     btn?.setAttribute("aria-busy", "true");
     try {
       const host = btn?.closest<HTMLElement>(".ds-action-row") ?? outputPanel;
@@ -161,11 +163,13 @@ async function init() {
       });
       showError(null);
       revealOutput(outputPanel);
+      if (inputEditor.getValue() === yaml) operation.complete();
     } catch (e) {
       outputEditor.setValue("");
       showStatus("invalid");
       // The input changed while WASM loaded/ran: its marker would point at the wrong text.
       if (inputEditor.getValue() === yaml) showError(message(e), yaml);
+      if (inputEditor.getValue() === yaml) operation.fail();
     } finally {
       btn?.removeAttribute("aria-busy");
     }

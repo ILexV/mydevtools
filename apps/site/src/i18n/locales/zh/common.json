@@ -1,6 +1,6 @@
 {
   "AppName": "MyDevTools",
-  "NoDataSent": "没有数据发送到服务器",
+  "NoDataSent": "输入内容和文件始终留在浏览器中",
   "Common_Download": "下载",
   "Common_Output": "输出",
   "Common_Loading": "加载中...",

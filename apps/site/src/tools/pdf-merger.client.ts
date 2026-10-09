@@ -16,6 +16,7 @@
  * stays as it was and an info note says the merge was cancelled.
  */
 import { mergePdfs } from "@/scripts/wasm/pdf-client";
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, revealOutput, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
@@ -205,6 +206,7 @@ function init() {
 
   async function handleMerge() {
     if (files.length < 2 || merging) return;
+    const operation = startToolOperation("pdf-merger");
 
     merging = true;
     merge!.setAttribute("aria-busy", "true");
@@ -242,9 +244,13 @@ function init() {
       // Legacy parity: hide the merge button after success; it returns when
       // the file list changes.
       merge!.hidden = true;
+      operation.complete();
     } catch (e) {
-      if (e instanceof WasmError && e.code === "aborted") showNote(strings.mergeCanceled);
-      else showError(errorMessage(e));
+      if (ctrl.signal.aborted || (e instanceof WasmError && e.code === "aborted")) showNote(strings.mergeCanceled);
+      else {
+        operation.fail();
+        showError(errorMessage(e));
+      }
     } finally {
       clearInterval(timer);
       if (progress) progress.hidden = true;

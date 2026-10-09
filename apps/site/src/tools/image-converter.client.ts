@@ -14,6 +14,7 @@
  * TGA, damaged file) falls back to the generic image icon.
  */
 import { convertImage } from "@/scripts/wasm/image-tools-client";
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, revealOutput, setDropzoneHasFile, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
@@ -174,6 +175,7 @@ function init() {
 
     clearError();
     hideResult();
+    const operation = startToolOperation("image-converter");
     const ctrl = new AbortController();
     job = ctrl;
     setBusy(true);
@@ -197,8 +199,10 @@ function init() {
       if (ctrl.signal.aborted || currentFile !== file) return;
       resultEl!.hidden = false;
       revealOutput(resultEl);
+      operation.complete();
     } catch (e) {
-      if (e instanceof WasmError && e.code === "aborted") return;
+      if (ctrl.signal.aborted || (e instanceof WasmError && e.code === "aborted")) return;
+      operation.fail();
       const detail = e instanceof Error ? e.message : "";
       // Undecodable input: plain localized message, raw decoder text dropped.
       if (isImageDecodeError(detail)) showError(strings!.errorDamaged);

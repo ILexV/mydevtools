@@ -7,6 +7,7 @@
  * announced on Convert / Ctrl-Enter; Esc→Tab leaves the editors. Workbench empty
  * states: input overlay + "Load example" (only on click), output placeholder.
  */
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { downloadText, loadEditorKit, type MdtEditor } from "@/scripts/codemirror-loader";
 import { bindLoadExample, copyWithFeedback, revealOutput, syncEmptyState } from "@/scripts/tool-ui";
 import { locateJsonError } from "@/tools/json-diagnostics";
@@ -147,9 +148,11 @@ async function init() {
       outputEditor.setValue("");
       return;
     }
+    const operation = announce ? startToolOperation("json-to-typescript") : null;
     try {
       outputEditor.setValue(jsonToTypeScript(src, getOpts()));
       inputEditor.setDiagnostic(null);
+      operation?.complete();
     } catch (e) {
       outputEditor.setValue("");
       const found = locateJsonError(src);
@@ -157,6 +160,7 @@ async function init() {
         ? shiftDiagnostic(found, value.length - value.trimStart().length)
         : { messageKey: "Syntax", from: null, to: null, detail: e instanceof Error ? e.message : String(e) };
       inputEditor.setDiagnostic(presentDiagnostic(diagStrings, diag, value), { announce });
+      operation?.fail();
     }
   }
   function scheduleConvert() {

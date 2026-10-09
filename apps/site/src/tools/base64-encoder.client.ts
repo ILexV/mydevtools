@@ -7,6 +7,7 @@
  * Workbench empty states: input overlay with "Load example" (only on click),
  * compact output placeholder until there is a result.
  */
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { formatBytes, formatString, progressPercent } from "@/lib/format";
 import {
   bindDropzone,
@@ -349,6 +350,7 @@ function init() {
       host: trigger?.closest<HTMLElement>(".ds-action-row") ?? outputPanel,
       label: strings.preparing,
     });
+    const operation = startToolOperation("base64-encoder");
     let shown = false;
     try {
       if (currentFile) {
@@ -371,7 +373,9 @@ function init() {
         showDecoded(bytes, inputArea.value.length, null);
       }
       shown = true;
+      operation.complete();
     } catch (e) {
+      if (!(e instanceof WasmError && e.code === "aborted")) operation.fail();
       handleError(e);
     } finally {
       prepared();

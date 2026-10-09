@@ -4,6 +4,7 @@
  * the output panel's empty state returns when the list is cleared.
  * SSR-safe; one-time init guard on the tool root.
  */
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { generateBatch, type UuidVersion, type UuidFormat, type UuidCase } from "@/tools/uuid";
 import { copyWithFeedback, prepareCopyButton, revealOutput, syncEmptyState } from "@/scripts/tool-ui";
 
@@ -97,15 +98,22 @@ function init() {
   });
 
   genBtn?.addEventListener("click", () => {
-    render(
-      generateBatch(
-        radio("uuid-version") as UuidVersion,
-        radio("uuid-format") as UuidFormat,
-        radio("uuid-case") as UuidCase,
-        countInput ? Number(countInput.value) : 1,
-      ),
-    );
-    revealOutput(output);
+    const operation = startToolOperation("uuid-generator");
+    try {
+      render(
+        generateBatch(
+          radio("uuid-version") as UuidVersion,
+          radio("uuid-format") as UuidFormat,
+          radio("uuid-case") as UuidCase,
+          countInput ? Number(countInput.value) : 1,
+        ),
+      );
+      revealOutput(output);
+      operation.complete();
+    } catch (error) {
+      operation.fail();
+      throw error;
+    }
   });
 
   copyAllBtn?.addEventListener("click", async () => {

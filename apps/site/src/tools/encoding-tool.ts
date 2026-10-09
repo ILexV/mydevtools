@@ -8,6 +8,8 @@
  * hooks), option reader, file extension and example text. Shell markup:
  * `HexEncoder.astro` et al.
  */
+import type { ToolId } from "@/scripts/analytics/events";
+import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
 import { formatBytes, formatString, progressPercent } from "@/lib/format";
 import {
   bindDropzone,
@@ -58,6 +60,8 @@ export interface EncodingToolStrings {
 export interface EncodingToolConfig {
   /** Data-attribute prefix: "hex" → `[data-hex-tool]`, `[data-hex-input]`, … */
   prefix: string;
+  /** Stable catalog identifier used for explicit encode/decode operations. */
+  toolId: ToolId;
   /** Format name for "not valid {0}" errors (not translated: Base32, Hex…). */
   formatName: string;
   /** Download extension for encoded output ("hex", "b32", "b58"). */
@@ -308,9 +312,11 @@ export function initEncodingTool(config: EncodingToolConfig): void {
     setBusy(true, encodeBtn);
     const prepared = prepare();
     let shown = false;
+    let operation: ToolOperation | null = null;
     try {
       if (currentFile) {
         if (tooLarge(config.encodeLimit, strings.fileSizeLimitEncode, currentFile.size)) return;
+        operation = startToolOperation(config.toolId);
         setProgress(true);
         const result = await encodeFile(options, currentFile, {
           signal: abortController.signal,
@@ -326,13 +332,16 @@ export function initEncodingTool(config: EncodingToolConfig): void {
       } else {
         const bytes = await textToBytes(inputArea.value, options.charset);
         if (tooLarge(config.encodeLimit, strings.fileSizeLimitEncode, bytes.length)) return;
+        operation = startToolOperation(config.toolId);
         const out = await encodeBytes(options, bytes);
         setOutput(out);
         setStats(out.length, bytes.length);
         setLastDownload({ blob: new Blob([out], { type: "text/plain" }), name: outputFileName(null, config.ext) });
       }
+      operation.complete();
       shown = true;
     } catch (e) {
+      if (!(e instanceof WasmError && e.code === "aborted")) operation?.fail();
       handleError(e);
     } finally {
       prepared();
@@ -350,9 +359,11 @@ export function initEncodingTool(config: EncodingToolConfig): void {
     setBusy(true, decodeBtn);
     const prepared = prepare();
     let shown = false;
+    let operation: ToolOperation | null = null;
     try {
       if (currentFile) {
         if (tooLarge(config.decodeLimit, strings.fileSizeLimitDecode, currentFile.size)) return;
+        operation = startToolOperation(config.toolId);
         setProgress(true);
         const result = await decodeFile(options, currentFile, {
           signal: abortController.signal,
@@ -369,14 +380,17 @@ export function initEncodingTool(config: EncodingToolConfig): void {
       } else {
         const encoded = inputArea.value;
         if (tooLarge(config.decodeLimit, strings.fileSizeLimitDecode, encoded.length)) return;
+        operation = startToolOperation(config.toolId);
         const bytes = await decodeToBytes(options, encoded);
         // Raw bytes stay downloadable even when they aren't text in the charset.
         setLastDownload({ blob: new Blob([new Uint8Array(bytes)], { type: "application/octet-stream" }), name: "decoded.bin" });
         setStats(encoded.length, bytes.length);
         setOutput(await bytesToText(bytes, options.charset));
       }
+      operation.complete();
       shown = true;
     } catch (e) {
+      if (!(e instanceof WasmError && e.code === "aborted")) operation?.fail();
       handleError(e);
     } finally {
       prepared();

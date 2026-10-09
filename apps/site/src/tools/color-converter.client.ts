@@ -20,6 +20,7 @@ import {
   type RGB,
 } from "@/tools/color";
 import { copyWithFeedback, prepareCopyButton, revealOutput } from "@/scripts/tool-ui";
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 
 interface Strings {
   copy: string;
@@ -245,14 +246,22 @@ function init(): void {
   function convert(): void {
     if (!input) return;
     const parsed = parseColor(input.value);
-    if (parsed) {
-      apply(parsed.rgb, parsed.alpha);
-      // Explicit Convert / Enter: bring the converted formats into view on phones.
-      revealOutput(formatsEl?.closest<HTMLElement>(".ds-card"));
-    } else {
+    if (!parsed) {
       setInvalid(true);
       setResultVisible(false);
       showError(strings.invalidColor);
+      return;
+    }
+
+    const operation = startToolOperation("color-converter");
+    try {
+      apply(parsed.rgb, parsed.alpha);
+      // Explicit Convert / Enter: bring the converted formats into view on phones.
+      revealOutput(formatsEl?.closest<HTMLElement>(".ds-card"));
+      operation.complete();
+    } catch (error) {
+      operation.fail();
+      throw error;
     }
   }
 

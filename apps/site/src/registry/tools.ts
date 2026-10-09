@@ -71,7 +71,7 @@ export interface Tool {
   capabilities: ToolCapabilities;
 }
 
-export const TOOLS: readonly Tool[] = [
+const TOOL_CATALOG = [
   // ── encoding ──────────────────────────────────────────────────────────────
   { slug: "base64-encoder", monogram: "B64", category: "encoding", wasm: "encoding", capabilities: { file: "optional", chunked: true, progress: true, cancel: true, copy: true, download: true, swap: true } },
   { slug: "base32-encoder", monogram: "B32", category: "encoding", wasm: "encoding", capabilities: { file: "optional", chunked: true, progress: true, cancel: true, copy: true, download: true, swap: true } },
@@ -138,7 +138,12 @@ export const TOOLS: readonly Tool[] = [
   // ── qrcode ────────────────────────────────────────────────────────────────
   { slug: "qr-code-generator", monogram: "→QR", category: "qrcode", wasm: "qrcode", capabilities: { file: "optional", download: true } },
   { slug: "qr-scanner", monogram: "QR→", category: "qrcode", wasm: "qrcode", capabilities: { file: "single", copy: true } },
-] as const;
+] as const satisfies readonly Tool[];
+
+/** Stable, language-neutral identifiers shared by tool actions and telemetry. */
+export type ToolId = (typeof TOOL_CATALOG)[number]["slug"];
+
+export const TOOLS: readonly Tool[] = TOOL_CATALOG;
 
 export const TOOL_COUNT = TOOLS.length;
 

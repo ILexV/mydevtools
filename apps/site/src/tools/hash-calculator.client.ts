@@ -11,6 +11,7 @@
  * rehashed). Editing the source text/file or the algorithm selection marks the
  * cache stale, which clears match marks until the next result arrives.
  */
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import { hashText, hashFile, type ProgressInfo } from "@/scripts/wasm/hash-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { HASH_ALGORITHMS, DEFAULT_HASH_ALGORITHMS } from "@/tools/hash-algorithms";
@@ -457,6 +458,7 @@ function init() {
       showError(strings.selectAtLeastOne);
       return;
     }
+    const operation = startToolOperation("hash-calculator");
     setBusy(true);
     clearResults();
     const run = ++generation;
@@ -527,6 +529,13 @@ function init() {
         renderComparison();
         updateProgress(processedBytes, total, performance.now() - start);
       }
+      if (generation === run && !controller.signal.aborted) {
+        if (groups.some((group) => group.status === "error")) operation.fail();
+        else operation.complete();
+      }
+    } catch (error) {
+      if (generation === run && !controller.signal.aborted) operation.fail();
+      throw error;
     } finally {
       prepared();
       if (generation === run) {

@@ -29,6 +29,7 @@ function readOptions(root: HTMLElement): EncodingOptions {
 onReady(() =>
   initEncodingTool({
     prefix: "b58",
+    toolId: "base58-encoder",
     formatName: "Base58",
     ext: "b58",
     readOptions,

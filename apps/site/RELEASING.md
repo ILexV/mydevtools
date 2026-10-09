@@ -44,6 +44,23 @@ npm run deploy:pages -- --push
 After the first push: GitHub → **Settings → Pages → Source = branch `gh-pages` / root `/`**.
 The site is served at `https://mydevtools.app/` (custom domain from `public/CNAME`; `https://ilexv.github.io/mydevtools/` redirects there).
 
+## Optional anonymous operation analytics
+
+Analytics is disabled unless the build environment explicitly sets
+`ANALYTICS_ENABLED=true`. Deploy and verify the separate Cloudflare ingestion
+Worker **before** enabling it in a Pages build. The default build remains safe
+without any Cloudflare analytics configuration.
+
+The Worker route must stay `mydevtools.app/api/analytics/*`, never the entire
+site. Staging uses a separate dataset and no production route. Worker/zone and
+Pages publication each require owner approval; the new scripts do not deploy
+automatically.
+
+See [analytics setup, privacy inventory, tool matrix, SQL reports and rollback](../../docs/analytics.md).
+Local Wrangler 204 responses do not prove Analytics Engine persistence: confirm
+a real staging write and private SQL readback before production rollout.
+
+
 ## Browser support policy
 
 Declared in `apps/site/package.json#browserslist`:

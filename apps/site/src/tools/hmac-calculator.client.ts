@@ -10,6 +10,7 @@
  * absent.
  */
 import { hmacCompute, type HmacAlgorithm } from "@/scripts/wasm/crypto-client";
+import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import {
   bindEmptyState,
   bindLoadExample,
@@ -96,7 +97,7 @@ function init() {
   let runId = 0;
 
   /** Returns true when a fresh result was written (for the explicit Calculate reveal). */
-  async function calculate(): Promise<boolean> {
+  async function calculate(explicit = false): Promise<boolean> {
     const run = ++runId;
     const keyVal = keyArea.value;
     const msgVal = messageArea.value;
@@ -108,6 +109,7 @@ function init() {
       setCopyVisible(false);
       return false;
     }
+    const operation = explicit ? startToolOperation("hmac-calculator") : null;
 
     try {
       const alg = (algorithm?.value ?? "sha256") as HmacAlgorithm;
@@ -119,21 +121,23 @@ function init() {
       outputArea.value = hex;
       clearError();
       setCopyVisible(true);
+      operation?.complete();
       return true;
     } catch (e) {
       if (run !== runId) return false;
       outputArea.value = "";
       setCopyVisible(false);
       showError(e instanceof Error ? e.message : strings.error);
+      operation?.fail();
       return false;
     }
   }
 
-  keyArea.addEventListener("input", calculate);
-  messageArea.addEventListener("input", calculate);
-  algorithm?.addEventListener("change", calculate);
+  keyArea.addEventListener("input", () => void calculate());
+  messageArea.addEventListener("input", () => void calculate());
+  algorithm?.addEventListener("change", () => void calculate());
   calculateBtn?.addEventListener("click", async () => {
-    if (await calculate()) revealOutput(outputPanel);
+    if (await calculate(true)) revealOutput(outputPanel);
   });
 
   clearBtn?.addEventListener("click", () => {

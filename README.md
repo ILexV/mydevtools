@@ -2,7 +2,7 @@
 
 > Этот README описывает legacy-сайт на Blazor. Актуальный фронтенд — статический Astro в [`apps/site`](apps/site): 41 инструмент и 10 языков, без серверного runtime. Новые `json-explorer` и `csv-explorer` обрабатывают файлы локально в workers. Текущие ограничения и результаты проверок: [`docs/inventory/tools.md`](docs/inventory/tools.md), [`docs/inventory/parity-fixtures.md`](docs/inventory/parity-fixtures.md); публикация — [`apps/site/RELEASING.md`](apps/site/RELEASING.md).
 
-Опциональные анонимные счётчики действий реализованы отдельно от обработки данных и выключены по умолчанию (`ANALYTICS_ENABLED`). В них передаются только ID инструмента и тип события — не ввод, файлы, секреты или идентификаторы посетителей. Настройка Cloudflare, покрытие инструментов, отчёты и ограничения: [`docs/analytics.md`](docs/analytics.md).
+Анонимные счётчики действий работают отдельно от обработки данных; production-сборки всегда выполняются с `ANALYTICS_ENABLED=true`, если владелец явно не запросил отключение. Передаются только ID инструмента и тип события — не ввод, файлы, секреты или идентификаторы посетителей. Скрытая панель `/admin/analytics/` защищается Cloudflare Access: доступ только владельцу, SQL-токен остаётся в Worker. Настройка, покрытие инструментов, отчёты и ограничения: [`docs/analytics.md`](docs/analytics.md).
 
 [![.NET 10](https://img.shields.io/badge/.NET-10-blue)](https://dotnet.microsoft.com/)
 [![Blazor](https://img.shields.io/badge/Blazor-SSR-purple)](https://blazor.net/)

@@ -47,6 +47,23 @@ const OFFLINE_URL = __OFFLINE_URL__;
 const PRECACHE = "mdt-sw-precache-" + CACHE_VERSION;
 const RUNTIME_PAGES = "mdt-sw-pages";
 const RUNTIME_ASSETS = "mdt-sw-assets";
+const PRIVATE_PAGE_PATH = new URL(
+  "../admin/analytics",
+  new URL(OFFLINE_URL, self.location.origin)
+).pathname;
+
+/** Access-protected pages, reports and provider login/logout must remain network-only. */
+function isPrivatePath(pathname) {
+  return (
+    pathname === PRIVATE_PAGE_PATH ||
+    pathname.startsWith(PRIVATE_PAGE_PATH + "/") ||
+    pathname === "/api/analytics/reports" ||
+    pathname.startsWith("/api/analytics/reports/") ||
+    pathname === "/cdn-cgi/access" ||
+    pathname.startsWith("/cdn-cgi/access/")
+  );
+}
+
 
 /** A URL string with any ?query and #hash stripped (used for cache matching). */
 function cleanUrl(target) {
@@ -84,6 +101,15 @@ self.addEventListener("activate", (event) => {
           .filter((name) => name.startsWith("mdt-sw-") && !keep.has(name))
           .map((name) => caches.delete(name))
       );
+      // Retire protected responses that an older service worker may have cached.
+      for (const name of [RUNTIME_PAGES, RUNTIME_ASSETS]) {
+        const cache = await caches.open(name);
+        for (const request of await cache.keys()) {
+          if (isPrivatePath(new URL(request.url).pathname)) {
+            await cache.delete(request);
+          }
+        }
+      }
       await self.clients.claim();
     })()
   );
@@ -109,6 +135,7 @@ self.addEventListener("fetch", (event) => {
   }
   if (url.protocol !== "http:" && url.protocol !== "https:") return; // chrome-extension:, data:, …
   if (url.origin !== self.location.origin) return; // cross-origin passthrough
+  if (isPrivatePath(url.pathname) || request.cache === "no-store") return;
 
   if (request.mode === "navigate") {
     // Network-first with cache + offline fallback. Any thrown error degrades

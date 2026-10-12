@@ -1,9 +1,11 @@
 import { ANALYTICS_ENDPOINT } from "../../../apps/site/src/scripts/analytics/events.ts";
+import { ANALYTICS_REPORT_ENDPOINT } from "../../../apps/site/src/scripts/analytics/reports.ts";
+import { handleReportRequest, type ReportEnv } from "./reports.ts";
 import { validateToolEvent } from "./validation.ts";
 
 const MAX_BODY_BYTES = 512;
 
-export interface Env {
+export interface Env extends ReportEnv {
   ALLOWED_BROWSER_ORIGIN: string;
   TOOL_ANALYTICS: AnalyticsEngineDataset;
 }
@@ -88,12 +90,20 @@ async function readBoundedBody(request: Request): Promise<BodyResult> {
   }
 }
 
-export async function handleRequest(request: Request, env: Env): Promise<Response> {
+export async function handleRequest(
+  request: Request,
+  env: Env,
+  ctx?: Pick<ExecutionContext, "access">,
+): Promise<Response> {
   const url = new URL(request.url);
-  if (url.pathname !== ANALYTICS_ENDPOINT || url.search !== "") return response(404);
-  if (request.method !== "POST") return response(405, { Allow: "POST" });
   const allowedOrigin =
     env.ALLOWED_BROWSER_ORIGIN === "self" ? url.origin : env.ALLOWED_BROWSER_ORIGIN;
+
+  if (url.pathname === ANALYTICS_REPORT_ENDPOINT) {
+    return handleReportRequest(request, url, env, ctx?.access, allowedOrigin);
+  }
+  if (url.pathname !== ANALYTICS_ENDPOINT || url.search !== "") return response(404);
+  if (request.method !== "POST") return response(405, { Allow: "POST" });
   if (!hasAllowedBrowserSource(request.headers, allowedOrigin)) {
     return response(403);
   }

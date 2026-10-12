@@ -13,7 +13,10 @@
     }
   ],
   "vars": {
-    "ALLOWED_BROWSER_ORIGIN": "https://mydevtools.app"
+    "ALLOWED_BROWSER_ORIGIN": "https://mydevtools.app",
+    "ANALYTICS_ACCOUNT_ID": "5aeb7e01c612a208baf33ac1c646a048",
+    "ANALYTICS_ACCESS_AUD": "501209543f28462cdc5be6fc927c2bded0f5774b905a461fdad50907c1713cab",
+    "ANALYTICS_REPORT_DATASET": "mydevtools_tool_usage"
   },
   "analytics_engine_datasets": [
     {
@@ -49,7 +52,9 @@
       "preview_urls": true,
       "routes": [],
       "vars": {
-        "ALLOWED_BROWSER_ORIGIN": "self"
+        "ALLOWED_BROWSER_ORIGIN": "self",
+        "ANALYTICS_ACCOUNT_ID": "5aeb7e01c612a208baf33ac1c646a048",
+        "ANALYTICS_REPORT_DATASET": "mydevtools_tool_usage_staging"
       },
       "analytics_engine_datasets": [
         {

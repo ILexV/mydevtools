@@ -1,0 +1,279 @@
+---
+/**
+ * Private analytics shell. Metrics are fetched only in the browser after
+ * Cloudflare Access has authenticated the request; this document contains
+ * localization and catalog labels only.
+ */
+import Icon from "@/components/Icon.astro";
+import { getNamespace, t } from "@/i18n/messages";
+import { localizedPath, withBase } from "@/lib/url";
+import { LOCALES, LOCALE_CODES, type LocaleCode } from "@/registry/locales";
+import { TOOLS, toolNamespace } from "@/registry/tools";
+import "@/styles/global.css";
+
+const DEFAULT_ADMIN_LOCALE: LocaleCode = "ru";
+const ns = "admin-analytics";
+const str = (key: string) => t(DEFAULT_ADMIN_LOCALE, ns, key);
+const clientData = {
+  defaultLocale: DEFAULT_ADMIN_LOCALE,
+  locales: LOCALES.map(({ code, nativeName, bcp47, dir }) => ({ code, nativeName, bcp47, dir })),
+  strings: Object.fromEntries(LOCALE_CODES.map((code) => [code, getNamespace(code, ns)])),
+  toolTitles: Object.fromEntries(
+    LOCALE_CODES.map((code) => [
+      code,
+      Object.fromEntries(TOOLS.map((tool) => [tool.slug, t(code, toolNamespace(tool.slug), "Title")])),
+    ]),
+  ),
+  homePaths: Object.fromEntries(LOCALE_CODES.map((code) => [code, localizedPath(code)])),
+};
+const clientDataJson = JSON.stringify(clientData).replace(/</g, "\\u003c");
+---
+
+<!doctype html>
+<html lang="ru" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <title>{str("Title")} — MyDevTools</title>
+    <link rel="icon" href={withBase("icons/favicon.svg")} type="image/svg+xml" />
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          if (!stored) stored = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          document.documentElement.setAttribute("data-theme", stored === "dark" ? "dark" : "light");
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <header class="admin-bar">
+      <div class="admin-bar-inner">
+        <a id="admin-home" class="brand-link" href={localizedPath(DEFAULT_ADMIN_LOCALE)} aria-label={str("Home")}>
+          <span class="brand-mark"><Icon name="logo-mark" size={21} /></span>
+          <span>MyDevTools</span>
+        </a>
+        <div class="admin-actions">
+          <label class="locale-control">
+            <span class="visually-hidden" data-i18n="Language">{str("Language")}</span>
+            <Icon name="globe" size={16} />
+            <select id="admin-locale" class="ds-field-select locale-select" aria-label={str("Language")}>
+              {LOCALES.map((locale) => (
+                <option value={locale.code} selected={locale.code === DEFAULT_ADMIN_LOCALE}>{locale.nativeName}</option>
+              ))}
+            </select>
+          </label>
+          <button id="admin-theme" class="ds-icon-btn theme-toggle" type="button" aria-label={str("ThemeDark")} title={str("ThemeDark")}>
+            <span class="theme-sun"><Icon name="sun" size={17} /></span>
+            <span class="theme-moon"><Icon name="moon" size={17} /></span>
+          </button>
+          <a id="admin-logout" class="ds-btn ds-btn-small" href="/cdn-cgi/access/logout" data-i18n="Logout">{str("Logout")}</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="admin-analytics" class="admin-shell">
+      <header class="page-head">
+        <p class="lbl" data-i18n="Eyebrow">{str("Eyebrow")}</p>
+        <h1 data-i18n="Title">{str("Title")}</h1>
+        <p class="page-subtitle" data-i18n="Subtitle">{str("Subtitle")}</p>
+      </header>
+
+      <section class="toolbar ds-panel" aria-labelledby="period-label">
+        <div class="period-control">
+          <span id="period-label" class="lbl" data-i18n="Period">{str("Period")}</span>
+          <div class="seg" role="group" aria-labelledby="period-label">
+            <button type="button" data-period="7" data-i18n="Period7">{str("Period7")}</button>
+            <button type="button" data-period="30" data-i18n="Period30" aria-pressed="true" class="on">{str("Period30")}</button>
+            <button type="button" data-period="90" data-i18n="Period90">{str("Period90")}</button>
+          </div>
+        </div>
+        <button id="admin-refresh" class="ds-btn ds-btn-primary" type="button" data-i18n="Refresh">{str("Refresh")}</button>
+      </section>
+
+      <section id="report-state" class="report-state ds-panel" aria-live="polite" aria-atomic="true">
+        <span id="report-state-spinner" class="ds-spinner" aria-hidden="true"></span>
+        <div>
+          <h2 id="report-state-title">{str("LoadingTitle")}</h2>
+          <p id="report-state-message">{str("LoadingMessage")}</p>
+        </div>
+        <div class="state-actions">
+          <a id="report-sign-in" class="ds-btn ds-btn-primary" href={withBase("admin/analytics/")} hidden>{str("SignIn")}</a>
+          <button id="report-retry" class="ds-btn ds-btn-primary" type="button" hidden>{str("Retry")}</button>
+        </div>
+      </section>
+
+      <div id="report-dashboard" class="dashboard" hidden>
+        <div class="report-meta">
+          <p><span data-i18n="GeneratedAt">{str("GeneratedAt")}</span>: <time id="report-generated" class="tabular"></time></p>
+          <span id="report-dataset" class="ds-chip"></span>
+          <span id="report-estimate-badge" class="ds-chip estimate-badge" hidden>{str("WeightedEstimate")}</span>
+        </div>
+
+        <section class="summary-grid" aria-label={str("Title")}>
+          <article class="metric-card ds-panel metric-started">
+            <p class="lbl" data-i18n="Started">{str("Started")}</p>
+            <p id="summary-started" class="metric-value tabular">0</p>
+          </article>
+          <article class="metric-card ds-panel metric-completed">
+            <p class="lbl" data-i18n="Completed">{str("Completed")}</p>
+            <p id="summary-completed" class="metric-value tabular">0</p>
+          </article>
+          <article class="metric-card ds-panel metric-failed">
+            <p class="lbl" data-i18n="Failed">{str("Failed")}</p>
+            <p id="summary-failed" class="metric-value tabular">0</p>
+          </article>
+        </section>
+
+        <section class="chart-panel ds-panel" aria-labelledby="activity-title">
+          <div class="panel-head">
+            <div>
+              <h2 id="activity-title" data-i18n="ActivityTitle">{str("ActivityTitle")}</h2>
+              <p data-i18n="ActivityDescription">{str("ActivityDescription")}</p>
+            </div>
+            <div class="chart-legend" aria-hidden="true">
+              <span class="legend-started" data-i18n="Started">{str("Started")}</span>
+              <span class="legend-completed" data-i18n="Completed">{str("Completed")}</span>
+              <span class="legend-failed" data-i18n="Failed">{str("Failed")}</span>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <svg id="activity-chart" viewBox="0 0 760 280" role="img" aria-labelledby="activity-chart-title activity-chart-desc">
+              <title id="activity-chart-title">{str("ChartLabel")}</title>
+              <desc id="activity-chart-desc">{str("ActivityDescription")}</desc>
+            </svg>
+          </div>
+        </section>
+
+        <section class="tools-panel ds-panel" aria-labelledby="tools-title">
+          <div class="panel-head">
+            <div>
+              <h2 id="tools-title" data-i18n="ToolsTitle">{str("ToolsTitle")}</h2>
+              <p data-i18n="ToolsDescription">{str("ToolsDescription")}</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <caption class="visually-hidden" data-i18n="ToolTableCaption">{str("ToolTableCaption")}</caption>
+              <thead>
+                <tr>
+                  <th scope="col" data-i18n="Rank">{str("Rank")}</th>
+                  <th scope="col" data-i18n="Tool">{str("Tool")}</th>
+                  <th scope="col" data-i18n="Starts">{str("Starts")}</th>
+                  <th scope="col" data-i18n="Successes">{str("Successes")}</th>
+                  <th scope="col" data-i18n="Failures">{str("Failures")}</th>
+                </tr>
+              </thead>
+              <tbody id="tools-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <aside class="report-notes">
+          <p id="report-estimate-note" class="alert alert-warning" hidden></p>
+          <p class="note" data-i18n="RetentionNote">{str("RetentionNote")}</p>
+          <p class="note" data-i18n="PrivacyNote">{str("PrivacyNote")}</p>
+        </aside>
+      </div>
+    </main>
+
+    <script id="admin-analytics-data" type="application/json" is:inline set:html={clientDataJson} />
+    <script>
+      import { initAdminAnalytics } from "@/scripts/analytics/admin-analytics.client";
+      initAdminAnalytics();
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  body { min-width: 0; }
+  .admin-bar { border-bottom: 1px solid var(--mdt-border); background: color-mix(in srgb, var(--mdt-surface-raised) 92%, transparent); }
+  .admin-bar-inner { max-width: var(--mdt-content-max); min-height: var(--mdt-header-h); margin: 0 auto; padding: 0.65rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .brand-link { display: inline-flex; align-items: center; gap: 0.6rem; min-width: 0; color: var(--mdt-text); font-family: var(--mdt-font-display); font-weight: 700; text-decoration: none; }
+  .brand-mark { width: 2rem; height: 2rem; display: grid; place-items: center; flex: 0 0 auto; border-radius: 9px; color: var(--mdt-accent); background: color-mix(in srgb, var(--mdt-accent) 12%, transparent); border: 1px solid color-mix(in srgb, var(--mdt-accent) 25%, transparent); }
+  .admin-actions { display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem; min-width: 0; }
+  .locale-control { display: inline-flex; align-items: center; gap: 0.25rem; min-width: 0; color: var(--mdt-text-muted); }
+  .locale-select { max-width: 8rem; min-width: 0; }
+  .theme-moon { display: none; }
+  :root[data-theme="dark"] .theme-sun { display: none; }
+  :root[data-theme="dark"] .theme-moon { display: inline; }
+
+  .admin-shell { width: min(100%, var(--mdt-content-max)); margin: 0 auto; padding: 2rem 1.25rem 4rem; display: grid; gap: 1rem; }
+  .page-head { display: grid; gap: 0.35rem; }
+  .page-head h1 { font-family: var(--mdt-font-display); font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: -0.035em; line-height: 1.05; }
+  .page-subtitle, .panel-head p, .report-state p { color: var(--mdt-text-muted); }
+  .toolbar { padding: 1rem; display: flex; align-items: end; justify-content: space-between; gap: 1rem; }
+  .period-control { display: grid; gap: 0.4rem; min-width: min(100%, 20rem); }
+  .period-control .seg { min-width: min(100%, 18rem); }
+
+  .report-state { min-height: 12rem; padding: 2rem; display: grid; place-items: center; align-content: center; grid-template-columns: auto minmax(0, 30rem); gap: 0.9rem 1rem; text-align: left; }
+  .report-state h2, .panel-head h2 { font-family: var(--mdt-font-display); font-size: var(--mdt-fs-h3); line-height: 1.2; }
+  .state-actions { grid-column: 2; display: flex; gap: 0.6rem; justify-self: start; }
+  .dashboard { display: grid; gap: 1rem; }
+  .report-meta { min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; color: var(--mdt-text-muted); font-size: var(--mdt-fs-meta); }
+  .estimate-badge { color: var(--mdt-warning); border-color: color-mix(in srgb, var(--mdt-warning) 34%, var(--mdt-border)); }
+  .summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+  .metric-card { position: relative; overflow: hidden; padding: 1.1rem 1.2rem; }
+  .metric-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--metric-color); }
+  .metric-started { --metric-color: var(--mdt-accent); }
+  .metric-completed { --metric-color: var(--mdt-success); }
+  .metric-failed { --metric-color: var(--mdt-danger); }
+  .metric-value { margin-top: 0.35rem; font-family: var(--mdt-font-display); font-size: clamp(1.75rem, 5vw, 2.75rem); font-weight: 700; line-height: 1; }
+  .chart-panel, .tools-panel { padding: 1.2rem; display: grid; gap: 1rem; min-width: 0; }
+  .panel-head { display: flex; justify-content: space-between; align-items: start; gap: 1rem; }
+  .chart-legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; font-size: var(--mdt-fs-meta); color: var(--mdt-text-muted); }
+  .chart-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .chart-legend span::before { content: ""; width: 0.65rem; height: 0.18rem; border-radius: 99px; background: currentColor; }
+  .legend-started { color: var(--mdt-accent) !important; }
+  .legend-completed { color: var(--mdt-success) !important; }
+  .legend-failed { color: var(--mdt-danger) !important; }
+  .chart-wrap { width: 100%; min-width: 0; overflow: hidden; }
+  #activity-chart { width: 100%; height: auto; min-height: 12rem; color: var(--mdt-text-muted); }
+
+  .table-wrap { max-width: 100%; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  th, td { padding: 0.75rem 0.65rem; border-bottom: 1px solid var(--mdt-border-soft); text-align: right; font-variant-numeric: tabular-nums; }
+  th { font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-micro); letter-spacing: 0.06em; text-transform: uppercase; color: var(--mdt-text-faint); }
+  th:first-child, td:first-child { width: 4rem; text-align: center; }
+  th:nth-child(2), td:nth-child(2) { width: 46%; text-align: left; }
+  td:nth-child(2) { overflow-wrap: anywhere; font-weight: 600; }
+  td:last-child { color: var(--mdt-danger); }
+  tbody tr:last-child td { border-bottom: 0; }
+  .report-notes { display: grid; gap: 0.6rem; }
+  .note { color: var(--mdt-text-muted); font-size: var(--mdt-fs-meta); }
+
+  @media (max-width: 640px) {
+    .admin-bar-inner { align-items: flex-start; padding-inline: 1rem; }
+    .brand-link > span:last-child { display: none; }
+    .admin-actions { flex-wrap: wrap; }
+    .locale-select { max-width: 6.75rem; }
+    .admin-shell { padding: 1.25rem 1rem 3rem; }
+    .toolbar { align-items: stretch; flex-direction: column; }
+    #admin-refresh { width: 100%; }
+    .report-state { grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 1.5rem 1rem; }
+    .state-actions { grid-column: 1; justify-self: center; }
+    .summary-grid { grid-template-columns: 1fr; gap: 0.65rem; }
+    .metric-card { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+    .metric-value { margin-top: 0; font-size: 1.75rem; }
+    .panel-head { display: grid; }
+    .chart-legend { gap: 0.35rem 0.65rem; }
+    .chart-panel, .tools-panel { padding: 1rem; }
+    .table-wrap { overflow: visible; }
+    table, thead, tbody, tr, th, td { display: block; width: 100% !important; }
+    thead { position: absolute; width: 1px !important; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    tbody { display: grid; gap: 0.65rem; }
+    tbody tr { padding: 0.7rem 0.8rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-sm); }
+    tbody td { display: grid; grid-template-columns: minmax(6rem, 42%) minmax(0, 1fr); gap: 0.5rem; padding: 0.25rem 0; border: 0; text-align: right !important; }
+    tbody td::before { content: attr(data-label); color: var(--mdt-text-faint); font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-micro); letter-spacing: 0.05em; text-transform: uppercase; text-align: left; }
+    tbody td:first-child { display: none; }
+    tbody td:nth-child(2) { text-align: right !important; }
+  }
+
+  @media (max-width: 390px) {
+    .admin-bar-inner { gap: 0.4rem; }
+    .admin-actions { gap: 0.35rem; }
+    #admin-logout { padding-inline: 0.6rem; }
+    .locale-control > svg { display: none; }
+  }
+</style>

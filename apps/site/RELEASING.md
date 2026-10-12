@@ -29,6 +29,7 @@ All commands run from the repo root.
 
 ```powershell
 # 1. Full reproducible build: i18n check → WASM → Astro site → dist smoke.
+$env:ANALYTICS_ENABLED = 'true'
 npm run build:pages
 
 # 2. Preview the built dist locally at the site root before publishing.
@@ -44,21 +45,30 @@ npm run deploy:pages -- --push
 After the first push: GitHub → **Settings → Pages → Source = branch `gh-pages` / root `/`**.
 The site is served at `https://mydevtools.app/` (custom domain from `public/CNAME`; `https://ilexv.github.io/mydevtools/` redirects there).
 
-## Optional anonymous operation analytics
+## Anonymous operation analytics and private dashboard
 
-Analytics is disabled unless the build environment explicitly sets
-`ANALYTICS_ENABLED=true`. Deploy and verify the separate Cloudflare ingestion
-Worker **before** enabling it in a Pages build. The default build remains safe
-without any Cloudflare analytics configuration.
+The owner requires **`ANALYTICS_ENABLED=true` for every production build and
+publication**, unless explicitly requesting analytics to be disabled. The
+compiler still defaults to off for an unconfigured checkout. Anonymous ingestion
+has already been deployed and verified; never accidentally replace the live
+site with a default-disabled build.
 
 The Worker route must stay `mydevtools.app/api/analytics/*`, never the entire
 site. Staging uses a separate dataset and no production route. Worker/zone and
 Pages publication each require owner approval; the new scripts do not deploy
 automatically.
 
-See [analytics setup, privacy inventory, tool matrix, SQL reports and rollback](../../docs/analytics.md).
-Local Wrangler 204 responses do not prove Analytics Engine persistence: confirm
-a real staging write and private SQL readback before production rollout.
+The hidden `/admin/analytics/` dashboard requires owner-only Cloudflare Access
+on both the dashboard and `/api/analytics/reports` (base paths and descendants).
+Its report handler requires the Access application audience and a separate
+read-only SQL token in the Worker secret store; never expose that token to the
+site build or browser. Configure and verify Access **before** publishing the
+dashboard. The public ingestion endpoint must remain outside Access protection.
+
+See [analytics setup, private dashboard, privacy inventory, tool matrix, SQL reports and rollback](../../docs/analytics.md).
+Local Wrangler ingestion 204 responses do not prove Analytics Engine persistence:
+confirm a real write and private SQL readback. A local Access identity simulation
+does not prove production authorization; verify actual owner login separately.
 
 
 ## Browser support policy

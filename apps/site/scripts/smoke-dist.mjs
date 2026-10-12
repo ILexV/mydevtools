@@ -29,6 +29,24 @@ test("dist: every locale home + offline + 404 + manifest + sw + icons", { skip }
   assert.ok(key && read(key).trim() === key.slice(0, 32), "IndexNow key file");
 });
 
+test("seo: root and sitemap pages have one head description and no meta refresh", { skip }, () => {
+  const paths = [
+    "index.html",
+    ...Array.from(read("sitemap.xml").matchAll(/<loc>([^<]+)<\/loc>/g), ([, loc]) =>
+      `${new URL(loc).pathname.slice(1)}index.html`),
+  ];
+  for (const path of paths) {
+    const head = read(path).match(/<head\b[^>]*>([\s\S]*?)<\/head>/i)?.[1];
+    assert.ok(head, `${path}: head exists`);
+    const metaTags = [...head.matchAll(/<meta\b(?:[^>"']|"[^"]*"|'[^']*')*>/gi)].map(([tag]) => tag);
+    const descriptions = metaTags.filter((tag) => /\bname=(["'])description\1/i.test(tag));
+    assert.equal(descriptions.length, 1, `${path}: exactly one meta description in head`);
+    const content = descriptions[0].match(/\bcontent=(["'])(.*?)\1/is)?.[2] ?? "";
+    assert.ok(content.trim(), `${path}: description is not blank`);
+    assert.ok(!metaTags.some((tag) => /\bhttp-equiv=(["'])refresh\1/i.test(tag)), `${path}: no meta refresh`);
+  }
+});
+
 test("seo: sitemap routes have distinct titles within each locale", { skip }, () => {
   const seen = new Map();
   for (const [, loc] of read("sitemap.xml").matchAll(/<loc>([^<]+)<\/loc>/g)) {

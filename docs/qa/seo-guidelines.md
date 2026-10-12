@@ -21,5 +21,11 @@
 ## Языки
 Писать сначала en, затем естественные (не дословные) переводы для ru, es, de, pt, zh (упрощённый), fr, ja, ko, hi (деванагари). Технические термины (Base64, SHA-256, JSON, UUID, JWT, PEM) не переводить.
 
+## Meta description и корневая страница
+- Корневая `/` и все страницы sitemap должны содержать ровно один непустой `<meta name="description">` в итоговом `<head>`. Это проверяет `npm run test:smoke -w @mydevtools/site` после сборки.
+- `/` — отдельная статическая страница выбора языка, не использующая `Seo.astro`. Её description берётся из `home.Subtitle` для `DEFAULT_LOCALE`, canonical указывает на главную этой локали.
+- Не добавлять `meta refresh`, в том числе внутри `<noscript>`. JavaScript выбирает поддерживаемый язык браузера с приоритетом сохранённого `locale`; без JavaScript остаются ссылки на все языки, без автоматического перехода.
+- Настоящий HTTP 301 требует настройки хостинга или Cloudflare: статическая Astro-страница на GitHub Pages не может выставить этот статус. При проверке в браузере отдельно открыть `/` без JavaScript и проверить ссылки на экране 375 px, затем проверить автоматический выбор и сохранённый язык с JavaScript.
+
 ## Проверка
 `flock /tmp/mydevtools-tests.lock npm run validate:i18n -w @mydevtools/site`; в браузере на dev-сервере — SEO-блок en/ru/ja/hi читается (шрифты CJK/деванагари установлены), JSON-LD HowTo содержит столько же шагов, сколько в тексте (`document.querySelectorAll('script[type="application/ld+json"]')`).

@@ -9,6 +9,7 @@
  */
 import { LOCALES, DEFAULT_LOCALE } from "@/registry/locales";
 import { localizedPath } from "@/lib/url";
+import { t } from "@/i18n/messages";
 
 const supported = LOCALES.map((l) => l.code);
 const defaultUrl = localizedPath(DEFAULT_LOCALE);
@@ -31,19 +32,16 @@ location.replace(pick+"/");
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MyDevTools</title>
-    <meta http-equiv="refresh" content={`0; url=${defaultUrl}`} />
+    <meta name="description" content={t(DEFAULT_LOCALE, "home", "Subtitle")} />
     <link rel="canonical" href={new URL(defaultUrl, Astro.site).toString()} />
     <script is:inline set:html={detectScript} />
-    <noscript>
-      <meta http-equiv="refresh" content={`0; url=${defaultUrl}`} />
-    </noscript>
   </head>
   <body>
     <p style="font-family: system-ui, sans-serif; padding: 2rem">
       <a href={defaultUrl}>MyDevTools →</a>
       &nbsp;·&nbsp;
       {LOCALES.map((l) => (
-        <a href={localizedPath(l.code)} hreflang={l.bcp47}>{l.nativeName}</a>
+        <><a href={localizedPath(l.code)} hreflang={l.bcp47}>{l.nativeName}</a>{" "}</>
       ))}
     </p>
   </body>

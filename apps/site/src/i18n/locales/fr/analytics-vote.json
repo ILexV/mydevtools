@@ -1,0 +1,18 @@
+{
+  "Eyebrow": "Aidez-nous à choisir la suite",
+  "Title": "Que devrions-nous améliorer ensuite ?",
+  "Description": "Choisissez une suggestion. Ce sont des idées, pas des fonctionnalités promises.",
+  "Question": "Choisissez une option",
+  "ChoiceSqlFormatter": "Formateur SQL",
+  "ChoiceJsonSchemaValidator": "Validateur JSON Schema",
+  "ChoiceCurlToCode": "cURL vers du code",
+  "ChoiceLargeFilePerformance": "Meilleures performances sur les gros fichiers",
+  "ChoiceAdditionalImageFormats": "Plus de formats d’image",
+  "ChoiceBatchConversion": "Conversion par lots",
+  "Submit": "Envoyer un vote anonyme",
+  "Submitting": "Envoi du vote…",
+  "Accepted": "Vote reçu. Merci.",
+  "Failed": "Le vote n’a pas pu être envoyé. Réessayez.",
+  "Disabled": "Le vote anonyme est indisponible avec vos réglages actuels de confidentialité ou de connexion.",
+  "Privacy": "Le vote envoie uniquement l’option choisie sous forme de compteur anonyme. Il ne contient aucune saisie, donnée de fichier, URL, cookie ou identifiant et n’est pas conservé dans ce navigateur. Recharger la page permet de voter à nouveau."
+}

@@ -24,6 +24,15 @@
       "dataset": "mydevtools_tool_usage"
     }
   ],
+  "kv_namespaces": [
+    {
+      "binding": "ANALYTICS_HISTORY",
+      "id": "3ce32431331041839c4f1f8d681bcb69"
+    }
+  ],
+  "triggers": {
+    "crons": ["15 0 * * *"]
+  },
   "observability": {
     "enabled": false,
     "issues": {
@@ -61,7 +70,16 @@
           "binding": "TOOL_ANALYTICS",
           "dataset": "mydevtools_tool_usage_staging"
         }
-      ]
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "ANALYTICS_HISTORY",
+          "id": "2a05d867ce7e4c48ad26efa29021cef0"
+        }
+      ],
+      "triggers": {
+        "crons": []
+      }
     }
   }
 }

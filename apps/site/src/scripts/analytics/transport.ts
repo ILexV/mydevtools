@@ -1,18 +1,26 @@
-import { ANALYTICS_ENDPOINT, type ToolEventType, type ToolId } from "./events.ts";
+import {
+  ANALYTICS_ENDPOINT,
+  ANALYTICS_VOTE_ENDPOINT,
+  type ToolEvent,
+  type ToolVote,
+  type VoteChoice,
+} from "./events.ts";
 
 const REQUEST_TIMEOUT_MS = 3000;
 
-/** Internal transport. Never accepts user input, identifiers, or operation metadata. */
-export function sendToolEvent(tool: ToolId, event: ToolEventType): void {
+function privacyDisabled(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const privacy = navigator as Navigator & { globalPrivacyControl?: boolean };
+  return navigator.onLine === false || privacy.doNotTrack === "1" || privacy.globalPrivacyControl === true;
+}
+
+function post(endpoint: string, payload: ToolEvent | ToolVote): Promise<Response> | null {
   try {
-    if (typeof navigator !== "undefined") {
-      const privacy = navigator as Navigator & { globalPrivacyControl?: boolean };
-      if (navigator.onLine === false || privacy.doNotTrack === "1" || privacy.globalPrivacyControl === true) return;
-    }
+    if (privacyDisabled()) return null;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
-      void fetch(ANALYTICS_ENDPOINT, {
+      return fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "omit",
@@ -20,15 +28,42 @@ export function sendToolEvent(tool: ToolId, event: ToolEventType): void {
         referrerPolicy: "no-referrer",
         redirect: "error",
         signal: controller.signal,
-        body: JSON.stringify({ tool, event }),
-      }).then(
-        () => clearTimeout(timeout),
-        () => clearTimeout(timeout),
-      );
+        body: JSON.stringify(payload),
+      }).finally(() => clearTimeout(timeout));
     } catch {
       clearTimeout(timeout);
+      return Promise.reject();
     }
   } catch {
-    // Telemetry is best effort: unavailable networking must not affect a tool.
+    return null;
+  }
+}
+
+/** Internal best-effort transport. Rebuild the closed union so excess runtime fields are never serialized. */
+export function sendToolEvent(event: ToolEvent): void {
+  let payload: ToolEvent;
+  switch (event.event) {
+    case "tool_completed":
+      payload = { tool: event.tool, event: event.event, duration: event.duration };
+      break;
+    case "tool_failed":
+      payload = { tool: event.tool, event: event.event, reason: event.reason };
+      break;
+    default:
+      payload = { tool: event.tool, event: event.event };
+  }
+  void post(ANALYTICS_ENDPOINT, payload)?.catch(() => undefined);
+}
+
+/** Submit one anonymous fixed-choice vote. */
+export async function sendVote(choice: VoteChoice): Promise<"accepted" | "disabled" | "failed"> {
+  if (import.meta.env?.ANALYTICS_ENABLED !== true || privacyDisabled()) return "disabled";
+  const request = post(ANALYTICS_VOTE_ENDPOINT, { choice });
+  if (!request) return "disabled";
+  try {
+    const response = await request;
+    return response.ok ? "accepted" : "failed";
+  } catch {
+    return "failed";
   }
 }

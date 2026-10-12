@@ -473,7 +473,7 @@ function init(): void {
     try {
       result = (await splitSubnets(networkInput, newPrefix)) as SplitResult;
     } catch {
-      operation.fail();
+      operation.fail("invalid_input");
       showSplitError(fill(strings.errorSplitPrefix, { min: prefix, max: maxPrefix(v6) }));
       if (splitOutEl) splitOutEl.hidden = true;
       return;
@@ -483,7 +483,7 @@ function init(): void {
       renderSplit(result, v6);
       operation.complete();
     } catch (error) {
-      operation.fail();
+      operation.fail("processing_error");
       throw error;
     }
   }
@@ -517,7 +517,7 @@ function init(): void {
       // The selected WASM function defines which of the two in-process result shapes is returned.
       result = v6 ? (await calcIpv6(value)) as Ipv6Result : (await calcIpv4(value)) as Ipv4Result;
     } catch {
-      operation.fail();
+      operation.fail("invalid_input");
       showError(strings.errorInvalidFormat);
       setResultsVisible(false);
       return false;
@@ -541,7 +541,7 @@ function init(): void {
       operation.complete();
       return true;
     } catch (error) {
-      operation.fail();
+      operation.fail("processing_error");
       throw error;
     }
   }

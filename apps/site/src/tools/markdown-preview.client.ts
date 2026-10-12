@@ -14,6 +14,7 @@
  */
 import { demoteHeadings, sanitizeHtml } from "@/tools/markdown-sanitize";
 import { bindEmptyState, bindLoadExample, copyWithFeedback, setFieldValue, syncEmptyState } from "@/scripts/tool-ui";
+import { createAutomaticToolUse } from "@/scripts/analytics/automatic-use";
 
 interface MarkedGlobal {
   parse(src: string, options?: Record<string, unknown>): string;
@@ -120,12 +121,14 @@ function init(): void {
 
   /** Sanitized HTML with original heading levels — what Copy HTML / Download export. */
   let exportHtml = "";
+  const telemetry = createAutomaticToolUse("markdown-preview");
 
-  function renderMarkdown(): void {
+  function renderMarkdown(track = false): void {
     // Empty editor → compact preview placeholder; programmatic writes resync the editor too.
     syncInput();
     if (outputPanel) syncEmptyState(outputPanel, input.value === "");
     syncExports();
+    const operation = track && input.value.trim() ? telemetry.start() : null;
     try {
       if (window.marked) {
         const fragment = sanitizeHtml(window.marked.parse(input.value, MARKED_OPTIONS));
@@ -143,10 +146,13 @@ function init(): void {
         output.appendChild(p);
       }
       errorDiv.hidden = true;
+      if (window.marked) operation?.complete();
+      else operation?.fail("processing_error");
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       errorDiv.textContent = strings.renderError.replace("{message}", message);
       errorDiv.hidden = false;
+      operation?.fail("invalid_input");
     }
   }
 
@@ -161,7 +167,8 @@ function init(): void {
     const newCursorPos = start + before.length + selectedText.length;
     input.setSelectionRange(newCursorPos, newCursorPos);
     input.focus();
-    renderMarkdown();
+    telemetry.changed();
+    renderMarkdown(true);
   }
 
   function insertAtLine(prefix: string): void {
@@ -185,7 +192,8 @@ function init(): void {
     const newCursorPos = start + prefix.length;
     input.setSelectionRange(newCursorPos, newCursorPos);
     input.focus();
-    renderMarkdown();
+    telemetry.changed();
+    renderMarkdown(true);
   }
 
   async function copyToClipboard(text: string, button: HTMLButtonElement): Promise<void> {
@@ -268,9 +276,14 @@ function init(): void {
 
   // Live preview — legacy has no debounce. If marked failed to load earlier
   // (offline/flaky network), retry on the next edit instead of staying broken.
-  input.addEventListener("input", () => {
-    if (window.marked) renderMarkdown();
-    else void ensureMarked().catch(() => undefined).finally(renderMarkdown);
+  input.addEventListener("input", (event) => {
+    if (!event.isTrusted) {
+      renderMarkdown();
+      return;
+    }
+    telemetry.changed();
+    if (window.marked) renderMarkdown(true);
+    else void ensureMarked().catch(() => undefined).finally(() => renderMarkdown(true));
   });
 
   // Toolbar inserts (legacy mappings).

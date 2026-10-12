@@ -17,7 +17,7 @@
  * generic image icon instead of the browser's broken-image glyph.
  */
 import { compressImage } from "@/scripts/wasm/image-tools-client";
-import { startToolOperation } from "@/scripts/analytics/instrumentation";
+import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, revealOutput, setDropzoneHasFile, startPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
@@ -99,6 +99,7 @@ function init() {
   let resultUrl: string | null = null;
   let resultName: string | null = null;
   let job: AbortController | null = null;
+  let activeOperation: ToolOperation | null = null;
 
   function showError(msg: string, detail?: string) {
     showImageError(errorBox!, msg, detail);
@@ -183,6 +184,7 @@ function init() {
     const operation = startToolOperation("image-compressor");
     const ctrl = new AbortController();
     job = ctrl;
+    activeOperation = operation;
     setBusy(true);
     // First run loads the image-tools WASM in the worker: "Preparing…" if slow.
     const prepared = startPreparing("image_tools", {
@@ -215,7 +217,11 @@ function init() {
       operation.complete();
     } catch (e) {
       if (ctrl.signal.aborted || (e instanceof WasmError && e.code === "aborted")) return;
-      operation.fail();
+      operation.fail(
+        e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")
+          ? "wasm_unavailable"
+          : isImageDecodeError(e instanceof Error ? e.message : "") ? "unsupported_format" : "processing_error",
+      );
       const detail = e instanceof Error ? e.message : "";
       // Undecodable input: plain localized message, raw decoder text dropped.
       if (isImageDecodeError(detail)) showError(strings!.errorDamaged);
@@ -223,6 +229,7 @@ function init() {
     } finally {
       prepared();
       if (job === ctrl) job = null;
+      if (activeOperation === operation) activeOperation = null;
       setBusy(false);
     }
   }
@@ -245,7 +252,10 @@ function init() {
     hideResult();
     clearError();
   });
-  cancelBtn?.addEventListener("click", () => job?.abort());
+  cancelBtn?.addEventListener("click", () => {
+    activeOperation?.cancel();
+    job?.abort();
+  });
 
   qualityRange.addEventListener("input", () => {
     if (qualityValue) qualityValue.textContent = `${qualityRange.value}%`;

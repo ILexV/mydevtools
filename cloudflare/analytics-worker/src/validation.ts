@@ -1,8 +1,12 @@
 import { TOOLS } from "../../../apps/site/src/registry/tools.ts";
 import {
+  DURATION_BUCKETS,
+  TOOL_ERROR_CATEGORIES,
   TOOL_EVENTS,
+  VOTE_CHOICES,
   type ToolEvent,
   type ToolEventType,
+  type ToolVote,
 } from "../../../apps/site/src/scripts/analytics/events.ts";
 
 const TOOL_IDS: ReadonlySet<string> = new Set(TOOLS.map(({ slug }) => slug));
@@ -48,8 +52,8 @@ function readJsonString(
   return null;
 }
 
-/** Parse only the two-string-field event object, retaining duplicate-key detection. */
-function parseEventObject(input: string): Map<string, string> | null {
+/** Parse a flat object with string values while retaining duplicate-key detection. */
+function parseStringObject(input: string): Map<string, string> | null {
   let index = skipJsonWhitespace(input, 0);
   if (input[index] !== "{") return null;
   index = skipJsonWhitespace(input, index + 1);
@@ -82,15 +86,8 @@ function parseEventObject(input: string): Map<string, string> | null {
 }
 
 export function validateToolEvent(input: string): ToolEvent | null {
-  const fields = parseEventObject(input);
-  if (
-    !fields ||
-    fields.size !== 2 ||
-    !fields.has("tool") ||
-    !fields.has("event")
-  ) {
-    return null;
-  }
+  const fields = parseStringObject(input);
+  if (!fields || !fields.has("tool") || !fields.has("event")) return null;
 
   const tool = fields.get("tool");
   const event = fields.get("event");
@@ -103,8 +100,47 @@ export function validateToolEvent(input: string): ToolEvent | null {
     return null;
   }
 
-  return {
-    tool: tool as ToolEvent["tool"],
-    event: event as ToolEventType,
-  };
+  const typedTool = tool as ToolEvent["tool"];
+  const typedEvent = event as ToolEventType;
+  switch (typedEvent) {
+    case "tool_started":
+    case "tool_cancelled":
+      return fields.size === 2 ? { tool: typedTool, event: typedEvent } : null;
+    case "tool_completed": {
+      const duration = fields.get("duration");
+      return fields.size === 3 &&
+        duration !== undefined &&
+        DURATION_BUCKETS.includes(duration as (typeof DURATION_BUCKETS)[number])
+        ? {
+            tool: typedTool,
+            event: typedEvent,
+            duration: duration as (typeof DURATION_BUCKETS)[number],
+          }
+        : null;
+    }
+    case "tool_failed": {
+      const reason = fields.get("reason");
+      return fields.size === 3 &&
+        reason !== undefined &&
+        TOOL_ERROR_CATEGORIES.includes(
+          reason as (typeof TOOL_ERROR_CATEGORIES)[number],
+        )
+        ? {
+            tool: typedTool,
+            event: typedEvent,
+            reason: reason as (typeof TOOL_ERROR_CATEGORIES)[number],
+          }
+        : null;
+    }
+  }
+}
+
+export function validateToolVote(input: string): ToolVote | null {
+  const fields = parseStringObject(input);
+  if (!fields || fields.size !== 1 || !fields.has("choice")) return null;
+  const choice = fields.get("choice");
+  return choice !== undefined &&
+    VOTE_CHOICES.some(({ id }) => id === choice)
+    ? { choice: choice as ToolVote["choice"] }
+    : null;
 }

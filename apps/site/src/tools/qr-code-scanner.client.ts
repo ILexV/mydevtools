@@ -175,7 +175,13 @@ function init() {
     } catch (e) {
       if (mine !== seq) return;
       if (ctrl.signal.aborted || (e instanceof WasmError && e.code === "aborted")) return;
-      operation.fail();
+      operation.fail(
+        e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")
+          ? "wasm_unavailable"
+          : e instanceof WasmError
+            ? classifyDecodeError(e.message) === "unsupportedImage" ? "unsupported_format" : "invalid_input"
+            : "processing_error",
+      );
       if (e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")) {
         showError(strings.processingFailed);
       } else if (e instanceof WasmError) {
@@ -225,7 +231,7 @@ function init() {
           hideCameraUi();
           showError(strings.processingFailed);
           cameraStart?.focus();
-          cameraOperation?.fail();
+          cameraOperation?.fail("processing_error");
           cameraOperation = null;
         },
         onDevices(devices, activeId) {
@@ -248,7 +254,8 @@ function init() {
       })
     : null;
 
-  function closeCamera() {
+  function closeCamera(explicit = false) {
+    if (explicit) cameraOperation?.cancel();
     if (camera?.running) camera.stop();
     hideCameraUi();
     cameraOperation = null;
@@ -263,15 +270,15 @@ function init() {
     clearSelection();
     hideResult();
     clearError();
-    if (window.isSecureContext && cameraSupported()) {
-      cameraOperation = startToolOperation("qr-scanner");
-    }
     if (cameraSection) cameraSection.hidden = false;
     cameraStart.setAttribute("aria-expanded", "true");
-    void camera.start();
+    void camera.start().then(() => {
+      // Permission denial and unsupported/insecure contexts are not operations.
+      if (camera.running && !cameraOperation) cameraOperation = startToolOperation("qr-scanner");
+    });
   });
   cameraStop?.addEventListener("click", () => {
-    closeCamera();
+    closeCamera(true);
     cameraStart?.focus();
   });
   cameraSelect?.addEventListener("change", () => {

@@ -5,6 +5,7 @@ import Seo from "@/components/Seo.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Palette from "@/components/Palette.astro";
+import AnalyticsVote from "@/components/AnalyticsVote.astro";
 import InstallPrompt from "@/components/InstallPrompt.astro";
 import "@/styles/global.css";
 // Same Vite asset as the fonts.css url() → identical hashed URL, so the preload is reused.
@@ -45,6 +46,7 @@ const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
  * routes paint LCP with the fallback, so no preload there — no blanket preloads.
  */
 const preloadFonts = locale === "ru" ? [interCyrillicUrl] : [];
+const analyticsEnabled = process.env.ANALYTICS_ENABLED === "true";
 ---
 
 <!doctype html>
@@ -78,6 +80,7 @@ const preloadFonts = locale === "ru" ? [interCyrillicUrl] : [];
   <body>
     <Header locale={locale} path={path} />
     <slot />
+    {analyticsEnabled && <AnalyticsVote locale={locale} />}
     <Footer locale={locale} />
     <Palette locale={locale} />
     <InstallPrompt locale={locale} />

@@ -7,7 +7,7 @@
  * Workbench empty states: input overlay with "Load example" (only on click),
  * compact output placeholder until there is a result.
  */
-import { startToolOperation } from "@/scripts/analytics/instrumentation";
+import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
 import { formatBytes, formatString, progressPercent } from "@/lib/format";
 import {
   bindDropzone,
@@ -141,6 +141,7 @@ function init() {
   let currentFile: File | null = null;
   let abortController: AbortController | null = null;
   let previewUrl: string | null = null;
+  let activeOperation: ToolOperation | null = null;
   /** What Download saves: decoded bytes (with detected type) or the text output. */
   let lastDownload: { blob: Blob; name: string } | null = null;
 
@@ -351,6 +352,7 @@ function init() {
       label: strings.preparing,
     });
     const operation = startToolOperation("base64-encoder");
+    activeOperation = operation;
     let shown = false;
     try {
       if (currentFile) {
@@ -375,7 +377,13 @@ function init() {
       shown = true;
       operation.complete();
     } catch (e) {
-      if (!(e instanceof WasmError && e.code === "aborted")) operation.fail();
+      if (!(e instanceof WasmError && e.code === "aborted")) {
+        operation.fail(
+          e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")
+            ? "wasm_unavailable"
+            : direction === "decode" ? "invalid_input" : "processing_error",
+        );
+      }
       handleError(e);
     } finally {
       prepared();
@@ -383,12 +391,16 @@ function init() {
       setProgress(false);
       setBusy(false);
       abortController = null;
+      if (activeOperation === operation) activeOperation = null;
     }
   }
 
   encodeBtn?.addEventListener("click", () => run("encode"));
   decodeBtn?.addEventListener("click", () => run("decode"));
-  cancelBtn?.addEventListener("click", () => abortController?.abort());
+  cancelBtn?.addEventListener("click", () => {
+    activeOperation?.cancel();
+    abortController?.abort();
+  });
   inputArea.addEventListener("input", () => {
     inputArea.removeAttribute("aria-invalid");
     syncInput();

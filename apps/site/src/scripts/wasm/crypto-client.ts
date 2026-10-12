@@ -8,7 +8,11 @@ import { WasmError } from "@/scripts/wasm/worker-protocol";
 
 let ready: Promise<void> | null = null;
 function ensureReady(): Promise<void> {
-  if (!ready) ready = init().then(() => undefined);
+  if (!ready) {
+    ready = init().then(() => undefined).catch((error) => {
+      throw new WasmError("init-failed", error instanceof Error ? error.message : String(error));
+    });
+  }
   return ready;
 }
 

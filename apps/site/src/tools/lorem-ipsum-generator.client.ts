@@ -96,7 +96,7 @@ function init(): void {
       if (charsLabelEl) charsLabelEl.textContent = formatPlural(strings, "characters", result.chars, strings.lang);
       operation?.complete();
     } catch (error) {
-      operation?.fail();
+      operation?.fail("processing_error");
       throw error;
     }
   }

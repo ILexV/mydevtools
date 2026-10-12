@@ -37,7 +37,11 @@ function orderedBodies(events: CapturedEvent[]) {
 }
 
 const success = [
-  { tool: "json-beautifier", event: "tool_completed" },
+  {
+    tool: "json-beautifier",
+    event: "tool_completed",
+    duration: expect.stringMatching(/^(lt_100ms|100ms_1s|1s_5s|5s_30s|gte_30s)$/),
+  },
   { tool: "json-beautifier", event: "tool_started" },
 ];
 
@@ -84,7 +88,7 @@ test.describe("enabled analytics", () => {
     await page.locator("[data-json-format]").click();
     await expect(page.locator("[data-json-error]")).toBeVisible();
     const failure = [
-      { tool: "json-beautifier", event: "tool_failed" },
+      { tool: "json-beautifier", event: "tool_failed", reason: "invalid_input" },
       { tool: "json-beautifier", event: "tool_started" },
     ];
     await expect.poll(() => orderedBodies(events)).toEqual(failure);
@@ -145,5 +149,37 @@ test.describe("enabled analytics", () => {
       await settled(page);
       expect(events).toEqual([]);
     });
+  }
+});
+
+test("analytics voting follows the build flag and acknowledges only a submitted choice", async ({ page }) => {
+  const votes: CapturedEvent[] = [];
+  let accept = false;
+  await page.route("**/api/analytics/vote", async (route) => {
+    votes.push({ body: route.request().postDataJSON(), headers: await route.request().allHeaders() });
+    await route.fulfill({ status: accept ? 204 : 503 });
+  });
+  await page.goto("/en/");
+  const form = page.locator("[data-analytics-vote]");
+  if (!enabled) {
+    await expect(form).toHaveCount(0);
+    expect(votes).toEqual([]);
+    return;
+  }
+  await expect(form).toBeVisible();
+  const submit = form.locator("[data-vote-submit]");
+  await expect(submit).toBeDisabled();
+  await form.locator('input[value="sql-formatter"]').check();
+  await submit.click();
+  await expect.poll(() => votes.length).toBe(1);
+  await expect(submit).toBeEnabled();
+  accept = true;
+  await submit.click();
+  await expect(submit).toBeDisabled();
+  await expect(form.locator('input[value="batch-conversion"]')).toBeDisabled();
+  expect(votes.map(({ body }) => body)).toEqual([{ choice: "sql-formatter" }, { choice: "sql-formatter" }]);
+  for (const { headers } of votes) {
+    expect(headers.cookie).toBeUndefined();
+    expect(headers.referer).toBeUndefined();
   }
 });

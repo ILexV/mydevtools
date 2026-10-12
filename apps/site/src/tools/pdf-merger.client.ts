@@ -16,7 +16,7 @@
  * stays as it was and an info note says the merge was cancelled.
  */
 import { mergePdfs } from "@/scripts/wasm/pdf-client";
-import { startToolOperation } from "@/scripts/analytics/instrumentation";
+import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, revealOutput, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
@@ -85,6 +85,7 @@ function init() {
   let resultUrl: string | null = null;
   let merging = false;
   let job: AbortController | null = null;
+  let activeOperation: ToolOperation | null = null;
   /** Row status after the last merge attempt: all merged, or one failed index. */
   let merged = false;
   let failedIndex: number | null = null;
@@ -220,6 +221,7 @@ function init() {
 
     const ctrl = new AbortController();
     job = ctrl;
+    activeOperation = operation;
     const started = performance.now();
     const tick = () => {
       if (progressLabel) progressLabel.textContent = `${Math.floor((performance.now() - started) / 1000)} s`;
@@ -248,13 +250,14 @@ function init() {
     } catch (e) {
       if (ctrl.signal.aborted || (e instanceof WasmError && e.code === "aborted")) showNote(strings.mergeCanceled);
       else {
-        operation.fail();
+        operation.fail("processing_error");
         showError(errorMessage(e));
       }
     } finally {
       clearInterval(timer);
       if (progress) progress.hidden = true;
       job = null;
+      if (activeOperation === operation) activeOperation = null;
       merging = false;
       merge!.removeAttribute("aria-busy");
       if (mergeLabel) mergeLabel.textContent = strings.merge;
@@ -305,6 +308,7 @@ function init() {
   merge.addEventListener("click", () => void handleMerge());
   cancelBtn?.addEventListener("click", () => {
     cancelBtn.disabled = true;
+    activeOperation?.cancel();
     job?.abort();
   });
 

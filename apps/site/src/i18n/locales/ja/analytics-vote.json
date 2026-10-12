@@ -1,0 +1,18 @@
+{
+  "Eyebrow": "次の改善にご協力ください",
+  "Title": "次に何を改善すべきですか？",
+  "Description": "候補を1つ選んでください。これらは案であり、提供を約束する機能ではありません。",
+  "Question": "1つ選択してください",
+  "ChoiceSqlFormatter": "SQLフォーマッター",
+  "ChoiceJsonSchemaValidator": "JSON Schemaバリデーター",
+  "ChoiceCurlToCode": "cURLからコードへの変換",
+  "ChoiceLargeFilePerformance": "大容量ファイルの性能向上",
+  "ChoiceAdditionalImageFormats": "画像形式の追加",
+  "ChoiceBatchConversion": "一括変換",
+  "Submit": "匿名投票を送信",
+  "Submitting": "投票を送信しています…",
+  "Accepted": "投票を受け付けました。ありがとうございます。",
+  "Failed": "投票を送信できませんでした。もう一度お試しください。",
+  "Disabled": "現在のプライバシー設定または接続設定では匿名投票を利用できません。",
+  "Privacy": "投票では選択肢だけを匿名の集計値として送信します。入力内容、ファイルデータ、URL、Cookie、識別子は含まず、このブラウザーにも保存しません。ページを再読み込みすると再度投票できます。"
+}

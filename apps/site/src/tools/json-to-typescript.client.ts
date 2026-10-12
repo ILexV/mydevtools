@@ -160,7 +160,7 @@ async function init() {
         ? shiftDiagnostic(found, value.length - value.trimStart().length)
         : { messageKey: "Syntax", from: null, to: null, detail: e instanceof Error ? e.message : String(e) };
       inputEditor.setDiagnostic(presentDiagnostic(diagStrings, diag, value), { announce });
-      operation?.fail();
+      operation?.fail("invalid_input");
     }
   }
   function scheduleConvert() {

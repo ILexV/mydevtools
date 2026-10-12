@@ -15,7 +15,7 @@
  * SPKI/PKCS#8 import) go through the generated module directly, initialized
  * once here.
  */
-import { startToolOperation } from "@/scripts/analytics/instrumentation";
+import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
 import init, * as crypto from "@/generated/wasm/cryptography/cryptography.js";
 import { sshPublicKeyInfo, sshToPkcs8Pem } from "@/scripts/wasm/crypto-client";
 import { sshGenerateInWorker } from "@/scripts/wasm/keygen-client";
@@ -248,6 +248,7 @@ function initTool(): void {
   }
 
   let generation: AbortController | null = null;
+  let generationOperation: ToolOperation | null = null;
 
   /** Key generation in the worker: indeterminate progress + elapsed seconds + Cancel. */
   async function generateAction(): Promise<void> {
@@ -264,6 +265,7 @@ function initTool(): void {
     const timer = setInterval(tick, 1000);
     if (progress) progress.hidden = false;
     const operation = startToolOperation("openssh-keys");
+    generationOperation = operation;
     try {
       const key = await sshGenerateInWorker(
         { keyType, rsaBits: rsaBits(algorithmValue, keySizeSelect.value), passphrase: pass },
@@ -275,12 +277,19 @@ function initTool(): void {
       lastPrivateName = "id_key";
       operation.complete();
     } catch (err) {
-      if (!(err instanceof WasmError && err.code === "aborted")) operation.fail();
+      if (!(err instanceof WasmError && err.code === "aborted")) {
+        operation.fail(
+          err instanceof WasmError && (err.code === "worker-failed" || err.code === "init-failed")
+            ? "wasm_unavailable"
+            : "processing_error",
+        );
+      }
       throw err;
     } finally {
       clearInterval(timer);
       if (progress) progress.hidden = true;
       generation = null;
+      if (generationOperation === operation) generationOperation = null;
     }
   }
 
@@ -293,7 +302,7 @@ function initTool(): void {
       await withPassFallback((pass) => importWith(pass));
       operation.complete();
     } catch (err) {
-      operation.fail();
+      operation.fail("invalid_input");
       throw err;
     }
   }
@@ -344,7 +353,7 @@ function initTool(): void {
       await withPassFallback((pass) => convertWith(pass));
       operation.complete();
     } catch (err) {
-      operation.fail();
+      operation.fail("invalid_input");
       throw err;
     }
   }
@@ -404,7 +413,10 @@ function initTool(): void {
     updateWhitespaceHint();
   });
   updateWhitespaceHint();
-  cancelBtn?.addEventListener("click", () => generation?.abort());
+  cancelBtn?.addEventListener("click", () => {
+    generationOperation?.cancel();
+    generation?.abort();
+  });
 
   generateBtn.addEventListener("click", () => void busy(generateBtn, generateAction));
   importBtn.addEventListener("click", () => void busy(importBtn, importAction));

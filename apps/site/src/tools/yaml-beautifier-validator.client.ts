@@ -169,7 +169,7 @@ async function init() {
       showStatus("invalid");
       // The input changed while WASM loaded/ran: its marker would point at the wrong text.
       if (inputEditor.getValue() === yaml) showError(message(e), yaml);
-      if (inputEditor.getValue() === yaml) operation.fail();
+      if (inputEditor.getValue() === yaml) operation.fail("invalid_input");
     } finally {
       btn?.removeAttribute("aria-busy");
     }

@@ -18,7 +18,7 @@
  * the raw decoder text and never a contradicting "Choose an image first".
  */
 import { convertImage, resizeImage } from "@/scripts/wasm/image-tools-client";
-import { startToolOperation } from "@/scripts/analytics/instrumentation";
+import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, revealOutput, setDropzoneHasFile, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
@@ -106,6 +106,7 @@ function init() {
   let resultUrl: string | null = null;
   let resultName: string | null = null;
   let job: AbortController | null = null;
+  let activeOperation: ToolOperation | null = null;
 
   function showError(msg: string, detail?: string) {
     showImageError(errEl!, msg, detail);
@@ -281,6 +282,7 @@ function init() {
     const operation = startToolOperation("image-resizer");
     const ctrl = new AbortController();
     job = ctrl;
+    activeOperation = operation;
     setBusy(true);
     try {
       const bytes = new Uint8Array(await file.arrayBuffer());
@@ -303,7 +305,11 @@ function init() {
       operation.complete();
     } catch (e) {
       if (ctrl.signal.aborted || (e instanceof WasmError && e.code === "aborted")) return;
-      operation.fail();
+      operation.fail(
+        e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")
+          ? "wasm_unavailable"
+          : isImageDecodeError(e instanceof Error ? e.message : "") ? "unsupported_format" : "processing_error",
+      );
       hideOutput();
       const detail = e instanceof Error ? e.message : "";
       // Undecodable input: plain localized message, raw decoder text dropped.
@@ -311,6 +317,7 @@ function init() {
       else showError(strings!.errorResizeFailed, detail);
     } finally {
       if (job === ctrl) job = null;
+      if (activeOperation === operation) activeOperation = null;
       setBusy(false);
     }
   }
@@ -321,7 +328,10 @@ function init() {
     clearSelection();
     clearError();
   });
-  cancelBtn?.addEventListener("click", () => job?.abort());
+  cancelBtn?.addEventListener("click", () => {
+    activeOperation?.cancel();
+    job?.abort();
+  });
 
   widthEl.addEventListener("input", () => handleDimensionInput("width"));
   heightEl.addEventListener("input", () => handleDimensionInput("height"));

@@ -13,7 +13,7 @@
  * above the list sums the batch: total "−N%" with original → compressed sizes.
  */
 import { compressPdf } from "@/scripts/wasm/pdf-client";
-import { startToolOperation } from "@/scripts/analytics/instrumentation";
+import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, revealOutput, startPreparing } from "@/scripts/tool-ui";
 import { formatBytes, progressPercent } from "@/lib/format";
@@ -85,6 +85,7 @@ function init() {
   const files: FileItem[] = [];
   let compressing = false;
   let job: AbortController | null = null;
+  let activeOperation: ToolOperation | null = null;
 
   function showError(msg: string) {
     if (!errorBox) return;
@@ -203,6 +204,7 @@ function init() {
     clearError();
     const ctrl = new AbortController();
     job = ctrl;
+    activeOperation = operation;
     setBusy(true);
     const errors: string[] = [];
     let done = 0;
@@ -241,9 +243,10 @@ function init() {
     if (errors.length > 0) showError(errors.join("\n"));
     if (summaryEl && !summaryEl.hidden) revealOutput(summaryEl);
     if (!ctrl.signal.aborted) {
-      if (errors.length > 0) operation.fail();
+      if (errors.length > 0) operation.fail("processing_error");
       else operation.complete();
     }
+    if (activeOperation === operation) activeOperation = null;
   }
 
   function withPdfPreparing<T>(work: Promise<T>): Promise<T> {
@@ -255,6 +258,7 @@ function init() {
   compress.addEventListener("click", () => void handleCompress());
   cancelBtn?.addEventListener("click", () => {
     cancelBtn.disabled = true;
+    activeOperation?.cancel();
     job?.abort();
   });
 }

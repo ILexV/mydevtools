@@ -207,7 +207,7 @@ function init(): void {
       renderInstant(text ? date : null, val, inputType.value as InputType);
       operation?.complete();
     } catch (error) {
-      operation?.fail();
+      operation?.fail("processing_error");
       throw error;
     }
   }

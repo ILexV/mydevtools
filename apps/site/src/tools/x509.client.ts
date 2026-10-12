@@ -244,7 +244,7 @@ function init() {
         operation.complete();
       } catch (e) {
         if (e === STALE) return;
-        operation.fail();
+        operation.fail("processing_error");
         generationError(e);
       }
     }),
@@ -262,7 +262,7 @@ function init() {
         operation.complete();
       } catch (e) {
         if (e === STALE) return;
-        operation.fail();
+        operation.fail("processing_error");
         generationError(e);
       }
     }),
@@ -311,11 +311,11 @@ function init() {
             }
           }
         }
-        if (signatureFailed) operation.fail();
+        if (signatureFailed) operation.fail("invalid_input");
         else operation.complete();
       } catch (e) {
         if (e === STALE) return;
-        operation.fail();
+        operation.fail("invalid_input");
         // Malformed PEM/Base64/DER: one localized message instead of raw parser codes.
         // Drop the previous result too, so Copy/Download can't export a stale certificate.
         setOutput("", null);

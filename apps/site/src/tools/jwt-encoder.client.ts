@@ -8,6 +8,7 @@
 import { jwtSignInput } from "@/scripts/wasm/crypto-client";
 import { copyWithFeedback, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
 import { buildSigningInput, jsonObjectProblem, type JwtHmacAlg } from "@/tools/jwt";
+import { createAutomaticToolUse } from "@/scripts/analytics/automatic-use";
 
 interface Strings {
   copied: string;
@@ -72,6 +73,7 @@ function init() {
 
   /** Monotonic guard so rapid typing can't apply a stale token out of order. */
   let signSeq = 0;
+  const telemetry = createAutomaticToolUse("jwt-encoder");
 
   function setFieldError(area: HTMLTextAreaElement, errEl: HTMLElement, message: string | null) {
     errEl.textContent = message ?? "";
@@ -91,8 +93,9 @@ function init() {
     if (outputPanel) syncEmptyState(outputPanel, true);
   }
 
-  async function generateToken() {
+  async function generateToken(track = false) {
     const seq = ++signSeq;
+    const operation = track ? telemetry.start() : null;
     const alg = algSelect.value as JwtHmacAlg;
     const built = buildSigningInput(headerArea.value, payloadArea.value, alg);
 
@@ -105,6 +108,7 @@ function init() {
     if (!built.ok) {
       clearToken();
       setEncodeError(null);
+      operation?.fail("invalid_input");
       return;
     }
 
@@ -118,18 +122,28 @@ function init() {
       setEncodeError(null);
       copyButton.disabled = false;
       if (outputPanel) syncEmptyState(outputPanel, false);
+      operation?.complete();
     } catch (err) {
       if (seq !== signSeq) return;
       clearToken();
       const msg = err instanceof Error ? err.message : String(err);
       setEncodeError(strings.encodeFailed.replace("{msg}", msg));
+      operation?.fail("processing_error");
     }
   }
 
-  headerArea.addEventListener("input", () => void generateToken());
-  payloadArea.addEventListener("input", () => void generateToken());
-  secretArea.addEventListener("input", () => void generateToken());
-  algSelect.addEventListener("change", () => void generateToken());
+  for (const area of [headerArea, payloadArea, secretArea]) {
+    area.addEventListener("input", (event) => {
+      if (!event.isTrusted) return void generateToken();
+      telemetry.changed();
+      void generateToken(true);
+    });
+  }
+  algSelect.addEventListener("change", (event) => {
+    if (!event.isTrusted) return void generateToken();
+    telemetry.changed();
+    void generateToken(true);
+  });
 
   copyButton.addEventListener("click", async () => {
     if (!outputArea.value) return;

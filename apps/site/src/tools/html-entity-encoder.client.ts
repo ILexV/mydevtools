@@ -93,7 +93,7 @@ function init() {
       revealOutput(outputPanel);
       operation.complete();
     } catch (error) {
-      operation.fail();
+      operation.fail("processing_error");
       throw error;
     }
   });
@@ -108,7 +108,7 @@ function init() {
       revealOutput(outputPanel);
       operation.complete();
     } catch (error) {
-      operation.fail();
+      operation.fail("processing_error");
       throw error;
     }
   });

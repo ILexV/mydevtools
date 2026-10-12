@@ -132,7 +132,7 @@ function init() {
       operation?.complete();
       return true;
     } catch (e) {
-      operation?.fail();
+      operation?.fail("invalid_input");
       setError(cronErrorMessage(e, strings, strings.fieldNames), e instanceof CronError ? e.field : undefined);
       output.value = "";
       description.textContent = "";

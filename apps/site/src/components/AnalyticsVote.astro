@@ -1,0 +1,95 @@
+---
+import type { LocaleCode } from "@/registry/locales";
+import { getNamespace, t } from "@/i18n/messages";
+import { VOTE_CHOICES } from "@/scripts/analytics/events";
+
+interface Props {
+  locale: LocaleCode;
+}
+
+const { locale } = Astro.props as Props;
+const namespace = "analytics-vote";
+const strings = getNamespace(locale, namespace);
+const island = JSON.stringify({
+  submitting: strings.Submitting,
+  accepted: strings.Accepted,
+  failed: strings.Failed,
+  disabled: strings.Disabled,
+}).replace(/</g, "\\u003c");
+---
+
+<section class="analytics-vote ds-panel" aria-labelledby="analytics-vote-title" data-analytics-vote>
+  <div class="analytics-vote-copy">
+    <p class="analytics-vote-eyebrow">{t(locale, namespace, "Eyebrow")}</p>
+    <h2 id="analytics-vote-title">{t(locale, namespace, "Title")}</h2>
+    <p>{t(locale, namespace, "Description")}</p>
+  </div>
+  <form class="analytics-vote-form" data-vote-form>
+    <fieldset>
+      <legend>{t(locale, namespace, "Question")}</legend>
+      <div class="analytics-vote-options">
+        {VOTE_CHOICES.map((choice) => (
+          <label class="analytics-vote-option">
+            <input type="radio" name="analytics-vote-choice" value={choice.id} />
+            <span>{t(locale, namespace, choice.labelKey)}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+    <div class="analytics-vote-actions">
+      <button class="ds-btn ds-btn-primary" type="submit" data-vote-submit disabled>
+        {t(locale, namespace, "Submit")}
+      </button>
+      <p class="analytics-vote-status" data-vote-status role="status" aria-live="polite"></p>
+    </div>
+  </form>
+  <p class="analytics-vote-privacy">{t(locale, namespace, "Privacy")}</p>
+  <script type="application/json" data-vote-strings is:inline set:html={island} />
+</section>
+
+<script>
+  import { initAnalyticsVote } from "@/scripts/analytics/analytics-vote.client";
+  document.querySelectorAll<HTMLElement>("[data-analytics-vote]").forEach(initAnalyticsVote);
+</script>
+
+<style>
+  .analytics-vote {
+    width: min(calc(100% - 2rem), var(--mdt-content-max));
+    margin: 1.5rem auto 2rem;
+    padding: clamp(1rem, 3vw, 1.5rem);
+    display: grid;
+    grid-template-columns: minmax(12rem, 0.72fr) minmax(18rem, 1.28fr);
+    gap: 1rem 1.5rem;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .analytics-vote-copy { display: grid; align-content: start; gap: 0.35rem; min-width: 0; }
+  .analytics-vote-eyebrow { color: var(--mdt-accent); font: 600 var(--mdt-fs-micro)/1.3 var(--mdt-font-mono); letter-spacing: 0.08em; text-transform: uppercase; }
+  .analytics-vote h2 { font-family: var(--mdt-font-display); font-size: var(--mdt-fs-h3); line-height: 1.2; }
+  .analytics-vote-copy > p:last-child, .analytics-vote-privacy { color: var(--mdt-text-muted); font-size: var(--mdt-fs-meta); }
+  .analytics-vote-form, .analytics-vote fieldset { min-width: 0; }
+  .analytics-vote fieldset { border: 0; padding: 0; }
+  .analytics-vote legend { margin-bottom: 0.6rem; font-weight: 650; }
+  .analytics-vote-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+  .analytics-vote-option { position: relative; min-width: 0; }
+  .analytics-vote-option input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+  .analytics-vote-option span { min-height: 2.65rem; padding: 0.6rem 0.7rem; display: grid; place-items: center start; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); color: var(--mdt-text-muted); background: var(--mdt-surface); line-height: 1.25; overflow-wrap: anywhere; transition: border-color 120ms ease, background 120ms ease, color 120ms ease; }
+  .analytics-vote-option input:hover + span { border-color: color-mix(in srgb, var(--mdt-accent) 45%, var(--mdt-border)); color: var(--mdt-text); }
+  .analytics-vote-option input:focus-visible + span { outline: 2px solid var(--mdt-accent); outline-offset: 2px; }
+  .analytics-vote-option input:checked + span { border-color: var(--mdt-accent); color: var(--mdt-text); background: color-mix(in srgb, var(--mdt-accent) 10%, var(--mdt-surface)); }
+  .analytics-vote-option input:disabled + span { cursor: not-allowed; opacity: 0.62; }
+  .analytics-vote-actions { min-width: 0; margin-top: 0.75rem; display: flex; align-items: center; gap: 0.75rem; }
+  .analytics-vote-status { min-width: 0; color: var(--mdt-text-muted); font-size: var(--mdt-fs-meta); overflow-wrap: anywhere; }
+  .analytics-vote-status[data-state="accepted"] { color: var(--mdt-success); }
+  .analytics-vote-status[data-state="failed"], .analytics-vote-status[data-state="disabled"] { color: var(--mdt-danger); }
+  .analytics-vote-privacy { grid-column: 1 / -1; padding-top: 0.75rem; border-top: 1px solid var(--mdt-border-soft); }
+  @media (max-width: 720px) {
+    .analytics-vote { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 430px) {
+    .analytics-vote { width: calc(100% - 1.25rem); margin-block: 1rem 1.5rem; padding: 0.85rem; }
+    .analytics-vote-options { grid-template-columns: minmax(0, 1fr); }
+    .analytics-vote-actions { align-items: stretch; flex-direction: column; }
+    .analytics-vote-actions .ds-btn { width: 100%; }
+  }
+</style>

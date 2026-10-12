@@ -508,7 +508,7 @@ function init(): void {
       if (sequence !== renderSequence) return;
       hideOutput();
       showAlert(strings.errorLibLoad, "error");
-      operation?.fail();
+      operation?.fail("processing_error");
       return;
     }
     const DiffNs = window.Diff;
@@ -516,7 +516,7 @@ function init(): void {
     if (!DiffNs || !DiffUI) {
       hideOutput();
       showAlert(strings.errorLibLoad, "error");
-      operation?.fail();
+      operation?.fail("processing_error");
       return;
     }
     // Let the "Loading…" status paint before the synchronous diff blocks the thread.
@@ -534,7 +534,7 @@ function init(): void {
     if (!patch) {
       hideOutput();
       showAlert(strings.diffTooBig.replace("{max}", String(MAX_LINE_EDITS)), "error");
-      operation?.fail();
+      operation?.fail("processing_error");
       return;
     }
     const budget = intraLineBudget(patch, INTRA_LINE_MAX, INTRA_TOTAL_BUDGET);
@@ -572,7 +572,7 @@ function init(): void {
       buildBlocks();
       operation?.complete();
     } catch (error) {
-      operation?.fail();
+      operation?.fail("processing_error");
       throw error;
     }
   }

@@ -62,7 +62,7 @@ function init(): void {
         showError(null);
         operation.complete();
       } catch (error) {
-        operation.fail();
+        operation.fail("processing_error");
         throw error;
       }
       return;

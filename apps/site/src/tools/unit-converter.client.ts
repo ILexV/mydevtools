@@ -16,6 +16,7 @@ import {
   type Category,
 } from "@/tools/units";
 import { copyWithFeedback } from "@/scripts/tool-ui";
+import { createAutomaticToolUse } from "@/scripts/analytics/automatic-use";
 
 interface Strings {
   lang: string;
@@ -70,6 +71,7 @@ function init() {
   const name = (id: string): string => strings.unitNames[id] ?? id;
 
   let currentCategory: Category = (categorySelect.value as Category) || "length";
+  const telemetry = createAutomaticToolUse("unit-converter");
 
   // Build the from/to unit <option>s for a category and pick the default pair
   // (first two units, mirroring the legacy defaults).
@@ -132,7 +134,7 @@ function init() {
     );
   }
 
-  function updateConversion() {
+  function updateConversion(track = false) {
     const value = fromValueInput.valueAsNumber;
     const fromUnit = fromUnitSelect.value;
     const toUnit = toUnitSelect.value;
@@ -144,9 +146,11 @@ function init() {
       if (formulaEl) formulaEl.textContent = "";
       quickEl?.replaceChildren();
       if (warningEl) warningEl.hidden = true;
+      if (track && fromValueInput.value.trim()) telemetry.start()?.fail("invalid_input");
       return;
     }
 
+    const operation = track ? telemetry.start() : null;
     const result = convertValue(value, fromUnit, toUnit, currentCategory);
     toValueInput.value = fmt(result);
     if (warningEl) {
@@ -156,26 +160,42 @@ function init() {
     }
     updateFormula(value, fromUnit, toUnit, result);
     updateQuickConversions(value);
+    operation?.complete();
   }
 
-  function applyCategory(category: Category) {
+  function applyCategory(category: Category, track = false) {
+    const operation = track ? telemetry.start() : null;
     currentCategory = category;
     populateUnitSelects(currentCategory);
     fromValueInput.value = "1";
     updateConversion();
     updateCommonConversions();
+    operation?.complete();
   }
 
-  categorySelect.addEventListener("change", () => applyCategory(categorySelect.value as Category));
-  fromUnitSelect.addEventListener("change", updateConversion);
-  toUnitSelect.addEventListener("change", updateConversion);
-  fromValueInput.addEventListener("input", updateConversion);
+  categorySelect.addEventListener("change", (event) => {
+    if (event.isTrusted) telemetry.changed();
+    applyCategory(categorySelect.value as Category, event.isTrusted);
+  });
+  fromUnitSelect.addEventListener("change", (event) => {
+    if (event.isTrusted) telemetry.changed();
+    updateConversion(event.isTrusted);
+  });
+  toUnitSelect.addEventListener("change", (event) => {
+    if (event.isTrusted) telemetry.changed();
+    updateConversion(event.isTrusted);
+  });
+  fromValueInput.addEventListener("input", (event) => {
+    if (event.isTrusted) telemetry.changed();
+    updateConversion(event.isTrusted);
+  });
 
   swapBtn?.addEventListener("click", () => {
     const tmp = fromUnitSelect.value;
     fromUnitSelect.value = toUnitSelect.value;
     toUnitSelect.value = tmp;
-    updateConversion();
+    telemetry.changed();
+    updateConversion(true);
   });
 
   copyBtn?.addEventListener("click", async () => {
@@ -193,7 +213,8 @@ function init() {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-unit-quick-pick]");
     if (!btn) return;
     toUnitSelect.value = btn.dataset.unitQuickPick || toUnitSelect.value;
-    updateConversion();
+    telemetry.changed();
+    updateConversion(true);
     quickEl.querySelector<HTMLButtonElement>(`[data-unit-quick-pick="${toUnitSelect.value}"]`)?.focus();
   });
 
@@ -204,7 +225,8 @@ function init() {
     fromValueInput.value = val;
     fromUnitSelect.value = fromUnit;
     toUnitSelect.value = toUnit;
-    updateConversion();
+    telemetry.changed();
+    updateConversion(true);
   });
 
   categorySelect.value = currentCategory;

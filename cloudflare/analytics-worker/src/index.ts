@@ -1,7 +1,20 @@
-import { ANALYTICS_ENDPOINT } from "../../../apps/site/src/scripts/analytics/events.ts";
-import { ANALYTICS_REPORT_ENDPOINT } from "../../../apps/site/src/scripts/analytics/reports.ts";
-import { handleReportRequest, type ReportEnv } from "./reports.ts";
-import { validateToolEvent } from "./validation.ts";
+import {
+  ANALYTICS_ENDPOINT,
+  ANALYTICS_VOTE_ENDPOINT,
+  VOTE_EVENT,
+} from "../../../apps/site/src/scripts/analytics/events.ts";
+import {
+  ANALYTICS_ARCHIVE_ENDPOINT,
+  ANALYTICS_HISTORY_ENDPOINT,
+  ANALYTICS_REPORT_ENDPOINT,
+} from "../../../apps/site/src/scripts/analytics/reports.ts";
+import { archiveAnalytics } from "./archive.ts";
+import {
+  collectPeriodMetrics,
+  handleReportRequest,
+  type ReportEnv,
+} from "./reports.ts";
+import { validateToolEvent, validateToolVote } from "./validation.ts";
 
 const MAX_BODY_BYTES = 512;
 
@@ -99,10 +112,19 @@ export async function handleRequest(
   const allowedOrigin =
     env.ALLOWED_BROWSER_ORIGIN === "self" ? url.origin : env.ALLOWED_BROWSER_ORIGIN;
 
-  if (url.pathname === ANALYTICS_REPORT_ENDPOINT) {
+  if (
+    url.pathname === ANALYTICS_REPORT_ENDPOINT ||
+    url.pathname === ANALYTICS_HISTORY_ENDPOINT ||
+    url.pathname === ANALYTICS_ARCHIVE_ENDPOINT
+  ) {
     return handleReportRequest(request, url, env, ctx?.access, allowedOrigin);
   }
-  if (url.pathname !== ANALYTICS_ENDPOINT || url.search !== "") return response(404);
+  if (
+    (url.pathname !== ANALYTICS_ENDPOINT && url.pathname !== ANALYTICS_VOTE_ENDPOINT) ||
+    url.search !== ""
+  ) {
+    return response(404);
+  }
   if (request.method !== "POST") return response(405, { Allow: "POST" });
   if (!hasAllowedBrowserSource(request.headers, allowedOrigin)) {
     return response(403);
@@ -114,17 +136,37 @@ export async function handleRequest(
   if (body.status === "too-large") return response(413);
   if (body.status === "invalid") return response(400);
 
-  const event = validateToolEvent(body.text);
-  if (event === null) return response(400);
+  if (url.pathname === ANALYTICS_ENDPOINT) {
+    const event = validateToolEvent(body.text);
+    if (event === null) return response(400);
 
-  try {
-    env.TOOL_ANALYTICS.writeDataPoint({
-      blobs: [event.tool, event.event],
-      doubles: [1],
-      indexes: [event.tool],
-    });
-  } catch {
-    return response(500);
+    try {
+      env.TOOL_ANALYTICS.writeDataPoint({
+        blobs: [
+          event.tool,
+          event.event,
+          event.event === "tool_completed" ? event.duration : "",
+          event.event === "tool_failed" ? event.reason : "",
+        ],
+        doubles: [1],
+        indexes: [event.tool],
+      });
+    } catch {
+      return response(500);
+    }
+  } else {
+    const vote = validateToolVote(body.text);
+    if (vote === null) return response(400);
+    const voteKey = `vote:${vote.choice}`;
+    try {
+      env.TOOL_ANALYTICS.writeDataPoint({
+        blobs: [voteKey, VOTE_EVENT, "", ""],
+        doubles: [1],
+        indexes: [voteKey],
+      });
+    } catch {
+      return response(500);
+    }
   }
 
   return response(204);
@@ -132,4 +174,17 @@ export async function handleRequest(
 
 export default {
   fetch: handleRequest,
+  scheduled(
+    _controller: ScheduledController,
+    env: Env,
+    ctx: ExecutionContext,
+  ): void {
+    ctx.waitUntil(
+      archiveAnalytics(
+        env,
+        (from, to) => collectPeriodMetrics(env, from, to),
+        new Date(),
+      ),
+    );
+  },
 } satisfies ExportedHandler<Env>;

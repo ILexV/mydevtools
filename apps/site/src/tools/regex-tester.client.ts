@@ -15,6 +15,7 @@
  */
 import { regexTest } from "@/scripts/wasm/regex-client";
 import { announce, bindEmptyState, bindLoadExample, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
+import { createAutomaticToolUse } from "@/scripts/analytics/automatic-use";
 import {
   applyGlobalFlag,
   buildHighlightHtml,
@@ -174,6 +175,7 @@ function init(): void {
   let groupNames: Array<string | null> = [];
   /** Emphasized capture group (1-based) or null. */
   let selectedGroup: number | null = null;
+  const telemetry = createAutomaticToolUse("regex-tester");
 
   function syncScroll(): void {
     backdrop.scrollTop = text.scrollTop;
@@ -324,7 +326,7 @@ function init(): void {
     applySelection();
   }
 
-  async function runTest(): Promise<void> {
+  async function runTest(track = false): Promise<void> {
     const seq = ++runSeq;
     const patternValue = pattern.value;
     const textValue = text.value;
@@ -339,6 +341,7 @@ function init(): void {
       window.clearTimeout(announceTimer);
       return;
     }
+    const operation = track ? telemetry.start() : null;
 
     try {
       const activeFlags = flags.filter((f) => f.checked).map((f) => f.value);
@@ -351,6 +354,7 @@ function init(): void {
 
       if (result.error) {
         showError(result.error);
+        operation?.fail("invalid_input");
         return;
       }
 
@@ -363,16 +367,18 @@ function init(): void {
       const truncated = global && result.truncated === true;
       renderMatchDetails(matches, truncated);
       scheduleAnnounce(strings.announceMatches.replace("{count}", truncated ? `${matches.length}+` : String(matches.length)));
+      operation?.complete();
     } catch (err) {
       if (seq !== runSeq) return;
       const message = err instanceof Error ? err.message : String(err);
       showError(strings.engineError.replace("{message}", message));
+      operation?.fail("processing_error");
     }
   }
 
-  function scheduleTest(): void {
+  function scheduleTest(track = false): void {
     window.clearTimeout(debounceTimer);
-    debounceTimer = window.setTimeout(() => void runTest(), DEBOUNCE_MS);
+    debounceTimer = window.setTimeout(() => void runTest(track), DEBOUNCE_MS);
   }
 
   // ── Saved patterns ──
@@ -430,6 +436,9 @@ function init(): void {
   }
 
   function loadPattern(data: SavedPattern): void {
+    window.clearTimeout(debounceTimer);
+    debounceTimer = 0;
+    telemetry.discard();
     pattern.value = data.pattern;
     text.value = data.sample || "";
     syncText();
@@ -441,13 +450,25 @@ function init(): void {
 
   // ── Events ──
 
-  pattern.addEventListener("input", scheduleTest);
-  text.addEventListener("input", () => {
+  pattern.addEventListener("input", (event) => {
+    if (!event.isTrusted) return scheduleTest();
+    telemetry.changed();
+    scheduleTest(true);
+  });
+  text.addEventListener("input", (event) => {
     syncScroll();
-    scheduleTest();
+    if (!event.isTrusted) return scheduleTest();
+    telemetry.changed();
+    scheduleTest(true);
   });
   text.addEventListener("scroll", syncScroll);
-  for (const f of flags) f.addEventListener("change", () => void runTest());
+  for (const f of flags) {
+    f.addEventListener("change", (event) => {
+      if (!event.isTrusted) return void runTest();
+      telemetry.changed();
+      void runTest(true);
+    });
+  }
 
   if (cheatsheetToggleEl && cheatsheetEl) {
     const toggle: HTMLButtonElement = cheatsheetToggleEl;

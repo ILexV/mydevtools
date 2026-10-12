@@ -20,6 +20,7 @@ import {
   withPreparing,
 } from "@/scripts/tool-ui";
 import { formatString } from "@/lib/format";
+import { createAutomaticToolUse } from "@/scripts/analytics/automatic-use";
 import {
   QR_MIN_PX_PER_MODULE,
   assessQrContrast,
@@ -132,6 +133,7 @@ function init() {
   /** Announce "ready" on the first image after empty/error, and after option changes — not per keystroke. */
   let announcedReady = false;
   let optionChanged = false;
+  const telemetry = createAutomaticToolUse("qr-code-generator");
 
   function showError(msg: string) {
     if (errorEl!.hidden || errorEl!.textContent !== msg) errorEl!.textContent = msg;
@@ -211,19 +213,21 @@ function init() {
         if (hint.id) toggleDescribedBy(text, hint.id, invalid);
       }
     };
-    picker.addEventListener("input", () => {
+    picker.addEventListener("input", (event) => {
       text.value = picker.value.toUpperCase();
       setInvalid(false);
       updateContrast();
-      schedule(true);
+      if (event.isTrusted) telemetry.changed();
+      schedule(true, event.isTrusted);
     });
-    text.addEventListener("input", () => {
+    text.addEventListener("input", (event) => {
       const hex = normalizeHexColor(text.value);
       if (hex) picker.value = hex.toLowerCase();
       // Don't flag while the user is still typing a short value.
       setInvalid(!hex && text.value.trim().replace(/^#/, "").length >= 6);
       updateContrast();
-      schedule(true);
+      if (event.isTrusted) telemetry.changed();
+      schedule(true, event.isTrusted);
     });
     text.addEventListener("change", () => {
       const hex = normalizeHexColor(text.value);
@@ -247,7 +251,8 @@ function init() {
       for (const b of styleBtns) b.setAttribute("aria-pressed", String(b === btn));
       if (currentStyle === (btn.dataset.style ?? "square")) return;
       currentStyle = btn.dataset.style ?? "square";
-      schedule(true);
+      telemetry.changed();
+      schedule(true, true);
     });
   }
 
@@ -279,12 +284,16 @@ function init() {
     if (!isDecodableImageType(file.type)) {
       // Legacy parity: keep any previously set logo, just flag the error.
       showError(strings.errorInvalidImage);
+      telemetry.changed();
+      telemetry.start()?.fail("unsupported_format");
       return;
     }
     try {
       logoBytes = new Uint8Array(await file.arrayBuffer());
     } catch {
       showError(strings.errorInvalidImage);
+      telemetry.changed();
+      telemetry.start()?.fail("processing_error");
       return;
     }
     if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl);
@@ -293,7 +302,8 @@ function init() {
     logoSelected!.hidden = false;
     setDropzoneHasFile(drop!, true);
     syncLogoAdvice();
-    schedule(true);
+    telemetry.changed();
+    schedule(true, true);
   }
 
   bindDropzone(drop, logoInput, (files) => {
@@ -303,11 +313,12 @@ function init() {
     e.stopPropagation();
     removeLogo();
     clearError();
-    schedule(true);
+    telemetry.changed();
+    schedule(true, true);
   });
 
   /** Inputs changed: mark the shown image stale and (re)start the trailing debounce. */
-  function schedule(isOption = false) {
+  function schedule(isOption = false, track = false) {
     if (isOption) optionChanged = true;
     window.clearTimeout(announceTimer);
     if (composing) return;
@@ -317,7 +328,7 @@ function init() {
       setDownloadsCurrent(false);
     }
     window.clearTimeout(debounceTimer);
-    debounceTimer = window.setTimeout(() => void regenerate(), DEBOUNCE_MS);
+    debounceTimer = window.setTimeout(() => void regenerate(track), DEBOUNCE_MS);
   }
 
   function scheduleAnnounce() {
@@ -331,7 +342,7 @@ function init() {
   }
 
   /** One live regeneration: validate, render PNG (+ SVG / matrix width), commit only if still the latest request. */
-  async function regenerate() {
+  async function regenerate(track = false) {
     const value = content!.value.trim();
     if (!value) {
       gate.invalidate();
@@ -355,6 +366,7 @@ function init() {
     const sizePx = parseInt(size!.value, 10);
     const wantSvg = !logo && style === "square";
     const cacheKey = `${ec}\u0000${value}`;
+    const operation = track ? telemetry.start() : null;
 
     try {
       const pngBytes = await withPreparing(
@@ -406,6 +418,7 @@ function init() {
       clearError();
       updateModuleHint(modules);
       scheduleAnnounce();
+      operation?.complete();
     } catch (e) {
       if (!gate.isCurrent(id)) return;
       // A capacity (or other) error replaces the stale success: no outdated code to download.
@@ -416,6 +429,7 @@ function init() {
           : kind === "invalidColor" ? strings.errorInvalidColor
           : strings.errorGenerateFailed,
       );
+      operation?.fail(kind === "tooLong" || kind === "invalidColor" ? "invalid_input" : "processing_error");
     }
   }
 
@@ -425,21 +439,27 @@ function init() {
   // Live preview; IME: wait for compositionend instead of encoding half-composed text.
   content.addEventListener("input", (e) => {
     if (composing || (e as InputEvent).isComposing) return;
-    schedule();
+    if (e.isTrusted) telemetry.changed();
+    schedule(false, e.isTrusted);
   });
   content.addEventListener("compositionstart", () => {
     composing = true;
     window.clearTimeout(debounceTimer);
   });
-  content.addEventListener("compositionend", () => {
+  content.addEventListener("compositionend", (event) => {
     composing = false;
-    schedule();
+    if (event.isTrusted) telemetry.changed();
+    schedule(false, event.isTrusted);
   });
-  ecLevel.addEventListener("change", () => schedule(true));
-  size.addEventListener("change", () => {
+  ecLevel.addEventListener("change", (event) => {
+    if (event.isTrusted) telemetry.changed();
+    schedule(true, event.isTrusted);
+  });
+  size.addEventListener("change", (event) => {
     // Density is known for the current content: warn right away, before the new raster arrives.
     updateModuleHint(lastModules);
-    schedule(true);
+    if (event.isTrusted) telemetry.changed();
+    schedule(true, event.isTrusted);
   });
 
   updateContrast();

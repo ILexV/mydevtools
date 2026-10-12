@@ -11,6 +11,7 @@
  * signature; only status transitions are announced.
  */
 import { jwtVerify } from "@/scripts/wasm/crypto-client";
+import { WasmError } from "@/scripts/wasm/worker-protocol";
 import {
   bindEmptyState,
   bindLoadExample,
@@ -31,6 +32,7 @@ import {
   type TemporalWarning,
 } from "@/tools/jwt-time";
 import { formatString } from "@/lib/format";
+import { createAutomaticToolUse } from "@/scripts/analytics/automatic-use";
 
 interface Strings {
   signatureVerified: string;
@@ -150,6 +152,7 @@ function init() {
   let announceTimer: number | undefined;
   let lastAnnounced: TemporalStatus | null = null;
   let previewExpanded = false;
+  const telemetry = createAutomaticToolUse("jwt-decoder");
 
   function setError(message: string | null) {
     errorEl.textContent = message ?? "";
@@ -348,7 +351,7 @@ function init() {
     announceStatus(report.status);
   }
 
-  async function updateAll() {
+  async function updateAll(track = false) {
     const id = ++runId;
     const token = normalizeToken(encodedArea.value);
 
@@ -357,12 +360,14 @@ function init() {
       clearOutputs();
       return;
     }
+    const operation = track ? telemetry.start() : null;
 
     // Decoded in TS rather than WASM `jwt_decode`, which re-sorted keys alphabetically.
     const decoded = decodeJwt(token);
     if (!decoded.ok) {
       setError(strings.invalidToken.replace("{message}", decoded.error));
       clearOutputs();
+      operation?.fail("invalid_input");
       return;
     }
     setError(null);
@@ -381,35 +386,48 @@ function init() {
 
     if (kind === "none") {
       showStatus("warning", strings.unsignedToken, ICON_INVALID);
+      operation?.complete();
       return;
     }
     if (kind === "unsupported") {
       showStatus("warning", strings.unsupportedAlgorithm.replace("{alg}", alg));
+      operation?.complete();
       return;
     }
     if (!secretArea.value) {
       showStatus("neutral", strings.enterSecret);
+      operation?.complete();
       return;
     }
 
-    let verified = false;
     try {
-      verified = await withPreparing("cryptography", jwtVerify(token, secretArea.value, alg), {
+      const verified = await withPreparing("cryptography", jwtVerify(token, secretArea.value, alg), {
         host: outputPanel,
         label: strings.preparing,
       });
-    } catch {
-      verified = false; // malformed signature segment / bad PEM → not verified
+      if (id !== runId) return;
+      showStatus(
+        verified ? "success" : "error",
+        verified ? strings.signatureVerified : strings.signatureInvalid,
+        verified ? ICON_VALID : ICON_INVALID,
+      );
+      operation?.complete();
+    } catch (error) {
+      if (id !== runId) return;
+      showStatus("error", strings.signatureInvalid, ICON_INVALID);
+      operation?.fail(
+        error instanceof WasmError && (error.code === "init-failed" || error.code === "worker-failed")
+          ? "wasm_unavailable"
+          : error instanceof WasmError ? "invalid_input" : "processing_error",
+      );
     }
-    if (id !== runId) return;
-    showStatus(
-      verified ? "success" : "error",
-      verified ? strings.signatureVerified : strings.signatureInvalid,
-      verified ? ICON_VALID : ICON_INVALID,
-    );
   }
 
-  encodedArea.addEventListener("input", () => void updateAll());
+  encodedArea.addEventListener("input", (event) => {
+    if (!event.isTrusted) return void updateAll();
+    telemetry.changed();
+    void updateAll(true);
+  });
   const syncInput = inputHost ? bindEmptyState(inputHost, encodedArea) : () => {};
   if (exampleBtn) {
     bindLoadExample(exampleBtn, () => {
@@ -423,7 +441,11 @@ function init() {
     void updateAll();
     encodedArea.focus();
   });
-  secretArea.addEventListener("input", () => void updateAll());
+  secretArea.addEventListener("input", (event) => {
+    if (!event.isTrusted) return void updateAll();
+    telemetry.changed();
+    void updateAll(true);
+  });
 
   previewToggle?.addEventListener("click", () => {
     previewExpanded = !previewExpanded;

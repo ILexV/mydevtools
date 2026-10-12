@@ -63,12 +63,22 @@ on both the dashboard and `/api/analytics/reports` (base paths and descendants).
 Its report handler requires the Access application audience and a separate
 read-only SQL token in the Worker secret store; never expose that token to the
 site build or browser. Configure and verify Access **before** publishing the
-dashboard. The public ingestion endpoint must remain outside Access protection.
+dashboard. Public `/api/analytics/event` and `/api/analytics/vote` must remain
+outside Access protection; review rate-limit coverage for both paths.
 
 See [analytics setup, private dashboard, privacy inventory, tool matrix, SQL reports and rollback](../../docs/analytics.md).
 Local Wrangler ingestion 204 responses do not prove Analytics Engine persistence:
 confirm a real write and private SQL readback. A local Access identity simulation
 does not prove production authorization; verify actual owner login separately.
+
+The expanded release requires separate production/staging `ANALYTICS_HISTORY`
+KV bindings and production cron `15 0 * * *` (daily 00:15 UTC). Namespaces are
+already created and committed as non-secret bindings; staging has no cron.
+Deploy the updated Worker before the enabled Pages artifact, then bootstrap the
+protected archive POST and verify KV readback. Successful/failed terminal
+payloads now require duration/reason; cached older clients may temporarily lose
+counters, but their local computation is unaffected. Existing stored points
+remain unclassified rather than receiving invented measurements.
 
 
 ## Browser support policy

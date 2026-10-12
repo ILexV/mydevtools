@@ -154,6 +154,7 @@ export function initEncodingTool(config: EncodingToolConfig): void {
   let currentFile: File | null = null;
   let abortController: AbortController | null = null;
   let lastDownload: { blob: Blob; name: string } | null = null;
+  let activeOperation: ToolOperation | null = null;
 
   /** Input overlay shows while there is neither text nor a selected file. */
   function syncInput() {
@@ -317,6 +318,7 @@ export function initEncodingTool(config: EncodingToolConfig): void {
       if (currentFile) {
         if (tooLarge(config.encodeLimit, strings.fileSizeLimitEncode, currentFile.size)) return;
         operation = startToolOperation(config.toolId);
+        activeOperation = operation;
         setProgress(true);
         const result = await encodeFile(options, currentFile, {
           signal: abortController.signal,
@@ -333,6 +335,7 @@ export function initEncodingTool(config: EncodingToolConfig): void {
         const bytes = await textToBytes(inputArea.value, options.charset);
         if (tooLarge(config.encodeLimit, strings.fileSizeLimitEncode, bytes.length)) return;
         operation = startToolOperation(config.toolId);
+        activeOperation = operation;
         const out = await encodeBytes(options, bytes);
         setOutput(out);
         setStats(out.length, bytes.length);
@@ -341,7 +344,13 @@ export function initEncodingTool(config: EncodingToolConfig): void {
       operation.complete();
       shown = true;
     } catch (e) {
-      if (!(e instanceof WasmError && e.code === "aborted")) operation?.fail();
+      if (!(e instanceof WasmError && e.code === "aborted")) {
+        operation?.fail(
+          e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")
+            ? "wasm_unavailable"
+            : "processing_error",
+        );
+      }
       handleError(e);
     } finally {
       prepared();
@@ -349,6 +358,7 @@ export function initEncodingTool(config: EncodingToolConfig): void {
       setProgress(false);
       setBusy(false);
       abortController = null;
+      if (activeOperation === operation) activeOperation = null;
     }
   }
 
@@ -364,6 +374,7 @@ export function initEncodingTool(config: EncodingToolConfig): void {
       if (currentFile) {
         if (tooLarge(config.decodeLimit, strings.fileSizeLimitDecode, currentFile.size)) return;
         operation = startToolOperation(config.toolId);
+        activeOperation = operation;
         setProgress(true);
         const result = await decodeFile(options, currentFile, {
           signal: abortController.signal,
@@ -381,6 +392,7 @@ export function initEncodingTool(config: EncodingToolConfig): void {
         const encoded = inputArea.value;
         if (tooLarge(config.decodeLimit, strings.fileSizeLimitDecode, encoded.length)) return;
         operation = startToolOperation(config.toolId);
+        activeOperation = operation;
         const bytes = await decodeToBytes(options, encoded);
         // Raw bytes stay downloadable even when they aren't text in the charset.
         setLastDownload({ blob: new Blob([new Uint8Array(bytes)], { type: "application/octet-stream" }), name: "decoded.bin" });
@@ -390,7 +402,13 @@ export function initEncodingTool(config: EncodingToolConfig): void {
       operation.complete();
       shown = true;
     } catch (e) {
-      if (!(e instanceof WasmError && e.code === "aborted")) operation?.fail();
+      if (!(e instanceof WasmError && e.code === "aborted")) {
+        operation?.fail(
+          e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")
+            ? "wasm_unavailable"
+            : "invalid_input",
+        );
+      }
       handleError(e);
     } finally {
       prepared();
@@ -398,12 +416,16 @@ export function initEncodingTool(config: EncodingToolConfig): void {
       setProgress(false);
       setBusy(false);
       abortController = null;
+      if (activeOperation === operation) activeOperation = null;
     }
   }
 
   encodeBtn?.addEventListener("click", handleEncode);
   decodeBtn?.addEventListener("click", handleDecode);
-  cancelBtn?.addEventListener("click", () => abortController?.abort());
+  cancelBtn?.addEventListener("click", () => {
+    activeOperation?.cancel();
+    abortController?.abort();
+  });
   inputArea.addEventListener("input", () => {
     inputArea.removeAttribute("aria-invalid");
     syncInput();

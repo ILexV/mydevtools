@@ -111,7 +111,7 @@ function init() {
       revealOutput(output);
       operation.complete();
     } catch (error) {
-      operation.fail();
+      operation.fail("processing_error");
       throw error;
     }
   });

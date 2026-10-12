@@ -4,6 +4,7 @@ import test from "node:test";
 import { handleRequest, type Env } from "../src/index.ts";
 
 const ENDPOINT = "https://mydevtools.app/api/analytics/event";
+const VOTE_ENDPOINT = "https://mydevtools.app/api/analytics/vote";
 const PRODUCTION_ORIGIN = "https://mydevtools.app";
 
 type DataPoint = Parameters<AnalyticsEngineDataset["writeDataPoint"]>[0];
@@ -40,6 +41,12 @@ function post(body: BodyInit, headers?: HeadersInit): Request {
 }
 
 function validBody(tool = "base64-encoder", event = "tool_completed"): string {
+  if (event === "tool_completed") {
+    return JSON.stringify({ tool, event, duration: "100ms_1s" });
+  }
+  if (event === "tool_failed") {
+    return JSON.stringify({ tool, event, reason: "processing_error" });
+  }
   return JSON.stringify({ tool, event });
 }
 
@@ -49,7 +56,7 @@ function assertPrivateResponse(response: Response, expectedStatus: number): void
   assert.equal(response.headers.get("Set-Cookie"), null);
 }
 
-test("stores only the two event dimensions, never incoming network identifiers", async () => {
+test("stores only allowlisted event dimensions, never incoming network identifiers", async () => {
   const { env, points } = createHarness();
   const response = await handleRequest(post(validBody(), {
     Cookie: "session=PRIVATE_COOKIE",
@@ -59,10 +66,9 @@ test("stores only the two event dimensions, never incoming network identifiers",
   }), env);
 
   assertPrivateResponse(response, 204);
-  assert.equal(await response.text(), "");
   assert.deepEqual(points, [
     {
-      blobs: ["base64-encoder", "tool_completed"],
+      blobs: ["base64-encoder", "tool_completed", "100ms_1s", ""],
       doubles: [1],
       indexes: ["base64-encoder"],
     },
@@ -136,20 +142,63 @@ test("rejects malformed, smuggled, and non-exact payloads without writing", asyn
   }
   assert.deepEqual(points, []);
 });
-
-test("rejects unknown tool and event values without writing", async () => {
+test("rejects unknown tools, events, and incomplete terminal events without writing", async () => {
   const { env, points } = createHarness();
   assertPrivateResponse(
     await handleRequest(post(validBody("not-in-catalog", "tool_started")), env),
     400,
   );
   assertPrivateResponse(
-    await handleRequest(post(validBody("base64-encoder", "tool_cancelled")), env),
+    await handleRequest(post(validBody("base64-encoder", "not-an-event")), env),
+    400,
+  );
+  assertPrivateResponse(
+    await handleRequest(
+      post('{\"tool\":\"base64-encoder\",\"event\":\"tool_completed\"}'),
+      env,
+    ),
     400,
   );
   assert.deepEqual(points, []);
 });
 
+test("stores anonymous votes separately without request or input metadata", async () => {
+  const { env, points } = createHarness();
+  const response = await handleRequest(
+    new Request(VOTE_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: "session=PRIVATE_COOKIE",
+        "CF-Connecting-IP": "192.0.2.1",
+        "User-Agent": "PRIVATE_USER_AGENT",
+        Referer: "https://mydevtools.app/?input=PRIVATE_INPUT",
+      },
+      body: '{\"choice\":\"batch-conversion\"}',
+    }),
+    env,
+  );
+
+  assertPrivateResponse(response, 204);
+  assert.deepEqual(points, [
+    {
+      blobs: ["vote:batch-conversion", "feedback_vote", "", ""],
+      doubles: [1],
+      indexes: ["vote:batch-conversion"],
+    },
+  ]);
+
+  const rejected = await handleRequest(
+    new Request(VOTE_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: '{\"choice\":\"batch-conversion\",\"input\":\"PRIVATE_INPUT\"}',
+    }),
+    env,
+  );
+  assertPrivateResponse(rejected, 400);
+  assert.equal(points.length, 1);
+});
 test("rejects declared and streamed bodies over 512 bytes", async () => {
   const { env, points } = createHarness();
   const declared = post(validBody(), { "Content-Length": "513" });

@@ -1,0 +1,18 @@
+{
+  "Eyebrow": "帮助决定下一步",
+  "Title": "接下来应该改进什么？",
+  "Description": "请选择一项建议。这些只是想法，并非承诺推出的功能。",
+  "Question": "选择一个选项",
+  "ChoiceSqlFormatter": "SQL 格式化工具",
+  "ChoiceJsonSchemaValidator": "JSON Schema 验证器",
+  "ChoiceCurlToCode": "cURL 转代码",
+  "ChoiceLargeFilePerformance": "提升大文件性能",
+  "ChoiceAdditionalImageFormats": "支持更多图像格式",
+  "ChoiceBatchConversion": "批量转换",
+  "Submit": "发送匿名投票",
+  "Submitting": "正在发送投票…",
+  "Accepted": "已收到投票。谢谢。",
+  "Failed": "无法发送投票，请重试。",
+  "Disabled": "在当前隐私或网络设置下无法进行匿名投票。",
+  "Privacy": "投票只会将所选选项作为匿名计数发送，不包含输入内容、文件数据、URL、Cookie 或标识符，也不会存储在此浏览器中。重新加载页面后可以再次投票。"
+}

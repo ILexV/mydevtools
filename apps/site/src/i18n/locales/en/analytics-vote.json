@@ -1,0 +1,18 @@
+{
+  "Eyebrow": "Help shape what comes next",
+  "Title": "What should we improve next?",
+  "Description": "Choose one suggestion. These are ideas, not promised features.",
+  "Question": "Choose one option",
+  "ChoiceSqlFormatter": "SQL formatter",
+  "ChoiceJsonSchemaValidator": "JSON Schema validator",
+  "ChoiceCurlToCode": "cURL to code",
+  "ChoiceLargeFilePerformance": "Better large-file performance",
+  "ChoiceAdditionalImageFormats": "More image formats",
+  "ChoiceBatchConversion": "Batch conversion",
+  "Submit": "Send anonymous vote",
+  "Submitting": "Sending vote…",
+  "Accepted": "Vote received. Thank you.",
+  "Failed": "The vote could not be sent. Please try again.",
+  "Disabled": "Anonymous voting is unavailable with your current privacy or connection settings.",
+  "Privacy": "The vote sends only the selected choice as an anonymous count. It contains no input, file data, URL, cookie or identifier and is not stored in this browser. Reloading the page allows another vote."
+}

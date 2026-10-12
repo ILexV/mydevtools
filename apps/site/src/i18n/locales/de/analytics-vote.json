@@ -1,0 +1,18 @@
+{
+  "Eyebrow": "Hilf bei der nächsten Entscheidung",
+  "Title": "Was sollen wir als Nächstes verbessern?",
+  "Description": "Wähle einen Vorschlag. Dies sind Ideen, keine zugesagten Funktionen.",
+  "Question": "Eine Option wählen",
+  "ChoiceSqlFormatter": "SQL-Formatierer",
+  "ChoiceJsonSchemaValidator": "JSON-Schema-Validator",
+  "ChoiceCurlToCode": "cURL in Code umwandeln",
+  "ChoiceLargeFilePerformance": "Bessere Leistung bei großen Dateien",
+  "ChoiceAdditionalImageFormats": "Weitere Bildformate",
+  "ChoiceBatchConversion": "Stapelkonvertierung",
+  "Submit": "Anonyme Stimme senden",
+  "Submitting": "Stimme wird gesendet…",
+  "Accepted": "Stimme empfangen. Vielen Dank.",
+  "Failed": "Die Stimme konnte nicht gesendet werden. Bitte erneut versuchen.",
+  "Disabled": "Anonymes Abstimmen ist mit den aktuellen Datenschutz- oder Verbindungseinstellungen nicht verfügbar.",
+  "Privacy": "Die Stimme sendet nur die gewählte Option als anonymen Zähler. Sie enthält keine Eingaben, Dateidaten, URL, Cookies oder Kennung und wird nicht in diesem Browser gespeichert. Nach dem Neuladen ist eine weitere Stimme möglich."
+}

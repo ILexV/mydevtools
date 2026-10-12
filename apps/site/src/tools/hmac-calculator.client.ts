@@ -128,7 +128,7 @@ function init() {
       outputArea.value = "";
       setCopyVisible(false);
       showError(e instanceof Error ? e.message : strings.error);
-      operation?.fail();
+      operation?.fail("processing_error");
       return false;
     }
   }

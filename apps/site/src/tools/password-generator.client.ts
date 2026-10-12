@@ -242,7 +242,7 @@ function init() {
       if (reveal) revealOutput(resultPanel);
       operation?.complete();
     } catch (e) {
-      operation?.fail();
+      operation?.fail("processing_error");
       showError(e instanceof Error ? e.message : String(e));
     }
   }

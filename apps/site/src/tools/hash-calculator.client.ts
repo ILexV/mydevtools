@@ -11,7 +11,7 @@
  * rehashed). Editing the source text/file or the algorithm selection marks the
  * cache stale, which clears match marks until the next result arrives.
  */
-import { startToolOperation } from "@/scripts/analytics/instrumentation";
+import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
 import { hashText, hashFile, type ProgressInfo } from "@/scripts/wasm/hash-client";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { HASH_ALGORITHMS, DEFAULT_HASH_ALGORITHMS } from "@/tools/hash-algorithms";
@@ -140,6 +140,7 @@ function init() {
 
   const currentFiles: File[] = [];
   let abortController: AbortController | null = null;
+  let activeOperation: ToolOperation | null = null;
   /** Per-source result snapshots, including terminal failures and cancellation. */
   let cachedDigests: HashResultGroup[] | null = null;
   let digestsStale = false;
@@ -464,6 +465,7 @@ function init() {
     const run = ++generation;
     const controller = new AbortController();
     abortController = controller;
+    activeOperation = operation;
     const files = currentFiles.slice();
     const text = textarea?.value ?? "";
     const groups: HashResultGroup[] = files.length
@@ -530,11 +532,11 @@ function init() {
         updateProgress(processedBytes, total, performance.now() - start);
       }
       if (generation === run && !controller.signal.aborted) {
-        if (groups.some((group) => group.status === "error")) operation.fail();
+        if (groups.some((group) => group.status === "error")) operation.fail("processing_error");
         else operation.complete();
       }
     } catch (error) {
-      if (generation === run && !controller.signal.aborted) operation.fail();
+      if (generation === run && !controller.signal.aborted) operation.fail("processing_error");
       throw error;
     } finally {
       prepared();
@@ -543,6 +545,7 @@ function init() {
         setBusy(false);
         updateProgress(processedBytes, total, performance.now() - start);
         abortController = null;
+        if (activeOperation === operation) activeOperation = null;
         renderComparison();
         if (!controller.signal.aborted) revealOutput(output);
       }
@@ -550,7 +553,10 @@ function init() {
   }
 
   calcBtn?.addEventListener("click", handleCalculate);
-  cancelBtn?.addEventListener("click", () => abortController?.abort());
+  cancelBtn?.addEventListener("click", () => {
+    activeOperation?.cancel();
+    abortController?.abort();
+  });
   clearBtn?.addEventListener("click", () => {
     generation++;
     abortController?.abort();

@@ -260,7 +260,7 @@ function init(): void {
       revealOutput(formatsEl?.closest<HTMLElement>(".ds-card"));
       operation.complete();
     } catch (error) {
-      operation.fail();
+      operation.fail("processing_error");
       throw error;
     }
   }

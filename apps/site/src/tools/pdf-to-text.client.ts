@@ -16,7 +16,7 @@
  * mobile (`revealOutput`) and the summary is announced politely.
  */
 import { extractText } from "@/scripts/wasm/pdf-client";
-import { startToolOperation } from "@/scripts/analytics/instrumentation";
+import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { announce, bindDropzone, copyWithFeedback, revealOutput, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes, formatPlural, formatString, progressPercent } from "@/lib/format";
@@ -104,6 +104,7 @@ function init() {
   const files: PdfItem[] = [];
   let extracting = false;
   let job: AbortController | null = null;
+  let activeOperation: ToolOperation | null = null;
   /** File shown in the result preview (Copy / Download act on it). */
   let previewItem: PdfItem | null = null;
   const num = (n: number) => n.toLocaleString(strings.lang);
@@ -264,6 +265,7 @@ function init() {
     clearError();
     const ctrl = new AbortController();
     job = ctrl;
+    activeOperation = operation;
     setBusy(true);
     const errors: string[] = [];
     let done = 0;
@@ -310,9 +312,10 @@ function init() {
       revealOutput(resultEl);
     }
     if (!ctrl.signal.aborted) {
-      if (errors.length > 0) operation.fail();
+      if (errors.length > 0) operation.fail("processing_error");
       else operation.complete();
     }
+    if (activeOperation === operation) activeOperation = null;
   }
 
   bindDropzone(zone, input, addFiles);
@@ -335,6 +338,7 @@ function init() {
   extract.addEventListener("click", () => void handleExtract());
   cancelBtn?.addEventListener("click", () => {
     cancelBtn.disabled = true;
+    activeOperation?.cancel();
     job?.abort();
   });
 }

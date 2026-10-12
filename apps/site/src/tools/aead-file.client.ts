@@ -9,7 +9,7 @@
  * Wrong password / tampered or truncated file / non-.aead input surface as
  * localized errors (AeadError.failure), not raw WASM strings.
  */
-import { startToolOperation } from "@/scripts/analytics/instrumentation";
+import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
 import {
   aeadEncryptFile,
   aeadDecryptFile,
@@ -17,6 +17,7 @@ import {
   type AeadAlgorithm,
   type AeadProgress,
 } from "@/scripts/wasm/aead-file-client";
+import { WasmError } from "@/scripts/wasm/worker-protocol";
 import { formatBytes } from "@/lib/format";
 import { revealOutput, startPreparing, syncEmptyState } from "@/scripts/tool-ui";
 import { aeadProgressView, decryptedName, encryptedName } from "@/tools/aead-file-helpers";
@@ -103,6 +104,7 @@ function init() {
   let lastName: string | null = null;
   let abortController: AbortController | null = null;
   let operationEpoch = 0;
+  let activeOperation: ToolOperation | null = null;
 
   function showError(msg: string) {
     errorEl.textContent = msg;
@@ -216,6 +218,7 @@ function init() {
     const mine = ++operationEpoch;
     const ctrl = new AbortController();
     abortController = ctrl;
+    activeOperation = operation;
     resetOutput();
     const trigger = mode === "encrypt" ? encryptButton : decryptButton;
     setBusy(true, trigger);
@@ -259,7 +262,15 @@ function init() {
     } catch (e) {
       if (mine === operationEpoch) {
         handleError(e);
-        if (!(e instanceof DOMException && e.name === "AbortError")) operation.fail();
+        if (!(e instanceof DOMException && e.name === "AbortError")) {
+          operation.fail(
+            e instanceof WasmError && (e.code === "init-failed" || e.code === "worker-failed")
+              ? "wasm_unavailable"
+              : e instanceof AeadError && (e.failure === "header" || e.failure === "auth")
+                ? "invalid_input"
+                : "processing_error",
+          );
+        }
       }
     } finally {
       prepared();
@@ -267,6 +278,7 @@ function init() {
         progressPanel.hidden = true;
         setBusy(false, null);
         if (abortController === ctrl) abortController = null;
+        if (activeOperation === operation) activeOperation = null;
       }
     }
   }
@@ -275,7 +287,10 @@ function init() {
   decFileInput.addEventListener("change", () => updateFileName(decFileInput, decFileLabel));
   encryptButton.addEventListener("click", () => void run("encrypt"));
   decryptButton.addEventListener("click", () => void run("decrypt"));
-  cancelBtn.addEventListener("click", () => abortController?.abort());
+  cancelBtn.addEventListener("click", () => {
+    activeOperation?.cancel();
+    abortController?.abort();
+  });
   passwordInput.addEventListener("input", () => {
     passwordInput.removeAttribute("aria-invalid");
     updateWhitespaceHint();

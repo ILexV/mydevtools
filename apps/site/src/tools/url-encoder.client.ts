@@ -152,7 +152,7 @@ function init() {
       revealOutput(outputPanel);
       operation.complete();
     } catch (e) {
-      if (!(e instanceof WasmError && e.code === "aborted")) operation.fail();
+      if (!(e instanceof WasmError && e.code === "aborted")) operation.fail("processing_error");
       handleFailure(e);
     } finally {
       for (const b of [encodeBtn, decodeBtn]) if (b) b.disabled = false;

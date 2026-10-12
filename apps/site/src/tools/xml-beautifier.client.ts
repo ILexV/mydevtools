@@ -139,7 +139,7 @@ async function init(): Promise<void> {
       const diag: ParseDiagnostic = locateXmlError(input) ?? xmlEngineDiagnostic(input, engineText, detail);
       const shifted = shiftDiagnostic(diag, value.length - value.trimStart().length);
       editor.setDiagnostic(presentDiagnostic(diagStrings, shifted, value), { announce });
-      operation?.fail();
+      operation?.fail("invalid_input");
     }
   }
 

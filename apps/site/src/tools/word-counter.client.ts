@@ -6,6 +6,7 @@
  */
 import { computeStats, readingMinutes } from "@/tools/word-stats";
 import { bindEmptyState, bindLoadExample, copyWithFeedback, setFieldValue } from "@/scripts/tool-ui";
+import { createAutomaticToolUse } from "@/scripts/analytics/automatic-use";
 
 interface Strings {
   copied: string;
@@ -54,6 +55,7 @@ function init() {
     bindLoadExample(exampleBtn, () => setFieldValue(textarea, sample));
   }
   const nf = new Intl.NumberFormat(document.documentElement.lang || undefined);
+  const telemetry = createAutomaticToolUse("word-counter");
 
   function showError(message: string | null) {
     if (!errorEl) return;
@@ -61,7 +63,8 @@ function init() {
     errorEl.hidden = message === null;
   }
 
-  function render() {
+  function render(track = false) {
+    const operation = track && textarea.value.trim() ? telemetry.start() : null;
     const s = computeStats(textarea.value);
     if (els.words) els.words.textContent = nf.format(s.words);
     if (els.charsSpaces) els.charsSpaces.textContent = nf.format(s.charsSpaces);
@@ -71,11 +74,13 @@ function init() {
     if (els.sentences) els.sentences.textContent = nf.format(s.sentences);
     if (els.reading) els.reading.textContent = `${nf.format(readingMinutes(s.words, 200))} ${strings.minutes}`;
     if (els.speaking) els.speaking.textContent = `${nf.format(readingMinutes(s.words, 130))} ${strings.minutes}`;
+    operation?.complete();
   }
 
-  textarea.addEventListener("input", () => {
+  textarea.addEventListener("input", (event) => {
     showError(null);
-    render();
+    if (event.isTrusted) telemetry.changed();
+    render(event.isTrusted);
   });
 
   root.querySelector<HTMLButtonElement>("[data-wc-clear]")?.addEventListener("click", () => {
@@ -99,7 +104,8 @@ function init() {
       textarea.value = await navigator.clipboard.readText();
       syncInput();
       showError(null);
-      render();
+      telemetry.changed();
+      render(true);
     } catch {
       showError(strings.pasteFailed);
     }

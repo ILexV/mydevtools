@@ -12,12 +12,13 @@ import { TOOLS, toolNamespace } from "@/registry/tools";
 import "@/styles/global.css";
 
 const DEFAULT_ADMIN_LOCALE: LocaleCode = "ru";
-const ns = "admin-analytics";
-const str = (key: string) => t(DEFAULT_ADMIN_LOCALE, ns, key);
+const namespace = "admin-analytics";
+const str = (key: string) => t(DEFAULT_ADMIN_LOCALE, namespace, key);
 const clientData = {
   defaultLocale: DEFAULT_ADMIN_LOCALE,
   locales: LOCALES.map(({ code, nativeName, bcp47, dir }) => ({ code, nativeName, bcp47, dir })),
-  strings: Object.fromEntries(LOCALE_CODES.map((code) => [code, getNamespace(code, ns)])),
+  strings: Object.fromEntries(LOCALE_CODES.map((code) => [code, getNamespace(code, namespace)])),
+  voteStrings: Object.fromEntries(LOCALE_CODES.map((code) => [code, getNamespace(code, "analytics-vote")])),
   toolTitles: Object.fromEntries(
     LOCALE_CODES.map((code) => [
       code,
@@ -59,8 +60,8 @@ const clientDataJson = JSON.stringify(clientData).replace(/</g, "\\u003c");
             <span class="visually-hidden" data-i18n="Language">{str("Language")}</span>
             <Icon name="globe" size={16} />
             <select id="admin-locale" class="ds-field-select locale-select" aria-label={str("Language")}>
-              {LOCALES.map((locale) => (
-                <option value={locale.code} selected={locale.code === DEFAULT_ADMIN_LOCALE}>{locale.nativeName}</option>
+              {LOCALES.map((entry) => (
+                <option value={entry.code} selected={entry.code === DEFAULT_ADMIN_LOCALE}>{entry.nativeName}</option>
               ))}
             </select>
           </label>
@@ -107,24 +108,26 @@ const clientDataJson = JSON.stringify(clientData).replace(/</g, "\\u003c");
       <div id="report-dashboard" class="dashboard" hidden>
         <div class="report-meta">
           <p><span data-i18n="GeneratedAt">{str("GeneratedAt")}</span>: <time id="report-generated" class="tabular"></time></p>
+          <span id="report-range" class="tabular"></span>
           <span id="report-dataset" class="ds-chip"></span>
           <span id="report-estimate-badge" class="ds-chip estimate-badge" hidden>{str("WeightedEstimate")}</span>
         </div>
 
-        <section class="summary-grid" aria-label={str("Title")}>
-          <article class="metric-card ds-panel metric-started">
-            <p class="lbl" data-i18n="Started">{str("Started")}</p>
-            <p id="summary-started" class="metric-value tabular">0</p>
-          </article>
-          <article class="metric-card ds-panel metric-completed">
-            <p class="lbl" data-i18n="Completed">{str("Completed")}</p>
-            <p id="summary-completed" class="metric-value tabular">0</p>
-          </article>
-          <article class="metric-card ds-panel metric-failed">
-            <p class="lbl" data-i18n="Failed">{str("Failed")}</p>
-            <p id="summary-failed" class="metric-value tabular">0</p>
-          </article>
+        <section class="summary-grid" aria-label={str("SummaryTitle")} data-i18n-aria="SummaryTitle">
+          {[
+            ["started", "Started"],
+            ["completed", "Completed"],
+            ["failed", "Failed"],
+            ["cancelled", "Cancelled"],
+          ].map(([id, key]) => (
+            <article class={`metric-card ds-panel metric-${id}`}>
+              <p class="lbl" data-i18n={key}>{str(key)}</p>
+              <p id={`summary-${id}`} class="metric-value tabular">0</p>
+              <p id={`comparison-${id}`} class="metric-comparison tabular"></p>
+            </article>
+          ))}
         </section>
+        <p id="comparison-note" class="note"></p>
 
         <section class="chart-panel ds-panel" aria-labelledby="activity-title">
           <div class="panel-head">
@@ -136,6 +139,7 @@ const clientDataJson = JSON.stringify(clientData).replace(/</g, "\\u003c");
               <span class="legend-started" data-i18n="Started">{str("Started")}</span>
               <span class="legend-completed" data-i18n="Completed">{str("Completed")}</span>
               <span class="legend-failed" data-i18n="Failed">{str("Failed")}</span>
+              <span class="legend-cancelled" data-i18n="Cancelled">{str("Cancelled")}</span>
             </div>
           </div>
           <div class="chart-wrap">
@@ -143,6 +147,19 @@ const clientDataJson = JSON.stringify(clientData).replace(/</g, "\\u003c");
               <title id="activity-chart-title">{str("ChartLabel")}</title>
               <desc id="activity-chart-desc">{str("ActivityDescription")}</desc>
             </svg>
+          </div>
+        </section>
+
+        <section class="distribution-panel ds-panel" aria-labelledby="distribution-title">
+          <div class="panel-head">
+            <div>
+              <h2 id="distribution-title" data-i18n="DistributionTitle">{str("DistributionTitle")}</h2>
+              <p data-i18n="DistributionDescription">{str("DistributionDescription")}</p>
+            </div>
+          </div>
+          <div class="distribution-columns">
+            <div id="duration-distribution"></div>
+            <div id="error-distribution"></div>
           </div>
         </section>
 
@@ -154,7 +171,7 @@ const clientDataJson = JSON.stringify(clientData).replace(/</g, "\\u003c");
             </div>
           </div>
           <div class="table-wrap">
-            <table>
+            <table class="tools-table">
               <caption class="visually-hidden" data-i18n="ToolTableCaption">{str("ToolTableCaption")}</caption>
               <thead>
                 <tr>
@@ -163,11 +180,39 @@ const clientDataJson = JSON.stringify(clientData).replace(/</g, "\\u003c");
                   <th scope="col" data-i18n="Starts">{str("Starts")}</th>
                   <th scope="col" data-i18n="Successes">{str("Successes")}</th>
                   <th scope="col" data-i18n="Failures">{str("Failures")}</th>
+                  <th scope="col" data-i18n="Cancellations">{str("Cancellations")}</th>
                 </tr>
               </thead>
               <tbody id="tools-body"></tbody>
             </table>
           </div>
+        </section>
+
+        <section class="votes-panel ds-panel" aria-labelledby="votes-title">
+          <div class="panel-head">
+            <div>
+              <h2 id="votes-title" data-i18n="VotesTitle">{str("VotesTitle")}</h2>
+              <p data-i18n="VotesDescription">{str("VotesDescription")}</p>
+            </div>
+          </div>
+          <div id="vote-totals" class="vote-grid"></div>
+        </section>
+
+        <section class="history-panel ds-panel" aria-labelledby="history-title">
+          <div class="panel-head history-head">
+            <div>
+              <h2 id="history-title" data-i18n="HistoryTitle">{str("HistoryTitle")}</h2>
+              <p data-i18n="HistoryDescription">{str("HistoryDescription")}</p>
+            </div>
+            <div class="history-controls">
+              <label for="history-year" data-i18n="HistoryYear">{str("HistoryYear")}</label>
+              <select id="history-year" class="ds-field-select"></select>
+              <button id="archive-refresh" class="ds-btn" type="button" data-i18n="ArchiveRefresh">{str("ArchiveRefresh")}</button>
+            </div>
+          </div>
+          <p id="history-generated" class="note"></p>
+          <div id="history-months" class="history-grid"></div>
+          <p id="history-empty" class="note" data-i18n="HistoryEmpty" hidden>{str("HistoryEmpty")}</p>
         </section>
 
         <aside class="report-notes">
@@ -199,50 +244,81 @@ const clientDataJson = JSON.stringify(clientData).replace(/</g, "\\u003c");
   :root[data-theme="dark"] .theme-sun { display: none; }
   :root[data-theme="dark"] .theme-moon { display: inline; }
 
-  .admin-shell { width: min(100%, var(--mdt-content-max)); margin: 0 auto; padding: 2rem 1.25rem 4rem; display: grid; gap: 1rem; }
+  .admin-shell { width: min(100%, var(--mdt-content-max)); margin: 0 auto; padding: 2rem 1.25rem 4rem; display: grid; gap: 1rem; min-width: 0; }
   .page-head { display: grid; gap: 0.35rem; }
   .page-head h1 { font-family: var(--mdt-font-display); font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: -0.035em; line-height: 1.05; }
   .page-subtitle, .panel-head p, .report-state p { color: var(--mdt-text-muted); }
   .toolbar { padding: 1rem; display: flex; align-items: end; justify-content: space-between; gap: 1rem; }
   .period-control { display: grid; gap: 0.4rem; min-width: min(100%, 20rem); }
   .period-control .seg { min-width: min(100%, 18rem); }
-
   .report-state { min-height: 12rem; padding: 2rem; display: grid; place-items: center; align-content: center; grid-template-columns: auto minmax(0, 30rem); gap: 0.9rem 1rem; text-align: left; }
   .report-state h2, .panel-head h2 { font-family: var(--mdt-font-display); font-size: var(--mdt-fs-h3); line-height: 1.2; }
   .state-actions { grid-column: 2; display: flex; gap: 0.6rem; justify-self: start; }
-  .dashboard { display: grid; gap: 1rem; }
+  .dashboard { display: grid; gap: 1rem; min-width: 0; }
   .report-meta { min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; color: var(--mdt-text-muted); font-size: var(--mdt-fs-meta); }
   .estimate-badge { color: var(--mdt-warning); border-color: color-mix(in srgb, var(--mdt-warning) 34%, var(--mdt-border)); }
-  .summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+  .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
   .metric-card { position: relative; overflow: hidden; padding: 1.1rem 1.2rem; }
   .metric-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--metric-color); }
   .metric-started { --metric-color: var(--mdt-accent); }
   .metric-completed { --metric-color: var(--mdt-success); }
   .metric-failed { --metric-color: var(--mdt-danger); }
+  .metric-cancelled { --metric-color: var(--mdt-warning); }
   .metric-value { margin-top: 0.35rem; font-family: var(--mdt-font-display); font-size: clamp(1.75rem, 5vw, 2.75rem); font-weight: 700; line-height: 1; }
-  .chart-panel, .tools-panel { padding: 1.2rem; display: grid; gap: 1rem; min-width: 0; }
-  .panel-head { display: flex; justify-content: space-between; align-items: start; gap: 1rem; }
+  .metric-comparison { min-height: 1.2em; margin-top: 0.55rem; color: var(--mdt-text-muted); font-size: var(--mdt-fs-meta); overflow-wrap: anywhere; }
+  .chart-panel, .distribution-panel, .tools-panel, .votes-panel, .history-panel { padding: 1.2rem; display: grid; gap: 1rem; min-width: 0; }
+  .panel-head { display: flex; justify-content: space-between; align-items: start; gap: 1rem; min-width: 0; }
   .chart-legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; font-size: var(--mdt-fs-meta); color: var(--mdt-text-muted); }
   .chart-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
   .chart-legend span::before { content: ""; width: 0.65rem; height: 0.18rem; border-radius: 99px; background: currentColor; }
   .legend-started { color: var(--mdt-accent) !important; }
   .legend-completed { color: var(--mdt-success) !important; }
   .legend-failed { color: var(--mdt-danger) !important; }
+  .legend-cancelled { color: var(--mdt-warning) !important; }
   .chart-wrap { width: 100%; min-width: 0; overflow: hidden; }
   #activity-chart { width: 100%; height: auto; min-height: 12rem; color: var(--mdt-text-muted); }
-
-  .table-wrap { max-width: 100%; overflow: hidden; }
+  .distribution-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+  .distribution { min-width: 0; display: grid; gap: 0.5rem; }
+  .distribution h3 { font-family: var(--mdt-font-display); font-size: 1rem; }
+  .distribution-row { display: grid; grid-template-columns: minmax(7.5rem, 1fr) minmax(4rem, 1.5fr) auto; align-items: center; gap: 0.55rem; min-width: 0; font-size: var(--mdt-fs-meta); }
+  .distribution-label { overflow-wrap: anywhere; }
+  .distribution-track { height: 0.45rem; overflow: hidden; border-radius: 99px; background: var(--mdt-surface); border: 1px solid var(--mdt-border-soft); }
+  .distribution-fill { display: block; height: 100%; min-width: 0; border-radius: inherit; background: var(--mdt-accent); }
+  .distribution-errors .distribution-fill { background: var(--mdt-danger); }
+  .table-wrap { max-width: 100%; overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-  th, td { padding: 0.75rem 0.65rem; border-bottom: 1px solid var(--mdt-border-soft); text-align: right; font-variant-numeric: tabular-nums; }
+  th, td { padding: 0.75rem 0.55rem; border-bottom: 1px solid var(--mdt-border-soft); text-align: right; font-variant-numeric: tabular-nums; }
   th { font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-micro); letter-spacing: 0.06em; text-transform: uppercase; color: var(--mdt-text-faint); }
-  th:first-child, td:first-child { width: 4rem; text-align: center; }
-  th:nth-child(2), td:nth-child(2) { width: 46%; text-align: left; }
-  td:nth-child(2) { overflow-wrap: anywhere; font-weight: 600; }
-  td:last-child { color: var(--mdt-danger); }
-  tbody tr:last-child td { border-bottom: 0; }
+  .tools-table th:first-child, .tools-table .tool-row td:first-child { width: 3.5rem; text-align: center; }
+  .tools-table th:nth-child(2), .tools-table .tool-row td:nth-child(2) { width: 34%; text-align: left; }
+  .tool-row td:nth-child(2) { overflow-wrap: anywhere; font-weight: 600; }
+  .tool-detail td { padding: 0.75rem; text-align: left; background: color-mix(in srgb, var(--mdt-surface) 65%, transparent); }
+  .tool-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .vote-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.65rem; }
+  .vote-total { padding: 0.8rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface); min-width: 0; }
+  .vote-total dt { color: var(--mdt-text-muted); overflow-wrap: anywhere; }
+  .vote-total dd { margin-top: 0.3rem; font: 700 1.45rem/1 var(--mdt-font-display); }
+  .history-head { align-items: end; }
+  .history-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0.5rem; }
+  .history-controls label { font-size: var(--mdt-fs-meta); color: var(--mdt-text-muted); }
+  .history-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+  .history-month { min-width: 0; padding: 0.9rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface); }
+  .history-month-head { display: flex; align-items: start; justify-content: space-between; gap: 0.5rem; }
+  .history-month h3 { font-family: var(--mdt-font-display); font-size: 1rem; }
+  .history-month dl { margin-top: 0.65rem; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; }
+  .history-month dl div { min-width: 0; }
+  .history-month dt { color: var(--mdt-text-muted); font-size: var(--mdt-fs-micro); overflow-wrap: anywhere; }
+  .history-month dd { font-weight: 700; }
+  .history-month details { margin-top: 0.7rem; }
+  .history-month summary { cursor: pointer; color: var(--mdt-accent); font-size: var(--mdt-fs-meta); }
+  .history-month-details { padding-top: 0.65rem; display: grid; gap: 0.75rem; }
   .report-notes { display: grid; gap: 0.6rem; }
-  .note { color: var(--mdt-text-muted); font-size: var(--mdt-fs-meta); }
+  .note { color: var(--mdt-text-muted); font-size: var(--mdt-fs-meta); overflow-wrap: anywhere; }
 
+  @media (max-width: 900px) {
+    .summary-grid, .history-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .vote-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
   @media (max-width: 640px) {
     .admin-bar-inner { align-items: flex-start; padding-inline: 1rem; }
     .brand-link > span:last-child { display: none; }
@@ -253,23 +329,31 @@ const clientDataJson = JSON.stringify(clientData).replace(/</g, "\\u003c");
     #admin-refresh { width: 100%; }
     .report-state { grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 1.5rem 1rem; }
     .state-actions { grid-column: 1; justify-self: center; }
-    .summary-grid { grid-template-columns: 1fr; gap: 0.65rem; }
-    .metric-card { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+    .summary-grid, .distribution-columns, .tool-detail-grid, .history-grid { grid-template-columns: minmax(0, 1fr); gap: 0.65rem; }
+    .metric-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 0.25rem 1rem; }
     .metric-value { margin-top: 0; font-size: 1.75rem; }
-    .panel-head { display: grid; }
+    .metric-comparison { grid-column: 1 / -1; margin-top: 0; }
+    .panel-head, .history-head { display: grid; }
+    .history-controls { justify-content: stretch; }
+    .history-controls label { width: 100%; }
+    .history-controls select, .history-controls button { flex: 1 1 8rem; }
     .chart-legend { gap: 0.35rem 0.65rem; }
-    .chart-panel, .tools-panel { padding: 1rem; }
+    .chart-panel, .distribution-panel, .tools-panel, .votes-panel, .history-panel { padding: 1rem; }
     .table-wrap { overflow: visible; }
-    table, thead, tbody, tr, th, td { display: block; width: 100% !important; }
-    thead { position: absolute; width: 1px !important; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-    tbody { display: grid; gap: 0.65rem; }
-    tbody tr { padding: 0.7rem 0.8rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-sm); }
-    tbody td { display: grid; grid-template-columns: minmax(6rem, 42%) minmax(0, 1fr); gap: 0.5rem; padding: 0.25rem 0; border: 0; text-align: right !important; }
-    tbody td::before { content: attr(data-label); color: var(--mdt-text-faint); font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-micro); letter-spacing: 0.05em; text-transform: uppercase; text-align: left; }
-    tbody td:first-child { display: none; }
-    tbody td:nth-child(2) { text-align: right !important; }
+    .tools-table, .tools-table thead, .tools-table tbody, .tools-table tr, .tools-table th, .tools-table td { display: block; width: 100% !important; }
+    .tools-table thead { position: absolute; width: 1px !important; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .tools-table tbody { display: grid; gap: 0.65rem; }
+    .tools-table .tool-row { padding: 0.7rem 0.8rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-sm) var(--mdt-radius-sm) 0 0; }
+    .tools-table .tool-row td { display: grid; grid-template-columns: minmax(6rem, 42%) minmax(0, 1fr); gap: 0.5rem; padding: 0.25rem 0; border: 0; text-align: right !important; }
+    .tools-table .tool-row td::before { content: attr(data-label); color: var(--mdt-text-faint); font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-micro); letter-spacing: 0.05em; text-transform: uppercase; text-align: left; }
+    .tools-table .tool-row td:first-child { display: none; }
+    .tools-table .tool-detail { margin-top: -0.65rem; }
+    .tools-table .tool-detail td { border: 1px solid var(--mdt-border-soft); border-top: 0; border-radius: 0 0 var(--mdt-radius-sm) var(--mdt-radius-sm); }
   }
-
+  @media (max-width: 430px) {
+    .vote-grid { grid-template-columns: minmax(0, 1fr); }
+    .distribution-row { grid-template-columns: minmax(6.5rem, 1fr) minmax(2.5rem, 0.8fr) auto; }
+  }
   @media (max-width: 390px) {
     .admin-bar-inner { gap: 0.4rem; }
     .admin-actions { gap: 0.35rem; }

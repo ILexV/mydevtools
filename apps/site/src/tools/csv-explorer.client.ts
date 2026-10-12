@@ -1,4 +1,4 @@
-import { startToolOperation } from "@/scripts/analytics/instrumentation";
+import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
 import { formatBytes, formatMs, formatString, progressPercent } from "@/lib/format";
 import { createExplorerTable, type ExplorerColumn, type ExplorerTable } from "@/scripts/explorer-table";
 import { bindDropzone, setDropzoneHasFile, syncEmptyState } from "@/scripts/tool-ui";
@@ -126,6 +126,7 @@ function init(): void {
   let generation = 0;
   let inspectGeneration = 0;
   let busy = false;
+  let activeOperation: ToolOperation | null = null;
 
   const numberFormat = new Intl.NumberFormat(strings.Lang);
 
@@ -355,6 +356,7 @@ function init(): void {
   function resetSession(readyMessage = strings.StatusReady): void {
     generation++;
     activeAbort?.abort();
+    activeOperation = null;
     activeAbort = null;
     api.terminate();
     api = createCsvExplorerWorker();
@@ -368,6 +370,7 @@ function init(): void {
 
   function invalidateResult(error: unknown): void {
     generation++;
+    activeOperation = null;
     activeAbort = null;
     api.terminate();
     api = createCsvExplorerWorker();
@@ -389,6 +392,7 @@ function init(): void {
     const controller = new AbortController();
     activeAbort = controller;
     const operation = explicit && file.size > 0 ? startToolOperation("csv-explorer") : null;
+    activeOperation = operation;
     try {
       const result = await api.open(file, {
         delimiter: delimiter.value as CsvDelimiterOption,
@@ -415,6 +419,7 @@ function init(): void {
       setBusy(false);
       showStatus(strings.StatusDone);
       operation?.complete();
+      if (activeOperation === operation) activeOperation = null;
     } catch (error) {
       if (token !== generation) return;
       activeAbort = null;
@@ -424,7 +429,13 @@ function init(): void {
       } else {
         invalidateResult(file.size === 0 ? { code: "empty" } : error);
         if (file.size === 0 && errorBox) errorBox.textContent = strings.ErrorEmpty;
-        operation?.fail();
+        const code = errorCode(error);
+        operation?.fail(
+          code === "worker-failed" ? "wasm_unavailable"
+            : code === "invalid-encoding" ? "unsupported_format"
+              : code === "unknown" ? "processing_error" : "invalid_input",
+        );
+        if (activeOperation === operation) activeOperation = null;
       }
     }
   }
@@ -513,6 +524,7 @@ function init(): void {
   clearButton.addEventListener("click", () => resetSession());
   cancelButton?.addEventListener("click", () => {
     if (!busy) return;
+    activeOperation?.cancel();
     activeAbort?.abort();
   });
   for (const control of [delimiter, encoding, header]) {

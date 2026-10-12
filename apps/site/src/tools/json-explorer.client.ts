@@ -1,4 +1,4 @@
-import { startToolOperation } from "@/scripts/analytics/instrumentation";
+import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
 import { createExplorerTable, type ExplorerColumn } from "@/scripts/explorer-table";
 import { bindDropzone, setDropzoneHasFile, syncEmptyState } from "@/scripts/tool-ui";
 import { JSON_EXPLORER_LIMITS, type JsonExplorerDiagnostic, type JsonViewFilter, type TreeChild } from "@/tools/json-explorer-core";
@@ -112,6 +112,7 @@ function init(): void {
   const treeLoads = new WeakSet<HTMLUListElement>();
   let ready = false;
   let busy = false;
+  let activeOperation: ToolOperation | null = null;
   let sourceRows = 0;
   let viewRows = 0;
   let openedFormat: "json" | "jsonl" | null = null;
@@ -285,6 +286,7 @@ function init(): void {
     const operation = file.size > 0 && !(format.value === "json" && file.size > Number(ordinaryLimit.value))
       ? startToolOperation("json-explorer")
       : null;
+    if (operation) activeOperation = operation;
     try {
       const result = await worker.open({
         file,
@@ -298,11 +300,13 @@ function init(): void {
       updateResult(result);
       showStatus(formatTemplate(strings.statusDone, { rows: new Intl.NumberFormat().format(result.sourceRows) }));
       operation?.complete();
+      if (activeOperation === operation) activeOperation = null;
     } catch (error) {
       if (runGeneration !== generation) return;
       showError(error);
       invalidateSession();
-      operation?.fail();
+      operation?.fail(error instanceof JsonExplorerClientError ? "invalid_input" : "processing_error");
+      if (activeOperation === operation) activeOperation = null;
     } finally {
       if (runGeneration === generation) {
         hideProgress();
@@ -508,7 +512,10 @@ function init(): void {
 
   bindDropzone(drop, fileInput, chooseFile);
   processButton.addEventListener("click", () => void openFile());
-  cancelButton?.addEventListener("click", () => invalidateSession(strings.statusCanceled));
+  cancelButton?.addEventListener("click", () => {
+    activeOperation?.cancel();
+    invalidateSession(strings.statusCanceled);
+  });
   clearButton?.addEventListener("click", () => {
     invalidateSession();
     file = null;

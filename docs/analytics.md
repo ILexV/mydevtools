@@ -6,7 +6,7 @@ Anonymous counters were deployed to Cloudflare and GitHub Pages on 2026-10-09. T
 
 The private dashboard was published on 2026-10-12 behind owner-only Cloudflare Access, with the reporting secret and application audience configured in the production Worker. Genuine owner one-time-PIN login, all three report periods, private no-store/cache exclusions and provider logout were verified on the live site. Anonymous/forged report reads are redirected to Access, while public tool computation and dataset writes remain operational.
 
-The expanded analytics implementation adds all-41-tool coverage, comparisons, bounded error/duration dimensions, anonymous proposal votes and monthly KV history. The new Worker/site release is not yet published. Production and staging KV namespaces have been created; the production cron becomes active only when the updated Worker is deployed.
+The expanded analytics release was published on 2026-10-13: all-41-tool coverage, comparisons, bounded error/duration dimensions, anonymous proposal votes and monthly KV history. Production and staging use separate private KV namespaces; the production cron is active at 00:15 UTC daily. Public production ingestion/persistence and owner-only access boundaries are verified. A fresh owner login and first protected archive bootstrap are still pending; see the rollout record below.
 
 ## Architecture and contract
 
@@ -299,6 +299,17 @@ The enabled full gate passed: Worker type checking and 20 Worker tests; Astro ch
 - The dashboard rendered actual staging SQL/KV data for 7/30/90 days. Manual archive refresh and a native local scheduled invocation wrote/read three real monthly snapshots in the isolated staging namespace. Final observed staging totals were 17 started, nine completed, two failed, two cancelled and one vote, including pre-existing baseline counters—not production traffic.
 - All ten localized voting surfaces and dashboards were checked at 375 px; private light/dark themes had no horizontal overflow. Actual language switching, private no-store responses and older-year empty-history reads worked. Calendar rollover, midnight-exclusive windows, prior-period-only sampling and retired catalog/proposal preservation have behavioral regressions.
 - Reporting authentication used official **local Access simulation**, not a new production login. Production Worker/Pages, source push and owner-controlled WAF rules were not changed by this feature verification; both namespaces were prepared. Review vote rate-limit coverage and publish the Worker/site together using the release order above.
+
+### Expanded analytics production rollout — 2026-10-13
+
+- The owner confirmed the WAF rule was updated for both exact public endpoint paths before publication. The available credentials still cannot read WAF/cache rules; this is owner confirmation, not an independent rule audit. DNS, TLS and cache configuration were not changed.
+- Production Worker version `7a8573cd-9787-4fa3-94b2-c70b2f8fd5d7` was deployed before Pages, with the sole `mydevtools.app/api/analytics/*` route, production `ANALYTICS_HISTORY`, the existing `ANALYTICS_READ_TOKEN` secret and cron `15 0 * * *`. Deployed settings confirmed no tail consumers, `logpush: false`, and disabled workers.dev/preview URLs.
+- Source commit `951d7d75` is pushed to `main`; analytics-enabled Pages commit `d5db769` publishes 973 files. The live service worker is `64fd3b20`. IndexNow accepted all 420 changed public URLs with HTTP 200.
+- Real browser use proved one settled word-counter pair, one bounded malformed-JSON failure, one explicit multi-algorithm hash cancellation, and one acknowledged proposal vote. Observed counter/failure/cancellation requests returned 204 and contained no input, cookie or referrer; the vote was acknowledged and persisted. Actual file hashing produced the canonical SHA-256 of `abc`; a 96×64 PNG of 21,345 bytes compressed to a real 96×64 JPEG of 9,208 bytes.
+- Private production SQL readback proved every expected unsampled increment: six started, four completed, one invalid-input failure, one explicit cancellation and one vote—13 calibration points, not real-user traffic. Successful duration buckets were preserved. A short SHA-only large-file run completed before the first cancellation attempt; a subsequent sustained multi-algorithm run exercised Cancel successfully.
+- All ten public localized voting surfaces rendered six choices at 375 px without horizontal overflow. Actual English-to-Russian tool language switching, localized command-palette results and settled light/dark mobile themes worked. The home description remains present without meta refresh; manifest, sitemap, offline page and service worker returned 200.
+- Anonymous POSTs to summary/history/archive were blocked by Access redirects. The deployed history namespace currently has no keys: the first protected bootstrap/readback and updated private-dashboard owner smoke await a fresh one-time PIN. Cron configuration is verified; its first production scheduled invocation has not yet been observed. The existing owner email policy was not bypassed or relaxed.
+
 
 
 ## Private SQL reports

@@ -1,6 +1,6 @@
 /**
  * Word Counter client. Recomputes stats on every input (rules in
- * `word-stats.ts`). Pure JS, no network. Paste/copy go through the Clipboard
+ * `word-stats.ts`). Text stays in the browser. Paste/copy use the Clipboard
  * API; failures surface a localized error instead of failing silently.
  * Empty textarea shows a hint + "Load example" (localized sample text, on click only).
  */

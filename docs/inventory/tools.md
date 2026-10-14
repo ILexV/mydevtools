@@ -108,11 +108,12 @@
 
 ## Astro catalog additions (2026-10-08)
 
-The Stage 1 table above records the legacy 39-tool baseline. The current Astro registry has **41 tools: 25 WASM-backed and 16 TypeScript-only**, in the same 13 categories. Both additions belong to `structured-data`, run locally in dedicated workers, and have UI/error/SEO strings in all 10 locales.
+The Stage 1 table above records the legacy 39-tool baseline. The current Astro registry has **42 tools: 24 WASM-backed and 18 TypeScript-only**, in the same 13 categories. The three additions belong to `structured-data`, run locally in dedicated workers, and have UI/error/SEO strings in all 10 locales.
 
 | Slug | Input and execution | View and export | Explicit boundaries |
 |---|---|---|---|
 | `json-explorer` | Chunked UTF-8 JSONL; lossless ordinary JSON with a user-selected size/depth limit. Numeric spelling is preserved. | Virtualized records, lazy JSON tree, key/value search, JSON Pointer filters and field projection; full filtered JSONL/CSV export. | Ordinary JSON: 8/16/32/64 MiB; JSONL record: 1–8 MiB; depth ≤256; automatic fields: first 10,000 records, ≤100 pointers; export ≤256 MiB. Explicit field selection can project fields outside the automatic sample. |
 | `csv-explorer` | Chunked CSV/TSV; automatic or explicit comma/semicolon/tab/pipe delimiter; UTF-8, UTF-16 and selected legacy encodings. | Virtualized table, exact numeric comparisons, selected columns, full filtered CSV/JSONL export. | Field ≤2 MiB, record ≤8 MiB, ≤512 columns, ≤100,000,000 records, export ≤512 MiB. Sorting, grouping/aggregates, type conversion and Parquet are not implemented. |
+| `parquet-explorer` | Local `.parquet` via hyparquet. Footer, schema and row-group stats are read without decoding every page. Extra codecs (gzip, Brotli, Zstd, LZ4, LZ4_RAW) come from hyparquet-compressors; Snappy is built in. | Virtualized selected columns, schema and row-group tables, cell inspector, CSV/JSONL export of the selected columns. | ≤512 columns, cell ≤1 MiB, export ≤512 MiB. LZO is unsupported. No SQL, filters, aggregates, sorting or Parquet writing. INT64 keeps its decimal spelling; JSONL stores bigint and byte values as strings. |
 
-Both tables cap the physical scroll track at 8,000,000 px and retain a bounded visible window rather than one DOM node per input row. Cancellation terminates the worker and releases its file/index state; a new import creates a fresh worker.
+These tables cap the physical scroll track at 8,000,000 px and retain a bounded visible window rather than one DOM node per input row. Cancellation terminates the worker and releases its file/index state; a new import creates a fresh worker.

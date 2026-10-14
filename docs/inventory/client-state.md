@@ -61,4 +61,4 @@ The inventory above describes the legacy baseline. `json-explorer` persists only
 | `mdt.tools.json-explorer.record-limit.v1` | JSONL record size limit |
 | `mdt.tools.json-explorer.depth-limit.v1` | JSON depth limit |
 
-Files, record contents, search/filter values, discovered schema and projected fields are **not persisted**. `csv-explorer` settings and data are session-only; importing either format does not write its contents to browser storage.
+Files, record contents, search/filter values, discovered schema and projected fields are **not persisted**. `csv-explorer` settings and data are session-only; importing either format does not write its contents to browser storage. `parquet-explorer` persists nothing: the open file, column selection and export options live only for the page session.

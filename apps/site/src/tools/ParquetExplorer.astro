@@ -1,0 +1,155 @@
+---
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import FileDrop from "@/components/tool/FileDrop.astro";
+import Icon from "@/components/Icon.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import Progress from "@/components/tool/Progress.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import "@/styles/explorer-ui.css";
+
+interface Props { lang: LocaleCode }
+const { lang } = Astro.props as Props;
+const ns = "tools/parquet-explorer";
+const clientKeys = [
+  "DropChange", "ProgressBytes", "ProgressRows", "StatusOpening", "StatusExporting", "StatusReady",
+  "StatusDone", "StatusCanceled", "SummaryPattern", "CreatedBy", "DuplicateColumns", "RowGroupsTruncated",
+  "MetadataTruncated", "CodecUncompressed", "NoColumns", "TableEmpty", "TableLoading", "RowLabel",
+  "InspectorEmpty", "InspectorRow", "InspectorTruncated", "RawWarning", "ErrorEmpty", "ErrorInvalid",
+  "ErrorTooManyColumns", "ErrorExportTooLarge", "ErrorCellTooLarge", "ErrorCodec", "ErrorWorker",
+  "ErrorSession", "ErrorGeneric", "SchemaName", "SchemaType", "SchemaRepetition", "SchemaCompression",
+  "GroupIndex", "GroupRows", "GroupBytes", "GroupCompressed", "GroupCodecs",
+] as const;
+const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
+const stringsJson = JSON.stringify({ ...strings, Lang: lang });
+---
+
+<div class="ds-workbench pq-workbench" data-parquet-tool>
+  <ToolPanel title={t(lang, ns, "DropTitle")}>
+    <FileDrop
+      title={t(lang, ns, "DropTitle")}
+      buttonLabel={t(lang, ns, "DropButton")}
+      changeLabel={t(lang, ns, "DropChange")}
+      sub={t(lang, ns, "DropHint")}
+      accept=".parquet,application/vnd.apache.parquet"
+      data-parquet-dropzone
+      inputProps={{ "data-parquet-file": true }}
+    />
+    <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn" data-parquet-clear>{t(lang, ns, "Clear")}</button>
+    </div>
+    <Progress
+      title={t(lang, ns, "ProgressTitle")}
+      barLabel={t(lang, ns, "ProgressTitle")}
+      cancelLabel={t(lang, ns, "Cancel")}
+      data-parquet-progress
+      cancelProps={{ "data-parquet-cancel": true }}
+      barProps={{ "data-parquet-progress-bar": true }}
+      fillProps={{ "data-parquet-progress-fill": true }}
+      labelProps={{ "data-parquet-progress-label": true }}
+    />
+    <StatusMessage kind="info" data-parquet-status />
+    <StatusMessage kind="error" data-parquet-error />
+  </ToolPanel>
+
+  <OutputPanel panel label={t(lang, ns, "ResultsTitle")} emptyHint={t(lang, ns, "ResultsEmpty")} data-parquet-output>
+    <div class="ds-when-filled pq-results" data-parquet-loaded hidden>
+      <p class="pq-summary" data-parquet-summary></p>
+      <p class="ds-hint" data-parquet-created-by hidden></p>
+      <p class="ds-hint" data-parquet-duplicates hidden></p>
+
+      <section class="pq-section" aria-labelledby="pq-schema-title">
+        <h3 class="ds-label" id="pq-schema-title">{t(lang, ns, "SchemaTitle")}</h3>
+        <div class="pq-meta-host" data-parquet-schema></div>
+      </section>
+
+      <section class="pq-section" aria-labelledby="pq-groups-title">
+        <h3 class="ds-label" id="pq-groups-title">{t(lang, ns, "RowGroupsTitle")}</h3>
+        <div class="pq-meta-host" data-parquet-groups></div>
+        <p class="ds-hint" data-parquet-groups-note hidden></p>
+      </section>
+
+      <section class="pq-section" aria-labelledby="pq-metadata-title">
+        <h3 class="ds-label" id="pq-metadata-title">{t(lang, ns, "MetadataTitle")}</h3>
+        <dl class="pq-metadata" data-parquet-metadata hidden></dl>
+        <p class="ds-hint" data-parquet-metadata-note hidden>{t(lang, ns, "MetadataTruncated")}</p>
+      </section>
+
+      <section class="pq-section" aria-labelledby="pq-columns-title">
+        <div class="pq-section-head">
+          <h3 class="ds-label" id="pq-columns-title">{t(lang, ns, "VisibleColumns")}</h3>
+          <span class="pq-quiet-actions">
+            <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-parquet-columns-all>{t(lang, ns, "SelectAll")}</button>
+            <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-parquet-columns-none>{t(lang, ns, "SelectNone")}</button>
+          </span>
+        </div>
+        <div class="pq-column-list" data-parquet-columns></div>
+      </section>
+
+      <div data-parquet-table></div>
+
+      <section class="pq-section" aria-labelledby="pq-inspector-title">
+        <h3 class="ds-label" id="pq-inspector-title">{t(lang, ns, "InspectorTitle")}</h3>
+        <p class="ds-hint" data-parquet-inspector-empty>{t(lang, ns, "InspectorEmpty")}</p>
+        <p class="pq-summary" data-parquet-inspector-row hidden></p>
+        <dl class="pq-inspector" data-parquet-inspector hidden></dl>
+        <p class="ds-hint" data-parquet-inspector-note hidden>{t(lang, ns, "InspectorTruncated")}</p>
+      </section>
+
+      <section class="pq-section" aria-labelledby="pq-export-title">
+        <h3 class="ds-label" id="pq-export-title">{t(lang, ns, "ExportTitle")}</h3>
+        <div class="ds-settings">
+          <Field label={t(lang, ns, "ExportFormat")} for="pq-export-format">
+            <select id="pq-export-format" class="ds-field-select" data-parquet-export-format>
+              <option value="csv">CSV</option>
+              <option value="jsonl">JSONL</option>
+            </select>
+          </Field>
+          <div class="ds-settings-checks">
+            <label class="ds-check-row"><input class="ds-check" type="checkbox" data-parquet-export-header checked /><span>{t(lang, ns, "IncludeHeader")}</span></label>
+            <label class="ds-check-row"><input class="ds-check" type="checkbox" data-parquet-export-protect checked /><span>{t(lang, ns, "ProtectFormulas")}</span></label>
+            <label class="ds-check-row"><input class="ds-check" type="checkbox" data-parquet-export-bom checked /><span>{t(lang, ns, "Utf8Bom")}</span></label>
+          </div>
+        </div>
+        <p class="ds-hint">{t(lang, ns, "ProtectHint")}</p>
+        <p class="ds-hint pq-warning" data-parquet-raw-warning hidden>{t(lang, ns, "RawWarning")}</p>
+        <p class="ds-hint">{t(lang, ns, "ExportMemory")}</p>
+        <p class="ds-hint">{t(lang, ns, "LimitNote")}</p>
+        <div class="ds-action-row">
+          <button type="button" class="ds-btn ds-btn-primary" data-parquet-download><Icon name="download" size={16} />{t(lang, ns, "Download")}</button>
+        </div>
+      </section>
+    </div>
+  </OutputPanel>
+</div>
+
+<script is:inline type="application/json" data-parquet-strings set:html={stringsJson} />
+<script>import "@/tools/parquet-explorer.client.ts";</script>
+
+<style>
+  .pq-workbench { align-items: start; }
+  .pq-section { display: grid; gap: 0.65rem; min-width: 0; }
+  .pq-section + .pq-section { padding-top: 0.9rem; border-top: 1px solid var(--mdt-border-soft); }
+  .pq-results { display: grid; gap: 1rem; min-width: 0; }
+  .pq-summary { margin: 0; font-size: var(--mdt-fs-label); color: var(--mdt-text-muted); font-variant-numeric: tabular-nums; }
+  .pq-section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+  .pq-quiet-actions { display: inline-flex; gap: 0.75rem; }
+  .pq-column-list { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; max-height: 9rem; overflow: auto; padding: 0.35rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-xs); }
+  .pq-meta-host { overflow: auto; max-height: 16rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-xs); }
+  .pq-meta-host :global(table) { width: 100%; border-collapse: collapse; font-size: var(--mdt-fs-label); }
+  .pq-meta-host :global(th),
+  .pq-meta-host :global(td) { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--mdt-border-soft); text-align: left; white-space: nowrap; }
+  .pq-meta-host :global(th) { position: sticky; top: 0; background: var(--mdt-surface-inset); color: var(--mdt-text-muted); font-weight: 600; }
+  .pq-metadata, .pq-inspector { display: grid; grid-template-columns: minmax(8rem, 0.35fr) minmax(0, 1fr); gap: 0; margin: 0; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-xs); overflow: auto; max-height: 16rem; }
+  .pq-metadata :global(dt), .pq-metadata :global(dd),
+  .pq-inspector :global(dt), .pq-inspector :global(dd) { margin: 0; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--mdt-border-soft); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .pq-metadata :global(dt), .pq-inspector :global(dt) { color: var(--mdt-text-muted); background: var(--mdt-surface-inset); }
+  .pq-inspector :global(dd) { font-family: var(--mdt-font-mono); }
+  .pq-warning { color: var(--mdt-danger); }
+  @media (max-width: 42rem) {
+    .pq-metadata, .pq-inspector { grid-template-columns: minmax(6rem, 0.4fr) minmax(0, 1fr); }
+  }
+</style>

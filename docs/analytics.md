@@ -51,7 +51,7 @@ Private dashboard authentication is separate from visitor analytics: Cloudflare 
 
 ## Tool coverage matrix
 
-All **41 tools** support started/completed/failed for the useful-use action listed below. The seven live tools retain their existing automatic UX: no artificial Run button and no request per keystroke. Explicit cancellation is counted where the tool already has a Cancel/Stop action. Success means actual output/status is committed; failed means launched processing failed, not a rejected preflight.
+All **42 tools** support started/completed/failed for the useful-use action listed below. The seven live tools retain their existing automatic UX: no artificial Run button and no request per keystroke. Explicit cancellation is counted where the tool already has a Cancel/Stop action. Success means actual output/status is committed; failed means launched processing failed, not a rejected preflight.
 
 | Tool ID | Useful-use action | S/C/F | Success / processing failure | Preflight and exclusions |
 | --- | --- | --- | --- | --- |
@@ -65,6 +65,7 @@ All **41 tools** support started/completed/failed for the useful-use action list
 | `json-to-typescript` | Convert; Ctrl/Cmd-Enter | yes | Generated types committed / malformed nonempty JSON | Empty excluded; debounced input/name/options conversion excluded |
 | `json-explorer` | File pick/drop; Process | yes | Worker session/table committed / malformed JSON/JSONL or open error | Missing/empty/oversized forced-JSON preflight excluded; explicit Cancel is separate; stale/filter/read/export excluded |
 | `csv-explorer` | File pick/drop | yes | Parsed session/summary/table committed / parse/open error | Empty file excluded; delimiter/encoding/header reparses, filter/read/export excluded |
+| `parquet-explorer` | File pick/drop | yes | Session, schema and table committed / open error | Empty file excluded; explicit Cancel is separate; column reads and CSV/JSONL export excluded |
 | `xml-beautifier` | Format; Ctrl/Cmd-Enter | yes | Formatted editor committed / malformed nonempty XML | Empty input excluded; settings auto-format and file load excluded |
 | `yaml-beautifier-validator` | Format / Validate; Ctrl/Cmd-Enter | yes | Output/status committed / YAML or WASM error | Empty excluded; changed in-flight input has no terminal |
 | `cron-generator` | Generate; Enter in fields | yes | Description/capsules/timeline committed / post-validation processing/render exception | `parseCron` validation before start; init/date-format changes excluded |
@@ -348,7 +349,7 @@ FROM mydevtools_tool_usage
 WHERE timestamp >= NOW() - INTERVAL '7' DAY AND blob2 = 'tool_completed'
 GROUP BY blob1
 ORDER BY completed_operations DESC
-LIMIT 41
+LIMIT 42
 ```
 
 ### Top successfully completed tools: 30 days
@@ -360,7 +361,7 @@ FROM mydevtools_tool_usage
 WHERE timestamp >= NOW() - INTERVAL '30' DAY AND blob2 = 'tool_completed'
 GROUP BY blob1
 ORDER BY completed_operations DESC
-LIMIT 41
+LIMIT 42
 ```
 
 ### Top successfully completed tools: 90 days, within retention
@@ -372,7 +373,7 @@ FROM mydevtools_tool_usage
 WHERE timestamp >= NOW() - INTERVAL '90' DAY AND blob2 = 'tool_completed'
 GROUP BY blob1
 ORDER BY completed_operations DESC
-LIMIT 41
+LIMIT 42
 ```
 
 ### Started/completed/failed/cancelled by tool: 30 days
@@ -412,7 +413,7 @@ FROM mydevtools_tool_usage
 WHERE timestamp >= NOW() - INTERVAL '30' DAY AND blob2 = 'tool_failed'
 GROUP BY blob1
 ORDER BY failed_operations DESC
-LIMIT 41
+LIMIT 42
 ```
 
 ## Rollback

@@ -26,9 +26,13 @@ const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key
 const stringsJson = JSON.stringify({ ...strings, Lang: lang });
 ---
 
-<div class="ds-workbench pq-workbench" data-parquet-tool>
+<div class="ds-workbench ds-workbench-single pq-workbench" data-parquet-tool>
   <ToolPanel title={t(lang, ns, "DropTitle")}>
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small" data-parquet-clear>{t(lang, ns, "Clear")}</button>
+    </Fragment>
     <FileDrop
+      compact
       title={t(lang, ns, "DropTitle")}
       buttonLabel={t(lang, ns, "DropButton")}
       changeLabel={t(lang, ns, "DropChange")}
@@ -38,9 +42,6 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang });
       inputProps={{ "data-parquet-file": true }}
     />
     <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
-    <div class="ds-action-row">
-      <button type="button" class="ds-btn" data-parquet-clear>{t(lang, ns, "Clear")}</button>
-    </div>
     <Progress
       title={t(lang, ns, "ProgressTitle")}
       barLabel={t(lang, ns, "ProgressTitle")}
@@ -61,35 +62,33 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang });
       <p class="ds-hint" data-parquet-created-by hidden></p>
       <p class="ds-hint" data-parquet-duplicates hidden></p>
 
-      <section class="pq-section" aria-labelledby="pq-schema-title">
-        <h3 class="ds-label" id="pq-schema-title">{t(lang, ns, "SchemaTitle")}</h3>
-        <div class="pq-meta-host" data-parquet-schema></div>
-      </section>
+      <div data-parquet-table></div>
 
-      <section class="pq-section" aria-labelledby="pq-groups-title">
-        <h3 class="ds-label" id="pq-groups-title">{t(lang, ns, "RowGroupsTitle")}</h3>
+      <details class="ds-explorer-fold">
+        <summary class="ds-label" id="pq-schema-title">{t(lang, ns, "SchemaTitle")}</summary>
+        <div class="pq-meta-host" data-parquet-schema></div>
+      </details>
+
+      <details class="ds-explorer-fold">
+        <summary class="ds-label" id="pq-groups-title">{t(lang, ns, "RowGroupsTitle")}</summary>
         <div class="pq-meta-host" data-parquet-groups></div>
         <p class="ds-hint" data-parquet-groups-note hidden></p>
-      </section>
+      </details>
 
-      <section class="pq-section" aria-labelledby="pq-metadata-title">
-        <h3 class="ds-label" id="pq-metadata-title">{t(lang, ns, "MetadataTitle")}</h3>
+      <details class="ds-explorer-fold">
+        <summary class="ds-label" id="pq-metadata-title">{t(lang, ns, "MetadataTitle")}</summary>
         <dl class="pq-metadata" data-parquet-metadata hidden></dl>
         <p class="ds-hint" data-parquet-metadata-note hidden>{t(lang, ns, "MetadataTruncated")}</p>
-      </section>
+      </details>
 
-      <section class="pq-section" aria-labelledby="pq-columns-title">
-        <div class="pq-section-head">
-          <h3 class="ds-label" id="pq-columns-title">{t(lang, ns, "VisibleColumns")}</h3>
-          <span class="pq-quiet-actions">
-            <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-parquet-columns-all>{t(lang, ns, "SelectAll")}</button>
-            <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-parquet-columns-none>{t(lang, ns, "SelectNone")}</button>
-          </span>
+      <details class="ds-explorer-fold">
+        <summary class="ds-label" id="pq-columns-title">{t(lang, ns, "VisibleColumns")}</summary>
+        <div class="pq-quiet-actions">
+          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-parquet-columns-all>{t(lang, ns, "SelectAll")}</button>
+          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-parquet-columns-none>{t(lang, ns, "SelectNone")}</button>
         </div>
         <div class="pq-column-list" data-parquet-columns></div>
-      </section>
-
-      <div data-parquet-table></div>
+      </details>
 
       <section class="pq-section" aria-labelledby="pq-inspector-title">
         <h3 class="ds-label" id="pq-inspector-title">{t(lang, ns, "InspectorTitle")}</h3>

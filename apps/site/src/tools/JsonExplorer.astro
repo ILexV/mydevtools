@@ -36,9 +36,10 @@ const s = {
 const stringsJson = JSON.stringify(s);
 ---
 
-<div class="ds-workbench json-explorer" data-json-explorer>
+<div class="ds-workbench ds-workbench-single json-explorer" data-json-explorer>
   <ToolPanel title={s.inputTitle}>
     <FileDrop
+      compact
       title={s.dropTitle}
       buttonLabel={s.chooseFile}
       changeLabel={s.changeFile}
@@ -87,7 +88,7 @@ const stringsJson = JSON.stringify(s);
   <OutputPanel panel label={s.resultsTitle} emptyHint={s.emptyResults} data-json-explorer-output>
     <div class="ds-when-filled json-result-stack">
       <p class="json-stats" data-json-explorer-stats></p>
-      <details class="json-filter-card" open>
+      <details class="json-filter-card">
         <summary>{s.filtersTitle}</summary>
         <div class="json-filter-grid">
           <Field label={s.searchLabel} for="json-explorer-search">

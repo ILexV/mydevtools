@@ -329,17 +329,23 @@ function init(): void {
         showError(error);
       },
     });
-    // Shared table gives every column the same min. A dump row is fixed-width
-    // glyphs: 10 hex digits of offset, 48 columns of grouped hex, 16 of ASCII
-    // and 16 of UTF-8, plus the cell padding. Tracks grow across the full
-    // panel. The row is at least that glyph width, so a narrow window scrolls
-    // inside the table instead of clipping the hex.
+    // Shared columns min at 10rem, so a dump would scroll inside the panel.
+    // Glyphs are fixed: offset (at least 8 hex digits), 48 of grouped hex,
+    // 16 of ASCII, 16 of UTF-8. The row-number track grows with the last
+    // index. Hex cells pad 0.4rem a side, tighter than the shared 0.75rem,
+    // otherwise a 6-digit index brings the horizontal scrollbar back.
+    const rows = hexRowCount(opened.file.size);
+    const digits = Math.max(2, String(Math.max(1, rows)).length);
+    const offsetCh = opened.width;
+    const glyphCh = offsetCh + 48 + 16 + 16;
+    const rowTrack = `calc(${digits}ch + 1rem)`;
     tableHost.style.setProperty(
       "--ds-explorer-template",
-      "3.25rem minmax(calc(10ch + 0.8rem), 0.5fr) minmax(calc(48ch + 0.8rem), 2.6fr) minmax(calc(16ch + 0.8rem), 1fr) minmax(calc(16ch + 0.8rem), 1.1fr)",
+      `var(--ds-explorer-row-track) minmax(calc(${offsetCh}ch + 0.8rem), 0.5fr) minmax(calc(48ch + 0.8rem), 2.6fr) minmax(calc(16ch + 0.8rem), 1fr) minmax(calc(16ch + 0.8rem), 1.1fr)`,
     );
-    tableHost.style.setProperty("--ds-explorer-width", "max(100%, calc(6.45rem + 90ch))");
-    table.setRowCount(hexRowCount(opened.file.size));
+    tableHost.style.setProperty("--ds-explorer-width", `max(100%, calc(var(--ds-explorer-row-track) + 3.2rem + ${glyphCh}ch))`);
+    table.setRowCount(rows);
+    tableHost.style.setProperty("--ds-explorer-row-track", rowTrack);
   }
 
   function jumpToOffset(offset: number): void {

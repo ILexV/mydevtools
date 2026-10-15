@@ -25,9 +25,13 @@ const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key
 const stringsJson = JSON.stringify({ ...strings, Lang: lang });
 ---
 
-<div class="ds-workbench csv-workbench" data-csv-tool>
+<div class="ds-workbench ds-workbench-single csv-workbench" data-csv-tool>
   <ToolPanel title={t(lang, ns, "DropTitle")}>
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small" data-csv-clear>{t(lang, ns, "Clear")}</button>
+    </Fragment>
     <FileDrop
+      compact
       title={t(lang, ns, "DropTitle")}
       buttonLabel={t(lang, ns, "DropButton")}
       changeLabel={t(lang, ns, "DropChange")}
@@ -66,9 +70,6 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang });
       </div>
     </section>
 
-    <div class="ds-action-row">
-      <button type="button" class="ds-btn" data-csv-clear>{t(lang, ns, "Clear")}</button>
-    </div>
     <Progress
       title={t(lang, ns, "ProgressTitle")}
       barLabel={t(lang, ns, "ProgressTitle")}
@@ -88,8 +89,8 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang });
       <p class="csv-summary" data-csv-summary aria-live="polite"></p>
       <p class="ds-hint" data-csv-header-warning hidden></p>
 
-      <section class="csv-section" aria-labelledby="csv-filter-title">
-        <h3 class="ds-label" id="csv-filter-title">{t(lang, ns, "FilterTitle")}</h3>
+      <details class="ds-explorer-fold">
+        <summary class="ds-label" id="csv-filter-title">{t(lang, ns, "FilterTitle")}</summary>
         <div class="ds-settings csv-filter-grid">
           <Field label={t(lang, ns, "FilterQueryLabel")} for="csv-filter-query">
             <input id="csv-filter-query" class="ds-field" type="search" autocomplete="off" data-csv-filter-query placeholder={t(lang, ns, "FilterPlaceholder")} />
@@ -117,18 +118,16 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang });
           <button type="button" class="ds-btn ds-btn-primary" data-csv-apply-filter>{t(lang, ns, "ApplyFilter")}</button>
           <button type="button" class="ds-btn" data-csv-clear-filter>{t(lang, ns, "ClearFilter")}</button>
         </div>
-      </section>
+      </details>
 
-      <section class="csv-section" aria-labelledby="csv-visible-title">
-        <div class="csv-section-head">
-          <h3 class="ds-label" id="csv-visible-title">{t(lang, ns, "VisibleColumns")}</h3>
-          <span class="csv-quiet-actions">
-            <button type="button" class="ds-btn-link" data-csv-columns-all>{t(lang, ns, "SelectAll")}</button>
-            <button type="button" class="ds-btn-link" data-csv-columns-none>{t(lang, ns, "SelectNone")}</button>
-          </span>
+      <details class="ds-explorer-fold">
+        <summary class="ds-label" id="csv-visible-title">{t(lang, ns, "VisibleColumns")}</summary>
+        <div class="csv-quiet-actions">
+          <button type="button" class="ds-btn-link" data-csv-columns-all>{t(lang, ns, "SelectAll")}</button>
+          <button type="button" class="ds-btn-link" data-csv-columns-none>{t(lang, ns, "SelectNone")}</button>
         </div>
         <div class="csv-column-list" data-csv-visible-columns></div>
-      </section>
+      </details>
 
       <div class="ds-explorer-table" data-csv-table></div>
 

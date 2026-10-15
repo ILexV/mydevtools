@@ -172,7 +172,7 @@ const stringsJson = JSON.stringify({
     </ToolPanel>
   </div>
 
-  <div class="ds-workbench rx-tables">
+  <div class="ds-workbench ds-workbench-single rx-tables">
     <ToolPanel title={savedTitle} empty data-rx-saved>
       <EmptyState hint={noSaved} />
       <div class="rx-table-wrap ds-when-filled">
@@ -464,7 +464,7 @@ const stringsJson = JSON.stringify({
   .rx-actions-col { width: 6rem; }
   .rx-table :global(.rx-cell-name) { font-weight: 600; overflow-wrap: break-word; min-width: 6.5rem; }
   .rx-table :global(.rx-cell-pattern) {
-    display: block; max-width: min(16rem, 32vw); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    display: block; max-width: 100%; overflow-wrap: anywhere; white-space: pre-wrap;
     font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-label);
     background: var(--mdt-surface-inset); border-radius: var(--mdt-radius-xs);
     padding: 0.2rem 0.35rem; color: var(--mdt-text-muted);

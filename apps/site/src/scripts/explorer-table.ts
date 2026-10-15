@@ -72,9 +72,16 @@ export function createExplorerTable(options: ExplorerTableOptions): ExplorerTabl
   loading.hidden = true;
   host.replaceChildren(headerClip, viewport, empty, loading);
 
+  /** Keep the row-number track wide enough for the last index, not a fixed 4.5rem. */
+  function syncRowTrack() {
+    const digits = Math.max(2, String(Math.max(1, rowCount)).length);
+    host.style.setProperty("--ds-explorer-row-track", `calc(${digits}ch + 1.7rem)`);
+  }
+
   function updateColumns() {
-    host.style.setProperty("--ds-explorer-template", `4.5rem repeat(${columns.length}, minmax(10rem, 1fr))`);
-    host.style.setProperty("--ds-explorer-width", `${72 + columns.length * 160}px`);
+    syncRowTrack();
+    host.style.setProperty("--ds-explorer-template", `var(--ds-explorer-row-track) repeat(${columns.length}, minmax(10rem, 1fr))`);
+    host.style.setProperty("--ds-explorer-width", `calc(var(--ds-explorer-row-track) + ${columns.length * 160}px)`);
     host.setAttribute("aria-colcount", String(columns.length + 1));
     const number = document.createElement("div");
     number.className = "ds-explorer-cell ds-explorer-row-number";
@@ -116,7 +123,9 @@ export function createExplorerTable(options: ExplorerTableOptions): ExplorerTabl
       row.setAttribute("aria-label", options.rowLabel(index));
       const number = document.createElement("div");
       number.className = "ds-explorer-cell ds-explorer-row-number";
-      number.textContent = String(index + 1);
+      const label = String(index + 1);
+      number.textContent = label;
+      number.title = label;
       number.setAttribute("role", "rowheader");
       row.append(number);
       for (let j = 0; j < columns.length; j++) {
@@ -181,8 +190,14 @@ export function createExplorerTable(options: ExplorerTableOptions): ExplorerTabl
     if (!frame && !destroyed) frame = requestAnimationFrame(requestWindow);
   }
 
+  /** Keep the # header pinned. Transforming the whole header disables sticky. */
+  function syncHeaderScroll() {
+    if (headerClip.scrollLeft !== viewport.scrollLeft) headerClip.scrollLeft = viewport.scrollLeft;
+    host.classList.toggle("is-scrolled-x", viewport.scrollLeft > 0);
+  }
+
   function onScroll() {
-    header.style.transform = `translateX(${-viewport.scrollLeft}px)`;
+    syncHeaderScroll();
     if (forcedAnchor !== undefined && Math.abs(viewport.scrollTop - forcedScrollTop) > 1) forcedAnchor = undefined;
     scheduleWindow();
   }
@@ -258,10 +273,12 @@ export function createExplorerTable(options: ExplorerTableOptions): ExplorerTabl
     },
     setRowCount(count: number) {
       rowCount = Math.max(0, Math.floor(count));
+      syncRowTrack();
       host.setAttribute("aria-rowcount", String(rowCount + 1));
       activeRow = Math.min(activeRow, Math.max(0, rowCount - 1));
       forcedAnchor = undefined;
       viewport.scrollTop = 0;
+      syncHeaderScroll();
       viewport.hidden = rowCount === 0;
       headerClip.hidden = rowCount === 0;
       empty.hidden = rowCount !== 0;

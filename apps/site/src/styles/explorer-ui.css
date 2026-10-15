@@ -6,11 +6,29 @@
     border: 1px solid var(--mdt-border);
     border-radius: var(--mdt-radius);
     background: var(--mdt-surface);
+    /* ch in --ds-explorer-row-track is resolved on this element. */
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-small);
   }
   .ds-explorer-header-clip {
     overflow: hidden;
     border-bottom: 1px solid var(--mdt-border);
     background: var(--mdt-surface-raised);
+  }
+  /* Closed by default so the table stays the first large block. */
+  .ds-explorer-fold {
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    padding: 0.7rem 0.85rem;
+    min-width: 0;
+  }
+  .ds-explorer-fold > summary {
+    cursor: pointer;
+    font-weight: 650;
+  }
+  .ds-explorer-fold[open] {
+    display: grid;
+    gap: 0.65rem;
   }
   .ds-explorer-header,
   .ds-explorer-row {
@@ -61,16 +79,34 @@
     font-family: var(--mdt-font-mono);
     font-size: var(--mdt-fs-small);
   }
+  /* Stays in view when the row is wider than the panel. The header clip
+     scrolls in step with the body; a transform on the header would unpin this. */
   .ds-explorer-row-number {
+    position: sticky;
+    left: 0;
+    z-index: 1;
     color: var(--mdt-text-faint);
     text-align: right;
     font-variant-numeric: tabular-nums;
+    background: var(--mdt-surface);
+  }
+  .ds-explorer-header .ds-explorer-row-number {
+    z-index: 2;
+    background: var(--mdt-surface-raised);
+  }
+  .ds-explorer-row:hover .ds-explorer-row-number,
+  .ds-explorer-row.is-selected .ds-explorer-row-number {
+    background: var(--mdt-surface-inset);
+  }
+  .ds-explorer-table.is-scrolled-x .ds-explorer-row-number {
+    box-shadow: 1px 0 0 var(--mdt-border);
   }
   .ds-explorer-empty {
     margin: 0;
     padding: 2rem 1rem;
     color: var(--mdt-text-muted);
     text-align: center;
+    font-family: var(--mdt-font-sans);
   }
   .ds-explorer-loading {
     position: absolute;
@@ -82,6 +118,7 @@
     border-radius: var(--mdt-radius);
     background: var(--mdt-surface-raised);
     color: var(--mdt-text-muted);
+    font-family: var(--mdt-font-sans);
     font-size: var(--mdt-fs-small);
     pointer-events: none;
   }

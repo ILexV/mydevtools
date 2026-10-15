@@ -30,7 +30,11 @@ export interface DeskPrefs {
   /** Same id shape as shortcuts. Shown on the taskbar even when closed. */
   pinned: string[];
   iconSize: "regular" | "large";
+  /** Comfortable is the roomy default. Compact packs icons and the shell chrome. */
+  density: "comfortable" | "compact";
   locked: boolean;
+  /** The shortcut-move hint stays hidden after the person dismisses it. */
+  hintDismissed: boolean;
 }
 
 export function defaultPrefs(categoryIds: readonly string[]): DeskPrefs {
@@ -43,7 +47,9 @@ export function defaultPrefs(categoryIds: readonly string[]): DeskPrefs {
     positions: {},
     pinned: [],
     iconSize: "regular",
+    density: "comfortable",
     locked: false,
+    hintDismissed: false,
   };
 }
 
@@ -117,7 +123,9 @@ export function parsePrefs(
     positions,
     pinned,
     iconSize: parsed.iconSize === "large" ? "large" : "regular",
+    density: parsed.density === "compact" ? "compact" : "comfortable",
     locked: parsed.locked === true,
+    hintDismissed: parsed.hintDismissed === true,
   };
 }
 

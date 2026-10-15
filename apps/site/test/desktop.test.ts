@@ -12,7 +12,7 @@ import {
 import { hasUserInput } from "../src/desktop/dirty.ts";
 import { defaultPrefs, parseLayout, parsePrefs, serializeLayout, serializePrefs } from "../src/desktop/persistence.ts";
 import { desktopReducer } from "../src/desktop/reducer.ts";
-import { arrangeShortcuts, moveShortcut, packedPositions } from "../src/desktop/shortcuts.ts";
+import { arrangeShortcuts, cellSize, moveShortcut, packedPositions } from "../src/desktop/shortcuts.ts";
 import { emptyDesk, type Bounds, type DeskWindow } from "../src/desktop/types.ts";
 import { fittedSize, wallpaperTooSmall } from "../src/desktop/wallpaper.ts";
 
@@ -232,7 +232,14 @@ test("preferences and layout drop unknown versions, slugs and duplicate ids", ()
   assert.deepEqual(prefs?.positions["tool:hash-calculator"], { column: 0, row: 2 });
   assert.equal(prefs?.positions["tool:missing"], undefined);
   assert.deepEqual(prefs?.pinned, []);
+  assert.equal(prefs?.density, "comfortable");
+  assert.equal(prefs?.hintDismissed, false);
   assert.equal(parsePrefs(JSON.stringify({ v: 1, shortcuts: [] }), slugs, categories)?.shortcuts.length, 0);
+  const compact = parsePrefs(JSON.stringify({ v: 1, density: "compact", hintDismissed: true, shortcuts: [] }), slugs, categories);
+  assert.equal(compact?.density, "compact");
+  assert.equal(compact?.hintDismissed, true);
+  assert.ok(cellSize("regular", "compact").w < cellSize("regular", "comfortable").w);
+  assert.deepEqual(cellSize("large"), { w: 120, h: 128 });
   assert.equal(parseLayout("{", slugs, categories), null);
   assert.equal(parseLayout(JSON.stringify({ v: 9, windows: [] }), slugs, categories), null);
   const layout = parseLayout(

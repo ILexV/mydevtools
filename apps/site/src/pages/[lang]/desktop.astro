@@ -118,6 +118,10 @@ const label = (key: string) => t(lang, "desktop", key);
         <span class="desk-bg-dim" aria-hidden="true"></span>
       </div>
       <div class="desk-icons" data-desk-icons></div>
+      <div class="desk-hint" data-desk-hint>
+        <p id="desk-move-hint">{label("MoveHint")}</p>
+        <button type="button" class="ds-btn" data-hint-dismiss>{label("MoveHintDismiss")}</button>
+      </div>
       <div class="desk-windows" data-desk-windows></div>
       <div class="desk-snap" data-desk-snap hidden></div>
     </div>
@@ -186,6 +190,11 @@ const label = (key: string) => t(lang, "desktop", key);
           <div class="desk-choice">
             <label class="desk-choice"><input type="radio" name="desk-icon-size" value="regular" data-icon-size checked />{label("IconRegular")}</label>
             <label class="desk-choice"><input type="radio" name="desk-icon-size" value="large" data-icon-size />{label("IconLarge")}</label>
+          </div>
+          <h3>{label("Density")}</h3>
+          <div class="desk-choice">
+            <label class="desk-choice"><input type="radio" name="desk-density" value="comfortable" data-density checked />{label("DensityComfortable")}</label>
+            <label class="desk-choice"><input type="radio" name="desk-density" value="compact" data-density />{label("DensityCompact")}</label>
           </div>
           <label class="desk-choice"><input type="checkbox" data-lock />{label("LockIcons")}</label>
           <div class="desk-choice">

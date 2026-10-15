@@ -47,6 +47,11 @@ interface Payload {
   strings: Record<string, string>;
 }
 
+/** A context-menu row. `checked` draws a tick and uses menuitemradio. */
+type MenuEntry =
+  | { kind: "label"; label: string }
+  | { kind: "item"; label: string; checked?: boolean; run: () => void };
+
 const EDGES: ResizeEdge[] = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
 
 export function bootDesktop(): void {
@@ -117,6 +122,11 @@ export function bootDesktop(): void {
     if (details?.open && !details.contains(event.target as Node)) details.open = false;
   });
   document.addEventListener("keydown", onKey);
+  document.querySelector("[data-hint-dismiss]")?.addEventListener("click", () => {
+    prefs = { ...prefs, hintDismissed: true };
+    scheduleSave();
+    render();
+  });
   document.addEventListener("pointerdown", (event) => {
     if (!menu.hidden && !menu.contains(event.target as Node)) hideMenu();
   });
@@ -127,6 +137,7 @@ export function bootDesktop(): void {
   });
   window.addEventListener("resize", () => dispatch({ type: "clamp", desk: deskSize() }));
   window.addEventListener("beforeunload", (event) => {
+    if (ready) flushSave();
     if (dirtyIds(state.windows.map((record) => record.id)).length === 0) return;
     event.preventDefault();
     event.returnValue = "";
@@ -159,6 +170,10 @@ export function bootDesktop(): void {
     renderWindows();
     renderTasks();
     document.body.classList.toggle("is-concealed", state.concealed);
+    document.body.dataset.density = prefs.density;
+    document.body.dataset.iconSize = prefs.iconSize;
+    const hint = document.querySelector<HTMLElement>("[data-desk-hint]");
+    if (hint) hint.hidden = prefs.hintDismissed;
     const count = document.querySelector<HTMLElement>("[data-desk-count]");
     if (count) {
       count.hidden = state.windows.length === 0;
@@ -179,7 +194,7 @@ export function bootDesktop(): void {
       iconHost.append(empty);
       return;
     }
-    const size = cellSize(prefs.iconSize);
+    const size = iconCell();
     const desk = deskSize();
     const columns = stripColumns(prefs.shortcuts.length, Math.max(0, desk.width - 24), desk.height, size, prefs.positions, prefs.shortcuts);
     const rowsFit = Math.max(1, Math.floor((desk.height || size.h) / size.h));
@@ -203,6 +218,10 @@ export function bootDesktop(): void {
     button.style.top = `${cell.row * size.h}px`;
     button.style.width = `${size.w}px`;
     button.setAttribute("aria-pressed", String(selectedShortcut === id));
+    if (!prefs.locked && !prefs.hintDismissed) button.setAttribute("aria-describedby", "desk-move-hint");
+    if (!prefs.locked) {
+      button.setAttribute("aria-keyshortcuts", "Control+ArrowLeft Control+ArrowRight Control+ArrowUp Control+ArrowDown");
+    }
     const info = shortcutInfo(id);
     button.style.setProperty("--mdt-cat", `var(--mdt-cat-${info.category})`);
     button.title = info.label;
@@ -332,8 +351,13 @@ export function bootDesktop(): void {
     node.classList.toggle("is-active", active);
     node.classList.toggle("is-max", record.mode === "maximized");
     node.hidden = state.concealed || record.mode === "minimized";
+    const body = node.querySelector(".desk-window-body");
+    // A hidden frame leaves the tab order. A visible frame behind the active
+    // one keeps its title reachable, but its tool document does not.
     if (node.hidden) node.setAttribute("inert", "");
     else node.removeAttribute("inert");
+    if (node.hidden || !active) body?.setAttribute("inert", "");
+    else body?.removeAttribute("inert");
     node.style.zIndex = String(record.z);
     if (record.mode === "maximized") {
       node.style.left = "0";
@@ -669,7 +693,7 @@ export function bootDesktop(): void {
       ev.stopPropagation();
       const cell = cellAt(ev.clientX, ev.clientY);
       if (!cell) return;
-      const size = cellSize(prefs.iconSize);
+      const size = iconCell();
       const desk = deskSize();
       const columns = stripColumns(prefs.shortcuts.length, desk.width, desk.height, size, prefs.positions, prefs.shortcuts);
       const rows = Math.max(1, Math.floor(desk.height / size.h));
@@ -690,6 +714,7 @@ export function bootDesktop(): void {
       button.removeEventListener("pointermove", onMove);
       button.removeEventListener("pointerup", onUp);
       button.classList.remove("is-dragging");
+      iconHost.querySelectorAll(".is-drop").forEach((node) => node.classList.remove("is-drop"));
       document.removeEventListener("keydown", onKey);
     };
     button.addEventListener("pointermove", onMove);
@@ -698,6 +723,25 @@ export function bootDesktop(): void {
   }
 
   function onKey(event: KeyboardEvent): void {
+    if (!menu.hidden) {
+      const items = [...menu.querySelectorAll<HTMLButtonElement>(".desk-menu-item")];
+      if (event.key === "Escape") {
+        event.preventDefault();
+        hideMenu();
+        return;
+      }
+      if (items.length > 0 && ["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+        event.preventDefault();
+        const current = items.indexOf(document.activeElement as HTMLButtonElement);
+        const next =
+          event.key === "Home" ? 0
+          : event.key === "End" ? items.length - 1
+          : event.key === "ArrowDown" ? (current + 1) % items.length
+          : (current - 1 + items.length) % items.length;
+        items[next]?.focus();
+        return;
+      }
+    }
     if ((event.ctrlKey || event.metaKey) && (event.key.toLowerCase() === "k" || event.code === "KeyK")) {
       if (event.altKey) return;
       event.preventDefault();
@@ -738,7 +782,7 @@ export function bootDesktop(): void {
   }
 
   function nudgeShortcut(id: string, key: string, grow: boolean): void {
-    const size = cellSize(prefs.iconSize);
+    const size = iconCell();
     const desk = deskSize();
     const columns = stripColumns(prefs.shortcuts.length, desk.width, desk.height, size, prefs.positions, prefs.shortcuts);
     const rows = Math.max(1, Math.floor(desk.height / size.h), Math.ceil(prefs.shortcuts.length / columns));
@@ -1060,13 +1104,15 @@ export function bootDesktop(): void {
       previewSettings();
     });
     settingsDialog.querySelector("[data-settings-apply]")?.addEventListener("click", () => void applySettings());
-    settingsDialog.querySelector("[data-settings-cancel]")?.addEventListener("click", () => {
-      draftBlob = null;
-      draftRemoveImage = false;
-      if (draftUrl) URL.revokeObjectURL(draftUrl);
-      draftUrl = null;
-      applyWallpaper(prefs, imageUrl);
-      settingsDialog.close();
+    settingsDialog.querySelectorAll("[data-settings-cancel]").forEach((button) => {
+      button.addEventListener("click", () => {
+        draftBlob = null;
+        draftRemoveImage = false;
+        if (draftUrl) URL.revokeObjectURL(draftUrl);
+        draftUrl = null;
+        applyWallpaper(prefs, imageUrl);
+        settingsDialog.close();
+      });
     });
     settingsDialog.querySelector("[data-align]")?.addEventListener("click", () => {
       const laid = currentLayout();
@@ -1106,6 +1152,9 @@ export function bootDesktop(): void {
     settingsDialog.querySelectorAll<HTMLInputElement>("[data-icon-size]").forEach((input) => {
       input.checked = input.value === prefs.iconSize;
     });
+    settingsDialog.querySelectorAll<HTMLInputElement>("[data-density]").forEach((input) => {
+      input.checked = input.value === prefs.density;
+    });
     const locked = settingsDialog.querySelector<HTMLInputElement>("[data-lock]");
     if (locked) locked.checked = prefs.locked;
     const warning = settingsDialog.querySelector<HTMLElement>("[data-image-warning]");
@@ -1121,17 +1170,19 @@ export function bootDesktop(): void {
     applyWallpaper({ ...prefs, ...next, hasImage: !!url }, url);
   }
 
-  function readSettingsForm(): Pick<DeskPrefs, "preset" | "fit" | "dim" | "iconSize" | "locked"> {
+  function readSettingsForm(): Pick<DeskPrefs, "preset" | "fit" | "dim" | "iconSize" | "density" | "locked"> {
     const presetButton = settingsDialog.querySelector<HTMLButtonElement>("[data-preset][aria-checked='true']");
     const preset = (presetButton?.dataset.preset || prefs.preset) as DeskPrefs["preset"];
     const fitInput = settingsDialog.querySelector<HTMLInputElement>("[data-fit]:checked");
     const dim = Number(settingsDialog.querySelector<HTMLInputElement>("[data-dim]")?.value ?? prefs.dim);
     const icon = settingsDialog.querySelector<HTMLInputElement>("[data-icon-size]:checked");
+    const density = settingsDialog.querySelector<HTMLInputElement>("[data-density]:checked");
     return {
       preset,
       fit: fitInput?.value === "contain" ? "contain" : "cover",
       dim: Number.isFinite(dim) ? dim : prefs.dim,
       iconSize: icon?.value === "large" ? "large" : "regular",
+      density: density?.value === "compact" ? "compact" : "comfortable",
       locked: settingsDialog.querySelector<HTMLInputElement>("[data-lock]")?.checked === true,
     };
   }
@@ -1178,8 +1229,10 @@ export function bootDesktop(): void {
     if (!prefs.hasImage) return;
     try {
       const blob = await loadWallpaperBlob();
-      if (!blob) {
+      if (!blob || !(await wallpaperBlobDecodes(blob))) {
         prefs = { ...prefs, hasImage: false };
+        if (blob) await clearWallpaperBlob().catch(() => undefined);
+        scheduleSave();
         return;
       }
       imageUrl = URL.createObjectURL(blob);
@@ -1199,14 +1252,15 @@ export function bootDesktop(): void {
 
   function openShortcutMenu(id: string, x: number, y: number): void {
     const info = shortcutInfo(id);
-    const items: { label: string; run: () => void }[] = [
-      { label: text("Open"), run: () => openShortcut(id, false) },
+    const items: MenuEntry[] = [
+      { kind: "item", label: text("Open"), run: () => openShortcut(id, false) },
     ];
     if (id.startsWith("tool:")) {
-      items.push({ label: text("OpenAnother"), run: () => openShortcut(id, true) });
+      items.push({ kind: "item", label: text("OpenAnother"), run: () => openShortcut(id, true) });
       const slug = id.slice(5);
       const favorite = window.MDT?.favorites.isFavorite(slug) === true;
       items.push({
+        kind: "item",
         label: text(favorite ? "Unfavorite" : "Favorite"),
         run: () => {
           window.MDT?.favorites.toggle(slug);
@@ -1214,10 +1268,11 @@ export function bootDesktop(): void {
         },
       });
     }
-    if (id.startsWith("cat:")) items.push({ label: text("UnpackFolder"), run: () => unpackCategory(id.slice(4)) });
-    else items.push({ label: text("RemoveShortcut"), run: () => removeShortcut(id) });
+    if (id.startsWith("cat:")) items.push({ kind: "item", label: text("UnpackFolder"), run: () => unpackCategory(id.slice(4)) });
+    else items.push({ kind: "item", label: text("RemoveShortcut"), run: () => removeShortcut(id) });
     const pinned = prefs.pinned.includes(id);
     items.push({
+      kind: "item",
       label: text(pinned ? "UnpinBar" : "PinBar"),
       run: () => {
         prefs = {
@@ -1233,33 +1288,69 @@ export function bootDesktop(): void {
   }
 
   function openSurfaceMenu(x: number, y: number): void {
+    const chooseSize = (iconSize: DeskPrefs["iconSize"]) => {
+      prefs = { ...prefs, iconSize };
+      scheduleSave();
+      render();
+    };
+    const chooseDensity = (density: DeskPrefs["density"]) => {
+      prefs = { ...prefs, density };
+      scheduleSave();
+      render();
+    };
     showMenu(
       [
-        { label: text("Settings"), run: () => openSettings() },
-        { label: text("AlignIcons"), run: () => settingsDialog.querySelector<HTMLButtonElement>("[data-align]")?.click() },
+        { kind: "label", label: text("IconSize") },
+        { kind: "item", label: text("IconRegular"), checked: prefs.iconSize === "regular", run: () => chooseSize("regular") },
+        { kind: "item", label: text("IconLarge"), checked: prefs.iconSize === "large", run: () => chooseSize("large") },
+        { kind: "label", label: text("Density") },
+        { kind: "item", label: text("DensityComfortable"), checked: prefs.density === "comfortable", run: () => chooseDensity("comfortable") },
+        { kind: "item", label: text("DensityCompact"), checked: prefs.density === "compact", run: () => chooseDensity("compact") },
+        { kind: "item", label: text("Settings"), run: () => openSettings() },
+        { kind: "item", label: text("AlignIcons"), run: () => settingsDialog.querySelector<HTMLButtonElement>("[data-align]")?.click() },
         {
+          kind: "item",
           label: text("LockIcons"),
+          checked: prefs.locked,
           run: () => {
             prefs = { ...prefs, locked: !prefs.locked };
             scheduleSave();
             render();
           },
         },
-        { label: text("ShowDesktop"), run: () => dispatch({ type: state.concealed ? "reveal" : "conceal" }) },
+        { kind: "item", label: text("ShowDesktop"), run: () => dispatch({ type: state.concealed ? "reveal" : "conceal" }) },
       ],
       x,
       y,
     );
   }
 
-  function showMenu(items: { label: string; run: () => void }[], x: number, y: number): void {
+  function showMenu(items: MenuEntry[], x: number, y: number): void {
     menu.replaceChildren();
     for (const item of items) {
+      if (item.kind === "label") {
+        const label = document.createElement("p");
+        label.className = "desk-menu-label";
+        label.role = "presentation";
+        label.textContent = item.label;
+        menu.append(label);
+        continue;
+      }
       const button = document.createElement("button");
       button.type = "button";
       button.className = "desk-menu-item";
-      button.role = "menuitem";
-      button.textContent = item.label;
+      button.role = item.checked === undefined ? "menuitem" : "menuitemradio";
+      if (item.checked !== undefined) button.setAttribute("aria-checked", String(item.checked));
+      const name = document.createElement("span");
+      name.textContent = item.label;
+      button.append(name);
+      if (item.checked) {
+        const mark = document.createElement("span");
+        mark.className = "desk-menu-check";
+        mark.setAttribute("aria-hidden", "true");
+        mark.textContent = "✓";
+        button.append(mark);
+      }
       button.addEventListener("click", () => {
         hideMenu();
         item.run();
@@ -1267,8 +1358,11 @@ export function bootDesktop(): void {
       menu.append(button);
     }
     menu.hidden = false;
-    menu.style.left = `${Math.min(x, window.innerWidth - 220)}px`;
-    menu.style.top = `${Math.min(y, window.innerHeight - menu.offsetHeight - 8)}px`;
+    const width = menu.offsetWidth || 220;
+    const height = menu.offsetHeight || 280;
+    menu.style.left = `${Math.max(8, Math.min(x, window.innerWidth - width - 8))}px`;
+    menu.style.top = `${Math.max(8, Math.min(y, window.innerHeight - height - 8))}px`;
+    menu.querySelector<HTMLButtonElement>(".desk-menu-item")?.focus();
   }
 
   function hideMenu(): void {
@@ -1327,8 +1421,12 @@ export function bootDesktop(): void {
     return shortcutIsOpen(id);
   }
 
+  function iconCell(): { w: number; h: number } {
+    return cellSize(prefs.iconSize, prefs.density);
+  }
+
   function currentLayout() {
-    const size = cellSize(prefs.iconSize);
+    const size = iconCell();
     const desk = deskSize();
     const columns = stripColumns(prefs.shortcuts.length, desk.width, desk.height, size, prefs.positions, prefs.shortcuts);
     const rows = Math.max(1, Math.floor((desk.height || size.h) / size.h));
@@ -1337,7 +1435,7 @@ export function bootDesktop(): void {
 
   function cellAt(clientX: number, clientY: number): ShortcutCell | null {
     const box = iconHost.getBoundingClientRect();
-    const size = cellSize(prefs.iconSize);
+    const size = iconCell();
     const column = Math.floor((clientX - box.left) / size.w);
     const row = Math.floor((clientY - box.top + iconHost.scrollTop) / size.h);
     if (column < 0 || row < 0) return null;
@@ -1345,7 +1443,7 @@ export function bootDesktop(): void {
   }
 
   function shortcutAt(cell: ShortcutCell): string | null {
-    const size = cellSize(prefs.iconSize);
+    const size = iconCell();
     const desk = deskSize();
     const columns = stripColumns(prefs.shortcuts.length, desk.width, desk.height, size, prefs.positions, prefs.shortcuts);
     const rows = Math.max(1, Math.floor((desk.height || size.h) / size.h));
@@ -1361,12 +1459,29 @@ export function bootDesktop(): void {
     return { width: stage.clientWidth, height: stage.clientHeight };
   }
 
+  function flushSave(): void {
+    window.clearTimeout(saveTimer);
+    saveTimer = 0;
+    writeKey(LAYOUT_KEY, serializeLayout(state));
+    writeKey(PREFS_KEY, serializePrefs(prefs));
+  }
+
   function scheduleSave(): void {
     window.clearTimeout(saveTimer);
-    saveTimer = window.setTimeout(() => {
-      writeKey(LAYOUT_KEY, serializeLayout(state));
-      writeKey(PREFS_KEY, serializePrefs(prefs));
-    }, 400);
+    saveTimer = window.setTimeout(flushSave, 400);
+  }
+}
+
+/** A stored wallpaper must decode as a raster. Anything else falls back to the preset. */
+async function wallpaperBlobDecodes(blob: Blob): Promise<boolean> {
+  if (!blob.type.startsWith("image/") || blob.type === "image/svg+xml" || blob.size === 0) return false;
+  try {
+    const bitmap = await createImageBitmap(blob);
+    const ok = bitmap.width > 0 && bitmap.height > 0;
+    bitmap.close();
+    return ok;
+  } catch {
+    return false;
   }
 }
 
@@ -1378,18 +1493,24 @@ function snapshotFrame(frame: HTMLIFrameElement): InputSnapshot {
   const texts: string[] = [];
   // `instanceof HTMLInputElement` uses the parent window and misses every
   // node inside the tool iframe. Use the frame's own constructors.
+  const constructors = view as unknown as {
+    HTMLInputElement: typeof HTMLInputElement;
+    HTMLTextAreaElement: typeof HTMLTextAreaElement;
+  };
   for (const element of doc.querySelectorAll("input, textarea")) {
-    if (element instanceof view.HTMLInputElement) {
-      const type = element.type;
+    if (element instanceof constructors.HTMLInputElement) {
+      const input = element as HTMLInputElement;
+      const type = input.type;
       if (["hidden", "checkbox", "radio", "button", "submit", "reset", "range", "color"].includes(type)) continue;
-      if (element.readOnly || element.disabled) continue;
+      if (input.readOnly || input.disabled) continue;
       if (type === "file") {
-        fileCount += element.files?.length ?? 0;
+        fileCount += input.files?.length ?? 0;
         continue;
       }
-      texts.push(element.value);
-    } else if (element instanceof view.HTMLTextAreaElement && !element.readOnly && !element.disabled) {
-      texts.push(element.value);
+      texts.push(input.value);
+    } else if (element instanceof constructors.HTMLTextAreaElement) {
+      const area = element as HTMLTextAreaElement;
+      if (!area.readOnly && !area.disabled) texts.push(area.value);
     }
   }
   const editors = [...doc.querySelectorAll(".cm-content")].map((node) => node.textContent ?? "");

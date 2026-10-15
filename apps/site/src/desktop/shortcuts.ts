@@ -14,7 +14,15 @@ export interface ShortcutLayout {
   rows: number;
 }
 
-export function cellSize(iconSize: "regular" | "large"): { w: number; h: number } {
+/**
+ * Cell of one shortcut. Compact density packs the same icons closer together;
+ * it does not rewrite saved column and row.
+ */
+export function cellSize(
+  iconSize: "regular" | "large",
+  density: "comfortable" | "compact" = "comfortable",
+): { w: number; h: number } {
+  if (density === "compact") return iconSize === "large" ? { w: 100, h: 108 } : { w: 84, h: 92 };
   return iconSize === "large" ? { w: 120, h: 128 } : { w: 104, h: 116 };
 }
 

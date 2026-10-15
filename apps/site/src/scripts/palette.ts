@@ -47,6 +47,8 @@ function isEditable(target: EventTarget | null): boolean {
 }
 
 function boot(): void {
+  // A tool frame inside the desktop must not open a second command palette.
+  if (document.documentElement.classList.contains("is-embed")) return;
   const paletteRoot = document.querySelector<HTMLElement>("[data-palette]");
   const paletteInput = paletteRoot?.querySelector<HTMLInputElement>("[data-palette-input]");
   const paletteResults = paletteRoot?.querySelector<HTMLElement>("[data-palette-results]");

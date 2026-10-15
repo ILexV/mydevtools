@@ -62,3 +62,17 @@ The inventory above describes the legacy baseline. `json-explorer` persists only
 | `mdt.tools.json-explorer.depth-limit.v1` | JSON depth limit |
 
 Files, record contents, search/filter values, discovered schema and projected fields are **not persisted**. `csv-explorer` settings and data are session-only; importing either format does not write its contents to browser storage. `parquet-explorer` persists nothing: the open file, column selection and export options live only for the page session. `hex-viewer` persists nothing either: the open file, offset, search needle and export range live only for the page session.
+
+## Desktop shell (2026-10-15)
+
+The computer workspace at `/{lang}/desktop/` stores layout and appearance only. Tool text, files, keys and results stay out of these keys. A broken payload or an unknown `v` opens an empty desk; the catalog still works.
+
+| Key | Storage | Shape |
+|---|---|---|
+| `mdt.desktop.layout.v1` | localStorage | `{ v: 1, activeId, windows[] }` — id, kind (`tool` or `folder`), slug, instance, bounds, previousBounds, mode, modeBeforeMinimize, dock, z. Not `concealed`. |
+| `mdt.desktop.prefs.v1` | localStorage | `{ v: 1, preset, fit, dim, hasImage, shortcuts, positions, pinned, iconSize, locked }`. Shortcuts are `cat:<id>` or `tool:<slug>`. |
+| `mdt.desktop.entry.v1` | localStorage | `"1"` opens the desktop from the home page. Any other value leaves the catalog. |
+| `mdt.desktop.skip` | sessionStorage | `"1"` while this tab asked to see the catalog. Stops the home-page redirect from bouncing straight back. |
+| IndexedDB `mdt.desktop` / store `files` / key `wallpaper` | blob | Custom JPG, PNG or WebP after an in-browser re-encode. `hasImage` in prefs is only a flag. |
+
+`theme` stays the existing light/dark key. Favorites and recent stay `mdt.favorites.v1` and `mdt.recent.v1`. An embedded tool page (`?embed=1`) does not record a second recent visit.

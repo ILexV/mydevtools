@@ -8,6 +8,7 @@ import Palette from "@/components/Palette.astro";
 import AnalyticsVote from "@/components/AnalyticsVote.astro";
 import InstallPrompt from "@/components/InstallPrompt.astro";
 import "@/styles/global.css";
+import "@/styles/embed.css";
 // Same Vite asset as the fonts.css url() → identical hashed URL, so the preload is reused.
 import interCyrillicUrl from "@fontsource-variable/inter/files/inter-cyrillic-wght-normal.woff2?url";
 
@@ -25,6 +26,11 @@ interface Props {
   howToSteps?: string;
   /** Search-result `<title>` (locale `Seo_Title`); defaults to "title — site". */
   seoTitle?: string;
+  /**
+   * Home only. When `mdt.desktop.entry.v1` is "1", send the returning visitor
+   * to the desktop before paint. Crawlers have no such key and stay on the catalog.
+   */
+  desktopHref?: string;
 }
 
 const {
@@ -37,6 +43,7 @@ const {
   categoryName,
   howToSteps,
   seoTitle,
+  desktopHref,
 } = Astro.props as Props;
 const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
 /**
@@ -65,6 +72,25 @@ const analyticsEnabled = process.env.ANALYTICS_ENABLED === "true";
     />
     {preloadFonts.map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}
 
+    {desktopHref && <meta name="mdt-desktop" content={desktopHref} />}
+    <script is:inline>
+      (function () {
+        try {
+          if (sessionStorage.getItem("mdt.desktop.skip") === "1") return;
+          if (localStorage.getItem("mdt.desktop.entry.v1") !== "1") return;
+          var link = document.querySelector('meta[name="mdt-desktop"]');
+          if (link && link.content) location.replace(link.content);
+        } catch (e) {}
+      })();
+    </script>
+    <script is:inline>
+      (function () {
+        try {
+          var q = location.search;
+          if (/(?:^|[?&])embed=1(?:&|$)/.test(q)) document.documentElement.classList.add("is-embed");
+        } catch (e) {}
+      })();
+    </script>
     <script is:inline>
       (function () {
         try {

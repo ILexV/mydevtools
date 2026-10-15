@@ -1,0 +1,34 @@
+/* Tool page opened inside a desktop window (`?embed=1`).
+   The indexed document is unchanged: this file only hides the marketing
+   chrome and the SEO block after an inline head script sets `html.is-embed`.
+   The nodes stay in the HTML so a crawler of the canonical URL still sees them. */
+
+html.is-embed .site-header,
+html.is-embed .site-footer,
+html.is-embed .nav-scrim,
+html.is-embed .mobile-nav,
+html.is-embed [data-palette],
+html.is-embed #pwa-install-prompt,
+html.is-embed #sw-update-prompt,
+html.is-embed [data-analytics-vote],
+html.is-embed .tool-head,
+html.is-embed .tool-seo,
+html.is-embed .related,
+html.is-embed .scroll-progress {
+  display: none !important;
+}
+
+html.is-embed .tool {
+  max-width: none;
+  margin: 0;
+  padding: 0.75rem 0.9rem 1.1rem;
+}
+
+html.is-embed body {
+  background: var(--mdt-surface);
+  min-height: 100%;
+}
+
+html.is-embed {
+  scroll-behavior: auto;
+}

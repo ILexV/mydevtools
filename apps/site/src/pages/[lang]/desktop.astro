@@ -1,0 +1,266 @@
+---
+/**
+ * `/{lang}/desktop/` — computer workspace. Not indexed: the canonical tool
+ * documents stay at `/{lang}/{slug}/`. Windows load those pages with `?embed=1`.
+ */
+import Icon from "@/components/Icon.astro";
+import { ICONS, type IconName } from "@/components/Icon.astro";
+import { WALLPAPER_PRESETS } from "@/desktop/wallpaper";
+import { getNamespace, t } from "@/i18n/messages";
+import { localizedPath, withBase } from "@/lib/url";
+import { buildCatalog } from "@/registry/catalog";
+import { LOCALES, type LocaleCode } from "@/registry/locales";
+import "@/styles/desktop.css";
+import "@/styles/global.css";
+
+export function getStaticPaths() {
+  return LOCALES.map((locale) => ({ params: { lang: locale.code } }));
+}
+
+interface Params {
+  lang: LocaleCode;
+}
+
+const { lang } = Astro.params as Params;
+const meta = LOCALES.find((locale) => locale.code === lang)!;
+const catalog = buildCatalog(lang);
+const siteName = t(lang, "common", "AppName");
+const title = t(lang, "desktop", "Title");
+const homeHref = localizedPath(lang);
+const strings = Object.fromEntries(
+  Object.entries(getNamespace(lang, "desktop")).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
+);
+
+function iconBody(key: string): string {
+  return key in ICONS ? ICONS[key as IconName] : "";
+}
+
+const payload = {
+  tools: catalog.tools.map((tool) => ({
+    slug: tool.slug,
+    title: tool.title,
+    description: tool.description,
+    monogram: tool.monogram,
+    category: tool.category,
+    href: tool.href,
+  })),
+  categories: catalog.categories.map((category) => ({
+    id: category.id,
+    label: category.label,
+    icon: iconBody(category.iconKey),
+  })),
+  strings,
+};
+const payloadJson = JSON.stringify(payload).replace(/</g, "\\u003c");
+const label = (key: string) => t(lang, "desktop", key);
+---
+
+<!doctype html>
+<html lang={meta.bcp47} dir={meta.dir}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content={label("EmptyDesktop")} />
+    <title>{title} — {siteName}</title>
+    <link rel="icon" type="image/svg+xml" href={withBase("icons/favicon.svg")} />
+    <link rel="icon" type="image/png" sizes="192x192" href={withBase("icons/icon-192.png")} />
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          if (!stored) {
+            stored = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          }
+          document.documentElement.setAttribute("data-theme", stored === "dark" ? "dark" : "light");
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body class="desk">
+    <h1 class="visually-hidden">{title}</h1>
+    <header class="desk-top">
+      <a class="desk-brand" href={homeHref} data-desk-exit>
+        <span class="desk-brand-mark"><Icon name="logo-mark" size={14} /></span>
+        {siteName}
+      </a>
+      <button type="button" class="ds-btn" data-desk-search>
+        <Icon name="search" size={14} />
+        {label("Search")}
+      </button>
+      <button type="button" class="ds-btn" data-desk-catalog>{label("Catalog")}</button>
+      <span class="desk-top-spacer"></span>
+      <button type="button" class="ds-icon-btn desk-theme" data-theme-toggle aria-label={label("Theme")} title={label("Theme")}>
+        <span class="icon-sun"><Icon name="sun" size={16} /></span>
+        <span class="icon-moon"><Icon name="moon" size={16} /></span>
+      </button>
+      <details class="desk-lang">
+        <summary class="ds-icon-btn" aria-label={t(lang, "common", "Language")}>
+          <Icon name="globe" size={16} />
+          <span>{lang.toUpperCase()}</span>
+        </summary>
+        <div class="desk-lang-list">
+          {LOCALES.map((locale) => (
+            <a href={localizedPath(locale.code, "desktop")} hreflang={locale.bcp47} aria-current={locale.code === lang ? "true" : undefined}>
+              {locale.nativeName}
+            </a>
+          ))}
+        </div>
+      </details>
+      <button type="button" class="ds-btn" data-desk-settings>{label("Settings")}</button>
+      <a class="ds-btn" href={homeHref} data-desk-exit>{label("BackToCatalog")}</a>
+    </header>
+
+    <div class="desk-stage" data-desk-stage>
+      <div class="desk-bg wp-dusk" data-desk-bg>
+        <span class="desk-bg-blur" aria-hidden="true"></span>
+        <span class="desk-bg-photo" aria-hidden="true"></span>
+        <span class="desk-bg-dim" aria-hidden="true"></span>
+      </div>
+      <div class="desk-icons" data-desk-icons></div>
+      <div class="desk-windows" data-desk-windows></div>
+      <div class="desk-snap" data-desk-snap hidden></div>
+    </div>
+
+    <footer class="desk-taskbar" aria-label={label("Taskbar")}>
+      <button type="button" class="ds-icon-btn" data-desk-show aria-label={label("ShowDesktop")} title={label("ShowDesktop")}>
+        <Icon name="menu" size={16} />
+      </button>
+      <div class="desk-tasks" data-desk-tasks></div>
+      <button type="button" class="ds-btn" data-desk-overview>
+        {label("Overview")}
+        <span class="desk-count" data-desk-count hidden>0</span>
+      </button>
+    </footer>
+
+    <div class="desk-menu" data-desk-menu role="menu" hidden></div>
+
+    <dialog class="desk-dialog" data-catalog-dialog aria-labelledby="desk-catalog-title">
+      <div class="desk-dialog-head">
+        <h2 id="desk-catalog-title">{label("Catalog")}</h2>
+        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")}>×</button>
+      </div>
+      <div class="desk-dialog-body">
+        <input class="ds-field" type="search" data-catalog-input placeholder={label("SearchPlaceholder")} aria-label={label("Search")} />
+        <div data-catalog-results></div>
+      </div>
+    </dialog>
+
+    <dialog class="desk-dialog" data-settings-dialog aria-labelledby="desk-settings-title">
+      <div class="desk-dialog-head">
+        <h2 id="desk-settings-title">{label("Settings")}</h2>
+        <button type="button" class="desk-win-btn" data-settings-cancel aria-label={label("Cancel")}>×</button>
+      </div>
+      <div class="desk-dialog-body desk-settings-grid">
+        <section>
+          <h3>{label("Wallpaper")}</h3>
+          <div class="desk-swatches" role="radiogroup" aria-label={label("Wallpaper")}>
+            {WALLPAPER_PRESETS.map((preset) => (
+              <button
+                type="button"
+                class={`desk-swatch wp-${preset.id}`}
+                data-preset={preset.id}
+                role="radio"
+                aria-checked="false"
+                aria-label={label(preset.labelKey)}
+              />
+            ))}
+          </div>
+          <label class="desk-field">
+            {label("Dim")}
+            <input type="range" min="0" max="60" step="1" data-dim value="0" />
+          </label>
+          <div class="desk-choice">
+            <label class="desk-choice"><input type="radio" name="desk-fit" value="cover" data-fit checked />{label("FitCover")}</label>
+            <label class="desk-choice"><input type="radio" name="desk-fit" value="contain" data-fit />{label("FitContain")}</label>
+          </div>
+          <label class="desk-field">
+            {label("CustomImage")}
+            <input type="file" accept="image/jpeg,image/png,image/webp" data-wallpaper-file />
+          </label>
+          <p class="desk-warning" data-image-warning hidden>{label("ImageTooSmall")}</p>
+          <button type="button" class="ds-btn" data-remove-image>{label("RemoveImage")}</button>
+        </section>
+        <section>
+          <h3>{label("IconSize")}</h3>
+          <div class="desk-choice">
+            <label class="desk-choice"><input type="radio" name="desk-icon-size" value="regular" data-icon-size checked />{label("IconRegular")}</label>
+            <label class="desk-choice"><input type="radio" name="desk-icon-size" value="large" data-icon-size />{label("IconLarge")}</label>
+          </div>
+          <label class="desk-choice"><input type="checkbox" data-lock />{label("LockIcons")}</label>
+          <div class="desk-choice">
+            <button type="button" class="ds-btn" data-align>{label("AlignIcons")}</button>
+            <button type="button" class="ds-btn" data-restore-icons>{label("RestoreIcons")}</button>
+          </div>
+        </section>
+        <section>
+          <label class="desk-choice"><input type="checkbox" data-remember />{label("Remember")}</label>
+          <p class="desk-muted">{label("RememberHint")}</p>
+          <button type="button" class="ds-btn" data-reset-layout>{label("ResetLayout")}</button>
+          <p class="desk-muted">{label("ResetLayoutHint")}</p>
+        </section>
+      </div>
+      <div class="desk-dialog-actions">
+        <button type="button" class="ds-btn" data-settings-cancel>{label("Cancel")}</button>
+        <button type="button" class="ds-btn ds-btn-primary" data-settings-apply>{label("Apply")}</button>
+      </div>
+    </dialog>
+
+    <dialog class="desk-dialog" data-overview-dialog aria-labelledby="desk-overview-title">
+      <div class="desk-dialog-head">
+        <h2 id="desk-overview-title">{label("Overview")}</h2>
+        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")}>×</button>
+      </div>
+      <div class="desk-dialog-body">
+        <input class="ds-field" type="search" data-overview-input placeholder={label("SearchPlaceholder")} aria-label={label("Search")} />
+        <div data-overview-list></div>
+        <button type="button" class="ds-btn" data-close-others>{label("CloseOthers")}</button>
+      </div>
+    </dialog>
+
+    <dialog class="desk-dialog desk-dialog-narrow" data-discard-dialog aria-labelledby="desk-discard-title">
+      <div class="desk-dialog-head">
+        <h2 id="desk-discard-title" data-discard-title>{label("DiscardTitle")}</h2>
+      </div>
+      <div class="desk-dialog-body">
+        <p data-discard-body>{label("DiscardBody")}</p>
+      </div>
+      <div class="desk-dialog-actions">
+        <button type="button" class="ds-btn" data-discard-stay>{label("DiscardStay")}</button>
+        <button type="button" class="ds-btn ds-btn-primary" data-discard-close>{label("DiscardClose")}</button>
+      </div>
+    </dialog>
+
+    <dialog class="desk-dialog desk-dialog-narrow" data-help-dialog aria-labelledby="desk-help-title">
+      <div class="desk-dialog-head">
+        <h2 id="desk-help-title" data-help-title>{label("Help")}</h2>
+        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")}>×</button>
+      </div>
+      <div class="desk-dialog-body">
+        <p data-help-body></p>
+      </div>
+    </dialog>
+
+    <dialog class="desk-dialog desk-dialog-narrow" data-tile-dialog aria-labelledby="desk-tile-title">
+      <div class="desk-dialog-head">
+        <h2 id="desk-tile-title">{label("TileWith")}</h2>
+        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")}>×</button>
+      </div>
+      <div class="desk-dialog-body">
+        <div class="desk-tile-list" data-tile-list></div>
+        <div class="desk-tile-ratios">
+          <button type="button" class="ds-btn" data-ratio="1:1">{label("TileEven")}</button>
+          <button type="button" class="ds-btn" data-ratio="2:1">{label("TileLeftWide")}</button>
+          <button type="button" class="ds-btn" data-ratio="1:2">{label("TileRightWide")}</button>
+        </div>
+      </div>
+    </dialog>
+
+    <script is:inline type="application/json" id="desk-data" set:html={payloadJson}></script>
+    <script>
+      import { bootDesktop } from "@/desktop/client";
+      import "@/scripts/sw-register.ts";
+      bootDesktop();
+    </script>
+  </body>
+</html>

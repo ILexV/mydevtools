@@ -221,6 +221,12 @@ function initMobileNav() {
 }
 
 function boot() {
+  window.addEventListener("storage", (event) => {
+    if (event.key !== "theme") return;
+    if (event.newValue === "dark" || event.newValue === "light") {
+      document.documentElement.setAttribute("data-theme", event.newValue);
+    }
+  });
   initTheme();
   initLocalePersistence();
   initLangSwitcher();

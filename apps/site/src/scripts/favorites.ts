@@ -187,7 +187,11 @@ function init() {
   // Record recent visit (tool page). The marker element carries the slug in
   // `data-slug` (`<span data-visit-slug data-slug={slug}>` in [slug].astro).
   const visit = document.querySelector<HTMLElement>("[data-visit-slug]");
-  if (visit) recordRecent(visit.getAttribute("data-slug") || "");
+  // Desktop windows load the same page with ?embed=1. The shell records the
+  // recent tool once; the frame must not write a second visit.
+  if (visit && !document.documentElement.classList.contains("is-embed")) {
+    recordRecent(visit.getAttribute("data-slug") || "");
+  }
   render();
 }
 
@@ -200,13 +204,21 @@ declare global {
         toggle: (s: string) => boolean;
         list: () => string[];
       };
-      recent: { list: () => { slug: string; ts: number }[]; clear: () => void };
+      recent: { list: () => { slug: string; ts: number }[]; clear: () => void; record: (slug: string) => void };
     };
   }
 }
 window.MDT = {
   favorites: { isFavorite, toggle: toggleFavorite, list: () => [...favs] },
-  recent: { list: () => [...recent], clear: () => { recent = []; saveRecent(recent); render(); } },
+  recent: {
+    list: () => [...recent],
+    clear: () => {
+      recent = [];
+      saveRecent(recent);
+      render();
+    },
+    record: recordRecent,
+  },
 };
 
 if (document.readyState === "loading") {

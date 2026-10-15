@@ -13,6 +13,7 @@ import Icon from "@/components/Icon.astro";
 import { LOCALES, type LocaleCode } from "@/registry/locales";
 import { buildCatalog } from "@/registry/catalog";
 import { t } from "@/i18n/messages";
+import { localizedPath } from "@/lib/url";
 import { computeLab, type LabKind } from "@/lib/hero-lab";
 
 export function getStaticPaths() {
@@ -28,6 +29,7 @@ const catalog = buildCatalog(lang);
 const heroTitle = t(lang, "home", "Title");
 const heroAccent = t(lang, "home", "Title_Accent");
 const heroLead = t(lang, "home", "Lead");
+const desktopHref = localizedPath(lang, "desktop");
 const heroSubtitle = t(lang, "home", "Subtitle"); // meta description
 const heroCta = t(lang, "home", "CTA_Start");
 const siteName = t(lang, "common", "AppName");
@@ -77,7 +79,7 @@ const aboutFeatures = [
 ] as const;
 ---
 
-<BaseLayout locale={lang} title={siteName} description={heroSubtitle} seoTitle={seoTitle} isHome>
+<BaseLayout locale={lang} title={siteName} description={heroSubtitle} seoTitle={seoTitle} isHome desktopHref={desktopHref}>
   <main>
     <section class="hero-band" data-hero-band>
       <div class="ambient" aria-hidden="true"></div>
@@ -89,6 +91,7 @@ const aboutFeatures = [
           <p class="hero-subtitle">{heroLead}</p>
           <div class="hero-actions">
             <a class="ds-btn ds-btn-primary" href="#catalog">{heroCta}<Icon name="arrow-right" size={14} /></a>
+            <a class="ds-btn" href={desktopHref}>{t(lang, "desktop", "OpenDesktop")}</a>
             <button type="button" class="ds-btn" data-pwa-install hidden>
               <Icon name="download" size={14} />{t(lang, "home", "CTA_PWA")}
             </button>

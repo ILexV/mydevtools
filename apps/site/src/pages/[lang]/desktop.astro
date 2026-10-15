@@ -122,6 +122,7 @@ const label = (key: string) => t(lang, "desktop", key);
         <p id="desk-move-hint">{label("MoveHint")}</p>
         <button type="button" class="ds-btn" data-hint-dismiss>{label("MoveHintDismiss")}</button>
       </div>
+      <aside class="desk-widgets" data-desk-widgets hidden></aside>
       <div class="desk-windows" data-desk-windows></div>
       <div class="desk-snap" data-desk-snap hidden></div>
     </div>
@@ -131,6 +132,7 @@ const label = (key: string) => t(lang, "desktop", key);
         <Icon name="menu" size={16} />
       </button>
       <div class="desk-tasks" data-desk-tasks></div>
+      <button type="button" class="ds-btn" data-desk-workspaces>{label("Workspaces")}</button>
       <button type="button" class="ds-btn" data-desk-overview>
         {label("Overview")}
         <span class="desk-count" data-desk-count hidden>0</span>
@@ -247,6 +249,57 @@ const label = (key: string) => t(lang, "desktop", key);
       </div>
       <div class="desk-dialog-body">
         <p data-help-body></p>
+      </div>
+    </dialog>
+
+    <dialog class="desk-dialog" data-workspaces-dialog aria-labelledby="desk-workspaces-title">
+      <div class="desk-dialog-head">
+        <h2 id="desk-workspaces-title">{label("WorkspacesTitle")}</h2>
+        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")}>×</button>
+      </div>
+      <div class="desk-dialog-body">
+        <p class="desk-muted">{label("WorkspacesHint")}</p>
+        <div class="desk-workspace-list" data-workspace-list></div>
+        <p class="desk-muted" data-workspace-empty hidden>{label("NoWorkspaces")}</p>
+        <div class="desk-workspace-save">
+          <label class="desk-field">
+            {label("WorkspaceName")}
+            <input class="ds-field" type="text" maxlength="80" data-workspace-name autocomplete="off" />
+          </label>
+          <button type="button" class="ds-btn ds-btn-primary" data-workspace-save disabled>{label("SaveWorkspace")}</button>
+        </div>
+        <p class="desk-muted" data-workspace-nothing hidden>{label("NothingToSave")}</p>
+        <p class="desk-muted" data-workspace-limit hidden>{label("WorkspaceLimit")}</p>
+      </div>
+    </dialog>
+
+    <dialog class="desk-dialog desk-dialog-narrow" data-workspace-rename aria-labelledby="desk-workspace-rename-title">
+      <div class="desk-dialog-head">
+        <h2 id="desk-workspace-rename-title">{label("RenameWorkspace")}</h2>
+        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")}>×</button>
+      </div>
+      <div class="desk-dialog-body">
+        <label class="desk-field">
+          {label("WorkspaceName")}
+          <input class="ds-field" type="text" maxlength="80" data-workspace-rename-name autocomplete="off" />
+        </label>
+      </div>
+      <div class="desk-dialog-actions">
+        <button type="button" class="ds-btn" data-dialog-close>{label("Cancel")}</button>
+        <button type="button" class="ds-btn ds-btn-primary" data-workspace-rename-save>{label("Apply")}</button>
+      </div>
+    </dialog>
+
+    <dialog class="desk-dialog desk-dialog-narrow" data-workspace-delete aria-labelledby="desk-workspace-delete-title">
+      <div class="desk-dialog-head">
+        <h2 id="desk-workspace-delete-title">{label("DeleteWorkspaceTitle")}</h2>
+      </div>
+      <div class="desk-dialog-body">
+        <p data-workspace-delete-body></p>
+      </div>
+      <div class="desk-dialog-actions">
+        <button type="button" class="ds-btn" data-dialog-close>{label("Cancel")}</button>
+        <button type="button" class="ds-btn ds-btn-primary" data-workspace-delete-confirm>{label("DeleteWorkspace")}</button>
       </div>
     </dialog>
 

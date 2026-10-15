@@ -40,7 +40,13 @@ export type DeskAction =
   | { type: "clamp"; desk: DeskSize }
   | { type: "conceal" }
   | { type: "reveal" }
-  | { type: "hydrate"; state: DeskState };
+  | { type: "hydrate"; state: DeskState }
+  | {
+      type: "apply-workspace";
+      /** When true, other frames close. When false, an open tool keeps its iframe and only moves. */
+      replace: boolean;
+      windows: { id: string; slug: string; instance: number; bounds: Bounds; mode: "normal" | "maximized" }[];
+    };
 
 function normalize(windows: readonly DeskWindow[]): DeskWindow[] {
   return [...windows]
@@ -72,6 +78,18 @@ function nextVisible(windows: readonly DeskWindow[], exceptId: string): string |
 
 function remember(window: DeskWindow): Bounds {
   return window.previousBounds ?? window.bounds;
+}
+
+function frontToolIndex(windows: readonly DeskWindow[], slug: string): number {
+  let best = -1;
+  let z = -Infinity;
+  windows.forEach((window, index) => {
+    if (window.kind === "tool" && window.slug === slug && window.z >= z) {
+      best = index;
+      z = window.z;
+    }
+  });
+  return best;
 }
 
 function findTool(windows: readonly DeskWindow[], slug: string): DeskWindow | undefined {
@@ -236,6 +254,30 @@ export function desktopReducer(state: DeskState, action: DeskAction): DeskState 
         ? state.activeId
         : (windows.filter((window) => window.mode !== "minimized").sort((a, b) => b.z - a.z)[0]?.id ?? null);
       return withWindows(windows, activeId, state.concealed);
+    }
+    case "apply-workspace": {
+      const windows = action.replace ? [] : [...state.windows];
+      let activeId = action.replace ? null : state.activeId;
+      for (const incoming of action.windows) {
+        const existingIndex = action.replace ? -1 : frontToolIndex(windows, incoming.slug);
+        const existing = existingIndex >= 0 ? windows[existingIndex] : undefined;
+        const next: DeskWindow = {
+          id: existing?.id ?? incoming.id,
+          kind: "tool",
+          slug: incoming.slug,
+          instance: existing?.instance ?? incoming.instance,
+          bounds: incoming.bounds,
+          previousBounds: incoming.mode === "maximized" ? incoming.bounds : undefined,
+          mode: incoming.mode,
+          modeBeforeMinimize: undefined,
+          dock: undefined,
+          z: highest(windows) + 1,
+        };
+        if (existing) windows[existingIndex] = next;
+        else windows.push(next);
+        activeId = next.id;
+      }
+      return withWindows(windows, activeId, false);
     }
     case "clamp": {
       const windows = state.windows.map((window) => {

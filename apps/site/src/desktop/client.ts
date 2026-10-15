@@ -6,7 +6,7 @@
  */
 
 import "@/scripts/favorites.ts";
-import { cascadeBounds, dockBounds, dragBounds, resizeBounds, restoreUnderPointer, snapTarget } from "./bounds.ts";
+import { cascadeBounds, denormalizeBounds, dockBounds, dragBounds, resizeBounds, restoreUnderPointer, snapTarget } from "./bounds.ts";
 import { hasUserInput, type InputSnapshot } from "./dirty.ts";
 import {
   ENTRY_KEY,
@@ -25,6 +25,14 @@ import { arrangeShortcuts, cellSize, moveShortcut, packedPositions, stripColumns
 import type { Bounds, DeskSize, DeskState, DeskWindow, ResizeEdge, ShortcutCell } from "./types.ts";
 import { emptyDesk } from "./types.ts";
 import { clearWallpaperBlob, loadWallpaperBlob, prepareWallpaper, saveWallpaperBlob } from "./wallpaper.ts";
+import {
+  captureWorkspace,
+  isWorkspaceName,
+  moveWidget,
+  shiftWidget,
+  type SavedWorkspace,
+  type WidgetId,
+} from "./workspaces.ts";
 
 interface ToolInfo {
   slug: string;
@@ -82,6 +90,7 @@ export function bootDesktop(): void {
   let draftRemoveImage = false;
 
   const stage = must<HTMLElement>("[data-desk-stage]");
+  const widgetHost = must<HTMLElement>("[data-desk-widgets]");
   const iconHost = must<HTMLElement>("[data-desk-icons]");
   const windowHost = must<HTMLElement>("[data-desk-windows]");
   const taskHost = must<HTMLElement>("[data-desk-tasks]");
@@ -131,11 +140,14 @@ export function bootDesktop(): void {
     if (!menu.hidden && !menu.contains(event.target as Node)) hideMenu();
   });
   stage.addEventListener("contextmenu", (event) => {
-    if ((event.target as HTMLElement).closest(".desk-window, .desk-icon")) return;
+    if ((event.target as HTMLElement).closest(".desk-window, .desk-icon, .desk-widget")) return;
     event.preventDefault();
     openSurfaceMenu(event.clientX, event.clientY);
   });
   window.addEventListener("resize", () => dispatch({ type: "clamp", desk: deskSize() }));
+  window.addEventListener("storage", (event) => {
+    if (event.key === "mdt.favorites.v1" || event.key === "mdt.recent.v1") render();
+  });
   window.addEventListener("beforeunload", (event) => {
     if (ready) flushSave();
     if (dirtyIds(state.windows.map((record) => record.id)).length === 0) return;
@@ -145,6 +157,7 @@ export function bootDesktop(): void {
   wireSettings();
   wireOverview();
   wireTile();
+  wireWorkspaces();
 
   void restoreImage().finally(() => {
     applyWallpaper(prefs, imageUrl);
@@ -166,6 +179,7 @@ export function bootDesktop(): void {
   }
 
   function render(): void {
+    renderWidgets();
     renderIcons();
     renderWindows();
     renderTasks();
@@ -196,7 +210,7 @@ export function bootDesktop(): void {
     }
     const size = iconCell();
     const desk = deskSize();
-    const columns = stripColumns(prefs.shortcuts.length, Math.max(0, desk.width - 24), desk.height, size, prefs.positions, prefs.shortcuts);
+    const columns = stripColumns(prefs.shortcuts.length, iconAreaWidth(desk.width), desk.height, size, prefs.positions, prefs.shortcuts);
     const rowsFit = Math.max(1, Math.floor((desk.height || size.h) / size.h));
     const layout = arrangeShortcuts(prefs.shortcuts, prefs.positions, columns, rowsFit, prefs.positions);
     iconHost.style.width = `${layout.columns * size.w}px`;
@@ -484,17 +498,19 @@ export function bootDesktop(): void {
 
   function openTool(slug: string, fresh: boolean): void {
     if (!tools.has(slug)) return;
+    window.MDT?.recent.record(slug);
     const copies = state.windows.filter((record) => record.kind === "tool" && record.slug === slug);
     const instance = fresh ? Math.max(0, ...copies.map((record) => record.instance)) + 1 : copies[0]?.instance ?? 1;
+    const before = state;
     dispatch({
       type: "open-tool",
       id: `tool-${slug}-${instance}-${crypto.randomUUID()}`,
       slug,
       instance,
-      bounds: cascadeBounds(state.windows.length, deskSize(), iconStripWidth()),
+      bounds: cascadeBounds(state.windows.length, windowDesk(), iconStripWidth()),
       fresh,
     });
-    window.MDT?.recent.record(slug);
+    if (state === before) renderWidgets();
   }
 
   function openFolder(category: string): void {
@@ -503,7 +519,7 @@ export function bootDesktop(): void {
       type: "open-folder",
       id: `folder-${category}-${crypto.randomUUID()}`,
       category,
-      bounds: cascadeBounds(state.windows.length, deskSize(), iconStripWidth()),
+      bounds: cascadeBounds(state.windows.length, windowDesk(), iconStripWidth()),
     });
   }
 
@@ -537,19 +553,22 @@ export function bootDesktop(): void {
     });
   }
 
-  function askDiscard(many: boolean): Promise<boolean> {
+  function askDiscard(many: boolean, copy?: { title: string; body: string; confirm: string }): Promise<boolean> {
     const title = discardDialog.querySelector("[data-discard-title]");
     const body = discardDialog.querySelector("[data-discard-body]");
-    if (title) title.textContent = text("DiscardTitle");
-    if (body) body.textContent = text(many ? "DiscardMany" : "DiscardBody");
+    if (title) title.textContent = copy?.title ?? text("DiscardTitle");
+    if (body) body.textContent = copy?.body ?? text(many ? "DiscardMany" : "DiscardBody");
+    const close = discardDialog.querySelector<HTMLButtonElement>("[data-discard-close]");
+    const previousConfirm = close?.textContent ?? "";
+    if (close && copy) close.textContent = copy.confirm;
     showDeskDialog(discardDialog);
     return new Promise((resolve) => {
       const stay = discardDialog.querySelector<HTMLButtonElement>("[data-discard-stay]");
-      const close = discardDialog.querySelector<HTMLButtonElement>("[data-discard-close]");
       const finish = (value: boolean) => {
         stay?.removeEventListener("click", onStay);
         close?.removeEventListener("click", onClose);
         discardDialog.removeEventListener("cancel", onCancel);
+        if (close) close.textContent = previousConfirm;
         if (discardDialog.open) discardDialog.close();
         resolve(value);
       };
@@ -1306,6 +1325,9 @@ export function bootDesktop(): void {
         { kind: "label", label: text("Density") },
         { kind: "item", label: text("DensityComfortable"), checked: prefs.density === "comfortable", run: () => chooseDensity("comfortable") },
         { kind: "item", label: text("DensityCompact"), checked: prefs.density === "compact", run: () => chooseDensity("compact") },
+        { kind: "label", label: text("Widgets") },
+        { kind: "item", label: text("Favorites"), checked: prefs.widgets.includes("favorites"), run: () => toggleWidget("favorites") },
+        { kind: "item", label: text("Recent"), checked: prefs.widgets.includes("recent"), run: () => toggleWidget("recent") },
         { kind: "item", label: text("Settings"), run: () => openSettings() },
         { kind: "item", label: text("AlignIcons"), run: () => settingsDialog.querySelector<HTMLButtonElement>("[data-align]")?.click() },
         {
@@ -1428,7 +1450,7 @@ export function bootDesktop(): void {
   function currentLayout() {
     const size = iconCell();
     const desk = deskSize();
-    const columns = stripColumns(prefs.shortcuts.length, desk.width, desk.height, size, prefs.positions, prefs.shortcuts);
+    const columns = stripColumns(prefs.shortcuts.length, iconAreaWidth(desk.width), desk.height, size, prefs.positions, prefs.shortcuts);
     const rows = Math.max(1, Math.floor((desk.height || size.h) / size.h));
     return arrangeShortcuts(prefs.shortcuts, prefs.positions, columns, rows, prefs.positions);
   }
@@ -1445,7 +1467,7 @@ export function bootDesktop(): void {
   function shortcutAt(cell: ShortcutCell): string | null {
     const size = iconCell();
     const desk = deskSize();
-    const columns = stripColumns(prefs.shortcuts.length, desk.width, desk.height, size, prefs.positions, prefs.shortcuts);
+    const columns = stripColumns(prefs.shortcuts.length, iconAreaWidth(desk.width), desk.height, size, prefs.positions, prefs.shortcuts);
     const rows = Math.max(1, Math.floor((desk.height || size.h) / size.h));
     const laid = arrangeShortcuts(prefs.shortcuts, prefs.positions, columns, rows, prefs.positions);
     return Object.entries(laid.positions).find(([, value]) => value.column === cell.column && value.row === cell.row)?.[0] ?? null;
@@ -1455,8 +1477,338 @@ export function bootDesktop(): void {
     return iconHost.getBoundingClientRect().width;
   }
 
+  /** Shortcut columns stop before the widget column so icons are not covered by it. */
+  function iconAreaWidth(stageWidth: number): number {
+    return Math.max(0, stageWidth - 24 - widgetGutter());
+  }
+
+  /** New windows open in the area left of the widget column. A saved layout may still cover it. */
+  function windowDesk(): DeskSize {
+    const desk = deskSize();
+    return { width: Math.max(0, desk.width - widgetGutter()), height: desk.height };
+  }
+
+  function widgetGutter(): number {
+    if (widgetHost.hidden) return 0;
+    return (widgetHost.getBoundingClientRect().width || 264) + 16;
+  }
+
   function deskSize(): DeskSize {
     return { width: stage.clientWidth, height: stage.clientHeight };
+  }
+
+  function fill(key: string, params: Record<string, string | number>): string {
+    return Object.entries(params).reduce((line, [name, value]) => line.replaceAll(`{${name}}`, String(value)), text(key));
+  }
+
+  function toggleWidget(id: WidgetId): void {
+    const visible = prefs.widgets.includes(id);
+    prefs = { ...prefs, widgets: visible ? prefs.widgets.filter((item) => item !== id) : [...prefs.widgets, id] };
+    scheduleSave();
+    render();
+  }
+
+  function renderWidgets(): void {
+    widgetHost.hidden = prefs.widgets.length === 0;
+    widgetHost.replaceChildren();
+    if (widgetHost.hidden) return;
+    for (const id of prefs.widgets) widgetHost.append(renderWidget(id));
+  }
+
+  function renderWidget(id: WidgetId): HTMLElement {
+    const collapsed = prefs.widgetsCollapsed.includes(id);
+    const items = widgetItems(id);
+    const section = document.createElement("section");
+    section.className = "desk-widget";
+    section.classList.toggle("is-collapsed", collapsed);
+    section.dataset.widget = id;
+    section.setAttribute("aria-label", text(id === "favorites" ? "Favorites" : "Recent"));
+
+    const head = document.createElement("div");
+    head.className = "desk-widget-head";
+    const title = document.createElement("h2");
+    title.textContent = text(id === "favorites" ? "Favorites" : "Recent");
+    const peek = document.createElement("span");
+    peek.className = "desk-widget-peek";
+    peek.textContent = String(items.length);
+    peek.hidden = !collapsed;
+    const fold = document.createElement("button");
+    fold.type = "button";
+    fold.className = "desk-win-btn";
+    fold.dataset.labelKey = collapsed ? "ExpandWidget" : "CollapseWidget";
+    fold.textContent = collapsed ? "▸" : "▾";
+    fold.setAttribute("aria-expanded", String(!collapsed));
+    fold.addEventListener("click", () => {
+      const next = collapsed
+        ? prefs.widgetsCollapsed.filter((item) => item !== id)
+        : [...prefs.widgetsCollapsed, id];
+      prefs = { ...prefs, widgetsCollapsed: next };
+      scheduleSave();
+      render();
+    });
+    const more = document.createElement("button");
+    more.type = "button";
+    more.className = "desk-win-btn";
+    more.dataset.labelKey = "WidgetActions";
+    more.textContent = "⋮";
+    more.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const box = more.getBoundingClientRect();
+      showMenu(
+        [
+          { kind: "item", label: text(collapsed ? "ExpandWidget" : "CollapseWidget"), run: () => fold.click() },
+          { kind: "item", label: text("MoveWidgetUp"), run: () => reorderWidget(id, -1) },
+          { kind: "item", label: text("MoveWidgetDown"), run: () => reorderWidget(id, 1) },
+          { kind: "item", label: text("HideWidget"), run: () => toggleWidget(id) },
+        ],
+        box.left,
+        box.bottom,
+      );
+    });
+    head.append(title, peek, fold, more);
+    head.addEventListener("pointerdown", (event) => startWidgetDrag(event, id, head));
+
+    const list = document.createElement("ul");
+    list.className = "desk-widget-body";
+    if (items.length === 0) {
+      const empty = document.createElement("li");
+      empty.className = "desk-muted";
+      empty.textContent = text(id === "favorites" ? "NoFavorites" : "NoRecent");
+      list.append(empty);
+    }
+    for (const item of items) {
+      const row = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "desk-widget-item";
+      const mark = document.createElement("span");
+      mark.className = "desk-widget-mark";
+      mark.textContent = toolInfo(item.slug).mark;
+      const name = document.createElement("span");
+      name.textContent = item.title;
+      button.append(mark, name);
+      button.addEventListener("click", () => openTool(item.slug, false));
+      row.append(button);
+      list.append(row);
+    }
+    section.append(head, list);
+    for (const button of section.querySelectorAll<HTMLButtonElement>(".desk-win-btn")) {
+      const key = button.dataset.labelKey;
+      if (!key) continue;
+      button.setAttribute("aria-label", text(key));
+      button.title = text(key);
+    }
+    return section;
+  }
+
+  function widgetItems(id: WidgetId): { slug: string; title: string }[] {
+    const source = id === "favorites"
+      ? (window.MDT?.favorites.list() ?? [])
+      : (window.MDT?.recent.list() ?? []).map((entry) => entry.slug);
+    const seen = new Set<string>();
+    const items: { slug: string; title: string }[] = [];
+    for (const slug of source) {
+      if (seen.has(slug) || !tools.has(slug)) continue;
+      seen.add(slug);
+      items.push({ slug, title: toolInfo(slug).label });
+    }
+    return items;
+  }
+
+  function reorderWidget(id: WidgetId, delta: -1 | 1): void {
+    const next = shiftWidget(prefs.widgets, id, delta);
+    if (next.join() === prefs.widgets.join()) return;
+    prefs = { ...prefs, widgets: next };
+    scheduleSave();
+    render();
+  }
+
+  function startWidgetDrag(event: PointerEvent, id: WidgetId, head: HTMLElement): void {
+    if (event.button !== 0 || (event.target as HTMLElement).closest("button")) return;
+    const startY = event.clientY;
+    let dragging = false;
+    let drop: { id: WidgetId; after: boolean } | null = null;
+    head.setPointerCapture?.(event.pointerId);
+    const onMove = (ev: PointerEvent) => {
+      if (!dragging && Math.abs(ev.clientY - startY) < 4) return;
+      dragging = true;
+      drop = widgetDrop(ev.clientY, id);
+      widgetHost.querySelectorAll(".is-drop-before, .is-drop-after").forEach((node) => {
+        node.classList.remove("is-drop-before", "is-drop-after");
+      });
+      if (!drop) return;
+      widgetHost.querySelector(`[data-widget="${drop.id}"]`)?.classList.add(drop.after ? "is-drop-after" : "is-drop-before");
+    };
+    const onUp = () => {
+      head.removeEventListener("pointermove", onMove);
+      head.removeEventListener("pointerup", onUp);
+      widgetHost.querySelectorAll(".is-drop-before, .is-drop-after").forEach((node) => {
+        node.classList.remove("is-drop-before", "is-drop-after");
+      });
+      if (!dragging || !drop) return;
+      const next = moveWidget(prefs.widgets, id, drop.id, drop.after);
+      if (next.join() === prefs.widgets.join()) return;
+      prefs = { ...prefs, widgets: next };
+      scheduleSave();
+      render();
+    };
+    head.addEventListener("pointermove", onMove);
+    head.addEventListener("pointerup", onUp);
+  }
+
+  function widgetDrop(clientY: number, dragging: WidgetId): { id: WidgetId; after: boolean } | null {
+    for (const node of widgetHost.querySelectorAll<HTMLElement>("[data-widget]")) {
+      const widgetId = node.dataset.widget;
+      if (widgetId !== "favorites" && widgetId !== "recent") continue;
+      if (widgetId === dragging) continue;
+      const box = node.getBoundingClientRect();
+      if (clientY < box.top || clientY > box.bottom) continue;
+      return { id: widgetId, after: clientY > box.top + box.height / 2 };
+    }
+    return null;
+  }
+
+  function wireWorkspaces(): void {
+    const dialog = must<HTMLDialogElement>("[data-workspaces-dialog]");
+    const renameDialog = must<HTMLDialogElement>("[data-workspace-rename]");
+    const deleteDialog = must<HTMLDialogElement>("[data-workspace-delete]");
+    const nameInput = must<HTMLInputElement>("[data-workspace-name]");
+    const renameInput = must<HTMLInputElement>("[data-workspace-rename-name]");
+    let renameId: string | null = null;
+    let deleteId: string | null = null;
+
+    nameInput.addEventListener("input", () => updateWorkspaceSave());
+    nameInput.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      must<HTMLButtonElement>("[data-workspace-save]").click();
+    });
+    must<HTMLButtonElement>("[data-workspace-save]").addEventListener("click", () => {
+      const name = nameInput.value.trim();
+      const windows = captureWorkspace(state.windows, deskSize());
+      if (!isWorkspaceName(name) || windows.length === 0 || prefs.workspaces.length >= 16) return;
+      prefs = {
+        ...prefs,
+        workspaces: [...prefs.workspaces, { id: crypto.randomUUID(), name, windows }],
+      };
+      nameInput.value = "";
+      scheduleSave();
+      renderWorkspaceList();
+    });
+    must<HTMLButtonElement>("[data-workspace-rename-save]").addEventListener("click", () => {
+      const name = renameInput.value.trim();
+      if (!renameId || !isWorkspaceName(name)) return;
+      prefs = {
+        ...prefs,
+        workspaces: prefs.workspaces.map((workspace) => (workspace.id === renameId ? { ...workspace, name } : workspace)),
+      };
+      renameId = null;
+      scheduleSave();
+      renameDialog.close();
+      renderWorkspaceList();
+    });
+    must<HTMLButtonElement>("[data-workspace-delete-confirm]").addEventListener("click", () => {
+      if (!deleteId) return;
+      prefs = { ...prefs, workspaces: prefs.workspaces.filter((workspace) => workspace.id !== deleteId) };
+      deleteId = null;
+      scheduleSave();
+      deleteDialog.close();
+      renderWorkspaceList();
+    });
+
+    function openWorkspaces(): void {
+      nameInput.value = "";
+      renderWorkspaceList();
+      showDeskDialog(dialog);
+      nameInput.focus();
+    }
+
+    function renderWorkspaceList(): void {
+      const list = must<HTMLElement>("[data-workspace-list]");
+      const empty = must<HTMLElement>("[data-workspace-empty]");
+      list.replaceChildren();
+      empty.hidden = prefs.workspaces.length > 0;
+      for (const workspace of prefs.workspaces) list.append(workspaceCard(workspace));
+      updateWorkspaceSave();
+    }
+
+    function updateWorkspaceSave(): void {
+      const nothing = must<HTMLElement>("[data-workspace-nothing]");
+      const limit = must<HTMLElement>("[data-workspace-limit]");
+      const save = must<HTMLButtonElement>("[data-workspace-save]");
+      const windows = captureWorkspace(state.windows, deskSize());
+      nothing.hidden = windows.length > 0;
+      limit.hidden = prefs.workspaces.length < 16;
+      save.disabled = !isWorkspaceName(nameInput.value.trim()) || windows.length === 0 || prefs.workspaces.length >= 16;
+    }
+
+    function workspaceCard(workspace: SavedWorkspace): HTMLElement {
+      const card = document.createElement("article");
+      card.className = "desk-workspace-card";
+      const heading = document.createElement("h3");
+      heading.textContent = workspace.name;
+      const count = document.createElement("p");
+      count.className = "desk-muted";
+      count.textContent = fill("WorkspaceTools", { count: workspace.windows.length });
+      const actions = document.createElement("div");
+      actions.className = "desk-workspace-actions";
+      actions.append(
+        workspaceButton("AddToOpen", () => void activateWorkspace(workspace, false), true),
+        workspaceButton("ReplaceDesk", () => void activateWorkspace(workspace, true), false),
+        workspaceButton("RenameWorkspace", () => {
+          renameId = workspace.id;
+          renameInput.value = workspace.name;
+          showDeskDialog(renameDialog);
+          renameInput.focus();
+        }, false),
+        workspaceButton("DeleteWorkspace", () => {
+          deleteId = workspace.id;
+          const body = deleteDialog.querySelector("[data-workspace-delete-body]");
+          if (body) body.textContent = fill("DeleteWorkspaceBody", { name: workspace.name });
+          showDeskDialog(deleteDialog);
+        }, false),
+      );
+      card.append(heading, count, actions);
+      return card;
+    }
+
+    function workspaceButton(key: string, onClick: () => void, primary: boolean): HTMLButtonElement {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = primary ? "ds-btn ds-btn-primary" : "ds-btn";
+      button.textContent = text(key);
+      button.addEventListener("click", onClick);
+      return button;
+    }
+
+    async function activateWorkspace(workspace: SavedWorkspace, replace: boolean): Promise<void> {
+      if (replace && dirtyIds(state.windows.map((record) => record.id)).length > 0) {
+        const confirmed = await askDiscard(true, {
+          title: text("ReplaceTitle"),
+          body: text("ReplaceBody"),
+          confirm: text("ReplaceConfirm"),
+        });
+        if (!confirmed) return;
+      }
+      const before = new Set(state.windows.map((record) => record.id));
+      dispatch({
+        type: "apply-workspace",
+        replace,
+        windows: workspace.windows.map((window) => ({
+          id: `tool-${window.slug}-ws-${crypto.randomUUID()}`,
+          slug: window.slug,
+          instance: 1,
+          bounds: denormalizeBounds(window.bounds, deskSize()),
+          mode: window.mode,
+        })),
+      });
+      for (const record of state.windows) {
+        if (!before.has(record.id) && record.kind === "tool") window.MDT?.recent.record(record.slug);
+      }
+      if (dialog.open) dialog.close();
+    }
+
+    document.querySelector("[data-desk-workspaces]")?.addEventListener("click", () => openWorkspaces());
   }
 
   function flushSave(): void {

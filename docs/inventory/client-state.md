@@ -70,7 +70,7 @@ The computer workspace at `/{lang}/desktop/` stores layout and appearance only. 
 | Key | Storage | Shape |
 |---|---|---|
 | `mdt.desktop.layout.v1` | localStorage | `{ v: 1, activeId, windows[] }` — id, kind (`tool` or `folder`), slug, instance, bounds, previousBounds, mode, modeBeforeMinimize, dock, z. Not `concealed`. |
-| `mdt.desktop.prefs.v1` | localStorage | `{ v: 1, preset, fit, dim, hasImage, shortcuts, positions, pinned, iconSize, density, locked, hintDismissed }`. Shortcuts are `cat:<id>` or `tool:<slug>`. `density` is `comfortable` or `compact`. `hintDismissed` hides the shortcut-move hint. Older payloads without those fields stay comfortable and show the hint. |
+| `mdt.desktop.prefs.v1` | localStorage | `{ v: 1, preset, fit, dim, hasImage, shortcuts, positions, pinned, iconSize, density, locked, hintDismissed, workspaces, widgets, widgetsCollapsed }`. Shortcuts are `cat:<id>` or `tool:<slug>`. `density` is `comfortable` or `compact`. `hintDismissed` hides the shortcut-move hint. Older payloads without those fields stay comfortable and show the hint. `workspaces` stores a name plus tool slugs and stage shares (`x`, `y`, `width`, `height` in 0–1, `mode`), never field text. A missing `widgets` list shows Favorites then Recent; `[]` hides the column. `widgetsCollapsed` lists folded widget ids. |
 | `mdt.desktop.entry.v1` | localStorage | `"1"` opens the desktop from the home page. Any other value leaves the catalog. |
 | `mdt.desktop.skip` | sessionStorage | `"1"` while this tab asked to see the catalog. Stops the home-page redirect from bouncing straight back. |
 | IndexedDB `mdt.desktop` / store `files` / key `wallpaper` | blob | Custom JPG, PNG or WebP after an in-browser re-encode. `hasImage` in prefs is only a flag. |

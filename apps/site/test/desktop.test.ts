@@ -3,7 +3,9 @@ import { test } from "node:test";
 import {
   cascadeBounds,
   clampBounds,
+  denormalizeBounds,
   dockBounds,
+  normalizeBounds,
   resizeBounds,
   restoreUnderPointer,
   snapTarget,
@@ -15,6 +17,7 @@ import { desktopReducer } from "../src/desktop/reducer.ts";
 import { arrangeShortcuts, cellSize, moveShortcut, packedPositions } from "../src/desktop/shortcuts.ts";
 import { emptyDesk, type Bounds, type DeskWindow } from "../src/desktop/types.ts";
 import { fittedSize, wallpaperTooSmall } from "../src/desktop/wallpaper.ts";
+import { captureWorkspace, moveWidget, shiftWidget } from "../src/desktop/workspaces.ts";
 
 const desk = { width: 1440, height: 900 };
 const box: Bounds = { x: 80, y: 60, width: 520, height: 360 };
@@ -234,6 +237,8 @@ test("preferences and layout drop unknown versions, slugs and duplicate ids", ()
   assert.deepEqual(prefs?.pinned, []);
   assert.equal(prefs?.density, "comfortable");
   assert.equal(prefs?.hintDismissed, false);
+  assert.deepEqual(prefs?.widgets, ["favorites", "recent"]);
+  assert.deepEqual(prefs?.workspaces, []);
   assert.equal(parsePrefs(JSON.stringify({ v: 1, shortcuts: [] }), slugs, categories)?.shortcuts.length, 0);
   const compact = parsePrefs(JSON.stringify({ v: 1, density: "compact", hintDismissed: true, shortcuts: [] }), slugs, categories);
   assert.equal(compact?.density, "compact");
@@ -262,6 +267,91 @@ test("preferences and layout drop unknown versions, slugs and duplicate ids", ()
   const saved = JSON.parse(serializeLayout({ windows: [tool("a", "hash-calculator")], activeId: "a", concealed: true }));
   assert.equal(saved.concealed, undefined);
   assert.equal(JSON.parse(serializePrefs(defaultPrefs(["encoding"]))).v, 1);
+});
+
+test("a saved layout keeps slug and stage shares and drops typed text", () => {
+  const raw = JSON.stringify({
+    v: 1,
+    shortcuts: [],
+    widgets: ["recent"],
+    widgetsCollapsed: ["favorites", "nope"],
+    workspaces: [
+      {
+        id: "pair",
+        name: "  Pair  ",
+        windows: [
+          { slug: "hash-calculator", bounds: { x: 0, y: 0, width: 0.5, height: 1 }, mode: "normal", query: "secret", text: "hello" },
+          { slug: "missing", bounds: { x: 0.5, y: 0, width: 0.5, height: 1 }, mode: "normal" },
+          { slug: "hash-calculator", bounds: { x: 0, y: 0, width: 1, height: 1 }, mode: "maximized" },
+        ],
+      },
+      { id: "pair", name: "Again", windows: [{ slug: "base64-encoder", bounds: { x: 0, y: 0, width: 1, height: 1 }, mode: "normal" }] },
+      { id: "bad", name: "a\nb", windows: [{ slug: "base64-encoder", bounds: { x: 0, y: 0, width: 1, height: 1 }, mode: "normal" }] },
+      { id: "wide", name: "Wide", windows: [{ slug: "base64-encoder", bounds: { x: 0.2, y: 0, width: 0.9, height: 1 }, mode: "normal" }] },
+    ],
+  });
+  const prefs = parsePrefs(raw, slugs, categories);
+  assert.deepEqual(prefs?.widgets, ["recent"]);
+  assert.deepEqual(prefs?.widgetsCollapsed, ["favorites"]);
+  assert.equal(prefs?.workspaces.length, 1);
+  assert.equal(prefs?.workspaces[0]?.name, "Pair");
+  assert.deepEqual(prefs?.workspaces[0]?.windows, [
+    { slug: "hash-calculator", bounds: { x: 0, y: 0, width: 0.5, height: 1 }, mode: "normal" },
+  ]);
+  const saved = JSON.parse(serializePrefs(prefs!));
+  assert.equal(saved.workspaces[0].windows[0].query, undefined);
+  assert.equal(saved.workspaces[0].windows[0].text, undefined);
+
+  const captured = captureWorkspace(
+    [
+      tool("back", "hash-calculator", { z: 1, bounds: { x: 0, y: 0, width: 720, height: 900 } }),
+      tool("front", "hash-calculator", { z: 3, instance: 2, bounds: { x: 720, y: 0, width: 720, height: 900 } }),
+      tool("other", "base64-encoder", {
+        z: 2,
+        mode: "maximized",
+        bounds: { x: 40, y: 40, width: 500, height: 400 },
+        previousBounds: { x: 40, y: 40, width: 500, height: 400 },
+      }),
+      { ...tool("folder", "encoding", { z: 4 }), kind: "folder" },
+    ],
+    desk,
+  );
+  assert.deepEqual(captured.map((window) => window.slug), ["base64-encoder", "hash-calculator"]);
+  assert.equal(captured[0]?.mode, "maximized");
+  assert.equal(captured[1]?.bounds.x, 0.5);
+  const shares = normalizeBounds({ x: 0, y: 0, width: 720, height: 900 }, desk);
+  assert.ok(shares);
+  const placed = denormalizeBounds(shares, desk);
+  assert.equal(placed.x, 0);
+  assert.ok(placed.width >= 360);
+
+  const added = desktopReducer(
+    { windows: [tool("keep", "hash-calculator", { z: 1 }), tool("copy", "hash-calculator", { z: 2, instance: 2 }), tool("folder", "encoding", { kind: "folder", z: 3 })], activeId: "keep", concealed: true },
+    {
+      type: "apply-workspace",
+      replace: false,
+      windows: [
+        { id: "new-hash", slug: "hash-calculator", instance: 1, bounds: { x: 10, y: 20, width: 400, height: 300 }, mode: "normal" },
+        { id: "new-b64", slug: "base64-encoder", instance: 1, bounds: { x: 500, y: 20, width: 400, height: 300 }, mode: "maximized" },
+      ],
+    },
+  );
+  assert.deepEqual(added.windows.map((window) => window.id), ["keep", "folder", "copy", "new-b64"]);
+  assert.equal(added.windows.find((window) => window.id === "copy")?.bounds.x, 10);
+  assert.equal(added.windows.find((window) => window.id === "new-b64")?.mode, "maximized");
+  assert.equal(added.concealed, false);
+  const replaced = desktopReducer(added, {
+    type: "apply-workspace",
+    replace: true,
+    windows: [{ id: "only", slug: "base64-encoder", instance: 9, bounds: box, mode: "normal" }],
+  });
+  assert.deepEqual(replaced.windows.map((window) => window.id), ["only"]);
+  assert.equal(replaced.activeId, "only");
+
+  assert.deepEqual(moveWidget(["favorites", "recent"], "recent", "favorites", false), ["recent", "favorites"]);
+  assert.deepEqual(moveWidget(["favorites", "recent"], "favorites", "favorites", true), ["favorites", "recent"]);
+  assert.deepEqual(shiftWidget(["favorites", "recent"], "favorites", -1), ["favorites", "recent"]);
+  assert.deepEqual(shiftWidget(["favorites", "recent"], "favorites", 1), ["recent", "favorites"]);
 });
 
 test("dirty input ignores blank text and counts a chosen file", () => {

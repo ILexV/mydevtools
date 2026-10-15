@@ -13,6 +13,37 @@ export const MIN_WINDOW_HEIGHT = 240;
 const CASCADE_SHIFT = 28;
 const FREE_AREA_MIN = 720;
 
+function roundShare(value: number): number {
+  return Math.round(value * 10000) / 10000;
+}
+
+/**
+ * Turn stage pixels into shares of the desk for a saved layout.
+ * Returns null when the stage has no size yet, so a layout is not stored as zeros.
+ */
+export function normalizeBounds(bounds: Bounds, desk: DeskSize): Bounds | null {
+  if (desk.width <= 0 || desk.height <= 0) return null;
+  const width = Math.min(1, Math.max(bounds.width / desk.width, 0.05));
+  const height = Math.min(1, Math.max(bounds.height / desk.height, 0.05));
+  const x = Math.min(Math.max(bounds.x / desk.width, 0), 1 - width);
+  const y = Math.min(Math.max(bounds.y / desk.height, 0), 1 - height);
+  return { x: roundShare(x), y: roundShare(y), width: roundShare(width), height: roundShare(height) };
+}
+
+/** Place a saved share back on the current stage and keep the frame's minimum size. */
+export function denormalizeBounds(fractions: Bounds, desk: DeskSize): Bounds {
+  if (desk.width <= 0 || desk.height <= 0) return { x: 16, y: 16, width: MIN_WINDOW_WIDTH, height: MIN_WINDOW_HEIGHT };
+  return clampBounds(
+    {
+      x: fractions.x * desk.width,
+      y: fractions.y * desk.height,
+      width: fractions.width * desk.width,
+      height: fractions.height * desk.height,
+    },
+    desk,
+  );
+}
+
 export function clampBounds(bounds: Bounds, desk: DeskSize): Bounds {
   if (desk.width <= 0 || desk.height <= 0) return bounds;
   const width = Math.min(Math.max(bounds.width, Math.min(MIN_WINDOW_WIDTH, desk.width)), desk.width);

@@ -144,6 +144,140 @@ body.desk {
   line-height: 1.35;
 }
 
+/* Favorites and recent sit on the wallpaper, under windows, to the right of shortcuts. */
+.desk-widgets {
+  position: absolute;
+  z-index: 1;
+  top: 0.5rem;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  width: 16.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: auto;
+}
+
+.desk-hint:not([hidden]) ~ .desk-widgets {
+  top: 4.6rem;
+}
+
+.desk-widget {
+  flex: none;
+  border: 1px solid var(--mdt-border);
+  border-radius: var(--mdt-radius-sm);
+  background: color-mix(in srgb, var(--mdt-surface-raised) 88%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+.desk-widget-head {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.3rem 0.35rem 0.3rem 0.6rem;
+  cursor: grab;
+  user-select: none;
+}
+
+.desk-widget-head h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.desk-widget-peek {
+  color: var(--mdt-text-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.desk-widget.is-collapsed .desk-widget-body {
+  display: none;
+}
+
+.desk-widget.is-drop-before {
+  box-shadow: inset 0 2px 0 var(--mdt-accent);
+}
+
+.desk-widget.is-drop-after {
+  box-shadow: inset 0 -2px 0 var(--mdt-accent);
+}
+
+.desk-widget-body {
+  margin: 0;
+  padding: 0 0.35rem 0.4rem;
+  list-style: none;
+}
+
+.desk-widget-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.28rem 0.35rem;
+  border: 0;
+  border-radius: var(--mdt-radius-sm);
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.desk-widget-item:hover {
+  background: color-mix(in srgb, var(--mdt-accent) 12%, transparent);
+}
+
+.desk-widget-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, var(--mdt-accent) 18%, var(--mdt-surface));
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.desk-workspace-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0.8rem 0;
+}
+
+.desk-workspace-card {
+  padding: 0.75rem;
+  border: 1px solid var(--mdt-border);
+  border-radius: var(--mdt-radius-sm);
+}
+
+.desk-workspace-card h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.desk-workspace-card p {
+  margin: 0.2rem 0 0.55rem;
+}
+
+.desk-workspace-actions,
+.desk-workspace-save {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: end;
+}
+
+.desk-workspace-save {
+  margin-top: 0.9rem;
+}
+
+.desk-workspace-save .desk-field {
+  flex: 1;
+  min-width: 12rem;
+}
+
 body.desk[data-icon-size="large"] .desk-icon-tile {
   width: 3.6rem;
   height: 3.6rem;

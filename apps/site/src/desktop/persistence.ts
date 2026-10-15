@@ -8,6 +8,17 @@
 
 import type { Bounds, DeskState, DeskWindow, ShortcutPositions } from "./types.ts";
 import { WALLPAPER_PRESETS, type WallpaperPresetId } from "./wallpaper.ts";
+import {
+  DEFAULT_WIDGETS,
+  MAX_WORKSPACE_WINDOWS,
+  MAX_WORKSPACES,
+  isWidgetId,
+  isWorkspaceId,
+  isWorkspaceName,
+  type SavedWorkspace,
+  type WidgetId,
+  type WorkspaceWindow,
+} from "./workspaces.ts";
 
 export const LAYOUT_KEY = "mdt.desktop.layout.v1";
 export const PREFS_KEY = "mdt.desktop.prefs.v1";
@@ -35,6 +46,12 @@ export interface DeskPrefs {
   locked: boolean;
   /** The shortcut-move hint stays hidden after the person dismisses it. */
   hintDismissed: boolean;
+  /** Named layouts: tool slugs and stage shares only. Missing on older records. */
+  workspaces: SavedWorkspace[];
+  /** Visible widget column, top to bottom. An empty list hides the column. */
+  widgets: WidgetId[];
+  /** Widgets whose body is folded. The choice survives hiding and showing them. */
+  widgetsCollapsed: WidgetId[];
 }
 
 export function defaultPrefs(categoryIds: readonly string[]): DeskPrefs {
@@ -50,6 +67,9 @@ export function defaultPrefs(categoryIds: readonly string[]): DeskPrefs {
     density: "comfortable",
     locked: false,
     hintDismissed: false,
+    workspaces: [],
+    widgets: [...DEFAULT_WIDGETS],
+    widgetsCollapsed: [],
   };
 }
 
@@ -126,7 +146,57 @@ export function parsePrefs(
     density: parsed.density === "compact" ? "compact" : "comfortable",
     locked: parsed.locked === true,
     hintDismissed: parsed.hintDismissed === true,
+    workspaces: readWorkspaces(parsed.workspaces, slugs),
+    widgets: readWidgets(parsed.widgets, [...DEFAULT_WIDGETS]),
+    widgetsCollapsed: readWidgets(parsed.widgetsCollapsed, []),
   };
+}
+
+function readWidgets(value: unknown, fallback: WidgetId[]): WidgetId[] {
+  if (!Array.isArray(value)) return fallback;
+  const result: WidgetId[] = [];
+  for (const item of value) {
+    if (isWidgetId(item) && !result.includes(item)) result.push(item);
+  }
+  return result;
+}
+
+/** Keep layouts that still name a known tool. Extra fields such as typed text are not copied. */
+function readWorkspaces(value: unknown, slugs: ReadonlySet<string>): SavedWorkspace[] {
+  if (!Array.isArray(value)) return [];
+  const result: SavedWorkspace[] = [];
+  const ids = new Set<string>();
+  for (const candidate of value) {
+    if (result.length >= MAX_WORKSPACES) break;
+    if (!isRecord(candidate) || typeof candidate.id !== "string" || typeof candidate.name !== "string") continue;
+    const name = candidate.name.trim();
+    if (!isWorkspaceId(candidate.id) || ids.has(candidate.id) || !isWorkspaceName(name)) continue;
+    if (!Array.isArray(candidate.windows)) continue;
+    const windows: WorkspaceWindow[] = [];
+    const seen = new Set<string>();
+    for (const item of candidate.windows) {
+      if (windows.length >= MAX_WORKSPACE_WINDOWS) break;
+      if (!isRecord(item) || typeof item.slug !== "string" || !slugs.has(item.slug) || seen.has(item.slug)) continue;
+      const bounds = readFractionBounds(item.bounds);
+      if (!bounds) continue;
+      if (item.mode !== "normal" && item.mode !== "maximized") continue;
+      seen.add(item.slug);
+      windows.push({ slug: item.slug, bounds, mode: item.mode });
+    }
+    if (windows.length === 0) continue;
+    ids.add(candidate.id);
+    result.push({ id: candidate.id, name, windows });
+  }
+  return result;
+}
+
+function readFractionBounds(value: unknown): Bounds | null {
+  const bounds = readBounds(value);
+  if (!bounds) return null;
+  if (bounds.x < 0 || bounds.y < 0 || bounds.width > 1 || bounds.height > 1) return null;
+  if (bounds.x > 1 || bounds.y > 1) return null;
+  if (bounds.x + bounds.width > 1.001 || bounds.y + bounds.height > 1.001) return null;
+  return bounds;
 }
 
 export function serializePrefs(prefs: DeskPrefs): string {

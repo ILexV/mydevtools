@@ -329,12 +329,16 @@ function init(): void {
         showError(error);
       },
     });
-    // The shared table sizes every column equally. A 16-byte hex row needs the wide track.
+    // Shared table gives every column the same min. A dump row is fixed-width
+    // glyphs: 10 hex digits of offset, 48 columns of grouped hex, 16 of ASCII
+    // and 16 of UTF-8, plus the cell padding. Tracks grow across the full
+    // panel. The row is at least that glyph width, so a narrow window scrolls
+    // inside the table instead of clipping the hex.
     tableHost.style.setProperty(
       "--ds-explorer-template",
-      "4.5rem minmax(7.5rem, 0.7fr) minmax(26rem, 2.6fr) minmax(9.5rem, 1fr) minmax(9.5rem, 1.2fr)",
+      "3.25rem minmax(calc(10ch + 0.8rem), 0.5fr) minmax(calc(48ch + 0.8rem), 2.6fr) minmax(calc(16ch + 0.8rem), 1fr) minmax(calc(16ch + 0.8rem), 1.1fr)",
     );
-    tableHost.style.setProperty("--ds-explorer-width", "58rem");
+    tableHost.style.setProperty("--ds-explorer-width", "max(100%, calc(6.45rem + 90ch))");
     table.setRowCount(hexRowCount(opened.file.size));
   }
 

@@ -25,9 +25,13 @@ const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key
 const stringsJson = JSON.stringify({ ...strings, Lang: lang });
 ---
 
-<div class="ds-workbench hx-workbench" data-hex-tool>
+<div class="ds-workbench ds-workbench-single hx-workbench" data-hex-tool>
   <ToolPanel title={t(lang, ns, "DropTitle")}>
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small" data-hex-clear>{t(lang, ns, "Clear")}</button>
+    </Fragment>
     <FileDrop
+      compact
       title={t(lang, ns, "DropTitle")}
       buttonLabel={t(lang, ns, "DropButton")}
       changeLabel={t(lang, ns, "DropChange")}
@@ -36,9 +40,6 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang });
       inputProps={{ "data-hex-file": true }}
     />
     <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
-    <div class="ds-action-row">
-      <button type="button" class="ds-btn" data-hex-clear>{t(lang, ns, "Clear")}</button>
-    </div>
     <Progress
       title={t(lang, ns, "ProgressTitle")}
       barLabel={t(lang, ns, "ProgressTitle")}
@@ -126,12 +127,20 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang });
 
 <style>
   .hx-workbench { align-items: start; }
+  /* Same face as the dump cells, so the controller's ch column tracks match the glyphs. */
+  .hx-table {
+    min-width: 0;
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-small);
+  }
+  .hx-table :global(.ds-explorer-cell) {
+    padding-inline: 0.4rem;
+  }
   .hx-results { display: grid; gap: 1rem; min-width: 0; }
   .hx-section { display: grid; gap: 0.65rem; min-width: 0; }
   .hx-section + .hx-section { padding-top: 0.9rem; border-top: 1px solid var(--mdt-border-soft); }
   .hx-summary { margin: 0; font-size: var(--mdt-fs-label); color: var(--mdt-text-muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
   .hx-header { margin: 0; font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-small); overflow-wrap: anywhere; }
-  .hx-table { min-width: 0; }
   .hx-matches { display: flex; flex-wrap: wrap; gap: 0.35rem; max-height: 8.5rem; overflow: auto; }
   .hx-matches :global(.hx-match) { font-family: var(--mdt-font-mono); }
   .hx-entropy {

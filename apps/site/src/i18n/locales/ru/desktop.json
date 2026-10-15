@@ -100,5 +100,14 @@
   "MoveWidgetUp": "Выше",
   "MoveWidgetDown": "Ниже",
   "WidgetActions": "Действия виджета",
-  "EmptyDesktop": "Стол пуст. Откройте каталог и закрепите инструмент."
+  "EmptyDesktop": "Стол пуст. Откройте каталог и закрепите инструмент.",
+  "AllTools": "Все инструменты",
+  "OnDesktop": "На рабочем столе",
+  "WindowMenu": "Меню окна",
+  "IconsSection": "Значки",
+  "StartSection": "Запуск и окна",
+  "ChooseImage": "Выбрать картинку",
+  "Minimized": "Свёрнуто",
+  "ToolsCount": "Инструментов: {count}",
+  "Placement": "Размещение"
 }

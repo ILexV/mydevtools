@@ -244,7 +244,7 @@ test("preferences and layout drop unknown versions, slugs and duplicate ids", ()
   assert.equal(compact?.density, "compact");
   assert.equal(compact?.hintDismissed, true);
   assert.ok(cellSize("regular", "compact").w < cellSize("regular", "comfortable").w);
-  assert.deepEqual(cellSize("large"), { w: 120, h: 128 });
+  assert.deepEqual(cellSize("large"), { w: 136, h: 132 });
   assert.equal(parseLayout("{", slugs, categories), null);
   assert.equal(parseLayout(JSON.stringify({ v: 9, windows: [] }), slugs, categories), null);
   const layout = parseLayout(

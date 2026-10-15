@@ -100,5 +100,14 @@
   "MoveWidgetUp": "Mover para cima",
   "MoveWidgetDown": "Mover para baixo",
   "WidgetActions": "Ações do widget",
-  "EmptyDesktop": "A área de trabalho está vazia. Abra o catálogo para fixar uma ferramenta."
+  "EmptyDesktop": "A área de trabalho está vazia. Abra o catálogo para fixar uma ferramenta.",
+  "AllTools": "Todas as ferramentas",
+  "OnDesktop": "Na área de trabalho",
+  "WindowMenu": "Menu da janela",
+  "IconsSection": "Ícones",
+  "StartSection": "Início e janelas",
+  "ChooseImage": "Escolher uma imagem",
+  "Minimized": "Minimizada",
+  "ToolsCount": "Ferramentas: {count}",
+  "Placement": "Ajuste"
 }

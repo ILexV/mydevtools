@@ -100,5 +100,14 @@
   "MoveWidgetUp": "Monter",
   "MoveWidgetDown": "Descendre",
   "WidgetActions": "Actions du widget",
-  "EmptyDesktop": "Le bureau est vide. Ouvrez le catalogue pour épingler un outil."
+  "EmptyDesktop": "Le bureau est vide. Ouvrez le catalogue pour épingler un outil.",
+  "AllTools": "Tous les outils",
+  "OnDesktop": "Sur le bureau",
+  "WindowMenu": "Menu de la fenêtre",
+  "IconsSection": "Icônes",
+  "StartSection": "Démarrage et fenêtres",
+  "ChooseImage": "Choisir une image",
+  "Minimized": "Réduite",
+  "ToolsCount": "Outils : {count}",
+  "Placement": "Ajustement"
 }

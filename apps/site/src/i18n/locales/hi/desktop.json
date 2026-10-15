@@ -100,5 +100,14 @@
   "MoveWidgetUp": "ऊपर",
   "MoveWidgetDown": "नीचे",
   "WidgetActions": "विजेट क्रियाएँ",
-  "EmptyDesktop": "डेस्कटॉप खाली है। उपकरण पिन करने के लिए कैटलॉग खोलें।"
+  "EmptyDesktop": "डेस्कटॉप खाली है। उपकरण पिन करने के लिए कैटलॉग खोलें।",
+  "AllTools": "सभी टूल",
+  "OnDesktop": "डेस्कटॉप पर",
+  "WindowMenu": "विंडो मेनू",
+  "IconsSection": "आइकन",
+  "StartSection": "शुरुआत और विंडो",
+  "ChooseImage": "तस्वीर चुनें",
+  "Minimized": "छोटा किया गया",
+  "ToolsCount": "टूल: {count}",
+  "Placement": "स्थान"
 }

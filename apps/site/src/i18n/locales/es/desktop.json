@@ -100,5 +100,14 @@
   "MoveWidgetUp": "Subir",
   "MoveWidgetDown": "Bajar",
   "WidgetActions": "Acciones del widget",
-  "EmptyDesktop": "El escritorio está vacío. Abre el catálogo para fijar una herramienta."
+  "EmptyDesktop": "El escritorio está vacío. Abre el catálogo para fijar una herramienta.",
+  "AllTools": "Todas las herramientas",
+  "OnDesktop": "En el escritorio",
+  "WindowMenu": "Menú de la ventana",
+  "IconsSection": "Iconos",
+  "StartSection": "Inicio y ventanas",
+  "ChooseImage": "Elegir una imagen",
+  "Minimized": "Minimizada",
+  "ToolsCount": "Herramientas: {count}",
+  "Placement": "Ajuste"
 }

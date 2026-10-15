@@ -100,5 +100,14 @@
   "MoveWidgetUp": "Move up",
   "MoveWidgetDown": "Move down",
   "WidgetActions": "Widget actions",
-  "EmptyDesktop": "The desktop is empty. Open the catalog to pin a tool."
+  "EmptyDesktop": "The desktop is empty. Open the catalog to pin a tool.",
+  "AllTools": "All tools",
+  "OnDesktop": "On the desktop",
+  "WindowMenu": "Window menu",
+  "IconsSection": "Icons",
+  "StartSection": "Start and windows",
+  "ChooseImage": "Choose a picture",
+  "Minimized": "Minimized",
+  "ToolsCount": "{count} tools",
+  "Placement": "Placement"
 }

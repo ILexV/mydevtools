@@ -50,6 +50,10 @@ const payload = {
     icon: iconBody(category.iconKey),
   })),
   strings,
+  // Window chrome, launcher and widgets draw these in the browser.
+  icons: Object.fromEntries(
+    (["star", "help", "more", "minimize", "maximize", "restore", "close", "external", "tile", "chevron", "plus", "check", "history", "folder", "windows", "apps", "desktop", "settings", "lock"] as const).map((name) => [name, ICONS[name]]),
+  ),
 };
 const payloadJson = JSON.stringify(payload).replace(/</g, "\\u003c");
 const label = (key: string) => t(lang, "desktop", key);
@@ -79,136 +83,184 @@ const label = (key: string) => t(lang, "desktop", key);
   </head>
   <body class="desk">
     <h1 class="visually-hidden">{title}</h1>
+    <div class="desk-bg wp-dusk" data-desk-bg aria-hidden="true">
+      <span class="desk-bg-blur"></span>
+      <span class="desk-bg-photo"></span>
+      <span class="desk-bg-dim"></span>
+    </div>
     <header class="desk-top">
       <a class="desk-brand" href={homeHref} data-desk-exit>
-        <span class="desk-brand-mark"><Icon name="logo-mark" size={14} /></span>
-        {siteName}
+        <span class="desk-brand-mark"><Icon name="logo-mark" size={15} /></span>
+        <span>{siteName}</span>
       </a>
-      <button type="button" class="ds-btn" data-desk-search>
-        <Icon name="search" size={14} />
-        {label("Search")}
+      <button type="button" class="desk-search" data-desk-search aria-keyshortcuts="Control+K Meta+K">
+        <Icon name="search" size={15} />
+        <span class="desk-search-label">{label("SearchPlaceholder")}</span>
+        <kbd>Ctrl K</kbd>
       </button>
-      <button type="button" class="ds-btn" data-desk-catalog>{label("Catalog")}</button>
       <span class="desk-top-spacer"></span>
-      <button type="button" class="ds-icon-btn desk-theme" data-theme-toggle aria-label={label("Theme")} title={label("Theme")}>
-        <span class="icon-sun"><Icon name="sun" size={16} /></span>
-        <span class="icon-moon"><Icon name="moon" size={16} /></span>
+      <button type="button" class="desk-top-btn desk-theme" data-theme-toggle aria-label={label("Theme")} title={label("Theme")}>
+        <span class="icon-sun"><Icon name="sun" size={17} /></span>
+        <span class="icon-moon"><Icon name="moon" size={17} /></span>
       </button>
       <details class="desk-lang">
-        <summary class="ds-icon-btn" aria-label={t(lang, "common", "Language")}>
-          <Icon name="globe" size={16} />
+        <summary class="desk-top-btn desk-lang-btn" aria-label={t(lang, "common", "Language")} title={t(lang, "common", "Language")}>
+          <Icon name="globe" size={17} />
           <span>{lang.toUpperCase()}</span>
         </summary>
         <div class="desk-lang-list">
           {LOCALES.map((locale) => (
-            <a href={localizedPath(locale.code, "desktop")} hreflang={locale.bcp47} aria-current={locale.code === lang ? "true" : undefined}>
+            <a href={localizedPath(locale.code, "desktop")} hreflang={locale.bcp47} lang={locale.bcp47} aria-current={locale.code === lang ? "true" : undefined}>
               {locale.nativeName}
             </a>
           ))}
         </div>
       </details>
-      <button type="button" class="ds-btn" data-desk-settings>{label("Settings")}</button>
-      <a class="ds-btn" href={homeHref} data-desk-exit>{label("BackToCatalog")}</a>
+      <button type="button" class="desk-top-btn" data-desk-settings aria-label={label("Settings")} title={label("Settings")}>
+        <Icon name="settings" size={17} />
+      </button>
+      <a class="desk-top-btn desk-exit" href={homeHref} data-desk-exit>
+        <Icon name="exit" size={16} />
+        <span>{label("BackToCatalog")}</span>
+      </a>
     </header>
 
     <div class="desk-stage" data-desk-stage>
-      <div class="desk-bg wp-dusk" data-desk-bg>
-        <span class="desk-bg-blur" aria-hidden="true"></span>
-        <span class="desk-bg-photo" aria-hidden="true"></span>
-        <span class="desk-bg-dim" aria-hidden="true"></span>
-      </div>
       <div class="desk-icons" data-desk-icons></div>
-      <div class="desk-hint" data-desk-hint>
-        <p id="desk-move-hint">{label("MoveHint")}</p>
-        <button type="button" class="ds-btn" data-hint-dismiss>{label("MoveHintDismiss")}</button>
-      </div>
       <aside class="desk-widgets" data-desk-widgets hidden></aside>
       <div class="desk-windows" data-desk-windows></div>
       <div class="desk-snap" data-desk-snap hidden></div>
+      <div class="desk-hint" data-desk-hint>
+        <p id="desk-move-hint">{label("MoveHint")}</p>
+        <button type="button" class="ds-btn ds-btn-small" data-hint-dismiss>{label("MoveHintDismiss")}</button>
+      </div>
     </div>
 
     <footer class="desk-taskbar" aria-label={label("Taskbar")}>
-      <button type="button" class="ds-icon-btn" data-desk-show aria-label={label("ShowDesktop")} title={label("ShowDesktop")}>
-        <Icon name="menu" size={16} />
+      <button type="button" class="desk-launch" data-desk-catalog aria-haspopup="dialog">
+        <Icon name="apps" size={17} />
+        <span>{label("AllTools")}</span>
       </button>
       <div class="desk-tasks" data-desk-tasks></div>
-      <button type="button" class="ds-btn" data-desk-workspaces>{label("Workspaces")}</button>
-      <button type="button" class="ds-btn" data-desk-overview>
-        {label("Overview")}
-        <span class="desk-count" data-desk-count hidden>0</span>
-      </button>
+      <div class="desk-tray">
+        <button type="button" class="desk-tray-btn" data-desk-workspaces aria-label={label("Workspaces")} title={label("Workspaces")}>
+          <Icon name="layers" size={17} />
+        </button>
+        <button type="button" class="desk-tray-btn" data-desk-overview aria-label={label("Overview")} title={label("Overview")}>
+          <Icon name="windows" size={17} />
+          <span class="desk-count" data-desk-count hidden>0</span>
+        </button>
+        <button type="button" class="desk-tray-btn" data-desk-show aria-label={label("ShowDesktop")} title={label("ShowDesktop")}>
+          <Icon name="desktop" size={17} />
+        </button>
+        <span class="desk-clock" data-desk-clock aria-hidden="true">
+          <span data-clock-time></span>
+          <span data-clock-date></span>
+        </span>
+      </div>
     </footer>
 
     <div class="desk-menu" data-desk-menu role="menu" hidden></div>
 
-    <dialog class="desk-dialog" data-catalog-dialog aria-labelledby="desk-catalog-title">
+    <dialog class="desk-dialog desk-launcher" data-catalog-dialog aria-labelledby="desk-catalog-title">
       <div class="desk-dialog-head">
-        <h2 id="desk-catalog-title">{label("Catalog")}</h2>
-        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")}>×</button>
+        <h2 id="desk-catalog-title">{label("AllTools")}</h2>
+        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")} title={label("Close")}><Icon name="close" size={16} /></button>
       </div>
-      <div class="desk-dialog-body">
-        <input class="ds-field" type="search" data-catalog-input placeholder={label("SearchPlaceholder")} aria-label={label("Search")} />
-        <div data-catalog-results></div>
+      <div class="desk-launcher-search">
+        <Icon name="search" size={17} />
+        <input type="search" data-catalog-input placeholder={label("SearchPlaceholder")} aria-label={label("Search")} autocomplete="off" />
+      </div>
+      <div class="desk-launcher-main">
+        <nav class="desk-launcher-nav" data-catalog-nav aria-label={label("Catalog")}></nav>
+        <div class="desk-launcher-results" data-catalog-results></div>
       </div>
     </dialog>
 
-    <dialog class="desk-dialog" data-settings-dialog aria-labelledby="desk-settings-title">
+    <dialog class="desk-dialog desk-settings" data-settings-dialog aria-labelledby="desk-settings-title">
       <div class="desk-dialog-head">
         <h2 id="desk-settings-title">{label("Settings")}</h2>
-        <button type="button" class="desk-win-btn" data-settings-cancel aria-label={label("Cancel")}>×</button>
+        <button type="button" class="desk-win-btn" data-settings-cancel aria-label={label("Cancel")} title={label("Cancel")}><Icon name="close" size={16} /></button>
       </div>
-      <div class="desk-dialog-body desk-settings-grid">
-        <section>
+      <div class="desk-dialog-body">
+        <section class="desk-set-section">
           <h3>{label("Wallpaper")}</h3>
           <div class="desk-swatches" role="radiogroup" aria-label={label("Wallpaper")}>
             {WALLPAPER_PRESETS.map((preset) => (
-              <button
-                type="button"
-                class={`desk-swatch wp-${preset.id}`}
-                data-preset={preset.id}
-                role="radio"
-                aria-checked="false"
-                aria-label={label(preset.labelKey)}
-              />
+              <button type="button" class="desk-swatch" data-preset={preset.id} role="radio" aria-checked="false" aria-label={label(preset.labelKey)}>
+                <span class={`desk-swatch-art wp-${preset.id}`}></span>
+                <span class="desk-swatch-name">{label(preset.labelKey)}</span>
+              </button>
             ))}
           </div>
-          <label class="desk-field">
-            {label("Dim")}
-            <input type="range" min="0" max="60" step="1" data-dim value="0" />
-          </label>
-          <div class="desk-choice">
-            <label class="desk-choice"><input type="radio" name="desk-fit" value="cover" data-fit checked />{label("FitCover")}</label>
-            <label class="desk-choice"><input type="radio" name="desk-fit" value="contain" data-fit />{label("FitContain")}</label>
+          <div class="desk-set-row">
+            <span class="desk-set-label">{label("CustomImage")}</span>
+            <div class="desk-set-control">
+              <label class="ds-btn ds-btn-small desk-file">
+                <Icon name="upload" size={15} />
+                {label("ChooseImage")}
+                <input type="file" accept="image/jpeg,image/png,image/webp" data-wallpaper-file />
+              </label>
+              <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-remove-image>{label("RemoveImage")}</button>
+            </div>
           </div>
-          <label class="desk-field">
-            {label("CustomImage")}
-            <input type="file" accept="image/jpeg,image/png,image/webp" data-wallpaper-file />
-          </label>
           <p class="desk-warning" data-image-warning hidden>{label("ImageTooSmall")}</p>
-          <button type="button" class="ds-btn" data-remove-image>{label("RemoveImage")}</button>
+          <div class="desk-set-row">
+            <span class="desk-set-label">{label("Placement")}</span>
+            <div class="desk-seg" role="radiogroup" aria-label={label("Placement")}>
+              <label><input type="radio" name="desk-fit" value="cover" data-fit checked /><span>{label("FitCover")}</span></label>
+              <label><input type="radio" name="desk-fit" value="contain" data-fit /><span>{label("FitContain")}</span></label>
+            </div>
+          </div>
+          <label class="desk-set-row">
+            <span class="desk-set-label">{label("Dim")}</span>
+            <span class="desk-set-control desk-range">
+              <input type="range" min="0" max="60" step="1" data-dim value="0" />
+              <output data-dim-value>0%</output>
+            </span>
+          </label>
         </section>
-        <section>
-          <h3>{label("IconSize")}</h3>
-          <div class="desk-choice">
-            <label class="desk-choice"><input type="radio" name="desk-icon-size" value="regular" data-icon-size checked />{label("IconRegular")}</label>
-            <label class="desk-choice"><input type="radio" name="desk-icon-size" value="large" data-icon-size />{label("IconLarge")}</label>
+        <section class="desk-set-section">
+          <h3>{label("IconsSection")}</h3>
+          <div class="desk-set-row">
+            <span class="desk-set-label">{label("IconSize")}</span>
+            <div class="desk-seg" role="radiogroup" aria-label={label("IconSize")}>
+              <label><input type="radio" name="desk-icon-size" value="regular" data-icon-size checked /><span>{label("IconRegular")}</span></label>
+              <label><input type="radio" name="desk-icon-size" value="large" data-icon-size /><span>{label("IconLarge")}</span></label>
+            </div>
           </div>
-          <h3>{label("Density")}</h3>
-          <div class="desk-choice">
-            <label class="desk-choice"><input type="radio" name="desk-density" value="comfortable" data-density checked />{label("DensityComfortable")}</label>
-            <label class="desk-choice"><input type="radio" name="desk-density" value="compact" data-density />{label("DensityCompact")}</label>
+          <div class="desk-set-row">
+            <span class="desk-set-label">{label("Density")}</span>
+            <div class="desk-seg" role="radiogroup" aria-label={label("Density")}>
+              <label><input type="radio" name="desk-density" value="comfortable" data-density checked /><span>{label("DensityComfortable")}</span></label>
+              <label><input type="radio" name="desk-density" value="compact" data-density /><span>{label("DensityCompact")}</span></label>
+            </div>
           </div>
-          <label class="desk-choice"><input type="checkbox" data-lock />{label("LockIcons")}</label>
-          <div class="desk-choice">
-            <button type="button" class="ds-btn" data-align>{label("AlignIcons")}</button>
-            <button type="button" class="ds-btn" data-restore-icons>{label("RestoreIcons")}</button>
+          <label class="desk-set-row">
+            <span class="desk-set-label">{label("LockIcons")}</span>
+            <input class="ds-switch" type="checkbox" data-lock />
+          </label>
+          <div class="desk-set-actions">
+            <button type="button" class="ds-btn ds-btn-small" data-align>{label("AlignIcons")}</button>
+            <button type="button" class="ds-btn ds-btn-small" data-restore-icons>{label("RestoreIcons")}</button>
           </div>
         </section>
-        <section>
-          <label class="desk-choice"><input type="checkbox" data-remember />{label("Remember")}</label>
-          <p class="desk-muted">{label("RememberHint")}</p>
-          <button type="button" class="ds-btn" data-reset-layout>{label("ResetLayout")}</button>
-          <p class="desk-muted">{label("ResetLayoutHint")}</p>
+        <section class="desk-set-section">
+          <h3>{label("StartSection")}</h3>
+          <label class="desk-set-row">
+            <span class="desk-set-label">
+              {label("Remember")}
+              <small>{label("RememberHint")}</small>
+            </span>
+            <input class="ds-switch" type="checkbox" data-remember />
+          </label>
+          <div class="desk-set-row">
+            <span class="desk-set-label">
+              {label("ResetLayout")}
+              <small>{label("ResetLayoutHint")}</small>
+            </span>
+            <button type="button" class="ds-btn ds-btn-small" data-reset-layout>{label("ResetLayout")}</button>
+          </div>
         </section>
       </div>
       <div class="desk-dialog-actions">
@@ -220,12 +272,14 @@ const label = (key: string) => t(lang, "desktop", key);
     <dialog class="desk-dialog" data-overview-dialog aria-labelledby="desk-overview-title">
       <div class="desk-dialog-head">
         <h2 id="desk-overview-title">{label("Overview")}</h2>
-        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")}>×</button>
+        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")} title={label("Close")}><Icon name="close" size={16} /></button>
       </div>
       <div class="desk-dialog-body">
-        <input class="ds-field" type="search" data-overview-input placeholder={label("SearchPlaceholder")} aria-label={label("Search")} />
-        <div data-overview-list></div>
-        <button type="button" class="ds-btn" data-close-others>{label("CloseOthers")}</button>
+        <input class="ds-field" type="search" data-overview-input placeholder={label("SearchPlaceholder")} aria-label={label("Search")} autocomplete="off" />
+        <div class="desk-overview-list" data-overview-list></div>
+      </div>
+      <div class="desk-dialog-actions">
+        <button type="button" class="ds-btn ds-btn-small" data-close-others>{label("CloseOthers")}</button>
       </div>
     </dialog>
 
@@ -245,7 +299,7 @@ const label = (key: string) => t(lang, "desktop", key);
     <dialog class="desk-dialog desk-dialog-narrow" data-help-dialog aria-labelledby="desk-help-title">
       <div class="desk-dialog-head">
         <h2 id="desk-help-title" data-help-title>{label("Help")}</h2>
-        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")}>×</button>
+        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")} title={label("Close")}><Icon name="close" size={16} /></button>
       </div>
       <div class="desk-dialog-body">
         <p data-help-body></p>
@@ -255,7 +309,7 @@ const label = (key: string) => t(lang, "desktop", key);
     <dialog class="desk-dialog" data-workspaces-dialog aria-labelledby="desk-workspaces-title">
       <div class="desk-dialog-head">
         <h2 id="desk-workspaces-title">{label("WorkspacesTitle")}</h2>
-        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")}>×</button>
+        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")} title={label("Close")}><Icon name="close" size={16} /></button>
       </div>
       <div class="desk-dialog-body">
         <p class="desk-muted">{label("WorkspacesHint")}</p>
@@ -276,7 +330,7 @@ const label = (key: string) => t(lang, "desktop", key);
     <dialog class="desk-dialog desk-dialog-narrow" data-workspace-rename aria-labelledby="desk-workspace-rename-title">
       <div class="desk-dialog-head">
         <h2 id="desk-workspace-rename-title">{label("RenameWorkspace")}</h2>
-        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")}>×</button>
+        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")} title={label("Close")}><Icon name="close" size={16} /></button>
       </div>
       <div class="desk-dialog-body">
         <label class="desk-field">
@@ -306,7 +360,7 @@ const label = (key: string) => t(lang, "desktop", key);
     <dialog class="desk-dialog desk-dialog-narrow" data-tile-dialog aria-labelledby="desk-tile-title">
       <div class="desk-dialog-head">
         <h2 id="desk-tile-title">{label("TileWith")}</h2>
-        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")}>×</button>
+        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")} title={label("Close")}><Icon name="close" size={16} /></button>
       </div>
       <div class="desk-dialog-body">
         <div class="desk-tile-list" data-tile-list></div>

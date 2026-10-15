@@ -24,6 +24,11 @@ html.is-embed .tool {
   padding: 0.75rem 0.9rem 1.1rem;
 }
 
+/* The hidden tool head leaves its spacing on the body; a window title already names the tool. */
+html.is-embed .tool-body {
+  margin-top: 0;
+}
+
 html.is-embed body {
   background: var(--mdt-surface);
   min-height: 100%;

@@ -53,12 +53,22 @@ interface Payload {
   tools: ToolInfo[];
   categories: CategoryInfo[];
   strings: Record<string, string>;
+  icons: Record<string, string>;
+}
+
+/** What a tile needs: a category colour and either a category glyph or a tool monogram. */
+interface TileInfo {
+  label: string;
+  mark: string;
+  category: string;
+  icon?: string;
 }
 
 /** A context-menu row. `checked` draws a tick and uses menuitemradio. */
 type MenuEntry =
   | { kind: "label"; label: string }
-  | { kind: "item"; label: string; checked?: boolean; run: () => void };
+  | { kind: "item"; label: string; checked?: boolean; icon?: string; run: () => void }
+  | { kind: "separator" };
 
 const EDGES: ResizeEdge[] = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
 
@@ -77,6 +87,9 @@ export function bootDesktop(): void {
   const slugs = new Set(tools.keys());
   const categoryIds = new Set(categories.keys());
   const text = (key: string) => payload.strings[key] || key;
+  const glyph = (name: string, size = 16) => svgWrap(payload.icons[name] || "", size);
+  /** Launcher filter: every tool, only what is on the desk, or one category. */
+  let catalogScope = "all";
 
   let prefs = parsePrefs(readKey(PREFS_KEY), slugs, categoryIds) ?? defaultPrefs(payload.categories.map((category) => category.id));
   let state: DeskState = parseLayout(readKey(LAYOUT_KEY), slugs, categoryIds) ?? emptyDesk;
@@ -158,6 +171,7 @@ export function bootDesktop(): void {
   wireOverview();
   wireTile();
   wireWorkspaces();
+  startClock();
 
   void restoreImage().finally(() => {
     applyWallpaper(prefs, imageUrl);
@@ -193,6 +207,7 @@ export function bootDesktop(): void {
       count.hidden = state.windows.length === 0;
       count.textContent = String(state.windows.length);
     }
+    document.querySelector("[data-desk-show]")?.setAttribute("aria-pressed", String(state.concealed));
   }
 
   function renderIcons(): void {
@@ -239,13 +254,8 @@ export function bootDesktop(): void {
     const info = shortcutInfo(id);
     button.style.setProperty("--mdt-cat", `var(--mdt-cat-${info.category})`);
     button.title = info.label;
-    const tile = document.createElement("span");
-    tile.className = "desk-icon-tile";
-    if (info.icon) tile.innerHTML = svgWrap(info.icon);
-    else {
-      tile.dataset.len = String(Math.min(4, [...info.mark].length));
-      tile.textContent = info.mark;
-    }
+    button.classList.toggle("is-folder", id.startsWith("cat:"));
+    const tile = makeTile(info, "desk-icon-tile");
     const label = document.createElement("span");
     label.className = "desk-icon-label";
     label.textContent = info.label;
@@ -253,14 +263,14 @@ export function bootDesktop(): void {
     if (id.startsWith("tool:") && window.MDT?.favorites.isFavorite(id.slice(5))) {
       const star = document.createElement("span");
       star.className = "desk-icon-fav";
-      star.textContent = "★";
+      star.innerHTML = glyph("star", 11);
       star.setAttribute("aria-hidden", "true");
-      button.append(star);
+      tile.append(star);
     }
     if (shortcutIsOpen(id)) {
       const dot = document.createElement("span");
       dot.className = "desk-icon-dot";
-      button.append(dot);
+      tile.append(dot);
     }
     button.addEventListener("click", () => {
       selectedShortcut = id;
@@ -305,9 +315,7 @@ export function bootDesktop(): void {
     const header = document.createElement("header");
     header.className = "desk-window-title";
     header.tabIndex = 0;
-    const mark = document.createElement("span");
-    mark.className = "desk-window-mark";
-    mark.textContent = info.mark;
+    const mark = makeTile(info, "desk-window-mark");
     const name = document.createElement("h2");
     name.className = "desk-window-name";
     const actions = document.createElement("div");
@@ -315,26 +323,36 @@ export function bootDesktop(): void {
     header.append(mark, name, actions);
     if (record.kind === "tool") {
       actions.append(
-        winButton("Favorite", "☆", () => {
+        winButton("Favorite", glyph("star"), () => {
           window.MDT?.favorites.toggle(record.slug);
           render();
         }, "data-fav"),
-        winButton("Help", "?", () => showHelp(record.slug)),
-        winButton("OpenFull", "↗", () => {
-          const tool = tools.get(record.slug);
-          if (tool) location.assign(tool.href);
-        }),
+        winButton("Help", glyph("help"), () => showHelp(record.slug)),
       );
     }
+    const more = winButton("WindowMenu", glyph("more"), () => {
+      const box = more.getBoundingClientRect();
+      openWindowMenu(record.id, box.right - 220, box.bottom + 4);
+    });
+    more.setAttribute("aria-haspopup", "menu");
+    const gap = document.createElement("span");
+    gap.className = "desk-window-gap";
     actions.append(
-      winButton("TileWith", "▦", () => openTile(record.id)),
-      winButton("Minimize", "–", () => dispatch({ type: "minimize", id: record.id })),
-      winButton("Maximize", "□", () => toggleMax(record.id), "data-max"),
-      winButton("Close", "×", () => void closeWindows([record.id])),
+      more,
+      gap,
+      winButton("Minimize", glyph("minimize"), () => dispatch({ type: "minimize", id: record.id })),
+      winButton("Maximize", glyph("maximize"), () => toggleMax(record.id), "data-max"),
+      winButton("Close", glyph("close"), () => void closeWindows([record.id]), "data-close"),
     );
     header.addEventListener("dblclick", (event) => {
       if ((event.target as HTMLElement).closest("button")) return;
       toggleMax(record.id);
+    });
+    header.addEventListener("contextmenu", (event) => {
+      if ((event.target as HTMLElement).closest("button")) return;
+      event.preventDefault();
+      dispatch({ type: "activate", id: record.id });
+      openWindowMenu(record.id, event.clientX, event.clientY);
     });
     header.addEventListener("pointerdown", (event) => startWindowDrag(event, record.id, header));
 
@@ -388,7 +406,8 @@ export function bootDesktop(): void {
     if (fav && record.kind === "tool") {
       const on = window.MDT?.favorites.isFavorite(record.slug) === true;
       fav.dataset.labelKey = on ? "Unfavorite" : "Favorite";
-      fav.textContent = on ? "★" : "☆";
+      fav.classList.toggle("is-on", on);
+      fav.setAttribute("aria-pressed", String(on));
     }
     const info = record.kind === "tool" ? toolInfo(record.slug) : folderInfo(record.slug);
     const name = node.querySelector(".desk-window-name");
@@ -401,7 +420,10 @@ export function bootDesktop(): void {
       button.title = text(key);
     }
     const maxBtn = node.querySelector<HTMLButtonElement>("[data-max]");
-    if (maxBtn) maxBtn.textContent = restore ? "❐" : "□";
+    if (maxBtn && maxBtn.dataset.glyph !== String(restore)) {
+      maxBtn.dataset.glyph = String(restore);
+      maxBtn.innerHTML = glyph(restore ? "restore" : "maximize");
+    }
     const frame = node.querySelector("iframe");
     if (frame) frame.style.pointerEvents = active && !node.hidden ? "auto" : "none";
   }
@@ -444,12 +466,11 @@ export function bootDesktop(): void {
       button.type = "button";
       button.className = "desk-folder-tool";
       button.style.setProperty("--mdt-cat", `var(--mdt-cat-${tool.category})`);
-      const mark = document.createElement("span");
-      mark.className = "desk-icon-tile";
-      mark.dataset.len = String(Math.min(4, [...tool.monogram].length));
-      mark.textContent = tool.monogram;
+      const mark = makeTile(toolInfo(tool.slug), "desk-icon-tile");
       const label = document.createElement("span");
+      label.className = "desk-folder-label";
       label.textContent = tool.title;
+      button.title = tool.title;
       button.append(mark, label);
       button.addEventListener("click", () => openTool(tool.slug, false));
       button.addEventListener("dblclick", (event) => {
@@ -467,30 +488,32 @@ export function bootDesktop(): void {
     for (const id of prefs.pinned) {
       if (pinnedHasWindow(id)) continue;
       seen.add(id);
-      taskHost.append(taskButton(shortcutInfo(id).label, false, () => openShortcut(id, false)));
+      const button = taskButton(shortcutInfo(id), shortcutInfo(id).label, false, () => openShortcut(id, false));
+      button.classList.add("is-pinned");
+      taskHost.append(button);
     }
     for (const record of [...state.windows].sort((a, b) => a.z - b.z)) {
       const info = record.kind === "tool" ? toolInfo(record.slug) : folderInfo(record.slug);
-      const button = taskButton(windowTitle(record, info.label), state.activeId === record.id && !state.concealed && record.mode !== "minimized", () => {
+      const button = taskButton(info, windowTitle(record, info.label), state.activeId === record.id && !state.concealed && record.mode !== "minimized", () => {
         if (state.activeId === record.id && record.mode !== "minimized" && !state.concealed) dispatch({ type: "minimize", id: record.id });
         else dispatch({ type: "activate", id: record.id });
       });
+      button.classList.add("is-running");
       if (record.mode === "minimized") button.classList.add("is-min");
       taskHost.append(button);
     }
-    if (seen.size === 0 && state.windows.length === 0) {
-      const hint = document.createElement("span");
-      hint.className = "desk-task-hint";
-      hint.textContent = text("Catalog");
-      taskHost.append(hint);
-    }
   }
 
-  function taskButton(label: string, pressed: boolean, onClick: () => void): HTMLButtonElement {
+  function taskButton(info: TileInfo, label: string, pressed: boolean, onClick: () => void): HTMLButtonElement {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "desk-task";
-    button.textContent = label;
+    button.title = label;
+    button.style.setProperty("--mdt-cat", `var(--mdt-cat-${info.category})`);
+    const name = document.createElement("span");
+    name.className = "desk-task-name";
+    name.textContent = label;
+    button.append(makeTile(info, "desk-task-tile"), name);
     button.setAttribute("aria-pressed", String(pressed));
     button.addEventListener("click", onClick);
     return button;
@@ -519,8 +542,18 @@ export function bootDesktop(): void {
       type: "open-folder",
       id: `folder-${category}-${crypto.randomUUID()}`,
       category,
-      bounds: cascadeBounds(state.windows.length, windowDesk(), iconStripWidth()),
+      bounds: folderBounds(category),
     });
+  }
+
+  /** A folder window fits its tiles (up to five per row) instead of taking a tool-sized frame. */
+  function folderBounds(category: string): Bounds {
+    const base = cascadeBounds(state.windows.length, windowDesk(), iconStripWidth());
+    const count = payload.tools.filter((tool) => tool.category === category).length;
+    const perRow = Math.max(1, Math.min(5, count));
+    const width = Math.min(base.width, perRow * 128 + 34);
+    const height = Math.min(base.height, 46 + Math.ceil(count / perRow) * 124 + 30);
+    return { ...base, width: Math.max(width, 360), height: Math.max(height, 220) };
   }
 
   function openShortcut(id: string, fresh: boolean): void {
@@ -586,6 +619,8 @@ export function bootDesktop(): void {
 
   function startWindowDrag(event: PointerEvent, id: string, header: HTMLElement): void {
     if (event.button !== 0 || (event.target as HTMLElement).closest("button")) return;
+    // Capture on press: a quick flick off the title (onto a tool iframe) must not drop the drag.
+    header.setPointerCapture?.(event.pointerId);
     dispatch({ type: "activate", id });
     const record = state.windows.find((item) => item.id === id);
     if (!record) return;
@@ -605,7 +640,6 @@ export function bootDesktop(): void {
       const pointerY = ev.clientY - box.top;
       if (!dragging) {
         dragging = true;
-        if (header.setPointerCapture) header.setPointerCapture(event.pointerId);
         current = wasFloating
           ? restoreUnderPointer(record.previousBounds ?? origin, pointerX, pointerY, grab, deskSize())
           : dragBounds(origin, ev.clientX - startX, ev.clientY - startY, deskSize());
@@ -692,9 +726,9 @@ export function bootDesktop(): void {
     const startX = event.clientX;
     const startY = event.clientY;
     let dragging = false;
+    button.setPointerCapture?.(event.pointerId);
     const onMove = (ev: PointerEvent) => {
       if (!dragging && Math.hypot(ev.clientX - startX, ev.clientY - startY) < 4) return;
-      if (!dragging && button.setPointerCapture) button.setPointerCapture(event.pointerId);
       dragging = true;
       button.classList.add("is-dragging");
       const cell = cellAt(ev.clientX, ev.clientY);
@@ -840,20 +874,64 @@ export function bootDesktop(): void {
   function openCatalog(): void {
     const input = catalogDialog.querySelector<HTMLInputElement>("[data-catalog-input]");
     if (input) input.value = "";
+    catalogScope = "all";
     fillCatalog("");
     showDeskDialog(catalogDialog);
     input?.focus();
   }
 
+  /** Left rail of the launcher: all tools, what is pinned on the desk, then each category with its size. */
+  function fillCatalogNav(): void {
+    const nav = catalogDialog.querySelector<HTMLElement>("[data-catalog-nav]");
+    if (!nav) return;
+    nav.replaceChildren();
+    const onDesk = payload.tools.filter((tool) => prefs.shortcuts.includes(toolShortcut(tool.slug))).length
+      + payload.categories.filter((category) => prefs.shortcuts.includes(catShortcut(category.id))).length;
+    const entries: { id: string; label: string; count: number; category?: string }[] = [
+      { id: "all", label: text("AllTools"), count: payload.tools.length },
+      { id: "desk", label: text("OnDesktop"), count: onDesk },
+      ...payload.categories.map((category) => ({
+        id: category.id,
+        label: category.label,
+        count: payload.tools.filter((tool) => tool.category === category.id).length,
+        category: category.id,
+      })),
+    ];
+    for (const entry of entries) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "desk-nav-item";
+      if (entry.category) button.style.setProperty("--mdt-cat", `var(--mdt-cat-${entry.category})`);
+      button.setAttribute("aria-current", String(catalogScope === entry.id));
+      const name = document.createElement("span");
+      name.textContent = entry.label;
+      const count = document.createElement("span");
+      count.className = "desk-nav-count";
+      count.textContent = String(entry.count);
+      if (entry.category) button.append(makeTile(folderInfo(entry.category), "desk-nav-tile"));
+      button.append(name, count);
+      button.addEventListener("click", () => {
+        catalogScope = entry.id;
+        fillCatalog(catalogDialog.querySelector<HTMLInputElement>("[data-catalog-input]")?.value || "");
+        catalogDialog.querySelector<HTMLElement>("[data-catalog-results]")?.scrollTo({ top: 0 });
+      });
+      nav.append(button);
+    }
+  }
+
   function fillCatalog(query: string): void {
+    fillCatalogNav();
     const host = catalogDialog.querySelector<HTMLElement>("[data-catalog-results]");
     if (!host) return;
     host.replaceChildren();
     const needle = query.trim().toLowerCase();
     let hits = 0;
     for (const category of payload.categories) {
+      if (catalogScope !== "all" && catalogScope !== "desk" && catalogScope !== category.id) continue;
+      const folderPinned = prefs.shortcuts.includes(catShortcut(category.id));
       const inCategory = payload.tools.filter((tool) => {
         if (tool.category !== category.id) return false;
+        if (catalogScope === "desk" && !folderPinned && !prefs.shortcuts.includes(toolShortcut(tool.slug))) return false;
         if (!needle) return true;
         return `${tool.title} ${tool.description} ${tool.slug} ${category.label}`.toLowerCase().includes(needle);
       });
@@ -861,51 +939,70 @@ export function bootDesktop(): void {
       hits += inCategory.length;
       const group = document.createElement("section");
       group.className = "desk-cat-group";
+      group.style.setProperty("--mdt-cat", `var(--mdt-cat-${category.id})`);
       const head = document.createElement("header");
       const heading = document.createElement("h3");
       heading.textContent = category.label;
-      head.append(heading, pinButton(catShortcut(category.id)));
+      head.append(heading, pinButton(catShortcut(category.id), true));
       const grid = document.createElement("div");
       grid.className = "desk-cat-grid";
       for (const tool of inCategory) {
-        const row = document.createElement("div");
-        row.className = "desk-cat-row";
+        const cell = document.createElement("div");
+        cell.className = "desk-cat-cell";
+        cell.style.setProperty("--mdt-cat", `var(--mdt-cat-${tool.category})`);
         const open = document.createElement("button");
         open.type = "button";
         open.className = "desk-cat-open";
-        open.textContent = tool.title;
+        open.title = tool.description;
+        const name = document.createElement("span");
+        name.className = "desk-cat-name";
+        name.textContent = tool.title;
+        open.append(makeTile(toolInfo(tool.slug), "desk-cat-tile"), name);
+        if (shortcutIsOpen(toolShortcut(tool.slug))) {
+          const dot = document.createElement("span");
+          dot.className = "desk-icon-dot";
+          open.querySelector(".desk-cat-tile")?.append(dot);
+        }
         open.addEventListener("click", () => {
           catalogDialog.close();
           openTool(tool.slug, false);
         });
-        row.append(open, pinButton(toolShortcut(tool.slug)));
-        grid.append(row);
+        cell.append(open, pinButton(toolShortcut(tool.slug), false));
+        grid.append(cell);
       }
       group.append(head, grid);
       host.append(group);
     }
     if (hits === 0) {
       const empty = document.createElement("p");
-      empty.className = "desk-muted";
+      empty.className = "desk-launcher-empty";
       empty.textContent = text("NoResults");
       host.append(empty);
     }
   }
 
-  function pinButton(id: string): HTMLButtonElement {
+  /** Pin toggle: plus puts the shortcut on the desk, a tick takes it off (a folder unpacks). */
+  function pinButton(id: string, labelled: boolean): HTMLButtonElement {
     const pinned = prefs.shortcuts.includes(id);
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "desk-pin";
+    button.className = labelled ? "desk-pin desk-pin-wide" : "desk-pin";
     button.setAttribute("aria-pressed", String(pinned));
     const label = !pinned ? "PinShortcut" : id.startsWith("cat:") ? "UnpackFolder" : "RemoveShortcut";
     button.setAttribute("aria-label", text(label));
     button.title = text(label);
-    button.textContent = pinned ? "✓" : "+";
+    button.innerHTML = glyph(pinned ? "check" : "plus", 13);
+    if (labelled) {
+      const name = document.createElement("span");
+      name.textContent = text(label);
+      button.append(name);
+    }
     button.addEventListener("click", () => {
       toggleShortcut(id);
       fillCatalog(catalogDialog.querySelector<HTMLInputElement>("[data-catalog-input]")?.value || "");
+      catalogDialog.querySelector<HTMLElement>(`[data-pin-id="${CSS.escape(id)}"]`)?.focus();
     });
+    button.dataset.pinId = id;
     return button;
   }
 
@@ -967,6 +1064,8 @@ export function bootDesktop(): void {
     const host = overviewDialog.querySelector<HTMLElement>("[data-overview-list]");
     if (!host) return;
     host.replaceChildren();
+    const others = overviewDialog.querySelector<HTMLButtonElement>("[data-close-others]");
+    if (others) others.disabled = state.windows.length < 2;
     const needle = query.trim().toLowerCase();
     for (const record of [...state.windows].sort((a, b) => b.z - a.z)) {
       const info = record.kind === "tool" ? toolInfo(record.slug) : folderInfo(record.slug);
@@ -974,10 +1073,20 @@ export function bootDesktop(): void {
       if (needle && !label.toLowerCase().includes(needle)) continue;
       const row = document.createElement("div");
       row.className = "desk-overview-row";
+      row.style.setProperty("--mdt-cat", `var(--mdt-cat-${info.category})`);
       const open = document.createElement("button");
       open.type = "button";
-      open.className = "desk-cat-open";
-      open.textContent = label;
+      open.className = "desk-overview-open";
+      const name = document.createElement("span");
+      name.className = "desk-overview-name";
+      name.textContent = label;
+      open.append(makeTile(info, "desk-task-tile"), name);
+      if (record.mode === "minimized") {
+        const badge = document.createElement("span");
+        badge.className = "desk-overview-state";
+        badge.textContent = text("Minimized");
+        open.append(badge);
+      }
       if (record.id === state.activeId) open.setAttribute("aria-current", "true");
       open.addEventListener("click", () => {
         overviewDialog.close();
@@ -993,8 +1102,11 @@ export function bootDesktop(): void {
       }
       const close = document.createElement("button");
       close.type = "button";
-      close.className = "ds-btn";
-      close.textContent = text("Close");
+      close.className = "desk-win-btn";
+      close.dataset.close = "";
+      close.innerHTML = glyph("close");
+      close.setAttribute("aria-label", `${text("Close")}: ${label}`);
+      close.title = text("Close");
       close.addEventListener("click", () => {
         void closeWindows([record.id]).then(() => fillOverview(query));
       });
@@ -1017,8 +1129,12 @@ export function bootDesktop(): void {
       const info = record.kind === "tool" ? toolInfo(record.slug) : folderInfo(record.slug);
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "ds-btn";
-      button.textContent = windowTitle(record, info.label);
+      button.className = "desk-overview-open";
+      button.style.setProperty("--mdt-cat", `var(--mdt-cat-${info.category})`);
+      const name = document.createElement("span");
+      name.className = "desk-overview-name";
+      name.textContent = windowTitle(record, info.label);
+      button.append(makeTile(info, "desk-task-tile"), name);
       button.addEventListener("click", () => {
         host.querySelectorAll<HTMLElement>("[data-companion]").forEach((node) => {
           node.removeAttribute("aria-pressed");
@@ -1067,7 +1183,9 @@ export function bootDesktop(): void {
         catalogDialog.querySelector<HTMLButtonElement>(".desk-cat-open")?.click();
         return;
       }
-      if (event.key !== "ArrowDown" && event.key !== "ArrowUp" && event.key !== "Home" && event.key !== "End") return;
+      const horizontal = event.key === "ArrowLeft" || event.key === "ArrowRight";
+      if (horizontal && event.target === input) return;
+      if (!["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
       if ((event.key === "Home" || event.key === "End") && event.target === input) return;
       const items = [...catalogDialog.querySelectorAll<HTMLButtonElement>(".desk-cat-open")];
       if (items.length === 0) return;
@@ -1078,10 +1196,11 @@ export function bootDesktop(): void {
         return;
       }
       event.preventDefault();
+      const forward = event.key === "ArrowDown" || event.key === "ArrowRight";
       const next =
         event.key === "Home" ? 0
         : event.key === "End" ? items.length - 1
-        : event.key === "ArrowDown" ? (index < 0 ? 0 : Math.min(items.length - 1, index + 1))
+        : forward ? (index < 0 ? 0 : Math.min(items.length - 1, index + 1))
         : index <= 0 ? items.length - 1 : index - 1;
       items[next]?.focus();
     });
@@ -1163,6 +1282,7 @@ export function bootDesktop(): void {
     });
     const dim = settingsDialog.querySelector<HTMLInputElement>("[data-dim]");
     if (dim) dim.value = String(prefs.dim);
+    showDimValue(prefs.dim);
     settingsDialog.querySelectorAll<HTMLInputElement>("[data-fit]").forEach((input) => {
       input.checked = input.value === prefs.fit;
     });
@@ -1185,8 +1305,14 @@ export function bootDesktop(): void {
 
   function previewSettings(): void {
     const next = readSettingsForm();
+    showDimValue(next.dim);
     const url = draftRemoveImage ? null : draftUrl || imageUrl;
     applyWallpaper({ ...prefs, ...next, hasImage: !!url }, url);
+  }
+
+  function showDimValue(dim: number): void {
+    const output = settingsDialog.querySelector<HTMLOutputElement>("[data-dim-value]");
+    if (output) output.textContent = `${dim}%`;
   }
 
   function readSettingsForm(): Pick<DeskPrefs, "preset" | "fit" | "dim" | "iconSize" | "density" | "locked"> {
@@ -1328,11 +1454,12 @@ export function bootDesktop(): void {
         { kind: "label", label: text("Widgets") },
         { kind: "item", label: text("Favorites"), checked: prefs.widgets.includes("favorites"), run: () => toggleWidget("favorites") },
         { kind: "item", label: text("Recent"), checked: prefs.widgets.includes("recent"), run: () => toggleWidget("recent") },
-        { kind: "item", label: text("Settings"), run: () => openSettings() },
-        { kind: "item", label: text("AlignIcons"), run: () => settingsDialog.querySelector<HTMLButtonElement>("[data-align]")?.click() },
+        { kind: "separator" },
+        { kind: "item", label: text("AlignIcons"), icon: "apps", run: () => settingsDialog.querySelector<HTMLButtonElement>("[data-align]")?.click() },
         {
           kind: "item",
           label: text("LockIcons"),
+          icon: "lock",
           checked: prefs.locked,
           run: () => {
             prefs = { ...prefs, locked: !prefs.locked };
@@ -1340,7 +1467,9 @@ export function bootDesktop(): void {
             render();
           },
         },
-        { kind: "item", label: text("ShowDesktop"), run: () => dispatch({ type: state.concealed ? "reveal" : "conceal" }) },
+        { kind: "item", label: text("ShowDesktop"), icon: "desktop", run: () => dispatch({ type: state.concealed ? "reveal" : "conceal" }) },
+        { kind: "separator" },
+        { kind: "item", label: text("Settings"), icon: "settings", run: () => openSettings() },
       ],
       x,
       y,
@@ -1350,6 +1479,12 @@ export function bootDesktop(): void {
   function showMenu(items: MenuEntry[], x: number, y: number): void {
     menu.replaceChildren();
     for (const item of items) {
+      if (item.kind === "separator") {
+        const line = document.createElement("hr");
+        line.className = "desk-menu-sep";
+        menu.append(line);
+        continue;
+      }
       if (item.kind === "label") {
         const label = document.createElement("p");
         label.className = "desk-menu-label";
@@ -1363,14 +1498,18 @@ export function bootDesktop(): void {
       button.className = "desk-menu-item";
       button.role = item.checked === undefined ? "menuitem" : "menuitemradio";
       if (item.checked !== undefined) button.setAttribute("aria-checked", String(item.checked));
+      const lead = document.createElement("span");
+      lead.className = "desk-menu-icon";
+      lead.setAttribute("aria-hidden", "true");
+      if (item.icon) lead.innerHTML = glyph(item.icon);
       const name = document.createElement("span");
       name.textContent = item.label;
-      button.append(name);
+      button.append(lead, name);
       if (item.checked) {
         const mark = document.createElement("span");
         mark.className = "desk-menu-check";
         mark.setAttribute("aria-hidden", "true");
-        mark.textContent = "✓";
+        mark.innerHTML = glyph("check", 14);
         button.append(mark);
       }
       button.addEventListener("click", () => {
@@ -1389,6 +1528,48 @@ export function bootDesktop(): void {
 
   function hideMenu(): void {
     menu.hidden = true;
+  }
+
+  /** Window menu (the ⋮ button and a right click on the title): full page, second copy, tiling. */
+  function openWindowMenu(id: string, x: number, y: number): void {
+    const record = state.windows.find((item) => item.id === id);
+    if (!record) return;
+    const items: MenuEntry[] = [];
+    if (record.kind === "tool") {
+      items.push(
+        {
+          kind: "item",
+          label: text("OpenFull"),
+          icon: "external",
+          run: () => {
+            const tool = tools.get(record.slug);
+            if (tool) location.assign(tool.href);
+          },
+        },
+        { kind: "item", label: text("OpenAnother"), icon: "windows", run: () => openTool(record.slug, true) },
+      );
+    }
+    items.push({ kind: "item", label: text("TileWith"), icon: "tile", run: () => openTile(record.id) });
+    if (record.kind === "tool") items.push({ kind: "item", label: text("Help"), icon: "help", run: () => showHelp(record.slug) });
+    showMenu(items, x, y);
+  }
+
+  /** Category-coloured tile with a glyph (folders) or a monogram (tools). One look for desk, launcher, taskbar and frames. */
+  function makeTile(info: TileInfo, className: string): HTMLSpanElement {
+    const tile = document.createElement("span");
+    tile.className = `desk-tile ${className}`;
+    tile.style.setProperty("--mdt-cat", `var(--mdt-cat-${info.category})`);
+    tile.style.setProperty("--desk-tile", `var(--desk-tile-${info.category})`);
+    tile.setAttribute("aria-hidden", "true");
+    if (info.icon) tile.innerHTML = svgWrap(info.icon, 22);
+    else {
+      const mark = document.createElement("span");
+      mark.className = "desk-tile-mark";
+      mark.dataset.len = String(Math.min(4, [...info.mark].length));
+      mark.textContent = info.mark;
+      tile.append(mark);
+    }
+    return tile;
   }
 
   function showHelp(slug: string): void {
@@ -1526,6 +1707,9 @@ export function bootDesktop(): void {
 
     const head = document.createElement("div");
     head.className = "desk-widget-head";
+    const badge = document.createElement("span");
+    badge.className = "desk-widget-icon";
+    badge.innerHTML = glyph(id === "favorites" ? "star" : "history", 14);
     const title = document.createElement("h2");
     title.textContent = text(id === "favorites" ? "Favorites" : "Recent");
     const peek = document.createElement("span");
@@ -1536,7 +1720,8 @@ export function bootDesktop(): void {
     fold.type = "button";
     fold.className = "desk-win-btn";
     fold.dataset.labelKey = collapsed ? "ExpandWidget" : "CollapseWidget";
-    fold.textContent = collapsed ? "▸" : "▾";
+    fold.innerHTML = glyph("chevron", 14);
+    fold.classList.add("desk-widget-fold");
     fold.setAttribute("aria-expanded", String(!collapsed));
     fold.addEventListener("click", () => {
       const next = collapsed
@@ -1550,7 +1735,7 @@ export function bootDesktop(): void {
     more.type = "button";
     more.className = "desk-win-btn";
     more.dataset.labelKey = "WidgetActions";
-    more.textContent = "⋮";
+    more.innerHTML = glyph("more");
     more.addEventListener("click", (event) => {
       event.stopPropagation();
       const box = more.getBoundingClientRect();
@@ -1565,14 +1750,14 @@ export function bootDesktop(): void {
         box.bottom,
       );
     });
-    head.append(title, peek, fold, more);
+    head.append(badge, title, peek, fold, more);
     head.addEventListener("pointerdown", (event) => startWidgetDrag(event, id, head));
 
     const list = document.createElement("ul");
     list.className = "desk-widget-body";
     if (items.length === 0) {
       const empty = document.createElement("li");
-      empty.className = "desk-muted";
+      empty.className = "desk-widget-empty";
       empty.textContent = text(id === "favorites" ? "NoFavorites" : "NoRecent");
       list.append(empty);
     }
@@ -1581,10 +1766,10 @@ export function bootDesktop(): void {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "desk-widget-item";
-      const mark = document.createElement("span");
-      mark.className = "desk-widget-mark";
-      mark.textContent = toolInfo(item.slug).mark;
+      button.style.setProperty("--mdt-cat", `var(--mdt-cat-${toolInfo(item.slug).category})`);
+      const mark = makeTile(toolInfo(item.slug), "desk-task-tile");
       const name = document.createElement("span");
+      name.className = "desk-widget-name";
       name.textContent = item.title;
       button.append(mark, name);
       button.addEventListener("click", () => openTool(item.slug, false));
@@ -1824,6 +2009,23 @@ export function bootDesktop(): void {
   }
 }
 
+/** Taskbar clock in the page language. Ticks on the minute, not every second. */
+function startClock(): void {
+  const time = document.querySelector<HTMLElement>("[data-clock-time]");
+  const date = document.querySelector<HTMLElement>("[data-clock-date]");
+  if (!time || !date) return;
+  const locale = document.documentElement.lang || undefined;
+  const timeFormat = new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" });
+  const dateFormat = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" });
+  const tick = () => {
+    const now = new Date();
+    time.textContent = timeFormat.format(now);
+    date.textContent = dateFormat.format(now);
+    window.setTimeout(tick, 60_000 - (now.getSeconds() * 1000 + now.getMilliseconds()) + 50);
+  };
+  tick();
+}
+
 /** A stored wallpaper must decode as a raster. Anything else falls back to the preset. */
 async function wallpaperBlobDecodes(blob: Blob): Promise<boolean> {
   if (!blob.type.startsWith("image/") || blob.type === "image/svg+xml" || blob.size === 0) return false;
@@ -1869,12 +2071,12 @@ function snapshotFrame(frame: HTMLIFrameElement): InputSnapshot {
   return { fileCount, texts, editors };
 }
 
-function winButton(key: string, glyph: string, onClick: () => void, attr?: string): HTMLButtonElement {
+function winButton(key: string, svg: string, onClick: () => void, attr?: string): HTMLButtonElement {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "desk-win-btn";
   button.dataset.labelKey = key;
-  button.textContent = glyph;
+  button.innerHTML = svg;
   if (attr) button.setAttribute(attr, "");
   button.addEventListener("click", (event) => {
     event.stopPropagation();
@@ -1883,8 +2085,8 @@ function winButton(key: string, glyph: string, onClick: () => void, attr?: strin
   return button;
 }
 
-function svgWrap(body: string): string {
-  return `<svg viewBox="0 0 20 20" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+function svgWrap(body: string, size = 22): string {
+  return `<svg viewBox="0 0 20 20" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
 }
 
 function toolShortcut(slug: string): string {

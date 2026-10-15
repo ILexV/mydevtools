@@ -100,5 +100,14 @@
   "MoveWidgetUp": "上移",
   "MoveWidgetDown": "下移",
   "WidgetActions": "小组件操作",
-  "EmptyDesktop": "桌面是空的。打开目录以固定一个工具。"
+  "EmptyDesktop": "桌面是空的。打开目录以固定一个工具。",
+  "AllTools": "全部工具",
+  "OnDesktop": "桌面上",
+  "WindowMenu": "窗口菜单",
+  "IconsSection": "图标",
+  "StartSection": "启动与窗口",
+  "ChooseImage": "选择图片",
+  "Minimized": "已最小化",
+  "ToolsCount": "工具：{count}",
+  "Placement": "填充方式"
 }

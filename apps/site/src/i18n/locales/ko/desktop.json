@@ -100,5 +100,14 @@
   "MoveWidgetUp": "위로",
   "MoveWidgetDown": "아래로",
   "WidgetActions": "위젯 작업",
-  "EmptyDesktop": "바탕 화면이 비어 있습니다. 카탈로그를 열어 도구를 고정하세요."
+  "EmptyDesktop": "바탕 화면이 비어 있습니다. 카탈로그를 열어 도구를 고정하세요.",
+  "AllTools": "모든 도구",
+  "OnDesktop": "바탕 화면",
+  "WindowMenu": "창 메뉴",
+  "IconsSection": "아이콘",
+  "StartSection": "시작 및 창",
+  "ChooseImage": "사진 선택",
+  "Minimized": "최소화됨",
+  "ToolsCount": "도구: {count}",
+  "Placement": "배치"
 }

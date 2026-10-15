@@ -100,5 +100,14 @@
   "MoveWidgetUp": "Nach oben",
   "MoveWidgetDown": "Nach unten",
   "WidgetActions": "Widget-Aktionen",
-  "EmptyDesktop": "Der Schreibtisch ist leer. Öffne den Katalog, um ein Werkzeug anzuheften."
+  "EmptyDesktop": "Der Schreibtisch ist leer. Öffne den Katalog, um ein Werkzeug anzuheften.",
+  "AllTools": "Alle Werkzeuge",
+  "OnDesktop": "Auf dem Desktop",
+  "WindowMenu": "Fenstermenü",
+  "IconsSection": "Symbole",
+  "StartSection": "Start und Fenster",
+  "ChooseImage": "Bild auswählen",
+  "Minimized": "Minimiert",
+  "ToolsCount": "Werkzeuge: {count}",
+  "Placement": "Anordnung"
 }

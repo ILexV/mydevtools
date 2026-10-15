@@ -100,5 +100,14 @@
   "MoveWidgetUp": "上へ",
   "MoveWidgetDown": "下へ",
   "WidgetActions": "ウィジェットの操作",
-  "EmptyDesktop": "デスクトップは空です。カタログを開いてツールを固定してください。"
+  "EmptyDesktop": "デスクトップは空です。カタログを開いてツールを固定してください。",
+  "AllTools": "すべてのツール",
+  "OnDesktop": "デスクトップ上",
+  "WindowMenu": "ウィンドウメニュー",
+  "IconsSection": "アイコン",
+  "StartSection": "起動とウィンドウ",
+  "ChooseImage": "画像を選択",
+  "Minimized": "最小化",
+  "ToolsCount": "ツール：{count}",
+  "Placement": "配置"
 }

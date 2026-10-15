@@ -77,6 +77,7 @@ const TOOL_CATALOG = [
   { slug: "base32-encoder", monogram: "B32", category: "encoding", wasm: "encoding", capabilities: { file: "optional", chunked: true, progress: true, cancel: true, copy: true, download: true, swap: true } },
   { slug: "base58-encoder", monogram: "B58", category: "encoding", wasm: "encoding", capabilities: { file: "optional", progress: true, copy: true, download: true, swap: true } },
   { slug: "hex-encoder", monogram: "0x", category: "encoding", wasm: "encoding", capabilities: { file: "optional", chunked: true, progress: true, cancel: true, copy: true, download: true, swap: true } },
+  { slug: "hex-viewer", monogram: "Hx", category: "encoding", wasm: null, capabilities: { file: "single", chunked: true, progress: true, cancel: true, download: true } },
   { slug: "url-encoder", monogram: "%20", category: "encoding", wasm: "encoding", capabilities: { copy: true, swap: true } },
   { slug: "html-entity-encoder", monogram: "&;", category: "encoding", wasm: null, capabilities: { copy: true, swap: true } },
 

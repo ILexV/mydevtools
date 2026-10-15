@@ -51,7 +51,7 @@ Private dashboard authentication is separate from visitor analytics: Cloudflare 
 
 ## Tool coverage matrix
 
-All **42 tools** support started/completed/failed for the useful-use action listed below. The seven live tools retain their existing automatic UX: no artificial Run button and no request per keystroke. Explicit cancellation is counted where the tool already has a Cancel/Stop action. Success means actual output/status is committed; failed means launched processing failed, not a rejected preflight.
+All **43 tools** support started/completed/failed for the useful-use action listed below. The seven live tools retain their existing automatic UX: no artificial Run button and no request per keystroke. Explicit cancellation is counted where the tool already has a Cancel/Stop action. Success means actual output/status is committed; failed means launched processing failed, not a rejected preflight.
 
 | Tool ID | Useful-use action | S/C/F | Success / processing failure | Preflight and exclusions |
 | --- | --- | --- | --- | --- |
@@ -59,6 +59,7 @@ All **42 tools** support started/completed/failed for the useful-use action list
 | `base32-encoder` | Encode / Decode text or file | yes | Output/statistics/result committed / non-abort processing error | Charset conversion and size caps before start; explicit Cancel is separate |
 | `base58-encoder` | Encode / Decode text or file | yes | Output/statistics/result committed / non-abort processing error | Charset and 1 MiB encode / 2,000,000-character decode caps before start |
 | `hex-encoder` | Encode / Decode text or file | yes | Output/statistics/result committed / non-abort processing error | Charset conversion and configured caps before start |
+| `hex-viewer` | File pick/drop | yes | Header probe, summary and virtual table committed / open error | Empty file excluded; explicit Cancel during open is separate; offset jump, search, entropy and range download excluded |
 | `url-encoder` | Encode / Decode | yes | Output/statistics committed / non-abort processing error | No separate validator; typing, example and swap excluded |
 | `html-entity-encoder` | Encode / Decode | yes | Transform/output committed / transform or render exception | Mode/format read before start; typing/settings excluded |
 | `json-beautifier` | Format; Ctrl/Cmd-Enter | yes | Formatted editor committed / malformed nonempty JSON | Empty input excluded; settings auto-format and file load excluded |
@@ -349,7 +350,7 @@ FROM mydevtools_tool_usage
 WHERE timestamp >= NOW() - INTERVAL '7' DAY AND blob2 = 'tool_completed'
 GROUP BY blob1
 ORDER BY completed_operations DESC
-LIMIT 42
+LIMIT 43
 ```
 
 ### Top successfully completed tools: 30 days
@@ -361,7 +362,7 @@ FROM mydevtools_tool_usage
 WHERE timestamp >= NOW() - INTERVAL '30' DAY AND blob2 = 'tool_completed'
 GROUP BY blob1
 ORDER BY completed_operations DESC
-LIMIT 42
+LIMIT 43
 ```
 
 ### Top successfully completed tools: 90 days, within retention
@@ -373,7 +374,7 @@ FROM mydevtools_tool_usage
 WHERE timestamp >= NOW() - INTERVAL '90' DAY AND blob2 = 'tool_completed'
 GROUP BY blob1
 ORDER BY completed_operations DESC
-LIMIT 42
+LIMIT 43
 ```
 
 ### Started/completed/failed/cancelled by tool: 30 days
@@ -413,7 +414,7 @@ FROM mydevtools_tool_usage
 WHERE timestamp >= NOW() - INTERVAL '30' DAY AND blob2 = 'tool_failed'
 GROUP BY blob1
 ORDER BY failed_operations DESC
-LIMIT 42
+LIMIT 43
 ```
 
 ## Rollback

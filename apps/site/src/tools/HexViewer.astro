@@ -1,0 +1,163 @@
+---
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import FileDrop from "@/components/tool/FileDrop.astro";
+import Icon from "@/components/Icon.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import Progress from "@/components/tool/Progress.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import "@/styles/explorer-ui.css";
+
+interface Props { lang: LocaleCode }
+const { lang } = Astro.props as Props;
+const ns = "tools/hex-viewer";
+const clientKeys = [
+  "ProgressBytes", "StatusOpening", "StatusSearching", "StatusEntropy", "StatusReady", "StatusDone",
+  "StatusOpenCanceled", "StatusScanCanceled", "StatusNoMatches", "StatusMatches", "StatusMatchesCapped",
+  "StatusJumped", "StatusExported", "SummaryPattern", "HeaderBytes", "KindText", "KindUnknown",
+  "TableEmpty", "TableLoading", "RowLabel", "ColumnOffset", "ColumnHex", "ColumnAscii", "ColumnUtf8",
+  "EntropyAverage", "EntropySampled", "EntropyExact", "ErrorEmpty", "ErrorOffset", "ErrorNeedle",
+  "ErrorNeedleLong", "ErrorRange", "ErrorRangeLarge", "ErrorWorker", "ErrorGeneric",
+] as const;
+const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
+const stringsJson = JSON.stringify({ ...strings, Lang: lang });
+---
+
+<div class="ds-workbench hx-workbench" data-hex-tool>
+  <ToolPanel title={t(lang, ns, "DropTitle")}>
+    <FileDrop
+      title={t(lang, ns, "DropTitle")}
+      buttonLabel={t(lang, ns, "DropButton")}
+      changeLabel={t(lang, ns, "DropChange")}
+      sub={t(lang, ns, "DropHint")}
+      data-hex-dropzone
+      inputProps={{ "data-hex-file": true }}
+    />
+    <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn" data-hex-clear>{t(lang, ns, "Clear")}</button>
+    </div>
+    <Progress
+      title={t(lang, ns, "ProgressTitle")}
+      barLabel={t(lang, ns, "ProgressTitle")}
+      cancelLabel={t(lang, ns, "Cancel")}
+      data-hex-progress
+      cancelProps={{ "data-hex-cancel": true }}
+      barProps={{ "data-hex-progress-bar": true }}
+      fillProps={{ "data-hex-progress-fill": true }}
+      labelProps={{ "data-hex-progress-label": true }}
+    />
+    <StatusMessage kind="info" data-hex-status />
+    <StatusMessage kind="error" data-hex-error />
+  </ToolPanel>
+
+  <OutputPanel panel label={t(lang, ns, "ResultsTitle")} emptyHint={t(lang, ns, "ResultsEmpty")} data-hex-output>
+    <div class="ds-when-filled hx-results" data-hex-loaded hidden>
+      <p class="hx-summary" data-hex-summary></p>
+      <p class="hx-header" data-hex-header></p>
+
+      <section class="hx-section" aria-labelledby="hx-goto-title">
+        <h3 class="ds-label" id="hx-goto-title">{t(lang, ns, "GotoTitle")}</h3>
+        <Field label={t(lang, ns, "GotoLabel")} for="hx-offset">
+          <div class="ds-input-group">
+            <input id="hx-offset" class="ds-field mono" data-hex-offset spellcheck="false" autocomplete="off" placeholder={t(lang, ns, "GotoPlaceholder")} disabled />
+            <button type="button" class="ds-btn" data-hex-goto disabled>{t(lang, ns, "GotoButton")}</button>
+          </div>
+        </Field>
+      </section>
+
+      <div class="hx-table" data-hex-table></div>
+
+      <section class="hx-section" aria-labelledby="hx-search-title">
+        <h3 class="ds-label" id="hx-search-title">{t(lang, ns, "SearchTitle")}</h3>
+        <div class="ds-settings">
+          <Field label={t(lang, ns, "SearchMode")} for="hx-search-mode">
+            <select id="hx-search-mode" class="ds-field-select" data-hex-search-mode disabled>
+              <option value="text">{t(lang, ns, "SearchText")}</option>
+              <option value="hex">{t(lang, ns, "SearchHex")}</option>
+            </select>
+          </Field>
+          <Field label={t(lang, ns, "SearchLabel")} for="hx-search">
+            <input id="hx-search" class="ds-field mono" data-hex-search spellcheck="false" autocomplete="off" placeholder={t(lang, ns, "SearchPlaceholder")} disabled />
+          </Field>
+        </div>
+        <div class="ds-action-row">
+          <button type="button" class="ds-btn ds-btn-primary" data-hex-search-button disabled>{t(lang, ns, "SearchButton")}</button>
+        </div>
+        <p class="ds-hint" data-hex-matches-note hidden></p>
+        <div class="hx-matches" data-hex-matches></div>
+      </section>
+
+      <section class="hx-section" aria-labelledby="hx-entropy-title">
+        <h3 class="ds-label" id="hx-entropy-title">{t(lang, ns, "EntropyTitle")}</h3>
+        <p class="ds-hint">{t(lang, ns, "EntropyHint")}</p>
+        <div class="ds-action-row">
+          <button type="button" class="ds-btn" data-hex-entropy-button disabled>{t(lang, ns, "EntropyButton")}</button>
+        </div>
+        <p class="hx-summary" data-hex-entropy-average hidden></p>
+        <p class="ds-hint" data-hex-entropy-note hidden></p>
+        <div class="hx-entropy" data-hex-entropy hidden></div>
+      </section>
+
+      <section class="hx-section" aria-labelledby="hx-export-title">
+        <h3 class="ds-label" id="hx-export-title">{t(lang, ns, "ExportTitle")}</h3>
+        <div class="ds-settings">
+          <Field label={t(lang, ns, "ExportStart")} for="hx-export-start">
+            <input id="hx-export-start" class="ds-field mono" data-hex-export-start spellcheck="false" autocomplete="off" placeholder={t(lang, ns, "GotoPlaceholder")} disabled />
+          </Field>
+          <Field label={t(lang, ns, "ExportEnd")} for="hx-export-end">
+            <input id="hx-export-end" class="ds-field mono" data-hex-export-end spellcheck="false" autocomplete="off" placeholder={t(lang, ns, "GotoPlaceholder")} disabled />
+          </Field>
+        </div>
+        <p class="ds-hint">{t(lang, ns, "ExportHint")}</p>
+        <p class="ds-hint">{t(lang, ns, "LimitNote")}</p>
+        <div class="ds-action-row">
+          <button type="button" class="ds-btn ds-btn-primary" data-hex-download disabled><Icon name="download" size={16} />{t(lang, ns, "Download")}</button>
+        </div>
+      </section>
+    </div>
+  </OutputPanel>
+</div>
+
+<script is:inline type="application/json" data-hex-strings set:html={stringsJson} />
+<script>import "@/tools/hex-viewer.client.ts";</script>
+
+<style>
+  .hx-workbench { align-items: start; }
+  .hx-results { display: grid; gap: 1rem; min-width: 0; }
+  .hx-section { display: grid; gap: 0.65rem; min-width: 0; }
+  .hx-section + .hx-section { padding-top: 0.9rem; border-top: 1px solid var(--mdt-border-soft); }
+  .hx-summary { margin: 0; font-size: var(--mdt-fs-label); color: var(--mdt-text-muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .hx-header { margin: 0; font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-small); overflow-wrap: anywhere; }
+  .hx-table { min-width: 0; }
+  .hx-matches { display: flex; flex-wrap: wrap; gap: 0.35rem; max-height: 8.5rem; overflow: auto; }
+  .hx-matches :global(.hx-match) { font-family: var(--mdt-font-mono); }
+  .hx-entropy {
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    height: 4.5rem;
+    padding: 0.35rem;
+    border: 1px solid var(--mdt-border-soft);
+    border-radius: var(--mdt-radius-xs);
+    background: var(--mdt-surface-inset);
+    overflow: hidden;
+  }
+  .hx-entropy :global(.hx-entropy-bar) {
+    flex: 1 1 0;
+    min-width: 2px;
+    max-width: 1.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: 1px 1px 0 0;
+    background: var(--mdt-cat, var(--mdt-accent));
+    cursor: pointer;
+  }
+  .hx-entropy :global(.hx-entropy-bar:hover),
+  .hx-entropy :global(.hx-entropy-bar:focus-visible) {
+    outline: 2px solid var(--mdt-text);
+    outline-offset: 1px;
+  }
+</style>

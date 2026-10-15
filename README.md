@@ -1,6 +1,6 @@
 # 📘 MyDevTools.app — Privacy-First Developer Tools
 
-> Этот README описывает legacy-сайт на Blazor. Актуальный фронтенд — статический Astro в [`apps/site`](apps/site): 42 инструмента и 10 языков, без серверного runtime. `json-explorer`, `csv-explorer` и `parquet-explorer` обрабатывают файлы локально в workers. Текущие ограничения и результаты проверок: [`docs/inventory/tools.md`](docs/inventory/tools.md), [`docs/inventory/parity-fixtures.md`](docs/inventory/parity-fixtures.md); публикация — [`apps/site/RELEASING.md`](apps/site/RELEASING.md).
+> Этот README описывает legacy-сайт на Blazor. Актуальный фронтенд — статический Astro в [`apps/site`](apps/site): 43 инструмента и 10 языков, без серверного runtime. `json-explorer`, `csv-explorer`, `parquet-explorer` и `hex-viewer` обрабатывают файлы локально в workers. Текущие ограничения и результаты проверок: [`docs/inventory/tools.md`](docs/inventory/tools.md), [`docs/inventory/parity-fixtures.md`](docs/inventory/parity-fixtures.md); публикация — [`apps/site/RELEASING.md`](apps/site/RELEASING.md).
 
 Анонимные счётчики действий работают отдельно от обработки данных; production-сборки всегда выполняются с `ANALYTICS_ENABLED=true`, если владелец явно не запросил отключение. Передаются только ID инструмента и тип события — не ввод, файлы, секреты или идентификаторы посетителей. Скрытая панель `/admin/analytics/` защищается Cloudflare Access: доступ только владельцу, SQL-токен остаётся в Worker. Настройка, покрытие инструментов, отчёты и ограничения: [`docs/analytics.md`](docs/analytics.md).
 

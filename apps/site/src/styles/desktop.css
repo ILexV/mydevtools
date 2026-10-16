@@ -420,8 +420,8 @@ body.desk {
 }
 
 .desk-icon-tile svg {
-  width: 1.65rem;
-  height: 1.65rem;
+  width: 1.85rem;
+  height: 1.85rem;
 }
 
 /* A category shortcut is a folder: two card edges peek out behind the tile. */
@@ -793,8 +793,8 @@ body.desk[data-density="compact"] .desk-taskbar {
 }
 
 .desk-window-mark svg {
-  width: 0.95rem;
-  height: 0.95rem;
+  width: 1rem;
+  height: 1rem;
 }
 
 .desk-window-mark .desk-tile-mark {
@@ -927,6 +927,11 @@ body.desk[data-density="compact"] .desk-taskbar {
 
 .desk-folder-tool:hover {
   background: var(--desk-hover);
+}
+
+.desk-folder-tool .desk-icon-tile svg {
+  width: 1.55rem;
+  height: 1.55rem;
 }
 
 .desk-folder-tool .desk-icon-tile {
@@ -1120,8 +1125,8 @@ body.desk[data-density="compact"] .desk-taskbar {
 }
 
 .desk-task-tile svg {
-  width: 1rem;
-  height: 1rem;
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 .desk-task-tile .desk-tile-mark {
@@ -1207,6 +1212,148 @@ body.desk[data-density="compact"] .desk-taskbar {
 .desk-clock :last-child {
   color: var(--mdt-text-muted);
   font-size: 0.7rem;
+}
+
+/* ---------- folder popover ---------- */
+
+.desk-pop {
+  position: fixed;
+  z-index: 30;
+  max-width: min(32rem, calc(100vw - 2rem));
+  padding: 0.7rem 0.6rem 0.6rem;
+  border: 1px solid var(--desk-glass-line);
+  border-radius: 1.1rem;
+  background: var(--desk-glass-strong);
+  backdrop-filter: blur(26px) saturate(170%);
+  box-shadow: var(--desk-shadow-pop), 0 0 0 1px color-mix(in srgb, var(--desk-tile, var(--mdt-accent)) 14%, transparent);
+  transform-origin: left center;
+  animation: desk-pop-in 140ms var(--mdt-ease, ease-out);
+}
+
+:root[data-theme="light"] .desk-pop {
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.desk-pop[data-from="right"] {
+  transform-origin: right center;
+}
+
+.desk-pop[data-from="bottom"] {
+  transform-origin: center bottom;
+}
+
+@keyframes desk-pop-in {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+
+.desk-pop-head {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0 0.35rem 0.55rem;
+  margin-bottom: 0.35rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--mdt-text) 9%, transparent);
+}
+
+.desk-pop-head h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 680;
+  letter-spacing: -0.005em;
+}
+
+.desk-pop-tile {
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 0.5rem;
+}
+
+.desk-pop-tile svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.desk-pop-count {
+  min-width: 1.4rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--desk-hover);
+  color: var(--mdt-text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.desk-pop-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--pop-cols, 3), 6.9rem);
+  gap: 0.15rem;
+}
+
+.desk-pop-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.65rem 0.3rem 0.55rem;
+  border: 0;
+  border-radius: 0.8rem;
+  background: transparent;
+  color: var(--mdt-text);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: background var(--mdt-dur-micro);
+}
+
+.desk-pop-tool:hover,
+.desk-pop-tool:focus-visible {
+  background: color-mix(in srgb, var(--desk-tile, var(--mdt-accent)) 12%, transparent);
+}
+
+.desk-pop-tool:focus-visible {
+  outline: 2px solid var(--mdt-accent);
+  outline-offset: -2px;
+}
+
+.desk-pop-tool-tile {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.9rem;
+  transition: translate var(--mdt-dur-micro);
+}
+
+.desk-pop-tool:hover .desk-pop-tool-tile {
+  translate: 0 -1px;
+}
+
+.desk-pop-tool-tile svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.desk-pop-tool-tile .desk-tile-mark {
+  font-size: 0.85rem;
+}
+
+.desk-pop-name {
+  font-size: 0.76rem;
+  line-height: 1.28;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* The shortcut whose popover is open stays highlighted. */
+.desk-icon.is-open-pop {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* ---------- context menu ---------- */
@@ -1570,6 +1717,11 @@ dialog.desk-launcher {
   width: 3.25rem;
   height: 3.25rem;
   border-radius: 0.95rem;
+}
+
+.desk-cat-tile svg {
+  width: 1.8rem;
+  height: 1.8rem;
 }
 
 .desk-cat-tile .desk-tile-mark {
@@ -2002,6 +2154,7 @@ dialog.desk-settings {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .desk-pop,
   .desk-window:not([hidden]),
   dialog.desk-dialog[open] {
     animation: none;

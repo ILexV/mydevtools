@@ -5,6 +5,7 @@
  */
 import Icon from "@/components/Icon.astro";
 import { ICONS, type IconName } from "@/components/Icon.astro";
+import { TOOL_ICONS } from "@/desktop/tool-icons";
 import { WALLPAPER_PRESETS } from "@/desktop/wallpaper";
 import { getNamespace, t } from "@/i18n/messages";
 import { localizedPath, withBase } from "@/lib/url";
@@ -41,6 +42,7 @@ const payload = {
     title: tool.title,
     description: tool.description,
     monogram: tool.monogram,
+    icon: TOOL_ICONS[tool.slug],
     category: tool.category,
     href: tool.href,
   })),
@@ -161,6 +163,7 @@ const label = (key: string) => t(lang, "desktop", key);
     </footer>
 
     <div class="desk-menu" data-desk-menu role="menu" hidden></div>
+    <section class="desk-pop" data-desk-pop role="dialog" aria-labelledby="desk-pop-title" hidden></section>
 
     <dialog class="desk-dialog desk-launcher" data-catalog-dialog aria-labelledby="desk-catalog-title">
       <div class="desk-dialog-head">

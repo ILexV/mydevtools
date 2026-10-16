@@ -39,6 +39,7 @@ interface ToolInfo {
   title: string;
   description: string;
   monogram: string;
+  icon?: string;
   category: string;
   href: string;
 }
@@ -93,6 +94,9 @@ export function bootDesktop(): void {
 
   let prefs = parsePrefs(readKey(PREFS_KEY), slugs, categoryIds) ?? defaultPrefs(payload.categories.map((category) => category.id));
   let state: DeskState = parseLayout(readKey(LAYOUT_KEY), slugs, categoryIds) ?? emptyDesk;
+  // Folders open as popovers now; folder windows saved by an older version are dropped.
+  const folderIds = state.windows.filter((record) => record.kind === "folder").map((record) => record.id);
+  if (folderIds.length > 0) state = desktopReducer(state, { type: "close-many", ids: folderIds });
   let saveTimer = 0;
   let ready = false;
   let selectedShortcut: string | null = null;
@@ -112,6 +116,9 @@ export function bootDesktop(): void {
   const snap = must<HTMLElement>("[data-desk-snap]");
   const bg = must<HTMLElement>("[data-desk-bg]");
   const menu = must<HTMLElement>("[data-desk-menu]");
+  const pop = must<HTMLElement>("[data-desk-pop]");
+  /** Shortcut id whose folder popover is open, or null. */
+  let popFor: string | null = null;
   const catalogDialog = must<HTMLDialogElement>("[data-catalog-dialog]");
   const settingsDialog = must<HTMLDialogElement>("[data-settings-dialog]");
   const overviewDialog = must<HTMLDialogElement>("[data-overview-dialog]");
@@ -152,14 +159,28 @@ export function bootDesktop(): void {
     render();
   });
   document.addEventListener("pointerdown", (event) => {
-    if (!menu.hidden && !menu.contains(event.target as Node)) hideMenu();
+    const target = event.target as HTMLElement;
+    if (!menu.hidden && !menu.contains(target)) hideMenu();
+    // The folder's own shortcut toggles it in its click handler.
+    if (popFor && !pop.contains(target) && !isPopAnchor(target)) hidePop(false);
   });
+  // Focus moving into a tool iframe never reaches this document as a pointerdown.
+  window.addEventListener("blur", () => hidePop(false));
+  pop.addEventListener("focusout", (event) => {
+    const next = event.relatedTarget as HTMLElement | null;
+    if (!next || pop.contains(next) || isPopAnchor(next)) return;
+    hidePop(false);
+  });
+  pop.addEventListener("keydown", onPopKey);
   stage.addEventListener("contextmenu", (event) => {
     if ((event.target as HTMLElement).closest(".desk-window, .desk-icon, .desk-widget")) return;
     event.preventDefault();
     openSurfaceMenu(event.clientX, event.clientY);
   });
-  window.addEventListener("resize", () => dispatch({ type: "clamp", desk: deskSize() }));
+  window.addEventListener("resize", () => {
+    hidePop(false);
+    dispatch({ type: "clamp", desk: deskSize() });
+  });
   window.addEventListener("storage", (event) => {
     if (event.key === "mdt.favorites.v1" || event.key === "mdt.recent.v1") render();
   });
@@ -282,13 +303,16 @@ export function bootDesktop(): void {
     };
     // One click (or Enter/Space) opens, like a launcher; a drag that ends on the icon does not.
     button.addEventListener("focus", select);
-    button.addEventListener("click", () => {
+    button.addEventListener("click", (event) => {
       select();
       if (iconDragJustEnded) {
         iconDragJustEnded = false;
         return;
       }
-      openShortcut(id, false);
+      // A double click out of habit must not close the popover the first click opened.
+      if (event.detail > 1) return;
+      if (popFor === id) hidePop(true);
+      else openShortcut(id, false, button);
     });
     button.addEventListener("contextmenu", (event) => {
       event.preventDefault();
@@ -499,8 +523,12 @@ export function bootDesktop(): void {
     for (const id of prefs.pinned) {
       if (pinnedHasWindow(id)) continue;
       seen.add(id);
-      const button = taskButton(shortcutInfo(id), shortcutInfo(id).label, false, () => openShortcut(id, false));
+      const button = taskButton(shortcutInfo(id), shortcutInfo(id).label, false, () => {
+        if (popFor === id) hidePop(false);
+        else openShortcut(id, false, button);
+      });
       button.classList.add("is-pinned");
+      button.dataset.popAnchor = id;
       taskHost.append(button);
     }
     for (const record of [...state.windows].sort((a, b) => a.z - b.z)) {
@@ -547,29 +575,151 @@ export function bootDesktop(): void {
     if (state === before) renderWidgets();
   }
 
-  function openFolder(category: string): void {
-    if (!categories.has(category)) return;
-    dispatch({
-      type: "open-folder",
-      id: `folder-${category}-${crypto.randomUUID()}`,
-      category,
-      bounds: folderBounds(category),
-    });
+  function openShortcut(id: string, fresh: boolean, anchor?: HTMLElement | null): void {
+    if (id.startsWith("tool:")) {
+      hidePop(false);
+      openTool(id.slice(5), fresh);
+      return;
+    }
+    if (!id.startsWith("cat:")) return;
+    const from = anchor ?? iconHost.querySelector<HTMLElement>(`[data-shortcut-id="${CSS.escape(id)}"]`);
+    if (from) showPop(id, from);
+    else {
+      catalogScope = id.slice(4);
+      openLauncherScoped();
+    }
   }
 
-  /** A folder window fits its tiles (up to five per row) instead of taking a tool-sized frame. */
-  function folderBounds(category: string): Bounds {
-    const base = cascadeBounds(state.windows.length, windowDesk(), iconStripWidth());
-    const count = payload.tools.filter((tool) => tool.category === category).length;
-    const perRow = Math.max(1, Math.min(5, count));
-    const width = Math.min(base.width, perRow * 128 + 34);
-    const height = Math.min(base.height, 46 + Math.ceil(count / perRow) * 124 + 30);
-    return { ...base, width: Math.max(width, 360), height: Math.max(height, 220) };
+  function openLauncherScoped(): void {
+    const input = catalogDialog.querySelector<HTMLInputElement>("[data-catalog-input]");
+    if (input) input.value = "";
+    fillCatalog("");
+    showDeskDialog(catalogDialog);
+    input?.focus();
   }
 
-  function openShortcut(id: string, fresh: boolean): void {
-    if (id.startsWith("cat:")) openFolder(id.slice(4));
-    else if (id.startsWith("tool:")) openTool(id.slice(5), fresh);
+  /**
+   * Folder popover: the category's tools in a small glass panel beside its
+   * shortcut (above a taskbar button). Choosing a tool, Escape, a click on
+   * another shortcut, a window or the wallpaper closes it. Replaces folder windows.
+   */
+  function showPop(id: string, anchor: HTMLElement): void {
+    const category = id.slice(4);
+    const info = folderInfo(category);
+    const list = payload.tools.filter((tool) => tool.category === category);
+    popFor = id;
+    pop.replaceChildren();
+    pop.style.setProperty("--mdt-cat", `var(--mdt-cat-${category})`);
+    pop.style.setProperty("--desk-tile", `var(--desk-tile-${category})`);
+    const head = document.createElement("header");
+    head.className = "desk-pop-head";
+    const title = document.createElement("h2");
+    title.id = "desk-pop-title";
+    title.textContent = info.label;
+    const count = document.createElement("span");
+    count.className = "desk-pop-count";
+    count.textContent = String(list.length);
+    head.append(makeTile(info, "desk-pop-tile"), title, count);
+    const grid = document.createElement("div");
+    grid.className = "desk-pop-grid";
+    const columns = list.length <= 4 ? list.length : list.length <= 6 ? 3 : list.length <= 9 ? 3 : 4;
+    grid.style.setProperty("--pop-cols", String(Math.max(1, columns)));
+    for (const tool of list) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "desk-pop-tool";
+      button.title = tool.description;
+      const mark = makeTile(toolInfo(tool.slug), "desk-pop-tool-tile");
+      if (shortcutIsOpen(toolShortcut(tool.slug))) {
+        const dotEl = document.createElement("span");
+        dotEl.className = "desk-icon-dot";
+        mark.append(dotEl);
+      }
+      const name = document.createElement("span");
+      name.className = "desk-pop-name";
+      name.textContent = tool.title;
+      button.append(mark, name);
+      button.addEventListener("click", () => {
+        hidePop(false);
+        openTool(tool.slug, false);
+      });
+      grid.append(button);
+    }
+    pop.append(head, grid);
+    pop.hidden = false;
+    placePop(anchor);
+    iconHost.querySelectorAll(".desk-icon.is-open-pop").forEach((node) => node.classList.remove("is-open-pop"));
+    anchor.classList.add("is-open-pop");
+    pop.querySelector<HTMLButtonElement>(".desk-pop-tool")?.focus({ preventScroll: true });
+  }
+
+  /** Right of the shortcut when it fits, else left; above the anchor when it sits in the taskbar. */
+  function placePop(anchor: HTMLElement): void {
+    const box = anchor.getBoundingClientRect();
+    const stageBox = stage.getBoundingClientRect();
+    const width = pop.offsetWidth;
+    const height = pop.offsetHeight;
+    const gap = 10;
+    let left: number;
+    let top: number;
+    let side: string;
+    if (box.top >= stageBox.bottom - 4) {
+      left = box.left + box.width / 2 - width / 2;
+      top = box.top - height - gap;
+      side = "bottom";
+    } else {
+      side = "left";
+      left = box.right + gap;
+      if (left + width > stageBox.right - 8) {
+        left = box.left - width - gap;
+        side = "right";
+      }
+      top = box.top - 6;
+    }
+    left = Math.max(stageBox.left + 8, Math.min(left, stageBox.right - width - 8));
+    top = Math.max(stageBox.top + 8, Math.min(top, stageBox.bottom - height - 8));
+    pop.style.left = `${Math.round(left)}px`;
+    pop.style.top = `${Math.round(top)}px`;
+    pop.dataset.from = side;
+  }
+
+  /** The shortcut or pinned taskbar button of the open folder: its own click toggles the popover. */
+  function isPopAnchor(node: HTMLElement): boolean {
+    if (!popFor || !node.closest) return false;
+    const id = CSS.escape(popFor);
+    return !!node.closest(`[data-shortcut-id="${id}"], [data-pop-anchor="${id}"]`);
+  }
+
+    function hidePop(returnFocus: boolean): void {
+    if (!popFor) return;
+    const id = popFor;
+    popFor = null;
+    pop.hidden = true;
+    pop.replaceChildren();
+    document.querySelectorAll(".is-open-pop").forEach((node) => node.classList.remove("is-open-pop"));
+    if (returnFocus) iconHost.querySelector<HTMLElement>(`[data-shortcut-id="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+  }
+
+  /** Arrows walk the grid, Home/End jump, Escape closes back to the shortcut. */
+  function onPopKey(event: KeyboardEvent): void {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      hidePop(true);
+      return;
+    }
+    const items = [...pop.querySelectorAll<HTMLButtonElement>(".desk-pop-tool")];
+    const index = items.indexOf(document.activeElement as HTMLButtonElement);
+    if (index < 0) return;
+    const columns = Number(pop.querySelector<HTMLElement>(".desk-pop-grid")?.style.getPropertyValue("--pop-cols")) || 1;
+    const step: Record<string, number> = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: columns, ArrowUp: -columns };
+    let next = index;
+    if (event.key in step) next = index + step[event.key];
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = items.length - 1;
+    else return;
+    event.preventDefault();
+    items[Math.max(0, Math.min(items.length - 1, next))]?.focus();
   }
 
   function toggleMax(id: string): void {
@@ -740,6 +890,7 @@ export function bootDesktop(): void {
     button.setPointerCapture?.(event.pointerId);
     const onMove = (ev: PointerEvent) => {
       if (!dragging && Math.hypot(ev.clientX - startX, ev.clientY - startY) < 4) return;
+      if (!dragging) hidePop(false);
       dragging = true;
       button.classList.add("is-dragging");
       const cell = cellAt(ev.clientX, ev.clientY);
@@ -831,7 +982,7 @@ export function bootDesktop(): void {
       event.preventDefault();
       nudgeShortcut(selectedShortcut, event.key, event.shiftKey);
     } else if (event.key === "Enter" && selectedShortcut && !(event.target as HTMLElement).closest?.(".desk-icon")) {
-      openShortcut(selectedShortcut, false);
+      openShortcut(selectedShortcut, false, null);
     }
   }
 
@@ -1413,7 +1564,7 @@ export function bootDesktop(): void {
   function openShortcutMenu(id: string, x: number, y: number): void {
     const info = shortcutInfo(id);
     const items: MenuEntry[] = [
-      { kind: "item", label: text("Open"), run: () => openShortcut(id, false) },
+      { kind: "item", label: text("Open"), run: () => openShortcut(id, false, null) },
     ];
     if (id.startsWith("tool:")) {
       items.push({ kind: "item", label: text("OpenAnother"), run: () => openShortcut(id, true) });
@@ -1612,9 +1763,14 @@ export function bootDesktop(): void {
     return toolInfo(id.slice(5));
   }
 
-  function toolInfo(slug: string): { label: string; mark: string; category: string } {
+  function toolInfo(slug: string): TileInfo {
     const tool = tools.get(slug);
-    return { label: tool?.title || slug, mark: tool?.monogram || slug.slice(0, 2).toUpperCase(), category: tool?.category || "encoding" };
+    return {
+      label: tool?.title || slug,
+      mark: tool?.monogram || slug.slice(0, 2).toUpperCase(),
+      category: tool?.category || "encoding",
+      icon: tool?.icon,
+    };
   }
 
   function folderInfo(category: string): { label: string; mark: string; category: string; icon?: string } {
@@ -1630,13 +1786,14 @@ export function bootDesktop(): void {
   }
 
   function shortcutIsOpen(id: string): boolean {
-    if (id.startsWith("cat:")) return state.windows.some((record) => record.kind === "folder" && record.slug === id.slice(4));
+    // A folder counts as open while any of its tools has a window.
+    if (id.startsWith("cat:")) return state.windows.some((record) => record.kind === "tool" && tools.get(record.slug)?.category === id.slice(4));
     if (id.startsWith("tool:")) return state.windows.some((record) => record.kind === "tool" && record.slug === id.slice(5));
     return false;
   }
 
   function pinnedHasWindow(id: string): boolean {
-    return shortcutIsOpen(id);
+    return id.startsWith("tool:") && shortcutIsOpen(id);
   }
 
   function iconCell(): { w: number; h: number } {

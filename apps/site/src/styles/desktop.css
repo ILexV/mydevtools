@@ -1496,7 +1496,7 @@ body.desk[data-density="compact"] .desk-taskbar {
 
 .desk-pop-grid {
   display: grid;
-  grid-template-columns: repeat(var(--pop-cols, 3), minmax(0, 9rem));
+  grid-template-columns: repeat(var(--pop-cols, 3), minmax(0, 1fr));
   gap: 0.35rem;
   min-height: 0;
   overflow: auto;
@@ -1527,6 +1527,7 @@ body.desk[data-density="compact"] .desk-taskbar {
 .desk-pop-tool:focus-visible {
   outline: 2px solid var(--mdt-accent);
   outline-offset: -2px;
+  box-shadow: none;
 }
 
 .desk-pop-tool-tile {

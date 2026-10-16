@@ -96,6 +96,8 @@ export function bootDesktop(): void {
   let saveTimer = 0;
   let ready = false;
   let selectedShortcut: string | null = null;
+  /** Set between the pointerup of an icon drag and the click the browser fires right after it. */
+  let iconDragJustEnded = false;
   let tileFor: string | null = null;
   let imageUrl: string | null = null;
   let draftUrl: string | null = null;
@@ -272,13 +274,22 @@ export function bootDesktop(): void {
       dot.className = "desk-icon-dot";
       tile.append(dot);
     }
-    button.addEventListener("click", () => {
+    const select = () => {
       selectedShortcut = id;
       iconHost.querySelectorAll<HTMLButtonElement>(".desk-icon").forEach((icon) => {
         icon.setAttribute("aria-pressed", String(icon === button));
       });
+    };
+    // One click (or Enter/Space) opens, like a launcher; a drag that ends on the icon does not.
+    button.addEventListener("focus", select);
+    button.addEventListener("click", () => {
+      select();
+      if (iconDragJustEnded) {
+        iconDragJustEnded = false;
+        return;
+      }
+      openShortcut(id, false);
     });
-    button.addEventListener("dblclick", () => openShortcut(id, false));
     button.addEventListener("contextmenu", (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -742,6 +753,10 @@ export function bootDesktop(): void {
       button.classList.remove("is-dragging");
       iconHost.querySelectorAll(".is-drop").forEach((node) => node.classList.remove("is-drop"));
       if (!dragging) return;
+      iconDragJustEnded = true;
+      window.setTimeout(() => {
+        iconDragJustEnded = false;
+      }, 0);
       ev.preventDefault();
       ev.stopPropagation();
       const cell = cellAt(ev.clientX, ev.clientY);
@@ -815,7 +830,7 @@ export function bootDesktop(): void {
     if ((event.ctrlKey || event.metaKey) && event.key.startsWith("Arrow")) {
       event.preventDefault();
       nudgeShortcut(selectedShortcut, event.key, event.shiftKey);
-    } else if (event.key === "Enter" && selectedShortcut) {
+    } else if (event.key === "Enter" && selectedShortcut && !(event.target as HTMLElement).closest?.(".desk-icon")) {
       openShortcut(selectedShortcut, false);
     }
   }

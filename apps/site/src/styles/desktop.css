@@ -406,6 +406,12 @@ body.desk {
   background: rgba(255, 255, 255, 0.18);
 }
 
+.desk-icon.is-folder-drop {
+  border-color: var(--mdt-accent);
+  background: color-mix(in srgb, var(--mdt-accent) 24%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--mdt-accent) 18%, transparent);
+}
+
 .desk-icon.is-dragging {
   opacity: 0.55;
 }
@@ -464,6 +470,10 @@ body.desk {
   background: var(--mdt-surface-raised);
   box-shadow: var(--desk-shadow-pop);
   font-size: 0.875rem;
+}
+
+.desk-layout-notice[data-close-notice] {
+  bottom: 7.8rem;
 }
 
 .desk-icon-tile {
@@ -916,6 +926,77 @@ body.desk[data-density="compact"] .desk-taskbar {
   background: var(--mdt-border);
 }
 
+.desk-window-tabs {
+  display: flex;
+  flex: none;
+  gap: 0.2rem;
+  min-width: 0;
+  min-height: 2.25rem;
+  padding: 0.25rem 0.4rem 0;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--mdt-border-soft);
+  background: color-mix(in srgb, var(--mdt-surface) 75%, var(--mdt-surface-raised));
+  scrollbar-width: thin;
+}
+
+.desk-window-tab {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 1 14rem;
+  min-width: 7rem;
+  border-radius: 0.55rem 0.55rem 0 0;
+  background: var(--desk-hover);
+}
+
+.desk-window-tab:has([aria-selected="true"]) {
+  background: var(--mdt-surface-raised);
+  box-shadow: inset 0 2px 0 var(--mdt-accent);
+}
+
+.desk-window-tab-select {
+  flex: 1;
+  min-width: 0;
+  padding: 0.45rem 0.25rem 0.45rem 0.65rem;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.78rem;
+  text-align: start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.desk-window-tab .desk-win-btn {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.desk-window:not(.is-grouped) > .desk-window-tabs {
+  display: none;
+}
+
+.desk-win-btn[data-layout-picker] {
+  width: 1.35rem;
+  margin-left: -0.25rem;
+}
+
+.desk-window.is-busy .desk-window-title::after {
+  content: "";
+  flex: none;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--mdt-accent);
+  animation: desk-activity 1.4s ease-in-out infinite;
+}
+
+@keyframes desk-activity {
+  50% { opacity: 0.35; }
+}
+
 .desk-win-btn {
   display: inline-grid;
   place-items: center;
@@ -1234,6 +1315,35 @@ body.desk[data-density="compact"] .desk-taskbar {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.desk-task-count {
+  position: absolute;
+  right: -0.3rem;
+  top: -0.3rem;
+  display: grid;
+  place-items: center;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  padding: 0 0.2rem;
+  border: 2px solid var(--desk-glass-strong);
+  border-radius: 999px;
+  background: var(--mdt-accent);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 750;
+}
+
+.desk-task.is-busy::before {
+  content: "";
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--mdt-accent);
+  animation: desk-activity 1.4s ease-in-out infinite;
 }
 
 .desk-tray {
@@ -1718,6 +1828,73 @@ dialog.desk-launcher {
   background: color-mix(in srgb, var(--mdt-accent) 14%, transparent);
   color: var(--mdt-accent);
   font-weight: 620;
+}
+
+.desk-command-group {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0.8rem 1rem 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--mdt-border-soft);
+}
+
+.desk-command-group h3 {
+  margin: 0 0 0.35rem;
+  color: var(--mdt-text-faint);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.desk-command {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.65rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: transparent;
+  color: var(--mdt-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.desk-command:hover {
+  background: var(--desk-hover);
+}
+
+.desk-command span {
+  color: var(--mdt-text-muted);
+  font-size: 0.78rem;
+}
+
+.desk-folder-choice {
+  display: grid;
+  gap: 0.35rem;
+  max-height: min(19rem, 45vh);
+  overflow: auto;
+}
+
+.desk-folder-choice-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 2.65rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--mdt-border-soft);
+  border-radius: 0.65rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.desk-folder-choice-item[aria-pressed="true"] {
+  border-color: var(--mdt-accent);
+  background: color-mix(in srgb, var(--mdt-accent) 12%, transparent);
 }
 
 .desk-nav-count {
@@ -2305,10 +2482,47 @@ dialog.desk-settings {
   }
 }
 
+.desk-focus-exit {
+  position: absolute;
+  z-index: 7;
+  top: 1rem;
+  left: 50%;
+  translate: -50% 0;
+  box-shadow: var(--desk-shadow-pop);
+}
+
+body.desk.is-focus-mode .desk-icons,
+body.desk.is-focus-mode .desk-widgets,
+body.desk.is-focus-mode .desk-hint {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.desk-menu {
+  max-width: calc(100vw - 1rem);
+  max-height: calc(100vh - 1rem);
+  overflow: auto;
+}
+
+.desk-snap {
+  transition:
+    left 100ms ease-out,
+    top 100ms ease-out,
+    width 100ms ease-out,
+    height 100ms ease-out,
+    opacity 100ms ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .desk-pop,
   .desk-window:not([hidden]),
-  dialog.desk-dialog[open] {
+  dialog.desk-dialog[open],
+  .desk-window.is-busy .desk-window-title::after,
+  .desk-task.is-busy::before {
     animation: none;
+  }
+
+  .desk-snap {
+    transition: none;
   }
 }

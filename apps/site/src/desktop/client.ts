@@ -26,7 +26,7 @@ import {
 import { desktopReducer } from "./reducer.ts";
 import { arrangeShortcuts, cellSize, moveShortcut, packedPositions, stripColumns } from "./shortcuts.ts";
 import { createTaskPreview } from "./task-preview.ts";
-import type { Bounds, DeskSize, DeskState, DeskWindow, ResizeEdge, ShortcutCell } from "./types.ts";
+import type { Bounds, DeskSize, DeskState, DeskWindow, Dock, ResizeEdge, ShortcutCell } from "./types.ts";
 import { emptyDesk } from "./types.ts";
 import { clearWallpaperBlob, loadWallpaperBlob, prepareWallpaper, saveWallpaperBlob } from "./wallpaper.ts";
 import {
@@ -77,6 +77,16 @@ type MenuEntry =
 
 const EDGES: ResizeEdge[] = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
 
+const TRANSFER_MEDIA_TYPES: Record<string, true> = {
+  "text/plain": true,
+  "text/html": true,
+  "application/json": true,
+  "application/xml": true,
+  "application/yaml": true,
+  "application/jwt": true,
+  "application/cron": true,
+};
+
 export function bootDesktop(): void {
   const dataEl = document.getElementById("desk-data");
   if (!dataEl?.textContent) return;
@@ -97,7 +107,7 @@ export function bootDesktop(): void {
   let catalogScope = "all";
 
   let prefs = parsePrefs(readKey(PREFS_KEY), slugs, categoryIds) ?? defaultPrefs(payload.categories.map((category) => category.id));
-  let state: DeskState = parseLayout(readKey(LAYOUT_KEY), slugs, categoryIds) ?? emptyDesk;
+  let state: DeskState = desktopReducer(emptyDesk, { type: "hydrate", state: parseLayout(readKey(LAYOUT_KEY), slugs, categoryIds) ?? emptyDesk });
   let rememberedBounds = parseWindowBounds(readKey(WINDOW_BOUNDS_KEY), slugs);
   const pendingInitialFit = new Set<string>();
   // Folders open as popovers now; folder windows saved by an older version are dropped.
@@ -107,7 +117,7 @@ export function bootDesktop(): void {
   let ready = false;
   let selectedShortcut: string | null = null;
   let selectedShortcuts = new Set<string>();
-  type ShortcutSnapshot = Pick<DeskPrefs, "shortcuts" | "positions" | "pinned">;
+  type ShortcutSnapshot = Pick<DeskPrefs, "shortcuts" | "positions" | "pinned" | "folders">;
   const shortcutHistory: ShortcutSnapshot[] = [];
   let layoutNoticeDismissed = false;
   let cancelShortcutGesture: (() => void) | null = null;
@@ -120,11 +130,18 @@ export function bootDesktop(): void {
   let draftRemoveImage = false;
 
   const stage = must<HTMLElement>("[data-desk-stage]");
+  let folderSourceId: string | null = null;
+  let folderTargetId: string | null = null;
   const widgetHost = must<HTMLElement>("[data-desk-widgets]");
   const iconHost = must<HTMLElement>("[data-desk-icons]");
   const windowHost = must<HTMLElement>("[data-desk-windows]");
   const taskHost = must<HTMLElement>("[data-desk-tasks]");
   const frameInput = new WeakMap<HTMLIFrameElement, () => boolean>();
+  const readyFrames = new WeakSet<HTMLIFrameElement>();
+  const pendingTransfers = new Map<HTMLIFrameElement, unknown[]>();
+  const toolActivity = new Map<string, { value: number | null; label: string }>();
+  let recentlyClosed: DeskWindow[] = [];
+  let closeNoticeTimer = 0;
   const snap = must<HTMLElement>("[data-desk-snap]");
   const bg = must<HTMLElement>("[data-desk-bg]");
   const menu = must<HTMLElement>("[data-desk-menu]");
@@ -136,6 +153,7 @@ export function bootDesktop(): void {
   const overviewDialog = must<HTMLDialogElement>("[data-overview-dialog]");
   const discardDialog = must<HTMLDialogElement>("[data-discard-dialog]");
   const helpDialog = must<HTMLDialogElement>("[data-help-dialog]");
+  const folderDialog = must<HTMLDialogElement>("[data-folder-dialog]");
   const tileDialog = must<HTMLDialogElement>("[data-tile-dialog]");
   const taskPreview = createTaskPreview(taskHost, {
     strings: payload.strings,
@@ -154,6 +172,20 @@ export function bootDesktop(): void {
   });
 
   document.querySelectorAll("[data-layout-undo]").forEach((button) => button.addEventListener("click", undoShortcutLayout));
+  document.querySelector("[data-close-undo]")?.addEventListener("click", undoClosedWindows);
+  document.querySelector("[data-close-dismiss]")?.addEventListener("click", () => {
+    recentlyClosed = [];
+    window.clearTimeout(closeNoticeTimer);
+    const notice = document.querySelector<HTMLElement>("[data-close-notice]");
+    if (notice) notice.hidden = true;
+  });
+  const setFocusMode = (enabled: boolean) => {
+    prefs = { ...prefs, focusMode: enabled };
+    scheduleSave();
+    render();
+  };
+  document.querySelector("[data-focus-mode]")?.addEventListener("click", () => setFocusMode(!prefs.focusMode));
+  document.querySelector("[data-focus-exit]")?.addEventListener("click", () => setFocusMode(false));
   document.querySelector("[data-layout-dismiss]")?.addEventListener("click", () => {
     layoutNoticeDismissed = true;
     const notice = document.querySelector<HTMLElement>("[data-layout-notice]");
@@ -187,6 +219,7 @@ export function bootDesktop(): void {
     if (details?.open && !details.contains(event.target as Node)) details.open = false;
   });
   document.addEventListener("keydown", onKey);
+  window.addEventListener("message", onToolMessage);
   document.querySelector("[data-hint-dismiss]")?.addEventListener("click", () => {
     prefs = { ...prefs, hintDismissed: true };
     scheduleSave();
@@ -233,6 +266,7 @@ export function bootDesktop(): void {
   wireOverview();
   wireTile();
   wireWorkspaces();
+  wireFolders();
   startClock();
 
   void restoreImage().finally(() => {
@@ -245,6 +279,64 @@ export function bootDesktop(): void {
     }
     render();
   });
+
+  function onToolMessage(event: MessageEvent<unknown>): void {
+    if (event.origin !== location.origin || !event.source) return;
+    const frame = [...windowHost.querySelectorAll<HTMLIFrameElement>("iframe[data-tool-id]")]
+      .find((candidate) => candidate.contentWindow === event.source);
+    if (!frame || !event.data || typeof event.data !== "object") return;
+    const message = event.data as Record<string, unknown>;
+    const sourceId = frame.dataset.toolId;
+    const sourceSlug = frame.dataset.toolSlug;
+    if (!sourceId || !sourceSlug) return;
+    if (message.type === "mdt:transfer-ready" && message.slug === sourceSlug) {
+      readyFrames.add(frame);
+      const queued = pendingTransfers.get(frame) ?? [];
+      pendingTransfers.delete(frame);
+      for (const delivery of queued) frame.contentWindow?.postMessage(delivery, location.origin);
+      return;
+    }
+    if (message.type === "mdt:tool-activity" && message.slug === sourceSlug) {
+      if (message.active === true) {
+        toolActivity.set(sourceId, {
+          value: typeof message.value === "number" && Number.isFinite(message.value) ? message.value : null,
+          label: typeof message.label === "string" ? message.label.slice(0, 160) : "",
+        });
+      } else {
+        toolActivity.delete(sourceId);
+      }
+      renderTasks();
+      frame.closest<HTMLElement>(".desk-window")?.classList.toggle("is-busy", toolActivity.has(sourceId));
+      return;
+    }
+    if (
+      message.type !== "mdt:transfer-request" ||
+      message.sourceSlug !== sourceSlug ||
+      typeof message.requestId !== "string" ||
+      typeof message.targetSlug !== "string" ||
+      !tools.has(message.targetSlug) ||
+      typeof message.payload !== "string" ||
+      typeof message.mediaType !== "string" ||
+      TRANSFER_MEDIA_TYPES[message.mediaType] !== true
+    ) {
+      return;
+    }
+    const targetId = openTool(message.targetSlug, false);
+    if (!targetId) return;
+    const targetFrame = windowHost.querySelector<HTMLIFrameElement>(
+      `.desk-frame-wrap[data-tab-id="${CSS.escape(targetId)}"] iframe`,
+    );
+    if (!targetFrame) return;
+    const delivery = {
+      type: "mdt:transfer-deliver",
+      requestId: message.requestId,
+      targetSlug: message.targetSlug,
+      mediaType: message.mediaType,
+      payload: message.payload,
+    };
+    if (readyFrames.has(targetFrame)) targetFrame.contentWindow?.postMessage(delivery, location.origin);
+    else pendingTransfers.set(targetFrame, [...(pendingTransfers.get(targetFrame) ?? []), delivery]);
+  }
 
   function dispatch(action: Parameters<typeof desktopReducer>[1]): void {
     const next = desktopReducer(state, action);
@@ -281,6 +373,15 @@ export function bootDesktop(): void {
     document.body.dataset.density = prefs.density;
     document.body.dataset.iconSize = prefs.iconSize;
     const hint = document.querySelector<HTMLElement>("[data-desk-hint]");
+    document.body.classList.toggle("is-focus-mode", prefs.focusMode);
+    const focusExit = document.querySelector<HTMLElement>("[data-focus-exit]");
+    if (focusExit) focusExit.hidden = !prefs.focusMode;
+    const focusToggle = document.querySelector<HTMLElement>("[data-focus-mode]");
+    if (focusToggle) {
+      focusToggle.setAttribute("aria-pressed", String(prefs.focusMode));
+      focusToggle.setAttribute("aria-label", text(prefs.focusMode ? "ExitFocusMode" : "EnterFocusMode"));
+      focusToggle.setAttribute("title", text(prefs.focusMode ? "ExitFocusMode" : "EnterFocusMode"));
+    }
     if (hint) hint.hidden = prefs.hintDismissed;
     const count = document.querySelector<HTMLElement>("[data-desk-count]");
     if (count) {
@@ -334,7 +435,7 @@ export function bootDesktop(): void {
     const info = shortcutInfo(id);
     button.style.setProperty("--mdt-cat", `var(--mdt-cat-${info.category})`);
     button.title = info.label;
-    button.classList.toggle("is-folder", id.startsWith("cat:"));
+    button.classList.toggle("is-folder", id.startsWith("cat:") || id.startsWith("folder:"));
     const tile = makeTile(info, "desk-icon-tile");
     const label = document.createElement("span");
     label.className = "desk-icon-label";
@@ -398,119 +499,165 @@ export function bootDesktop(): void {
   }
 
   function renderWindows(): void {
-    const live = new Set(state.windows.map((record) => record.id));
-    for (const id of pendingInitialFit) if (!live.has(id)) pendingInitialFit.delete(id);
-    for (const node of windowHost.querySelectorAll<HTMLElement>("[data-window-id]")) {
-      if (!live.has(node.dataset.windowId || "")) node.remove();
-    }
+    const liveIds = new Set(state.windows.map((record) => record.id));
+    for (const id of pendingInitialFit) if (!liveIds.has(id)) pendingInitialFit.delete(id);
+    const groups = new Map<string, DeskWindow[]>();
     for (const record of state.windows) {
-      let node = windowHost.querySelector<HTMLElement>(`[data-window-id="${CSS.escape(record.id)}"]`);
-      if (!node) {
-        node = createWindow(record);
-        windowHost.append(node);
+      const key = record.groupId ?? record.id;
+      const members = groups.get(key) ?? [];
+      members.push(record);
+      groups.set(key, members);
+    }
+    for (const members of groups.values()) {
+      const selected = members.find((record) => record.id === state.activeId) ?? members.find((record) => record.tabActive) ?? members[0]!;
+      for (const member of members) {
+        let node = windowHost.querySelector<HTMLElement>(`.desk-window[data-window-id="${CSS.escape(member.id)}"]`);
+        if (!node) {
+          node = createWindow(member.id);
+          windowHost.append(node);
+        }
+        placeWindow(node, member, members, selected);
       }
-      placeWindow(node, record);
+    }
+    for (const node of windowHost.querySelectorAll<HTMLElement>(".desk-window[data-window-id]")) {
+      if (!liveIds.has(node.dataset.windowId || "")) {
+        for (const frame of node.querySelectorAll<HTMLIFrameElement>("iframe")) {
+          pendingTransfers.delete(frame);
+          const id = frame.closest<HTMLElement>("[data-tab-id]")?.dataset.tabId;
+          if (id) toolActivity.delete(id);
+        }
+        node.remove();
+      }
     }
   }
 
-  function createWindow(record: DeskWindow): HTMLElement {
+  function createWindow(id: string): HTMLElement {
     const node = document.createElement("article");
     node.className = "desk-window";
-    node.dataset.windowId = record.id;
+    node.dataset.windowId = id;
     node.tabIndex = -1;
-    const info = record.kind === "tool" ? toolInfo(record.slug) : folderInfo(record.slug);
-    node.style.setProperty("--mdt-cat", `var(--mdt-cat-${info.category})`);
-
     const header = document.createElement("header");
     header.className = "desk-window-title";
+    header.setAttribute("aria-keyshortcuts", "ArrowLeft ArrowRight ArrowUp ArrowDown Shift+ArrowLeft Shift+ArrowRight Shift+ArrowUp Shift+ArrowDown");
     header.tabIndex = 0;
-    const mark = makeTile(info, "desk-window-mark");
+    const markHost = document.createElement("span");
+    markHost.className = "desk-window-mark-host";
     const name = document.createElement("h2");
     name.className = "desk-window-name";
     const actions = document.createElement("div");
     actions.className = "desk-window-actions";
-    header.append(mark, name, actions);
-    if (record.kind === "tool") {
-      actions.append(
-        winButton("Favorite", glyph("star"), () => {
-          window.MDT?.favorites.toggle(record.slug);
-          render();
-        }, "data-fav"),
-        winButton("Help", glyph("help"), () => showHelp(record.slug)),
-      );
-    }
+    header.append(markHost, name, actions);
+    actions.append(
+      winButton("Favorite", glyph("star"), () => {
+        const current = state.windows.find((record) => record.id === node.dataset.activeId);
+        if (current?.kind === "tool") window.MDT?.favorites.toggle(current.slug);
+        render();
+      }, "data-fav"),
+      winButton("Help", glyph("help"), () => {
+        const current = state.windows.find((record) => record.id === node.dataset.activeId);
+        if (current?.kind === "tool") showHelp(current.slug);
+      }),
+    );
     const more = winButton("WindowMenu", glyph("more"), () => {
       const box = more.getBoundingClientRect();
-      openWindowMenu(record.id, box.right - 220, box.bottom + 4);
+      if (node.dataset.activeId) openWindowMenu(node.dataset.activeId, box.right - 220, box.bottom + 4);
     });
     more.setAttribute("aria-haspopup", "menu");
+    const max = winButton("Maximize", glyph("maximize"), () => {
+      if (node.dataset.activeId) toggleMax(node.dataset.activeId);
+    }, "data-max");
+    const layouts = winButton("LayoutPicker", glyph("chevron", 13), () => {
+      const box = layouts.getBoundingClientRect();
+      if (node.dataset.activeId) openLayoutMenu(node.dataset.activeId, box.right - 220, box.bottom + 4);
+    }, "data-layout-picker");
+    layouts.setAttribute("aria-haspopup", "menu");
     const gap = document.createElement("span");
     gap.className = "desk-window-gap";
     actions.append(
       more,
       gap,
-      winButton("Minimize", glyph("minimize"), () => dispatch({ type: "minimize", id: record.id })),
-      winButton("Maximize", glyph("maximize"), () => toggleMax(record.id), "data-max"),
-      winButton("Close", glyph("close"), () => void closeWindows([record.id]), "data-close"),
+      winButton("Minimize", glyph("minimize"), () => {
+        if (node.dataset.activeId) dispatch({ type: "minimize", id: node.dataset.activeId });
+      }),
+      max,
+      layouts,
+      winButton("Close", glyph("close"), () => {
+        const ids = [...node.querySelectorAll<HTMLElement>(".desk-window-tab[data-tab-id]")].map((tab) => tab.dataset.tabId!).filter(Boolean);
+        void closeWindows(ids);
+      }, "data-close"),
     );
     header.addEventListener("dblclick", (event) => {
       if ((event.target as HTMLElement).closest("button")) return;
-      toggleMax(record.id);
+      if (node.dataset.activeId) toggleMax(node.dataset.activeId);
     });
     header.addEventListener("contextmenu", (event) => {
       if ((event.target as HTMLElement).closest("button")) return;
       event.preventDefault();
-      dispatch({ type: "activate", id: record.id });
-      openWindowMenu(record.id, event.clientX, event.clientY);
+      if (!node.dataset.activeId) return;
+      dispatch({ type: "activate", id: node.dataset.activeId });
+      openWindowMenu(node.dataset.activeId, event.clientX, event.clientY);
     });
-    header.addEventListener("pointerdown", (event) => startWindowDrag(event, record.id, header));
-
+    header.addEventListener("pointerdown", (event) => {
+      if (node.dataset.activeId) startWindowDrag(event, node.dataset.activeId, header);
+    });
+    const tabs = document.createElement("div");
+    tabs.className = "desk-window-tabs";
+    tabs.setAttribute("role", "tablist");
     const body = document.createElement("div");
     body.className = "desk-window-body";
-    if (record.kind === "folder") body.append(folderBody(record.slug));
-    else body.append(toolFrame(record));
-
-    node.append(header, body);
+    node.append(header, tabs, body);
     for (const edge of EDGES) {
       const handle = document.createElement("div");
       handle.className = `desk-resize edge-${edge}`;
-      handle.addEventListener("pointerdown", (event) => startResize(event, record.id, edge));
+      handle.setAttribute("role", "separator");
+      handle.setAttribute("aria-label", text("ResizeWindow"));
+      handle.addEventListener("pointerdown", (event) => {
+        if (node.dataset.activeId) startResize(event, node.dataset.activeId, edge);
+      });
       node.append(handle);
     }
     node.addEventListener("pointerdown", (event) => {
-      if (state.activeId === record.id) return;
-      if ((event.target as HTMLElement).closest(".desk-window-title button, .desk-resize")) return;
+      const id = node.dataset.activeId;
+      if (!id || state.activeId === id) return;
+      if ((event.target as HTMLElement).closest(".desk-window-title button, .desk-window-tabs button, .desk-resize")) return;
       event.preventDefault();
       event.stopPropagation();
-      dispatch({ type: "activate", id: record.id });
+      dispatch({ type: "activate", id });
     });
     return node;
   }
 
-  function placeWindow(node: HTMLElement, record: DeskWindow): void {
-    const active = state.activeId === record.id;
-    node.classList.toggle("is-active", active);
+  function placeWindow(node: HTMLElement, owner: DeskWindow, members: DeskWindow[], record: DeskWindow): void {
+    node.dataset.activeId = record.id;
+    node.dataset.windowId = owner.id;
+    const active = members.some((member) => member.id === state.activeId);
+    const selected = owner.id === record.id;
+    node.classList.toggle("is-active", active && selected);
     node.classList.toggle("is-max", record.mode === "maximized");
-    node.hidden = state.concealed || record.mode === "minimized";
-    const body = node.querySelector(".desk-window-body");
-    // A hidden frame leaves the tab order. A visible frame behind the active
-    // one keeps its title reachable, but its tool document does not.
+    node.classList.toggle("is-grouped", members.length > 1);
+    node.classList.toggle("is-busy", members.some((member) => toolActivity.has(member.id)));
+    node.hidden = state.concealed || record.mode === "minimized" || !selected;
+    const body = node.querySelector<HTMLElement>(".desk-window-body");
     if (node.hidden) node.setAttribute("inert", "");
     else node.removeAttribute("inert");
     if (node.hidden || !active) body?.setAttribute("inert", "");
     else body?.removeAttribute("inert");
     node.style.zIndex = String(record.z);
     if (record.mode === "maximized") {
-      node.style.left = "0";
-      node.style.top = "0";
-      node.style.width = "100%";
-      node.style.height = "100%";
+      Object.assign(node.style, { left: "0", top: "0", width: "100%", height: "100%" });
     } else {
-      node.style.left = `${record.bounds.x}px`;
-      node.style.top = `${record.bounds.y}px`;
-      node.style.width = `${record.bounds.width}px`;
-      node.style.height = `${record.bounds.height}px`;
+      Object.assign(node.style, {
+        left: `${record.bounds.x}px`,
+        top: `${record.bounds.y}px`,
+        width: `${record.bounds.width}px`,
+        height: `${record.bounds.height}px`,
+      });
     }
+    syncWindowTabs(node, owner, members, record.id);
+    const info = record.kind === "tool" ? toolInfo(record.slug) : folderInfo(record.slug);
+    node.style.setProperty("--mdt-cat", `var(--mdt-cat-${info.category})`);
+    const markHost = node.querySelector<HTMLElement>(".desk-window-mark-host");
+    if (markHost) markHost.replaceChildren(makeTile(info, "desk-window-mark"));
     const fav = node.querySelector<HTMLButtonElement>("[data-fav]");
     if (fav && record.kind === "tool") {
       const on = window.MDT?.favorites.isFavorite(record.slug) === true;
@@ -518,34 +665,80 @@ export function bootDesktop(): void {
       fav.classList.toggle("is-on", on);
       fav.setAttribute("aria-pressed", String(on));
     }
-    const info = record.kind === "tool" ? toolInfo(record.slug) : folderInfo(record.slug);
     const name = node.querySelector(".desk-window-name");
     if (name) name.textContent = windowTitle(record, info.label);
     const restore = record.mode === "maximized" || !!record.dock;
+    const titleBar = node.querySelector<HTMLElement>(".desk-window-title");
+    if (titleBar) titleBar.setAttribute("aria-label", fill("WindowHeader", { name: windowTitle(record, info.label) }));
+    const closeButton = node.querySelector<HTMLButtonElement>("[data-close]");
+    if (closeButton) closeButton.dataset.labelKey = members.length > 1 ? "CloseGroup" : "Close";
     for (const button of node.querySelectorAll<HTMLButtonElement>(".desk-win-btn")) {
-      const key = button.dataset.labelKey === "Maximize" && restore ? "Restore" : button.dataset.labelKey;
-      if (!key) continue;
-      button.setAttribute("aria-label", text(key));
-      button.title = text(key);
+      const keyName = button.dataset.labelKey === "Maximize" && restore ? "Restore" : button.dataset.labelKey;
+      if (!keyName) continue;
+      button.setAttribute("aria-label", text(keyName));
+      button.title = text(keyName);
     }
     const maxBtn = node.querySelector<HTMLButtonElement>("[data-max]");
     if (maxBtn && maxBtn.dataset.glyph !== String(restore)) {
       maxBtn.dataset.glyph = String(restore);
       maxBtn.innerHTML = glyph(restore ? "restore" : "maximize");
     }
-    const frame = node.querySelector("iframe");
-    if (frame) frame.style.pointerEvents = active && !node.hidden ? "auto" : "none";
+  }
+
+  function syncWindowTabs(node: HTMLElement, owner: DeskWindow, members: DeskWindow[], activeId: string): void {
+    const tabs = node.querySelector<HTMLElement>(".desk-window-tabs")!;
+    const body = node.querySelector<HTMLElement>(".desk-window-body")!;
+    let wrap = body.querySelector<HTMLElement>(`.desk-frame-wrap[data-tab-id="${CSS.escape(owner.id)}"]`);
+    if (!wrap) {
+      wrap = owner.kind === "folder" ? folderBody(owner.slug) : toolFrame(owner);
+      wrap.dataset.tabId = owner.id;
+      body.append(wrap);
+    }
+    wrap.hidden = false;
+    wrap.inert = false;
+    const frame = wrap.querySelector<HTMLIFrameElement>("iframe");
+    if (frame) frame.style.pointerEvents = owner.id === activeId && !node.hidden ? "auto" : "none";
+    for (const stale of body.querySelectorAll<HTMLElement>(".desk-frame-wrap[data-tab-id]")) {
+      if (stale === wrap) continue;
+      const staleFrame = stale.querySelector<HTMLIFrameElement>("iframe");
+      if (staleFrame) pendingTransfers.delete(staleFrame);
+      toolActivity.delete(stale.dataset.tabId!);
+      stale.remove();
+    }
+    tabs.replaceChildren();
+    for (const record of members) {
+      const info = record.kind === "tool" ? toolInfo(record.slug) : folderInfo(record.slug);
+      const tab = document.createElement("div");
+      tab.className = "desk-window-tab";
+      tab.dataset.tabId = record.id;
+      const select = document.createElement("button");
+      select.type = "button";
+      select.className = "desk-window-tab-select";
+      select.role = "tab";
+      select.setAttribute("aria-selected", String(record.id === activeId));
+      select.textContent = windowTitle(record, info.label);
+      select.addEventListener("click", () => dispatch({ type: "activate", id: record.id }));
+      const close = winButton("CloseTab", glyph("close", 12), () => void closeWindows([record.id]));
+      tab.append(select, close);
+      tabs.append(tab);
+    }
+    tabs.hidden = members.length < 2;
   }
 
   function toolFrame(record: DeskWindow): HTMLElement {
     const tool = tools.get(record.slug);
     const wrap = document.createElement("div");
     wrap.className = "desk-frame-wrap";
+    wrap.dataset.tabId = record.id;
     const frame = document.createElement("iframe");
     frame.className = "desk-frame";
+    frame.dataset.toolId = record.id;
+    frame.dataset.toolSlug = record.slug;
     frame.title = tool?.title || record.slug;
     frame.setAttribute("allow", "camera; clipboard-read; clipboard-write");
     frame.addEventListener("load", () => {
+      readyFrames.delete(frame);
+      toolActivity.delete(record.id);
       if (frame.contentDocument) frameInput.set(frame, trackUserInput(frame.contentDocument));
       void fitInitialWindow(record.id, frame);
     });
@@ -619,10 +812,8 @@ export function bootDesktop(): void {
   function renderTasks(): void {
     taskPreview.hide();
     taskHost.replaceChildren();
-    const seen = new Set<string>();
     for (const id of prefs.pinned) {
       if (pinnedHasWindow(id)) continue;
-      seen.add(id);
       const button = taskButton(shortcutInfo(id), shortcutInfo(id).label, false, () => {
         if (popFor === id) hidePop(false);
         else openShortcut(id, false, button);
@@ -631,36 +822,54 @@ export function bootDesktop(): void {
       button.dataset.popAnchor = id;
       taskHost.append(button);
     }
-    for (const record of [...state.windows].sort((a, b) => a.z - b.z)) {
-      const info = record.kind === "tool" ? toolInfo(record.slug) : folderInfo(record.slug);
-      const button = taskButton(info, windowTitle(record, info.label), state.activeId === record.id && !state.concealed && record.mode !== "minimized", () => {
-        if (state.activeId === record.id && record.mode !== "minimized" && !state.concealed) dispatch({ type: "minimize", id: record.id });
-        else dispatch({ type: "activate", id: record.id });
-      });
+    const bySlug = new Map<string, DeskWindow[]>();
+    for (const record of state.windows) {
+      if (record.kind !== "tool") continue;
+      const records = bySlug.get(record.slug) ?? [];
+      records.push(record);
+      bySlug.set(record.slug, records);
+    }
+    for (const [slug, records] of bySlug) {
+      records.sort((a, b) => b.z - a.z);
+      const front = records.find((record) => record.id === state.activeId) ?? records[0]!;
+      const pressed = records.some((record) => record.id === state.activeId) && !state.concealed && front.mode !== "minimized";
+      const info = toolInfo(slug);
+      const button = taskButton(info, info.label, pressed, () => {
+        if (pressed) dispatch({ type: "minimize", id: front.id });
+        else dispatch({ type: "activate", id: front.id });
+      }, records.length);
       button.classList.add("is-running");
-      if (record.mode === "minimized") button.classList.add("is-min");
-      taskPreview.bind(button, record.id);
+      if (records.every((record) => record.mode === "minimized")) button.classList.add("is-min");
+      if (records.some((record) => toolActivity.has(record.id))) button.classList.add("is-busy");
+      taskPreview.bind(button, front.id);
       taskHost.append(button);
     }
   }
 
-  function taskButton(info: TileInfo, label: string, pressed: boolean, onClick: () => void): HTMLButtonElement {
+  function taskButton(info: TileInfo, label: string, pressed: boolean, onClick: () => void, count = 0): HTMLButtonElement {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "desk-task";
-    button.title = label;
+    button.title = count > 1 ? `${label} — ${fill("WindowCount", { count })}` : label;
     button.style.setProperty("--mdt-cat", `var(--mdt-cat-${info.category})`);
     const name = document.createElement("span");
     name.className = "desk-task-name";
     name.textContent = label;
-    button.append(makeTile(info, "desk-task-tile"), name);
+    const tile = makeTile(info, "desk-task-tile");
+    if (count > 1) {
+      const badge = document.createElement("span");
+      badge.className = "desk-task-count";
+      badge.textContent = String(count);
+      tile.append(badge);
+    }
+    button.append(tile, name);
     button.setAttribute("aria-pressed", String(pressed));
     button.addEventListener("click", onClick);
     return button;
   }
 
-  function openTool(slug: string, fresh: boolean): void {
-    if (!tools.has(slug)) return;
+  function openTool(slug: string, fresh: boolean): string | null {
+    if (!tools.has(slug)) return null;
     window.MDT?.recent.record(slug);
     const copies = state.windows.filter((record) => record.kind === "tool" && record.slug === slug);
     const instance = fresh ? Math.max(0, ...copies.map((record) => record.instance)) + 1 : copies[0]?.instance ?? 1;
@@ -677,6 +886,7 @@ export function bootDesktop(): void {
       fresh,
     });
     if (state === before) renderWidgets();
+    return state.activeId;
   }
 
   function openShortcut(id: string, fresh: boolean, anchor?: HTMLElement | null): void {
@@ -685,10 +895,10 @@ export function bootDesktop(): void {
       openTool(id.slice(5), fresh);
       return;
     }
-    if (!id.startsWith("cat:")) return;
+    if (!id.startsWith("cat:") && !id.startsWith("folder:")) return;
     const from = anchor ?? iconHost.querySelector<HTMLElement>(`[data-shortcut-id="${CSS.escape(id)}"]`);
     if (from) showPop(id, from);
-    else {
+    else if (id.startsWith("cat:")) {
       catalogScope = id.slice(4);
       openLauncherScoped();
     }
@@ -702,15 +912,15 @@ export function bootDesktop(): void {
     input?.focus();
   }
 
-  /**
-   * Folder popover: the category's tools in a small glass panel beside its
-   * shortcut (above a taskbar button). Choosing a tool, Escape, a click on
-   * another shortcut, a window or the wallpaper closes it. Replaces folder windows.
-   */
+  /** Folder popover for a built-in category or a user-created tool folder. */
   function showPop(id: string, anchor: HTMLElement): void {
-    const category = id.slice(4);
-    const info = folderInfo(category);
-    const list = payload.tools.filter((tool) => tool.category === category);
+    const custom = id.startsWith("folder:") ? prefs.folders.find((folder) => folder.id === id.slice(7)) : undefined;
+    const category = id.startsWith("cat:") ? id.slice(4) : "encoding";
+    const info = custom
+      ? { label: custom.name, mark: custom.name.slice(0, 1).toUpperCase(), category: "encoding", icon: payload.icons.folder }
+      : folderInfo(category);
+    const wanted = custom ? new Set(custom.items.map((item) => item.slice(5))) : null;
+    const list = payload.tools.filter((tool) => wanted ? wanted.has(tool.slug) : tool.category === category);
     popFor = id;
     pop.replaceChildren();
     pop.style.setProperty("--mdt-cat", `var(--mdt-cat-${category})`);
@@ -726,7 +936,7 @@ export function bootDesktop(): void {
     head.append(makeTile(info, "desk-pop-tile"), title, count);
     const grid = document.createElement("div");
     grid.className = "desk-pop-grid";
-    const columns = list.length <= 4 ? list.length : list.length <= 6 ? 3 : list.length <= 9 ? 3 : 4;
+    const columns = list.length <= 4 ? list.length : list.length <= 9 ? 3 : 4;
     grid.style.setProperty("--pop-cols", String(Math.max(1, columns)));
     for (const tool of list) {
       const button = document.createElement("button");
@@ -749,10 +959,16 @@ export function bootDesktop(): void {
       });
       grid.append(button);
     }
+    if (list.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "desk-muted";
+      empty.textContent = text("EmptyFolder");
+      grid.append(empty);
+    }
     pop.append(head, grid);
     pop.hidden = false;
     placePop(anchor);
-    iconHost.querySelectorAll(".desk-icon.is-open-pop").forEach((node) => node.classList.remove("is-open-pop"));
+    iconHost.querySelectorAll(".desk-icon.is-open-pop").forEach((item) => item.classList.remove("is-open-pop"));
     anchor.classList.add("is-open-pop");
     pop.querySelector<HTMLButtonElement>(".desk-pop-tool")?.focus({ preventScroll: true });
   }
@@ -834,6 +1050,7 @@ export function bootDesktop(): void {
   }
 
   async function closeWindows(ids: string[], resetBounds = false): Promise<void> {
+    const closing = state.windows.filter((record) => ids.includes(record.id));
     const dirty = dirtyIds(ids);
     if (dirty.length > 0 && !(await askDiscard(dirty.length > 1))) return;
     if (resetBounds) {
@@ -841,11 +1058,12 @@ export function bootDesktop(): void {
       scheduleSave();
     }
     dispatch({ type: "close-many", ids });
+    if (!resetBounds && closing.length > 0) showClosedNotice(closing);
   }
 
   function dirtyIds(ids: readonly string[]): string[] {
     return ids.filter((id) => {
-      const frame = document.querySelector<HTMLIFrameElement>(`[data-window-id="${CSS.escape(id)}"] iframe`);
+      const frame = document.querySelector<HTMLIFrameElement>(`.desk-frame-wrap[data-tab-id="${CSS.escape(id)}"] iframe`);
       if (!frame) return false;
       try {
         return frameInput.get(frame)?.() ?? false;
@@ -853,6 +1071,47 @@ export function bootDesktop(): void {
         return false;
       }
     });
+  }
+
+  function showClosedNotice(closed: DeskWindow[]): void {
+    recentlyClosed = closed.map((record) => ({
+      ...record,
+      groupId: undefined,
+      tabActive: undefined,
+      bounds: { ...record.bounds },
+      previousBounds: record.previousBounds ? { ...record.previousBounds } : undefined,
+    }));
+    const notice = document.querySelector<HTMLElement>("[data-close-notice]");
+    if (!notice) return;
+    const status = notice.querySelector<HTMLElement>("[data-close-status]");
+    if (status) status.textContent = closed.length > 1 ? text("WindowsClosed") : text("WindowClosed");
+    notice.hidden = false;
+    window.clearTimeout(closeNoticeTimer);
+    closeNoticeTimer = window.setTimeout(() => {
+      notice.hidden = true;
+      recentlyClosed = [];
+    }, 7000);
+  }
+
+  function undoClosedWindows(): void {
+    if (recentlyClosed.length === 0) return;
+    const existing = new Set(state.windows.map((record) => record.id));
+    const restored = recentlyClosed.filter((record) => !existing.has(record.id));
+    if (restored.length === 0) return;
+    state = desktopReducer(state, {
+      type: "hydrate",
+      state: {
+        windows: [...state.windows, ...restored],
+        activeId: restored.at(-1)?.id ?? state.activeId,
+        concealed: false,
+      },
+    });
+    recentlyClosed = [];
+    window.clearTimeout(closeNoticeTimer);
+    const notice = document.querySelector<HTMLElement>("[data-close-notice]");
+    if (notice) notice.hidden = true;
+    render();
+    scheduleSave();
   }
 
   function askDiscard(many: boolean, copy?: { title: string; body: string; confirm: string }): Promise<boolean> {
@@ -936,7 +1195,7 @@ export function bootDesktop(): void {
       const box = stageBox();
       const target = snapTarget(ev.clientX - box.left, ev.clientY - box.top, deskSize());
       if (target === "max") dispatch({ type: "maximize", id });
-      else if (target === "left" || target === "right") dispatch({ type: "dock", id, side: target, desk: deskSize() });
+      else if (target) dispatch({ type: "dock", id, side: target, desk: deskSize() });
       else dispatch({ type: "move", id, bounds: current });
     };
     header.addEventListener("pointermove", onMove);
@@ -975,7 +1234,7 @@ export function bootDesktop(): void {
     handle.addEventListener("pointerup", onUp);
   }
 
-  function showSnap(target: "left" | "right" | "max" | null): void {
+  function showSnap(target: Dock | "max" | null): void {
     if (!target) {
       snap.hidden = true;
       return;
@@ -999,7 +1258,7 @@ export function bootDesktop(): void {
   }
 
   function commitShortcutLayout(patch: Partial<ShortcutSnapshot>): void {
-    const before = { shortcuts: prefs.shortcuts, positions: prefs.positions, pinned: prefs.pinned };
+    const before = { shortcuts: prefs.shortcuts, positions: prefs.positions, pinned: prefs.pinned, folders: prefs.folders };
     const next = { ...before, ...patch };
     if (JSON.stringify(before) === JSON.stringify(next)) return;
     shortcutHistory.push(before);
@@ -1100,11 +1359,12 @@ export function bootDesktop(): void {
     let cancelled = false;
     let lastCell = "";
     let plan = positions;
+    let folderDrop: string | null = null;
     const clearPreview = () => {
       for (const node of previews) node.remove();
       for (const node of targets) node.remove();
       for (const node of icons) {
-        node.classList.remove("is-dragging", "is-swap-preview", "is-covered");
+        node.classList.remove("is-dragging", "is-swap-preview", "is-covered", "is-folder-drop");
         node.style.removeProperty("translate");
       }
     };
@@ -1132,11 +1392,22 @@ export function bootDesktop(): void {
         dragging = true;
       }
       for (const preview of previews) preview.style.translate = `${ev.clientX - startX}px ${ev.clientY - startY}px`;
+      folderDrop = null;
+      if (id.startsWith("tool:") && ids.length === 1) {
+        for (const node of icons) {
+          const candidate = node.dataset.shortcutId || "";
+          const box = node.getBoundingClientRect();
+          const hit = candidate !== id && candidate.startsWith("tool:") &&
+            ev.clientX >= box.left && ev.clientX <= box.right && ev.clientY >= box.top && ev.clientY <= box.bottom;
+          node.classList.toggle("is-folder-drop", hit);
+          if (hit) folderDrop = candidate;
+        }
+      }
       const cell = cellAt(ev.clientX, ev.clientY);
-      const cellKey = cell ? `${cell.column}:${cell.row}` : "outside";
+      const cellKey = folderDrop ?? (cell ? `${cell.column}:${cell.row}` : "outside");
       if (cellKey === lastCell) return;
       lastCell = cellKey;
-      plan = cell ? moveShortcut(positions, prefs.shortcuts, id, cell, ids) : positions;
+      plan = folderDrop ? positions : cell ? moveShortcut(positions, prefs.shortcuts, id, cell, ids) : positions;
       if (ids.some((key) => plan[key]!.column >= maxColumns || plan[key]!.row >= maxRows) ||
           ev.clientX < stageBox.left || ev.clientX >= stageBox.right || ev.clientY < stageBox.top || ev.clientY >= stageBox.bottom) plan = positions;
       for (const target of targets) target.remove();
@@ -1189,7 +1460,8 @@ export function bootDesktop(): void {
       if (!dragging) return;
       ev.preventDefault();
       ev.stopPropagation();
-      if (!cancelled && ev.type === "pointerup" && plan !== positions) commitShortcutLayout({ positions: plan });
+      if (!cancelled && ev.type === "pointerup" && folderDrop) openFolderCreator(id, folderDrop);
+      else if (!cancelled && ev.type === "pointerup" && plan !== positions) commitShortcutLayout({ positions: plan });
     };
     const onDragKey = (ev: KeyboardEvent) => {
       if (ev.key !== "Escape" || !dragging) return;
@@ -1225,6 +1497,8 @@ export function bootDesktop(): void {
         return;
       }
     }
+    const typing = event.target instanceof HTMLElement && event.target.closest("input, textarea, select, [contenteditable='true']");
+    if (typing) return;
     if ((event.ctrlKey || event.metaKey) && (event.key.toLowerCase() === "k" || event.code === "KeyK")) {
       if (event.altKey) return;
       event.preventDefault();
@@ -1233,8 +1507,6 @@ export function bootDesktop(): void {
       return;
     }
     if (event.key === "Escape") hideMenu();
-    const typing = event.target instanceof HTMLElement && event.target.closest("input, textarea, [contenteditable='true']");
-    if (typing) return;
     if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "z" && !event.altKey) {
       if (shortcutHistory.length > 0) { event.preventDefault(); undoShortcutLayout(); }
       return;
@@ -1352,7 +1624,7 @@ export function bootDesktop(): void {
     if (!host) return;
     host.replaceChildren();
     const needle = query.trim().toLowerCase();
-    let hits = 0;
+    let hits = catalogScope === "all" ? appendCommandResults(host, needle) : 0;
     for (const category of payload.categories) {
       if (catalogScope !== "all" && catalogScope !== "desk" && catalogScope !== category.id) continue;
       const folderPinned = prefs.shortcuts.includes(catShortcut(category.id));
@@ -1406,6 +1678,64 @@ export function bootDesktop(): void {
       empty.textContent = text("NoResults");
       host.append(empty);
     }
+  }
+
+  function appendCommandResults(host: HTMLElement, needle: string): number {
+    const section = document.createElement("section");
+    section.className = "desk-command-group";
+    const heading = document.createElement("h3");
+    heading.textContent = text("Commands");
+    section.append(heading);
+    let hits = 0;
+    const add = (label: string, detail: string, run: () => void) => {
+      if (needle && !`${label} ${detail}`.toLowerCase().includes(needle)) return;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "desk-command";
+      const name = document.createElement("strong");
+      name.textContent = label;
+      const description = document.createElement("span");
+      description.textContent = detail;
+      button.append(name, description);
+      button.addEventListener("click", () => {
+        catalogDialog.close();
+        run();
+      });
+      section.append(button);
+      hits += 1;
+    };
+    for (const record of [...state.windows].sort((a, b) => b.z - a.z)) {
+      const label = windowTitle(record, toolInfo(record.slug).label);
+      add(label, text(record.mode === "minimized" ? "Minimized" : record.id === state.activeId ? "ActiveWindow" : "WindowOpen"), () => {
+        dispatch({ type: "activate", id: record.id });
+      });
+    }
+    add(text(prefs.focusMode ? "ExitFocusMode" : "EnterFocusMode"), text("FocusModeHint"), () => setFocusMode(!prefs.focusMode));
+    add(text("Overview"), text("OverviewHint"), openOverview);
+    const activeId = state.activeId;
+    if (activeId) {
+      const layoutActions: { key: string; dock?: Dock }[] = [
+        { key: "LayoutMaximize" },
+        { key: "LayoutLeft", dock: "left" },
+        { key: "LayoutRight", dock: "right" },
+        { key: "LayoutTopLeft", dock: "top-left" },
+        { key: "LayoutTopRight", dock: "top-right" },
+        { key: "LayoutBottomLeft", dock: "bottom-left" },
+        { key: "LayoutBottomRight", dock: "bottom-right" },
+      ];
+      for (const layout of layoutActions) {
+        const dock = layout.dock;
+        add(text(layout.key), text("ApplyLayout"), () => {
+          if (dock) dispatch({ type: "dock", id: activeId, side: dock, desk: deskSize() });
+          else dispatch({ type: "maximize", id: activeId });
+        });
+      }
+    }
+    for (const workspace of prefs.workspaces) {
+      add(workspace.name, text("ApplyWorkspace"), () => void activateSavedWorkspace(workspace, false));
+    }
+    if (hits > 0) host.append(section);
+    return hits;
   }
 
   /** Pin toggle: plus puts the shortcut on the desk, a tick takes it off (a folder unpacks). */
@@ -1480,7 +1810,7 @@ export function bootDesktop(): void {
     if (!host) return;
     host.replaceChildren();
     const others = overviewDialog.querySelector<HTMLButtonElement>("[data-close-others]");
-    if (others) others.disabled = state.windows.length < 2;
+    if (others) others.disabled = new Set(state.windows.map((record) => record.groupId ?? record.id)).size < 2;
     const needle = query.trim().toLowerCase();
     for (const record of [...state.windows].sort((a, b) => b.z - a.z)) {
       const info = record.kind === "tool" ? toolInfo(record.slug) : folderInfo(record.slug);
@@ -1507,7 +1837,7 @@ export function bootDesktop(): void {
         overviewDialog.close();
         dispatch({ type: "activate", id: record.id });
       });
-      const frame = document.querySelector<HTMLIFrameElement>(`[data-window-id="${CSS.escape(record.id)}"] iframe`);
+      const frame = document.querySelector<HTMLIFrameElement>(`.desk-frame-wrap[data-tab-id="${CSS.escape(record.id)}"] iframe`);
       if (frame) {
         try {
           if (frameInput.get(frame)?.()) open.classList.add("is-dirty");
@@ -1531,7 +1861,15 @@ export function bootDesktop(): void {
   }
 
   function openTile(id: string): void {
-    const others = state.windows.filter((record) => record.id !== id);
+    const source = state.windows.find((record) => record.id === id);
+    const sourceGroup = source?.groupId ?? source?.id;
+    const seenGroups = new Set<string>();
+    const others = state.windows.filter((record) => {
+      const key = record.groupId ?? record.id;
+      if (key === sourceGroup || seenGroups.has(key)) return false;
+      seenGroups.add(key);
+      return true;
+    });
     if (others.length === 0) {
       dispatch({ type: "dock", id, side: "left", desk: deskSize() });
       return;
@@ -1580,8 +1918,11 @@ export function bootDesktop(): void {
       fillOverview((event.target as HTMLInputElement).value);
     });
     overviewDialog.querySelector("[data-close-others]")?.addEventListener("click", () => {
-      const keep = state.activeId;
-      const ids = state.windows.map((record) => record.id).filter((id) => id !== keep);
+      const active = state.windows.find((record) => record.id === state.activeId);
+      const keepGroup = active?.groupId;
+      const ids = state.windows
+        .filter((record) => keepGroup ? record.groupId !== keepGroup : record.id !== active?.id)
+        .map((record) => record.id);
       void closeWindows(ids).then(() => fillOverview(""));
     });
   }
@@ -1595,14 +1936,14 @@ export function bootDesktop(): void {
       const input = catalogDialog.querySelector<HTMLInputElement>("[data-catalog-input]");
       if (event.key === "Enter" && event.target === input) {
         event.preventDefault();
-        catalogDialog.querySelector<HTMLButtonElement>(".desk-cat-open")?.click();
+        catalogDialog.querySelector<HTMLButtonElement>(".desk-command, .desk-cat-open")?.click();
         return;
       }
       const horizontal = event.key === "ArrowLeft" || event.key === "ArrowRight";
       if (horizontal && event.target === input) return;
       if (!["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
       if ((event.key === "Home" || event.key === "End") && event.target === input) return;
-      const items = [...catalogDialog.querySelectorAll<HTMLButtonElement>(".desk-cat-open")];
+      const items = [...catalogDialog.querySelectorAll<HTMLButtonElement>(".desk-command, .desk-cat-open")];
       if (items.length === 0) return;
       const index = items.indexOf(document.activeElement as HTMLButtonElement);
       if (event.key === "ArrowUp" && index === 0) {
@@ -1807,12 +2148,12 @@ export function bootDesktop(): void {
   }
 
   function openShortcutMenu(id: string, x: number, y: number): void {
-    const info = shortcutInfo(id);
     const items: MenuEntry[] = [
       { kind: "item", label: text("Open"), run: () => openShortcut(id, false, null) },
     ];
     if (id.startsWith("tool:")) {
       items.push({ kind: "item", label: text("OpenAnother"), run: () => openShortcut(id, true) });
+      items.push({ kind: "item", label: text("CreateFolder"), icon: "folder", run: () => openFolderCreator(id) });
       const slug = id.slice(5);
       const favorite = window.MDT?.favorites.isFavorite(slug) === true;
       items.push({
@@ -1824,8 +2165,31 @@ export function bootDesktop(): void {
         },
       });
     }
-    if (id.startsWith("cat:")) items.push({ kind: "item", label: text("UnpackFolder"), run: () => unpackCategory(id.slice(4)) });
-    else items.push({ kind: "item", label: text("RemoveShortcut"), run: () => removeShortcut(id) });
+    if (id.startsWith("cat:")) {
+      items.push({ kind: "item", label: text("UnpackFolder"), run: () => unpackCategory(id.slice(4)) });
+    } else if (id.startsWith("folder:")) {
+      items.push({
+        kind: "item",
+        label: text("DissolveFolder"),
+        run: () => {
+          const folder = prefs.folders.find((entry) => entry.id === id.slice(7));
+          if (!folder) return;
+          const index = prefs.shortcuts.indexOf(id);
+          const shortcuts = prefs.shortcuts.filter((item) => item !== id && !folder.items.includes(item));
+          shortcuts.splice(Math.max(0, index), 0, ...folder.items);
+          const positions = { ...prefs.positions };
+          delete positions[id];
+          commitShortcutLayout({
+            shortcuts,
+            positions,
+            pinned: prefs.pinned.filter((item) => item !== id),
+            folders: prefs.folders.filter((entry) => entry.id !== folder.id),
+          });
+        },
+      });
+    } else {
+      items.push({ kind: "item", label: text("RemoveShortcut"), run: () => removeShortcut(id) });
+    }
     const pinned = prefs.pinned.includes(id);
     items.push({
       kind: "item",
@@ -1835,7 +2199,6 @@ export function bootDesktop(): void {
       },
     });
     showMenu(items, x, y);
-    void info;
   }
 
   function openSurfaceMenu(x: number, y: number): void {
@@ -1874,6 +2237,7 @@ export function bootDesktop(): void {
           },
         },
         { kind: "item", label: text("ShowDesktop"), icon: "desktop", run: () => dispatch({ type: state.concealed ? "reveal" : "conceal" }) },
+        { kind: "item", label: text(prefs.focusMode ? "ExitFocusMode" : "EnterFocusMode"), icon: "zap", checked: prefs.focusMode, run: () => setFocusMode(!prefs.focusMode) },
         { kind: "separator" },
         { kind: "item", label: text("Settings"), icon: "settings", run: () => openSettings() },
       ],
@@ -1936,7 +2300,36 @@ export function bootDesktop(): void {
     menu.hidden = true;
   }
 
-  /** Window menu (the ⋮ button and a right click on the title): full page, second copy, tiling. */
+  function openLayoutMenu(id: string, x: number, y: number): void {
+    const layouts: { dock?: Dock; key: string }[] = [
+      { key: "LayoutMaximize" },
+      { dock: "left", key: "LayoutLeft" },
+      { dock: "right", key: "LayoutRight" },
+      { dock: "top-left", key: "LayoutTopLeft" },
+      { dock: "top-right", key: "LayoutTopRight" },
+      { dock: "bottom-left", key: "LayoutBottomLeft" },
+      { dock: "bottom-right", key: "LayoutBottomRight" },
+    ];
+    const current = state.windows.find((record) => record.id === id);
+    showMenu(
+      layouts.map((layout) => {
+        const dock = layout.dock;
+        return {
+          kind: "item" as const,
+          label: text(layout.key),
+          checked: dock ? current?.dock === dock : current?.mode === "maximized",
+          run: () => {
+            if (dock) dispatch({ type: "dock", id, side: dock, desk: deskSize() });
+            else dispatch({ type: "maximize", id });
+          },
+        };
+      }),
+      x,
+      y,
+    );
+  }
+
+  /** Window menu (the ⋮ button and a right click on the title): navigation, grouping and layout. */
   function openWindowMenu(id: string, x: number, y: number): void {
     const record = state.windows.find((item) => item.id === id);
     if (!record) return;
@@ -1954,9 +2347,39 @@ export function bootDesktop(): void {
         },
         { kind: "item", label: text("OpenAnother"), icon: "windows", run: () => openTool(record.slug, true) },
       );
+      const seenGroups = new Set<string>();
+      for (const other of [...state.windows].sort((a, b) => b.z - a.z)) {
+        const key = other.groupId ?? other.id;
+        if (other.kind !== "tool" || key === (record.groupId ?? record.id) || seenGroups.has(key)) continue;
+        seenGroups.add(key);
+        items.push({
+          kind: "item",
+          label: fill("GroupWith", { name: windowTitle(other, toolInfo(other.slug).label) }),
+          icon: "plus",
+          run: () => dispatch({ type: "group", id: record.id, targetId: other.id }),
+        });
+      }
+      if (record.groupId) {
+        items.push({
+          kind: "item",
+          label: text("UngroupTab"),
+          run: () => dispatch({
+            type: "ungroup",
+            id: record.id,
+            bounds: clampBounds({ ...record.bounds, x: record.bounds.x + 28, y: record.bounds.y + 28 }, deskSize()),
+          }),
+        });
+      }
     }
-    items.push({ kind: "item", label: text("TileWith"), icon: "tile", run: () => openTile(record.id) });
+    items.push(
+      { kind: "item", label: text("LayoutPicker"), icon: "tile", run: () => openLayoutMenu(record.id, x, y) },
+      { kind: "item", label: text("TileWith"), icon: "tile", run: () => openTile(record.id) },
+    );
     if (record.kind === "tool") items.push({ kind: "item", label: text("Help"), icon: "help", run: () => showHelp(record.slug) });
+    if (record.groupId) {
+      const ids = state.windows.filter((item) => item.groupId === record.groupId).map((item) => item.id);
+      items.push({ kind: "item", label: text("CloseGroup"), icon: "close", run: () => void closeWindows(ids) });
+    }
     showMenu(items, x, y);
   }
 
@@ -2000,6 +2423,10 @@ export function bootDesktop(): void {
 
   function shortcutInfo(id: string): { label: string; mark: string; category: string; icon?: string } {
     if (id.startsWith("cat:")) return folderInfo(id.slice(4));
+    if (id.startsWith("folder:")) {
+      const folder = prefs.folders.find((item) => item.id === id.slice(7));
+      return { label: folder?.name || text("Folder"), mark: folder?.name.slice(0, 1).toUpperCase() || "F", category: "encoding", icon: payload.icons.folder };
+    }
     return toolInfo(id.slice(5));
   }
 
@@ -2026,8 +2453,11 @@ export function bootDesktop(): void {
   }
 
   function shortcutIsOpen(id: string): boolean {
-    // A folder counts as open while any of its tools has a window.
     if (id.startsWith("cat:")) return state.windows.some((record) => record.kind === "tool" && tools.get(record.slug)?.category === id.slice(4));
+    if (id.startsWith("folder:")) {
+      const folder = prefs.folders.find((item) => item.id === id.slice(7));
+      return folder?.items.some((item) => shortcutIsOpen(item)) ?? false;
+    }
     if (id.startsWith("tool:")) return state.windows.some((record) => record.kind === "tool" && record.slug === id.slice(5));
     return false;
   }
@@ -2257,6 +2687,108 @@ export function bootDesktop(): void {
     return null;
   }
 
+  function openFolderCreator(sourceId: string, targetId: string | null = null): void {
+    if (!sourceId.startsWith("tool:")) return;
+    folderSourceId = sourceId;
+    folderTargetId = targetId?.startsWith("tool:") ? targetId : null;
+    const input = folderDialog.querySelector<HTMLInputElement>("[data-folder-name]");
+    const sourceName = shortcutInfo(sourceId).label;
+    const targetName = folderTargetId ? shortcutInfo(folderTargetId).label : "";
+    if (input) input.value = folderTargetId ? `${sourceName} + ${targetName}`.slice(0, 80) : "";
+    const host = folderDialog.querySelector<HTMLElement>("[data-folder-choice]");
+    if (host) {
+      host.replaceChildren();
+      for (const tool of payload.tools) {
+        const id = toolShortcut(tool.slug);
+        if (id === sourceId) continue;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "desk-folder-choice-item";
+        button.dataset.folderTarget = id;
+        button.setAttribute("aria-pressed", String(id === folderTargetId));
+        button.append(makeTile(toolInfo(tool.slug), "desk-task-tile"), document.createTextNode(tool.title));
+        button.addEventListener("click", () => {
+          folderTargetId = id;
+          host.querySelectorAll<HTMLButtonElement>("[data-folder-target]").forEach((item) => {
+            item.setAttribute("aria-pressed", String(item === button));
+          });
+          updateFolderSave();
+        });
+        host.append(button);
+      }
+    }
+    updateFolderSave();
+    showDeskDialog(folderDialog);
+    input?.focus();
+  }
+
+  function updateFolderSave(): void {
+    const name = folderDialog.querySelector<HTMLInputElement>("[data-folder-name]")?.value.trim() ?? "";
+    const save = folderDialog.querySelector<HTMLButtonElement>("[data-folder-save]");
+    if (save) save.disabled = !folderSourceId || !folderTargetId || !isWorkspaceName(name);
+  }
+
+  function wireFolders(): void {
+    folderDialog.querySelector<HTMLInputElement>("[data-folder-name]")?.addEventListener("input", updateFolderSave);
+    folderDialog.querySelector("[data-folder-save]")?.addEventListener("click", () => {
+      const name = folderDialog.querySelector<HTMLInputElement>("[data-folder-name]")?.value.trim() ?? "";
+      if (!folderSourceId || !folderTargetId || !isWorkspaceName(name)) return;
+      const id = crypto.randomUUID();
+      const shortcutId = `folder:${id}`;
+      const first = prefs.shortcuts.indexOf(folderSourceId);
+      const second = prefs.shortcuts.indexOf(folderTargetId);
+      const insertAt = Math.max(0, first < 0 ? second : second < 0 ? first : Math.min(first, second));
+      const shortcuts = prefs.shortcuts.filter((item) => item !== folderSourceId && item !== folderTargetId);
+      shortcuts.splice(Math.min(insertAt, shortcuts.length), 0, shortcutId);
+      const positions = { ...prefs.positions };
+      positions[shortcutId] = positions[folderSourceId] ?? positions[folderTargetId] ?? { column: 0, row: 0 };
+      delete positions[folderSourceId];
+      delete positions[folderTargetId];
+      commitShortcutLayout({
+        shortcuts,
+        positions,
+        folders: [...prefs.folders, { id, name, items: [folderSourceId, folderTargetId] }],
+      });
+      folderSourceId = null;
+      folderTargetId = null;
+      folderDialog.close();
+    });
+    folderDialog.addEventListener("close", () => {
+      folderSourceId = null;
+      folderTargetId = null;
+    });
+  }
+
+  async function activateSavedWorkspace(workspace: SavedWorkspace, replace: boolean): Promise<void> {
+    if (replace && dirtyIds(state.windows.map((record) => record.id)).length > 0) {
+      const confirmed = await askDiscard(true, {
+        title: text("ReplaceTitle"),
+        body: text("ReplaceBody"),
+        confirm: text("ReplaceConfirm"),
+      });
+      if (!confirmed) return;
+    }
+    const before = new Set(state.windows.map((record) => record.id));
+    const nonce = crypto.randomUUID();
+    dispatch({
+      type: "apply-workspace",
+      replace,
+      windows: workspace.windows.map((window) => ({
+        id: `tool-${window.slug}-ws-${crypto.randomUUID()}`,
+        slug: window.slug,
+        instance: 1,
+        groupId: window.groupId ? `workspace-${workspace.id}-${window.groupId}-${nonce}` : undefined,
+        bounds: denormalizeBounds(window.bounds, deskSize()),
+        mode: window.mode,
+      })),
+    });
+    for (const record of state.windows) {
+      if (!before.has(record.id) && record.kind === "tool") window.MDT?.recent.record(record.slug);
+    }
+    const dialog = document.querySelector<HTMLDialogElement>("[data-workspaces-dialog]");
+    if (dialog?.open) dialog.close();
+  }
+
   function wireWorkspaces(): void {
     const dialog = must<HTMLDialogElement>("[data-workspaces-dialog]");
     const renameDialog = must<HTMLDialogElement>("[data-workspace-rename]");
@@ -2342,8 +2874,8 @@ export function bootDesktop(): void {
       const actions = document.createElement("div");
       actions.className = "desk-workspace-actions";
       actions.append(
-        workspaceButton("AddToOpen", () => void activateWorkspace(workspace, false), true),
-        workspaceButton("ReplaceDesk", () => void activateWorkspace(workspace, true), false),
+        workspaceButton("AddToOpen", () => void activateSavedWorkspace(workspace, false), true),
+        workspaceButton("ReplaceDesk", () => void activateSavedWorkspace(workspace, true), false),
         workspaceButton("RenameWorkspace", () => {
           renameId = workspace.id;
           renameInput.value = workspace.name;
@@ -2370,32 +2902,6 @@ export function bootDesktop(): void {
       return button;
     }
 
-    async function activateWorkspace(workspace: SavedWorkspace, replace: boolean): Promise<void> {
-      if (replace && dirtyIds(state.windows.map((record) => record.id)).length > 0) {
-        const confirmed = await askDiscard(true, {
-          title: text("ReplaceTitle"),
-          body: text("ReplaceBody"),
-          confirm: text("ReplaceConfirm"),
-        });
-        if (!confirmed) return;
-      }
-      const before = new Set(state.windows.map((record) => record.id));
-      dispatch({
-        type: "apply-workspace",
-        replace,
-        windows: workspace.windows.map((window) => ({
-          id: `tool-${window.slug}-ws-${crypto.randomUUID()}`,
-          slug: window.slug,
-          instance: 1,
-          bounds: denormalizeBounds(window.bounds, deskSize()),
-          mode: window.mode,
-        })),
-      });
-      for (const record of state.windows) {
-        if (!before.has(record.id) && record.kind === "tool") window.MDT?.recent.record(record.slug);
-      }
-      if (dialog.open) dialog.close();
-    }
 
     document.querySelector("[data-desk-workspaces]")?.addEventListener("click", () => openWorkspaces());
   }

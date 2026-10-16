@@ -11,6 +11,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import ToolCard from "@/components/ToolCard.astro";
 import ToolSeoContent from "@/components/ToolSeoContent.astro";
 import Icon from "@/components/Icon.astro";
+import ToolTransfer from "@/components/tool/ToolTransfer.astro";
 import { LOCALES, type LocaleCode } from "@/registry/locales";
 import { TOOLS, resolveTool } from "@/registry/tools";
 import { assertRegistryValid } from "@/registry/validate";
@@ -203,6 +204,7 @@ const ActiveTool = TOOL_COMPONENTS[slug];
         </div>
       </noscript>
       {ActiveTool && <ActiveTool lang={lang} />}
+      <ToolTransfer lang={lang} slug={slug} />
     </div>
 
     <ToolSeoContent locale={lang} namespace={namespace} />

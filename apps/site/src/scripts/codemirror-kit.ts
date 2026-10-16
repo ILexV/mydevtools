@@ -374,6 +374,28 @@ export async function createEditor(host: HTMLElement, opts: EditorOptions): Prom
       values.set(view.contentDOM, view.state.doc);
     });
   }
+  // Result transfer talks to the editor host instead of scraping CodeMirror's
+  // virtualized DOM. Events stay inside this document; the page bridge applies
+  // its own exact-origin checks before dispatching a write.
+  host.addEventListener("mdt:transfer-read", (event) => {
+    const detail = (event as CustomEvent<{ value?: string; length?: number; includeValue?: boolean }>).detail;
+    detail.length = view.state.doc.length;
+    if (detail.includeValue) detail.value = view.state.doc.toString();
+  });
+  if (!readOnly) {
+    host.addEventListener("mdt:transfer-write", (event) => {
+      const detail = (event as CustomEvent<{ value?: unknown; accepted?: boolean }>).detail;
+      if (typeof detail.value !== "string") return;
+      view.dispatch({
+        changes: { from: 0, to: view.state.doc.length, insert: detail.value },
+        selection: { anchor: 0 },
+        scrollIntoView: true,
+      });
+      view.focus();
+      detail.accepted = true;
+    });
+  }
+  host.dataset.transferEditorReady = "true";
 
   function revealDiagnostic(): void {
     const d = view.state.field(diagnosticField);

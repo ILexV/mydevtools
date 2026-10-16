@@ -1,0 +1,82 @@
+---
+/**
+ * Explicit, ephemeral result hand-off between compatible browser tools.
+ * Payloads travel only between same-origin windows and are never put in URLs
+ * or browser storage; the URL carries an opaque one-time routing id only.
+ */
+import { t } from "@/i18n/messages";
+import { localizedPath } from "@/lib/url";
+import type { LocaleCode } from "@/registry/locales";
+import { toolNamespace } from "@/registry/tools";
+
+interface Props {
+  lang: LocaleCode;
+  slug: string;
+}
+
+const { lang, slug } = Astro.props as Props;
+const targetSlugs = [
+  "base64-encoder",
+  "hash-calculator",
+  "url-encoder",
+  "html-entity-encoder",
+  "text-case-converter",
+  "json-beautifier",
+  "json-to-typescript",
+  "xml-beautifier",
+  "yaml-beautifier-validator",
+  "jwt-decoder",
+  "cron-parser",
+] as const;
+const stringsJson = JSON.stringify({
+  slug,
+  openIn: t(lang, "transfer", "OpenIn"),
+  received: t(lang, "transfer", "Received"),
+  popupBlocked: t(lang, "transfer", "PopupBlocked"),
+  targets: targetSlugs.map((target) => ({
+    slug: target,
+    title: t(lang, toolNamespace(target), "Title"),
+    href: localizedPath(lang, target),
+  })),
+});
+---
+
+<script is:inline type="application/json" data-transfer-strings set:html={stringsJson} />
+<script>import "@/scripts/tool-transfer.client.ts";</script>
+
+<style is:global>
+  .mdt-transfer { position: relative; }
+  .mdt-transfer > summary { list-style: none; user-select: none; }
+  .mdt-transfer > summary::-webkit-details-marker { display: none; }
+  .mdt-transfer > summary::after { content: "▾"; margin-inline-start: 0.35rem; font-size: 0.72em; }
+  .mdt-transfer[open] > summary::after { transform: rotate(180deg); }
+  .mdt-transfer.is-disabled > summary { opacity: 0.5; cursor: not-allowed; }
+  .mdt-transfer-menu {
+    position: absolute;
+    z-index: 20;
+    inset-block-start: calc(100% + 0.35rem);
+    inset-inline-end: 0;
+    display: grid;
+    min-width: 13rem;
+    max-height: min(22rem, 65vh);
+    overflow-y: auto;
+    padding: 0.35rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface-raised);
+    box-shadow: var(--mdt-shadow-e2);
+  }
+  .mdt-transfer-option {
+    min-height: 2.4rem;
+    padding: 0.5rem 0.65rem;
+    border: 0;
+    border-radius: var(--mdt-radius-sm);
+    background: transparent;
+    color: var(--mdt-text);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+  }
+  .mdt-transfer-option:hover,
+  .mdt-transfer-option:focus-visible { background: var(--mdt-surface-muted); color: var(--mdt-accent); outline: none; }
+</style>

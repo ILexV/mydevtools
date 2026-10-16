@@ -30,13 +30,20 @@ export const SKIP_KEY = "mdt.desktop.skip";
 
 const PRESET_IDS = new Set<string>(WALLPAPER_PRESETS.map((preset) => preset.id));
 
+export interface CustomFolder {
+  id: string;
+  name: string;
+  /** Tool shortcut ids only; category and nested folders are deliberately excluded. */
+  items: string[];
+}
+
 export interface DeskPrefs {
   preset: WallpaperPresetId;
   fit: "cover" | "contain";
   /** 0–60, applied as a dark veil over the wallpaper. */
   dim: number;
   hasImage: boolean;
-  /** `cat:<id>` or `tool:<slug>`, in user order. */
+  /** `cat:<id>`, `tool:<slug>` or `folder:<id>`, in user order. */
   shortcuts: string[];
   positions: ShortcutPositions;
   /** Same id shape as shortcuts. Shown on the taskbar even when closed. */
@@ -53,6 +60,10 @@ export interface DeskPrefs {
   widgets: WidgetId[];
   /** Widgets whose body is folded. The choice survives hiding and showing them. */
   widgetsCollapsed: WidgetId[];
+  /** User-created desktop folders. Contents are shortcut ids, never tool data. */
+  folders: CustomFolder[];
+  /** Focus mode hides shortcuts and widgets while leaving an always-visible exit. */
+  focusMode: boolean;
 }
 
 export function defaultPrefs(categoryIds: readonly string[]): DeskPrefs {
@@ -71,6 +82,8 @@ export function defaultPrefs(categoryIds: readonly string[]): DeskPrefs {
     workspaces: [],
     widgets: [...DEFAULT_WIDGETS],
     widgetsCollapsed: [],
+    folders: [],
+    focusMode: false,
   };
 }
 
@@ -130,9 +143,15 @@ function readCell(value: unknown): { column: number; row: number } | null {
   return { column: value.column, row: value.row };
 }
 
-function knownShortcut(id: string, slugs: ReadonlySet<string>, categories: ReadonlySet<string>): boolean {
+function knownShortcut(
+  id: string,
+  slugs: ReadonlySet<string>,
+  categories: ReadonlySet<string>,
+  folderIds?: ReadonlySet<string>,
+): boolean {
   if (id.startsWith("tool:")) return slugs.has(id.slice(5));
   if (id.startsWith("cat:")) return categories.has(id.slice(4));
+  if (id.startsWith("folder:")) return folderIds?.has(id.slice(7)) === true;
   return false;
 }
 
@@ -150,23 +169,25 @@ export function parsePrefs(
   }
   if (!isRecord(parsed) || parsed.v !== 1) return null;
   const fallback = defaultPrefs([...categories]);
+  const folders = readFolders(parsed.folders, slugs);
+  const folderIds = new Set(folders.map((folder) => folder.id));
   const preset = typeof parsed.preset === "string" && PRESET_IDS.has(parsed.preset) ? (parsed.preset as WallpaperPresetId) : fallback.preset;
   const fit = parsed.fit === "contain" ? "contain" : "cover";
   const dim = finite(parsed.dim) ? Math.max(0, Math.min(60, Math.round(parsed.dim))) : 0;
   const shortcuts = Array.isArray(parsed.shortcuts)
-    ? parsed.shortcuts.filter((id): id is string => typeof id === "string" && knownShortcut(id, slugs, categories)).slice(0, 256)
+    ? parsed.shortcuts.filter((id): id is string => typeof id === "string" && knownShortcut(id, slugs, categories, folderIds)).slice(0, 256)
     : fallback.shortcuts;
   const uniqueShortcuts = [...new Set(shortcuts)];
   const positions: ShortcutPositions = {};
   if (isRecord(parsed.positions)) {
     for (const [id, cell] of Object.entries(parsed.positions)) {
-      if (!knownShortcut(id, slugs, categories)) continue;
+      if (!knownShortcut(id, slugs, categories, folderIds)) continue;
       const next = readCell(cell);
       if (next) positions[id] = next;
     }
   }
   const pinned = Array.isArray(parsed.pinned)
-    ? [...new Set(parsed.pinned.filter((id): id is string => typeof id === "string" && knownShortcut(id, slugs, categories)))].slice(0, 64)
+    ? [...new Set(parsed.pinned.filter((id): id is string => typeof id === "string" && knownShortcut(id, slugs, categories, folderIds)))].slice(0, 64)
     : [];
   return {
     preset,
@@ -183,7 +204,29 @@ export function parsePrefs(
     workspaces: readWorkspaces(parsed.workspaces, slugs),
     widgets: readWidgets(parsed.widgets, [...DEFAULT_WIDGETS]),
     widgetsCollapsed: readWidgets(parsed.widgetsCollapsed, []),
+    folders,
+    focusMode: parsed.focusMode === true,
   };
+}
+
+function readFolders(value: unknown, slugs: ReadonlySet<string>): CustomFolder[] {
+  if (!Array.isArray(value)) return [];
+  const folders: CustomFolder[] = [];
+  const ids = new Set<string>();
+  for (const candidate of value) {
+    if (folders.length >= 64) break;
+    if (!isRecord(candidate)) continue;
+    if (typeof candidate.id !== "string" || !/^[A-Za-z0-9_-]{1,64}$/.test(candidate.id) || ids.has(candidate.id)) continue;
+    if (typeof candidate.name !== "string") continue;
+    const name = candidate.name.trim();
+    if (!isWorkspaceName(name)) continue;
+    const items = Array.isArray(candidate.items)
+      ? [...new Set(candidate.items.filter((id): id is string => typeof id === "string" && id.startsWith("tool:") && slugs.has(id.slice(5))))].slice(0, 64)
+      : [];
+    ids.add(candidate.id);
+    folders.push({ id: candidate.id, name, items });
+  }
+  return folders;
 }
 
 function readWidgets(value: unknown, fallback: WidgetId[]): WidgetId[] {
@@ -215,7 +258,8 @@ function readWorkspaces(value: unknown, slugs: ReadonlySet<string>): SavedWorksp
       if (!bounds) continue;
       if (item.mode !== "normal" && item.mode !== "maximized") continue;
       seen.add(item.slug);
-      windows.push({ slug: item.slug, bounds, mode: item.mode });
+      const groupId = typeof item.groupId === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(item.groupId) ? item.groupId : undefined;
+      windows.push({ slug: item.slug, bounds, mode: item.mode, ...(groupId ? { groupId } : {}) });
     }
     if (windows.length === 0) continue;
     ids.add(candidate.id);
@@ -246,7 +290,8 @@ function readWindow(value: unknown, slugs: ReadonlySet<string>, categories: Read
   const bounds = readBounds(value.bounds);
   if (!bounds) return null;
   const mode = value.mode === "minimized" || value.mode === "maximized" ? value.mode : "normal";
-  const dock = value.dock === "left" || value.dock === "right" ? value.dock : undefined;
+  const dockValues: readonly string[] = ["left", "right", "top-left", "top-right", "bottom-left", "bottom-right"];
+  const dock = typeof value.dock === "string" && dockValues.includes(value.dock) ? (value.dock as DeskWindow["dock"]) : undefined;
   const previous = readBounds(value.previousBounds) ?? undefined;
   const instance = Number.isInteger(value.instance) && (value.instance as number) > 0 ? (value.instance as number) : 1;
   const modeBefore = value.modeBeforeMinimize === "maximized" ? "maximized" : value.modeBeforeMinimize === "normal" ? "normal" : undefined;
@@ -254,6 +299,8 @@ function readWindow(value: unknown, slugs: ReadonlySet<string>, categories: Read
     id: value.id,
     kind: value.kind,
     slug: value.slug,
+    tabActive: value.tabActive === true ? true : undefined,
+    groupId: typeof value.groupId === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(value.groupId) ? value.groupId : undefined,
     instance: value.kind === "folder" ? 1 : instance,
     bounds,
     previousBounds: previous,
@@ -301,6 +348,8 @@ export function serializeLayout(state: DeskState): string {
     id: window.id,
     kind: window.kind,
     slug: window.slug,
+    tabActive: window.tabActive,
+    groupId: window.groupId,
     instance: window.instance,
     bounds: window.bounds,
     previousBounds: window.previousBounds,

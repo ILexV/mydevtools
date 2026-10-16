@@ -39,10 +39,18 @@ export function trackUserInput(doc: Document): () => boolean {
     // File pickers/autofill can dispatch input without a preceding key/pointer event.
     if (event.isTrusted) interacted = true;
   };
+  const beforeTransferredInput = () => {
+    if (interacted) return;
+    // Transfer is an explicit user action, but its DOM write is synthetic.
+    // Capture the untouched target first so close protection sees the payload.
+    initial = snapshotInput(doc);
+    interacted = true;
+  };
   for (const type of ["pointerdown", "keydown", "beforeinput", "paste", "drop"]) {
     doc.addEventListener(type, beforeAction, true);
   }
   for (const type of ["input", "change"]) doc.addEventListener(type, afterAction, true);
+  doc.addEventListener("mdt:transferred-input", beforeTransferredInput, true);
   return () => interacted && hasUserInput(snapshotInput(doc), initial);
 }
 

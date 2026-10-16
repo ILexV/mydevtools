@@ -20,6 +20,8 @@ export interface WorkspaceWindow {
   /** Shares of the stage: x and y from the top-left, each edge inside 0–1. */
   bounds: Bounds;
   mode: "normal" | "maximized";
+  /** Stable only inside this saved layout; matching values restore grouped tabs. */
+  groupId?: string;
 }
 
 export interface SavedWorkspace {
@@ -39,6 +41,7 @@ export function captureWorkspace(windows: readonly DeskWindow[], desk: DeskSize)
     if (!current || window.z >= current.z) front.set(window.slug, window);
   }
   const chosen = [...front.values()].sort((left, right) => left.z - right.z);
+  const groupIds = new Map<string, string>();
   const result: WorkspaceWindow[] = [];
   for (const window of chosen) {
     if (result.length >= MAX_WORKSPACE_WINDOWS) break;
@@ -47,7 +50,15 @@ export function captureWorkspace(windows: readonly DeskWindow[], desk: DeskSize)
     const source = maximized ? (window.previousBounds ?? window.bounds) : window.bounds;
     const bounds = normalizeBounds(source, desk);
     if (!bounds) continue;
-    result.push({ slug: window.slug, bounds, mode: maximized ? "maximized" : "normal" });
+    let groupId: string | undefined;
+    if (window.groupId) {
+      groupId = groupIds.get(window.groupId);
+      if (!groupId) {
+        groupId = `group-${groupIds.size + 1}`;
+        groupIds.set(window.groupId, groupId);
+      }
+    }
+    result.push({ slug: window.slug, bounds, mode: maximized ? "maximized" : "normal", ...(groupId ? { groupId } : {}) });
   }
   return result;
 }

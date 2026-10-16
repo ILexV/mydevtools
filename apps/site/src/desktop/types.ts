@@ -11,8 +11,8 @@ export type DeskSize = { width: number; height: number };
 
 export type WindowMode = "normal" | "minimized" | "maximized";
 
-/** Edge snap. Maximized is `mode`, not a dock. */
-export type Dock = "left" | "right";
+/** Edge/corner snap. Maximized is `mode`, not a dock. */
+export type Dock = "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
 export type ResizeEdge = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
 
@@ -23,6 +23,10 @@ export interface DeskWindow {
   kind: "tool" | "folder";
   /** Tool slug or category id. */
   slug: string;
+  /** Windows with the same group id share one frame and appear as tabs. */
+  groupId?: string;
+  /** Selected tab within a group; independent from the globally active frame. */
+  tabActive?: boolean;
   /** Copies of one tool. Folders are always 1. */
   instance: number;
   bounds: Bounds;

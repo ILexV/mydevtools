@@ -5,7 +5,7 @@
  * is wide enough; otherwise they open centered on the stage.
  */
 
-import type { Bounds, DeskSize, ResizeEdge, SplitRatio } from "./types.ts";
+import type { Bounds, DeskSize, Dock, ResizeEdge, SplitRatio } from "./types.ts";
 
 export const MIN_WINDOW_WIDTH = 360;
 export const MIN_WINDOW_HEIGHT = 240;
@@ -215,13 +215,25 @@ export function resizeBounds(start: Bounds, edge: ResizeEdge, dx: number, dy: nu
   return { x, y, width, height };
 }
 
-export function dockBounds(desk: DeskSize, side: "left" | "right"): Bounds {
+export function dockBounds(desk: DeskSize, side: Dock): Bounds {
   const pad = 8;
   const gap = 8;
-  const width = Math.max(MIN_WINDOW_WIDTH, Math.floor((desk.width - pad * 2 - gap) / 2));
-  const height = Math.max(MIN_WINDOW_HEIGHT, desk.height - pad * 2);
-  const x = side === "left" ? pad : desk.width - pad - width;
-  return clampBounds({ x, y: pad, width, height }, desk);
+  const halfWidth = Math.max(MIN_WINDOW_WIDTH, Math.floor((desk.width - pad * 2 - gap) / 2));
+  const halfHeight = Math.max(MIN_WINDOW_HEIGHT, Math.floor((desk.height - pad * 2 - gap) / 2));
+  const right = side === "right" || side.endsWith("-right");
+  const bottom = side.startsWith("bottom-");
+  const corner = side.includes("-");
+  const width = halfWidth;
+  const height = corner ? halfHeight : Math.max(MIN_WINDOW_HEIGHT, desk.height - pad * 2);
+  return clampBounds(
+    {
+      x: right ? desk.width - pad - width : pad,
+      y: bottom ? desk.height - pad - height : pad,
+      width,
+      height,
+    },
+    desk,
+  );
 }
 
 /** Two windows side by side. The ratio is the left window's share of the pair. */
@@ -242,10 +254,18 @@ export function splitPair(desk: DeskSize, ratio: SplitRatio): { left: Bounds; ri
 }
 
 /** Which snap preview to show while dragging, from the pointer position in the stage. */
-export function snapTarget(pointerX: number, pointerY: number, desk: DeskSize): "left" | "right" | "max" | null {
+export function snapTarget(pointerX: number, pointerY: number, desk: DeskSize): Dock | "max" | null {
   if (desk.width <= 0 || desk.height <= 0) return null;
-  if (pointerY < 12) return "max";
-  if (pointerX < 16) return "left";
-  if (pointerX > desk.width - 16) return "right";
+  const nearLeft = pointerX < 16;
+  const nearRight = pointerX > desk.width - 16;
+  const nearTop = pointerY < 16;
+  const nearBottom = pointerY > desk.height - 16;
+  if (nearTop && nearLeft) return "top-left";
+  if (nearTop && nearRight) return "top-right";
+  if (nearBottom && nearLeft) return "bottom-left";
+  if (nearBottom && nearRight) return "bottom-right";
+  if (nearTop) return "max";
+  if (nearLeft) return "left";
+  if (nearRight) return "right";
   return null;
 }

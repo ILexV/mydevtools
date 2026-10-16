@@ -54,7 +54,7 @@ const payload = {
   strings,
   // Window chrome, launcher and widgets draw these in the browser.
   icons: Object.fromEntries(
-    (["star", "help", "more", "minimize", "maximize", "restore", "close", "external", "tile", "chevron", "plus", "check", "history", "folder", "windows", "apps", "desktop", "settings", "lock"] as const).map((name) => [name, ICONS[name]]),
+    (["star", "help", "more", "minimize", "maximize", "restore", "close", "external", "tile", "chevron", "plus", "check", "history", "folder", "windows", "apps", "desktop", "settings", "lock", "zap"] as const).map((name) => [name, ICONS[name]]),
   ),
 };
 const payloadJson = JSON.stringify(payload).replace(/</g, "\\u003c");
@@ -118,6 +118,9 @@ const label = (key: string) => t(lang, "desktop", key);
           ))}
         </div>
       </details>
+      <button type="button" class="desk-top-btn" data-focus-mode aria-label={label("EnterFocusMode")} title={label("EnterFocusMode")}>
+        <Icon name="zap" size={17} />
+      </button>
       <button type="button" class="desk-top-btn" data-desk-settings aria-label={label("Settings")} title={label("Settings")}>
         <Icon name="settings" size={17} />
       </button>
@@ -136,6 +139,7 @@ const label = (key: string) => t(lang, "desktop", key);
         <p id="desk-move-hint">{label("MoveHint")}</p>
         <button type="button" class="ds-btn ds-btn-small" data-hint-dismiss>{label("MoveHintDismiss")}</button>
       </div>
+      <button type="button" class="desk-focus-exit ds-btn ds-btn-primary" data-focus-exit hidden>{label("ExitFocusMode")}</button>
     </div>
 
     <footer class="desk-taskbar" aria-label={label("Taskbar")}>
@@ -165,6 +169,11 @@ const label = (key: string) => t(lang, "desktop", key);
       <span role="status">{label("LayoutChanged")}</span>
       <button type="button" class="ds-btn ds-btn-small" data-layout-undo>{label("UndoLayout")}</button>
       <button type="button" class="desk-win-btn" data-layout-dismiss aria-label={label("Close")} title={label("Close")}><Icon name="close" size={16} /></button>
+    </div>
+    <div class="desk-layout-notice" data-close-notice hidden>
+      <span role="status" data-close-status>{label("WindowClosed")}</span>
+      <button type="button" class="ds-btn ds-btn-small" data-close-undo>{label("UndoClose")}</button>
+      <button type="button" class="desk-win-btn" data-close-dismiss aria-label={label("Close")} title={label("Close")}><Icon name="close" size={16} /></button>
     </div>
 
     <div class="desk-menu" data-desk-menu role="menu" hidden></div>
@@ -289,6 +298,25 @@ const label = (key: string) => t(lang, "desktop", key);
       </div>
       <div class="desk-dialog-actions">
         <button type="button" class="ds-btn ds-btn-small" data-close-others>{label("CloseOthers")}</button>
+      </div>
+    </dialog>
+
+    <dialog class="desk-dialog desk-dialog-narrow" data-folder-dialog aria-labelledby="desk-folder-title">
+      <div class="desk-dialog-head">
+        <h2 id="desk-folder-title">{label("CreateFolder")}</h2>
+        <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")} title={label("Close")}><Icon name="close" size={16} /></button>
+      </div>
+      <div class="desk-dialog-body">
+        <label class="desk-field">
+          {label("FolderName")}
+          <input class="ds-field" type="text" maxlength="80" data-folder-name autocomplete="off" />
+        </label>
+        <p class="desk-muted">{label("FolderChooseTool")}</p>
+        <div class="desk-folder-choice" data-folder-choice></div>
+      </div>
+      <div class="desk-dialog-actions">
+        <button type="button" class="ds-btn" data-dialog-close>{label("Cancel")}</button>
+        <button type="button" class="ds-btn ds-btn-primary" data-folder-save disabled>{label("CreateFolder")}</button>
       </div>
     </dialog>
 

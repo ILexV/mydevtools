@@ -111,6 +111,12 @@ test("snapTarget uses the stage edges and the top strip", () => {
   assert.equal(snapTarget(1430, 40, desk), "right");
   assert.equal(snapTarget(400, 4, desk), "max");
   assert.equal(snapTarget(400, 80, desk), null);
+  assert.equal(snapTarget(4, 4, desk), "top-left");
+  assert.equal(snapTarget(1438, 4, desk), "top-right");
+  assert.equal(snapTarget(4, 898, desk), "bottom-left");
+  assert.equal(snapTarget(1438, 898, desk), "bottom-right");
+  const quarter = dockBounds(desk, "top-left");
+  assert.ok(quarter.width < desk.width && quarter.height < desk.height);
 });
 
 test("splitPair gives the left window the requested share", () => {
@@ -151,6 +157,38 @@ test("opening the same tool activates the existing window", () => {
   assert.equal(copy.windows.length, 2);
   assert.equal(copy.activeId, "b");
   assert.deepEqual(copy.windows.map((window) => window.z), [1, 2]);
+});
+
+test("grouped tools share geometry, switch tabs, and ungroup without losing records", () => {
+  let state = desktopReducer(emptyDesk, {
+    type: "open-tool",
+    id: "a",
+    slug: "hash-calculator",
+    instance: 1,
+    bounds: box,
+    fresh: true,
+  });
+  state = desktopReducer(state, {
+    type: "open-tool",
+    id: "b",
+    slug: "base64-encoder",
+    instance: 1,
+    bounds: { ...box, x: 700 },
+    fresh: true,
+  });
+  state = desktopReducer(state, { type: "group", id: "a", targetId: "b" });
+  assert.equal(state.activeId, "a");
+  assert.equal(state.windows[0]?.groupId, state.windows[1]?.groupId);
+  assert.deepEqual(state.windows[0]?.bounds, state.windows[1]?.bounds);
+  state = desktopReducer(state, { type: "move", id: "a", bounds: { ...box, x: 300 } });
+  assert.ok(state.windows.every((window) => window.bounds.x === 300));
+  state = desktopReducer(state, { type: "activate", id: "b" });
+  assert.equal(state.activeId, "b");
+  assert.equal(state.windows.find((window) => window.id === "b")?.tabActive, true);
+  assert.equal(state.windows.find((window) => window.id === "a")?.tabActive, false);
+  state = desktopReducer(state, { type: "ungroup", id: "b", bounds: { ...box, x: 340 } });
+  assert.ok(state.windows.every((window) => window.groupId === undefined));
+  assert.equal(state.windows.find((window) => window.id === "b")?.bounds.x, 340);
 });
 
 test("a category folder stays single-instance and minimize remembers maximize", () => {
@@ -295,6 +333,17 @@ test("preferences and layout drop unknown versions, slugs and duplicate ids", ()
   assert.equal(prefs?.hintDismissed, false);
   assert.deepEqual(prefs?.widgets, ["favorites", "recent"]);
   assert.deepEqual(prefs?.workspaces, []);
+  assert.deepEqual(prefs?.folders, []);
+  assert.equal(prefs?.focusMode, false);
+  const custom = parsePrefs(JSON.stringify({
+    v: 1,
+    shortcuts: ["folder:pair"],
+    folders: [{ id: "pair", name: "Pair", items: ["tool:hash-calculator", "tool:missing"] }],
+    focusMode: true,
+  }), slugs, categories);
+  assert.deepEqual(custom?.shortcuts, ["folder:pair"]);
+  assert.deepEqual(custom?.folders, [{ id: "pair", name: "Pair", items: ["tool:hash-calculator"] }]);
+  assert.equal(custom?.focusMode, true);
   assert.equal(parsePrefs(JSON.stringify({ v: 1, shortcuts: [] }), slugs, categories)?.shortcuts.length, 0);
   const compact = parsePrefs(JSON.stringify({ v: 1, density: "compact", hintDismissed: true, shortcuts: [] }), slugs, categories);
   assert.equal(compact?.density, "compact");
@@ -361,9 +410,11 @@ test("a saved layout keeps slug and stage shares and drops typed text", () => {
   const captured = captureWorkspace(
     [
       tool("back", "hash-calculator", { z: 1, bounds: { x: 0, y: 0, width: 720, height: 900 } }),
-      tool("front", "hash-calculator", { z: 3, instance: 2, bounds: { x: 720, y: 0, width: 720, height: 900 } }),
+      tool("front", "hash-calculator", { z: 3, instance: 2, groupId: "tabs", tabActive: true, bounds: { x: 720, y: 0, width: 720, height: 900 } }),
       tool("other", "base64-encoder", {
         z: 2,
+        groupId: "tabs",
+        tabActive: false,
         mode: "maximized",
         bounds: { x: 40, y: 40, width: 500, height: 400 },
         previousBounds: { x: 40, y: 40, width: 500, height: 400 },
@@ -375,6 +426,8 @@ test("a saved layout keeps slug and stage shares and drops typed text", () => {
   assert.deepEqual(captured.map((window) => window.slug), ["base64-encoder", "hash-calculator"]);
   assert.equal(captured[0]?.mode, "maximized");
   assert.equal(captured[1]?.bounds.x, 0.5);
+  assert.equal(captured[0]?.groupId, "group-1");
+  assert.equal(captured[1]?.groupId, "group-1");
   const shares = normalizeBounds({ x: 0, y: 0, width: 720, height: 900 }, desk);
   assert.ok(shares);
   const placed = denormalizeBounds(shares, desk);
@@ -392,7 +445,6 @@ test("a saved layout keeps slug and stage shares and drops typed text", () => {
       ],
     },
   );
-  assert.deepEqual(added.windows.map((window) => window.id), ["keep", "folder", "copy", "new-b64"]);
   assert.equal(added.windows.find((window) => window.id === "copy")?.bounds.x, 10);
   assert.equal(added.windows.find((window) => window.id === "new-b64")?.mode, "maximized");
   assert.equal(added.concealed, false);

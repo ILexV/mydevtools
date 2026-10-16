@@ -22,6 +22,7 @@ import {
 
 export const LAYOUT_KEY = "mdt.desktop.layout.v1";
 export const PREFS_KEY = "mdt.desktop.prefs.v1";
+export const WINDOW_BOUNDS_KEY = "mdt.desktop.window-bounds.v1";
 /** "Open the desktop from the home page." Absent means the catalog stays. */
 export const ENTRY_KEY = "mdt.desktop.entry.v1";
 /** Session flag so "back to catalog" is not immediately sent back to the desk. */
@@ -87,6 +88,39 @@ function readBounds(value: unknown): Bounds | null {
   }
   if (value.width <= 0 || value.height <= 0) return null;
   return { x: value.x, y: value.y, width: value.width, height: value.height };
+}
+
+export function parseWindowBounds(raw: string | null, slugs: ReadonlySet<string>): Record<string, Bounds> {
+  if (!raw) return {};
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return {};
+  }
+  if (!isRecord(parsed) || parsed.v !== 1 || !isRecord(parsed.bounds)) return {};
+
+  const result: Record<string, Bounds> = {};
+  for (const [slug, value] of Object.entries(parsed.bounds)) {
+    if (!slugs.has(slug)) continue;
+    const bounds = readBounds(value);
+    if (!bounds || bounds.x < 0 || bounds.y < 0) continue;
+    result[slug] = bounds;
+  }
+  return result;
+}
+
+export function serializeWindowBounds(bounds: Readonly<Record<string, Bounds>>): string {
+  const saved: Record<string, Bounds> = {};
+  for (const [slug, value] of Object.entries(bounds)) {
+    saved[slug] = {
+      x: value.x,
+      y: value.y,
+      width: value.width,
+      height: value.height,
+    };
+  }
+  return JSON.stringify({ v: 1, bounds: saved });
 }
 
 function readCell(value: unknown): { column: number; row: number } | null {

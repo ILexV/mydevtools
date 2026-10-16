@@ -82,6 +82,36 @@ export function clampBounds(bounds: Bounds, desk: DeskSize): Bounds {
   };
 }
 
+/**
+ * Fit a first-open frame to its measured tool content without changing its
+ * horizontal geometry. Restored or user-adjusted bounds must bypass this helper.
+ */
+export function fitContentHeight(
+  bounds: Bounds,
+  contentHeight: number,
+  chromeHeight: number,
+  desk: DeskSize,
+): Bounds {
+  if (
+    !Number.isFinite(contentHeight) ||
+    contentHeight <= 0 ||
+    !Number.isFinite(chromeHeight) ||
+    chromeHeight < 0 ||
+    !Number.isFinite(desk.width) ||
+    desk.width <= 0 ||
+    !Number.isFinite(desk.height) ||
+    desk.height <= 0
+  ) {
+    return bounds;
+  }
+
+  const naturalHeight = Math.ceil(contentHeight + chromeHeight);
+  const maximumHeight = Math.max(MIN_WINDOW_HEIGHT, desk.height - 32);
+  const height = Math.min(Math.max(naturalHeight, MIN_WINDOW_HEIGHT), maximumHeight);
+  const y = Math.min(bounds.y, Math.max(0, desk.height - height - 16));
+  return clampBounds({ ...bounds, y, height }, desk);
+}
+
 /** Place a new window. `reservedLeft` is the right edge of the shortcut columns. */
 export function cascadeBounds(index: number, desk: DeskSize, reservedLeft = 0, slug?: string): Bounds {
   const profile = slug ? (PROFILE_BY_SLUG[slug] ?? "standard") : "standard";

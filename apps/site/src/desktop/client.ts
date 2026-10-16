@@ -6,18 +6,21 @@
  */
 
 import "@/scripts/favorites.ts";
-import { cascadeBounds, denormalizeBounds, dockBounds, dragBounds, resizeBounds, restoreUnderPointer, snapTarget } from "./bounds.ts";
+import { cascadeBounds, clampBounds, denormalizeBounds, dockBounds, dragBounds, fitContentHeight, resizeBounds, restoreUnderPointer, snapTarget } from "./bounds.ts";
 import { trackUserInput } from "./dirty.ts";
 import {
   ENTRY_KEY,
   LAYOUT_KEY,
   PREFS_KEY,
   SKIP_KEY,
+  WINDOW_BOUNDS_KEY,
   defaultPrefs,
   parseLayout,
   parsePrefs,
+  parseWindowBounds,
   serializeLayout,
   serializePrefs,
+  serializeWindowBounds,
   type DeskPrefs,
 } from "./persistence.ts";
 import { desktopReducer } from "./reducer.ts";
@@ -95,6 +98,8 @@ export function bootDesktop(): void {
 
   let prefs = parsePrefs(readKey(PREFS_KEY), slugs, categoryIds) ?? defaultPrefs(payload.categories.map((category) => category.id));
   let state: DeskState = parseLayout(readKey(LAYOUT_KEY), slugs, categoryIds) ?? emptyDesk;
+  let rememberedBounds = parseWindowBounds(readKey(WINDOW_BOUNDS_KEY), slugs);
+  const pendingInitialFit = new Set<string>();
   // Folders open as popovers now; folder windows saved by an older version are dropped.
   const folderIds = state.windows.filter((record) => record.kind === "folder").map((record) => record.id);
   if (folderIds.length > 0) state = desktopReducer(state, { type: "close-many", ids: folderIds });
@@ -244,6 +249,19 @@ export function bootDesktop(): void {
   function dispatch(action: Parameters<typeof desktopReducer>[1]): void {
     const next = desktopReducer(state, action);
     if (next === state) return;
+    if (action.type === "apply-workspace") pendingInitialFit.clear();
+    else if ("id" in action && !["activate", "open-tool", "open-folder"].includes(action.type)) {
+      pendingInitialFit.delete(action.id);
+    }
+    if (action.type === "tile") pendingInitialFit.delete(action.companionId);
+    if (action.type === "move" || action.type === "dock" || action.type === "tile") {
+      for (const record of next.windows) {
+        if (record.kind !== "tool") continue;
+        if (record.id === action.id || (action.type === "tile" && record.id === action.companionId)) {
+          rememberedBounds[record.slug] = record.bounds;
+        }
+      }
+    }
     state = next;
     render();
     if (ready) scheduleSave();
@@ -381,6 +399,7 @@ export function bootDesktop(): void {
 
   function renderWindows(): void {
     const live = new Set(state.windows.map((record) => record.id));
+    for (const id of pendingInitialFit) if (!live.has(id)) pendingInitialFit.delete(id);
     for (const node of windowHost.querySelectorAll<HTMLElement>("[data-window-id]")) {
       if (!live.has(node.dataset.windowId || "")) node.remove();
     }
@@ -528,6 +547,7 @@ export function bootDesktop(): void {
     frame.setAttribute("allow", "camera; clipboard-read; clipboard-write");
     frame.addEventListener("load", () => {
       if (frame.contentDocument) frameInput.set(frame, trackUserInput(frame.contentDocument));
+      void fitInitialWindow(record.id, frame);
     });
     if (tool) frame.src = `${tool.href}?embed=1`;
     const error = document.createElement("div");
@@ -549,6 +569,27 @@ export function bootDesktop(): void {
     });
     wrap.append(frame, error);
     return wrap;
+  }
+
+  async function fitInitialWindow(id: string, frame: HTMLIFrameElement): Promise<void> {
+    const doc = frame.contentDocument;
+    if (!pendingInitialFit.has(id) || !doc) return;
+    const cancel = () => pendingInitialFit.delete(id);
+    doc.addEventListener("pointerdown", cancel, { capture: true, once: true });
+    doc.addEventListener("keydown", cancel, { capture: true, once: true });
+    await doc.fonts.ready;
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    doc.removeEventListener("pointerdown", cancel, true);
+    doc.removeEventListener("keydown", cancel, true);
+    if (!pendingInitialFit.delete(id) || !frame.isConnected || frame.contentDocument !== doc) return;
+    const record = state.windows.find((item) => item.id === id);
+    const content = doc.querySelector<HTMLElement>(".tool");
+    const node = frame.closest<HTMLElement>(".desk-window");
+    if (!record || record.mode !== "normal" || record.dock || !content || !node) return;
+    const chromeHeight = node.getBoundingClientRect().height - frame.getBoundingClientRect().height;
+    const bounds = fitContentHeight(record.bounds, content.getBoundingClientRect().height, chromeHeight, deskSize());
+    // Automatic sizing is not a user preference and must not replace remembered geometry.
+    dispatch({ type: "fit-content", id, bounds });
   }
 
   function folderBody(category: string): HTMLElement {
@@ -624,12 +665,15 @@ export function bootDesktop(): void {
     const copies = state.windows.filter((record) => record.kind === "tool" && record.slug === slug);
     const instance = fresh ? Math.max(0, ...copies.map((record) => record.instance)) + 1 : copies[0]?.instance ?? 1;
     const before = state;
+    const id = `tool-${slug}-${instance}-${crypto.randomUUID()}`;
+    const saved = rememberedBounds[slug];
+    if (!saved && (fresh || copies.length === 0)) pendingInitialFit.add(id);
     dispatch({
       type: "open-tool",
-      id: `tool-${slug}-${instance}-${crypto.randomUUID()}`,
+      id,
       slug,
       instance,
-      bounds: cascadeBounds(state.windows.length, windowDesk(), iconStripWidth(), slug),
+      bounds: saved ? clampBounds(saved, deskSize()) : cascadeBounds(state.windows.length, windowDesk(), iconStripWidth(), slug),
       fresh,
     });
     if (state === before) renderWidgets();
@@ -789,9 +833,13 @@ export function bootDesktop(): void {
     else dispatch({ type: "maximize", id });
   }
 
-  async function closeWindows(ids: string[]): Promise<void> {
+  async function closeWindows(ids: string[], resetBounds = false): Promise<void> {
     const dirty = dirtyIds(ids);
     if (dirty.length > 0 && !(await askDiscard(dirty.length > 1))) return;
+    if (resetBounds) {
+      rememberedBounds = {};
+      scheduleSave();
+    }
     dispatch({ type: "close-many", ids });
   }
 
@@ -845,6 +893,7 @@ export function bootDesktop(): void {
     dispatch({ type: "activate", id });
     const record = state.windows.find((item) => item.id === id);
     if (!record) return;
+    pendingInitialFit.delete(id);
     const startX = event.clientX;
     const startY = event.clientY;
     const origin = record.bounds;
@@ -900,6 +949,7 @@ export function bootDesktop(): void {
     event.stopPropagation();
     const record = state.windows.find((item) => item.id === id);
     if (!record || record.mode === "maximized") return;
+    pendingInitialFit.delete(id);
     dispatch({ type: "activate", id });
     const origin = record.dock ? dockBounds(deskSize(), record.dock) : record.bounds;
     const startX = event.clientX;
@@ -1626,7 +1676,7 @@ export function bootDesktop(): void {
       reflectSettings();
     });
     settingsDialog.querySelector("[data-reset-layout]")?.addEventListener("click", () => {
-      void closeWindows(state.windows.map((record) => record.id));
+      void closeWindows(state.windows.map((record) => record.id), true);
     });
   }
 
@@ -2355,6 +2405,7 @@ export function bootDesktop(): void {
     saveTimer = 0;
     writeKey(LAYOUT_KEY, serializeLayout(state));
     writeKey(PREFS_KEY, serializePrefs(prefs));
+    writeKey(WINDOW_BOUNDS_KEY, serializeWindowBounds(rememberedBounds));
   }
 
   function scheduleSave(): void {

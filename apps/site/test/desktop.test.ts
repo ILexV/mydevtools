@@ -183,6 +183,24 @@ test("show desktop conceals frames and hydrate never restores that flag", () => 
   assert.equal(hydrated.windows.length, 1);
 });
 
+test("late initial-height fitting does not steal focus or reveal hidden windows", () => {
+  const state = { windows: [tool("a", "hash-calculator"), tool("b", "base64-encoder", { z: 2 })], activeId: "b", concealed: true };
+  const bounds = { ...box, height: 700 };
+  const fitted = desktopReducer(state, { type: "fit-content", id: "a", bounds });
+  assert.deepEqual(fitted.windows[0].bounds, bounds);
+  assert.equal(fitted.windows[0].z, state.windows[0].z);
+  assert.equal(fitted.activeId, "b");
+  assert.equal(fitted.concealed, true);
+  assert.equal(fitted.windows[1], state.windows[1]);
+});
+
+test("initial fitting cannot overwrite a minimized, maximized or snapped window", () => {
+  for (const override of [{ mode: "minimized" as const }, { mode: "maximized" as const }, { dock: "left" as const }]) {
+    const state = { windows: [tool("a", "hash-calculator", override)], activeId: "a", concealed: false };
+    assert.equal(desktopReducer(state, { type: "fit-content", id: "a", bounds: { ...box, height: 700 } }), state);
+  }
+});
+
 test("dock and tile leave other windows where they are", () => {
   let state = desktopReducer(emptyDesk, {
     type: "open-tool",

@@ -35,6 +35,7 @@ export type DeskAction =
   | { type: "close"; id: string }
   | { type: "close-many"; ids: string[] }
   | { type: "move"; id: string; bounds: Bounds }
+  | { type: "fit-content"; id: string; bounds: Bounds }
   | { type: "dock"; id: string; side: Dock; desk: DeskSize }
   | { type: "tile"; id: string; companionId: string; ratio: SplitRatio; desk: DeskSize }
   | { type: "clamp"; desk: DeskSize }
@@ -196,9 +197,11 @@ export function desktopReducer(state: DeskState, action: DeskAction): DeskState 
       });
       return withWindows(windows, action.id, false);
     }
+    case "fit-content":
     case "move": {
       const windows = state.windows.map((window) => {
         if (window.id !== action.id) return window;
+        if (action.type === "fit-content" && (window.mode !== "normal" || window.dock)) return window;
         if (
           window.bounds.x === action.bounds.x &&
           window.bounds.y === action.bounds.y &&
@@ -213,7 +216,9 @@ export function desktopReducer(state: DeskState, action: DeskAction): DeskState 
       });
       const changed = windows.some((window, index) => window !== state.windows[index]);
       if (!changed) return state;
-      return withWindows(raise(windows, action.id), action.id, false);
+      return action.type === "fit-content"
+        ? { ...state, windows }
+        : withWindows(raise(windows, action.id), action.id, false);
     }
     case "dock": {
       const target = state.windows.find((window) => window.id === action.id);

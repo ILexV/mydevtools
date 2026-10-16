@@ -393,6 +393,14 @@ body.desk {
   opacity: 0.55;
 }
 
+/* Outside the scrollable icon column so the moving tile stays visible across the desk. */
+.desk-icon.is-drag-preview {
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0.95;
+  transition: none;
+}
+
 .desk-icon.is-drop {
   border-color: rgba(255, 255, 255, 0.7);
   border-style: dashed;

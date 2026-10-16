@@ -887,12 +887,31 @@ export function bootDesktop(): void {
     const startX = event.clientX;
     const startY = event.clientY;
     let dragging = false;
+    let cancelled = false;
+    let preview: HTMLButtonElement | null = null;
     button.setPointerCapture?.(event.pointerId);
     const onMove = (ev: PointerEvent) => {
+      if (cancelled) return;
       if (!dragging && Math.hypot(ev.clientX - startX, ev.clientY - startY) < 4) return;
-      if (!dragging) hidePop(false);
-      dragging = true;
-      button.classList.add("is-dragging");
+      if (!dragging) {
+        hidePop(false);
+        const box = button.getBoundingClientRect();
+        const stageBox = stage.getBoundingClientRect();
+        preview = button.cloneNode(true) as HTMLButtonElement;
+        preview.classList.add("is-drag-preview");
+        preview.removeAttribute("data-shortcut-id");
+        preview.removeAttribute("title");
+        preview.setAttribute("aria-hidden", "true");
+        preview.inert = true;
+        preview.tabIndex = -1;
+        preview.style.left = `${box.left - stageBox.left}px`;
+        preview.style.top = `${box.top - stageBox.top}px`;
+        preview.style.width = `${box.width}px`;
+        stage.append(preview);
+        dragging = true;
+        button.classList.add("is-dragging");
+      }
+      preview!.style.translate = `${ev.clientX - startX}px ${ev.clientY - startY}px`;
       const cell = cellAt(ev.clientX, ev.clientY);
       iconHost.querySelectorAll(".is-drop").forEach((node) => node.classList.remove("is-drop"));
       if (cell) iconHost.querySelector(`[data-shortcut-id="${CSS.escape(shortcutAt(cell) || "")}"]`)?.classList.add("is-drop");
@@ -900,6 +919,10 @@ export function bootDesktop(): void {
     const onUp = (ev: PointerEvent) => {
       button.removeEventListener("pointermove", onMove);
       button.removeEventListener("pointerup", onUp);
+      button.removeEventListener("pointercancel", onUp);
+      button.removeEventListener("lostpointercapture", onUp);
+      if (button.hasPointerCapture(ev.pointerId)) button.releasePointerCapture(ev.pointerId);
+      preview?.remove();
       document.removeEventListener("keydown", onKey);
       button.classList.remove("is-dragging");
       iconHost.querySelectorAll(".is-drop").forEach((node) => node.classList.remove("is-drop"));
@@ -910,6 +933,7 @@ export function bootDesktop(): void {
       }, 0);
       ev.preventDefault();
       ev.stopPropagation();
+      if (cancelled || ev.type !== "pointerup") return;
       const cell = cellAt(ev.clientX, ev.clientY);
       if (!cell) return;
       const size = iconCell();
@@ -928,16 +952,17 @@ export function bootDesktop(): void {
       render();
     };
     const onKey = (ev: KeyboardEvent) => {
-      if (ev.key !== "Escape") return;
-      dragging = false;
-      button.removeEventListener("pointermove", onMove);
-      button.removeEventListener("pointerup", onUp);
+      if (ev.key !== "Escape" || !dragging) return;
+      ev.preventDefault();
+      cancelled = true;
+      preview?.remove();
       button.classList.remove("is-dragging");
       iconHost.querySelectorAll(".is-drop").forEach((node) => node.classList.remove("is-drop"));
-      document.removeEventListener("keydown", onKey);
     };
     button.addEventListener("pointermove", onMove);
     button.addEventListener("pointerup", onUp);
+    button.addEventListener("pointercancel", onUp);
+    button.addEventListener("lostpointercapture", onUp);
     document.addEventListener("keydown", onKey);
   }
 

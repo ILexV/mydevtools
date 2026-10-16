@@ -53,8 +53,10 @@
   "Density": "Dichte",
   "DensityComfortable": "Normal",
   "DensityCompact": "Kompakt",
-  "MoveHint": "Ziehen Sie eine Verknüpfung oder drücken Sie Strg und eine Pfeiltaste. Die Position wird von selbst gespeichert.",
+  "MoveHint": "Ziehen Sie Verknüpfungen. Wählen Sie mehrere mit Strg/⌘+Klick oder einem Auswahlrahmen aus; verschieben Sie sie mit Strg+Pfeiltaste; Esc bricht ab.",
   "MoveHintDismiss": "Verstanden",
+  "UndoLayout": "Rückgängig",
+  "LayoutChanged": "Verknüpfungsanordnung aktualisiert",
   "LockIcons": "Symbole sperren",
   "AlignIcons": "Symbole ausrichten",
   "RestoreIcons": "Standardsymbole",
@@ -108,6 +110,9 @@
   "StartSection": "Start und Fenster",
   "ChooseImage": "Bild auswählen",
   "Minimized": "Minimiert",
+  "ActiveWindow": "Aktives Fenster",
+  "WindowOpen": "Fenster offen",
+  "UnsavedInput": "Ungespeicherte Eingaben",
   "ToolsCount": "Werkzeuge: {count}",
   "Placement": "Anordnung"
 }

@@ -52,6 +52,43 @@ test("cascadeBounds opens to the right of the shortcut strip when the free area 
   assert.ok(centered.x < 220);
 });
 
+test("cascadeBounds sizes content-heavy tools above compact generators", () => {
+  const diff = cascadeBounds(0, desk, 0, "text-diff-viewer");
+  const dataViewer = cascadeBounds(0, desk, 0, "csv-explorer");
+  const generator = cascadeBounds(0, desk, 0, "uuid-generator");
+  const standard = cascadeBounds(0, desk, 0, "hash-calculator");
+  assert.deepEqual(diff, { x: 120, y: 16, width: 1200, height: 760 });
+  assert.deepEqual(dataViewer, diff);
+  assert.deepEqual(generator, { x: 360, y: 16, width: 720, height: 520 });
+  assert.deepEqual(standard, { x: 240, y: 16, width: 960, height: 680 });
+});
+
+test("cascadeBounds keeps a wide editor intact when the shortcut-side gap is too small", () => {
+  const boundedDesk = { width: 1300, height: 900 };
+  const editor = cascadeBounds(0, boundedDesk, 260, "json-to-typescript");
+  assert.deepEqual(editor, { x: 50, y: 16, width: 1200, height: 760 });
+  assert.ok(editor.x < 260);
+});
+
+test("cascadeBounds clamps every profile to a constrained stage", () => {
+  const constrained = { width: 620, height: 390 };
+  const editor = cascadeBounds(0, constrained, 180, "json-beautifier");
+  assert.deepEqual(editor, { x: 32, y: 16, width: 556, height: 326 });
+  assert.ok(editor.x + editor.width <= constrained.width);
+  assert.ok(editor.y + editor.height <= constrained.height);
+});
+
+test("cascadeBounds without a slug retains the legacy standard geometry", () => {
+  assert.deepEqual(cascadeBounds(0, desk), { x: 240, y: 16, width: 960, height: 680 });
+  assert.deepEqual(cascadeBounds(0, desk, 0, "unprofiled-tool"), cascadeBounds(0, desk));
+});
+
+test("saved normalized bounds remain independent of new-window profiles", () => {
+  const saved = { x: 0.1, y: 0.1, width: 0.5, height: 0.5 };
+  assert.deepEqual(denormalizeBounds(saved, desk), { x: 144, y: 90, width: 720, height: 450 });
+  assert.deepEqual(saved, { x: 0.1, y: 0.1, width: 0.5, height: 0.5 });
+});
+
 test("restoreUnderPointer keeps the grab fraction of the title under the pointer", () => {
   const restored = restoreUnderPointer(box, 400, 80, 0.25, desk);
   assert.equal(restored.width, box.width);

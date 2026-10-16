@@ -53,8 +53,10 @@
   "Density": "密度",
   "DensityComfortable": "標準",
   "DensityCompact": "コンパクト",
-  "MoveHint": "ショートカットをドラッグするか、Ctrl と矢印キーを押します。位置は自動で保存されます。",
+  "MoveHint": "ショートカットはドラッグで移動します。Ctrl/⌘+クリックまたは選択枠で複数選択し、Ctrl+矢印で移動、Escでキャンセルできます。",
   "MoveHintDismiss": "了解",
+  "UndoLayout": "元に戻す",
+  "LayoutChanged": "ショートカットの配置を更新しました",
   "LockIcons": "アイコンをロック",
   "AlignIcons": "アイコンを揃える",
   "RestoreIcons": "初期のアイコンに戻す",
@@ -108,6 +110,9 @@
   "StartSection": "起動とウィンドウ",
   "ChooseImage": "画像を選択",
   "Minimized": "最小化",
+  "ActiveWindow": "アクティブなウィンドウ",
+  "WindowOpen": "開いているウィンドウ",
+  "UnsavedInput": "未保存の入力",
   "ToolsCount": "ツール：{count}",
   "Placement": "配置"
 }

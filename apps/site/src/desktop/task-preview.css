@@ -1,0 +1,124 @@
+.desk-task-preview {
+  position: fixed;
+  z-index: 40;
+  box-sizing: border-box;
+  width: min(22rem, calc(100vw - 1rem));
+  max-height: calc(100vh - 1rem);
+  max-height: calc(100dvh - 1rem);
+  overflow: auto;
+  padding: 0.85rem;
+  border: 1px solid var(--desk-glass-line);
+  border-radius: 0.9rem;
+  background: var(--desk-glass-strong, var(--mdt-surface-raised));
+  color: var(--mdt-text);
+  box-shadow: var(--desk-shadow-pop);
+  backdrop-filter: blur(22px) saturate(150%);
+  overflow-wrap: anywhere;
+}
+
+.desk-task-preview[hidden] {
+  display: none;
+}
+
+.desk-task-preview-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 680;
+  line-height: 1.35;
+}
+
+.desk-task-preview-details {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.65rem;
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.desk-task-preview-state {
+  color: var(--mdt-text-muted);
+}
+
+.desk-task-preview-dirty {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--mdt-warning);
+  font-weight: 620;
+}
+
+.desk-task-preview-dirty[hidden] {
+  display: none;
+}
+
+.desk-task-preview-dirty::before {
+  content: "";
+  flex: none;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.desk-task-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+}
+
+.desk-task-preview-action:focus-visible {
+  outline: 2px solid var(--mdt-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (max-width: 26rem) {
+  .desk-task-preview-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .desk-task-preview-action {
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .desk-task-preview:not([hidden]) {
+    animation: desk-task-preview-in 120ms var(--mdt-ease);
+  }
+
+  @keyframes desk-task-preview-in {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+
+@media (forced-colors: active) {
+  .desk-task-preview {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .desk-task-preview-state,
+  .desk-task-preview-dirty {
+    color: CanvasText;
+  }
+
+  .desk-task-preview-action:focus-visible {
+    outline-color: Highlight;
+    box-shadow: none;
+  }
+
+  .desk-task-preview-action.ds-btn-primary:focus-visible {
+    outline-color: CanvasText;
+  }
+}

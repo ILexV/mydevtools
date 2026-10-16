@@ -13,6 +13,30 @@ export const MIN_WINDOW_HEIGHT = 240;
 const CASCADE_SHIFT = 28;
 const FREE_AREA_MIN = 720;
 
+type WindowProfile = "standard" | "wide" | "compact";
+
+const SIZE_BY_PROFILE = {
+  standard: { width: 960, height: 680 },
+  wide: { width: 1200, height: 760 },
+  compact: { width: 720, height: 520 },
+} as const satisfies Record<WindowProfile, { width: number; height: number }>;
+
+/** Explicit exceptions for tools whose real layout benefits from a non-standard first frame. */
+const PROFILE_BY_SLUG: Record<string, WindowProfile> = {
+  "json-beautifier": "wide",
+  "json-to-typescript": "wide",
+  "json-explorer": "wide",
+  "csv-explorer": "wide",
+  "parquet-explorer": "wide",
+  "xml-beautifier": "wide",
+  "yaml-beautifier-validator": "wide",
+  "text-diff-viewer": "wide",
+  "markdown-preview": "wide",
+  "hex-viewer": "wide",
+  "uuid-generator": "compact",
+  "password-generator": "compact",
+};
+
 function roundShare(value: number): number {
   return Math.round(value * 10000) / 10000;
 }
@@ -59,13 +83,19 @@ export function clampBounds(bounds: Bounds, desk: DeskSize): Bounds {
 }
 
 /** Place a new window. `reservedLeft` is the right edge of the shortcut columns. */
-export function cascadeBounds(index: number, desk: DeskSize, reservedLeft = 0): Bounds {
+export function cascadeBounds(index: number, desk: DeskSize, reservedLeft = 0, slug?: string): Bounds {
+  const profile = slug ? (PROFILE_BY_SLUG[slug] ?? "standard") : "standard";
+  const size = SIZE_BY_PROFILE[profile];
   const shift = (index % 6) * CASCADE_SHIFT;
-  let width = desk.width > 0 ? Math.min(960, Math.max(MIN_WINDOW_WIDTH, desk.width - 64)) : 960;
-  const height = desk.height > 0 ? Math.min(680, Math.max(MIN_WINDOW_HEIGHT, desk.height - 64)) : 680;
+  let width = desk.width > 0 ? Math.min(size.width, Math.max(MIN_WINDOW_WIDTH, desk.width - 64)) : size.width;
+  const height = desk.height > 0 ? Math.min(size.height, Math.max(MIN_WINDOW_HEIGHT, desk.height - 64)) : size.height;
   let left = desk.width > 0 ? Math.max(16, (desk.width - width) / 2) : 16;
   const freeWidth = desk.width - reservedLeft - 16;
-  if (reservedLeft > 0 && left < reservedLeft && freeWidth >= FREE_AREA_MIN) {
+  // A wide workbench is more useful overlapping the shortcut strip than
+  // compressed into a merely adequate gap. The other profiles retain the
+  // established free-area threshold and placement.
+  const freeAreaMinimum = profile === "wide" ? size.width + 16 : FREE_AREA_MIN;
+  if (reservedLeft > 0 && left < reservedLeft && freeWidth >= freeAreaMinimum) {
     width = Math.min(width, freeWidth - 16);
     left = reservedLeft + Math.max(16, (freeWidth - width) / 2);
   }

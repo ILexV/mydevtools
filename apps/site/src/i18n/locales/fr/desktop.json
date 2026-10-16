@@ -53,8 +53,10 @@
   "Density": "Densité",
   "DensityComfortable": "Confortable",
   "DensityCompact": "Compacte",
-  "MoveHint": "Faites glisser un raccourci ou appuyez sur Ctrl et une flèche. La position est enregistrée toute seule.",
+  "MoveHint": "Faites glisser les raccourcis. Sélectionnez-en plusieurs avec Ctrl/⌘+clic ou un cadre de sélection ; déplacez-les avec Ctrl+flèche ; Échap annule.",
   "MoveHintDismiss": "Compris",
+  "UndoLayout": "Annuler",
+  "LayoutChanged": "Disposition des raccourcis mise à jour",
   "LockIcons": "Verrouiller les icônes",
   "AlignIcons": "Aligner les icônes",
   "RestoreIcons": "Icônes par défaut",
@@ -108,6 +110,9 @@
   "StartSection": "Démarrage et fenêtres",
   "ChooseImage": "Choisir une image",
   "Minimized": "Réduite",
+  "ActiveWindow": "Fenêtre active",
+  "WindowOpen": "Fenêtre ouverte",
+  "UnsavedInput": "Saisie non enregistrée",
   "ToolsCount": "Outils : {count}",
   "Placement": "Ajustement"
 }

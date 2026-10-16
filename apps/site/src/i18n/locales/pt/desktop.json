@@ -53,8 +53,10 @@
   "Density": "Densidade",
   "DensityComfortable": "Confortável",
   "DensityCompact": "Compacta",
-  "MoveHint": "Arraste um atalho ou pressione Ctrl e uma seta. A posição é salva sozinha.",
+  "MoveHint": "Arraste os atalhos. Selecione vários com Ctrl/⌘+clique ou uma caixa de seleção; mova-os com Ctrl+seta; Esc cancela.",
   "MoveHintDismiss": "Entendi",
+  "UndoLayout": "Desfazer",
+  "LayoutChanged": "Layout dos atalhos atualizado",
   "LockIcons": "Bloquear ícones",
   "AlignIcons": "Alinhar ícones",
   "RestoreIcons": "Restaurar ícones",
@@ -108,6 +110,9 @@
   "StartSection": "Início e janelas",
   "ChooseImage": "Escolher uma imagem",
   "Minimized": "Minimizada",
+  "ActiveWindow": "Janela ativa",
+  "WindowOpen": "Janela aberta",
+  "UnsavedInput": "Entrada não salva",
   "ToolsCount": "Ferramentas: {count}",
   "Placement": "Ajuste"
 }

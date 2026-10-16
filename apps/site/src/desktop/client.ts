@@ -22,6 +22,7 @@ import {
 } from "./persistence.ts";
 import { desktopReducer } from "./reducer.ts";
 import { arrangeShortcuts, cellSize, moveShortcut, packedPositions, stripColumns } from "./shortcuts.ts";
+import { createTaskPreview } from "./task-preview.ts";
 import type { Bounds, DeskSize, DeskState, DeskWindow, ResizeEdge, ShortcutCell } from "./types.ts";
 import { emptyDesk } from "./types.ts";
 import { clearWallpaperBlob, loadWallpaperBlob, prepareWallpaper, saveWallpaperBlob } from "./wallpaper.ts";
@@ -100,6 +101,11 @@ export function bootDesktop(): void {
   let saveTimer = 0;
   let ready = false;
   let selectedShortcut: string | null = null;
+  let selectedShortcuts = new Set<string>();
+  type ShortcutSnapshot = Pick<DeskPrefs, "shortcuts" | "positions" | "pinned">;
+  const shortcutHistory: ShortcutSnapshot[] = [];
+  let layoutNoticeDismissed = false;
+  let cancelShortcutGesture: (() => void) | null = null;
   /** Set between the pointerup of an icon drag and the click the browser fires right after it. */
   let iconDragJustEnded = false;
   let tileFor: string | null = null;
@@ -125,7 +131,29 @@ export function bootDesktop(): void {
   const discardDialog = must<HTMLDialogElement>("[data-discard-dialog]");
   const helpDialog = must<HTMLDialogElement>("[data-help-dialog]");
   const tileDialog = must<HTMLDialogElement>("[data-tile-dialog]");
+  const taskPreview = createTaskPreview(taskHost, {
+    strings: payload.strings,
+    describe(id) {
+      const record = state.windows.find((item) => item.id === id);
+      if (!record) return null;
+      const info = record.kind === "tool" ? toolInfo(record.slug) : folderInfo(record.slug);
+      return {
+        title: windowTitle(record, info.label),
+        state: record.mode === "minimized" ? "minimized" : state.activeId === id && !state.concealed ? "active" : "open",
+        dirty: dirtyIds([id]).length > 0,
+      };
+    },
+    activate: (id) => dispatch({ type: "activate", id }),
+    close: (id) => closeWindows([id]),
+  });
 
+  document.querySelectorAll("[data-layout-undo]").forEach((button) => button.addEventListener("click", undoShortcutLayout));
+  document.querySelector("[data-layout-dismiss]")?.addEventListener("click", () => {
+    layoutNoticeDismissed = true;
+    const notice = document.querySelector<HTMLElement>("[data-layout-notice]");
+    if (notice) notice.hidden = true;
+  });
+  stage.addEventListener("pointerdown", startSelectionRectangle);
   document.querySelector("[data-desk-search]")?.addEventListener("click", () => openCatalog());
   document.querySelector("[data-desk-catalog]")?.addEventListener("click", () => openCatalog());
   document.querySelector("[data-desk-settings]")?.addEventListener("click", () => openSettings());
@@ -165,7 +193,10 @@ export function bootDesktop(): void {
     if (popFor && !pop.contains(target) && !isPopAnchor(target)) hidePop(false);
   });
   // Focus moving into a tool iframe never reaches this document as a pointerdown.
-  window.addEventListener("blur", () => hidePop(false));
+  window.addEventListener("blur", () => {
+    hidePop(false);
+    cancelShortcutGesture?.();
+  });
   pop.addEventListener("focusout", (event) => {
     const next = event.relatedTarget as HTMLElement | null;
     if (!next || pop.contains(next) || isPopAnchor(next)) return;
@@ -179,6 +210,8 @@ export function bootDesktop(): void {
   });
   window.addEventListener("resize", () => {
     hidePop(false);
+    taskPreview.hide();
+    cancelShortcutGesture?.();
     dispatch({ type: "clamp", desk: deskSize() });
   });
   window.addEventListener("storage", (event) => {
@@ -216,10 +249,15 @@ export function bootDesktop(): void {
   }
 
   function render(): void {
+    cancelShortcutGesture?.();
     renderWidgets();
     renderIcons();
     renderWindows();
     renderTasks();
+    for (const id of selectedShortcuts) if (!prefs.shortcuts.includes(id)) selectedShortcuts.delete(id);
+    document.querySelectorAll<HTMLButtonElement>("[data-layout-undo]").forEach((button) => { button.disabled = shortcutHistory.length === 0; });
+    const notice = document.querySelector<HTMLElement>("[data-layout-notice]");
+    if (notice) notice.hidden = layoutNoticeDismissed || shortcutHistory.length === 0;
     document.body.classList.toggle("is-concealed", state.concealed);
     document.body.dataset.density = prefs.density;
     document.body.dataset.iconSize = prefs.iconSize;
@@ -269,7 +307,7 @@ export function bootDesktop(): void {
     button.style.left = `${cell.column * size.w}px`;
     button.style.top = `${cell.row * size.h}px`;
     button.style.width = `${size.w}px`;
-    button.setAttribute("aria-pressed", String(selectedShortcut === id));
+    button.setAttribute("aria-pressed", String(selectedShortcuts.has(id)));
     if (!prefs.locked && !prefs.hintDismissed) button.setAttribute("aria-describedby", "desk-move-hint");
     if (!prefs.locked) {
       button.setAttribute("aria-keyshortcuts", "Control+ArrowLeft Control+ArrowRight Control+ArrowUp Control+ArrowDown");
@@ -295,20 +333,37 @@ export function bootDesktop(): void {
       dot.className = "desk-icon-dot";
       tile.append(dot);
     }
-    const select = () => {
+    button.addEventListener("focus", () => { selectedShortcut = id; });
+    button.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0) return;
+      event.preventDefault();
       selectedShortcut = id;
-      iconHost.querySelectorAll<HTMLButtonElement>(".desk-icon").forEach((icon) => {
-        icon.setAttribute("aria-pressed", String(icon === button));
-      });
-    };
-    // One click (or Enter/Space) opens, like a launcher; a drag that ends on the icon does not.
-    button.addEventListener("focus", select);
+      if (event.ctrlKey || event.metaKey) {
+        if (selectedShortcuts.has(id)) selectedShortcuts.delete(id);
+        else selectedShortcuts.add(id);
+      } else if (!selectedShortcuts.has(id)) {
+        selectedShortcuts = new Set([id]);
+      }
+      reflectShortcutSelection();
+      button.focus({ preventScroll: true });
+      if (selectedShortcuts.has(id)) startIconDrag(event, id, button);
+    });
+    // A click opens; modified clicks select, and a drag never opens anything.
     button.addEventListener("click", (event) => {
-      select();
       if (iconDragJustEnded) {
         iconDragJustEnded = false;
         return;
       }
+      if (event.ctrlKey || event.metaKey) {
+        if (event.detail === 0) {
+          if (selectedShortcuts.has(id)) selectedShortcuts.delete(id);
+          else selectedShortcuts.add(id);
+          reflectShortcutSelection();
+        }
+        return;
+      }
+      selectedShortcuts = new Set([id]);
+      reflectShortcutSelection();
       // A double click out of habit must not close the popover the first click opened.
       if (event.detail > 1) return;
       if (popFor === id) hidePop(true);
@@ -320,7 +375,6 @@ export function bootDesktop(): void {
       selectedShortcut = id;
       openShortcutMenu(id, event.clientX, event.clientY);
     });
-    if (!prefs.locked) button.addEventListener("pointerdown", (event) => startIconDrag(event, id, button));
     return button;
   }
 
@@ -518,6 +572,7 @@ export function bootDesktop(): void {
   }
 
   function renderTasks(): void {
+    taskPreview.hide();
     taskHost.replaceChildren();
     const seen = new Set<string>();
     for (const id of prefs.pinned) {
@@ -539,6 +594,7 @@ export function bootDesktop(): void {
       });
       button.classList.add("is-running");
       if (record.mode === "minimized") button.classList.add("is-min");
+      taskPreview.bind(button, record.id);
       taskHost.append(button);
     }
   }
@@ -569,7 +625,7 @@ export function bootDesktop(): void {
       id: `tool-${slug}-${instance}-${crypto.randomUUID()}`,
       slug,
       instance,
-      bounds: cascadeBounds(state.windows.length, windowDesk(), iconStripWidth()),
+      bounds: cascadeBounds(state.windows.length, windowDesk(), iconStripWidth(), slug),
       fresh,
     });
     if (state === before) renderWidgets();
@@ -882,88 +938,217 @@ export function bootDesktop(): void {
     snap.style.height = `${bounds.height}px`;
   }
 
+  function reflectShortcutSelection(): void {
+    for (const icon of iconHost.querySelectorAll<HTMLButtonElement>("[data-shortcut-id]")) {
+      icon.setAttribute("aria-pressed", String(selectedShortcuts.has(icon.dataset.shortcutId!)));
+    }
+  }
+
+  function commitShortcutLayout(patch: Partial<ShortcutSnapshot>): void {
+    const before = { shortcuts: prefs.shortcuts, positions: prefs.positions, pinned: prefs.pinned };
+    const next = { ...before, ...patch };
+    if (JSON.stringify(before) === JSON.stringify(next)) return;
+    shortcutHistory.push(before);
+    layoutNoticeDismissed = false;
+    if (shortcutHistory.length > 20) shortcutHistory.shift();
+    prefs = { ...prefs, ...next };
+    scheduleSave();
+    render();
+  }
+
+  function undoShortcutLayout(): void {
+    const previous = shortcutHistory.pop();
+    if (!previous) return;
+    cancelShortcutGesture?.();
+    hidePop(false);
+    prefs = { ...prefs, ...previous };
+    scheduleSave();
+    render();
+  }
+
+  function startSelectionRectangle(event: PointerEvent): void {
+    if (event.button !== 0 || (event.target as HTMLElement).closest("button, a, input, .desk-window, .desk-widget, .desk-hint")) return;
+    event.preventDefault();
+    const previous = new Set(selectedShortcuts);
+    const base = event.ctrlKey || event.metaKey ? previous : new Set<string>();
+    selectedShortcuts = new Set(base);
+    selectedShortcut = null;
+    reflectShortcutSelection();
+    const bounds = stage.getBoundingClientRect();
+    const band = document.createElement("div");
+    band.className = "desk-selection-band";
+    band.setAttribute("aria-hidden", "true");
+    const icons = [...iconHost.querySelectorAll<HTMLElement>("[data-shortcut-id]")].map((node) => ({ id: node.dataset.shortcutId!, box: node.getBoundingClientRect() }));
+    const startX = event.clientX;
+    const startY = event.clientY;
+    stage.setPointerCapture(event.pointerId);
+    const move = (ev: PointerEvent) => {
+      if (Math.hypot(ev.clientX - startX, ev.clientY - startY) < 4 && !band.isConnected) return;
+      if (!band.isConnected) stage.append(band);
+      const x = Math.max(bounds.left, Math.min(bounds.right, ev.clientX));
+      const y = Math.max(bounds.top, Math.min(bounds.bottom, ev.clientY));
+      const left = Math.min(startX, x);
+      const top = Math.min(startY, y);
+      const right = Math.max(startX, x);
+      const bottom = Math.max(startY, y);
+      Object.assign(band.style, { left: `${left - bounds.left}px`, top: `${top - bounds.top}px`, width: `${right - left}px`, height: `${bottom - top}px` });
+      selectedShortcuts = new Set(base);
+      for (const { id, box } of icons) {
+        if (box.right > left && box.left < right && box.bottom > top && box.top < bottom) selectedShortcuts.add(id);
+      }
+      selectedShortcut = selectedShortcuts.values().next().value ?? null;
+      reflectShortcutSelection();
+    };
+    const finish = (cancel: boolean) => {
+      stage.removeEventListener("pointermove", move);
+      stage.removeEventListener("pointerup", up);
+      stage.removeEventListener("pointercancel", up);
+      stage.removeEventListener("lostpointercapture", up);
+      document.removeEventListener("keydown", key);
+      cancelShortcutGesture = null;
+      if (stage.hasPointerCapture(event.pointerId)) stage.releasePointerCapture(event.pointerId);
+      band.remove();
+      if (cancel) {
+        selectedShortcuts = previous;
+        selectedShortcut = previous.values().next().value ?? null;
+        reflectShortcutSelection();
+      }
+    };
+    const up = (ev: PointerEvent) => finish(ev.type !== "pointerup");
+    const key = (ev: KeyboardEvent) => {
+      if (ev.key === "Escape") { ev.preventDefault(); finish(true); }
+    };
+    cancelShortcutGesture = () => finish(true);
+    stage.addEventListener("pointermove", move);
+    stage.addEventListener("pointerup", up);
+    stage.addEventListener("pointercancel", up);
+    stage.addEventListener("lostpointercapture", up);
+    document.addEventListener("keydown", key);
+  }
+
   function startIconDrag(event: PointerEvent, id: string, button: HTMLButtonElement): void {
     if (event.button !== 0 || prefs.locked) return;
     const startX = event.clientX;
     const startY = event.clientY;
+    const size = iconCell();
+    const laid = currentLayout();
+    const positions = { ...prefs.positions, ...laid.positions };
+    const ids = [...selectedShortcuts];
+    const selected = new Set(ids);
+    const stageBox = stage.getBoundingClientRect();
+    const hostBox = iconHost.getBoundingClientRect();
+    const maxColumns = Math.max(1, Math.floor(iconAreaWidth(stageBox.width) / size.w));
+    const maxRows = Math.max(laid.rows, Math.floor(stageBox.height / size.h));
+    const previews: HTMLElement[] = [];
+    const targets: HTMLElement[] = [];
+    const icons = [...iconHost.querySelectorAll<HTMLElement>("[data-shortcut-id]")];
     let dragging = false;
     let cancelled = false;
-    let preview: HTMLButtonElement | null = null;
-    button.setPointerCapture?.(event.pointerId);
+    let lastCell = "";
+    let plan = positions;
+    const clearPreview = () => {
+      for (const node of previews) node.remove();
+      for (const node of targets) node.remove();
+      for (const node of icons) {
+        node.classList.remove("is-dragging", "is-swap-preview", "is-covered");
+        node.style.removeProperty("translate");
+      }
+    };
+    button.setPointerCapture(event.pointerId);
     const onMove = (ev: PointerEvent) => {
       if (cancelled) return;
       if (!dragging && Math.hypot(ev.clientX - startX, ev.clientY - startY) < 4) return;
       if (!dragging) {
         hidePop(false);
-        const box = button.getBoundingClientRect();
-        const stageBox = stage.getBoundingClientRect();
-        preview = button.cloneNode(true) as HTMLButtonElement;
-        preview.classList.add("is-drag-preview");
-        preview.removeAttribute("data-shortcut-id");
-        preview.removeAttribute("title");
-        preview.setAttribute("aria-hidden", "true");
-        preview.inert = true;
-        preview.tabIndex = -1;
-        preview.style.left = `${box.left - stageBox.left}px`;
-        preview.style.top = `${box.top - stageBox.top}px`;
-        preview.style.width = `${box.width}px`;
-        stage.append(preview);
+        for (const node of icons) {
+          if (!selected.has(node.dataset.shortcutId!)) continue;
+          const box = node.getBoundingClientRect();
+          const preview = node.cloneNode(true) as HTMLElement;
+          preview.classList.add("is-drag-preview");
+          preview.removeAttribute("data-shortcut-id");
+          preview.removeAttribute("title");
+          preview.setAttribute("aria-hidden", "true");
+          preview.inert = true;
+          preview.tabIndex = -1;
+          Object.assign(preview.style, { left: `${box.left - stageBox.left}px`, top: `${box.top - stageBox.top}px`, width: `${box.width}px` });
+          stage.append(preview);
+          previews.push(preview);
+          node.classList.add("is-dragging");
+        }
         dragging = true;
-        button.classList.add("is-dragging");
       }
-      preview!.style.translate = `${ev.clientX - startX}px ${ev.clientY - startY}px`;
+      for (const preview of previews) preview.style.translate = `${ev.clientX - startX}px ${ev.clientY - startY}px`;
       const cell = cellAt(ev.clientX, ev.clientY);
-      iconHost.querySelectorAll(".is-drop").forEach((node) => node.classList.remove("is-drop"));
-      if (cell) iconHost.querySelector(`[data-shortcut-id="${CSS.escape(shortcutAt(cell) || "")}"]`)?.classList.add("is-drop");
+      const cellKey = cell ? `${cell.column}:${cell.row}` : "outside";
+      if (cellKey === lastCell) return;
+      lastCell = cellKey;
+      plan = cell ? moveShortcut(positions, prefs.shortcuts, id, cell, ids) : positions;
+      if (ids.some((key) => plan[key]!.column >= maxColumns || plan[key]!.row >= maxRows) ||
+          ev.clientX < stageBox.left || ev.clientX >= stageBox.right || ev.clientY < stageBox.top || ev.clientY >= stageBox.bottom) plan = positions;
+      for (const target of targets) target.remove();
+      targets.length = 0;
+      const valid = plan !== positions || (cell?.column === positions[id]!.column && cell?.row === positions[id]!.row);
+      for (const preview of previews) preview.classList.toggle("is-invalid", !valid);
+      const occupiedSources = new Set<string>();
+      for (const key of prefs.shortcuts) {
+        if (!selected.has(key) && plan[key] !== positions[key]) occupiedSources.add(`${plan[key]!.column}:${plan[key]!.row}`);
+      }
+      for (const node of icons) {
+        const key = node.dataset.shortcutId!;
+        const from = positions[key]!;
+        const to = plan[key]!;
+        node.classList.toggle("is-swap-preview", !selected.has(key) && to !== from);
+        node.classList.toggle("is-covered", selected.has(key) && occupiedSources.has(`${from.column}:${from.row}`));
+        node.style.translate = selected.has(key) ? "" : `${(to.column - from.column) * size.w}px ${(to.row - from.row) * size.h}px`;
+      }
+      if (!valid) return;
+      for (const key of ids) {
+        const target = document.createElement("div");
+        target.className = "desk-drop-target";
+        target.setAttribute("aria-hidden", "true");
+        Object.assign(target.style, {
+          left: `${hostBox.left - stageBox.left + plan[key]!.column * size.w}px`,
+          top: `${hostBox.top - stageBox.top + plan[key]!.row * size.h - iconHost.scrollTop}px`,
+          width: `${size.w}px`, height: `${size.h}px`,
+        });
+        stage.append(target);
+        targets.push(target);
+      }
     };
-    const onUp = (ev: PointerEvent) => {
+    const finish = () => {
       button.removeEventListener("pointermove", onMove);
       button.removeEventListener("pointerup", onUp);
       button.removeEventListener("pointercancel", onUp);
       button.removeEventListener("lostpointercapture", onUp);
-      if (button.hasPointerCapture(ev.pointerId)) button.releasePointerCapture(ev.pointerId);
-      preview?.remove();
-      document.removeEventListener("keydown", onKey);
-      button.classList.remove("is-dragging");
-      iconHost.querySelectorAll(".is-drop").forEach((node) => node.classList.remove("is-drop"));
+      document.removeEventListener("keydown", onDragKey);
+      cancelShortcutGesture = null;
+      if (button.hasPointerCapture(event.pointerId)) button.releasePointerCapture(event.pointerId);
+      clearPreview();
+      if (dragging) {
+        iconDragJustEnded = true;
+        window.setTimeout(() => { iconDragJustEnded = false; }, 0);
+      }
+    };
+    const onUp = (ev: PointerEvent) => {
+      if (dragging && ev.type === "pointerup") onMove(ev);
+      finish();
       if (!dragging) return;
-      iconDragJustEnded = true;
-      window.setTimeout(() => {
-        iconDragJustEnded = false;
-      }, 0);
       ev.preventDefault();
       ev.stopPropagation();
-      if (cancelled || ev.type !== "pointerup") return;
-      const cell = cellAt(ev.clientX, ev.clientY);
-      if (!cell) return;
-      const size = iconCell();
-      const desk = deskSize();
-      const columns = stripColumns(prefs.shortcuts.length, desk.width, desk.height, size, prefs.positions, prefs.shortcuts);
-      const rows = Math.max(1, Math.floor(desk.height / size.h));
-      const laid = arrangeShortcuts(prefs.shortcuts, prefs.positions, columns, rows, prefs.positions);
-      const positions = { ...prefs.positions };
-      for (const shortcut of prefs.shortcuts) {
-        if (!positions[shortcut] && laid.positions[shortcut]) positions[shortcut] = laid.positions[shortcut];
-      }
-      const next = moveShortcut(positions, prefs.shortcuts, id, cell);
-      if (next === positions) return;
-      prefs = { ...prefs, positions: next };
-      scheduleSave();
-      render();
+      if (!cancelled && ev.type === "pointerup" && plan !== positions) commitShortcutLayout({ positions: plan });
     };
-    const onKey = (ev: KeyboardEvent) => {
+    const onDragKey = (ev: KeyboardEvent) => {
       if (ev.key !== "Escape" || !dragging) return;
       ev.preventDefault();
       cancelled = true;
-      preview?.remove();
-      button.classList.remove("is-dragging");
-      iconHost.querySelectorAll(".is-drop").forEach((node) => node.classList.remove("is-drop"));
+      clearPreview();
     };
+    cancelShortcutGesture = () => { cancelled = true; finish(); };
     button.addEventListener("pointermove", onMove);
     button.addEventListener("pointerup", onUp);
     button.addEventListener("pointercancel", onUp);
     button.addEventListener("lostpointercapture", onUp);
-    document.addEventListener("keydown", onKey);
+    document.addEventListener("keydown", onDragKey);
   }
 
   function onKey(event: KeyboardEvent): void {
@@ -996,6 +1181,10 @@ export function bootDesktop(): void {
     if (event.key === "Escape") hideMenu();
     const typing = event.target instanceof HTMLElement && event.target.closest("input, textarea, [contenteditable='true']");
     if (typing) return;
+    if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "z" && !event.altKey) {
+      if (shortcutHistory.length > 0) { event.preventDefault(); undoShortcutLayout(); }
+      return;
+    }
     const title = event.target instanceof HTMLElement ? event.target.closest<HTMLElement>(".desk-window-title") : null;
     if (title && event.key.startsWith("Arrow")) {
       const id = title.closest<HTMLElement>(".desk-window")?.dataset.windowId;
@@ -1026,28 +1215,21 @@ export function bootDesktop(): void {
   }
 
   function nudgeShortcut(id: string, key: string, grow: boolean): void {
-    const size = iconCell();
-    const desk = deskSize();
-    const columns = stripColumns(prefs.shortcuts.length, desk.width, desk.height, size, prefs.positions, prefs.shortcuts);
-    const rows = Math.max(1, Math.floor(desk.height / size.h), Math.ceil(prefs.shortcuts.length / columns));
-    const laid = arrangeShortcuts(prefs.shortcuts, prefs.positions, columns, rows, prefs.positions);
-    const origin = laid.positions[id];
+    if (grow) return;
+    const positions = { ...prefs.positions, ...currentLayout().positions };
+    const origin = positions[id];
     if (!origin) return;
     const delta = key === "ArrowLeft" ? [-1, 0] : key === "ArrowRight" ? [1, 0] : key === "ArrowUp" ? [0, -1] : [0, 1];
-    const destination = {
-      column: origin.column + (grow ? 0 : delta[0]),
-      row: origin.row + (grow ? 0 : delta[1]),
-    };
-    if (grow) return;
-    const positions = { ...prefs.positions };
-    for (const shortcut of prefs.shortcuts) {
-      if (!positions[shortcut] && laid.positions[shortcut]) positions[shortcut] = laid.positions[shortcut];
-    }
-    const next = moveShortcut(positions, prefs.shortcuts, id, destination);
+    const ids = selectedShortcuts.has(id) ? [...selectedShortcuts] : [id];
+    const next = moveShortcut(positions, prefs.shortcuts, id, { column: origin.column + delta[0], row: origin.row + delta[1] }, ids);
     if (next === positions) return;
-    prefs = { ...prefs, positions: next };
-    scheduleSave();
-    render();
+    const size = iconCell();
+    const desk = deskSize();
+    const columns = Math.max(1, Math.floor(iconAreaWidth(desk.width) / size.w));
+    const rows = Math.max(currentLayout().rows, Math.floor(desk.height / size.h));
+    if (ids.some((key) => next[key]!.column >= columns || next[key]!.row >= rows)) return;
+    commitShortcutLayout({ positions: next });
+    iconHost.querySelector<HTMLElement>(`[data-shortcut-id="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
   }
 
   function showDeskDialog(dialog: HTMLDialogElement): void {
@@ -1203,25 +1385,20 @@ export function bootDesktop(): void {
       else removeShortcut(id);
       return;
     }
-    prefs = { ...prefs, shortcuts: [...prefs.shortcuts, id] };
-    const laid = currentLayout();
-    if (laid.positions[id]) prefs = { ...prefs, positions: { ...prefs.positions, [id]: laid.positions[id] } };
-    scheduleSave();
-    render();
+    const shortcuts = [...prefs.shortcuts, id];
+    const laid = currentLayout(shortcuts);
+    commitShortcutLayout({ shortcuts, positions: { ...prefs.positions, ...laid.positions } });
   }
 
   function removeShortcut(id: string): void {
     const positions = { ...prefs.positions };
     delete positions[id];
-    prefs = {
-      ...prefs,
+    if (selectedShortcut === id) selectedShortcut = null;
+    commitShortcutLayout({
       shortcuts: prefs.shortcuts.filter((shortcut) => shortcut !== id),
       pinned: prefs.pinned.filter((shortcut) => shortcut !== id),
       positions,
-    };
-    if (selectedShortcut === id) selectedShortcut = null;
-    scheduleSave();
-    render();
+    });
   }
 
   function unpackCategory(category: string): void {
@@ -1234,15 +1411,8 @@ export function bootDesktop(): void {
       const shortcut = toolShortcut(tool.slug);
       if (!shortcuts.includes(shortcut)) shortcuts.push(shortcut);
     }
-    prefs = { ...prefs, shortcuts, positions };
-    const laid = currentLayout();
-    const nextPositions = { ...prefs.positions };
-    for (const shortcut of shortcuts) {
-      if (!nextPositions[shortcut] && laid.positions[shortcut]) nextPositions[shortcut] = laid.positions[shortcut];
-    }
-    prefs = { ...prefs, positions: nextPositions };
-    scheduleSave();
-    render();
+    const laid = currentLayout(shortcuts, positions);
+    commitShortcutLayout({ shortcuts, positions: { ...positions, ...laid.positions } });
   }
 
   function openOverview(): void {
@@ -1445,14 +1615,10 @@ export function bootDesktop(): void {
     });
     settingsDialog.querySelector("[data-align]")?.addEventListener("click", () => {
       const laid = currentLayout();
-      prefs = { ...prefs, positions: packedPositions(prefs.shortcuts, laid.columns, laid.rows) };
-      scheduleSave();
-      render();
+      commitShortcutLayout({ positions: packedPositions(prefs.shortcuts, laid.columns, laid.rows) });
     });
     settingsDialog.querySelector("[data-restore-icons]")?.addEventListener("click", () => {
-      prefs = { ...prefs, shortcuts: payload.categories.map((category) => catShortcut(category.id)), positions: {}, pinned: [] };
-      scheduleSave();
-      render();
+      commitShortcutLayout({ shortcuts: payload.categories.map((category) => catShortcut(category.id)), positions: {}, pinned: [] });
       reflectSettings();
     });
     settingsDialog.querySelector("[data-reset-layout]")?.addEventListener("click", () => {
@@ -1611,12 +1777,7 @@ export function bootDesktop(): void {
       kind: "item",
       label: text(pinned ? "UnpinBar" : "PinBar"),
       run: () => {
-        prefs = {
-          ...prefs,
-          pinned: pinned ? prefs.pinned.filter((item) => item !== id) : [...prefs.pinned, id],
-        };
-        scheduleSave();
-        render();
+        commitShortcutLayout({ pinned: pinned ? prefs.pinned.filter((item) => item !== id) : [...prefs.pinned, id] });
       },
     });
     showMenu(items, x, y);
@@ -1825,12 +1986,12 @@ export function bootDesktop(): void {
     return cellSize(prefs.iconSize, prefs.density);
   }
 
-  function currentLayout() {
+  function currentLayout(shortcuts = prefs.shortcuts, positions = prefs.positions) {
     const size = iconCell();
     const desk = deskSize();
-    const columns = stripColumns(prefs.shortcuts.length, iconAreaWidth(desk.width), desk.height, size, prefs.positions, prefs.shortcuts);
+    const columns = stripColumns(shortcuts.length, iconAreaWidth(desk.width), desk.height, size, positions, shortcuts);
     const rows = Math.max(1, Math.floor((desk.height || size.h) / size.h));
-    return arrangeShortcuts(prefs.shortcuts, prefs.positions, columns, rows, prefs.positions);
+    return arrangeShortcuts(shortcuts, positions, columns, rows, positions);
   }
 
   function cellAt(clientX: number, clientY: number): ShortcutCell | null {
@@ -1842,14 +2003,6 @@ export function bootDesktop(): void {
     return { column, row };
   }
 
-  function shortcutAt(cell: ShortcutCell): string | null {
-    const size = iconCell();
-    const desk = deskSize();
-    const columns = stripColumns(prefs.shortcuts.length, iconAreaWidth(desk.width), desk.height, size, prefs.positions, prefs.shortcuts);
-    const rows = Math.max(1, Math.floor((desk.height || size.h) / size.h));
-    const laid = arrangeShortcuts(prefs.shortcuts, prefs.positions, columns, rows, prefs.positions);
-    return Object.entries(laid.positions).find(([, value]) => value.column === cell.column && value.row === cell.row)?.[0] ?? null;
-  }
 
   function iconStripWidth(): number {
     return iconHost.getBoundingClientRect().width;

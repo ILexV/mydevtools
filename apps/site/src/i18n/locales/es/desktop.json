@@ -53,8 +53,10 @@
   "Density": "Densidad",
   "DensityComfortable": "Cómoda",
   "DensityCompact": "Compacta",
-  "MoveHint": "Arrastra un acceso directo o pulsa Ctrl y una flecha. La posición se guarda sola.",
+  "MoveHint": "Arrastra los accesos directos. Selecciona varios con Ctrl/⌘+clic o un recuadro de selección; muévelos con Ctrl+flecha; Esc cancela.",
   "MoveHintDismiss": "Entendido",
+  "UndoLayout": "Deshacer",
+  "LayoutChanged": "Diseño de accesos directos actualizado",
   "LockIcons": "Bloquear iconos",
   "AlignIcons": "Alinear iconos",
   "RestoreIcons": "Restaurar iconos",
@@ -108,6 +110,9 @@
   "StartSection": "Inicio y ventanas",
   "ChooseImage": "Elegir una imagen",
   "Minimized": "Minimizada",
+  "ActiveWindow": "Ventana activa",
+  "WindowOpen": "Ventana abierta",
+  "UnsavedInput": "Entrada sin guardar",
   "ToolsCount": "Herramientas: {count}",
   "Placement": "Ajuste"
 }

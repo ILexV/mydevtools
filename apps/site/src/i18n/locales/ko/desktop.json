@@ -53,8 +53,10 @@
   "Density": "밀도",
   "DensityComfortable": "보통",
   "DensityCompact": "좁게",
-  "MoveHint": "바로 가기를 끌거나 Ctrl과 화살표 키를 누르세요. 위치는 자동으로 저장됩니다.",
+  "MoveHint": "바로 가기를 드래그하세요. Ctrl/⌘+클릭하거나 선택 영역을 끌어 여러 개를 선택하고, Ctrl+화살표 키로 이동하며, Esc로 취소합니다.",
   "MoveHintDismiss": "알겠습니다",
+  "UndoLayout": "실행 취소",
+  "LayoutChanged": "바로 가기 배치가 업데이트되었습니다",
   "LockIcons": "아이콘 잠금",
   "AlignIcons": "아이콘 정렬",
   "RestoreIcons": "기본 아이콘 복원",
@@ -108,6 +110,9 @@
   "StartSection": "시작 및 창",
   "ChooseImage": "사진 선택",
   "Minimized": "최소화됨",
+  "ActiveWindow": "활성 창",
+  "WindowOpen": "열린 창",
+  "UnsavedInput": "저장하지 않은 입력",
   "ToolsCount": "도구: {count}",
   "Placement": "배치"
 }

@@ -53,8 +53,10 @@
   "Density": "घनत्व",
   "DensityComfortable": "आरामदायक",
   "DensityCompact": "सघन",
-  "MoveHint": "शॉर्टकट खींचें या Ctrl और तीर कुंजी दबाएँ। जगह अपने आप सहेजी जाती है।",
+  "MoveHint": "शॉर्टकट खींचें। कई चुनने के लिए Ctrl/⌘+क्लिक करें या चयन बॉक्स खींचें; Ctrl+तीर से उन्हें खिसकाएँ; Escape से रद्द करें।",
   "MoveHintDismiss": "समझ गया",
+  "UndoLayout": "पूर्ववत करें",
+  "LayoutChanged": "शॉर्टकट लेआउट अपडेट हो गया",
   "LockIcons": "आइकन लॉक करें",
   "AlignIcons": "आइकन संरेखित करें",
   "RestoreIcons": "डिफ़ॉल्ट आइकन लौटाएँ",
@@ -108,6 +110,9 @@
   "StartSection": "शुरुआत और विंडो",
   "ChooseImage": "तस्वीर चुनें",
   "Minimized": "छोटा किया गया",
+  "ActiveWindow": "सक्रिय विंडो",
+  "WindowOpen": "विंडो खुली है",
+  "UnsavedInput": "इनपुट सहेजा नहीं गया",
   "ToolsCount": "टूल: {count}",
   "Placement": "स्थान"
 }

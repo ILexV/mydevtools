@@ -377,6 +377,8 @@ body.desk {
   background: transparent;
   color: #fff;
   cursor: default;
+  touch-action: none;
+  user-select: none;
   transition: background var(--mdt-dur-micro), border-color var(--mdt-dur-micro);
 }
 
@@ -393,6 +395,10 @@ body.desk {
   opacity: 0.55;
 }
 
+.desk-icon.is-dragging.is-covered {
+  opacity: 0;
+}
+
 /* Outside the scrollable icon column so the moving tile stays visible across the desk. */
 .desk-icon.is-drag-preview {
   z-index: 4;
@@ -401,10 +407,48 @@ body.desk {
   transition: none;
 }
 
-.desk-icon.is-drop {
-  border-color: rgba(255, 255, 255, 0.7);
-  border-style: dashed;
-  background: rgba(255, 255, 255, 0.12);
+.desk-icon.is-swap-preview {
+  border: 1px dashed var(--mdt-accent);
+  background: color-mix(in srgb, var(--mdt-accent) 18%, transparent);
+  pointer-events: none;
+}
+
+.desk-icon.is-drag-preview.is-invalid {
+  border-color: var(--mdt-danger);
+  opacity: 0.5;
+}
+
+.desk-drop-target,
+.desk-selection-band {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  border: 2px dashed var(--mdt-accent);
+  border-radius: 0.9rem;
+  background: color-mix(in srgb, var(--mdt-accent) 16%, transparent);
+}
+
+.desk-selection-band {
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 0.3rem;
+}
+
+.desk-layout-notice {
+  position: fixed;
+  z-index: 6;
+  right: 1rem;
+  bottom: 4.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--mdt-border);
+  border-radius: 0.85rem;
+  background: var(--mdt-surface-raised);
+  box-shadow: var(--desk-shadow-pop);
+  font-size: 0.875rem;
 }
 
 .desk-icon-tile {

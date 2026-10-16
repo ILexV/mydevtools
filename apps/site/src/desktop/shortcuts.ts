@@ -26,9 +26,6 @@ export function cellSize(
   return iconSize === "large" ? { w: 136, h: 132 } : { w: 120, h: 112 };
 }
 
-function sameCell(a: ShortcutCell, b: ShortcutCell): boolean {
-  return a.column === b.column && a.row === b.row;
-}
 
 function validCell(cell: ShortcutCell | undefined, columns: number, rows: number): cell is ShortcutCell {
   return !!cell && Number.isInteger(cell.column) && Number.isInteger(cell.row) && cell.column >= 0 && cell.column < columns && cell.row >= 0 && cell.row < rows;
@@ -101,35 +98,46 @@ export function arrangeShortcuts(
 }
 
 /**
- * Move one visible shortcut. A hidden shortcut's saved cell is not a drop
- * target. A visible occupant swaps places. Esc-cancel is the caller's job:
- * this returns the previous map when the drop is rejected.
+ * Translate a selection without changing its shape. Visible occupants move into
+ * vacated source cells; hidden saved cells block the entire move. The same plan
+ * drives the drag preview and the committed drop, so they cannot disagree.
  */
 export function moveShortcut(
   positions: ShortcutPositions,
   visibleIds: readonly string[],
   id: string,
   destination: ShortcutCell,
+  selectedIds: readonly string[] = [id],
 ): ShortcutPositions {
   const origin = positions[id];
-  if (
-    !origin ||
-    !visibleIds.includes(id) ||
-    !Number.isInteger(destination.column) ||
-    !Number.isInteger(destination.row) ||
-    destination.column < 0 ||
-    destination.column > 255 ||
-    destination.row < 0 ||
-    destination.row > 255 ||
-    sameCell(origin, destination)
-  ) {
-    return positions;
-  }
+  const selected = new Set(selectedIds);
   const visible = new Set(visibleIds);
-  const occupant = Object.keys(positions).find((key) => positions[key] && sameCell(positions[key], destination));
-  if (occupant && occupant !== id && !visible.has(occupant)) return positions;
-  const next: ShortcutPositions = { ...positions, [id]: destination };
-  if (occupant && occupant !== id) next[occupant] = origin;
+  if (!origin || !selected.has(id) || !Number.isInteger(destination.column) || !Number.isInteger(destination.row)) return positions;
+  const dx = destination.column - origin.column;
+  const dy = destination.row - origin.row;
+  if (dx === 0 && dy === 0) return positions;
+  const targets = new Map<string, ShortcutCell>();
+  const targetCells = new Set<string>();
+  for (const key of selected) {
+    const source = positions[key];
+    if (!source || !visible.has(key)) return positions;
+    const cell = { column: source.column + dx, row: source.row + dy };
+    if (!validCell(cell, 256, 256)) return positions;
+    targets.set(key, cell);
+    targetCells.add(`${cell.column}:${cell.row}`);
+  }
+  const displaced: string[] = [];
+  for (const [key, cell] of Object.entries(positions)) {
+    if (selected.has(key) || !targetCells.has(`${cell.column}:${cell.row}`)) continue;
+    if (!visible.has(key)) return positions;
+    displaced.push(key);
+  }
+  const vacated = [...selected].map((key) => positions[key]!)
+    .filter((cell) => !targetCells.has(`${cell.column}:${cell.row}`));
+  if (displaced.length > vacated.length) return positions;
+  const next: ShortcutPositions = { ...positions };
+  for (const [key, cell] of targets) next[key] = cell;
+  displaced.forEach((key, index) => { next[key] = vacated[index]!; });
   return next;
 }
 

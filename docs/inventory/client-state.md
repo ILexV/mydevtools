@@ -76,3 +76,7 @@ The computer workspace at `/{lang}/desktop/` stores layout and appearance only. 
 | IndexedDB `mdt.desktop` / store `files` / key `wallpaper` | blob | Custom JPG, PNG or WebP after an in-browser re-encode. `hasImage` in prefs is only a flag. |
 
 `theme` stays the existing light/dark key. Favorites and recent stay `mdt.favorites.v1` and `mdt.recent.v1`. An embedded tool page (`?embed=1`) does not record a second recent visit.
+
+Desktop multi-selection, the selection rectangle and drag/drop previews are transient DOM/controller state. Undo keeps at most 20 in-memory snapshots of `shortcuts`, `positions` and `pinned` for the current page session; it never captures window contents, tool input, files, theme or wallpaper. Undo applies the prior shortcut snapshot through the existing preferences key; reloading clears the undo history and selection, not the committed layout.
+
+Initial window size profiles apply only when opening a new tool window. Existing windows, persisted window bounds and saved workspace geometry keep their user-selected dimensions. Taskbar previews read the existing dirty-input check on demand and close through the same confirmation flow as window chrome; they do not save or copy tool contents.

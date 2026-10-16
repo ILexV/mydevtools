@@ -53,8 +53,10 @@
   "Density": "Density",
   "DensityComfortable": "Comfortable",
   "DensityCompact": "Compact",
-  "MoveHint": "Drag a shortcut or press Ctrl and an arrow key. The position is saved automatically.",
+  "MoveHint": "Drag shortcuts. Select several with Ctrl/⌘+click or a selection box; move them with Ctrl+arrow; press Escape to cancel.",
   "MoveHintDismiss": "Got it",
+  "UndoLayout": "Undo",
+  "LayoutChanged": "Shortcut layout updated",
   "LockIcons": "Lock icons",
   "AlignIcons": "Align icons",
   "RestoreIcons": "Restore default icons",
@@ -108,6 +110,9 @@
   "StartSection": "Start and windows",
   "ChooseImage": "Choose a picture",
   "Minimized": "Minimized",
+  "ActiveWindow": "Active window",
+  "WindowOpen": "Window open",
+  "UnsavedInput": "Unsaved input",
   "ToolsCount": "{count} tools",
   "Placement": "Placement"
 }

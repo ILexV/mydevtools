@@ -161,6 +161,11 @@ const label = (key: string) => t(lang, "desktop", key);
         </span>
       </div>
     </footer>
+    <div class="desk-layout-notice" data-layout-notice hidden>
+      <span role="status">{label("LayoutChanged")}</span>
+      <button type="button" class="ds-btn ds-btn-small" data-layout-undo>{label("UndoLayout")}</button>
+      <button type="button" class="desk-win-btn" data-layout-dismiss aria-label={label("Close")} title={label("Close")}><Icon name="close" size={16} /></button>
+    </div>
 
     <div class="desk-menu" data-desk-menu role="menu" hidden></div>
     <section class="desk-pop" data-desk-pop role="dialog" aria-labelledby="desk-pop-title" hidden></section>
@@ -246,6 +251,7 @@ const label = (key: string) => t(lang, "desktop", key);
           <div class="desk-set-actions">
             <button type="button" class="ds-btn ds-btn-small" data-align>{label("AlignIcons")}</button>
             <button type="button" class="ds-btn ds-btn-small" data-restore-icons>{label("RestoreIcons")}</button>
+            <button type="button" class="ds-btn ds-btn-small" data-layout-undo disabled>{label("UndoLayout")}</button>
           </div>
         </section>
         <section class="desk-set-section">

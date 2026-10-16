@@ -35,6 +35,7 @@ import {
   StateField,
   type Extension,
   type Range,
+  type Text,
 } from "@codemirror/state";
 import {
   Decoration,
@@ -366,6 +367,13 @@ export async function createEditor(host: HTMLElement, opts: EditorOptions): Prom
   }));
 
   const view = new EditorView({ parent: host, state: EditorState.create({ doc: "", extensions }) });
+  if (!readOnly) {
+    // The desktop shell requests immutable input models without loading CodeMirror itself.
+    view.contentDOM.addEventListener("mdt:input-snapshot", (event) => {
+      const values = (event as CustomEvent<Map<object, Text>>).detail;
+      values.set(view.contentDOM, view.state.doc);
+    });
+  }
 
   function revealDiagnostic(): void {
     const d = view.state.field(diagnosticField);

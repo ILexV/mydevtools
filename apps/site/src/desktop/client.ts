@@ -7,7 +7,7 @@
 
 import "@/scripts/favorites.ts";
 import { cascadeBounds, denormalizeBounds, dockBounds, dragBounds, resizeBounds, restoreUnderPointer, snapTarget } from "./bounds.ts";
-import { hasUserInput, type InputSnapshot } from "./dirty.ts";
+import { trackUserInput } from "./dirty.ts";
 import {
   ENTRY_KEY,
   LAYOUT_KEY,
@@ -119,6 +119,7 @@ export function bootDesktop(): void {
   const iconHost = must<HTMLElement>("[data-desk-icons]");
   const windowHost = must<HTMLElement>("[data-desk-windows]");
   const taskHost = must<HTMLElement>("[data-desk-tasks]");
+  const frameInput = new WeakMap<HTMLIFrameElement, () => boolean>();
   const snap = must<HTMLElement>("[data-desk-snap]");
   const bg = must<HTMLElement>("[data-desk-bg]");
   const menu = must<HTMLElement>("[data-desk-menu]");
@@ -525,6 +526,9 @@ export function bootDesktop(): void {
     frame.className = "desk-frame";
     frame.title = tool?.title || record.slug;
     frame.setAttribute("allow", "camera; clipboard-read; clipboard-write");
+    frame.addEventListener("load", () => {
+      if (frame.contentDocument) frameInput.set(frame, trackUserInput(frame.contentDocument));
+    });
     if (tool) frame.src = `${tool.href}?embed=1`;
     const error = document.createElement("div");
     error.className = "desk-frame-error";
@@ -796,7 +800,7 @@ export function bootDesktop(): void {
       const frame = document.querySelector<HTMLIFrameElement>(`[data-window-id="${CSS.escape(id)}"] iframe`);
       if (!frame) return false;
       try {
-        return hasUserInput(snapshotFrame(frame));
+        return frameInput.get(frame)?.() ?? false;
       } catch {
         return false;
       }
@@ -1456,7 +1460,7 @@ export function bootDesktop(): void {
       const frame = document.querySelector<HTMLIFrameElement>(`[data-window-id="${CSS.escape(record.id)}"] iframe`);
       if (frame) {
         try {
-          if (hasUserInput(snapshotFrame(frame))) open.classList.add("is-dirty");
+          if (frameInput.get(frame)?.()) open.classList.add("is-dirty");
         } catch {
           /* a frame that is not readable yet has no input to warn about */
         }
@@ -2387,38 +2391,6 @@ async function wallpaperBlobDecodes(blob: Blob): Promise<boolean> {
   } catch {
     return false;
   }
-}
-
-function snapshotFrame(frame: HTMLIFrameElement): InputSnapshot {
-  const doc = frame.contentDocument;
-  const view = frame.contentWindow;
-  if (!doc || !view) return { fileCount: 0, texts: [], editors: [] };
-  let fileCount = 0;
-  const texts: string[] = [];
-  // `instanceof HTMLInputElement` uses the parent window and misses every
-  // node inside the tool iframe. Use the frame's own constructors.
-  const constructors = view as unknown as {
-    HTMLInputElement: typeof HTMLInputElement;
-    HTMLTextAreaElement: typeof HTMLTextAreaElement;
-  };
-  for (const element of doc.querySelectorAll("input, textarea")) {
-    if (element instanceof constructors.HTMLInputElement) {
-      const input = element as HTMLInputElement;
-      const type = input.type;
-      if (["hidden", "checkbox", "radio", "button", "submit", "reset", "range", "color"].includes(type)) continue;
-      if (input.readOnly || input.disabled) continue;
-      if (type === "file") {
-        fileCount += input.files?.length ?? 0;
-        continue;
-      }
-      texts.push(input.value);
-    } else if (element instanceof constructors.HTMLTextAreaElement) {
-      const area = element as HTMLTextAreaElement;
-      if (!area.readOnly && !area.disabled) texts.push(area.value);
-    }
-  }
-  const editors = [...doc.querySelectorAll(".cm-content")].map((node) => node.textContent ?? "");
-  return { fileCount, texts, editors };
 }
 
 function winButton(key: string, svg: string, onClick: () => void, attr?: string): HTMLButtonElement {

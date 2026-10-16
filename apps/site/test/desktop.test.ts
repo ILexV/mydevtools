@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { Text } from "@codemirror/state";
 import {
   cascadeBounds,
   clampBounds,
@@ -391,10 +392,34 @@ test("a saved layout keeps slug and stage shares and drops typed text", () => {
   assert.deepEqual(shiftWidget(["favorites", "recent"], "favorites", 1), ["recent", "favorites"]);
 });
 
-test("dirty input ignores blank text and counts a chosen file", () => {
-  assert.equal(hasUserInput({ fileCount: 0, texts: ["  "], editors: [""] }), false);
-  assert.equal(hasUserInput({ fileCount: 0, texts: ["a"], editors: [] }), true);
-  assert.equal(hasUserInput({ fileCount: 1, texts: [], editors: [] }), true);
+test("untouched defaults are not input to discard, but changed values are", () => {
+  const color = {};
+  const size = {};
+  const initial = { fileCount: 0, values: new Map([[color, "#000000"], [size, "512"]]) };
+  assert.equal(hasUserInput(initial, initial), false);
+  assert.equal(hasUserInput({ fileCount: 0, values: new Map([[size, "512"], [color, "#000000"]]) }, initial), false);
+  assert.equal(hasUserInput({ fileCount: 0, values: new Map([[color, "#123456"]]) }, initial), true);
+  assert.equal(hasUserInput({ fileCount: 0, values: new Map([[color, "  "]]) }, initial), false);
+});
+
+test("new content and selected files warn; cleared or restored input does not", () => {
+  const field = {};
+  const initial = { fileCount: 0, values: new Map<object, string>() };
+  assert.equal(hasUserInput({ fileCount: 0, values: new Map([[field, "my input"]]) }, initial), true);
+  assert.equal(hasUserInput({ fileCount: 0, values: new Map([[field, ""]]) }, initial), false);
+  assert.equal(hasUserInput({ fileCount: 1, values: new Map() }, initial), true);
+  assert.equal(hasUserInput({ fileCount: 0, values: new Map() }, initial), false);
+});
+
+test("editor undo compares full documents, including content outside the viewport", () => {
+  const editor = {};
+  const doc = Text.of(Array.from({ length: 300 }, (_, i) => `line ${i}`));
+  const initial = { fileCount: 0, values: new Map([[editor, doc]]) };
+  const restored = Text.of(Array.from({ length: 300 }, (_, i) => `line ${i}`));
+  assert.equal(hasUserInput({ fileCount: 0, values: new Map([[editor, restored]]) }, initial), false);
+  const changed = doc.replace(doc.length - 1, doc.length, Text.of(["changed"]));
+  assert.equal(hasUserInput({ fileCount: 0, values: new Map([[editor, changed]]) }, initial), true);
+  assert.equal(hasUserInput({ fileCount: 0, values: new Map([[editor, Text.of(["", "  "])]]) }, initial), false);
 });
 
 test("fitted wallpaper size caps the long side at 2560 and the short side at 1920", () => {

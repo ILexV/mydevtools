@@ -336,13 +336,28 @@ body.desk {
   display: grid;
   place-items: center;
   flex: none;
+  isolation: isolate;
   color: #fff;
-  background: linear-gradient(155deg, color-mix(in srgb, var(--tile-c) 85%, white), var(--tile-c));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 3px 8px -4px rgba(6, 8, 24, 0.35);
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(255, 255, 255, 0.24), transparent 65%),
+    linear-gradient(155deg, var(--tile-c), color-mix(in srgb, var(--tile-c) 78%, #101828));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.12),
+    0 4px 8px -4px rgba(6, 8, 24, 0.5);
+}
+
+.desk-tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: inherit;
+  pointer-events: none;
 }
 
 .desk-tile svg {
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.22));
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
 }
 
 .desk-tile-mark {
@@ -455,6 +470,10 @@ body.desk {
   width: 3.5rem;
   height: 3.5rem;
   border-radius: 1rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.12),
+    0 7px 12px -6px rgba(6, 8, 24, 0.65);
 }
 
 .desk-icon-tile .desk-tile-mark {
@@ -471,12 +490,24 @@ body.desk {
   height: 1.85rem;
 }
 
-/* A category shortcut is a folder: two card edges peek out behind the tile. */
+/* A raised tab distinguishes category folders from individual tool tiles. */
 .desk-icon.is-folder .desk-icon-tile {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    3px -3px 0 -1px color-mix(in srgb, var(--tile-c) 55%, white),
-    0 4px 10px -5px rgba(6, 8, 24, 0.35);
+  border-top-left-radius: 0.55rem;
+}
+
+.desk-icon.is-folder .desk-icon-tile::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -0.25rem;
+  left: 0;
+  width: 46%;
+  height: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-bottom: 0;
+  border-radius: 0.4rem 0.45rem 0 0;
+  background: color-mix(in srgb, var(--tile-c) 72%, white);
+  pointer-events: none;
 }
 
 .desk-icon-label {

@@ -1,0 +1,204 @@
+---
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import FileDrop from "@/components/tool/FileDrop.astro";
+import Icon from "@/components/Icon.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import Progress from "@/components/tool/Progress.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import "@/styles/explorer-ui.css";
+
+interface Props { lang: LocaleCode }
+const { lang } = Astro.props as Props;
+const ns = "tools/log-analyzer";
+const clientKeys = [
+  "DropChange", "ProgressStats", "StatusOpening", "StatusFiltering", "StatusExporting", "StatusReady",
+  "StatusDone", "StatusCanceled", "SummaryPattern", "FilteredSummary", "TimelineEmpty", "TimelineBucket",
+  "ErrorsEmpty", "MessagesEmpty", "TableEmpty", "TableLoading", "RowLabel", "InspectorEmpty", "InspectorLine",
+  "InspectorTruncated", "AggregateLimitWarning", "ErrorEmpty", "ErrorUtf8", "ErrorLineTooLarge", "ErrorRecordLimit",
+  "ErrorFilterTooLarge", "ErrorWorker", "ErrorSession", "ErrorGeneric", "ErrorSave", "ErrorFallbackTooLarge",
+  "TableTime", "TableSeverity", "TableSource", "TableCorrelation", "TableMessage",
+  "SeverityTrace", "SeverityDebug", "SeverityInfo", "SeverityWarn", "SeverityError", "SeverityFatal", "SeverityUnknown",
+  "PresetSerilog", "PresetNginxAccess", "PresetNginxError", "PresetJsonl", "PresetText",
+] as const;
+const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
+const stringsJson = JSON.stringify({
+  ...strings,
+  Lang: lang,
+  MemoryExhausted: t(lang, "common", "Common_MemoryExhausted"),
+  InvalidFormat: t(lang, "common", "Common_InvalidFormat"),
+  CorruptInput: t(lang, "common", "Common_CorruptInput"),
+});
+const severities = ["trace", "debug", "info", "warn", "error", "fatal", "unknown"] as const;
+const severityKeys = {
+  trace: "SeverityTrace", debug: "SeverityDebug", info: "SeverityInfo", warn: "SeverityWarn",
+  error: "SeverityError", fatal: "SeverityFatal", unknown: "SeverityUnknown",
+} as const;
+---
+
+<div class="ds-workbench ds-workbench-single log-workbench" data-log-tool>
+  <ToolPanel title={t(lang, ns, "DropTitle")}>
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small" data-log-clear>{t(lang, ns, "Clear")}</button>
+    </Fragment>
+    <FileDrop
+      compact
+      title={t(lang, ns, "DropTitle")}
+      buttonLabel={t(lang, ns, "DropButton")}
+      changeLabel={t(lang, ns, "DropChange")}
+      sub={t(lang, ns, "DropHint")}
+      accept=".log,.txt,.clef,.jsonl,.ndjson,text/plain,application/x-ndjson,application/json"
+      data-log-dropzone
+      inputProps={{ "data-log-file": true }}
+    />
+    <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
+    <section class="log-section" aria-labelledby="log-settings-title">
+      <h3 class="ds-label" id="log-settings-title">{t(lang, ns, "SettingsTitle")}</h3>
+      <Field label={t(lang, ns, "PresetLabel")} for="log-preset">
+        <select id="log-preset" class="ds-field-select" data-log-preset>
+          <option value="auto">{t(lang, ns, "PresetAuto")}</option>
+          <option value="serilog">{t(lang, ns, "PresetSerilog")}</option>
+          <option value="nginx-access">{t(lang, ns, "PresetNginxAccess")}</option>
+          <option value="nginx-error">{t(lang, ns, "PresetNginxError")}</option>
+          <option value="jsonl">{t(lang, ns, "PresetJsonl")}</option>
+          <option value="text">{t(lang, ns, "PresetText")}</option>
+        </select>
+      </Field>
+      <p class="ds-hint">{t(lang, ns, "LimitsNote")}</p>
+    </section>
+    <Progress
+      title={t(lang, ns, "ProgressTitle")}
+      barLabel={t(lang, ns, "ProgressTitle")}
+      cancelLabel={t(lang, ns, "Cancel")}
+      data-log-progress
+      cancelProps={{ "data-log-cancel": true }}
+      barProps={{ "data-log-progress-bar": true }}
+      fillProps={{ "data-log-progress-fill": true }}
+      labelProps={{ "data-log-progress-label": true }}
+    />
+    <StatusMessage kind="info" data-log-status />
+    <StatusMessage kind="error" data-log-error />
+  </ToolPanel>
+
+  <OutputPanel panel label={t(lang, ns, "ResultsTitle")} emptyHint={t(lang, ns, "ResultsEmpty")} data-log-output>
+    <div class="ds-when-filled log-results" data-log-loaded hidden>
+      <p class="log-summary" data-log-summary aria-live="polite"></p>
+
+      <details class="ds-explorer-fold" open>
+        <summary class="ds-label">{t(lang, ns, "FilterTitle")}</summary>
+        <div class="ds-settings log-filter-grid">
+          <Field label={t(lang, ns, "FromLabel")} for="log-from">
+            <input id="log-from" class="ds-field" type="datetime-local" step="0.001" data-log-from />
+          </Field>
+          <Field label={t(lang, ns, "ToLabel")} for="log-to">
+            <input id="log-to" class="ds-field" type="datetime-local" step="0.001" data-log-to />
+          </Field>
+          <Field label={t(lang, ns, "SourceLabel")} for="log-source">
+            <input id="log-source" class="ds-field" type="search" maxlength="512" autocomplete="off" data-log-source placeholder={t(lang, ns, "SourcePlaceholder")} />
+          </Field>
+          <Field label={t(lang, ns, "CorrelationLabel")} for="log-correlation">
+            <input id="log-correlation" class="ds-field" type="search" maxlength="512" autocomplete="off" data-log-correlation placeholder={t(lang, ns, "CorrelationPlaceholder")} />
+          </Field>
+          <Field label={t(lang, ns, "SearchLabel")} for="log-search" class="log-wide">
+            <input id="log-search" class="ds-field" type="search" maxlength="512" autocomplete="off" data-log-search placeholder={t(lang, ns, "SearchPlaceholder")} />
+          </Field>
+          <fieldset class="ds-check-group log-wide">
+            <legend class="ds-label">{t(lang, ns, "SeverityLabel")}</legend>
+            <div class="log-severity-options">
+              {severities.map((severity) => (
+                <label class="ds-check-row">
+                  <input class="ds-check" type="checkbox" value={severity} data-log-severity checked />
+                  <span>{t(lang, ns, severityKeys[severity])}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+        <div class="ds-action-row">
+          <button type="button" class="ds-btn ds-btn-primary" data-log-apply-filter>{t(lang, ns, "ApplyFilter")}</button>
+          <button type="button" class="ds-btn" data-log-clear-filter>{t(lang, ns, "ClearFilter")}</button>
+        </div>
+      </details>
+
+      <section class="log-section" aria-labelledby="log-counts-title">
+        <h3 class="ds-label" id="log-counts-title">{t(lang, ns, "CountsTitle")}</h3>
+        <div class="log-counts" data-log-counts></div>
+      </section>
+
+      <section class="log-section" aria-labelledby="log-timeline-title">
+        <h3 class="ds-label" id="log-timeline-title">{t(lang, ns, "TimelineTitle")}</h3>
+        <div class="log-chart" data-log-chart role="list"></div>
+        <p class="ds-hint" data-log-chart-empty hidden>{t(lang, ns, "TimelineEmpty")}</p>
+      </section>
+
+      <div class="log-aggregate-grid">
+        <section class="log-section" aria-labelledby="log-errors-title">
+          <h3 class="ds-label" id="log-errors-title">{t(lang, ns, "ErrorsTitle")}</h3>
+          <ol class="log-ranking" data-log-errors></ol>
+        </section>
+        <section class="log-section" aria-labelledby="log-messages-title">
+          <h3 class="ds-label" id="log-messages-title">{t(lang, ns, "MessagesTitle")}</h3>
+          <ol class="log-ranking" data-log-messages></ol>
+        </section>
+      </div>
+      <p class="ds-alert ds-alert-warning" data-log-aggregate-warning hidden>{t(lang, ns, "AggregateLimitWarning")}</p>
+
+      <div class="ds-explorer-table" data-log-table></div>
+
+      <section class="log-section" aria-labelledby="log-inspector-title">
+        <h3 class="ds-label" id="log-inspector-title">{t(lang, ns, "InspectorTitle")}</h3>
+        <p class="ds-hint" data-log-inspector-empty>{t(lang, ns, "InspectorEmpty")}</p>
+        <p class="log-inspector-line" data-log-inspector-line hidden></p>
+        <pre class="ds-explorer-inspector log-inspector" data-log-inspector hidden></pre>
+        <p class="ds-hint" data-log-inspector-note hidden>{t(lang, ns, "InspectorTruncated")}</p>
+      </section>
+
+      <section class="log-section" aria-labelledby="log-export-title">
+        <h3 class="ds-label" id="log-export-title">{t(lang, ns, "ExportTitle")}</h3>
+        <p class="ds-hint">{t(lang, ns, "ExportHint")}</p>
+        <p class="ds-hint">{t(lang, ns, "ExportMemory")}</p>
+        <div class="ds-action-row">
+          <button type="button" class="ds-btn ds-btn-primary" data-log-download><Icon name="download" size={16} />{t(lang, ns, "Download")}</button>
+        </div>
+      </section>
+    </div>
+  </OutputPanel>
+</div>
+
+<script is:inline type="application/json" data-log-strings set:html={stringsJson} />
+<script>import "@/tools/log-analyzer.client.ts";</script>
+
+<style>
+  .log-workbench { align-items: start; }
+  .log-results, .log-section { display: grid; gap: 0.7rem; min-width: 0; }
+  .log-results { gap: 1rem; }
+  .log-section + .log-section { padding-top: 0.9rem; border-top: 1px solid var(--mdt-border-soft); }
+  .log-summary, .log-inspector-line { margin: 0; color: var(--mdt-text-muted); font-size: var(--mdt-fs-label); font-variant-numeric: tabular-nums; }
+  .log-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .log-wide { grid-column: 1 / -1; }
+  .log-severity-options { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; }
+  .log-counts { display: grid; grid-template-columns: repeat(7, minmax(5.5rem, 1fr)); gap: 0.45rem; }
+  .log-counts :global(.log-count) { display: grid; gap: 0.2rem; min-width: 0; padding: 0.65rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-xs); background: var(--mdt-surface-inset); }
+  .log-counts :global(.log-count-label) { color: var(--mdt-text-muted); font-size: var(--mdt-fs-small); overflow: hidden; text-overflow: ellipsis; }
+  .log-counts :global(.log-count-value) { font-family: var(--mdt-font-mono); font-size: 1.1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .log-chart { display: flex; align-items: end; gap: 2px; height: 9rem; padding: 0.6rem; overflow-x: auto; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-inset); }
+  .log-chart :global(.log-bar) { flex: 1 0 4px; min-width: 4px; max-width: 1.75rem; height: max(3px, var(--log-height)); border-radius: 2px 2px 0 0; background: var(--mdt-cat); }
+  .log-aggregate-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .log-ranking { display: grid; gap: 0.35rem; margin: 0; padding: 0; list-style: none; }
+  .log-ranking :global(li) { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.7rem; align-items: baseline; padding: 0.45rem 0.55rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-xs); }
+  .log-ranking :global(code) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .log-ranking :global(strong) { font-variant-numeric: tabular-nums; }
+  .log-inspector { max-height: 20rem; padding: 0.75rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius-xs); background: var(--mdt-surface-inset); }
+  @media (max-width: 58rem) {
+    .log-counts { grid-template-columns: repeat(4, minmax(5.5rem, 1fr)); overflow-x: auto; }
+  }
+  @media (max-width: 42rem) {
+    .log-filter-grid, .log-aggregate-grid { grid-template-columns: minmax(0, 1fr); }
+    .log-wide { grid-column: auto; }
+    .log-counts { display: flex; overflow-x: auto; scroll-snap-type: x proximity; }
+    .log-counts :global(.log-count) { flex: 0 0 7.5rem; scroll-snap-align: start; }
+    .log-chart { height: 7rem; }
+  }
+</style>

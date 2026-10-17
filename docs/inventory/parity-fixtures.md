@@ -271,3 +271,69 @@ Limits are not performance guarantees: 1 GiB source cap, 128 MiB non-UTF-8 trans
 
 These are flagged in `FRONTEND_REBUILD_TODO.md` Stage 11 §"Визуальная приемка"
 as owner-gated / environment-gated.
+
+## 10. Processing-core browser matrix (2026-10-17)
+
+Reproducible runner: `apps/site/scripts/validate-processing-core.mjs`. Build the site first, then run:
+
+```bash
+node apps/site/scripts/validate-processing-core.mjs --browser firefox --hash-sizes 10,100,1024,5120 --repetitions 3 --output /tmp/processing-firefox.json
+node apps/site/scripts/validate-processing-core.mjs --browser chrome --hash-sizes 10,100,1024,5120 --repetitions 3 --output /tmp/processing-chrome.json
+node apps/site/scripts/validate-processing-core.mjs --browser msedge --hash-sizes 10,100,1024,5120 --repetitions 3 --output /tmp/processing-edge.json
+```
+
+The runner serves the built assets on loopback and imports the actual common `createJobWorker` module and hash/CSV/JSON workers. `--executable-path` supports portable browser installations. Actual branded Chrome/Edge runs used official packages extracted without root; temporary packages and browser trees were removed afterward. Platform: Linux x64 7.0.0-38-generic, Node 25.9.0, QEMU virtual CPU, 28 logical processors. All three full reports passed.
+
+### Fixtures and behavior
+
+- Empty and exact 1 KiB binary files; SHA-256 at 10/100 MiB and 1/5 GiB. Every digest matched independently streamed Node crypto.
+- Empty and exact 1 KiB CSV/JSONL; complete 100 MiB CSV (1,436,401 rows) and JSONL (1,361,700 rows) scans.
+- Empty CSV returns `malformed-csv`; empty JSONL is a valid zero-row result. Invalid UTF-8 returns `invalid-utf8`; a 1 GiB + 1 byte ordinary JSON input hits the 32 MiB configured limit before a complete read. CSV fields above 2 MiB and JSONL records above the configured 64 KiB test limit fail explicitly.
+- Three cancellation/restart cycles each for hash and CSV, aborted at the first 1 MiB progress event. Every fresh worker returned the correct 1 KiB result.
+- Export of 114,913 CSV rows produced 41 chunks / 8,503,528 bytes. A receiver delaying acknowledgements by 75 ms kept exactly one unacknowledged chunk. Receiver abort propagated `aborted`; another export on the same indexed session succeeded.
+- Fixtures use a deterministic block of at most 1 MiB repeated as Blob/File parts, with a bounded final slice. No multi-gigabyte source buffer or fixture file is created. This exercises browser File/Blob chunking, not physical-disk throughput.
+
+### Measured SHA-256 throughput
+
+Values are MiB/s for the complete operation, including worker startup. One observed run per browser/size, not a statistical performance guarantee.
+
+| Browser | Version | 10 MiB | 100 MiB | 1 GiB | 5 GiB |
+|---|---|---:|---:|---:|---:|
+| Google Chrome | 155.0.8059.84 | 56.850 | 91.583 | 95.052 | 93.356 |
+| Microsoft Edge | 155.0.4283.60 | 50.942 | 90.514 | 99.802 | 94.983 |
+| Firefox | 153.0 | 15.699 | 19.117 | 18.470 | 18.242 |
+
+### Memory and responsiveness
+
+RSS is sampled every 100 ms and summed over the browser process tree. Shared pages may be counted more than once; these values are neither unique physical memory nor worker/WASM heap measurements. No forced GC was used. A post-termination RSS observation does not prove absence of leaks.
+
+| Browser | Peak process-tree RSS, MiB | Post-worker-termination RSS, MiB | CSV 100 MiB, ms | JSONL 100 MiB, ms | 5 GiB hash heartbeat maximum / p95 gap, ms |
+|---|---:|---:|---:|---:|---|
+| Chrome | 1540.293 | 1049.723 | 6487.5 | 6465.1 | 47.3 / 16.3 |
+| Edge | 1407.023 | 932.699 | 6808.1 | 6583.0 | 36.3 / 16.3 |
+| Firefox | 781.898 | 702.879 | 9555.0 | 26651.0 | 157.0 / 17.0 |
+
+The main-page heartbeat uses a 16 ms timer during worker operations: it measures scheduling responsiveness, not rendered FPS or paint latency. Chrome/Edge expose non-standard `performance.memory` for the page only; it excludes worker/WASM allocations. Firefox exposed neither that API nor `measureUserAgentSpecificMemory`. The report records these support differences rather than inventing comparable heap numbers.
+
+### Lazy loading and limits of the check
+
+On Chrome, importing the common runner fetched 2,494 B runner JS + 759 B protocol JS. The first hash call fetched 5,446 B worker JS + 218,312 B WASM; the cold empty operation took 52.3 ms. Worker/WASM request-to-response-start times were 30.180/15.631 ms (Chrome), 29.316/11.101 ms (Edge), and 25.271/13.549 ms (Firefox). These are loopback HTTP Content-Length/response-start observations, not internet download budgets or compilation timings.
+
+Safari/WebKit, inputs larger than 5 GiB, rendered-frame profiling, per-worker heap accounting, genuine full-disk/native-picker faults, and >512 MiB Blob fallback exports were not exercised by this matrix. The worker transport backpressure/abort/recovery paths were exercised; native writable rollback has separate prior OPFS evidence in §8. Broad cross-tool leak/resource-exhaustion acceptance remains open.
+
+## 11. Log Analyzer acceptance (2026-10-17)
+
+Implemented `/{lang}/log-analyzer/` for all ten locales using shared chunk reads, worker lifecycle, virtual tables and streaming saves. No input/filter persistence or server-side processing.
+
+Actual built-site Chromium checks:
+
+- Seven-line Serilog/CLEF fixture: six valid records, one malformed line, two error events and one fatal event. `System.TimeoutException` counted twice, `System.InvalidOperationException` once; changing order IDs grouped under the same `@mt` template while `@m` stayed readable.
+- Combined source/request-ID/raw-text filters selected the exact expected record. Inclusive time bounds plus Error severity selected exactly two records. Selecting no severity produced zero matches (regression fixed after browser reproduction).
+- One million NDJSON records / 114,000,000 bytes imported with exact error counts. Canceling and selecting the same file again succeeded.
+- Full export of 10,005 records / 1,140,570 bytes matched the input byte-for-byte, beyond the virtual preview. A filtered single-record export matched its original source line. UTF-8 BOM, LF, CRLF, CR and an unterminated final line also round-tripped byte-for-byte.
+- Nginx access/error presets parsed their matching source lines and counted mismatched lines explicitly. Empty input, invalid UTF-8 and a line beyond 2 MiB produced localized errors; a valid import succeeded afterward.
+- HTML/script-like log content remained text. No fixture data appeared in localStorage. All ten localized routes had named tool buttons and no horizontal page overflow at 375 px; loaded Russian/English screens were visually inspected in light/dark themes.
+
+Limits: 2 MiB per physical line, 100 million records, 512 characters per filter/aggregate label, 2,000 aggregate keys and 4,096 distinct minutes. Aggregate truncation is disclosed; total counts, matching and export remain exact. Multiline stack traces are separate physical records, not reconstructed events. Native operating-system save dialogs were not exercised in this Log Analyzer pass; downloads used the Blob fallback. Preview analytics requests can return 404 because the local static preview has no analytics API; no script/resource failures affected log processing.
+
+Final integration gate: `ANALYTICS_ENABLED=true npm run verify -w @mydevtools/site` passed **466 unit tests and 9 dist smoke checks**, building 485 pages. Astro reported zero errors/warnings and three hints; i18n reported zero errors and the pre-existing German UUID-title warning. The final built browser also confirmed CLEF's omitted `@l` means Information and `@tr` is available as a correlation ID, following the [Serilog compact-format specification](https://github.com/serilog/serilog-formatting-compact#reified-properties). English → Russian language switching retained the Log Analyzer route. All ten localized CLEF examples are valid JSON.

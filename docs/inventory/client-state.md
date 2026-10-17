@@ -65,6 +65,8 @@ Files, record contents, search/filter values, discovered schema and projected fi
 
 Explorer exports do not persist file handles. Where supported, the save picker opens a temporary writable and CSV/JSONL bytes are streamed with backpressure; cancel or failure aborts the partial destination. Browsers without that API use bounded in-memory Blob downloads (256 MiB for JSON Explorer, 512 MiB for CSV and Parquet Explorer) and report a localized limit error rather than growing without a bound.
 
+`log-analyzer` persists nothing: file handles, parser preset, filters, source/filter checkpoints, aggregate counts and inspected lines remain in the current page/worker session. Cancellation terminates the worker and clears the result; the user selects the file again to restart. Full filtered UTF-8 exports use the shared streaming save core, with a 512 MiB Blob fallback and no saved destination handle.
+
 ## Desktop shell (2026-10-16)
 
 The computer workspace at `/{lang}/desktop/` stores layout and appearance only. Tool text, files, keys and results stay out of these keys. A broken payload or an unknown `v` opens an empty desk; the catalog still works.

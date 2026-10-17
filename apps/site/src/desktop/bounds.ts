@@ -27,6 +27,7 @@ const PROFILE_BY_SLUG: Record<string, WindowProfile> = {
   "json-to-typescript": "wide",
   "json-explorer": "wide",
   "csv-explorer": "wide",
+  "log-analyzer": "wide",
   "parquet-explorer": "wide",
   "local-data-playground": "wide",
   "data-format-converter": "wide",

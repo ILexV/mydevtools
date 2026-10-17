@@ -105,6 +105,10 @@ export interface JsonlDecodedLine {
   nextOffset: number;
   physicalLine: number;
   text: string;
+  /** Original line terminator; retained so streaming consumers can reproduce source bytes exactly. */
+  terminator: "" | "\n" | "\r\n" | "\r";
+  /** True only when the decoded first line started with a UTF-8 BOM. */
+  leadingBom: boolean;
 }
 
 /** Incremental UTF-8 JSONL line decoder with byte offsets and a bounded carry buffer. */
@@ -139,8 +143,14 @@ export class JsonlLineDecoder {
     for (let index = 0; index < data.length; index++) {
       if (data[index] !== 0x0a) continue;
       let lineEnd = index;
-      if (lineEnd > lineStart && data[lineEnd - 1] === 0x0d) lineEnd--;
-      lines.push(this.decode(data.subarray(lineStart, lineEnd), this.carryOffset + lineStart, this.carryOffset + index + 1));
+      const crlf = lineEnd > lineStart && data[lineEnd - 1] === 0x0d;
+      if (crlf) lineEnd--;
+      lines.push(this.decode(
+        data.subarray(lineStart, lineEnd),
+        this.carryOffset + lineStart,
+        this.carryOffset + index + 1,
+        crlf ? "\r\n" : "\n",
+      ));
       lineStart = index + 1;
     }
     this.carry = data.slice(lineStart);
@@ -155,14 +165,20 @@ export class JsonlLineDecoder {
   finish(finalOffset: number): JsonlDecodedLine[] {
     if (this.carry.length === 0) return [];
     let lineEnd = this.carry.length;
-    if (this.carry[lineEnd - 1] === 0x0d) lineEnd--;
-    const line = this.decode(this.carry.subarray(0, lineEnd), this.carryOffset, finalOffset);
+    const trailingCr = this.carry[lineEnd - 1] === 0x0d;
+    if (trailingCr) lineEnd--;
+    const line = this.decode(this.carry.subarray(0, lineEnd), this.carryOffset, finalOffset, trailingCr ? "\r" : "");
     this.carry = new Uint8Array(0);
     this.carryOffset = finalOffset;
     return [line];
   }
 
-  private decode(bytes: Uint8Array, byteOffset: number, nextOffset: number): JsonlDecodedLine {
+  private decode(
+    bytes: Uint8Array,
+    byteOffset: number,
+    nextOffset: number,
+    terminator: JsonlDecodedLine["terminator"],
+  ): JsonlDecodedLine {
     if (bytes.length > this.recordLimit) {
       throw new JsonExplorerError(`JSONL record on line ${this.physicalLine} exceeds the configured byte limit`, "record-limit", null, { line: this.physicalLine, limitBytes: this.recordLimit });
     }
@@ -172,8 +188,9 @@ export class JsonlLineDecoder {
     } catch {
       throw new JsonExplorerError(`Invalid UTF-8 on line ${this.physicalLine}`, "invalid-utf8", null, { line: this.physicalLine });
     }
-    if (byteOffset === 0 && text.charCodeAt(0) === 0xfeff) text = text.slice(1);
-    return { byteOffset, nextOffset, physicalLine: this.physicalLine++, text };
+    const leadingBom = byteOffset === 0 && text.charCodeAt(0) === 0xfeff;
+    if (leadingBom) text = text.slice(1);
+    return { byteOffset, nextOffset, physicalLine: this.physicalLine++, text, terminator, leadingBom };
   }
 }
 

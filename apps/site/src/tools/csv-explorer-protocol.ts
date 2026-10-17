@@ -43,6 +43,7 @@ export type CsvExplorerRequest =
       includeHeader: boolean;
       protectFormulas: boolean;
       bom: boolean;
+      stream: MessagePort;
     };
 
 export type CsvExplorerSuccess =
@@ -50,7 +51,7 @@ export type CsvExplorerSuccess =
   | { kind: "filter"; sessionId: number; rowCount: number }
   | { kind: "read"; sessionId: number; start: number; rows: string[][] }
   | { kind: "inspect"; sessionId: number; index: number; values: string[] }
-  | { kind: "export"; sessionId: number; blob: Blob; extension: "csv" | "jsonl"; mime: string; rowCount: number };
+  | { kind: "export"; sessionId: number; extension: "csv" | "jsonl"; mime: string; rowCount: number };
 
 export type CsvExplorerWorkerMessage =
   | ({ id: number; ok: true } & CsvExplorerSuccess)

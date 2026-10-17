@@ -6,6 +6,7 @@
  */
 import { HexViewerError, scanEntropy, searchBytes } from "@/tools/hex-viewer";
 import type { HexViewerRequest, HexViewerSuccess } from "@/tools/hex-viewer-protocol";
+import { classifyWorkerError } from "@/scripts/wasm/worker-protocol";
 
 function post(message: { id: number; ok: true } & HexViewerSuccess | { id: number; ok: false; message: string; code: string } | { id: number; type: "progress"; processed: number; total: number; elapsedMs: number }): void {
   (self as DedicatedWorkerGlobalScope).postMessage(message);
@@ -39,11 +40,13 @@ async function handle(id: number, request: HexViewerRequest): Promise<void> {
   } catch (error) {
     const hexError = error instanceof HexViewerError ? error : null;
     const limited = hexError?.code === "needle-too-long" || hexError?.code === "range-too-large";
+    const fallback = hexError ? (limited ? "input-too-large" : "unknown") : "worker-failed";
+    const classified = classifyWorkerError(error, fallback);
     post({
       id,
       ok: false,
-      code: hexError ? (limited ? "input-too-large" : "unknown") : "worker-failed",
-      message: hexError?.code ?? (error instanceof Error ? error.message : String(error)),
+      code: classified.code,
+      message: hexError?.code ?? classified.message,
     });
   }
 }

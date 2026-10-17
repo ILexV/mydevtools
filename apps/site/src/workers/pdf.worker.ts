@@ -7,6 +7,7 @@
  */
 import init, { compress_pdf, extract_text, merge_pdfs } from "@/generated/wasm/pdf/pdf.js";
 import type { PdfWorkerRequest, PdfWorkerResponse } from "@/scripts/wasm/pdf-protocol";
+import { classifyWorkerError } from "@/scripts/wasm/worker-protocol";
 
 let ready: Promise<void> | null = null;
 function ensureReady(): Promise<void> {
@@ -23,11 +24,12 @@ self.addEventListener("message", async (ev: MessageEvent<PdfWorkerRequest>) => {
   try {
     await ensureReady();
   } catch (e) {
+    const error = classifyWorkerError(e, "init-failed");
     post({
       id: req.id,
       ok: false,
-      code: "init-failed",
-      message: e instanceof Error ? e.message : String(e),
+      code: error.code,
+      message: error.message,
     });
     return;
   }
@@ -40,6 +42,8 @@ self.addEventListener("message", async (ev: MessageEvent<PdfWorkerRequest>) => {
     const buf = out.buffer as ArrayBuffer;
     post({ id: req.id, ok: true, output: buf }, [buf]);
   } catch (e) {
-    post({ id: req.id, ok: false, message: e instanceof Error ? e.message : String(e) });
+    const message = e instanceof Error ? e.message : String(e);
+    const error = classifyWorkerError(e, /Failed to load PDF/iu.test(message) ? "corrupt-input" : "unknown");
+    post({ id: req.id, ok: false, message: error.message, code: error.code });
   }
 });

@@ -13,6 +13,8 @@
  * blob type), otherwise the lossless WASM path; `webpLossy` reports which.
  */
 import init, { compress_image, convert_image, resize_image } from "@/generated/wasm/image_tools/image_tools.js";
+import { classifyWorkerError } from "@/scripts/wasm/worker-protocol";
+import { isImageDecodeError } from "@/tools/image-tools";
 import type { ImageWorkerRequest, ImageWorkerResponse } from "@/scripts/wasm/image-tools-protocol";
 
 /** Fixed WebP quality for the resizer (no slider; matches its JPEG quality 90). */
@@ -104,6 +106,8 @@ self.addEventListener("message", async (ev: MessageEvent<ImageWorkerRequest>) =>
     const { buf, webpLossy } = await runJob(req);
     post({ id: req.id, ok: true, output: buf, webpLossy }, [buf]);
   } catch (e) {
-    post({ id: req.id, ok: false, message: e instanceof Error ? e.message : String(e) });
+    const message = e instanceof Error ? e.message : String(e);
+    const error = classifyWorkerError(e, isImageDecodeError(message) ? "corrupt-input" : "unknown");
+    post({ id: req.id, ok: false, message: error.message, code: error.code });
   }
 });

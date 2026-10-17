@@ -22,7 +22,13 @@ const clientKeys = [
   "ErrorNeedleLong", "ErrorRange", "ErrorRangeLarge", "ErrorWorker", "ErrorGeneric",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
-const stringsJson = JSON.stringify({ ...strings, Lang: lang });
+const stringsJson = JSON.stringify({
+  ...strings,
+  Lang: lang,
+  MemoryExhausted: t(lang, "common", "Common_MemoryExhausted"),
+  InvalidFormat: t(lang, "common", "Common_InvalidFormat"),
+  CorruptInput: t(lang, "common", "Common_CorruptInput"),
+});
 ---
 
 <div class="ds-workbench ds-workbench-single hx-workbench" data-hex-tool>

@@ -18,7 +18,7 @@
  */
 import { compressImage } from "@/scripts/wasm/image-tools-client";
 import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { localizeResourceError, WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, revealOutput, setDropzoneHasFile, startPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
 import { bindImageCompare } from "@/scripts/image-compare";
@@ -43,6 +43,9 @@ interface Strings {
   errorCompression: string;
   errorDamaged: string;
   webpLosslessNote: string;
+  memoryExhausted: string;
+  invalidFormat: string;
+  corruptInput: string;
   preparing: string;
 }
 
@@ -223,8 +226,10 @@ function init() {
           : isImageDecodeError(e instanceof Error ? e.message : "") ? "unsupported_format" : "processing_error",
       );
       const detail = e instanceof Error ? e.message : "";
-      // Undecodable input: plain localized message, raw decoder text dropped.
+      const resourceError = localizeResourceError(e, strings!);
+      // Undecodable input keeps its tool-specific copy; resource failures hide runtime text.
       if (isImageDecodeError(detail)) showError(strings!.errorDamaged);
+      else if (resourceError) showError(resourceError);
       else showError(strings!.errorCompression, detail);
     } finally {
       prepared();

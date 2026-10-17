@@ -9,12 +9,12 @@ export interface ParquetSessionSummary extends ParquetFileSummary {
 export type ParquetExplorerRequest =
   | { type: "open"; file: File }
   | { type: "read"; sessionId: number; start: number; count: number; columns: number[]; maxChars: number }
-  | { type: "export"; sessionId: number; format: "csv" | "jsonl"; columns: number[]; includeHeader: boolean; protectFormulas: boolean; bom: boolean };
+  | { type: "export"; sessionId: number; format: "csv" | "jsonl"; columns: number[]; includeHeader: boolean; protectFormulas: boolean; bom: boolean; stream: MessagePort };
 
 export type ParquetExplorerSuccess =
   | ({ kind: "open" } & ParquetSessionSummary)
   | { kind: "read"; sessionId: number; start: number; rows: string[][] }
-  | { kind: "export"; sessionId: number; blob: Blob; extension: "csv" | "jsonl"; mime: string; rowCount: number };
+  | { kind: "export"; sessionId: number; extension: "csv" | "jsonl"; mime: string; rowCount: number };
 
 export type ParquetExplorerWorkerMessage =
   | ({ id: number; ok: true } & ParquetExplorerSuccess)

@@ -14,7 +14,7 @@
  */
 import { compressPdf } from "@/scripts/wasm/pdf-client";
 import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { localizeResourceError, WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, revealOutput, startPreparing } from "@/scripts/tool-ui";
 import { formatBytes, progressPercent } from "@/lib/format";
 import { classifyPdfError, compressedFileName, isPdfFile, savingsPercent } from "@/tools/pdf-files";
@@ -35,6 +35,9 @@ interface Strings {
   error: string;
   preparing: string;
   processingFailed: string;
+  memoryExhausted: string;
+  invalidFormat: string;
+  corruptInput: string;
 }
 
 interface FileItem {
@@ -104,7 +107,8 @@ function init() {
     const { kind } = classifyPdfError(message);
     if (kind === "encrypted") return strings.errorEncrypted.replace("{name}", name);
     if (kind === "invalid") return strings.errorInvalidPdf.replace("{name}", name);
-    return `${name}: ${message || strings.error}`;
+    const resourceError = localizeResourceError(e, strings);
+    return `${name}: ${resourceError ?? (message || strings.error)}`;
   }
 
   function setBusy(on: boolean) {

@@ -9,6 +9,7 @@
  */
 import init, { decode_qr, decode_qr_rgba } from "@/generated/wasm/qrcode/qrcode.js";
 import type { QrDecodeRequest, QrDecodeResponse } from "@/scripts/wasm/qrcode-protocol";
+import { classifyWorkerError } from "@/scripts/wasm/worker-protocol";
 
 let ready: Promise<void> | null = null;
 function ensureReady(): Promise<void> {
@@ -45,11 +46,12 @@ self.addEventListener("message", async (ev: MessageEvent<QrDecodeRequest>) => {
     await ensureReady();
   } catch (e) {
     if (req.kind === "bitmap") req.bitmap.close();
+    const error = classifyWorkerError(e, "init-failed");
     (self as DedicatedWorkerGlobalScope).postMessage({
       id: req.id,
       ok: false,
-      code: "init-failed",
-      message: e instanceof Error ? e.message : String(e),
+      code: error.code,
+      message: error.message,
     } satisfies QrDecodeResponse);
     return;
   }
@@ -59,7 +61,8 @@ self.addEventListener("message", async (ev: MessageEvent<QrDecodeRequest>) => {
     msg = { id: req.id, ok: true, text: decode(req) };
   } catch (e) {
     if (req.kind === "bitmap") req.bitmap.close();
-    msg = { id: req.id, ok: false, message: e instanceof Error ? e.message : String(e) };
+    const error = classifyWorkerError(e);
+    msg = { id: req.id, ok: false, message: error.message, code: error.code };
   }
   (self as DedicatedWorkerGlobalScope).postMessage(msg);
 });

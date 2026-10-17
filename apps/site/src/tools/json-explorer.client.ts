@@ -1,5 +1,7 @@
 import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
 import { createExplorerTable, type ExplorerColumn } from "@/scripts/explorer-table";
+import { saveStreamedFile, StreamSaveError } from "@/scripts/stream-save";
+import { localizeResourceError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, setDropzoneHasFile, syncEmptyState } from "@/scripts/tool-ui";
 import { JSON_EXPLORER_LIMITS, type JsonExplorerDiagnostic, type JsonViewFilter, type TreeChild } from "@/tools/json-explorer-core";
 import type { JsonInputFormat, JsonExportCursor, OpenJsonResult } from "@/tools/json-explorer-protocol";
@@ -8,7 +10,8 @@ import { createJsonExplorerWorkerClient, JsonExplorerClientError } from "@/tools
 interface Strings {
   loadingRows: string; emptyRows: string; rowLabel: string; statusReady: string; statusOpening: string; statusFiltering: string;
   statusDone: string; statusCanceled: string; statusExporting: string; statusExported: string; stats: string; progressStats: string;
-  selectedMeta: string; exportTooLarge: string; fileRequired: string; columnsTruncated: string; loadMore: string; processingFailed: string;
+  selectedMeta: string; exportTooLarge: string; saveFailed: string; fileRequired: string; columnsTruncated: string; loadMore: string; processingFailed: string;
+  memoryExhausted: string; invalidFormat: string; corruptInput: string;
   errorInvalidJson: string; errorMalformedJsonl: string; errorEmptyJson: string; errorInvalidUtf8: string; errorDepthLimit: string;
   errorRecordLimit: string; errorOrdinaryLimit: string; errorFieldLimit: string; errorInvalidPath: string; errorSessionMissing: string;
   errorRowRange: string; errorTreeUnavailable: string;
@@ -164,7 +167,11 @@ function init(): void {
     if (typeof error === "string") message = error;
     else if (error instanceof LocalizedUiError) message = error.message;
     else if (error instanceof JsonExplorerClientError) message = diagnosticMessage(error.diagnostic);
-    else message = strings.processingFailed;
+    else message = localizeResourceError(error, {
+      memoryExhausted: strings.memoryExhausted,
+      invalidFormat: strings.invalidFormat,
+      corruptInput: strings.corruptInput,
+    }) ?? strings.processingFailed;
     showStatus("");
     if (errorBox) {
       errorBox.textContent = message;
@@ -463,35 +470,44 @@ function init(): void {
     const runGeneration = generation;
     setBusy(true);
     showStatus(strings.statusExporting);
-    const chunks: Uint8Array[] = [];
-    let total = 0;
     let exportedRows = 0;
+    let streamedBytes = 0;
     let cursor: JsonExportCursor | null = null;
     try {
-      do {
-        const result = await worker.exportChunk({
-          format: kind, cursor, maxBytes: JSON_EXPLORER_LIMITS.exportChunkBytes, protectFormulas: formulaProtection?.checked ?? true,
-        });
-        if (runGeneration !== generation) return;
-        total += result.bytes.byteLength;
-        if (total > JSON_EXPLORER_LIMITS.exportBytes) throw new LocalizedUiError(strings.exportTooLarge);
-        chunks.push(result.bytes);
-        exportedRows += result.emittedRows;
-        cursor = result.cursor;
-        showStatus(formatTemplate(strings.statusExporting, { rows: new Intl.NumberFormat().format(exportedRows), size: humanBytes(total) }));
-      } while (cursor);
-      const blob = new Blob(chunks as unknown as BlobPart[], { type: kind === "csv" ? "text/csv;charset=utf-8" : "application/x-ndjson;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `json-explorer-filtered.${kind}`;
-      link.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      showStatus(formatTemplate(strings.statusExported, { rows: new Intl.NumberFormat().format(exportedRows), size: humanBytes(total) }));
+      const saved = await saveStreamedFile({
+        suggestedName: `json-explorer-filtered.${kind}`,
+        mimeType: kind === "csv" ? "text/csv;charset=utf-8" : "application/x-ndjson;charset=utf-8",
+        extensions: [kind],
+        fallbackMaxBytes: JSON_EXPLORER_LIMITS.exportBytes,
+      }, async (sink) => {
+        do {
+          const result = await worker.exportChunk({
+            format: kind, cursor, maxBytes: JSON_EXPLORER_LIMITS.exportChunkBytes, protectFormulas: formulaProtection?.checked ?? true,
+          });
+          if (runGeneration !== generation) throw new DOMException("Canceled", "AbortError");
+          await sink.write(result.bytes);
+          streamedBytes += result.bytes.byteLength;
+          exportedRows += result.emittedRows;
+          cursor = result.cursor;
+          showStatus(formatTemplate(strings.statusExporting, {
+            rows: new Intl.NumberFormat().format(exportedRows),
+            size: humanBytes(streamedBytes),
+          }));
+        } while (cursor);
+      });
+      showStatus(formatTemplate(strings.statusExported, {
+        rows: new Intl.NumberFormat().format(exportedRows),
+        size: humanBytes(saved.bytesWritten),
+      }));
     } catch (error) {
       if (runGeneration === generation) {
-        showError(error);
-        if (!(error instanceof JsonExplorerClientError) && !(error instanceof LocalizedUiError)) invalidateSession();
+        if (error instanceof StreamSaveError && error.code === "aborted") showStatus(strings.statusCanceled);
+        else if (error instanceof StreamSaveError && error.code === "fallback-too-large") showError(strings.exportTooLarge);
+        else if (error instanceof StreamSaveError && error.code === "storage-failed") showError(strings.saveFailed);
+        else {
+          showError(error);
+          if (!(error instanceof JsonExplorerClientError) && !(error instanceof LocalizedUiError)) invalidateSession();
+        }
       }
     } finally {
       if (runGeneration === generation) { hideProgress(); setBusy(false); }

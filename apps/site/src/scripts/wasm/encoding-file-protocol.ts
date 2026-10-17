@@ -22,5 +22,5 @@ export interface EncodingWorkerRequest {
 
 export type EncodingWorkerResponse =
   | { type: "progress"; id: number; processed: number; total: number; elapsedMs: number }
-  | { type: "result"; id: number; direction: "encode" | "decode"; text: string; bytes?: Uint8Array }
-  | { type: "error"; id: number; message: string; code: WasmErrorCode };
+  | { id: number; ok: true; direction: "encode" | "decode"; text: string; bytes?: Uint8Array }
+  | { id: number; ok: false; message: string; code: WasmErrorCode };

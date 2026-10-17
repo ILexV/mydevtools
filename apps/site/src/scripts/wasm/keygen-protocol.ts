@@ -5,6 +5,8 @@
  * answer from a cancelled job is ignored. Cancellation terminates the worker
  * (the synchronous WASM keygen can't be interrupted cooperatively).
  */
+import type { WasmErrorCode } from "@/scripts/wasm/worker-protocol";
+
 export type SshKeygenType = "ed25519" | "ecdsa-p256" | "ecdsa-p384" | "rsa";
 
 export interface SshKeygenRequest {
@@ -20,4 +22,4 @@ export interface SshKeygenRequest {
 
 export type SshKeygenResponse =
   | { id: number; ok: true; privateKey: string; publicKey: string; warnings: string[] }
-  | { id: number; ok: false; message: string };
+  | { id: number; ok: false; message: string; code?: WasmErrorCode };

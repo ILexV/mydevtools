@@ -7,23 +7,14 @@
  *
  * Network: worker + wasm load only on first generation (openssh-keys page).
  */
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { createJobWorker } from "@/scripts/wasm/job-worker";
 import type { SshKeygenRequest, SshKeygenResponse, SshKeygenType } from "@/scripts/wasm/keygen-protocol";
 
-let worker: Worker | null = null;
-let nextId = 1;
-
-function getWorker(): Worker {
-  if (!worker) {
-    worker = new Worker(new URL("../../workers/crypto-keygen.worker.ts", import.meta.url), { type: "module" });
-  }
-  return worker;
-}
-
-function killWorker(): void {
-  worker?.terminate();
-  worker = null;
-}
+type SshKeygenJob = Omit<SshKeygenRequest, "id">;
+type SshKeygenSuccess = Extract<SshKeygenResponse, { ok: true }>;
+const jobs = createJobWorker<SshKeygenJob, SshKeygenSuccess>(
+  () => new Worker(new URL("../../workers/crypto-keygen.worker.ts", import.meta.url), { type: "module" }),
+);
 
 export interface SshKeygenOptions {
   keyType: SshKeygenType;
@@ -38,48 +29,18 @@ export interface SshGeneratedKey {
   warnings: string[];
 }
 
-/** Generate an OpenSSH key pair in the worker; abort → terminate. */
-export function sshGenerateInWorker(opts: SshKeygenOptions, signal?: AbortSignal): Promise<SshGeneratedKey> {
-  if (signal?.aborted) return Promise.reject(new WasmError("aborted", "Aborted"));
-  const w = getWorker();
-  const id = nextId++;
-  const { promise, resolve, reject } = Promise.withResolvers<SshGeneratedKey>();
-
-  const onMsg = (ev: MessageEvent<SshKeygenResponse>) => {
-    const m = ev.data;
-    if (m.id !== id) return;
-    cleanup();
-    if (m.ok) resolve({ privateKey: m.privateKey, publicKey: m.publicKey, warnings: m.warnings });
-    else reject(new WasmError("unknown", m.message));
-  };
-  const onError = (ev: ErrorEvent) => {
-    // Worker crashed (e.g. WASM trap): drop it so the next job gets a fresh one.
-    cleanup();
-    killWorker();
-    reject(new WasmError("unknown", ev.message || "Worker error"));
-  };
-  const onAbort = () => {
-    cleanup();
-    killWorker();
-    reject(new WasmError("aborted", "Aborted"));
-  };
-  function cleanup() {
-    w.removeEventListener("message", onMsg);
-    w.removeEventListener("error", onError);
-    signal?.removeEventListener("abort", onAbort);
-  }
-
-  w.addEventListener("message", onMsg);
-  w.addEventListener("error", onError);
-  signal?.addEventListener("abort", onAbort, { once: true });
-  const req: SshKeygenRequest = {
-    id,
+/** Generate an OpenSSH key pair in the worker; abort terminates all work on that exact worker. */
+export async function sshGenerateInWorker(opts: SshKeygenOptions, signal?: AbortSignal): Promise<SshGeneratedKey> {
+  const result = await jobs.run({
     op: "ssh-generate",
     keyType: opts.keyType,
     rsaBits: opts.rsaBits ?? 3072,
     passphrase: opts.passphrase ?? null,
     comment: opts.comment ?? null,
+  }, [], signal);
+  return {
+    privateKey: result.privateKey,
+    publicKey: result.publicKey,
+    warnings: result.warnings,
   };
-  w.postMessage(req);
-  return promise;
 }

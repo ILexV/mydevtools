@@ -8,6 +8,7 @@
  */
 import init, * as crypto from "@/generated/wasm/cryptography/cryptography.js";
 import type { SshKeygenRequest, SshKeygenResponse } from "@/scripts/wasm/keygen-protocol";
+import { classifyWorkerError } from "@/scripts/wasm/worker-protocol";
 
 let ready: Promise<void> | null = null;
 function ensureReady(): Promise<void> {
@@ -49,6 +50,7 @@ self.addEventListener("message", async (ev: MessageEvent<SshKeygenRequest>) => {
     await ensureReady();
     post({ id: req.id, ok: true, ...generate(req) });
   } catch (e) {
-    post({ id: req.id, ok: false, message: e instanceof Error ? e.message : String(e) });
+    const error = classifyWorkerError(e);
+    post({ id: req.id, ok: false, message: error.message, code: error.code });
   }
 });

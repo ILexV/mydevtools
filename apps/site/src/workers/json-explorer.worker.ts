@@ -1,4 +1,5 @@
 /// <reference lib="webworker" />
+import { readBlobChunks } from "@/scripts/blob-chunks";
 import { encodeCsvRow } from "@/tools/explorer-delimited";
 import {
   addDiscoveredColumns,
@@ -33,7 +34,7 @@ import type {
   ReadJsonTreeResult,
   ResolvedJsonFormat,
 } from "@/tools/json-explorer-protocol";
-import type { WasmErrorCode } from "@/scripts/wasm/worker-protocol";
+import { classifyWorkerError } from "@/scripts/wasm/worker-protocol";
 
 interface SourceCheckpoint {
   sourceIndex: number;
@@ -95,9 +96,8 @@ function postResult(id: number, result: JsonExplorerWorkerResult, transfer: Tran
 }
 
 function postInfrastructureError(id: number, error: unknown): void {
-  const message = error instanceof Error ? error.message : String(error);
-  const code: WasmErrorCode = "unknown";
-  (self as DedicatedWorkerGlobalScope).postMessage({ id, ok: false, message, code });
+  const classified = classifyWorkerError(error);
+  (self as DedicatedWorkerGlobalScope).postMessage({ id, ok: false, ...classified });
 }
 
 function checkedSettings(settings: JsonExplorerSettings): JsonExplorerSettings {
@@ -123,12 +123,11 @@ async function* scanLines(
   startPhysicalLine = 1,
 ): AsyncGenerator<JsonlDecodedLine> {
   const lines = new JsonlLineDecoder(recordLimit, startOffset, startPhysicalLine);
-  let readOffset = startOffset;
-  while (readOffset < file.size) {
-    const end = Math.min(file.size, readOffset + JSON_EXPLORER_LIMITS.chunkBytes);
-    const chunk = new Uint8Array(await file.slice(readOffset, end).arrayBuffer());
-    for (const line of lines.push(chunk)) yield line;
-    readOffset = end;
+  for await (const chunk of readBlobChunks(file, {
+    chunkBytes: JSON_EXPLORER_LIMITS.chunkBytes,
+    start: startOffset,
+  })) {
+    for (const line of lines.push(chunk.bytes)) yield line;
   }
   for (const line of lines.finish(file.size)) yield line;
 }

@@ -1,10 +1,11 @@
 /// <reference lib="webworker" />
+import { readBlobChunks } from "@/scripts/blob-chunks";
+import { classifyWorkerError, createWorkerByteWriter } from "@/scripts/wasm/worker-protocol";
 import { encodeCsvRow } from "@/tools/explorer-delimited";
 import {
   CSV_CHECKPOINT_STRIDE,
   CSV_CHUNK_BYTES,
   CSV_FILTER_CHECKPOINT_STRIDE,
-  CSV_MAX_EXPORT_BYTES,
   CSV_MAX_RANGE_ROWS,
   CSV_MAX_RECORDS,
   CsvByteParser,
@@ -84,16 +85,15 @@ async function scanFile(
   startOffset: number,
   onRecord: (record: CsvParsedRecord) => boolean | void,
   onBytes?: (processed: number) => void,
+  afterChunk?: () => Promise<void>,
 ): Promise<void> {
   const parser = new CsvByteParser(encoding, delimiter, startOffset, onRecord);
-  let offset = startOffset;
   let keepGoing = true;
-  while (offset < file.size && keepGoing) {
-    const end = Math.min(file.size, offset + CSV_CHUNK_BYTES);
-    const bytes = new Uint8Array(await file.slice(offset, end).arrayBuffer());
-    keepGoing = parser.push(bytes, offset);
-    offset = end;
-    onBytes?.(offset);
+  for await (const chunk of readBlobChunks(file, { chunkBytes: CSV_CHUNK_BYTES, start: startOffset })) {
+    keepGoing = parser.push(chunk.bytes, chunk.offset);
+    onBytes?.(chunk.end);
+    await afterChunk?.();
+    if (!keepGoing) break;
   }
   if (keepGoing) parser.finish(file.size);
 }
@@ -267,18 +267,20 @@ async function exportRows(
   validateColumns(current, request.columns);
   const labels = request.columns.map((column) => current.columns[column].label);
   const encoder = new TextEncoder();
-  const parts: BlobPart[] = [];
+  const queued: Uint8Array[] = [];
+  const writer = createWorkerByteWriter(request.stream);
   let pending = request.format === "csv" && request.bom ? "\ufeff" : "";
-  let outputBytes = 0;
   let exportedRows = 0;
 
   const flush = () => {
     if (pending.length === 0) return;
-    const bytes = encoder.encode(pending);
-    outputBytes += bytes.byteLength;
-    if (outputBytes > CSV_MAX_EXPORT_BYTES) throw new CsvParserError("record-too-large", "The export exceeds the browser output limit");
-    parts.push(bytes);
+    queued.push(encoder.encode(pending));
     pending = "";
+  };
+  const drain = async () => {
+    flush();
+    for (const bytes of queued) await writer.write(bytes);
+    queued.length = 0;
   };
   const append = (value: string) => {
     pending += value;
@@ -299,14 +301,14 @@ async function exportRows(
         append(`{${properties.join(",")}}\n`);
       }
       exportedRows++;
-    }, (processed) => progress(id, processed, current.file.size, started));
+    }, (processed) => progress(id, processed, current.file.size, started), drain);
   }
-  flush();
+  await drain();
+  writer.close();
   const mime = request.format === "csv" ? "text/csv;charset=utf-8" : "application/x-ndjson;charset=utf-8";
   return {
     kind: "export",
     sessionId: current.id,
-    blob: new Blob(parts, { type: mime }),
     extension: request.format,
     mime,
     rowCount: exportedRows,
@@ -340,15 +342,17 @@ async function handle(id: number, request: CsvExplorerRequest): Promise<void> {
     post({ id, ok: true, ...result });
   } catch (error) {
     const parserError = error instanceof CsvParserError ? error : null;
-    if (parserError) session = null;
+    if (parserError && request.type === "open") session = null;
     const limited = parserError?.code === "field-too-large"
       || parserError?.code === "record-too-large"
       || parserError?.code === "too-many-columns";
+    const fallback = parserError ? (limited ? "input-too-large" : "unknown") : "worker-failed";
+    const classified = classifyWorkerError(error, fallback);
     post({
       id,
       ok: false,
-      code: parserError ? (limited ? "input-too-large" : "unknown") : "worker-failed",
-      message: parserError?.code ?? (error instanceof Error ? error.message : String(error)),
+      code: classified.code,
+      message: parserError?.code ?? classified.message,
     });
   }
 }

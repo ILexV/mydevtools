@@ -18,11 +18,17 @@ const clientKeys = [
   "StatusDone", "StatusCanceled", "SummaryPattern", "FilteredSummary", "HeaderWarning", "NoColumns",
   "TableEmpty", "TableLoading", "RowLabel", "InspectorEmpty", "InspectorRow", "InspectorTruncated",
   "RawWarning", "ErrorEmpty", "ErrorEncoding", "ErrorMalformed", "ErrorFieldTooLarge", "ErrorRecordTooLarge",
-  "ErrorTooManyColumns", "ErrorWorker", "ErrorSession", "ErrorGeneric", "DelimiterComma", "DelimiterSemicolon",
-  "DelimiterTab", "DelimiterPipe",
+  "ErrorTooManyColumns", "ErrorWorker", "ErrorSession", "ErrorGeneric", "ErrorSave", "ErrorFallbackTooLarge",
+  "DelimiterComma", "DelimiterSemicolon", "DelimiterTab", "DelimiterPipe",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
-const stringsJson = JSON.stringify({ ...strings, Lang: lang });
+const stringsJson = JSON.stringify({
+  ...strings,
+  Lang: lang,
+  MemoryExhausted: t(lang, "common", "Common_MemoryExhausted"),
+  InvalidFormat: t(lang, "common", "Common_InvalidFormat"),
+  CorruptInput: t(lang, "common", "Common_CorruptInput"),
+});
 ---
 
 <div class="ds-workbench ds-workbench-single csv-workbench" data-csv-tool>

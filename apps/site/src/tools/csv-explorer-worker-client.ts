@@ -20,7 +20,7 @@ export interface CsvExplorerWorkerClient {
   filter(sessionId: number, filter: CsvFilter | null, signal?: AbortSignal, onProgress?: (info: JobProgress) => void): Promise<number>;
   read(sessionId: number, start: number, count: number, columns: number[]): Promise<string[][]>;
   inspect(sessionId: number, index: number): Promise<string[]>;
-  exportResult(sessionId: number, options: CsvExportOptions, signal?: AbortSignal, onProgress?: (info: JobProgress) => void): Promise<Extract<CsvExplorerSuccess, { kind: "export" }>>;
+  exportResult(sessionId: number, options: CsvExportOptions, stream: MessagePort, signal?: AbortSignal, onProgress?: (info: JobProgress) => void): Promise<Extract<CsvExplorerSuccess, { kind: "export" }>>;
   terminate(): void;
 }
 
@@ -54,8 +54,8 @@ export function createCsvExplorerWorker(): CsvExplorerWorkerClient {
       const result = resultOfKind(await worker.run({ type: "inspect", sessionId, index }), "inspect");
       return result.values;
     },
-    async exportResult(sessionId, options, signal, onProgress) {
-      return resultOfKind(await worker.run({ type: "export", sessionId, ...options }, [], signal, onProgress), "export");
+    async exportResult(sessionId, options, stream, signal, onProgress) {
+      return resultOfKind(await worker.run({ type: "export", sessionId, ...options, stream }, [stream], signal, onProgress), "export");
     },
     terminate() {
       worker.terminate();

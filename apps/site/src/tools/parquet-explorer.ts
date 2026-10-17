@@ -14,7 +14,7 @@ export const PARQUET_MAX_COLUMNS = 512;
 export const PARQUET_MAX_READ_ROWS = 500;
 /** Rows decoded per export step so a full scan does not materialize the file. */
 export const PARQUET_EXPORT_WINDOW = 2048;
-/** Finished CSV or JSONL download. The browser still has to hold the Blob. */
+/** Maximum retained by the non-streaming export and browser download fallback. */
 export const PARQUET_MAX_EXPORT_BYTES = 512 * 1024 * 1024;
 /** A single exported value, in characters or raw bytes, before encoding. */
 export const PARQUET_MAX_CELL_CHARS = 1024 * 1024;

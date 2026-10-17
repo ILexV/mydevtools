@@ -86,6 +86,11 @@ export interface ParquetExportResult {
   rowCount: number;
 }
 
+export interface ParquetStreamExportResult {
+  rowCount: number;
+  bytesWritten: number;
+}
+
 /** Blob or ArrayBuffer slice source. A browser `File` is wrapped by the worker. */
 export function asyncBufferFromBlob(blob: Blob): AsyncBuffer {
   return {
@@ -264,33 +269,42 @@ export async function readParquetRows(
   return values.map((row) => row.map((value) => formatParquetCell(value, maxChars).text));
 }
 
+const PARQUET_EXPORT_CHUNK_CHARS = 256 * 1024;
+
 /**
- * Project selected columns into a CSV or JSONL buffer.
- * Stops with `export-too-large` once the UTF-8 output would pass the cap.
- * `onProgress` reports exported rows, not file bytes.
+ * Project selected columns into incrementally written CSV or JSONL chunks.
+ * Awaiting `write` between bounded chunks propagates destination backpressure.
  */
-export async function exportParquet(
+export async function exportParquetStream(
   file: AsyncBuffer,
   summary: ParquetFileSummary,
   options: ParquetExportOptions,
+  write: (bytes: Uint8Array) => Promise<void>,
   onProgress?: (processed: number, total: number) => void,
-): Promise<ParquetExportResult> {
+): Promise<ParquetStreamExportResult> {
   const columns = selectedColumns(summary, options.columns);
   const names = columns.map((column) => column.name);
   const labels = columns.map((column) => column.label);
-  const maxBytes = options.maxBytes ?? PARQUET_MAX_EXPORT_BYTES;
-  const parts: Uint8Array[] = [];
-  let used = 0;
-  const push = (text: string) => {
-    const bytes = new TextEncoder().encode(text);
-    if (used + bytes.byteLength > maxBytes) {
-      throw new ParquetExplorerError("export-too-large", "The export exceeds 512 MiB");
+  const maxBytes = options.maxBytes ?? Number.POSITIVE_INFINITY;
+  const encoder = new TextEncoder();
+  let pending = "";
+  let bytesWritten = 0;
+  const flush = async () => {
+    if (pending.length === 0) return;
+    const bytes = encoder.encode(pending);
+    pending = "";
+    if (bytesWritten + bytes.byteLength > maxBytes) {
+      throw new ParquetExplorerError("export-too-large", "The export exceeds the configured output limit");
     }
-    parts.push(bytes);
-    used += bytes.byteLength;
+    await write(bytes);
+    bytesWritten += bytes.byteLength;
   };
-  if (options.format === "csv" && options.bom) push("\uFEFF");
-  if (options.format === "csv" && options.includeHeader) push(buildCsvLine(labels, false));
+  const append = (line: string) => {
+    pending += line;
+  };
+
+  if (options.format === "csv" && options.bom) append("\uFEFF");
+  if (options.format === "csv" && options.includeHeader) append(buildCsvLine(labels, false));
   let exported = 0;
   onProgress?.(0, summary.rows);
   while (exported < summary.rows) {
@@ -304,19 +318,40 @@ export async function exportParquet(
         if (cells.some((cell) => cell.truncated)) {
           throw new ParquetExplorerError("cell-too-large", "A value exceeds the 1 MiB cell limit");
         }
-        push(buildCsvLine(cells.map((cell) => cell.text), options.protectFormulas));
+        append(buildCsvLine(cells.map((cell) => cell.text), options.protectFormulas));
       } else {
-        push(buildJsonlLine(labels, row));
+        append(buildJsonlLine(labels, row));
       }
+      if (pending.length >= PARQUET_EXPORT_CHUNK_CHARS) await flush();
     }
     exported += values.length;
     onProgress?.(exported, summary.rows);
   }
-  const bytes = new Uint8Array(used);
+  await flush();
+  return { rowCount: exported, bytesWritten };
+}
+
+/** Collect a bounded export for non-streaming callers. */
+export async function exportParquet(
+  file: AsyncBuffer,
+  summary: ParquetFileSummary,
+  options: ParquetExportOptions,
+  onProgress?: (processed: number, total: number) => void,
+): Promise<ParquetExportResult> {
+  const maxBytes = options.maxBytes ?? PARQUET_MAX_EXPORT_BYTES;
+  const parts: Uint8Array[] = [];
+  const result = await exportParquetStream(
+    file,
+    summary,
+    { ...options, maxBytes },
+    async (bytes) => { parts.push(bytes); },
+    onProgress,
+  );
+  const bytes = new Uint8Array(result.bytesWritten);
   let offset = 0;
   for (const part of parts) {
     bytes.set(part, offset);
     offset += part.byteLength;
   }
-  return { bytes, rowCount: exported };
+  return { bytes, rowCount: result.rowCount };
 }

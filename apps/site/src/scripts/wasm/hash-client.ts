@@ -7,24 +7,15 @@
  * Network: the wasm module loads only when this client is first used, i.e. only
  * on the hash tool page — never on the home page.
  */
-import type { WorkerRequest, WorkerResponse, HashResult } from "./worker-protocol";
-import { WasmError } from "./worker-protocol";
+import { createJobWorker } from "./job-worker.ts";
+import { WasmError, type WorkerRequest, type WorkerResponse, type HashResult } from "./worker-protocol.ts";
 
-let worker: Worker | null = null;
-let nextId = 1;
-let cancelActive: (() => void) | null = null;
-
-function getWorker(): Worker {
-  if (!worker) {
-    worker = new Worker(new URL("../../workers/hash.worker.ts", import.meta.url), { type: "module" });
-  }
-  return worker;
-}
-
-function discardWorker(w: Worker): void {
-  w.terminate();
-  if (worker === w) worker = null;
-}
+type HashJobRequest = Omit<WorkerRequest, "id">;
+type HashJobSuccess = Extract<WorkerResponse, { ok: true }>;
+const jobs = createJobWorker<HashJobRequest, HashJobSuccess>(
+  () => new Worker(new URL("../../workers/hash.worker.ts", import.meta.url), { type: "module" }),
+);
+let activeRun = 0;
 
 export interface ProgressInfo {
   processed: number;
@@ -43,59 +34,24 @@ interface StartPayload {
   file?: File;
 }
 
-function dispatch(payload: StartPayload, opts: RunOptions = {}): Promise<HashResult[]> {
-  if (opts.signal?.aborted) return Promise.reject(new WasmError("aborted", "Aborted"));
-  // A worker has one active job; superseding it must not share mutable WASM state.
-  cancelActive?.();
-  let w: Worker;
+async function dispatch(payload: StartPayload, opts: RunOptions = {}): Promise<HashResult[]> {
+  if (opts.signal?.aborted) throw new WasmError("aborted", "Aborted");
+  const run = ++activeRun;
+  if (run > 1) jobs.terminate();
   try {
-    w = getWorker();
+    const result = await jobs.run(
+      { type: "start", ...payload },
+      [],
+      opts.signal,
+      opts.onProgress,
+    );
+    return result.hashes;
   } catch (error) {
-    return Promise.reject(new WasmError("worker-failed", error instanceof Error ? error.message : String(error)));
+    jobs.terminate();
+    throw error;
+  } finally {
+    if (activeRun === run) activeRun = 0;
   }
-  const id = nextId++;
-  const { onProgress, signal } = opts;
-  const { promise, resolve, reject } = Promise.withResolvers<HashResult[]>();
-
-  function fail(error: WasmError): void {
-    cleanup();
-    discardWorker(w);
-    reject(error);
-  }
-  const onMsg = (ev: MessageEvent<WorkerResponse>) => {
-    const m = ev.data;
-    if (m.id !== id) return;
-    if (m.type === "progress") {
-      onProgress?.({ processed: m.processed, total: m.total, elapsedMs: m.elapsedMs });
-    } else if (m.type === "result") {
-      cleanup();
-      resolve(m.hashes);
-    } else if (m.type === "error") {
-      fail(new WasmError(m.code, m.message));
-    }
-  };
-  const onAbort = () => fail(new WasmError("aborted", "Aborted"));
-  const onError = (ev: ErrorEvent) => fail(new WasmError("worker-failed", ev.message || "Hash worker failed"));
-  const onMessageError = () => fail(new WasmError("worker-failed", "Hash worker message could not be decoded"));
-  function cleanup(): void {
-    w.removeEventListener("message", onMsg);
-    w.removeEventListener("error", onError);
-    w.removeEventListener("messageerror", onMessageError);
-    signal?.removeEventListener("abort", onAbort);
-    if (cancelActive === onAbort) cancelActive = null;
-  }
-
-  cancelActive = onAbort;
-  signal?.addEventListener("abort", onAbort, { once: true });
-  w.addEventListener("message", onMsg);
-  w.addEventListener("error", onError);
-  w.addEventListener("messageerror", onMessageError);
-  try {
-    w.postMessage({ type: "start", id, ...payload } satisfies WorkerRequest);
-  } catch (error) {
-    fail(new WasmError("worker-failed", error instanceof Error ? error.message : String(error)));
-  }
-  return promise;
 }
 
 export function hashText(algorithms: string[], text: string, opts: RunOptions = {}): Promise<HashResult[]> {

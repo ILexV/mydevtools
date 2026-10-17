@@ -240,7 +240,27 @@ Fix: install with `Request(url, { cache: "reload" })` while retaining atomic `ca
 
 A throwaway native-browser regression server served cacheable 39-tool HTML, then switched to 41-tool HTML with both Explorer links. A normal browser fetch still returned the old response; the actual fixed worker installed the new response into precache. Exactly two home network fetches occurred (initial warm-up and forced reload). The probe tab/server were closed. This exercises the real HTTP/ServiceWorker caches rather than a Node cache-option forwarding mock.
 
-## 8. Remaining gaps (not covered by this verification)
+## 8. Streaming save, local SQL and data conversion (2026-10-17)
+
+Verified the built Astro site in Chromium, including an independently launched Chrome 151 for actual DuckDB workers. The managed browser's Worker interception caused startup stalls that did not occur in the independent browser; no application retry or timeout workaround was added.
+
+- Final gates: 459 unit tests, 9 distribution smoke tests, successful static build (475 pages), and Astro check with zero errors/warnings (two existing deprecation hints). Locale validation had zero errors and the existing German UUID title warning.
+- Existing CSV, JSON and Parquet Explorer exports exercised the new shared saving path. JSONL retained the numeric token `9007199254740993`; CSV and Parquet-derived JSONL downloads contained the expected source records.
+- Real `FileSystemWritableFileStream` writes used OPFS handles in place of the native picker UI. A deliberate second-write quota failure left the original destination text unchanged; retry without reindexing exported all 100,005 records. This proves destination rollback and session preservation, not OS save-dialog interaction.
+- Hash `abc` matched MD5/SHA-1/SHA-256 reference values. Canceling a 256 MiB file operation settled, and a subsequent text run produced the correct digest.
+- Actual SQL editor actions exercised CSV and JSONL imports, WHERE, GROUP BY and JOIN. Group totals were Ada = 15.5 and Bob = 7.25; the join preserved BIGINT `9007199254740993`. A long cross join was canceled, all imported tables cleared, and reimport succeeded.
+- An ordinary SQL URL string literal remained valid. External `read_csv('https://…')` was rejected. Successful SQL-page resource requests were same-origin. A downloaded SQL JSON result retained the exact BIGINT token.
+- Converter tests covered CSV/TSV, UTF-16, Windows-1251 CSV and JSON, JSON/JSONL and typed Parquet round-trips. Explicit invalid BIGINT casts surfaced errors. JSON export preserved `12345678901234567890.123456789012345678`, `0.000000000000000001`, and string `"00123"`.
+- Nested JSON values and `1e400` produced the localized unsupported-tabular-JSON error, not silent stringification or rounding. Supported JSON is flat object records with consistent scalar column types; JSON/JSONL input is materialized in a worker, not a bounded-memory stream.
+- A final SQL-export regression reproduced an array becoming the JSON string `"[1, 2]"`. After correction, arrays and non-finite DOUBLE values both produced the visible localized JSON-contract error without a download; a subsequent valid export in the same session preserved BIGINT `9007199254740993`, boolean `true` and string `"00123"`. The SQL JSON error was also added to its client message island.
+- Converter preview was bounded to 200 rows while the actual JSONL download contained all 10,005 source rows.
+- All 20 new locale routes rendered localized titles at 375 px without document horizontal overflow or initial WASM requests. English/Russian surfaces, light/dark themes and actual language switching were viewed; the SQL table-name field uses the shared styled input.
+- After one online load, the actual service-worker cache contained DuckDB, JSON worker and Parquet worker/WASM assets. Offline reload followed by Parquet and JSON processing succeeded with `navigator.onLine === false`.
+- Both non-isolated runtime paths were exercised: ordinary EH, then actual MVP worker/WASM after hiding only the `WebAssembly.Exception` feature for selection. `crossOriginIsolated` was false, and neither path required threads or shared memory.
+
+Limits are not performance guarantees: 1 GiB source cap, 128 MiB non-UTF-8 transcoding, 512 MiB DuckDB memory setting, 100,000-row Playground result bound, buffered Parquet output up to 512 MiB, and bounded Blob fallbacks (converter 256 MiB; Playground 512 MiB). Cross-browser peak-memory/throughput benchmarks, native OS picker dialogs and multi-gigabyte DuckDB imports were not exercised.
+
+## 9. Remaining gaps (not covered by this verification)
 
 - **Full browser matrix** — catalog/core UI sweeps use Chromium; the hash
   benchmark also uses Firefox, and Explorer checks include Firefox/WebKit.

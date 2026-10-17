@@ -21,7 +21,7 @@ import {
   withPreparing,
 } from "@/scripts/tool-ui";
 import { decodeToBytes, bytesToText, encodeBytes, textToBytes, type EncodingOptions } from "@/scripts/wasm/encoding-client";
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { localizeResourceError, WasmError } from "@/scripts/wasm/worker-protocol";
 import { classifyEncodingError } from "@/tools/encoding-ui";
 
 /** "Load example" sample: a URL with a query, non-ASCII text and a fragment. */
@@ -38,6 +38,9 @@ interface Strings {
   error: string;
   /** `Common_Preparing` — first-run WASM load feedback. */
   preparing?: string;
+  memoryExhausted: string;
+  invalidFormat: string;
+  corruptInput: string;
 }
 
 function readStrings(): Strings | null {
@@ -109,10 +112,16 @@ function init() {
       clearError();
       return;
     }
-    const message = e instanceof Error ? e.message : String(e);
-    const { key, position } = classifyEncodingError(message);
+    const resourceError = localizeResourceError(e, strings);
     setOutput("");
     setStats(null);
+    if (resourceError) {
+      inputArea.removeAttribute("aria-invalid");
+      showError(resourceError);
+      return;
+    }
+    const message = e instanceof Error ? e.message : String(e);
+    const { key, position } = classifyEncodingError(message);
     inputArea.setAttribute("aria-invalid", "true");
     if (key === "Error_NotRepresentable") {
       showError(formatString(strings.errNotRepresentable, (position ?? 0) + 1));

@@ -1,8 +1,10 @@
 import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
 import { formatBytes, formatMs, formatString, progressPercent } from "@/lib/format";
 import { createExplorerTable, type ExplorerColumn, type ExplorerTable } from "@/scripts/explorer-table";
+import { saveWorkerStreamedFile, StreamSaveError } from "@/scripts/stream-save";
+import { localizeResourceError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, setDropzoneHasFile, syncEmptyState } from "@/scripts/tool-ui";
-import type { CsvFilter, CsvFilterOperator } from "@/tools/csv-explorer";
+import { CSV_MAX_EXPORT_BYTES, type CsvFilter, type CsvFilterOperator } from "@/tools/csv-explorer";
 import type { CsvDelimiterOption, CsvEncodingOption, CsvSessionSummary } from "@/tools/csv-explorer-protocol";
 import { createCsvExplorerWorker, type CsvExplorerWorkerClient } from "@/tools/csv-explorer-worker-client";
 
@@ -36,6 +38,11 @@ interface Strings {
   ErrorWorker: string;
   ErrorSession: string;
   ErrorGeneric: string;
+  ErrorSave: string;
+  ErrorFallbackTooLarge: string;
+  MemoryExhausted: string;
+  InvalidFormat: string;
+  CorruptInput: string;
   DelimiterComma: string;
   DelimiterSemicolon: string;
   DelimiterTab: string;
@@ -154,9 +161,16 @@ function init(): void {
       case "record-too-large": return strings.ErrorRecordTooLarge;
       case "too-many-columns": return strings.ErrorTooManyColumns;
       case "session-missing": return strings.ErrorSession;
+      case "storage-failed": return strings.ErrorSave;
+      case "fallback-too-large": return strings.ErrorFallbackTooLarge;
       case "worker-failed":
       case "unknown": return strings.ErrorWorker;
-      default: return strings.ErrorGeneric;
+      default:
+        return localizeResourceError(error, {
+          memoryExhausted: strings.MemoryExhausted,
+          invalidFormat: strings.InvalidFormat,
+          corruptInput: strings.CorruptInput,
+        }) ?? strings.ErrorGeneric;
     }
   }
 
@@ -492,22 +506,24 @@ function init(): void {
     activeAbort = controller;
     hideError();
     setBusy(true, strings.StatusExporting);
+    const format = exportFormat.value as "csv" | "jsonl";
+    const stem = summary.fileName.replace(/\.[^.]+$/u, "") || "export";
+    const sessionId = summary.sessionId;
     try {
-      const result = await api.exportResult(summary.sessionId, {
-        format: exportFormat.value as "csv" | "jsonl",
+      await saveWorkerStreamedFile({
+        suggestedName: `${stem}-filtered.${format}`,
+        mimeType: format === "csv" ? "text/csv;charset=utf-8" : "application/x-ndjson;charset=utf-8",
+        extensions: [format],
+        fallbackMaxBytes: CSV_MAX_EXPORT_BYTES,
+        signal: controller.signal,
+      }, (stream, workerSignal) => api.exportResult(sessionId, {
+        format,
         columns,
         includeHeader: exportHeader.checked,
         protectFormulas: exportProtect.checked,
-        bom: exportFormat.value === "csv" && exportBom.checked,
-      }, controller.signal, updateProgress);
+        bom: format === "csv" && exportBom.checked,
+      }, stream, workerSignal, updateProgress));
       if (token !== generation || !summary) return;
-      const url = URL.createObjectURL(result.blob);
-      const link = document.createElement("a");
-      const stem = summary.fileName.replace(/\.[^.]+$/u, "") || "export";
-      link.href = url;
-      link.download = `${stem}-filtered.${result.extension}`;
-      link.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 0);
       activeAbort = null;
       setBusy(false);
       showStatus(strings.StatusDone);
@@ -515,8 +531,12 @@ function init(): void {
       if (token !== generation) return;
       activeAbort = null;
       setBusy(false);
-      if (errorCode(error) === "aborted") resetSession(strings.StatusCanceled);
-      else invalidateResult(error);
+      if (errorCode(error) === "aborted") {
+        if (error instanceof StreamSaveError && !controller.signal.aborted) showStatus(strings.StatusCanceled);
+        else resetSession(strings.StatusCanceled);
+      } else {
+        showError(error);
+      }
     }
   }
 

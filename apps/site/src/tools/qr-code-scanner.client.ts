@@ -17,7 +17,7 @@
  */
 import { qrDecode } from "@/scripts/wasm/qrcode-decode-client";
 import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { localizeResourceError, WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, copyWithFeedback, revealOutput, setDropzoneHasFile } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
 import { classifyDecodeError, isHttpUrl, isImageType, type CameraErrorKind } from "@/tools/qr-code";
@@ -39,6 +39,9 @@ interface Strings {
   errorCameraInsecure: string;
   errorCameraGeneric: string;
   processingFailed: string;
+  memoryExhausted: string;
+  invalidFormat: string;
+  corruptInput: string;
 }
 
 function readStrings(): Strings | null {
@@ -178,12 +181,17 @@ function init() {
       operation.fail(
         e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")
           ? "wasm_unavailable"
-          : e instanceof WasmError
-            ? classifyDecodeError(e.message) === "unsupportedImage" ? "unsupported_format" : "invalid_input"
-            : "processing_error",
+          : e instanceof WasmError && e.code === "memory-exhausted"
+            ? "processing_error"
+            : e instanceof WasmError
+              ? classifyDecodeError(e.message) === "unsupportedImage" ? "unsupported_format" : "invalid_input"
+              : "processing_error",
       );
+      const resourceError = localizeResourceError(e, strings);
       if (e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")) {
         showError(strings.processingFailed);
+      } else if (resourceError) {
+        showError(resourceError);
       } else if (e instanceof WasmError) {
         showError(classifyDecodeError(e.message) === "unsupportedImage" ? strings.errorUnsupportedImage : strings.errorNoQr);
       } else {

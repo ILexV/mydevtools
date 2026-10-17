@@ -17,7 +17,7 @@
  */
 import { extractText } from "@/scripts/wasm/pdf-client";
 import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { localizeResourceError, WasmError } from "@/scripts/wasm/worker-protocol";
 import { announce, bindDropzone, copyWithFeedback, revealOutput, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes, formatPlural, formatString, progressPercent } from "@/lib/format";
 import { classifyPdfError, countExtractedPages, isPdfFile, previewText, textFileName } from "@/tools/pdf-files";
@@ -38,6 +38,9 @@ interface Strings {
   /** `Common_Preparing` — first-run WASM load feedback. */
   preparing?: string;
   processingFailed: string;
+  memoryExhausted: string;
+  invalidFormat: string;
+  corruptInput: string;
   lang: string;
   previewTruncated: string;
   previewEmpty: string;
@@ -126,7 +129,8 @@ function init() {
     const { kind } = classifyPdfError(message);
     if (kind === "encrypted") return strings.errorEncrypted.replace("{name}", name);
     if (kind === "invalid") return strings.errorInvalidPdf.replace("{name}", name);
-    return `${name}: ${strings.errorExtraction}${message ? ` (${message})` : ""}`;
+    const resourceError = localizeResourceError(e, strings);
+    return `${name}: ${resourceError ?? strings.errorExtraction}${resourceError || !message ? "" : ` (${message})`}`;
   }
 
   function setBusy(on: boolean) {

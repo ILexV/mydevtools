@@ -9,7 +9,7 @@
  *
  * Network: worker + cryptography wasm load only on the first run.
  */
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { toWasmError, WasmError } from "@/scripts/wasm/worker-protocol";
 import type { AeadAlgorithm, AeadFailure, AeadWorkerRequest, AeadWorkerResponse } from "@/scripts/wasm/aead-file-protocol";
 
 export type { AeadAlgorithm, AeadFailure } from "@/scripts/wasm/aead-file-protocol";
@@ -75,10 +75,6 @@ function abortError(): DOMException {
   return new DOMException("Aborted", "AbortError");
 }
 
-function failureMessage(error: unknown, fallback: string): string {
-  return error instanceof Error && error.message ? error.message : typeof error === "string" && error ? error : fallback;
-}
-
 function detach(state: WorkerState): void {
   state.worker.removeEventListener("message", state.onMessage);
   state.worker.removeEventListener("error", state.onError);
@@ -133,7 +129,7 @@ function createWorkerState(): WorkerState {
   try {
     instance = new Worker(new URL("../../workers/aead-file.worker.ts", import.meta.url), { type: "module" });
   } catch (error) {
-    throw new WasmError("worker-failed", failureMessage(error, "Crypto worker could not be started"));
+    throw toWasmError(error, "worker-failed", "Crypto worker could not be started");
   }
 
   function onMessage(event: MessageEvent<AeadWorkerResponse>): void {
@@ -149,14 +145,15 @@ function createWorkerState(): WorkerState {
       });
       return;
     }
-    if (message.type === "error" && (message.code === "worker-failed" || message.code === "init-failed")) {
+    if (message.type === "error"
+      && (message.code === "worker-failed" || message.code === "init-failed" || message.code === "memory-exhausted")) {
       failState(state, new WasmError(message.code, message.message));
       return;
     }
     finishJob(state, message.id, pending, message);
   }
   function onError(event: ErrorEvent): void {
-    failState(state, new WasmError("worker-failed", event.message || "Crypto worker failed"));
+    failState(state, toWasmError(event.message, "worker-failed", "Crypto worker failed"));
   }
   function onMessageError(): void {
     failState(state, new WasmError("worker-failed", "Crypto worker response could not be decoded"));
@@ -182,7 +179,7 @@ function createWorkerState(): WorkerState {
     } catch {
       // The rejected run still reports the original startup failure.
     }
-    throw new WasmError("worker-failed", failureMessage(error, "Crypto worker could not be started"));
+    throw toWasmError(error, "worker-failed", "Crypto worker could not be started");
   }
   return state;
 }
@@ -195,11 +192,7 @@ function runJob(job: Job, opts: AeadRunOptions): Promise<ResultMessage> {
       state = createWorkerState();
       active = state;
     } catch (error) {
-      return Promise.reject(
-        error instanceof WasmError
-          ? error
-          : new WasmError("worker-failed", failureMessage(error, "Crypto worker could not be started")),
-      );
+      return Promise.reject(toWasmError(error, "worker-failed", "Crypto worker could not be started"));
     }
   }
   const current = state;
@@ -218,7 +211,7 @@ function runJob(job: Job, opts: AeadRunOptions): Promise<ResultMessage> {
   } catch (error) {
     failState(
       current,
-      new WasmError("worker-failed", failureMessage(error, "Crypto worker request could not be sent")),
+      toWasmError(error, "worker-failed", "Crypto worker request could not be sent"),
     );
   }
   return promise;

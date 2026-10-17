@@ -17,7 +17,7 @@
  */
 import { mergePdfs } from "@/scripts/wasm/pdf-client";
 import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { localizeResourceError, WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, revealOutput, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
 import { classifyPdfError, isPdfFile, moveItem } from "@/tools/pdf-files";
@@ -42,6 +42,9 @@ interface Strings {
   /** `Common_Preparing` — first-run WASM load feedback. */
   preparing?: string;
   processingFailed: string;
+  memoryExhausted: string;
+  invalidFormat: string;
+  corruptInput: string;
 }
 
 function readStrings(): Strings | null {
@@ -202,7 +205,8 @@ function init() {
     failedIndex = index;
     if (name && kind === "encrypted") return strings.errorEncrypted.replace("{name}", name);
     if (name && kind === "invalid") return strings.errorInvalidPdf.replace("{name}", name);
-    return message ? `${strings.errorMerge} (${message})` : strings.errorMerge;
+    const resourceError = localizeResourceError(e, strings);
+    return resourceError ?? (message ? `${strings.errorMerge} (${message})` : strings.errorMerge);
   }
 
   async function handleMerge() {

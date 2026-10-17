@@ -20,7 +20,7 @@ import init, * as crypto from "@/generated/wasm/cryptography/cryptography.js";
 import { sshPublicKeyInfo, sshToPkcs8Pem } from "@/scripts/wasm/crypto-client";
 import { sshGenerateInWorker } from "@/scripts/wasm/keygen-client";
 import type { SshKeygenType } from "@/scripts/wasm/keygen-protocol";
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { localizeResourceError, WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, bindEmptyState, copyWithFeedback, revealOutput, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
 import { guessSshInput, rsaBits, sshErrorKey } from "@/tools/openssh-keys-helpers";
@@ -41,6 +41,9 @@ interface Strings {
   generationCanceled: string;
   /** `Common_Preparing` — first-run WASM load feedback. */
   preparing?: string;
+  memoryExhausted: string;
+  invalidFormat: string;
+  corruptInput: string;
 }
 
 /** Key files are tiny; anything bigger is certainly not a key. */
@@ -162,11 +165,12 @@ function initTool(): void {
     const message = err instanceof Error ? err.message : String(err);
     const key = sshErrorKey(message);
     if (key) passInput.setAttribute("aria-invalid", "true");
+    const resourceError = localizeResourceError(err, strings);
     const text = key === "ErrorPassphraseRequired"
       ? strings.errorPassphraseRequired
       : key === "ErrorWrongPassphrase"
         ? strings.errorWrongPassphrase
-        : message;
+        : resourceError ?? message;
     box.textContent = "";
     const strong = document.createElement("strong");
     strong.textContent = `${strings.error}:`;

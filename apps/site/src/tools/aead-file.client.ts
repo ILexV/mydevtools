@@ -17,7 +17,7 @@ import {
   type AeadAlgorithm,
   type AeadProgress,
 } from "@/scripts/wasm/aead-file-client";
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { localizeResourceError, WasmError } from "@/scripts/wasm/worker-protocol";
 import { formatBytes } from "@/lib/format";
 import { revealOutput, startPreparing, syncEmptyState } from "@/scripts/tool-ui";
 import { aeadProgressView, decryptedName, encryptedName } from "@/tools/aead-file-helpers";
@@ -37,6 +37,9 @@ interface Strings {
   /** `Common_Preparing` — first-run WASM load feedback. */
   preparing?: string;
   processingFailed: string;
+  memoryExhausted: string;
+  invalidFormat: string;
+  corruptInput: string;
 }
 
 function readStrings(): Strings | null {
@@ -185,7 +188,7 @@ function init() {
     } else if (e instanceof AeadError && e.failure === "header") {
       showError(strings.errorInvalidContainer);
     } else {
-      showError(strings.processingFailed);
+      showError(localizeResourceError(e, strings) ?? strings.processingFailed);
     }
   }
 

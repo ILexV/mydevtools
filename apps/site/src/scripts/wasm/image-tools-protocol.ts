@@ -2,6 +2,8 @@
  * Message protocol between `image-tools-client` and `image-tools.worker`.
  * Input/output image bytes travel as transferred ArrayBuffers.
  */
+import type { WasmErrorCode } from "@/scripts/wasm/worker-protocol";
+
 export type ImageWorkerRequest =
   | { id: number; op: "compress" | "convert"; input: ArrayBuffer; format: string; quality: number }
   | { id: number; op: "resize"; input: ArrayBuffer; width: number; height: number; format: string };
@@ -12,4 +14,4 @@ export type ImageWorkerRequest =
  */
 export type ImageWorkerResponse =
   | { id: number; ok: true; output: ArrayBuffer; webpLossy: boolean }
-  | { id: number; ok: false; message: string };
+  | { id: number; ok: false; message: string; code?: WasmErrorCode };

@@ -28,6 +28,8 @@ export const TOOL_ICONS: Record<string, string> = {
   "json-explorer": `<circle cx="5" cy="4.6" r="1.7"/><circle cx="11" cy="10" r="1.5"/><circle cx="11" cy="15.4" r="1.5"/><path d="M5 6.3v9.1h4.5M5 10h4.5M14 10h3M14 15.4h3"/>`,
   "csv-explorer": `<rect x="3" y="3.5" width="14" height="13" rx="2"/><path d="M3 7.8h14M3 12.2h14M8 3.5v13M12.5 3.5v13"/>`,
   "parquet-explorer": `<rect x="3" y="3.5" width="3.6" height="13" rx="1"/><rect x="8.2" y="3.5" width="3.6" height="13" rx="1"/><rect x="13.4" y="3.5" width="3.6" height="13" rx="1"/><path d="M3 8.5h3.6M8.2 11.5h3.6M13.4 7h3.6"/>`,
+  "local-data-playground": `<ellipse cx="10" cy="5" rx="6.5" ry="2.5"/><path d="M3.5 5v5c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5V5M3.5 10v5c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-5"/>`,
+  "data-format-converter": `<path d="M3 5h10M10 2l3 3-3 3M17 15H7M10 12l-3 3 3 3"/><path d="M4 9.5h12" stroke-opacity=".45"/>`,
   "xml-beautifier": `<path d="M6.5 6 3 10l3.5 4M13.5 6 17 10l-3.5 4M11.4 4.5 8.6 15.5"/>`,
   "yaml-beautifier-validator": `<path d="M3.5 5h1.5M7.5 5h9M6 10h1.5M10 10h6.5M6 15h1.5M10 15h6.5"/>`,
   "cron-generator": `<circle cx="8.5" cy="9" r="5.5"/><path d="M8.5 6v3l2.1 1.4M15.5 13v4.5M13.25 15.25h4.5"/>`,

@@ -4,7 +4,7 @@
  * infrastructure failure terminates that exact instance and settles every
  * job posted to it.
  */
-import { WasmError, type WasmErrorCode } from "./worker-protocol.ts";
+import { toWasmError, WasmError, type WasmErrorCode } from "./worker-protocol.ts";
 
 export interface JobProgress {
   processed: number;
@@ -50,10 +50,6 @@ interface WorkerState<Res> {
   onMessage: (event: MessageEvent<JobResponse<Res>>) => void;
   onError: (event: ErrorEvent) => void;
   onMessageError: () => void;
-}
-
-function errorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error && error.message ? error.message : typeof error === "string" && error ? error : fallback;
 }
 
 function isProgressResponse<T>(message: JobResponse<T>): message is JobProgressResponse {
@@ -107,7 +103,7 @@ export function createJobWorker<Req extends object, Res extends object>(spawn: (
     try {
       instance = spawn();
     } catch (error) {
-      throw new WasmError("worker-failed", errorMessage(error, "Worker could not be started"));
+      throw toWasmError(error, "worker-failed", "Worker could not be started");
     }
 
     function onMessage(event: MessageEvent<JobResponse<Res>>): void {
@@ -130,8 +126,8 @@ export function createJobWorker<Req extends object, Res extends object>(spawn: (
         return;
       }
       if ("ok" in message && !message.ok) {
-        const error = new WasmError(message.code ?? "unknown", message.message);
-        if (message.code === "worker-failed" || message.code === "init-failed") {
+        const error = toWasmError(message.message, message.code ?? "unknown", message.message);
+        if (error.code === "worker-failed" || error.code === "init-failed" || error.code === "memory-exhausted") {
           discard(state, error);
         } else {
           cleanupJob(state, message.id, pending);
@@ -142,7 +138,7 @@ export function createJobWorker<Req extends object, Res extends object>(spawn: (
       discard(state, new WasmError("worker-failed", "Worker returned an invalid response"));
     }
     function onError(event: ErrorEvent): void {
-      discard(state, new WasmError("worker-failed", event.message || "Worker failed"));
+      discard(state, toWasmError(event.message, "worker-failed", "Worker failed"));
     }
     function onMessageError(): void {
       discard(state, new WasmError("worker-failed", "Worker response could not be decoded"));
@@ -164,7 +160,7 @@ export function createJobWorker<Req extends object, Res extends object>(spawn: (
     } catch (error) {
       detach(state);
       instance.terminate();
-      throw new WasmError("worker-failed", errorMessage(error, "Worker could not be started"));
+      throw toWasmError(error, "worker-failed", "Worker could not be started");
     }
     return state;
   }
@@ -183,11 +179,7 @@ export function createJobWorker<Req extends object, Res extends object>(spawn: (
         state = spawnState();
         active = state;
       } catch (error) {
-        return Promise.reject(
-          error instanceof WasmError
-            ? error
-            : new WasmError("worker-failed", errorMessage(error, "Worker could not be started")),
-        );
+        return Promise.reject(toWasmError(error, "worker-failed", "Worker could not be started"));
       }
     }
     const current = state;
@@ -208,7 +200,7 @@ export function createJobWorker<Req extends object, Res extends object>(spawn: (
     try {
       current.worker.postMessage({ ...req, id }, transfer);
     } catch (error) {
-      discard(current, new WasmError("worker-failed", errorMessage(error, "Worker request could not be sent")));
+      discard(current, toWasmError(error, "worker-failed", "Worker request could not be sent"));
     }
     return promise;
   }

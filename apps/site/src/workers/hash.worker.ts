@@ -7,8 +7,9 @@
  *
  * No SharedArrayBuffer; the `File` arrives via structured clone.
  */
+import { readBlobChunks } from "@/scripts/blob-chunks";
 import init, { Hasher } from "@/generated/wasm/hash/hash.js";
-import type { WorkerRequest, WorkerResponse, HashResult, WasmErrorCode } from "@/scripts/wasm/worker-protocol";
+import { classifyWorkerError, type WorkerRequest, type WorkerResponse, type HashResult } from "@/scripts/wasm/worker-protocol";
 
 const CHUNK_SIZE = 1024 * 1024; // 1 MiB
 
@@ -29,12 +30,9 @@ async function hashBlob(file: Blob, algorithms: string[], id: number): Promise<H
   const start = performance.now();
   post({ type: "progress", id, processed, total, elapsedMs: 0 });
 
-  while (processed < total) {
-    const end = Math.min(processed + CHUNK_SIZE, total);
-    const buf = await file.slice(processed, end).arrayBuffer();
-    const bytes = new Uint8Array(buf);
-    for (const { h } of hashers) h.update(bytes);
-    processed += bytes.byteLength;
+  for await (const chunk of readBlobChunks(file, { chunkBytes: CHUNK_SIZE })) {
+    for (const { h } of hashers) h.update(chunk.bytes);
+    processed = chunk.end;
     post({ type: "progress", id, processed, total, elapsedMs: performance.now() - start });
   }
   return hashers.map(({ alg, h }) => ({ id: h.algorithm() ?? alg, hex: h.finalize() }));
@@ -47,11 +45,13 @@ self.addEventListener("message", async (ev: MessageEvent<WorkerRequest>) => {
     await ensureReady();
     // Convert text once, inside the worker; every algorithm consumes the same bytes.
     const hashes = await hashBlob(req.file ?? new Blob([req.text ?? ""]), algorithms, id);
-    post({ type: "result", id, hashes });
+    post({ id, ok: true, hashes });
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    const code: WasmErrorCode = /algorithm/i.test(message) ? "invalid-algorithm" : "unknown";
-    post({ type: "error", id, code, message });
+    const classified = classifyWorkerError(e);
+    const code = classified.code === "memory-exhausted"
+      ? classified.code
+      : /algorithm/iu.test(classified.message) ? "invalid-algorithm" : classified.code;
+    post({ id, ok: false, code, message: classified.message });
   }
 });
 

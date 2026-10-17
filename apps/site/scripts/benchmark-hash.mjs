@@ -489,11 +489,11 @@ async function installBrowserHarness(page, workerUrl) {
               if (!message || message.id !== id) return;
               if (message.type === "progress") return;
               cleanup();
-              if (message.type === "error") {
+              if (message.ok === false) {
                 reject(new Error(`Hash worker error (${message.code ?? "unknown"}): ${message.message ?? "no detail"}`));
                 return;
               }
-              if (message.type !== "result" || !Array.isArray(message.hashes)) {
+              if (message.ok !== true || !Array.isArray(message.hashes)) {
                 reject(new Error(`Unexpected hash worker response: ${JSON.stringify(message)}`));
                 return;
               }

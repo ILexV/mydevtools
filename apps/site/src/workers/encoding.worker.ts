@@ -4,10 +4,11 @@
  * runs the encode/decode via the encoding glue. The whole file is read first;
  * the client terminates this worker on success, error or cancellation.
  */
+import { readBlobChunks } from "@/scripts/blob-chunks";
 import init, * as enc from "@/generated/wasm/encoding/encoding.js";
 import type { EncodingOptions } from "@/scripts/wasm/encoding-client";
 import type { EncodingWorkerRequest, EncodingWorkerResponse } from "@/scripts/wasm/encoding-file-protocol";
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { classifyWorkerError, WasmError } from "@/scripts/wasm/worker-protocol";
 
 const CHUNK_SIZE = 1024 * 1024;
 
@@ -30,13 +31,9 @@ async function readFileBytes(file: File, id: number): Promise<Uint8Array> {
   const total = file.size;
   const out = new Uint8Array(total);
   const start = performance.now();
-  let processed = 0;
-  while (processed < total) {
-    const end = Math.min(processed + CHUNK_SIZE, total);
-    const buf = await file.slice(processed, end).arrayBuffer();
-    out.set(new Uint8Array(buf), processed);
-    processed += buf.byteLength;
-    post({ type: "progress", id, processed, total, elapsedMs: performance.now() - start });
+  for await (const chunk of readBlobChunks(file, { chunkBytes: CHUNK_SIZE })) {
+    out.set(chunk.bytes, chunk.offset);
+    post({ type: "progress", id, processed: chunk.end, total, elapsedMs: performance.now() - start });
   }
   return out;
 }
@@ -81,12 +78,13 @@ self.addEventListener("message", async (ev: MessageEvent<EncodingWorkerRequest>)
       const input = await readFileText(file, id);
       bytes = decodeText(options, input);
     }
-    const result = { type: "result", id, direction, text, bytes } satisfies EncodingWorkerResponse;
+    const result = { id, ok: true, direction, text, bytes } satisfies EncodingWorkerResponse;
     // Bindings return standalone byte arrays; transfer them instead of cloning.
     if (bytes) (self as DedicatedWorkerGlobalScope).postMessage(result, [bytes.buffer as ArrayBuffer]);
     else post(result);
   } catch (e) {
-    post({ type: "error", id, code: e instanceof WasmError ? e.code : "unknown", message: e instanceof Error ? e.message : String(e) });
+    const error = classifyWorkerError(e);
+    post({ id, ok: false, code: error.code, message: error.message });
   }
 });
 

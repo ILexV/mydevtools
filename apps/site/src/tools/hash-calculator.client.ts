@@ -13,7 +13,7 @@
  */
 import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
 import { hashText, hashFile, type ProgressInfo } from "@/scripts/wasm/hash-client";
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { localizeResourceError, WasmError } from "@/scripts/wasm/worker-protocol";
 import { HASH_ALGORITHMS, DEFAULT_HASH_ALGORITHMS } from "@/tools/hash-algorithms";
 import { formatBytes, formatMs, formatString, progressPercent } from "@/lib/format";
 import { matchingDigests, parseExpectedHash } from "@/tools/hash-compare";
@@ -61,6 +61,9 @@ interface Strings {
   statusCanceled: string;
   statusError: string;
   processingError: string;
+  memoryExhausted: string;
+  invalidFormat: string;
+  corruptInput: string;
   progressStats: string;
   resultStats: string;
 }
@@ -521,7 +524,8 @@ function init() {
             group.status = "canceled";
           } else {
             group.status = "error";
-            group.error = `${strings.processingError} ${error instanceof Error ? error.message : String(error)}`;
+            group.error = localizeResourceError(error, strings)
+              ?? `${strings.processingError} ${error instanceof Error ? error.message : String(error)}`;
           }
         }
         group.elapsedMs = performance.now() - fileStart;

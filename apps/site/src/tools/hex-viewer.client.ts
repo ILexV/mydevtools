@@ -7,6 +7,7 @@ import { startToolOperation, type ToolOperation } from "@/scripts/analytics/inst
 import { createExplorerTable, type ExplorerTable } from "@/scripts/explorer-table";
 import { bindDropzone, setDropzoneHasFile, syncEmptyState } from "@/scripts/tool-ui";
 import { formatBytes, formatMs, formatString, progressPercent } from "@/lib/format";
+import { localizeResourceError } from "@/scripts/wasm/worker-protocol";
 import {
   HEX_BYTES_PER_ROW,
   HEX_MAX_MATCHES,
@@ -60,6 +61,9 @@ interface Strings {
   ErrorRangeLarge: string;
   ErrorWorker: string;
   ErrorGeneric: string;
+  MemoryExhausted: string;
+  InvalidFormat: string;
+  CorruptInput: string;
 }
 
 const ERROR_MESSAGES: Readonly<Record<string, true>> = {
@@ -173,9 +177,7 @@ function init(): void {
 
   function errorCode(error: unknown): string {
     if (error instanceof Error && ERROR_MESSAGES[error.message]) return error.message;
-    if (typeof error === "object" && error !== null && "code" in error && ERROR_MESSAGES[String(error.code)]) {
-      return String(error.code);
-    }
+    if (typeof error === "object" && error !== null && "code" in error) return String(error.code);
     return "unknown";
   }
 
@@ -189,7 +191,12 @@ function init(): void {
       case "range-too-large": return strings.ErrorRangeLarge;
       case "worker-failed":
       case "unknown": return strings.ErrorWorker;
-      default: return strings.ErrorGeneric;
+      default:
+        return localizeResourceError(error, {
+          memoryExhausted: strings.MemoryExhausted,
+          invalidFormat: strings.InvalidFormat,
+          corruptInput: strings.CorruptInput,
+        }) ?? strings.ErrorGeneric;
     }
   }
 

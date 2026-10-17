@@ -28,7 +28,7 @@ import {
   type EncodingOptions,
 } from "@/scripts/wasm/encoding-client";
 import { encodeFile, decodeFile } from "@/scripts/wasm/encoding-file-client";
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { localizeResourceError, WasmError } from "@/scripts/wasm/worker-protocol";
 import { charIndexToUtf16, classifyEncodingError, outputFileName, previewText, type EncodingErrorKey } from "@/tools/encoding-ui";
 
 /** "preview" output mode truncates the textarea at this many chars. */
@@ -51,6 +51,9 @@ export interface EncodingToolStrings {
   errCopyFailed: string;
   error: string;
   processingFailed: string;
+  memoryExhausted: string;
+  invalidFormat: string;
+  corruptInput: string;
   fileSizeLimitEncode?: string;
   fileSizeLimitDecode?: string;
   /** `Common_Preparing` — first-run WASM load feedback. */
@@ -229,12 +232,13 @@ export function initEncodingTool(config: EncodingToolConfig): void {
       clearError(); // cancellation is not an error to surface
       return;
     }
-    if (e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")) {
+    const resourceError = localizeResourceError(e, strings);
+    if (resourceError || (e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed"))) {
       setOutput("");
       setStats(null);
       setLastDownload(null);
       inputArea.removeAttribute("aria-invalid");
-      showError(strings.processingFailed);
+      showError(resourceError ?? strings.processingFailed);
       return;
     }
     const message = e instanceof Error ? e.message : String(e);

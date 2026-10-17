@@ -87,6 +87,8 @@ const TOOL_CATALOG = [
   { slug: "json-explorer", monogram: "J{}", category: "structured-data", wasm: null, capabilities: { file: "single", chunked: true, progress: true, cancel: true, download: true } },
   { slug: "csv-explorer", monogram: "CSV", category: "structured-data", wasm: null, capabilities: { file: "single", chunked: true, progress: true, cancel: true, download: true } },
   { slug: "parquet-explorer", monogram: "PQ", category: "structured-data", wasm: null, capabilities: { file: "single", chunked: true, progress: true, cancel: true, download: true } },
+  { slug: "local-data-playground", monogram: "SQL", category: "structured-data", wasm: null, capabilities: { file: "single", chunked: true, progress: true, cancel: true, codeEditor: true, download: true } },
+  { slug: "data-format-converter", monogram: "↔", category: "structured-data", wasm: null, capabilities: { file: "single", chunked: true, progress: true, cancel: true, download: true } },
   { slug: "xml-beautifier", monogram: "</>", category: "structured-data", wasm: null, capabilities: { codeEditor: true, copy: true } },
   { slug: "yaml-beautifier-validator", monogram: "Y:", category: "structured-data", wasm: "structured_data", capabilities: { codeEditor: true, copy: true } },
   { slug: "cron-generator", monogram: "*/5", category: "structured-data", wasm: null, capabilities: { copy: true } },

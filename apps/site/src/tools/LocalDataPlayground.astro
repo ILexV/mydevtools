@@ -1,0 +1,165 @@
+---
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import FileDrop from "@/components/tool/FileDrop.astro";
+import Icon from "@/components/Icon.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import Progress from "@/components/tool/Progress.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import { editorPhrases } from "@/tools/editor-phrases";
+import "@/styles/codemirror.css";
+import "@/styles/explorer-ui.css";
+
+interface Props { lang: LocaleCode }
+const { lang } = Astro.props as Props;
+const ns = "tools/local-data-playground";
+const clientKeys = [
+  "EditorLabel", "StatusReady", "StatusLoadingEngine", "StatusImporting", "StatusImported", "StatusRunning",
+  "StatusComplete", "StatusCanceled", "StatusRestarted", "StatusExporting", "StatusExported", "ProgressPattern",
+  "TableSummary", "ResultSummary", "ResultTruncated", "TableEmpty", "TableLoading", "RowLabel", "NoTables", "RemoveTable",
+  "ErrorFile", "ErrorFormat", "ErrorTableName", "ErrorImport", "ErrorJson", "ErrorSql", "ErrorRestricted", "ErrorMemory",
+  "ErrorExport", "ErrorCanceled", "ErrorGeneric", "ExampleSelect", "ExampleWhere", "ExampleGroup", "ExampleJoin",
+] as const;
+const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
+const stringsJson = JSON.stringify({ ...strings, Lang: lang, Phrases: editorPhrases(lang) });
+---
+
+<div class="ds-workbench ldp-workbench" data-local-data-tool>
+  <ToolPanel title={t(lang, ns, "ImportTitle")} class="ldp-import-panel">
+    <FileDrop
+      compact
+      title={t(lang, ns, "DropTitle")}
+      buttonLabel={t(lang, ns, "DropButton")}
+      changeLabel={t(lang, ns, "DropChange")}
+      sub={t(lang, ns, "DropHint")}
+      accept=".csv,.tsv,.json,.jsonl,.ndjson,.parquet,text/csv,application/json,application/vnd.apache.parquet"
+      data-local-data-dropzone
+      inputProps={{ "data-local-data-file": true }}
+    />
+    <div class="ds-settings ldp-import-settings">
+      <Field label={t(lang, ns, "TableName")} for="ldp-table-name" hint={t(lang, ns, "TableNameHint")}>
+        <input id="ldp-table-name" class="ds-field mono" type="text" value="data" maxlength="128" autocomplete="off" spellcheck="false" data-local-data-table-name />
+      </Field>
+      <Field label={t(lang, ns, "FormatLabel")} for="ldp-format">
+        <select id="ldp-format" class="ds-field-select" data-local-data-format>
+          <option value="auto">{t(lang, ns, "FormatAuto")}</option>
+          <option value="csv">CSV / TSV</option>
+          <option value="json">JSON</option>
+          <option value="jsonl">JSONL / NDJSON</option>
+          <option value="parquet">Parquet</option>
+        </select>
+      </Field>
+      <Field label={t(lang, ns, "DelimiterLabel")} for="ldp-delimiter" data-local-data-csv-option>
+        <select id="ldp-delimiter" class="ds-field-select" data-local-data-delimiter>
+          <option value=",">{t(lang, ns, "DelimiterComma")}</option>
+          <option value=";">{t(lang, ns, "DelimiterSemicolon")}</option>
+          <option value={"\t"}>{t(lang, ns, "DelimiterTab")}</option>
+          <option value="|">{t(lang, ns, "DelimiterPipe")}</option>
+        </select>
+      </Field>
+      <Field label={t(lang, ns, "EncodingLabel")} for="ldp-encoding" data-local-data-csv-option>
+        <select id="ldp-encoding" class="ds-field-select" data-local-data-encoding>
+          <option value="utf-8">UTF-8</option>
+          <option value="utf-16le">UTF-16 LE</option>
+          <option value="utf-16be">UTF-16 BE</option>
+          <option value="windows-1251">Windows-1251</option>
+          <option value="windows-1252">Windows-1252</option>
+          <option value="iso-8859-1">ISO-8859-1</option>
+        </select>
+      </Field>
+    </div>
+    <label class="ds-check-row" data-local-data-csv-option><input class="ds-check" type="checkbox" checked data-local-data-header /><span>{t(lang, ns, "HeaderLabel")}</span></label>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" disabled data-local-data-import><Icon name="upload" size={16} />{t(lang, ns, "ImportButton")}</button>
+      <button type="button" class="ds-btn" data-local-data-restart>{t(lang, ns, "RestartButton")}</button>
+    </div>
+    <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
+    <p class="ds-hint ldp-limit-note">{t(lang, ns, "LimitNote")}</p>
+    <Progress
+      indeterminate
+      title={t(lang, ns, "ProgressTitle")}
+      barLabel={t(lang, ns, "ProgressTitle")}
+      cancelLabel={t(lang, ns, "Cancel")}
+      data-local-data-progress
+      cancelProps={{ "data-local-data-cancel": true }}
+      labelProps={{ "data-local-data-progress-label": true }}
+    />
+    <StatusMessage kind="info" data-local-data-status />
+    <StatusMessage kind="error" data-local-data-error />
+    <section class="ldp-tables" aria-labelledby="ldp-tables-title">
+      <h3 class="ds-label" id="ldp-tables-title">{t(lang, ns, "TablesTitle")}</h3>
+      <p class="ds-hint" data-local-data-tables-empty>{t(lang, ns, "NoTables")}</p>
+      <ul class="ldp-table-list" data-local-data-tables></ul>
+    </section>
+  </ToolPanel>
+
+  <ToolPanel title={t(lang, ns, "QueryTitle")} class="ldp-query-panel">
+    <div class="ldp-examples" aria-label={t(lang, ns, "ExamplesTitle")}>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-local-data-example="select">{t(lang, ns, "ExampleSelect")}</button>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-local-data-example="where">{t(lang, ns, "ExampleWhere")}</button>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-local-data-example="group">{t(lang, ns, "ExampleGroup")}</button>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-local-data-example="join">{t(lang, ns, "ExampleJoin")}</button>
+    </div>
+    <div class="mdt-cm ldp-editor" data-local-data-editor></div>
+    <p class="ds-hint" id="ldp-editor-hint">{t(lang, ns, "EditorHint")}</p>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" disabled data-local-data-run><Icon name="zap" size={16} />{t(lang, ns, "RunButton")}</button>
+      <span class="ds-action-row-aside">{t(lang, ns, "RunHint")}</span>
+    </div>
+  </ToolPanel>
+
+  <OutputPanel panel label={t(lang, ns, "ResultsTitle")} emptyHint={t(lang, ns, "ResultsEmpty")} class="ds-workbench-wide" data-local-data-output>
+    <div class="ds-when-filled ldp-results" data-local-data-results hidden>
+      <p class="ldp-summary" data-local-data-summary></p>
+      <div data-local-data-table></div>
+      <section class="ldp-export" aria-labelledby="ldp-export-title">
+        <h3 class="ds-label" id="ldp-export-title">{t(lang, ns, "ExportTitle")}</h3>
+        <div class="ds-settings">
+          <Field label={t(lang, ns, "ExportFormat")} for="ldp-export-format">
+            <select id="ldp-export-format" class="ds-field-select" data-local-data-export-format>
+              <option value="csv">CSV</option>
+              <option value="json">JSON</option>
+              <option value="jsonl">JSONL</option>
+              <option value="parquet">Parquet</option>
+            </select>
+          </Field>
+          <Field label={t(lang, ns, "DelimiterLabel")} for="ldp-export-delimiter" data-local-data-export-csv>
+            <select id="ldp-export-delimiter" class="ds-field-select" data-local-data-export-delimiter>
+              <option value=",">{t(lang, ns, "DelimiterComma")}</option>
+              <option value=";">{t(lang, ns, "DelimiterSemicolon")}</option>
+              <option value={"\t"}>{t(lang, ns, "DelimiterTab")}</option>
+              <option value="|">{t(lang, ns, "DelimiterPipe")}</option>
+            </select>
+          </Field>
+        </div>
+        <label class="ds-check-row" data-local-data-export-csv><input class="ds-check" type="checkbox" checked data-local-data-export-header /><span>{t(lang, ns, "ExportHeader")}</span></label>
+        <p class="ds-hint">{t(lang, ns, "ExportHint")}</p>
+        <div class="ds-action-row">
+          <button type="button" class="ds-btn ds-btn-primary" data-local-data-export><Icon name="download" size={16} />{t(lang, ns, "ExportButton")}</button>
+        </div>
+      </section>
+    </div>
+  </OutputPanel>
+</div>
+
+<script is:inline type="application/json" data-local-data-strings set:html={stringsJson} />
+<script>import "@/tools/local-data-playground.client.ts";</script>
+
+<style>
+  .ldp-workbench { --ds-workbench-cols: minmax(18rem, 0.7fr) minmax(0, 1.3fr); align-items: start; }
+  .ldp-import-panel, .ldp-query-panel { height: 100%; }
+  .ldp-import-settings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ldp-limit-note { padding: 0.65rem 0.75rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-xs); background: var(--mdt-surface-inset); }
+  .ldp-tables, .ldp-results, .ldp-export { display: grid; gap: 0.75rem; min-width: 0; }
+  .ldp-table-list { display: grid; gap: 0.45rem; margin: 0; padding: 0; list-style: none; }
+  .ldp-table-list :global(li) { display: flex; align-items: start; justify-content: space-between; gap: 0.5rem; padding: 0.6rem 0.7rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-xs); background: var(--mdt-surface-inset); }
+  .ldp-table-list :global(code) { color: var(--mdt-text); overflow-wrap: anywhere; }
+  .ldp-table-list :global(small) { display: block; margin-top: 0.2rem; color: var(--mdt-text-faint); }
+  .ldp-examples { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .ldp-editor { --mdt-cm-height: clamp(16rem, 42vh, 23rem); }
+  .ldp-summary { margin: 0; color: var(--mdt-text-muted); font-size: var(--mdt-fs-label); font-variant-numeric: tabular-nums; }
+  .ldp-export { padding-top: 1rem; border-top: 1px solid var(--mdt-border-soft); }
+  @media (max-width: 42rem) { .ldp-import-settings { grid-template-columns: 1fr; } }
+</style>

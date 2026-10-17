@@ -43,6 +43,8 @@ import JsonToTypeScript from "@/tools/JsonToTypeScript.astro";
 import JsonExplorer from "@/tools/JsonExplorer.astro";
 import CsvExplorer from "@/tools/CsvExplorer.astro";
 import ParquetExplorer from "@/tools/ParquetExplorer.astro";
+import LocalDataPlayground from "@/tools/LocalDataPlayground.astro";
+import DataFormatConverter from "@/tools/DataFormatConverter.astro";
 import XmlBeautifier from "@/tools/XmlBeautifier.astro";
 import YamlBeautifierValidator from "@/tools/YamlBeautifierValidator.astro";
 import CronGenerator from "@/tools/CronGenerator.astro";
@@ -130,6 +132,8 @@ const TOOL_COMPONENTS: Record<string, any> = {
   "json-explorer": JsonExplorer,
   "csv-explorer": CsvExplorer,
   "parquet-explorer": ParquetExplorer,
+  "local-data-playground": LocalDataPlayground,
+  "data-format-converter": DataFormatConverter,
   "yaml-beautifier-validator": YamlBeautifierValidator,
   "cron-generator": CronGenerator,
   "cron-parser": CronParser,

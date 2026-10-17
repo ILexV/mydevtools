@@ -19,7 +19,7 @@
  */
 import { convertImage, resizeImage } from "@/scripts/wasm/image-tools-client";
 import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { localizeResourceError, WasmError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, revealOutput, setDropzoneHasFile, syncEmptyState, withPreparing } from "@/scripts/tool-ui";
 import { formatBytes } from "@/lib/format";
 import { bindImageCompare } from "@/scripts/image-compare";
@@ -44,6 +44,9 @@ interface Strings {
   errorTooLarge: string;
   errorResizeFailed: string;
   errorDamaged: string;
+  memoryExhausted: string;
+  invalidFormat: string;
+  corruptInput: string;
   /** `Common_Preparing` — first-run WASM load feedback. */
   preparing?: string;
 }
@@ -312,8 +315,10 @@ function init() {
       );
       hideOutput();
       const detail = e instanceof Error ? e.message : "";
-      // Undecodable input: plain localized message, raw decoder text dropped.
+      const resourceError = localizeResourceError(e, strings!);
+      // Undecodable input keeps its tool-specific copy; resource failures hide runtime text.
       if (isImageDecodeError(detail)) showError(strings!.errorDamaged);
+      else if (resourceError) showError(resourceError);
       else showError(strings!.errorResizeFailed, detail);
     } finally {
       if (job === ctrl) job = null;

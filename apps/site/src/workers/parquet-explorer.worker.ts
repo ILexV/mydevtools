@@ -4,8 +4,9 @@
  * exports off the main thread. Cancel terminates this worker, which drops the
  * file handle and any half-built download.
  */
+import { classifyWorkerError, createWorkerByteWriter } from "@/scripts/wasm/worker-protocol";
 import { ParquetExplorerError } from "@/tools/parquet-explorer";
-import { asyncBufferFromBlob, exportParquet, openParquet, readParquetRows, type ParquetFileSummary } from "@/tools/parquet-explorer-io";
+import { asyncBufferFromBlob, exportParquetStream, openParquet, readParquetRows, type ParquetFileSummary } from "@/tools/parquet-explorer-io";
 import type { ParquetExplorerRequest, ParquetExplorerSuccess, ParquetExplorerWorkerMessage } from "@/tools/parquet-explorer-protocol";
 
 interface Session {
@@ -69,19 +70,21 @@ async function handle(id: number, request: ParquetExplorerRequest): Promise<void
       }
       case "export": {
         const current = requireSession(request.sessionId);
-        const exported = await exportParquet(
+        const writer = createWorkerByteWriter(request.stream);
+        const exported = await exportParquetStream(
           asyncBufferFromBlob(current.file),
           current.summary,
           request,
+          (bytes) => writer.write(bytes),
           (processed, total) => progress(id, processed, total, started),
         );
+        writer.close();
         const csv = request.format === "csv";
         result = {
           kind: "export",
           sessionId: current.id,
-          blob: new Blob([exported.bytes.slice()], { type: csv ? "text/csv;charset=utf-8" : "application/jsonl;charset=utf-8" }),
           extension: request.format,
-          mime: csv ? "text/csv" : "application/jsonl",
+          mime: csv ? "text/csv;charset=utf-8" : "application/x-ndjson;charset=utf-8",
           rowCount: exported.rowCount,
         };
         break;
@@ -94,11 +97,15 @@ async function handle(id: number, request: ParquetExplorerRequest): Promise<void
     const limited = parquetError?.code === "too-many-columns"
       || parquetError?.code === "export-too-large"
       || parquetError?.code === "cell-too-large";
+    const fallback = parquetError
+      ? limited ? "input-too-large" : parquetError.code === "invalid" ? "invalid-format" : "unknown"
+      : "worker-failed";
+    const classified = classifyWorkerError(error, fallback);
     post({
       id,
       ok: false,
-      code: parquetError ? (limited ? "input-too-large" : "unknown") : "worker-failed",
-      message: parquetError?.code ?? (error instanceof Error ? error.message : String(error)),
+      code: classified.code,
+      message: parquetError?.code ?? classified.message,
     });
   }
 }

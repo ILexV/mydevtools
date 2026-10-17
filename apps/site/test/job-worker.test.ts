@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createJobWorker } from "../src/scripts/wasm/job-worker.ts";
-import { WasmError } from "../src/scripts/wasm/worker-protocol.ts";
+import { classifyWorkerError, WasmError } from "../src/scripts/wasm/worker-protocol.ts";
 
 type WorkerEventType = "message" | "error" | "messageerror";
 type WorkerListener = (event: { data?: unknown; message?: string }) => void;
@@ -194,4 +194,45 @@ test("construction, postMessage, and explicit termination reject instead of leav
   await assert.rejects(pending, expectCode("aborted"));
   assert.equal(workers[0]?.terminated, true);
   assert.equal(workers[0]?.listenerCount, 0);
+});
+
+test("resource classification prioritizes runtime memory evidence over format fallbacks", () => {
+  assert.deepEqual(
+    classifyWorkerError(new RangeError("WebAssembly.Memory(): could not allocate memory"), "invalid-format"),
+    { code: "memory-exhausted", message: "WebAssembly.Memory(): could not allocate memory" },
+  );
+  assert.equal(classifyWorkerError(new Error("verified decoder rejection"), "corrupt-input").code, "corrupt-input");
+  assert.equal(classifyWorkerError(new Error("unclassified failure")).code, "unknown");
+});
+
+test("memory exhaustion discards the affected worker and permits a clean rerun", async () => {
+  const workers: FakeWorker[] = [];
+  const jobs = createJobWorker<{ value: number }, { value: number }>(() => {
+    const worker = new FakeWorker();
+    workers.push(worker);
+    return asWorker(worker);
+  });
+  const first = jobs.run({ value: 1 });
+  workers[0]!.emitMessage({
+    id: requestId(workers[0]!.sent[0]),
+    ok: false,
+    code: "memory-exhausted",
+    message: "out of memory",
+  });
+  await assert.rejects(first, expectCode("memory-exhausted"));
+  assert.equal(workers[0]!.terminated, true);
+
+  const rerun = jobs.run({ value: 2 });
+  workers[1]!.emitMessage({ id: requestId(workers[1]!.sent[0]), ok: true, value: 20 });
+  assert.deepEqual(await rerun, { id: requestId(workers[1]!.sent[0]), ok: true, value: 20 });
+});
+
+test("worker crash memory evidence is not downgraded to an infrastructure error", async () => {
+  const worker = new FakeWorker();
+  const jobs = createJobWorker<{ value: number }, { value: number }>(() => asWorker(worker));
+  const run = jobs.run({ value: 1 });
+  worker.emitFailure("error", "WebAssembly.Memory(): could not allocate memory");
+  await assert.rejects(run, expectCode("memory-exhausted"));
+  assert.equal(worker.terminated, true);
+  assert.equal(worker.listenerCount, 0);
 });

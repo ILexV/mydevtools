@@ -2,9 +2,9 @@
  * Lazy entry point for the CodeMirror 6 editor kit (`codemirror-kit.ts`,
  * npm `@codemirror/*`, bundled by Vite). Tool controllers call
  * `loadEditorKit()`; the kit and its language grammar are fetched as separate
- * chunks only on pages that mount an editor (json/xml/yaml beautifiers,
- * json-to-typescript), so other pages ship no editor code. Theme CSS:
- * `styles/codemirror.css`.
+ * chunks only on pages that mount an editor (JSON/XML/YAML/TypeScript tools
+ * and the local SQL playground), so other pages ship no editor code. Theme
+ * CSS: `styles/codemirror.css`.
  *
  * Also exports editor-agnostic helpers: file drop onto an editor host and
  * text download.

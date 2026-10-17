@@ -19,11 +19,17 @@ const clientKeys = [
   "MetadataTruncated", "CodecUncompressed", "NoColumns", "TableEmpty", "TableLoading", "RowLabel",
   "InspectorEmpty", "InspectorRow", "InspectorTruncated", "RawWarning", "ErrorEmpty", "ErrorInvalid",
   "ErrorTooManyColumns", "ErrorExportTooLarge", "ErrorCellTooLarge", "ErrorCodec", "ErrorWorker",
-  "ErrorSession", "ErrorGeneric", "SchemaName", "SchemaType", "SchemaRepetition", "SchemaCompression",
-  "GroupIndex", "GroupRows", "GroupBytes", "GroupCompressed", "GroupCodecs",
+  "ErrorSession", "ErrorGeneric", "ErrorSave", "ErrorFallbackTooLarge", "SchemaName", "SchemaType",
+  "SchemaRepetition", "SchemaCompression", "GroupIndex", "GroupRows", "GroupBytes", "GroupCompressed", "GroupCodecs",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
-const stringsJson = JSON.stringify({ ...strings, Lang: lang });
+const stringsJson = JSON.stringify({
+  ...strings,
+  Lang: lang,
+  MemoryExhausted: t(lang, "common", "Common_MemoryExhausted"),
+  InvalidFormat: t(lang, "common", "Common_InvalidFormat"),
+  CorruptInput: t(lang, "common", "Common_CorruptInput"),
+});
 ---
 
 <div class="ds-workbench ds-workbench-single pq-workbench" data-parquet-tool>

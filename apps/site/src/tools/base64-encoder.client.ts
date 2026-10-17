@@ -20,7 +20,7 @@ import {
 } from "@/scripts/tool-ui";
 import { encodeBytes, decodeToBytes, textToBytes, type EncodingOptions } from "@/scripts/wasm/encoding-client";
 import { encodeFile, decodeFile } from "@/scripts/wasm/encoding-file-client";
-import { WasmError } from "@/scripts/wasm/worker-protocol";
+import { localizeResourceError, WasmError } from "@/scripts/wasm/worker-protocol";
 import { detectFileType, isLikelyText } from "@/tools/base64";
 import { charIndexToUtf16, classifyEncodingError, outputFileName, previewText, type EncodingErrorKey } from "@/tools/encoding-ui";
 import { onReady } from "@/tools/encoding-tool";
@@ -48,6 +48,9 @@ interface Strings {
   errCopyFailed: string;
   error: string;
   processingFailed: string;
+  memoryExhausted: string;
+  invalidFormat: string;
+  corruptInput: string;
   /** `Common_Preparing` — first-run WASM load feedback. */
   preparing?: string;
 }
@@ -247,10 +250,11 @@ function init() {
       clearError();
       return;
     }
-    if (e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed")) {
+    const resourceError = localizeResourceError(e, strings);
+    if (resourceError || (e instanceof WasmError && (e.code === "worker-failed" || e.code === "init-failed"))) {
       resetOutput();
       inputArea.removeAttribute("aria-invalid");
-      showError(strings.processingFailed);
+      showError(resourceError ?? strings.processingFailed);
       return;
     }
     const message = e instanceof Error ? e.message : String(e);

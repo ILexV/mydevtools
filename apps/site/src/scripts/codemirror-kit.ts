@@ -1,8 +1,8 @@
 /**
- * CodeMirror 6 editor kit for the structured-data tools (json/xml/yaml
- * beautifiers, json-to-typescript). Never imported statically: pages reach it
- * only through `loadEditorKit()` in `codemirror-loader.ts`, so Vite emits it
- * (and each language package) as lazy chunks and other pages load 0 editor JS.
+ * CodeMirror 6 editor kit for structured-data and SQL tools. Never imported
+ * statically by the site shell: pages reach it only through `loadEditorKit()`
+ * in `codemirror-loader.ts`, so Vite emits it (and each language package) as
+ * lazy chunks and other pages load 0 editor JS.
  *
  * Features: line numbers, fold gutter + keys, bracket matching/closing,
  * history, search panel (Ctrl/Cmd-F — the editor virtualizes rendering, so
@@ -53,7 +53,7 @@ import {
 import { tagHighlighter, tags as t } from "@lezer/highlight";
 import { announce } from "@/scripts/tool-ui";
 
-export type EditorLanguage = "json" | "xml" | "yaml" | "typescript" | "text";
+export type EditorLanguage = "json" | "xml" | "yaml" | "typescript" | "sql" | "text";
 export type IndentStyle = number | "tab";
 
 export interface EditorOptions {
@@ -121,6 +121,7 @@ const LANGUAGES: Record<Exclude<EditorLanguage, "text">, () => Promise<LanguageS
   xml: () => import("@codemirror/lang-xml").then((m) => m.xml()),
   yaml: () => import("@codemirror/lang-yaml").then((m) => m.yaml()),
   typescript: () => import("@codemirror/lang-javascript").then((m) => m.javascript({ typescript: true })),
+  sql: () => import("@codemirror/lang-sql").then((m) => m.sql({ dialect: m.StandardSQL })),
 };
 const languageCache = new Map<EditorLanguage, Promise<LanguageSupport>>();
 

@@ -16,7 +16,7 @@ export interface ParquetExportOptions {
 export interface ParquetExplorerWorkerClient {
   open(file: File, signal?: AbortSignal, onProgress?: (info: JobProgress) => void): Promise<ParquetSessionSummary>;
   read(sessionId: number, start: number, count: number, columns: number[], maxChars: number): Promise<string[][]>;
-  exportResult(sessionId: number, options: ParquetExportOptions, signal?: AbortSignal, onProgress?: (info: JobProgress) => void): Promise<Extract<ParquetExplorerSuccess, { kind: "export" }>>;
+  exportResult(sessionId: number, options: ParquetExportOptions, stream: MessagePort, signal?: AbortSignal, onProgress?: (info: JobProgress) => void): Promise<Extract<ParquetExplorerSuccess, { kind: "export" }>>;
   terminate(): void;
 }
 
@@ -45,8 +45,8 @@ export function createParquetExplorerWorker(): ParquetExplorerWorkerClient {
       );
       return result.rows;
     },
-    async exportResult(sessionId, options, signal, onProgress) {
-      return resultOfKind(await worker.run({ type: "export", sessionId, ...options }, [], signal, onProgress), "export");
+    async exportResult(sessionId, options, stream, signal, onProgress) {
+      return resultOfKind(await worker.run({ type: "export", sessionId, ...options, stream }, [stream], signal, onProgress), "export");
     },
     terminate() {
       worker.terminate();

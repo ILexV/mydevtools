@@ -10,6 +10,7 @@
  */
 import init, * as crypto from "@/generated/wasm/cryptography/cryptography.js";
 import type { AeadFailure, AeadWorkerRequest, AeadWorkerResponse } from "@/scripts/wasm/aead-file-protocol";
+import { classifyWorkerError } from "@/scripts/wasm/worker-protocol";
 import { aeadAlgorithmId, bytesToHex } from "@/tools/aead-file-helpers";
 
 let ready: Promise<void> | null = null;
@@ -192,12 +193,13 @@ self.addEventListener("message", async (ev: MessageEvent<AeadWorkerRequest>) => 
   try {
     await ensureReady();
   } catch (e) {
+    const error = classifyWorkerError(e, "init-failed");
     post({
       id: req.id,
       type: "error",
       failure: "crypto",
-      code: "init-failed",
-      message: e instanceof Error ? e.message : String(e),
+      code: error.code,
+      message: error.message,
     });
     return;
   }
@@ -205,6 +207,13 @@ self.addEventListener("message", async (ev: MessageEvent<AeadWorkerRequest>) => 
     post(req.op === "encrypt" ? await encrypt(req) : await decrypt(req));
   } catch (e) {
     const failure: AeadFailure = e instanceof AeadFail ? e.failure : "crypto";
-    post({ id: req.id, type: "error", failure, message: e instanceof Error ? e.message : String(e) });
+    const error = classifyWorkerError(e);
+    post({
+      id: req.id,
+      type: "error",
+      failure,
+      message: error.message,
+      code: error.code === "memory-exhausted" ? error.code : undefined,
+    });
   }
 });

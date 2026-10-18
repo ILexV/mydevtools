@@ -54,6 +54,17 @@ and that reconnect stays disabled until revocation completes. Download the EXE
 from the description page and compare its SHA-256 with the displayed release
 metadata; downloads must bypass the service worker's runtime cache.
 
+Native release 0.1.1 fixes error 87 on startup by querying the Run registry value
+with explicit type flags (`RRF_RT_ANY | RRF_NOEXPAND`), rather than zero flags.
+Read failures are reported separately from changes to autostart. Verify both a
+missing Run value and the enable → readback → disable → readback transition.
+Existing users must exit the old process and replace the EXE; there is no updater.
+The same release embeds the MyDevTools icon for the executable, window and tray,
+restores the native caption through default `WM_NCCREATE` handling, and uses
+DPI-scaled Segoe UI controls with consistent backgrounds. HTTP-client smoke must
+exercise request Headers/Body/Settings tabs (including keyboard navigation),
+response Body/Headers tabs, and the collapsible agent connection controls.
+
 
 ## Build → preview → deploy → smoke test
 

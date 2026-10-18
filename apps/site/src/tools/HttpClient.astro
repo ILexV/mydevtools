@@ -13,7 +13,7 @@ const { lang } = Astro.props as Props;
 const ns = "tools/http-client";
 const agentHref = localizedPath(lang, "local-agent");
 const clientKeys = [
-  "Connected", "Disconnected", "Connecting", "Sending", "Canceled", "ResponseSummary", "PrivateAllowed",
+  "Connected", "Disconnected", "NotConnected", "Connecting", "Sending", "Canceled", "ResponseSummary", "PrivateAllowed",
   "PrivateBlocked", "DownloadName", "BinaryPreview", "NoResponse", "PreviewTruncated", "ErrorHeaders", "ErrorUrl", "ErrorBodyLimit",
   "ErrorGeneric", "Error_agent_unavailable", "Error_invalid_response", "Error_invalid_request", "Error_unauthorized",
   "Error_forbidden", "Error_pairing_invalid", "Error_pairing_expired", "Error_pairing_rate_limited",
@@ -25,65 +25,43 @@ const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key
 const stringsJson = JSON.stringify({ ...strings, Lang: lang });
 ---
 
-<div class="ds-workbench http-workbench" data-http-client>
-  <ToolPanel title={t(lang, ns, "SetupTitle")} class="http-setup ds-workbench-wide">
-    <p class="ds-hint">{t(lang, ns, "SetupIntro")}</p>
-    <ol class="http-steps">
-      <li><a class="http-agent-link" href={agentHref}>{t(lang, ns, "InstallAgent")}</a></li>
-      <li>{t(lang, ns, "SetupStep2")}</li>
-      <li>{t(lang, ns, "SetupStep3")}</li>
-      <li>{t(lang, ns, "SetupStep4")}</li>
-    </ol>
-    <p class="ds-hint">{t(lang, ns, "LimitsNote")}</p>
-    <p class="ds-hint">{t(lang, ns, "PrivateSetupNote")}</p>
-    <p class="ds-hint http-privacy">{t(lang, ns, "PrivacyNote")}</p>
-  </ToolPanel>
-
-  <ToolPanel title={t(lang, ns, "ConnectionTitle")} class="http-connect ds-workbench-wide">
-    <div class="http-connect-row">
-      <Field label={t(lang, ns, "PairCodeLabel")} for="http-pair-code" hint={t(lang, ns, "PairCodeHint")}>
-        <input id="http-pair-code" class="ds-field mono" type="password" autocomplete="one-time-code" spellcheck="false" data-http-code />
-      </Field>
-      <div class="ds-action-row http-connect-actions">
-        <button type="button" class="ds-btn ds-btn-primary" data-http-connect>{t(lang, ns, "Connect")}</button>
-        <button type="button" class="ds-btn" data-http-disconnect disabled>{t(lang, ns, "Disconnect")}</button>
+<div class="ds-workbench ds-workbench-single http-workbench" data-http-client>
+  <ToolPanel title={t(lang, ns, "RequestTitle")} class="http-request">
+    <div class="http-compose">
+      <label class="visually-hidden" for="http-method">{t(lang, ns, "MethodLabel")}</label>
+      <select id="http-method" class="ds-field-select mono" data-http-method>
+        { ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"].map((method) => <option value={method}>{method}</option>) }
+      </select>
+      <label class="visually-hidden" for="http-url">{t(lang, ns, "UrlLabel")}</label>
+      <input id="http-url" class="ds-field mono" type="url" inputmode="url" placeholder="https://api.example.com/data" autocomplete="off" spellcheck="false" data-http-url />
+      <div class="http-send-actions">
+        <button type="button" class="ds-btn ds-btn-primary" disabled data-http-send><Icon name="zap" size={16} />{t(lang, ns, "Send")}</button>
+        <button type="button" class="ds-btn" disabled data-http-cancel>{t(lang, ns, "Cancel")}</button>
       </div>
     </div>
-    <dl class="http-agent-meta" data-http-agent-meta hidden>
-      <div><dt>{t(lang, ns, "AgentVersion")}</dt><dd class="mono" data-http-agent-version></dd></div>
-      <div><dt>{t(lang, ns, "Capability")}</dt><dd class="mono">http.request</dd></div>
-      <div><dt>{t(lang, ns, "LanPolicy")}</dt><dd data-http-lan></dd></div>
-    </dl>
-    <StatusMessage kind="info" data-http-connection-status />
-    <StatusMessage kind="error" data-http-connection-error />
-  </ToolPanel>
 
-  <ToolPanel title={t(lang, ns, "RequestTitle")} class="http-request">
-    <div class="http-request-line">
-      <Field label={t(lang, ns, "MethodLabel")} for="http-method">
-        <select id="http-method" class="ds-field-select mono" data-http-method>
-          { ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"].map((method) => <option value={method}>{method}</option>) }
-        </select>
-      </Field>
-      <Field label={t(lang, ns, "UrlLabel")} for="http-url">
-        <input id="http-url" class="ds-field mono" type="url" inputmode="url" placeholder="https://api.example.com/data" autocomplete="off" spellcheck="false" data-http-url />
+    <div class="seg http-tabs" role="tablist" aria-label={t(lang, ns, "RequestTitle")} data-http-tabs>
+      <button type="button" role="tab" id="http-request-headers-tab" aria-selected="true" aria-controls="http-request-headers-panel" tabindex="0">{t(lang, ns, "HeadersLabel")}</button>
+      <button type="button" role="tab" id="http-request-body-tab" aria-selected="false" aria-controls="http-request-body-panel" tabindex="-1">{t(lang, ns, "BodyLabel")}</button>
+      <button type="button" role="tab" id="http-request-settings-tab" aria-selected="false" aria-controls="http-request-settings-panel" tabindex="-1">{t(lang, ns, "SettingsLabel")}</button>
+    </div>
+    <div id="http-request-headers-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-request-headers-tab">
+      <Field label={t(lang, ns, "HeadersLabel")} for="http-headers" hint={t(lang, ns, "HeadersHint")}>
+        <textarea id="http-headers" class="ds-field-textarea mono http-headers" rows="7" autocomplete="off" spellcheck="false" placeholder="Accept: application/json" data-http-headers></textarea>
       </Field>
     </div>
-    <Field label={t(lang, ns, "HeadersLabel")} for="http-headers" hint={t(lang, ns, "HeadersHint")}>
-      <textarea id="http-headers" class="ds-field-textarea mono http-headers" rows="5" autocomplete="off" spellcheck="false" placeholder="Accept: application/json" data-http-headers></textarea>
-    </Field>
-    <Field label={t(lang, ns, "BodyLabel")} for="http-body" hint={t(lang, ns, "BodyHint")}>
-      <textarea id="http-body" class="ds-field-textarea mono http-body" rows="8" autocomplete="off" spellcheck="false" data-http-body></textarea>
-    </Field>
-    <div class="ds-settings http-options">
-      <Field label={t(lang, ns, "TimeoutLabel")} for="http-timeout" hint={t(lang, ns, "TimeoutHint")}>
-        <input id="http-timeout" class="ds-field mono" type="number" min="100" max="120000" step="100" value="30000" data-http-timeout />
+    <div id="http-request-body-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-request-body-tab" hidden>
+      <Field label={t(lang, ns, "BodyLabel")} for="http-body" hint={t(lang, ns, "BodyHint")}>
+        <textarea id="http-body" class="ds-field-textarea mono http-body" rows="9" autocomplete="off" spellcheck="false" data-http-body></textarea>
       </Field>
-      <label class="ds-check-row http-redirects"><input class="ds-check" type="checkbox" data-http-redirects /><span>{t(lang, ns, "FollowRedirects")}</span></label>
     </div>
-    <div class="ds-action-row">
-      <button type="button" class="ds-btn ds-btn-primary" disabled data-http-send><Icon name="zap" size={16} />{t(lang, ns, "Send")}</button>
-      <button type="button" class="ds-btn" disabled data-http-cancel>{t(lang, ns, "Cancel")}</button>
+    <div id="http-request-settings-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-request-settings-tab" hidden>
+      <div class="ds-settings http-options">
+        <Field label={t(lang, ns, "TimeoutLabel")} for="http-timeout" hint={t(lang, ns, "TimeoutHint")}>
+          <input id="http-timeout" class="ds-field mono" type="number" min="100" max="120000" step="100" value="30000" data-http-timeout />
+        </Field>
+        <label class="ds-check-row http-redirects"><input class="ds-check" type="checkbox" data-http-redirects /><span>{t(lang, ns, "FollowRedirects")}</span></label>
+      </div>
     </div>
     <StatusMessage kind="info" data-http-request-status />
     <StatusMessage kind="error" data-http-request-error />
@@ -98,53 +76,118 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang });
         <div><dt>{t(lang, ns, "StatusLabel")}</dt><dd class="mono" data-http-response-status></dd></div>
         <div><dt>{t(lang, ns, "TimeLabel")}</dt><dd class="mono" data-http-response-time></dd></div>
         <div><dt>{t(lang, ns, "SizeLabel")}</dt><dd class="mono" data-http-response-size></dd></div>
-        <div><dt>{t(lang, ns, "FinalUrlLabel")}</dt><dd class="mono" data-http-response-url></dd></div>
       </dl>
-      <section class="http-response-section">
-        <h3 class="ds-label">{t(lang, ns, "ResponseHeaders")}</h3>
-        <pre class="ds-code-block mono" tabindex="0" data-http-response-headers></pre>
-      </section>
-      <section class="http-response-section">
-        <h3 class="ds-label">{t(lang, ns, "ResponseBody")}</h3>
+      <p class="http-final-url"><span>{t(lang, ns, "FinalUrlLabel")}</span><code data-http-response-url></code></p>
+      <div class="seg http-tabs" role="tablist" aria-label={t(lang, ns, "ResponseTitle")} data-http-tabs>
+        <button type="button" role="tab" id="http-response-body-tab" aria-selected="true" aria-controls="http-response-body-panel" tabindex="0">{t(lang, ns, "ResponseBody")}</button>
+        <button type="button" role="tab" id="http-response-headers-tab" aria-selected="false" aria-controls="http-response-headers-panel" tabindex="-1">{t(lang, ns, "ResponseHeaders")}</button>
+      </div>
+      <section id="http-response-body-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-response-body-tab">
         <pre class="ds-code-block mono http-preview" tabindex="0" data-http-response-preview></pre>
+      </section>
+      <section id="http-response-headers-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-response-headers-tab" hidden>
+        <pre class="ds-code-block mono http-preview" tabindex="0" data-http-response-headers></pre>
       </section>
     </div>
   </OutputPanel>
+
+  <details class="ds-card http-connect" open>
+    <summary class="http-connect-summary">
+      <span class="ds-panel-title">{t(lang, ns, "ConnectionTitle")}</span>
+      <span class="http-connection-state" data-http-connection-state>{t(lang, ns, "NotConnected")}</span>
+    </summary>
+    <div class="http-connect-body">
+      <div class="http-connect-row">
+        <Field label={t(lang, ns, "PairCodeLabel")} for="http-pair-code" hint={t(lang, ns, "PairCodeHint")}>
+          <input id="http-pair-code" class="ds-field mono" type="password" autocomplete="one-time-code" spellcheck="false" data-http-code />
+        </Field>
+        <div class="ds-action-row http-connect-actions">
+          <button type="button" class="ds-btn ds-btn-primary" data-http-connect>{t(lang, ns, "Connect")}</button>
+          <button type="button" class="ds-btn" data-http-disconnect disabled>{t(lang, ns, "Disconnect")}</button>
+        </div>
+      </div>
+      <dl class="http-agent-meta" data-http-agent-meta hidden>
+        <div><dt>{t(lang, ns, "AgentVersion")}</dt><dd class="mono" data-http-agent-version></dd></div>
+        <div><dt>{t(lang, ns, "Capability")}</dt><dd class="mono">http.request</dd></div>
+        <div><dt>{t(lang, ns, "LanPolicy")}</dt><dd data-http-lan></dd></div>
+      </dl>
+      <StatusMessage kind="info" data-http-connection-status />
+      <StatusMessage kind="error" data-http-connection-error />
+      <details class="http-setup">
+        <summary>{t(lang, ns, "SetupTitle")}</summary>
+        <div class="http-setup-body">
+          <p class="ds-hint">{t(lang, ns, "SetupIntro")}</p>
+          <a class="http-agent-link" href={agentHref}>{t(lang, ns, "InstallAgent")}</a>
+          <ol class="http-steps">
+            <li>{t(lang, ns, "SetupStep2")}</li>
+            <li>{t(lang, ns, "SetupStep3")}</li>
+            <li>{t(lang, ns, "SetupStep4")}</li>
+          </ol>
+          <p class="ds-hint">{t(lang, ns, "LimitsNote")}</p>
+          <p class="ds-hint">{t(lang, ns, "PrivateSetupNote")}</p>
+          <p class="ds-hint http-privacy">{t(lang, ns, "PrivacyNote")}</p>
+        </div>
+      </details>
+    </div>
+  </details>
 </div>
 
 <script is:inline type="application/json" data-http-strings set:html={stringsJson} />
 <script>import "@/tools/http-client.client.ts";</script>
 
 <style>
-  .http-workbench { --ds-workbench-cols: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-  .http-setup { gap: 0.8rem; }
-  .http-steps { display: grid; gap: 0.65rem; margin: 0; padding-left: 1.35rem; color: var(--mdt-text-muted); }
-  .http-steps li { padding-left: 0.25rem; }
-  .http-steps code { display: block; margin-top: 0.45rem; padding: 0.65rem 0.75rem; overflow-x: auto; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-xs); background: var(--mdt-surface-inset); color: var(--mdt-text); font-size: var(--mdt-fs-meta); }
-  .http-privacy { padding: 0.7rem 0.8rem; border-left: 3px solid var(--mdt-cat); background: var(--mdt-surface-inset); }
-  .http-connect-row, .http-request-line { display: grid; grid-template-columns: minmax(9rem, 0.28fr) minmax(0, 1fr); gap: 0.75rem; align-items: end; }
-  .http-connect-actions { margin-bottom: 0.05rem; }
-  .http-agent-link { color: var(--mdt-link); font-weight: 700; }
-  .http-agent-meta, .http-response-meta { display: grid; gap: 0.55rem; margin: 0; }
-  .http-agent-meta { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .http-agent-meta div, .http-response-meta div { min-width: 0; }
-  .http-agent-meta dt, .http-response-meta dt { color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); }
-  .http-agent-meta dd, .http-response-meta dd { margin: 0.15rem 0 0; overflow-wrap: anywhere; }
-  .http-request-line { grid-template-columns: minmax(7rem, 0.22fr) minmax(0, 1fr); }
-  .http-headers { min-height: 7rem; }
-  .http-body { min-height: 11rem; }
-  .http-options { grid-template-columns: minmax(10rem, 0.4fr) minmax(0, 1fr); align-items: end; }
+  .http-workbench { align-items: start; }
+  .http-compose { display: grid; grid-template-columns: minmax(6.5rem, 0.16fr) minmax(12rem, 1fr) auto; gap: 0.55rem; align-items: stretch; }
+  .http-compose > :is(.ds-field, .ds-field-select) { min-height: 2.75rem; }
+  .http-send-actions { display: flex; gap: 0.45rem; }
+  .http-send-actions .ds-btn { min-height: 2.75rem; white-space: nowrap; }
+  .http-tabs { width: fit-content; max-width: 100%; overflow-x: auto; }
+  .http-tabs > [role="tab"] { min-width: 7rem; padding-inline: 0.8rem; white-space: nowrap; }
+  .http-tabs > [role="tab"][aria-selected="true"] { background: color-mix(in srgb, var(--mdt-cat) 16%, transparent); color: color-mix(in srgb, var(--mdt-cat) 72%, var(--mdt-text)); }
+  .http-tab-panel { min-width: 0; }
+  .http-tab-panel > :first-child { margin-top: 0; }
+  .http-headers { min-height: 10rem; }
+  .http-body { min-height: 14rem; }
+  .http-options { grid-template-columns: minmax(10rem, 0.35fr) minmax(0, 1fr); align-items: end; }
   .http-redirects { min-height: 2.65rem; }
-  .http-result, .http-response-section { display: grid; gap: 0.65rem; min-width: 0; }
-  .http-response-meta { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .http-response-meta div:last-child { grid-column: 1 / -1; }
-  .http-response-section { padding-top: 0.85rem; border-top: 1px solid var(--mdt-border-soft); }
-  .http-response-section h3 { margin: 0; }
-  .http-response-section pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .http-preview { min-height: 10rem; max-height: 32rem; overflow: auto; }
+  .http-result { display: grid; gap: 0.75rem; min-width: 0; }
+  .http-response-meta { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0; }
+  .http-response-meta div { display: flex; align-items: baseline; gap: 0.35rem; padding: 0.3rem 0.55rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-xs); background: var(--mdt-surface-inset); min-width: 0; }
+  .http-response-meta dt { color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); }
+  .http-response-meta dd { margin: 0; font-size: var(--mdt-fs-label); font-weight: 600; overflow-wrap: anywhere; }
+  .http-final-url { display: flex; gap: 0.55rem; margin: 0; min-width: 0; color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); }
+  .http-final-url code { color: var(--mdt-text); overflow-wrap: anywhere; }
+  .http-preview { min-height: 12rem; max-height: 36rem; margin: 0; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .http-connect { width: 100%; padding-block: 0; }
+  .http-connect-summary { display: flex; align-items: center; gap: 0.75rem; min-height: 3rem; cursor: pointer; list-style-position: outside; }
+  .http-connect-summary::marker { color: var(--mdt-text-faint); }
+  .http-connect-summary .ds-panel-title { flex: 1 1 auto; }
+  .http-connection-state { flex: 0 1 auto; padding: 0.2rem 0.5rem; border-radius: 999px; background: var(--mdt-surface-inset); color: var(--mdt-text-muted); font-size: var(--mdt-fs-meta); text-align: right; }
+  .http-connect-body { display: grid; gap: 0.8rem; padding: 0.85rem 0 1.1rem; border-top: 1px solid var(--mdt-border-soft); }
+  .http-connect-row { display: grid; grid-template-columns: minmax(12rem, 1fr) auto; gap: 0.75rem; align-items: end; }
+  .http-connect-actions { padding-bottom: 0.05rem; }
+  .http-agent-meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin: 0; }
+  .http-agent-meta div { min-width: min(100%, 10rem); }
+  .http-agent-meta dt { color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); }
+  .http-agent-meta dd { margin: 0.1rem 0 0; overflow-wrap: anywhere; }
+  .http-setup { border-top: 1px solid var(--mdt-border-soft); padding-top: 0.65rem; }
+  .http-setup > summary { width: fit-content; cursor: pointer; color: var(--mdt-link); font-weight: 650; }
+  .http-setup-body { display: grid; gap: 0.65rem; padding-top: 0.75rem; }
+  .http-setup-body > * { margin-block: 0; }
+  .http-agent-link { width: fit-content; color: var(--mdt-link); font-weight: 700; }
+  .http-steps { display: grid; gap: 0.45rem; padding-left: 1.35rem; color: var(--mdt-text-muted); }
+  .http-privacy { padding: 0.7rem 0.8rem; border-left: 3px solid var(--mdt-cat); background: var(--mdt-surface-inset); }
   @media (max-width: 48rem) {
-    .http-connect-row, .http-request-line, .http-options { grid-template-columns: 1fr; }
-    .http-agent-meta, .http-response-meta { grid-template-columns: 1fr 1fr; }
+    .http-compose { grid-template-columns: minmax(6.25rem, 0.28fr) minmax(0, 1fr); }
+    .http-send-actions { grid-column: 1 / -1; }
+    .http-send-actions .ds-btn-primary { flex: 1 1 auto; }
+    .http-options, .http-connect-row { grid-template-columns: 1fr; }
   }
-  @media (max-width: 30rem) { .http-agent-meta, .http-response-meta { grid-template-columns: 1fr; } }
+  @media (max-width: 30rem) {
+    .http-tabs { width: 100%; }
+    .http-tabs > [role="tab"] { min-width: max-content; }
+    .http-final-url { display: grid; gap: 0.2rem; }
+    .http-connect-summary { align-items: flex-start; padding-block: 0.6rem; }
+    .http-connection-state { max-width: 55%; }
+  }
 </style>

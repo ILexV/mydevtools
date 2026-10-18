@@ -12,6 +12,7 @@ import {
 interface Strings {
   Lang: string;
   Connected: string;
+  NotConnected: string;
   Disconnected: string;
   Connecting: string;
   Sending: string;
@@ -116,6 +117,7 @@ function init(): void {
   const lanPolicy = root.querySelector<HTMLElement>("[data-http-lan]");
   const connectionStatus = root.querySelector<HTMLElement>("[data-http-connection-status]");
   const connectionError = root.querySelector<HTMLElement>("[data-http-connection-error]");
+  const connectionState = root.querySelector<HTMLElement>("[data-http-connection-state]");
   const method = root.querySelector<HTMLSelectElement>("[data-http-method]");
   const requestUrl = root.querySelector<HTMLInputElement>("[data-http-url]");
   const requestHeaders = root.querySelector<HTMLTextAreaElement>("[data-http-headers]");
@@ -136,9 +138,10 @@ function init(): void {
   const responsePreview = root.querySelector<HTMLElement>("[data-http-response-preview]");
   const download = root.querySelector<HTMLButtonElement>("[data-http-download]");
   if (!code || !connect || !disconnect || !agentMeta || !agentVersion || !lanPolicy || !connectionStatus
-    || !connectionError || !method || !requestUrl || !requestHeaders || !requestBody || !timeout || !redirects
-    || !send || !cancel || !requestStatus || !requestError || !output || !result || !responseStatus
-    || !responseTime || !responseSize || !responseUrl || !responseHeaders || !responsePreview || !download) return;
+    || !connectionError || !connectionState || !method || !requestUrl || !requestHeaders || !requestBody
+    || !timeout || !redirects || !send || !cancel || !requestStatus || !requestError || !output || !result
+    || !responseStatus || !responseTime || !responseSize || !responseUrl || !responseHeaders
+    || !responsePreview || !download) return;
 
   const client = new LocalAgentClient();
   let active: { id: string; abort: AbortController } | null = null;
@@ -157,6 +160,41 @@ function init(): void {
     download,
     requestStatus,
   };
+
+  for (const tablist of root.querySelectorAll<HTMLElement>("[data-http-tabs]")) {
+    const tabs = [...tablist.querySelectorAll<HTMLButtonElement>(':scope > [role="tab"]')];
+    const activate = (next: HTMLButtonElement, moveFocus: boolean): void => {
+      for (const tab of tabs) {
+        const selected = tab === next;
+        tab.setAttribute("aria-selected", String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+        const panelId = tab.getAttribute("aria-controls");
+        const panel = panelId ? document.getElementById(panelId) : null;
+        if (panel && root.contains(panel)) panel.hidden = !selected;
+      }
+      if (moveFocus) next.focus();
+    };
+    tablist.addEventListener("click", (event) => {
+      if (!(event.target instanceof Element)) return;
+      const tab = event.target.closest<HTMLButtonElement>('[role="tab"]');
+      if (tab && tabs.includes(tab)) activate(tab, false);
+    });
+    tablist.addEventListener("keydown", (event) => {
+      if (!(event.target instanceof Element)) return;
+      const current = event.target.closest<HTMLButtonElement>('[role="tab"]');
+      const index = current ? tabs.indexOf(current) : -1;
+      if (index < 0) return;
+      let next = index;
+      if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (index + 1) % tabs.length;
+      else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = (index - 1 + tabs.length) % tabs.length;
+      else if (event.key === "Home") next = 0;
+      else if (event.key === "End") next = tabs.length - 1;
+      else return;
+      event.preventDefault();
+      const target = tabs[next];
+      if (target) activate(target, true);
+    });
+  }
 
   const hideMessage = (element: HTMLElement): void => {
     element.hidden = true;
@@ -177,6 +215,7 @@ function init(): void {
     send.disabled = !connected || active !== null;
     code.disabled = connected;
     agentMeta.hidden = !connected;
+    connectionState.textContent = connected ? strings.Connected : strings.NotConnected;
     if (setup) setup.hidden = connected;
   };
   const setSending = (sending: boolean): void => {
@@ -189,6 +228,7 @@ function init(): void {
   connect.addEventListener("click", async () => {
     hideMessage(connectionError);
     showMessage(connectionStatus, strings.Connecting);
+    connectionState.textContent = strings.Connecting;
     connect.disabled = true;
     const pairingCode = code.value.trim();
     try {

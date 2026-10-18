@@ -7,38 +7,42 @@ use std::ptr::{null, null_mut};
 
 use tokio_util::sync::CancellationToken;
 use windows_sys::Win32::Foundation::{
-    GetLastError, HWND, LPARAM, LRESULT, WPARAM, ERROR_CLASS_ALREADY_EXISTS,
+    GetLastError, HWND, LPARAM, LRESULT, RECT, WPARAM, ERROR_CLASS_ALREADY_EXISTS,
     ERROR_FILE_NOT_FOUND, ERROR_SUCCESS,
 };
 use windows_sys::Win32::Globalization::GetUserDefaultUILanguage;
 use windows_sys::Win32::Graphics::Gdi::{
-    GetStockObject, GetSysColorBrush, COLOR_WINDOW, DEFAULT_GUI_FONT,
+    CreateFontW, DeleteObject, GetSysColor, GetSysColorBrush, SetBkColor, COLOR_WINDOW,
+    CLEARTYPE_QUALITY, CLIP_DEFAULT_PRECIS, DEFAULT_CHARSET, DEFAULT_PITCH, FF_DONTCARE,
+    FW_REGULAR, FW_SEMIBOLD, HFONT, OUT_DEFAULT_PRECIS,
 };
 use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows_sys::Win32::System::Registry::{
     RegDeleteKeyValueW, RegGetValueW, RegSetKeyValueW, HKEY_CURRENT_USER, REG_SZ,
+    RRF_NOEXPAND, RRF_RT_ANY,
 };
 use windows_sys::Win32::UI::Controls::{
     BST_CHECKED, BST_UNCHECKED, EM_SETSEL,
 };
+use windows_sys::Win32::UI::HiDpi::{AdjustWindowRectExForDpi, GetDpiForWindow};
 use windows_sys::Win32::UI::Shell::{
     Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_TIP, NIM_ADD, NIM_DELETE,
     NIM_SETVERSION, NIN_SELECT, NOTIFYICONDATAW, NOTIFYICON_VERSION_4,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     CreateWindowExW, DefWindowProcW, DestroyWindow, DispatchMessageW, FindWindowW,
-    GetMessageW, GetWindowLongPtrW, IsDialogMessageW, IsWindow, KillTimer, LoadCursorW,
-    LoadIconW, MessageBoxW, PostMessageW, PostQuitMessage, RegisterClassW,
-    RegisterWindowMessageW, SendMessageW, SetForegroundWindow, SetTimer,
-    SetWindowLongPtrW, SetWindowTextW, ShowWindow, TranslateMessage, BN_CLICKED,
-    BS_AUTOCHECKBOX,
-    CREATESTRUCTW, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT,
-    ES_AUTOHSCROLL, ES_READONLY, GWLP_USERDATA, IDC_ARROW, IDI_APPLICATION,
-    MB_ICONERROR, MB_OK, MB_SETFOREGROUND, MSG, SIZE_MINIMIZED, SW_HIDE, SW_RESTORE,
-    SW_SHOW, WM_APP, WM_CLOSE, WM_COMMAND, WM_COPY, WM_CREATE, WM_DESTROY,
-    WM_ENDSESSION, WM_LBUTTONUP, WM_NCCREATE, WM_NCDESTROY, WM_QUERYENDSESSION,
-    WM_SETFONT, WM_SIZE, WM_TIMER, WNDCLASSW, WS_CAPTION, WS_CHILD,
-    WS_EX_CLIENTEDGE, WS_MINIMIZEBOX, WS_OVERLAPPED, WS_SYSMENU, WS_TABSTOP,
+    GetMessageW, GetSystemMetrics, GetWindowLongPtrW, IsDialogMessageW, IsWindow, KillTimer,
+    LoadCursorW, LoadImageW, MessageBoxW, MoveWindow,
+    PostMessageW, PostQuitMessage, RegisterClassExW, RegisterWindowMessageW, SendMessageW,
+    SetForegroundWindow, SetTimer, SetWindowLongPtrW, SetWindowPos, SetWindowTextW, ShowWindow,
+    TranslateMessage, BN_CLICKED, BS_AUTOCHECKBOX, CREATESTRUCTW, CS_HREDRAW, CS_VREDRAW,
+    CW_USEDEFAULT, ES_AUTOHSCROLL, ES_READONLY, GWLP_USERDATA, HICON, IDC_ARROW, IMAGE_ICON,
+    LR_SHARED, MB_ICONERROR, MB_OK, MB_SETFOREGROUND, MSG, SIZE_MINIMIZED, SM_CXICON,
+    SM_CXSMICON, SM_CYICON, SM_CYSMICON, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOZORDER, SW_HIDE,
+    SW_RESTORE, SW_SHOW, WM_APP, WM_CLOSE, WM_COMMAND, WM_COPY, WM_CREATE, WM_CTLCOLORBTN,
+    WM_CTLCOLORSTATIC, WM_DESTROY, WM_DPICHANGED, WM_ENDSESSION, WM_LBUTTONUP, WM_NCCREATE,
+    WM_NCDESTROY, WM_QUERYENDSESSION, WM_SETFONT, WM_SIZE, WM_TIMER, WNDCLASSEXW, WS_CAPTION,
+    WS_CHILD, WS_EX_CLIENTEDGE, WS_MINIMIZEBOX, WS_OVERLAPPED, WS_SYSMENU, WS_TABSTOP,
     WS_VISIBLE,
 };
 
@@ -56,6 +60,11 @@ const NIN_KEYSELECT_EVENT: u32 = NIN_SELECT + 1;
 const ID_AUTOSTART: usize = 1001;
 const ID_COPY: usize = 1002;
 const ID_EXIT: usize = 1003;
+const ICON_RESOURCE_ID: usize = 1;
+const BASE_DPI: u32 = 96;
+const CLIENT_WIDTH: i32 = 456;
+const CLIENT_HEIGHT: i32 = 258;
+
 
 struct UiStrings {
     heading: &'static str,
@@ -66,6 +75,7 @@ struct UiStrings {
     location_note: &'static str,
     exit: &'static str,
     autostart_error: &'static str,
+    autostart_read_error: &'static str,
     pairing_error: &'static str,
     executable_error: &'static str,
     command_too_long: &'static str,
@@ -80,6 +90,7 @@ static ENGLISH: UiStrings = UiStrings {
     location_note: "Keep this executable in its current location for autostart to work.",
     exit: "Exit",
     autostart_error: "Unable to update autostart",
+    autostart_read_error: "Unable to read autostart settings",
     pairing_error: "Unable to read the pairing code.",
     executable_error: "Unable to locate this executable",
     command_too_long: "The executable path is too long for autostart.",
@@ -94,17 +105,32 @@ static RUSSIAN: UiStrings = UiStrings {
     location_note: "Не перемещайте этот файл, иначе автозапуск перестанет работать.",
     exit: "Выход",
     autostart_error: "Не удалось изменить автозапуск",
+    autostart_read_error: "Не удалось прочитать настройку автозапуска",
     pairing_error: "Не удалось получить код подключения.",
     executable_error: "Не удалось определить путь к исполняемому файлу",
     command_too_long: "Путь к исполняемому файлу слишком длинный для автозапуска.",
 };
+#[derive(Clone, Copy)]
+struct Controls {
+    heading: HWND,
+    version: HWND,
+    pairing_label: HWND,
+    pairing_edit: HWND,
+    copy_button: HWND,
+    autostart_checkbox: HWND,
+    note: HWND,
+    exit_button: HWND,
+}
+
 
 struct WindowState {
     get_pairing_code: Box<dyn Fn() -> String + Send>,
     shutdown: CancellationToken,
     strings: &'static UiStrings,
-    pairing_edit: Cell<HWND>,
-    autostart_checkbox: Cell<HWND>,
+    controls: Cell<Option<Controls>>,
+    normal_font: Cell<HFONT>,
+    heading_font: Cell<HFONT>,
+    tray_icon: HICON,
     tray_added: Cell<bool>,
     taskbar_created: u32,
     last_pairing_code: RefCell<String>,
@@ -127,30 +153,39 @@ pub(crate) fn run(
             return Err(last_error("GetModuleHandleW failed"));
         }
 
-        let icon = LoadIconW(null_mut(), IDI_APPLICATION);
-        if icon.is_null() {
-            return Err(last_error("LoadIconW failed"));
-        }
+        let large_icon = load_app_icon(
+            instance,
+            GetSystemMetrics(SM_CXICON),
+            GetSystemMetrics(SM_CYICON),
+        )?;
+        let small_icon = load_app_icon(
+            instance,
+            GetSystemMetrics(SM_CXSMICON),
+            GetSystemMetrics(SM_CYSMICON),
+        )?;
         let cursor = LoadCursorW(null_mut(), IDC_ARROW);
         if cursor.is_null() {
             return Err(last_error("LoadCursorW failed"));
         }
 
-        let window_class = WNDCLASSW {
+        let window_class = WNDCLASSEXW {
+            cbSize: size_of::<WNDCLASSEXW>() as u32,
             style: CS_HREDRAW | CS_VREDRAW,
             lpfnWndProc: Some(window_proc),
             cbClsExtra: 0,
             cbWndExtra: 0,
             hInstance: instance,
-            hIcon: icon,
+            hIcon: large_icon,
             hCursor: cursor,
             hbrBackground: GetSysColorBrush(COLOR_WINDOW),
             lpszMenuName: null(),
             lpszClassName: class_name.as_ptr(),
+            hIconSm: small_icon,
         };
-        if RegisterClassW(&window_class) == 0 && GetLastError() != ERROR_CLASS_ALREADY_EXISTS {
-            return Err(last_error("RegisterClassW failed"));
+        if RegisterClassExW(&window_class) == 0 && GetLastError() != ERROR_CLASS_ALREADY_EXISTS {
+            return Err(last_error("RegisterClassExW failed"));
         }
+
 
         let taskbar_created = RegisterWindowMessageW(taskbar_message_name.as_ptr());
         if taskbar_created == 0 {
@@ -161,8 +196,10 @@ pub(crate) fn run(
             get_pairing_code,
             shutdown,
             strings: ui_strings(),
-            pairing_edit: Cell::new(null_mut()),
-            autostart_checkbox: Cell::new(null_mut()),
+            controls: Cell::new(None),
+            normal_font: Cell::new(null_mut()),
+            heading_font: Cell::new(null_mut()),
+            tray_icon: small_icon,
             tray_added: Cell::new(false),
             taskbar_created,
             last_pairing_code: RefCell::new(String::new()),
@@ -179,7 +216,7 @@ pub(crate) fn run(
             CW_USEDEFAULT,
             CW_USEDEFAULT,
             480,
-            310,
+            300,
             null_mut(),
             null_mut(),
             instance,
@@ -280,8 +317,8 @@ unsafe fn window_proc_inner(
                 GWLP_USERDATA,
                 (*create).lpCreateParams as isize,
             );
+            return DefWindowProcW(window, message, wparam, lparam);
         }
-        return 1;
     }
 
     let state_pointer = unsafe { GetWindowLongPtrW(window, GWLP_USERDATA) as *mut WindowState };
@@ -290,8 +327,12 @@ unsafe fn window_proc_inner(
     }
 
     if message == WM_NCDESTROY {
-        unsafe { SetWindowLongPtrW(window, GWLP_USERDATA, 0) };
-        return unsafe { DefWindowProcW(window, message, wparam, lparam) };
+        let state = unsafe { &*state_pointer };
+        unsafe {
+            state.release_fonts();
+            SetWindowLongPtrW(window, GWLP_USERDATA, 0);
+            return DefWindowProcW(window, message, wparam, lparam);
+        }
     }
 
     // Win32 may synchronously reenter this callback: never hold an exclusive state borrow.
@@ -328,8 +369,10 @@ unsafe fn window_proc_inner(
                 match control_id {
                     ID_AUTOSTART => unsafe { state.change_autostart(window) },
                     ID_COPY => unsafe {
-                        SendMessageW(state.pairing_edit.get(), EM_SETSEL, 0, -1);
-                        SendMessageW(state.pairing_edit.get(), WM_COPY, 0, 0);
+                        if let Some(controls) = state.controls.get() {
+                            SendMessageW(controls.pairing_edit, EM_SETSEL, 0, -1);
+                            SendMessageW(controls.pairing_edit, WM_COPY, 0, 0);
+                        }
                     },
                     ID_EXIT => unsafe {
                         state.shutdown.cancel();
@@ -350,6 +393,30 @@ unsafe fn window_proc_inner(
                 let _ = unsafe { state.add_tray_icon(window) };
             }
             0
+        }
+        WM_DPICHANGED => {
+            let suggested = lparam as *const RECT;
+            if !suggested.is_null() {
+                let suggested = unsafe { &*suggested };
+                unsafe {
+                    SetWindowPos(
+                        window,
+                        null_mut(),
+                        suggested.left,
+                        suggested.top,
+                        suggested.right - suggested.left,
+                        suggested.bottom - suggested.top,
+                        SWP_NOZORDER | SWP_NOACTIVATE,
+                    );
+                }
+            }
+            let dpi = ((wparam >> 16) as u32).max(BASE_DPI);
+            let _ = unsafe { state.apply_layout(window, dpi, false) };
+            0
+        }
+        WM_CTLCOLORSTATIC | WM_CTLCOLORBTN => {
+            unsafe { SetBkColor(wparam as _, GetSysColor(COLOR_WINDOW)) };
+            unsafe { GetSysColorBrush(COLOR_WINDOW) as LRESULT }
         }
         WM_SIZE if wparam as u32 == SIZE_MINIMIZED => {
             unsafe { ShowWindow(window, SW_HIDE) };
@@ -388,95 +455,137 @@ impl WindowState {
             return Err(last_error("GetModuleHandleW failed"));
         }
 
-        let heading = unsafe {
-            create_control(window, instance, "STATIC", self.strings.heading, WS_CHILD | WS_VISIBLE, 0, 20, 16, 420, 24, 0)?
-        };
         let version = format!("{}: {}", self.strings.version, env!("CARGO_PKG_VERSION"));
-        let version_control = unsafe {
-            create_control(window, instance, "STATIC", &version, WS_CHILD | WS_VISIBLE, 0, 20, 48, 420, 22, 0)?
+        let controls = Controls {
+            heading: unsafe {
+                create_control(
+                    window,
+                    instance,
+                    "STATIC",
+                    self.strings.heading,
+                    WS_CHILD | WS_VISIBLE,
+                    0,
+                    20,
+                    16,
+                    416,
+                    24,
+                    0,
+                )?
+            },
+            version: unsafe {
+                create_control(
+                    window,
+                    instance,
+                    "STATIC",
+                    &version,
+                    WS_CHILD | WS_VISIBLE,
+                    0,
+                    20,
+                    46,
+                    416,
+                    20,
+                    0,
+                )?
+            },
+            pairing_label: unsafe {
+                create_control(
+                    window,
+                    instance,
+                    "STATIC",
+                    self.strings.pairing_code,
+                    WS_CHILD | WS_VISIBLE,
+                    0,
+                    20,
+                    77,
+                    416,
+                    20,
+                    0,
+                )?
+            },
+            pairing_edit: unsafe {
+                create_control(
+                    window,
+                    instance,
+                    "EDIT",
+                    "",
+                    WS_CHILD
+                        | WS_VISIBLE
+                        | WS_TABSTOP
+                        | ES_AUTOHSCROLL as u32
+                        | ES_READONLY as u32,
+                    WS_EX_CLIENTEDGE,
+                    20,
+                    99,
+                    306,
+                    30,
+                    0,
+                )?
+            },
+            copy_button: unsafe {
+                create_control(
+                    window,
+                    instance,
+                    "BUTTON",
+                    self.strings.copy,
+                    WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+                    0,
+                    334,
+                    98,
+                    102,
+                    32,
+                    ID_COPY,
+                )?
+            },
+            autostart_checkbox: unsafe {
+                create_control(
+                    window,
+                    instance,
+                    "BUTTON",
+                    self.strings.autostart,
+                    WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX as u32,
+                    0,
+                    20,
+                    145,
+                    416,
+                    24,
+                    ID_AUTOSTART,
+                )?
+            },
+            note: unsafe {
+                create_control(
+                    window,
+                    instance,
+                    "STATIC",
+                    self.strings.location_note,
+                    WS_CHILD | WS_VISIBLE,
+                    0,
+                    40,
+                    172,
+                    396,
+                    34,
+                    0,
+                )?
+            },
+            exit_button: unsafe {
+                create_control(
+                    window,
+                    instance,
+                    "BUTTON",
+                    self.strings.exit,
+                    WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+                    0,
+                    334,
+                    216,
+                    102,
+                    31,
+                    ID_EXIT,
+                )?
+            },
         };
-        let pairing_label = unsafe {
-            create_control(window, instance, "STATIC", self.strings.pairing_code, WS_CHILD | WS_VISIBLE, 0, 20, 79, 420, 20, 0)?
-        };
-        self.pairing_edit.set(unsafe {
-            create_control(
-                window,
-                instance,
-                "EDIT",
-                "",
-                WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_AUTOHSCROLL as u32 | ES_READONLY as u32,
-                WS_EX_CLIENTEDGE,
-                20,
-                102,
-                306,
-                27,
-                0,
-            )?
-        });
-        let copy_button = unsafe {
-            create_control(
-                window,
-                instance,
-                "BUTTON",
-                self.strings.copy,
-                WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-                0,
-                334,
-                101,
-                106,
-                29,
-                ID_COPY,
-            )?
-        };
-        self.autostart_checkbox.set(unsafe {
-            create_control(
-                window,
-                instance,
-                "BUTTON",
-                self.strings.autostart,
-                WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX as u32,
-                0,
-                20,
-                143,
-                420,
-                26,
-                ID_AUTOSTART,
-            )?
-        });
-        let note = unsafe {
-            create_control(window, instance, "STATIC", self.strings.location_note, WS_CHILD | WS_VISIBLE, 0, 38, 171, 402, 38, 0)?
-        };
-        let exit_button = unsafe {
-            create_control(
-                window,
-                instance,
-                "BUTTON",
-                self.strings.exit,
-                WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-                0,
-                334,
-                218,
-                106,
-                31,
-                ID_EXIT,
-            )?
-        };
+        self.controls.set(Some(controls));
 
-        let font = unsafe { GetStockObject(DEFAULT_GUI_FONT) };
-        if !font.is_null() {
-            for control in [
-                heading,
-                version_control,
-                pairing_label,
-                self.pairing_edit.get(),
-                copy_button,
-                self.autostart_checkbox.get(),
-                note,
-                exit_button,
-            ] {
-                unsafe { SendMessageW(control, WM_SETFONT, font as usize, 1) };
-            }
-        }
+        let dpi = unsafe { GetDpiForWindow(window) }.max(BASE_DPI);
+        unsafe { self.apply_layout(window, dpi, true)? };
 
         self.refresh_pairing_code();
         if self.last_pairing_code.borrow().is_empty() {
@@ -486,13 +595,16 @@ impl WindowState {
         match autostart_enabled() {
             Ok(enabled) => unsafe {
                 SendMessageW(
-                    self.autostart_checkbox.get(),
+                    controls.autostart_checkbox,
                     windows_sys::Win32::UI::WindowsAndMessaging::BM_SETCHECK,
                     (if enabled { BST_CHECKED } else { BST_UNCHECKED }) as usize,
                     0,
                 );
             },
-            Err(error) => show_owned_error(window, &format!("{}: {error}", self.strings.autostart_error)),
+            Err(error) => show_owned_error(
+                window,
+                &format!("{}: {error}", self.strings.autostart_read_error),
+            ),
         }
 
         unsafe { self.add_tray_icon(window)? };
@@ -501,6 +613,152 @@ impl WindowState {
             return Err(last_error("SetTimer failed"));
         }
         Ok(())
+    }
+
+    unsafe fn apply_layout(
+        &self,
+        window: HWND,
+        dpi: u32,
+        resize_window: bool,
+    ) -> Result<(), String> {
+        let Some(controls) = self.controls.get() else {
+            return Ok(());
+        };
+
+        if resize_window {
+            let mut bounds = RECT {
+                left: 0,
+                top: 0,
+                right: scale_for_dpi(CLIENT_WIDTH, dpi),
+                bottom: scale_for_dpi(CLIENT_HEIGHT, dpi),
+            };
+            let style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+            if unsafe { AdjustWindowRectExForDpi(&mut bounds, style, 0, 0, dpi) } == 0 {
+                return Err(last_error("AdjustWindowRectExForDpi failed"));
+            }
+            if unsafe {
+                SetWindowPos(
+                    window,
+                    null_mut(),
+                    0,
+                    0,
+                    bounds.right - bounds.left,
+                    bounds.bottom - bounds.top,
+                    SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE,
+                )
+            } == 0
+            {
+                return Err(last_error("SetWindowPos failed"));
+            }
+        }
+
+        for (control, x, y, width, height) in [
+            (controls.heading, 20, 16, 416, 24),
+            (controls.version, 20, 46, 416, 20),
+            (controls.pairing_label, 20, 77, 416, 20),
+            (controls.pairing_edit, 20, 99, 306, 30),
+            (controls.copy_button, 334, 98, 102, 32),
+            (controls.autostart_checkbox, 20, 145, 416, 24),
+            (controls.note, 40, 172, 396, 34),
+            (controls.exit_button, 334, 216, 102, 31),
+        ] {
+            if unsafe {
+                MoveWindow(
+                    control,
+                    scale_for_dpi(x, dpi),
+                    scale_for_dpi(y, dpi),
+                    scale_for_dpi(width, dpi),
+                    scale_for_dpi(height, dpi),
+                    1,
+                )
+            } == 0
+            {
+                return Err(last_error("MoveWindow failed"));
+            }
+        }
+
+        unsafe { self.install_fonts(controls, dpi) }
+    }
+
+    unsafe fn install_fonts(&self, controls: Controls, dpi: u32) -> Result<(), String> {
+        let face_name = wide("Segoe UI");
+        let normal_font = unsafe {
+            CreateFontW(
+                -scale_for_dpi(12, dpi),
+                0,
+                0,
+                0,
+                FW_REGULAR as i32,
+                0,
+                0,
+                0,
+                DEFAULT_CHARSET as u32,
+                OUT_DEFAULT_PRECIS as u32,
+                CLIP_DEFAULT_PRECIS as u32,
+                CLEARTYPE_QUALITY as u32,
+                (DEFAULT_PITCH | FF_DONTCARE) as u32,
+                face_name.as_ptr(),
+            )
+        };
+        if normal_font.is_null() {
+            return Err(last_error("CreateFontW failed"));
+        }
+        let heading_font = unsafe {
+            CreateFontW(
+                -scale_for_dpi(15, dpi),
+                0,
+                0,
+                0,
+                FW_SEMIBOLD as i32,
+                0,
+                0,
+                0,
+                DEFAULT_CHARSET as u32,
+                OUT_DEFAULT_PRECIS as u32,
+                CLIP_DEFAULT_PRECIS as u32,
+                CLEARTYPE_QUALITY as u32,
+                (DEFAULT_PITCH | FF_DONTCARE) as u32,
+                face_name.as_ptr(),
+            )
+        };
+        if heading_font.is_null() {
+            unsafe { DeleteObject(normal_font) };
+            return Err(last_error("CreateFontW failed"));
+        }
+
+        unsafe { SendMessageW(controls.heading, WM_SETFONT, heading_font as usize, 1) };
+        for control in [
+            controls.version,
+            controls.pairing_label,
+            controls.pairing_edit,
+            controls.copy_button,
+            controls.autostart_checkbox,
+            controls.note,
+            controls.exit_button,
+        ] {
+            unsafe { SendMessageW(control, WM_SETFONT, normal_font as usize, 1) };
+        }
+
+        let old_normal = self.normal_font.replace(normal_font);
+        let old_heading = self.heading_font.replace(heading_font);
+        if !old_normal.is_null() {
+            unsafe { DeleteObject(old_normal) };
+        }
+        if !old_heading.is_null() {
+            unsafe { DeleteObject(old_heading) };
+        }
+        Ok(())
+    }
+
+    unsafe fn release_fonts(&self) {
+        for font in [
+            self.normal_font.replace(null_mut()),
+            self.heading_font.replace(null_mut()),
+        ] {
+            if !font.is_null() {
+                unsafe { DeleteObject(font) };
+            }
+        }
     }
 
     fn refresh_pairing_code(&self) {
@@ -513,15 +771,21 @@ impl WindowState {
         }
         let code = code.replace('\0', " ");
         let text = wide(&code);
+        let Some(controls) = self.controls.get() else {
+            return;
+        };
         *self.last_pairing_code.borrow_mut() = code;
         // No RefCell borrow may span this reentrant call.
-        unsafe { SetWindowTextW(self.pairing_edit.get(), text.as_ptr()) };
+        unsafe { SetWindowTextW(controls.pairing_edit, text.as_ptr()) };
     }
 
     unsafe fn change_autostart(&self, window: HWND) {
+        let Some(controls) = self.controls.get() else {
+            return;
+        };
         let checked = unsafe {
             SendMessageW(
-                self.autostart_checkbox.get(),
+                controls.autostart_checkbox,
                 windows_sys::Win32::UI::WindowsAndMessaging::BM_GETCHECK,
                 0,
                 0,
@@ -531,7 +795,7 @@ impl WindowState {
         if let Err(error) = set_autostart(checked) {
             unsafe {
                 SendMessageW(
-                    self.autostart_checkbox.get(),
+                    controls.autostart_checkbox,
                     windows_sys::Win32::UI::WindowsAndMessaging::BM_SETCHECK,
                     (if checked { BST_UNCHECKED } else { BST_CHECKED }) as usize,
                     0,
@@ -546,13 +810,9 @@ impl WindowState {
             return Ok(());
         }
         let mut data = tray_icon_data(window);
-        let icon = unsafe { LoadIconW(null_mut(), IDI_APPLICATION) };
-        if icon.is_null() {
-            return Err(last_error("LoadIconW failed"));
-        }
         data.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
         data.uCallbackMessage = WM_TRAY;
-        data.hIcon = icon;
+        data.hIcon = self.tray_icon;
         copy_wide_into(&mut data.szTip, WINDOW_TITLE);
         if unsafe { Shell_NotifyIconW(NIM_ADD, &data) } == 0 {
             self.tray_added.set(false);
@@ -575,6 +835,32 @@ impl WindowState {
             unsafe { Shell_NotifyIconW(NIM_DELETE, &data) };
             self.tray_added.set(false);
         }
+    }
+}
+
+fn scale_for_dpi(value: i32, dpi: u32) -> i32 {
+    ((i64::from(value) * i64::from(dpi) + i64::from(BASE_DPI / 2)) / i64::from(BASE_DPI)) as i32
+}
+
+unsafe fn load_app_icon(
+    instance: *mut c_void,
+    width: i32,
+    height: i32,
+) -> Result<HICON, String> {
+    let icon = unsafe {
+        LoadImageW(
+            instance,
+            ICON_RESOURCE_ID as *const u16,
+            IMAGE_ICON,
+            width,
+            height,
+            LR_SHARED,
+        )
+    } as HICON;
+    if icon.is_null() {
+        Err(last_error("LoadImageW icon failed"))
+    } else {
+        Ok(icon)
     }
 }
 
@@ -634,7 +920,7 @@ fn autostart_enabled() -> Result<bool, String> {
             HKEY_CURRENT_USER,
             key.as_ptr(),
             value.as_ptr(),
-            0,
+            RRF_RT_ANY | RRF_NOEXPAND,
             &mut value_type,
             null_mut(),
             &mut byte_count,
@@ -657,7 +943,7 @@ fn autostart_enabled() -> Result<bool, String> {
             HKEY_CURRENT_USER,
             key.as_ptr(),
             value.as_ptr(),
-            0,
+            RRF_RT_ANY | RRF_NOEXPAND,
             &mut value_type,
             data.as_mut_ptr().cast(),
             &mut actual_bytes,

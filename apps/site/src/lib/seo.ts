@@ -85,7 +85,7 @@ export function buildJsonLd(input: SeoInput): Record<string, unknown>[] {
     description,
     url: toolUrl,
     applicationCategory: "DeveloperApplication",
-    operatingSystem: "Web Browser",
+    operatingSystem: path === "http-client" ? "Windows 10, Windows 11" : "Web Browser",
     isAccessibleForFree: true,
     offers: {
       "@type": "Offer",

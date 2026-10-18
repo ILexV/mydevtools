@@ -105,3 +105,22 @@ test("normal public navigation remains available offline and no-store fetches by
   });
   assert.equal(intercepted, false);
 });
+
+test("native release downloads bypass stale cached binaries even while offline", async () => {
+  for (const base of ["/", "/mydevtools/"]) {
+    const { handlers, cacheApi, goOffline } = harness(base);
+    const request = new Request(`${origin}${base}downloads/mydevtools-agent-windows-x64.exe?v=0.1.0`);
+    Object.defineProperty(request, "mode", { value: "navigate" });
+    for (const name of ["mdt-sw-pages", "mdt-sw-assets"]) {
+      await (await cacheApi.open(name)).put(request, new Response("outdated executable"));
+    }
+    goOffline();
+    let intercepted = false;
+    handlers.get("fetch")!({
+      request,
+      respondWith() { intercepted = true; },
+      waitUntil() {},
+    });
+    assert.equal(intercepted, false, "downloads must use the network, not an older cached release");
+  }
+});

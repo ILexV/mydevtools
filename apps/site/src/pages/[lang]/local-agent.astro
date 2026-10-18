@@ -1,0 +1,228 @@
+---
+import Icon from "@/components/Icon.astro";
+import { t } from "@/i18n/messages";
+import { getLocalAgentRelease } from "@/lib/local-agent-release";
+import { withBase } from "@/lib/url";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { LOCALES, type LocaleCode } from "@/registry/locales";
+
+export function getStaticPaths() {
+  return LOCALES.map((locale) => ({ params: { lang: locale.code } }));
+}
+
+interface Params {
+  lang: LocaleCode;
+}
+
+const { lang } = Astro.params as Params;
+const release = getLocalAgentRelease();
+const label = (key: string) => t(lang, "local-agent", key);
+const downloadHref = `${withBase(`downloads/${release.file}`)}?v=${encodeURIComponent(release.version)}`;
+const numberLocale = LOCALES.find((locale) => locale.code === lang)!.bcp47;
+const fileSize = new Intl.NumberFormat(numberLocale, {
+  style: "unit",
+  unit: "megabyte",
+  unitDisplay: "short",
+  maximumFractionDigits: 2,
+}).format(release.size / 1_000_000);
+const exactFileSize = new Intl.NumberFormat(numberLocale).format(release.size);
+---
+
+<BaseLayout
+  locale={lang}
+  path="local-agent"
+  title={label("Title")}
+  description={label("Description")}
+  seoTitle={label("SeoTitle")}
+  keywords={label("Keywords").split(",").map((keyword) => keyword.trim())}
+  footerPrivacy={label("PrivacyShort")}
+>
+  <main class="agent-page">
+    <section class="agent-hero">
+      <div class="agent-hero-copy">
+        <p class="agent-eyebrow"><Icon name="windows" size={16} />{label("Eyebrow")}</p>
+        <h1>{label("HeroTitle")}</h1>
+        <p class="agent-lead">{label("HeroDescription")}</p>
+        <div class="agent-actions">
+          <a
+            class="ds-btn ds-btn-primary agent-download"
+            href={downloadHref}
+            download={release.file}
+            data-local-agent-download
+          >
+            <Icon name="download" size={17} />{label("DownloadButton")}
+          </a>
+          <span class="agent-requirement">{label("SystemRequirement")}</span>
+        </div>
+      </div>
+
+      <aside class="ds-panel release-card" aria-labelledby="release-title">
+        <div class="release-heading">
+          <span class="release-icon"><Icon name="windows" size={24} /></span>
+          <div>
+            <h2 id="release-title">{label("ReleaseTitle")}</h2>
+            <p>{release.file}</p>
+          </div>
+        </div>
+        <dl class="release-details">
+          <div><dt>{label("VersionLabel")}</dt><dd data-local-agent-version>{release.version}</dd></div>
+          <div><dt>{label("PlatformLabel")}</dt><dd data-local-agent-platform>{label("PlatformValue")}</dd></div>
+          <div><dt>{label("SizeLabel")}</dt><dd data-local-agent-size>{fileSize} ({exactFileSize} B)</dd></div>
+          <div class="release-hash"><dt>{label("Sha256Label")}</dt><dd data-local-agent-sha256>{release.sha256}</dd></div>
+        </dl>
+      </aside>
+    </section>
+
+    <section class="agent-section" aria-labelledby="setup-title">
+      <div class="section-heading">
+        <span class="section-icon"><Icon name="download" size={20} /></span>
+        <div><h2 id="setup-title">{label("SetupTitle")}</h2><p>{label("SetupIntro")}</p></div>
+      </div>
+      <ol class="setup-steps">
+        <li><span>1</span><div><h3>{label("Step1Title")}</h3><p>{label("Step1Body")}</p></div></li>
+        <li><span>2</span><div><h3>{label("Step2Title")}</h3><p>{label("Step2Body")}</p></div></li>
+        <li><span>3</span><div><h3>{label("Step3Title")}</h3><p>{label("Step3Body")}</p></div></li>
+      </ol>
+    </section>
+
+    <div class="agent-grid">
+      <section class="ds-panel info-card" aria-labelledby="permissions-title">
+        <span class="section-icon"><Icon name="lock" size={20} /></span>
+        <h2 id="permissions-title">{label("PermissionsTitle")}</h2>
+        <p>{label("PermissionsIntro")}</p>
+        <ul class="check-list">
+          <li><Icon name="check" size={17} /><span>{label("PermissionAccount")}</span></li>
+          <li><Icon name="check" size={17} /><span>{label("PermissionInstall")}</span></li>
+          <li><Icon name="check" size={17} /><span>{label("PermissionPairing")}</span></li>
+          <li><Icon name="check" size={17} /><span>{label("PermissionNetwork")}</span></li>
+        </ul>
+      </section>
+
+      <section class="ds-panel info-card" aria-labelledby="tray-title">
+        <span class="section-icon"><Icon name="settings" size={20} /></span>
+        <h2 id="tray-title">{label("TrayTitle")}</h2>
+        <p>{label("TrayIntro")}</p>
+        <ul class="check-list">
+          <li><Icon name="check" size={17} /><span>{label("TrayCode")}</span></li>
+          <li><Icon name="check" size={17} /><span>{label("TrayAutostart")}</span></li>
+          <li><Icon name="check" size={17} /><span>{label("TrayExit")}</span></li>
+        </ul>
+      </section>
+    </div>
+
+    <section class="agent-section capability" aria-labelledby="capability-title">
+      <span class="section-icon"><Icon name="zap" size={20} /></span>
+      <div>
+        <h2 id="capability-title">{label("CapabilityTitle")}</h2>
+        <p>{label("CapabilityBody")}</p>
+      </div>
+    </section>
+
+    <section class="verify-note" aria-labelledby="verify-title">
+      <Icon name="lock" size={18} />
+      <div><h2 id="verify-title">{label("VerifyTitle")}</h2><p>{label("VerifyBody")}</p></div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .agent-page {
+    width: min(var(--mdt-content-max), calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(2.5rem, 7vw, 5.5rem) 0 4.5rem;
+  }
+  .agent-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.75fr);
+    gap: clamp(2rem, 6vw, 5rem);
+    align-items: center;
+    margin-bottom: clamp(3.5rem, 8vw, 6.5rem);
+  }
+  .agent-eyebrow, .agent-actions, .release-heading, .section-heading, .capability, .verify-note {
+    display: flex;
+    align-items: center;
+  }
+  .agent-eyebrow {
+    gap: 0.5rem;
+    color: var(--mdt-accent);
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-label);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .agent-hero h1 {
+    max-width: 13ch;
+    margin-top: 0.8rem;
+    font-family: var(--mdt-font-display);
+    font-size: clamp(2.3rem, 5.6vw, 4.6rem);
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+  }
+  .agent-lead {
+    max-width: 43rem;
+    margin-top: 1.25rem;
+    color: var(--mdt-text-muted);
+    font-size: clamp(1rem, 1.7vw, 1.18rem);
+  }
+  .agent-actions {
+    flex-wrap: wrap;
+    gap: 0.9rem 1.2rem;
+    margin-top: 1.8rem;
+  }
+  .agent-download { min-height: 3rem; gap: 0.55rem; padding-inline: 1.3rem; }
+  .agent-requirement { color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); }
+  .release-card { padding: 1.35rem; box-shadow: var(--mdt-shadow-e1); }
+  .release-heading { gap: 0.85rem; padding-bottom: 1.15rem; border-bottom: 1px solid var(--mdt-border-soft); }
+  .release-icon, .section-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    color: var(--mdt-accent);
+    background: color-mix(in srgb, var(--mdt-accent) 11%, var(--mdt-surface-inset));
+    border: 1px solid color-mix(in srgb, var(--mdt-accent) 25%, var(--mdt-border));
+  }
+  .release-icon { width: 3rem; height: 3rem; border-radius: var(--mdt-radius-sm); }
+  .release-heading h2, .agent-section h2, .info-card h2, .verify-note h2 { font-family: var(--mdt-font-display); }
+  .release-heading h2 { font-size: 1.05rem; }
+  .release-heading p { color: var(--mdt-text-faint); font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-micro); overflow-wrap: anywhere; }
+  .release-details { display: grid; gap: 0.8rem; margin-top: 1.1rem; }
+  .release-details div { display: flex; justify-content: space-between; gap: 1rem; }
+  .release-details dt { color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); }
+  .release-details dd { text-align: end; font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-meta); }
+  .release-details .release-hash { display: block; }
+  .release-hash dd { margin-top: 0.35rem; padding: 0.65rem; text-align: start; overflow-wrap: anywhere; background: var(--mdt-surface-inset); border-radius: var(--mdt-radius-xs); font-size: var(--mdt-fs-micro); }
+  .agent-section { margin-block: 3rem; }
+  .section-heading { align-items: flex-start; gap: 1rem; max-width: 48rem; }
+  .section-icon { width: 2.5rem; height: 2.5rem; border-radius: var(--mdt-radius-sm); }
+  .section-heading h2, .capability h2 { font-size: var(--mdt-fs-h2); }
+  .section-heading p, .capability p { margin-top: 0.35rem; color: var(--mdt-text-muted); }
+  .setup-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.6rem; padding: 0; list-style: none; }
+  .setup-steps li { display: flex; gap: 0.85rem; padding: 1.2rem; background: var(--mdt-surface-raised); border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); }
+  .setup-steps li > span { display: grid; flex: none; place-items: center; width: 1.65rem; height: 1.65rem; color: var(--mdt-accent); background: color-mix(in srgb, var(--mdt-accent) 12%, transparent); border-radius: 50%; font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-label); font-weight: 700; }
+  .setup-steps h3 { font-size: 1rem; }
+  .setup-steps p { margin-top: 0.35rem; color: var(--mdt-text-muted); font-size: var(--mdt-fs-meta); }
+  .agent-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-block: 3rem; }
+  .info-card { padding: 1.4rem; }
+  .info-card h2 { margin-top: 1rem; font-size: var(--mdt-fs-h3); }
+  .info-card > p { margin-top: 0.4rem; color: var(--mdt-text-muted); }
+  .check-list { display: grid; gap: 0.7rem; margin-top: 1.1rem; padding: 0; list-style: none; }
+  .check-list li { display: flex; align-items: flex-start; gap: 0.65rem; }
+  .check-list svg { flex: none; margin-top: 0.2rem; color: var(--mdt-success); }
+  .capability { align-items: flex-start; gap: 1rem; padding: 1.3rem; background: color-mix(in srgb, var(--mdt-accent) 6%, var(--mdt-surface-raised)); border: 1px solid color-mix(in srgb, var(--mdt-accent) 22%, var(--mdt-border)); border-radius: var(--mdt-radius); }
+  .verify-note { align-items: flex-start; gap: 0.75rem; max-width: 52rem; margin: 2rem auto 0; color: var(--mdt-text-muted); }
+  .verify-note > svg { flex: none; margin-top: 0.15rem; color: var(--mdt-text-faint); }
+  .verify-note h2 { color: var(--mdt-text); font-size: var(--mdt-fs-small); }
+  .verify-note p { margin-top: 0.2rem; font-size: var(--mdt-fs-meta); }
+  @media (max-width: 52rem) {
+    .agent-hero { grid-template-columns: 1fr; }
+    .release-card { max-width: 36rem; }
+    .setup-steps { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 40rem) {
+    .agent-page { width: min(100% - 1.25rem, var(--mdt-content-max)); padding-top: 2rem; }
+    .agent-grid { grid-template-columns: 1fr; }
+    .release-details div { display: block; }
+    .release-details dd { margin-top: 0.15rem; text-align: start; }
+  }
+</style>

@@ -93,3 +93,23 @@ Explicit moves/resizes (including keyboard actions, half/quarter snapping and ti
 Taskbar previews and tab/group close actions read the same dirty-input check and share one confirmation flow. Desktop result transfers remain in `postMessage`/controller memory only, target one mounted iframe by request id, and are never copied to layout, preferences or bounds storage. The transfer target marks its pre-transfer input baseline before applying text, so transferred content receives the same close protection as trusted user edits.
 
 Desktop discard checks compare editable input against an in-memory baseline captured before the first user interaction, after tool initialization/restored preferences. Untouched defaults (including QR color fields), unchanged values, cleared input and readonly output do not prompt. Selected files and occupied FileDrop zones do. CodeMirror supplies its immutable full document through `mdt:input-snapshot`, avoiding viewport-dependent checks and full-document string copies. These snapshots are released with the iframe and are never persisted or transmitted.
+
+## HTTP client and Local Agent
+
+`http-client` persists no request URLs, headers, bodies, results, pairing codes
+or session tokens. `LocalAgentClient` keeps its origin-bound token only in the
+current page's memory. Reloading the page requires pairing again; Disconnect
+revokes the server-side session. The agent keeps sessions in memory with an
+eight-hour expiry and invalidates them on exit/restart.
+
+The Windows agent has one opt-in OS setting: the current user's
+`HKCU\Software\Microsoft\Windows\CurrentVersion\Run\MyDevToolsLocalAgent` value.
+It contains the quoted executable path and `--autostart`, not tokens or request
+data. Unchecking autostart removes only this value. Advanced CLI settings
+(`--origin`, `--allow-private`, `--port`) are not persisted by the checkbox.
+HTTP responses and explicit downloads may contain secrets; they are never
+rendered as HTML or copied into localStorage, desktop state or analytics.
+
+The generated release manifest is public software metadata, not client state.
+The service worker never serves `/downloads/` from its runtime cache.
+

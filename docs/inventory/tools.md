@@ -131,3 +131,35 @@ CSV, JSONL and Parquet-derived text exports use the shared streaming save core. 
 Hashing, file encoding, image processing, key generation and explorer jobs share the correlated worker runner: aborting or losing one worker rejects every request posted to that exact instance, detaches its listeners and makes the next run spawn a clean worker. Hash, encoding, CSV and JSONL readers also share one configurable `Blob.slice()` async iterator; it keeps one chunk in flight, reports absolute offsets and checks cancellation on both sides of each read.
 
 Worker errors share a small resource taxonomy. Runtime allocation evidence is reported as `memory-exhausted`, terminates the affected worker and uses common localized guidance; it is never relabeled as a bad file. `invalid-format` and `corrupt-input` are emitted only where the parser or decoder provides specific evidence. Existing CSV, JSON, Parquet, PDF, image, QR, encoding and cryptography errors retain their more precise tool-specific messages when that evidence is available.
+
+## Current Astro HTTP client and Windows companion
+
+`http-client` uses the shared `src/scripts/local-agent.ts` browser client and
+the independent Rust application in `apps/local-agent`; it does not use WASM
+or a MyDevTools cloud proxy. `/{lang}/local-agent/` is a localized software
+download page, not another tool registry entry.
+
+The tool supports explicit pairing, HTTP methods, user-entered headers and
+UTF-8 bodies, request timeout, optional redirects, cancellation, status/timing,
+duplicate response headers, safe text preview and byte-exact body download.
+Bounds are 1 MiB request body, 16 MiB response and 120 seconds. Text preview
+shows at most 1 MiB; downloaded bytes are complete within the response limit.
+No cookie jar, client-certificate UI, arbitrary process execution, filesystem
+API or port/network scanner is provided.
+
+Protocol `/v1`: `GET /info`, `POST /pair`, `DELETE /session`,
+`POST /http/request`, `POST /http/cancel`. Pairing requests explicit capability
+names; currently only `http.request` exists. Session tokens are scoped to the
+pairing origin. Future tools must introduce independently checked capabilities
+and routes without inheriting HTTP permissions. Host/Origin checks, one-time
+pairing, session expiry and cancellation live in `server.rs`/`state.rs`;
+outgoing HTTP and DNS pinning live in `http_client.rs`/`policy.rs`, separate from
+the Windows tray/autostart shell.
+
+Public destinations are allowed by default. `--allow-private` explicitly opts
+into private/LAN/loopback targets but never cloud metadata, link-local addresses
+or the agent itself. Redirects are revalidated, credential headers are removed
+across origins, TLS verification stays enabled and HTTPS downgrades are rejected.
+Network-specific NAT64 `/48` destinations are rejected because the translated
+IPv4 address cannot be safely inferred from a suffix alone.
+

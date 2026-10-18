@@ -12,11 +12,13 @@ import Icon from "@/components/Icon.astro";
 
 interface Props {
   locale: LocaleCode;
+  /** Contextual replacement for pages whose data intentionally leaves the browser. */
+  privacyText?: string;
 }
 
-const { locale } = Astro.props as Props;
+const { locale, privacyText } = Astro.props as Props;
 const brand = t(locale, "common", "AppName");
-const privacy = t(locale, "home", "NoDataSent");
+const privacy = privacyText ?? t(locale, "home", "NoDataSent");
 const categoriesTitle = t(locale, "common", "Footer_Categories");
 const languagesTitle = t(locale, "common", "Footer_Languages");
 const sourceLabel = t(locale, "common", "Footer_Source");

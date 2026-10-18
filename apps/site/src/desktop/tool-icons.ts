@@ -66,6 +66,7 @@ export const TOOL_ICONS: Record<string, string> = {
   "unit-converter": `<rect x="2.5" y="6.5" width="15" height="7" rx="1.3"/><path d="M5.5 6.5v2.8M8.5 6.5v1.7M11.5 6.5v2.8M14.5 6.5v1.7"/>`,
   "date-converter": `<rect x="3" y="4.5" width="14" height="12.5" rx="2"/><path d="M3 8.6h14M7 3v3M13 3v3"/>${dot(7, 12.6)}${dot(10, 12.6)}${dot(13, 12.6)}`,
   "ip-subnet-calculator": `<rect x="7.5" y="2.8" width="5" height="4.2" rx="1"/><rect x="2.5" y="13" width="5" height="4.2" rx="1"/><rect x="12.5" y="13" width="5" height="4.2" rx="1"/><path d="M10 7v3M5 13v-3h10v3"/>`,
+  "http-client": `<path d="M3 5h8M8 2l3 3-3 3M17 15H9M12 12l-3 3 3 3"/><path d="M5 10h10" stroke-opacity=".45"/>`,
 
   /* design */
   "color-converter": `<path d="M10 3a7 7 0 0 0 0 14c1 0 1.5-.6 1.5-1.4 0-.8-.6-1.2-.6-2 0-.9.7-1.6 1.6-1.6H14a3 3 0 0 0 3-3C17 5.8 13.9 3 10 3Z"/>${dot(6.4, 9.2)}${dot(8.4, 6.2)}${dot(12.4, 6.3)}`,

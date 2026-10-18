@@ -31,6 +31,8 @@ interface Props {
    * to the desktop before paint. Crawlers have no such key and stay on the catalog.
    */
   desktopHref?: string;
+  /** Contextual footer privacy copy for pages that perform intentional network I/O. */
+  footerPrivacy?: string;
 }
 
 const {
@@ -44,6 +46,7 @@ const {
   howToSteps,
   seoTitle,
   desktopHref,
+  footerPrivacy,
 } = Astro.props as Props;
 const meta: LocaleMeta = LOCALES.find((l) => l.code === locale)!;
 /**
@@ -107,7 +110,7 @@ const analyticsEnabled = process.env.ANALYTICS_ENABLED === "true";
     <Header locale={locale} path={path} />
     <slot />
     {analyticsEnabled && <AnalyticsVote locale={locale} />}
-    <Footer locale={locale} />
+    <Footer locale={locale} privacyText={footerPrivacy} />
     <Palette locale={locale} />
     <InstallPrompt locale={locale} />
 

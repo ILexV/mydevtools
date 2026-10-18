@@ -4,6 +4,7 @@
 //
 // Invoked by `npm run test:smoke` and the `npm run verify` chain.
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 
@@ -18,6 +19,7 @@ const LANGS = ["en", "ru", "es", "de", "pt", "zh", "fr", "ja", "ko", "hi"];
 test("dist: every locale home + offline + 404 + manifest + sw + icons", { skip }, () => {
   for (const lang of LANGS) assert.ok(has(`${lang}/index.html`), `home ${lang}`);
   assert.ok(has("en/hash-calculator/index.html"), "tool route");
+  for (const lang of LANGS) assert.ok(has(`${lang}/local-agent/index.html`), `local agent route ${lang}`);
   assert.ok(has("offline/index.html"), "offline page");
   assert.ok(has("404.html"), "404 page");
   assert.ok(has("manifest.webmanifest"), "manifest");
@@ -27,6 +29,17 @@ test("dist: every locale home + offline + 404 + manifest + sw + icons", { skip }
   assert.equal(read("CNAME").trim(), "mydevtools.app", "custom domain CNAME");
   const key = readdirSync(DIST).find((f) => /^[0-9a-f]{32}\.txt$/.test(f));
   assert.ok(key && read(key).trim() === key.slice(0, 32), "IndexNow key file");
+});
+
+test("local agent: release metadata matches the downloadable executable", { skip }, () => {
+  const manifest = JSON.parse(read("downloads/local-agent.json"));
+  assert.equal(manifest.platform, "windows-x64");
+  assert.equal(manifest.file, "mydevtools-agent-windows-x64.exe");
+  assert.match(manifest.version, /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/);
+  assert.match(manifest.sha256, /^[0-9a-f]{64}$/);
+  const executable = readFileSync(new URL(`downloads/${manifest.file}`, DIST));
+  assert.equal(executable.length, manifest.size);
+  assert.equal(createHash("sha256").update(executable).digest("hex"), manifest.sha256);
 });
 
 test("seo: root and sitemap pages have one head description and no meta refresh", { skip }, () => {

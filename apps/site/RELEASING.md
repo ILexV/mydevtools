@@ -2,8 +2,8 @@
 
 The new frontend is a **static** Astro build published from a local machine.
 No build runs on GitHub — only the finished `apps/site/dist` is pushed to the
-`gh-pages` branch. All computation stays client-side; the deploy contains no
-secrets.
+`gh-pages` branch. Ordinary tools compute in the browser; the optional Windows
+Local Agent executes HTTP requests on the user's machine. The deploy contains no secrets.
 
 ## Prerequisites (pinned)
 
@@ -23,12 +23,44 @@ rustup target add wasm32-unknown-unknown
 cargo install wasm-bindgen-cli --locked
 ```
 
+The download page also requires the generated Windows x64 Local Agent:
+
+```powershell
+npm run build:agent
+npm run test:agent
+```
+
+This uses the independent Rust workspace in `apps/local-agent`. On Windows,
+install MSVC Build Tools and the Windows SDK; on Linux, install the MinGW-w64
+cross-compiler (`x86_64-w64-mingw32-gcc`). The packaging script selects the host's
+Windows target, builds the executable and generates
+`public/downloads/local-agent.json` from Cargo's version, SHA-256 and file size.
+Both downloads are gitignored. The localized download pages fail the build if
+the binary or metadata is missing or disagrees. Do not publish a page pointing
+to a fabricated release. The binary is currently unsigned; the page explains
+SmartScreen and distinguishes a checksum from a publisher signature.
+
+Before publishing a native release, run the executable on Windows 10/11 x64:
+open from the download, pair with the HTTPS site, minimize/close to tray, reopen
+from the tray, enable/disable per-user autostart, sign out/in, and exit while
+a request is active. Check Explorer restart, 100%/150% display scaling, and the
+English/Russian window labels. Linux HTTP smoke plus Windows cross-compilation
+does **not** verify these OS interactions. No automatic updater is installed.
+
+Browser smoke should include a target without CORS, a UTF-8 request body,
+duplicate response headers, a binary-body download, cancellation, and disconnect
+while a request is active. Confirm that a new request clears the previous result
+and that reconnect stays disabled until revocation completes. Download the EXE
+from the description page and compare its SHA-256 with the displayed release
+metadata; downloads must bypass the service worker's runtime cache.
+
+
 ## Build → preview → deploy → smoke test
 
 All commands run from the repo root.
 
 ```powershell
-# 1. Full reproducible build: i18n check → WASM → Astro site → dist smoke.
+# 1. Full reproducible build: i18n → WASM → Windows agent → Astro → dist smoke.
 $env:ANALYTICS_ENABLED = 'true'
 npm run build:pages
 
@@ -105,8 +137,11 @@ Compile targets:
 ## What `build:pages` does
 
 `validate:i18n` → `build:wasm` (regenerates all 11 WASM domains into
-`apps/site/src/generated/wasm/`) → `build:site` (`astro build` + `node build-sw.mjs`)
-→ `test:smoke` (static dist smoke). Astro empties `dist/` before each build.
+`apps/site/src/generated/wasm/`) → `build:agent` (Windows executable + release metadata)
+→ `build:site` (`astro build` + `node build-sw.mjs`) → `test:smoke`
+(static routes, release download/metadata and the existing site contracts).
+Astro empties `dist/` before each build. Agent downloads bypass the PWA runtime
+cache and use versioned URLs; the executable is not precached.
 
 > `src/generated/` is gitignored, so `npm run build:wasm` (all 11 domains,
 > `ipcalc` included) must run on a fresh checkout and whenever Rust sources change.

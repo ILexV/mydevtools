@@ -51,6 +51,10 @@ const PRIVATE_PAGE_PATH = new URL(
   "../admin/analytics",
   new URL(OFFLINE_URL, self.location.origin)
 ).pathname;
+const DOWNLOAD_PATH = new URL(
+  "../downloads/",
+  new URL(OFFLINE_URL, self.location.origin)
+).pathname;
 
 /** Access-protected pages, reports and provider login/logout must remain network-only. */
 function isPrivatePath(pathname) {
@@ -136,6 +140,8 @@ self.addEventListener("fetch", (event) => {
   if (url.protocol !== "http:" && url.protocol !== "https:") return; // chrome-extension:, data:, …
   if (url.origin !== self.location.origin) return; // cross-origin passthrough
   if (isPrivatePath(url.pathname) || request.cache === "no-store") return;
+  // Native releases and checksums must never be served from a stale PWA cache.
+  if (url.pathname.startsWith(DOWNLOAD_PATH)) return;
 
   if (request.mode === "navigate") {
     // Network-first with cache + offline fallback. Any thrown error degrades

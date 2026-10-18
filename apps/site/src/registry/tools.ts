@@ -125,6 +125,7 @@ const TOOL_CATALOG = [
   { slug: "unit-converter", monogram: "m↔ft", category: "converters", wasm: null, capabilities: { copy: true } },
   { slug: "date-converter", monogram: "UTC", category: "converters", wasm: null, capabilities: { copy: true } },
   { slug: "ip-subnet-calculator", monogram: "/24", category: "converters", wasm: "ipcalc", capabilities: { copy: true } },
+  { slug: "http-client", monogram: "HTTP", category: "converters", wasm: null, capabilities: { cancel: true, download: true } },
 
   // ── design ────────────────────────────────────────────────────────────────
   { slug: "color-converter", monogram: "#hex", category: "design", wasm: null, capabilities: { copy: true } },

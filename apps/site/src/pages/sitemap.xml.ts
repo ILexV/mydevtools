@@ -21,6 +21,7 @@ export const GET: APIRoute = ({ site }) => {
   for (const l of LOCALES) {
     entries.push(url(localizedPath(l.code), homeLastmod(l.code)));
     for (const tool of TOOLS) entries.push(url(localizedPath(l.code, tool.slug), toolLastmod(l.code, tool.slug)));
+    entries.push(url(localizedPath(l.code, "local-agent"), undefined));
   }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${entries.join("")}\n</urlset>\n`;

@@ -61,9 +61,25 @@ missing Run value and the enable → readback → disable → readback transitio
 Existing users must exit the old process and replace the EXE; there is no updater.
 The same release embeds the MyDevTools icon for the executable, window and tray,
 restores the native caption through default `WM_NCCREATE` handling, and uses
-DPI-scaled Segoe UI controls with consistent backgrounds. HTTP-client smoke must
-exercise request Headers/Body/Settings tabs (including keyboard navigation),
-response Body/Headers tabs, and the collapsible agent connection controls.
+DPI-scaled Segoe UI controls with consistent backgrounds.
+
+The HTTP workspace now uses a companion sidebar and a single request/response
+surface. Request Params/Headers tables support repeated keys, disabled rows,
+and keyboard-accessible add/remove controls; editing Params updates the URL
+and editing the URL replaces the table. The original URL encoding is untouched
+until a table edit (table edits use `URLSearchParams` encoding). Body and
+Settings remain separate tabs. No request or response data is persisted.
+
+HTTP-client smoke must exercise URL ↔ Params synchronization (including
+Unicode, repeated keys and unchecked rows), Headers/Body/Settings keyboard
+navigation, response Body/Headers tabs, and the collapsible companion sidebar
+at desktop and 375px widths in both themes. The read-only response viewer loads
+CodeMirror lazily. Pretty JSON preserves source tokens, including large numbers
+and duplicate keys; Raw retains decoded source text and downloads retain exact
+response bytes. Invalid/truncated JSON stays Raw. Pretty output is bounded to
+2 MiB characters and 64 nested containers; responses beyond those formatting
+bounds also stay Raw. Check that canceling or starting another request cannot
+reveal a stale asynchronously loaded editor.
 
 
 ## Build → preview → deploy → smoke test

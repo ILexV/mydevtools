@@ -6,7 +6,8 @@ import Field from "@/components/tool/Field.astro";
 import Icon from "@/components/Icon.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
-import ToolPanel from "@/components/tool/ToolPanel.astro";
+import { editorPhrases } from "@/tools/editor-phrases";
+import "@/styles/codemirror.css";
 
 interface Props { lang: LocaleCode }
 const { lang } = Astro.props as Props;
@@ -19,78 +20,13 @@ const clientKeys = [
   "Error_forbidden", "Error_pairing_invalid", "Error_pairing_expired", "Error_pairing_rate_limited",
   "Error_unsupported_capability", "Error_private_network_denied", "Error_target_denied", "Error_timeout",
   "Error_cancelled", "Error_response_too_large", "Error_request_too_large", "Error_busy", "Error_network_error",
-  "Error_incompatible_protocol",
+  "Error_incompatible_protocol", "ResponseBody", "EditorLoadError",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
-const stringsJson = JSON.stringify({ ...strings, Lang: lang });
+const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhrases(lang) });
 ---
 
-<div class="ds-workbench ds-workbench-single http-workbench" data-http-client>
-  <ToolPanel title={t(lang, ns, "RequestTitle")} class="http-request">
-    <div class="http-compose">
-      <label class="visually-hidden" for="http-method">{t(lang, ns, "MethodLabel")}</label>
-      <select id="http-method" class="ds-field-select mono" data-http-method>
-        { ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"].map((method) => <option value={method}>{method}</option>) }
-      </select>
-      <label class="visually-hidden" for="http-url">{t(lang, ns, "UrlLabel")}</label>
-      <input id="http-url" class="ds-field mono" type="url" inputmode="url" placeholder="https://api.example.com/data" autocomplete="off" spellcheck="false" data-http-url />
-      <div class="http-send-actions">
-        <button type="button" class="ds-btn ds-btn-primary" disabled data-http-send><Icon name="zap" size={16} />{t(lang, ns, "Send")}</button>
-        <button type="button" class="ds-btn" disabled data-http-cancel>{t(lang, ns, "Cancel")}</button>
-      </div>
-    </div>
-
-    <div class="seg http-tabs" role="tablist" aria-label={t(lang, ns, "RequestTitle")} data-http-tabs>
-      <button type="button" role="tab" id="http-request-headers-tab" aria-selected="true" aria-controls="http-request-headers-panel" tabindex="0">{t(lang, ns, "HeadersLabel")}</button>
-      <button type="button" role="tab" id="http-request-body-tab" aria-selected="false" aria-controls="http-request-body-panel" tabindex="-1">{t(lang, ns, "BodyLabel")}</button>
-      <button type="button" role="tab" id="http-request-settings-tab" aria-selected="false" aria-controls="http-request-settings-panel" tabindex="-1">{t(lang, ns, "SettingsLabel")}</button>
-    </div>
-    <div id="http-request-headers-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-request-headers-tab">
-      <Field label={t(lang, ns, "HeadersLabel")} for="http-headers" hint={t(lang, ns, "HeadersHint")}>
-        <textarea id="http-headers" class="ds-field-textarea mono http-headers" rows="7" autocomplete="off" spellcheck="false" placeholder="Accept: application/json" data-http-headers></textarea>
-      </Field>
-    </div>
-    <div id="http-request-body-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-request-body-tab" hidden>
-      <Field label={t(lang, ns, "BodyLabel")} for="http-body" hint={t(lang, ns, "BodyHint")}>
-        <textarea id="http-body" class="ds-field-textarea mono http-body" rows="9" autocomplete="off" spellcheck="false" data-http-body></textarea>
-      </Field>
-    </div>
-    <div id="http-request-settings-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-request-settings-tab" hidden>
-      <div class="ds-settings http-options">
-        <Field label={t(lang, ns, "TimeoutLabel")} for="http-timeout" hint={t(lang, ns, "TimeoutHint")}>
-          <input id="http-timeout" class="ds-field mono" type="number" min="100" max="120000" step="100" value="30000" data-http-timeout />
-        </Field>
-        <label class="ds-check-row http-redirects"><input class="ds-check" type="checkbox" data-http-redirects /><span>{t(lang, ns, "FollowRedirects")}</span></label>
-      </div>
-    </div>
-    <StatusMessage kind="info" data-http-request-status />
-    <StatusMessage kind="error" data-http-request-error />
-  </ToolPanel>
-
-  <OutputPanel panel label={t(lang, ns, "ResponseTitle")} emptyHint={t(lang, ns, "NoResponse")} class="http-response" data-http-output>
-    <Fragment slot="actions">
-      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" disabled data-http-download><Icon name="download" size={15} />{t(lang, ns, "Download")}</button>
-    </Fragment>
-    <div class="ds-when-filled http-result" hidden data-http-result>
-      <dl class="http-response-meta">
-        <div><dt>{t(lang, ns, "StatusLabel")}</dt><dd class="mono" data-http-response-status></dd></div>
-        <div><dt>{t(lang, ns, "TimeLabel")}</dt><dd class="mono" data-http-response-time></dd></div>
-        <div><dt>{t(lang, ns, "SizeLabel")}</dt><dd class="mono" data-http-response-size></dd></div>
-      </dl>
-      <p class="http-final-url"><span>{t(lang, ns, "FinalUrlLabel")}</span><code data-http-response-url></code></p>
-      <div class="seg http-tabs" role="tablist" aria-label={t(lang, ns, "ResponseTitle")} data-http-tabs>
-        <button type="button" role="tab" id="http-response-body-tab" aria-selected="true" aria-controls="http-response-body-panel" tabindex="0">{t(lang, ns, "ResponseBody")}</button>
-        <button type="button" role="tab" id="http-response-headers-tab" aria-selected="false" aria-controls="http-response-headers-panel" tabindex="-1">{t(lang, ns, "ResponseHeaders")}</button>
-      </div>
-      <section id="http-response-body-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-response-body-tab">
-        <pre class="ds-code-block mono http-preview" tabindex="0" data-http-response-preview></pre>
-      </section>
-      <section id="http-response-headers-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-response-headers-tab" hidden>
-        <pre class="ds-code-block mono http-preview" tabindex="0" data-http-response-headers></pre>
-      </section>
-    </div>
-  </OutputPanel>
-
+<div class="http-workbench" data-http-client>
   <details class="ds-card http-connect" open>
     <summary class="http-connect-summary">
       <span class="ds-panel-title">{t(lang, ns, "ConnectionTitle")}</span>
@@ -130,64 +66,199 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang });
       </details>
     </div>
   </details>
+  <div class="ds-card http-main">
+  <section class="http-request" aria-label={t(lang, ns, "RequestTitle")}>
+    <div class="http-section-heading"><Icon name="globe" size={16} /><h2 class="ds-panel-title">{t(lang, ns, "RequestTitle")}</h2></div>
+    <div class="http-compose">
+      <label class="visually-hidden" for="http-method">{t(lang, ns, "MethodLabel")}</label>
+      <select id="http-method" class="ds-field-select mono" data-http-method>
+        { ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"].map((method) => <option value={method}>{method}</option>) }
+      </select>
+      <label class="visually-hidden" for="http-url">{t(lang, ns, "UrlLabel")}</label>
+      <input id="http-url" class="ds-field mono" type="url" inputmode="url" placeholder="https://api.example.com/data" autocomplete="off" spellcheck="false" data-http-url />
+      <div class="http-send-actions">
+        <button type="button" class="ds-btn ds-btn-primary" disabled data-http-send><Icon name="zap" size={16} />{t(lang, ns, "Send")}</button>
+        <button type="button" class="ds-btn" disabled hidden data-http-cancel>{t(lang, ns, "Cancel")}</button>
+      </div>
+    </div>
+
+    <div class="seg http-tabs" role="tablist" aria-label={t(lang, ns, "RequestTitle")} data-http-tabs>
+      <button type="button" role="tab" id="http-request-params-tab" aria-selected="true" aria-controls="http-request-params-panel" tabindex="0">{t(lang, ns, "ParamsLabel")}<span class="http-count mono" data-http-params-count></span></button>
+      <button type="button" role="tab" id="http-request-headers-tab" aria-selected="false" aria-controls="http-request-headers-panel" tabindex="-1">{t(lang, ns, "HeadersLabel")}<span class="http-count mono" data-http-headers-count></span></button>
+      <button type="button" role="tab" id="http-request-body-tab" aria-selected="false" aria-controls="http-request-body-panel" tabindex="-1">{t(lang, ns, "BodyLabel")}</button>
+      <button type="button" role="tab" id="http-request-settings-tab" aria-selected="false" aria-controls="http-request-settings-panel" tabindex="-1">{t(lang, ns, "SettingsLabel")}</button>
+    </div>
+    {(["params", "headers"] as const).map((kind) => (
+      <div id={`http-request-${kind}-panel`} class="http-tab-panel http-table-panel" role="tabpanel" aria-labelledby={`http-request-${kind}-tab`} hidden={kind !== "params"}>
+        <p class="ds-hint http-table-hint">{t(lang, ns, kind === "params" ? "ParamsHint" : "HeadersHint")}</p>
+        <div class="http-table-scroll">
+          <table class="http-kv-table" aria-label={t(lang, ns, kind === "params" ? "ParamsLabel" : "HeadersLabel")} data-http-table={kind}>
+            <thead><tr>
+              <th class="http-check-cell"><span class="visually-hidden">{t(lang, ns, "EnabledLabel")}</span></th>
+              <th scope="col">{t(lang, ns, "KeyLabel")}</th>
+              <th scope="col">{t(lang, ns, "ValueLabel")}</th>
+              <th class="http-remove-cell"><span class="visually-hidden">{t(lang, ns, "RemoveRow")}</span></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-add-row" data-http-add-row={kind}><Icon name="plus" size={14} />{t(lang, ns, "AddRow")}</button>
+      </div>
+    ))}
+    <div id="http-request-body-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-request-body-tab" hidden>
+      <Field label={t(lang, ns, "BodyLabel")} for="http-body" hint={t(lang, ns, "BodyHint")}>
+        <textarea id="http-body" class="ds-field-textarea mono http-body" rows="6" autocomplete="off" spellcheck="false" data-http-body></textarea>
+      </Field>
+    </div>
+    <div id="http-request-settings-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-request-settings-tab" hidden>
+      <div class="ds-settings http-options">
+        <Field label={t(lang, ns, "TimeoutLabel")} for="http-timeout" hint={t(lang, ns, "TimeoutHint")}>
+          <input id="http-timeout" class="ds-field mono" type="number" min="100" max="120000" step="100" value="30000" data-http-timeout />
+        </Field>
+        <label class="ds-check-row http-redirects"><input class="ds-check" type="checkbox" data-http-redirects /><span>{t(lang, ns, "FollowRedirects")}</span></label>
+      </div>
+    </div>
+    <StatusMessage kind="info" data-http-request-status />
+    <StatusMessage kind="error" data-http-request-error />
+  </section>
+
+  <OutputPanel label={t(lang, ns, "ResponseTitle")} emptyHint={t(lang, ns, "NoResponse")} class="http-response" data-http-output>
+    <Fragment slot="actions">
+      <dl class="http-response-meta" hidden data-http-response-meta>
+        <div><dt class="visually-hidden">{t(lang, ns, "StatusLabel")}</dt><dd class="mono" data-http-response-status></dd></div>
+        <div><dt class="visually-hidden">{t(lang, ns, "TimeLabel")}</dt><dd class="mono" data-http-response-time></dd></div>
+        <div><dt class="visually-hidden">{t(lang, ns, "SizeLabel")}</dt><dd class="mono" data-http-response-size></dd></div>
+      </dl>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" disabled data-http-download><Icon name="download" size={15} />{t(lang, ns, "Download")}</button>
+    </Fragment>
+    <div class="ds-when-filled http-result" hidden data-http-result>
+      <div class="seg http-tabs" role="tablist" aria-label={t(lang, ns, "ResponseTitle")} data-http-tabs>
+        <button type="button" role="tab" id="http-response-body-tab" aria-selected="true" aria-controls="http-response-body-panel" tabindex="0">{t(lang, ns, "ResponseBody")}</button>
+        <button type="button" role="tab" id="http-response-headers-tab" aria-selected="false" aria-controls="http-response-headers-panel" tabindex="-1">{t(lang, ns, "ResponseHeaders")}</button>
+      </div>
+      <section id="http-response-body-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-response-body-tab">
+        <div class="http-view-toolbar">
+          <div class="seg http-view-modes" role="group" aria-label={t(lang, ns, "ResponseView")}>
+            <button type="button" aria-pressed="true" data-http-view="pretty" disabled>{t(lang, ns, "PrettyLabel")}</button>
+            <button type="button" aria-pressed="false" data-http-view="raw">{t(lang, ns, "RawLabel")}</button>
+          </div>
+          <span class="ds-hint mono" data-http-response-type></span>
+        </div>
+        <StatusMessage kind="error" data-http-editor-error />
+        <div class="mdt-cm http-response-editor" data-http-response-editor hidden></div>
+        <pre class="ds-code-block mono http-preview" tabindex="0" data-http-response-preview></pre>
+      </section>
+      <section id="http-response-headers-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-response-headers-tab" hidden>
+        <pre class="ds-code-block mono http-preview" tabindex="0" data-http-response-headers></pre>
+      </section>
+      <p class="http-final-url"><span>{t(lang, ns, "FinalUrlLabel")}</span><code data-http-response-url></code></p>
+    </div>
+  </OutputPanel>
+  </div>
+  <template data-http-row-template>
+    <tr>
+      <td class="http-check-cell"><input type="checkbox" class="ds-check" checked aria-label={t(lang, ns, "EnabledLabel")} data-row-enabled /></td>
+      <td><input class="ds-field mono" type="text" aria-label={t(lang, ns, "KeyLabel")} placeholder={t(lang, ns, "KeyLabel")} autocomplete="off" spellcheck="false" data-row-key /></td>
+      <td><input class="ds-field mono" type="text" aria-label={t(lang, ns, "ValueLabel")} placeholder={t(lang, ns, "ValueLabel")} autocomplete="off" spellcheck="false" data-row-value /></td>
+      <td class="http-remove-cell"><button type="button" class="ds-btn ds-btn-small ds-btn-ghost" aria-label={t(lang, ns, "RemoveRow")} title={t(lang, ns, "RemoveRow")} data-row-remove><Icon name="close" size={14} /></button></td>
+    </tr>
+  </template>
+
 </div>
 
 <script is:inline type="application/json" data-http-strings set:html={stringsJson} />
 <script>import "@/tools/http-client.client.ts";</script>
 
 <style>
-  .http-workbench { align-items: start; }
-  .http-compose { display: grid; grid-template-columns: minmax(6.5rem, 0.16fr) minmax(12rem, 1fr) auto; gap: 0.55rem; align-items: stretch; }
+  .http-workbench { display: grid; grid-template-columns: 15rem minmax(0, 1fr); align-items: stretch; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); overflow: hidden; background: var(--mdt-surface-raised); }
+  .http-main { min-width: 0; padding: 0; border: 0; border-radius: 0; box-shadow: none; }
+  .http-request { min-width: 0; }
+  .http-section-heading { display: flex; align-items: center; gap: 0.5rem; height: 2.75rem; padding-inline: 1rem; border-bottom: 1px solid var(--mdt-border-soft); color: var(--mdt-text-muted); }
+  .http-section-heading h2 { margin: 0; }
+  .http-compose { display: grid; grid-template-columns: 6.25rem minmax(0, 1fr) auto; gap: 0.5rem; padding: 1rem 1rem 0.65rem; align-items: stretch; }
   .http-compose > :is(.ds-field, .ds-field-select) { min-height: 2.75rem; }
   .http-send-actions { display: flex; gap: 0.45rem; }
   .http-send-actions .ds-btn { min-height: 2.75rem; white-space: nowrap; }
-  .http-tabs { width: fit-content; max-width: 100%; overflow-x: auto; }
-  .http-tabs > [role="tab"] { min-width: 7rem; padding-inline: 0.8rem; white-space: nowrap; }
-  .http-tabs > [role="tab"][aria-selected="true"] { background: color-mix(in srgb, var(--mdt-cat) 16%, transparent); color: color-mix(in srgb, var(--mdt-cat) 72%, var(--mdt-text)); }
+  .http-tabs { width: 100%; overflow-x: auto; border: 0; border-bottom: 1px solid var(--mdt-border-soft); border-radius: 0; background: none; padding: 0 1rem; gap: 1.25rem; }
+  .http-tabs > [role="tab"] { flex: 0 0 auto; padding: 0.65rem 0; border-radius: 0; border-bottom: 2px solid transparent; white-space: nowrap; }
+  .http-tabs > [role="tab"][aria-selected="true"] { border-bottom-color: var(--mdt-cat); color: var(--mdt-text); background: none; }
+  .http-count { margin-left: 0.35rem; color: var(--mdt-success); font-size: var(--mdt-fs-meta); }
+  .http-count:empty { display: none; }
   .http-tab-panel { min-width: 0; }
+  .http-request > .http-tab-panel { min-height: 13rem; max-height: 22rem; overflow: auto; padding: 0.85rem 1rem; }
+  .http-request > .http-table-panel { padding: 0; }
   .http-tab-panel > :first-child { margin-top: 0; }
-  .http-headers { min-height: 10rem; }
-  .http-body { min-height: 14rem; }
-  .http-options { grid-template-columns: minmax(10rem, 0.35fr) minmax(0, 1fr); align-items: end; }
+  .http-table-hint { padding: 0.7rem 1rem; margin: 0; }
+  .http-table-scroll { overflow-x: auto; }
+  .http-kv-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .http-kv-table th { padding: 0.45rem 0.6rem; text-align: left; font-size: var(--mdt-fs-meta); font-weight: 600; color: var(--mdt-text-muted); background: var(--mdt-surface-inset); }
+  .http-kv-table :is(th, td) { border: 1px solid var(--mdt-border-soft); }
+  .http-kv-table :is(th, td):first-child { border-left: 0; }
+  .http-kv-table :is(th, td):last-child { border-right: 0; }
+  .http-kv-table td { padding: 0.2rem; }
+  .http-kv-table td .ds-field { padding: 0.4rem; }
+  .http-kv-table td .ds-field:not(:focus) { border-color: transparent; background: transparent; }
+  .http-kv-table .http-check-cell { width: 2.75rem; text-align: center; }
+  .http-kv-table .http-remove-cell { width: 2.5rem; text-align: center; }
+  .http-kv-table tr:has([data-row-enabled]:not(:checked)) [data-row-key],
+  .http-kv-table tr:has([data-row-enabled]:not(:checked)) [data-row-value] { color: var(--mdt-text-faint); }
+  .http-add-row { margin: 0.45rem 0.7rem; }
+  .http-body { min-height: 8rem; }
+  .http-options { grid-template-columns: minmax(9rem, 0.4fr) minmax(0, 1fr); align-items: end; }
   .http-redirects { min-height: 2.65rem; }
-  .http-result { display: grid; gap: 0.75rem; min-width: 0; }
-  .http-response-meta { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0; }
-  .http-response-meta div { display: flex; align-items: baseline; gap: 0.35rem; padding: 0.3rem 0.55rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-xs); background: var(--mdt-surface-inset); min-width: 0; }
-  .http-response-meta dt { color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); }
-  .http-response-meta dd { margin: 0; font-size: var(--mdt-fs-label); font-weight: 600; overflow-wrap: anywhere; }
-  .http-final-url { display: flex; gap: 0.55rem; margin: 0; min-width: 0; color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); }
-  .http-final-url code { color: var(--mdt-text); overflow-wrap: anywhere; }
-  .http-preview { min-height: 12rem; max-height: 36rem; margin: 0; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .http-connect { width: 100%; padding-block: 0; }
-  .http-connect-summary { display: flex; align-items: center; gap: 0.75rem; min-height: 3rem; cursor: pointer; list-style-position: outside; }
-  .http-connect-summary::marker { color: var(--mdt-text-faint); }
+  .http-request > :global(.ds-alert):not(.visually-hidden) { margin: 0.5rem 1rem; }
+  .http-response { min-width: 0; border-top: 1px solid var(--mdt-border); }
+  .http-response :global(.ds-output-head) { margin: 0; padding: 0.55rem 1rem; min-height: 3rem; border-bottom: 1px solid var(--mdt-border-soft); flex-wrap: wrap; }
+  .http-response :global(.ds-actions) { margin-left: auto; flex-wrap: wrap; gap: 0.6rem; }
+  .http-response :global(.ds-empty-state) { min-height: 23rem; }
+  .http-result { min-width: 0; }
+  .http-response-meta { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 0; }
+  .http-response-meta div { min-width: 0; }
+  .http-response-meta dd { margin: 0; font-size: var(--mdt-fs-meta); overflow-wrap: anywhere; }
+  [data-http-response-status] { color: var(--mdt-success); font-weight: 650; }
+  [data-http-response-status].is-error { color: var(--mdt-danger); }
+  .http-view-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; }
+  .http-view-modes { width: fit-content; }
+  .http-view-modes > button { flex: 0 0 auto; white-space: nowrap; padding-inline: 0.65rem; }
+  .http-final-url { display: flex; gap: 0.55rem; margin: 0; padding: 0.6rem 1rem; border-top: 1px solid var(--mdt-border-soft); min-width: 0; color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); }
+  .http-final-url code { color: var(--mdt-text-muted); overflow-wrap: anywhere; }
+  .http-response-editor { --mdt-cm-height: 25rem; border: 0; border-radius: 0; }
+  .http-preview { height: 25rem; margin: 0; border: 0; border-radius: 0; overflow: auto; white-space: pre; }
+  .http-connect { min-width: 0; padding: 0; border: 0; border-right: 1px solid var(--mdt-border); border-radius: 0; box-shadow: none; background: var(--mdt-surface-muted); }
+  .http-connect-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; padding: 0.8rem 1rem; cursor: pointer; }
   .http-connect-summary .ds-panel-title { flex: 1 1 auto; }
-  .http-connection-state { flex: 0 1 auto; padding: 0.2rem 0.5rem; border-radius: 999px; background: var(--mdt-surface-inset); color: var(--mdt-text-muted); font-size: var(--mdt-fs-meta); text-align: right; }
-  .http-connect-body { display: grid; gap: 0.8rem; padding: 0.85rem 0 1.1rem; border-top: 1px solid var(--mdt-border-soft); }
-  .http-connect-row { display: grid; grid-template-columns: minmax(12rem, 1fr) auto; gap: 0.75rem; align-items: end; }
-  .http-connect-actions { padding-bottom: 0.05rem; }
-  .http-agent-meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin: 0; }
-  .http-agent-meta div { min-width: min(100%, 10rem); }
+  .http-connection-state { color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); }
+  .http-connect-summary::after { content: "+"; margin-left: auto; color: var(--mdt-text-faint); }
+  .http-connect[open] > summary::after { content: "−"; }
+  .http-connect-body { display: grid; gap: 1rem; padding: 1rem; border-top: 1px solid var(--mdt-border-soft); }
+  .http-connect-row { display: grid; gap: 0.75rem; }
+  .http-connect-actions { gap: 0.5rem; }
+  .http-connect-actions > button { flex: 1 1 100%; }
+  .http-agent-meta { display: grid; gap: 0.75rem; margin: 0; }
   .http-agent-meta dt { color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); }
-  .http-agent-meta dd { margin: 0.1rem 0 0; overflow-wrap: anywhere; }
-  .http-setup { border-top: 1px solid var(--mdt-border-soft); padding-top: 0.65rem; }
-  .http-setup > summary { width: fit-content; cursor: pointer; color: var(--mdt-link); font-weight: 650; }
+  .http-agent-meta dd { margin: 0.2rem 0 0; overflow-wrap: anywhere; font-size: var(--mdt-fs-label); }
+  .http-setup { border-top: 1px solid var(--mdt-border-soft); padding-top: 0.75rem; }
+  .http-setup > summary { cursor: pointer; color: var(--mdt-link); font-size: var(--mdt-fs-label); font-weight: 650; }
   .http-setup-body { display: grid; gap: 0.65rem; padding-top: 0.75rem; }
   .http-setup-body > * { margin-block: 0; }
-  .http-agent-link { width: fit-content; color: var(--mdt-link); font-weight: 700; }
-  .http-steps { display: grid; gap: 0.45rem; padding-left: 1.35rem; color: var(--mdt-text-muted); }
-  .http-privacy { padding: 0.7rem 0.8rem; border-left: 3px solid var(--mdt-cat); background: var(--mdt-surface-inset); }
-  @media (max-width: 48rem) {
-    .http-compose { grid-template-columns: minmax(6.25rem, 0.28fr) minmax(0, 1fr); }
+  .http-agent-link { color: var(--mdt-link); font-size: var(--mdt-fs-label); font-weight: 650; }
+  .http-steps { display: grid; gap: 0.45rem; padding-left: 1.1rem; font-size: var(--mdt-fs-meta); color: var(--mdt-text-muted); }
+  .http-privacy { border-left: 2px solid var(--mdt-border); padding-left: 0.6rem; }
+  @media (max-width: 64rem) {
+    .http-workbench { grid-template-columns: minmax(0, 1fr); }
+    .http-connect { border-right: 0; border-bottom: 1px solid var(--mdt-border); }
+    .http-connect-row { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+    .http-connect-actions > button { flex: 1 1 auto; }
+    .http-agent-meta { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 40rem) {
+    .http-compose { grid-template-columns: 6.25rem minmax(0, 1fr); padding: 0.75rem; }
     .http-send-actions { grid-column: 1 / -1; }
     .http-send-actions .ds-btn-primary { flex: 1 1 auto; }
-    .http-options, .http-connect-row { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 30rem) {
-    .http-tabs { width: 100%; }
-    .http-tabs > [role="tab"] { min-width: max-content; }
+    .http-options, .http-connect-row, .http-agent-meta { grid-template-columns: minmax(0, 1fr); }
+    .http-tabs { gap: 1rem; padding-inline: 0.75rem; }
+    .http-tabs > [role="tab"] { font-size: var(--mdt-fs-meta); }
     .http-final-url { display: grid; gap: 0.2rem; }
-    .http-connect-summary { align-items: flex-start; padding-block: 0.6rem; }
-    .http-connection-state { max-width: 55%; }
+    .http-response-meta { gap: 0.6rem; }
   }
 </style>

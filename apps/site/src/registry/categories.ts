@@ -1,11 +1,11 @@
 /**
  * Category registry — the site's information architecture.
  *
- * Source: legacy `Home.razor → GetToolsByCategoryForSections()` (12 categories),
- * plus a `generators` group for the 4 tools the legacy catalog never placed
- * (uuid-generator, lorem-ipsum-generator) and re-homing date-converter →
- * converters, pdf-to-text → pdf. Final IA is a Stage 2 design decision; this
- * registry is the single place to change it.
+ * Source: legacy `Home.razor → GetToolsByCategoryForSections()`, plus
+ * `generators` and `networking` groups for tools the legacy catalog left
+ * ungrouped or placed too broadly (uuid-generator, lorem-ipsum-generator,
+ * http-client). Date-converter is re-homed to converters and pdf-to-text to
+ * pdf. This registry is the single place to change the IA.
  *
  * `iconKey` names an entry in the future icon family (Stage 6); values are
  * placeholders that resolve once the icon set is chosen.
@@ -24,6 +24,7 @@ export type CategoryId =
   | "qrcode"
   | "pdf"
   | "converters"
+  | "networking"
   | "generators";
 
 export interface CategoryMeta {
@@ -46,6 +47,7 @@ export const CATEGORIES: readonly CategoryMeta[] = [
   { id: "cryptography", labelKey: "Category_Cryptography", iconKey: "cryptography", order: 70 },
   { id: "generators", labelKey: "Category_Generators", iconKey: "generators", order: 80 },
   { id: "converters", labelKey: "Category_Converters", iconKey: "converters", order: 90 },
+  { id: "networking", labelKey: "Category_NetworkUtilities", iconKey: "networking", order: 95 },
   { id: "design", labelKey: "Category_ColorsAndDesign", iconKey: "design", order: 100 },
   { id: "images", labelKey: "Category_Images", iconKey: "images", order: 110 },
   { id: "pdf", labelKey: "Category_PdfTools", iconKey: "pdf", order: 120 },

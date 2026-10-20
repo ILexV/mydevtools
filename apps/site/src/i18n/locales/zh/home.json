@@ -17,6 +17,7 @@
   "Category_Regex": "正则表达式",
   "FeatureLanguagesDescription": "界面和工具说明提供 10 种语言版本。",
   "Category_Converters": "转换器",
+  "Category_NetworkUtilities": "网络工具",
   "FeatureWasmDescription": "哈希、加密、图片和 PDF 处理在 Rust 编译的 WebAssembly 中运行；简单的工具使用轻量的 JavaScript。",
   "FeatureWasmTitle": "WebAssembly 用在关键处",
   "SeoContent_P1": "MyDevTools 是一套免费的浏览器端开发者工具：JSON、XML 和 YAML 的格式化与校验，Base64、Hex 和 URL 编码器，哈希和 HMAC 计算器，JWT 和 X.509 工具，正则表达式测试器，图片和 PDF 工具，以及 UUID、密码和二维码生成器。无需安装，也无需注册账号。",

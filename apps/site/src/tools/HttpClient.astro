@@ -22,6 +22,8 @@ const clientKeys = [
   "Error_cancelled", "Error_response_too_large", "Error_request_too_large", "Error_busy", "Error_network_error",
   "Error_incompatible_protocol", "ResponseBody", "EditorLoadError", "BodyLabel", "InvalidJson", "BodyEditorError", "ConnectionNotSaved",
   "HtmlPreviewError", "SavedRequests", "NewRequest", "RequestName", "UntitledRequest", "DeleteRequest", "DeleteRequestConfirm",
+  "NewFolder", "FolderName", "RenameFolder", "DeleteFolder", "DeleteFolderConfirm", "MoveToFolder", "RootFolder",
+  "SelectFolder", "ResizeSidebar", "FolderNameRequired", "FolderParent", "FolderActions",
   "WorkspacePrivacy", "WorkspaceSaveError", "WorkspaceLoadError", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
@@ -32,16 +34,44 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
   <aside class="http-saved" aria-labelledby="http-saved-title">
     <div class="http-saved-head">
       <h2 id="http-saved-title" class="ds-panel-title">{t(lang, ns, "SavedRequests")}</h2>
-      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-http-new><Icon name="plus" size={14} />{t(lang, ns, "NewRequest")}</button>
+      <div class="http-saved-head-actions">
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-http-new-folder><Icon name="plus" size={14} />{t(lang, ns, "NewFolder")}</button>
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-http-new><Icon name="plus" size={14} />{t(lang, ns, "NewRequest")}</button>
+      </div>
     </div>
     <nav class="http-saved-list" aria-label={t(lang, ns, "SavedRequests")} data-http-saved-list></nav>
     <div class="http-saved-footer">
+      <div class="http-folder-actions" aria-label={t(lang, ns, "FolderActions")} data-http-folder-actions hidden>
+        <div class="http-folder-buttons">
+          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-http-rename-folder>{t(lang, ns, "RenameFolder")}</button>
+          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-delete-folder" data-http-delete-folder>{t(lang, ns, "DeleteFolder")}</button>
+        </div>
+        <label class="http-sidebar-field">
+          <span>{t(lang, ns, "FolderParent")}</span>
+          <select class="ds-field-select" data-http-folder-parent></select>
+        </label>
+      </div>
+      <label class="http-sidebar-field">
+        <span>{t(lang, ns, "MoveToFolder")}</span>
+        <select class="ds-field-select" data-http-request-folder></select>
+      </label>
       <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-delete-request" data-http-delete>{t(lang, ns, "DeleteRequest")}</button>
       <p class="ds-hint http-workspace-privacy">{t(lang, ns, "WorkspacePrivacy")}</p>
       <StatusMessage kind="error" data-http-workspace-load-error />
       <StatusMessage kind="error" data-http-workspace-save-error />
     </div>
   </aside>
+  <div
+    class="http-sidebar-resizer"
+    role="separator"
+    tabindex="0"
+    aria-label={t(lang, ns, "ResizeSidebar")}
+    aria-orientation="vertical"
+    aria-valuemin="192"
+    aria-valuemax="480"
+    aria-valuenow="240"
+    data-http-sidebar-resizer
+  ></div>
   <div class="ds-card http-main">
   <section class="http-request" aria-label={t(lang, ns, "RequestTitle")}>
     <div class="http-section-heading">
@@ -212,23 +242,40 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
 <script>import "@/tools/http-client.client.ts";</script>
 
 <style>
-  .http-workbench { display: grid; grid-template-columns: 15rem minmax(0, 1fr); align-items: stretch; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); overflow: hidden; background: var(--mdt-surface-raised); }
-  .http-saved { display: flex; min-width: 0; min-height: 36rem; flex-direction: column; border-right: 1px solid var(--mdt-border); background: var(--mdt-surface-muted); }
-  .http-saved-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; min-height: 2.75rem; padding: 0.55rem 0.65rem 0.55rem 0.85rem; border-bottom: 1px solid var(--mdt-border-soft); }
+  .http-workbench { --http-sidebar-width: 15rem; display: grid; grid-template-columns: minmax(12rem, var(--http-sidebar-width)) 0.55rem minmax(0, 1fr); align-items: stretch; max-width: 100%; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); overflow: hidden; background: var(--mdt-surface-raised); }
+  .http-saved { display: flex; min-width: 0; min-height: 36rem; flex-direction: column; background: var(--mdt-surface-muted); }
+  .http-saved-head { display: grid; gap: 0.5rem; min-height: 2.75rem; padding: 0.55rem 0.65rem; border-bottom: 1px solid var(--mdt-border-soft); }
   .http-saved-head h2 { margin: 0; }
-  .http-saved-head .ds-btn { flex: 0 0 auto; padding-inline: 0.45rem; }
-  .http-saved-list { display: grid; flex: 1 1 auto; min-height: 0; align-content: start; gap: 0.2rem; overflow-y: auto; padding: 0.45rem; }
-  .http-saved-list :global(.http-saved-item) { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.15rem 0.5rem; width: 100%; padding: 0.6rem; border: 1px solid transparent; border-radius: var(--mdt-radius-sm); color: var(--mdt-text-muted); background: transparent; text-align: left; cursor: pointer; }
+  .http-saved-head-actions, .http-folder-buttons { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .http-saved-head .ds-btn { min-width: 0; flex: 1 1 auto; padding-inline: 0.4rem; }
+  .http-saved-list { display: block; flex: 1 1 auto; min-height: 0; overflow: auto; padding: 0.4rem; }
+  .http-saved-list :global(.http-tree-group) { display: grid; gap: 0.12rem; margin: 0; padding: 0; list-style: none; }
+  .http-saved-list :global(.http-tree-children) { padding-left: 0.8rem; }
+  .http-saved-list :global(.http-tree-row) { display: grid; grid-template-columns: 1.7rem minmax(0, 1fr); align-items: center; min-width: 0; }
+  .http-saved-list :global(.http-folder-toggle) { width: 1.65rem; min-width: 0; min-height: 1.65rem; padding: 0; color: var(--mdt-text-faint); }
+  .http-saved-list :global(.http-folder-toggle-spacer) { width: 1.65rem; }
+  .http-saved-list :global(.http-folder-select) { min-width: 0; min-height: 1.8rem; justify-content: flex-start; overflow: hidden; padding: 0.25rem 0.4rem; color: var(--mdt-text-muted); text-align: left; }
+  .http-saved-list :global(.http-folder-select[aria-pressed="true"]) { color: var(--mdt-text); background: var(--mdt-surface-raised); box-shadow: inset 2px 0 var(--mdt-cat); }
+  .http-saved-list :global(.http-folder-name) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .http-saved-list :global(.http-saved-item) { display: grid; grid-template-columns: 3.25rem minmax(0, 1fr); gap: 0.35rem; width: 100%; min-width: 0; min-height: 1.9rem; justify-content: stretch; padding: 0.3rem 0.45rem; color: var(--mdt-text-muted); text-align: left; }
   .http-saved-list :global(.http-saved-item:hover) { background: var(--mdt-surface-raised); color: var(--mdt-text); }
-  .http-saved-list :global(.http-saved-item[aria-pressed="true"]) { border-color: var(--mdt-border); background: var(--mdt-surface-raised); color: var(--mdt-text); box-shadow: var(--mdt-shadow-e1); }
-  .http-saved-list :global(.http-saved-method) { grid-row: 1 / span 2; align-self: start; min-width: 3.2rem; padding-top: 0.05rem; color: var(--mdt-cat); font-size: var(--mdt-fs-meta); font-weight: 700; }
-  .http-saved-list :global(.http-saved-name), .http-saved-list :global(.http-saved-url) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .http-saved-list :global(.http-saved-name) { font-size: var(--mdt-fs-label); font-weight: 650; }
-  .http-saved-list :global(.http-saved-url) { color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); }
+  .http-saved-list :global(.http-saved-item[aria-pressed="true"]) { background: var(--mdt-surface-raised); color: var(--mdt-text); box-shadow: inset 2px 0 var(--mdt-cat); }
+  .http-saved-list :global(.http-saved-method) { min-width: 0; color: var(--mdt-cat); font-size: var(--mdt-fs-meta); font-weight: 700; }
+  .http-saved-list :global(.http-saved-name) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--mdt-fs-label); font-weight: 650; }
   .http-saved-footer { display: grid; gap: 0.55rem; margin-top: auto; padding: 0.65rem; border-top: 1px solid var(--mdt-border-soft); }
-  .http-delete-request { justify-self: start; color: var(--mdt-danger); }
+  .http-folder-actions { display: grid; gap: 0.55rem; }
+  .http-folder-actions[hidden] { display: none; }
+  .http-folder-buttons > .ds-btn { flex: 1 1 auto; }
+  .http-delete-folder, .http-delete-request { color: var(--mdt-danger); }
+  .http-delete-request { justify-self: start; }
+  .http-sidebar-field { display: grid; gap: 0.25rem; min-width: 0; color: var(--mdt-text-muted); font-size: var(--mdt-fs-meta); }
+  .http-sidebar-field .ds-field-select { width: 100%; min-width: 0; }
   .http-workspace-privacy { margin: 0; font-size: var(--mdt-fs-meta); }
   .http-saved-footer :global(.ds-alert) { margin: 0; }
+  .http-sidebar-resizer { position: relative; z-index: 1; width: 100%; cursor: col-resize; touch-action: none; background: var(--mdt-border-soft); }
+  .http-sidebar-resizer::after { position: absolute; inset: 0 0 0 50%; width: 2px; content: ""; transform: translateX(-50%); background: transparent; }
+  .http-sidebar-resizer:is(:hover, :focus-visible, .is-dragging)::after { background: var(--mdt-cat); }
+  .http-sidebar-resizer:focus-visible { outline: 2px solid var(--mdt-cat); outline-offset: -2px; }
   .http-main { min-width: 0; padding: 0; border: 0; border-radius: 0; box-shadow: none; }
   .http-request { min-width: 0; }
   .http-section-heading { position: relative; z-index: 2; display: flex; align-items: center; gap: 0.5rem; height: 2.75rem; padding-inline: 1rem 0.65rem; border-bottom: 1px solid var(--mdt-border-soft); color: var(--mdt-text-muted); }
@@ -314,8 +361,9 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
   .http-privacy { border-left: 2px solid var(--mdt-border); padding-left: 0.6rem; }
   @media (max-width: 64rem) {
     .http-workbench { grid-template-columns: minmax(0, 1fr); }
-    .http-saved { min-height: auto; border-right: 0; border-bottom: 1px solid var(--mdt-border); }
-    .http-saved-list { grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); max-height: 12rem; overflow: auto; }
+    .http-saved { min-height: auto; border-bottom: 1px solid var(--mdt-border); }
+    .http-sidebar-resizer { display: none; }
+    .http-saved-list { max-height: 14rem; }
     .http-saved-footer { margin-top: 0; }
   }
   @media (max-width: 40rem) {

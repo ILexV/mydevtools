@@ -122,6 +122,22 @@ The separate `mdt.http-workspace.v1` record stores request credentials in plain
 browser storage; its privacy notice must remain visible. A failed quota write
 must not erase the previous saved record or permit a switch that loses unsaved input.
 
+Folder-tree smoke: load a previous flat workspace and verify exact request
+contents survive; create nested folders, rename/reparent them, move requests,
+collapse an unrelated branch and reload. Reparent options must exclude the
+folder itself and descendants. Deleting a folder promotes its contents to the
+parent and preserves request bodies. Entries show one compact method/name row
+with the full URL in the tooltip. Exercise pointer resize, arrow keys and
+Home/End (192–480px), reload to confirm width, and 375px stacked layout where the
+separator is hidden. Check both themes and localized labels for clipping.
+
+HTTP Client belongs to the `networking` category (Network utilities), not
+Converters. Catalog, palette and desktop folder use the same registry entry.
+Saved desktop preferences track seen catalog categories so the new folder is
+added once without resetting existing shortcuts/custom folders; subsequent
+user removal remains respected. Smoke an existing customized desktop and all
+localized catalog labels. Other converter tools remain in their original group.
+
 
 ## Build → preview → deploy → smoke test
 

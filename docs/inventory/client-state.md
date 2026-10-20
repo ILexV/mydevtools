@@ -105,7 +105,7 @@ The request list is independent of the shorter-lived connection token.
 | Key | Storage | Shape | Lifetime |
 |---|---|---|---|
 | `mdt.local-agent.session.v1` | localStorage | `{ v: 1, token, expiresAt }` | Until the agent's eight-hour expiry, explicit Disconnect/clear, or an unauthorized response |
-| `mdt.http-workspace.v1` | localStorage | `{ v: 1, selectedId, requests[] }` | Until explicit request deletion or browser site-data removal; no automatic eviction |
+| `mdt.http-workspace.v1` | localStorage | `{ v: 1, selectedId, requests[], folders[], selectedFolderId, sidebarWidth }` | Until explicit deletion or browser site-data removal; no automatic eviction |
 
 Draft edits are debounced by 250 ms and flushed on switch, send, pagehide and
 hidden visibility. New/rename/delete and selected request changes are persisted.
@@ -113,6 +113,17 @@ Malformed workspace data is left intact on initial load with a visible error;
 blocked storage or quota failure reports an error and preserves the previous
 saved value. Responses stay transient. These drafts are not encrypted or synced:
 avoid shared browser profiles for secrets, and clearing site data removes them.
+
+Each request has a nullable `folderId`; folders contain `{ id, name, parentId,
+expanded }`. Parent links must exist and form an acyclic tree. The previous flat
+workspace is upgraded in memory to root-level requests and a 240px sidebar,
+without rewriting storage during load. Folder creation, renaming, reparenting,
+request moves and expansion are saved. Deleting a folder promotes its direct
+subfolders and requests to its parent; it never recursively deletes requests.
+Ancestors of a selected request expand when restoring/selecting it.
+Desktop sidebar width is persisted between 192 and 480px after pointer release
+or keyboard adjustment. Stacked/mobile layout ignores the width and hides the
+separator without overwriting the desktop preference.
 
 On page load, an unexpired record is restored only after `/v1/info` confirms a
 reachable agent with the expected protocol. A temporarily unavailable agent

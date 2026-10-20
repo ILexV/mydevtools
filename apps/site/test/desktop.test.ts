@@ -374,6 +374,23 @@ test("preferences and layout drop unknown versions, slugs and duplicate ids", ()
   assert.equal(JSON.parse(serializePrefs(defaultPrefs(["encoding"]))).v, 1);
 });
 
+test("a newly introduced category is added once without resetting customized folders", () => {
+  const currentCategories = new Set([...categories, "networking"]);
+  const legacy = parsePrefs(JSON.stringify({
+    v: 1,
+    shortcuts: ["folder:pair", "tool:hash-calculator"],
+    folders: [{ id: "pair", name: "Pair", items: ["tool:base64-encoder"] }],
+  }), slugs, currentCategories);
+  assert.deepEqual(legacy?.shortcuts, ["folder:pair", "tool:hash-calculator", "cat:networking"]);
+  assert.deepEqual(legacy?.folders, [{ id: "pair", name: "Pair", items: ["tool:base64-encoder"] }]);
+  assert.deepEqual(legacy?.catalogCategories, [...currentCategories]);
+
+  const withoutNetworking = { ...legacy!, shortcuts: legacy!.shortcuts.filter((id) => id !== "cat:networking") };
+  const reloaded = parsePrefs(serializePrefs(withoutNetworking), slugs, currentCategories);
+  assert.deepEqual(reloaded?.shortcuts, ["folder:pair", "tool:hash-calculator"]);
+  assert.deepEqual(reloaded?.folders, legacy?.folders);
+});
+
 test("a saved layout keeps slug and stage shares and drops typed text", () => {
   const raw = JSON.stringify({
     v: 1,

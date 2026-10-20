@@ -25,7 +25,7 @@ const index = Object.fromEntries(
   ]),
 );
 const indexJson = JSON.stringify(index);
-/** SVG bodies for the 13 category icons, keyed by category id (Prism family). */
+/** SVG bodies for category icons, keyed by category id (Prism family). */
 const iconsJson = JSON.stringify(Object.fromEntries(CATEGORY_IDS.map((id) => [id, ICONS[id]])));
 
 const searchLabel = t(locale, "common", "Common_Search");

@@ -17,6 +17,7 @@
   "Category_Regex": "正規表現",
   "FeatureLanguagesDescription": "インターフェースとツールの説明は 10 言語で利用できます。",
   "Category_Converters": "変換ツール",
+  "Category_NetworkUtilities": "ネットワークユーティリティ",
   "FeatureWasmDescription": "ハッシュ、暗号化、画像や PDF の処理は Rust 製の WebAssembly で実行し、シンプルなツールは軽量な JavaScript で動きます。",
   "FeatureWasmTitle": "必要な所に WebAssembly",
   "SeoContent_P1": "MyDevTools は、ブラウザで動く無料の開発者向けユーティリティ集です。JSON・XML・YAML の整形と検証、Base64・Hex・URL のエンコーダー、ハッシュと HMAC の計算、JWT と X.509 のツール、正規表現テスター、画像と PDF のツール、UUID・パスワード・QR コードの生成ツールがそろっています。インストールもアカウント登録も不要です。",

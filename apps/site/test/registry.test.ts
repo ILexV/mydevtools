@@ -51,8 +51,7 @@ test("isLocaleCode / getLocale", () => {
 });
 
 // ── categories ─────────────────────────────────────────────────────────────
-test("categories: 13, unique ids + orders", () => {
-  assert.equal(CATEGORIES.length, 13);
+test("categories: unique ids + orders", () => {
   const ids = CATEGORIES.map((c) => c.id);
   assert.equal(new Set(ids).size, ids.length, "category ids unique");
   const orders = CATEGORIES.map((c) => c.order);
@@ -64,6 +63,7 @@ test("isCategoryId / getCategory", () => {
   assert.equal(isCategoryId("nope"), false);
   assert.ok(getCategory("pdf"));
   assert.equal(getCategory("nope"), undefined);
+  assert.equal(getCategory("networking")?.labelKey, "Category_NetworkUtilities");
 });
 
 // ── tools ──────────────────────────────────────────────────────────────────
@@ -72,6 +72,8 @@ test("tools: every tool has a known category", () => {
   for (const t of TOOLS) {
     assert.ok(isCategoryId(t.category), `${t.slug} → bad category ${t.category}`);
   }
+  assert.equal(getTool("http-client")?.category, "networking");
+  assert.equal(getTool("ip-subnet-calculator")?.category, "converters");
 });
 
 // Monograms tell sibling cards apart in the catalog tile: short, unique, no emoji.

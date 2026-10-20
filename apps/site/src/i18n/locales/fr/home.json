@@ -17,6 +17,7 @@
   "Category_Regex": "Expressions Régulières",
   "FeatureLanguagesDescription": "L'interface et les guides des outils sont disponibles en 10 langues.",
   "Category_Converters": "Convertisseurs",
+  "Category_NetworkUtilities": "Outils réseau",
   "FeatureWasmDescription": "Hachage, chiffrement, traitement d'images et de PDF tournent en WebAssembly compilé depuis Rust ; les outils simples sont en JavaScript léger.",
   "FeatureWasmTitle": "WebAssembly là où ça compte",
   "SeoContent_P1": "MyDevTools est une collection gratuite d'utilitaires pour développeurs qui fonctionnent dans le navigateur : formateurs et validateurs JSON, XML et YAML, encodeurs Base64, Hex et URL, calculateurs de hachage et HMAC, outils JWT et X.509, testeur d'expressions régulières, utilitaires pour images et PDF, générateurs d'UUID, de mots de passe et de QR codes. Rien à installer, aucun compte à créer.",

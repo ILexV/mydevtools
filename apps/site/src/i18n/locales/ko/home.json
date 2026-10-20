@@ -17,6 +17,7 @@
   "Category_Regex": "정규 표현식",
   "FeatureLanguagesDescription": "인터페이스와 도구 설명을 10개 언어로 제공합니다.",
   "Category_Converters": "변환기",
+  "Category_NetworkUtilities": "네트워크 유틸리티",
   "FeatureWasmDescription": "해시, 암호화, 이미지와 PDF 처리는 Rust로 컴파일한 WebAssembly에서 실행되고, 간단한 도구는 가벼운 JavaScript로 동작합니다.",
   "FeatureWasmTitle": "필요한 곳에 WebAssembly",
   "SeoContent_P1": "MyDevTools는 브라우저에서 동작하는 무료 개발자 유틸리티 모음입니다. JSON, XML, YAML 포매터와 검증기, Base64, Hex, URL 인코더, 해시와 HMAC 계산기, JWT와 X.509 도구, 정규식 테스터, 이미지와 PDF 도구, UUID·비밀번호·QR 코드 생성기를 제공합니다. 설치할 것도, 만들 계정도 없습니다.",

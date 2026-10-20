@@ -29,6 +29,8 @@ export const ENTRY_KEY = "mdt.desktop.entry.v1";
 export const SKIP_KEY = "mdt.desktop.skip";
 
 const PRESET_IDS = new Set<string>(WALLPAPER_PRESETS.map((preset) => preset.id));
+/** Defaults introduced before saved preferences recorded which catalog categories they had seen. */
+const LEGACY_UNSEEN_CATEGORY_IDS: Readonly<Record<string, true>> = { networking: true };
 
 export interface CustomFolder {
   id: string;
@@ -45,6 +47,8 @@ export interface DeskPrefs {
   hasImage: boolean;
   /** `cat:<id>`, `tool:<slug>` or `folder:<id>`, in user order. */
   shortcuts: string[];
+  /** Catalog categories already offered as defaults; lets later categories appear exactly once. */
+  catalogCategories: string[];
   positions: ShortcutPositions;
   /** Same id shape as shortcuts. Shown on the taskbar even when closed. */
   pinned: string[];
@@ -73,6 +77,7 @@ export function defaultPrefs(categoryIds: readonly string[]): DeskPrefs {
     dim: 0,
     hasImage: false,
     shortcuts: categoryIds.map((id) => `cat:${id}`),
+    catalogCategories: [...categoryIds],
     positions: {},
     pinned: [],
     iconSize: "regular",
@@ -169,6 +174,11 @@ export function parsePrefs(
   }
   if (!isRecord(parsed) || parsed.v !== 1) return null;
   const fallback = defaultPrefs([...categories]);
+  const seenCategories = new Set(
+    Array.isArray(parsed.catalogCategories)
+      ? parsed.catalogCategories.filter((id): id is string => typeof id === "string" && categories.has(id))
+      : [...categories].filter((id) => LEGACY_UNSEEN_CATEGORY_IDS[id] !== true),
+  );
   const folders = readFolders(parsed.folders, slugs);
   const folderIds = new Set(folders.map((folder) => folder.id));
   const preset = typeof parsed.preset === "string" && PRESET_IDS.has(parsed.preset) ? (parsed.preset as WallpaperPresetId) : fallback.preset;
@@ -177,7 +187,8 @@ export function parsePrefs(
   const shortcuts = Array.isArray(parsed.shortcuts)
     ? parsed.shortcuts.filter((id): id is string => typeof id === "string" && knownShortcut(id, slugs, categories, folderIds)).slice(0, 256)
     : fallback.shortcuts;
-  const uniqueShortcuts = [...new Set(shortcuts)];
+  const addedCategoryShortcuts = [...categories].filter((id) => !seenCategories.has(id)).map((id) => `cat:${id}`);
+  const uniqueShortcuts = [...new Set([...shortcuts, ...addedCategoryShortcuts])];
   const positions: ShortcutPositions = {};
   if (isRecord(parsed.positions)) {
     for (const [id, cell] of Object.entries(parsed.positions)) {
@@ -195,6 +206,7 @@ export function parsePrefs(
     dim,
     hasImage: parsed.hasImage === true,
     shortcuts: uniqueShortcuts,
+    catalogCategories: [...categories],
     positions,
     pinned,
     iconSize: parsed.iconSize === "large" ? "large" : "regular",

@@ -73,7 +73,7 @@ test("tools: every tool has a known category", () => {
     assert.ok(isCategoryId(t.category), `${t.slug} → bad category ${t.category}`);
   }
   assert.equal(getTool("http-client")?.category, "networking");
-  assert.equal(getTool("ip-subnet-calculator")?.category, "converters");
+  assert.equal(getTool("ip-subnet-calculator")?.category, "networking");
 });
 
 // Monograms tell sibling cards apart in the catalog tile: short, unique, no emoji.

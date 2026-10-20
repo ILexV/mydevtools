@@ -34,7 +34,7 @@ Catalog hardcoded in `Home.razor`: `GetTools()` = 38 tools; `GetToolsByCategoryF
 - `Category_DateTime` = Date & Time → intended for date-converter
 - `Category_All` = All (client-side filter, not a real category)
 
-**New IA decision:** the new registry surfaces `generators` (uuid + lorem), folds `date-converter` → converters, `pdf-to-text` → pdf. `Category_DateTime` is dropped (date-converter fits converters). This resolves all 4 ungrouped tools. See `src/registry/categories.ts` + `tools.ts`.
+**New IA decision:** the new registry surfaces `generators` (uuid + lorem), folds `date-converter` → converters, `pdf-to-text` → pdf. `Category_DateTime` is dropped (date-converter fits converters). This resolves all 4 ungrouped tools. `ip-subnet-calculator` lives in `networking` with `http-client` (moved out of converters on 2026-10-20; the page URL is unchanged). See `src/registry/categories.ts` + `tools.ts`.
 
 ### Discrepancy / phantom
 

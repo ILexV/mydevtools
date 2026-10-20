@@ -124,9 +124,9 @@ const TOOL_CATALOG = [
   // ── converters ────────────────────────────────────────────────────────────
   { slug: "unit-converter", monogram: "m↔ft", category: "converters", wasm: null, capabilities: { copy: true } },
   { slug: "date-converter", monogram: "UTC", category: "converters", wasm: null, capabilities: { copy: true } },
-  { slug: "ip-subnet-calculator", monogram: "/24", category: "converters", wasm: "ipcalc", capabilities: { copy: true } },
 
   // ── networking ────────────────────────────────────────────────────────────
+  { slug: "ip-subnet-calculator", monogram: "/24", category: "networking", wasm: "ipcalc", capabilities: { copy: true } },
   { slug: "http-client", monogram: "HTTP", category: "networking", wasm: null, capabilities: { cancel: true, download: true } },
 
   // ── design ────────────────────────────────────────────────────────────────

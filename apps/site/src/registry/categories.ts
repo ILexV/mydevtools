@@ -4,7 +4,7 @@
  * Source: legacy `Home.razor → GetToolsByCategoryForSections()`, plus
  * `generators` and `networking` groups for tools the legacy catalog left
  * ungrouped or placed too broadly (uuid-generator, lorem-ipsum-generator,
- * http-client). Date-converter is re-homed to converters and pdf-to-text to
+ * http-client, ip-subnet-calculator). Date-converter is re-homed to converters and pdf-to-text to
  * pdf. This registry is the single place to change the IA.
  *
  * `iconKey` names an entry in the future icon family (Stage 6); values are

@@ -28,14 +28,14 @@
   "PermissionAccount": "无需注册、登录或 MyDevTools 云代理。",
   "PermissionInstall": "无需管理员权限、安装程序或 Windows 服务。",
   "PermissionPairing": "轮换的一次性代码会建立有时限的浏览器会话。浏览器会存储连接令牌，最长 8 小时或直到助手重启，但绝不会存储配对码。",
-  "PermissionNetwork": "它只在本机监听。HTTP 请求由代理直接发往目标，默认阻止私有网络目标。",
+  "PermissionNetwork": "它只在本机监听。HTTP 请求和 ICMP 探测由代理直接发往目标。默认阻止私有网络目标。路径上的路由器即使使用私有地址也会显示。",
   "TrayTitle": "控制权始终在您手中",
   "TrayIntro": "关闭小窗口只会将其隐藏；单击托盘图标可再次打开。",
   "TrayCode": "查看版本和当前配对代码。",
   "TrayAutostart": "自动启动需主动选择，默认关闭。它使用您的 Windows 用户设置，可执行文件必须保留在原位置。",
   "TrayExit": "退出会停止本地服务器并完全撤销活动会话。",
   "CapabilityTitle": "可用能力",
-  "CapabilityBody": "此版本支持经过明确配对的 HTTP 请求。每个工具都会请求自己的命名能力；配对不会自动授予未来的能力。",
+  "CapabilityBody": "此版本支持经过明确配对的 HTTP 请求和 ICMP 路径跟踪。每个工具都会请求自己的命名能力；配对不会自动授予未来的能力。",
   "VerifyTitle": "验证下载文件",
   "VerifyBody": "此可执行文件未经过数字签名，Windows SmartScreen 可能会警告或阻止运行。请勿关闭 Windows 防护。将下载文件的 SHA-256 与上面的值比较以验证完整性；哈希值一致并不等同于发布者签名。"
 }

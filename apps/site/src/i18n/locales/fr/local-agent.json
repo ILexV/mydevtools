@@ -28,14 +28,14 @@
   "PermissionAccount": "Aucune inscription, connexion ou passerelle cloud MyDevTools.",
   "PermissionInstall": "Aucun droit administrateur, installateur ou service Windows.",
   "PermissionPairing": "Un code unique renouvelé démarre une session de navigateur temporaire. Le navigateur stocke le jeton de connexion pendant 8 heures au maximum ou jusqu’au redémarrage de l’agent, mais jamais le code d’association.",
-  "PermissionNetwork": "Il écoute uniquement sur ce PC. Les requêtes HTTP vont directement à la cible et les réseaux privés sont bloqués par défaut.",
+  "PermissionNetwork": "Il écoute uniquement sur ce PC. Les requêtes HTTP et les sondes ICMP vont directement de l’agent à la cible. Les cibles de réseau privé sont bloquées par défaut. Les routeurs vus sur le chemin sont affichés même avec une adresse privée.",
   "TrayTitle": "Vous gardez le contrôle",
   "TrayIntro": "Fermer la petite fenêtre la masque ; l’icône de la zone de notification la rouvre.",
   "TrayCode": "Consultez la version et le code d’association actuel.",
   "TrayAutostart": "Le démarrage automatique est facultatif et désactivé par défaut. Il utilise vos paramètres utilisateur Windows et l’exécutable doit rester à sa place.",
   "TrayExit": "Quitter arrête le serveur local et révoque entièrement les sessions actives.",
   "CapabilityTitle": "Capacité disponible",
-  "CapabilityBody": "Cette version prend en charge les requêtes HTTP explicitement associées. Chaque outil demande sa propre capacité nommée ; l’association n’accorde pas automatiquement de futures capacités.",
+  "CapabilityBody": "Cette version prend en charge les requêtes HTTP explicitement associées et les traces de chemin ICMP. Chaque outil demande sa propre capacité nommée ; l’association n’accorde pas automatiquement de futures capacités.",
   "VerifyTitle": "Vérifiez le téléchargement",
   "VerifyBody": "Cet exécutable n’est pas signé numériquement ; Windows SmartScreen peut afficher un avertissement ou le bloquer. Ne désactivez pas la protection Windows. Comparez son SHA-256 à la valeur ci-dessus pour vérifier l’intégrité ; un hachage identique ne remplace pas la signature de l’éditeur."
 }

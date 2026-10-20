@@ -28,14 +28,14 @@
   "PermissionAccount": "No sign-up, login or MyDevTools cloud proxy.",
   "PermissionInstall": "No administrator rights, installer or Windows Service.",
   "PermissionPairing": "A rotating one-time code starts a time-limited browser session. The browser stores the connection token for up to 8 hours or until the agent restarts, but never stores the pairing code.",
-  "PermissionNetwork": "It listens only on this PC. HTTP requests go directly from the agent to the target and private-network targets are blocked by default.",
+  "PermissionNetwork": "It listens only on this PC. HTTP requests and ICMP probes go directly from the agent to the target. Private-network targets are blocked by default. Routers seen along a path are shown even when they use a private address.",
   "TrayTitle": "You stay in control",
   "TrayIntro": "Closing the small window hides it; the tray icon opens it again.",
   "TrayCode": "View the version and current pairing code.",
   "TrayAutostart": "Autostart is opt-in and off by default. It uses your Windows user settings and the executable must remain in place.",
   "TrayExit": "Exit stops the local server and revokes active sessions completely.",
   "CapabilityTitle": "Available capability",
-  "CapabilityBody": "This release supports explicitly paired HTTP requests. Each tool asks for its own named capability; pairing does not grant future capabilities automatically.",
+  "CapabilityBody": "This release supports explicitly paired HTTP requests and ICMP path traces. Each tool asks for its own named capability; pairing does not grant future capabilities automatically.",
   "VerifyTitle": "Verify the download",
   "VerifyBody": "This executable is not digitally signed; Windows SmartScreen may warn or block it. Do not disable Windows protection. Compare the SHA-256 value above with the downloaded file to check integrity; a matching hash is not a publisher signature."
 }

@@ -102,10 +102,7 @@ async fn every_route_requires_exact_host_and_origin_and_cors_is_not_wildcard() {
         .await
         .expect("info response");
     assert_eq!(response.status(), StatusCode::OK);
-    assert_eq!(
-        response.headers()["access-control-allow-origin"],
-        ORIGIN
-    );
+    assert_eq!(response.headers()["access-control-allow-origin"], ORIGIN);
     assert_ne!(response.headers()["access-control-allow-origin"], "*");
 
     let wrong_host = Request::builder()
@@ -144,7 +141,10 @@ async fn every_route_requires_exact_host_and_origin_and_cors_is_not_wildcard() {
         .header("host", "127.0.0.1:48732")
         .header("origin", ORIGIN)
         .header("access-control-request-method", "POST")
-        .header("access-control-request-headers", "authorization, content-type")
+        .header(
+            "access-control-request-headers",
+            "authorization, content-type",
+        )
         .body(Body::empty())
         .unwrap();
     let response = app.oneshot(preflight).await.unwrap();
@@ -269,7 +269,10 @@ async fn outbound_policy_blocks_private_and_own_listener_even_with_opt_in() {
         .await
         .unwrap();
     assert_eq!(response.status(), StatusCode::FORBIDDEN);
-    assert_eq!(response_json(response).await["error"]["code"], "target_denied");
+    assert_eq!(
+        response_json(response).await["error"]["code"],
+        "target_denied"
+    );
 }
 
 #[tokio::test]
@@ -394,7 +397,10 @@ async fn redirects_revalidate_destination_and_oversized_responses_fail_explicitl
         .await
         .unwrap();
     assert_eq!(response.status(), StatusCode::FORBIDDEN);
-    assert_eq!(response_json(response).await["error"]["code"], "target_denied");
+    assert_eq!(
+        response_json(response).await["error"]["code"],
+        "target_denied"
+    );
     redirect_task.await.unwrap();
 
     let large_target = TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -421,7 +427,6 @@ async fn redirects_revalidate_destination_and_oversized_responses_fail_explicitl
             )),
             Some(&token),
         ))
-
         .await
         .unwrap();
     assert_eq!(response.status(), StatusCode::PAYLOAD_TOO_LARGE);
@@ -580,4 +585,282 @@ async fn shutdown_finishes_even_when_an_upload_never_finishes() {
         .unwrap()
         .unwrap();
     assert!(tokio::net::TcpStream::connect(address).await.is_err());
+}
+
+fn trace_input(id: Uuid, target: &str) -> Value {
+    json!({
+        "id": id.to_string(),
+        "target": target,
+        "intervalMs": 200,
+        "payloadBytes": 8,
+        "maxHops": 1,
+        "timeoutMs": 1000,
+        "resolveNames": false
+    })
+}
+
+async fn pair_capabilities(state: &AgentState, app: &Router, capabilities: Value) -> Value {
+    state.replace_pairing_code([0x11; 16]);
+    let response = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/pair",
+            Some(json!({
+                "code": PAIRING_CODE,
+                "capabilities": capabilities
+            })),
+            None,
+        ))
+        .await
+        .expect("pair response");
+    assert_eq!(response.status(), StatusCode::OK);
+    response_json(response).await
+}
+
+#[tokio::test]
+async fn icmp_capability_is_separate_from_http_and_rejects_bad_targets() {
+    let (state, app) = test_app(false, 48_732);
+    let info = app
+        .clone()
+        .oneshot(request(Method::GET, "/v1/info", None, None))
+        .await
+        .unwrap();
+    assert_eq!(info.status(), StatusCode::OK);
+    assert_eq!(
+        response_json(info).await["capabilities"],
+        json!(["http.request", "icmp.trace"])
+    );
+
+    for capabilities in [
+        json!([]),
+        json!(["http.request", "http.request"]),
+        json!(["icmp.trace", "icmp.trace"]),
+    ] {
+        let response = app
+            .clone()
+            .oneshot(request(
+                Method::POST,
+                "/v1/pair",
+                Some(json!({"code": PAIRING_CODE, "capabilities": capabilities})),
+                None,
+            ))
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        assert_eq!(
+            response_json(response).await["error"]["code"],
+            "unsupported_capability"
+        );
+    }
+
+    let http_only = pair_capabilities(&state, &app, json!(["http.request"])).await;
+    assert_eq!(http_only["capabilities"], json!(["http.request"]));
+    let http_token = http_only["token"].as_str().unwrap().to_owned();
+    let denied = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/trace",
+            Some(trace_input(Uuid::new_v4(), "127.0.0.1")),
+            Some(&http_token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(denied.status(), StatusCode::FORBIDDEN);
+    assert_eq!(response_json(denied).await["error"]["code"], "forbidden");
+
+    let icmp_only = pair_capabilities(&state, &app, json!(["icmp.trace"])).await;
+    assert_eq!(icmp_only["capabilities"], json!(["icmp.trace"]));
+    let icmp_token = icmp_only["token"].as_str().unwrap().to_owned();
+    let denied_http = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/http/request",
+            Some(json!({})),
+            Some(&icmp_token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(denied_http.status(), StatusCode::FORBIDDEN);
+
+    for target in ["bad host", "http://example.test", ""] {
+        let response = app
+            .clone()
+            .oneshot(request(
+                Method::POST,
+                "/v1/icmp/trace",
+                Some(trace_input(Uuid::new_v4(), target)),
+                Some(&icmp_token),
+            ))
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST, "{target}");
+        assert_eq!(
+            response_json(response).await["error"]["code"],
+            "invalid_request",
+            "{target}"
+        );
+    }
+
+    let private_target = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/trace",
+            Some(trace_input(Uuid::new_v4(), "10.1.1.1")),
+            Some(&icmp_token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(private_target.status(), StatusCode::FORBIDDEN);
+    assert_eq!(
+        response_json(private_target).await["error"]["code"],
+        "private_network_denied"
+    );
+
+    let revoked = app
+        .clone()
+        .oneshot(request(
+            Method::DELETE,
+            "/v1/session",
+            None,
+            Some(&icmp_token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(revoked.status(), StatusCode::NO_CONTENT);
+}
+
+#[tokio::test]
+async fn icmp_trace_records_a_localhost_echo_and_blocks_metadata() {
+    let (state, app) = test_app(true, 48_732);
+    let paired = pair_capabilities(&state, &app, json!(["http.request", "icmp.trace"])).await;
+    assert_eq!(
+        paired["capabilities"],
+        json!(["http.request", "icmp.trace"])
+    );
+    let token = paired["token"].as_str().unwrap().to_owned();
+
+    let metadata = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/trace",
+            Some(trace_input(Uuid::new_v4(), "169.254.169.254")),
+            Some(&token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(metadata.status(), StatusCode::FORBIDDEN);
+    assert_eq!(
+        response_json(metadata).await["error"]["code"],
+        "target_denied"
+    );
+
+    let cgnat = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/trace",
+            Some(trace_input(Uuid::new_v4(), "100.64.0.1")),
+            Some(&token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(cgnat.status(), StatusCode::FORBIDDEN);
+    assert_eq!(response_json(cgnat).await["error"]["code"], "target_denied");
+
+    let id = Uuid::new_v4();
+    let started = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/trace",
+            Some(trace_input(id, "127.0.0.1")),
+            Some(&token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(started.status(), StatusCode::OK);
+    let started = response_json(started).await;
+    assert_eq!(started["state"], "tracing");
+    assert_eq!(started["target"], "127.0.0.1");
+    assert_eq!(started["targetInput"], "127.0.0.1");
+
+    let mut received = 0;
+    let mut address = String::new();
+    for _ in 0..20 {
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        let snapshot = app
+            .clone()
+            .oneshot(request(
+                Method::POST,
+                "/v1/icmp/snapshot",
+                Some(json!({"id": id.to_string()})),
+                Some(&token),
+            ))
+            .await
+            .unwrap();
+        assert_eq!(snapshot.status(), StatusCode::OK);
+        let snapshot = response_json(snapshot).await;
+        if snapshot["hops"].as_array().is_some_and(|hops| {
+            hops.first()
+                .is_some_and(|hop| hop["received"].as_u64().unwrap_or(0) >= 1)
+        }) {
+            received = snapshot["hops"][0]["received"].as_u64().unwrap();
+            address = snapshot["hops"][0]["address"].as_str().unwrap().to_owned();
+            break;
+        }
+    }
+    assert!(received >= 1, "localhost echo was not recorded");
+    assert_eq!(address, "127.0.0.1");
+
+    let missing = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/snapshot",
+            Some(json!({"id": Uuid::new_v4().to_string()})),
+            Some(&token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(missing.status(), StatusCode::NOT_FOUND);
+    assert_eq!(response_json(missing).await["error"]["code"], "not_found");
+
+    let cancel = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/cancel",
+            Some(json!({"id": id.to_string()})),
+            Some(&token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(cancel.status(), StatusCode::NO_CONTENT);
+
+    let mut idle = false;
+    for _ in 0..20 {
+        tokio::time::sleep(Duration::from_millis(50)).await;
+        let snapshot = app
+            .clone()
+            .oneshot(request(
+                Method::POST,
+                "/v1/icmp/snapshot",
+                Some(json!({"id": id.to_string()})),
+                Some(&token),
+            ))
+            .await
+            .unwrap();
+        let snapshot = response_json(snapshot).await;
+        if snapshot["state"] == "idle" {
+            idle = true;
+            assert!(snapshot["hops"][0]["received"].as_u64().unwrap_or(0) >= 1);
+            break;
+        }
+    }
+    assert!(idle, "trace did not become idle after cancel");
 }

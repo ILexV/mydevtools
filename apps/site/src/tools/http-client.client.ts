@@ -8,6 +8,7 @@ import {
   LocalAgentError,
   base64ToBytes,
   bytesToBase64,
+  mergeCapabilities,
   type LocalAgentHeader,
   type LocalHttpResponse,
 } from "@/scripts/local-agent";
@@ -163,6 +164,7 @@ function init(): void {
   const disconnect = root.querySelector<HTMLButtonElement>("[data-http-disconnect]");
   const agentMeta = root.querySelector<HTMLElement>("[data-http-agent-meta]");
   const agentVersion = root.querySelector<HTMLElement>("[data-http-agent-version]");
+  const capabilitiesLabel = root.querySelector<HTMLElement>("[data-http-capabilities]");
   const lanPolicy = root.querySelector<HTMLElement>("[data-http-lan]");
   const connectionStatus = root.querySelector<HTMLElement>("[data-http-connection-status]");
   const connectionError = root.querySelector<HTMLElement>("[data-http-connection-error]");
@@ -1763,9 +1765,15 @@ function init(): void {
     const pairingCode = automatic ? "" : code.value.trim();
     if (!automatic) hasSavedAgentSession = false;
     try {
-      const info = pairingCode
-        ? await client.pair(pairingCode, ["http.request"])
-        : await client.restore();
+      let info;
+      if (pairingCode) {
+        const previous = client.capabilities;
+        const inspected = await client.inspect();
+        const advertised = Array.isArray(inspected.capabilities) ? inspected.capabilities : [];
+        info = await client.pair(pairingCode, mergeCapabilities(previous, advertised, "http.request"));
+      } else {
+        info = await client.restore();
+      }
       if (!info) hasSavedAgentSession = false;
       if (!info) {
         setConnected(false);
@@ -1774,6 +1782,7 @@ function init(): void {
         return;
       }
       agentVersion.textContent = info.version;
+      if (capabilitiesLabel) capabilitiesLabel.textContent = client.capabilities.join(", ");
       lanPolicy.textContent = info.privateNetworkAllowed ? strings.PrivateAllowed : strings.PrivateBlocked;
       hasSavedAgentSession = client.persisted;
       setConnected(true);

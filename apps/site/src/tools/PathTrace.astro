@@ -1,0 +1,201 @@
+---
+/**
+ * Path trace (MTR). ICMP runs in the local agent; this shell only supplies
+ * the form, the hop table, and the localized string island for the controller.
+ */
+import { t } from "@/i18n/messages";
+import { localizedPath } from "@/lib/url";
+import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import Icon from "@/components/Icon.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+
+interface Props { lang: LocaleCode }
+const { lang } = Astro.props as Props;
+const ns = "tools/path-trace";
+const agentHref = localizedPath(lang, "local-agent");
+const clientKeys = [
+  "Connected", "Disconnected", "Connecting", "NotConnected", "PrivateAllowed", "PrivateBlocked",
+  "AgentConnectedShort", "AgentDisconnectedShort", "ConnectionNotSaved", "NeedTraceCapability",
+  "TargetLabel", "ResolvedTarget", "InvalidTarget", "InvalidSettings", "ResolveNames",
+  "StateIdle", "StateTracing", "StateStopping", "Copied", "CopyFailed",
+  "Hostname", "Nr", "Loss", "Sent", "Recv", "Best", "Avg", "Worst", "Last", "Status",
+  "NoResponse", "EmptyTable", "ReportTitle",
+  "ErrorGeneric", "Error_agent_unavailable", "Error_invalid_response", "Error_invalid_request",
+  "Error_unauthorized", "Error_forbidden", "Error_pairing_invalid", "Error_pairing_expired",
+  "Error_pairing_rate_limited", "Error_unsupported_capability", "Error_private_network_denied",
+  "Error_target_denied", "Error_timeout", "Error_cancelled", "Error_busy", "Error_network_error",
+  "Error_incompatible_protocol", "Error_name_not_found", "Error_icmp_unavailable", "Error_not_found",
+  "Status_echo_reply", "Status_ttl_expired", "Status_ttl_expired_reassembly",
+  "Status_dest_net_unreachable", "Status_dest_host_unreachable", "Status_dest_prot_unreachable",
+  "Status_dest_port_unreachable", "Status_packet_too_big", "Status_timeout", "Status_bad_route",
+  "Status_param_problem", "Status_source_quench", "Status_no_resources", "Status_bad_option",
+  "Status_hw_error", "Status_bad_request", "Status_option_too_big", "Status_bad_destination",
+  "Status_buffer_too_small", "Status_general_failure",
+] as const;
+const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
+const stringsJson = JSON.stringify(strings);
+---
+
+<div class="path-trace" data-path-trace>
+  <section class="ds-card path-trace-card" aria-labelledby="path-trace-connection-title">
+    <h2 id="path-trace-connection-title" class="ds-panel-title">{t(lang, ns, "ConnectionTitle")}</h2>
+    <div class="path-trace-connect">
+      <Field label={t(lang, ns, "PairCodeLabel")} for="path-trace-code" hint={t(lang, ns, "PairCodeHint")}>
+        <input id="path-trace-code" class="ds-field mono" type="password" autocomplete="one-time-code" spellcheck="false" data-trace-code />
+      </Field>
+      <div class="ds-action-row">
+        <button type="button" class="ds-btn ds-btn-primary" data-trace-connect>{t(lang, ns, "Connect")}</button>
+        <button type="button" class="ds-btn" data-trace-disconnect disabled>{t(lang, ns, "Disconnect")}</button>
+      </div>
+    </div>
+    <p class="path-trace-connection-line">
+      <span class="path-trace-dot" aria-hidden="true"></span>
+      <span data-trace-connection-state>{t(lang, ns, "AgentDisconnectedShort")}</span>
+    </p>
+    <dl class="path-trace-meta" data-trace-agent-meta hidden>
+      <div><dt>{t(lang, ns, "AgentVersion")}</dt><dd class="mono" data-trace-agent-version></dd></div>
+      <div><dt>{t(lang, ns, "Capability")}</dt><dd class="mono" data-trace-capabilities></dd></div>
+      <div><dt>{t(lang, ns, "LanPolicy")}</dt><dd data-trace-lan></dd></div>
+    </dl>
+    <StatusMessage kind="info" data-trace-connection-status />
+    <StatusMessage kind="warning" data-trace-capability-warning />
+    <StatusMessage kind="error" data-trace-connection-error />
+    <StatusMessage kind="info" data-trace-storage-warning />
+    <details class="path-trace-setup">
+      <summary>{t(lang, ns, "SetupTitle")}</summary>
+      <div class="path-trace-setup-body">
+        <p class="ds-hint">{t(lang, ns, "SetupIntro")}</p>
+        <a class="ds-btn ds-btn-small" href={agentHref}>{t(lang, ns, "InstallAgent")}</a>
+        <ol>
+          <li>{t(lang, ns, "SetupStep2")}</li>
+          <li>{t(lang, ns, "SetupStep3")}</li>
+          <li>{t(lang, ns, "SetupStep4")}</li>
+        </ol>
+        <p class="ds-hint">{t(lang, ns, "PrivateSetupNote")}</p>
+        <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="ds-card path-trace-card" aria-labelledby="path-trace-target-title">
+    <h2 id="path-trace-target-title" class="ds-panel-title">{t(lang, ns, "TargetLabel")}</h2>
+    <Field label={t(lang, ns, "TargetLabel")} for="path-trace-target" hint={t(lang, ns, "TargetHint")}>
+      <input id="path-trace-target" class="ds-field mono" type="text" list="path-trace-targets" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "TargetPlaceholder")} data-trace-target />
+    </Field>
+    <datalist id="path-trace-targets" data-trace-targets></datalist>
+    <div class="ds-settings">
+      <Field label={t(lang, ns, "IntervalLabel")} for="path-trace-interval" hint={t(lang, ns, "IntervalHint")}>
+        <input id="path-trace-interval" class="ds-field mono" type="number" min="200" max="60000" step="1" value="1000" inputmode="numeric" data-trace-interval />
+      </Field>
+      <Field label={t(lang, ns, "PayloadLabel")} for="path-trace-payload" hint={t(lang, ns, "PayloadHint")}>
+        <input id="path-trace-payload" class="ds-field mono" type="number" min="0" max="1472" step="1" value="64" inputmode="numeric" data-trace-payload />
+      </Field>
+      <Field label={t(lang, ns, "MaxHopsLabel")} for="path-trace-hops" hint={t(lang, ns, "MaxHopsHint")}>
+        <input id="path-trace-hops" class="ds-field mono" type="number" min="1" max="64" step="1" value="30" inputmode="numeric" data-trace-hops />
+      </Field>
+      <Field label={t(lang, ns, "TimeoutLabel")} for="path-trace-timeout" hint={t(lang, ns, "TimeoutHint")}>
+        <input id="path-trace-timeout" class="ds-field mono" type="number" min="100" max="30000" step="1" value="5000" inputmode="numeric" data-trace-timeout />
+      </Field>
+      <div class="ds-settings-checks">
+        <label class="ds-check-row"><input class="ds-check" type="checkbox" checked data-trace-resolve /><span>{t(lang, ns, "ResolveNames")}</span></label>
+      </div>
+    </div>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-trace-start disabled><Icon name="zap" size={16} />{t(lang, ns, "Start")}</button>
+      <button type="button" class="ds-btn" data-trace-stop disabled hidden><Icon name="close" size={16} />{t(lang, ns, "Stop")}</button>
+      <span class="ds-hint path-trace-run-state" data-trace-run-state>{t(lang, ns, "StateIdle")}</span>
+    </div>
+    <StatusMessage kind="error" data-trace-run-error />
+  </section>
+
+  <section class="ds-card path-trace-card" aria-labelledby="path-trace-table-title">
+    <div class="path-trace-results-head">
+      <h2 id="path-trace-table-title" class="ds-panel-title">{t(lang, ns, "ReportTitle")}</h2>
+      <p class="ds-hint mono" data-trace-resolved hidden></p>
+    </div>
+    <div class="ds-action-row path-trace-report-actions">
+      <button type="button" class="ds-btn ds-btn-small" data-trace-copy="text" disabled><Icon name="copy" size={15} />{t(lang, ns, "CopyText")}</button>
+      <button type="button" class="ds-btn ds-btn-small" data-trace-copy="html" disabled><Icon name="copy" size={15} />{t(lang, ns, "CopyHtml")}</button>
+      <button type="button" class="ds-btn ds-btn-small" data-trace-download="text" disabled><Icon name="download" size={15} />{t(lang, ns, "DownloadText")}</button>
+      <button type="button" class="ds-btn ds-btn-small" data-trace-download="html" disabled><Icon name="download" size={15} />{t(lang, ns, "DownloadHtml")}</button>
+    </div>
+    <div class="path-trace-scroll">
+      <table class="path-trace-table" data-trace-table>
+        <caption class="visually-hidden">{t(lang, ns, "ReportTitle")}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{t(lang, ns, "Hostname")}</th>
+            <th scope="col">{t(lang, ns, "Nr")}</th>
+            <th scope="col">{t(lang, ns, "Loss")}</th>
+            <th scope="col">{t(lang, ns, "Sent")}</th>
+            <th scope="col">{t(lang, ns, "Recv")}</th>
+            <th scope="col">{t(lang, ns, "Best")}</th>
+            <th scope="col">{t(lang, ns, "Avg")}</th>
+            <th scope="col">{t(lang, ns, "Worst")}</th>
+            <th scope="col">{t(lang, ns, "Last")}</th>
+            <th scope="col">{t(lang, ns, "Status")}</th>
+          </tr>
+        </thead>
+        <tbody data-trace-body></tbody>
+      </table>
+    </div>
+    <article class="path-trace-detail" data-trace-detail hidden>
+      <h3 class="ds-panel-title">{t(lang, ns, "HopDetail")}</h3>
+      <dl>
+        <div><dt>{t(lang, ns, "Hostname")}</dt><dd data-detail="host"></dd></div>
+        <div><dt>{t(lang, ns, "Address")}</dt><dd class="mono" data-detail="address"></dd></div>
+        <div><dt>{t(lang, ns, "Status")}</dt><dd data-detail="status"></dd></div>
+        <div><dt>{t(lang, ns, "Sent")}</dt><dd class="mono" data-detail="sent"></dd></div>
+        <div><dt>{t(lang, ns, "Recv")}</dt><dd class="mono" data-detail="recv"></dd></div>
+        <div><dt>{t(lang, ns, "Loss")}</dt><dd class="mono" data-detail="loss"></dd></div>
+        <div><dt>{t(lang, ns, "Best")}</dt><dd class="mono" data-detail="best"></dd></div>
+        <div><dt>{t(lang, ns, "Avg")}</dt><dd class="mono" data-detail="avg"></dd></div>
+        <div><dt>{t(lang, ns, "Worst")}</dt><dd class="mono" data-detail="worst"></dd></div>
+        <div><dt>{t(lang, ns, "Last")}</dt><dd class="mono" data-detail="last"></dd></div>
+      </dl>
+    </article>
+  </section>
+  <script is:inline type="application/json" data-path-trace-strings set:html={stringsJson} />
+</div>
+
+<script>import "@/tools/path-trace.client.ts";</script>
+
+<style>
+  .path-trace { display: flex; flex-direction: column; gap: 1rem; min-width: 0; max-width: 100%; }
+  .path-trace-card { min-width: 0; }
+  .path-trace-connect { display: grid; gap: 0.75rem; }
+  .path-trace-connection-line { display: flex; align-items: center; gap: 0.45rem; margin: 0.75rem 0 0; }
+  .path-trace-dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--mdt-text-muted); }
+  .path-trace.is-connected .path-trace-dot { background: var(--mdt-cat); }
+  .path-trace-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.55rem 1rem; margin: 0.85rem 0; }
+  .path-trace-meta div { min-width: 0; }
+  .path-trace-meta dt { color: var(--mdt-text-muted); font-size: 0.78rem; }
+  .path-trace-meta dd { margin: 0; overflow-wrap: anywhere; }
+  .path-trace-setup { margin-top: 0.75rem; }
+  .path-trace-setup-body { display: grid; gap: 0.55rem; padding-top: 0.55rem; }
+  .path-trace-setup-body ol { margin: 0; padding-left: 1.2rem; }
+  .path-trace-run-state { align-self: center; }
+  .path-trace-results-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.4rem 1rem; }
+  .path-trace-results-head h2 { margin: 0; }
+  .path-trace-report-actions { margin: 0.75rem 0; }
+  .path-trace-scroll { overflow-x: auto; max-width: 100%; }
+  .path-trace-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .path-trace-table :global(th),
+  .path-trace-table :global(td) {
+    padding: 0.4rem 0.55rem;
+    border-bottom: 1px solid var(--mdt-border-soft);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .path-trace-table :global(th:first-child),
+  .path-trace-table :global(td:first-child),
+  .path-trace-table :global(th:last-child),
+  .path-trace-table :global(td:last-child) { text-align: left; }
+  .path-trace-table :global(tbody tr[data-hop]) { cursor: pointer; }
+  .path-trace-table :global(tr.is-selected) { background: color-mix(in srgb, var(--mdt-cat) 16%, transparent); }
+  .path-trace-detail { margin-top: 0.9rem; }
+  .path-trace-detail dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0.45rem 0.8rem; margin: 0.6rem 0 0; }
+  .path-trace-detail dt { color: var(--mdt-text-muted); font-size: 0.78rem; }
+  .path-trace-detail dd { margin: 0; overflow-wrap: anywhere; }
+</style>

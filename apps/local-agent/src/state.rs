@@ -14,7 +14,10 @@ use tokio::sync::{OwnedSemaphorePermit, Semaphore, watch};
 use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
-use crate::model::{ApiError, HTTP_CAPABILITY, PairRequest, PairResponse};
+use crate::{
+    icmp::{SharedTrace, TraceState},
+    model::{ApiError, HTTP_CAPABILITY, ICMP_CAPABILITY, PairRequest, PairResponse},
+};
 
 const PAIRING_LIFETIME: Duration = Duration::from_secs(5 * 60);
 const SESSION_LIFETIME: Duration = Duration::from_secs(8 * 60 * 60);
@@ -22,6 +25,8 @@ const PAIRING_ATTEMPT_WINDOW: Duration = Duration::from_secs(60);
 const MAX_FAILED_PAIRING_ATTEMPTS: usize = 10;
 const MAX_SESSIONS: usize = 32;
 const MAX_CONCURRENT_REQUESTS: usize = 8;
+const MAX_CONCURRENT_TRACES: usize = 2;
+const MAX_STORED_TRACES: usize = 8;
 const MAX_CANCELLATION_TOMBSTONES: usize = 256;
 const CANCELLATION_TOMBSTONE_LIFETIME: Duration = Duration::from_secs(5 * 60);
 
@@ -53,8 +58,11 @@ struct Session {
     origin: String,
     expires: Instant,
     http_request_allowed: bool,
+    icmp_trace_allowed: bool,
     active: HashMap<Uuid, CancellationToken>,
     cancellation_tombstones: HashMap<Uuid, Instant>,
+    traces: HashMap<Uuid, Arc<Mutex<SharedTrace>>>,
+    trace_order: VecDeque<Uuid>,
 }
 
 pub(crate) struct ActiveRequestGuard {
@@ -96,12 +104,7 @@ impl AgentState {
         request: PairRequest,
         origin: &str,
     ) -> Result<PairResponse, ApiError> {
-        if request.capabilities.len() != 1 || request.capabilities[0] != HTTP_CAPABILITY {
-            return Err(ApiError::new(
-                StatusCode::BAD_REQUEST,
-                "unsupported_capability",
-            ));
-        }
+        let granted = normalize_capabilities(&request.capabilities)?;
 
         let now = Instant::now();
         let mut pairing = self.pairing.lock();
@@ -149,24 +152,39 @@ impl AgentState {
                 break (token, digest);
             }
         };
-        let expires_at = (Utc::now() + chrono::Duration::hours(8))
-            .to_rfc3339_opts(SecondsFormat::Secs, true);
+        let expires_at =
+            (Utc::now() + chrono::Duration::hours(8)).to_rfc3339_opts(SecondsFormat::Secs, true);
         sessions.insert(
             token_digest,
             Session {
                 origin: origin.to_owned(),
                 expires: now + SESSION_LIFETIME,
-                http_request_allowed: true,
+                http_request_allowed: granted
+                    .iter()
+                    .any(|capability| *capability == HTTP_CAPABILITY),
+                icmp_trace_allowed: granted
+                    .iter()
+                    .any(|capability| *capability == ICMP_CAPABILITY),
                 active: HashMap::new(),
                 cancellation_tombstones: HashMap::new(),
+                traces: HashMap::new(),
+                trace_order: VecDeque::new(),
             },
         );
 
         Ok(PairResponse {
             token,
-            capabilities: [HTTP_CAPABILITY],
+            capabilities: granted,
             expires_at,
         })
+    }
+
+    pub(crate) fn authorize_session(
+        &self,
+        authorization: Option<&str>,
+        origin: &str,
+    ) -> Result<SessionKey, ApiError> {
+        Ok(self.authorize(authorization, origin)?.key)
     }
 
     pub(crate) fn authorize_http(
@@ -174,10 +192,37 @@ impl AgentState {
         authorization: Option<&str>,
         origin: &str,
     ) -> Result<SessionKey, ApiError> {
+        let auth = self.authorize(authorization, origin)?;
+        if !auth.http_request_allowed {
+            return Err(ApiError::forbidden());
+        }
+        Ok(auth.key)
+    }
+
+    pub(crate) fn authorize_icmp(
+        &self,
+        authorization: Option<&str>,
+        origin: &str,
+    ) -> Result<SessionKey, ApiError> {
+        let auth = self.authorize(authorization, origin)?;
+        if !auth.icmp_trace_allowed {
+            return Err(ApiError::forbidden());
+        }
+        Ok(auth.key)
+    }
+
+    fn authorize(
+        &self,
+        authorization: Option<&str>,
+        origin: &str,
+    ) -> Result<SessionAuth, ApiError> {
         let key = parse_authorization(authorization)?;
         let now = Instant::now();
         let mut sessions = self.sessions.lock();
-        if sessions.get(&key).is_some_and(|session| now >= session.expires) {
+        if sessions
+            .get(&key)
+            .is_some_and(|session| now >= session.expires)
+        {
             if let Some(expired) = sessions.remove(&key) {
                 cancel_session(expired);
             }
@@ -187,10 +232,11 @@ impl AgentState {
         if session.origin != origin {
             return Err(ApiError::forbidden());
         }
-        if !session.http_request_allowed {
-            return Err(ApiError::forbidden());
-        }
-        Ok(key)
+        Ok(SessionAuth {
+            key,
+            http_request_allowed: session.http_request_allowed,
+            icmp_trace_allowed: session.icmp_trace_allowed,
+        })
     }
 
     pub(crate) fn revoke(&self, session_key: SessionKey) {
@@ -228,7 +274,11 @@ impl AgentState {
             .get_mut(&session_key)
             .ok_or_else(ApiError::unauthorized)?;
         prune_tombstones(session, now);
-        if session.cancellation_tombstones.remove(&request_id).is_some() {
+        if session
+            .cancellation_tombstones
+            .remove(&request_id)
+            .is_some()
+        {
             cancellation.cancel();
             return Err(ApiError::new(StatusCode::CONFLICT, "cancelled"));
         }
@@ -272,6 +322,106 @@ impl AgentState {
         session.cancellation_tombstones.insert(request_id, now);
         Ok(())
     }
+
+    /// Registers a path trace on the session. A long trace does not take an HTTP
+    /// concurrency permit. At most two traces run in the process, and idle
+    /// snapshots are capped so a page can still copy the last result.
+    pub(crate) fn begin_trace(
+        self: &Arc<Self>,
+        session_key: SessionKey,
+        request_id: Uuid,
+        cancellation: CancellationToken,
+        trace: Arc<Mutex<SharedTrace>>,
+    ) -> Result<ActiveRequestGuard, ApiError> {
+        let now = Instant::now();
+        let mut sessions = self.sessions.lock();
+        let running = sessions
+            .values()
+            .flat_map(|session| session.traces.values())
+            .filter(|trace| trace.lock().state != TraceState::Idle)
+            .count();
+        if running >= MAX_CONCURRENT_TRACES {
+            return Err(ApiError::busy());
+        }
+        let session = sessions
+            .get_mut(&session_key)
+            .ok_or_else(ApiError::unauthorized)?;
+        prune_tombstones(session, now);
+        if session
+            .cancellation_tombstones
+            .remove(&request_id)
+            .is_some()
+        {
+            cancellation.cancel();
+            return Err(ApiError::new(StatusCode::CONFLICT, "cancelled"));
+        }
+        if session.active.contains_key(&request_id) {
+            return Err(ApiError::invalid_request());
+        }
+        evict_idle_traces(session);
+        if session.traces.len() >= MAX_STORED_TRACES && !session.traces.contains_key(&request_id) {
+            return Err(ApiError::busy());
+        }
+        session.traces.insert(request_id, trace);
+        if !session.trace_order.contains(&request_id) {
+            session.trace_order.push_back(request_id);
+        }
+        session.active.insert(request_id, cancellation);
+        Ok(ActiveRequestGuard {
+            state: Arc::clone(self),
+            session_key,
+            request_id,
+        })
+    }
+
+    pub(crate) fn trace(
+        &self,
+        session_key: SessionKey,
+        request_id: Uuid,
+    ) -> Result<Arc<Mutex<SharedTrace>>, ApiError> {
+        let sessions = self.sessions.lock();
+        let session = sessions
+            .get(&session_key)
+            .ok_or_else(ApiError::unauthorized)?;
+        session
+            .traces
+            .get(&request_id)
+            .cloned()
+            .ok_or_else(ApiError::not_found)
+    }
+
+    pub(crate) fn abandon_trace(&self, session_key: SessionKey, request_id: Uuid) {
+        let mut sessions = self.sessions.lock();
+        let Some(session) = sessions.get_mut(&session_key) else {
+            return;
+        };
+        session.traces.remove(&request_id);
+        session
+            .trace_order
+            .retain(|existing| *existing != request_id);
+        session.active.remove(&request_id);
+    }
+
+    pub(crate) fn cancel_trace(
+        &self,
+        session_key: SessionKey,
+        request_id: Uuid,
+    ) -> Result<(), ApiError> {
+        self.cancel_request(session_key, request_id)?;
+        if let Some(trace) = self.trace(session_key, request_id).ok() {
+            let mut trace = trace.lock();
+            if trace.state == TraceState::Tracing {
+                trace.state = TraceState::Stopping;
+            }
+        }
+        Ok(())
+    }
+}
+
+struct SessionAuth {
+    key: SessionKey,
+    http_request_allowed: bool,
+    icmp_trace_allowed: bool,
 }
 
 impl Drop for ActiveRequestGuard {
@@ -301,6 +451,45 @@ impl PairingState {
 
     fn code_string(&self) -> String {
         hex::encode(self.code)
+    }
+}
+
+fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, ApiError> {
+    if requested.is_empty() {
+        return Err(ApiError::unsupported_capability());
+    }
+    let mut http = false;
+    let mut icmp = false;
+    for capability in requested {
+        match capability.as_str() {
+            HTTP_CAPABILITY if !http => http = true,
+            ICMP_CAPABILITY if !icmp => icmp = true,
+            _ => return Err(ApiError::unsupported_capability()),
+        }
+    }
+    let mut granted = Vec::with_capacity(2);
+    if http {
+        granted.push(HTTP_CAPABILITY);
+    }
+    if icmp {
+        granted.push(ICMP_CAPABILITY);
+    }
+    Ok(granted)
+}
+
+fn evict_idle_traces(session: &mut Session) {
+    while session.traces.len() >= MAX_STORED_TRACES {
+        let oldest_idle = session.trace_order.iter().copied().find(|id| {
+            session
+                .traces
+                .get(id)
+                .is_some_and(|trace| trace.lock().state == TraceState::Idle)
+        });
+        let Some(id) = oldest_idle else {
+            return;
+        };
+        session.traces.remove(&id);
+        session.trace_order.retain(|existing| *existing != id);
     }
 }
 
@@ -336,9 +525,9 @@ fn cancel_session(session: Session) {
 }
 
 fn prune_tombstones(session: &mut Session, now: Instant) {
-    session.cancellation_tombstones.retain(|_, created| {
-        now.duration_since(*created) < CANCELLATION_TOMBSTONE_LIFETIME
-    });
+    session
+        .cancellation_tombstones
+        .retain(|_, created| now.duration_since(*created) < CANCELLATION_TOMBSTONE_LIFETIME);
 }
 
 #[cfg(test)]

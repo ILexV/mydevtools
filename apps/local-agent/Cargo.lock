@@ -917,6 +917,7 @@ dependencies = [
  "constant_time_eq",
  "futures-util",
  "hex",
+ "libc",
  "parking_lot",
  "rand 0.8.5",
  "reqwest",

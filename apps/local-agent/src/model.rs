@@ -6,6 +6,10 @@ use axum::{
 use serde::{Deserialize, Serialize};
 
 pub(crate) const HTTP_CAPABILITY: &str = "http.request";
+/// Continuous ICMP traceroute. Granted only when the page asks for it; pairing
+/// for `http.request` does not include this capability.
+pub(crate) const ICMP_CAPABILITY: &str = "icmp.trace";
+pub(crate) const AGENT_CAPABILITIES: [&str; 2] = [HTTP_CAPABILITY, ICMP_CAPABILITY];
 pub(crate) const MAX_INCOMING_JSON_BYTES: usize = 2 * 1024 * 1024;
 pub(crate) const MAX_REQUEST_BODY_BYTES: usize = 1024 * 1024;
 pub(crate) const MAX_RESPONSE_BODY_BYTES: usize = 16 * 1024 * 1024;
@@ -16,7 +20,7 @@ pub(crate) const MAX_TIMEOUT_MS: u64 = 120_000;
 pub(crate) struct InfoResponse {
     pub(crate) protocol_version: u8,
     pub(crate) version: &'static str,
-    pub(crate) capabilities: [&'static str; 1],
+    pub(crate) capabilities: &'static [&'static str],
     pub(crate) private_network_allowed: bool,
     pub(crate) limits: LimitsResponse,
 }
@@ -40,7 +44,8 @@ pub(crate) struct PairRequest {
 #[serde(rename_all = "camelCase")]
 pub(crate) struct PairResponse {
     pub(crate) token: String,
-    pub(crate) capabilities: [&'static str; 1],
+    /// Granted subset, stable order: `http.request`, then `icmp.trace`.
+    pub(crate) capabilities: Vec<&'static str>,
     pub(crate) expires_at: String,
 }
 
@@ -111,6 +116,27 @@ impl ApiError {
 
     pub(crate) const fn forbidden() -> Self {
         Self::new(StatusCode::FORBIDDEN, "forbidden")
+    }
+
+    pub(crate) const fn unsupported_capability() -> Self {
+        Self::new(StatusCode::BAD_REQUEST, "unsupported_capability")
+    }
+
+    pub(crate) const fn not_found() -> Self {
+        Self::new(StatusCode::NOT_FOUND, "not_found")
+    }
+
+    pub(crate) const fn busy() -> Self {
+        Self::new(StatusCode::TOO_MANY_REQUESTS, "busy")
+    }
+
+    pub(crate) const fn name_not_found() -> Self {
+        Self::new(StatusCode::BAD_REQUEST, "name_not_found")
+    }
+
+    /// The OS refused an ICMP socket (missing ping group range or CAP_NET_RAW).
+    pub(crate) const fn icmp_unavailable() -> Self {
+        Self::new(StatusCode::SERVICE_UNAVAILABLE, "icmp_unavailable")
     }
 }
 

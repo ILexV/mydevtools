@@ -51,7 +51,7 @@ Private dashboard authentication is separate from visitor analytics: Cloudflare 
 
 ## Tool coverage matrix
 
-All **43 tools** support started/completed/failed for the useful-use action listed below. The seven live tools retain their existing automatic UX: no artificial Run button and no request per keystroke. Explicit cancellation is counted where the tool already has a Cancel/Stop action. Success means actual output/status is committed; failed means launched processing failed, not a rejected preflight.
+All **44 tools** support started/completed/failed for the useful-use action listed below. The seven live tools retain their existing automatic UX: no artificial Run button and no request per keystroke. Explicit cancellation is counted where the tool already has a Cancel/Stop action. Success means actual output/status is committed; failed means launched processing failed, not a rejected preflight.
 
 | Tool ID | Useful-use action | S/C/F | Success / processing failure | Preflight and exclusions |
 | --- | --- | --- | --- | --- |
@@ -88,6 +88,7 @@ All **43 tools** support started/completed/failed for the useful-use action list
 | `unit-converter` | Settled trusted value/category/unit/swap/quick-choice edit | yes | Converted value committed / processing error | Empty value, init and superseded work excluded |
 | `date-converter` | Convert / Now | yes | Formatted date/instant details committed / formatting/render exception | Nonempty valid parsed date required; typing/select/example/relative-time refresh excluded |
 | `ip-subnet-calculator` | Calculate / Enter / calculating example; Split / Enter | yes | Network or subnet tables/diagram committed / real WASM processing error | Empty input, dependency-readiness failure and invalid split prefix excluded; malformed nonempty CIDR rejected by WASM counts failed |
+| `path-trace` | Start | yes | First hop probe committed / start or poll error before that | Invalid target, invalid settings, and a session without `icmp.trace` are preflight; explicit Stop before a hop is cancel; copy, download and settings are excluded |
 | `color-converter` | Convert / Enter | yes | Formats/shades/swatch committed / render exception | `parseColor` succeeds before start; live picker/typing/contrast settings excluded |
 | `markdown-preview` | Settled trusted text/formatting-toolbar edit | yes | Final sanitized preview committed / rendering error | Empty/init/example and superseded/deferred duplicate work excluded |
 | `image-compressor` | Compress | yes | Compressed image/comparison committed / read/WASM/decode/output error | Selected image and idle state required; selection/quality/format excluded; explicit Cancel is separate; stale work excluded |

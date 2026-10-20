@@ -104,8 +104,9 @@ The request list is independent of the shorter-lived connection token.
 
 | Key | Storage | Shape | Lifetime |
 |---|---|---|---|
-| `mdt.local-agent.session.v1` | localStorage | `{ v: 1, token, expiresAt }` | Until the agent's eight-hour expiry, explicit Disconnect/clear, or an unauthorized response |
+| `mdt.local-agent.session.v1` | localStorage | `{ v: 1, token, expiresAt, capabilities[] }` | Until the agent's eight-hour expiry, explicit Disconnect/clear, or an unauthorized response. A record saved before path tracing has no `capabilities` field and is treated as `http.request` only. A present array is filtered to known ids and may be only `icmp.trace` or empty. A 403 does not remove the record. |
 | `mdt.http-workspace.v1` | localStorage | `{ v: 1, selectedId, requests[], folders[], selectedFolderId, sidebarWidth }` | Until explicit deletion or browser site-data removal; no automatic eviction |
+| `mdt.path-trace.v1` | localStorage | `{ v: 1, targets[] (≤20), intervalMs, payloadBytes, maxHops, timeoutMs, resolveNames }` | Until the user clears site data. Recent targets are added only after the agent accepts a trace. Hop results, pairing codes and session tokens are not stored here. |
 
 Draft edits are debounced by 250 ms and flushed on switch, send, pagehide and
 hidden visibility. New/rename/delete and selected request changes are persisted.
@@ -132,7 +133,10 @@ does not change the active request. Hover expansion changes only destination
 DOM in place so dragging is not canceled by replacing the source element.
 
 On page load, an unexpired record is restored only after `/v1/info` confirms a
-reachable agent with the expected protocol. A temporarily unavailable agent
+reachable agent with the expected protocol. The record stores the capabilities
+granted at pairing. A record written before path tracing has no capabilities
+field and is read as HTTP-only. A 403 from a missing capability leaves the
+saved token in place. On the path-trace page, a rejected pairing code restores the previous saved record so an HTTP grant is not dropped. A temporarily unavailable agent
 leaves the record intact so a later retry can reconnect. Expired, malformed and
 unauthorized records are removed. If localStorage is blocked or rejects a
 write, pairing still works for the current page in memory and the client exposes

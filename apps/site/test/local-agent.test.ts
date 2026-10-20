@@ -3,6 +3,7 @@ import { test } from "node:test";
 import {
   LocalAgentClient,
   LocalAgentError,
+  mergeCapabilities,
   type LocalAgentInfo,
 } from "../src/scripts/local-agent.ts";
 
@@ -247,5 +248,140 @@ test("LocalAgentClient persistent session lifecycle", async (t) => {
     } else {
       Reflect.deleteProperty(globalThis, "localStorage");
     }
+  }
+});
+
+test("mergeCapabilities keeps a previous grant only when the agent still advertises it", () => {
+  assert.deepEqual(
+    mergeCapabilities(["icmp.trace", "http.request"], ["http.request"], "http.request"),
+    ["http.request"],
+  );
+  assert.deepEqual(
+    mergeCapabilities(["http.request"], ["http.request", "icmp.trace"], "icmp.trace"),
+    ["http.request", "icmp.trace"],
+  );
+  assert.deepEqual(
+    mergeCapabilities([], [], "icmp.trace"),
+    ["icmp.trace"],
+  );
+});
+
+test("stored sessions without a capabilities field stay HTTP-only", () => {
+  const originalStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+  try {
+    const expiresAt = futureExpiry();
+    const { storage } = createStorage({
+      [SESSION_KEY]: JSON.stringify({ v: 1, token: TOKEN, expiresAt }),
+    });
+    installStorage(storage);
+    assert.deepEqual(new LocalAgentClient().capabilities, ["http.request"]);
+
+    const icmpOnly = createStorage({
+      [SESSION_KEY]: JSON.stringify({ v: 1, token: TOKEN, expiresAt, capabilities: ["icmp.trace", "network.scan"] }),
+    });
+    installStorage(icmpOnly.storage);
+    assert.deepEqual(new LocalAgentClient().capabilities, ["icmp.trace"]);
+
+    const empty = createStorage({
+      [SESSION_KEY]: JSON.stringify({ v: 1, token: TOKEN, expiresAt, capabilities: [] }),
+    });
+    installStorage(empty.storage);
+    assert.deepEqual(new LocalAgentClient().capabilities, []);
+  } finally {
+    if (originalStorage) Object.defineProperty(globalThis, "localStorage", originalStorage);
+    else Reflect.deleteProperty(globalThis, "localStorage");
+  }
+});
+
+test("trace snapshots are parsed and a forbidden trace keeps the saved token", async () => {
+  const originalStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+  const originalFetch = globalThis.fetch;
+  try {
+    const { storage, values } = createStorage();
+    installStorage(storage);
+    const expiresAt = futureExpiry();
+    const snapshot = {
+      id: "80a6dd3a-0825-4a96-8bf1-ddb8e657f96d",
+      state: "tracing",
+      target: "127.0.0.1",
+      targetInput: "localhost",
+      hops: [{
+        hop: 1,
+        address: "127.0.0.1",
+        name: null,
+        sent: 1,
+        received: 1,
+        lossPercent: 0,
+        lastMs: 1,
+        bestMs: 1,
+        avgMs: 1,
+        worstMs: 1,
+        status: "echo_reply",
+      }],
+    };
+    globalThis.fetch = async (input) => {
+      const path = new URL(String(input)).pathname;
+      if (path === "/v1/info") return jsonResponse({ ...INFO, capabilities: ["http.request", "icmp.trace"] });
+      if (path === "/v1/pair") {
+        return jsonResponse({ token: TOKEN, capabilities: ["http.request", "icmp.trace"], expiresAt });
+      }
+      if (path === "/v1/icmp/trace") return jsonResponse(snapshot);
+      if (path === "/v1/icmp/snapshot") return jsonResponse({ error: { code: "forbidden" } }, 403);
+      throw new Error(`Unexpected request: ${path}`);
+    };
+
+    const client = new LocalAgentClient();
+    await client.pair(PAIRING_CODE, ["http.request", "icmp.trace"]);
+    assert.deepEqual(client.capabilities, ["http.request", "icmp.trace"]);
+    const started = await client.startTrace({
+      id: snapshot.id,
+      target: "127.0.0.1",
+      intervalMs: 1000,
+      payloadBytes: 64,
+      maxHops: 30,
+      timeoutMs: 5000,
+      resolveNames: false,
+    });
+    assert.equal(started.hops[0]?.address, "127.0.0.1");
+    assert.equal(started.hops[0]?.lastMs, 1);
+    await assert.rejects(client.traceSnapshot(snapshot.id), (error) => (
+      error instanceof LocalAgentError && error.code === "forbidden"
+    ));
+    assert.equal(values.has(SESSION_KEY), true);
+    assert.equal(client.connected, true);
+
+    globalThis.fetch = async (input) => {
+      const path = new URL(String(input)).pathname;
+      if (path === "/v1/icmp/trace") return jsonResponse({ id: 1, state: "nope", hops: [] });
+      throw new Error(`Unexpected request: ${path}`);
+    };
+    await assert.rejects(client.startTrace({
+      id: snapshot.id,
+      target: "127.0.0.1",
+      intervalMs: 1000,
+      payloadBytes: 64,
+      maxHops: 30,
+      timeoutMs: 5000,
+      resolveNames: true,
+    }), (error) => error instanceof LocalAgentError && error.code === "invalid_response");
+
+    const saved = values.get(SESSION_KEY);
+    globalThis.fetch = async (input) => {
+      const path = new URL(String(input)).pathname;
+      if (path === "/v1/info") return jsonResponse({ ...INFO, capabilities: ["http.request", "icmp.trace"] });
+      if (path === "/v1/pair") return jsonResponse({ error: { code: "pairing_invalid" } }, 401);
+      throw new Error(`Unexpected request: ${path}`);
+    };
+    await assert.rejects(
+      client.pairKeepingSession("ffffffffffffffffffffffffffffffff", ["http.request", "icmp.trace"]),
+      (error) => error instanceof LocalAgentError && error.code === "pairing_invalid",
+    );
+    assert.equal(values.get(SESSION_KEY), saved);
+    assert.equal(client.connected, true);
+    assert.deepEqual(client.capabilities, ["http.request", "icmp.trace"]);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalStorage) Object.defineProperty(globalThis, "localStorage", originalStorage);
+    else Reflect.deleteProperty(globalThis, "localStorage");
   }
 });

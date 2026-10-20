@@ -28,14 +28,14 @@
   "PermissionAccount": "Keine Registrierung, Anmeldung oder MyDevTools-Cloud-Weiterleitung.",
   "PermissionInstall": "Keine Administratorrechte, kein Installer und kein Windows-Dienst.",
   "PermissionPairing": "Ein wechselnder Einmalcode startet eine zeitlich begrenzte Browsersitzung. Der Browser speichert das Verbindungstoken bis zu 8 Stunden oder bis zum Neustart des Agenten, aber niemals den Kopplungscode.",
-  "PermissionNetwork": "Er lauscht nur auf diesem PC. HTTP-Anfragen gehen direkt zum Ziel; private Netzwerkziele sind standardmäßig gesperrt.",
+  "PermissionNetwork": "Er lauscht nur auf diesem PC. HTTP-Anfragen und ICMP-Proben gehen direkt vom Agenten zum Ziel. Ziele im privaten Netz sind standardmäßig gesperrt. Router auf dem Pfad werden auch mit privater Adresse angezeigt.",
   "TrayTitle": "Sie behalten die Kontrolle",
   "TrayIntro": "Das Schließen blendet das kleine Fenster aus; das Tray-Symbol öffnet es wieder.",
   "TrayCode": "Version und aktuellen Kopplungscode anzeigen.",
   "TrayAutostart": "Autostart ist optional und standardmäßig aus. Er nutzt Ihre Windows-Benutzereinstellungen; die Datei muss am selben Ort bleiben.",
   "TrayExit": "Beenden stoppt den lokalen Server und widerruft aktive Sitzungen vollständig.",
   "CapabilityTitle": "Verfügbare Fähigkeit",
-  "CapabilityBody": "Diese Version unterstützt ausdrücklich gekoppelte HTTP-Anfragen. Jedes Werkzeug fordert eine eigene benannte Fähigkeit an; die Kopplung gewährt zukünftige Fähigkeiten nicht automatisch.",
+  "CapabilityBody": "Diese Version unterstützt ausdrücklich gekoppelte HTTP-Anfragen und ICMP-Pfadverfolgung. Jedes Werkzeug fordert eine eigene benannte Fähigkeit an; die Kopplung gewährt zukünftige Fähigkeiten nicht automatisch.",
   "VerifyTitle": "Download prüfen",
   "VerifyBody": "Die ausführbare Datei ist nicht digital signiert; Windows SmartScreen kann warnen oder sie blockieren. Deaktivieren Sie den Windows-Schutz nicht. Vergleichen Sie den SHA-256-Wert der Datei mit dem obigen Wert, um die Integrität zu prüfen; ein passender Hash ersetzt keine Herausgebersignatur."
 }

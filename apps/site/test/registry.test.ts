@@ -74,6 +74,8 @@ test("tools: every tool has a known category", () => {
   }
   assert.equal(getTool("http-client")?.category, "networking");
   assert.equal(getTool("ip-subnet-calculator")?.category, "networking");
+  assert.equal(getTool("path-trace")?.category, "networking");
+  assert.equal(getTool("path-trace")?.wasm, null);
 });
 
 // Monograms tell sibling cards apart in the catalog tile: short, unique, no emoji.

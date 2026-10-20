@@ -2,47 +2,44 @@ use std::cell::{Cell, RefCell};
 use std::ffi::c_void;
 use std::mem::{size_of, zeroed};
 use std::os::windows::ffi::OsStrExt;
-use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::ptr::{null, null_mut};
 
 use tokio_util::sync::CancellationToken;
 use windows_sys::Win32::Foundation::{
-    GetLastError, HWND, LPARAM, LRESULT, RECT, WPARAM, ERROR_CLASS_ALREADY_EXISTS,
-    ERROR_FILE_NOT_FOUND, ERROR_SUCCESS,
+    ERROR_CLASS_ALREADY_EXISTS, ERROR_FILE_NOT_FOUND, ERROR_SUCCESS, GetLastError, HWND, LPARAM,
+    LRESULT, RECT, WPARAM,
 };
 use windows_sys::Win32::Globalization::GetUserDefaultUILanguage;
 use windows_sys::Win32::Graphics::Gdi::{
-    CreateFontW, DeleteObject, GetSysColor, GetSysColorBrush, SetBkColor, COLOR_WINDOW,
-    CLEARTYPE_QUALITY, CLIP_DEFAULT_PRECIS, DEFAULT_CHARSET, DEFAULT_PITCH, FF_DONTCARE,
-    FW_REGULAR, FW_SEMIBOLD, HFONT, OUT_DEFAULT_PRECIS,
+    CLEARTYPE_QUALITY, CLIP_DEFAULT_PRECIS, COLOR_WINDOW, CreateFontW, DEFAULT_CHARSET,
+    DEFAULT_PITCH, DeleteObject, FF_DONTCARE, FW_REGULAR, FW_SEMIBOLD, GetSysColor,
+    GetSysColorBrush, HFONT, OUT_DEFAULT_PRECIS, SetBkColor,
 };
 use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows_sys::Win32::System::Registry::{
-    RegDeleteKeyValueW, RegGetValueW, RegSetKeyValueW, HKEY_CURRENT_USER, REG_SZ,
-    RRF_NOEXPAND, RRF_RT_ANY,
+    HKEY_CURRENT_USER, REG_SZ, RRF_NOEXPAND, RRF_RT_ANY, RegDeleteKeyValueW, RegGetValueW,
+    RegSetKeyValueW,
 };
-use windows_sys::Win32::UI::Controls::{
-    BST_CHECKED, BST_UNCHECKED, EM_SETSEL,
-};
+use windows_sys::Win32::UI::Controls::{BST_CHECKED, BST_UNCHECKED, EM_SETSEL};
 use windows_sys::Win32::UI::HiDpi::{AdjustWindowRectExForDpi, GetDpiForWindow};
 use windows_sys::Win32::UI::Shell::{
-    Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_TIP, NIM_ADD, NIM_DELETE,
-    NIM_SETVERSION, NIN_SELECT, NOTIFYICONDATAW, NOTIFYICON_VERSION_4,
+    NIF_ICON, NIF_MESSAGE, NIF_TIP, NIM_ADD, NIM_DELETE, NIM_SETVERSION, NIN_SELECT,
+    NOTIFYICON_VERSION_4, NOTIFYICONDATAW, Shell_NotifyIconW,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    CreateWindowExW, DefWindowProcW, DestroyWindow, DispatchMessageW, FindWindowW,
-    GetMessageW, GetSystemMetrics, GetWindowLongPtrW, IsDialogMessageW, IsWindow, KillTimer,
-    LoadCursorW, LoadImageW, MessageBoxW, MoveWindow,
-    PostMessageW, PostQuitMessage, RegisterClassExW, RegisterWindowMessageW, SendMessageW,
-    SetForegroundWindow, SetTimer, SetWindowLongPtrW, SetWindowPos, SetWindowTextW, ShowWindow,
-    TranslateMessage, BN_CLICKED, BS_AUTOCHECKBOX, CREATESTRUCTW, CS_HREDRAW, CS_VREDRAW,
-    CW_USEDEFAULT, ES_AUTOHSCROLL, ES_READONLY, GWLP_USERDATA, HICON, IDC_ARROW, IMAGE_ICON,
-    LR_SHARED, MB_ICONERROR, MB_OK, MB_SETFOREGROUND, MSG, SIZE_MINIMIZED, SM_CXICON,
-    SM_CXSMICON, SM_CYICON, SM_CYSMICON, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOZORDER, SW_HIDE,
-    SW_RESTORE, SW_SHOW, WM_APP, WM_CLOSE, WM_COMMAND, WM_COPY, WM_CREATE, WM_CTLCOLORBTN,
-    WM_CTLCOLORSTATIC, WM_DESTROY, WM_DPICHANGED, WM_ENDSESSION, WM_LBUTTONUP, WM_NCCREATE,
-    WM_NCDESTROY, WM_QUERYENDSESSION, WM_SETFONT, WM_SIZE, WM_TIMER, WNDCLASSEXW, WS_CAPTION,
-    WS_CHILD, WS_EX_CLIENTEDGE, WS_MINIMIZEBOX, WS_OVERLAPPED, WS_SYSMENU, WS_TABSTOP,
+    BN_CLICKED, BS_AUTOCHECKBOX, CREATESTRUCTW, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT,
+    CreateWindowExW, DefWindowProcW, DestroyWindow, DispatchMessageW, ES_AUTOHSCROLL, ES_READONLY,
+    FindWindowW, GWLP_USERDATA, GetMessageW, GetSystemMetrics, GetWindowLongPtrW, HICON, IDC_ARROW,
+    IMAGE_ICON, IsDialogMessageW, IsWindow, KillTimer, LR_SHARED, LoadCursorW, LoadImageW,
+    MB_ICONERROR, MB_OK, MB_SETFOREGROUND, MSG, MessageBoxW, MoveWindow, PostMessageW,
+    PostQuitMessage, RegisterClassExW, RegisterWindowMessageW, SIZE_MINIMIZED, SM_CXICON,
+    SM_CXSMICON, SM_CYICON, SM_CYSMICON, SW_HIDE, SW_RESTORE, SW_SHOW, SWP_NOACTIVATE, SWP_NOMOVE,
+    SWP_NOZORDER, SendMessageW, SetForegroundWindow, SetTimer, SetWindowLongPtrW, SetWindowPos,
+    SetWindowTextW, ShowWindow, TranslateMessage, WM_APP, WM_CLOSE, WM_COMMAND, WM_COPY, WM_CREATE,
+    WM_CTLCOLORBTN, WM_CTLCOLORSTATIC, WM_DESTROY, WM_DPICHANGED, WM_ENDSESSION, WM_LBUTTONUP,
+    WM_NCCREATE, WM_NCDESTROY, WM_QUERYENDSESSION, WM_SETFONT, WM_SIZE, WM_TIMER, WNDCLASSEXW,
+    WS_CAPTION, WS_CHILD, WS_EX_CLIENTEDGE, WS_MINIMIZEBOX, WS_OVERLAPPED, WS_SYSMENU, WS_TABSTOP,
     WS_VISIBLE,
 };
 
@@ -64,7 +61,6 @@ const ICON_RESOURCE_ID: usize = 1;
 const BASE_DPI: u32 = 96;
 const CLIENT_WIDTH: i32 = 456;
 const CLIENT_HEIGHT: i32 = 258;
-
 
 struct UiStrings {
     heading: &'static str,
@@ -121,7 +117,6 @@ struct Controls {
     note: HWND,
     exit_button: HWND,
 }
-
 
 struct WindowState {
     get_pairing_code: Box<dyn Fn() -> String + Send>,
@@ -185,7 +180,6 @@ pub(crate) fn run(
         if RegisterClassExW(&window_class) == 0 && GetLastError() != ERROR_CLASS_ALREADY_EXISTS {
             return Err(last_error("RegisterClassExW failed"));
         }
-
 
         let taskbar_created = RegisterWindowMessageW(taskbar_message_name.as_ptr());
         if taskbar_created == 0 {
@@ -300,23 +294,14 @@ unsafe extern "system" fn window_proc(
     }
 }
 
-unsafe fn window_proc_inner(
-    window: HWND,
-    message: u32,
-    wparam: WPARAM,
-    lparam: LPARAM,
-) -> LRESULT {
+unsafe fn window_proc_inner(window: HWND, message: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
     if message == WM_NCCREATE {
         let create = lparam as *const CREATESTRUCTW;
         if create.is_null() || unsafe { (*create).lpCreateParams.is_null() } {
             return 0;
         }
         unsafe {
-            SetWindowLongPtrW(
-                window,
-                GWLP_USERDATA,
-                (*create).lpCreateParams as isize,
-            );
+            SetWindowLongPtrW(window, GWLP_USERDATA, (*create).lpCreateParams as isize);
             return DefWindowProcW(window, message, wparam, lparam);
         }
     }
@@ -508,11 +493,7 @@ impl WindowState {
                     instance,
                     "EDIT",
                     "",
-                    WS_CHILD
-                        | WS_VISIBLE
-                        | WS_TABSTOP
-                        | ES_AUTOHSCROLL as u32
-                        | ES_READONLY as u32,
+                    WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_AUTOHSCROLL as u32 | ES_READONLY as u32,
                     WS_EX_CLIENTEDGE,
                     20,
                     99,
@@ -801,7 +782,10 @@ impl WindowState {
                     0,
                 );
             }
-            show_owned_error(window, &format!("{}: {error}", self.strings.autostart_error));
+            show_owned_error(
+                window,
+                &format!("{}: {error}", self.strings.autostart_error),
+            );
         }
     }
 
@@ -842,11 +826,7 @@ fn scale_for_dpi(value: i32, dpi: u32) -> i32 {
     ((i64::from(value) * i64::from(dpi) + i64::from(BASE_DPI / 2)) / i64::from(BASE_DPI)) as i32
 }
 
-unsafe fn load_app_icon(
-    instance: *mut c_void,
-    width: i32,
-    height: i32,
-) -> Result<HICON, String> {
+unsafe fn load_app_icon(instance: *mut c_void, width: i32, height: i32) -> Result<HICON, String> {
     let icon = unsafe {
         LoadImageW(
             instance,

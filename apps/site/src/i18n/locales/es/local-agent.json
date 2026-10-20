@@ -28,14 +28,14 @@
   "PermissionAccount": "Sin registro, inicio de sesión ni proxy en la nube de MyDevTools.",
   "PermissionInstall": "Sin permisos de administrador, instalador ni servicio de Windows.",
   "PermissionPairing": "Un código rotativo de un solo uso inicia una sesión temporal del navegador. El navegador guarda el token de conexión hasta 8 horas o hasta que se reinicie el agente, pero nunca guarda el código de emparejamiento.",
-  "PermissionNetwork": "Solo escucha en este PC. Las solicitudes HTTP van directamente al destino y las redes privadas están bloqueadas de forma predeterminada.",
+  "PermissionNetwork": "Solo escucha en este PC. Las solicitudes HTTP y las sondas ICMP van directamente del agente al destino. Los destinos de red privada están bloqueados de forma predeterminada. Los routers vistos en la ruta se muestran aunque usen una dirección privada.",
   "TrayTitle": "Tú mantienes el control",
   "TrayIntro": "Cerrar la ventana pequeña la oculta; el icono de la bandeja vuelve a abrirla.",
   "TrayCode": "Consulta la versión y el código de vinculación actual.",
   "TrayAutostart": "El inicio automático es opcional y está desactivado de forma predeterminada. Usa tu configuración de usuario de Windows y el ejecutable debe permanecer en su ubicación.",
   "TrayExit": "Salir detiene el servidor local y revoca por completo las sesiones activas.",
   "CapabilityTitle": "Capacidad disponible",
-  "CapabilityBody": "Esta versión admite solicitudes HTTP vinculadas explícitamente. Cada herramienta solicita su propia capacidad con nombre; la vinculación no concede capacidades futuras automáticamente.",
+  "CapabilityBody": "Esta versión admite solicitudes HTTP vinculadas explícitamente y trazas de ruta ICMP. Cada herramienta solicita su propia capacidad con nombre; la vinculación no concede capacidades futuras automáticamente.",
   "VerifyTitle": "Verifica la descarga",
   "VerifyBody": "El ejecutable no tiene firma digital; Windows SmartScreen puede mostrar una advertencia o bloquearlo. No desactives la protección de Windows. Compara el SHA-256 del archivo con el valor anterior para comprobar su integridad; la coincidencia no sustituye la firma del editor."
 }

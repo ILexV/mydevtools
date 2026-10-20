@@ -1,6 +1,7 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
 mod http_client;
+mod icmp;
 mod model;
 mod policy;
 mod server;
@@ -182,8 +183,7 @@ async fn run_windows(
         }
     };
 
-    gui_result
-        .map_err(|error| format!("window task failed: {error}"))??;
+    gui_result.map_err(|error| format!("window task failed: {error}"))??;
     server_result
         .map_err(|error| format!("local server task failed: {error}"))?
         .map_err(|error| format!("local server failed: {error}"))?;

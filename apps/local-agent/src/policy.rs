@@ -122,9 +122,7 @@ fn enforce_v6(
     }
 
     // ISATAP interface identifiers embed IPv4 after 0000:5efe or 0200:5efe.
-    if bytes[8..12] == [0x00, 0x00, 0x5e, 0xfe]
-        || bytes[8..12] == [0x02, 0x00, 0x5e, 0xfe]
-    {
+    if bytes[8..12] == [0x00, 0x00, 0x5e, 0xfe] || bytes[8..12] == [0x02, 0x00, 0x5e, 0xfe] {
         return enforce_v4(
             Ipv4Addr::new(bytes[12], bytes[13], bytes[14], bytes[15]),
             target_port,

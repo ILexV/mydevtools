@@ -4,7 +4,26 @@ const SESSION_STORAGE_KEY = "mdt.local-agent.session.v1";
 const SESSION_STORAGE_VERSION = 1;
 
 
-export type LocalAgentCapability = "http.request";
+export type LocalAgentCapability = "http.request" | "icmp.trace";
+
+const CAPABILITY_ORDER: readonly LocalAgentCapability[] = ["http.request", "icmp.trace"];
+
+/**
+ * Capabilities to request when a tool connects. Keeps capabilities this browser
+ * already holds when the running agent still advertises them, and always asks
+ * for the capability this tool needs. `pair()` itself does not add anything.
+ */
+export function mergeCapabilities(
+  previous: readonly LocalAgentCapability[],
+  advertised: readonly string[],
+  needed: LocalAgentCapability,
+): LocalAgentCapability[] {
+  const previousSet = new Set<string>(previous);
+  const advertisedSet = new Set(advertised);
+  return CAPABILITY_ORDER.filter(
+    (capability) => capability === needed || (previousSet.has(capability) && advertisedSet.has(capability)),
+  );
+}
 
 export interface LocalAgentInfo {
   protocolVersion: number;
@@ -51,6 +70,40 @@ interface StoredSession {
   v: typeof SESSION_STORAGE_VERSION;
   token: string;
   expiresAt: string;
+  /** Missing on records saved before path tracing: those sessions are HTTP-only. */
+  capabilities: LocalAgentCapability[];
+}
+
+export interface TraceHopSnapshot {
+  hop: number;
+  address: string | null;
+  name: string | null;
+  sent: number;
+  received: number;
+  lossPercent: number;
+  lastMs: number | null;
+  bestMs: number | null;
+  avgMs: number | null;
+  worstMs: number | null;
+  status: string | null;
+}
+
+export interface TraceSnapshot {
+  id: string;
+  state: "tracing" | "stopping" | "idle";
+  target: string;
+  targetInput: string;
+  hops: TraceHopSnapshot[];
+}
+
+export interface TraceStartRequest {
+  id: string;
+  target: string;
+  intervalMs: number;
+  payloadBytes: number;
+  maxHops: number;
+  timeoutMs: number;
+  resolveNames: boolean;
 }
 
 export type LocalAgentStorageState = "unknown" | "available" | "unavailable";
@@ -119,6 +172,7 @@ export class LocalAgentClient {
   #token: string | null = null;
   #info: LocalAgentInfo | null = null;
   #expiresAt: string | null = null;
+  #capabilities: LocalAgentCapability[] = [];
   #storageState: LocalAgentStorageState = "unknown";
   #persisted = false;
 
@@ -143,6 +197,15 @@ export class LocalAgentClient {
     return this.#persisted;
   }
 
+  /**
+   * Capabilities granted to the saved browser session. An older record without
+   * the field is HTTP-only. Read this before `pair()`: pairing clears storage.
+   */
+  get capabilities(): readonly LocalAgentCapability[] {
+    if (this.#token || this.#capabilities.length > 0) return this.#capabilities;
+    return this.#readStoredSession()?.capabilities ?? [];
+  }
+
 
   async inspect(signal?: AbortSignal): Promise<LocalAgentInfo> {
     const info = await jsonRequest<LocalAgentInfo>("/v1/info", { method: "GET", signal });
@@ -154,6 +217,7 @@ export class LocalAgentClient {
     this.#token = null;
     this.#expiresAt = null;
     this.#info = null;
+    this.#capabilities = [];
     this.#persisted = false;
 
     const stored = this.#readStoredSession();
@@ -172,6 +236,7 @@ export class LocalAgentClient {
     }
     this.#token = stored.token;
     this.#expiresAt = stored.expiresAt;
+    this.#capabilities = stored.capabilities;
     this.#persisted = true;
     return info;
   }
@@ -207,8 +272,42 @@ export class LocalAgentClient {
     }
     this.#token = paired.token;
     this.#expiresAt = paired.expiresAt;
-    this.#writeStoredSession({ v: SESSION_STORAGE_VERSION, token: paired.token, expiresAt: paired.expiresAt });
+    this.#capabilities = normalizeCapabilities(paired.capabilities, false);
+    this.#writeStoredSession({
+      v: SESSION_STORAGE_VERSION,
+      token: paired.token,
+      expiresAt: paired.expiresAt,
+      capabilities: this.#capabilities,
+    });
     return info;
+  }
+
+  /**
+   * Pairs a new code while keeping the saved session if pairing fails.
+   * Path tracing uses this so a wrong code does not drop an HTTP grant.
+   * `pair()` still clears storage before the request; this puts that record back.
+   */
+  async pairKeepingSession(
+    code: string,
+    capabilities: readonly LocalAgentCapability[],
+    signal?: AbortSignal,
+  ): Promise<LocalAgentInfo> {
+    const saved = this.#readStoredSessionRaw();
+    try {
+      return await this.pair(code, capabilities, signal);
+    } catch (error) {
+      if (!this.connected && saved) {
+        try {
+          if (localStorage.getItem(SESSION_STORAGE_KEY) === null) {
+            localStorage.setItem(SESSION_STORAGE_KEY, saved);
+          }
+          await this.restore();
+        } catch {
+          // The pairing error is the one the page should show.
+        }
+      }
+      throw error;
+    }
   }
 
   async disconnect(): Promise<void> {
@@ -243,10 +342,38 @@ export class LocalAgentClient {
     });
   }
 
+  /** Starts a continuous ICMP path trace. The returned snapshot is the empty initial table. */
+  async startTrace(request: TraceStartRequest, signal?: AbortSignal): Promise<TraceSnapshot> {
+    return asTraceSnapshot(await this.#authorized<unknown>("/v1/icmp/trace", {
+      method: "POST",
+      signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    }));
+  }
+
+  async traceSnapshot(id: string, signal?: AbortSignal): Promise<TraceSnapshot> {
+    return asTraceSnapshot(await this.#authorized<unknown>("/v1/icmp/snapshot", {
+      method: "POST",
+      signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    }));
+  }
+
+  async cancelTrace(id: string): Promise<void> {
+    await this.#authorized<void>("/v1/icmp/cancel", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+  }
+
   clear(): void {
     this.#token = null;
     this.#expiresAt = null;
     this.#info = null;
+    this.#capabilities = [];
     this.#persisted = false;
     this.#removeStoredSession();
   }
@@ -262,6 +389,14 @@ export class LocalAgentClient {
     } catch (error) {
       if (error instanceof LocalAgentError && error.code === "unauthorized") this.clear();
       throw error;
+    }
+  }
+
+  #readStoredSessionRaw(): string | null {
+    try {
+      return localStorage.getItem(SESSION_STORAGE_KEY);
+    } catch {
+      return null;
     }
   }
 
@@ -293,6 +428,7 @@ export class LocalAgentClient {
         v: SESSION_STORAGE_VERSION,
         token: value.token,
         expiresAt: value.expiresAt,
+        capabilities: normalizeCapabilities(value.capabilities, !Object.hasOwn(value, "capabilities")),
       };
     } catch {
       this.#removeStoredSession();
@@ -329,6 +465,62 @@ export class LocalAgentClient {
   #clearIfExpired(): void {
     if (this.#expiresAt !== null && Date.parse(this.#expiresAt) <= Date.now()) this.clear();
   }
+}
+
+/**
+ * Keeps known capability ids in protocol order.
+ * A missing field on an old session record means HTTP-only.
+ * A present array is filtered and may be empty: do not invent `http.request`.
+ */
+function normalizeCapabilities(value: unknown, missingMeansHttp: boolean): LocalAgentCapability[] {
+  if (!Array.isArray(value)) return missingMeansHttp ? ["http.request"] : [];
+  const present = new Set(value.filter((item): item is string => typeof item === "string"));
+  return CAPABILITY_ORDER.filter((capability) => present.has(capability));
+}
+
+function asNullableString(value: unknown): string | null {
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+function asCount(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function asNullableCount(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+/** Rejects a snapshot the hop table cannot render. Optional hop fields become nulls. */
+function asTraceSnapshot(value: unknown): TraceSnapshot {
+  if (!isObject(value) || typeof value.id !== "string" || !Array.isArray(value.hops)) {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (value.state !== "tracing" && value.state !== "stopping" && value.state !== "idle") {
+    throw new LocalAgentError("invalid_response");
+  }
+  const hops = value.hops.map((hop): TraceHopSnapshot => {
+    if (!isObject(hop)) throw new LocalAgentError("invalid_response");
+    return {
+      hop: asCount(hop.hop),
+      address: asNullableString(hop.address),
+      name: asNullableString(hop.name),
+      sent: asCount(hop.sent),
+      received: asCount(hop.received),
+      lossPercent: asCount(hop.lossPercent),
+      lastMs: asNullableCount(hop.lastMs),
+      bestMs: asNullableCount(hop.bestMs),
+      avgMs: asNullableCount(hop.avgMs),
+      worstMs: asNullableCount(hop.worstMs),
+      status: asNullableString(hop.status),
+    };
+  });
+  return {
+    id: value.id,
+    state: value.state,
+    target: typeof value.target === "string" ? value.target : "",
+    targetInput: typeof value.targetInput === "string" ? value.targetInput : "",
+    hops,
+  };
 }
 
 export function bytesToBase64(bytes: Uint8Array): string {

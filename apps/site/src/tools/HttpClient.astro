@@ -108,7 +108,7 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
           </div>
           <dl class="http-agent-meta" data-http-agent-meta hidden>
             <div><dt>{t(lang, ns, "AgentVersion")}</dt><dd class="mono" data-http-agent-version></dd></div>
-            <div><dt>{t(lang, ns, "Capability")}</dt><dd class="mono">http.request</dd></div>
+            <div><dt>{t(lang, ns, "Capability")}</dt><dd class="mono" data-http-capabilities>http.request</dd></div>
             <div><dt>{t(lang, ns, "LanPolicy")}</dt><dd data-http-lan></dd></div>
           </dl>
           <StatusMessage kind="info" data-http-connection-status />

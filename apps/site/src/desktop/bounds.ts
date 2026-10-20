@@ -37,6 +37,7 @@ const PROFILE_BY_SLUG: Record<string, WindowProfile> = {
   "markdown-preview": "wide",
   "hex-viewer": "wide",
   "http-client": "wide",
+  "path-trace": "wide",
   "uuid-generator": "compact",
   "password-generator": "compact",
 };

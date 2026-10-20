@@ -29,6 +29,7 @@ sha2 = "=0.10.9"
 tokio = { version = "=1.47.1", features = ["io-util", "macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
 tokio-util = { version = "=0.7.15", features = ["rt"] }
 url = "=2.5.4"
+libc = "=0.2.191"
 uuid = { version = "=1.17.0", features = ["serde", "v4"] }
 
 [build-dependencies]
@@ -42,6 +43,9 @@ windows-sys = { version = "=0.59.0", features = [
     "Win32_Foundation",
     "Win32_Globalization",
     "Win32_Graphics_Gdi",
+    "Win32_NetworkManagement_IpHelper",
+    "Win32_Networking_WinSock",
+    "Win32_System_IO",
     "Win32_System_LibraryLoader",
     "Win32_System_Registry",
     "Win32_UI_Controls",

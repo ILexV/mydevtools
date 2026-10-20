@@ -128,6 +128,7 @@ const TOOL_CATALOG = [
   // ── networking ────────────────────────────────────────────────────────────
   { slug: "ip-subnet-calculator", monogram: "/24", category: "networking", wasm: "ipcalc", capabilities: { copy: true } },
   { slug: "http-client", monogram: "HTTP", category: "networking", wasm: null, capabilities: { cancel: true, download: true } },
+  { slug: "path-trace", monogram: "MTR", category: "networking", wasm: null, capabilities: { cancel: true, copy: true, download: true } },
 
   // ── design ────────────────────────────────────────────────────────────────
   { slug: "color-converter", monogram: "#hex", category: "design", wasm: null, capabilities: { copy: true } },

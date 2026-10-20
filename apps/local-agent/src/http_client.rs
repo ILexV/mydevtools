@@ -118,7 +118,9 @@ async fn execute_redirect_chain(
 }
 
 async fn pinned_client(url: &Url, config: &AgentConfig) -> Result<Client, ApiError> {
-    let port = url.port_or_known_default().ok_or_else(ApiError::invalid_request)?;
+    let port = url
+        .port_or_known_default()
+        .ok_or_else(ApiError::invalid_request)?;
     if port == 0 {
         return Err(ApiError::invalid_request());
     }
@@ -136,20 +138,10 @@ async fn pinned_client(url: &Url, config: &AgentConfig) -> Result<Client, ApiErr
 
     match url.host().ok_or_else(ApiError::invalid_request)? {
         Host::Ipv4(address) => {
-            enforce_destination(
-                IpAddr::V4(address),
-                port,
-                config.port,
-                config.allow_private,
-            )?;
+            enforce_destination(IpAddr::V4(address), port, config.port, config.allow_private)?;
         }
         Host::Ipv6(address) => {
-            enforce_destination(
-                IpAddr::V6(address),
-                port,
-                config.port,
-                config.allow_private,
-            )?;
+            enforce_destination(IpAddr::V6(address), port, config.port, config.allow_private)?;
         }
         Host::Domain(domain) => {
             let resolved = lookup_host((domain, port))
@@ -161,12 +153,7 @@ async fn pinned_client(url: &Url, config: &AgentConfig) -> Result<Client, ApiErr
                     if addresses.len() >= MAX_PINNED_ADDRESSES {
                         return Err(ApiError::new(StatusCode::FORBIDDEN, "target_denied"));
                     }
-                    enforce_destination(
-                        address.ip(),
-                        port,
-                        config.port,
-                        config.allow_private,
-                    )?;
+                    enforce_destination(address.ip(), port, config.port, config.allow_private)?;
                     addresses.push(SocketAddr::new(address.ip(), port));
                 }
             }
@@ -267,8 +254,7 @@ fn parse_redirect_url(base: &Url, location: &str) -> Result<Url, ApiError> {
     let joined = base
         .join(location)
         .map_err(|_| ApiError::new(StatusCode::BAD_GATEWAY, "network_error"))?;
-    parse_url(joined.as_str())
-        .map_err(|_| ApiError::new(StatusCode::BAD_GATEWAY, "network_error"))
+    parse_url(joined.as_str()).map_err(|_| ApiError::new(StatusCode::BAD_GATEWAY, "network_error"))
 }
 
 fn parse_headers(entries: Vec<HeaderEntry>) -> Result<HeaderMap, ApiError> {

@@ -18,11 +18,11 @@ use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
 use crate::{
-    http_client,
+    http_client, icmp,
     model::{
-        ApiError, CancelRequest, HTTP_CAPABILITY, HttpRequestInput, InfoResponse, LimitsResponse,
-        MAX_INCOMING_JSON_BYTES, MAX_REQUEST_BODY_BYTES, MAX_RESPONSE_BODY_BYTES, MAX_TIMEOUT_MS,
-        PairRequest,
+        AGENT_CAPABILITIES, ApiError, CancelRequest, HttpRequestInput, InfoResponse,
+        LimitsResponse, MAX_INCOMING_JSON_BYTES, MAX_REQUEST_BODY_BYTES, MAX_RESPONSE_BODY_BYTES,
+        MAX_TIMEOUT_MS, PairRequest,
     },
     state::AgentState,
 };
@@ -35,11 +35,11 @@ pub(crate) fn router(state: Arc<AgentState>) -> Router {
         .route("/v1/info", get(info).options(preflight))
         .route("/v1/pair", post(pair).options(preflight))
         .route("/v1/session", delete(revoke_session).options(preflight))
-        .route(
-            "/v1/http/request",
-            post(http_request).options(preflight),
-        )
+        .route("/v1/http/request", post(http_request).options(preflight))
         .route("/v1/http/cancel", post(cancel_request).options(preflight))
+        .route("/v1/icmp/trace", post(icmp_trace).options(preflight))
+        .route("/v1/icmp/snapshot", post(icmp_snapshot).options(preflight))
+        .route("/v1/icmp/cancel", post(icmp_cancel).options(preflight))
         .method_not_allowed_fallback(method_not_allowed)
         .fallback(not_found)
         .layer(middleware::from_fn_with_state(
@@ -74,7 +74,7 @@ async fn info(State(state): State<Arc<AgentState>>) -> Json<InfoResponse> {
     Json(InfoResponse {
         protocol_version: 1,
         version: env!("CARGO_PKG_VERSION"),
-        capabilities: [HTTP_CAPABILITY],
+        capabilities: &AGENT_CAPABILITIES,
         private_network_allowed: state.config.allow_private,
         limits: LimitsResponse {
             max_request_body_bytes: MAX_REQUEST_BODY_BYTES,
@@ -97,7 +97,9 @@ async fn revoke_session(
     State(state): State<Arc<AgentState>>,
     request: Request,
 ) -> Result<StatusCode, ApiError> {
-    let session_key = authorize(&state, request.headers())?;
+    let origin = required_header(request.headers(), ORIGIN)?;
+    let authorization = optional_single_header(request.headers(), AUTHORIZATION)?;
+    let session_key = state.authorize_session(authorization, &origin)?;
     state.revoke(session_key);
     Ok(StatusCode::NO_CONTENT)
 }
@@ -126,6 +128,39 @@ async fn cancel_request(
     let input: CancelRequest = parse_json(request).await?;
     let request_id = Uuid::parse_str(&input.id).map_err(|_| ApiError::invalid_request())?;
     state.cancel_request(session_key, request_id)?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+async fn icmp_trace(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<impl IntoResponse, ApiError> {
+    let session_key = authorize_icmp(&state, request.headers())?;
+    let input = parse_json(request).await?;
+    let snapshot = icmp::start_trace(Arc::clone(&state), session_key, input).await?;
+    Ok((StatusCode::OK, Json(snapshot)))
+}
+
+async fn icmp_snapshot(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<impl IntoResponse, ApiError> {
+    let session_key = authorize_icmp(&state, request.headers())?;
+    let input: CancelRequest = parse_json(request).await?;
+    Ok((
+        StatusCode::OK,
+        Json(icmp::snapshot_trace(&state, session_key, input)?),
+    ))
+}
+
+async fn icmp_cancel(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<StatusCode, ApiError> {
+    let session_key = authorize_icmp(&state, request.headers())?;
+    let input: CancelRequest = parse_json(request).await?;
+    let request_id = Uuid::parse_str(&input.id).map_err(|_| ApiError::invalid_request())?;
+    state.cancel_trace(session_key, request_id)?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -206,7 +241,8 @@ fn valid_preflight(request: &Request) -> bool {
     );
     let expected_method = match request.uri().path() {
         "/v1/info" => "GET",
-        "/v1/pair" | "/v1/http/request" | "/v1/http/cancel" => "POST",
+        "/v1/pair" | "/v1/http/request" | "/v1/http/cancel" | "/v1/icmp/trace"
+        | "/v1/icmp/snapshot" | "/v1/icmp/cancel" => "POST",
         "/v1/session" => "DELETE",
         _ => return false,
     };
@@ -224,8 +260,7 @@ fn valid_preflight(request: &Request) -> bool {
     requested_headers.is_none_or(|headers| {
         headers.split(',').all(|name| {
             let name = name.trim();
-            name.eq_ignore_ascii_case("authorization")
-                || name.eq_ignore_ascii_case("content-type")
+            name.eq_ignore_ascii_case("authorization") || name.eq_ignore_ascii_case("content-type")
         })
     })
 }
@@ -234,6 +269,12 @@ fn authorize(state: &AgentState, headers: &HeaderMap) -> Result<[u8; 32], ApiErr
     let origin = required_header(headers, ORIGIN)?;
     let authorization = optional_single_header(headers, AUTHORIZATION)?;
     state.authorize_http(authorization, &origin)
+}
+
+fn authorize_icmp(state: &AgentState, headers: &HeaderMap) -> Result<[u8; 32], ApiError> {
+    let origin = required_header(headers, ORIGIN)?;
+    let authorization = optional_single_header(headers, AUTHORIZATION)?;
+    state.authorize_icmp(authorization, &origin)
 }
 
 async fn parse_json<T: DeserializeOwned>(request: Request) -> Result<T, ApiError> {
@@ -259,9 +300,7 @@ async fn parse_json<T: DeserializeOwned>(request: Request) -> Result<T, ApiError
     }
     let bytes = to_bytes(request.into_body(), MAX_INCOMING_JSON_BYTES)
         .await
-        .map_err(|_| {
-            ApiError::new(StatusCode::PAYLOAD_TOO_LARGE, "request_too_large")
-        })?;
+        .map_err(|_| ApiError::new(StatusCode::PAYLOAD_TOO_LARGE, "request_too_large"))?;
     serde_json::from_slice(&bytes).map_err(|_| ApiError::invalid_request())
 }
 

@@ -37,3 +37,83 @@ html.is-embed body {
 html.is-embed {
   scroll-behavior: auto;
 }
+
+/* HTTP is a workspace, not a card inside the desktop's existing window frame. */
+html.is-embed:has([data-http-client]) .tool {
+  padding: 0;
+}
+
+html.is-embed .http-workbench {
+  min-height: 100dvh;
+  border: 0;
+  border-radius: 0;
+}
+
+/* Narrow windows keep the stacked layout and document scrolling. */
+@media (min-width: 64.001rem) {
+  html.is-embed .http-workbench {
+    height: 100dvh;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  html.is-embed .http-saved {
+    min-height: 0;
+  }
+
+  html.is-embed .http-main {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  html.is-embed .http-request {
+    display: flex;
+    flex-direction: column;
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: 55%;
+  }
+
+  html.is-embed .http-request > :not(.http-tab-panel) {
+    flex-shrink: 0;
+  }
+
+  html.is-embed .tool .http-request > .http-tab-panel {
+    min-height: 0;
+    overflow: auto;
+  }
+
+  html.is-embed .http-response,
+  html.is-embed .http-result,
+  html.is-embed .http-result > .http-tab-panel,
+  html.is-embed [data-http-html-preview] {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  html.is-embed .http-response .ds-output-head,
+  html.is-embed .http-result > .http-tabs,
+  html.is-embed .http-view-toolbar,
+  html.is-embed .http-final-url,
+  html.is-embed .http-html-hint {
+    flex-shrink: 0;
+  }
+
+  html.is-embed .http-response .ds-empty-state {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  html.is-embed .http-response-editor,
+  html.is-embed .http-preview,
+  html.is-embed .http-html-frame {
+    flex: 1 1 0;
+    min-height: 0;
+    height: auto;
+  }
+}

@@ -144,6 +144,15 @@ rename of a nonactive request, Escape/focus return, and persistence after reload
 Check menu bounds at 375px in all locales and both themes. Privacy text remains
 available in the compact help disclosure below the tree.
 
+In desktop embed mode (`?embed=1`), HTTP fills the window without a second
+border, rounded frame, or outer gutters. Above 64rem the workspace uses the
+iframe viewport height: the tree and request/response content scroll internally,
+and the response fills the remaining height. Resize to 1440×900 and 1100×600;
+check the Body editor does not overlap the response and a long response keeps
+its final-URL footer inside the viewport. At 375px retain the stacked layout
+and document scrolling without horizontal overflow. Check both themes and
+confirm the standalone page still has its normal card framing.
+
 HTTP Client belongs to the `networking` category (Network utilities), not
 Converters. Catalog, palette and desktop folder use the same registry entry.
 Saved desktop preferences track seen catalog categories so the new folder is

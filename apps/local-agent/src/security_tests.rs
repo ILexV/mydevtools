@@ -985,7 +985,10 @@ async fn icmp_traces_stay_independent_and_the_third_is_busy() {
             break;
         }
     }
-    assert!(grew, "the other trace stopped when its sibling was cancelled");
+    assert!(
+        grew,
+        "the other trace stopped when its sibling was cancelled"
+    );
 
     let resumed = app
         .clone()

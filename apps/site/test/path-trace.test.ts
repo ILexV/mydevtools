@@ -5,6 +5,7 @@ import {
   escapeHtml,
   formatPathTraceHtml,
   formatPathTraceText,
+  formatSpreadMs,
   hopHostname,
   normalizeTarget,
   parseBoundedInteger,
@@ -27,6 +28,8 @@ const labels: PathTraceReportLabels = {
   avg: "Avg",
   worst: "Worst",
   last: "Last",
+  stdev: "StDev",
+  jitter: "Jitter",
   status: "Status",
   noResponse: "No response",
   statusText: (code) => ({ echo_reply: "Echo reply", dest_host_unreachable: "Host unreachable" })[code] ?? code,
@@ -99,12 +102,17 @@ test("reports escape HTML and render a missing round-trip time as a dash", () =>
       bestMs: 3,
       avgMs: 3,
       worstMs: 3,
+      stdevMs: null,
+      jitterMs: null,
       status: "echo_reply",
     }],
   };
   const text = formatPathTraceText(report, labels);
   const html = formatPathTraceHtml(report, labels);
-  assert.match(text, /100\.64\.0\.1\t1\t50\t2\t1\t3\t3\t3\t\u2014\tEcho reply/);
+  assert.match(text, /100\.64\.0\.1\t1\t50\t2\t1\t3\t3\t3\t\u2014\t\u2014\t\u2014\tEcho reply/);
+  assert.equal(formatSpreadMs(54.74), "54.7");
+  assert.equal(formatSpreadMs(63), "63.0");
+  assert.equal(formatSpreadMs(null), "\u2014");
   assert.match(text, /a<b>&"'/);
   assert.match(html, /a&lt;b&gt;&amp;&quot;&#39;/);
   assert.doesNotMatch(html, /a<b>/);

@@ -85,6 +85,10 @@ export interface TraceHopSnapshot {
   bestMs: number | null;
   avgMs: number | null;
   worstMs: number | null;
+  /** Sample standard deviation of reply RTTs, tenths of a millisecond. Null before two replies. */
+  stdevMs: number | null;
+  /** Average jitter of consecutive reply RTTs, tenths of a millisecond. Null before two replies. */
+  jitterMs: number | null;
   status: string | null;
 }
 
@@ -511,6 +515,8 @@ function asTraceSnapshot(value: unknown): TraceSnapshot {
       bestMs: asNullableCount(hop.bestMs),
       avgMs: asNullableCount(hop.avgMs),
       worstMs: asNullableCount(hop.worstMs),
+      stdevMs: asNullableCount(hop.stdevMs),
+      jitterMs: asNullableCount(hop.jitterMs),
       status: asNullableString(hop.status),
     };
   });

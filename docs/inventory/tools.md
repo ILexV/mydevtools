@@ -166,7 +166,10 @@ address and probed continuously until Stop. The user target follows
 `--allow-private`; metadata, link-local and multicast targets stay denied.
 Intermediate hop addresses, including a home gateway or CGNAT `100.64.0.0/10`,
 are shown as path observations. The page stores recent targets and probe
-settings in `mdt.path-trace.v1`. Hop results stay in memory. The agent runs
+settings in `mdt.path-trace.v1`. Hop results stay in memory. Each hop also
+shows the sample standard deviation and the average jitter of reply
+round-trip times, in tenths of a millisecond. A timeout is not a sample, and
+both stay blank until a second reply. The agent runs
 at most two traces at once, across every paired session, and answers 429
 `busy` past that cap. Each desktop window is its own iframe and its own trace
 id; those windows share one paired session, so disconnecting it stops every

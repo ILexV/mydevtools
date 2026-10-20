@@ -136,6 +136,12 @@ struct HopRecord {
     last_ms: Option<u32>,
     best_ms: Option<u32>,
     worst_ms: Option<u32>,
+    /// Running mean of reply RTTs. The displayed average stays an integer quotient.
+    rtt_mean: f64,
+    /// Welford sum of squares. Sample variance is this divided by `received - 1`.
+    rtt_m2: f64,
+    /// Running mean of absolute gaps between consecutive replies. The first reply adds a zero gap.
+    jitter_avg: f64,
     address: Option<IpAddr>,
     name: Option<String>,
     status: Option<ProbeStatus>,
@@ -151,6 +157,9 @@ impl HopRecord {
             last_ms: None,
             best_ms: None,
             worst_ms: None,
+            rtt_mean: 0.0,
+            rtt_m2: 0.0,
+            jitter_avg: 0.0,
             address: None,
             name: None,
             status: None,
@@ -191,6 +200,10 @@ pub(crate) struct HopSnapshot {
     best_ms: Option<u32>,
     avg_ms: Option<u32>,
     worst_ms: Option<u32>,
+    /// Sample standard deviation of reply RTTs, in milliseconds, to one decimal.
+    stdev_ms: Option<f64>,
+    /// Average jitter of consecutive reply RTTs, in milliseconds, to one decimal.
+    jitter_ms: Option<f64>,
     status: Option<&'static str>,
 }
 
@@ -459,6 +472,8 @@ fn record_probe(
     if outcome.status.counts_as_reply() {
         hop.received = hop.received.saturating_add(1);
         hop.total_ms = hop.total_ms.saturating_add(u64::from(outcome.rtt_ms));
+        // Spread uses the previous reply. A timeout must not become a sample or a gap.
+        note_reply_spread(hop, outcome.rtt_ms);
         hop.last_ms = Some(outcome.rtt_ms);
         hop.best_ms = Some(
             hop.best_ms
@@ -522,6 +537,48 @@ fn avg_ms(total_ms: u64, received: u32) -> Option<u32> {
     }
 }
 
+/// Sample standard deviation and mtr-style average jitter of reply round-trip times.
+/// Lost probes are not samples. Both stay hidden until a second reply, because the
+/// first reply has no previous gap and a standard deviation needs two values.
+fn note_reply_spread(hop: &mut HopRecord, rtt_ms: u32) {
+    let rtt = f64::from(rtt_ms);
+    let count = f64::from(hop.received);
+    if hop.received <= 1 {
+        hop.rtt_mean = rtt;
+        hop.rtt_m2 = 0.0;
+        hop.jitter_avg = 0.0;
+        return;
+    }
+    let previous = f64::from(hop.last_ms.unwrap_or(rtt_ms));
+    let jitter = (rtt - previous).abs();
+    hop.jitter_avg += (jitter - hop.jitter_avg) / count;
+    let delta = rtt - hop.rtt_mean;
+    hop.rtt_mean += delta / count;
+    hop.rtt_m2 += delta * (rtt - hop.rtt_mean);
+}
+
+fn round_tenth(value: f64) -> f64 {
+    (value * 10.0).round() / 10.0
+}
+
+fn stdev_ms(hop: &HopRecord) -> Option<f64> {
+    if hop.received < 2 {
+        return None;
+    }
+    let variance = hop.rtt_m2 / f64::from(hop.received - 1);
+    if !variance.is_finite() || variance < 0.0 {
+        return None;
+    }
+    Some(round_tenth(variance.sqrt()))
+}
+
+fn jitter_ms(hop: &HopRecord) -> Option<f64> {
+    if hop.received < 2 || !hop.jitter_avg.is_finite() {
+        return None;
+    }
+    Some(round_tenth(hop.jitter_avg))
+}
+
 fn snapshot_of(id: Uuid, trace: &SharedTrace) -> TraceSnapshot {
     let end = visible_hop_count(trace);
     TraceSnapshot {
@@ -543,6 +600,8 @@ fn snapshot_of(id: Uuid, trace: &SharedTrace) -> TraceSnapshot {
                 best_ms: hop.best_ms,
                 avg_ms: avg_ms(hop.total_ms, hop.received),
                 worst_ms: hop.worst_ms,
+                stdev_ms: stdev_ms(hop),
+                jitter_ms: jitter_ms(hop),
                 status: hop.status.map(ProbeStatus::as_str),
             })
             .collect(),
@@ -1538,6 +1597,33 @@ mod tests {
         // source address differs from the resolved target.
         assert_eq!(trace.limit, 3);
         assert!(trace.hops[2].reached_destination);
+    }
+
+    #[test]
+    fn spread_is_sample_deviation_and_a_timeout_is_not_a_sample() {
+        let target = IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1));
+        let mut trace = trace_with(1, target);
+        let from = Some(target);
+        record_probe(&mut trace, 0, &outcome(ProbeStatus::EchoReply, from, 10));
+        let first = snapshot_of(Uuid::nil(), &trace);
+        assert_eq!(first.hops[0].stdev_ms, None);
+        assert_eq!(first.hops[0].jitter_ms, None);
+
+        record_probe(&mut trace, 0, &outcome(ProbeStatus::Timeout, None, 0));
+        record_probe(&mut trace, 0, &outcome(ProbeStatus::EchoReply, from, 100));
+        record_probe(&mut trace, 0, &outcome(ProbeStatus::EchoReply, from, 1));
+        let snapshot = snapshot_of(Uuid::nil(), &trace);
+        assert_eq!(trace.hops[0].received, 3);
+        assert!((snapshot.hops[0].stdev_ms.unwrap() - 54.7).abs() < 0.001);
+        assert!((snapshot.hops[0].jitter_ms.unwrap() - 63.0).abs() < 0.001);
+
+        let mut steady = trace_with(1, target);
+        for rtt in [5, 6, 3] {
+            record_probe(&mut steady, 0, &outcome(ProbeStatus::TtlExpired, from, rtt));
+        }
+        let steady_snapshot = snapshot_of(Uuid::nil(), &steady);
+        assert!((steady_snapshot.hops[0].stdev_ms.unwrap() - 1.5).abs() < 0.001);
+        assert!((steady_snapshot.hops[0].jitter_ms.unwrap() - 1.3).abs() < 0.001);
     }
 
     #[test]

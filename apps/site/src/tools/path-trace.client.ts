@@ -21,6 +21,7 @@ import {
   TRACE_TIMEOUT_MS,
   formatPathTraceHtml,
   formatPathTraceText,
+  formatSpreadMs,
   hopHostname,
   hopStatusLabel,
   normalizeTarget,
@@ -147,6 +148,8 @@ function init(): void {
     avg: strings.Avg,
     worst: strings.Worst,
     last: strings.Last,
+    stdev: strings.StDev,
+    jitter: strings.Jitter,
     status: strings.Status,
     noResponse: strings.NoResponse,
     statusText: (codeName) => strings[`Status_${codeName}`] || codeName,
@@ -218,6 +221,8 @@ function init(): void {
       avg: hop.avgMs === null ? "\u2014" : String(hop.avgMs),
       worst: hop.worstMs === null ? "\u2014" : String(hop.worstMs),
       last: hop.lastMs === null ? "\u2014" : String(hop.lastMs),
+      stdev: formatSpreadMs(hop.stdevMs),
+      jitter: formatSpreadMs(hop.jitterMs),
     };
     for (const [key, text] of Object.entries(values)) {
       const node = detail.querySelector<HTMLElement>(`[data-detail="${key}"]`);
@@ -234,7 +239,7 @@ function init(): void {
     if (next.hops.length === 0) {
       const row = document.createElement("tr");
       const td = document.createElement("td");
-      td.colSpan = 10;
+      td.colSpan = 12;
       td.textContent = next.state === "idle" ? strings.EmptyTable : strings.StateTracing;
       row.append(td);
       body.append(row);
@@ -259,6 +264,8 @@ function init(): void {
       cell(row, hop.avgMs === null ? "\u2014" : String(hop.avgMs), "mono");
       cell(row, hop.worstMs === null ? "\u2014" : String(hop.worstMs), "mono");
       cell(row, hop.lastMs === null ? "\u2014" : String(hop.lastMs), "mono");
+      cell(row, formatSpreadMs(hop.stdevMs), "mono");
+      cell(row, formatSpreadMs(hop.jitterMs), "mono");
       cell(row, hopStatusLabel(hop.status, reportLabels.statusText));
       body.append(row);
     }

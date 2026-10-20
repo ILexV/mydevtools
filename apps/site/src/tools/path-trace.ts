@@ -36,6 +36,10 @@ export interface PathTraceHopView {
   bestMs: number | null;
   avgMs: number | null;
   worstMs: number | null;
+  /** Sample standard deviation of reply RTTs. Null until two replies. */
+  stdevMs: number | null;
+  /** Average absolute gap between consecutive reply RTTs. Null until two replies. */
+  jitterMs: number | null;
   status: string | null;
 }
 
@@ -58,6 +62,8 @@ export interface PathTraceReportLabels {
   avg: string;
   worst: string;
   last: string;
+  stdev: string;
+  jitter: string;
   status: string;
   noResponse: string;
   statusText: (code: string) => string;
@@ -136,6 +142,12 @@ function rtt(value: number | null): string {
   return value === null ? RTT_GAP : String(value);
 }
 
+/** Tenths of a millisecond. An en dash until two reply samples exist. */
+export function formatSpreadMs(value: number | null): string {
+  if (value === null || !Number.isFinite(value)) return RTT_GAP;
+  return (Math.round(value * 10) / 10).toFixed(1);
+}
+
 function plainCell(value: string): string {
   return value.replace(/[\t\r\n]+/g, " ");
 }
@@ -179,6 +191,8 @@ function reportRows(report: PathTraceReport, labels: PathTraceReportLabels): str
     rtt(hop.avgMs),
     rtt(hop.worstMs),
     rtt(hop.lastMs),
+    formatSpreadMs(hop.stdevMs),
+    formatSpreadMs(hop.jitterMs),
     hopStatusLabel(hop.status, labels.statusText),
   ]);
 }
@@ -194,6 +208,8 @@ function headerCells(labels: PathTraceReportLabels): string[] {
     labels.avg,
     labels.worst,
     labels.last,
+    labels.stdev,
+    labels.jitter,
     labels.status,
   ];
 }

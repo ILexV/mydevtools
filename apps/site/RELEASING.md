@@ -131,6 +131,19 @@ with the full URL in the tooltip. Exercise pointer resize, arrow keys and
 Home/End (192–480px), reload to confirm width, and 375px stacked layout where the
 separator is hidden. Check both themes and localized labels for clipping.
 
+The request tree now uses flat Explorer rows, icon-only header actions, and no
+persistent footer action panel. Right-click an item (or blank space for root),
+Shift+F10, or the header menu button opens target-specific actions without
+switching the active request. Move opens a destination dialog for keyboard/touch.
+Internal native drag-and-drop moves requests/folders into a folder or root
+blank space; external drags and self/descendant folder destinations are rejected.
+Hovering a collapsed destination for 650ms expands it in place without replacing
+the native drag source. Smoke this with real pointer down/move/up, not only
+synthetic drop events; also verify root drops, invalid cycles, context-menu
+rename of a nonactive request, Escape/focus return, and persistence after reload.
+Check menu bounds at 375px in all locales and both themes. Privacy text remains
+available in the compact help disclosure below the tree.
+
 HTTP Client belongs to the `networking` category (Network utilities), not
 Converters. Catalog, palette and desktop folder use the same registry entry.
 Saved desktop preferences track seen catalog categories so the new folder is

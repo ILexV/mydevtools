@@ -115,3 +115,37 @@ export function saveHttpWorkspace(workspace: HttpWorkspace): boolean {
     return false;
   }
 }
+
+export type HttpWorkspaceItemKind = "request" | "folder";
+
+/** Shared eligibility for drag targets and menu destinations; never mutates state. */
+export function canMoveHttpWorkspaceItem(
+  workspace: HttpWorkspace, kind: HttpWorkspaceItemKind, id: string, parentId: string | null,
+): boolean {
+  if (parentId !== null && !workspace.folders.some(folder => folder.id === parentId)) return false;
+  if (kind === "request") {
+    const request = workspace.requests.find(request => request.id === id);
+    return request !== undefined && request.folderId !== parentId;
+  }
+  const source = workspace.folders.find(folder => folder.id === id);
+  if (!source || source.parentId === parentId) return false;
+  let ancestor = parentId;
+  let remaining = workspace.folders.length;
+  while (ancestor !== null) {
+    if (ancestor === id || remaining-- === 0) return false;
+    const folder = workspace.folders.find(folder => folder.id === ancestor);
+    if (!folder) return false;
+    ancestor = folder.parentId;
+  }
+  return true;
+}
+
+/** Change only the item's parent; moving a folder preserves its entire subtree. */
+export function moveHttpWorkspaceItem(
+  workspace: HttpWorkspace, kind: HttpWorkspaceItemKind, id: string, parentId: string | null,
+): boolean {
+  if (!canMoveHttpWorkspaceItem(workspace, kind, id, parentId)) return false;
+  if (kind === "request") workspace.requests.find(request => request.id === id)!.folderId = parentId;
+  else workspace.folders.find(folder => folder.id === id)!.parentId = parentId;
+  return true;
+}

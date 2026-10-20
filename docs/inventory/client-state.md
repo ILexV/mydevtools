@@ -125,6 +125,12 @@ Desktop sidebar width is persisted between 192 and 480px after pointer release
 or keyboard adjustment. Stacked/mobile layout ignores the width and hides the
 separator without overwriting the desktop preference.
 
+Explorer context menus, move-dialog state and native drag state are transient.
+Moves reuse the same validated parent-link contract and persist only on success;
+a failed storage write rolls back structural changes. Context-menu targeting
+does not change the active request. Hover expansion changes only destination
+DOM in place so dragging is not canceled by replacing the source element.
+
 On page load, an unexpired record is restored only after `/v1/info` confirms a
 reachable agent with the expected protocol. A temporarily unavailable agent
 leaves the record intact so a later retry can reconnect. Expired, malformed and

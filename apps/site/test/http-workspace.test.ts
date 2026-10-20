@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { loadHttpWorkspace, saveHttpWorkspace, type HttpWorkspace } from "../src/tools/http-workspace.ts";
+import { loadHttpWorkspace, saveHttpWorkspace, canMoveHttpWorkspaceItem, moveHttpWorkspaceItem, type HttpWorkspace } from "../src/tools/http-workspace.ts";
 
 test("HTTP workspace preserves drafts, disabled duplicate rows and selected request across reload", () => {
   let stored: string | null = null;
@@ -69,4 +69,39 @@ test("HTTP workspace preserves drafts, disabled duplicate rows and selected requ
     if (previous) Object.defineProperty(globalThis, "localStorage", previous);
     else Reflect.deleteProperty(globalThis, "localStorage");
   }
+});
+
+test("HTTP moves preserve subtrees and reject cycles, stale targets and no-op drops", () => {
+  const workspace: HttpWorkspace = { v: 1, selectedId: "request", selectedFolderId: "root", sidebarWidth: 240,
+    folders: [
+      { id: "root", name: "API", parentId: null, expanded: true },
+      { id: "child", name: "Users", parentId: "root", expanded: true },
+      { id: "grandchild", name: "Details", parentId: "child", expanded: false },
+      { id: "other", name: "Other", parentId: null, expanded: true },
+    ],
+    requests: [{ id: "request", name: "Fetch", folderId: "child", method: "POST", url: "https://example.com",
+      params: [], headers: [{ name: "Authorization", value: "secret", enabled: true }],
+      body: '{"n":12345678901234567890}', bodyFormat: "json", timeoutMs: 30000, followRedirects: false }],
+  };
+  const original = structuredClone(workspace);
+  for (const [kind, id, target] of [
+    ["folder", "root", "root"], ["folder", "root", "grandchild"], ["folder", "child", "root"],
+    ["folder", "missing", null], ["request", "request", "missing"], ["request", "missing", "root"],
+    ["request", "request", "child"],
+  ] as const) {
+    assert.equal(canMoveHttpWorkspaceItem(workspace, kind, id, target), false);
+    assert.equal(moveHttpWorkspaceItem(workspace, kind, id, target), false);
+    assert.deepEqual(workspace, original);
+  }
+  assert.equal(canMoveHttpWorkspaceItem(workspace, "folder", "child", "other"), true);
+  assert.deepEqual(workspace, original, "checking a hover target must not move anything");
+  assert.equal(moveHttpWorkspaceItem(workspace, "folder", "child", "other"), true);
+  assert.equal(workspace.folders[1]!.parentId, "other");
+  assert.equal(workspace.folders[2]!.parentId, "child");
+  assert.deepEqual(workspace.requests, original.requests);
+  assert.equal(moveHttpWorkspaceItem(workspace, "request", "request", null), true);
+  assert.deepEqual(workspace.requests[0], { ...original.requests[0], folderId: null });
+  assert.equal(workspace.selectedId, "request");
+  assert.equal(moveHttpWorkspaceItem(workspace, "request", "request", "grandchild"), true);
+  assert.equal(workspace.requests[0]!.folderId, "grandchild");
 });

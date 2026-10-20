@@ -12,12 +12,15 @@ import {
   type LocalHttpResponse,
 } from "@/scripts/local-agent";
 import {
+  canMoveHttpWorkspaceItem,
   loadHttpWorkspace,
+  moveHttpWorkspaceItem,
   saveHttpWorkspace,
   type HttpSavedRequest,
   type HttpSavedFolder,
   type HttpSavedRow,
   type HttpWorkspace,
+  type HttpWorkspaceItemKind,
 } from "@/tools/http-workspace";
 
 interface Strings {
@@ -51,6 +54,7 @@ interface Strings {
   NewRequest: string;
   RequestName: string;
   UntitledRequest: string;
+  RenameRequest: string;
   DeleteRequestConfirm: string;
   DeleteRequest: string;
   NewFolder: string;
@@ -58,13 +62,11 @@ interface Strings {
   RenameFolder: string;
   DeleteFolder: string;
   DeleteFolderConfirm: string;
-  MoveToFolder: string;
+  MoveItem: string;
   RootFolder: string;
   SelectFolder: string;
   ResizeSidebar: string;
   FolderNameRequired: string;
-  FolderParent: string;
-  FolderActions: string;
   WorkspacePrivacy: string;
   WorkspaceSaveError: string;
   WorkspaceLoadError: string;
@@ -170,12 +172,11 @@ function init(): void {
   const savedList = root.querySelector<HTMLElement>("[data-http-saved-list]");
   const newRequest = root.querySelector<HTMLButtonElement>("[data-http-new]");
   const newFolder = root.querySelector<HTMLButtonElement>("[data-http-new-folder]");
-  const deleteRequest = root.querySelector<HTMLButtonElement>("[data-http-delete]");
-  const folderActions = root.querySelector<HTMLElement>("[data-http-folder-actions]");
-  const renameFolder = root.querySelector<HTMLButtonElement>("[data-http-rename-folder]");
-  const deleteFolder = root.querySelector<HTMLButtonElement>("[data-http-delete-folder]");
-  const folderParent = root.querySelector<HTMLSelectElement>("[data-http-folder-parent]");
-  const requestFolder = root.querySelector<HTMLSelectElement>("[data-http-request-folder]");
+  const treeMenuButton = root.querySelector<HTMLButtonElement>("[data-http-tree-menu-button]");
+  const treeMenu = root.querySelector<HTMLElement>("[data-http-tree-menu]");
+  const moveDialog = root.querySelector<HTMLDialogElement>("[data-http-move-dialog]");
+  const moveDestination = root.querySelector<HTMLSelectElement>("[data-http-move-destination]");
+  const moveConfirm = root.querySelector<HTMLButtonElement>("[data-http-move-confirm]");
   const sidebarResizer = root.querySelector<HTMLElement>("[data-http-sidebar-resizer]");
   const workspaceLoadError = root.querySelector<HTMLElement>("[data-http-workspace-load-error]");
   const workspaceSaveError = root.querySelector<HTMLElement>("[data-http-workspace-save-error]");
@@ -215,8 +216,8 @@ function init(): void {
   const download = root.querySelector<HTMLButtonElement>("[data-http-download]");
   if (!code || !connect || !disconnect || !agentMeta || !agentVersion || !lanPolicy || !connectionStatus
     || !connectionError || !connectionState || !agentSettings || !requestName || !savedList || !newRequest
-    || !newFolder || !deleteRequest || !folderActions || !renameFolder || !deleteFolder || !folderParent
-    || !requestFolder || !sidebarResizer || !workspaceLoadError || !workspaceSaveError || !method || !requestUrl
+    || !newFolder || !treeMenuButton || !treeMenu || !moveDialog || !moveDestination || !moveConfirm
+    || !sidebarResizer || !workspaceLoadError || !workspaceSaveError || !method || !requestUrl
     || !rowTemplate || !requestBody || !timeout || !redirects || !send || !cancel || !requestStatus || !requestError
     || !output || !result || !responseStatus || !responseTime || !responseSize || !responseUrl || !responseHeaders
     || !responsePreview || !download || !responseMeta || !responseType || !editorHost || !editorError
@@ -258,8 +259,19 @@ function init(): void {
     workspace.selectedId = initial.id;
     workspace.requests.push(initial);
   }
+  type TreeTarget = { kind: "root" } | { kind: HttpWorkspaceItemKind; id: string };
+  type TreeAction = "new-request" | "new-folder" | "rename" | "move" | "delete";
   let workspaceDirty = false;
   let currentRequest = workspace.requests.find((request) => request.id === workspace.selectedId)!;
+  let treeSelection: TreeTarget = { kind: "request", id: currentRequest.id };
+  let menuTarget: TreeTarget | null = null;
+  let menuReturnFocus: HTMLElement | null = null;
+  let moveTarget: Exclude<TreeTarget, { kind: "root" }> | null = null;
+  let moveReturnFocus: HTMLElement | null = null;
+  let dragItem: Exclude<TreeTarget, { kind: "root" }> | null = null;
+  let dragHoverTimer = 0;
+  let dragHoverFolderId: string | null = null;
+  let markedDropTarget: HTMLElement | null = null;
   let saveTimer = 0;
   const responseUi = {
     output,
@@ -292,12 +304,11 @@ function init(): void {
     savedList,
     newRequest,
     newFolder,
-    deleteRequest,
-    folderActions,
-    renameFolder,
-    deleteFolder,
-    folderParent,
-    requestFolder,
+    treeMenuButton,
+    treeMenu,
+    moveDialog,
+    moveDestination,
+    moveConfirm,
     sidebarResizer,
     loadError: workspaceLoadError,
     saveError: workspaceSaveError,
@@ -674,24 +685,6 @@ function init(): void {
     return groups;
   }
 
-  function descendantFolderIds(
-    folderId: string,
-    groups: ReadonlyMap<string | null, HttpSavedFolder[]>,
-  ): Set<string> {
-    const descendants = new Set<string>([folderId]);
-    const pending = [folderId];
-    while (pending.length) {
-      const parentId = pending.pop()!;
-      const childFolders = groups.get(parentId);
-      if (!childFolders) continue;
-      for (const folder of childFolders) {
-        descendants.add(folder.id);
-        pending.push(folder.id);
-      }
-    }
-    return descendants;
-  }
-
   function expandFolderAncestors(folderId: string | null): boolean {
     let changed = false;
     let nextId = folderId;
@@ -707,164 +700,172 @@ function init(): void {
     return changed;
   }
 
-  function fillFolderSelect(
-    select: HTMLSelectElement,
-    selectedId: string | null,
-    groups: ReadonlyMap<string | null, HttpSavedFolder[]>,
-    excluded?: ReadonlySet<string>,
-  ): void {
-    const fragment = document.createDocumentFragment();
-    const rootOption = document.createElement("option");
-    rootOption.value = "";
-    rootOption.textContent = workspaceUi.strings.RootFolder;
-    rootOption.selected = selectedId === null;
-    fragment.append(rootOption);
-    const appendOptions = (parentId: string | null, depth: number): void => {
-      const childFolders = groups.get(parentId);
-      if (!childFolders) return;
-      for (const folder of childFolders) {
-        if (excluded?.has(folder.id)) continue;
-        const option = document.createElement("option");
-        option.value = folder.id;
-        option.textContent = `${"\u00a0\u00a0".repeat(depth + 1)}${folder.name}`;
-        option.selected = folder.id === selectedId;
-        fragment.append(option);
-        appendOptions(folder.id, depth + 1);
-      }
-    };
-    appendOptions(null, 0);
-    select.replaceChildren(fragment);
-    select.disabled = active !== null;
+  function targetEquals(left: TreeTarget, right: TreeTarget): boolean {
+    return left.kind === right.kind && (left.kind === "root" || (right.kind !== "root" && left.id === right.id));
   }
 
-  function renderFolderActions(groups: ReadonlyMap<string | null, HttpSavedFolder[]>): void {
-    const selectedFolder = workspace.selectedFolderId === null
-      ? null
-      : workspace.folders.find((folder) => folder.id === workspace.selectedFolderId) ?? null;
-    workspaceUi.folderActions.hidden = selectedFolder === null;
-    workspaceUi.renameFolder.disabled = active !== null || selectedFolder === null;
-    workspaceUi.deleteFolder.disabled = active !== null || selectedFolder === null;
-    if (selectedFolder) {
-      fillFolderSelect(
-        workspaceUi.folderParent,
-        selectedFolder.parentId,
-        groups,
-        descendantFolderIds(selectedFolder.id, groups),
-      );
-    } else {
-      workspaceUi.folderParent.replaceChildren();
-      workspaceUi.folderParent.disabled = true;
+  function targetFromElement(element: Element | null): TreeTarget | null {
+    const item = element?.closest<HTMLElement>("[data-http-item-kind][data-http-item-id]");
+    if (item && workspaceUi.savedList.contains(item)) {
+      const kind = item.dataset.httpItemKind;
+      const id = item.dataset.httpItemId;
+      if ((kind === "folder" || kind === "request") && id) return { kind, id };
     }
-    fillFolderSelect(workspaceUi.requestFolder, currentRequest.folderId, groups);
+    const toggle = element?.closest<HTMLElement>("[data-http-folder-toggle]");
+    const folderId = toggle?.dataset.httpFolderToggle;
+    return toggle && workspaceUi.savedList.contains(toggle) && folderId
+      ? { kind: "folder", id: folderId }
+      : null;
+  }
+
+  function targetExists(target: TreeTarget): boolean {
+    if (target.kind === "root") return true;
+    return target.kind === "folder"
+      ? workspace.folders.some((folder) => folder.id === target.id)
+      : workspace.requests.some((request) => request.id === target.id);
+  }
+
+  function itemForTarget(target: TreeTarget): HTMLButtonElement | null {
+    if (target.kind === "root") return null;
+    for (const item of workspaceUi.savedList.querySelectorAll<HTMLButtonElement>("[data-http-item-kind]")) {
+      if (item.dataset.httpItemKind === target.kind && item.dataset.httpItemId === target.id) return item;
+    }
+    return null;
+  }
+
+  function parentForTarget(target: TreeTarget): string | null {
+    if (target.kind === "folder") return target.id;
+    if (target.kind === "request") {
+      return workspace.requests.find((request) => request.id === target.id)?.folderId ?? null;
+    }
+    return null;
+  }
+
+  function selectTreeItem(item: HTMLButtonElement): void {
+    const target = targetFromElement(item);
+    if (!target) return;
+    treeSelection = target;
+    for (const candidate of workspaceUi.savedList.querySelectorAll<HTMLButtonElement>('[role="treeitem"]')) {
+      const selected = candidate === item;
+      candidate.tabIndex = selected ? 0 : -1;
+      candidate.setAttribute("aria-selected", String(selected));
+    }
+    item.focus();
   }
 
   function createRequestTreeItem(request: HttpSavedRequest, level: number): HTMLLIElement {
     const row = document.createElement("li");
     row.setAttribute("role", "none");
     const item = document.createElement("button");
+    const target: TreeTarget = { kind: "request", id: request.id };
+    const selected = targetEquals(treeSelection, target);
     item.type = "button";
-    item.className = "ds-btn ds-btn-small ds-btn-ghost http-saved-item";
+    item.className = "http-saved-item";
+    item.dataset.httpItemKind = "request";
+    item.dataset.httpItemId = request.id;
     item.dataset.httpSavedId = request.id;
     item.setAttribute("role", "treeitem");
     item.setAttribute("aria-level", String(level));
-    item.setAttribute("aria-selected", String(request.id === workspace.selectedId));
-    item.setAttribute("aria-pressed", String(request.id === workspace.selectedId));
+    item.setAttribute("aria-selected", String(selected));
+    item.tabIndex = selected ? 0 : -1;
     item.title = request.url;
     item.disabled = active !== null;
+    item.draggable = active === null;
+    if (dragItem && targetEquals(dragItem, target)) item.classList.add("is-dragging");
+    const requestIcon = document.createElement("span");
+    requestIcon.className = "http-request-icon";
+    requestIcon.setAttribute("aria-hidden", "true");
     const methodLabel = document.createElement("span");
-    methodLabel.className = "http-saved-method mono";
+    methodLabel.className = "http-saved-method";
     methodLabel.textContent = request.method;
     const nameLabel = document.createElement("span");
     nameLabel.className = "http-saved-name";
     nameLabel.textContent = request.name.trim() || workspaceUi.strings.UntitledRequest;
-    item.append(methodLabel, nameLabel);
-    item.addEventListener("click", () => { switchRequest(request.id); });
+    item.append(requestIcon, methodLabel, nameLabel);
+    item.addEventListener("click", () => {
+      if (active) return;
+      const previousSelection = treeSelection;
+      treeSelection = target;
+      switchRequest(request.id);
+      if (currentRequest.id !== request.id) {
+        treeSelection = previousSelection;
+        return;
+      }
+      workspace.selectedFolderId = null;
+      renderSavedList(target);
+      scheduleWorkspaceSave();
+    });
     row.append(item);
     return row;
   }
 
-  function renderSavedList(): void {
-    const folderMap = folderGroups();
-    const requestsByFolder = new Map<string | null, HttpSavedRequest[]>();
-    for (const request of workspace.requests) {
-      const siblings = requestsByFolder.get(request.folderId);
-      if (siblings) siblings.push(request);
-      else requestsByFolder.set(request.folderId, [request]);
+  function setFolderExpanded(folder: HttpSavedFolder, expanded: boolean, focusTarget?: TreeTarget): void {
+    if (active || folder.expanded === expanded || !saveWorkspaceNow()) return;
+    const previous = folder.expanded;
+    folder.expanded = expanded;
+    workspaceDirty = true;
+    renderSavedList(focusTarget);
+    if (!saveWorkspaceNow()) {
+      folder.expanded = previous;
+      workspaceDirty = false;
+      renderSavedList(focusTarget);
     }
-    const tree = document.createElement("ul");
-    tree.className = "http-tree-group";
-    tree.setAttribute("role", "tree");
-    const rootItem = document.createElement("li");
-    rootItem.setAttribute("role", "none");
-    const rootRow = document.createElement("div");
-    rootRow.className = "http-tree-row";
-    const rootSpacer = document.createElement("span");
-    rootSpacer.className = "http-folder-toggle-spacer";
-    rootSpacer.setAttribute("aria-hidden", "true");
-    const rootButton = document.createElement("button");
-    rootButton.type = "button";
-    rootButton.className = "ds-btn ds-btn-small ds-btn-ghost http-folder-select";
-    rootButton.dataset.httpFolderId = "";
-    rootButton.setAttribute("role", "treeitem");
-    rootButton.setAttribute("aria-level", "1");
-    rootButton.setAttribute("aria-expanded", "true");
-    rootButton.setAttribute("aria-pressed", String(workspace.selectedFolderId === null));
-    rootButton.setAttribute("aria-selected", String(workspace.selectedFolderId === null));
-    rootButton.textContent = workspaceUi.strings.RootFolder;
-    rootButton.disabled = active !== null;
-    rootButton.addEventListener("click", () => {
-      if (active || workspace.selectedFolderId === null) return;
-      workspace.selectedFolderId = null;
-      renderSavedList();
-      scheduleWorkspaceSave();
-    });
-    rootRow.append(rootSpacer, rootButton);
-    rootItem.append(rootRow);
-    tree.append(rootItem);
-
-    const appendChildren = (parentId: string | null, container: HTMLUListElement, level: number): void => {
-      const childFolders = folderMap.get(parentId);
-      if (!childFolders) return;
+  }
+  function appendTreeChildren(
+    parentId: string | null,
+    container: HTMLUListElement,
+    level: number,
+    folderMap: ReadonlyMap<string | null, HttpSavedFolder[]>,
+    requestsByFolder: ReadonlyMap<string | null, HttpSavedRequest[]>,
+  ): void {
+    const childFolders = folderMap.get(parentId);
+    if (childFolders) {
       for (const folder of childFolders) {
+        const folderTarget: TreeTarget = { kind: "folder", id: folder.id };
+        const selected = targetEquals(treeSelection, folderTarget);
         const folderItem = document.createElement("li");
         folderItem.setAttribute("role", "none");
         const row = document.createElement("div");
         row.className = "http-tree-row";
         const toggle = document.createElement("button");
         toggle.type = "button";
-        toggle.className = "ds-btn ds-btn-small ds-btn-ghost http-folder-toggle";
+        toggle.className = "http-folder-toggle";
         toggle.dataset.httpFolderToggle = folder.id;
         toggle.setAttribute("aria-expanded", String(folder.expanded));
-        toggle.setAttribute("aria-label", `${workspaceUi.strings.FolderActions}: ${folder.name}`);
-        toggle.textContent = folder.expanded ? "▾" : "▸";
+        toggle.setAttribute("aria-label", folder.name);
+        toggle.tabIndex = -1;
         toggle.disabled = active !== null;
         toggle.addEventListener("click", () => {
-          if (active) return;
-          folder.expanded = !folder.expanded;
-          workspaceDirty = true;
-          renderSavedList();
-          saveWorkspaceNow();
+          setFolderExpanded(folder, !folder.expanded, folderTarget);
         });
         const select = document.createElement("button");
         select.type = "button";
-        select.className = "ds-btn ds-btn-small ds-btn-ghost http-folder-select";
+        select.className = "http-folder-select";
+        select.dataset.httpItemKind = "folder";
+        select.dataset.httpItemId = folder.id;
         select.dataset.httpFolderId = folder.id;
         select.setAttribute("role", "treeitem");
         select.setAttribute("aria-level", String(level));
         select.setAttribute("aria-expanded", String(folder.expanded));
-        select.setAttribute("aria-pressed", String(workspace.selectedFolderId === folder.id));
-        select.setAttribute("aria-selected", String(workspace.selectedFolderId === folder.id));
+        select.setAttribute("aria-selected", String(selected));
         select.setAttribute("aria-label", `${workspaceUi.strings.SelectFolder}: ${folder.name}`);
+        select.tabIndex = selected ? 0 : -1;
         select.title = folder.name;
         select.disabled = active !== null;
+        select.draggable = active === null;
+        if (dragItem && targetEquals(dragItem, folderTarget)) select.classList.add("is-dragging");
+        const folderIcon = document.createElement("span");
+        folderIcon.className = "http-folder-icon";
+        folderIcon.setAttribute("aria-hidden", "true");
         const name = document.createElement("span");
         name.className = "http-folder-name";
         name.textContent = folder.name;
-        select.append(name);
+        select.append(folderIcon, name);
         select.addEventListener("click", () => {
-          if (active || workspace.selectedFolderId === folder.id) return;
+          if (active) return;
+          treeSelection = folderTarget;
           workspace.selectedFolderId = folder.id;
-          renderSavedList();
+          renderSavedList(folderTarget);
           scheduleWorkspaceSave();
         });
         row.append(toggle, select);
@@ -874,29 +875,418 @@ function init(): void {
           const children = document.createElement("ul");
           children.className = "http-tree-group http-tree-children";
           children.setAttribute("role", "group");
-          appendChildren(folder.id, children, level + 1);
-          const childRequests = requestsByFolder.get(folder.id);
-          if (childRequests) {
-            for (const request of childRequests) {
-              children.append(createRequestTreeItem(request, level + 1));
-            }
-          }
+          appendTreeChildren(folder.id, children, level + 1, folderMap, requestsByFolder);
           folderItem.append(children);
         }
       }
-    };
-    const rootChildren = document.createElement("ul");
-    rootChildren.className = "http-tree-group http-tree-children";
-    rootChildren.setAttribute("role", "group");
-    appendChildren(null, rootChildren, 2);
-    const rootRequests = requestsByFolder.get(null);
-    if (rootRequests) {
-      for (const request of rootRequests) rootChildren.append(createRequestTreeItem(request, 2));
     }
-    rootItem.append(rootChildren);
-    workspaceUi.savedList.replaceChildren(tree);
-    renderFolderActions(folderMap);
+    const childRequests = requestsByFolder.get(parentId);
+    if (childRequests) {
+      for (const request of childRequests) container.append(createRequestTreeItem(request, level));
+    }
   }
+
+  function expandFolderDuringDrag(folder: HttpSavedFolder): void {
+    const target: TreeTarget = { kind: "folder", id: folder.id };
+    const select = itemForTarget(target);
+    const row = select?.parentElement;
+    const folderItem = row?.parentElement;
+    const toggle = row?.querySelector<HTMLButtonElement>("[data-http-folder-toggle]");
+    if (active || folder.expanded || !select || !toggle || !(folderItem instanceof HTMLLIElement)
+      || !saveWorkspaceNow()) return;
+    const folderMap = folderGroups();
+    const requestsByFolder = new Map<string | null, HttpSavedRequest[]>();
+    for (const request of workspace.requests) {
+      const siblings = requestsByFolder.get(request.folderId);
+      if (siblings) siblings.push(request);
+      else requestsByFolder.set(request.folderId, [request]);
+    }
+    const children = document.createElement("ul");
+    children.className = "http-tree-group http-tree-children";
+    children.setAttribute("role", "group");
+    const level = Number(select.getAttribute("aria-level")) || 1;
+    folder.expanded = true;
+    toggle.setAttribute("aria-expanded", "true");
+    select.setAttribute("aria-expanded", "true");
+    appendTreeChildren(folder.id, children, level + 1, folderMap, requestsByFolder);
+    folderItem.append(children);
+    workspaceDirty = true;
+    if (!saveWorkspaceNow()) {
+      folder.expanded = false;
+      toggle.setAttribute("aria-expanded", "false");
+      select.setAttribute("aria-expanded", "false");
+      children.remove();
+      workspaceDirty = false;
+    }
+  }
+
+  function renderSavedList(focusTarget?: TreeTarget): void {
+    const focusedBefore = targetFromElement(document.activeElement);
+    const restoreTarget = focusTarget ?? focusedBefore;
+    const folderMap = folderGroups();
+    const requestsByFolder = new Map<string | null, HttpSavedRequest[]>();
+    for (const request of workspace.requests) {
+      const siblings = requestsByFolder.get(request.folderId);
+      if (siblings) siblings.push(request);
+      else requestsByFolder.set(request.folderId, [request]);
+    }
+    if (!targetExists(treeSelection)) treeSelection = { kind: "request", id: currentRequest.id };
+    const tree = document.createElement("ul");
+    tree.className = "http-tree-group";
+    tree.setAttribute("role", "tree");
+    tree.setAttribute("aria-label", workspaceUi.strings.SavedRequests);
+    appendTreeChildren(null, tree, 1, folderMap, requestsByFolder);
+    workspaceUi.savedList.replaceChildren(tree);
+    const tabStop = itemForTarget(treeSelection)
+      ?? workspaceUi.savedList.querySelector<HTMLButtonElement>('[role="treeitem"]');
+    if (tabStop && !workspaceUi.savedList.querySelector('[role="treeitem"][tabindex="0"]')) tabStop.tabIndex = 0;
+    if (restoreTarget) (itemForTarget(restoreTarget) ?? tabStop ?? workspaceUi.savedList).focus();
+  }
+
+  function moveTreeItem(
+    target: Exclude<TreeTarget, { kind: "root" }>,
+    parentId: string | null,
+    focusAfter = true,
+  ): void {
+    if (active || !saveWorkspaceNow() || !canMoveHttpWorkspaceItem(workspace, target.kind, target.id, parentId)) return;
+    const source = target.kind === "folder"
+      ? workspace.folders.find((folder) => folder.id === target.id)
+      : workspace.requests.find((request) => request.id === target.id);
+    if (!source) return;
+    const previousParent = target.kind === "folder"
+      ? (source as HttpSavedFolder).parentId
+      : (source as HttpSavedRequest).folderId;
+    const expandedBefore = new Map(workspace.folders.map((folder) => [folder.id, folder.expanded] as const));
+    const previousSelection = treeSelection;
+    const previousSelectedFolderId = workspace.selectedFolderId;
+    if (!moveHttpWorkspaceItem(workspace, target.kind, target.id, parentId)) return;
+    expandFolderAncestors(parentId);
+    treeSelection = target;
+    workspace.selectedFolderId = target.kind === "folder" ? target.id : null;
+    workspaceDirty = true;
+    renderSavedList(focusAfter ? target : undefined);
+    if (!saveWorkspaceNow()) {
+      if (target.kind === "folder") (source as HttpSavedFolder).parentId = previousParent;
+      else (source as HttpSavedRequest).folderId = previousParent;
+      for (const folder of workspace.folders) {
+        const expanded = expandedBefore.get(folder.id);
+        if (expanded !== undefined) folder.expanded = expanded;
+      }
+      treeSelection = previousSelection;
+      workspace.selectedFolderId = previousSelectedFolderId;
+      workspaceDirty = false;
+      renderSavedList(focusAfter ? previousSelection : undefined);
+    }
+  }
+
+  function clearDropMarker(): void {
+    markedDropTarget?.classList.remove("is-drop-valid", "is-drop-invalid");
+    markedDropTarget = null;
+  }
+
+  function clearDragHover(): void {
+    window.clearTimeout(dragHoverTimer);
+    dragHoverTimer = 0;
+    dragHoverFolderId = null;
+  }
+
+  function finishDragging(): void {
+    clearDragHover();
+    clearDropMarker();
+    dragItem = null;
+    for (const item of workspaceUi.savedList.querySelectorAll(".is-dragging")) item.classList.remove("is-dragging");
+  }
+
+  workspaceUi.savedList.addEventListener("dragstart", (event) => {
+    if (active || !(event.target instanceof Element)) {
+      event.preventDefault();
+      return;
+    }
+    const target = targetFromElement(event.target);
+    if (!target || target.kind === "root") {
+      event.preventDefault();
+      return;
+    }
+    dragItem = target;
+    event.dataTransfer?.setData("application/x-mdt-http-workspace-item", "internal");
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+    itemForTarget(target)?.classList.add("is-dragging");
+  });
+  workspaceUi.savedList.addEventListener("dragend", finishDragging);
+  document.addEventListener("dragend", finishDragging);
+  workspaceUi.savedList.addEventListener("dragover", (event) => {
+    if (!dragItem || !(event.target instanceof Element)) return;
+    event.preventDefault();
+    const overTarget = targetFromElement(event.target);
+    const acceptsDrop = overTarget?.kind !== "request";
+    const parentId = overTarget?.kind === "folder" ? overTarget.id : null;
+    const marker = overTarget ? itemForTarget(overTarget) : workspaceUi.savedList;
+    const valid = acceptsDrop && canMoveHttpWorkspaceItem(workspace, dragItem.kind, dragItem.id, parentId);
+    if (markedDropTarget !== marker) {
+      clearDropMarker();
+      markedDropTarget = marker;
+    }
+    marker?.classList.toggle("is-drop-valid", valid);
+    marker?.classList.toggle("is-drop-invalid", !valid);
+    if (event.dataTransfer) event.dataTransfer.dropEffect = valid ? "move" : "none";
+    const hoverFolder = valid && overTarget?.kind === "folder"
+      ? workspace.folders.find((folder) => folder.id === overTarget.id)
+      : null;
+    if (!hoverFolder || hoverFolder.expanded) {
+      clearDragHover();
+    } else if (dragHoverFolderId !== hoverFolder.id) {
+      clearDragHover();
+      dragHoverFolderId = hoverFolder.id;
+      dragHoverTimer = window.setTimeout(() => {
+        dragHoverTimer = 0;
+        dragHoverFolderId = null;
+        if (dragItem && !hoverFolder.expanded
+          && canMoveHttpWorkspaceItem(workspace, dragItem.kind, dragItem.id, hoverFolder.id)) {
+          expandFolderDuringDrag(hoverFolder);
+        }
+      }, 650);
+    }
+  });
+  workspaceUi.savedList.addEventListener("dragleave", (event) => {
+    if (event.relatedTarget instanceof Node && workspaceUi.savedList.contains(event.relatedTarget)) return;
+    clearDragHover();
+    clearDropMarker();
+  });
+  workspaceUi.savedList.addEventListener("drop", (event) => {
+    if (!dragItem || !(event.target instanceof Element)) return;
+    event.preventDefault();
+    const source = dragItem;
+    const overTarget = targetFromElement(event.target);
+    const acceptsDrop = overTarget?.kind !== "request";
+    const parentId = overTarget?.kind === "folder" ? overTarget.id : null;
+    const valid = acceptsDrop && canMoveHttpWorkspaceItem(workspace, source.kind, source.id, parentId);
+    finishDragging();
+    if (valid) moveTreeItem(source, parentId);
+  });
+
+  function closeTreeMenu(restoreFocus = true): void {
+    if (workspaceUi.treeMenu.hidden) return;
+    const target = menuTarget;
+    const returnFocus = menuReturnFocus;
+    workspaceUi.treeMenu.hidden = true;
+    workspaceUi.treeMenuButton.setAttribute("aria-expanded", "false");
+    menuTarget = null;
+    menuReturnFocus = null;
+    if (!restoreFocus) return;
+    queueMicrotask(() => {
+      if (returnFocus?.isConnected) returnFocus.focus();
+      else if (target) (itemForTarget(target) ?? workspaceUi.savedList).focus();
+    });
+  }
+
+  function openTreeMenu(target: TreeTarget, clientX: number, clientY: number, returnFocus: HTMLElement): void {
+    if (active || !targetExists(target)) return;
+    closeTreeMenu(false);
+    menuTarget = target;
+    menuReturnFocus = returnFocus;
+    const definitions: { action: TreeAction; label: string; danger?: boolean; separate?: boolean }[] =
+      target.kind === "root"
+        ? [
+            { action: "new-request", label: workspaceUi.strings.NewRequest },
+            { action: "new-folder", label: workspaceUi.strings.NewFolder },
+          ]
+        : target.kind === "folder"
+          ? [
+              { action: "new-request", label: workspaceUi.strings.NewRequest },
+              { action: "new-folder", label: workspaceUi.strings.NewFolder },
+              { action: "rename", label: workspaceUi.strings.RenameFolder, separate: true },
+              { action: "move", label: workspaceUi.strings.MoveItem },
+              { action: "delete", label: workspaceUi.strings.DeleteFolder, danger: true, separate: true },
+            ]
+          : [
+              { action: "new-request", label: workspaceUi.strings.NewRequest },
+              { action: "new-folder", label: workspaceUi.strings.NewFolder },
+              { action: "rename", label: workspaceUi.strings.RenameRequest, separate: true },
+              { action: "move", label: workspaceUi.strings.MoveItem },
+              { action: "delete", label: workspaceUi.strings.DeleteRequest, danger: true, separate: true },
+            ];
+    const fragment = document.createDocumentFragment();
+    let firstMenuItem = true;
+    for (const definition of definitions) {
+      if (definition.separate) {
+        const separator = document.createElement("div");
+        separator.className = "http-menu-separator";
+        separator.setAttribute("role", "separator");
+        fragment.append(separator);
+      }
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `http-menu-item${definition.danger ? " is-danger" : ""}`;
+      button.setAttribute("role", "menuitem");
+      button.textContent = definition.label;
+      button.tabIndex = firstMenuItem ? 0 : -1;
+      firstMenuItem = false;
+      button.addEventListener("click", () => {
+        const actionTarget = menuTarget;
+        const actionReturnFocus = menuReturnFocus;
+        closeTreeMenu(false);
+        if (actionTarget) runTreeAction(definition.action, actionTarget, actionReturnFocus);
+        queueMicrotask(() => {
+          const focused = document.activeElement;
+          if (focused instanceof HTMLElement && focused.isConnected && !workspaceUi.treeMenu.contains(focused)) return;
+          if (actionReturnFocus?.isConnected) actionReturnFocus.focus();
+          else if (actionTarget) (itemForTarget(actionTarget) ?? workspaceUi.savedList).focus();
+        });
+      });
+      fragment.append(button);
+    }
+    workspaceUi.treeMenu.replaceChildren(fragment);
+    workspaceUi.treeMenu.style.left = "0";
+    workspaceUi.treeMenu.style.top = "0";
+    workspaceUi.treeMenu.hidden = false;
+    workspaceUi.treeMenuButton.setAttribute("aria-expanded", "true");
+    const bounds = workspaceUi.treeMenu.getBoundingClientRect();
+    const margin = 8;
+    workspaceUi.treeMenu.style.left = `${Math.max(margin, Math.min(clientX, window.innerWidth - bounds.width - margin))}px`;
+    workspaceUi.treeMenu.style.top = `${Math.max(margin, Math.min(clientY, window.innerHeight - bounds.height - margin))}px`;
+    workspaceUi.treeMenu.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus();
+  }
+
+  workspaceUi.treeMenu.addEventListener("keydown", (event) => {
+    const items = [...workspaceUi.treeMenu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')];
+    const current = event.target instanceof HTMLButtonElement ? items.indexOf(event.target) : -1;
+    let next = current;
+    if (event.key === "ArrowDown") next = (current + 1 + items.length) % items.length;
+    else if (event.key === "ArrowUp") next = (current - 1 + items.length) % items.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = items.length - 1;
+    else if (event.key === "Escape") {
+      event.preventDefault();
+      closeTreeMenu();
+      return;
+    } else if (event.key === "Tab") {
+      closeTreeMenu(false);
+      return;
+    } else return;
+    event.preventDefault();
+    const nextItem = items[next];
+    if (nextItem) {
+      for (const item of items) item.tabIndex = item === nextItem ? 0 : -1;
+      nextItem.focus();
+    }
+  });
+  workspaceUi.savedList.addEventListener("click", (event) => {
+    if (active || !(event.target instanceof Element) || event.target.closest("button")) return;
+    treeSelection = { kind: "root" };
+    for (const item of workspaceUi.savedList.querySelectorAll('[role="treeitem"][aria-selected="true"]')) {
+      item.setAttribute("aria-selected", "false");
+    }
+    workspaceUi.savedList.focus();
+  });
+  workspaceUi.savedList.addEventListener("contextmenu", (event) => {
+    if (!(event.target instanceof Element)) return;
+    event.preventDefault();
+    if (active) return;
+    const target: TreeTarget = targetFromElement(event.target) ?? { kind: "root" };
+    const returnFocus = target.kind === "root" ? workspaceUi.savedList : itemForTarget(target) ?? workspaceUi.savedList;
+    openTreeMenu(target, event.clientX, event.clientY, returnFocus);
+  });
+  workspaceUi.savedList.addEventListener("keydown", (event) => {
+    const item = event.target instanceof Element
+      ? event.target.closest<HTMLButtonElement>('[role="treeitem"]')
+      : null;
+    const target = targetFromElement(item);
+    if (event.key === "ContextMenu" || event.key === "Apps" || (event.shiftKey && event.key === "F10")) {
+      event.preventDefault();
+      const rect = (item ?? workspaceUi.savedList).getBoundingClientRect();
+      openTreeMenu(target ?? { kind: "root" }, rect.left + 20, rect.top + Math.min(rect.height, 28), item ?? workspaceUi.savedList);
+      return;
+    }
+    if (!item || !target) return;
+    const visibleItems = [...workspaceUi.savedList.querySelectorAll<HTMLButtonElement>('[role="treeitem"]')];
+    const index = visibleItems.indexOf(item);
+    let next: HTMLButtonElement | undefined;
+    if (event.key === "ArrowDown") next = visibleItems[index + 1] ?? visibleItems[0];
+    else if (event.key === "ArrowUp") next = visibleItems[index - 1] ?? visibleItems.at(-1);
+    else if (event.key === "Home") next = visibleItems[0];
+    else if (event.key === "End") next = visibleItems.at(-1);
+    else if (event.key === "ArrowRight" && target.kind === "folder") {
+      const folder = workspace.folders.find((candidate) => candidate.id === target.id);
+      if (folder && !folder.expanded) setFolderExpanded(folder, true, target);
+      else {
+        const level = Number(item.getAttribute("aria-level"));
+        const candidate = visibleItems[index + 1];
+        if (candidate && Number(candidate.getAttribute("aria-level")) > level) next = candidate;
+      }
+    } else if (event.key === "ArrowLeft") {
+      if (target.kind === "folder") {
+        const folder = workspace.folders.find((candidate) => candidate.id === target.id);
+        if (folder?.expanded) setFolderExpanded(folder, false, target);
+        else if (folder?.parentId) next = itemForTarget({ kind: "folder", id: folder.parentId }) ?? undefined;
+      } else if (target.kind === "request") {
+        const request = workspace.requests.find((candidate) => candidate.id === target.id);
+        if (request?.folderId) next = itemForTarget({ kind: "folder", id: request.folderId }) ?? undefined;
+      }
+    } else return;
+    event.preventDefault();
+    if (next) selectTreeItem(next);
+  });
+  workspaceUi.treeMenuButton.addEventListener("click", () => {
+    const target: TreeTarget = targetExists(treeSelection) ? treeSelection : { kind: "root" };
+    const rect = workspaceUi.treeMenuButton.getBoundingClientRect();
+    openTreeMenu(target, rect.right - 192, rect.bottom + 4, workspaceUi.treeMenuButton);
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (workspaceUi.treeMenu.hidden || !(event.target instanceof Node)
+      || workspaceUi.treeMenu.contains(event.target) || workspaceUi.treeMenuButton.contains(event.target)) return;
+    closeTreeMenu();
+  });
+  window.addEventListener("resize", () => { closeTreeMenu(); });
+  window.addEventListener("scroll", () => { closeTreeMenu(); }, true);
+
+  function fillMoveDestinations(target: Exclude<TreeTarget, { kind: "root" }>): void {
+    const options: HTMLOptionElement[] = [];
+    const appendOption = (id: string | null, name: string): void => {
+      if (!canMoveHttpWorkspaceItem(workspace, target.kind, target.id, id)) return;
+      const option = document.createElement("option");
+      option.value = id ?? "";
+      option.textContent = name;
+      options.push(option);
+    };
+    appendOption(null, workspaceUi.strings.RootFolder);
+    const groups = folderGroups();
+    const appendFolders = (parentId: string | null, depth: number): void => {
+      for (const folder of groups.get(parentId) ?? []) {
+        appendOption(folder.id, `${"\u00a0\u00a0".repeat(depth)}${folder.name}`);
+        appendFolders(folder.id, depth + 1);
+      }
+    };
+    appendFolders(null, 1);
+    workspaceUi.moveDestination.replaceChildren(...options);
+    workspaceUi.moveConfirm.disabled = options.length === 0;
+  }
+
+  function openMoveDialog(target: Exclude<TreeTarget, { kind: "root" }>, returnFocus: HTMLElement | null): void {
+    if (active || !targetExists(target)) return;
+    moveTarget = target;
+    moveReturnFocus = returnFocus;
+    fillMoveDestinations(target);
+    workspaceUi.moveDialog.showModal();
+    workspaceUi.moveDestination.focus();
+  }
+
+  workspaceUi.moveConfirm.addEventListener("click", () => {
+    if (!moveTarget || workspaceUi.moveConfirm.disabled) return;
+    const target = moveTarget;
+    const parentId = workspaceUi.moveDestination.value || null;
+    moveTreeItem(target, parentId);
+    workspaceUi.moveDialog.close();
+  });
+  workspaceUi.moveDialog.addEventListener("close", () => {
+    const target = moveTarget;
+    const returnFocus = moveReturnFocus;
+    moveTarget = null;
+    moveReturnFocus = null;
+    queueMicrotask(() => {
+      if (returnFocus?.isConnected) returnFocus.focus();
+      else if (target) (itemForTarget(target) ?? workspaceUi.savedList).focus();
+    });
+  });
 
   function clearResponse(): void {
     previewRevision++;
@@ -965,11 +1355,16 @@ function init(): void {
     if (active || id === currentRequest.id || !saveWorkspaceNow()) return;
     const next = workspace.requests.find((request) => request.id === id);
     if (!next) return;
+    const previousId = workspace.selectedId;
     workspace.selectedId = next.id;
-    currentRequest = next;
     workspaceDirty = true;
+    if (!saveWorkspaceNow()) {
+      workspace.selectedId = previousId;
+      workspaceDirty = false;
+      return;
+    }
+    currentRequest = next;
     applyRequest(next);
-    saveWorkspaceNow();
   }
 
   const sidebarMedia = window.matchMedia("(max-width: 64rem)");
@@ -1069,31 +1464,49 @@ function init(): void {
   });
   timeout.addEventListener("input", scheduleWorkspaceSave);
   redirects.addEventListener("change", scheduleWorkspaceSave);
-  workspaceUi.newRequest.addEventListener("click", () => {
-    if (active || !saveWorkspaceNow()) return;
-    const request = createBlankRequest(workspace.selectedFolderId);
+  function createRequestAt(parentId: string | null): void {
+    if (active || (parentId !== null && !workspace.folders.some((folder) => folder.id === parentId))
+      || !saveWorkspaceNow()) return;
+    const previousSelectedId = workspace.selectedId;
+    const previousSelectedFolderId = workspace.selectedFolderId;
+    const expandedBefore = new Map(workspace.folders.map((folder) => [folder.id, folder.expanded] as const));
+    const request = createBlankRequest(parentId);
     workspace.requests.push(request);
     workspace.selectedId = request.id;
-    currentRequest = request;
+    workspace.selectedFolderId = null;
+    expandFolderAncestors(parentId);
     workspaceDirty = true;
+    if (!saveWorkspaceNow()) {
+      workspace.requests.pop();
+      workspace.selectedId = previousSelectedId;
+      workspace.selectedFolderId = previousSelectedFolderId;
+      for (const folder of workspace.folders) {
+        const expanded = expandedBefore.get(folder.id);
+        if (expanded !== undefined) folder.expanded = expanded;
+      }
+      workspaceDirty = false;
+      return;
+    }
+    currentRequest = request;
+    treeSelection = { kind: "request", id: request.id };
     applyRequest(request);
-    saveWorkspaceNow();
     workspaceUi.requestName.select();
-  });
-  workspaceUi.newFolder.addEventListener("click", () => {
-    if (active || !saveWorkspaceNow()) return;
-    const proposed = window.prompt(strings.FolderName);
+  }
+
+  function createFolderAt(parentId: string | null): void {
+    if (active || (parentId !== null && !workspace.folders.some((folder) => folder.id === parentId))
+      || !saveWorkspaceNow()) return;
+    const proposed = window.prompt(workspaceUi.strings.FolderName);
     if (proposed === null) return;
     const name = proposed.trim();
     if (!name) {
-      window.alert(strings.FolderNameRequired);
+      window.alert(workspaceUi.strings.FolderNameRequired);
       return;
     }
-    const parentId = workspace.selectedFolderId;
-    if (parentId !== null) {
-      const parent = workspace.folders.find((folder) => folder.id === parentId);
-      if (parent) parent.expanded = true;
-    }
+    const previousSelectedFolderId = workspace.selectedFolderId;
+    const parent = parentId === null ? null : workspace.folders.find((folder) => folder.id === parentId) ?? null;
+    const parentWasExpanded = parent?.expanded;
+    if (parent) parent.expanded = true;
     const folder: HttpSavedFolder = {
       id: requestId(),
       name,
@@ -1103,40 +1516,70 @@ function init(): void {
     workspace.folders.push(folder);
     workspace.selectedFolderId = folder.id;
     workspaceDirty = true;
-    renderSavedList();
-    saveWorkspaceNow();
-  });
-  workspaceUi.renameFolder.addEventListener("click", () => {
-    if (active || !saveWorkspaceNow() || workspace.selectedFolderId === null) return;
-    const folder = workspace.folders.find((candidate) => candidate.id === workspace.selectedFolderId);
-    if (!folder) return;
-    const proposed = window.prompt(strings.FolderName, folder.name);
-    if (proposed === null) return;
-    const name = proposed.trim();
-    if (!name) {
-      window.alert(strings.FolderNameRequired);
+    if (!saveWorkspaceNow()) {
+      workspace.folders.pop();
+      if (parent && parentWasExpanded !== undefined) parent.expanded = parentWasExpanded;
+      workspace.selectedFolderId = previousSelectedFolderId;
+      workspaceDirty = false;
       return;
     }
-    folder.name = name;
+    treeSelection = { kind: "folder", id: folder.id };
+    renderSavedList(treeSelection);
+  }
+
+  function renameTreeItem(target: Exclude<TreeTarget, { kind: "root" }>): void {
+    if (active || !saveWorkspaceNow()) return;
+    if (target.kind === "folder") {
+      const folder = workspace.folders.find((candidate) => candidate.id === target.id);
+      if (!folder) return;
+      const proposed = window.prompt(workspaceUi.strings.FolderName, folder.name);
+      if (proposed === null) return;
+      const name = proposed.trim();
+      if (!name) {
+        window.alert(workspaceUi.strings.FolderNameRequired);
+        return;
+      }
+      const previous = folder.name;
+      folder.name = name;
+      workspaceDirty = true;
+      if (!saveWorkspaceNow()) {
+        folder.name = previous;
+        workspaceDirty = false;
+        return;
+      }
+      renderSavedList(target);
+      return;
+    }
+    const request = workspace.requests.find((candidate) => candidate.id === target.id);
+    if (!request) return;
+    const proposed = window.prompt(workspaceUi.strings.RequestName, request.name);
+    if (proposed === null) return;
+    const previous = request.name;
+    const name = proposed.trim();
+    if (request === currentRequest) workspaceUi.requestName.value = name;
+    else request.name = name;
     workspaceDirty = true;
-    renderSavedList();
-    saveWorkspaceNow();
-  });
-  workspaceUi.deleteFolder.addEventListener("click", () => {
-    if (active || !saveWorkspaceNow() || workspace.selectedFolderId === null) return;
-    const index = workspace.folders.findIndex((folder) => folder.id === workspace.selectedFolderId);
+    if (!saveWorkspaceNow()) {
+      request.name = previous;
+      if (request === currentRequest) workspaceUi.requestName.value = previous;
+      workspaceDirty = false;
+      return;
+    }
+    renderSavedList(target);
+  }
+
+  function deleteFolderById(id: string): void {
+    if (active || !saveWorkspaceNow()) return;
+    const index = workspace.folders.findIndex((folder) => folder.id === id);
     if (index < 0) return;
     const deleted = workspace.folders[index]!;
-    if (!window.confirm(strings.DeleteFolderConfirm.replace("{name}", deleted.name))) return;
+    if (!window.confirm(workspaceUi.strings.DeleteFolderConfirm.replace("{name}", deleted.name))) return;
     const previousFolderId = workspace.selectedFolderId;
-    const previousFolderParents = new Map<string, string | null>();
-    const previousFolderExpanded = new Map<string, boolean>();
-    const previousRequestFolders = new Map<string, string | null>();
-    for (const folder of workspace.folders) {
-      previousFolderParents.set(folder.id, folder.parentId);
-      previousFolderExpanded.set(folder.id, folder.expanded);
-    }
-    for (const request of workspace.requests) previousRequestFolders.set(request.id, request.folderId);
+    const previousSelection = treeSelection;
+    const deletedWasSelection = targetEquals(previousSelection, { kind: "folder", id });
+    const previousFolderParents = new Map(workspace.folders.map((folder) => [folder.id, folder.parentId] as const));
+    const previousFolderExpanded = new Map(workspace.folders.map((folder) => [folder.id, folder.expanded] as const));
+    const previousRequestFolders = new Map(workspace.requests.map((request) => [request.id, request.folderId] as const));
     for (const folder of workspace.folders) {
       if (folder.parentId === deleted.id) folder.parentId = deleted.parentId;
     }
@@ -1145,62 +1588,90 @@ function init(): void {
     }
     workspace.folders.splice(index, 1);
     expandFolderAncestors(currentRequest.folderId);
-    workspace.selectedFolderId = deleted.parentId;
+    workspace.selectedFolderId = previousFolderId === deleted.id ? deleted.parentId : previousFolderId;
     workspaceDirty = true;
-    renderSavedList();
     if (!saveWorkspaceNow()) {
       workspace.folders.splice(index, 0, deleted);
-      for (const folder of workspace.folders) folder.parentId = previousFolderParents.get(folder.id) ?? null;
-      for (const folder of workspace.folders) folder.expanded = previousFolderExpanded.get(folder.id) ?? folder.expanded;
+      for (const folder of workspace.folders) {
+        folder.parentId = previousFolderParents.get(folder.id) ?? null;
+        folder.expanded = previousFolderExpanded.get(folder.id) ?? folder.expanded;
+      }
       for (const request of workspace.requests) request.folderId = previousRequestFolders.get(request.id) ?? null;
       workspace.selectedFolderId = previousFolderId;
+      treeSelection = previousSelection;
       workspaceDirty = false;
-      renderSavedList();
+      return;
     }
-  });
-  workspaceUi.folderParent.addEventListener("change", () => {
-    if (active || !saveWorkspaceNow() || workspace.selectedFolderId === null) return;
-    const folder = workspace.folders.find((candidate) => candidate.id === workspace.selectedFolderId);
-    if (!folder) return;
-    const parentId = workspaceUi.folderParent.value || null;
-    if (folder.parentId === parentId) return;
-    folder.parentId = parentId;
-    expandFolderAncestors(parentId);
-    expandFolderAncestors(currentRequest.folderId);
-    workspaceDirty = true;
-    renderSavedList();
-    saveWorkspaceNow();
-  });
-  workspaceUi.requestFolder.addEventListener("change", () => {
+    treeSelection = deletedWasSelection
+      ? deleted.parentId && workspace.folders.some((folder) => folder.id === deleted.parentId)
+        ? { kind: "folder", id: deleted.parentId }
+        : { kind: "request", id: currentRequest.id }
+      : previousSelection;
+    renderSavedList(treeSelection);
+  }
+
+  function deleteRequestById(id: string): void {
     if (active || !saveWorkspaceNow()) return;
-    const folderId = workspaceUi.requestFolder.value || null;
-    if (currentRequest.folderId === folderId) return;
-    currentRequest.folderId = folderId;
-    expandFolderAncestors(folderId);
-    workspaceDirty = true;
-    renderSavedList();
-    saveWorkspaceNow();
-  });
-  workspaceUi.deleteRequest.addEventListener("click", () => {
-    if (active || !saveWorkspaceNow()) return;
-    const deleted = currentRequest;
-    const label = deleted.name.trim() || strings.UntitledRequest;
-    if (!window.confirm(strings.DeleteRequestConfirm.replace("{name}", label))) return;
+    const index = workspace.requests.findIndex((request) => request.id === id);
+    if (index < 0) return;
+    const deleted = workspace.requests[index]!;
+    const label = deleted.name.trim() || workspaceUi.strings.UntitledRequest;
+    if (!window.confirm(workspaceUi.strings.DeleteRequestConfirm.replace("{name}", label))) return;
     const requestsBefore = [...workspace.requests];
-    const index = workspace.requests.indexOf(deleted);
+    const previousSelectedId = workspace.selectedId;
+    const previousSelectedFolderId = workspace.selectedFolderId;
+    const previousCurrentRequest = currentRequest;
+    const previousSelection = treeSelection;
+    const deletedWasSelection = targetEquals(previousSelection, { kind: "request", id });
     workspace.requests.splice(index, 1);
     if (!workspace.requests.length) workspace.requests.push(createBlankRequest(deleted.folderId));
-    currentRequest = workspace.requests[Math.min(index, workspace.requests.length - 1)]!;
-    workspace.selectedId = currentRequest.id;
+    const deletedCurrent = deleted === currentRequest;
+    const nextRequest = deletedCurrent
+      ? workspace.requests[Math.min(index, workspace.requests.length - 1)]!
+      : currentRequest;
+    workspace.selectedId = nextRequest.id;
+    workspace.selectedFolderId = deletedWasSelection ? null : previousSelectedFolderId;
     workspaceDirty = true;
-    applyRequest(currentRequest);
     if (!saveWorkspaceNow()) {
       workspace.requests = requestsBefore;
-      workspace.selectedId = deleted.id;
-      currentRequest = deleted;
+      workspace.selectedId = previousSelectedId;
+      workspace.selectedFolderId = previousSelectedFolderId;
+      currentRequest = previousCurrentRequest;
+      treeSelection = previousSelection;
       workspaceDirty = false;
-      applyRequest(deleted);
+      return;
     }
+    treeSelection = deletedWasSelection ? { kind: "request", id: nextRequest.id } : previousSelection;
+    if (deletedCurrent) {
+      currentRequest = nextRequest;
+      applyRequest(nextRequest);
+    } else {
+      renderSavedList(treeSelection);
+    }
+  }
+
+  function runTreeAction(action: TreeAction, target: TreeTarget, returnFocus: HTMLElement | null): void {
+    if (active || !targetExists(target)) return;
+    if (action === "new-request") {
+      createRequestAt(parentForTarget(target));
+      return;
+    }
+    if (action === "new-folder") {
+      createFolderAt(parentForTarget(target));
+      return;
+    }
+    if (target.kind === "root") return;
+    if (action === "rename") renameTreeItem(target);
+    else if (action === "move") openMoveDialog(target, returnFocus);
+    else if (target.kind === "folder") deleteFolderById(target.id);
+    else deleteRequestById(target.id);
+  }
+
+  workspaceUi.newRequest.addEventListener("click", () => {
+    createRequestAt(parentForTarget(targetExists(treeSelection) ? treeSelection : { kind: "root" }));
+  });
+  workspaceUi.newFolder.addEventListener("click", () => {
+    createFolderAt(parentForTarget(targetExists(treeSelection) ? treeSelection : { kind: "root" }));
   });
   window.addEventListener("pagehide", saveWorkspaceNow);
   window.addEventListener("storage", (event) => {
@@ -1223,7 +1694,11 @@ function init(): void {
       workspace.selectedId = initial.id;
       workspace.requests.push(initial);
     }
+    closeTreeMenu(false);
+    if (workspaceUi.moveDialog.open) workspaceUi.moveDialog.close();
+    finishDragging();
     currentRequest = workspace.requests.find((request) => request.id === workspace.selectedId)!;
+    treeSelection = { kind: "request", id: currentRequest.id };
     applySidebarWidth(workspace.sidebarWidth);
     hideMessage(workspaceLoadError);
     applyRequest(currentRequest);
@@ -1264,14 +1739,20 @@ function init(): void {
     requestUrl.disabled = sending;
     workspaceUi.newRequest.disabled = sending;
     workspaceUi.newFolder.disabled = sending;
-    workspaceUi.deleteRequest.disabled = sending;
-    workspaceUi.renameFolder.disabled = sending || workspace.selectedFolderId === null;
-    workspaceUi.deleteFolder.disabled = sending || workspace.selectedFolderId === null;
-    workspaceUi.folderParent.disabled = sending || workspace.selectedFolderId === null;
-    workspaceUi.requestFolder.disabled = sending;
+    workspaceUi.treeMenuButton.disabled = sending;
+    workspaceUi.moveDestination.disabled = sending;
+    workspaceUi.moveConfirm.disabled = sending;
+    if (sending) {
+      closeTreeMenu(false);
+      if (workspaceUi.moveDialog.open) workspaceUi.moveDialog.close();
+      finishDragging();
+    }
     for (const item of workspaceUi.savedList.querySelectorAll<HTMLButtonElement>(
-      "[data-http-saved-id], [data-http-folder-id], [data-http-folder-toggle]",
-    )) item.disabled = sending;
+      "[data-http-item-kind], [data-http-folder-toggle]",
+    )) {
+      item.disabled = sending;
+      item.draggable = !sending && item.hasAttribute("data-http-item-kind");
+    }
   };
 
   const connectAgent = async (automatic = false): Promise<void> => {

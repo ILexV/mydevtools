@@ -864,3 +864,156 @@ async fn icmp_trace_records_a_localhost_echo_and_blocks_metadata() {
     }
     assert!(idle, "trace did not become idle after cancel");
 }
+
+async fn icmp_snapshot(app: &Router, token: &str, id: Uuid) -> Value {
+    let response = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/snapshot",
+            Some(json!({ "id": id.to_string() })),
+            Some(token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    response_json(response).await
+}
+
+async fn wait_for_echo(app: &Router, token: &str, id: Uuid) -> u64 {
+    for _ in 0..30 {
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        let snapshot = icmp_snapshot(app, token, id).await;
+        let received = snapshot["hops"]
+            .get(0)
+            .and_then(|hop| hop["received"].as_u64())
+            .unwrap_or(0);
+        if received >= 1 {
+            assert_eq!(snapshot["state"], "tracing");
+            return received;
+        }
+    }
+    panic!("echo missing for {id}");
+}
+
+/// Two desktop windows share a paired session but each owns its trace id.
+/// A third start is refused until one of those traces is idle.
+#[tokio::test]
+async fn icmp_traces_stay_independent_and_the_third_is_busy() {
+    let (state, app) = test_app(true, 48_732);
+    let paired = pair_capabilities(&state, &app, json!(["icmp.trace"])).await;
+    let token = paired["token"].as_str().unwrap().to_owned();
+
+    let mut ids = Vec::new();
+    for target in ["127.0.0.1", "::1"] {
+        let response = app
+            .clone()
+            .oneshot(request(
+                Method::POST,
+                "/v1/icmp/trace",
+                Some(trace_input(Uuid::new_v4(), target)),
+                Some(&token),
+            ))
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK, "{target}");
+        let body = response_json(response).await;
+        assert_eq!(body["target"], target);
+        assert_eq!(body["state"], "tracing");
+        ids.push(body["id"].as_str().unwrap().to_owned());
+    }
+    assert_ne!(ids[0], ids[1]);
+
+    let first = Uuid::parse_str(&ids[0]).unwrap();
+    let second = Uuid::parse_str(&ids[1]).unwrap();
+    let first_received = wait_for_echo(&app, &token, first).await;
+    let second_received = wait_for_echo(&app, &token, second).await;
+    let first_snapshot = icmp_snapshot(&app, &token, first).await;
+    let second_snapshot = icmp_snapshot(&app, &token, second).await;
+    assert_eq!(first_snapshot["target"], "127.0.0.1");
+    assert_eq!(first_snapshot["hops"][0]["address"], "127.0.0.1");
+    assert_eq!(second_snapshot["target"], "::1");
+    assert_eq!(second_snapshot["hops"][0]["address"], "::1");
+    assert!(first_received >= 1 && second_received >= 1);
+
+    let busy = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/trace",
+            Some(trace_input(Uuid::new_v4(), "127.0.0.1")),
+            Some(&token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(busy.status(), StatusCode::TOO_MANY_REQUESTS);
+    assert_eq!(response_json(busy).await["error"]["code"], "busy");
+
+    let cancel = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/cancel",
+            Some(json!({ "id": first.to_string() })),
+            Some(&token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(cancel.status(), StatusCode::NO_CONTENT);
+
+    let mut first_idle = false;
+    for _ in 0..30 {
+        tokio::time::sleep(Duration::from_millis(50)).await;
+        let snapshot = icmp_snapshot(&app, &token, first).await;
+        let other = icmp_snapshot(&app, &token, second).await;
+        assert_eq!(other["state"], "tracing");
+        assert_eq!(other["target"], "::1");
+        if snapshot["state"] == "idle" {
+            first_idle = true;
+            assert!(snapshot["hops"][0]["received"].as_u64().unwrap_or(0) >= 1);
+            break;
+        }
+    }
+    assert!(first_idle, "cancelled trace did not become idle");
+
+    let mut grew = false;
+    for _ in 0..20 {
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        let other = icmp_snapshot(&app, &token, second).await;
+        if other["hops"][0]["received"].as_u64().unwrap_or(0) > second_received {
+            grew = true;
+            break;
+        }
+    }
+    assert!(grew, "the other trace stopped when its sibling was cancelled");
+
+    let resumed = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/trace",
+            Some(trace_input(Uuid::new_v4(), "127.0.0.1")),
+            Some(&token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(resumed.status(), StatusCode::OK);
+    let resumed_id = response_json(resumed).await["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+
+    for id in [second.to_string(), resumed_id] {
+        let cancel = app
+            .clone()
+            .oneshot(request(
+                Method::POST,
+                "/v1/icmp/cancel",
+                Some(json!({ "id": id })),
+                Some(&token),
+            ))
+            .await
+            .unwrap();
+        assert_eq!(cancel.status(), StatusCode::NO_CONTENT);
+    }
+}

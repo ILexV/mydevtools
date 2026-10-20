@@ -19,6 +19,7 @@ const clientKeys = [
   "AgentConnectedShort", "AgentDisconnectedShort", "ConnectionNotSaved", "NeedTraceCapability",
   "TargetLabel", "ResolvedTarget", "InvalidTarget", "InvalidSettings", "ResolveNames",
   "StateIdle", "StateTracing", "StateStopping", "Copied", "CopyFailed",
+  "FindMtu", "MtuSearching", "MtuFound", "MtuFoundCeiling", "MtuBelowMinimum", "MtuInconclusive",
   "Hostname", "Nr", "Loss", "Sent", "Recv", "Best", "Avg", "Worst", "Last", "StDev", "Jitter", "Status",
   "NoResponse", "EmptyTable", "ReportTitle",
   "ErrorGeneric", "Error_agent_unavailable", "Error_invalid_response", "Error_invalid_request",
@@ -103,9 +104,11 @@ const stringsJson = JSON.stringify(strings);
     </div>
     <div class="ds-action-row">
       <button type="button" class="ds-btn ds-btn-primary" data-trace-start disabled><Icon name="zap" size={16} />{t(lang, ns, "Start")}</button>
+      <button type="button" class="ds-btn" data-trace-mtu disabled>{t(lang, ns, "FindMtu")}</button>
       <button type="button" class="ds-btn" data-trace-stop disabled hidden><Icon name="close" size={16} />{t(lang, ns, "Stop")}</button>
       <span class="ds-hint path-trace-run-state" data-trace-run-state>{t(lang, ns, "StateIdle")}</span>
     </div>
+    <p class="ds-hint" data-trace-mtu-result hidden></p>
     <StatusMessage kind="error" data-trace-run-error />
   </section>
 

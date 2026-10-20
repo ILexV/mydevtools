@@ -40,6 +40,7 @@ pub(crate) fn router(state: Arc<AgentState>) -> Router {
         .route("/v1/icmp/trace", post(icmp_trace).options(preflight))
         .route("/v1/icmp/snapshot", post(icmp_snapshot).options(preflight))
         .route("/v1/icmp/cancel", post(icmp_cancel).options(preflight))
+        .route("/v1/icmp/mtu", post(icmp_mtu).options(preflight))
         .method_not_allowed_fallback(method_not_allowed)
         .fallback(not_found)
         .layer(middleware::from_fn_with_state(
@@ -164,6 +165,16 @@ async fn icmp_cancel(
     Ok(StatusCode::NO_CONTENT)
 }
 
+async fn icmp_mtu(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<impl IntoResponse, ApiError> {
+    let _session_key = authorize_icmp(&state, request.headers())?;
+    let input = parse_json(request).await?;
+    let snapshot = icmp::find_path_mtu(Arc::clone(&state), input).await?;
+    Ok((StatusCode::OK, Json(snapshot)))
+}
+
 async fn preflight() -> StatusCode {
     StatusCode::NO_CONTENT
 }
@@ -242,7 +253,7 @@ fn valid_preflight(request: &Request) -> bool {
     let expected_method = match request.uri().path() {
         "/v1/info" => "GET",
         "/v1/pair" | "/v1/http/request" | "/v1/http/cancel" | "/v1/icmp/trace"
-        | "/v1/icmp/snapshot" | "/v1/icmp/cancel" => "POST",
+        | "/v1/icmp/snapshot" | "/v1/icmp/cancel" | "/v1/icmp/mtu" => "POST",
         "/v1/session" => "DELETE",
         _ => return false,
     };

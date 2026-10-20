@@ -1,10 +1,14 @@
-//! Continuous ICMP path trace for the `icmp.trace` capability.
+//! Continuous ICMP path trace and a one-shot path MTU search for `icmp.trace`.
 //!
 //! The browser cannot send ICMP. A paired session probes one user-supplied
 //! target with rising TTL and keeps per-hop loss and RTT (best, average, worst,
 //! last). Intermediate routers, including a home gateway or CGNAT hop, are
 //! observations and are stored even when destination policy would reject them
 //! as the user's target. The engine does not re-ping a hop as a new destination.
+//! Path MTU reuses those Don't Fragment echoes: it binary-searches the payload
+//! and keeps the largest size that earns an echo. A lost probe is not a size
+//! limit, and the search does not add an `icmp.mtu` capability. It shares the
+//! process cap of two ICMP operations with running traces.
 //! Behavior follows a traceroute/WinMTR-style loop; WinMTR source is not copied.
 
 use std::{
@@ -14,6 +18,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+use axum::http::StatusCode;
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
 use tokio_util::sync::CancellationToken;
@@ -28,6 +33,15 @@ use crate::{
 const MIN_INTERVAL: Duration = Duration::from_millis(200);
 const MAX_INTERVAL: Duration = Duration::from_secs(60);
 const MAX_PAYLOAD_BYTES: usize = 1472;
+/// IPv4 header plus ICMP echo header. A 1472-byte payload is a 1500-byte packet.
+const IPV4_ECHO_OVERHEAD: u32 = 28;
+/// IPv6 header plus ICMP echo header. The 1500-byte ceiling is a 1452-byte payload.
+const IPV6_ECHO_OVERHEAD: u32 = 48;
+const PATH_MTU_CEILING: u32 = 1500;
+const IPV4_MINIMUM_MTU: u32 = 68;
+const IPV6_MINIMUM_MTU: u32 = 1280;
+const PATH_MTU_PROBE_LIMIT: u32 = 16;
+const PATH_MTU_HOP_LIMIT: u8 = 64;
 const MIN_HOPS: usize = 1;
 const MAX_HOPS: usize = 64;
 const MIN_TIMEOUT: Duration = Duration::from_millis(100);
@@ -46,6 +60,13 @@ pub(crate) struct TraceStartRequest {
     pub(crate) max_hops: u64,
     pub(crate) timeout_ms: u64,
     pub(crate) resolve_names: bool,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct MtuSearchRequest {
+    pub(crate) target: String,
+    pub(crate) timeout_ms: u64,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -272,6 +293,265 @@ pub(crate) fn snapshot_trace(
     let request_id = Uuid::parse_str(&request.id).map_err(|_| ApiError::invalid_request())?;
     let trace = state.trace(session_key, request_id)?;
     Ok(snapshot_of(request_id, &trace.lock()))
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ProbeFit {
+    Fits,
+    TooBig,
+    Lost,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct MtuBounds {
+    overhead: u32,
+    floor_payload: u32,
+    ceiling_payload: u32,
+    minimum_mtu: u32,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct MtuDiscovery {
+    status: &'static str,
+    mtu: Option<u32>,
+    payload_bytes: Option<u32>,
+    at_ceiling: bool,
+    minimum_mtu: Option<u32>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct MtuSnapshot {
+    pub(crate) target: String,
+    pub(crate) target_input: String,
+    pub(crate) status: &'static str,
+    pub(crate) mtu: Option<u32>,
+    pub(crate) payload_bytes: Option<u32>,
+    pub(crate) at_ceiling: bool,
+    pub(crate) minimum_mtu: Option<u32>,
+}
+
+/// Searches the path MTU with the same Don't Fragment ICMP echoes as a trace.
+/// The largest echo that fits is the answer. A lost probe is not a size limit.
+/// The search takes one of the two process-wide ICMP slots.
+pub(crate) async fn find_path_mtu(
+    state: Arc<AgentState>,
+    request: MtuSearchRequest,
+) -> Result<MtuSnapshot, ApiError> {
+    let target_input = validate_target(&request.target)?;
+    let timeout = bounded_duration(request.timeout_ms, MIN_TIMEOUT, MAX_TIMEOUT)?;
+    let host = target_input.clone();
+    let port = state.config.port;
+    let allow_private = state.config.allow_private;
+    let target = tokio::task::spawn_blocking(move || resolve_target(&host))
+        .await
+        .map_err(|_| ApiError::busy())??;
+    enforce_destination(target, 0, port, allow_private)?;
+    // A missing socket must not occupy a slot.
+    ensure_icmp_available(target)?;
+
+    // Declared first so a dropped handler cancels the probe before the slot is freed.
+    let _permit = state.try_begin_mtu()?;
+    let cancellation = CancellationToken::new();
+    let mut cancel_on_drop = CancelOnDrop {
+        token: cancellation.clone(),
+        armed: true,
+    };
+    let search_token = cancellation.clone();
+    let joined =
+        tokio::task::spawn_blocking(move || run_mtu_search(target, timeout, &search_token)).await;
+    cancel_on_drop.armed = false;
+    let discovery = joined.map_err(|_| ApiError::busy())??;
+    if cancellation.is_cancelled() {
+        return Err(cancelled());
+    }
+    Ok(MtuSnapshot {
+        target: target.to_string(),
+        target_input,
+        status: discovery.status,
+        mtu: discovery.mtu,
+        payload_bytes: discovery.payload_bytes,
+        at_ceiling: discovery.at_ceiling,
+        minimum_mtu: discovery.minimum_mtu,
+    })
+}
+
+struct CancelOnDrop {
+    token: CancellationToken,
+    armed: bool,
+}
+
+impl Drop for CancelOnDrop {
+    fn drop(&mut self) {
+        if self.armed {
+            self.token.cancel();
+        }
+    }
+}
+
+fn cancelled() -> ApiError {
+    ApiError::new(StatusCode::CONFLICT, "cancelled")
+}
+
+fn mtu_bounds(target: IpAddr) -> MtuBounds {
+    match target {
+        IpAddr::V4(_) => MtuBounds {
+            overhead: IPV4_ECHO_OVERHEAD,
+            floor_payload: IPV4_MINIMUM_MTU - IPV4_ECHO_OVERHEAD,
+            ceiling_payload: PATH_MTU_CEILING - IPV4_ECHO_OVERHEAD,
+            minimum_mtu: IPV4_MINIMUM_MTU,
+        },
+        IpAddr::V6(_) => MtuBounds {
+            overhead: IPV6_ECHO_OVERHEAD,
+            floor_payload: IPV6_MINIMUM_MTU - IPV6_ECHO_OVERHEAD,
+            ceiling_payload: PATH_MTU_CEILING - IPV6_ECHO_OVERHEAD,
+            minimum_mtu: IPV6_MINIMUM_MTU,
+        },
+    }
+}
+
+/// Binary search of Don't Fragment echo payloads, ceiling 1500 bytes.
+/// Echo reply fits. Packet Too Big does not. Any other status, including a
+/// timeout or TTL expiry, is a lost probe: retry once, then stop. A loss is
+/// inconclusive and is never stored as a smaller path MTU. `None` from the
+/// probe means the caller cancelled.
+fn discover_path_mtu(
+    bounds: MtuBounds,
+    mut probe: impl FnMut(u32) -> Option<ProbeFit>,
+) -> Option<MtuDiscovery> {
+    let mut remaining = PATH_MTU_PROBE_LIMIT;
+    match classify(&mut probe, bounds.ceiling_payload, &mut remaining)? {
+        ProbeFit::Fits => return Some(found_mtu(bounds, bounds.ceiling_payload)),
+        ProbeFit::Lost => {
+            let floor = classify(&mut probe, bounds.floor_payload, &mut remaining)?;
+            return Some(match floor {
+                ProbeFit::TooBig => below_minimum(bounds),
+                ProbeFit::Fits | ProbeFit::Lost => inconclusive(),
+            });
+        }
+        ProbeFit::TooBig => {}
+    }
+    match classify(&mut probe, bounds.floor_payload, &mut remaining)? {
+        ProbeFit::TooBig => return Some(below_minimum(bounds)),
+        ProbeFit::Lost => return Some(inconclusive()),
+        ProbeFit::Fits => {}
+    }
+
+    let mut fits = bounds.floor_payload;
+    let mut too_big = bounds.ceiling_payload;
+    while too_big - fits > 1 && remaining > 0 {
+        let mid = fits + (too_big - fits) / 2;
+        match classify(&mut probe, mid, &mut remaining)? {
+            ProbeFit::Fits => fits = mid,
+            ProbeFit::TooBig => too_big = mid,
+            ProbeFit::Lost => return Some(inconclusive()),
+        }
+    }
+    if too_big - fits > 1 {
+        return Some(inconclusive());
+    }
+    Some(found_mtu(bounds, fits))
+}
+
+fn classify(
+    probe: &mut impl FnMut(u32) -> Option<ProbeFit>,
+    payload: u32,
+    remaining: &mut u32,
+) -> Option<ProbeFit> {
+    let first = ask(probe, payload, remaining)?;
+    if first == ProbeFit::Lost && *remaining > 0 {
+        return ask(probe, payload, remaining);
+    }
+    Some(first)
+}
+
+fn ask(
+    probe: &mut impl FnMut(u32) -> Option<ProbeFit>,
+    payload: u32,
+    remaining: &mut u32,
+) -> Option<ProbeFit> {
+    if *remaining == 0 {
+        return Some(ProbeFit::Lost);
+    }
+    *remaining -= 1;
+    probe(payload)
+}
+
+fn found_mtu(bounds: MtuBounds, payload: u32) -> MtuDiscovery {
+    MtuDiscovery {
+        status: "found",
+        mtu: Some(payload + bounds.overhead),
+        payload_bytes: Some(payload),
+        at_ceiling: payload == bounds.ceiling_payload,
+        minimum_mtu: None,
+    }
+}
+
+fn below_minimum(bounds: MtuBounds) -> MtuDiscovery {
+    MtuDiscovery {
+        status: "below_minimum",
+        mtu: None,
+        payload_bytes: None,
+        at_ceiling: false,
+        minimum_mtu: Some(bounds.minimum_mtu),
+    }
+}
+
+fn inconclusive() -> MtuDiscovery {
+    MtuDiscovery {
+        status: "inconclusive",
+        mtu: None,
+        payload_bytes: None,
+        at_ceiling: false,
+        minimum_mtu: None,
+    }
+}
+
+fn run_mtu_search(
+    target: IpAddr,
+    timeout: Duration,
+    cancellation: &CancellationToken,
+) -> Result<MtuDiscovery, ApiError> {
+    if cancellation.is_cancelled() {
+        return Err(cancelled());
+    }
+    let socket = ProbeSocket::open(target).map_err(|_| ApiError::icmp_unavailable())?;
+    socket
+        .set_hop_limit(usize::from(PATH_MTU_HOP_LIMIT))
+        .map_err(|_| ApiError::icmp_unavailable())?;
+    let bounds = mtu_bounds(target);
+    let mut sequence = 1u16;
+    let discovery = discover_path_mtu(bounds, |payload_len| {
+        if cancellation.is_cancelled() {
+            return None;
+        }
+        let payload = vec![b' '; payload_len as usize];
+        let current = sequence;
+        sequence = sequence.wrapping_add(1);
+        if sequence == 0 {
+            sequence = 1;
+        }
+        match probe_once(
+            &socket,
+            target,
+            current,
+            &payload,
+            timeout,
+            PATH_MTU_HOP_LIMIT,
+            cancellation,
+        ) {
+            ProbeControl::Cancelled => None,
+            ProbeControl::Done(outcome) => Some(match outcome.status {
+                ProbeStatus::EchoReply => ProbeFit::Fits,
+                ProbeStatus::PacketTooBig => ProbeFit::TooBig,
+                _ => ProbeFit::Lost,
+            }),
+        }
+    });
+    if cancellation.is_cancelled() {
+        return Err(cancelled());
+    }
+    discovery.ok_or_else(cancelled)
 }
 
 fn validate_target(raw: &str) -> Result<String, ApiError> {
@@ -1686,5 +1966,169 @@ mod tests {
         );
         assert_eq!(trace.hops[0].address, Some(second));
         assert_eq!(trace.hops[0].name, None);
+    }
+
+    #[test]
+    fn path_mtu_binary_search_keeps_the_largest_echo_and_a_loss_is_not_a_limit() {
+        let v4 = mtu_bounds(IpAddr::V4(Ipv4Addr::LOCALHOST));
+        let v6 = mtu_bounds(IpAddr::V6(Ipv6Addr::LOCALHOST));
+        assert_eq!(v4.ceiling_payload as usize, MAX_PAYLOAD_BYTES);
+        assert_eq!(v4.floor_payload, 40);
+        assert_eq!(v6.ceiling_payload, 1452);
+        assert_eq!(v6.floor_payload, 1232);
+
+        let (fits_v4, v4_calls) = search_with(v4, |_| Some(ProbeFit::Fits));
+        assert_eq!(v4_calls, vec![1472]);
+        assert_eq!(
+            fits_v4,
+            MtuDiscovery {
+                status: "found",
+                mtu: Some(1500),
+                payload_bytes: Some(1472),
+                at_ceiling: true,
+                minimum_mtu: None,
+            }
+        );
+        let (fits_v6, v6_calls) = search_with(v6, |_| Some(ProbeFit::Fits));
+        assert_eq!(v6_calls, vec![1452]);
+        assert_eq!(fits_v6.mtu, Some(1500));
+        assert_eq!(fits_v6.payload_bytes, Some(1452));
+        assert!(fits_v6.at_ceiling);
+
+        let (limited, calls) = search_with(v4, |payload| {
+            Some(if payload <= 500 {
+                ProbeFit::Fits
+            } else {
+                ProbeFit::TooBig
+            })
+        });
+        assert!(calls.len() <= PATH_MTU_PROBE_LIMIT as usize);
+        assert_eq!(
+            calls.iter().filter(|payload| **payload <= 500).max(),
+            Some(&500)
+        );
+        assert!(calls.contains(&501));
+        assert_eq!(
+            limited,
+            MtuDiscovery {
+                status: "found",
+                mtu: Some(528),
+                payload_bytes: Some(500),
+                at_ceiling: false,
+                minimum_mtu: None,
+            }
+        );
+
+        let (too_small, _) = search_with(v4, |_| Some(ProbeFit::TooBig));
+        assert_eq!(too_small.status, "below_minimum");
+        assert_eq!(too_small.minimum_mtu, Some(68));
+        assert_eq!(too_small.mtu, None);
+        let (too_small_v6, _) = search_with(v6, |_| Some(ProbeFit::TooBig));
+        assert_eq!(too_small_v6.minimum_mtu, Some(1280));
+
+        let (lost, lost_calls) = search_with(v4, |_| Some(ProbeFit::Lost));
+        assert_eq!(lost, inconclusive());
+        assert_eq!(lost_calls, vec![1472, 1472, 40, 40]);
+
+        let (ceiling_lost, ceiling_calls) = search_with(v4, |payload| {
+            Some(if payload == v4.floor_payload {
+                ProbeFit::Fits
+            } else {
+                ProbeFit::Lost
+            })
+        });
+        assert_eq!(ceiling_lost, inconclusive());
+        assert_eq!(ceiling_calls, vec![1472, 1472, 40]);
+
+        let (mid_lost, _) = search_with(v4, |payload| {
+            Some(if payload == v4.ceiling_payload || payload == 756 {
+                ProbeFit::TooBig
+            } else if payload == v4.floor_payload {
+                ProbeFit::Fits
+            } else {
+                ProbeFit::Lost
+            })
+        });
+        assert_eq!(mid_lost.mtu, None);
+        assert_eq!(mid_lost.status, "inconclusive");
+
+        assert!(discover_path_mtu(v4, |_| None).is_none());
+    }
+
+    #[test]
+    fn path_mtu_permit_counts_toward_the_trace_cap() {
+        use std::collections::HashSet;
+
+        use crate::{
+            model::PairRequest,
+            state::{AgentConfig, AgentState},
+        };
+
+        let state = AgentState::new(AgentConfig {
+            port: 48_732,
+            allow_private: true,
+            allowed_origins: HashSet::from(["https://mydevtools.app".to_owned()]),
+        });
+        state.replace_pairing_code([0x11; 16]);
+        let paired = state
+            .pair(
+                PairRequest {
+                    code: "11111111111111111111111111111111".to_owned(),
+                    capabilities: vec!["icmp.trace".to_owned()],
+                },
+                "https://mydevtools.app",
+            )
+            .expect("pair");
+        let key = state
+            .authorize_icmp(
+                Some(&format!("Bearer {}", paired.token)),
+                "https://mydevtools.app",
+            )
+            .expect("icmp session");
+        let first = state.try_begin_mtu().expect("first slot");
+        let second = state.try_begin_mtu().expect("second slot");
+        let trace = Arc::new(Mutex::new(trace_with(1, IpAddr::V4(Ipv4Addr::LOCALHOST))));
+        let blocked = state.begin_trace(
+            key,
+            Uuid::new_v4(),
+            CancellationToken::new(),
+            Arc::clone(&trace),
+        );
+        match blocked {
+            Err(error) => assert_eq!(error.code, "busy"),
+            Ok(_) => panic!("a trace must not start beside two path MTU searches"),
+        }
+        drop(second);
+        let guard = state
+            .begin_trace(
+                key,
+                Uuid::new_v4(),
+                CancellationToken::new(),
+                Arc::clone(&trace),
+            )
+            .expect("one slot free");
+        match state.try_begin_mtu() {
+            Err(error) => assert_eq!(error.code, "busy"),
+            Ok(permit) => {
+                drop(permit);
+                panic!("a search must not start beside a trace and another search");
+            }
+        }
+        trace.lock().state = TraceState::Idle;
+        drop(guard);
+        drop(first);
+    }
+
+    fn search_with(
+        bounds: MtuBounds,
+        mut probe: impl FnMut(u32) -> Option<ProbeFit>,
+    ) -> (MtuDiscovery, Vec<u32>) {
+        let mut calls = Vec::new();
+        let discovery = discover_path_mtu(bounds, |payload| {
+            calls.push(payload);
+            probe(payload)
+        })
+        .expect("search finished");
+        (discovery, calls)
     }
 }

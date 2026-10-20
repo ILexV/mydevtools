@@ -1020,3 +1020,79 @@ async fn icmp_traces_stay_independent_and_the_third_is_busy() {
         assert_eq!(cancel.status(), StatusCode::NO_CONTENT);
     }
 }
+
+#[test]
+fn path_mtu_search_shares_the_two_trace_cap() {
+    let (state, _) = test_app(false, 48_732);
+    let first = state.try_begin_mtu().expect("first slot");
+    let second = state.try_begin_mtu().expect("second slot");
+    match state.try_begin_mtu() {
+        Err(error) => assert_eq!(error.code, "busy"),
+        Ok(permit) => {
+            drop(permit);
+            panic!("a third path MTU search must be busy");
+        }
+    }
+    drop(first);
+    let freed = state.try_begin_mtu().expect("freed slot");
+    drop(second);
+    drop(freed);
+}
+
+#[tokio::test]
+async fn icmp_path_mtu_accepts_loopback_and_rejects_metadata() {
+    let (state, app) = test_app(true, 48_732);
+    let http_only = pair_capabilities(&state, &app, json!(["http.request"])).await;
+    let http_token = http_only["token"].as_str().unwrap();
+    let denied = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/mtu",
+            Some(json!({"target": "127.0.0.1", "timeoutMs": 1000})),
+            Some(http_token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(denied.status(), StatusCode::FORBIDDEN);
+    assert_eq!(response_json(denied).await["error"]["code"], "forbidden");
+
+    let paired = pair_capabilities(&state, &app, json!(["icmp.trace"])).await;
+    let token = paired["token"].as_str().unwrap().to_owned();
+    let metadata = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/mtu",
+            Some(json!({"target": "169.254.169.254", "timeoutMs": 1000})),
+            Some(&token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(metadata.status(), StatusCode::FORBIDDEN);
+    assert_eq!(
+        response_json(metadata).await["error"]["code"],
+        "target_denied"
+    );
+
+    for (target, payload) in [("127.0.0.1", 1472), ("::1", 1452)] {
+        let response = app
+            .clone()
+            .oneshot(request(
+                Method::POST,
+                "/v1/icmp/mtu",
+                Some(json!({"target": target, "timeoutMs": 1000})),
+                Some(&token),
+            ))
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK, "{target}");
+        let body = response_json(response).await;
+        assert_eq!(body["status"], "found", "{target}");
+        assert_eq!(body["target"], target, "{target}");
+        assert_eq!(body["mtu"], 1500, "{target}");
+        assert_eq!(body["payloadBytes"], payload, "{target}");
+        assert_eq!(body["atCeiling"], true, "{target}");
+        assert!(body["minimumMtu"].is_null(), "{target}");
+    }
+}

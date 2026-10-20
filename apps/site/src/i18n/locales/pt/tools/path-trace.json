@@ -44,6 +44,12 @@
   "ResolveNames": "Resolver nomes",
   "Start": "Iniciar",
   "Stop": "Parar",
+  "FindMtu": "Buscar Path MTU",
+  "MtuSearching": "Buscando a Path MTU…",
+  "MtuFound": "A Path MTU é de {mtu} bytes.",
+  "MtuFoundCeiling": "A maior sonda passa. A Path MTU é de pelo menos {mtu} bytes.",
+  "MtuBelowMinimum": "Até um pacote de {mtu} bytes é grande demais para este caminho.",
+  "MtuInconclusive": "A busca não separou um limite de tamanho de uma sonda perdida.",
   "StateIdle": "Ocioso",
   "StateTracing": "Traçando",
   "StateStopping": "Parando",
@@ -117,5 +123,5 @@
   "Seo_DetailedDescription": "A tabela é atualizada enquanto o traçado corre. Cada salto registra enviados, recebidos, perda e a latência última, melhor, média e pior, o desvio padrão e o jitter médio. Um salto silencioso mostra «Sem resposta» e deixa o endereço vazio. A resposta de um roteador permanece visível, inclusive um gateway doméstico ou um endereço CGNAT em 100.64.0.0/10. São observações do caminho, não novos destinos. O host digitado é verificado à parte: destinos privados e de loopback precisam de --allow-private, e metadata, link-local e multicast são sempre recusados. As sondas param no destino ou quando o mesmo roteador se repete no fim. Copie ou baixe a tabela como texto ou HTML. O agente não grava esse relatório em disco. Destinos recentes e definições ficam neste navegador. Resultados de saltos não são guardados.",
   "Seo_Examples": "- `1.1.1.1` traça um resolver público com carga de 64 bytes, 30 saltos e 5 segundos de espera.\n- `example.com` é resolvido pelo DNS do computador e só o primeiro endereço é sondado.\n- `127.0.0.1` exige iniciar o agente com `--allow-private`.",
   "Seo_HowToSteps": "### Step 1: Inicie o agente local\nBaixe o agente, inicie-o e copie o código. No Linux, o ICMP precisa do intervalo de ping ou de CAP_NET_RAW.\n\n### Step 2: Pareie o traçado\nCole o código e conecte. A página pede icmp.trace e mantém capacidades que este navegador já tem, como http.request.\n\n### Step 3: Trace um host\nDigite um nome ou IP, ajuste intervalo, carga, limite de saltos e tempo limite se precisar e pressione Iniciar. Parar encerra as sondas. O último instantâneo fica na página.\n\n### Step 4: Copie o relatório\nSelecione um salto para ler o estado ICMP. Copie ou baixe a tabela como texto ou HTML.",
-  "Seo_Tips": "- A perda é um inteiro. Antes de qualquer sonda ela é 0. Depois é 100 menos 100 vezes recebidos dividido por enviados.\n- Uma latência ausente é um travessão, não zero.\n- O desvio padrão e o jitter médio aparecem após duas respostas, em décimos de milissegundo. Um tempo esgotado não é uma amostra. O jitter é a média móvel do módulo da diferença entre respostas consecutivas.\n- Desligue a resolução de nomes para manter o endereço numérico na coluna do host.\n- O agente executa no máximo dois traçados ao mesmo tempo. Cada janela da área de trabalho inicia o seu.\n- O download publicado para Windows pode ser mais antigo que esta página. O traçado precisa de um agente que anuncie icmp.trace."
+  "Seo_Tips": "- A perda é um inteiro. Antes de qualquer sonda ela é 0. Depois é 100 menos 100 vezes recebidos dividido por enviados.\n- Uma latência ausente é um travessão, não zero.\n- O desvio padrão e o jitter médio aparecem após duas respostas, em décimos de milissegundo. Um tempo esgotado não é uma amostra. O jitter é a média móvel do módulo da diferença entre respostas consecutivas.\n- Desligue a resolução de nomes para manter o endereço numérico na coluna do host.\n- O agente executa no máximo dois traçados ao mesmo tempo. Cada janela da área de trabalho inicia o seu.\n- O download publicado para Windows pode ser mais antigo que esta página. O traçado precisa de um agente que anuncie icmp.trace.\n- Buscar Path MTU envia sondas com DF e fica com o maior tamanho que recebe eco. Uma sonda perdida não é um limite de tamanho. A busca para em 1500 bytes."
 }

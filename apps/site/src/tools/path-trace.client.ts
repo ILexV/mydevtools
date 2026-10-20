@@ -9,6 +9,7 @@ import {
   LocalAgentError,
   mergeCapabilities,
   type LocalAgentCapability,
+  type PathMtuSnapshot,
   type TraceHopSnapshot,
   type TraceSnapshot,
 } from "@/scripts/local-agent";
@@ -109,6 +110,8 @@ function init(): void {
   const timeoutInput = root.querySelector<HTMLInputElement>("[data-trace-timeout]");
   const resolveInput = root.querySelector<HTMLInputElement>("[data-trace-resolve]");
   const start = root.querySelector<HTMLButtonElement>("[data-trace-start]");
+  const mtuButton = root.querySelector<HTMLButtonElement>("[data-trace-mtu]");
+  const mtuResult = root.querySelector<HTMLElement>("[data-trace-mtu-result]");
   const stop = root.querySelector<HTMLButtonElement>("[data-trace-stop]");
   const runState = root.querySelector<HTMLElement>("[data-trace-run-state]");
   const runError = root.querySelector<HTMLElement>("[data-trace-run-error]");
@@ -120,8 +123,8 @@ function init(): void {
   if (!code || !connect || !disconnect || !connectionState || !agentMeta || !agentVersion
     || !capabilitiesLabel || !lanPolicy || !connectionStatus || !capabilityWarning
     || !connectionError || !storageWarning || !targetInput || !targetList || !intervalInput
-    || !payloadInput || !hopsInput || !timeoutInput || !resolveInput || !start || !stop
-    || !runState || !runError || !resolvedLine || !body || !detail) return;
+    || !payloadInput || !hopsInput || !timeoutInput || !resolveInput || !start || !mtuButton
+    || !mtuResult || !stop || !runState || !runError || !resolvedLine || !body || !detail) return;
 
   const client = new LocalAgentClient();
   let settings = loadSettings();
@@ -129,6 +132,8 @@ function init(): void {
   let selectedHop: number | null = null;
   let activeId: string | null = null;
   let tracing = false;
+  let searching = false;
+  let mtuAbort: AbortController | null = null;
   let generation = 0;
   let pollTimer = 0;
   let operation: ToolOperation | null = null;
@@ -324,18 +329,24 @@ function init(): void {
     window.clearTimeout(pollTimer);
   };
 
+  const fill = (template: string, params: Record<string, string | number>): string =>
+    template.replace(/\{(\w+)\}/g, (match, key: string) => (key in params ? String(params[key]) : match));
+
   const setTracing = (next: boolean): void => {
     tracing = next;
-    const canStart = client.connected && hasTraceCapability() && !tracing;
-    const canUpgrade = !tracing && (!client.connected || !hasTraceCapability());
+    const locked = tracing || searching;
+    const canStart = client.connected && hasTraceCapability() && !locked;
+    const canUpgrade = !locked && (!client.connected || !hasTraceCapability());
     start.disabled = !canStart;
+    mtuButton.disabled = !canStart;
+    mtuButton.ariaBusy = searching ? "true" : "false";
     stop.disabled = !tracing;
     stop.hidden = !tracing;
-    targetInput.disabled = tracing;
+    targetInput.disabled = locked;
+    timeoutInput.disabled = locked;
     intervalInput.disabled = tracing;
     payloadInput.disabled = tracing;
     hopsInput.disabled = tracing;
-    timeoutInput.disabled = tracing;
     resolveInput.disabled = tracing;
     connect.disabled = !canUpgrade;
     code.disabled = !canUpgrade;
@@ -426,6 +437,7 @@ function init(): void {
   connect.addEventListener("click", () => { void connectAgent(); });
   disconnect.addEventListener("click", () => {
     void (async () => {
+      mtuAbort?.abort();
       const id = activeId;
       stopPolling();
       if (id) {
@@ -516,6 +528,77 @@ function init(): void {
     })();
   });
 
+  const mtuSentence = (result: PathMtuSnapshot): string => {
+    if (result.status === "found" && result.mtu !== null) {
+      const template = result.atCeiling ? strings.MtuFoundCeiling : strings.MtuFound;
+      return fill(template, { mtu: result.mtu });
+    }
+    if (result.status === "below_minimum" && result.minimumMtu !== null) {
+      return fill(strings.MtuBelowMinimum, { mtu: result.minimumMtu });
+    }
+    if (result.status === "inconclusive") return strings.MtuInconclusive;
+    throw new LocalAgentError("invalid_response");
+  };
+
+  /**
+   * Path MTU search on the same target and timeout. DF probes, largest echo wins.
+   * A lost probe is inconclusive, not a smaller MTU. Abort cancels only this search.
+   */
+  mtuButton.addEventListener("click", () => {
+    void (async () => {
+      hideMessage(runError);
+      if (tracing || searching) return;
+      if (!client.connected) {
+        showMessage(runError, strings.NotConnected);
+        return;
+      }
+      if (!hasTraceCapability()) {
+        showMessage(capabilityWarning, strings.NeedTraceCapability);
+        return;
+      }
+      const target = normalizeTarget(targetInput.value);
+      if (!target) {
+        showMessage(runError, strings.InvalidTarget);
+        return;
+      }
+      const timeoutMs = parseBoundedInteger(timeoutInput.value, TRACE_TIMEOUT_MS.min, TRACE_TIMEOUT_MS.max);
+      if (timeoutMs === null) {
+        showMessage(runError, strings.InvalidSettings);
+        return;
+      }
+      settings = { ...settings, timeoutMs };
+      persistSettings();
+      searching = true;
+      setTracing(tracing);
+      mtuAbort = new AbortController();
+      if (!operation) {
+        operation = startToolOperation("path-trace");
+        operationSettled = false;
+      }
+      showMessage(mtuResult, strings.MtuSearching);
+      try {
+        const result = await client.findPathMtu({ target, timeoutMs }, mtuAbort.signal);
+        showMessage(mtuResult, mtuSentence(result));
+        settings = { ...settings, targets: rememberTarget(settings.targets, target) };
+        persistSettings();
+        fillHistory();
+        settle("complete");
+      } catch (error) {
+        hideMessage(mtuResult);
+        if (error instanceof DOMException && error.name === "AbortError") {
+          settle("cancel");
+          return;
+        }
+        settle("fail");
+        showMessage(runError, errorText(error));
+      } finally {
+        searching = false;
+        mtuAbort = null;
+        setTracing(tracing);
+      }
+    })();
+  });
+
   stop.addEventListener("click", () => {
     void (async () => {
       const id = activeId;
@@ -576,6 +659,7 @@ function init(): void {
   resolveInput.addEventListener("change", onSettingsChanged);
 
   window.addEventListener("pagehide", () => {
+    mtuAbort?.abort();
     if (!activeId) return;
     void client.cancelTrace(activeId).catch(() => undefined);
   });

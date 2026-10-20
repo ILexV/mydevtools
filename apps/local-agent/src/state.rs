@@ -46,6 +46,8 @@ pub(crate) struct AgentState {
     pairing_code: watch::Sender<String>,
     sessions: Mutex<HashMap<SessionKey, Session>>,
     concurrency: Arc<Semaphore>,
+    /// Path MTU searches in flight. Counted with non-idle traces toward the cap of two.
+    mtu_inflight: Mutex<usize>,
 }
 
 struct PairingState {
@@ -83,6 +85,7 @@ impl AgentState {
             pairing_code,
             sessions: Mutex::new(HashMap::new()),
             concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_REQUESTS)),
+            mtu_inflight: Mutex::new(0),
         })
     }
 
@@ -324,7 +327,8 @@ impl AgentState {
     }
 
     /// Registers a path trace on the session. A long trace does not take an HTTP
-    /// concurrency permit. At most two traces run in the process, and idle
+    /// concurrency permit. At most two ICMP operations run in the process.
+    /// A path MTU search counts the same as a trace that is not idle. Idle
     /// snapshots are capped so a page can still copy the last result.
     pub(crate) fn begin_trace(
         self: &Arc<Self>,
@@ -335,12 +339,10 @@ impl AgentState {
     ) -> Result<ActiveRequestGuard, ApiError> {
         let now = Instant::now();
         let mut sessions = self.sessions.lock();
-        let running = sessions
-            .values()
-            .flat_map(|session| session.traces.values())
-            .filter(|trace| trace.lock().state != TraceState::Idle)
-            .count();
-        if running >= MAX_CONCURRENT_TRACES {
+        let running = non_idle_traces(&sessions);
+        // Sessions, then the MTU counter. Never the reverse: a permit drop locks only the counter.
+        let mtu_searches = *self.mtu_inflight.lock();
+        if running + mtu_searches >= MAX_CONCURRENT_TRACES {
             return Err(ApiError::busy());
         }
         let session = sessions
@@ -416,6 +418,40 @@ impl AgentState {
         }
         Ok(())
     }
+
+    /// Reserves one of the two process-wide ICMP slots for a path MTU search.
+    /// Two running traces, or one trace and one search, leave no room for another.
+    pub(crate) fn try_begin_mtu(self: &Arc<Self>) -> Result<MtuPermit, ApiError> {
+        let sessions = self.sessions.lock();
+        let mut inflight = self.mtu_inflight.lock();
+        if non_idle_traces(&sessions) + *inflight >= MAX_CONCURRENT_TRACES {
+            return Err(ApiError::busy());
+        }
+        *inflight += 1;
+        Ok(MtuPermit {
+            state: Arc::clone(self),
+        })
+    }
+}
+
+/// Holds one path-MTU slot until dropped. Drop locks only the counter, never the session map.
+pub(crate) struct MtuPermit {
+    state: Arc<AgentState>,
+}
+
+impl Drop for MtuPermit {
+    fn drop(&mut self) {
+        let mut inflight = self.state.mtu_inflight.lock();
+        *inflight = inflight.saturating_sub(1);
+    }
+}
+
+fn non_idle_traces(sessions: &HashMap<SessionKey, Session>) -> usize {
+    sessions
+        .values()
+        .flat_map(|session| session.traces.values())
+        .filter(|trace| trace.lock().state != TraceState::Idle)
+        .count()
 }
 
 struct SessionAuth {

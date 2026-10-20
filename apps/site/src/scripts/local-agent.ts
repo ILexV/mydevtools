@@ -110,6 +110,22 @@ export interface TraceStartRequest {
   resolveNames: boolean;
 }
 
+/** One-shot path MTU search. `found` carries `mtu`; a loss stays `inconclusive`. */
+export interface PathMtuSnapshot {
+  target: string;
+  targetInput: string;
+  status: "found" | "below_minimum" | "inconclusive";
+  mtu: number | null;
+  payloadBytes: number | null;
+  atCeiling: boolean;
+  minimumMtu: number | null;
+}
+
+export interface PathMtuRequest {
+  target: string;
+  timeoutMs: number;
+}
+
 export type LocalAgentStorageState = "unknown" | "available" | "unavailable";
 
 
@@ -373,6 +389,16 @@ export class LocalAgentClient {
     });
   }
 
+  /** Path MTU on `icmp.trace`. Same Don't Fragment echoes; the agent picks the size. */
+  async findPathMtu(request: PathMtuRequest, signal?: AbortSignal): Promise<PathMtuSnapshot> {
+    return asPathMtu(await this.#authorized<unknown>("/v1/icmp/mtu", {
+      method: "POST",
+      signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    }));
+  }
+
   clear(): void {
     this.#token = null;
     this.#expiresAt = null;
@@ -492,6 +518,25 @@ function asCount(value: unknown): number {
 
 function asNullableCount(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+/** Rejects a path-MTU body the page cannot turn into a sentence. */
+function asPathMtu(value: unknown): PathMtuSnapshot {
+  if (!isObject(value) || typeof value.atCeiling !== "boolean") {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (value.status !== "found" && value.status !== "below_minimum" && value.status !== "inconclusive") {
+    throw new LocalAgentError("invalid_response");
+  }
+  return {
+    target: typeof value.target === "string" ? value.target : "",
+    targetInput: typeof value.targetInput === "string" ? value.targetInput : "",
+    status: value.status,
+    mtu: asNullableCount(value.mtu),
+    payloadBytes: asNullableCount(value.payloadBytes),
+    atCeiling: value.atCeiling,
+    minimumMtu: asNullableCount(value.minimumMtu),
+  };
 }
 
 /** Rejects a snapshot the hop table cannot render. Optional hop fields become nulls. */

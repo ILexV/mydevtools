@@ -27,7 +27,7 @@
   "PermissionsIntro": "Der Agent ist weder Konto noch Remotedienst oder allgemeiner Befehlsausführer.",
   "PermissionAccount": "Keine Registrierung, Anmeldung oder MyDevTools-Cloud-Weiterleitung.",
   "PermissionInstall": "Keine Administratorrechte, kein Installer und kein Windows-Dienst.",
-  "PermissionPairing": "Ein wechselnder Einmalcode startet eine zeitlich begrenzte Browsersitzung nur im Arbeitsspeicher.",
+  "PermissionPairing": "Ein wechselnder Einmalcode startet eine zeitlich begrenzte Browsersitzung. Der Browser speichert das Verbindungstoken bis zu 8 Stunden oder bis zum Neustart des Agenten, aber niemals den Kopplungscode.",
   "PermissionNetwork": "Er lauscht nur auf diesem PC. HTTP-Anfragen gehen direkt zum Ziel; private Netzwerkziele sind standardmäßig gesperrt.",
   "TrayTitle": "Sie behalten die Kontrolle",
   "TrayIntro": "Das Schließen blendet das kleine Fenster aus; das Tray-Symbol öffnet es wieder.",

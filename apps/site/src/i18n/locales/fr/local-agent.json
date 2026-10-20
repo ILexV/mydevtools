@@ -27,7 +27,7 @@
   "PermissionsIntro": "L’agent n’est ni un compte, ni un service distant, ni un exécuteur général de commandes.",
   "PermissionAccount": "Aucune inscription, connexion ou passerelle cloud MyDevTools.",
   "PermissionInstall": "Aucun droit administrateur, installateur ou service Windows.",
-  "PermissionPairing": "Un code unique renouvelé démarre une session de navigateur temporaire conservée uniquement en mémoire.",
+  "PermissionPairing": "Un code unique renouvelé démarre une session de navigateur temporaire. Le navigateur stocke le jeton de connexion pendant 8 heures au maximum ou jusqu’au redémarrage de l’agent, mais jamais le code d’association.",
   "PermissionNetwork": "Il écoute uniquement sur ce PC. Les requêtes HTTP vont directement à la cible et les réseaux privés sont bloqués par défaut.",
   "TrayTitle": "Vous gardez le contrôle",
   "TrayIntro": "Fermer la petite fenêtre la masque ; l’icône de la zone de notification la rouvre.",

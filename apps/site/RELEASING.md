@@ -81,6 +81,37 @@ response bytes. Invalid/truncated JSON stays Raw. Pretty output is bounded to
 bounds also stay Raw. Check that canceling or starting another request cannot
 reveal a stale asynchronously loaded editor.
 
+The browser remembers the origin-bound companion bearer token in
+`mdt.local-agent.session.v1`; it never stores the one-time pairing code or HTTP
+request/response data. Reloads and locale changes restore the connection.
+Disconnect, expiry and an unauthorized response remove the record. Native
+sessions still expire after eight hours and disappear on agent restart;
+protocol v1 detects a lost native session on the first authorized operation,
+not through the public info endpoint. A temporary agent outage retains the
+record: start the agent and click Connect with an empty code to retry.
+Blocked browser storage leaves the live connection usable and shows a warning.
+
+The request body now uses the shared lazy CodeMirror editor with Text/JSON/HTML/XML
+language selection, search/folding/undo, and Ctrl/Cmd-Enter to send. Formatting
+JSON is explicit and preserves exact numeric lexemes and duplicate keys using
+the response formatter's existing bounds. Invalid JSON stays unchanged.
+Nonempty bodies get the selected format's Content-Type unless an enabled header
+already supplies it. A failed editor load leaves the plain textarea usable.
+Response source views highlight JSON, HTML, XML and JavaScript; Raw never
+reformats the decoded text.
+
+Complete HTML/XHTML responses within the 1 MiB preview limit offer an explicit
+static preview. The existing allowlist sanitizer removes styles and active
+content; navigation/resource URLs are removed as well. The frame has an empty
+sandbox (no scripts or same-origin permission), no referrer, and a restrictive
+CSP. It is not a full webpage renderer: no scripts, forms, external resources,
+navigation or original CSS. Source view and byte-exact downloads remain intact.
+Smoke with hostile HTML containing scripts, refresh, image URLs, links, forms,
+iframes and SVG: markup must render without requests to those URLs or access to
+the parent page. Also exercise reload/locale restore, disconnect + reload,
+invalid JSON, format switching without text loss, Content-Type override, and
+Ctrl/Cmd-Enter submission.
+
 
 ## Build → preview → deploy → smoke test
 

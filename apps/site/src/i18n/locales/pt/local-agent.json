@@ -27,7 +27,7 @@
   "PermissionsIntro": "O agente não é uma conta, serviço remoto nem executor geral de comandos.",
   "PermissionAccount": "Sem cadastro, login ou proxy na nuvem do MyDevTools.",
   "PermissionInstall": "Sem direitos de administrador, instalador ou Serviço do Windows.",
-  "PermissionPairing": "Um código rotativo de uso único inicia uma sessão temporária do navegador mantida apenas na memória.",
+  "PermissionPairing": "Um código rotativo de uso único inicia uma sessão temporária do navegador. O navegador armazena o token da conexão por até 8 horas ou até o agente reiniciar, mas nunca armazena o código de pareamento.",
   "PermissionNetwork": "Ele escuta somente neste PC. Solicitações HTTP vão diretamente ao destino e redes privadas são bloqueadas por padrão.",
   "TrayTitle": "Você mantém o controle",
   "TrayIntro": "Fechar a janela pequena apenas a oculta; o ícone da bandeja a abre novamente.",

@@ -2,6 +2,7 @@ import { formatBytes } from "@/lib/format";
 import { syncEmptyState } from "@/scripts/tool-ui";
 import { loadEditorKit, type MdtEditor, type EditorLanguage } from "@/scripts/codemirror-loader";
 import { formatResponseJson } from "@/tools/http-response";
+import { sanitizeHtml } from "@/tools/markdown-sanitize";
 import {
   LocalAgentClient,
   LocalAgentError,
@@ -16,6 +17,11 @@ interface Strings {
   phrases: Record<string, string>;
   ResponseBody: string;
   EditorLoadError: string;
+  BodyLabel: string;
+  InvalidJson: string;
+  BodyEditorError: string;
+  ConnectionNotSaved: string;
+  HtmlPreviewError: string;
   Connected: string;
   NotConnected: string;
   Disconnected: string;
@@ -115,6 +121,12 @@ function init(): void {
   const requestUrl = root.querySelector<HTMLInputElement>("[data-http-url]");
   const rowTemplate = root.querySelector<HTMLTemplateElement>("[data-http-row-template]");
   const requestBody = root.querySelector<HTMLTextAreaElement>("[data-http-body]");
+  const bodyFormat = root.querySelector<HTMLSelectElement>("[data-http-body-format]")!;
+  const formatJson = root.querySelector<HTMLButtonElement>("[data-http-format-json]")!;
+  const bodyHost = root.querySelector<HTMLElement>("[data-http-body-editor]")!;
+  const bodyError = root.querySelector<HTMLElement>("[data-http-body-error]")!;
+  const bodyEditorError = root.querySelector<HTMLElement>("[data-http-body-editor-error]")!;
+  const storageWarning = root.querySelector<HTMLElement>("[data-http-storage-warning]")!;
   const timeout = root.querySelector<HTMLInputElement>("[data-http-timeout]");
   const redirects = root.querySelector<HTMLInputElement>("[data-http-redirects]");
   const send = root.querySelector<HTMLButtonElement>("[data-http-send]");
@@ -135,6 +147,9 @@ function init(): void {
   const editorError = root.querySelector<HTMLElement>("[data-http-editor-error]");
   const prettyButton = root.querySelector<HTMLButtonElement>('[data-http-view="pretty"]');
   const rawButton = root.querySelector<HTMLButtonElement>('[data-http-view="raw"]');
+  const htmlButton = root.querySelector<HTMLButtonElement>('[data-http-view="html"]')!;
+  const htmlPreview = root.querySelector<HTMLElement>("[data-http-html-preview]")!;
+  const htmlFrame = root.querySelector<HTMLIFrameElement>("[data-http-html-frame]")!;
   const download = root.querySelector<HTMLButtonElement>("[data-http-download]");
   if (!code || !connect || !disconnect || !agentMeta || !agentVersion || !lanPolicy || !connectionStatus
     || !connectionError || !connectionState || !method || !requestUrl || !rowTemplate || !requestBody
@@ -152,6 +167,11 @@ function init(): void {
   let previewRevision = 0;
   let rawPreview = "";
   let prettyPreview: string | null = null;
+  let sourceLanguage: EditorLanguage = "text";
+  let htmlSource: string | null = null;
+  let bodyEditor: MdtEditor | null = null;
+  let bodyRevision = 0;
+  let mountedBodyLanguage: EditorLanguage | null = null;
   const s = strings;
   const responseUi = {
     output,
@@ -236,14 +256,109 @@ function init(): void {
     const queryAt = beforeFragment.indexOf("?");
     paramsTable.replace(new URLSearchParams(queryAt < 0 ? "" : beforeFragment.slice(queryAt + 1)));
   });
+  const mountBodyEditor = async (): Promise<void> => {
+    const revision = ++bodyRevision;
+    const language = bodyFormat.value as EditorLanguage;
+    formatJson.disabled = language !== "json";
+    bodyError.hidden = true;
+    if (bodyEditor && mountedBodyLanguage === language && !bodyHost.hidden) {
+      bodyEditor.view.requestMeasure();
+      return;
+    }
+    // Keep the plain input live during loading, including language switches.
+    if (bodyEditor && !bodyHost.hidden) requestBody.value = bodyEditor.getValue();
+    bodyHost.hidden = true;
+    requestBody.hidden = false;
+    bodyEditorError.hidden = true;
+    try {
+      const kit = await loadEditorKit();
+      if (revision !== bodyRevision) return;
+      const mount = document.createElement("div");
+      mount.style.height = "100%";
+      const editor = await kit.createEditor(mount, {
+        language, label: strings.BodyLabel, hintId: "http-body-hint", phrases: strings.phrases,
+        onSubmit: () => { if (!send.disabled) send.click(); },
+        onChange: () => {
+          requestBody.value = editor.getValue();
+          bodyError.hidden = true;
+        },
+      });
+      if (revision !== bodyRevision) {
+        editor.view.destroy();
+        return;
+      }
+      editor.setValue(requestBody.value);
+      bodyEditor?.view.destroy();
+      bodyEditor = editor;
+      mountedBodyLanguage = language;
+      bodyHost.replaceChildren(mount);
+      bodyHost.hidden = false;
+      requestBody.hidden = true;
+      editor.view.requestMeasure();
+    } catch {
+      if (revision !== bodyRevision) return;
+      bodyEditor?.view.destroy();
+      bodyEditor = null;
+      mountedBodyLanguage = null;
+      bodyEditorError.textContent = strings.BodyEditorError;
+      bodyEditorError.hidden = false;
+    }
+  };
+  bodyFormat.addEventListener("change", () => { void mountBodyEditor(); });
+  requestBody.addEventListener("input", () => { bodyError.hidden = true; });
+  formatJson.addEventListener("click", () => {
+    const formatted = formatResponseJson(requestBody.value);
+    bodyError.hidden = formatted !== null;
+    if (formatted === null) {
+      bodyError.textContent = strings.InvalidJson;
+      return;
+    }
+    requestBody.value = formatted;
+    if (bodyEditor && !bodyHost.hidden) {
+      bodyEditor.setValue(formatted);
+      bodyEditor.focus();
+    }
+  });
 
-  const showPreview = async (mode: "pretty" | "raw"): Promise<void> => {
+  const showPreview = async (mode: "pretty" | "raw" | "html"): Promise<void> => {
     const revision = ++previewRevision;
+    const renderHtml = mode === "html" && htmlSource !== null;
     const formatted = mode === "pretty" && prettyPreview !== null;
     const text = formatted ? prettyPreview! : rawPreview;
-    const language: EditorLanguage = formatted ? "json" : "text";
+    const language: EditorLanguage = formatted ? "json" : sourceLanguage;
     prettyButton.setAttribute("aria-pressed", String(formatted));
-    rawButton.setAttribute("aria-pressed", String(!formatted));
+    rawButton.setAttribute("aria-pressed", String(!formatted && !renderHtml));
+    htmlButton.setAttribute("aria-pressed", String(renderHtml));
+    htmlPreview.hidden = !renderHtml;
+    if (renderHtml) {
+      editorError.hidden = true;
+      editorHost.hidden = true;
+      responsePreview.hidden = true;
+      if (!htmlFrame.hasAttribute("srcdoc")) {
+        try {
+          // Reuse the inert allowlist sanitizer, then remove navigation URLs.
+          // An opaque sandbox + restrictive CSP are independent backstops.
+          const fragment = sanitizeHtml(htmlSource!);
+          for (const element of fragment.querySelectorAll("[href], [src], [cite]")) {
+            element.removeAttribute("href");
+            element.removeAttribute("src");
+            element.removeAttribute("cite");
+          }
+          const holder = document.createElement("template");
+          holder.content.append(fragment);
+          htmlFrame.srcdoc = `<!doctype html><meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; form-action 'none'; style-src 'unsafe-inline'"><meta charset="utf-8"><style>body{font:14px/1.5 system-ui,sans-serif;padding:16px;overflow-wrap:anywhere}pre{white-space:pre-wrap}table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:6px}img{max-width:100%}</style>${holder.innerHTML}`;
+        } catch {
+          htmlPreview.hidden = true;
+          htmlButton.setAttribute("aria-pressed", "false");
+          rawButton.setAttribute("aria-pressed", "true");
+          responsePreview.textContent = rawPreview;
+          responsePreview.hidden = false;
+          editorError.textContent = strings.HtmlPreviewError;
+          editorError.hidden = false;
+        }
+      }
+      return;
+    }
     editorError.hidden = true;
     responsePreview.textContent = text;
     responsePreview.hidden = false;
@@ -284,6 +399,7 @@ function init(): void {
   };
   prettyButton.addEventListener("click", () => { void showPreview("pretty"); });
   rawButton.addEventListener("click", () => { void showPreview("raw"); });
+  htmlButton.addEventListener("click", () => { void showPreview("html"); });
   for (const tablist of root.querySelectorAll<HTMLElement>("[data-http-tabs]")) {
     const tabs = [...tablist.querySelectorAll<HTMLButtonElement>(':scope > [role="tab"]')];
     const activate = (next: HTMLButtonElement, moveFocus: boolean): void => {
@@ -296,6 +412,7 @@ function init(): void {
         if (panel && root.contains(panel)) panel.hidden = !selected;
       }
       if (moveFocus) next.focus();
+      if (next.id === "http-request-body-tab") void mountBodyEditor();
     };
     tablist.addEventListener("click", (event) => {
       if (!(event.target instanceof Element)) return;
@@ -340,6 +457,8 @@ function init(): void {
     agentMeta.hidden = !connected;
     connectionState.textContent = connected ? strings.Connected : strings.NotConnected;
     if (setup) setup.hidden = connected;
+    storageWarning.hidden = !connected || client.persisted;
+    storageWarning.textContent = strings.ConnectionNotSaved;
   };
   const setSending = (sending: boolean): void => {
     send.disabled = sending || !client.connected;
@@ -350,20 +469,27 @@ function init(): void {
     requestUrl.disabled = sending;
   };
 
-  connect.addEventListener("click", async () => {
+  const connectAgent = async (automatic = false): Promise<void> => {
     hideMessage(connectionError);
     showMessage(connectionStatus, strings.Connecting);
     connectionState.textContent = strings.Connecting;
     connect.disabled = true;
-    const pairingCode = code.value.trim();
+    const pairingCode = automatic ? "" : code.value.trim();
     try {
-      const info = await client.pair(pairingCode, ["http.request"]);
+      const info = pairingCode
+        ? await client.pair(pairingCode, ["http.request"])
+        : await client.restore();
+      if (!info) {
+        setConnected(false);
+        hideMessage(connectionStatus);
+        if (!automatic) showMessage(connectionError, strings.Error_unauthorized);
+        return;
+      }
       agentVersion.textContent = info.version;
       lanPolicy.textContent = info.privateNetworkAllowed ? strings.PrivateAllowed : strings.PrivateBlocked;
       setConnected(true);
       showMessage(connectionStatus, strings.Connected);
     } catch (error) {
-      client.clear();
       setConnected(false);
       hideMessage(connectionStatus);
       showMessage(connectionError, errorText(error));
@@ -371,7 +497,9 @@ function init(): void {
       code.value = "";
       if (!client.connected) connect.disabled = false;
     }
-  });
+  };
+  connect.addEventListener("click", () => { void connectAgent(); });
+  void connectAgent(true);
 
   disconnect.addEventListener("click", async () => {
     const pending = client.disconnect();
@@ -421,6 +549,13 @@ function init(): void {
     }
 
     const bodyBytes = new TextEncoder().encode(requestBody.value);
+    if (bodyBytes.byteLength && !headers.some(({ name }) => name.toLowerCase() === "content-type")) {
+      const contentTypes: Record<string, string> = {
+        text: "text/plain; charset=utf-8", json: "application/json",
+        html: "text/html; charset=utf-8", xml: "application/xml",
+      };
+      headers.push({ name: "Content-Type", value: contentTypes[bodyFormat.value]! });
+    }
     const bodyLimit = client.info?.limits.maxRequestBodyBytes ?? 1024 * 1024;
     if (bodyBytes.byteLength > bodyLimit) {
       showMessage(requestError, strings.ErrorBodyLimit);
@@ -439,6 +574,10 @@ function init(): void {
     previewRevision++;
     rawPreview = "";
     prettyPreview = null;
+    htmlSource = null;
+    htmlFrame.removeAttribute("srcdoc");
+    htmlPreview.hidden = true;
+    htmlButton.hidden = true;
     syncEmptyState(output, true);
 
     try {
@@ -508,10 +647,17 @@ function init(): void {
     responseUi.headers.textContent = response.headers.map((header) => `${header.name}: ${header.value}`).join("\n");
     prettyPreview = null;
     const mime = type.split(";", 1)[0]?.trim().toLowerCase() ?? "";
+    sourceLanguage = mime === "application/json" || mime.endsWith("+json") ? "json"
+      : mime === "text/html" || mime === "application/xhtml+xml" ? "html"
+      : mime === "application/xml" || mime === "text/xml" || mime.endsWith("+xml") ? "xml"
+      : mime === "application/javascript" || mime === "text/javascript" ? "typescript" : "text";
     responseUi.type.textContent = mime;
     if (isTextContentType(type)) {
       const previewBytes = bytes.subarray(0, PREVIEW_LIMIT);
       const text = textDecoderFor(type).decode(previewBytes);
+      if (bytes.byteLength <= PREVIEW_LIMIT && (mime === "text/html" || mime === "application/xhtml+xml")) {
+        htmlSource = text;
+      }
       rawPreview = bytes.byteLength > PREVIEW_LIMIT && s.PreviewTruncated
         ? `${text}\n\n${s.PreviewTruncated}`
         : text;
@@ -522,6 +668,7 @@ function init(): void {
       rawPreview = s.BinaryPreview;
     }
     responseUi.prettyButton.disabled = prettyPreview === null;
+    htmlButton.hidden = htmlSource === null;
     responseUi.result.hidden = false;
     void showPreview(prettyPreview === null ? "raw" : "pretty");
     syncEmptyState(responseUi.output, false);

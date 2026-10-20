@@ -53,7 +53,7 @@ import {
 import { tagHighlighter, tags as t } from "@lezer/highlight";
 import { announce } from "@/scripts/tool-ui";
 
-export type EditorLanguage = "json" | "xml" | "yaml" | "typescript" | "sql" | "text";
+export type EditorLanguage = "json" | "html" | "xml" | "yaml" | "typescript" | "sql" | "text";
 export type IndentStyle = number | "tab";
 
 export interface EditorOptions {
@@ -118,6 +118,7 @@ export interface MdtEditor {
 // Per-language chunks: a page only downloads the grammar it uses.
 const LANGUAGES: Record<Exclude<EditorLanguage, "text">, () => Promise<LanguageSupport>> = {
   json: () => import("@codemirror/lang-json").then((m) => m.json()),
+  html: () => import("@codemirror/lang-html").then((m) => m.html()),
   xml: () => import("@codemirror/lang-xml").then((m) => m.xml()),
   yaml: () => import("@codemirror/lang-yaml").then((m) => m.yaml()),
   typescript: () => import("@codemirror/lang-javascript").then((m) => m.javascript({ typescript: true })),

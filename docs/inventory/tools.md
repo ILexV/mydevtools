@@ -156,6 +156,18 @@ pairing, session expiry and cancellation live in `server.rs`/`state.rs`;
 outgoing HTTP and DNS pinning live in `http_client.rs`/`policy.rs`, separate from
 the Windows tray/autostart shell.
 
+The browser persists the origin-bound bearer and its server-issued expiry in
+versioned localStorage so navigation, reload and browser reopen do not require
+another one-time pairing code. The code itself, requests and responses are not
+stored. Restore checks the local expiry and calls `/v1/info` to inspect the
+agent and protocol; a transiently unavailable agent leaves the saved bearer
+for a later retry. Blocked storage degrades to an in-memory session. Disconnect,
+local expiry and an unauthorized protected response remove the saved record.
+The native agent still owns the eight-hour session lifetime and keeps sessions
+only in process memory, so an agent restart invalidates the bearer. Protocol v1
+has no non-destructive authenticated validation route; after a restart the
+first protected request detects the stale bearer and clears it.
+
 Public destinations are allowed by default. `--allow-private` explicitly opts
 into private/LAN/loopback targets but never cloud metadata, link-local addresses
 or the agent itself. Redirects are revalidated, credential headers are removed

@@ -20,7 +20,8 @@ const clientKeys = [
   "Error_forbidden", "Error_pairing_invalid", "Error_pairing_expired", "Error_pairing_rate_limited",
   "Error_unsupported_capability", "Error_private_network_denied", "Error_target_denied", "Error_timeout",
   "Error_cancelled", "Error_response_too_large", "Error_request_too_large", "Error_busy", "Error_network_error",
-  "Error_incompatible_protocol", "ResponseBody", "EditorLoadError",
+  "Error_incompatible_protocol", "ResponseBody", "EditorLoadError", "BodyLabel", "InvalidJson", "BodyEditorError", "ConnectionNotSaved",
+  "HtmlPreviewError",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
 const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhrases(lang) });
@@ -37,6 +38,7 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
         <Field label={t(lang, ns, "PairCodeLabel")} for="http-pair-code" hint={t(lang, ns, "PairCodeHint")}>
           <input id="http-pair-code" class="ds-field mono" type="password" autocomplete="one-time-code" spellcheck="false" data-http-code />
         </Field>
+        <p class="ds-hint">{t(lang, ns, "RememberConnectionHint")}</p>
         <div class="ds-action-row http-connect-actions">
           <button type="button" class="ds-btn ds-btn-primary" data-http-connect>{t(lang, ns, "Connect")}</button>
           <button type="button" class="ds-btn" data-http-disconnect disabled>{t(lang, ns, "Disconnect")}</button>
@@ -49,6 +51,7 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
       </dl>
       <StatusMessage kind="info" data-http-connection-status />
       <StatusMessage kind="error" data-http-connection-error />
+      <StatusMessage kind="info" data-http-storage-warning />
       <details class="http-setup">
         <summary>{t(lang, ns, "SetupTitle")}</summary>
         <div class="http-setup-body">
@@ -106,9 +109,22 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
       </div>
     ))}
     <div id="http-request-body-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-request-body-tab" hidden>
-      <Field label={t(lang, ns, "BodyLabel")} for="http-body" hint={t(lang, ns, "BodyHint")}>
-        <textarea id="http-body" class="ds-field-textarea mono http-body" rows="6" autocomplete="off" spellcheck="false" data-http-body></textarea>
-      </Field>
+      <div class="ds-action-row http-body-toolbar">
+        <label class="visually-hidden" for="http-body-format">{t(lang, ns, "BodyFormatLabel")}</label>
+        <select id="http-body-format" class="ds-field-select" data-http-body-format>
+          <option value="text">{t(lang, ns, "TextFormat")}</option>
+          <option value="json">JSON</option>
+          <option value="html">HTML</option>
+          <option value="xml">XML</option>
+        </select>
+        <button type="button" class="ds-btn ds-btn-small" data-http-format-json disabled>{t(lang, ns, "FormatJson")}</button>
+      </div>
+      <p class="ds-hint" id="http-body-hint">{t(lang, ns, "BodyHint")}</p>
+      <StatusMessage kind="error" data-http-body-error />
+      <StatusMessage kind="error" data-http-body-editor-error />
+      <div class="mdt-cm http-body-editor" data-http-body-editor hidden></div>
+      <label class="visually-hidden" for="http-body">{t(lang, ns, "BodyLabel")}</label>
+      <textarea id="http-body" class="ds-field-textarea mono http-body" aria-describedby="http-body-hint" rows="10" autocomplete="off" spellcheck="false" data-http-body></textarea>
     </div>
     <div id="http-request-settings-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-request-settings-tab" hidden>
       <div class="ds-settings http-options">
@@ -141,12 +157,17 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
           <div class="seg http-view-modes" role="group" aria-label={t(lang, ns, "ResponseView")}>
             <button type="button" aria-pressed="true" data-http-view="pretty" disabled>{t(lang, ns, "PrettyLabel")}</button>
             <button type="button" aria-pressed="false" data-http-view="raw">{t(lang, ns, "RawLabel")}</button>
+            <button type="button" aria-pressed="false" data-http-view="html" hidden>{t(lang, ns, "HtmlPreview")}</button>
           </div>
           <span class="ds-hint mono" data-http-response-type></span>
         </div>
         <StatusMessage kind="error" data-http-editor-error />
         <div class="mdt-cm http-response-editor" data-http-response-editor hidden></div>
         <pre class="ds-code-block mono http-preview" tabindex="0" data-http-response-preview></pre>
+        <div data-http-html-preview hidden>
+          <p class="ds-hint http-html-hint">{t(lang, ns, "HtmlPreviewHint")}</p>
+          <iframe class="http-html-frame" title={t(lang, ns, "HtmlPreview")} sandbox="" referrerpolicy="no-referrer" data-http-html-frame></iframe>
+        </div>
       </section>
       <section id="http-response-headers-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-response-headers-tab" hidden>
         <pre class="ds-code-block mono http-preview" tabindex="0" data-http-response-headers></pre>
@@ -204,6 +225,12 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
   .http-kv-table tr:has([data-row-enabled]:not(:checked)) [data-row-value] { color: var(--mdt-text-faint); }
   .http-add-row { margin: 0.45rem 0.7rem; }
   .http-body { min-height: 8rem; }
+  .http-body-toolbar { flex-wrap: wrap; }
+  .http-body-toolbar select { width: auto; }
+  .http-body-editor { --mdt-cm-height: 14rem; }
+  .http-request > #http-request-body-panel { max-height: none; }
+  .http-html-hint { padding: 0 1rem; }
+  .http-html-frame { width: 100%; height: 25rem; border: 0; background: white; color-scheme: light; }
   .http-options { grid-template-columns: minmax(9rem, 0.4fr) minmax(0, 1fr); align-items: end; }
   .http-redirects { min-height: 2.65rem; }
   .http-request > :global(.ds-alert):not(.visually-hidden) { margin: 0.5rem 1rem; }

@@ -27,7 +27,7 @@
   "PermissionsIntro": "The agent is not an account, remote service or general command runner.",
   "PermissionAccount": "No sign-up, login or MyDevTools cloud proxy.",
   "PermissionInstall": "No administrator rights, installer or Windows Service.",
-  "PermissionPairing": "A rotating one-time code starts an in-memory, time-limited browser session.",
+  "PermissionPairing": "A rotating one-time code starts a time-limited browser session. The browser stores the connection token for up to 8 hours or until the agent restarts, but never stores the pairing code.",
   "PermissionNetwork": "It listens only on this PC. HTTP requests go directly from the agent to the target and private-network targets are blocked by default.",
   "TrayTitle": "You stay in control",
   "TrayIntro": "Closing the small window hides it; the tray icon opens it again.",

@@ -27,7 +27,7 @@
   "PermissionsIntro": "代理不是账户、远程服务或通用命令执行器。",
   "PermissionAccount": "无需注册、登录或 MyDevTools 云代理。",
   "PermissionInstall": "无需管理员权限、安装程序或 Windows 服务。",
-  "PermissionPairing": "轮换的一次性代码会建立仅存于内存且有时限的浏览器会话。",
+  "PermissionPairing": "轮换的一次性代码会建立有时限的浏览器会话。浏览器会存储连接令牌，最长 8 小时或直到助手重启，但绝不会存储配对码。",
   "PermissionNetwork": "它只在本机监听。HTTP 请求由代理直接发往目标，默认阻止私有网络目标。",
   "TrayTitle": "控制权始终在您手中",
   "TrayIntro": "关闭小窗口只会将其隐藏；单击托盘图标可再次打开。",

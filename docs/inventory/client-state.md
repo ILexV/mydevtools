@@ -96,11 +96,27 @@ Desktop discard checks compare editable input against an in-memory baseline capt
 
 ## HTTP client and Local Agent
 
-`http-client` persists no request URLs, headers, bodies, results, pairing codes
-or session tokens. `LocalAgentClient` keeps its origin-bound token only in the
-current page's memory. Reloading the page requires pairing again; Disconnect
-revokes the server-side session. The agent keeps sessions in memory with an
-eight-hour expiry and invalidates them on exit/restart.
+`http-client` persists no request URLs, headers, bodies, results or pairing
+codes. `LocalAgentClient` stores only the origin-bound session record below.
+The one-time pairing code is submitted directly to the agent and is never
+written to browser storage.
+
+| Key | Storage | Shape | Lifetime |
+|---|---|---|---|
+| `mdt.local-agent.session.v1` | localStorage | `{ v: 1, token, expiresAt }` | Until the agent's eight-hour expiry, explicit Disconnect/clear, or an unauthorized response |
+
+On page load, an unexpired record is restored only after `/v1/info` confirms a
+reachable agent with the expected protocol. A temporarily unavailable agent
+leaves the record intact so a later retry can reconnect. Expired, malformed and
+unauthorized records are removed. If localStorage is blocked or rejects a
+write, pairing still works for the current page in memory and the client exposes
+that the token was not persisted.
+
+The agent keeps sessions in memory with an eight-hour expiry and invalidates
+them on exit/restart. Protocol v1 has no non-destructive authenticated session
+inspection route: `/v1/info` verifies the agent and protocol, not the saved
+bearer. After an agent restart, the next protected request receives
+`unauthorized` and removes the stale browser record.
 
 The Windows agent has one opt-in OS setting: the current user's
 `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\MyDevToolsLocalAgent` value.

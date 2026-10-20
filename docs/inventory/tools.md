@@ -158,8 +158,10 @@ the Windows tray/autostart shell.
 
 The browser persists the origin-bound bearer and its server-issued expiry in
 versioned localStorage so navigation, reload and browser reopen do not require
-another one-time pairing code. The code itself, requests and responses are not
-stored. Restore checks the local expiry and calls `/v1/info` to inspect the
+another one-time pairing code. The code itself and responses are not stored.
+Request drafts, including credentials explicitly entered in headers, are stored
+separately in `mdt.http-workspace.v1` for the saved-request sidebar and restoration
+of the selected request. Restore checks the local expiry and calls `/v1/info` to inspect the
 agent and protocol; a transiently unavailable agent leaves the saved bearer
 for a later retry. Blocked storage degrades to an in-memory session. Disconnect,
 local expiry and an unauthorized protected response remove the saved record.

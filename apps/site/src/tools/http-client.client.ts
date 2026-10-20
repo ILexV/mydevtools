@@ -11,6 +11,13 @@ import {
   type LocalAgentHeader,
   type LocalHttpResponse,
 } from "@/scripts/local-agent";
+import {
+  loadHttpWorkspace,
+  saveHttpWorkspace,
+  type HttpSavedRequest,
+  type HttpSavedRow,
+  type HttpWorkspace,
+} from "@/tools/http-workspace";
 
 interface Strings {
   Lang: string;
@@ -39,6 +46,18 @@ interface Strings {
   ErrorUrl: string;
   ErrorBodyLimit: string;
   ErrorGeneric: string;
+  SavedRequests: string;
+  NewRequest: string;
+  RequestName: string;
+  UntitledRequest: string;
+  DeleteRequestConfirm: string;
+  DeleteRequest: string;
+  WorkspacePrivacy: string;
+  WorkspaceSaveError: string;
+  WorkspaceLoadError: string;
+  AgentConnectedShort: string;
+  AgentDisconnectedShort: string;
+  AgentSettings: string;
   [key: `Error_${string}`]: string;
 }
 
@@ -100,6 +119,21 @@ function requestId(): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
+function createBlankRequest(): HttpSavedRequest {
+  return {
+    id: requestId(),
+    name: "",
+    method: "GET",
+    url: "",
+    params: [],
+    headers: [],
+    body: "",
+    bodyFormat: "text",
+    timeoutMs: 30000,
+    followRedirects: false,
+  };
+}
+
 function init(): void {
   const root = document.querySelector<HTMLElement>("[data-http-client]");
   if (!root || root.dataset.bound === "true") return;
@@ -117,6 +151,13 @@ function init(): void {
   const connectionStatus = root.querySelector<HTMLElement>("[data-http-connection-status]");
   const connectionError = root.querySelector<HTMLElement>("[data-http-connection-error]");
   const connectionState = root.querySelector<HTMLElement>("[data-http-connection-state]");
+  const agentSettings = root.querySelector<HTMLDetailsElement>("[data-http-agent-settings]");
+  const requestName = root.querySelector<HTMLInputElement>("[data-http-request-name]");
+  const savedList = root.querySelector<HTMLElement>("[data-http-saved-list]");
+  const newRequest = root.querySelector<HTMLButtonElement>("[data-http-new]");
+  const deleteRequest = root.querySelector<HTMLButtonElement>("[data-http-delete]");
+  const workspaceLoadError = root.querySelector<HTMLElement>("[data-http-workspace-load-error]");
+  const workspaceSaveError = root.querySelector<HTMLElement>("[data-http-workspace-save-error]");
   const method = root.querySelector<HTMLSelectElement>("[data-http-method]");
   const requestUrl = root.querySelector<HTMLInputElement>("[data-http-url]");
   const rowTemplate = root.querySelector<HTMLTemplateElement>("[data-http-row-template]");
@@ -152,13 +193,21 @@ function init(): void {
   const htmlFrame = root.querySelector<HTMLIFrameElement>("[data-http-html-frame]")!;
   const download = root.querySelector<HTMLButtonElement>("[data-http-download]");
   if (!code || !connect || !disconnect || !agentMeta || !agentVersion || !lanPolicy || !connectionStatus
-    || !connectionError || !connectionState || !method || !requestUrl || !rowTemplate || !requestBody
+    || !connectionError || !connectionState || !agentSettings || !requestName || !savedList || !newRequest
+    || !deleteRequest || !workspaceLoadError || !workspaceSaveError || !method || !requestUrl || !rowTemplate || !requestBody
     || !timeout || !redirects || !send || !cancel || !requestStatus || !requestError || !output || !result
     || !responseStatus || !responseTime || !responseSize || !responseUrl || !responseHeaders
     || !responsePreview || !download || !responseMeta || !responseType || !editorHost || !editorError
     || !prettyButton || !rawButton) return;
 
   const client = new LocalAgentClient();
+  let hasSavedAgentSession = false;
+  try {
+    hasSavedAgentSession = localStorage.getItem("mdt.local-agent.session.v1") !== null;
+  } catch {
+    // Blocked storage means there cannot be a restorable browser session.
+  }
+  agentSettings.open = !hasSavedAgentSession;
   let active: { id: string; abort: AbortController } | null = null;
   let responseBlob: Blob | null = null;
   let responseName = "response.bin";
@@ -173,47 +222,106 @@ function init(): void {
   let bodyRevision = 0;
   let mountedBodyLanguage: EditorLanguage | null = null;
   const s = strings;
+  const loadedWorkspace = loadHttpWorkspace();
+  let workspace: HttpWorkspace = loadedWorkspace.workspace ?? {
+    v: 1,
+    selectedId: "",
+    requests: [],
+  };
+  if (!workspace.requests.length) {
+    const initial = createBlankRequest();
+    workspace.selectedId = initial.id;
+    workspace.requests.push(initial);
+  }
+  let workspaceDirty = false;
+  let currentRequest = workspace.requests.find((request) => request.id === workspace.selectedId)!;
+  let saveTimer = 0;
   const responseUi = {
     output,
     result,
     meta: responseMeta,
     type: responseType,
     prettyButton,
+    rawButton,
     status: responseStatus,
     time: responseTime,
     size: responseSize,
     url: responseUrl,
     headers: responseHeaders,
     preview: responsePreview,
+    editorHost,
+    editorError,
     download,
     requestStatus,
+    requestError,
+  };
+  const workspaceUi = {
+    root,
+    strings: s,
+    requestName,
+    method,
+    requestUrl,
+    requestBody,
+    timeout,
+    redirects,
+    savedList,
+    loadError: workspaceLoadError,
+    saveError: workspaceSaveError,
   };
 
   const bindTable = (kind: "params" | "headers", onChange?: () => void) => {
     const body = root.querySelector<HTMLTableSectionElement>(`[data-http-table="${kind}"] tbody`)!;
     const count = root.querySelector<HTMLElement>(`[data-http-${kind}-count]`)!;
     const add = root.querySelector<HTMLButtonElement>(`[data-http-add-row="${kind}"]`)!;
-    const rows: { enabled: HTMLInputElement; key: HTMLInputElement; value: HTMLInputElement }[] = [];
-    const read = (): LocalAgentHeader[] => rows
-      .filter((row) => row.enabled.checked && (row.key.value !== "" || row.value.value !== ""))
-      .map((row) => ({ name: row.key.value, value: row.value.value }));
+    const rows: {
+      enabled: HTMLInputElement;
+      key: HTMLInputElement;
+      value: HTMLInputElement;
+      element: HTMLTableRowElement;
+      dirty: boolean;
+    }[] = [];
+    const read = (): LocalAgentHeader[] => {
+      const entries: LocalAgentHeader[] = [];
+      for (const row of rows) {
+        if (row.enabled.checked && (row.key.value !== "" || row.value.value !== "")) {
+          entries.push({ name: row.key.value, value: row.value.value });
+        }
+      }
+      return entries;
+    };
+    const readAll = (): HttpSavedRow[] => {
+      const entries: HttpSavedRow[] = [];
+      for (const row of rows) {
+        if (row.dirty || row.key.value !== "" || row.value.value !== "") {
+          entries.push({ name: row.key.value, value: row.value.value, enabled: row.enabled.checked });
+        }
+      }
+      return entries;
+    };
     const updateCount = (): void => {
-      const size = read().length;
+      let size = 0;
+      for (const row of rows) {
+        if (row.enabled.checked && (row.key.value !== "" || row.value.value !== "")) size++;
+      }
       count.textContent = size ? String(size) : "";
     };
-    const append = (name = "", value = "") => {
+    const append = (entry?: HttpSavedRow) => {
       const element = rowTemplate.content.firstElementChild!.cloneNode(true) as HTMLTableRowElement;
       const row = {
         enabled: element.querySelector<HTMLInputElement>("[data-row-enabled]")!,
         key: element.querySelector<HTMLInputElement>("[data-row-key]")!,
         value: element.querySelector<HTMLInputElement>("[data-row-value]")!,
+        element,
+        dirty: entry !== undefined,
       };
-      row.key.value = name;
-      row.value.value = value;
+      row.enabled.checked = entry?.enabled ?? true;
+      row.key.value = entry?.name ?? "";
+      row.value.value = entry?.value ?? "";
       rows.push(row);
       body.append(element);
       element.addEventListener("input", () => {
-        if (rows.at(-1) === row && (row.key.value || row.value.value)) append();
+        row.dirty = true;
+        if (rows.at(-1) === row && (row.key.value || row.value.value || !row.enabled.checked)) append();
         updateCount();
         onChange?.();
       });
@@ -221,7 +329,7 @@ function init(): void {
         const index = rows.indexOf(row);
         rows.splice(index, 1);
         element.remove();
-        if (!rows.length) append();
+        if (!rows.length || rows.at(-1)?.dirty) append();
         rows[Math.min(index, rows.length - 1)]!.key.focus();
         updateCount();
         onChange?.();
@@ -230,31 +338,48 @@ function init(): void {
     };
     add.addEventListener("click", () => {
       const last = rows.at(-1);
-      (last && !last.key.value && !last.value.value ? last : append()).key.focus();
+      (last && !last.dirty && !last.key.value && !last.value.value ? last : append()).key.focus();
     });
-    const replace = (entries: Iterable<[string, string]>): void => {
+    const replace = (entries: Iterable<HttpSavedRow>): void => {
       rows.length = 0;
       body.replaceChildren();
-      for (const [name, value] of entries) append(name, value);
+      for (const entry of entries) append(entry);
       append();
       updateCount();
     };
     append();
-    return { read, replace };
+    return { read, readAll, replace };
   };
   const paramsTable = bindTable("params", () => {
     const url = requestUrl.value;
     const hashAt = url.indexOf("#");
     const fragment = hashAt < 0 ? "" : url.slice(hashAt);
     const base = (hashAt < 0 ? url : url.slice(0, hashAt)).split("?", 1)[0]!;
-    const query = new URLSearchParams(paramsTable.read().map(({ name, value }) => [name, value])).toString();
+    const searchParams = new URLSearchParams();
+    for (const { name, value } of paramsTable.read()) searchParams.append(name, value);
+    const query = searchParams.toString();
     requestUrl.value = `${base}${query ? `?${query}` : ""}${fragment}`;
+    updateSelectedListEntry();
+    scheduleWorkspaceSave();
   });
-  const headersTable = bindTable("headers");
+  const headersTable = bindTable("headers", scheduleWorkspaceSave);
   requestUrl.addEventListener("input", () => {
     const beforeFragment = requestUrl.value.split("#", 1)[0]!;
     const queryAt = beforeFragment.indexOf("?");
-    paramsTable.replace(new URLSearchParams(queryAt < 0 ? "" : beforeFragment.slice(queryAt + 1)));
+    const parsed: HttpSavedRow[] = [];
+    for (const [name, value] of new URLSearchParams(queryAt < 0 ? "" : beforeFragment.slice(queryAt + 1))) {
+      parsed.push({ name, value, enabled: true });
+    }
+    const merged: HttpSavedRow[] = [];
+    let parsedIndex = 0;
+    for (const row of paramsTable.readAll()) {
+      if (!row.enabled) merged.push(row);
+      else if (parsedIndex < parsed.length) merged.push(parsed[parsedIndex++]!);
+    }
+    while (parsedIndex < parsed.length) merged.push(parsed[parsedIndex++]!);
+    paramsTable.replace(merged);
+    updateSelectedListEntry();
+    scheduleWorkspaceSave();
   });
   const mountBodyEditor = async (): Promise<void> => {
     const revision = ++bodyRevision;
@@ -275,12 +400,14 @@ function init(): void {
       if (revision !== bodyRevision) return;
       const mount = document.createElement("div");
       mount.style.height = "100%";
+      let hydrating = true;
       const editor = await kit.createEditor(mount, {
         language, label: strings.BodyLabel, hintId: "http-body-hint", phrases: strings.phrases,
         onSubmit: () => { if (!send.disabled) send.click(); },
         onChange: () => {
           requestBody.value = editor.getValue();
           bodyError.hidden = true;
+          if (!hydrating) scheduleWorkspaceSave();
         },
       });
       if (revision !== bodyRevision) {
@@ -288,6 +415,7 @@ function init(): void {
         return;
       }
       editor.setValue(requestBody.value);
+      hydrating = false;
       bodyEditor?.view.destroy();
       bodyEditor = editor;
       mountedBodyLanguage = language;
@@ -304,8 +432,14 @@ function init(): void {
       bodyEditorError.hidden = false;
     }
   };
-  bodyFormat.addEventListener("change", () => { void mountBodyEditor(); });
-  requestBody.addEventListener("input", () => { bodyError.hidden = true; });
+  bodyFormat.addEventListener("change", () => {
+    scheduleWorkspaceSave();
+    void mountBodyEditor();
+  });
+  requestBody.addEventListener("input", () => {
+    bodyError.hidden = true;
+    scheduleWorkspaceSave();
+  });
   formatJson.addEventListener("click", () => {
     const formatted = formatResponseJson(requestBody.value);
     bodyError.hidden = formatted !== null;
@@ -318,6 +452,7 @@ function init(): void {
       bodyEditor.setValue(formatted);
       bodyEditor.focus();
     }
+    scheduleWorkspaceSave();
   });
 
   const showPreview = async (mode: "pretty" | "raw" | "html"): Promise<void> => {
@@ -444,6 +579,222 @@ function init(): void {
     element.textContent = message;
     element.hidden = false;
   };
+
+  function captureCurrentRequest(): void {
+    if (bodyEditor && !bodyHost.hidden) workspaceUi.requestBody.value = bodyEditor.getValue();
+    const timeoutValue = Number(workspaceUi.timeout.value);
+    currentRequest.name = workspaceUi.requestName.value;
+    currentRequest.method = workspaceUi.method.value;
+    currentRequest.url = workspaceUi.requestUrl.value;
+    currentRequest.params = paramsTable.readAll();
+    currentRequest.headers = headersTable.readAll();
+    currentRequest.body = workspaceUi.requestBody.value;
+    currentRequest.bodyFormat = bodyFormat.value as HttpSavedRequest["bodyFormat"];
+    currentRequest.timeoutMs = Number.isFinite(timeoutValue) ? timeoutValue : 30000;
+    currentRequest.followRedirects = workspaceUi.redirects.checked;
+  }
+
+  function saveWorkspaceNow(): boolean {
+    window.clearTimeout(saveTimer);
+    saveTimer = 0;
+    if (!workspaceDirty) return true;
+    captureCurrentRequest();
+    if (!saveHttpWorkspace(workspace)) {
+      showMessage(workspaceUi.saveError, workspaceUi.strings.WorkspaceSaveError);
+      return false;
+    }
+    workspaceDirty = false;
+    hideMessage(workspaceUi.saveError);
+    hideMessage(workspaceUi.loadError);
+    return true;
+  }
+
+  function scheduleWorkspaceSave(): void {
+    workspaceDirty = true;
+    window.clearTimeout(saveTimer);
+    saveTimer = window.setTimeout(saveWorkspaceNow, 250);
+  }
+
+  function updateSelectedListEntry(): void {
+    let item: HTMLButtonElement | null = null;
+    for (const candidate of workspaceUi.savedList.querySelectorAll<HTMLButtonElement>("[data-http-saved-id]")) {
+      if (candidate.dataset.httpSavedId === currentRequest.id) {
+        item = candidate;
+        break;
+      }
+    }
+    if (!item) return;
+    item.querySelector<HTMLElement>(".http-saved-method")!.textContent = workspaceUi.method.value;
+    item.querySelector<HTMLElement>(".http-saved-name")!.textContent =
+      workspaceUi.requestName.value.trim() || workspaceUi.strings.UntitledRequest;
+    item.querySelector<HTMLElement>(".http-saved-url")!.textContent = workspaceUi.requestUrl.value;
+  }
+
+  function renderSavedList(): void {
+    const fragment = document.createDocumentFragment();
+    for (const request of workspace.requests) {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "http-saved-item";
+      item.dataset.httpSavedId = request.id;
+      item.setAttribute("aria-pressed", String(request.id === workspace.selectedId));
+      item.disabled = active !== null;
+      const methodLabel = document.createElement("span");
+      methodLabel.className = "http-saved-method mono";
+      methodLabel.textContent = request.method;
+      const nameLabel = document.createElement("span");
+      nameLabel.className = "http-saved-name";
+      nameLabel.textContent = request.name.trim() || workspaceUi.strings.UntitledRequest;
+      const urlLabel = document.createElement("span");
+      urlLabel.className = "http-saved-url mono";
+      urlLabel.textContent = request.url;
+      item.append(methodLabel, nameLabel, urlLabel);
+      item.addEventListener("click", () => { switchRequest(request.id); });
+      fragment.append(item);
+    }
+    workspaceUi.savedList.replaceChildren(fragment);
+  }
+
+  function clearResponse(): void {
+    previewRevision++;
+    responseUi.status.textContent = "";
+    responseUi.status.classList.remove("is-error");
+    responseUi.time.textContent = "";
+    responseUi.size.textContent = "";
+    responseEditor?.view.destroy();
+    responseEditor = null;
+    editorLanguage = null;
+    responseUi.editorHost.replaceChildren();
+    responseUi.editorHost.hidden = true;
+    responseBlob = null;
+    responseName = "response.bin";
+    rawPreview = "";
+    prettyPreview = null;
+    htmlSource = null;
+    responseUi.preview.textContent = "";
+    responseUi.headers.textContent = "";
+    responseUi.url.textContent = "";
+    responseUi.type.textContent = "";
+    responseUi.meta.hidden = true;
+    responseUi.result.hidden = true;
+    responseUi.download.disabled = true;
+    htmlFrame.removeAttribute("srcdoc");
+    htmlPreview.hidden = true;
+    htmlButton.hidden = true;
+    responseUi.prettyButton.disabled = true;
+    responseUi.prettyButton.setAttribute("aria-pressed", "true");
+    responseUi.rawButton.setAttribute("aria-pressed", "false");
+    htmlButton.setAttribute("aria-pressed", "false");
+    hideMessage(responseUi.editorError);
+    hideMessage(responseUi.requestStatus);
+    hideMessage(responseUi.requestError);
+    syncEmptyState(responseUi.output, true);
+  }
+
+  function applyRequest(request: HttpSavedRequest): void {
+    bodyRevision++;
+    bodyEditor?.view.destroy();
+    bodyEditor = null;
+    mountedBodyLanguage = null;
+    bodyHost.replaceChildren();
+    bodyHost.hidden = true;
+    workspaceUi.requestBody.hidden = false;
+    workspaceUi.requestName.value = request.name;
+    workspaceUi.method.value = request.method;
+    workspaceUi.requestUrl.value = request.url;
+    paramsTable.replace(request.params);
+    headersTable.replace(request.headers);
+    workspaceUi.requestBody.value = request.body;
+    bodyFormat.value = request.bodyFormat;
+    workspaceUi.timeout.value = String(request.timeoutMs);
+    workspaceUi.redirects.checked = request.followRedirects;
+    formatJson.disabled = request.bodyFormat !== "json";
+    hideMessage(bodyError);
+    hideMessage(bodyEditorError);
+    clearResponse();
+    renderSavedList();
+    const bodyPanel = workspaceUi.root.querySelector<HTMLElement>("#http-request-body-panel");
+    if (bodyPanel && !bodyPanel.hidden) void mountBodyEditor();
+  }
+
+  function switchRequest(id: string): void {
+    if (active || id === currentRequest.id || !saveWorkspaceNow()) return;
+    const next = workspace.requests.find((request) => request.id === id);
+    if (!next) return;
+    workspace.selectedId = next.id;
+    currentRequest = next;
+    workspaceDirty = true;
+    applyRequest(next);
+    saveWorkspaceNow();
+  }
+
+  requestName.addEventListener("input", () => {
+    updateSelectedListEntry();
+    scheduleWorkspaceSave();
+  });
+  method.addEventListener("change", () => {
+    updateSelectedListEntry();
+    scheduleWorkspaceSave();
+  });
+  timeout.addEventListener("input", scheduleWorkspaceSave);
+  redirects.addEventListener("change", scheduleWorkspaceSave);
+  newRequest.addEventListener("click", () => {
+    if (active || !saveWorkspaceNow()) return;
+    const request = createBlankRequest();
+    workspace.requests.push(request);
+    workspace.selectedId = request.id;
+    currentRequest = request;
+    workspaceDirty = true;
+    applyRequest(request);
+    saveWorkspaceNow();
+    requestName.select();
+  });
+  deleteRequest.addEventListener("click", () => {
+    if (active || !saveWorkspaceNow()) return;
+    const deleted = currentRequest;
+    const label = deleted.name.trim() || strings.UntitledRequest;
+    if (!window.confirm(strings.DeleteRequestConfirm.replace("{name}", label))) return;
+    const requestsBefore = [...workspace.requests];
+    const index = workspace.requests.indexOf(deleted);
+    workspace.requests.splice(index, 1);
+    if (!workspace.requests.length) workspace.requests.push(createBlankRequest());
+    currentRequest = workspace.requests[Math.min(index, workspace.requests.length - 1)]!;
+    workspace.selectedId = currentRequest.id;
+    workspaceDirty = true;
+    applyRequest(currentRequest);
+    if (!saveWorkspaceNow()) {
+      workspace.requests = requestsBefore;
+      workspace.selectedId = deleted.id;
+      currentRequest = deleted;
+      workspaceDirty = false;
+      applyRequest(deleted);
+    }
+  });
+  window.addEventListener("pagehide", saveWorkspaceNow);
+  window.addEventListener("storage", (event) => {
+    if (event.key !== "mdt.http-workspace.v1" || workspaceDirty || active) return;
+    const incoming = loadHttpWorkspace();
+    if (incoming.error) {
+      showMessage(workspaceLoadError, strings.WorkspaceLoadError);
+      return;
+    }
+    workspace = incoming.workspace ?? { v: 1, selectedId: "", requests: [] };
+    if (!workspace.requests.length) {
+      const initial = createBlankRequest();
+      workspace.selectedId = initial.id;
+      workspace.requests.push(initial);
+    }
+    currentRequest = workspace.requests.find((request) => request.id === workspace.selectedId)!;
+    hideMessage(workspaceLoadError);
+    applyRequest(currentRequest);
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") saveWorkspaceNow();
+  });
+  if (loadedWorkspace.error) showMessage(workspaceLoadError, strings.WorkspaceLoadError);
+  else hideMessage(workspaceLoadError);
+  hideMessage(workspaceSaveError);
+  applyRequest(currentRequest);
   const errorText = (error: unknown): string => {
     if (error instanceof LocalAgentError) return strings[`Error_${error.code}`] || strings.ErrorGeneric;
     if (error instanceof Error && error.message) return error.message;
@@ -455,7 +806,9 @@ function init(): void {
     send.disabled = !connected || active !== null;
     code.disabled = connected;
     agentMeta.hidden = !connected;
-    connectionState.textContent = connected ? strings.Connected : strings.NotConnected;
+    connectionState.textContent = connected ? strings.AgentConnectedShort : strings.AgentDisconnectedShort;
+    agentSettings.classList.toggle("is-connected", connected);
+    agentSettings.open = connected ? false : !hasSavedAgentSession;
     if (setup) setup.hidden = connected;
     storageWarning.hidden = !connected || client.persisted;
     storageWarning.textContent = strings.ConnectionNotSaved;
@@ -467,6 +820,9 @@ function init(): void {
     if (sending) requestStatus.classList.remove("visually-hidden");
     method.disabled = sending;
     requestUrl.disabled = sending;
+    newRequest.disabled = sending;
+    deleteRequest.disabled = sending;
+    for (const item of savedList.querySelectorAll<HTMLButtonElement>("[data-http-saved-id]")) item.disabled = sending;
   };
 
   const connectAgent = async (automatic = false): Promise<void> => {
@@ -475,10 +831,12 @@ function init(): void {
     connectionState.textContent = strings.Connecting;
     connect.disabled = true;
     const pairingCode = automatic ? "" : code.value.trim();
+    if (!automatic) hasSavedAgentSession = false;
     try {
       const info = pairingCode
         ? await client.pair(pairingCode, ["http.request"])
         : await client.restore();
+      if (!info) hasSavedAgentSession = false;
       if (!info) {
         setConnected(false);
         hideMessage(connectionStatus);
@@ -487,6 +845,7 @@ function init(): void {
       }
       agentVersion.textContent = info.version;
       lanPolicy.textContent = info.privateNetworkAllowed ? strings.PrivateAllowed : strings.PrivateBlocked;
+      hasSavedAgentSession = client.persisted;
       setConnected(true);
       showMessage(connectionStatus, strings.Connected);
     } catch (error) {
@@ -502,6 +861,7 @@ function init(): void {
   void connectAgent(true);
 
   disconnect.addEventListener("click", async () => {
+    hasSavedAgentSession = false;
     const pending = client.disconnect();
     if (active) {
       active.abort.abort();
@@ -524,6 +884,7 @@ function init(): void {
   });
 
   send.addEventListener("click", async () => {
+    if (!saveWorkspaceNow()) return;
     hideMessage(requestError);
     const url = requestUrl.value.trim();
     try {
@@ -600,7 +961,10 @@ function init(): void {
       } else {
         hideMessage(requestStatus);
         showMessage(requestError, errorText(error));
-        if (!client.connected) setConnected(false);
+        if (!client.connected) {
+          hasSavedAgentSession = false;
+          setConnected(false);
+        }
       }
     } finally {
       if (active?.id === id) {

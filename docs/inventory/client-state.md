@@ -96,14 +96,23 @@ Desktop discard checks compare editable input against an in-memory baseline capt
 
 ## HTTP client and Local Agent
 
-`http-client` persists no request URLs, headers, bodies, results or pairing
-codes. `LocalAgentClient` stores only the origin-bound session record below.
-The one-time pairing code is submitted directly to the agent and is never
-written to browser storage.
+`http-client` automatically saves request drafts locally, including URLs, names,
+methods, enabled/disabled repeated parameters and headers (including secrets),
+body text/format, timeout and redirect settings. The selected request is restored
+on reopen. Responses and one-time pairing codes are never stored.
+The request list is independent of the shorter-lived connection token.
 
 | Key | Storage | Shape | Lifetime |
 |---|---|---|---|
 | `mdt.local-agent.session.v1` | localStorage | `{ v: 1, token, expiresAt }` | Until the agent's eight-hour expiry, explicit Disconnect/clear, or an unauthorized response |
+| `mdt.http-workspace.v1` | localStorage | `{ v: 1, selectedId, requests[] }` | Until explicit request deletion or browser site-data removal; no automatic eviction |
+
+Draft edits are debounced by 250 ms and flushed on switch, send, pagehide and
+hidden visibility. New/rename/delete and selected request changes are persisted.
+Malformed workspace data is left intact on initial load with a visible error;
+blocked storage or quota failure reports an error and preserves the previous
+saved value. Responses stay transient. These drafts are not encrypted or synced:
+avoid shared browser profiles for secrets, and clearing site data removes them.
 
 On page load, an unexpired record is restored only after `/v1/info` confirms a
 reachable agent with the expected protocol. A temporarily unavailable agent

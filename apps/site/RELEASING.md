@@ -63,16 +63,16 @@ The same release embeds the MyDevTools icon for the executable, window and tray,
 restores the native caption through default `WM_NCCREATE` handling, and uses
 DPI-scaled Segoe UI controls with consistent backgrounds.
 
-The HTTP workspace now uses a companion sidebar and a single request/response
-surface. Request Params/Headers tables support repeated keys, disabled rows,
+The HTTP workspace uses a saved-request sidebar and a single request/response
+surface with a compact connection indicator/settings disclosure. Request Params/Headers tables support repeated keys, disabled rows,
 and keyboard-accessible add/remove controls; editing Params updates the URL
-and editing the URL replaces the table. The original URL encoding is untouched
-until a table edit (table edits use `URLSearchParams` encoding). Body and
-Settings remain separate tabs. No request or response data is persisted.
+and editing the URL updates active parameter rows while retaining disabled rows.
+The original URL encoding is untouched until a table edit (`URLSearchParams` encoding).
+Body and Settings remain separate tabs. Requests autosave locally; responses do not.
 
 HTTP-client smoke must exercise URL ↔ Params synchronization (including
 Unicode, repeated keys and unchecked rows), Headers/Body/Settings keyboard
-navigation, response Body/Headers tabs, and the collapsible companion sidebar
+navigation, response Body/Headers tabs, and the compact connection settings
 at desktop and 375px widths in both themes. The read-only response viewer loads
 CodeMirror lazily. Pretty JSON preserves source tokens, including large numbers
 and duplicate keys; Raw retains decoded source text and downloads retain exact
@@ -82,8 +82,8 @@ bounds also stay Raw. Check that canceling or starting another request cannot
 reveal a stale asynchronously loaded editor.
 
 The browser remembers the origin-bound companion bearer token in
-`mdt.local-agent.session.v1`; it never stores the one-time pairing code or HTTP
-request/response data. Reloads and locale changes restore the connection.
+`mdt.local-agent.session.v1`; it never stores the one-time pairing code or responses.
+Reloads and locale changes restore the connection.
 Disconnect, expiry and an unauthorized response remove the record. Native
 sessions still expire after eight hours and disappear on agent restart;
 protocol v1 detects a lost native session on the first authorized operation,
@@ -111,6 +111,16 @@ iframes and SVG: markup must render without requests to those URLs or access to
 the parent page. Also exercise reload/locale restore, disconnect + reload,
 invalid JSON, format switching without text loss, Content-Type override, and
 Ctrl/Cmd-Enter submission.
+
+Saved-request smoke: create and rename two requests, edit JSON and disabled
+duplicate parameters/headers, switch immediately before the debounce fires,
+reload/reopen and verify exact selected request restoration. Confirm deleting
+one request leaves the other intact, and switching clears the previous response.
+New/switch/delete are disabled during sending. Check first-run setup opens,
+successful pairing collapses it, and settings can be reopened from the indicator.
+The separate `mdt.http-workspace.v1` record stores request credentials in plain
+browser storage; its privacy notice must remain visible. A failed quota write
+must not erase the previous saved record or permit a switch that loses unsaved input.
 
 
 ## Build → preview → deploy → smoke test

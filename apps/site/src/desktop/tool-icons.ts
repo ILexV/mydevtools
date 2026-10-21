@@ -71,6 +71,7 @@ export const TOOL_ICONS: Record<string, string> = {
   "http-client": `<path d="M3 5h8M8 2l3 3-3 3M17 15H9M12 12l-3 3 3 3"/><path d="M5 10h10" stroke-opacity=".45"/>`,
   "path-trace": `<circle cx="4.2" cy="4.2" r="1.7"/><circle cx="10" cy="10" r="1.7"/><circle cx="15.8" cy="15.8" r="1.7"/><path d="M5.6 5.4 8.6 8.5M11.4 11.5 14.4 14.6"/>`,
   "dns-lookup": `<circle cx="10" cy="10" r="6.2"/><path d="M10 3.8v12.4M4.2 10h11.6M5.2 6.6c1.4 1.2 3 1.8 4.8 1.8s3.4-.6 4.8-1.8M5.2 13.4c1.4-1.2 3-1.8 4.8-1.8s3.4.6 4.8 1.8"/>`,
+  "tcp-connect": `<path d="M7 3.2v3.6M13 3.2v3.6M5.2 7.4h9.6v2.4a4.8 4.8 0 0 1-9.6 0V7.4zM10 14.6v2.6"/>`,
 
   /* design */
   "color-converter": `<path d="M10 3a7 7 0 0 0 0 14c1 0 1.5-.6 1.5-1.4 0-.8-.6-1.2-.6-2 0-.9.7-1.6 1.6-1.6H14a3 3 0 0 0 3-3C17 5.8 13.9 3 10 3Z"/>${dot(6.4, 9.2)}${dot(8.4, 6.2)}${dot(12.4, 6.3)}`,

@@ -19,7 +19,9 @@ use crate::{
     icmp::{SharedTrace, TraceState},
     model::{
         ApiError, DNS_CAPABILITY, HTTP_CAPABILITY, ICMP_CAPABILITY, PairRequest, PairResponse,
+        TCP_CAPABILITY,
     },
+    tcp::MAX_CONCURRENT_CONNECTS,
 };
 
 const PAIRING_LIFETIME: Duration = Duration::from_secs(5 * 60);
@@ -51,6 +53,8 @@ pub(crate) struct AgentState {
     concurrency: Arc<Semaphore>,
     /// DNS lookups in flight. Separate from HTTP and from the ICMP cap of two.
     dns_concurrency: Arc<Semaphore>,
+    /// TCP connects in flight. One host and one port each. Separate from DNS and ICMP.
+    tcp_concurrency: Arc<Semaphore>,
     /// Path MTU searches in flight. Counted with non-idle traces toward the cap of two.
     mtu_inflight: Mutex<usize>,
 }
@@ -67,6 +71,7 @@ struct Session {
     http_request_allowed: bool,
     icmp_trace_allowed: bool,
     dns_lookup_allowed: bool,
+    tcp_connect_allowed: bool,
     active: HashMap<Uuid, CancellationToken>,
     cancellation_tombstones: HashMap<Uuid, Instant>,
     traces: HashMap<Uuid, Arc<Mutex<SharedTrace>>>,
@@ -92,6 +97,7 @@ impl AgentState {
             sessions: Mutex::new(HashMap::new()),
             concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_REQUESTS)),
             dns_concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_LOOKUPS)),
+            tcp_concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_CONNECTS)),
             mtu_inflight: Mutex::new(0),
         })
     }
@@ -178,6 +184,9 @@ impl AgentState {
                 dns_lookup_allowed: granted
                     .iter()
                     .any(|capability| *capability == DNS_CAPABILITY),
+                tcp_connect_allowed: granted
+                    .iter()
+                    .any(|capability| *capability == TCP_CAPABILITY),
                 active: HashMap::new(),
                 cancellation_tombstones: HashMap::new(),
                 traces: HashMap::new(),
@@ -242,6 +251,24 @@ impl AgentState {
             .map_err(|_| ApiError::busy())
     }
 
+    pub(crate) fn authorize_tcp(
+        &self,
+        authorization: Option<&str>,
+        origin: &str,
+    ) -> Result<SessionKey, ApiError> {
+        let auth = self.authorize(authorization, origin)?;
+        if !auth.tcp_connect_allowed {
+            return Err(ApiError::forbidden());
+        }
+        Ok(auth.key)
+    }
+
+    pub(crate) fn try_acquire_tcp_slot(&self) -> Result<OwnedSemaphorePermit, ApiError> {
+        Arc::clone(&self.tcp_concurrency)
+            .try_acquire_owned()
+            .map_err(|_| ApiError::busy())
+    }
+
     fn authorize(
         &self,
         authorization: Option<&str>,
@@ -268,6 +295,7 @@ impl AgentState {
             http_request_allowed: session.http_request_allowed,
             icmp_trace_allowed: session.icmp_trace_allowed,
             dns_lookup_allowed: session.dns_lookup_allowed,
+            tcp_connect_allowed: session.tcp_connect_allowed,
         })
     }
 
@@ -488,6 +516,7 @@ struct SessionAuth {
     http_request_allowed: bool,
     icmp_trace_allowed: bool,
     dns_lookup_allowed: bool,
+    tcp_connect_allowed: bool,
 }
 
 impl Drop for ActiveRequestGuard {
@@ -527,15 +556,17 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
     let mut http = false;
     let mut icmp = false;
     let mut dns = false;
+    let mut tcp = false;
     for capability in requested {
         match capability.as_str() {
             HTTP_CAPABILITY if !http => http = true,
             ICMP_CAPABILITY if !icmp => icmp = true,
             DNS_CAPABILITY if !dns => dns = true,
+            TCP_CAPABILITY if !tcp => tcp = true,
             _ => return Err(ApiError::unsupported_capability()),
         }
     }
-    let mut granted = Vec::with_capacity(3);
+    let mut granted = Vec::with_capacity(4);
     if http {
         granted.push(HTTP_CAPABILITY);
     }
@@ -544,6 +575,9 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
     }
     if dns {
         granted.push(DNS_CAPABILITY);
+    }
+    if tcp {
+        granted.push(TCP_CAPABILITY);
     }
     Ok(granted)
 }

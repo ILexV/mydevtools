@@ -1,0 +1,123 @@
+---
+/**
+ * TCP connect. One handshake runs in the local agent. This shell supplies
+ * the form and the localized string island.
+ */
+import { t } from "@/i18n/messages";
+import { localizedPath } from "@/lib/url";
+import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+
+interface Props { lang: LocaleCode }
+const { lang } = Astro.props as Props;
+const ns = "tools/tcp-connect";
+const agentHref = localizedPath(lang, "local-agent");
+const clientKeys = [
+  "Connected", "Disconnected", "Connecting", "NotConnected",
+  "AgentConnectedShort", "AgentDisconnectedShort", "ConnectionNotSaved", "NeedTcpCapability",
+  "InvalidInput", "InvalidTimeout", "Checking", "Check", "Copied", "CopyFailed",
+  "StatusOpen", "StatusRefused", "StatusTimeout", "StatusUnreachable", "TimeValue",
+  "ErrorGeneric", "Error_agent_unavailable", "Error_invalid_response", "Error_invalid_request",
+  "Error_unauthorized", "Error_forbidden", "Error_pairing_invalid", "Error_pairing_expired",
+  "Error_pairing_rate_limited", "Error_unsupported_capability", "Error_timeout", "Error_busy",
+  "Error_network_error", "Error_incompatible_protocol", "Error_not_found", "Error_name_not_found",
+  "Error_private_network_denied", "Error_target_denied", "Error_tcp_unavailable",
+] as const;
+const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
+const stringsJson = JSON.stringify(strings);
+---
+
+<div class="tcp-connect" data-tcp-connect>
+  <section class="ds-card tcp-card" aria-labelledby="tcp-connection-title">
+    <h2 id="tcp-connection-title" class="ds-panel-title">{t(lang, ns, "ConnectionTitle")}</h2>
+    <div class="tcp-connect-row">
+      <Field label={t(lang, ns, "PairCodeLabel")} for="tcp-connect-code" hint={t(lang, ns, "PairCodeHint")}>
+        <input id="tcp-connect-code" class="ds-field mono" type="password" autocomplete="one-time-code" spellcheck="false" data-tcp-code />
+      </Field>
+      <div class="ds-action-row">
+        <button type="button" class="ds-btn ds-btn-primary" data-tcp-connect-agent>{t(lang, ns, "Connect")}</button>
+        <button type="button" class="ds-btn" data-tcp-disconnect disabled>{t(lang, ns, "Disconnect")}</button>
+      </div>
+    </div>
+    <p class="tcp-connection-line">
+      <span class="tcp-dot" aria-hidden="true"></span>
+      <span data-tcp-connection-state>{t(lang, ns, "AgentDisconnectedShort")}</span>
+    </p>
+    <dl class="tcp-meta" data-tcp-agent-meta hidden>
+      <div><dt>{t(lang, ns, "AgentVersion")}</dt><dd class="mono" data-tcp-agent-version></dd></div>
+      <div><dt>{t(lang, ns, "Capability")}</dt><dd class="mono" data-tcp-capabilities></dd></div>
+    </dl>
+    <StatusMessage kind="info" data-tcp-connection-status />
+    <StatusMessage kind="warning" data-tcp-capability-warning />
+    <StatusMessage kind="error" data-tcp-connection-error />
+    <StatusMessage kind="info" data-tcp-storage-warning />
+    <details class="tcp-setup">
+      <summary>{t(lang, ns, "SetupTitle")}</summary>
+      <div class="tcp-setup-body">
+        <p class="ds-hint">{t(lang, ns, "SetupIntro")}</p>
+        <a class="ds-btn ds-btn-small" href={agentHref}>{t(lang, ns, "InstallAgent")}</a>
+        <ol>
+          <li>{t(lang, ns, "SetupStep2")}</li>
+          <li>{t(lang, ns, "SetupStep3")}</li>
+          <li>{t(lang, ns, "SetupStep4")}</li>
+        </ol>
+        <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="ds-card tcp-card" aria-labelledby="tcp-query-title">
+    <h2 id="tcp-query-title" class="ds-panel-title">{t(lang, ns, "QueryTitle")}</h2>
+    <div class="ds-settings">
+      <Field class="ds-settings-wide" label={t(lang, ns, "HostLabel")} for="tcp-connect-host" hint={t(lang, ns, "HostHint")}>
+        <input id="tcp-connect-host" class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "HostPlaceholder")} data-tcp-host />
+      </Field>
+      <Field label={t(lang, ns, "PortLabel")} for="tcp-connect-port" hint={t(lang, ns, "PortHint")}>
+        <input id="tcp-connect-port" class="ds-field mono" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "PortPlaceholder")} data-tcp-port />
+      </Field>
+      <Field label={t(lang, ns, "TimeoutLabel")} for="tcp-connect-timeout" hint={t(lang, ns, "TimeoutHint")}>
+        <input id="tcp-connect-timeout" class="ds-field mono" type="number" min="200" max="10000" step="1" inputmode="numeric" data-tcp-timeout />
+      </Field>
+    </div>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-tcp-check disabled>{t(lang, ns, "Check")}</button>
+      <button type="button" class="ds-btn" data-tcp-stop hidden>{t(lang, ns, "Stop")}</button>
+    </div>
+    <StatusMessage kind="info" data-tcp-result />
+    <StatusMessage kind="error" data-tcp-error />
+  </section>
+
+  <section class="ds-card tcp-card" aria-labelledby="tcp-answer-title">
+    <div class="tcp-results-head">
+      <h2 id="tcp-answer-title" class="ds-panel-title">{t(lang, ns, "AnswerTitle")}</h2>
+      <button type="button" class="ds-btn ds-btn-small" data-tcp-copy disabled>{t(lang, ns, "CopyText")}</button>
+    </div>
+    <p class="ds-hint" data-tcp-empty>{t(lang, ns, "EmptyResult")}</p>
+    <dl class="tcp-facts" data-tcp-facts hidden>
+      <div><dt>{t(lang, ns, "AddressLabel")}</dt><dd class="mono" data-tcp-address></dd></div>
+      <div><dt>{t(lang, ns, "TimeLabel")}</dt><dd class="mono" data-tcp-time></dd></div>
+    </dl>
+  </section>
+  <script is:inline type="application/json" data-tcp-strings set:html={stringsJson} />
+</div>
+
+<script>import "@/tools/tcp-connect.client.ts";</script>
+
+<style>
+  .tcp-connect { display: flex; flex-direction: column; gap: 1rem; min-width: 0; max-width: 100%; }
+  .tcp-card { min-width: 0; }
+  .tcp-connect-row { display: grid; gap: 0.75rem; }
+  .tcp-connection-line { display: flex; align-items: center; gap: 0.45rem; margin: 0.75rem 0 0; }
+  .tcp-dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--mdt-text-muted); }
+  .tcp-connect.is-connected .tcp-dot { background: var(--mdt-cat); }
+  .tcp-meta, .tcp-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.55rem 1rem; margin: 0.85rem 0; }
+  .tcp-meta div, .tcp-facts div { min-width: 0; }
+  .tcp-meta dt, .tcp-facts dt { color: var(--mdt-text-muted); font-size: 0.78rem; }
+  .tcp-meta dd, .tcp-facts dd { margin: 0; overflow-wrap: anywhere; }
+  .tcp-setup { margin-top: 0.75rem; }
+  .tcp-setup-body { display: grid; gap: 0.55rem; padding-top: 0.55rem; }
+  .tcp-setup-body ol { margin: 0; padding-left: 1.2rem; }
+  .tcp-results-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.4rem 1rem; }
+  .tcp-results-head h2 { margin: 0; }
+</style>

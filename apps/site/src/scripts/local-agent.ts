@@ -4,9 +4,14 @@ const SESSION_STORAGE_KEY = "mdt.local-agent.session.v1";
 const SESSION_STORAGE_VERSION = 1;
 
 
-export type LocalAgentCapability = "http.request" | "icmp.trace" | "dns.lookup";
+export type LocalAgentCapability = "http.request" | "icmp.trace" | "dns.lookup" | "tcp.connect";
 
-const CAPABILITY_ORDER: readonly LocalAgentCapability[] = ["http.request", "icmp.trace", "dns.lookup"];
+const CAPABILITY_ORDER: readonly LocalAgentCapability[] = [
+  "http.request",
+  "icmp.trace",
+  "dns.lookup",
+  "tcp.connect",
+];
 
 /**
  * Capabilities to request when a tool connects. Keeps capabilities this browser
@@ -136,6 +141,21 @@ export interface DnsLookupResult {
 export interface DnsLookupRequest {
   name: string;
   type: string;
+}
+
+/** One TCP handshake. The host, the port and the result are not stored. */
+export interface TcpConnectResult {
+  host: string;
+  port: number;
+  address: string;
+  status: "open" | "refused" | "timeout" | "unreachable";
+  elapsedMs: number;
+}
+
+export interface TcpConnectRequest {
+  host: string;
+  port: number;
+  timeoutMs: number;
 }
 
 /** One address from `GET /v1/icmp/interfaces`. Scope ids stay on the agent. */
@@ -453,6 +473,19 @@ export class LocalAgentClient {
     }));
   }
 
+  /**
+   * One TCP handshake to one host and one port. Requires `tcp.connect`.
+   * The socket is closed without sending data. A port range is not a request.
+   */
+  async connectTcp(request: TcpConnectRequest, signal?: AbortSignal): Promise<TcpConnectResult> {
+    return asTcpConnect(await this.#authorized<unknown>("/v1/tcp/connect", {
+      method: "POST",
+      signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    }));
+  }
+
   /** Path MTU on `icmp.trace`. Same Don't Fragment echoes; the agent picks the size. */
   async findPathMtu(request: PathMtuRequest, signal?: AbortSignal): Promise<PathMtuSnapshot> {
     return asPathMtu(await this.#authorized<unknown>("/v1/icmp/mtu", {
@@ -652,6 +685,31 @@ function asDnsLookup(value: unknown): DnsLookupResult {
     return { name: item.name, type: item.type, ttl: item.ttl, data: item.data, preference };
   });
   return { name: value.name, type: value.type, status: value.status, records };
+}
+
+const TCP_STATUSES = new Set(["open", "refused", "timeout", "unreachable"]);
+
+/** Rejects a TCP result the page cannot render. */
+function asTcpConnect(value: unknown): TcpConnectResult {
+  if (!isObject(value) || typeof value.host !== "string" || typeof value.address !== "string") {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (typeof value.port !== "number" || !Number.isInteger(value.port) || value.port < 1 || value.port > 65535) {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (typeof value.status !== "string" || !TCP_STATUSES.has(value.status)) {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (typeof value.elapsedMs !== "number" || !Number.isFinite(value.elapsedMs) || value.elapsedMs < 0) {
+    throw new LocalAgentError("invalid_response");
+  }
+  return {
+    host: value.host,
+    port: value.port,
+    address: value.address,
+    status: value.status as TcpConnectResult["status"],
+    elapsedMs: value.elapsedMs,
+  };
 }
 
 /** Rejects a snapshot the hop table cannot render. Optional hop fields become nulls. */

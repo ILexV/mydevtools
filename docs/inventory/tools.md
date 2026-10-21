@@ -150,10 +150,10 @@ API or port/network scanner is provided.
 Protocol `/v1`: `GET /info`, `POST /pair`, `DELETE /session`,
 `POST /http/request`, `POST /http/cancel`, `POST /icmp/trace`,
 `POST /icmp/snapshot`, `POST /icmp/cancel`, `POST /icmp/mtu`,
-`GET /icmp/interfaces`, `POST /dns/lookup`. Pairing requests an explicit
-non-empty subset of advertised capabilities. `http.request`, `icmp.trace` and
-`dns.lookup` are checked separately; a trace does not inherit HTTP permission,
-and an HTTP session cannot start a trace or a DNS lookup. The browser asks for
+`GET /icmp/interfaces`, `POST /dns/lookup`, `POST /tcp/connect`. Pairing requests an explicit
+non-empty subset of advertised capabilities. `http.request`, `icmp.trace`,
+`dns.lookup` and `tcp.connect` are checked separately; a trace does not inherit HTTP permission,
+and an HTTP session cannot start a trace, a DNS lookup, or a TCP connect. The browser asks for
 the capability the open tool needs and keeps grants this browser already holds when the running agent
 still advertises them. Session tokens are scoped to the pairing origin.
 Future tools must introduce independently checked capabilities and routes
@@ -161,7 +161,7 @@ without inheriting HTTP or ICMP permissions. Host/Origin checks, one-time
 pairing, session expiry and cancellation live in `server.rs`/`state.rs`;
 outgoing HTTP and DNS pinning live in `http_client.rs`/`policy.rs`; ICMP
 probes live in `icmp.rs`. The DNS lookup lives in `dns.rs` and asks the
-operating-system resolver. The Windows tray/autostart shell stays separate.
+operating-system resolver. The TCP connect lives in `tcp.rs`. The Windows tray/autostart shell stays separate.
 
 `path-trace` is the ICMP page. One host or IP is resolved to the first
 address and probed continuously until Stop. The user target follows
@@ -193,6 +193,15 @@ does not take an ICMP slot. The agent runs at most four lookups at once. The
 page stores the selected record type in `mdt.dns-lookup.v1`. The query name
 and the answer stay on the page. Linux calls `res_query`. Windows `DnsQuery_A`
 is written and was not compiled or run here. The published Windows download
+is still the HTTP-only build.
+
+`tcp-connect` opens one TCP connection to one host and one port, then closes
+it without sending data. `POST /tcp/connect` requires `tcp.connect` and does
+not take an ICMP slot or a DNS slot. The agent runs at most two connects at
+once. A port range, a host list, and an extra `ports` field are rejected.
+The page stores the timeout in `mdt.tcp-connect.v1`. The host, the port, and
+the result stay on the page. The same connect path runs on every OS. It was
+checked on Linux and was not run on Windows. The published Windows download
 is still the HTTP-only build.
 
 The browser persists the origin-bound bearer and its server-issued expiry in

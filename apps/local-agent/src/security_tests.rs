@@ -629,7 +629,7 @@ async fn icmp_capability_is_separate_from_http_and_rejects_bad_targets() {
     assert_eq!(info.status(), StatusCode::OK);
     assert_eq!(
         response_json(info).await["capabilities"],
-        json!(["http.request", "icmp.trace", "dns.lookup"])
+        json!(["http.request", "icmp.trace", "dns.lookup", "tcp.connect"])
     );
 
     for capabilities in [
@@ -637,6 +637,7 @@ async fn icmp_capability_is_separate_from_http_and_rejects_bad_targets() {
         json!(["http.request", "http.request"]),
         json!(["icmp.trace", "icmp.trace"]),
         json!(["dns.lookup", "dns.lookup"]),
+        json!(["tcp.connect", "tcp.connect"]),
     ] {
         let response = app
             .clone()
@@ -1392,4 +1393,159 @@ async fn dns_lookup_is_a_separate_capability_and_uses_the_system_resolver() {
                 .as_str()
                 .is_some_and(|ip| ip.parse::<IpAddr>().is_ok())
     }));
+}
+
+#[tokio::test]
+async fn tcp_connect_is_one_port_and_a_separate_capability() {
+    let (state, app) = test_app(true, 48_732);
+
+    for capabilities in [
+        json!(["http.request"]),
+        json!(["icmp.trace"]),
+        json!(["dns.lookup"]),
+    ] {
+        let paired = pair_capabilities(&state, &app, capabilities).await;
+        let denied = app
+            .clone()
+            .oneshot(request(
+                Method::POST,
+                "/v1/tcp/connect",
+                Some(json!({"host": "127.0.0.1", "port": 9, "timeoutMs": 3000})),
+                Some(paired["token"].as_str().unwrap()),
+            ))
+            .await
+            .unwrap();
+        assert_eq!(denied.status(), StatusCode::FORBIDDEN);
+    }
+
+    let tcp_only = pair_capabilities(&state, &app, json!(["tcp.connect"])).await;
+    assert_eq!(tcp_only["capabilities"], json!(["tcp.connect"]));
+    let token = tcp_only["token"].as_str().unwrap();
+    for (path, body) in [
+        ("/v1/http/request", json!({})),
+        ("/v1/icmp/trace", trace_input(Uuid::new_v4(), "127.0.0.1")),
+        (
+            "/v1/dns/lookup",
+            json!({"name": "example.com", "type": "A"}),
+        ),
+    ] {
+        let denied = app
+            .clone()
+            .oneshot(request(Method::POST, path, Some(body), Some(token)))
+            .await
+            .unwrap();
+        assert_eq!(denied.status(), StatusCode::FORBIDDEN);
+    }
+
+    for body in [
+        json!({"host": "127.0.0.1", "port": 0, "timeoutMs": 3000}),
+        json!({"host": "127.0.0.1:80", "port": 80, "timeoutMs": 3000}),
+        json!({"host": "80-90", "port": 80, "timeoutMs": 3000}),
+        json!({"host": "10.0.0.0/8", "port": 80, "timeoutMs": 3000}),
+        json!({"host": "example.com,example.org", "port": 80, "timeoutMs": 3000}),
+        json!({"host": "127.0.0.1", "port": 80, "timeoutMs": 50}),
+        json!({"host": "127.0.0.1", "port": 80, "timeoutMs": 3000, "ports": [81, 443]}),
+    ] {
+        let response = app
+            .clone()
+            .oneshot(request(
+                Method::POST,
+                "/v1/tcp/connect",
+                Some(body),
+                Some(token),
+            ))
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        assert_eq!(
+            response_json(response).await["error"]["code"],
+            "invalid_request"
+        );
+    }
+
+    let metadata = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/tcp/connect",
+            Some(json!({"host": "169.254.169.254", "port": 80, "timeoutMs": 3000})),
+            Some(token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(metadata.status(), StatusCode::FORBIDDEN);
+    assert_eq!(
+        response_json(metadata).await["error"]["code"],
+        "target_denied"
+    );
+
+    let self_port = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/tcp/connect",
+            Some(json!({"host": "127.0.0.1", "port": 48732, "timeoutMs": 3000})),
+            Some(token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(self_port.status(), StatusCode::FORBIDDEN);
+    assert_eq!(
+        response_json(self_port).await["error"]["code"],
+        "target_denied"
+    );
+
+    let listener = TcpListener::bind("127.0.0.1:0").await.expect("listener");
+    let open_port = listener.local_addr().expect("port").port();
+    assert_ne!(open_port, 48_732);
+    let opened = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/tcp/connect",
+            Some(json!({"host": "127.0.0.1", "port": open_port, "timeoutMs": 3000})),
+            Some(token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(opened.status(), StatusCode::OK);
+    let opened = response_json(opened).await;
+    assert_eq!(opened["host"], "127.0.0.1");
+    assert_eq!(opened["port"], open_port);
+    assert_eq!(opened["address"], "127.0.0.1");
+    assert_eq!(opened["status"], "open");
+    assert!(opened["elapsedMs"].as_u64().is_some());
+    drop(listener);
+
+    let refused = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/tcp/connect",
+            Some(json!({"host": "127.0.0.1", "port": open_port, "timeoutMs": 3000})),
+            Some(token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(refused.status(), StatusCode::OK);
+    let refused = response_json(refused).await;
+    assert_eq!(refused["status"], "refused");
+    assert_eq!(refused["address"], "127.0.0.1");
+
+    let (closed, closed_app) = test_app(false, 48_732);
+    let closed_pair = pair_capabilities(&closed, &closed_app, json!(["tcp.connect"])).await;
+    let private = closed_app
+        .oneshot(request(
+            Method::POST,
+            "/v1/tcp/connect",
+            Some(json!({"host": "127.0.0.1", "port": 9, "timeoutMs": 3000})),
+            Some(closed_pair["token"].as_str().unwrap()),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(private.status(), StatusCode::FORBIDDEN);
+    assert_eq!(
+        response_json(private).await["error"]["code"],
+        "private_network_denied"
+    );
 }

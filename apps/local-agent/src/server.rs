@@ -25,6 +25,7 @@ use crate::{
         MAX_TIMEOUT_MS, PairRequest,
     },
     state::AgentState,
+    tcp,
 };
 
 const ALLOW_METHODS: &str = "GET, POST, DELETE, OPTIONS";
@@ -46,6 +47,7 @@ pub(crate) fn router(state: Arc<AgentState>) -> Router {
             get(icmp_interfaces).options(preflight),
         )
         .route("/v1/dns/lookup", post(dns_lookup).options(preflight))
+        .route("/v1/tcp/connect", post(tcp_connect).options(preflight))
         .method_not_allowed_fallback(method_not_allowed)
         .fallback(not_found)
         .layer(middleware::from_fn_with_state(
@@ -208,6 +210,21 @@ async fn dns_lookup(
     Ok((StatusCode::OK, Json(response)))
 }
 
+/// One TCP handshake. `tcp.connect` only. The socket is closed without a payload.
+async fn tcp_connect(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<impl IntoResponse, ApiError> {
+    let _session_key = authorize_tcp(&state, request.headers())?;
+    let input: tcp::TcpConnectRequest = parse_json(request).await?;
+    let prepared = tcp::prepare(&input.host, input.port, input.timeout_ms)?;
+    let permit = state.try_acquire_tcp_slot()?;
+    let response =
+        tcp::connect_prepared(prepared, state.config.port, state.config.allow_private).await?;
+    drop(permit);
+    Ok((StatusCode::OK, Json(response)))
+}
+
 async fn preflight() -> StatusCode {
     StatusCode::NO_CONTENT
 }
@@ -286,7 +303,8 @@ fn valid_preflight(request: &Request) -> bool {
     let expected_method = match request.uri().path() {
         "/v1/info" | "/v1/icmp/interfaces" => "GET",
         "/v1/pair" | "/v1/http/request" | "/v1/http/cancel" | "/v1/icmp/trace"
-        | "/v1/icmp/snapshot" | "/v1/icmp/cancel" | "/v1/icmp/mtu" | "/v1/dns/lookup" => "POST",
+        | "/v1/icmp/snapshot" | "/v1/icmp/cancel" | "/v1/icmp/mtu" | "/v1/dns/lookup"
+        | "/v1/tcp/connect" => "POST",
         "/v1/session" => "DELETE",
         _ => return false,
     };
@@ -325,6 +343,12 @@ fn authorize_dns(state: &AgentState, headers: &HeaderMap) -> Result<[u8; 32], Ap
     let origin = required_header(headers, ORIGIN)?;
     let authorization = optional_single_header(headers, AUTHORIZATION)?;
     state.authorize_dns(authorization, &origin)
+}
+
+fn authorize_tcp(state: &AgentState, headers: &HeaderMap) -> Result<[u8; 32], ApiError> {
+    let origin = required_header(headers, ORIGIN)?;
+    let authorization = optional_single_header(headers, AUTHORIZATION)?;
+    state.authorize_tcp(authorization, &origin)
 }
 
 async fn parse_json<T: DeserializeOwned>(request: Request) -> Result<T, ApiError> {

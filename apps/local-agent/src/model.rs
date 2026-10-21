@@ -12,7 +12,15 @@ pub(crate) const ICMP_CAPABILITY: &str = "icmp.trace";
 /// One DNS query through the computer's own resolver. Pairing for HTTP or ICMP
 /// does not include this capability.
 pub(crate) const DNS_CAPABILITY: &str = "dns.lookup";
-pub(crate) const AGENT_CAPABILITIES: [&str; 3] = [HTTP_CAPABILITY, ICMP_CAPABILITY, DNS_CAPABILITY];
+/// One TCP handshake to one host and one port. Pairing for HTTP, ICMP or DNS
+/// does not include this capability, and the check does not scan a range.
+pub(crate) const TCP_CAPABILITY: &str = "tcp.connect";
+pub(crate) const AGENT_CAPABILITIES: [&str; 4] = [
+    HTTP_CAPABILITY,
+    ICMP_CAPABILITY,
+    DNS_CAPABILITY,
+    TCP_CAPABILITY,
+];
 pub(crate) const MAX_INCOMING_JSON_BYTES: usize = 2 * 1024 * 1024;
 pub(crate) const MAX_REQUEST_BODY_BYTES: usize = 1024 * 1024;
 pub(crate) const MAX_RESPONSE_BODY_BYTES: usize = 16 * 1024 * 1024;
@@ -47,7 +55,7 @@ pub(crate) struct PairRequest {
 #[serde(rename_all = "camelCase")]
 pub(crate) struct PairResponse {
     pub(crate) token: String,
-    /// Granted subset, stable order: `http.request`, `icmp.trace`, `dns.lookup`.
+    /// Granted subset, stable order: `http.request`, `icmp.trace`, `dns.lookup`, `tcp.connect`.
     pub(crate) capabilities: Vec<&'static str>,
     pub(crate) expires_at: String,
 }
@@ -161,6 +169,11 @@ impl ApiError {
     /// The reply was still truncated after the resolver's TCP retry.
     pub(crate) const fn dns_truncated() -> Self {
         Self::new(StatusCode::BAD_GATEWAY, "dns_truncated")
+    }
+
+    /// The TCP stack failed before a definite open, refusal, timeout or unreachable.
+    pub(crate) const fn tcp_unavailable() -> Self {
+        Self::new(StatusCode::SERVICE_UNAVAILABLE, "tcp_unavailable")
     }
 }
 

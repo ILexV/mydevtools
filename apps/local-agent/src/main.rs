@@ -7,6 +7,7 @@ mod model;
 mod policy;
 mod server;
 mod state;
+mod tcp;
 #[cfg(windows)]
 mod windows_shell;
 

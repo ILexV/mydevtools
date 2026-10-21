@@ -2646,6 +2646,57 @@ async fn secrets_are_write_only_host_bound_and_redacted_from_echoes() {
             .contains("{{secret:apiToken}}")
     );
 
+    // Basic credentials are encoded after substitution; the echo shows the template.
+    let (basic_address, mut basic_received, basic_server) = spawn_echo(1, None).await;
+    let mut basic = http_input(
+        Uuid::new_v4(),
+        format!("http://{basic_address}/basic"),
+        false,
+    );
+    basic["basicAuth"] = json!({"username": "alice", "password": "{{secret:apiToken}}"});
+    let (status, response) = call(
+        &app,
+        origin_request(
+            ORIGIN,
+            Method::POST,
+            "/v1/http/request",
+            Some(basic.clone()),
+            &token,
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{response}");
+    let encode =
+        |text: &str| base64::Engine::encode(&base64::engine::general_purpose::STANDARD, text);
+    let real = encode(&format!("alice:{secret}"));
+    let wire = basic_received.recv().await.unwrap();
+    assert!(wire.contains(&format!("basic {real}")) || wire.contains(&format!("Basic {real}")));
+    basic_server.await.unwrap();
+    let echoed = String::from_utf8(
+        base64::Engine::decode(
+            &base64::engine::general_purpose::STANDARD,
+            response["bodyBase64"].as_str().unwrap(),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    assert!(!response.to_string().contains(&real));
+    assert!(echoed.contains(&encode("alice:{{secret:apiToken}}")));
+    basic["id"] = json!(Uuid::new_v4().to_string());
+    basic["headers"] = json!([{"name": "authorization", "value": "Bearer x"}]);
+    let (status, _) = call(
+        &app,
+        origin_request(
+            ORIGIN,
+            Method::POST,
+            "/v1/http/request",
+            Some(basic),
+            &token,
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+
     // Without `vault.secrets` the placeholder is refused, not sent literally.
     let http_only = pair_from(&state, &app, ORIGIN, json!(["http.request"])).await;
     let (status, _) = call(

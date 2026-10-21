@@ -40,6 +40,10 @@ pub(crate) fn mentions_secret(input: &HttpRequestInput) -> bool {
         || STANDARD
             .decode(&input.body_base64)
             .is_ok_and(|body| vault::mentions_secret(&body))
+        || input.basic_auth.as_ref().is_some_and(|basic| {
+            vault::mentions_secret(basic.username.as_bytes())
+                || vault::mentions_secret(basic.password.as_bytes())
+        })
 }
 
 /// `secrets` is the origin's book when the request uses placeholders. Each used
@@ -76,6 +80,29 @@ pub(crate) async fn execute(
             ));
         }
         body = Bytes::from(substituted);
+    }
+    if let Some(basic) = input.basic_auth {
+        if header_entries
+            .iter()
+            .any(|entry| entry.name.eq_ignore_ascii_case("authorization"))
+        {
+            return Err(ApiError::invalid_request());
+        }
+        let template = format!("{}:{}", basic.username, basic.password);
+        let credential = match secrets {
+            Some(book) => String::from_utf8(substitutions.apply(template.as_bytes(), book)?)
+                .map_err(|_| ApiError::invalid_request())?,
+            None => template.clone(),
+        };
+        let encoded = STANDARD.encode(credential.as_bytes());
+        if credential != template {
+            // An echoed Authorization header shows the placeholder, not the encoded secret.
+            substitutions.redact_also(encoded.as_bytes(), STANDARD.encode(template).as_bytes());
+        }
+        header_entries.push(HeaderEntry {
+            name: "Authorization".to_owned(),
+            value: format!("Basic {encoded}"),
+        });
     }
     let url = parse_url(&url_text)?;
     if !substitutions.is_empty() && !substitutions.host_allowed(&url) {

@@ -101,6 +101,17 @@ pub(crate) struct HttpRequestInput {
     pub(crate) body_base64: String,
     pub(crate) timeout_ms: u64,
     pub(crate) follow_redirects: bool,
+    /// HTTP Basic credentials encoded by the agent, so a `{{secret:name}}`
+    /// password is substituted before Base64. Excludes an `Authorization` header.
+    #[serde(default)]
+    pub(crate) basic_auth: Option<BasicAuthInput>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct BasicAuthInput {
+    pub(crate) username: String,
+    pub(crate) password: String,
 }
 
 #[derive(Debug, Deserialize)]

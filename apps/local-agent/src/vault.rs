@@ -418,6 +418,8 @@ pub(crate) fn default_root() -> Option<PathBuf> {
 #[derive(Default)]
 pub(crate) struct Substitutions {
     used: Vec<(String, SecretRecord)>,
+    /// Values derived from secrets (a Basic credential) and what replaces their echo.
+    derived: Vec<(Vec<u8>, Vec<u8>)>,
 }
 
 impl Substitutions {
@@ -461,15 +463,35 @@ impl Substitutions {
         })
     }
 
+    /// Also redacts a value the agent derived from secrets, such as an encoded credential.
+    pub(crate) fn redact_also(&mut self, value: &[u8], replacement: &[u8]) {
+        if !value.is_empty() {
+            self.derived.push((value.to_vec(), replacement.to_vec()));
+        }
+    }
+
     /// Replaces echoed secret values with their placeholders, longest first.
-    /// Covers a plain echo, not an encoded or transformed value.
+    /// Covers a plain echo and derived values, not other encodings.
     pub(crate) fn redact(&self, input: &[u8]) -> Vec<u8> {
-        let mut used: Vec<_> = self.used.iter().collect();
-        used.sort_by_key(|(_, record)| std::cmp::Reverse(record.value.len()));
+        let mut pairs: Vec<(&[u8], Vec<u8>)> = self
+            .used
+            .iter()
+            .map(|(name, record)| {
+                (
+                    record.value.as_bytes(),
+                    format!("{{{{secret:{name}}}}}").into_bytes(),
+                )
+            })
+            .chain(
+                self.derived
+                    .iter()
+                    .map(|(value, replacement)| (value.as_slice(), replacement.clone())),
+            )
+            .collect();
+        pairs.sort_by_key(|(value, _)| std::cmp::Reverse(value.len()));
         let mut output = input.to_vec();
-        for (name, record) in used {
-            let placeholder = format!("{{{{secret:{name}}}}}");
-            output = replace_all(&output, record.value.as_bytes(), placeholder.as_bytes());
+        for (value, replacement) in pairs {
+            output = replace_all(&output, value, &replacement);
         }
         output
     }

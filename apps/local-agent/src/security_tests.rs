@@ -28,6 +28,7 @@ fn test_app(allow_private: bool, port: u16) -> (Arc<AgentState>, Router) {
         port,
         allow_private,
         allowed_origins: HashSet::from([ORIGIN.to_owned()]),
+        data_dir: None,
     });
     assert_eq!(state.replace_pairing_code([0x11; 16]), PAIRING_CODE);
     let app = server::router(Arc::clone(&state));
@@ -636,7 +637,9 @@ async fn icmp_capability_is_separate_from_http_and_rejects_bad_targets() {
             "tcp.connect",
             "tls.inspect",
             "whois.lookup",
-            "asn.lookup"
+            "asn.lookup",
+            "vault.data",
+            "vault.secrets"
         ])
     );
 
@@ -649,6 +652,8 @@ async fn icmp_capability_is_separate_from_http_and_rejects_bad_targets() {
         json!(["tls.inspect", "tls.inspect"]),
         json!(["whois.lookup", "whois.lookup"]),
         json!(["asn.lookup", "asn.lookup"]),
+        json!(["vault.data", "vault.data"]),
+        json!(["vault.secrets", "vault.secrets"]),
     ] {
         let response = app
             .clone()
@@ -2005,7 +2010,11 @@ async fn whois_reply_arrives_from_servers_that_drop_half_closed_clients() {
         .await
         .expect("lookup");
     assert_eq!(response.status, "ok");
-    assert!(response.text.contains("refer: whois.kg"), "reply text: {:?}", response.text);
+    assert!(
+        response.text.contains("refer: whois.kg"),
+        "reply text: {:?}",
+        response.text
+    );
     task.await.expect("listener");
 }
 
@@ -2128,4 +2137,609 @@ async fn asn_lookup_uses_the_local_prefix_table_and_a_separate_capability() {
     assert_eq!(reserved["prefix"], serde_json::Value::Null);
     assert_eq!(reserved["name"], "");
     assert_eq!(reserved["covers"], false);
+}
+
+const SECOND_ORIGIN: &str = "http://127.0.0.1:3312";
+
+struct TempDir(std::path::PathBuf);
+
+impl TempDir {
+    fn new() -> Self {
+        let path = std::env::temp_dir().join(format!("mdt-vault-test-{}", Uuid::new_v4()));
+        std::fs::create_dir_all(&path).unwrap();
+        Self(path)
+    }
+}
+
+impl Drop for TempDir {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+fn vault_app(
+    allow_private: bool,
+    data_dir: Option<std::path::PathBuf>,
+) -> (Arc<AgentState>, Router) {
+    let state = AgentState::new(AgentConfig {
+        port: 48_732,
+        allow_private,
+        allowed_origins: HashSet::from([ORIGIN.to_owned(), SECOND_ORIGIN.to_owned()]),
+        data_dir,
+    });
+    let app = server::router(Arc::clone(&state));
+    (state, app)
+}
+
+fn origin_request(
+    origin: &str,
+    method: Method,
+    path: &str,
+    body: Option<Value>,
+    token: &str,
+) -> Request<Body> {
+    let mut request = request(method, path, body, Some(token));
+    request
+        .headers_mut()
+        .insert("origin", origin.parse().unwrap());
+    request
+}
+
+async fn pair_from(state: &AgentState, app: &Router, origin: &str, capabilities: Value) -> String {
+    state.replace_pairing_code([0x11; 16]);
+    let mut pair = request(
+        Method::POST,
+        "/v1/pair",
+        Some(json!({"code": PAIRING_CODE, "capabilities": capabilities})),
+        None,
+    );
+    pair.headers_mut().insert("origin", origin.parse().unwrap());
+    let response = app.clone().oneshot(pair).await.unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    response_json(response).await["token"]
+        .as_str()
+        .unwrap()
+        .to_owned()
+}
+
+async fn call(app: &Router, request: Request<Body>) -> (StatusCode, Value) {
+    let response = app.clone().oneshot(request).await.unwrap();
+    let status = response.status();
+    let body = to_bytes(response.into_body(), 32 * 1024 * 1024)
+        .await
+        .unwrap();
+    let json = if body.is_empty() {
+        Value::Null
+    } else {
+        serde_json::from_slice(&body).unwrap()
+    };
+    (status, json)
+}
+
+fn vault_files(root: &std::path::Path) -> Vec<std::path::PathBuf> {
+    let mut files = Vec::new();
+    for entry in std::fs::read_dir(root).unwrap() {
+        let path = entry.unwrap().path();
+        if path.is_dir() {
+            files.extend(vault_files(&path));
+        } else {
+            files.push(path);
+        }
+    }
+    files
+}
+
+#[tokio::test]
+async fn vault_documents_are_encrypted_revisioned_and_isolated_per_origin() {
+    let (state, app) = vault_app(false, None);
+    let info = call(&app, request(Method::GET, "/v1/info", None, None))
+        .await
+        .1;
+    assert_eq!(info["vaultAvailable"], false);
+    let token = pair_from(&state, &app, ORIGIN, json!(["vault.data"])).await;
+    let (status, body) = call(
+        &app,
+        origin_request(ORIGIN, Method::GET, "/v1/vault/documents", None, &token),
+    )
+    .await;
+    assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
+    assert_eq!(body["error"]["code"], "vault_unavailable");
+
+    let dir = TempDir::new();
+    let (state, app) = vault_app(false, Some(dir.0.clone()));
+    let info = call(&app, request(Method::GET, "/v1/info", None, None))
+        .await
+        .1;
+    assert_eq!(info["vaultAvailable"], true);
+
+    let http_only = pair_from(&state, &app, ORIGIN, json!(["http.request"])).await;
+    for (method, path, body) in [
+        (Method::GET, "/v1/vault/documents", None),
+        (
+            Method::POST,
+            "/v1/vault/document/read",
+            Some(json!({"name": "http-workspace"})),
+        ),
+        (Method::GET, "/v1/vault/secrets", None),
+    ] {
+        let (status, _) = call(&app, origin_request(ORIGIN, method, path, body, &http_only)).await;
+        assert_eq!(status, StatusCode::FORBIDDEN, "{path}");
+    }
+
+    let token = pair_from(&state, &app, ORIGIN, json!(["vault.data"])).await;
+    let (status, _) = call(
+        &app,
+        origin_request(ORIGIN, Method::GET, "/v1/vault/secrets", None, &token),
+    )
+    .await;
+    assert_eq!(
+        status,
+        StatusCode::FORBIDDEN,
+        "vault.data must not open secrets"
+    );
+
+    let write = |base: u64, marker: &str| {
+        origin_request(
+            ORIGIN,
+            Method::POST,
+            "/v1/vault/document/write",
+            Some(
+                json!({"name": "http-workspace", "baseRevision": base, "data": {"marker": marker}}),
+            ),
+            &token,
+        )
+    };
+    let (status, body) = call(&app, write(0, "plaintext-marker-one")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["revision"], 1);
+    let (status, body) = call(&app, write(0, "stale")).await;
+    assert_eq!(status, StatusCode::CONFLICT);
+    assert_eq!(body["error"]["code"], "revision_conflict");
+    let (status, body) = call(&app, write(1, "plaintext-marker-two")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["revision"], 2);
+
+    let (status, body) = call(
+        &app,
+        origin_request(
+            ORIGIN,
+            Method::POST,
+            "/v1/vault/document/read",
+            Some(json!({"name": "http-workspace"})),
+            &token,
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["revision"], 2);
+    assert_eq!(body["data"]["marker"], "plaintext-marker-two");
+
+    for name in ["../escape", "Upper", "", "a/b", &"x".repeat(65)] {
+        let (status, _) = call(
+            &app,
+            origin_request(
+                ORIGIN,
+                Method::POST,
+                "/v1/vault/document/read",
+                Some(json!({"name": name})),
+                &token,
+            ),
+        )
+        .await;
+        assert_eq!(status, StatusCode::BAD_REQUEST, "{name}");
+    }
+
+    for file in vault_files(&dir.0) {
+        let bytes = std::fs::read(&file).unwrap();
+        assert!(
+            !String::from_utf8_lossy(&bytes).contains("plaintext-marker"),
+            "{} holds plaintext",
+            file.display()
+        );
+    }
+
+    // The development origin has its own directory and does not see this data.
+    let second = pair_from(&state, &app, SECOND_ORIGIN, json!(["vault.data"])).await;
+    let (status, body) = call(
+        &app,
+        origin_request(
+            SECOND_ORIGIN,
+            Method::GET,
+            "/v1/vault/documents",
+            None,
+            &second,
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["documents"], json!([]));
+
+    let (status, body) = call(
+        &app,
+        origin_request(ORIGIN, Method::GET, "/v1/vault/documents", None, &token),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["documents"][0]["name"], "http-workspace");
+    assert_eq!(body["documents"][0]["revision"], 2);
+
+    // A file copied under another name fails authentication.
+    let (status, _) = call(
+        &app,
+        origin_request(
+            ORIGIN,
+            Method::POST,
+            "/v1/vault/document/write",
+            Some(json!({"name": "other", "baseRevision": 0, "data": 1})),
+            &token,
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let workspace_file = vault_files(&dir.0)
+        .into_iter()
+        .find(|path| path.ends_with("doc-http-workspace.mdtv"))
+        .unwrap();
+    let other_file = workspace_file.with_file_name("doc-other.mdtv");
+    std::fs::copy(&workspace_file, &other_file).unwrap();
+    let (status, body) = call(
+        &app,
+        origin_request(
+            ORIGIN,
+            Method::POST,
+            "/v1/vault/document/read",
+            Some(json!({"name": "other"})),
+            &token,
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::INTERNAL_SERVER_ERROR);
+    assert_eq!(body["error"]["code"], "vault_corrupt");
+    std::fs::remove_file(&other_file).unwrap();
+
+    let delete = |base: u64| {
+        origin_request(
+            ORIGIN,
+            Method::POST,
+            "/v1/vault/document/delete",
+            Some(json!({"name": "http-workspace", "baseRevision": base})),
+            &token,
+        )
+    };
+    assert_eq!(call(&app, delete(1)).await.0, StatusCode::CONFLICT);
+    assert_eq!(call(&app, delete(2)).await.0, StatusCode::NO_CONTENT);
+    let (status, _) = call(
+        &app,
+        origin_request(
+            ORIGIN,
+            Method::POST,
+            "/v1/vault/document/read",
+            Some(json!({"name": "http-workspace"})),
+            &token,
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+
+    // A lost key is reported; a fresh key never replaces existing ciphertext.
+    let (status, _) = call(
+        &app,
+        origin_request(
+            ORIGIN,
+            Method::POST,
+            "/v1/vault/document/write",
+            Some(json!({"name": "keep", "baseRevision": 0, "data": true})),
+            &token,
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let key = vault_files(&dir.0)
+        .into_iter()
+        .find(|path| {
+            path.file_name()
+                .is_some_and(|name| name.to_string_lossy().starts_with("key."))
+        })
+        .unwrap();
+    std::fs::remove_file(&key).unwrap();
+    let (state, app) = vault_app(false, Some(dir.0.clone()));
+    let token = pair_from(&state, &app, ORIGIN, json!(["vault.data"])).await;
+    let (status, body) = call(
+        &app,
+        origin_request(ORIGIN, Method::GET, "/v1/vault/documents", None, &token),
+    )
+    .await;
+    assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
+    assert_eq!(body["error"]["code"], "vault_key_unavailable");
+    assert!(!key.exists());
+}
+
+/// Accepts `count` connections in turn. Each reply is either the redirect or
+/// an echo of the raw request; the raw request is also sent to the test.
+async fn spawn_echo(
+    count: usize,
+    redirect_to: Option<String>,
+) -> (
+    std::net::SocketAddr,
+    tokio::sync::mpsc::UnboundedReceiver<String>,
+    tokio::task::JoinHandle<()>,
+) {
+    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let address = listener.local_addr().unwrap();
+    let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
+    let task = tokio::spawn(async move {
+        for _ in 0..count {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let mut received = Vec::new();
+            let mut buffer = [0_u8; 8192];
+            loop {
+                let read = socket.read(&mut buffer).await.unwrap();
+                if read == 0 {
+                    break;
+                }
+                received.extend_from_slice(&buffer[..read]);
+                let text = String::from_utf8_lossy(&received).to_ascii_lowercase();
+                if let Some(end) = text.find("\r\n\r\n") {
+                    let length = text
+                        .lines()
+                        .find_map(|line| line.strip_prefix("content-length:"))
+                        .and_then(|value| value.trim().parse::<usize>().ok())
+                        .unwrap_or(0);
+                    if received.len() >= end + 4 + length {
+                        break;
+                    }
+                }
+            }
+            let text = String::from_utf8_lossy(&received).into_owned();
+            let _ = tx.send(text.clone());
+            let response = match &redirect_to {
+                Some(location) => format!(
+                    "HTTP/1.1 307 Temporary Redirect\r\nLocation: {location}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+                ),
+                None => format!(
+                    "HTTP/1.1 200 OK\r\nX-Echo: {}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{text}",
+                    text.lines()
+                        .find(|line| line.to_ascii_lowercase().starts_with("x-api-key:"))
+                        .unwrap_or(""),
+                    text.len()
+                ),
+            };
+            socket.write_all(response.as_bytes()).await.unwrap();
+        }
+    });
+    (address, rx, task)
+}
+
+#[tokio::test]
+async fn secrets_are_write_only_host_bound_and_redacted_from_echoes() {
+    let dir = TempDir::new();
+    let (state, app) = vault_app(true, Some(dir.0.clone()));
+    let token = pair_from(
+        &state,
+        &app,
+        ORIGIN,
+        json!(["http.request", "vault.secrets"]),
+    )
+    .await;
+    let secret = "sk-live-0123456789abcdef";
+    let write_secret = |name: &str, value: Option<&str>, hosts: Value| {
+        let mut body = json!({"name": name, "hosts": hosts});
+        if let Some(value) = value {
+            body["value"] = json!(value);
+        }
+        origin_request(
+            ORIGIN,
+            Method::POST,
+            "/v1/vault/secret/write",
+            Some(body),
+            &token,
+        )
+    };
+    assert_eq!(
+        call(
+            &app,
+            write_secret("apiToken", Some(secret), json!(["127.0.0.1"]))
+        )
+        .await
+        .0,
+        StatusCode::NO_CONTENT
+    );
+    assert_eq!(
+        call(
+            &app,
+            write_secret(
+                "remoteOnly",
+                Some("remote-value-123"),
+                json!(["api.example.com"])
+            )
+        )
+        .await
+        .0,
+        StatusCode::NO_CONTENT
+    );
+    for (value, hosts) in [
+        (Some("line\r\nbreak"), json!(["127.0.0.1"])),
+        (Some(""), json!(["127.0.0.1"])),
+        (Some("ok-value"), json!([])),
+        (Some("ok-value"), json!(["*.com"])),
+    ] {
+        assert_eq!(
+            call(&app, write_secret("bad", value, hosts)).await.0,
+            StatusCode::BAD_REQUEST
+        );
+    }
+    assert_eq!(
+        call(&app, write_secret("missing", None, json!(["127.0.0.1"])))
+            .await
+            .0,
+        StatusCode::NOT_FOUND
+    );
+
+    let (status, listed) = call(
+        &app,
+        origin_request(ORIGIN, Method::GET, "/v1/vault/secrets", None, &token),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(listed["secrets"][0]["name"], "apiToken");
+    assert_eq!(listed["secrets"][0]["hosts"], json!(["127.0.0.1"]));
+    assert!(listed["secrets"][0].get("value").is_none());
+    assert!(!listed.to_string().contains(secret));
+    for file in vault_files(&dir.0) {
+        assert!(!String::from_utf8_lossy(&std::fs::read(file).unwrap()).contains(secret));
+    }
+
+    // The agent substitutes in URL, headers and body, and redacts the echo.
+    let (address, mut received, server) = spawn_echo(1, None).await;
+    let mut input = http_input(
+        Uuid::new_v4(),
+        format!("http://{address}/echo?key={{{{secret:apiToken}}}}"),
+        false,
+    );
+    input["method"] = json!("POST");
+    input["headers"] = json!([{"name": "X-Api-Key", "value": "{{secret:apiToken}}"}]);
+    input["bodyBase64"] = json!(base64::Engine::encode(
+        &base64::engine::general_purpose::STANDARD,
+        b"{\"token\":\"{{secret:apiToken}}\"}"
+    ));
+    let (status, response) = call(
+        &app,
+        origin_request(
+            ORIGIN,
+            Method::POST,
+            "/v1/http/request",
+            Some(input.clone()),
+            &token,
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{response}");
+    let wire = received.recv().await.unwrap();
+    assert!(wire.contains(&format!("/echo?key={secret}")));
+    assert!(
+        wire.to_ascii_lowercase()
+            .contains(&format!("x-api-key: {secret}"))
+    );
+    assert!(wire.contains(&format!("{{\"token\":\"{secret}\"}}")));
+    server.await.unwrap();
+    let echoed = String::from_utf8(
+        base64::Engine::decode(
+            &base64::engine::general_purpose::STANDARD,
+            response["bodyBase64"].as_str().unwrap(),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    assert!(!response.to_string().contains(secret));
+    assert!(!echoed.contains(secret));
+    assert!(echoed.contains("{{secret:apiToken}}"));
+    let echo_header = response["headers"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|header| header["name"] == "x-echo")
+        .unwrap();
+    assert!(
+        echo_header["value"]
+            .as_str()
+            .unwrap()
+            .contains("{{secret:apiToken}}")
+    );
+
+    // Without `vault.secrets` the placeholder is refused, not sent literally.
+    let http_only = pair_from(&state, &app, ORIGIN, json!(["http.request"])).await;
+    let (status, _) = call(
+        &app,
+        origin_request(
+            ORIGIN,
+            Method::POST,
+            "/v1/http/request",
+            Some(input.clone()),
+            &http_only,
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+
+    let mut wrong_host = input.clone();
+    wrong_host["id"] = json!(Uuid::new_v4().to_string());
+    wrong_host["headers"] = json!([{"name": "X-Api-Key", "value": "{{secret:remoteOnly}}"}]);
+    wrong_host["url"] = json!(format!("http://{address}/"));
+    wrong_host["bodyBase64"] = json!("");
+    let (status, body) = call(
+        &app,
+        origin_request(
+            ORIGIN,
+            Method::POST,
+            "/v1/http/request",
+            Some(wrong_host.clone()),
+            &token,
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    assert_eq!(body["error"]["code"], "secret_host_denied");
+
+    wrong_host["id"] = json!(Uuid::new_v4().to_string());
+    wrong_host["headers"] = json!([{"name": "X-Api-Key", "value": "{{secret:nope}}"}]);
+    let (status, body) = call(
+        &app,
+        origin_request(
+            ORIGIN,
+            Method::POST,
+            "/v1/http/request",
+            Some(wrong_host),
+            &token,
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(body["error"]["code"], "secret_not_found");
+
+    // A redirect to a host outside the list is returned, not followed.
+    let (outside, mut outside_received, outside_server) = spawn_echo(1, None).await;
+    let (redirect, _, redirect_server) =
+        spawn_echo(1, Some(format!("http://localhost:{}/next", outside.port()))).await;
+    let mut redirected = http_input(Uuid::new_v4(), format!("http://{redirect}/start"), true);
+    redirected["headers"] = json!([{"name": "X-Api-Key", "value": "{{secret:apiToken}}"}]);
+    let (status, body) = call(
+        &app,
+        origin_request(
+            ORIGIN,
+            Method::POST,
+            "/v1/http/request",
+            Some(redirected),
+            &token,
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["status"], 307);
+    redirect_server.await.unwrap();
+    assert!(outside_received.try_recv().is_err());
+    outside_server.abort();
+
+    assert_eq!(
+        call(
+            &app,
+            origin_request(
+                ORIGIN,
+                Method::POST,
+                "/v1/vault/secret/delete",
+                Some(json!({"name": "apiToken"})),
+                &token
+            )
+        )
+        .await
+        .0,
+        StatusCode::NO_CONTENT
+    );
+    let listed = call(
+        &app,
+        origin_request(ORIGIN, Method::GET, "/v1/vault/secrets", None, &token),
+    )
+    .await
+    .1;
+    assert_eq!(listed["secrets"].as_array().unwrap().len(), 1);
+    assert_eq!(listed["secrets"][0]["name"], "remoteOnly");
 }

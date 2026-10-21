@@ -13,6 +13,7 @@ use axum::{
     routing::{delete, get, post},
 };
 use serde::de::DeserializeOwned;
+use serde_json::json;
 use tokio::net::TcpListener;
 use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
@@ -25,7 +26,9 @@ use crate::{
         MAX_TIMEOUT_MS, PairRequest,
     },
     state::AgentState,
-    tcp, tls, whois,
+    tcp, tls,
+    vault::{DocumentDelete, DocumentName, DocumentWrite, SecretName, SecretWrite},
+    whois,
 };
 
 const ALLOW_METHODS: &str = "GET, POST, DELETE, OPTIONS";
@@ -51,6 +54,31 @@ pub(crate) fn router(state: Arc<AgentState>) -> Router {
         .route("/v1/tls/inspect", post(tls_inspect).options(preflight))
         .route("/v1/whois/lookup", post(whois_lookup).options(preflight))
         .route("/v1/asn/lookup", post(asn_lookup).options(preflight))
+        .route(
+            "/v1/vault/documents",
+            get(vault_documents).options(preflight),
+        )
+        .route(
+            "/v1/vault/document/read",
+            post(vault_document_read).options(preflight),
+        )
+        .route(
+            "/v1/vault/document/write",
+            post(vault_document_write).options(preflight),
+        )
+        .route(
+            "/v1/vault/document/delete",
+            post(vault_document_delete).options(preflight),
+        )
+        .route("/v1/vault/secrets", get(vault_secrets).options(preflight))
+        .route(
+            "/v1/vault/secret/write",
+            post(vault_secret_write).options(preflight),
+        )
+        .route(
+            "/v1/vault/secret/delete",
+            post(vault_secret_delete).options(preflight),
+        )
         .method_not_allowed_fallback(method_not_allowed)
         .fallback(not_found)
         .layer(middleware::from_fn_with_state(
@@ -87,6 +115,7 @@ async fn info(State(state): State<Arc<AgentState>>) -> Json<InfoResponse> {
         version: env!("CARGO_PKG_VERSION"),
         capabilities: &AGENT_CAPABILITIES,
         private_network_allowed: state.config.allow_private,
+        vault_available: state.vault.available(),
         limits: LimitsResponse {
             max_request_body_bytes: MAX_REQUEST_BODY_BYTES,
             max_response_body_bytes: MAX_RESPONSE_BODY_BYTES,
@@ -120,12 +149,23 @@ async fn http_request(
     request: Request,
 ) -> Result<impl IntoResponse, ApiError> {
     let session_key = authorize(&state, request.headers())?;
+    let origin = required_header(request.headers(), ORIGIN)?;
+    let authorization =
+        optional_single_header(request.headers(), AUTHORIZATION)?.map(str::to_owned);
     let input: HttpRequestInput = parse_json(request).await?;
     let request_id = Uuid::parse_str(&input.id).map_err(|_| ApiError::invalid_request())?;
+    // `{{secret:name}}` needs `vault.secrets` as well; values stay in the agent.
+    let secrets = if http_client::mentions_secret(&input) {
+        state.authorize_vault_secrets(authorization.as_deref(), &origin)?;
+        let vault = Arc::clone(&state.vault);
+        Some(run_vault(move || vault.secret_book(&origin)).await?)
+    } else {
+        None
+    };
     let permit = state.try_acquire_request_slot()?;
     let cancellation = CancellationToken::new();
     let active_request = state.register_request(session_key, request_id, cancellation.clone())?;
-    let result = http_client::execute(input, &state.config, cancellation).await;
+    let result = http_client::execute(input, &state.config, cancellation, secrets.as_ref()).await;
     drop(active_request);
     drop(permit);
     Ok((StatusCode::OK, Json(result?)))
@@ -277,6 +317,92 @@ async fn asn_lookup(
     Ok((StatusCode::OK, Json(response)))
 }
 
+/// Names, revisions and times of this origin's documents. `vault.data` only.
+async fn vault_documents(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<impl IntoResponse, ApiError> {
+    let origin = authorize_vault_data(&state, request.headers())?;
+    let vault = Arc::clone(&state.vault);
+    let documents = run_vault(move || vault.list_documents(&origin)).await?;
+    Ok((StatusCode::OK, Json(json!({ "documents": documents }))))
+}
+
+async fn vault_document_read(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<impl IntoResponse, ApiError> {
+    let origin = authorize_vault_data(&state, request.headers())?;
+    let input: DocumentName = parse_json(request).await?;
+    let vault = Arc::clone(&state.vault);
+    let document = run_vault(move || vault.read_document(&origin, &input.name)).await?;
+    Ok((StatusCode::OK, Json(document)))
+}
+
+async fn vault_document_write(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<impl IntoResponse, ApiError> {
+    let origin = authorize_vault_data(&state, request.headers())?;
+    let input: DocumentWrite = parse_json(request).await?;
+    let vault = Arc::clone(&state.vault);
+    let revision = run_vault(move || vault.write_document(&origin, input)).await?;
+    Ok((StatusCode::OK, Json(revision)))
+}
+
+async fn vault_document_delete(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<StatusCode, ApiError> {
+    let origin = authorize_vault_data(&state, request.headers())?;
+    let input: DocumentDelete = parse_json(request).await?;
+    let vault = Arc::clone(&state.vault);
+    run_vault(move || vault.delete_document(&origin, input)).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+/// Secret names and hosts without values. `vault.secrets` only.
+async fn vault_secrets(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<impl IntoResponse, ApiError> {
+    let origin = authorize_vault_secrets(&state, request.headers())?;
+    let vault = Arc::clone(&state.vault);
+    let secrets = run_vault(move || vault.list_secrets(&origin)).await?;
+    Ok((StatusCode::OK, Json(json!({ "secrets": secrets }))))
+}
+
+async fn vault_secret_write(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<StatusCode, ApiError> {
+    let origin = authorize_vault_secrets(&state, request.headers())?;
+    let input: SecretWrite = parse_json(request).await?;
+    let vault = Arc::clone(&state.vault);
+    run_vault(move || vault.write_secret(&origin, input)).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+async fn vault_secret_delete(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<StatusCode, ApiError> {
+    let origin = authorize_vault_secrets(&state, request.headers())?;
+    let input: SecretName = parse_json(request).await?;
+    let vault = Arc::clone(&state.vault);
+    run_vault(move || vault.delete_secret(&origin, &input.name)).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+/// Vault file work is blocking and serialized by the vault's own lock.
+async fn run_vault<T: Send + 'static>(
+    work: impl FnOnce() -> Result<T, ApiError> + Send + 'static,
+) -> Result<T, ApiError> {
+    tokio::task::spawn_blocking(work)
+        .await
+        .map_err(|_| ApiError::busy())?
+}
+
 async fn preflight() -> StatusCode {
     StatusCode::NO_CONTENT
 }
@@ -353,10 +479,24 @@ fn valid_preflight(request: &Request) -> bool {
         HeaderName::from_static("access-control-request-method"),
     );
     let expected_method = match request.uri().path() {
-        "/v1/info" | "/v1/icmp/interfaces" => "GET",
-        "/v1/pair" | "/v1/http/request" | "/v1/http/cancel" | "/v1/icmp/trace"
-        | "/v1/icmp/snapshot" | "/v1/icmp/cancel" | "/v1/icmp/mtu" | "/v1/dns/lookup"
-        | "/v1/tcp/connect" | "/v1/tls/inspect" | "/v1/whois/lookup" | "/v1/asn/lookup" => "POST",
+        "/v1/info" | "/v1/icmp/interfaces" | "/v1/vault/documents" | "/v1/vault/secrets" => "GET",
+        "/v1/pair"
+        | "/v1/http/request"
+        | "/v1/http/cancel"
+        | "/v1/icmp/trace"
+        | "/v1/icmp/snapshot"
+        | "/v1/icmp/cancel"
+        | "/v1/icmp/mtu"
+        | "/v1/dns/lookup"
+        | "/v1/tcp/connect"
+        | "/v1/tls/inspect"
+        | "/v1/whois/lookup"
+        | "/v1/asn/lookup"
+        | "/v1/vault/document/read"
+        | "/v1/vault/document/write"
+        | "/v1/vault/document/delete"
+        | "/v1/vault/secret/write"
+        | "/v1/vault/secret/delete" => "POST",
         "/v1/session" => "DELETE",
         _ => return false,
     };
@@ -413,6 +553,21 @@ fn authorize_asn(state: &AgentState, headers: &HeaderMap) -> Result<[u8; 32], Ap
     let origin = required_header(headers, ORIGIN)?;
     let authorization = optional_single_header(headers, AUTHORIZATION)?;
     state.authorize_asn(authorization, &origin)
+}
+
+/// Returns the origin: vault data is namespaced per origin.
+fn authorize_vault_data(state: &AgentState, headers: &HeaderMap) -> Result<String, ApiError> {
+    let origin = required_header(headers, ORIGIN)?;
+    let authorization = optional_single_header(headers, AUTHORIZATION)?;
+    state.authorize_vault_data(authorization, &origin)?;
+    Ok(origin)
+}
+
+fn authorize_vault_secrets(state: &AgentState, headers: &HeaderMap) -> Result<String, ApiError> {
+    let origin = required_header(headers, ORIGIN)?;
+    let authorization = optional_single_header(headers, AUTHORIZATION)?;
+    state.authorize_vault_secrets(authorization, &origin)?;
+    Ok(origin)
 }
 
 fn authorize_tls(state: &AgentState, headers: &HeaderMap) -> Result<[u8; 32], ApiError> {

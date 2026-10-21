@@ -10,6 +10,7 @@ mod server;
 mod state;
 mod tcp;
 mod tls;
+mod vault;
 mod whois;
 #[cfg(windows)]
 mod windows_shell;
@@ -39,6 +40,10 @@ struct Args {
 
     #[arg(long)]
     allow_private: bool,
+
+    /// Encrypted vault directory. Default: %APPDATA%\MyDevTools\Agent\vault.
+    #[arg(long)]
+    data_dir: Option<std::path::PathBuf>,
 
     #[arg(long, hide = true)]
     autostart: bool,
@@ -74,6 +79,7 @@ async fn run() -> Result<(), String> {
         port: args.port,
         allow_private: args.allow_private,
         allowed_origins,
+        data_dir: args.data_dir.or_else(vault::default_root),
     });
     let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, args.port))
         .await

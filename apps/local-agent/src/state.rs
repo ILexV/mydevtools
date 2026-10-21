@@ -1,5 +1,6 @@
 use std::{
     collections::{HashMap, HashSet, VecDeque},
+    path::PathBuf,
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -20,10 +21,12 @@ use crate::{
     icmp::{SharedTrace, TraceState},
     model::{
         ASN_CAPABILITY, ApiError, DNS_CAPABILITY, HTTP_CAPABILITY, ICMP_CAPABILITY, PairRequest,
-        PairResponse, TCP_CAPABILITY, TLS_CAPABILITY, WHOIS_CAPABILITY,
+        PairResponse, TCP_CAPABILITY, TLS_CAPABILITY, VAULT_DATA_CAPABILITY,
+        VAULT_SECRETS_CAPABILITY, WHOIS_CAPABILITY,
     },
     tcp::MAX_CONCURRENT_CONNECTS,
     tls::MAX_CONCURRENT_INSPECTIONS,
+    vault::Vault,
     whois::MAX_CONCURRENT_QUERIES,
 };
 
@@ -45,11 +48,14 @@ pub(crate) struct AgentConfig {
     pub(crate) port: u16,
     pub(crate) allow_private: bool,
     pub(crate) allowed_origins: HashSet<String>,
+    /// Vault directory; `None` leaves the agent without `vault.*` storage.
+    pub(crate) data_dir: Option<PathBuf>,
 }
 
 pub(crate) struct AgentState {
     pub(crate) config: AgentConfig,
     pub(crate) expected_host: String,
+    pub(crate) vault: Arc<Vault>,
     pairing: Mutex<PairingState>,
     pairing_code: watch::Sender<String>,
     sessions: Mutex<HashMap<SessionKey, Session>>,
@@ -83,6 +89,8 @@ struct Session {
     tls_inspect_allowed: bool,
     whois_lookup_allowed: bool,
     asn_lookup_allowed: bool,
+    vault_data_allowed: bool,
+    vault_secrets_allowed: bool,
     active: HashMap<Uuid, CancellationToken>,
     cancellation_tombstones: HashMap<Uuid, Instant>,
     traces: HashMap<Uuid, Arc<Mutex<SharedTrace>>>,
@@ -100,9 +108,11 @@ impl AgentState {
         let pairing = PairingState::new();
         let (pairing_code, _) = watch::channel(pairing.code_string());
         let expected_host = format!("127.0.0.1:{}", config.port);
+        let vault = Arc::new(Vault::new(config.data_dir.clone()));
         Arc::new(Self {
             config,
             expected_host,
+            vault,
             pairing: Mutex::new(pairing),
             pairing_code,
             sessions: Mutex::new(HashMap::new()),
@@ -210,6 +220,12 @@ impl AgentState {
                 asn_lookup_allowed: granted
                     .iter()
                     .any(|capability| *capability == ASN_CAPABILITY),
+                vault_data_allowed: granted
+                    .iter()
+                    .any(|capability| *capability == VAULT_DATA_CAPABILITY),
+                vault_secrets_allowed: granted
+                    .iter()
+                    .any(|capability| *capability == VAULT_SECRETS_CAPABILITY),
                 active: HashMap::new(),
                 cancellation_tombstones: HashMap::new(),
                 traces: HashMap::new(),
@@ -340,6 +356,30 @@ impl AgentState {
         Ok(auth.key)
     }
 
+    pub(crate) fn authorize_vault_data(
+        &self,
+        authorization: Option<&str>,
+        origin: &str,
+    ) -> Result<SessionKey, ApiError> {
+        let auth = self.authorize(authorization, origin)?;
+        if !auth.vault_data_allowed {
+            return Err(ApiError::forbidden());
+        }
+        Ok(auth.key)
+    }
+
+    pub(crate) fn authorize_vault_secrets(
+        &self,
+        authorization: Option<&str>,
+        origin: &str,
+    ) -> Result<SessionKey, ApiError> {
+        let auth = self.authorize(authorization, origin)?;
+        if !auth.vault_secrets_allowed {
+            return Err(ApiError::forbidden());
+        }
+        Ok(auth.key)
+    }
+
     pub(crate) fn try_acquire_asn_slot(&self) -> Result<OwnedSemaphorePermit, ApiError> {
         Arc::clone(&self.asn_concurrency)
             .try_acquire_owned()
@@ -376,6 +416,8 @@ impl AgentState {
             tls_inspect_allowed: session.tls_inspect_allowed,
             whois_lookup_allowed: session.whois_lookup_allowed,
             asn_lookup_allowed: session.asn_lookup_allowed,
+            vault_data_allowed: session.vault_data_allowed,
+            vault_secrets_allowed: session.vault_secrets_allowed,
         })
     }
 
@@ -600,6 +642,8 @@ struct SessionAuth {
     tls_inspect_allowed: bool,
     whois_lookup_allowed: bool,
     asn_lookup_allowed: bool,
+    vault_data_allowed: bool,
+    vault_secrets_allowed: bool,
 }
 
 impl Drop for ActiveRequestGuard {
@@ -643,6 +687,8 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
     let mut tls = false;
     let mut whois = false;
     let mut asn = false;
+    let mut vault_data = false;
+    let mut vault_secrets = false;
     for capability in requested {
         match capability.as_str() {
             HTTP_CAPABILITY if !http => http = true,
@@ -652,10 +698,12 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
             TLS_CAPABILITY if !tls => tls = true,
             WHOIS_CAPABILITY if !whois => whois = true,
             ASN_CAPABILITY if !asn => asn = true,
+            VAULT_DATA_CAPABILITY if !vault_data => vault_data = true,
+            VAULT_SECRETS_CAPABILITY if !vault_secrets => vault_secrets = true,
             _ => return Err(ApiError::unsupported_capability()),
         }
     }
-    let mut granted = Vec::with_capacity(7);
+    let mut granted = Vec::with_capacity(9);
     if http {
         granted.push(HTTP_CAPABILITY);
     }
@@ -676,6 +724,12 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
     }
     if asn {
         granted.push(ASN_CAPABILITY);
+    }
+    if vault_data {
+        granted.push(VAULT_DATA_CAPABILITY);
+    }
+    if vault_secrets {
+        granted.push(VAULT_SECRETS_CAPABILITY);
     }
     Ok(granted)
 }

@@ -26,7 +26,13 @@ pub(crate) const WHOIS_CAPABILITY: &str = "whois.lookup";
 /// WHOIS does not include this capability. The lookup does not call a geo-IP
 /// API and is not part of path trace.
 pub(crate) const ASN_CAPABILITY: &str = "asn.lookup";
-pub(crate) const AGENT_CAPABILITIES: [&str; 7] = [
+/// Encrypted documents on this computer (workspace, environments, history).
+/// Pairing for HTTP does not include this capability.
+pub(crate) const VAULT_DATA_CAPABILITY: &str = "vault.data";
+/// Write-only secrets: names and hosts are listed, values never leave the agent.
+/// `http.request` substitutes `{{secret:name}}` only with this capability too.
+pub(crate) const VAULT_SECRETS_CAPABILITY: &str = "vault.secrets";
+pub(crate) const AGENT_CAPABILITIES: [&str; 9] = [
     HTTP_CAPABILITY,
     ICMP_CAPABILITY,
     DNS_CAPABILITY,
@@ -34,6 +40,8 @@ pub(crate) const AGENT_CAPABILITIES: [&str; 7] = [
     TLS_CAPABILITY,
     WHOIS_CAPABILITY,
     ASN_CAPABILITY,
+    VAULT_DATA_CAPABILITY,
+    VAULT_SECRETS_CAPABILITY,
 ];
 pub(crate) const MAX_INCOMING_JSON_BYTES: usize = 2 * 1024 * 1024;
 pub(crate) const MAX_REQUEST_BODY_BYTES: usize = 1024 * 1024;
@@ -47,6 +55,8 @@ pub(crate) struct InfoResponse {
     pub(crate) version: &'static str,
     pub(crate) capabilities: &'static [&'static str],
     pub(crate) private_network_allowed: bool,
+    /// False when the agent has no data directory; vault routes then fail.
+    pub(crate) vault_available: bool,
     pub(crate) limits: LimitsResponse,
 }
 
@@ -69,7 +79,7 @@ pub(crate) struct PairRequest {
 #[serde(rename_all = "camelCase")]
 pub(crate) struct PairResponse {
     pub(crate) token: String,
-    /// Granted subset, stable order: `http.request`, `icmp.trace`, `dns.lookup`, `tcp.connect`, `tls.inspect`, `whois.lookup`, `asn.lookup`.
+    /// Granted subset, stable order: `http.request`, `icmp.trace`, `dns.lookup`, `tcp.connect`, `tls.inspect`, `whois.lookup`, `asn.lookup`, `vault.data`, `vault.secrets`.
     pub(crate) capabilities: Vec<&'static str>,
     pub(crate) expires_at: String,
 }

@@ -19,6 +19,7 @@ use crate::{
     },
     policy::enforce_destination,
     state::AgentConfig,
+    vault::{self, SecretBook, Substitutions},
 };
 
 const MAX_REDIRECTS: usize = 5;
@@ -29,10 +30,26 @@ const MAX_RESPONSE_HEADER_BYTES: usize = 128 * 1024;
 const MAX_URL_BYTES: usize = 16 * 1024;
 const MAX_PINNED_ADDRESSES: usize = 16;
 
+/// True when the URL, a header value or the body has `{{secret:`.
+pub(crate) fn mentions_secret(input: &HttpRequestInput) -> bool {
+    vault::mentions_secret(input.url.as_bytes())
+        || input
+            .headers
+            .iter()
+            .any(|header| vault::mentions_secret(header.value.as_bytes()))
+        || STANDARD
+            .decode(&input.body_base64)
+            .is_ok_and(|body| vault::mentions_secret(&body))
+}
+
+/// `secrets` is the origin's book when the request uses placeholders. Each used
+/// secret must list the target host and every followed redirect host; echoes of
+/// its value in the response are redacted back to the placeholder.
 pub(crate) async fn execute(
     input: HttpRequestInput,
     config: &AgentConfig,
     cancellation: CancellationToken,
+    secrets: Option<&SecretBook>,
 ) -> Result<HttpResponseOutput, ApiError> {
     let timeout = input.timeout_ms;
     if timeout == 0 || timeout > MAX_TIMEOUT_MS {
@@ -40,9 +57,31 @@ pub(crate) async fn execute(
     }
 
     let method = parse_method(&input.method)?;
-    let url = parse_url(&input.url)?;
-    let headers = parse_headers(input.headers)?;
-    let body = decode_request_body(&input.body_base64)?;
+    let mut substitutions = Substitutions::default();
+    let mut url_text = input.url;
+    let mut header_entries = input.headers;
+    let mut body = decode_request_body(&input.body_base64)?;
+    if let Some(book) = secrets {
+        url_text = String::from_utf8(substitutions.apply(url_text.as_bytes(), book)?)
+            .map_err(|_| ApiError::invalid_request())?;
+        for entry in &mut header_entries {
+            entry.value = String::from_utf8(substitutions.apply(entry.value.as_bytes(), book)?)
+                .map_err(|_| ApiError::invalid_request())?;
+        }
+        let substituted = substitutions.apply(&body, book)?;
+        if substituted.len() > MAX_REQUEST_BODY_BYTES {
+            return Err(ApiError::new(
+                StatusCode::PAYLOAD_TOO_LARGE,
+                "request_too_large",
+            ));
+        }
+        body = Bytes::from(substituted);
+    }
+    let url = parse_url(&url_text)?;
+    if !substitutions.is_empty() && !substitutions.host_allowed(&url) {
+        return Err(vault::secret_host_denied());
+    }
+    let headers = parse_headers(header_entries)?;
     let started = Instant::now();
 
     let operation = execute_redirect_chain(
@@ -53,6 +92,7 @@ pub(crate) async fn execute(
         input.follow_redirects,
         config,
         &cancellation,
+        &substitutions,
     );
     let output = tokio::select! {
         _ = cancellation.cancelled() => Err(cancelled()),
@@ -64,12 +104,38 @@ pub(crate) async fn execute(
         }
     }?;
 
+    let output = if substitutions.is_empty() {
+        output
+    } else {
+        redact_output(output, &substitutions)
+    };
     Ok(HttpResponseOutput {
         elapsed_ms: started.elapsed().as_millis().min(u128::from(u64::MAX)) as u64,
         ..output
     })
 }
 
+fn redact_output(output: HttpResponseOutput, substitutions: &Substitutions) -> HttpResponseOutput {
+    let body = STANDARD
+        .decode(&output.body_base64)
+        .map(|body| STANDARD.encode(substitutions.redact(&body)))
+        .unwrap_or(output.body_base64);
+    HttpResponseOutput {
+        url: substitutions.redact_str(&output.url),
+        headers: output
+            .headers
+            .into_iter()
+            .map(|header| HeaderEntry {
+                name: header.name,
+                value: substitutions.redact_str(&header.value),
+            })
+            .collect(),
+        body_base64: body,
+        ..output
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
 async fn execute_redirect_chain(
     mut method: Method,
     mut url: Url,
@@ -78,6 +144,7 @@ async fn execute_redirect_chain(
     follow_redirects: bool,
     config: &AgentConfig,
     cancellation: &CancellationToken,
+    substitutions: &Substitutions,
 ) -> Result<HttpResponseOutput, ApiError> {
     let mut redirects = 0;
     loop {
@@ -100,6 +167,11 @@ async fn execute_redirect_chain(
                     .to_str()
                     .map_err(|_| ApiError::new(StatusCode::BAD_GATEWAY, "network_error"))?;
                 let next_url = parse_redirect_url(&url, location)?;
+                // A secret never follows a redirect to a host outside its list:
+                // the page gets the 3xx itself.
+                if !substitutions.is_empty() && !substitutions.host_allowed(&next_url) {
+                    return read_response(response, cancellation).await;
+                }
                 if url.scheme() == "https" && next_url.scheme() == "http" {
                     return Err(ApiError::new(StatusCode::FORBIDDEN, "target_denied"));
                 }

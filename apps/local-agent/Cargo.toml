@@ -22,6 +22,7 @@ futures-util = "=0.3.31"
 hex = "=0.4.3"
 parking_lot = "=0.12.4"
 rand = "=0.8.5"
+ring = "=0.17.14"
 reqwest = { version = "=0.12.22", default-features = false, features = ["http2", "rustls-tls-webpki-roots", "stream"] }
 rustls = { version = "=0.23.46", default-features = false, features = ["ring", "std", "tls12", "logging"] }
 serde = { version = "=1.0.219", features = ["derive"] }
@@ -50,6 +51,8 @@ windows-sys = { version = "=0.59.0", features = [
     "Win32_NetworkManagement_IpHelper",
     "Win32_NetworkManagement_Ndis",
     "Win32_Networking_WinSock",
+    "Win32_Security",
+    "Win32_Security_Cryptography",
     "Win32_System_IO",
     "Win32_System_LibraryLoader",
     "Win32_System_Registry",

@@ -2610,6 +2610,7 @@ mod tests {
             port: 48_732,
             allow_private: true,
             allowed_origins: HashSet::from(["https://mydevtools.app".to_owned()]),
+            data_dir: None,
         });
         state.replace_pairing_code([0x11; 16]);
         let paired = state

@@ -34,8 +34,9 @@ import {
   type HttpWorkspaceItemKind,
 } from "@/tools/http-workspace";
 import { AgentWorkspaceStore } from "@/tools/http-workspace-agent";
+import { bindSecretsDialog, type SecretsDialogStrings } from "@/tools/http-secrets-dialog";
 
-interface Strings {
+interface Strings extends SecretsDialogStrings {
   Lang: string;
   phrases: Record<string, string>;
   ResponseBody: string;
@@ -196,6 +197,8 @@ function init(): void {
   const moveDialog = root.querySelector<HTMLDialogElement>("[data-http-move-dialog]");
   const moveDestination = root.querySelector<HTMLSelectElement>("[data-http-move-destination]");
   const moveConfirm = root.querySelector<HTMLButtonElement>("[data-http-move-confirm]");
+  const secretsButton = root.querySelector<HTMLButtonElement>("[data-http-secrets]")!;
+  const secretsDialog = root.querySelector<HTMLDialogElement>("[data-http-secrets-dialog]")!;
   const sidebarResizer = root.querySelector<HTMLElement>("[data-http-sidebar-resizer]");
   const workspaceLoadError = root.querySelector<HTMLElement>("[data-http-workspace-load-error]");
   const workspaceSaveError = root.querySelector<HTMLElement>("[data-http-workspace-save-error]");
@@ -1887,6 +1890,8 @@ function init(): void {
     send.disabled = !connected || active !== null;
     code.disabled = connected;
     agentMeta.hidden = !connected;
+    secretsButton.hidden = !connected || !client.capabilities.includes("vault.secrets");
+    if (secretsButton.hidden && secretsDialog.open) secretsDialog.close();
     connectionState.textContent = connected ? strings.AgentConnectedShort : strings.AgentDisconnectedShort;
     popover.sync(client);
     storageWarning.hidden = !connected || client.persisted;
@@ -1954,6 +1959,16 @@ function init(): void {
     }
   };
   connect.addEventListener("click", () => { void connectAgent(); });
+  const secrets = bindSecretsDialog(secretsDialog, {
+    client,
+    strings,
+    errorText,
+    requestUrl: () => requestUrl.value,
+  });
+  secretsButton.addEventListener("click", () => {
+    closeTreeMenu(false);
+    secrets.open(secretsButton);
+  });
   void connectAgent(true);
   // A pairing made in another window lands here only while this one cannot work anyway.
   onAgentSessionSaved(() => {

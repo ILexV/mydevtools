@@ -25,7 +25,9 @@ const clientKeys = [
   "DeleteRequestConfirm", "NewFolder", "FolderName", "RenameFolder", "DeleteFolder", "DeleteFolderConfirm", "MoveItem",
   "RootFolder", "SelectFolder", "ResizeSidebar", "FolderNameRequired", "WorkspacePrivacy", "WorkspaceSaveError",
   "WorkspaceLoadError", "WorkspacePrivacyAgent", "WorkspaceAgentLocked", "WorkspaceAgentRepair", "WorkspaceAgentLoadError",
-  "WorkspaceAgentSaveError", "WorkspaceAgentMoved", "WorkspaceMerged", "WorkspaceImportedFolder", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
+  "WorkspaceAgentSaveError", "WorkspaceAgentMoved", "WorkspaceMerged", "WorkspaceImportedFolder", "SecretAddTitle",
+  "SecretEditTitle", "SecretValueKeep", "SecretEdit", "SecretDelete", "SecretDeleteConfirm", "SecretCopy", "SecretCopyPlaceholder",
+  "SecretCopied", "SecretSaved", "SecretDeleted", "SecretNameInvalid", "SecretNameTaken", "SecretValueInvalid", "SecretHostsInvalid", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
 const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhrases(lang) });
@@ -41,6 +43,9 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
         </button>
         <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "NewFolder")} title={t(lang, ns, "NewFolder")} data-http-new-folder>
           <Icon name="folder" size={15} />
+        </button>
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "Secrets")} title={t(lang, ns, "Secrets")} aria-haspopup="dialog" hidden data-http-secrets>
+          <Icon name="lock" size={15} />
         </button>
         <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "TreeMenu")} title={t(lang, ns, "TreeMenu")} aria-haspopup="menu" aria-controls="http-tree-menu" aria-expanded="false" data-http-tree-menu-button>
           <Icon name="more" size={15} />
@@ -69,6 +74,40 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
       <div class="ds-actions">
         <button type="submit" class="ds-btn ds-btn-small ds-btn-ghost" value="cancel">{t(lang, ns, "Cancel")}</button>
         <button type="button" class="ds-btn ds-btn-small ds-btn-primary" data-http-move-confirm>{t(lang, ns, "MoveItem")}</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog class="http-move-dialog http-secrets-dialog" aria-labelledby="http-secrets-title" aria-describedby="http-secrets-hint" data-http-secrets-dialog>
+    <div class="http-secrets-head">
+      <h2 id="http-secrets-title" class="ds-panel-title">{t(lang, ns, "Secrets")}</h2>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "SecretsClose")} title={t(lang, ns, "SecretsClose")} data-http-secrets-close>
+        <Icon name="close" size={15} />
+      </button>
+    </div>
+    <p id="http-secrets-hint" class="ds-hint http-secrets-hint">{t(lang, ns, "SecretsHint", { params: { placeholder: "{{secret:name}}" } })}</p>
+    <ul class="http-secrets-list" aria-labelledby="http-secrets-title" hidden data-http-secrets-list></ul>
+    <p class="ds-hint http-secrets-empty" data-http-secrets-empty>{t(lang, ns, "SecretsEmpty")}</p>
+    <form class="http-secrets-form" novalidate data-http-secrets-form>
+      <h3 class="http-secrets-form-title" data-http-secrets-form-title>{t(lang, ns, "SecretAddTitle")}</h3>
+      <label class="http-move-field">
+        <span>{t(lang, ns, "SecretName")}</span>
+        <input class="ds-field mono" type="text" maxlength="64" autocomplete="off" spellcheck="false" placeholder="API_TOKEN" required data-http-secret-name />
+      </label>
+      <label class="http-move-field">
+        <span>{t(lang, ns, "SecretValue")}</span>
+        <input class="ds-field mono" type="password" autocomplete="new-password" spellcheck="false" aria-describedby="http-secret-value-hint" required data-http-secret-value />
+        <span id="http-secret-value-hint" class="ds-hint" hidden data-http-secret-value-hint>{t(lang, ns, "SecretValueKeep")}</span>
+      </label>
+      <label class="http-move-field">
+        <span>{t(lang, ns, "SecretHosts")}</span>
+        <input class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder="api.example.com, *.example.com" aria-describedby="http-secret-hosts-hint" required data-http-secret-hosts />
+        <span id="http-secret-hosts-hint" class="ds-hint">{t(lang, ns, "SecretHostsHint")}</span>
+      </label>
+      <StatusMessage kind="error" data-http-secrets-error />
+      <StatusMessage kind="success" data-http-secrets-status />
+      <div class="ds-actions">
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" hidden data-http-secret-cancel-edit>{t(lang, ns, "Cancel")}</button>
+        <button type="submit" class="ds-btn ds-btn-small ds-btn-primary" data-http-secret-save>{t(lang, ns, "SecretSave")}</button>
       </div>
     </form>
   </dialog>
@@ -261,12 +300,30 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
   .http-tree-menu :global(.http-menu-item:focus-visible) { background: var(--mdt-surface-muted); outline: none; }
   .http-tree-menu :global(.http-menu-item.is-danger) { color: var(--mdt-danger); }
   .http-tree-menu :global(.http-menu-separator) { height: 1px; margin: 0.25rem; background: var(--mdt-border-soft); }
-  .http-move-dialog { width: min(24rem, calc(100vw - 2rem)); padding: 1rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); color: var(--mdt-text); background: var(--mdt-surface-raised); box-shadow: var(--mdt-shadow-e2); }
+  .http-move-dialog { width: min(24rem, calc(100vw - 2rem)); margin: auto; padding: 1rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); color: var(--mdt-text); background: var(--mdt-surface-raised); box-shadow: var(--mdt-shadow-e2); }
   .http-move-dialog::backdrop { background: rgb(0 0 0 / 45%); }
   .http-move-dialog form, .http-move-field { display: grid; gap: 0.75rem; }
   .http-move-dialog h2 { margin: 0; }
   .http-move-field { gap: 0.3rem; color: var(--mdt-text-muted); font-size: var(--mdt-fs-label); }
   .http-move-dialog .ds-actions { justify-content: flex-end; }
+  .http-secrets-dialog { width: min(34rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); overflow: auto; }
+  .http-secrets-dialog[open] { display: grid; gap: 0.75rem; }
+  .http-secrets-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  .http-secrets-head h2 { margin: 0; }
+  .http-secrets-head .http-tree-action { width: 1.75rem; min-width: 1.75rem; min-height: 1.75rem; padding: 0; }
+  .http-secrets-hint, .http-secrets-empty { margin: 0; }
+  .http-secrets-list { display: grid; margin: 0; padding: 0; list-style: none; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-sm); }
+  .http-secrets-list :global(.http-secret-item) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.35rem 0.75rem; padding: 0.45rem 0.6rem; }
+  .http-secrets-list :global(.http-secret-item + .http-secret-item) { border-top: 1px solid var(--mdt-border-soft); }
+  .http-secrets-list :global(.http-secret-text) { display: grid; min-width: 0; flex: 1 1 12rem; gap: 0.1rem; }
+  .http-secrets-list :global(.http-secret-name) { overflow-wrap: anywhere; color: var(--mdt-text); font-size: var(--mdt-fs-label); }
+  .http-secrets-list :global(.http-secret-hosts) { overflow-wrap: anywhere; font-size: var(--mdt-fs-meta); }
+  .http-secrets-list :global(.http-secret-actions) { display: flex; flex-wrap: wrap; gap: 0.15rem; }
+  .http-secrets-list :global(.http-secret-actions .ds-btn) { padding-inline: 0.5rem; }
+  .http-secrets-list :global(.http-secret-delete) { color: var(--mdt-danger); }
+  .http-secrets-form { display: grid; gap: 0.65rem; padding-top: 0.75rem; border-top: 1px solid var(--mdt-border-soft); }
+  .http-secrets-form-title { margin: 0; font-size: var(--mdt-fs-label); }
+  .http-secrets-form :global(.ds-alert) { margin: 0; }
   .http-sidebar-resizer { position: relative; z-index: 1; width: 100%; cursor: col-resize; touch-action: none; background: var(--mdt-border-soft); }
   .http-sidebar-resizer::after { position: absolute; inset: 0 0 0 50%; width: 2px; content: ""; transform: translateX(-50%); background: transparent; }
   .http-sidebar-resizer:is(:hover, :focus-visible, .is-dragging)::after { background: var(--mdt-cat); }

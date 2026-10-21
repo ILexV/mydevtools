@@ -38,6 +38,7 @@ const PROFILE_BY_SLUG: Record<string, WindowProfile> = {
   "hex-viewer": "wide",
   "http-client": "wide",
   "path-trace": "wide",
+  "dns-lookup": "wide",
   "uuid-generator": "compact",
   "password-generator": "compact",
 };

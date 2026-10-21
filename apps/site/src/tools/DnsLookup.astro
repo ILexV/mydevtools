@@ -1,0 +1,146 @@
+---
+/**
+ * DNS lookup. The query runs in the local agent against this computer's
+ * resolver. This shell supplies the form and the localized string island.
+ */
+import { t } from "@/i18n/messages";
+import { localizedPath } from "@/lib/url";
+import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+
+interface Props { lang: LocaleCode }
+const { lang } = Astro.props as Props;
+const ns = "tools/dns-lookup";
+const agentHref = localizedPath(lang, "local-agent");
+const recordTypes = ["A", "AAAA", "CNAME", "MX", "NS", "TXT", "SOA", "PTR"] as const;
+const clientKeys = [
+  "Connected", "Disconnected", "Connecting", "NotConnected",
+  "AgentConnectedShort", "AgentDisconnectedShort", "ConnectionNotSaved", "NeedDnsCapability",
+  "InvalidName", "LookingUp", "Lookup", "Copied", "CopyFailed",
+  "StatusNoerror", "StatusNodata", "StatusNxdomain",
+  "ErrorGeneric", "Error_agent_unavailable", "Error_invalid_response", "Error_invalid_request",
+  "Error_unauthorized", "Error_forbidden", "Error_pairing_invalid", "Error_pairing_expired",
+  "Error_pairing_rate_limited", "Error_unsupported_capability", "Error_timeout", "Error_busy",
+  "Error_network_error", "Error_incompatible_protocol", "Error_dns_timeout", "Error_dns_unavailable",
+  "Error_dns_truncated", "Error_not_found",
+] as const;
+const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
+const stringsJson = JSON.stringify(strings);
+---
+
+<div class="dns-lookup" data-dns-lookup>
+  <section class="ds-card dns-card" aria-labelledby="dns-connection-title">
+    <h2 id="dns-connection-title" class="ds-panel-title">{t(lang, ns, "ConnectionTitle")}</h2>
+    <div class="dns-connect">
+      <Field label={t(lang, ns, "PairCodeLabel")} for="dns-lookup-code" hint={t(lang, ns, "PairCodeHint")}>
+        <input id="dns-lookup-code" class="ds-field mono" type="password" autocomplete="one-time-code" spellcheck="false" data-dns-code />
+      </Field>
+      <div class="ds-action-row">
+        <button type="button" class="ds-btn ds-btn-primary" data-dns-connect>{t(lang, ns, "Connect")}</button>
+        <button type="button" class="ds-btn" data-dns-disconnect disabled>{t(lang, ns, "Disconnect")}</button>
+      </div>
+    </div>
+    <p class="dns-connection-line">
+      <span class="dns-dot" aria-hidden="true"></span>
+      <span data-dns-connection-state>{t(lang, ns, "AgentDisconnectedShort")}</span>
+    </p>
+    <dl class="dns-meta" data-dns-agent-meta hidden>
+      <div><dt>{t(lang, ns, "AgentVersion")}</dt><dd class="mono" data-dns-agent-version></dd></div>
+      <div><dt>{t(lang, ns, "Capability")}</dt><dd class="mono" data-dns-capabilities></dd></div>
+    </dl>
+    <StatusMessage kind="info" data-dns-connection-status />
+    <StatusMessage kind="warning" data-dns-capability-warning />
+    <StatusMessage kind="error" data-dns-connection-error />
+    <StatusMessage kind="info" data-dns-storage-warning />
+    <details class="dns-setup">
+      <summary>{t(lang, ns, "SetupTitle")}</summary>
+      <div class="dns-setup-body">
+        <p class="ds-hint">{t(lang, ns, "SetupIntro")}</p>
+        <a class="ds-btn ds-btn-small" href={agentHref}>{t(lang, ns, "InstallAgent")}</a>
+        <ol>
+          <li>{t(lang, ns, "SetupStep2")}</li>
+          <li>{t(lang, ns, "SetupStep3")}</li>
+          <li>{t(lang, ns, "SetupStep4")}</li>
+        </ol>
+        <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="ds-card dns-card" aria-labelledby="dns-query-title">
+    <h2 id="dns-query-title" class="ds-panel-title">{t(lang, ns, "QueryTitle")}</h2>
+    <div class="ds-settings">
+      <Field class="ds-settings-wide" label={t(lang, ns, "NameLabel")} for="dns-lookup-name" hint={t(lang, ns, "NameHint")}>
+        <input id="dns-lookup-name" class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "NamePlaceholder")} data-dns-name />
+      </Field>
+      <Field label={t(lang, ns, "TypeLabel")} for="dns-lookup-type" hint={t(lang, ns, "TypeHint")}>
+        <select id="dns-lookup-type" class="ds-field-select" data-dns-type>
+          {recordTypes.map((recordType) => <option value={recordType}>{recordType}</option>)}
+        </select>
+      </Field>
+    </div>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-dns-lookup-button disabled>{t(lang, ns, "Lookup")}</button>
+    </div>
+    <StatusMessage kind="info" data-dns-result />
+    <StatusMessage kind="error" data-dns-error />
+  </section>
+
+  <section class="ds-card dns-card" aria-labelledby="dns-answer-title">
+    <div class="dns-results-head">
+      <h2 id="dns-answer-title" class="ds-panel-title">{t(lang, ns, "AnswerTitle")}</h2>
+      <button type="button" class="ds-btn ds-btn-small" data-dns-copy disabled>{t(lang, ns, "CopyText")}</button>
+    </div>
+    <p class="ds-hint" data-dns-empty>{t(lang, ns, "EmptyResult")}</p>
+    <div class="dns-scroll">
+      <table class="dns-table">
+        <thead>
+          <tr>
+            <th scope="col">{t(lang, ns, "ColName")}</th>
+            <th scope="col">{t(lang, ns, "ColType")}</th>
+            <th scope="col">{t(lang, ns, "ColTtl")}</th>
+            <th scope="col">{t(lang, ns, "ColPreference")}</th>
+            <th scope="col">{t(lang, ns, "ColData")}</th>
+          </tr>
+        </thead>
+        <tbody data-dns-body></tbody>
+      </table>
+    </div>
+  </section>
+  <script is:inline type="application/json" data-dns-strings set:html={stringsJson} />
+</div>
+
+<script>import "@/tools/dns-lookup.client.ts";</script>
+
+<style>
+  .dns-lookup { display: flex; flex-direction: column; gap: 1rem; min-width: 0; max-width: 100%; }
+  .dns-card { min-width: 0; }
+  .dns-connect { display: grid; gap: 0.75rem; }
+  .dns-connection-line { display: flex; align-items: center; gap: 0.45rem; margin: 0.75rem 0 0; }
+  .dns-dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--mdt-text-muted); }
+  .dns-lookup.is-connected .dns-dot { background: var(--mdt-cat); }
+  .dns-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.55rem 1rem; margin: 0.85rem 0; }
+  .dns-meta div { min-width: 0; }
+  .dns-meta dt { color: var(--mdt-text-muted); font-size: 0.78rem; }
+  .dns-meta dd { margin: 0; overflow-wrap: anywhere; }
+  .dns-setup { margin-top: 0.75rem; }
+  .dns-setup-body { display: grid; gap: 0.55rem; padding-top: 0.55rem; }
+  .dns-setup-body ol { margin: 0; padding-left: 1.2rem; }
+  .dns-results-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.4rem 1rem; }
+  .dns-results-head h2 { margin: 0; }
+  .dns-scroll { overflow-x: auto; max-width: 100%; }
+  .dns-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .dns-table :global(th),
+  .dns-table :global(td) {
+    padding: 0.4rem 0.55rem;
+    border-bottom: 1px solid var(--mdt-border-soft);
+    text-align: left;
+    vertical-align: top;
+  }
+  .dns-table :global(td:nth-child(2)),
+  .dns-table :global(td:nth-child(3)),
+  .dns-table :global(td:nth-child(4)) { white-space: nowrap; }
+  .dns-table :global(td:first-child),
+  .dns-table :global(td:last-child) { overflow-wrap: anywhere; }
+</style>

@@ -9,7 +9,10 @@ pub(crate) const HTTP_CAPABILITY: &str = "http.request";
 /// Continuous ICMP traceroute. Granted only when the page asks for it; pairing
 /// for `http.request` does not include this capability.
 pub(crate) const ICMP_CAPABILITY: &str = "icmp.trace";
-pub(crate) const AGENT_CAPABILITIES: [&str; 2] = [HTTP_CAPABILITY, ICMP_CAPABILITY];
+/// One DNS query through the computer's own resolver. Pairing for HTTP or ICMP
+/// does not include this capability.
+pub(crate) const DNS_CAPABILITY: &str = "dns.lookup";
+pub(crate) const AGENT_CAPABILITIES: [&str; 3] = [HTTP_CAPABILITY, ICMP_CAPABILITY, DNS_CAPABILITY];
 pub(crate) const MAX_INCOMING_JSON_BYTES: usize = 2 * 1024 * 1024;
 pub(crate) const MAX_REQUEST_BODY_BYTES: usize = 1024 * 1024;
 pub(crate) const MAX_RESPONSE_BODY_BYTES: usize = 16 * 1024 * 1024;
@@ -44,7 +47,7 @@ pub(crate) struct PairRequest {
 #[serde(rename_all = "camelCase")]
 pub(crate) struct PairResponse {
     pub(crate) token: String,
-    /// Granted subset, stable order: `http.request`, then `icmp.trace`.
+    /// Granted subset, stable order: `http.request`, `icmp.trace`, `dns.lookup`.
     pub(crate) capabilities: Vec<&'static str>,
     pub(crate) expires_at: String,
 }
@@ -143,6 +146,21 @@ impl ApiError {
     /// match the target, or the socket refused to bind it. Not a spoofed address.
     pub(crate) const fn source_unavailable() -> Self {
         Self::new(StatusCode::BAD_REQUEST, "source_unavailable")
+    }
+
+    /// The system resolver did not answer before its own timeout.
+    pub(crate) const fn dns_timeout() -> Self {
+        Self::new(StatusCode::GATEWAY_TIMEOUT, "dns_timeout")
+    }
+
+    /// The resolver failed, or the reply was not a usable DNS message.
+    pub(crate) const fn dns_unavailable() -> Self {
+        Self::new(StatusCode::SERVICE_UNAVAILABLE, "dns_unavailable")
+    }
+
+    /// The reply was still truncated after the resolver's TCP retry.
+    pub(crate) const fn dns_truncated() -> Self {
+        Self::new(StatusCode::BAD_GATEWAY, "dns_truncated")
     }
 }
 

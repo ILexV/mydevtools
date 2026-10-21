@@ -18,7 +18,7 @@ use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
 use crate::{
-    http_client, icmp,
+    dns, http_client, icmp,
     model::{
         AGENT_CAPABILITIES, ApiError, CancelRequest, HttpRequestInput, InfoResponse,
         LimitsResponse, MAX_INCOMING_JSON_BYTES, MAX_REQUEST_BODY_BYTES, MAX_RESPONSE_BODY_BYTES,
@@ -45,6 +45,7 @@ pub(crate) fn router(state: Arc<AgentState>) -> Router {
             "/v1/icmp/interfaces",
             get(icmp_interfaces).options(preflight),
         )
+        .route("/v1/dns/lookup", post(dns_lookup).options(preflight))
         .method_not_allowed_fallback(method_not_allowed)
         .fallback(not_found)
         .layer(middleware::from_fn_with_state(
@@ -191,6 +192,22 @@ async fn icmp_interfaces(
     Ok((StatusCode::OK, Json(interfaces)))
 }
 
+/// One DNS query through the computer's resolver. `dns.lookup` only.
+async fn dns_lookup(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<impl IntoResponse, ApiError> {
+    let _session_key = authorize_dns(&state, request.headers())?;
+    let input: dns::DnsLookupRequest = parse_json(request).await?;
+    let prepared = dns::prepare(&input.name, &input.record_type)?;
+    let permit = state.try_acquire_dns_slot()?;
+    let response = tokio::task::spawn_blocking(move || dns::lookup_prepared(prepared))
+        .await
+        .map_err(|_| ApiError::busy())??;
+    drop(permit);
+    Ok((StatusCode::OK, Json(response)))
+}
+
 async fn preflight() -> StatusCode {
     StatusCode::NO_CONTENT
 }
@@ -269,7 +286,7 @@ fn valid_preflight(request: &Request) -> bool {
     let expected_method = match request.uri().path() {
         "/v1/info" | "/v1/icmp/interfaces" => "GET",
         "/v1/pair" | "/v1/http/request" | "/v1/http/cancel" | "/v1/icmp/trace"
-        | "/v1/icmp/snapshot" | "/v1/icmp/cancel" | "/v1/icmp/mtu" => "POST",
+        | "/v1/icmp/snapshot" | "/v1/icmp/cancel" | "/v1/icmp/mtu" | "/v1/dns/lookup" => "POST",
         "/v1/session" => "DELETE",
         _ => return false,
     };
@@ -302,6 +319,12 @@ fn authorize_icmp(state: &AgentState, headers: &HeaderMap) -> Result<[u8; 32], A
     let origin = required_header(headers, ORIGIN)?;
     let authorization = optional_single_header(headers, AUTHORIZATION)?;
     state.authorize_icmp(authorization, &origin)
+}
+
+fn authorize_dns(state: &AgentState, headers: &HeaderMap) -> Result<[u8; 32], ApiError> {
+    let origin = required_header(headers, ORIGIN)?;
+    let authorization = optional_single_header(headers, AUTHORIZATION)?;
+    state.authorize_dns(authorization, &origin)
 }
 
 async fn parse_json<T: DeserializeOwned>(request: Request) -> Result<T, ApiError> {

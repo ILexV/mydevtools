@@ -4,9 +4,9 @@ const SESSION_STORAGE_KEY = "mdt.local-agent.session.v1";
 const SESSION_STORAGE_VERSION = 1;
 
 
-export type LocalAgentCapability = "http.request" | "icmp.trace";
+export type LocalAgentCapability = "http.request" | "icmp.trace" | "dns.lookup";
 
-const CAPABILITY_ORDER: readonly LocalAgentCapability[] = ["http.request", "icmp.trace"];
+const CAPABILITY_ORDER: readonly LocalAgentCapability[] = ["http.request", "icmp.trace", "dns.lookup"];
 
 /**
  * Capabilities to request when a tool connects. Keeps capabilities this browser
@@ -114,6 +114,28 @@ export interface TraceStartRequest {
   /** Both fields together select a listed local address. Omit both for automatic. */
   sourceAddress?: string;
   sourceInterface?: string;
+}
+
+/** One DNS answer from the computer's resolver. `preference` is set for MX. */
+export interface DnsRecord {
+  name: string;
+  type: string;
+  ttl: number;
+  data: string;
+  preference: number | null;
+}
+
+/** Result of one `dns.lookup` query. The name and answers are not stored. */
+export interface DnsLookupResult {
+  name: string;
+  type: string;
+  status: "noerror" | "nodata" | "nxdomain";
+  records: DnsRecord[];
+}
+
+export interface DnsLookupRequest {
+  name: string;
+  type: string;
 }
 
 /** One address from `GET /v1/icmp/interfaces`. Scope ids stay on the agent. */
@@ -418,6 +440,19 @@ export class LocalAgentClient {
     }));
   }
 
+  /**
+   * One query to this computer's DNS resolver. Requires `dns.lookup`.
+   * The name is not sent to a MyDevTools server and not looked up over DoH.
+   */
+  async lookupDns(request: DnsLookupRequest, signal?: AbortSignal): Promise<DnsLookupResult> {
+    return asDnsLookup(await this.#authorized<unknown>("/v1/dns/lookup", {
+      method: "POST",
+      signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    }));
+  }
+
   /** Path MTU on `icmp.trace`. Same Don't Fragment echoes; the agent picks the size. */
   async findPathMtu(request: PathMtuRequest, signal?: AbortSignal): Promise<PathMtuSnapshot> {
     return asPathMtu(await this.#authorized<unknown>("/v1/icmp/mtu", {
@@ -584,6 +619,39 @@ function asInterfaceList(value: unknown): LocalInterface[] {
     interfaces.push({ name: item.name, address: item.address });
   }
   return interfaces;
+}
+
+const DNS_TYPES = new Set(["A", "AAAA", "CNAME", "MX", "NS", "TXT", "SOA", "PTR"]);
+
+/** Rejects a DNS body the answer table cannot render. */
+function asDnsLookup(value: unknown): DnsLookupResult {
+  if (!isObject(value) || typeof value.name !== "string" || typeof value.type !== "string" || !Array.isArray(value.records)) {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (value.status !== "noerror" && value.status !== "nodata" && value.status !== "nxdomain") {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (!DNS_TYPES.has(value.type) || value.records.length > 64) {
+    throw new LocalAgentError("invalid_response");
+  }
+  const records = value.records.map((item): DnsRecord => {
+    if (!isObject(item) || typeof item.name !== "string" || typeof item.type !== "string" || typeof item.data !== "string") {
+      throw new LocalAgentError("invalid_response");
+    }
+    if (!DNS_TYPES.has(item.type) || typeof item.ttl !== "number" || !Number.isFinite(item.ttl)) {
+      throw new LocalAgentError("invalid_response");
+    }
+    const preference = item.preference === null || item.preference === undefined
+      ? null
+      : typeof item.preference === "number" && Number.isFinite(item.preference)
+        ? item.preference
+        : null;
+    if (item.preference !== null && item.preference !== undefined && preference === null) {
+      throw new LocalAgentError("invalid_response");
+    }
+    return { name: item.name, type: item.type, ttl: item.ttl, data: item.data, preference };
+  });
+  return { name: value.name, type: value.type, status: value.status, records };
 }
 
 /** Rejects a snapshot the hop table cannot render. Optional hop fields become nulls. */

@@ -15,8 +15,11 @@ use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
 use crate::{
+    dns::MAX_CONCURRENT_LOOKUPS,
     icmp::{SharedTrace, TraceState},
-    model::{ApiError, HTTP_CAPABILITY, ICMP_CAPABILITY, PairRequest, PairResponse},
+    model::{
+        ApiError, DNS_CAPABILITY, HTTP_CAPABILITY, ICMP_CAPABILITY, PairRequest, PairResponse,
+    },
 };
 
 const PAIRING_LIFETIME: Duration = Duration::from_secs(5 * 60);
@@ -46,6 +49,8 @@ pub(crate) struct AgentState {
     pairing_code: watch::Sender<String>,
     sessions: Mutex<HashMap<SessionKey, Session>>,
     concurrency: Arc<Semaphore>,
+    /// DNS lookups in flight. Separate from HTTP and from the ICMP cap of two.
+    dns_concurrency: Arc<Semaphore>,
     /// Path MTU searches in flight. Counted with non-idle traces toward the cap of two.
     mtu_inflight: Mutex<usize>,
 }
@@ -61,6 +66,7 @@ struct Session {
     expires: Instant,
     http_request_allowed: bool,
     icmp_trace_allowed: bool,
+    dns_lookup_allowed: bool,
     active: HashMap<Uuid, CancellationToken>,
     cancellation_tombstones: HashMap<Uuid, Instant>,
     traces: HashMap<Uuid, Arc<Mutex<SharedTrace>>>,
@@ -85,6 +91,7 @@ impl AgentState {
             pairing_code,
             sessions: Mutex::new(HashMap::new()),
             concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_REQUESTS)),
+            dns_concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_LOOKUPS)),
             mtu_inflight: Mutex::new(0),
         })
     }
@@ -168,6 +175,9 @@ impl AgentState {
                 icmp_trace_allowed: granted
                     .iter()
                     .any(|capability| *capability == ICMP_CAPABILITY),
+                dns_lookup_allowed: granted
+                    .iter()
+                    .any(|capability| *capability == DNS_CAPABILITY),
                 active: HashMap::new(),
                 cancellation_tombstones: HashMap::new(),
                 traces: HashMap::new(),
@@ -214,6 +224,24 @@ impl AgentState {
         Ok(auth.key)
     }
 
+    pub(crate) fn authorize_dns(
+        &self,
+        authorization: Option<&str>,
+        origin: &str,
+    ) -> Result<SessionKey, ApiError> {
+        let auth = self.authorize(authorization, origin)?;
+        if !auth.dns_lookup_allowed {
+            return Err(ApiError::forbidden());
+        }
+        Ok(auth.key)
+    }
+
+    pub(crate) fn try_acquire_dns_slot(&self) -> Result<OwnedSemaphorePermit, ApiError> {
+        Arc::clone(&self.dns_concurrency)
+            .try_acquire_owned()
+            .map_err(|_| ApiError::busy())
+    }
+
     fn authorize(
         &self,
         authorization: Option<&str>,
@@ -239,6 +267,7 @@ impl AgentState {
             key,
             http_request_allowed: session.http_request_allowed,
             icmp_trace_allowed: session.icmp_trace_allowed,
+            dns_lookup_allowed: session.dns_lookup_allowed,
         })
     }
 
@@ -458,6 +487,7 @@ struct SessionAuth {
     key: SessionKey,
     http_request_allowed: bool,
     icmp_trace_allowed: bool,
+    dns_lookup_allowed: bool,
 }
 
 impl Drop for ActiveRequestGuard {
@@ -496,19 +526,24 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
     }
     let mut http = false;
     let mut icmp = false;
+    let mut dns = false;
     for capability in requested {
         match capability.as_str() {
             HTTP_CAPABILITY if !http => http = true,
             ICMP_CAPABILITY if !icmp => icmp = true,
+            DNS_CAPABILITY if !dns => dns = true,
             _ => return Err(ApiError::unsupported_capability()),
         }
     }
-    let mut granted = Vec::with_capacity(2);
+    let mut granted = Vec::with_capacity(3);
     if http {
         granted.push(HTTP_CAPABILITY);
     }
     if icmp {
         granted.push(ICMP_CAPABILITY);
+    }
+    if dns {
+        granted.push(DNS_CAPABILITY);
     }
     Ok(granted)
 }

@@ -629,13 +629,14 @@ async fn icmp_capability_is_separate_from_http_and_rejects_bad_targets() {
     assert_eq!(info.status(), StatusCode::OK);
     assert_eq!(
         response_json(info).await["capabilities"],
-        json!(["http.request", "icmp.trace"])
+        json!(["http.request", "icmp.trace", "dns.lookup"])
     );
 
     for capabilities in [
         json!([]),
         json!(["http.request", "http.request"]),
         json!(["icmp.trace", "icmp.trace"]),
+        json!(["dns.lookup", "dns.lookup"]),
     ] {
         let response = app
             .clone()
@@ -1272,4 +1273,123 @@ async fn icmp_source_lists_local_addresses_and_binds_loopback() {
     assert_eq!(mtu["atCeiling"], true);
     assert_eq!(mtu["sourceAddress"], "127.0.0.1");
     assert_eq!(mtu["sourceInterface"], v4_name);
+}
+
+#[tokio::test]
+async fn dns_lookup_is_a_separate_capability_and_uses_the_system_resolver() {
+    let (state, app) = test_app(false, 48_732);
+
+    let http_only = pair_capabilities(&state, &app, json!(["http.request"])).await;
+    let denied = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/dns/lookup",
+            Some(json!({"name": "example.com", "type": "A"})),
+            Some(http_only["token"].as_str().unwrap()),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(denied.status(), StatusCode::FORBIDDEN);
+
+    let icmp_only = pair_capabilities(&state, &app, json!(["icmp.trace"])).await;
+    let denied_icmp = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/dns/lookup",
+            Some(json!({"name": "example.com", "type": "A"})),
+            Some(icmp_only["token"].as_str().unwrap()),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(denied_icmp.status(), StatusCode::FORBIDDEN);
+
+    let dns_only = pair_capabilities(&state, &app, json!(["dns.lookup"])).await;
+    assert_eq!(dns_only["capabilities"], json!(["dns.lookup"]));
+    let token = dns_only["token"].as_str().unwrap();
+    let denied_http = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/http/request",
+            Some(json!({})),
+            Some(token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(denied_http.status(), StatusCode::FORBIDDEN);
+    let denied_trace = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/trace",
+            Some(trace_input(Uuid::new_v4(), "127.0.0.1")),
+            Some(token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(denied_trace.status(), StatusCode::FORBIDDEN);
+
+    for body in [
+        json!({"name": "example.com", "type": "ANY"}),
+        json!({"name": "http://example.com", "type": "A"}),
+        json!({"name": "127.0.0.1", "type": "A"}),
+        json!({"name": "example.com", "type": "A", "server": "1.1.1.1"}),
+    ] {
+        let response = app
+            .clone()
+            .oneshot(request(
+                Method::POST,
+                "/v1/dns/lookup",
+                Some(body),
+                Some(token),
+            ))
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        assert_eq!(
+            response_json(response).await["error"]["code"],
+            "invalid_request"
+        );
+    }
+
+    let ptr = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/dns/lookup",
+            Some(json!({"name": "127.0.0.1", "type": "PTR"})),
+            Some(token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(ptr.status(), StatusCode::OK);
+    let ptr = response_json(ptr).await;
+    assert_eq!(ptr["name"], "1.0.0.127.in-addr.arpa");
+    assert_eq!(ptr["type"], "PTR");
+    assert!(ptr["status"] == "noerror" || ptr["status"] == "nodata" || ptr["status"] == "nxdomain");
+
+    let answer = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/dns/lookup",
+            Some(json!({"name": "example.com", "type": "A"})),
+            Some(token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(answer.status(), StatusCode::OK);
+    let answer = response_json(answer).await;
+    assert_eq!(answer["name"], "example.com");
+    assert_eq!(answer["type"], "A");
+    assert_eq!(answer["status"], "noerror");
+    let records = answer["records"].as_array().expect("records");
+    assert!(records.iter().any(|record| {
+        record["type"] == "A"
+            && record["data"]
+                .as_str()
+                .is_some_and(|ip| ip.parse::<IpAddr>().is_ok())
+    }));
 }

@@ -125,12 +125,13 @@ async fn exchange(
     }
 }
 
-/// Writes `query\r\n`, half-closes, and reads until EOF or the 64 KiB cap.
+/// Writes `query\r\n` and reads until the server closes or the 64 KiB cap.
+/// No half-close: whois.iana.org and whois.kg send nothing to a client that
+/// shuts down its write side after the query. The caller's timeout bounds the read.
 async fn read_reply(socket: SocketAddr, query: &str) -> std::io::Result<Reply> {
     let mut stream = TcpStream::connect(socket).await?;
     stream.write_all(query.as_bytes()).await?;
     stream.write_all(b"\r\n").await?;
-    stream.shutdown().await?;
     let mut buf = Vec::new();
     let mut chunk = [0_u8; 4096];
     let mut truncated = false;

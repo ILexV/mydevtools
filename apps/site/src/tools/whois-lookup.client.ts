@@ -15,6 +15,7 @@ import { copyWithFeedback } from "@/scripts/tool-ui";
 import {
   WHOIS_LOOKUP_STORAGE_KEY,
   formatWhoisText,
+  whoisReferral,
   isWhoisTimeout,
   parseWhoisLookupSettings,
   type WhoisLookupSettings,
@@ -121,8 +122,10 @@ function init(): void {
   const timeOut = root.querySelector<HTMLElement>("[data-whois-time]");
   const truncatedNote = root.querySelector<HTMLElement>("[data-whois-truncated]");
   const reply = root.querySelector<HTMLElement>("[data-whois-text]");
+  const referralRow = root.querySelector<HTMLElement>("[data-whois-referral-row]");
+  const referral = root.querySelector<HTMLButtonElement>("[data-whois-referral]");
   const copy = root.querySelector<HTMLButtonElement>("[data-whois-copy]");
-  if (!agentSettings || !code || !connect || !disconnect || !connectionState || !agentMeta || !agentVersion
+  if (!agentSettings || !referralRow || !referral || !code || !connect || !disconnect || !connectionState || !agentMeta || !agentVersion
     || !capabilitiesLabel || !connectionStatus || !capabilityWarning || !connectionError
     || !storageWarning || !queryInput || !serverInput || !timeoutInput || !check || !stop
     || !resultStatus || !resultError || !empty || !facts || !addressOut || !timeOut
@@ -200,6 +203,7 @@ function init(): void {
       truncatedNote.hidden = true;
       reply.hidden = true;
       reply.textContent = "";
+      referralRow.hidden = true;
       copy.disabled = true;
       return;
     }
@@ -218,6 +222,10 @@ function init(): void {
     truncatedNote.hidden = !result.truncated;
     reply.hidden = result.status !== "ok";
     reply.textContent = result.status === "ok" ? result.text : "";
+    const next = result.status === "ok" ? whoisReferral(result.text, result.server) : null;
+    referralRow.hidden = next === null;
+    referral.dataset.server = next ?? "";
+    referral.textContent = next ? fill(strings.AskReferral, { server: next }) : "";
     copy.disabled = false;
   };
 
@@ -365,6 +373,13 @@ function init(): void {
       }
     });
   }
+  // Follow a referral only on request: one click, one more query to the named server.
+  referral.addEventListener("click", () => {
+    const next = referral.dataset.server;
+    if (!next || busy) return;
+    serverInput.value = next;
+    void runCheck();
+  });
   copy.addEventListener("click", () => {
     if (!answer) return;
     void copyWithFeedback(copy, formatWhoisText(answer), strings.Copied, 1500, { failedLabel: strings.CopyFailed });

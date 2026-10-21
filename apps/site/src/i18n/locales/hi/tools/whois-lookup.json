@@ -58,6 +58,7 @@
   "EmptyResult": "उत्तर देखने के लिए एक WHOIS सर्वर पर एक नाम जाँचें।",
   "InvalidQuery": "1 से 255 वर्ण का एक नाम लिखें, दूसरी पंक्ति और URL के बिना।",
   "InvalidServer": "एक WHOIS सर्वर होस्ट लिखें। पोर्ट इस फ़ील्ड में नहीं आता।",
+  "AskReferral": "{server} से पूछें",
   "InvalidTimeout": "समय-सीमा 200 से 10000 मिलीसेकंड लिखें।",
   "ErrorGeneric": "जाँच असफल रही।",
   "Error_agent_unavailable": "स्थानीय एजेंट नहीं चल रहा।",

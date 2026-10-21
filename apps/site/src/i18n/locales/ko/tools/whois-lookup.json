@@ -58,6 +58,7 @@
   "EmptyResult": "WHOIS 서버 하나에서 이름 하나를 확인하면 응답이 나타납니다.",
   "InvalidQuery": "1자에서 255자의 이름 하나를 입력하세요. 둘째 줄과 URL은 넣을 수 없습니다.",
   "InvalidServer": "WHOIS 서버 호스트 하나를 입력하세요. 포트는 이 칸에 쓰지 않습니다.",
+  "AskReferral": "{server}에 질의",
   "InvalidTimeout": "제한 시간은 200부터 10000밀리초로 입력하세요.",
   "ErrorGeneric": "확인에 실패했습니다.",
   "Error_agent_unavailable": "로컬 에이전트가 실행 중이 아닙니다.",

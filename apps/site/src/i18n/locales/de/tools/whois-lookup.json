@@ -58,6 +58,7 @@
   "EmptyResult": "Prüfen Sie einen Namen auf einem WHOIS-Server, um die Antwort zu sehen.",
   "InvalidQuery": "Geben Sie einen Namen von 1 bis 255 Zeichen ein, ohne zweite Zeile und ohne URL.",
   "InvalidServer": "Geben Sie einen WHOIS-Server-Host ein. Ein Port gehört nicht in dieses Feld.",
+  "AskReferral": "{server} fragen",
   "InvalidTimeout": "Geben Sie ein Zeitlimit von 200 bis 10000 Millisekunden ein.",
   "ErrorGeneric": "Die Prüfung ist fehlgeschlagen.",
   "Error_agent_unavailable": "Der lokale Agent läuft nicht.",

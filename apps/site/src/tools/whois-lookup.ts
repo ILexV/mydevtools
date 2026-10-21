@@ -38,3 +38,19 @@ export function formatWhoisText(result: WhoisLookupResult): string {
   const head = `${result.query} ${result.server} ${result.port} ${result.status} ${result.address} ${result.elapsedMs} ${result.truncated}`;
   return result.text ? `${head}\n${result.text}` : head;
 }
+
+const REFERRAL_LINE = /^\s*(?:refer|whois|registrar whois server|referralserver)\s*:\s*(\S+)\s*$/im;
+
+/**
+ * Next WHOIS server named inside a reply (`refer:` at IANA, `Registrar WHOIS Server:`
+ * at registries, `ReferralServer: whois://…` at RIRs; rwhois and other ports are not port 43). Offered as a one-click follow-up;
+ * the agent never opens that second connection on its own. Null when absent or the same server.
+ */
+export function whoisReferral(text: string, currentServer: string): string | null {
+  const match = REFERRAL_LINE.exec(text);
+  if (!match) return null;
+  const host = match[1].replace(/^whois:\/\//i, "").replace(/\/+$/, "").replace(/:43$/, "").toLowerCase();
+  if (!/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(host)) return null;
+  if (host === currentServer.trim().toLowerCase()) return null;
+  return host;
+}

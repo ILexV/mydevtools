@@ -58,6 +58,7 @@
   "EmptyResult": "Check one name on one WHOIS server to see the reply.",
   "InvalidQuery": "Enter one name of 1 to 255 characters, with no second line and no URL.",
   "InvalidServer": "Enter one WHOIS server host. A port does not belong in this field.",
+  "AskReferral": "Ask {server}",
   "InvalidTimeout": "Enter a timeout from 200 to 10000 milliseconds.",
   "ErrorGeneric": "The check failed.",
   "Error_agent_unavailable": "The local agent is not running.",

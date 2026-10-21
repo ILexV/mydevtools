@@ -1974,6 +1974,41 @@ async fn whois_lookup_is_one_query_on_port_43_and_a_separate_capability() {
     assert!(!closed_port.truncated);
 }
 
+/// whois.iana.org and whois.kg drop the reply when the client half-closes after the
+/// query line, so the agent must keep its write side open until the server closes.
+#[tokio::test]
+async fn whois_reply_arrives_from_servers_that_drop_half_closed_clients() {
+    let listener = TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("whois listener");
+    let port = listener.local_addr().expect("port").port();
+    let task = tokio::spawn(async move {
+        let (mut socket, _) = listener.accept().await.expect("accept");
+        let mut buf = Vec::new();
+        let mut tmp = [0_u8; 64];
+        while !buf.windows(2).any(|pair| pair == b"\r\n") {
+            let n = socket.read(&mut tmp).await.expect("read query");
+            assert!(n > 0, "query line before EOF");
+            buf.extend_from_slice(&tmp[..n]);
+        }
+        let after = tokio::time::timeout(Duration::from_millis(300), socket.read(&mut tmp)).await;
+        if matches!(after, Ok(Ok(0))) {
+            return;
+        }
+        socket
+            .write_all(b"refer: whois.kg\r\ndomain: KG\r\n")
+            .await
+            .expect("reply");
+    });
+    let prepared = crate::whois::prepare("ogogo.kg", "127.0.0.1", 3_000).expect("prepare");
+    let response = crate::whois::lookup_on_port(prepared, 48_732, true, port)
+        .await
+        .expect("lookup");
+    assert_eq!(response.status, "ok");
+    assert!(response.text.contains("refer: whois.kg"), "reply text: {:?}", response.text);
+    task.await.expect("listener");
+}
+
 #[tokio::test]
 async fn asn_lookup_uses_the_local_prefix_table_and_a_separate_capability() {
     let (state, app) = test_app(false, 48_732);

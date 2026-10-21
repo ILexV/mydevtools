@@ -58,6 +58,7 @@
   "EmptyResult": "Interrogez un nom sur un serveur WHOIS pour voir la réponse.",
   "InvalidQuery": "Saisissez un nom de 1 à 255 caractères, sans seconde ligne et sans URL.",
   "InvalidServer": "Saisissez un hôte de serveur WHOIS. Le port n'a pas sa place dans ce champ.",
+  "AskReferral": "Interroger {server}",
   "InvalidTimeout": "Saisissez un délai de 200 à 10000 millisecondes.",
   "ErrorGeneric": "Le contrôle a échoué.",
   "Error_agent_unavailable": "L’agent local n’est pas démarré.",

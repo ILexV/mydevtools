@@ -58,6 +58,7 @@
   "EmptyResult": "一つの WHOIS サーバーで一つの名前を確認すると、応答が表示されます。",
   "InvalidQuery": "1 から 255 文字の名前を一つ入れてください。二行目と URL は使えません。",
   "InvalidServer": "WHOIS サーバーのホストを一つ入れてください。ポートはこの欄に書きません。",
+  "AskReferral": "{server} に問い合わせる",
   "InvalidTimeout": "待ち時間は 200 から 10000 ミリ秒で入力してください。",
   "ErrorGeneric": "確認に失敗しました。",
   "Error_agent_unavailable": "ローカルエージェントが動いていません。",

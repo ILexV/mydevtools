@@ -58,6 +58,7 @@
   "EmptyResult": "在一台 WHOIS 服务器上查询一个名称，即可看到回复。",
   "InvalidQuery": "请输入 1 到 255 个字符的一个名称，不要第二行，也不要网址。",
   "InvalidServer": "请输入一台 WHOIS 服务器主机。端口不属于这个字段。",
+  "AskReferral": "查询 {server}",
   "InvalidTimeout": "请输入 200 到 10000 毫秒的超时。",
   "ErrorGeneric": "检查失败。",
   "Error_agent_unavailable": "本地代理没有在运行。",

@@ -15,7 +15,7 @@ const ns = "tools/whois-lookup";
 const clientKeys = [
   "Connected", "Disconnected", "Connecting", "NotConnected",
   "AgentConnectedShort", "AgentDisconnectedShort", "ConnectionNotSaved", "NeedWhoisCapability",
-  "InvalidQuery", "InvalidServer", "InvalidTimeout", "Checking", "Check", "Copied", "CopyFailed",
+  "InvalidQuery", "InvalidServer", "AskReferral", "InvalidTimeout", "Checking", "Check", "Copied", "CopyFailed",
   "StatusOk", "StatusRefused", "StatusTimeout", "StatusUnreachable", "TimeValue",
   "ErrorGeneric", "Error_agent_unavailable", "Error_invalid_response", "Error_invalid_request",
   "Error_unauthorized", "Error_forbidden", "Error_pairing_invalid", "Error_pairing_expired",
@@ -63,6 +63,9 @@ const stringsJson = JSON.stringify(strings);
       <div><dt>{t(lang, ns, "TimeLabel")}</dt><dd class="mono" data-whois-time></dd></div>
     </dl>
     <p class="ds-hint" data-whois-truncated hidden>{t(lang, ns, "StatusTruncated")}</p>
+    <div class="ds-action-row whois-referral" data-whois-referral-row hidden>
+      <button type="button" class="ds-btn ds-btn-small" data-whois-referral></button>
+    </div>
     <pre class="mono whois-reply" data-whois-text hidden></pre>
   </section>
   <script is:inline type="application/json" data-whois-strings set:html={stringsJson} />
@@ -79,6 +82,7 @@ const stringsJson = JSON.stringify(strings);
   .whois-facts dd { margin: 0; overflow-wrap: anywhere; }
   .whois-results-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.4rem 1rem; }
   .whois-results-head h2 { margin: 0; }
+  .whois-referral { margin-top: 0.75rem; }
   .whois-reply {
     min-width: 0;
     max-width: 100%;

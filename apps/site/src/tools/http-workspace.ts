@@ -12,6 +12,28 @@ export interface HttpSavedRow {
   enabled: boolean;
 }
 
+/**
+ * Request or folder authorization (Postman-style Auth tab). `inherit` takes the
+ * nearest folder's auth; the root resolves to none. Fields accept `{{var}}`.
+ */
+export type HttpAuth =
+  | { type: "inherit" }
+  | { type: "none" }
+  | { type: "basic"; username: string; password: string }
+  | { type: "bearer"; token: string }
+  | { type: "apikey"; key: string; value: string; in: "header" | "query" }
+  | { type: "oauth2"; tokenUrl: string; clientId: string; clientSecret: string; scope: string; clientAuth: "header" | "body" }
+  | { type: "awsv4"; accessKey: string; secretKey: string; sessionToken: string; region: string; service: string };
+
+export type HttpAuthType = HttpAuth["type"];
+
+/** Named set of `{{var}}` values; the active one overrides folder and global variables. */
+export interface HttpEnvironment {
+  id: string;
+  name: string;
+  variables: HttpSavedRow[];
+}
+
 export interface HttpSavedRequest {
   id: string;
   folderId: string | null;
@@ -24,6 +46,8 @@ export interface HttpSavedRequest {
   bodyFormat: "text" | "json" | "html" | "xml";
   timeoutMs: number;
   followRedirects: boolean;
+  /** Missing means inherit from the folder. */
+  auth?: HttpAuth;
 }
 
 export interface HttpSavedFolder {
@@ -31,6 +55,10 @@ export interface HttpSavedFolder {
   name: string;
   parentId: string | null;
   expanded: boolean;
+  /** Missing means inherit from the parent folder. */
+  auth?: HttpAuth;
+  /** Collection-level variables for requests inside this folder; nearer folders win. */
+  variables?: HttpSavedRow[];
 }
 
 export interface HttpWorkspace {
@@ -40,6 +68,29 @@ export interface HttpWorkspace {
   folders: HttpSavedFolder[];
   selectedFolderId: string | null;
   sidebarWidth: number;
+  environments?: HttpEnvironment[];
+  activeEnvironmentId?: string | null;
+  globals?: HttpSavedRow[];
+}
+
+const STRING_FIELDS: Record<Exclude<HttpAuthType, "inherit" | "none">, readonly string[]> = {
+  basic: ["username", "password"],
+  bearer: ["token"],
+  apikey: ["key", "value"],
+  oauth2: ["tokenUrl", "clientId", "clientSecret", "scope"],
+  awsv4: ["accessKey", "secretKey", "sessionToken", "region", "service"],
+};
+
+export function isHttpAuth(value: unknown): value is HttpAuth {
+  if (typeof value !== "object" || value === null || !("type" in value) || typeof value.type !== "string") return false;
+  if (value.type === "inherit" || value.type === "none") return true;
+  const fields = STRING_FIELDS[value.type as keyof typeof STRING_FIELDS];
+  if (!fields) return false;
+  const record = value as Record<string, unknown>;
+  if (!fields.every((field) => typeof record[field] === "string")) return false;
+  if (value.type === "apikey") return record.in === "header" || record.in === "query";
+  if (value.type === "oauth2") return record.clientAuth === "header" || record.clientAuth === "body";
+  return true;
 }
 
 function isRows(value: unknown): value is HttpSavedRow[] {
@@ -61,7 +112,9 @@ function isWorkspace(value: unknown): value is HttpWorkspace {
     if (typeof folder !== "object" || folder === null || typeof folder.id !== "string" || !folder.id
       || parents.has(folder.id) || typeof folder.name !== "string" || !folder.name.trim()
       || (folder.parentId !== null && typeof folder.parentId !== "string")
-      || typeof folder.expanded !== "boolean") return false;
+      || typeof folder.expanded !== "boolean"
+      || ("auth" in folder && !isHttpAuth(folder.auth))
+      || ("variables" in folder && !isRows(folder.variables))) return false;
     parents.set(folder.id, folder.parentId);
   }
   const checked = new Set<string>();
@@ -85,9 +138,22 @@ function isWorkspace(value: unknown): value is HttpWorkspace {
       || typeof request.method !== "string" || !["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"].includes(request.method)
       || typeof request.bodyFormat !== "string" || !["text", "json", "html", "xml"].includes(request.bodyFormat)
       || typeof request.timeoutMs !== "number" || !Number.isFinite(request.timeoutMs)
-      || typeof request.followRedirects !== "boolean" || !isRows(request.params) || !isRows(request.headers)) return false;
+      || typeof request.followRedirects !== "boolean" || !isRows(request.params) || !isRows(request.headers)
+      || ("auth" in request && !isHttpAuth(request.auth))) return false;
     ids.add(request.id);
   }
+  if ("globals" in value && !isRows(value.globals)) return false;
+  const environmentIds = new Set<string>();
+  if ("environments" in value) {
+    if (!Array.isArray(value.environments)) return false;
+    for (const environment of value.environments) {
+      if (typeof environment !== "object" || environment === null || typeof environment.id !== "string" || !environment.id
+        || environmentIds.has(environment.id) || typeof environment.name !== "string" || !isRows(environment.variables)) return false;
+      environmentIds.add(environment.id);
+    }
+  }
+  if ("activeEnvironmentId" in value && value.activeEnvironmentId !== null
+    && (typeof value.activeEnvironmentId !== "string" || !environmentIds.has(value.activeEnvironmentId))) return false;
   return ids.has(value.selectedId);
 }
 
@@ -150,7 +216,8 @@ export function writeHttpWorkspaceLocation(location: HttpWorkspaceLocation): voi
 
 /** True when both hold the same requests and folders; view state is ignored. */
 export function sameHttpWorkspaceContent(left: HttpWorkspace, right: HttpWorkspace): boolean {
-  return JSON.stringify([left.requests, left.folders]) === JSON.stringify([right.requests, right.folders]);
+  return JSON.stringify([left.requests, left.folders, left.environments ?? [], left.globals ?? []])
+    === JSON.stringify([right.requests, right.folders, right.environments ?? [], right.globals ?? []]);
 }
 
 /**
@@ -171,6 +238,18 @@ export function appendHttpWorkspace(
   for (const request of source.requests) {
     result.requests.push({ ...structuredClone(request), id: newId(),
       folderId: request.folderId === null ? importRoot : folderIds.get(request.folderId)! });
+  }
+  // Environments come along under fresh ids; a global keeps the target's value when both define it.
+  if (source.environments?.length) {
+    result.environments = [...(result.environments ?? []),
+      ...source.environments.map((environment) => ({ ...structuredClone(environment), id: newId() }))];
+  }
+  if (source.globals?.length) {
+    const globals = result.globals ?? [];
+    for (const row of source.globals) {
+      if (!globals.some((existing) => existing.name === row.name)) globals.push(structuredClone(row));
+    }
+    result.globals = globals;
   }
   return result;
 }

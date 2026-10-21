@@ -27,7 +27,15 @@ const clientKeys = [
   "WorkspaceLoadError", "WorkspacePrivacyAgent", "WorkspaceAgentLocked", "WorkspaceAgentRepair", "WorkspaceAgentLoadError",
   "WorkspaceAgentSaveError", "WorkspaceAgentMoved", "WorkspaceMerged", "WorkspaceImportedFolder", "SecretAddTitle",
   "SecretEditTitle", "SecretValueKeep", "SecretEdit", "SecretDelete", "SecretDeleteConfirm", "SecretCopy", "SecretCopyPlaceholder",
-  "SecretCopied", "SecretSaved", "SecretDeleted", "SecretNameInvalid", "SecretNameTaken", "SecretValueInvalid", "SecretHostsInvalid", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
+  "SecretCopied", "SecretSaved", "SecretDeleted", "SecretNameInvalid", "SecretNameTaken", "SecretValueInvalid", "SecretHostsInvalid",
+  "KeyLabel", "ValueLabel", "EnabledLabel", "RemoveRow", "AddRow", "AuthType", "AuthInherit", "AuthNone", "AuthBasic", "AuthBearer",
+  "AuthApiKey", "AuthOAuth2", "AuthAwsV4", "AuthUsername", "AuthPassword", "AuthToken", "AuthAddTo", "AuthInHeader", "AuthInQuery",
+  "AuthTokenUrl", "AuthClientId", "AuthClientSecret", "AuthScope", "AuthClientAuth", "AuthClientAuthHeader", "AuthClientAuthBody",
+  "AuthGetToken", "AuthAccessKey", "AuthSecretKey", "AuthSessionToken", "AuthRegion", "AuthService", "AuthHint", "AuthInheritFrom",
+  "AuthInheritNone", "AuthInheritParent", "AuthTokenFetching", "AuthTokenReady", "AuthTokenReadyNoExpiry", "NoEnvironment",
+  "GlobalVariables", "NewEnvironment", "NewEnvironmentName", "EnvironmentName", "DuplicateEnvironment", "DeleteEnvironment",
+  "DeleteEnvironmentConfirm", "CopySuffix", "Variables", "FolderSettings", "FolderSettingsTitle", "UnresolvedVariables",
+  "ErrorAuthIncomplete", "ErrorAwsSecret", "ErrorOAuthToken", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
 const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhrases(lang) });
@@ -111,6 +119,46 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
       </div>
     </form>
   </dialog>
+  <dialog class="http-move-dialog http-secrets-dialog" aria-labelledby="http-env-title" data-http-env-dialog>
+    <div class="http-secrets-head">
+      <h2 id="http-env-title" class="ds-panel-title">{t(lang, ns, "Environments")}</h2>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "SecretsClose")} title={t(lang, ns, "SecretsClose")} data-http-env-close>
+        <Icon name="close" size={15} />
+      </button>
+    </div>
+    <p class="ds-hint http-secrets-hint">{t(lang, ns, "EnvironmentsHint")}</p>
+    <div class="http-env-bar">
+      <label class="http-move-field">
+        <span>{t(lang, ns, "VariableSet")}</span>
+        <select class="ds-field-select" data-http-env-set></select>
+      </label>
+      <button type="button" class="ds-btn ds-btn-small" data-http-env-new><Icon name="plus" size={14} />{t(lang, ns, "NewEnvironment")}</button>
+    </div>
+    <div class="http-env-bar" hidden data-http-env-name-row>
+      <label class="http-move-field">
+        <span>{t(lang, ns, "EnvironmentName")}</span>
+        <input class="ds-field" type="text" autocomplete="off" spellcheck="false" data-http-env-name />
+      </label>
+      <div class="http-env-actions">
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-http-env-duplicate>{t(lang, ns, "DuplicateEnvironment")}</button>
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-danger" data-http-env-delete>{t(lang, ns, "DeleteEnvironment")}</button>
+      </div>
+    </div>
+    <div data-http-env-rows></div>
+  </dialog>
+  <dialog class="http-move-dialog http-secrets-dialog" aria-labelledby="http-folder-title" data-http-folder-dialog>
+    <div class="http-secrets-head">
+      <h2 id="http-folder-title" class="ds-panel-title" data-http-folder-title></h2>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "SecretsClose")} title={t(lang, ns, "SecretsClose")} data-http-folder-close>
+        <Icon name="close" size={15} />
+      </button>
+    </div>
+    <h3 class="http-secrets-form-title">{t(lang, ns, "AuthLabel")}</h3>
+    <div data-http-folder-auth></div>
+    <h3 class="http-secrets-form-title">{t(lang, ns, "Variables")}</h3>
+    <p class="ds-hint http-secrets-hint">{t(lang, ns, "FolderVariablesHint")}</p>
+    <div data-http-folder-rows></div>
+  </dialog>
   <div
     class="http-sidebar-resizer"
     role="separator"
@@ -128,6 +176,15 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
       <Icon name="globe" size={16} />
       <label class="visually-hidden" for="http-request-name">{t(lang, ns, "RequestName")}</label>
       <input id="http-request-name" class="http-request-name" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "UntitledRequest")} data-http-request-name />
+      <div class="http-env-switch">
+        <label class="visually-hidden" for="http-env-active">{t(lang, ns, "Environment")}</label>
+        <select id="http-env-active" class="ds-field-select http-env-select" title={t(lang, ns, "Environment")} data-http-env-active>
+          <option value="">{t(lang, ns, "NoEnvironment")}</option>
+        </select>
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "Environments")} title={t(lang, ns, "Environments")} aria-haspopup="dialog" data-http-env-open>
+          <Icon name="layers" size={15} />
+        </button>
+      </div>
       <AgentConnection lang={lang} ns={ns} prefix="http">
         <p class="ds-hint">{t(lang, ns, "LimitsNote")}</p>
         <p class="ds-hint">{t(lang, ns, "PrivateSetupNote")}</p>
@@ -139,15 +196,17 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
         { ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"].map((method) => <option value={method}>{method}</option>) }
       </select>
       <label class="visually-hidden" for="http-url">{t(lang, ns, "UrlLabel")}</label>
-      <input id="http-url" class="ds-field mono" type="url" inputmode="url" placeholder="https://api.example.com/data" autocomplete="off" spellcheck="false" data-http-url />
+      <input id="http-url" class="ds-field mono" type="text" inputmode="url" placeholder="https://api.example.com/data" autocomplete="off" spellcheck="false" data-http-url />
       <div class="http-send-actions">
         <button type="button" class="ds-btn ds-btn-primary" disabled data-http-send><Icon name="zap" size={16} />{t(lang, ns, "Send")}</button>
         <button type="button" class="ds-btn" disabled hidden data-http-cancel>{t(lang, ns, "Cancel")}</button>
       </div>
     </div>
 
+    <StatusMessage kind="warning" class="http-variables-warning" data-http-variables-warning />
     <div class="seg http-tabs" role="tablist" aria-label={t(lang, ns, "RequestTitle")} data-http-tabs>
       <button type="button" role="tab" id="http-request-params-tab" aria-selected="true" aria-controls="http-request-params-panel" tabindex="0">{t(lang, ns, "ParamsLabel")}<span class="http-count mono" data-http-params-count></span></button>
+      <button type="button" role="tab" id="http-request-auth-tab" aria-selected="false" aria-controls="http-request-auth-panel" tabindex="-1">{t(lang, ns, "AuthLabel")}<span class="http-count mono" data-http-auth-mark></span></button>
       <button type="button" role="tab" id="http-request-headers-tab" aria-selected="false" aria-controls="http-request-headers-panel" tabindex="-1">{t(lang, ns, "HeadersLabel")}<span class="http-count mono" data-http-headers-count></span></button>
       <button type="button" role="tab" id="http-request-body-tab" aria-selected="false" aria-controls="http-request-body-panel" tabindex="-1">{t(lang, ns, "BodyLabel")}</button>
       <button type="button" role="tab" id="http-request-settings-tab" aria-selected="false" aria-controls="http-request-settings-panel" tabindex="-1">{t(lang, ns, "SettingsLabel")}</button>
@@ -169,6 +228,7 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
         <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-add-row" data-http-add-row={kind}><Icon name="plus" size={14} />{t(lang, ns, "AddRow")}</button>
       </div>
     ))}
+    <div id="http-request-auth-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-request-auth-tab" hidden data-http-auth-host></div>
     <div id="http-request-body-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-request-body-tab" hidden>
       <div class="ds-action-row http-body-toolbar">
         <label class="visually-hidden" for="http-body-format">{t(lang, ns, "BodyFormatLabel")}</label>
@@ -348,20 +408,38 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
   .http-request > .http-table-panel { padding: 0; }
   .http-tab-panel > :first-child { margin-top: 0; }
   .http-table-hint { padding: 0.7rem 1rem; margin: 0; }
-  .http-table-scroll { overflow-x: auto; }
-  .http-kv-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-  .http-kv-table th { padding: 0.45rem 0.6rem; text-align: left; font-size: var(--mdt-fs-meta); font-weight: 600; color: var(--mdt-text-muted); background: var(--mdt-surface-inset); }
-  .http-kv-table :is(th, td) { border: 1px solid var(--mdt-border-soft); }
-  .http-kv-table :is(th, td):first-child { border-left: 0; }
-  .http-kv-table :is(th, td):last-child { border-right: 0; }
-  .http-kv-table td { padding: 0.2rem; }
-  .http-kv-table td .ds-field { padding: 0.4rem; }
-  .http-kv-table td .ds-field:not(:focus) { border-color: transparent; background: transparent; }
-  .http-kv-table .http-check-cell { width: 2.75rem; text-align: center; }
-  .http-kv-table .http-remove-cell { width: 2.5rem; text-align: center; }
-  .http-kv-table tr:has([data-row-enabled]:not(:checked)) [data-row-key],
-  .http-kv-table tr:has([data-row-enabled]:not(:checked)) [data-row-value] { color: var(--mdt-text-faint); }
-  .http-add-row { margin: 0.45rem 0.7rem; }
+  .http-workbench :global(.http-table-scroll) { overflow-x: auto; }
+  .http-workbench :global(.http-kv-table) { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .http-workbench :global(.http-kv-table th) { padding: 0.45rem 0.6rem; text-align: left; font-size: var(--mdt-fs-meta); font-weight: 600; color: var(--mdt-text-muted); background: var(--mdt-surface-inset); }
+  .http-workbench :global(.http-kv-table :is(th, td)) { border: 1px solid var(--mdt-border-soft); }
+  .http-workbench :global(.http-kv-table :is(th, td):first-child) { border-left: 0; }
+  .http-workbench :global(.http-kv-table :is(th, td):last-child) { border-right: 0; }
+  .http-workbench :global(.http-kv-table td) { padding: 0.2rem; }
+  .http-workbench :global(.http-kv-table td .ds-field) { padding: 0.4rem; }
+  .http-workbench :global(.http-kv-table td .ds-field:not(:focus)) { border-color: transparent; background: transparent; }
+  .http-workbench :global(.http-kv-table .http-check-cell) { width: 2.75rem; text-align: center; }
+  .http-workbench :global(.http-kv-table .http-remove-cell) { width: 2.5rem; text-align: center; }
+  .http-workbench :global(.http-kv-table tr:has(.ds-check:not(:checked)) .ds-field) { color: var(--mdt-text-faint); }
+  .http-workbench :global(.http-add-row) { margin: 0.45rem 0.7rem; }
+  .http-env-switch { display: flex; flex: 0 1 auto; align-items: center; gap: 0.1rem; min-width: 0; }
+  .http-env-select { width: auto; max-width: 11rem; min-height: 2rem; padding-block: 0.2rem; font-size: var(--mdt-fs-label); }
+  .http-env-switch .http-tree-action { width: 1.75rem; min-width: 1.75rem; min-height: 1.75rem; padding: 0; }
+  .http-env-bar { display: flex; flex-wrap: wrap; align-items: end; gap: 0.5rem 0.75rem; }
+  .http-env-bar[hidden] { display: none; }
+  .http-env-bar .http-move-field { flex: 1 1 12rem; }
+  .http-env-actions { display: flex; flex-wrap: wrap; gap: 0.15rem; }
+  .http-danger { color: var(--mdt-danger); }
+  .http-secrets-dialog :global(.http-rows-editor) { border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-sm); }
+  .http-workbench :global(.http-auth-editor) { display: grid; gap: 0.75rem; }
+  .http-workbench :global(.http-auth-fields) { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.65rem 0.85rem; }
+  .http-workbench :global(.http-auth-fields:empty) { display: none; }
+  .http-workbench :global(.http-auth-field) { display: grid; gap: 0.3rem; min-width: 0; color: var(--mdt-text-muted); font-size: var(--mdt-fs-label); }
+  .http-workbench :global(.http-auth-type) { max-width: 20rem; }
+  .http-workbench :global(:is(.http-auth-note, .http-auth-hint)) { margin: 0; }
+  .http-workbench :global(.http-auth-token) { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; }
+  .http-workbench :global(.http-auth-token[hidden]) { display: none; }
+  .http-workbench :global(.http-auth-token-status) { margin: 0; }
+  .http-workbench :global(.http-auth-token-status.is-error) { color: var(--mdt-danger); }
   .http-body { min-height: 8rem; }
   .http-body-toolbar { flex-wrap: wrap; }
   .http-body-toolbar select { width: auto; }
@@ -396,6 +474,10 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
     .http-saved-list { max-height: 14rem; }
   }
   @media (max-width: 40rem) {
+    .http-section-heading { flex-wrap: wrap; height: auto; min-height: 2.75rem; padding-block: 0.35rem; row-gap: 0.25rem; }
+    .http-request-name { flex: 1 1 0; }
+    .http-env-switch { order: 3; flex: 1 1 100%; }
+    .http-env-select { flex: 1 1 auto; max-width: none; }
     .http-compose { grid-template-columns: 6.25rem minmax(0, 1fr); padding: 0.75rem; }
     .http-send-actions { grid-column: 1 / -1; }
     .http-send-actions .ds-btn-primary { flex: 1 1 auto; }

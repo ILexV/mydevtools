@@ -60,6 +60,8 @@ export interface LocalHttpRequest {
   bodyBase64: string;
   timeoutMs: number;
   followRedirects: boolean;
+  /** Basic credentials the agent encodes after substituting `{{secret:name}}` (vault agents only). */
+  basicAuth?: { username: string; password: string };
 }
 
 export interface LocalHttpResponse {

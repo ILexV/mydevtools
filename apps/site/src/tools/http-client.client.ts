@@ -35,8 +35,33 @@ import {
 } from "@/tools/http-workspace";
 import { AgentWorkspaceStore } from "@/tools/http-workspace-agent";
 import { bindSecretsDialog, type SecretsDialogStrings } from "@/tools/http-secrets-dialog";
+import {
+  buildHttpRequest,
+  effectiveAuth,
+  HttpBuildError,
+  oauthCacheKey,
+  oauthTokenRequest,
+  oauthTokenValid,
+  parseOAuthToken,
+  type OAuthClientConfig,
+  type OAuthToken,
+} from "@/tools/http-auth";
+import { createAuthEditor } from "@/tools/http-auth-editor";
+import { bindEnvironmentsDialog, bindFolderDialog, type ScopeDialogStrings } from "@/tools/http-scope-dialogs";
+import { collectVariables, encodeQueryComponent, variableNames } from "@/tools/http-variables";
 
-interface Strings extends SecretsDialogStrings {
+interface Strings extends SecretsDialogStrings, ScopeDialogStrings {
+  AuthInheritFrom: string;
+  AuthInheritNone: string;
+  AuthTokenFetching: string;
+  AuthTokenReady: string;
+  AuthTokenReadyNoExpiry: string;
+  NoEnvironment: string;
+  FolderSettings: string;
+  UnresolvedVariables: string;
+  ErrorAuthIncomplete: string;
+  ErrorAwsSecret: string;
+  ErrorOAuthToken: string;
   Lang: string;
   phrases: Record<string, string>;
   ResponseBody: string;
@@ -199,6 +224,13 @@ function init(): void {
   const moveConfirm = root.querySelector<HTMLButtonElement>("[data-http-move-confirm]");
   const secretsButton = root.querySelector<HTMLButtonElement>("[data-http-secrets]")!;
   const secretsDialog = root.querySelector<HTMLDialogElement>("[data-http-secrets-dialog]")!;
+  const envActive = root.querySelector<HTMLSelectElement>("[data-http-env-active]")!;
+  const envOpen = root.querySelector<HTMLButtonElement>("[data-http-env-open]")!;
+  const envDialog = root.querySelector<HTMLDialogElement>("[data-http-env-dialog]")!;
+  const folderDialog = root.querySelector<HTMLDialogElement>("[data-http-folder-dialog]")!;
+  const authHost = root.querySelector<HTMLElement>("[data-http-auth-host]")!;
+  const authMark = root.querySelector<HTMLElement>("[data-http-auth-mark]")!;
+  const variablesWarning = root.querySelector<HTMLElement>("[data-http-variables-warning]")!;
   const sidebarResizer = root.querySelector<HTMLElement>("[data-http-sidebar-resizer]");
   const workspaceLoadError = root.querySelector<HTMLElement>("[data-http-workspace-load-error]");
   const workspaceSaveError = root.querySelector<HTMLElement>("[data-http-workspace-save-error]");
@@ -283,7 +315,7 @@ function init(): void {
     workspace.requests.push(initial);
   }
   type TreeTarget = { kind: "root" } | { kind: HttpWorkspaceItemKind; id: string };
-  type TreeAction = "new-request" | "new-folder" | "rename" | "move" | "delete";
+  type TreeAction = "new-request" | "new-folder" | "settings" | "rename" | "move" | "delete";
   let workspaceDirty = false;
   let currentRequest = workspace.requests.find((request) => request.id === workspace.selectedId)!;
   let treeSelection: TreeTarget = { kind: "request", id: currentRequest.id };
@@ -423,14 +455,152 @@ function init(): void {
     const hashAt = url.indexOf("#");
     const fragment = hashAt < 0 ? "" : url.slice(hashAt);
     const base = (hashAt < 0 ? url : url.slice(0, hashAt)).split("?", 1)[0]!;
-    const searchParams = new URLSearchParams();
-    for (const { name, value } of paramsTable.read()) searchParams.append(name, value);
-    const query = searchParams.toString();
+    // Encoded by hand so `{{var}}` and `{{secret:name}}` stay readable in the URL.
+    const query = paramsTable.read()
+      .map(({ name, value }) => `${encodeQueryComponent(name)}=${encodeQueryComponent(value)}`).join("&");
     requestUrl.value = `${base}${query ? `?${query}` : ""}${fragment}`;
     updateSelectedListEntry();
     scheduleWorkspaceSave();
   });
   const headersTable = bindTable("headers", scheduleWorkspaceSave);
+
+  /** OAuth 2.0 client-credentials tokens by config; kept in page memory only, never saved. */
+  const oauthTokens = new Map<string, OAuthToken>();
+  const requestAuth = createAuthEditor(s, "http-auth", () => {
+    currentRequest.auth = requestAuth.get();
+    scheduleWorkspaceSave();
+  }, () => { void refreshRequestToken(); });
+  authHost.replaceChildren(requestAuth.element);
+  const scopeOptions = {
+    strings: s,
+    workspace: () => workspace,
+    newId: requestId,
+    changed: () => {
+      renderEnvironmentSwitcher();
+      scheduleWorkspaceSave();
+    },
+  };
+  const environments = bindEnvironmentsDialog(envDialog, scopeOptions);
+  const folderSettings = bindFolderDialog(folderDialog, scopeOptions);
+
+  /** Environment select in the request header: none or one of the workspace environments. */
+  function renderEnvironmentSwitcher(): void {
+    const list = workspace.environments ?? [];
+    if (workspace.activeEnvironmentId && !list.some((entry) => entry.id === workspace.activeEnvironmentId)) {
+      workspace.activeEnvironmentId = null;
+    }
+    envActive.replaceChildren(new Option(s.NoEnvironment, ""),
+      ...list.map((entry) => new Option(entry.name || s.NewEnvironmentName, entry.id)));
+    envActive.value = workspace.activeEnvironmentId ?? "";
+  }
+  envActive.addEventListener("change", () => {
+    workspace.activeEnvironmentId = envActive.value || null;
+    scheduleWorkspaceSave();
+  });
+  envOpen.addEventListener("click", () => environments.open(envOpen, workspace.activeEnvironmentId ?? null));
+
+  const AUTH_TYPE_LABELS: Record<string, string> = {
+    none: s.AuthNone, basic: s.AuthBasic, bearer: s.AuthBearer, apikey: s.AuthApiKey, oauth2: s.AuthOAuth2, awsv4: s.AuthAwsV4,
+  };
+  let hintFrame = 0;
+  function queueHintRefresh(): void {
+    if (hintFrame) return;
+    hintFrame = requestAnimationFrame(() => {
+      hintFrame = 0;
+      refreshRequestHints();
+    });
+  }
+
+  /** Inherited-auth note, the Auth tab mark and the list of `{{vars}}` with no value. */
+  function refreshRequestHints(): void {
+    const own = requestAuth.get();
+    const { auth, source } = effectiveAuth(workspace, { auth: own, folderId: currentRequest.folderId });
+    if (own.type === "inherit") {
+      const folder = source.kind === "folder" ? workspace.folders.find((entry) => entry.id === source.id) : undefined;
+      requestAuth.setNote(folder
+        ? s.AuthInheritFrom.replace("{name}", folder.name).replace("{type}", AUTH_TYPE_LABELS[auth.type] ?? auth.type)
+        : s.AuthInheritNone);
+    } else {
+      requestAuth.setNote("");
+    }
+    authMark.textContent = auth.type === "none" ? "" : "●";
+    const scope = collectVariables(workspace, currentRequest.folderId);
+    const texts = [workspaceUi.requestUrl.value, workspaceUi.requestBody.value, ...headersTable.readAll().filter((row) => row.enabled)
+      .flatMap((row) => [row.name, row.value]), ...Object.values(auth).filter((value) => typeof value === "string")];
+    const missing = [...new Set(texts.flatMap(variableNames))]
+      .filter((name) => !scope.has(name) && !["$guid", "$timestamp", "$isoTimestamp", "$randomInt"].includes(name));
+    if (missing.length) {
+      showMessage(variablesWarning, s.UnresolvedVariables.replace("{names}", missing.map((name) => `{{${name}}}`).join(", ")));
+    } else {
+      hideMessage(variablesWarning);
+    }
+  }
+
+  function tokenStatusText(token: OAuthToken): string {
+    if (token.expiresAt === null) return s.AuthTokenReadyNoExpiry;
+    const time = new Intl.DateTimeFormat(s.Lang, { hour: "2-digit", minute: "2-digit" }).format(token.expiresAt);
+    return s.AuthTokenReady.replace("{time}", time);
+  }
+
+  /** Cached token or a new one from the token URL, requested through the agent. */
+  async function oauthToken(config: OAuthClientConfig, options: { force?: boolean; signal?: AbortSignal } = {}): Promise<OAuthToken> {
+    const key = oauthCacheKey(config);
+    const cached = oauthTokens.get(key);
+    if (!options.force && oauthTokenValid(cached)) return cached;
+    const tokenRequest = oauthTokenRequest(config);
+    let url: URL;
+    try {
+      url = new URL(tokenRequest.url);
+      if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error("scheme");
+    } catch {
+      throw new HttpBuildError("oauth_token", s.ErrorUrl);
+    }
+    const response = await client.request({
+      id: requestId(),
+      method: "POST",
+      url: url.href,
+      headers: tokenRequest.headers,
+      bodyBase64: bytesToBase64(new TextEncoder().encode(tokenRequest.body)),
+      timeoutMs: 30000,
+      followRedirects: false,
+      ...(tokenRequest.basicAuth ? { basicAuth: tokenRequest.basicAuth } : {}),
+    }, options.signal);
+    const token = parseOAuthToken(response.status, new TextDecoder().decode(base64ToBytes(response.bodyBase64)));
+    oauthTokens.set(key, token);
+    return token;
+  }
+
+  /** «Get new token» on the request's own OAuth settings. */
+  async function refreshRequestToken(): Promise<void> {
+    const auth = requestAuth.get();
+    if (auth.type !== "oauth2" || active) return;
+    const scope = collectVariables(workspace, currentRequest.folderId);
+    requestAuth.setTokenStatus(s.AuthTokenFetching);
+    try {
+      // The builder resolves variables and checks required fields, then asks for the token.
+      await buildHttpRequest({
+        method: "GET", url: "https://token.invalid/", headers: [], body: "", bodyFormat: "text", auth, scope,
+        oauthToken: async (config) => {
+          const token = await oauthToken(config, { force: true });
+          requestAuth.setTokenStatus(tokenStatusText(token));
+          return token;
+        },
+      });
+    } catch (error) {
+      requestAuth.setTokenStatus(buildErrorText(error), true);
+    }
+  }
+
+  function buildErrorText(error: unknown): string {
+    if (!(error instanceof HttpBuildError)) return errorText(error);
+    switch (error.code) {
+      case "url": return s.ErrorUrl;
+      case "headers": return s.ErrorHeaders;
+      case "auth_incomplete": return s.ErrorAuthIncomplete;
+      case "aws_secret": return s.ErrorAwsSecret;
+      default: return s.ErrorOAuthToken.replace("{detail}", error.message === "oauth_token" ? s.ErrorGeneric : error.message);
+    }
+  }
   requestUrl.addEventListener("input", () => {
     const beforeFragment = requestUrl.value.split("#", 1)[0]!;
     const queryAt = beforeFragment.indexOf("?");
@@ -660,6 +830,7 @@ function init(): void {
     currentRequest.bodyFormat = bodyFormat.value as HttpSavedRequest["bodyFormat"];
     currentRequest.timeoutMs = Number.isFinite(timeoutValue) ? timeoutValue : 30000;
     currentRequest.followRedirects = workspaceUi.redirects.checked;
+    currentRequest.auth = requestAuth.get();
   }
 
   function saveWorkspaceNow(): boolean {
@@ -690,6 +861,7 @@ function init(): void {
   }
 
   function scheduleWorkspaceSave(): void {
+    queueHintRefresh();
     workspaceDirty = true;
     window.clearTimeout(saveTimer);
     saveTimer = window.setTimeout(saveWorkspaceNow, 250);
@@ -1129,7 +1301,8 @@ function init(): void {
           ? [
               { action: "new-request", label: workspaceUi.strings.NewRequest },
               { action: "new-folder", label: workspaceUi.strings.NewFolder },
-              { action: "rename", label: workspaceUi.strings.RenameFolder, separate: true },
+              { action: "settings", label: workspaceUi.strings.FolderSettings, separate: true },
+              { action: "rename", label: workspaceUi.strings.RenameFolder },
               { action: "move", label: workspaceUi.strings.MoveItem },
               { action: "delete", label: workspaceUi.strings.DeleteFolder, danger: true, separate: true },
             ]
@@ -1377,6 +1550,9 @@ function init(): void {
     bodyFormat.value = request.bodyFormat;
     workspaceUi.timeout.value = String(request.timeoutMs);
     workspaceUi.redirects.checked = request.followRedirects;
+    requestAuth.set(request.auth);
+    requestAuth.setTokenStatus(null);
+    queueHintRefresh();
     formatJson.disabled = request.bodyFormat !== "json";
     hideMessage(bodyError);
     hideMessage(bodyEditorError);
@@ -1696,7 +1872,9 @@ function init(): void {
       return;
     }
     if (target.kind === "root") return;
-    if (action === "rename") renameTreeItem(target);
+    if (action === "settings") {
+      if (target.kind === "folder") folderSettings.open(returnFocus ?? workspaceUi.savedList, target.id);
+    } else if (action === "rename") renameTreeItem(target);
     else if (action === "move") openMoveDialog(target, returnFocus);
     else if (target.kind === "folder") deleteFolderById(target.id);
     else deleteRequestById(target.id);
@@ -1727,7 +1905,10 @@ function init(): void {
     if (keepId && workspace.requests.some((request) => request.id === keepId)) workspace.selectedId = keepId;
     closeTreeMenu(false);
     if (workspaceUi.moveDialog.open) workspaceUi.moveDialog.close();
+    if (envDialog.open) envDialog.close();
+    if (folderDialog.open) folderDialog.close();
     finishDragging();
+    renderEnvironmentSwitcher();
     currentRequest = workspace.requests.find((request) => request.id === workspace.selectedId)!;
     treeSelection = { kind: "request", id: currentRequest.id };
     applySidebarWidth(workspace.sidebarWidth);
@@ -2004,42 +2185,6 @@ function init(): void {
   send.addEventListener("click", async () => {
     if (!saveWorkspaceNow()) return;
     hideMessage(requestError);
-    const url = requestUrl.value.trim();
-    try {
-      const parsed = new URL(url);
-      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error(strings.ErrorUrl);
-    } catch {
-      showMessage(requestError, strings.ErrorUrl);
-      requestUrl.focus();
-      return;
-    }
-
-    let headers: LocalAgentHeader[];
-    try {
-      headers = headersTable.read().map(({ name, value }) => ({ name: name.trim(), value }));
-      if (headers.some(({ name, value }) => !/^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/u.test(name) || /[\r\n]/u.test(value))) {
-        throw new Error(strings.ErrorHeaders);
-      }
-    } catch (error) {
-      showMessage(requestError, errorText(error));
-      root.querySelector<HTMLButtonElement>("#http-request-headers-tab")?.click();
-      root.querySelector<HTMLInputElement>('[data-http-table="headers"] [data-row-key]')?.focus();
-      return;
-    }
-
-    const bodyBytes = new TextEncoder().encode(requestBody.value);
-    if (bodyBytes.byteLength && !headers.some(({ name }) => name.toLowerCase() === "content-type")) {
-      const contentTypes: Record<string, string> = {
-        text: "text/plain; charset=utf-8", json: "application/json",
-        html: "text/html; charset=utf-8", xml: "application/xml",
-      };
-      headers.push({ name: "Content-Type", value: contentTypes[bodyFormat.value]! });
-    }
-    const bodyLimit = client.info?.limits.maxRequestBodyBytes ?? 1024 * 1024;
-    if (bodyBytes.byteLength > bodyLimit) {
-      showMessage(requestError, strings.ErrorBodyLimit);
-      return;
-    }
 
     const id = requestId();
     const abort = new AbortController();
@@ -2060,14 +2205,48 @@ function init(): void {
     syncEmptyState(output, true);
 
     try {
+      let built;
+      try {
+        built = await buildHttpRequest({
+          method: method.value,
+          url: requestUrl.value,
+          headers: headersTable.read(),
+          body: requestBody.value,
+          bodyFormat: bodyFormat.value as HttpSavedRequest["bodyFormat"],
+          auth: effectiveAuth(workspace, currentRequest).auth,
+          scope: collectVariables(workspace, currentRequest.folderId),
+          oauthToken: (config) => oauthToken(config, { signal: abort.signal }),
+        });
+      } catch (error) {
+        if (!(error instanceof HttpBuildError)) throw error;
+        if (active?.id !== id) return;
+        hideMessage(requestStatus);
+        showMessage(requestError, buildErrorText(error));
+        if (error.code === "url") {
+          requestUrl.focus();
+        } else if (error.code === "headers") {
+          root.querySelector<HTMLButtonElement>("#http-request-headers-tab")?.click();
+          root.querySelector<HTMLInputElement>('[data-http-table="headers"] [data-row-key]')?.focus();
+        } else if (currentRequest.auth?.type !== "inherit" || error.code === "oauth_token") {
+          root.querySelector<HTMLButtonElement>("#http-request-auth-tab")?.click();
+        }
+        return;
+      }
+      const bodyLimit = client.info?.limits.maxRequestBodyBytes ?? 1024 * 1024;
+      if (built.body.byteLength > bodyLimit) {
+        hideMessage(requestStatus);
+        showMessage(requestError, strings.ErrorBodyLimit);
+        return;
+      }
       const response = await client.request({
         id,
-        method: method.value,
-        url,
-        headers,
-        bodyBase64: bytesToBase64(bodyBytes),
+        method: built.method,
+        url: built.url,
+        headers: built.headers,
+        bodyBase64: bytesToBase64(built.body),
         timeoutMs: Math.max(100, Math.min(client.info?.limits.maxTimeoutMs ?? 120000, Number(timeout.value) || 30000)),
         followRedirects: redirects.checked,
+        ...(built.basicAuth ? { basicAuth: built.basicAuth } : {}),
       }, abort.signal);
       if (active?.id !== id || abort.signal.aborted) return;
       renderResponse(response);

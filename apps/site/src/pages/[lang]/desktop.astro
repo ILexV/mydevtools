@@ -59,6 +59,15 @@ const payload = {
 };
 const payloadJson = JSON.stringify(payload).replace(/</g, "\\u003c");
 const label = (key: string) => t(lang, "desktop", key);
+/** Settings key reference: label key, Windows/Linux keys, macOS keys (swapped in by the client). */
+const keyRows: [string, string, string][] = [
+  ["KeyLauncher", "Ctrl K", "⌘ K"],
+  ["KeyCycle", "Alt ` / Alt Shift `", "Ctrl ` / Ctrl ⇧ `"],
+  ["KeyDock", "Alt Shift ← / →", "⌥ ⇧ ← / →"],
+  ["KeyMaximize", "Alt Shift ↑", "⌥ ⇧ ↑"],
+  ["KeyMinimize", "Alt Shift ↓", "⌥ ⇧ ↓"],
+  ["KeyClose", "Alt Shift W", "⌥ ⇧ W"],
+];
 ---
 
 <!doctype html>
@@ -98,7 +107,7 @@ const label = (key: string) => t(lang, "desktop", key);
       <button type="button" class="desk-search" data-desk-search aria-keyshortcuts="Control+K Meta+K">
         <Icon name="search" size={15} />
         <span class="desk-search-label">{label("SearchPlaceholder")}</span>
-        <kbd>Ctrl K</kbd>
+        <kbd data-mac-keys="⌘ K">Ctrl K</kbd>
       </button>
       <span class="desk-top-spacer"></span>
       <button type="button" class="desk-top-btn desk-theme" data-theme-toggle aria-label={label("Theme")} title={label("Theme")}>
@@ -279,6 +288,18 @@ const label = (key: string) => t(lang, "desktop", key);
             </span>
             <button type="button" class="ds-btn ds-btn-small" data-reset-layout>{label("ResetLayout")}</button>
           </div>
+        </section>
+        <section class="desk-set-section">
+          <h3>{label("KeysSection")}</h3>
+          <dl class="desk-keys">
+            {keyRows.map(([key, keys, macKeys]) => (
+              <div class="desk-keys-row">
+                <dt>{label(key)}</dt>
+                <dd><kbd data-mac-keys={macKeys}>{keys}</kbd></dd>
+              </div>
+            ))}
+          </dl>
+          <p class="desk-set-note">{label("KeysHint")}</p>
         </section>
       </div>
       <div class="desk-dialog-actions">

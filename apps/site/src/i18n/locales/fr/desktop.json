@@ -145,5 +145,13 @@
   "EmptyFolder": "Ce dossier est vide.",
   "DissolveFolder": "Supprimer le dossier et restaurer ses outils",
   "Commands": "Fenêtres et commandes",
-  "WindowHeader": "Fenêtre {name}. Utilisez les flèches pour déplacer et Maj plus flèches pour redimensionner."
+  "WindowHeader": "Fenêtre {name}. Utilisez les flèches pour déplacer et Maj plus flèches pour redimensionner.",
+  "KeysSection": "Clavier",
+  "KeyLauncher": "Ouvrir le catalogue d’outils",
+  "KeyCycle": "Fenêtre suivante / précédente",
+  "KeyDock": "Ancrer à gauche ou à droite",
+  "KeyMaximize": "Agrandir ou restaurer",
+  "KeyMinimize": "Réduire",
+  "KeyClose": "Fermer la fenêtre",
+  "KeysHint": "Les touches de fenêtre fonctionnent hors des champs de saisie, y compris dans un outil."
 }

@@ -56,6 +56,7 @@ node scripts/indexnow.mjs [--all] [--submit] # IndexNow dry run / manual resubmi
 
 npm run test:visual                          # Playwright pixel baselines (Chromium)
 npm run test:crossbrowser                    # Chromium/Firefox/WebKit functional matrix
+npm run test:desktop                         # desktop shell scenarios (e2e/desktop.spec.ts, Chromium)
 cargo test --workspace --manifest-path wasm/Cargo.toml
 ```
 

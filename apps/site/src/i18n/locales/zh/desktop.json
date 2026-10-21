@@ -145,5 +145,13 @@
   "EmptyFolder": "此文件夹为空。",
   "DissolveFolder": "移除文件夹并恢复其中的工具",
   "Commands": "窗口和命令",
-  "WindowHeader": "{name} 窗口。使用方向键移动，Shift 加方向键调整大小。"
+  "WindowHeader": "{name} 窗口。使用方向键移动，Shift 加方向键调整大小。",
+  "KeysSection": "键盘",
+  "KeyLauncher": "打开工具目录",
+  "KeyCycle": "下一个 / 上一个窗口",
+  "KeyDock": "停靠到左侧或右侧",
+  "KeyMaximize": "最大化或还原",
+  "KeyMinimize": "最小化",
+  "KeyClose": "关闭窗口",
+  "KeysHint": "窗口快捷键在文本框之外有效，在工具内部同样可用。"
 }

@@ -145,5 +145,13 @@
   "EmptyFolder": "Esta carpeta está vacía.",
   "DissolveFolder": "Quitar carpeta y restaurar sus herramientas",
   "Commands": "Ventanas y comandos",
-  "WindowHeader": "Ventana {name}. Usa flechas para mover y Mayús más flechas para cambiar el tamaño."
+  "WindowHeader": "Ventana {name}. Usa flechas para mover y Mayús más flechas para cambiar el tamaño.",
+  "KeysSection": "Teclado",
+  "KeyLauncher": "Abrir el catálogo de herramientas",
+  "KeyCycle": "Ventana siguiente / anterior",
+  "KeyDock": "Acoplar a la izquierda o a la derecha",
+  "KeyMaximize": "Maximizar o restaurar",
+  "KeyMinimize": "Minimizar",
+  "KeyClose": "Cerrar ventana",
+  "KeysHint": "Las teclas de ventana funcionan fuera de los campos de texto, también dentro de una herramienta."
 }

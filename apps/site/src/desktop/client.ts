@@ -25,6 +25,8 @@ import {
 } from "./persistence.ts";
 import { desktopReducer } from "./reducer.ts";
 import { arrangeShortcuts, cellSize, moveShortcut, packedPositions, stripColumns } from "./shortcuts.ts";
+import { cycleWindow, isEditableTarget, isMacPlatform, shellCommand, type ShellCommand } from "./shell-keys.ts";
+import { parseFrameMessage, transferDelivery, type TransferDelivery } from "./frame-bridge.ts";
 import { createTaskPreview } from "./task-preview.ts";
 import type { Bounds, DeskSize, DeskState, DeskWindow, Dock, ResizeEdge, ShortcutCell } from "./types.ts";
 import { emptyDesk } from "./types.ts";
@@ -75,17 +77,10 @@ type MenuEntry =
   | { kind: "item"; label: string; checked?: boolean; icon?: string; run: () => void }
   | { kind: "separator" };
 
-const EDGES: ResizeEdge[] = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
+/** A frame still without its tool page after this long shows the retry panel. */
+const FRAME_LOAD_TIMEOUT_MS = 20_000;
 
-const TRANSFER_MEDIA_TYPES: Record<string, true> = {
-  "text/plain": true,
-  "text/html": true,
-  "application/json": true,
-  "application/xml": true,
-  "application/yaml": true,
-  "application/jwt": true,
-  "application/cron": true,
-};
+const EDGES: ResizeEdge[] = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
 
 export function bootDesktop(): void {
   const dataEl = document.getElementById("desk-data");
@@ -103,6 +98,7 @@ export function bootDesktop(): void {
   const categoryIds = new Set(categories.keys());
   const text = (key: string) => payload.strings[key] || key;
   const glyph = (name: string, size = 16) => svgWrap(payload.icons[name] || "", size);
+  const mac = isMacPlatform(navigator.platform);
   /** Launcher filter: every tool, only what is on the desk, or one category. */
   let catalogScope = "all";
 
@@ -114,6 +110,12 @@ export function bootDesktop(): void {
   const folderIds = state.windows.filter((record) => record.kind === "folder").map((record) => record.id);
   if (folderIds.length > 0) state = desktopReducer(state, { type: "close-many", ids: folderIds });
   let saveTimer = 0;
+  /** Last value this tab wrote or adopted per key: unchanged keys are not rewritten over another tab's save. */
+  const written: { layout: string | null; prefs: string | null; bounds: string | null } = {
+    layout: readKey(LAYOUT_KEY),
+    prefs: readKey(PREFS_KEY),
+    bounds: readKey(WINDOW_BOUNDS_KEY),
+  };
   let ready = false;
   let selectedShortcut: string | null = null;
   let selectedShortcuts = new Set<string>();
@@ -138,7 +140,7 @@ export function bootDesktop(): void {
   const taskHost = must<HTMLElement>("[data-desk-tasks]");
   const frameInput = new WeakMap<HTMLIFrameElement, () => boolean>();
   const readyFrames = new WeakSet<HTMLIFrameElement>();
-  const pendingTransfers = new Map<HTMLIFrameElement, unknown[]>();
+  const pendingTransfers = new Map<HTMLIFrameElement, TransferDelivery[]>();
   const toolActivity = new Map<string, { value: number | null; label: string }>();
   let recentlyClosed: DeskWindow[] = [];
   let closeNoticeTimer = 0;
@@ -234,6 +236,7 @@ export function bootDesktop(): void {
   // Focus moving into a tool iframe never reaches this document as a pointerdown.
   window.addEventListener("blur", () => {
     hidePop(false);
+    if (!menu.hidden) hideMenu();
     cancelShortcutGesture?.();
   });
   pop.addEventListener("focusout", (event) => {
@@ -255,6 +258,11 @@ export function bootDesktop(): void {
   });
   window.addEventListener("storage", (event) => {
     if (event.key === "mdt.favorites.v1" || event.key === "mdt.recent.v1") render();
+    else if (event.key === PREFS_KEY) void adoptPrefs(event.newValue);
+    else if (event.key === WINDOW_BOUNDS_KEY) {
+      written.bounds = event.newValue;
+      rememberedBounds = { ...rememberedBounds, ...parseWindowBounds(event.newValue, slugs) };
+    }
   });
   window.addEventListener("beforeunload", (event) => {
     if (ready) flushSave();
@@ -262,6 +270,9 @@ export function bootDesktop(): void {
     event.preventDefault();
     event.returnValue = "";
   });
+  if (mac) {
+    document.querySelectorAll<HTMLElement>("kbd[data-mac-keys]").forEach((kbd) => { kbd.textContent = kbd.dataset.macKeys ?? kbd.textContent; });
+  }
   wireSettings();
   wireOverview();
   wireTile();
@@ -284,56 +295,30 @@ export function bootDesktop(): void {
     if (event.origin !== location.origin || !event.source) return;
     const frame = [...windowHost.querySelectorAll<HTMLIFrameElement>("iframe[data-tool-id]")]
       .find((candidate) => candidate.contentWindow === event.source);
-    if (!frame || !event.data || typeof event.data !== "object") return;
-    const message = event.data as Record<string, unknown>;
-    const sourceId = frame.dataset.toolId;
-    const sourceSlug = frame.dataset.toolSlug;
-    if (!sourceId || !sourceSlug) return;
-    if (message.type === "mdt:transfer-ready" && message.slug === sourceSlug) {
+    const sourceId = frame?.dataset.toolId;
+    const sourceSlug = frame?.dataset.toolSlug;
+    if (!frame || !sourceId || !sourceSlug) return;
+    const message = parseFrameMessage(event.data, sourceSlug, (slug) => tools.has(slug));
+    if (!message) return;
+    if (message.type === "mdt:transfer-ready") {
       readyFrames.add(frame);
       const queued = pendingTransfers.get(frame) ?? [];
       pendingTransfers.delete(frame);
       for (const delivery of queued) frame.contentWindow?.postMessage(delivery, location.origin);
       return;
     }
-    if (message.type === "mdt:tool-activity" && message.slug === sourceSlug) {
-      if (message.active === true) {
-        toolActivity.set(sourceId, {
-          value: typeof message.value === "number" && Number.isFinite(message.value) ? message.value : null,
-          label: typeof message.label === "string" ? message.label.slice(0, 160) : "",
-        });
-      } else {
-        toolActivity.delete(sourceId);
-      }
+    if (message.type === "mdt:tool-activity") {
+      if (message.active) toolActivity.set(sourceId, { value: message.value, label: message.label });
+      else toolActivity.delete(sourceId);
       renderTasks();
       frame.closest<HTMLElement>(".desk-window")?.classList.toggle("is-busy", toolActivity.has(sourceId));
       return;
     }
-    if (
-      message.type !== "mdt:transfer-request" ||
-      message.sourceSlug !== sourceSlug ||
-      typeof message.requestId !== "string" ||
-      typeof message.targetSlug !== "string" ||
-      !tools.has(message.targetSlug) ||
-      typeof message.payload !== "string" ||
-      typeof message.mediaType !== "string" ||
-      TRANSFER_MEDIA_TYPES[message.mediaType] !== true
-    ) {
-      return;
-    }
     const targetId = openTool(message.targetSlug, false);
     if (!targetId) return;
-    const targetFrame = windowHost.querySelector<HTMLIFrameElement>(
-      `.desk-frame-wrap[data-tab-id="${CSS.escape(targetId)}"] iframe`,
-    );
+    const targetFrame = frameFor(targetId);
     if (!targetFrame) return;
-    const delivery = {
-      type: "mdt:transfer-deliver",
-      requestId: message.requestId,
-      targetSlug: message.targetSlug,
-      mediaType: message.mediaType,
-      payload: message.payload,
-    };
+    const delivery = transferDelivery(message);
     if (readyFrames.has(targetFrame)) targetFrame.contentWindow?.postMessage(delivery, location.origin);
     else pendingTransfers.set(targetFrame, [...(pendingTransfers.get(targetFrame) ?? []), delivery]);
   }
@@ -354,15 +339,27 @@ export function bootDesktop(): void {
         }
       }
     }
+    const openBefore = openSlugs(state);
     state = next;
-    render();
+    // Shortcut dots and the recent widget only change when the set of open tools does.
+    if (action.type === "clamp" || action.type === "hydrate" || openSlugs(next) !== openBefore) render();
+    else renderWindowLayer();
     if (ready) scheduleSave();
+  }
+
+  function openSlugs(desk: DeskState): string {
+    return [...new Set(desk.windows.map((record) => record.slug))].sort().join(" ");
   }
 
   function render(): void {
     cancelShortcutGesture?.();
     renderWidgets();
     renderIcons();
+    renderWindowLayer();
+  }
+
+  /** Frames, taskbar and shell status: enough for move, activate, minimize, dock. */
+  function renderWindowLayer(): void {
     renderWindows();
     renderTasks();
     for (const id of selectedShortcuts) if (!prefs.shortcuts.includes(id)) selectedShortcuts.delete(id);
@@ -697,7 +694,10 @@ export function bootDesktop(): void {
     wrap.hidden = false;
     wrap.inert = false;
     const frame = wrap.querySelector<HTMLIFrameElement>("iframe");
-    if (frame) frame.style.pointerEvents = owner.id === activeId && !node.hidden ? "auto" : "none";
+    if (frame) {
+      frame.style.pointerEvents = owner.id === activeId && !node.hidden ? "auto" : "none";
+      if (!node.hidden) wakeFrame(frame);
+    }
     for (const stale of body.querySelectorAll<HTMLElement>(".desk-frame-wrap[data-tab-id]")) {
       if (stale === wrap) continue;
       const staleFrame = stale.querySelector<HTMLIFrameElement>("iframe");
@@ -705,6 +705,11 @@ export function bootDesktop(): void {
       toolActivity.delete(stale.dataset.tabId!);
       stale.remove();
     }
+    // Tabs are rebuilt on every render; keyboard focus returns to the same tab.
+    const focusedTab = tabs.contains(document.activeElement)
+      ? document.activeElement?.closest<HTMLElement>("[data-tab-id]")?.dataset.tabId
+      : undefined;
+    const focusedClose = !!document.activeElement?.closest(".desk-win-btn");
     tabs.replaceChildren();
     for (const record of members) {
       const info = record.kind === "tool" ? toolInfo(record.slug) : folderInfo(record.slug);
@@ -721,6 +726,7 @@ export function bootDesktop(): void {
       const close = winButton("CloseTab", glyph("close", 12), () => void closeWindows([record.id]));
       tab.append(select, close);
       tabs.append(tab);
+      if (record.id === focusedTab) (focusedClose ? close : select).focus({ preventScroll: true });
     }
     tabs.hidden = members.length < 2;
   }
@@ -736,13 +742,27 @@ export function bootDesktop(): void {
     frame.dataset.toolSlug = record.slug;
     frame.title = tool?.title || record.slug;
     frame.setAttribute("allow", "camera; clipboard-read; clipboard-write");
+    // Hidden windows (minimized, background tabs after F5) load on first show.
+    if (tool) frame.dataset.src = `${tool.href}?embed=1`;
+    let loadTimer = 0;
     frame.addEventListener("load", () => {
+      if (!frame.getAttribute("src")) return;
+      window.clearTimeout(loadTimer);
       readyFrames.delete(frame);
       toolActivity.delete(record.id);
-      if (frame.contentDocument) frameInput.set(frame, trackUserInput(frame.contentDocument));
+      // An iframe never fires `error` for a 404 or the offline fallback: they load a page without the tool.
+      const doc = frame.contentDocument;
+      const loaded = !!doc?.querySelector("main.tool");
+      error.hidden = loaded;
+      if (!doc || !loaded) return;
+      frameInput.set(frame, trackUserInput(doc));
+      frame.contentWindow?.addEventListener("keydown", (event) => onFrameKey(event, record.id), true);
       void fitInitialWindow(record.id, frame);
     });
-    if (tool) frame.src = `${tool.href}?embed=1`;
+    frame.addEventListener("mdt:wake", () => {
+      window.clearTimeout(loadTimer);
+      loadTimer = window.setTimeout(() => { error.hidden = false; }, FRAME_LOAD_TIMEOUT_MS);
+    });
     const error = document.createElement("div");
     error.className = "desk-frame-error";
     error.hidden = true;
@@ -754,14 +774,19 @@ export function bootDesktop(): void {
     retry.textContent = text("Retry");
     retry.addEventListener("click", () => {
       error.hidden = true;
-      frame.src = frame.src;
+      frame.removeAttribute("src");
+      wakeFrame(frame);
     });
     error.append(message, retry);
-    frame.addEventListener("error", () => {
-      error.hidden = false;
-    });
     wrap.append(frame, error);
     return wrap;
+  }
+
+  /** Starts loading a lazily created frame; a no-op once it has a document. */
+  function wakeFrame(frame: HTMLIFrameElement): void {
+    if (frame.getAttribute("src") || !frame.dataset.src) return;
+    frame.dispatchEvent(new Event("mdt:wake"));
+    frame.src = frame.dataset.src;
   }
 
   async function fitInitialWindow(id: string, frame: HTMLIFrameElement): Promise<void> {
@@ -1063,7 +1088,7 @@ export function bootDesktop(): void {
 
   function dirtyIds(ids: readonly string[]): string[] {
     return ids.filter((id) => {
-      const frame = document.querySelector<HTMLIFrameElement>(`.desk-frame-wrap[data-tab-id="${CSS.escape(id)}"] iframe`);
+      const frame = frameFor(id);
       if (!frame) return false;
       try {
         return frameInput.get(frame)?.() ?? false;
@@ -1497,15 +1522,16 @@ export function bootDesktop(): void {
         return;
       }
     }
-    const typing = event.target instanceof HTMLElement && event.target.closest("input, textarea, select, [contenteditable='true']");
-    if (typing) return;
-    if ((event.ctrlKey || event.metaKey) && (event.key.toLowerCase() === "k" || event.code === "KeyK")) {
-      if (event.altKey) return;
+    const typing = isEditableTarget(event.target);
+    const command = shellCommand(event, typing, mac);
+    if (command) {
       event.preventDefault();
-      if (catalogDialog.open) catalogDialog.close();
-      else openCatalog();
+      // A focused title bar or tab names its window; otherwise the active window.
+      const owner = event.target instanceof HTMLElement ? event.target.closest<HTMLElement>(".desk-window")?.dataset.activeId : undefined;
+      runShellCommand(command, owner ?? null);
       return;
     }
+    if (typing) return;
     if (event.key === "Escape") hideMenu();
     if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "z" && !event.altKey) {
       if (shortcutHistory.length > 0) { event.preventDefault(); undoShortcutLayout(); }
@@ -1524,6 +1550,95 @@ export function bootDesktop(): void {
     } else if (event.key === "Enter" && selectedShortcut && !(event.target as HTMLElement).closest?.(".desk-icon")) {
       openShortcut(selectedShortcut, false, null);
     }
+  }
+
+  /** Desktop hotkeys typed inside a tool iframe; the tool keeps every other key. */
+  function onFrameKey(event: KeyboardEvent, sourceId: string): void {
+    const command = shellCommand(event, isEditableTarget(event.target), mac);
+    if (!command) return;
+    event.preventDefault();
+    event.stopPropagation();
+    runShellCommand(command, sourceId);
+  }
+
+  /**
+   * One handler for the shell's own keys and keys forwarded from a frame.
+   * `sourceId` is the window whose iframe had focus; otherwise the active window.
+   */
+  function runShellCommand(command: ShellCommand, sourceId: string | null): void {
+    const modal = [...document.querySelectorAll<HTMLDialogElement>("dialog[open]")].some((dialog) => dialog !== catalogDialog);
+    if (modal) return;
+    if (command === "launcher") {
+      if (catalogDialog.open) catalogDialog.close();
+      else openCatalog();
+      return;
+    }
+    if (catalogDialog.open) return;
+    hideMenu();
+    hidePop(false);
+    const id = sourceId ?? (state.concealed ? null : state.activeId);
+    if (command === "next-window" || command === "previous-window") {
+      const next = cycleWindow(windowOrder(), state.concealed ? null : state.activeId, command === "next-window" ? 1 : -1);
+      if (!next) return;
+      dispatch({ type: "activate", id: next });
+      focusWindow(next);
+      return;
+    }
+    const record = id ? state.windows.find((item) => item.id === id) : undefined;
+    if (!record) return;
+    switch (command) {
+      case "dock-left":
+      case "dock-right": {
+        const side = command === "dock-left" ? "left" : "right";
+        if (record.dock === side) dispatch({ type: "restore", id: record.id });
+        else dispatch({ type: "dock", id: record.id, side, desk: deskSize() });
+        break;
+      }
+      case "maximize":
+        toggleMax(record.id);
+        break;
+      case "minimize":
+        dispatch({ type: "minimize", id: record.id });
+        focusWindow(state.activeId);
+        break;
+      case "close-window":
+        void closeWindows([record.id]).then(() => focusWindow(state.activeId));
+        return;
+    }
+    focusWindow(record.id);
+  }
+
+  /** Window ids in taskbar order, one per frame (the selected tab of a group). */
+  function windowOrder(): string[] {
+    const seen = new Set<string>();
+    const order: string[] = [];
+    for (const record of state.windows) {
+      if (record.kind !== "tool") continue;
+      const key = record.groupId ?? record.id;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const members = state.windows.filter((item) => (item.groupId ?? item.id) === key);
+      const pick = members.find((item) => item.id === state.activeId) ?? members.find((item) => item.tabActive) ?? record;
+      order.push(pick.id);
+    }
+    return order;
+  }
+
+  /** Keyboard focus follows the window a hotkey acted on, or leaves hidden frames for the desk. */
+  function focusWindow(id: string | null): void {
+    const frame = id ? frameFor(id) : null;
+    const node = frame?.closest<HTMLElement>(".desk-window");
+    if (frame && node && !node.hidden) {
+      frame.focus({ preventScroll: true });
+      return;
+    }
+    if (document.activeElement instanceof HTMLIFrameElement || document.activeElement === document.body) {
+      iconHost.querySelector<HTMLElement>(".desk-icon, .desk-empty")?.focus({ preventScroll: true });
+    }
+  }
+
+  function frameFor(id: string): HTMLIFrameElement | null {
+    return windowHost.querySelector<HTMLIFrameElement>(`.desk-frame-wrap[data-tab-id="${CSS.escape(id)}"] iframe`);
   }
 
   function nudgeWindow(id: string | undefined, event: KeyboardEvent): void {
@@ -1837,7 +1952,7 @@ export function bootDesktop(): void {
         overviewDialog.close();
         dispatch({ type: "activate", id: record.id });
       });
-      const frame = document.querySelector<HTMLIFrameElement>(`.desk-frame-wrap[data-tab-id="${CSS.escape(record.id)}"] iframe`);
+      const frame = frameFor(record.id);
       if (frame) {
         try {
           if (frameInput.get(frame)?.()) open.classList.add("is-dirty");
@@ -2909,9 +3024,31 @@ export function bootDesktop(): void {
   function flushSave(): void {
     window.clearTimeout(saveTimer);
     saveTimer = 0;
-    writeKey(LAYOUT_KEY, serializeLayout(state));
-    writeKey(PREFS_KEY, serializePrefs(prefs));
-    writeKey(WINDOW_BOUNDS_KEY, serializeWindowBounds(rememberedBounds));
+    const layout = serializeLayout(state);
+    const nextPrefs = serializePrefs(prefs);
+    const bounds = serializeWindowBounds(rememberedBounds);
+    if (layout !== written.layout) writeKey(LAYOUT_KEY, (written.layout = layout));
+    if (nextPrefs !== written.prefs) writeKey(PREFS_KEY, (written.prefs = nextPrefs));
+    if (bounds !== written.bounds) writeKey(WINDOW_BOUNDS_KEY, (written.bounds = bounds));
+  }
+
+  /**
+   * Another tab saved shortcuts, folders or appearance: take them over so this
+   * tab's next save does not write its stale copy back. Open windows stay per tab.
+   */
+  async function adoptPrefs(raw: string | null): Promise<void> {
+    const next = parsePrefs(raw, slugs, categoryIds);
+    if (!next) return;
+    written.prefs = raw;
+    prefs = next;
+    // Undo snapshots predate the other tab's change and would silently revert it.
+    shortcutHistory.length = 0;
+    if (imageUrl) URL.revokeObjectURL(imageUrl);
+    imageUrl = null;
+    await restoreImage();
+    // An open settings dialog keeps its preview; Cancel/Apply repaints from the adopted prefs.
+    if (!settingsDialog.open) applyWallpaper(prefs, imageUrl);
+    render();
   }
 
   function scheduleSave(): void {

@@ -145,5 +145,13 @@
   "EmptyFolder": "이 폴더는 비어 있습니다.",
   "DissolveFolder": "폴더를 제거하고 도구 복원",
   "Commands": "창 및 명령",
-  "WindowHeader": "{name} 창. 화살표 키로 이동하고 Shift와 화살표 키로 크기를 조절합니다."
+  "WindowHeader": "{name} 창. 화살표 키로 이동하고 Shift와 화살표 키로 크기를 조절합니다.",
+  "KeysSection": "키보드",
+  "KeyLauncher": "도구 카탈로그 열기",
+  "KeyCycle": "다음 / 이전 창",
+  "KeyDock": "왼쪽 또는 오른쪽에 고정",
+  "KeyMaximize": "최대화 또는 복원",
+  "KeyMinimize": "최소화",
+  "KeyClose": "창 닫기",
+  "KeysHint": "창 단축키는 도구 안을 포함해 입력란 밖에서 작동합니다."
 }

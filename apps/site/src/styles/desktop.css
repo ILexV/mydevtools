@@ -2293,6 +2293,42 @@ dialog.desk-settings {
   gap: 0.5rem;
 }
 
+.desk-keys {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.desk-keys-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.desk-keys dd {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.desk-keys kbd {
+  padding: 0.12rem 0.4rem;
+  border: 1px solid var(--mdt-border);
+  border-radius: 0.4rem;
+  background: var(--mdt-surface-raised);
+  color: var(--mdt-text-muted);
+  font-family: var(--mdt-font-mono);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.desk-set-note {
+  margin: 0.55rem 0 0;
+  color: var(--mdt-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
 .desk-set-actions {
   display: flex;
   flex-wrap: wrap;
@@ -2417,6 +2453,7 @@ dialog.desk-settings {
   }
 
   .desk-set-row,
+  .desk-keys-row,
   .desk-set-control {
     flex-wrap: wrap;
   }

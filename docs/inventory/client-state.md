@@ -80,6 +80,10 @@ The computer workspace at `/{lang}/desktop/` stores layout and appearance only. 
 | `mdt.desktop.skip` | sessionStorage | `"1"` while this tab asked to see the catalog. Stops the home-page redirect from bouncing straight back. |
 | IndexedDB `mdt.desktop` / store `files` / key `wallpaper` | blob | Custom JPG, PNG or WebP after an in-browser re-encode. `hasImage` in prefs is only a flag. |
 
+Several desktop tabs share `mdt.desktop.prefs.v1` and `mdt.desktop.window-bounds.v1`: a tab adopts the other tab's save from the `storage` event (shortcut undo history is dropped then) and writes a key only when its own value changed. `mdt.desktop.layout.v1` (open windows) is per tab in spirit: the last tab that changed its windows wins on the next load.
+
+After a reload, minimized windows and background tabs of a group keep an empty iframe until first shown; nothing about them is stored beyond the layout above.
+
 `theme` stays the existing light/dark key. Favorites and recent stay `mdt.favorites.v1` and `mdt.recent.v1`. An embedded tool page (`?embed=1`) does not record a second recent visit.
 
 Desktop multi-selection, the selection rectangle and drag/drop previews are transient DOM/controller state. Shortcut undo keeps at most 20 in-memory snapshots of `shortcuts`, `positions`, `pinned` and custom-folder definitions for the current page session. Reloading clears undo and selection, not committed preferences.

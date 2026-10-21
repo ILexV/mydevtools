@@ -145,5 +145,13 @@
   "EmptyFolder": "このフォルダーは空です。",
   "DissolveFolder": "フォルダーを削除してツールを戻す",
   "Commands": "ウィンドウとコマンド",
-  "WindowHeader": "{name} ウィンドウ。矢印キーで移動、Shift と矢印キーでサイズ変更できます。"
+  "WindowHeader": "{name} ウィンドウ。矢印キーで移動、Shift と矢印キーでサイズ変更できます。",
+  "KeysSection": "キーボード",
+  "KeyLauncher": "ツールカタログを開く",
+  "KeyCycle": "次 / 前のウィンドウ",
+  "KeyDock": "左または右にドッキング",
+  "KeyMaximize": "最大化または元に戻す",
+  "KeyMinimize": "最小化",
+  "KeyClose": "ウィンドウを閉じる",
+  "KeysHint": "ウィンドウ操作のキーは、ツール内も含め入力欄の外で使えます。"
 }

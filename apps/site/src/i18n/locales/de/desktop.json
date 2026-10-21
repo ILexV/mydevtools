@@ -145,5 +145,13 @@
   "EmptyFolder": "Dieser Ordner ist leer.",
   "DissolveFolder": "Ordner entfernen und Werkzeuge wiederherstellen",
   "Commands": "Fenster und Befehle",
-  "WindowHeader": "Fenster {name}. Pfeiltasten verschieben; Umschalt plus Pfeiltasten ändern die Größe."
+  "WindowHeader": "Fenster {name}. Pfeiltasten verschieben; Umschalt plus Pfeiltasten ändern die Größe.",
+  "KeysSection": "Tastatur",
+  "KeyLauncher": "Werkzeugkatalog öffnen",
+  "KeyCycle": "Nächstes / vorheriges Fenster",
+  "KeyDock": "Links oder rechts andocken",
+  "KeyMaximize": "Maximieren oder wiederherstellen",
+  "KeyMinimize": "Minimieren",
+  "KeyClose": "Fenster schließen",
+  "KeysHint": "Fenstertasten funktionieren außerhalb von Textfeldern, auch innerhalb eines Werkzeugs."
 }

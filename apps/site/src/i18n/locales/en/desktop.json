@@ -145,5 +145,13 @@
   "EmptyFolder": "This folder is empty.",
   "DissolveFolder": "Remove folder and restore its tools",
   "Commands": "Windows and commands",
-  "WindowHeader": "{name} window. Use arrows to move; Shift plus arrows to resize."
+  "WindowHeader": "{name} window. Use arrows to move; Shift plus arrows to resize.",
+  "KeysSection": "Keyboard",
+  "KeyLauncher": "Open the tool catalog",
+  "KeyCycle": "Next / previous window",
+  "KeyDock": "Dock left or right",
+  "KeyMaximize": "Maximize or restore",
+  "KeyMinimize": "Minimize",
+  "KeyClose": "Close window",
+  "KeysHint": "Window keys work outside text fields, including inside a tool."
 }

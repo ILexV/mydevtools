@@ -23,6 +23,10 @@ export interface PathTraceSettings {
   maxHops: number;
   timeoutMs: number;
   resolveNames: boolean;
+  /** Chosen local address. Empty with `sourceInterface` means automatic. */
+  sourceAddress: string;
+  /** Interface name that owns `sourceAddress`. A missing address falls back to automatic. */
+  sourceInterface: string;
 }
 
 export interface PathTraceHopView {
@@ -78,7 +82,27 @@ export function defaultPathTraceSettings(): PathTraceSettings {
     maxHops: TRACE_MAX_HOPS.default,
     timeoutMs: TRACE_TIMEOUT_MS.default,
     resolveNames: true,
+    sourceAddress: "",
+    sourceInterface: "",
   };
+}
+
+const MAX_SOURCE_ADDRESS_CHARS = 64;
+const MAX_INTERFACE_CHARS = 256;
+
+/** A saved source is a local address plus its interface name. Half a pair is dropped. */
+function storedSource(address: unknown, interfaceName: unknown): { sourceAddress: string; sourceInterface: string } {
+  if (typeof address !== "string" || typeof interfaceName !== "string") {
+    return { sourceAddress: "", sourceInterface: "" };
+  }
+  if (!address || !interfaceName) return { sourceAddress: "", sourceInterface: "" };
+  if ([...address].length > MAX_SOURCE_ADDRESS_CHARS || [...interfaceName].length > MAX_INTERFACE_CHARS) {
+    return { sourceAddress: "", sourceInterface: "" };
+  }
+  if (/[\u0000\n\r]/.test(interfaceName) || /[\s\u0000\n\r]/.test(address)) {
+    return { sourceAddress: "", sourceInterface: "" };
+  }
+  return { sourceAddress: address, sourceInterface: interfaceName };
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -109,6 +133,7 @@ export function parsePathTraceSettings(value: unknown): PathTraceSettings {
     maxHops: inRange(value.maxHops, TRACE_MAX_HOPS.min, TRACE_MAX_HOPS.max) ?? base.maxHops,
     timeoutMs: inRange(value.timeoutMs, TRACE_TIMEOUT_MS.min, TRACE_TIMEOUT_MS.max) ?? base.timeoutMs,
     resolveNames: typeof value.resolveNames === "boolean" ? value.resolveNames : base.resolveNames,
+    ...storedSource(value.sourceAddress, value.sourceInterface),
   };
 }
 

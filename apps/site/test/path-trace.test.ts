@@ -68,7 +68,27 @@ test("parsePathTraceSettings ignores hop results and repairs bad fields", () => 
   assert.equal(parsed.intervalMs, defaultPathTraceSettings().intervalMs);
   assert.equal(parsed.payloadBytes, 64);
   assert.equal(parsed.resolveNames, false);
+  assert.equal(parsed.sourceAddress, "");
+  assert.equal(parsed.sourceInterface, "");
   assert.equal("hops" in parsed, false);
+
+  const kept = parsePathTraceSettings({
+    v: 1,
+    sourceAddress: "127.0.0.1",
+    sourceInterface: "Ethernet 2",
+  });
+  assert.equal(kept.sourceAddress, "127.0.0.1");
+  assert.equal(kept.sourceInterface, "Ethernet 2");
+  const broken = parsePathTraceSettings({
+    v: 1,
+    sourceAddress: "127.0.0.1",
+    sourceInterface: "lo\n",
+  });
+  assert.equal(broken.sourceAddress, "");
+  assert.equal(broken.sourceInterface, "");
+  const half = parsePathTraceSettings({ v: 1, sourceAddress: "::1" });
+  assert.equal(half.sourceAddress, "");
+  assert.equal(half.sourceInterface, "");
 });
 
 test("rememberTarget keeps the newest name first and caps the list at 20", () => {

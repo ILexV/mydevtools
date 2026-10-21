@@ -149,7 +149,8 @@ API or port/network scanner is provided.
 
 Protocol `/v1`: `GET /info`, `POST /pair`, `DELETE /session`,
 `POST /http/request`, `POST /http/cancel`, `POST /icmp/trace`,
-`POST /icmp/snapshot`, `POST /icmp/cancel`. Pairing requests an explicit
+`POST /icmp/snapshot`, `POST /icmp/cancel`, `POST /icmp/mtu`,
+`GET /icmp/interfaces`. Pairing requests an explicit
 non-empty subset of advertised capabilities. `http.request` and `icmp.trace`
 are checked separately; a trace does not inherit HTTP permission, and an HTTP
 session cannot start a trace. The browser asks for the capability the open
@@ -173,9 +174,14 @@ both stay blank until a second reply. Find path MTU on the same page sends
 Don't Fragment echoes and keeps the largest size that earns a reply, up to
 1500 bytes. A lost probe is inconclusive. That result stays on the page and
 is not stored. The search uses `icmp.trace` and takes one of the two ICMP
-slots. The agent runs at most two of those operations at once, across every
-paired session, and answers 429 `busy` past that cap. Each desktop window is its own iframe and its own trace
-id; those windows share one paired session, so disconnecting it stops every
+slots. A chosen source also reuses `icmp.trace`. `GET /icmp/interfaces`
+lists this computer's own unicast addresses and does not take a slot. The
+list is not a scan and not an ARP table. The saved address and interface
+stay in `mdt.path-trace.v1`; hop rows and the MTU sentence do not. The
+agent runs at most two of those operations at once, across every paired
+session, and answers 429 `busy` past that cap. Each desktop window is its
+own iframe and its own trace id; those windows share one paired session, so
+disconnecting it stops every
 trace on that session. The published Windows download is still the HTTP-only
 build until a new agent binary is shipped; an older agent answers
 `unsupported_capability`.

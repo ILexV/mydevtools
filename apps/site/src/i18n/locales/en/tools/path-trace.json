@@ -50,6 +50,12 @@
   "MtuFoundCeiling": "The largest probe fits. Path MTU is at least {mtu} bytes.",
   "MtuBelowMinimum": "Even a packet of {mtu} bytes is too big for this path.",
   "MtuInconclusive": "The search could not separate a size limit from a lost probe.",
+  "SourceLabel": "Source",
+  "SourceHint": "Automatic lets the computer choose. The list is this computer's own addresses, not neighbors on the network.",
+  "Automatic": "Automatic",
+  "RefreshSources": "Refresh",
+  "SourceFrom": "From {interface} ({address})",
+  "SourcesUnavailable": "The agent could not list local addresses. Probes still use an automatic source.",
   "StateIdle": "Idle",
   "StateTracing": "Tracing",
   "StateStopping": "Stopping",
@@ -98,6 +104,7 @@
   "Error_incompatible_protocol": "This page and the agent use different protocol versions.",
   "Error_name_not_found": "That name did not resolve. No probes were sent.",
   "Error_icmp_unavailable": "The agent could not open ICMP. On Linux, allow the ping group range or CAP_NET_RAW. On Windows this normally works without administrator rights.",
+  "Error_source_unavailable": "That source address is not assigned on this computer, or it does not match the target's IP version.",
   "Error_not_found": "That trace is no longer on the agent.",
   "Status_echo_reply": "Echo reply",
   "Status_ttl_expired": "TTL expired",
@@ -123,5 +130,5 @@
   "Seo_DetailedDescription": "The table updates while the trace runs. Each hop records packets sent and received, loss, and the last, best, average and worst round-trip time, the sample standard deviation, and the average jitter. A silent hop shows “No response” and keeps an empty address. A router answer stays visible, including a home gateway or a CGNAT address in 100.64.0.0/10. Those addresses are observations of the path. They are not new targets. The host you type is checked on its own: private and loopback targets need --allow-private, and metadata, link-local and multicast targets are always refused. Probes stop at the destination or when the same router repeats at the end of the path. Copy or download the current table as text or HTML. The agent does not write that report to disk. Recent targets and the interval, payload size, hop limit, timeout and name-resolution setting stay in this browser. Hop results are not stored.",
   "Seo_Examples": "- `1.1.1.1` traces a public resolver with a 64-byte payload, 30 hops and a 5 second probe timeout.\n- `example.com` resolves through the computer's DNS, then probes the first address only.\n- `127.0.0.1` needs the agent started with `--allow-private`.",
   "Seo_HowToSteps": "### Step 1: Start the local agent\nDownload the agent, start it, and copy the pairing code. On Linux, ICMP needs the ping group range or CAP_NET_RAW.\n\n### Step 2: Pair path tracing\nPaste the code and connect. The page asks for icmp.trace and keeps capabilities this browser already holds, such as http.request.\n\n### Step 3: Trace a host\nEnter one host name or IP address, adjust the interval, payload, hop limit and timeout if you need to, then press Start. Press Stop to finish. The last snapshot stays on the page.\n\n### Step 4: Copy the report\nSelect a hop to read its ICMP status. Copy or download the table as text or HTML.",
-  "Seo_Tips": "- Loss is an integer. Before any probe is sent it is 0. After that it is 100 minus 100 times received divided by sent.\n- A missing round-trip time is a dash, not zero.\n- Standard deviation and average jitter appear after two replies, in tenths of a millisecond. A timeout is not a sample. Jitter is the running mean of the absolute gap between consecutive replies.\n- Turn off name resolution to keep the numeric address in the host column.\n- The agent runs at most two traces at once. Each desktop window starts its own trace.\n- The published Windows download may be older than this page. Path tracing needs an agent that advertises icmp.trace.\n- Find path MTU sends DF probes and keeps the largest size that earns an echo. A lost probe is not a size limit. The search stops at 1500 bytes."
+  "Seo_Tips": "- Loss is an integer. Before any probe is sent it is 0. After that it is 100 minus 100 times received divided by sent.\n- A missing round-trip time is a dash, not zero.\n- Standard deviation and average jitter appear after two replies, in tenths of a millisecond. A timeout is not a sample. Jitter is the running mean of the absolute gap between consecutive replies.\n- Turn off name resolution to keep the numeric address in the host column.\n- The agent runs at most two traces at once. Each desktop window starts its own trace.\n- The published Windows download may be older than this page. Path tracing needs an agent that advertises icmp.trace.\n- Find path MTU sends DF probes and keeps the largest size that earns an echo. A lost probe is not a size limit. The search stops at 1500 bytes.\n- Source lists this computer's own addresses. Automatic lets the operating system choose. The list is not a scan and not an ARP table."
 }

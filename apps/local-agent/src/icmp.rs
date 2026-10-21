@@ -9,6 +9,9 @@
 //! and keeps the largest size that earns an echo. A lost probe is not a size
 //! limit, and the search does not add an `icmp.mtu` capability. It shares the
 //! process cap of two ICMP operations with running traces.
+//! A chosen source also reuses `icmp.trace`. The list is this computer's own
+//! unicast addresses, including loopback. It is not a network scan and not an
+//! ARP table. Automatic leaves the source to the operating system.
 //! Behavior follows a traceroute/WinMTR-style loop; WinMTR source is not copied.
 
 use std::{
@@ -47,6 +50,8 @@ const MAX_HOPS: usize = 64;
 const MIN_TIMEOUT: Duration = Duration::from_millis(100);
 const MAX_TIMEOUT: Duration = Duration::from_secs(30);
 const MAX_TARGET_CHARS: usize = 253;
+const MAX_SOURCE_ADDRESS_CHARS: usize = 64;
+const MAX_INTERFACE_CHARS: usize = 256;
 const POLL_SLICE: Duration = Duration::from_millis(200);
 const SLEEP_SLICE: Duration = Duration::from_millis(50);
 
@@ -60,6 +65,10 @@ pub(crate) struct TraceStartRequest {
     pub(crate) max_hops: u64,
     pub(crate) timeout_ms: u64,
     pub(crate) resolve_names: bool,
+    /// Local unicast address to bind. Empty or omitted with `source_interface` means automatic.
+    pub(crate) source_address: Option<String>,
+    /// Interface name that owns `source_address`. Both fields are required together.
+    pub(crate) source_interface: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -67,6 +76,9 @@ pub(crate) struct TraceStartRequest {
 pub(crate) struct MtuSearchRequest {
     pub(crate) target: String,
     pub(crate) timeout_ms: u64,
+    /// Same pair as a trace. Both omitted means the operating system chooses.
+    pub(crate) source_address: Option<String>,
+    pub(crate) source_interface: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -193,9 +205,26 @@ pub(crate) struct SharedTrace {
     pub(crate) state: TraceState,
     target: IpAddr,
     target_input: String,
+    source: Option<ProbeSource>,
     resolve_names: bool,
     hops: Vec<HopRecord>,
     limit: usize,
+}
+
+/// A local unicast address the socket will bind before probes leave.
+#[derive(Clone, Debug)]
+struct ProbeSource {
+    address: IpAddr,
+    interface: String,
+    /// IPv6 scope from the interface list. The browser does not supply this.
+    scope_id: u32,
+}
+
+#[derive(Clone, Debug)]
+struct ListedAddress {
+    name: String,
+    address: IpAddr,
+    scope_id: u32,
 }
 
 #[derive(Debug, Serialize)]
@@ -205,6 +234,8 @@ pub(crate) struct TraceSnapshot {
     pub(crate) state: &'static str,
     pub(crate) target: String,
     pub(crate) target_input: String,
+    pub(crate) source_address: Option<String>,
+    pub(crate) source_interface: Option<String>,
     pub(crate) hops: Vec<HopSnapshot>,
 }
 
@@ -232,6 +263,7 @@ struct TraceParams {
     interval: Duration,
     payload: Vec<u8>,
     timeout: Duration,
+    source: Option<ProbeSource>,
 }
 
 pub(crate) async fn start_trace(
@@ -246,6 +278,7 @@ pub(crate) async fn start_trace(
     let payload_bytes = usize_in(request.payload_bytes, 0, MAX_PAYLOAD_BYTES)?;
     let max_hops = usize_in(request.max_hops, MIN_HOPS, MAX_HOPS)?;
     let payload = vec![b' '; payload_bytes];
+    let requested_source = source_pair(request.source_address, request.source_interface)?;
 
     let host = target_input.clone();
     let target = tokio::task::spawn_blocking(move || resolve_target(&host))
@@ -253,11 +286,13 @@ pub(crate) async fn start_trace(
         .map_err(|_| ApiError::busy())??;
     enforce_destination(target, 0, state.config.port, state.config.allow_private)?;
     ensure_icmp_available(target)?;
+    let source = resolve_source(target, requested_source).await?;
 
     let shared = Arc::new(Mutex::new(SharedTrace {
         state: TraceState::Tracing,
         target,
         target_input,
+        source: source.clone(),
         resolve_names: request.resolve_names,
         hops: (0..max_hops).map(|_| HopRecord::empty()).collect(),
         limit: max_hops,
@@ -273,6 +308,7 @@ pub(crate) async fn start_trace(
         interval,
         payload,
         timeout,
+        source,
     };
     let trace_for_task = Arc::clone(&shared);
     let spawned = thread::Builder::new()
@@ -329,6 +365,21 @@ pub(crate) struct MtuSnapshot {
     pub(crate) payload_bytes: Option<u32>,
     pub(crate) at_ceiling: bool,
     pub(crate) minimum_mtu: Option<u32>,
+    pub(crate) source_address: Option<String>,
+    pub(crate) source_interface: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct InterfaceList {
+    pub(crate) interfaces: Vec<LocalInterface>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct LocalInterface {
+    pub(crate) name: String,
+    pub(crate) address: String,
 }
 
 /// Searches the path MTU with the same Don't Fragment ICMP echoes as a trace.
@@ -340,6 +391,7 @@ pub(crate) async fn find_path_mtu(
 ) -> Result<MtuSnapshot, ApiError> {
     let target_input = validate_target(&request.target)?;
     let timeout = bounded_duration(request.timeout_ms, MIN_TIMEOUT, MAX_TIMEOUT)?;
+    let requested_source = source_pair(request.source_address, request.source_interface)?;
     let host = target_input.clone();
     let port = state.config.port;
     let allow_private = state.config.allow_private;
@@ -347,8 +399,9 @@ pub(crate) async fn find_path_mtu(
         .await
         .map_err(|_| ApiError::busy())??;
     enforce_destination(target, 0, port, allow_private)?;
-    // A missing socket must not occupy a slot.
+    // A missing socket or a rejected source must not occupy a slot.
     ensure_icmp_available(target)?;
+    let source = resolve_source(target, requested_source).await?;
 
     // Declared first so a dropped handler cancels the probe before the slot is freed.
     let _permit = state.try_begin_mtu()?;
@@ -358,13 +411,17 @@ pub(crate) async fn find_path_mtu(
         armed: true,
     };
     let search_token = cancellation.clone();
-    let joined =
-        tokio::task::spawn_blocking(move || run_mtu_search(target, timeout, &search_token)).await;
+    let search_source = source.clone();
+    let joined = tokio::task::spawn_blocking(move || {
+        run_mtu_search(target, timeout, search_source, &search_token)
+    })
+    .await;
     cancel_on_drop.armed = false;
     let discovery = joined.map_err(|_| ApiError::busy())??;
     if cancellation.is_cancelled() {
         return Err(cancelled());
     }
+    let (source_address, source_interface) = echoed_source(source.as_ref());
     Ok(MtuSnapshot {
         target: target.to_string(),
         target_input,
@@ -373,6 +430,8 @@ pub(crate) async fn find_path_mtu(
         payload_bytes: discovery.payload_bytes,
         at_ceiling: discovery.at_ceiling,
         minimum_mtu: discovery.minimum_mtu,
+        source_address,
+        source_interface,
     })
 }
 
@@ -510,12 +569,18 @@ fn inconclusive() -> MtuDiscovery {
 fn run_mtu_search(
     target: IpAddr,
     timeout: Duration,
+    source: Option<ProbeSource>,
     cancellation: &CancellationToken,
 ) -> Result<MtuDiscovery, ApiError> {
     if cancellation.is_cancelled() {
         return Err(cancelled());
     }
-    let socket = ProbeSocket::open(target).map_err(|_| ApiError::icmp_unavailable())?;
+    let mut socket = ProbeSocket::open(target).map_err(|_| ApiError::icmp_unavailable())?;
+    if let Some(source) = &source {
+        socket
+            .bind_source(source)
+            .map_err(|_| ApiError::source_unavailable())?;
+    }
     socket
         .set_hop_limit(usize::from(PATH_MTU_HOP_LIMIT))
         .map_err(|_| ApiError::icmp_unavailable())?;
@@ -575,6 +640,127 @@ fn bounded_duration(millis: u64, min: Duration, max: Duration) -> Result<Duratio
     Ok(duration)
 }
 
+/// Both source fields absent or empty means the operating system chooses.
+/// Exactly one field, a broken name, or an over-long address is `invalid_request`.
+fn source_pair(
+    address: Option<String>,
+    interface: Option<String>,
+) -> Result<Option<(String, String)>, ApiError> {
+    let address = present_source_text(address);
+    let interface = present_source_text(interface);
+    match (address, interface) {
+        (None, None) => Ok(None),
+        (Some(address), Some(interface)) => {
+            let address_ok = address.chars().count() <= MAX_SOURCE_ADDRESS_CHARS
+                && !address.chars().any(|ch| ch.is_control());
+            let interface_ok = interface.chars().count() <= MAX_INTERFACE_CHARS
+                && !interface.chars().any(|ch| matches!(ch, '\0' | '\n' | '\r'));
+            if address_ok && interface_ok {
+                Ok(Some((address, interface)))
+            } else {
+                Err(ApiError::invalid_request())
+            }
+        }
+        _ => Err(ApiError::invalid_request()),
+    }
+}
+
+fn present_source_text(value: Option<String>) -> Option<String> {
+    value.filter(|text| !text.is_empty())
+}
+
+fn is_listed_unicast(address: IpAddr) -> bool {
+    match address {
+        IpAddr::V4(address) => {
+            !address.is_unspecified() && !address.is_multicast() && !address.is_broadcast()
+        }
+        IpAddr::V6(address) => !address.is_unspecified() && !address.is_multicast(),
+    }
+}
+
+fn normalize_listed(mut listed: Vec<ListedAddress>) -> Vec<ListedAddress> {
+    listed.sort_by(|left, right| {
+        left.name
+            .cmp(&right.name)
+            .then_with(|| left.address.cmp(&right.address))
+    });
+    listed.dedup_by(|left, right| left.name == right.name && left.address == right.address);
+    listed
+}
+
+fn echoed_source(source: Option<&ProbeSource>) -> (Option<String>, Option<String>) {
+    match source {
+        Some(source) => (
+            Some(source.address.to_string()),
+            Some(source.interface.clone()),
+        ),
+        None => (None, None),
+    }
+}
+
+/// Lists local unicast addresses. Failure here is `icmp_unavailable`.
+/// An automatic trace does not call this, so a list failure cannot block it.
+pub(crate) fn list_interfaces() -> Result<InterfaceList, ApiError> {
+    let listed = normalize_listed(local_addresses().map_err(|_| ApiError::icmp_unavailable())?);
+    Ok(InterfaceList {
+        interfaces: listed
+            .into_iter()
+            .map(|item| LocalInterface {
+                name: item.name,
+                address: item.address.to_string(),
+            })
+            .collect(),
+    })
+}
+
+/// Checks a requested source before a trace or MTU search takes a slot.
+/// The address must be assigned on `interface` right now, the family must
+/// match the resolved target, and a throwaway socket must accept the bind.
+async fn resolve_source(
+    target: IpAddr,
+    requested: Option<(String, String)>,
+) -> Result<Option<ProbeSource>, ApiError> {
+    let Some((address, interface)) = requested else {
+        return Ok(None);
+    };
+    let source = tokio::task::spawn_blocking(move || prepare_source(target, address, interface))
+        .await
+        .map_err(|_| ApiError::busy())??;
+    Ok(Some(source))
+}
+
+fn prepare_source(
+    target: IpAddr,
+    address: String,
+    interface: String,
+) -> Result<ProbeSource, ApiError> {
+    let requested: IpAddr = address.parse().map_err(|_| ApiError::invalid_request())?;
+    if requested.is_ipv4() != target.is_ipv4() {
+        return Err(ApiError::source_unavailable());
+    }
+    let listed = normalize_listed(local_addresses().map_err(|_| ApiError::icmp_unavailable())?);
+    let Some(found) = listed
+        .into_iter()
+        .find(|item| item.address == requested && item.name == interface)
+    else {
+        return Err(ApiError::source_unavailable());
+    };
+    let source = ProbeSource {
+        address: found.address,
+        interface: found.name,
+        scope_id: found.scope_id,
+    };
+    prove_source(target, &source)?;
+    Ok(source)
+}
+
+fn prove_source(target: IpAddr, source: &ProbeSource) -> Result<(), ApiError> {
+    let mut socket = ProbeSocket::open(target).map_err(|_| ApiError::icmp_unavailable())?;
+    socket
+        .bind_source(source)
+        .map_err(|_| ApiError::source_unavailable())
+}
+
 fn usize_in(value: u64, min: usize, max: usize) -> Result<usize, ApiError> {
     let value = usize::try_from(value).map_err(|_| ApiError::invalid_request())?;
     if value < min || value > max {
@@ -616,6 +802,7 @@ fn run_trace(
             interval: params.interval,
             payload: params.payload.clone(),
             timeout: params.timeout,
+            source: params.source.clone(),
         };
         let handle = thread::Builder::new()
             .name(format!("icmp-hop-{}", hop_index + 1))
@@ -656,9 +843,15 @@ fn hop_loop(
     hop_index: usize,
     params: TraceParams,
 ) {
-    let Ok(socket) = ProbeSocket::open(target) else {
+    let Ok(mut socket) = ProbeSocket::open(target) else {
         return;
     };
+    if let Some(source) = &params.source {
+        if socket.bind_source(source).is_err() {
+            cancellation.cancel();
+            return;
+        }
+    }
     if socket.set_hop_limit(hop_index + 1).is_err() {
         return;
     }
@@ -861,11 +1054,14 @@ fn jitter_ms(hop: &HopRecord) -> Option<f64> {
 
 fn snapshot_of(id: Uuid, trace: &SharedTrace) -> TraceSnapshot {
     let end = visible_hop_count(trace);
+    let (source_address, source_interface) = echoed_source(trace.source.as_ref());
     TraceSnapshot {
         id,
         state: trace.state.as_str(),
         target: trace.target.to_string(),
         target_input: trace.target_input.clone(),
+        source_address,
+        source_interface,
         hops: trace.hops[..end]
             .iter()
             .enumerate()
@@ -990,6 +1186,48 @@ mod platform {
             self.setsockopt(level, name, &value)
         }
 
+        /// Bind this datagram ICMP socket to a local unicast address.
+        /// The IPv6 scope id comes from the interface list, not from the browser.
+        pub(super) fn bind_source(&mut self, source: &ProbeSource) -> Result<(), ()> {
+            let rc = unsafe {
+                match (self.family, source.address) {
+                    (Family::V4, IpAddr::V4(address)) => {
+                        let local = libc::sockaddr_in {
+                            sin_family: libc::AF_INET as libc::sa_family_t,
+                            sin_port: 0,
+                            sin_addr: libc::in_addr {
+                                s_addr: u32::from(address).to_be(),
+                            },
+                            sin_zero: [0; 8],
+                        };
+                        libc::bind(
+                            self.fd,
+                            &local as *const _ as *const libc::sockaddr,
+                            std::mem::size_of::<libc::sockaddr_in>() as libc::socklen_t,
+                        )
+                    }
+                    (Family::V6, IpAddr::V6(address)) => {
+                        let local = libc::sockaddr_in6 {
+                            sin6_family: libc::AF_INET6 as libc::sa_family_t,
+                            sin6_port: 0,
+                            sin6_flowinfo: 0,
+                            sin6_addr: libc::in6_addr {
+                                s6_addr: address.octets(),
+                            },
+                            sin6_scope_id: source.scope_id,
+                        };
+                        libc::bind(
+                            self.fd,
+                            &local as *const _ as *const libc::sockaddr,
+                            std::mem::size_of::<libc::sockaddr_in6>() as libc::socklen_t,
+                        )
+                    }
+                    _ => return Err(()),
+                }
+            };
+            if rc == 0 { Ok(()) } else { Err(()) }
+        }
+
         fn enable_errors(&self) -> Result<(), ()> {
             let on: libc::c_int = 1;
             match self.family {
@@ -1022,6 +1260,68 @@ mod platform {
                 )
             };
             if rc == 0 { Ok(()) } else { Err(()) }
+        }
+    }
+
+    /// Up unicast addresses from `getifaddrs`, including loopback and link-local.
+    /// Multicast and the unspecified address are skipped. This is not a scan.
+    pub(super) fn local_addresses() -> Result<Vec<ListedAddress>, ()> {
+        let mut head: *mut libc::ifaddrs = std::ptr::null_mut();
+        if unsafe { libc::getifaddrs(&mut head) } != 0 {
+            return Err(());
+        }
+        let _guard = IfaddrList(head);
+        let mut found = Vec::new();
+        let mut cursor = head;
+        while !cursor.is_null() {
+            let interface = unsafe { &*cursor };
+            cursor = interface.ifa_next;
+            if interface.ifa_addr.is_null() || interface.ifa_name.is_null() {
+                continue;
+            }
+            if interface.ifa_flags & (libc::IFF_UP as libc::c_uint) == 0 {
+                continue;
+            }
+            let name = unsafe { std::ffi::CStr::from_ptr(interface.ifa_name) };
+            let name = name.to_string_lossy().into_owned();
+            if name.is_empty() {
+                continue;
+            }
+            let family = unsafe { (*interface.ifa_addr).sa_family };
+            let (address, scope_id) = if family == libc::AF_INET as libc::sa_family_t {
+                let socket = unsafe { &*(interface.ifa_addr as *const libc::sockaddr_in) };
+                (
+                    IpAddr::V4(Ipv4Addr::from(u32::from_be(socket.sin_addr.s_addr))),
+                    0,
+                )
+            } else if family == libc::AF_INET6 as libc::sa_family_t {
+                let socket = unsafe { &*(interface.ifa_addr as *const libc::sockaddr_in6) };
+                (
+                    IpAddr::V6(Ipv6Addr::from(socket.sin6_addr.s6_addr)),
+                    socket.sin6_scope_id,
+                )
+            } else {
+                continue;
+            };
+            if !is_listed_unicast(address) {
+                continue;
+            }
+            found.push(ListedAddress {
+                name,
+                address,
+                scope_id,
+            });
+        }
+        Ok(found)
+    }
+
+    struct IfaddrList(*mut libc::ifaddrs);
+
+    impl Drop for IfaddrList {
+        fn drop(&mut self) {
+            if !self.0.is_null() {
+                unsafe { libc::freeifaddrs(self.0) };
+            }
         }
     }
 
@@ -1464,25 +1764,31 @@ mod platform {
     use std::mem::size_of;
 
     use windows_sys::Win32::{
-        Foundation::{GetLastError, INVALID_HANDLE_VALUE},
-        NetworkManagement::IpHelper::{
-            ICMPV6_ECHO_REPLY_LH, IP_BAD_DESTINATION, IP_BAD_OPTION, IP_BAD_REQ, IP_BAD_ROUTE,
-            IP_BUF_TOO_SMALL, IP_DEST_HOST_UNREACHABLE, IP_DEST_NET_UNREACHABLE,
-            IP_DEST_PORT_UNREACHABLE, IP_DEST_PROT_UNREACHABLE, IP_FLAG_DF, IP_GENERAL_FAILURE,
-            IP_HW_ERROR, IP_NO_RESOURCES, IP_OPTION_INFORMATION, IP_OPTION_TOO_BIG,
-            IP_PACKET_TOO_BIG, IP_PARAM_PROBLEM, IP_REQ_TIMED_OUT, IP_SOURCE_QUENCH, IP_SUCCESS,
-            IP_TTL_EXPIRED_REASSEM, IP_TTL_EXPIRED_TRANSIT, Icmp6CreateFile, Icmp6SendEcho2,
-            IcmpCloseHandle, IcmpCreateFile, IcmpSendEcho,
+        Foundation::{ERROR_BUFFER_OVERFLOW, GetLastError, INVALID_HANDLE_VALUE},
+        NetworkManagement::{
+            IpHelper::{
+                GAA_FLAG_SKIP_ANYCAST, GAA_FLAG_SKIP_DNS_SERVER, GAA_FLAG_SKIP_MULTICAST,
+                GetAdaptersAddresses, ICMPV6_ECHO_REPLY_LH, IP_ADAPTER_ADDRESSES_LH,
+                IP_BAD_DESTINATION, IP_BAD_OPTION, IP_BAD_REQ, IP_BAD_ROUTE, IP_BUF_TOO_SMALL,
+                IP_DEST_HOST_UNREACHABLE, IP_DEST_NET_UNREACHABLE, IP_DEST_PORT_UNREACHABLE,
+                IP_DEST_PROT_UNREACHABLE, IP_FLAG_DF, IP_GENERAL_FAILURE, IP_HW_ERROR,
+                IP_NO_RESOURCES, IP_OPTION_INFORMATION, IP_OPTION_TOO_BIG, IP_PACKET_TOO_BIG,
+                IP_PARAM_PROBLEM, IP_REQ_TIMED_OUT, IP_SOURCE_QUENCH, IP_SUCCESS,
+                IP_TTL_EXPIRED_REASSEM, IP_TTL_EXPIRED_TRANSIT, Icmp6CreateFile, Icmp6SendEcho2,
+                IcmpCloseHandle, IcmpCreateFile, IcmpSendEcho, IcmpSendEcho2Ex,
+            },
+            Ndis::IfOperStatusUp,
         },
         Networking::WinSock::{
-            AF_INET, AF_INET6, GetNameInfoW, IN_ADDR, IN6_ADDR, NI_NAMEREQD, SOCKADDR, SOCKADDR_IN,
-            SOCKADDR_IN6,
+            AF_INET, AF_INET6, GetNameInfoW, IN_ADDR, IN6_ADDR, IpDadStateDeprecated,
+            IpDadStatePreferred, NI_NAMEREQD, SOCKADDR, SOCKADDR_IN, SOCKADDR_IN6,
         },
     };
 
     pub(super) struct ProbeSocket {
         handle: windows_sys::Win32::Foundation::HANDLE,
         family: Family,
+        source: Option<ProbeSource>,
     }
 
     #[derive(Clone, Copy)]
@@ -1506,11 +1812,30 @@ mod platform {
             if handle == INVALID_HANDLE_VALUE || handle.is_null() {
                 return Err(());
             }
-            Ok(Self { handle, family })
+            Ok(Self {
+                handle,
+                family,
+                source: None,
+            })
         }
 
         pub(super) fn set_hop_limit(&self, _hop_limit: usize) -> Result<(), ()> {
             // Windows takes the TTL on each echo call, not on the handle.
+            Ok(())
+        }
+
+        /// Remember a local source. IPv4 sends it through `IcmpSendEcho2Ex`.
+        /// IPv6 fills the existing source `SOCKADDR_IN6`, including the scope id.
+        /// An automatic probe keeps `IcmpSendEcho` and a zeroed IPv6 source.
+        pub(super) fn bind_source(&mut self, source: &ProbeSource) -> Result<(), ()> {
+            let family_matches = matches!(
+                (self.family, source.address),
+                (Family::V4, IpAddr::V4(_)) | (Family::V6, IpAddr::V6(_))
+            );
+            if !family_matches {
+                return Err(());
+            }
+            self.source = Some(source.clone());
             Ok(())
         }
     }
@@ -1567,17 +1892,44 @@ mod platform {
         };
         let mut reply = vec![0u64; 32 + payload.len().div_ceil(8)];
         let (request_ptr, request_len) = request_parts(payload);
+        let destination = u32::from(address).to_be();
+        let source_address = socket
+            .source
+            .as_ref()
+            .and_then(|source| match source.address {
+                IpAddr::V4(address) => Some(u32::from(address).to_be()),
+                IpAddr::V6(_) => None,
+            });
+        let reply_size = (reply.len() * size_of::<u64>()) as u32;
+        let timeout_ms = timeout.as_millis() as u32;
         let replies = unsafe {
-            IcmpSendEcho(
-                socket.handle,
-                u32::from(address).to_be(),
-                request_ptr,
-                request_len,
-                &options,
-                reply.as_mut_ptr() as *mut _,
-                (reply.len() * size_of::<u64>()) as u32,
-                timeout.as_millis() as u32,
-            )
+            if let Some(source_address) = source_address {
+                IcmpSendEcho2Ex(
+                    socket.handle,
+                    std::ptr::null_mut(),
+                    None,
+                    std::ptr::null(),
+                    source_address,
+                    destination,
+                    request_ptr,
+                    request_len,
+                    &options,
+                    reply.as_mut_ptr() as *mut _,
+                    reply_size,
+                    timeout_ms,
+                )
+            } else {
+                IcmpSendEcho(
+                    socket.handle,
+                    destination,
+                    request_ptr,
+                    request_len,
+                    &options,
+                    reply.as_mut_ptr() as *mut _,
+                    reply_size,
+                    timeout_ms,
+                )
+            }
         };
         if replies == 0 {
             return windows_error_outcome();
@@ -1620,6 +1972,16 @@ mod platform {
         };
         let mut source: SOCKADDR_IN6 = unsafe { std::mem::zeroed() };
         source.sin6_family = AF_INET6;
+        if let Some(chosen) = &socket.source {
+            if let IpAddr::V6(address) = chosen.address {
+                source.sin6_addr = IN6_ADDR {
+                    u: windows_sys::Win32::Networking::WinSock::IN6_ADDR_0 {
+                        Byte: address.octets(),
+                    },
+                };
+                source.Anonymous.sin6_scope_id = chosen.scope_id;
+            }
+        }
         let mut destination: SOCKADDR_IN6 = unsafe { std::mem::zeroed() };
         destination.sin6_family = AF_INET6;
         destination.sin6_addr = IN6_ADDR {
@@ -1712,6 +2074,135 @@ mod platform {
         }
     }
 
+    /// Up unicast addresses from `GetAdaptersAddresses`. Preferred and deprecated
+    /// DAD states stay. Tentative, duplicate, and invalid addresses are skipped.
+    /// Link-local IPv6 keeps the interface scope id. This is not an ARP table.
+    pub(super) fn local_addresses() -> Result<Vec<ListedAddress>, ()> {
+        let words = adapter_buffer()?;
+        let mut found = Vec::new();
+        let mut cursor = words.as_ptr() as *const IP_ADAPTER_ADDRESSES_LH;
+        while !cursor.is_null() {
+            let adapter = unsafe { &*cursor };
+            cursor = adapter.Next;
+            if adapter.OperStatus != IfOperStatusUp {
+                continue;
+            }
+            let mut name = wide_string(adapter.FriendlyName);
+            if name.is_empty() {
+                name = ansi_string(adapter.AdapterName);
+            }
+            if name.is_empty() {
+                continue;
+            }
+            let mut unicast = adapter.FirstUnicastAddress;
+            while !unicast.is_null() {
+                let entry = unsafe { &*unicast };
+                unicast = entry.Next;
+                let dad = entry.DadState;
+                if dad != IpDadStatePreferred && dad != IpDadStateDeprecated {
+                    continue;
+                }
+                let Some((address, scope_id)) =
+                    address_from_socket(entry.Address, adapter.Ipv6IfIndex)
+                else {
+                    continue;
+                };
+                if !is_listed_unicast(address) {
+                    continue;
+                }
+                found.push(ListedAddress {
+                    name: name.clone(),
+                    address,
+                    scope_id,
+                });
+            }
+        }
+        Ok(found)
+    }
+
+    fn adapter_buffer() -> Result<Vec<u64>, ()> {
+        let flags = GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_DNS_SERVER;
+        let mut size = 16 * 1024u32;
+        for _ in 0..3 {
+            let mut words = vec![0u64; (size as usize).div_ceil(8) + 1];
+            let rc = unsafe {
+                GetAdaptersAddresses(
+                    0,
+                    flags,
+                    std::ptr::null(),
+                    words.as_mut_ptr() as *mut IP_ADAPTER_ADDRESSES_LH,
+                    &mut size,
+                )
+            };
+            if rc == 0 {
+                return Ok(words);
+            }
+            if rc != ERROR_BUFFER_OVERFLOW {
+                return Err(());
+            }
+        }
+        Err(())
+    }
+
+    fn address_from_socket(
+        address: windows_sys::Win32::Networking::WinSock::SOCKET_ADDRESS,
+        ipv6_if_index: u32,
+    ) -> Option<(IpAddr, u32)> {
+        if address.lpSockaddr.is_null() {
+            return None;
+        }
+        let family = unsafe { (*address.lpSockaddr).sa_family };
+        if family == AF_INET
+            && address.iSockaddrLength as usize >= std::mem::size_of::<SOCKADDR_IN>()
+        {
+            let socket = unsafe { &*(address.lpSockaddr as *const SOCKADDR_IN) };
+            let bits = unsafe { socket.sin_addr.S_un.S_addr };
+            return Some((IpAddr::V4(Ipv4Addr::from(u32::from_be(bits))), 0));
+        }
+        if family == AF_INET6
+            && address.iSockaddrLength as usize >= std::mem::size_of::<SOCKADDR_IN6>()
+        {
+            let socket = unsafe { &*(address.lpSockaddr as *const SOCKADDR_IN6) };
+            let ip = Ipv6Addr::from(unsafe { socket.sin6_addr.u.Byte });
+            let mut scope = unsafe { socket.Anonymous.sin6_scope_id };
+            if scope == 0 && ip.is_unicast_link_local() {
+                scope = ipv6_if_index;
+            }
+            return Some((IpAddr::V6(ip), scope));
+        }
+        None
+    }
+
+    fn wide_string(value: *const u16) -> String {
+        if value.is_null() {
+            return String::new();
+        }
+        let mut len = 0usize;
+        unsafe {
+            while len < MAX_INTERFACE_CHARS && *value.add(len) != 0 {
+                len += 1;
+            }
+            String::from_utf16_lossy(std::slice::from_raw_parts(value, len))
+                .trim()
+                .to_owned()
+        }
+    }
+
+    fn ansi_string(value: *const u8) -> String {
+        if value.is_null() {
+            return String::new();
+        }
+        let name = unsafe { std::ffi::CStr::from_ptr(value as *const i8) };
+        let name = name.to_string_lossy();
+        let mut end = name.chars().take(MAX_INTERFACE_CHARS).count();
+        end = name
+            .char_indices()
+            .nth(end)
+            .map(|(index, _)| index)
+            .unwrap_or(name.len());
+        name[..end].trim().to_owned()
+    }
+
     pub(super) fn reverse_lookup(address: IpAddr) -> Option<String> {
         let mut node = [0u16; 256];
         let rc = unsafe {
@@ -1780,6 +2271,14 @@ mod platform {
         pub(super) fn set_hop_limit(&self, _hop_limit: usize) -> Result<(), ()> {
             Err(())
         }
+
+        pub(super) fn bind_source(&mut self, _source: &ProbeSource) -> Result<(), ()> {
+            Err(())
+        }
+    }
+
+    pub(super) fn local_addresses() -> Result<Vec<ListedAddress>, ()> {
+        Ok(Vec::new())
     }
 
     pub(super) fn ensure_icmp_available(_target: IpAddr) -> Result<(), ApiError> {
@@ -1807,7 +2306,7 @@ mod platform {
     }
 }
 
-use platform::{ProbeSocket, ensure_icmp_available, probe_once, reverse_lookup};
+use platform::{ProbeSocket, ensure_icmp_available, local_addresses, probe_once, reverse_lookup};
 
 #[cfg(test)]
 mod tests {
@@ -1818,6 +2317,7 @@ mod tests {
             state: TraceState::Tracing,
             target,
             target_input: target.to_string(),
+            source: None,
             resolve_names: true,
             hops: (0..hops).map(|_| HopRecord::empty()).collect(),
             limit: hops,
@@ -1830,6 +2330,46 @@ mod tests {
             from,
             rtt_ms,
         }
+    }
+
+    #[test]
+    fn source_pair_requires_both_fields_and_rejects_a_broken_name() {
+        assert!(source_pair(None, None).unwrap().is_none());
+        assert!(
+            source_pair(Some(String::new()), Some(String::new()))
+                .unwrap()
+                .is_none()
+        );
+        assert!(source_pair(Some("127.0.0.1".to_owned()), None).is_err());
+        assert!(source_pair(None, Some("lo".to_owned())).is_err());
+        assert!(source_pair(Some("127.0.0.1".to_owned()), Some("lo\n".to_owned())).is_err());
+        assert!(source_pair(Some("127.0.0.1".to_owned()), Some("lo\0".to_owned())).is_err());
+        assert!(
+            source_pair(
+                Some("127.0.0.1".to_owned()),
+                Some("x".repeat(MAX_INTERFACE_CHARS + 1))
+            )
+            .is_err()
+        );
+        let (address, interface) =
+            source_pair(Some("::1".to_owned()), Some("Ethernet 2".to_owned()))
+                .unwrap()
+                .unwrap();
+        assert_eq!(address, "::1");
+        assert_eq!(interface, "Ethernet 2");
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn local_interface_list_includes_loopback() {
+        let list = list_interfaces().expect("local addresses");
+        assert!(
+            list.interfaces
+                .iter()
+                .any(|item| item.address == "127.0.0.1")
+        );
+        assert!(list.interfaces.iter().any(|item| item.address == "::1"));
+        assert!(list.interfaces.iter().all(|item| !item.name.is_empty()));
     }
 
     #[test]

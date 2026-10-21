@@ -788,6 +788,8 @@ async fn icmp_trace_records_a_localhost_echo_and_blocks_metadata() {
     assert_eq!(started["state"], "tracing");
     assert_eq!(started["target"], "127.0.0.1");
     assert_eq!(started["targetInput"], "127.0.0.1");
+    assert!(started["sourceAddress"].is_null());
+    assert!(started["sourceInterface"].is_null());
 
     let mut received = 0;
     let mut address = String::new();
@@ -1094,5 +1096,180 @@ async fn icmp_path_mtu_accepts_loopback_and_rejects_metadata() {
         assert_eq!(body["payloadBytes"], payload, "{target}");
         assert_eq!(body["atCeiling"], true, "{target}");
         assert!(body["minimumMtu"].is_null(), "{target}");
+        assert!(body["sourceAddress"].is_null(), "{target}");
+        assert!(body["sourceInterface"].is_null(), "{target}");
     }
+}
+
+#[tokio::test]
+async fn icmp_source_lists_local_addresses_and_binds_loopback() {
+    let (state, app) = test_app(true, 48_732);
+    let http_only = pair_capabilities(&state, &app, json!(["http.request"])).await;
+    let http_token = http_only["token"].as_str().unwrap();
+    let denied = app
+        .clone()
+        .oneshot(request(
+            Method::GET,
+            "/v1/icmp/interfaces",
+            None,
+            Some(http_token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(denied.status(), StatusCode::FORBIDDEN);
+    assert_eq!(response_json(denied).await["error"]["code"], "forbidden");
+
+    let paired = pair_capabilities(&state, &app, json!(["icmp.trace"])).await;
+    let token = paired["token"].as_str().unwrap().to_owned();
+    let first = state.try_begin_mtu().expect("first slot");
+    let second = state.try_begin_mtu().expect("second slot");
+    let listed = app
+        .clone()
+        .oneshot(request(
+            Method::GET,
+            "/v1/icmp/interfaces",
+            None,
+            Some(&token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(listed.status(), StatusCode::OK);
+    drop(first);
+    drop(second);
+    let listed = response_json(listed).await;
+    let interfaces = listed["interfaces"].as_array().expect("interfaces");
+    let v4 = interfaces
+        .iter()
+        .find(|item| item["address"] == "127.0.0.1")
+        .expect("loopback v4");
+    let v4_name = v4["name"].as_str().unwrap().to_owned();
+    let v6_name = interfaces
+        .iter()
+        .find(|item| item["address"] == "::1")
+        .expect("loopback v6")["name"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+
+    let mut one_sided = trace_input(Uuid::new_v4(), "127.0.0.1");
+    one_sided["sourceAddress"] = json!("127.0.0.1");
+    let one_sided = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/trace",
+            Some(one_sided),
+            Some(&token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(one_sided.status(), StatusCode::BAD_REQUEST);
+    assert_eq!(
+        response_json(one_sided).await["error"]["code"],
+        "invalid_request"
+    );
+
+    let mut missing = trace_input(Uuid::new_v4(), "127.0.0.1");
+    missing["sourceAddress"] = json!("203.0.113.5");
+    missing["sourceInterface"] = json!("lo");
+    let missing = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/trace",
+            Some(missing),
+            Some(&token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(missing.status(), StatusCode::BAD_REQUEST);
+    assert_eq!(
+        response_json(missing).await["error"]["code"],
+        "source_unavailable"
+    );
+
+    let mut family = trace_input(Uuid::new_v4(), "127.0.0.1");
+    family["sourceAddress"] = json!("::1");
+    family["sourceInterface"] = json!(v6_name);
+    let family = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/trace",
+            Some(family),
+            Some(&token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(family.status(), StatusCode::BAD_REQUEST);
+    assert_eq!(
+        response_json(family).await["error"]["code"],
+        "source_unavailable"
+    );
+
+    let id = Uuid::new_v4();
+    let mut sourced = trace_input(id, "127.0.0.1");
+    sourced["sourceAddress"] = json!("127.0.0.1");
+    sourced["sourceInterface"] = json!(v4_name);
+    let started = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/trace",
+            Some(sourced),
+            Some(&token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(started.status(), StatusCode::OK);
+    let started = response_json(started).await;
+    assert_eq!(started["sourceAddress"], "127.0.0.1");
+    assert_eq!(started["sourceInterface"], v4_name);
+
+    let mut received = false;
+    for _ in 0..20 {
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        let snapshot = icmp_snapshot(&app, &token, id).await;
+        if snapshot["hops"][0]["received"].as_u64().unwrap_or(0) >= 1 {
+            received = true;
+            assert_eq!(snapshot["sourceAddress"], "127.0.0.1");
+            break;
+        }
+    }
+    assert!(received, "sourced loopback echo was not recorded");
+    let cancel = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/cancel",
+            Some(json!({ "id": id.to_string() })),
+            Some(&token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(cancel.status(), StatusCode::NO_CONTENT);
+
+    let mtu = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/icmp/mtu",
+            Some(json!({
+                "target": "127.0.0.1",
+                "timeoutMs": 1000,
+                "sourceAddress": "127.0.0.1",
+                "sourceInterface": v4_name,
+            })),
+            Some(&token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(mtu.status(), StatusCode::OK);
+    let mtu = response_json(mtu).await;
+    assert_eq!(mtu["status"], "found");
+    assert_eq!(mtu["mtu"], 1500);
+    assert_eq!(mtu["payloadBytes"], 1472);
+    assert_eq!(mtu["atCeiling"], true);
+    assert_eq!(mtu["sourceAddress"], "127.0.0.1");
+    assert_eq!(mtu["sourceInterface"], v4_name);
 }

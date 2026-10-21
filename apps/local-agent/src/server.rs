@@ -41,6 +41,10 @@ pub(crate) fn router(state: Arc<AgentState>) -> Router {
         .route("/v1/icmp/snapshot", post(icmp_snapshot).options(preflight))
         .route("/v1/icmp/cancel", post(icmp_cancel).options(preflight))
         .route("/v1/icmp/mtu", post(icmp_mtu).options(preflight))
+        .route(
+            "/v1/icmp/interfaces",
+            get(icmp_interfaces).options(preflight),
+        )
         .method_not_allowed_fallback(method_not_allowed)
         .fallback(not_found)
         .layer(middleware::from_fn_with_state(
@@ -175,6 +179,18 @@ async fn icmp_mtu(
     Ok((StatusCode::OK, Json(snapshot)))
 }
 
+/// Local unicast addresses for a probe source. Does not take an ICMP slot.
+async fn icmp_interfaces(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<impl IntoResponse, ApiError> {
+    let _session_key = authorize_icmp(&state, request.headers())?;
+    let interfaces = tokio::task::spawn_blocking(icmp::list_interfaces)
+        .await
+        .map_err(|_| ApiError::busy())??;
+    Ok((StatusCode::OK, Json(interfaces)))
+}
+
 async fn preflight() -> StatusCode {
     StatusCode::NO_CONTENT
 }
@@ -251,7 +267,7 @@ fn valid_preflight(request: &Request) -> bool {
         HeaderName::from_static("access-control-request-method"),
     );
     let expected_method = match request.uri().path() {
-        "/v1/info" => "GET",
+        "/v1/info" | "/v1/icmp/interfaces" => "GET",
         "/v1/pair" | "/v1/http/request" | "/v1/http/cancel" | "/v1/icmp/trace"
         | "/v1/icmp/snapshot" | "/v1/icmp/cancel" | "/v1/icmp/mtu" => "POST",
         "/v1/session" => "DELETE",

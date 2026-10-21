@@ -138,6 +138,12 @@ impl ApiError {
     pub(crate) const fn icmp_unavailable() -> Self {
         Self::new(StatusCode::SERVICE_UNAVAILABLE, "icmp_unavailable")
     }
+
+    /// The source is not a current local unicast address, the family does not
+    /// match the target, or the socket refused to bind it. Not a spoofed address.
+    pub(crate) const fn source_unavailable() -> Self {
+        Self::new(StatusCode::BAD_REQUEST, "source_unavailable")
+    }
 }
 
 impl IntoResponse for ApiError {

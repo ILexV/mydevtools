@@ -20,13 +20,14 @@ const clientKeys = [
   "TargetLabel", "ResolvedTarget", "InvalidTarget", "InvalidSettings", "ResolveNames",
   "StateIdle", "StateTracing", "StateStopping", "Copied", "CopyFailed",
   "FindMtu", "MtuSearching", "MtuFound", "MtuFoundCeiling", "MtuBelowMinimum", "MtuInconclusive",
+  "SourceLabel", "SourceHint", "Automatic", "RefreshSources", "SourceFrom", "SourcesUnavailable",
   "Hostname", "Nr", "Loss", "Sent", "Recv", "Best", "Avg", "Worst", "Last", "StDev", "Jitter", "Status",
   "NoResponse", "EmptyTable", "ReportTitle",
   "ErrorGeneric", "Error_agent_unavailable", "Error_invalid_response", "Error_invalid_request",
   "Error_unauthorized", "Error_forbidden", "Error_pairing_invalid", "Error_pairing_expired",
   "Error_pairing_rate_limited", "Error_unsupported_capability", "Error_private_network_denied",
   "Error_target_denied", "Error_timeout", "Error_cancelled", "Error_busy", "Error_network_error",
-  "Error_incompatible_protocol", "Error_name_not_found", "Error_icmp_unavailable", "Error_not_found",
+  "Error_incompatible_protocol", "Error_name_not_found", "Error_icmp_unavailable", "Error_source_unavailable", "Error_not_found",
   "Status_echo_reply", "Status_ttl_expired", "Status_ttl_expired_reassembly",
   "Status_dest_net_unreachable", "Status_dest_host_unreachable", "Status_dest_prot_unreachable",
   "Status_dest_port_unreachable", "Status_packet_too_big", "Status_timeout", "Status_bad_route",
@@ -98,6 +99,14 @@ const stringsJson = JSON.stringify(strings);
       <Field label={t(lang, ns, "TimeoutLabel")} for="path-trace-timeout" hint={t(lang, ns, "TimeoutHint")}>
         <input id="path-trace-timeout" class="ds-field mono" type="number" min="100" max="30000" step="1" value="5000" inputmode="numeric" data-trace-timeout />
       </Field>
+      <Field class="ds-settings-wide" label={t(lang, ns, "SourceLabel")} for="path-trace-source" hint={t(lang, ns, "SourceHint")}>
+        <div class="ds-input-group">
+          <select id="path-trace-source" class="ds-field-select" data-trace-source disabled>
+            <option value="">{t(lang, ns, "Automatic")}</option>
+          </select>
+          <button type="button" class="ds-btn" data-trace-sources disabled>{t(lang, ns, "RefreshSources")}</button>
+        </div>
+      </Field>
       <div class="ds-settings-checks">
         <label class="ds-check-row"><input class="ds-check" type="checkbox" checked data-trace-resolve /><span>{t(lang, ns, "ResolveNames")}</span></label>
       </div>
@@ -108,6 +117,7 @@ const stringsJson = JSON.stringify(strings);
       <button type="button" class="ds-btn" data-trace-stop disabled hidden><Icon name="close" size={16} />{t(lang, ns, "Stop")}</button>
       <span class="ds-hint path-trace-run-state" data-trace-run-state>{t(lang, ns, "StateIdle")}</span>
     </div>
+    <p class="ds-hint" data-trace-source-line hidden></p>
     <p class="ds-hint" data-trace-mtu-result hidden></p>
     <StatusMessage kind="error" data-trace-run-error />
   </section>

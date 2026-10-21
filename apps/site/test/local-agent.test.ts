@@ -346,6 +346,8 @@ test("trace snapshots are parsed and a forbidden trace keeps the saved token", a
     assert.equal(started.hops[0]?.lastMs, 1);
     assert.equal(started.hops[0]?.stdevMs, null);
     assert.equal(started.hops[0]?.jitterMs, null);
+    assert.equal(started.sourceAddress, null);
+    assert.equal(started.sourceInterface, null);
     await assert.rejects(client.traceSnapshot(snapshot.id), (error) => (
       error instanceof LocalAgentError && error.code === "forbidden"
     ));

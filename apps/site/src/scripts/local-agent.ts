@@ -97,6 +97,9 @@ export interface TraceSnapshot {
   state: "tracing" | "stopping" | "idle";
   target: string;
   targetInput: string;
+  /** Bound local source. Null when the operating system chose, or the agent is older. */
+  sourceAddress: string | null;
+  sourceInterface: string | null;
   hops: TraceHopSnapshot[];
 }
 
@@ -108,6 +111,15 @@ export interface TraceStartRequest {
   maxHops: number;
   timeoutMs: number;
   resolveNames: boolean;
+  /** Both fields together select a listed local address. Omit both for automatic. */
+  sourceAddress?: string;
+  sourceInterface?: string;
+}
+
+/** One address from `GET /v1/icmp/interfaces`. Scope ids stay on the agent. */
+export interface LocalInterface {
+  name: string;
+  address: string;
 }
 
 /** One-shot path MTU search. `found` carries `mtu`; a loss stays `inconclusive`. */
@@ -119,11 +131,17 @@ export interface PathMtuSnapshot {
   payloadBytes: number | null;
   atCeiling: boolean;
   minimumMtu: number | null;
+  /** Bound local source. Null when the operating system chose, or the agent is older. */
+  sourceAddress: string | null;
+  sourceInterface: string | null;
 }
 
 export interface PathMtuRequest {
   target: string;
   timeoutMs: number;
+  /** Both fields together select a listed local address. Omit both for automatic. */
+  sourceAddress?: string;
+  sourceInterface?: string;
 }
 
 export type LocalAgentStorageState = "unknown" | "available" | "unavailable";
@@ -389,6 +407,17 @@ export class LocalAgentClient {
     });
   }
 
+  /**
+   * Local unicast addresses on this computer. Does not take an ICMP slot.
+   * The list is not a scan and not an ARP table.
+   */
+  async listInterfaces(signal?: AbortSignal): Promise<LocalInterface[]> {
+    return asInterfaceList(await this.#authorized<unknown>("/v1/icmp/interfaces", {
+      method: "GET",
+      signal,
+    }));
+  }
+
   /** Path MTU on `icmp.trace`. Same Don't Fragment echoes; the agent picks the size. */
   async findPathMtu(request: PathMtuRequest, signal?: AbortSignal): Promise<PathMtuSnapshot> {
     return asPathMtu(await this.#authorized<unknown>("/v1/icmp/mtu", {
@@ -536,7 +565,25 @@ function asPathMtu(value: unknown): PathMtuSnapshot {
     payloadBytes: asNullableCount(value.payloadBytes),
     atCeiling: value.atCeiling,
     minimumMtu: asNullableCount(value.minimumMtu),
+    sourceAddress: asNullableString(value.sourceAddress),
+    sourceInterface: asNullableString(value.sourceInterface),
   };
+}
+
+/** Keeps named unicast rows. An older agent that omits the list is rejected. */
+function asInterfaceList(value: unknown): LocalInterface[] {
+  if (!isObject(value) || !Array.isArray(value.interfaces)) {
+    throw new LocalAgentError("invalid_response");
+  }
+  const interfaces: LocalInterface[] = [];
+  for (const item of value.interfaces) {
+    if (!isObject(item) || typeof item.name !== "string" || typeof item.address !== "string") {
+      throw new LocalAgentError("invalid_response");
+    }
+    if (!item.name || !item.address) continue;
+    interfaces.push({ name: item.name, address: item.address });
+  }
+  return interfaces;
 }
 
 /** Rejects a snapshot the hop table cannot render. Optional hop fields become nulls. */
@@ -570,6 +617,8 @@ function asTraceSnapshot(value: unknown): TraceSnapshot {
     state: value.state,
     target: typeof value.target === "string" ? value.target : "",
     targetInput: typeof value.targetInput === "string" ? value.targetInput : "",
+    sourceAddress: asNullableString(value.sourceAddress),
+    sourceInterface: asNullableString(value.sourceInterface),
     hops,
   };
 }

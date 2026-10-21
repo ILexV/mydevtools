@@ -108,6 +108,9 @@ function init(): void {
   const payloadInput = root.querySelector<HTMLInputElement>("[data-trace-payload]");
   const hopsInput = root.querySelector<HTMLInputElement>("[data-trace-hops]");
   const timeoutInput = root.querySelector<HTMLInputElement>("[data-trace-timeout]");
+  const sourceSelect = root.querySelector<HTMLSelectElement>("[data-trace-source]");
+  const sourceRefresh = root.querySelector<HTMLButtonElement>("[data-trace-sources]");
+  const sourceLine = root.querySelector<HTMLElement>("[data-trace-source-line]");
   const resolveInput = root.querySelector<HTMLInputElement>("[data-trace-resolve]");
   const start = root.querySelector<HTMLButtonElement>("[data-trace-start]");
   const mtuButton = root.querySelector<HTMLButtonElement>("[data-trace-mtu]");
@@ -123,7 +126,8 @@ function init(): void {
   if (!code || !connect || !disconnect || !connectionState || !agentMeta || !agentVersion
     || !capabilitiesLabel || !lanPolicy || !connectionStatus || !capabilityWarning
     || !connectionError || !storageWarning || !targetInput || !targetList || !intervalInput
-    || !payloadInput || !hopsInput || !timeoutInput || !resolveInput || !start || !mtuButton
+    || !payloadInput || !hopsInput || !timeoutInput || !sourceSelect || !sourceRefresh || !sourceLine
+    || !resolveInput || !start || !mtuButton
     || !mtuResult || !stop || !runState || !runError || !resolvedLine || !body || !detail) return;
 
   const client = new LocalAgentClient();
@@ -139,6 +143,9 @@ function init(): void {
   let operation: ToolOperation | null = null;
   let operationSettled = false;
   let probeCommitted = false;
+  let sources: { name: string; address: string }[] = [];
+  let sourceGeneration = 0;
+  let sourceLoad: AbortController | null = null;
 
   const labels = (): PathTraceReportLabels => ({
     title: strings.ReportTitle,
@@ -250,6 +257,7 @@ function init(): void {
       body.append(row);
       detail.hidden = true;
       setReportEnabled(next.id !== "");
+      showSourceLine(next.sourceAddress, next.sourceInterface);
       return;
     }
     const reportLabels = labels();
@@ -276,6 +284,7 @@ function init(): void {
     }
     renderDetail(next.hops.find((hop) => hop.hop === selectedHop));
     setReportEnabled(true);
+    showSourceLine(next.sourceAddress, next.sourceInterface);
     const stateLabel = next.state === "tracing"
       ? strings.StateTracing
       : next.state === "stopping"
@@ -348,6 +357,9 @@ function init(): void {
     payloadInput.disabled = tracing;
     hopsInput.disabled = tracing;
     resolveInput.disabled = tracing;
+    const canPickSource = canStart;
+    sourceSelect.disabled = !canPickSource;
+    sourceRefresh.disabled = !canPickSource;
     connect.disabled = !canUpgrade;
     code.disabled = !canUpgrade;
     disconnect.disabled = !client.connected;
@@ -369,6 +381,74 @@ function init(): void {
     if (connected && !client.persisted) storageWarning.textContent = strings.ConnectionNotSaved;
     showCapabilityWarning();
     setTracing(tracing);
+    if (connected && hasTraceCapability()) void loadSources();
+    else {
+      sourceGeneration += 1;
+      sourceLoad?.abort();
+      sources = [];
+      renderSourceOptions();
+      if (!connected) hideMessage(sourceLine);
+    }
+  };
+
+  const selectedSource = (): { sourceAddress: string; sourceInterface: string } | null => {
+    if (sourceSelect.value === "") return null;
+    const index = Number(sourceSelect.value);
+    const item = sources[index];
+    if (!Number.isInteger(index) || !item) return null;
+    return { sourceAddress: item.address, sourceInterface: item.name };
+  };
+
+  const renderSourceOptions = (): void => {
+    const savedAddress = settings.sourceAddress;
+    const savedInterface = settings.sourceInterface;
+    sourceSelect.replaceChildren();
+    const automatic = document.createElement("option");
+    automatic.value = "";
+    automatic.textContent = strings.Automatic;
+    sourceSelect.append(automatic);
+    let matched = "";
+    sources.forEach((item, index) => {
+      const option = document.createElement("option");
+      option.value = String(index);
+      option.textContent = `${item.name} \u2014 ${item.address}`;
+      sourceSelect.append(option);
+      if (item.address === savedAddress && item.name === savedInterface) matched = String(index);
+    });
+    sourceSelect.value = matched;
+  };
+
+  /** Echoed agent source wins. Otherwise the selected pair. Automatic stays blank. */
+  const showSourceLine = (address: string | null, interfaceName: string | null): void => {
+    const chosen = selectedSource();
+    const shownAddress = address || chosen?.sourceAddress || "";
+    const shownInterface = interfaceName || chosen?.sourceInterface || "";
+    if (!shownAddress || !shownInterface) {
+      hideMessage(sourceLine);
+      return;
+    }
+    showMessage(sourceLine, fill(strings.SourceFrom, { interface: shownInterface, address: shownAddress }));
+  };
+
+  const loadSources = async (): Promise<void> => {
+    const generation = ++sourceGeneration;
+    sourceLoad?.abort();
+    const controller = new AbortController();
+    sourceLoad = controller;
+    try {
+      const next = await client.listInterfaces(controller.signal);
+      if (generation !== sourceGeneration) return;
+      sources = next;
+      renderSourceOptions();
+      if (runError.textContent === strings.SourcesUnavailable) hideMessage(runError);
+      if (!tracing && !searching) {
+        showSourceLine(snapshot?.sourceAddress ?? null, snapshot?.sourceInterface ?? null);
+      }
+    } catch (error) {
+      if (generation !== sourceGeneration) return;
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      showMessage(runError, strings.SourcesUnavailable);
+    }
   };
 
   const poll = (gen: number, id: string): void => {
@@ -491,6 +571,7 @@ function init(): void {
       setTracing(true);
       runState.textContent = strings.StateTracing;
       try {
+        const chosen = selectedSource();
         const started = await client.startTrace({
           id,
           target,
@@ -499,6 +580,7 @@ function init(): void {
           maxHops: probe.maxHops,
           timeoutMs: probe.timeoutMs,
           resolveNames: probe.resolveNames,
+          ...(chosen ?? {}),
         });
         if (activeId !== id) {
           void client.cancelTrace(id).catch(() => undefined);
@@ -577,8 +659,14 @@ function init(): void {
       }
       showMessage(mtuResult, strings.MtuSearching);
       try {
-        const result = await client.findPathMtu({ target, timeoutMs }, mtuAbort.signal);
+        const chosen = selectedSource();
+        const result = await client.findPathMtu({
+          target,
+          timeoutMs,
+          ...(chosen ?? {}),
+        }, mtuAbort.signal);
         showMessage(mtuResult, mtuSentence(result));
+        showSourceLine(result.sourceAddress, result.sourceInterface);
         settings = { ...settings, targets: rememberTarget(settings.targets, target) };
         persistSettings();
         fillHistory();
@@ -657,8 +745,23 @@ function init(): void {
     input.addEventListener("change", onSettingsChanged);
   }
   resolveInput.addEventListener("change", onSettingsChanged);
+  sourceSelect.addEventListener("change", () => {
+    const chosen = selectedSource();
+    settings = {
+      ...settings,
+      sourceAddress: chosen?.sourceAddress ?? "",
+      sourceInterface: chosen?.sourceInterface ?? "",
+    };
+    persistSettings();
+    if (!tracing && !searching) showSourceLine(null, null);
+  });
+  sourceRefresh.addEventListener("click", () => {
+    if (!client.connected || !hasTraceCapability() || tracing || searching) return;
+    void loadSources();
+  });
 
   window.addEventListener("pagehide", () => {
+    sourceLoad?.abort();
     mtuAbort?.abort();
     if (!activeId) return;
     void client.cancelTrace(activeId).catch(() => undefined);
@@ -670,6 +773,8 @@ function init(): void {
     state: "idle",
     target: "",
     targetInput: "",
+    sourceAddress: null,
+    sourceInterface: null,
     hops: [],
   });
   setReportEnabled(false);

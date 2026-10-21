@@ -51,7 +51,7 @@ Private dashboard authentication is separate from visitor analytics: Cloudflare 
 
 ## Tool coverage matrix
 
-All **48 tools** support started/completed/failed for the useful-use action listed below. The seven live tools retain their existing automatic UX: no artificial Run button and no request per keystroke. Explicit cancellation is counted where the tool already has a Cancel/Stop action. Success means actual output/status is committed; failed means launched processing failed, not a rejected preflight.
+All **49 tools** support started/completed/failed for the useful-use action listed below. The seven live tools retain their existing automatic UX: no artificial Run button and no request per keystroke. Explicit cancellation is counted where the tool already has a Cancel/Stop action. Success means actual output/status is committed; failed means launched processing failed, not a rejected preflight.
 
 | Tool ID | Useful-use action | S/C/F | Success / processing failure | Preflight and exclusions |
 | --- | --- | --- | --- | --- |
@@ -93,6 +93,7 @@ All **48 tools** support started/completed/failed for the useful-use action list
 | `tcp-connect` | Check | yes | Result rendered, including refused, timeout, and unreachable / agent error | Invalid host or port, invalid timeout, not connected, and missing `tcp.connect` are preflight; AbortError, pagehide, and explicit Stop are cancel; copy and the timeout setting are excluded |
 | `tls-inspect` | Check | yes | Result rendered, including an untrusted chain, handshake_failed, refused, timeout, and unreachable / agent error | Invalid host or port, invalid timeout, not connected, and missing `tls.inspect` are preflight; AbortError, pagehide, and explicit Stop are cancel; copy and the timeout setting are excluded |
 | `whois-lookup` | Check | yes | Result rendered, including empty text, truncated text, refused, timeout, and unreachable / agent error | Invalid query or server, invalid timeout, not connected, and missing `whois.lookup` are preflight; AbortError, pagehide, and explicit Stop are cancel; copy and the timeout setting are excluded |
+| `asn-lookup` | Check | yes | Result rendered, including found, reserved, and not_found / agent error | Invalid query, not connected, and missing `asn.lookup` are preflight; AbortError, pagehide, and explicit Stop are cancel; copy is excluded |
 | `color-converter` | Convert / Enter | yes | Formats/shades/swatch committed / render exception | `parseColor` succeeds before start; live picker/typing/contrast settings excluded |
 | `markdown-preview` | Settled trusted text/formatting-toolbar edit | yes | Final sanitized preview committed / rendering error | Empty/init/example and superseded/deferred duplicate work excluded |
 | `image-compressor` | Compress | yes | Compressed image/comparison committed / read/WASM/decode/output error | Selected image and idle state required; selection/quality/format excluded; explicit Cancel is separate; stale work excluded |

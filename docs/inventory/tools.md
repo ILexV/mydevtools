@@ -108,7 +108,7 @@
 
 ## Astro catalog additions (2026-10-08)
 
-The Stage 1 table above records the legacy 39-tool baseline. The current Astro registry has **48 tools: 24 Rust/WASM-backed and 24 browser-only or npm-WASM-backed**, in the same 13 categories. `json-explorer`, `csv-explorer`, `parquet-explorer`, `local-data-playground`, `data-format-converter` and `log-analyzer` belong to `structured-data`. `hex-viewer` belongs to `encoding`. All seven run locally and have UI/error/SEO strings in all 10 locales.
+The Stage 1 table above records the legacy 39-tool baseline. The current Astro registry has **49 tools: 24 Rust/WASM-backed and 25 browser-only or npm-WASM-backed**, in the same 13 categories. `json-explorer`, `csv-explorer`, `parquet-explorer`, `local-data-playground`, `data-format-converter` and `log-analyzer` belong to `structured-data`. `hex-viewer` belongs to `encoding`. All seven run locally and have UI/error/SEO strings in all 10 locales.
 
 | Slug | Input and execution | View and export | Explicit boundaries |
 |---|---|---|---|
@@ -223,6 +223,18 @@ and is not opened. The reply is kept up to 64 KiB. The page stores the timeout
 in `mdt.whois-lookup.v1`. The query, the server, and the reply stay on the page.
 The same path runs on every OS. It was checked on Linux and was not run on
 Windows. The published Windows download is still the HTTP-only build.
+
+`asn-lookup` matches one address or one CIDR against a prefix snapshot stored
+on this computer. `POST /asn/lookup` requires `asn.lookup` and does not take
+an ICMP slot, a DNS slot, a TCP slot, a TLS slot, or a WHOIS slot. The agent
+runs at most two lookups at once. The snapshot was taken from iptoasn.com on
+2026-10-21 and is derived from RouteViews. The country column is not stored,
+and ASN 0 rows are omitted. The lookup does not call a network API. A reserved
+address and an unknown public prefix are results. More-specific prefixes inside
+a short query are not listed, and the answer is not a path-trace column. There
+is no settings key. The address and the result stay on the page. The same path
+runs on every OS. It was checked on Linux and was not run on Windows. The
+published Windows download is still the HTTP-only build.
 
 The browser persists the origin-bound bearer and its server-issued expiry in
 versioned localStorage so navigation, reload and browser reopen do not require

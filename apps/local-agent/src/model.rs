@@ -22,13 +22,18 @@ pub(crate) const TLS_CAPABILITY: &str = "tls.inspect";
 /// One WHOIS query on TCP port 43. Pairing for TLS does not include this
 /// capability, and the reply is not followed to another server.
 pub(crate) const WHOIS_CAPABILITY: &str = "whois.lookup";
-pub(crate) const AGENT_CAPABILITIES: [&str; 6] = [
+/// One ASN lookup in the prefix snapshot shipped with the agent. Pairing for
+/// WHOIS does not include this capability. The lookup does not call a geo-IP
+/// API and is not part of path trace.
+pub(crate) const ASN_CAPABILITY: &str = "asn.lookup";
+pub(crate) const AGENT_CAPABILITIES: [&str; 7] = [
     HTTP_CAPABILITY,
     ICMP_CAPABILITY,
     DNS_CAPABILITY,
     TCP_CAPABILITY,
     TLS_CAPABILITY,
     WHOIS_CAPABILITY,
+    ASN_CAPABILITY,
 ];
 pub(crate) const MAX_INCOMING_JSON_BYTES: usize = 2 * 1024 * 1024;
 pub(crate) const MAX_REQUEST_BODY_BYTES: usize = 1024 * 1024;
@@ -64,7 +69,7 @@ pub(crate) struct PairRequest {
 #[serde(rename_all = "camelCase")]
 pub(crate) struct PairResponse {
     pub(crate) token: String,
-    /// Granted subset, stable order: `http.request`, `icmp.trace`, `dns.lookup`, `tcp.connect`, `tls.inspect`, `whois.lookup`.
+    /// Granted subset, stable order: `http.request`, `icmp.trace`, `dns.lookup`, `tcp.connect`, `tls.inspect`, `whois.lookup`, `asn.lookup`.
     pub(crate) capabilities: Vec<&'static str>,
     pub(crate) expires_at: String,
 }
@@ -193,6 +198,11 @@ impl ApiError {
     /// The WHOIS exchange failed before a reply or a TCP outcome.
     pub(crate) const fn whois_unavailable() -> Self {
         Self::new(StatusCode::SERVICE_UNAVAILABLE, "whois_unavailable")
+    }
+
+    /// The embedded ASN prefix table could not be read.
+    pub(crate) const fn asn_unavailable() -> Self {
+        Self::new(StatusCode::SERVICE_UNAVAILABLE, "asn_unavailable")
     }
 }
 

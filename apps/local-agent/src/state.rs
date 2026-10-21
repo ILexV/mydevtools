@@ -15,11 +15,12 @@ use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
 use crate::{
+    asn::MAX_CONCURRENT_LOOKUPS as MAX_CONCURRENT_ASN_LOOKUPS,
     dns::MAX_CONCURRENT_LOOKUPS,
     icmp::{SharedTrace, TraceState},
     model::{
-        ApiError, DNS_CAPABILITY, HTTP_CAPABILITY, ICMP_CAPABILITY, PairRequest, PairResponse,
-        TCP_CAPABILITY, TLS_CAPABILITY, WHOIS_CAPABILITY,
+        ASN_CAPABILITY, ApiError, DNS_CAPABILITY, HTTP_CAPABILITY, ICMP_CAPABILITY, PairRequest,
+        PairResponse, TCP_CAPABILITY, TLS_CAPABILITY, WHOIS_CAPABILITY,
     },
     tcp::MAX_CONCURRENT_CONNECTS,
     tls::MAX_CONCURRENT_INSPECTIONS,
@@ -60,6 +61,8 @@ pub(crate) struct AgentState {
     /// TLS handshakes in flight. One host and one port each. Separate from TCP.
     tls_concurrency: Arc<Semaphore>,
     whois_concurrency: Arc<Semaphore>,
+    /// ASN lookups in flight. One address each, from the local prefix table.
+    asn_concurrency: Arc<Semaphore>,
     /// Path MTU searches in flight. Counted with non-idle traces toward the cap of two.
     mtu_inflight: Mutex<usize>,
 }
@@ -79,6 +82,7 @@ struct Session {
     tcp_connect_allowed: bool,
     tls_inspect_allowed: bool,
     whois_lookup_allowed: bool,
+    asn_lookup_allowed: bool,
     active: HashMap<Uuid, CancellationToken>,
     cancellation_tombstones: HashMap<Uuid, Instant>,
     traces: HashMap<Uuid, Arc<Mutex<SharedTrace>>>,
@@ -107,6 +111,7 @@ impl AgentState {
             tcp_concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_CONNECTS)),
             tls_concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_INSPECTIONS)),
             whois_concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_QUERIES)),
+            asn_concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_ASN_LOOKUPS)),
             mtu_inflight: Mutex::new(0),
         })
     }
@@ -202,6 +207,9 @@ impl AgentState {
                 whois_lookup_allowed: granted
                     .iter()
                     .any(|capability| *capability == WHOIS_CAPABILITY),
+                asn_lookup_allowed: granted
+                    .iter()
+                    .any(|capability| *capability == ASN_CAPABILITY),
                 active: HashMap::new(),
                 cancellation_tombstones: HashMap::new(),
                 traces: HashMap::new(),
@@ -320,6 +328,24 @@ impl AgentState {
             .map_err(|_| ApiError::busy())
     }
 
+    pub(crate) fn authorize_asn(
+        &self,
+        authorization: Option<&str>,
+        origin: &str,
+    ) -> Result<SessionKey, ApiError> {
+        let auth = self.authorize(authorization, origin)?;
+        if !auth.asn_lookup_allowed {
+            return Err(ApiError::forbidden());
+        }
+        Ok(auth.key)
+    }
+
+    pub(crate) fn try_acquire_asn_slot(&self) -> Result<OwnedSemaphorePermit, ApiError> {
+        Arc::clone(&self.asn_concurrency)
+            .try_acquire_owned()
+            .map_err(|_| ApiError::busy())
+    }
+
     fn authorize(
         &self,
         authorization: Option<&str>,
@@ -349,6 +375,7 @@ impl AgentState {
             tcp_connect_allowed: session.tcp_connect_allowed,
             tls_inspect_allowed: session.tls_inspect_allowed,
             whois_lookup_allowed: session.whois_lookup_allowed,
+            asn_lookup_allowed: session.asn_lookup_allowed,
         })
     }
 
@@ -572,6 +599,7 @@ struct SessionAuth {
     tcp_connect_allowed: bool,
     tls_inspect_allowed: bool,
     whois_lookup_allowed: bool,
+    asn_lookup_allowed: bool,
 }
 
 impl Drop for ActiveRequestGuard {
@@ -614,6 +642,7 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
     let mut tcp = false;
     let mut tls = false;
     let mut whois = false;
+    let mut asn = false;
     for capability in requested {
         match capability.as_str() {
             HTTP_CAPABILITY if !http => http = true,
@@ -622,10 +651,11 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
             TCP_CAPABILITY if !tcp => tcp = true,
             TLS_CAPABILITY if !tls => tls = true,
             WHOIS_CAPABILITY if !whois => whois = true,
+            ASN_CAPABILITY if !asn => asn = true,
             _ => return Err(ApiError::unsupported_capability()),
         }
     }
-    let mut granted = Vec::with_capacity(6);
+    let mut granted = Vec::with_capacity(7);
     if http {
         granted.push(HTTP_CAPABILITY);
     }
@@ -643,6 +673,9 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
     }
     if whois {
         granted.push(WHOIS_CAPABILITY);
+    }
+    if asn {
+        granted.push(ASN_CAPABILITY);
     }
     Ok(granted)
 }

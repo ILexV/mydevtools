@@ -4,7 +4,7 @@ const SESSION_STORAGE_KEY = "mdt.local-agent.session.v1";
 const SESSION_STORAGE_VERSION = 1;
 
 
-export type LocalAgentCapability = "http.request" | "icmp.trace" | "dns.lookup" | "tcp.connect" | "tls.inspect" | "whois.lookup";
+export type LocalAgentCapability = "http.request" | "icmp.trace" | "dns.lookup" | "tcp.connect" | "tls.inspect" | "whois.lookup" | "asn.lookup";
 
 const CAPABILITY_ORDER: readonly LocalAgentCapability[] = [
   "http.request",
@@ -13,6 +13,7 @@ const CAPABILITY_ORDER: readonly LocalAgentCapability[] = [
   "tcp.connect",
   "tls.inspect",
   "whois.lookup",
+  "asn.lookup",
 ];
 
 /**
@@ -204,6 +205,21 @@ export interface WhoisLookupRequest {
   query: string;
   server: string;
   timeoutMs: number;
+}
+
+/** One longest-prefix answer from the agent's local prefix table. */
+export interface AsnLookupResult {
+  query: string;
+  address: string;
+  prefix: string | null;
+  asn: number | null;
+  name: string;
+  status: "found" | "reserved" | "not_found";
+  covers: boolean;
+}
+
+export interface AsnLookupRequest {
+  query: string;
 }
 
 /** One address from `GET /v1/icmp/interfaces`. Scope ids stay on the agent. */
@@ -560,6 +576,19 @@ export class LocalAgentClient {
     }));
   }
 
+  /**
+   * One address or one CIDR in the local prefix table. Requires `asn.lookup`.
+   * The agent does not call a geo-IP API and does not resolve a hostname.
+   */
+  async lookupAsn(request: AsnLookupRequest, signal?: AbortSignal): Promise<AsnLookupResult> {
+    return asAsnLookup(await this.#authorized<unknown>("/v1/asn/lookup", {
+      method: "POST",
+      signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    }));
+  }
+
   /** Path MTU on `icmp.trace`. Same Don't Fragment echoes; the agent picks the size. */
   async findPathMtu(request: PathMtuRequest, signal?: AbortSignal): Promise<PathMtuSnapshot> {
     return asPathMtu(await this.#authorized<unknown>("/v1/icmp/mtu", {
@@ -793,6 +822,46 @@ function asWhoisLookup(value: unknown): WhoisLookupResult {
     elapsedMs: value.elapsedMs,
     truncated: value.truncated,
     text: value.text,
+  };
+}
+
+const ASN_STATUSES = new Set(["found", "reserved", "not_found"]);
+
+/** Rejects an ASN body the page cannot render. A miss has no prefix and no ASN. */
+function asAsnLookup(value: unknown): AsnLookupResult {
+  if (!isObject(value) || typeof value.query !== "string" || value.query.length === 0 || value.query.length > 128) {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (typeof value.address !== "string" || value.address.length === 0 || value.address.length > 128) {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (typeof value.status !== "string" || !ASN_STATUSES.has(value.status)) {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (typeof value.name !== "string" || value.name.length > 96 || typeof value.covers !== "boolean") {
+    throw new LocalAgentError("invalid_response");
+  }
+  const prefix = value.prefix === null ? null : typeof value.prefix === "string" && value.prefix.length > 0 && value.prefix.length <= 128
+    ? value.prefix
+    : undefined;
+  if (prefix === undefined) throw new LocalAgentError("invalid_response");
+  const asn = value.asn === null ? null : typeof value.asn === "number" && Number.isInteger(value.asn) && value.asn >= 1 && value.asn <= 0xffffffff
+    ? value.asn
+    : undefined;
+  if (asn === undefined) throw new LocalAgentError("invalid_response");
+  if (value.status === "found") {
+    if (prefix === null || asn === null) throw new LocalAgentError("invalid_response");
+  } else if (prefix !== null || asn !== null || value.name !== "" || value.covers) {
+    throw new LocalAgentError("invalid_response");
+  }
+  return {
+    query: value.query,
+    address: value.address,
+    prefix,
+    asn,
+    name: value.name,
+    status: value.status as AsnLookupResult["status"],
+    covers: value.covers,
   };
 }
 

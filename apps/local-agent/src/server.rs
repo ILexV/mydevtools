@@ -18,7 +18,7 @@ use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
 use crate::{
-    dns, http_client, icmp,
+    asn, dns, http_client, icmp,
     model::{
         AGENT_CAPABILITIES, ApiError, CancelRequest, HttpRequestInput, InfoResponse,
         LimitsResponse, MAX_INCOMING_JSON_BYTES, MAX_REQUEST_BODY_BYTES, MAX_RESPONSE_BODY_BYTES,
@@ -50,6 +50,7 @@ pub(crate) fn router(state: Arc<AgentState>) -> Router {
         .route("/v1/tcp/connect", post(tcp_connect).options(preflight))
         .route("/v1/tls/inspect", post(tls_inspect).options(preflight))
         .route("/v1/whois/lookup", post(whois_lookup).options(preflight))
+        .route("/v1/asn/lookup", post(asn_lookup).options(preflight))
         .method_not_allowed_fallback(method_not_allowed)
         .fallback(not_found)
         .layer(middleware::from_fn_with_state(
@@ -262,6 +263,20 @@ async fn whois_lookup(
     Ok((StatusCode::OK, Json(response)))
 }
 
+/// One address in the local prefix table. `asn.lookup` only. No network call.
+async fn asn_lookup(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<impl IntoResponse, ApiError> {
+    let _session_key = authorize_asn(&state, request.headers())?;
+    let input: asn::AsnLookupRequest = parse_json(request).await?;
+    let prepared = asn::prepare(&input.query)?;
+    let permit = state.try_acquire_asn_slot()?;
+    let response = asn::lookup(prepared)?;
+    drop(permit);
+    Ok((StatusCode::OK, Json(response)))
+}
+
 async fn preflight() -> StatusCode {
     StatusCode::NO_CONTENT
 }
@@ -341,7 +356,7 @@ fn valid_preflight(request: &Request) -> bool {
         "/v1/info" | "/v1/icmp/interfaces" => "GET",
         "/v1/pair" | "/v1/http/request" | "/v1/http/cancel" | "/v1/icmp/trace"
         | "/v1/icmp/snapshot" | "/v1/icmp/cancel" | "/v1/icmp/mtu" | "/v1/dns/lookup"
-        | "/v1/tcp/connect" | "/v1/tls/inspect" | "/v1/whois/lookup" => "POST",
+        | "/v1/tcp/connect" | "/v1/tls/inspect" | "/v1/whois/lookup" | "/v1/asn/lookup" => "POST",
         "/v1/session" => "DELETE",
         _ => return false,
     };
@@ -392,6 +407,12 @@ fn authorize_whois(state: &AgentState, headers: &HeaderMap) -> Result<[u8; 32], 
     let origin = required_header(headers, ORIGIN)?;
     let authorization = optional_single_header(headers, AUTHORIZATION)?;
     state.authorize_whois(authorization, &origin)
+}
+
+fn authorize_asn(state: &AgentState, headers: &HeaderMap) -> Result<[u8; 32], ApiError> {
+    let origin = required_header(headers, ORIGIN)?;
+    let authorization = optional_single_header(headers, AUTHORIZATION)?;
+    state.authorize_asn(authorization, &origin)
 }
 
 fn authorize_tls(state: &AgentState, headers: &HeaderMap) -> Result<[u8; 32], ApiError> {

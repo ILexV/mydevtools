@@ -635,7 +635,8 @@ async fn icmp_capability_is_separate_from_http_and_rejects_bad_targets() {
             "dns.lookup",
             "tcp.connect",
             "tls.inspect",
-            "whois.lookup"
+            "whois.lookup",
+            "asn.lookup"
         ])
     );
 
@@ -647,6 +648,7 @@ async fn icmp_capability_is_separate_from_http_and_rejects_bad_targets() {
         json!(["tcp.connect", "tcp.connect"]),
         json!(["tls.inspect", "tls.inspect"]),
         json!(["whois.lookup", "whois.lookup"]),
+        json!(["asn.lookup", "asn.lookup"]),
     ] {
         let response = app
             .clone()
@@ -1810,6 +1812,7 @@ async fn whois_lookup_is_one_query_on_port_43_and_a_separate_capability() {
         json!(["dns.lookup"]),
         json!(["tcp.connect"]),
         json!(["tls.inspect"]),
+        json!(["asn.lookup"]),
     ] {
         let paired = pair_capabilities(&state, &app, capabilities).await;
         let denied = app
@@ -1843,6 +1846,7 @@ async fn whois_lookup_is_one_query_on_port_43_and_a_separate_capability() {
             "/v1/tls/inspect",
             json!({"host": "127.0.0.1", "port": 443, "timeoutMs": 3000}),
         ),
+        ("/v1/asn/lookup", json!({"query": "1.1.1.1"})),
     ] {
         let denied = app
             .clone()
@@ -1968,4 +1972,125 @@ async fn whois_lookup_is_one_query_on_port_43_and_a_separate_capability() {
     assert_eq!(closed_port.status, "refused");
     assert!(closed_port.text.is_empty());
     assert!(!closed_port.truncated);
+}
+
+#[tokio::test]
+async fn asn_lookup_uses_the_local_prefix_table_and_a_separate_capability() {
+    let (state, app) = test_app(false, 48_732);
+
+    for capabilities in [
+        json!(["http.request"]),
+        json!(["icmp.trace"]),
+        json!(["dns.lookup"]),
+        json!(["tcp.connect"]),
+        json!(["tls.inspect"]),
+        json!(["whois.lookup"]),
+    ] {
+        let paired = pair_capabilities(&state, &app, capabilities).await;
+        let denied = app
+            .clone()
+            .oneshot(request(
+                Method::POST,
+                "/v1/asn/lookup",
+                Some(json!({"query": "1.1.1.1"})),
+                Some(paired["token"].as_str().unwrap()),
+            ))
+            .await
+            .unwrap();
+        assert_eq!(denied.status(), StatusCode::FORBIDDEN);
+    }
+
+    let asn_only = pair_capabilities(&state, &app, json!(["asn.lookup"])).await;
+    assert_eq!(asn_only["capabilities"], json!(["asn.lookup"]));
+    let token = asn_only["token"].as_str().unwrap();
+    for (path, body) in [
+        ("/v1/http/request", json!({})),
+        ("/v1/icmp/trace", trace_input(Uuid::new_v4(), "127.0.0.1")),
+        (
+            "/v1/dns/lookup",
+            json!({"name": "example.com", "type": "A"}),
+        ),
+        (
+            "/v1/tcp/connect",
+            json!({"host": "127.0.0.1", "port": 9, "timeoutMs": 3000}),
+        ),
+        (
+            "/v1/tls/inspect",
+            json!({"host": "127.0.0.1", "port": 443, "timeoutMs": 3000}),
+        ),
+        (
+            "/v1/whois/lookup",
+            json!({"query": "example.com", "server": "whois.iana.org", "timeoutMs": 3000}),
+        ),
+    ] {
+        let denied = app
+            .clone()
+            .oneshot(request(Method::POST, path, Some(body), Some(token)))
+            .await
+            .unwrap();
+        assert_eq!(denied.status(), StatusCode::FORBIDDEN);
+    }
+
+    for body in [
+        json!({"query": "example.com"}),
+        json!({"query": "http://1.1.1.1"}),
+        json!({"query": "1.1.1.1-1.1.1.2"}),
+        json!({"query": ""}),
+        json!({"query": "1.1.1.1", "port": 43}),
+        json!({"query": "1.1.1.1", "server": "example.com"}),
+        json!({"query": "1.1.1.1", "timeoutMs": 1000}),
+    ] {
+        let rejected = app
+            .clone()
+            .oneshot(request(
+                Method::POST,
+                "/v1/asn/lookup",
+                Some(body),
+                Some(token),
+            ))
+            .await
+            .unwrap();
+        assert_eq!(rejected.status(), StatusCode::BAD_REQUEST);
+        assert_eq!(
+            response_json(rejected).await["error"]["code"],
+            "invalid_request"
+        );
+    }
+
+    let found = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/asn/lookup",
+            Some(json!({"query": "1.1.1.1"})),
+            Some(token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(found.status(), StatusCode::OK);
+    let found = response_json(found).await;
+    assert_eq!(found["status"], "found");
+    assert_eq!(found["asn"], 13335);
+    assert_eq!(found["name"], "CLOUDFLARENET");
+    assert_eq!(found["prefix"], "1.1.1.0/24");
+    assert_eq!(found["covers"], true);
+    assert_eq!(found["address"], "1.1.1.1");
+
+    let reserved = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/asn/lookup",
+            Some(json!({"query": "127.0.0.1"})),
+            Some(token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(reserved.status(), StatusCode::OK);
+    let reserved = response_json(reserved).await;
+    assert_eq!(reserved["status"], "reserved");
+    assert_eq!(reserved["asn"], serde_json::Value::Null);
+    assert_eq!(reserved["prefix"], serde_json::Value::Null);
+    assert_eq!(reserved["name"], "");
+    assert_eq!(reserved["covers"], false);
 }

@@ -4,7 +4,8 @@ const SESSION_STORAGE_KEY = "mdt.local-agent.session.v1";
 const SESSION_STORAGE_VERSION = 1;
 
 
-export type LocalAgentCapability = "http.request" | "icmp.trace" | "dns.lookup" | "tcp.connect" | "tls.inspect" | "whois.lookup" | "asn.lookup";
+export type LocalAgentCapability = "http.request" | "icmp.trace" | "dns.lookup" | "tcp.connect" | "tls.inspect" | "whois.lookup" | "asn.lookup"
+  | "vault.data" | "vault.secrets";
 
 const CAPABILITY_ORDER: readonly LocalAgentCapability[] = [
   "http.request",
@@ -14,6 +15,8 @@ const CAPABILITY_ORDER: readonly LocalAgentCapability[] = [
   "tls.inspect",
   "whois.lookup",
   "asn.lookup",
+  "vault.data",
+  "vault.secrets",
 ];
 
 /**
@@ -35,6 +38,8 @@ export interface LocalAgentInfo {
   version: string;
   capabilities: LocalAgentCapability[];
   privateNetworkAllowed: boolean;
+  /** Missing on agents without the encrypted vault. */
+  vaultAvailable?: boolean;
   limits: {
     maxRequestBodyBytes: number;
     maxResponseBodyBytes: number;
@@ -248,6 +253,43 @@ export interface PathMtuRequest {
 }
 
 export type LocalAgentStorageState = "unknown" | "available" | "unavailable";
+
+/** One encrypted document in the agent vault. `revision` guards concurrent saves. */
+export interface VaultDocument {
+  name: string;
+  revision: number;
+  updatedAt: string;
+  data: unknown;
+}
+
+export interface VaultDocumentInfo {
+  name: string;
+  revision: number;
+  updatedAt: string;
+}
+
+/** A secret as a page sees it: the value never leaves the agent. */
+export interface VaultSecretInfo {
+  name: string;
+  hosts: string[];
+  updatedAt: string;
+}
+
+function asVaultDocumentInfo(value: unknown): VaultDocumentInfo {
+  if (!isObject(value) || typeof value.name !== "string" || typeof value.revision !== "number"
+    || !Number.isSafeInteger(value.revision) || value.revision < 1 || typeof value.updatedAt !== "string") {
+    throw new LocalAgentError("invalid_response");
+  }
+  return { name: value.name, revision: value.revision, updatedAt: value.updatedAt };
+}
+
+function asVaultSecretInfo(value: unknown): VaultSecretInfo {
+  if (!isObject(value) || typeof value.name !== "string" || typeof value.updatedAt !== "string"
+    || !Array.isArray(value.hosts) || !value.hosts.every((host) => typeof host === "string")) {
+    throw new LocalAgentError("invalid_response");
+  }
+  return { name: value.name, hosts: value.hosts as string[], updatedAt: value.updatedAt };
+}
 
 
 export class LocalAgentError extends Error {
@@ -594,6 +636,89 @@ export class LocalAgentClient {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(request),
     }));
+  }
+
+  /** Names and revisions of this origin's vault documents. Requires `vault.data`. */
+  async listDocuments(signal?: AbortSignal): Promise<VaultDocumentInfo[]> {
+    const value = await this.#authorized<unknown>("/v1/vault/documents", { method: "GET", signal });
+    if (!isObject(value) || !Array.isArray(value.documents)) throw new LocalAgentError("invalid_response");
+    return value.documents.map(asVaultDocumentInfo);
+  }
+
+  /** One document, or null when the vault has none under this name. */
+  async readDocument(name: string, signal?: AbortSignal): Promise<VaultDocument | null> {
+    let value: unknown;
+    try {
+      value = await this.#authorized<unknown>("/v1/vault/document/read", {
+        method: "POST",
+        signal,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+    } catch (error) {
+      if (error instanceof LocalAgentError && error.code === "not_found") return null;
+      throw error;
+    }
+    const info = asVaultDocumentInfo(value);
+    return { ...info, data: (value as Record<string, unknown>).data };
+  }
+
+  /**
+   * Saves over `baseRevision` (0 creates) and returns the new revision. A stale
+   * base fails with `revision_conflict`. `keepalive` lets a small save outlive pagehide.
+   */
+  async writeDocument(
+    name: string,
+    baseRevision: number,
+    data: unknown,
+    options: { signal?: AbortSignal; keepalive?: boolean } = {},
+  ): Promise<number> {
+    const value = await this.#authorized<unknown>("/v1/vault/document/write", {
+      method: "POST",
+      signal: options.signal,
+      keepalive: options.keepalive,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, baseRevision, data }),
+    });
+    if (!isObject(value) || typeof value.revision !== "number" || !Number.isSafeInteger(value.revision)) {
+      throw new LocalAgentError("invalid_response");
+    }
+    return value.revision;
+  }
+
+  async deleteDocument(name: string, baseRevision: number): Promise<void> {
+    await this.#authorized<void>("/v1/vault/document/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, baseRevision }),
+    });
+  }
+
+  /** Secret names and hosts without values. Requires `vault.secrets`. */
+  async listSecrets(signal?: AbortSignal): Promise<VaultSecretInfo[]> {
+    const value = await this.#authorized<unknown>("/v1/vault/secrets", { method: "GET", signal });
+    if (!isObject(value) || !Array.isArray(value.secrets)) throw new LocalAgentError("invalid_response");
+    return value.secrets.map(asVaultSecretInfo);
+  }
+
+  /**
+   * Stores a write-only secret for `{{secret:name}}`. Omit `value` to change
+   * only the hosts the agent may send it to.
+   */
+  async writeSecret(name: string, hosts: readonly string[], value?: string): Promise<void> {
+    await this.#authorized<void>("/v1/vault/secret/write", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(value === undefined ? { name, hosts } : { name, value, hosts }),
+    });
+  }
+
+  async deleteSecret(name: string): Promise<void> {
+    await this.#authorized<void>("/v1/vault/secret/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
   }
 
   clear(): void {

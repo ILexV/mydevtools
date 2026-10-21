@@ -1,4 +1,10 @@
 const STORAGE_KEY = "mdt.http-workspace.v1";
+/** Where the workspace lives. Only the setting is kept here, never request data. */
+const LOCATION_KEY = "mdt.http-workspace.location.v1";
+
+export const HTTP_WORKSPACE_STORAGE_KEY = STORAGE_KEY;
+export const HTTP_WORKSPACE_LOCATION_KEY = LOCATION_KEY;
+export type HttpWorkspaceLocation = "browser" | "agent";
 
 export interface HttpSavedRow {
   name: string;
@@ -85,24 +91,107 @@ function isWorkspace(value: unknown): value is HttpWorkspace {
   return ids.has(value.selectedId);
 }
 
+/** Validates a workspace from any store; the deployed flat shape is upgraded in memory. */
+export function parseHttpWorkspace(input: unknown): HttpWorkspace | null {
+  let value = input;
+  if (typeof value === "object" && value !== null && "v" in value && value.v === 1
+    && !("folders" in value) && !("selectedFolderId" in value) && !("sidebarWidth" in value)
+    && "requests" in value && Array.isArray(value.requests)) {
+    value = { ...value, folders: [], selectedFolderId: null, sidebarWidth: 240,
+      requests: value.requests.map((request: unknown) => typeof request === "object" && request !== null
+        ? { ...request, folderId: null } : request) };
+  }
+  return isWorkspace(value) ? value : null;
+}
+
+export function isHttpWorkspace(value: unknown): value is HttpWorkspace {
+  return isWorkspace(value);
+}
+
 /** Invalid or inaccessible data is reported, never silently replaced on load. */
 export function loadHttpWorkspace(): { workspace: HttpWorkspace | null; error: boolean } {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw === null) return { workspace: null, error: false };
-    let value: unknown = JSON.parse(raw);
-    // Upgrade the deployed flat workspace in memory; loading never writes storage.
-    if (typeof value === "object" && value !== null && "v" in value && value.v === 1
-      && !("folders" in value) && !("selectedFolderId" in value) && !("sidebarWidth" in value)
-      && "requests" in value && Array.isArray(value.requests)) {
-      value = { ...value, folders: [], selectedFolderId: null, sidebarWidth: 240,
-        requests: value.requests.map((request: unknown) => typeof request === "object" && request !== null
-          ? { ...request, folderId: null } : request) };
-    }
-    return isWorkspace(value) ? { workspace: value, error: false } : { workspace: null, error: true };
+    // Loading never writes storage, including the in-memory upgrade.
+    const workspace = parseHttpWorkspace(JSON.parse(raw));
+    return workspace ? { workspace, error: false } : { workspace: null, error: true };
   } catch {
     return { workspace: null, error: true };
   }
+}
+
+/** Removes the browser copy once the agent has confirmed its own. */
+export function removeHttpWorkspace(): boolean {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function readHttpWorkspaceLocation(): HttpWorkspaceLocation {
+  try {
+    return localStorage.getItem(LOCATION_KEY) === "agent" ? "agent" : "browser";
+  } catch {
+    return "browser";
+  }
+}
+
+export function writeHttpWorkspaceLocation(location: HttpWorkspaceLocation): void {
+  try {
+    if (location === "agent") localStorage.setItem(LOCATION_KEY, "agent");
+    else localStorage.removeItem(LOCATION_KEY);
+  } catch {
+    // The setting only picks the store; the agent copy stays authoritative.
+  }
+}
+
+/** True when both hold the same requests and folders; view state is ignored. */
+export function sameHttpWorkspaceContent(left: HttpWorkspace, right: HttpWorkspace): boolean {
+  return JSON.stringify([left.requests, left.folders]) === JSON.stringify([right.requests, right.folders]);
+}
+
+/**
+ * Moving to the agent when it already holds a workspace: the browser tree is
+ * appended under a new root folder with fresh ids, so nothing on either side is lost.
+ */
+export function appendHttpWorkspace(
+  target: HttpWorkspace, source: HttpWorkspace, folderName: string, newId: () => string,
+): HttpWorkspace {
+  const result: HttpWorkspace = structuredClone(target);
+  const folderIds = new Map<string, string>(source.folders.map((folder) => [folder.id, newId()]));
+  const importRoot = newId();
+  result.folders.push({ id: importRoot, name: folderName, parentId: null, expanded: true });
+  for (const folder of source.folders) {
+    result.folders.push({ ...structuredClone(folder), id: folderIds.get(folder.id)!,
+      parentId: folder.parentId === null ? importRoot : folderIds.get(folder.parentId)! });
+  }
+  for (const request of source.requests) {
+    result.requests.push({ ...structuredClone(request), id: newId(),
+      folderId: request.folderId === null ? importRoot : folderIds.get(request.folderId)! });
+  }
+  return result;
+}
+
+/**
+ * A save lost a revision race with another window: take the other window's
+ * workspace and keep only this window's open request on top of it.
+ */
+export function mergeHttpWorkspaceConflict(
+  remote: HttpWorkspace, local: HttpWorkspace, openRequestId: string,
+): HttpWorkspace {
+  const result: HttpWorkspace = structuredClone(remote);
+  const open = local.requests.find((request) => request.id === openRequestId);
+  if (!open) return result;
+  const copy = structuredClone(open);
+  if (copy.folderId !== null && !result.folders.some((folder) => folder.id === copy.folderId)) copy.folderId = null;
+  const index = result.requests.findIndex((request) => request.id === openRequestId);
+  if (index >= 0) result.requests[index] = copy;
+  else result.requests.push(copy);
+  result.selectedId = openRequestId;
+  return result;
 }
 
 /** A single atomic write retains the previous workspace if quota is exhausted. */

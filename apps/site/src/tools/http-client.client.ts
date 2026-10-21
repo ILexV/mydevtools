@@ -14,16 +14,26 @@ import {
 } from "@/scripts/local-agent";
 import { bindAgentPopover, onAgentSessionSaved } from "@/scripts/agent-popover";
 import {
+  HTTP_WORKSPACE_LOCATION_KEY,
+  HTTP_WORKSPACE_STORAGE_KEY,
+  appendHttpWorkspace,
   canMoveHttpWorkspaceItem,
+  isHttpWorkspace,
   loadHttpWorkspace,
+  mergeHttpWorkspaceConflict,
   moveHttpWorkspaceItem,
+  readHttpWorkspaceLocation,
+  removeHttpWorkspace,
+  sameHttpWorkspaceContent,
   saveHttpWorkspace,
+  writeHttpWorkspaceLocation,
   type HttpSavedRequest,
   type HttpSavedFolder,
   type HttpSavedRow,
   type HttpWorkspace,
   type HttpWorkspaceItemKind,
 } from "@/tools/http-workspace";
+import { AgentWorkspaceStore } from "@/tools/http-workspace-agent";
 
 interface Strings {
   Lang: string;
@@ -72,6 +82,14 @@ interface Strings {
   WorkspacePrivacy: string;
   WorkspaceSaveError: string;
   WorkspaceLoadError: string;
+  WorkspacePrivacyAgent: string;
+  WorkspaceAgentLocked: string;
+  WorkspaceAgentRepair: string;
+  WorkspaceAgentLoadError: string;
+  WorkspaceAgentSaveError: string;
+  WorkspaceAgentMoved: string;
+  WorkspaceMerged: string;
+  WorkspaceImportedFolder: string;
   AgentConnectedShort: string;
   AgentDisconnectedShort: string;
   AgentSettings: string;
@@ -181,6 +199,8 @@ function init(): void {
   const sidebarResizer = root.querySelector<HTMLElement>("[data-http-sidebar-resizer]");
   const workspaceLoadError = root.querySelector<HTMLElement>("[data-http-workspace-load-error]");
   const workspaceSaveError = root.querySelector<HTMLElement>("[data-http-workspace-save-error]");
+  const workspaceStatus = root.querySelector<HTMLElement>("[data-http-workspace-status]")!;
+  const workspacePrivacy = root.querySelector<HTMLElement>("[data-http-workspace-privacy]")!;
   const method = root.querySelector<HTMLSelectElement>("[data-http-method]");
   const requestUrl = root.querySelector<HTMLInputElement>("[data-http-url]");
   const rowTemplate = root.querySelector<HTMLTemplateElement>("[data-http-row-template]");
@@ -241,6 +261,11 @@ function init(): void {
   let mountedBodyLanguage: EditorLanguage | null = null;
   const s = strings;
   const loadedWorkspace = loadHttpWorkspace();
+  /** `agent` once the workspace moved to the agent vault; the browser then keeps no copy. */
+  let storage = readHttpWorkspaceLocation();
+  let agentStore: AgentWorkspaceStore | null = null;
+  let attaching = false;
+  const workspaceChannel = typeof BroadcastChannel === "function" ? new BroadcastChannel("mdt.http-workspace") : null;
   let workspace: HttpWorkspace = loadedWorkspace.workspace ?? {
     v: 1,
     selectedId: "",
@@ -639,6 +664,18 @@ function init(): void {
     saveTimer = 0;
     if (!workspaceDirty) return true;
     captureCurrentRequest();
+    if (storage === "agent") {
+      // Not attached yet: edits stay in memory and are merged when the agent opens.
+      if (!agentStore) return true;
+      if (!isHttpWorkspace(workspace)) {
+        showMessage(workspaceUi.saveError, workspaceUi.strings.WorkspaceAgentSaveError);
+        return false;
+      }
+      agentStore.queue(workspace);
+      workspaceDirty = false;
+      void flushAgentWorkspace();
+      return true;
+    }
     if (!saveHttpWorkspace(workspace)) {
       showMessage(workspaceUi.saveError, workspaceUi.strings.WorkspaceSaveError);
       return false;
@@ -1668,15 +1705,10 @@ function init(): void {
   workspaceUi.newFolder.addEventListener("click", () => {
     createFolderAt(parentForTarget(targetExists(treeSelection) ? treeSelection : { kind: "root" }));
   });
-  window.addEventListener("pagehide", saveWorkspaceNow);
-  window.addEventListener("storage", (event) => {
-    if (event.key !== "mdt.http-workspace.v1" || workspaceDirty || active) return;
-    const incoming = loadHttpWorkspace();
-    if (incoming.error) {
-      showMessage(workspaceLoadError, strings.WorkspaceLoadError);
-      return;
-    }
-    workspace = incoming.workspace ?? {
+  /** Shows another copy of the workspace; `keepSelection` keeps this window's open request. */
+  function replaceWorkspace(next: HttpWorkspace | null, keepSelection = false): void {
+    const keepId = keepSelection ? currentRequest.id : null;
+    workspace = next ?? {
       v: 1,
       selectedId: "",
       requests: [],
@@ -1689,19 +1721,156 @@ function init(): void {
       workspace.selectedId = initial.id;
       workspace.requests.push(initial);
     }
+    if (keepId && workspace.requests.some((request) => request.id === keepId)) workspace.selectedId = keepId;
     closeTreeMenu(false);
     if (workspaceUi.moveDialog.open) workspaceUi.moveDialog.close();
     finishDragging();
     currentRequest = workspace.requests.find((request) => request.id === workspace.selectedId)!;
     treeSelection = { kind: "request", id: currentRequest.id };
     applySidebarWidth(workspace.sidebarWidth);
-    hideMessage(workspaceLoadError);
+    hideMessage(workspaceUi.loadError);
     applyRequest(currentRequest);
+  }
+
+  function syncStorageNotes(): void {
+    workspacePrivacy.textContent = storage === "agent" && agentStore
+      ? s.WorkspacePrivacyAgent : s.WorkspacePrivacy;
+  }
+
+  async function flushAgentWorkspace(keepalive = false): Promise<void> {
+    const store = agentStore;
+    if (!store) return;
+    const outcome = await store.flush({ keepalive });
+    if (store !== agentStore) return;
+    if (outcome.kind === "saved") {
+      hideMessage(workspaceUi.saveError);
+      workspaceChannel?.postMessage({ revision: outcome.revision });
+    } else if (outcome.kind === "conflict") {
+      captureCurrentRequest();
+      const merged = mergeHttpWorkspaceConflict(outcome.remote, workspace, currentRequest.id);
+      replaceWorkspace(merged);
+      showMessage(workspaceStatus, s.WorkspaceMerged);
+      workspaceDirty = true;
+      saveWorkspaceNow();
+    } else if (outcome.kind === "error") {
+      showMessage(workspaceUi.saveError, `${s.WorkspaceAgentSaveError} ${errorText(outcome.error)}`);
+    }
+  }
+
+  /** Re-reads the agent copy after another window saved, unless this one has unsaved edits. */
+  async function reloadAgentWorkspace(knownRevision?: number): Promise<void> {
+    const store = agentStore;
+    if (!store || workspaceDirty || store.hasPending || active) return;
+    if (knownRevision !== undefined && knownRevision <= store.revision) return;
+    try {
+      const before = store.revision;
+      const loaded = await store.load();
+      if (store !== agentStore || workspaceDirty || store.hasPending || active || loaded.revision === before) return;
+      replaceWorkspace(loaded.workspace, true);
+      if (workspaceDirty) saveWorkspaceNow();
+    } catch (error) {
+      showMessage(workspaceUi.loadError, `${s.WorkspaceAgentLoadError} ${errorText(error)}`);
+    }
+  }
+
+  /**
+   * Opens the agent's encrypted copy once a session has `vault.data`. A browser
+   * copy (or edits made while waiting) is moved in, appended under its own folder
+   * when the agent already has requests, and removed only after the agent confirms.
+   */
+  async function attachAgentStorage(): Promise<void> {
+    if (agentStore) {
+      if (agentStore.hasPending) await flushAgentWorkspace();
+      else await reloadAgentWorkspace();
+      return;
+    }
+    if (!client.capabilities.includes("vault.data")) {
+      if (client.info?.capabilities.includes("vault.data")) showMessage(workspaceStatus, s.WorkspaceAgentRepair);
+      return;
+    }
+    if (attaching) return;
+    attaching = true;
+    const store = new AgentWorkspaceStore(client);
+    try {
+      const remote = await store.load();
+      captureCurrentRequest();
+      const browserCopy = storage === "browser" ? loadHttpWorkspace().workspace : null;
+      const local = browserCopy ?? (workspaceDirty ? workspace : null);
+      let next = remote.workspace;
+      if (local && (!next || !sameHttpWorkspaceContent(next, local))) {
+        next = next ? appendHttpWorkspace(next, local, s.WorkspaceImportedFolder, requestId) : local;
+        store.queue(next);
+        const outcome = await store.flush();
+        if (outcome.kind === "conflict") {
+          // Another window moved first: retry on top of what it saved.
+          next = appendHttpWorkspace(outcome.remote, local, s.WorkspaceImportedFolder, requestId);
+          store.queue(next);
+          const retry = await store.flush();
+          if (retry.kind !== "saved") throw retry.kind === "error" ? retry.error : new LocalAgentError("revision_conflict");
+        } else if (outcome.kind !== "saved") {
+          throw outcome.kind === "error" ? outcome.error : new LocalAgentError("vault_unavailable");
+        }
+        showMessage(workspaceStatus, s.WorkspaceAgentMoved);
+      } else if (!next) {
+        next = workspace;
+      }
+      // Unreadable browser data is left alone, as in browser mode.
+      if (browserCopy) removeHttpWorkspace();
+      writeHttpWorkspaceLocation("agent");
+      storage = "agent";
+      agentStore = store;
+      workspaceDirty = false;
+      replaceWorkspace(next, true);
+      hideMessage(workspaceUi.saveError);
+      if (!local || next === remote.workspace) hideMessage(workspaceStatus);
+      if (workspaceDirty) saveWorkspaceNow();
+    } catch (error) {
+      showMessage(workspaceUi.loadError, `${s.WorkspaceAgentLoadError} ${errorText(error)}`);
+    } finally {
+      attaching = false;
+      syncStorageNotes();
+    }
+  }
+
+  window.addEventListener("pagehide", () => {
+    saveWorkspaceNow();
+    if (storage === "agent") void flushAgentWorkspace(true);
+  });
+  window.addEventListener("storage", (event) => {
+    if (event.key === HTTP_WORKSPACE_LOCATION_KEY) {
+      // Another window moved the workspace to the agent: follow it.
+      if (readHttpWorkspaceLocation() === "agent" && storage === "browser") {
+        storage = "agent";
+        if (client.connected) void attachAgentStorage();
+        else showMessage(workspaceStatus, strings.WorkspaceAgentLocked);
+      }
+      return;
+    }
+    if (storage !== "browser" || event.key !== HTTP_WORKSPACE_STORAGE_KEY || workspaceDirty || active) return;
+    const incoming = loadHttpWorkspace();
+    if (incoming.error) {
+      showMessage(workspaceLoadError, strings.WorkspaceLoadError);
+      return;
+    }
+    replaceWorkspace(incoming.workspace);
     if (workspaceDirty) saveWorkspaceNow();
   });
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "hidden") saveWorkspaceNow();
+    if (document.visibilityState === "hidden") {
+      saveWorkspaceNow();
+      if (storage === "agent") void flushAgentWorkspace(true);
+    } else if (storage === "agent") {
+      void reloadAgentWorkspace();
+    }
   });
+  workspaceChannel?.addEventListener("message", (event: MessageEvent<unknown>) => {
+    const data = event.data;
+    if (storage !== "agent" || typeof data !== "object" || data === null || !("revision" in data)
+      || typeof data.revision !== "number") return;
+    void reloadAgentWorkspace(data.revision);
+  });
+  if (storage === "agent") showMessage(workspaceStatus, strings.WorkspaceAgentLocked);
+  syncStorageNotes();
   if (loadedWorkspace.error) showMessage(workspaceLoadError, strings.WorkspaceLoadError);
   else hideMessage(workspaceLoadError);
   hideMessage(workspaceSaveError);
@@ -1773,6 +1942,7 @@ function init(): void {
       if (capabilitiesLabel) capabilitiesLabel.textContent = client.capabilities.join(", ");
       setConnected(true);
       showMessage(connectionStatus, strings.Connected);
+      void attachAgentStorage();
     } catch (error) {
       setConnected(false);
       hideMessage(connectionStatus);
@@ -1787,7 +1957,10 @@ function init(): void {
   void connectAgent(true);
   // A pairing made in another window lands here only while this one cannot work anyway.
   onAgentSessionSaved(() => {
-    if (!client.connected || !client.capabilities.includes("http.request")) void connectAgent(true);
+    if (!client.connected || !client.capabilities.includes("http.request")
+      || (!client.capabilities.includes("vault.data") && client.info?.capabilities.includes("vault.data"))) {
+      void connectAgent(true);
+    }
   });
 
   disconnect.addEventListener("click", async () => {

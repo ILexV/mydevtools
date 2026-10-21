@@ -19,11 +19,13 @@ const clientKeys = [
   "Error_forbidden", "Error_pairing_invalid", "Error_pairing_expired", "Error_pairing_rate_limited",
   "Error_unsupported_capability", "Error_private_network_denied", "Error_target_denied", "Error_timeout",
   "Error_cancelled", "Error_response_too_large", "Error_request_too_large", "Error_busy", "Error_network_error",
-  "Error_incompatible_protocol", "ResponseBody", "EditorLoadError", "BodyLabel", "InvalidJson", "BodyEditorError", "ConnectionNotSaved",
+  "Error_incompatible_protocol", "Error_vault_unavailable", "Error_vault_key_unavailable", "Error_vault_corrupt",
+  "Error_vault_full", "Error_revision_conflict", "Error_not_found", "Error_secret_not_found", "Error_secret_host_denied", "ResponseBody", "EditorLoadError", "BodyLabel", "InvalidJson", "BodyEditorError", "ConnectionNotSaved",
   "HtmlPreviewError", "SavedRequests", "NewRequest", "RequestName", "UntitledRequest", "RenameRequest", "DeleteRequest",
   "DeleteRequestConfirm", "NewFolder", "FolderName", "RenameFolder", "DeleteFolder", "DeleteFolderConfirm", "MoveItem",
   "RootFolder", "SelectFolder", "ResizeSidebar", "FolderNameRequired", "WorkspacePrivacy", "WorkspaceSaveError",
-  "WorkspaceLoadError", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
+  "WorkspaceLoadError", "WorkspacePrivacyAgent", "WorkspaceAgentLocked", "WorkspaceAgentRepair", "WorkspaceAgentLoadError",
+  "WorkspaceAgentSaveError", "WorkspaceAgentMoved", "WorkspaceMerged", "WorkspaceImportedFolder", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
 const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhrases(lang) });
@@ -49,8 +51,9 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
     <div class="http-saved-meta">
       <details class="http-workspace-info">
         <summary title={t(lang, ns, "WorkspacePrivacy")}><span aria-hidden="true">i</span> {t(lang, ns, "TreeHint")}</summary>
-        <p class="ds-hint http-workspace-privacy">{t(lang, ns, "WorkspacePrivacy")}</p>
+        <p class="ds-hint http-workspace-privacy" data-http-workspace-privacy>{t(lang, ns, "WorkspacePrivacy")}</p>
       </details>
+      <StatusMessage kind="info" data-http-workspace-status />
       <StatusMessage kind="error" data-http-workspace-load-error />
       <StatusMessage kind="error" data-http-workspace-save-error />
     </div>

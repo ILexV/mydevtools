@@ -252,7 +252,8 @@ test("LocalAgentClient persistent session lifecycle", async (t) => {
 });
 
 test("mergeCapabilities asks for every advertised capability so one pairing serves all network tools", () => {
-  const all = ["http.request", "icmp.trace", "dns.lookup", "tcp.connect", "tls.inspect", "whois.lookup", "asn.lookup"];
+  const all = ["http.request", "icmp.trace", "dns.lookup", "tcp.connect", "tls.inspect", "whois.lookup", "asn.lookup",
+    "vault.data", "vault.secrets"];
   assert.deepEqual(mergeCapabilities([...all].reverse(), "http.request"), all);
   assert.deepEqual(mergeCapabilities(["http.request"], "http.request"), ["http.request"]);
   assert.deepEqual(mergeCapabilities(["http.request", "icmp.trace"], "dns.lookup"), ["http.request", "icmp.trace", "dns.lookup"]);

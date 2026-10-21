@@ -10,6 +10,7 @@ import {
   type DnsLookupResult,
   type LocalAgentCapability,
 } from "@/scripts/local-agent";
+import { bindAgentPopover } from "@/scripts/agent-popover";
 import { copyWithFeedback } from "@/scripts/tool-ui";
 import {
   DNS_LOOKUP_STORAGE_KEY,
@@ -74,6 +75,7 @@ function init(): void {
   const strings = readStrings(root);
   if (!strings) return;
 
+  const agentSettings = root.querySelector<HTMLDetailsElement>("[data-dns-agent-settings]");
   const code = root.querySelector<HTMLInputElement>("[data-dns-code]");
   const connect = root.querySelector<HTMLButtonElement>("[data-dns-connect]");
   const disconnect = root.querySelector<HTMLButtonElement>("[data-dns-disconnect]");
@@ -93,7 +95,7 @@ function init(): void {
   const empty = root.querySelector<HTMLElement>("[data-dns-empty]");
   const body = root.querySelector<HTMLElement>("[data-dns-body]");
   const copy = root.querySelector<HTMLButtonElement>("[data-dns-copy]");
-  if (!code || !connect || !disconnect || !connectionState || !agentMeta || !agentVersion
+  if (!agentSettings || !code || !connect || !disconnect || !connectionState || !agentMeta || !agentVersion
     || !capabilitiesLabel || !connectionStatus || !capabilityWarning || !connectionError
     || !storageWarning || !nameInput || !typeSelect || !lookup || !resultStatus || !resultError
     || !empty || !body || !copy) {
@@ -101,6 +103,7 @@ function init(): void {
   }
 
   const client = new LocalAgentClient();
+  const popover = bindAgentPopover(agentSettings);
   let settings = loadSettings();
   let answer: DnsLookupResult | null = null;
   let busy = false;
@@ -147,7 +150,7 @@ function init(): void {
 
   const setConnected = (connected: boolean): void => {
     connectionState.textContent = connected ? strings.AgentConnectedShort : strings.AgentDisconnectedShort;
-    root.classList.toggle("is-connected", connected);
+    popover.sync(client);
     agentMeta.hidden = !connected;
     capabilitiesLabel.textContent = client.capabilities.join(", ");
     showCapabilityWarning();
@@ -224,6 +227,7 @@ function init(): void {
       showMessage(connectionError, errorText(error));
     } finally {
       code.value = "";
+      popover.sync(client);
       if (!client.connected) connect.disabled = false;
     }
   };
@@ -244,6 +248,7 @@ function init(): void {
       } catch (error) {
         showMessage(connectionError, errorText(error));
       }
+      popover.sync(client);
     })();
   });
 

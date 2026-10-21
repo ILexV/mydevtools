@@ -1,7 +1,7 @@
 ---
 import { t } from "@/i18n/messages";
-import { localizedPath } from "@/lib/url";
 import type { LocaleCode } from "@/registry/locales";
+import AgentConnection from "@/components/tool/AgentConnection.astro";
 import Field from "@/components/tool/Field.astro";
 import Icon from "@/components/Icon.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
@@ -12,7 +12,6 @@ import "@/styles/codemirror.css";
 interface Props { lang: LocaleCode }
 const { lang } = Astro.props as Props;
 const ns = "tools/http-client";
-const agentHref = localizedPath(lang, "local-agent");
 const clientKeys = [
   "Connected", "Disconnected", "NotConnected", "Connecting", "Sending", "Canceled", "ResponseSummary", "PrivateAllowed",
   "PrivateBlocked", "DownloadName", "BinaryPreview", "NoResponse", "PreviewTruncated", "ErrorHeaders", "ErrorUrl", "ErrorBodyLimit",
@@ -87,50 +86,10 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
       <Icon name="globe" size={16} />
       <label class="visually-hidden" for="http-request-name">{t(lang, ns, "RequestName")}</label>
       <input id="http-request-name" class="http-request-name" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "UntitledRequest")} data-http-request-name />
-      <details class="http-connect" open data-http-agent-settings>
-        <summary class="http-connect-summary" title={t(lang, ns, "AgentSettings")}>
-          <span class="http-connection-dot" aria-hidden="true"></span>
-          <span class="http-connection-state" data-http-connection-state>{t(lang, ns, "AgentDisconnectedShort")}</span>
-          <Icon name="settings" size={15} />
-          <span class="visually-hidden">{t(lang, ns, "AgentSettings")}</span>
-        </summary>
-        <div class="http-connect-body">
-          <h2 class="ds-panel-title">{t(lang, ns, "ConnectionTitle")}</h2>
-          <div class="http-connect-row">
-            <Field label={t(lang, ns, "PairCodeLabel")} for="http-pair-code" hint={t(lang, ns, "PairCodeHint")}>
-              <input id="http-pair-code" class="ds-field mono" type="password" autocomplete="one-time-code" spellcheck="false" data-http-code />
-            </Field>
-            <p class="ds-hint">{t(lang, ns, "RememberConnectionHint")}</p>
-            <div class="ds-action-row http-connect-actions">
-              <button type="button" class="ds-btn ds-btn-primary" data-http-connect>{t(lang, ns, "Connect")}</button>
-              <button type="button" class="ds-btn" data-http-disconnect disabled>{t(lang, ns, "Disconnect")}</button>
-            </div>
-          </div>
-          <dl class="http-agent-meta" data-http-agent-meta hidden>
-            <div><dt>{t(lang, ns, "AgentVersion")}</dt><dd class="mono" data-http-agent-version></dd></div>
-            <div><dt>{t(lang, ns, "Capability")}</dt><dd class="mono" data-http-capabilities>http.request</dd></div>
-            <div><dt>{t(lang, ns, "LanPolicy")}</dt><dd data-http-lan></dd></div>
-          </dl>
-          <StatusMessage kind="info" data-http-connection-status />
-          <StatusMessage kind="error" data-http-connection-error />
-          <StatusMessage kind="info" data-http-storage-warning />
-          <details class="http-setup">
-            <summary>{t(lang, ns, "SetupTitle")}</summary>
-            <div class="http-setup-body">
-              <p class="ds-hint">{t(lang, ns, "SetupIntro")}</p>
-              <a class="http-agent-link" href={agentHref}>{t(lang, ns, "InstallAgent")}</a>
-              <ol class="http-steps">
-                <li>{t(lang, ns, "SetupStep2")}</li>
-                <li>{t(lang, ns, "SetupStep3")}</li>
-                <li>{t(lang, ns, "SetupStep4")}</li>
-              </ol>
-              <p class="ds-hint">{t(lang, ns, "LimitsNote")}</p>
-              <p class="ds-hint">{t(lang, ns, "PrivateSetupNote")}</p>
-              <p class="ds-hint http-privacy">{t(lang, ns, "PrivacyNote")}</p>
-            </div>
-          </details>
-        </div>
-      </details>
+      <AgentConnection lang={lang} ns={ns} prefix="http">
+        <p class="ds-hint">{t(lang, ns, "LimitsNote")}</p>
+        <p class="ds-hint">{t(lang, ns, "PrivateSetupNote")}</p>
+      </AgentConnection>
     </div>
     <div class="http-compose">
       <label class="visually-hidden" for="http-method">{t(lang, ns, "MethodLabel")}</label>
@@ -370,28 +329,6 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
   .http-final-url code { color: var(--mdt-text-muted); overflow-wrap: anywhere; }
   .http-response-editor { --mdt-cm-height: 25rem; border: 0; border-radius: 0; }
   .http-preview { height: 25rem; margin: 0; border: 0; border-radius: 0; overflow: auto; white-space: pre; }
-  .http-connect { position: relative; flex: 0 0 auto; min-width: 0; }
-  .http-connect-summary { display: flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.5rem; border-radius: var(--mdt-radius-sm); color: var(--mdt-text-faint); cursor: pointer; list-style: none; }
-  .http-connect-summary::-webkit-details-marker { display: none; }
-  .http-connect-summary:hover, .http-connect[open] > .http-connect-summary { color: var(--mdt-text); background: var(--mdt-surface-muted); }
-  .http-connection-state { font-size: var(--mdt-fs-meta); white-space: nowrap; }
-  .http-connection-dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--mdt-danger); box-shadow: 0 0 0 2px color-mix(in srgb, var(--mdt-danger) 18%, transparent); }
-  .http-connect.is-connected .http-connection-dot { background: var(--mdt-success); box-shadow: 0 0 0 2px color-mix(in srgb, var(--mdt-success) 18%, transparent); }
-  .http-connect-body { position: absolute; top: calc(100% + 0.4rem); right: 0; z-index: 10; display: grid; gap: 0.85rem; width: min(23rem, calc(100vw - 2rem)); max-height: min(40rem, calc(100vh - 7rem)); overflow: auto; padding: 1rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); box-shadow: var(--mdt-shadow-e2); }
-  .http-connect-body > h2 { margin: 0; }
-  .http-connect-row { display: grid; gap: 0.75rem; }
-  .http-connect-actions { gap: 0.5rem; }
-  .http-connect-actions > button { flex: 1 1 100%; }
-  .http-agent-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin: 0; }
-  .http-agent-meta dt { color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); }
-  .http-agent-meta dd { margin: 0.2rem 0 0; overflow-wrap: anywhere; font-size: var(--mdt-fs-label); }
-  .http-setup { border-top: 1px solid var(--mdt-border-soft); padding-top: 0.75rem; }
-  .http-setup > summary { cursor: pointer; color: var(--mdt-link); font-size: var(--mdt-fs-label); font-weight: 650; }
-  .http-setup-body { display: grid; gap: 0.65rem; padding-top: 0.75rem; }
-  .http-setup-body > * { margin-block: 0; }
-  .http-agent-link { color: var(--mdt-link); font-size: var(--mdt-fs-label); font-weight: 650; }
-  .http-steps { display: grid; gap: 0.45rem; padding-left: 1.1rem; font-size: var(--mdt-fs-meta); color: var(--mdt-text-muted); }
-  .http-privacy { border-left: 2px solid var(--mdt-border); padding-left: 0.6rem; }
   @media (max-width: 64rem) {
     .http-workbench { grid-template-columns: minmax(0, 1fr); }
     .http-saved { min-height: auto; border-bottom: 1px solid var(--mdt-border); }
@@ -402,7 +339,7 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
     .http-compose { grid-template-columns: 6.25rem minmax(0, 1fr); padding: 0.75rem; }
     .http-send-actions { grid-column: 1 / -1; }
     .http-send-actions .ds-btn-primary { flex: 1 1 auto; }
-    .http-options, .http-connect-row, .http-agent-meta { grid-template-columns: minmax(0, 1fr); }
+    .http-options { grid-template-columns: minmax(0, 1fr); }
     .http-tabs { gap: 1rem; padding-inline: 0.75rem; }
     .http-tabs > [role="tab"] { font-size: var(--mdt-fs-meta); }
     .http-final-url { display: grid; gap: 0.2rem; }

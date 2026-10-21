@@ -12,6 +12,7 @@ import {
   type TlsCertificate,
   type TlsInspectResult,
 } from "@/scripts/local-agent";
+import { bindAgentPopover } from "@/scripts/agent-popover";
 import { copyWithFeedback } from "@/scripts/tool-ui";
 import {
   TLS_INSPECT_STORAGE_KEY,
@@ -87,6 +88,7 @@ function init(): void {
   const strings = readStrings(root);
   if (!strings) return;
 
+  const agentSettings = root.querySelector<HTMLDetailsElement>("[data-tls-agent-settings]");
   const code = root.querySelector<HTMLInputElement>("[data-tls-code]");
   const connect = root.querySelector<HTMLButtonElement>("[data-tls-connect-agent]");
   const disconnect = root.querySelector<HTMLButtonElement>("[data-tls-disconnect]");
@@ -116,7 +118,7 @@ function init(): void {
   const chain = root.querySelector<HTMLElement>("[data-tls-chain]");
   const chainBody = root.querySelector<HTMLElement>("[data-tls-chain-body]");
   const copy = root.querySelector<HTMLButtonElement>("[data-tls-copy]");
-  if (!code || !connect || !disconnect || !connectionState || !agentMeta || !agentVersion
+  if (!agentSettings || !code || !connect || !disconnect || !connectionState || !agentMeta || !agentVersion
     || !capabilitiesLabel || !connectionStatus || !capabilityWarning || !connectionError
     || !storageWarning || !hostInput || !portInput || !timeoutInput || !check || !stop
     || !resultStatus || !resultError || !empty || !facts || !addressOut || !protocolOut
@@ -125,6 +127,7 @@ function init(): void {
   }
 
   const client = new LocalAgentClient();
+  const popover = bindAgentPopover(agentSettings);
   let settings = loadSettings();
   let answer: TlsInspectResult | null = null;
   let busy = false;
@@ -174,7 +177,7 @@ function init(): void {
 
   const setConnected = (connected: boolean): void => {
     connectionState.textContent = connected ? strings.AgentConnectedShort : strings.AgentDisconnectedShort;
-    root.classList.toggle("is-connected", connected);
+    popover.sync(client);
     agentMeta.hidden = !connected;
     capabilitiesLabel.textContent = client.capabilities.join(", ");
     showCapabilityWarning();
@@ -288,6 +291,7 @@ function init(): void {
       showMessage(connectionError, errorText(error));
     } finally {
       code.value = "";
+      popover.sync(client);
       if (!client.connected) connect.disabled = false;
     }
   };
@@ -308,6 +312,7 @@ function init(): void {
       } catch (error) {
         showMessage(connectionError, errorText(error));
       }
+      popover.sync(client);
     })();
   });
 

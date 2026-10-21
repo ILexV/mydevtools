@@ -1,0 +1,107 @@
+---
+/**
+ * AgentConnection — local agent connection indicator and settings popover shared by
+ * every network tool (HTTP client, path trace/MTR, DNS, TCP, TLS, WHOIS, ASN).
+ * A compact dot + state opens the pairing form, agent meta, messages and setup steps.
+ * Hooks keep the tool prefix (`data-<prefix>-code`, `data-<prefix>-connection-state`, …)
+ * so each controller queries its own; `scripts/agent-popover.ts` drives open/closed.
+ * Strings come from the tool namespace. The default slot adds tool-specific setup notes.
+ */
+import { t } from "@/i18n/messages";
+import { localizedPath } from "@/lib/url";
+import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import Icon from "@/components/Icon.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+
+interface Props {
+  lang: LocaleCode;
+  ns: string;
+  /** Data-hook prefix used by the tool controller, e.g. `tcp` → `data-tcp-code`. */
+  prefix: string;
+  /** Hook suffix of the Connect button; tools whose root is `data-<prefix>-connect` use `connect-agent`. */
+  connectKey?: string;
+}
+
+const { lang, ns, prefix, connectKey = "connect" } = Astro.props as Props;
+const hook = (name: string) => ({ [`data-${prefix}-${name}`]: "" });
+const codeId = `${prefix}-agent-code`;
+const agentHref = localizedPath(lang, "local-agent");
+---
+
+<details class="ds-agent" data-agent-popover {...hook("agent-settings")}>
+  <summary class="ds-agent-summary" title={t(lang, ns, "AgentSettings")}>
+    <span class="ds-agent-dot" aria-hidden="true"></span>
+    <span class="ds-agent-state" {...hook("connection-state")}>{t(lang, ns, "AgentDisconnectedShort")}</span>
+    <Icon name="settings" size={15} />
+    <span class="visually-hidden">{t(lang, ns, "AgentSettings")}</span>
+  </summary>
+  <div class="ds-agent-body">
+    <h2 class="ds-panel-title">{t(lang, ns, "ConnectionTitle")}</h2>
+    <div class="ds-agent-row">
+      <Field label={t(lang, ns, "PairCodeLabel")} for={codeId} hint={t(lang, ns, "PairCodeHint")}>
+        <input id={codeId} class="ds-field mono" type="password" autocomplete="one-time-code" spellcheck="false" {...hook("code")} />
+      </Field>
+      <p class="ds-hint">{t(lang, ns, "RememberConnectionHint")}</p>
+      <div class="ds-action-row ds-agent-actions">
+        <button type="button" class="ds-btn ds-btn-primary" {...hook(connectKey)}>{t(lang, ns, "Connect")}</button>
+        <button type="button" class="ds-btn" disabled {...hook("disconnect")}>{t(lang, ns, "Disconnect")}</button>
+      </div>
+    </div>
+    <dl class="ds-agent-meta" hidden {...hook("agent-meta")}>
+      <div><dt>{t(lang, ns, "AgentVersion")}</dt><dd class="mono" {...hook("agent-version")}></dd></div>
+      <div><dt>{t(lang, ns, "Capability")}</dt><dd class="mono" {...hook("capabilities")}></dd></div>
+      <div>
+        <dt>{t(lang, ns, "LanPolicy")}</dt>
+        <dd data-agent-lan data-allowed={t(lang, ns, "PrivateAllowed")} data-blocked={t(lang, ns, "PrivateBlocked")}></dd>
+      </div>
+    </dl>
+    <StatusMessage kind="info" {...hook("connection-status")} />
+    <StatusMessage kind="warning" data-agent-attention {...hook("capability-warning")} />
+    <StatusMessage kind="error" data-agent-attention {...hook("connection-error")} />
+    <StatusMessage kind="info" {...hook("storage-warning")} />
+    <details class="ds-agent-setup" data-agent-setup>
+      <summary>{t(lang, ns, "SetupTitle")}</summary>
+      <div class="ds-agent-setup-body">
+        <p class="ds-hint">{t(lang, ns, "SetupIntro")}</p>
+        <a class="ds-agent-link" href={agentHref}>{t(lang, ns, "InstallAgent")}</a>
+        <ol>
+          <li>{t(lang, ns, "SetupStep2")}</li>
+          <li>{t(lang, ns, "SetupStep3")}</li>
+          <li>{t(lang, ns, "SetupStep4")}</li>
+        </ol>
+        <slot />
+        <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
+      </div>
+    </details>
+  </div>
+</details>
+
+<style>
+  .ds-agent { position: relative; flex: 0 0 auto; min-width: 0; margin-left: auto; }
+  .ds-agent-summary { display: flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.5rem; border-radius: var(--mdt-radius-sm); color: var(--mdt-text-faint); cursor: pointer; list-style: none; }
+  .ds-agent-summary::-webkit-details-marker { display: none; }
+  .ds-agent-summary:hover, .ds-agent[open] > .ds-agent-summary { color: var(--mdt-text); background: var(--mdt-surface-muted); }
+  .ds-agent-state { font-size: var(--mdt-fs-meta); white-space: nowrap; }
+  .ds-agent-dot { flex: 0 0 auto; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--mdt-danger); box-shadow: 0 0 0 2px color-mix(in srgb, var(--mdt-danger) 18%, transparent); }
+  .ds-agent.is-connected .ds-agent-dot { background: var(--mdt-success); box-shadow: 0 0 0 2px color-mix(in srgb, var(--mdt-success) 18%, transparent); }
+  .ds-agent-body { position: absolute; top: calc(100% + 0.4rem); right: 0; z-index: 10; display: grid; gap: 0.85rem; width: min(23rem, calc(100vw - 2rem)); max-height: min(40rem, calc(100vh - 7rem)); overflow: auto; padding: 1rem; border: 1px solid var(--mdt-border); border-radius: var(--mdt-radius); background: var(--mdt-surface-raised); box-shadow: var(--mdt-shadow-e2); text-align: left; }
+  .ds-agent-body > h2 { margin: 0; }
+  .ds-agent-body > [hidden] { display: none; }
+  .ds-agent-row { display: grid; gap: 0.75rem; }
+  .ds-agent-row > .ds-hint { margin: 0; }
+  .ds-agent-actions { gap: 0.5rem; }
+  .ds-agent-actions > button { flex: 1 1 100%; }
+  .ds-agent-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin: 0; }
+  .ds-agent-meta dt { color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); }
+  .ds-agent-meta dd { margin: 0.2rem 0 0; overflow-wrap: anywhere; font-size: var(--mdt-fs-label); }
+  .ds-agent-setup { border-top: 1px solid var(--mdt-border-soft); padding-top: 0.75rem; }
+  .ds-agent-setup > summary { cursor: pointer; color: var(--mdt-link); font-size: var(--mdt-fs-label); font-weight: 650; }
+  .ds-agent-setup-body { display: grid; gap: 0.65rem; padding-top: 0.75rem; }
+  .ds-agent-setup-body > :global(*) { margin-block: 0; }
+  .ds-agent-setup-body ol { display: grid; gap: 0.45rem; padding-left: 1.1rem; font-size: var(--mdt-fs-meta); color: var(--mdt-text-muted); }
+  .ds-agent-link { color: var(--mdt-link); font-size: var(--mdt-fs-label); font-weight: 650; }
+  @media (max-width: 640px) {
+    .ds-agent-meta { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>

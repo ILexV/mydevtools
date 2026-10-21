@@ -11,6 +11,7 @@ import {
   type AsnLookupResult,
   type LocalAgentCapability,
 } from "@/scripts/local-agent";
+import { bindAgentPopover } from "@/scripts/agent-popover";
 import { copyWithFeedback } from "@/scripts/tool-ui";
 import { asnQueryLooksValid, formatAsnText } from "@/tools/asn-lookup";
 
@@ -43,6 +44,7 @@ function init(): void {
   const strings = readStrings(root);
   if (!strings) return;
 
+  const agentSettings = root.querySelector<HTMLDetailsElement>("[data-asn-agent-settings]");
   const code = root.querySelector<HTMLInputElement>("[data-asn-code]");
   const connect = root.querySelector<HTMLButtonElement>("[data-asn-connect-agent]");
   const disconnect = root.querySelector<HTMLButtonElement>("[data-asn-disconnect]");
@@ -67,7 +69,7 @@ function init(): void {
   const nameOut = root.querySelector<HTMLElement>("[data-asn-name]");
   const coversOut = root.querySelector<HTMLElement>("[data-asn-covers]");
   const copy = root.querySelector<HTMLButtonElement>("[data-asn-copy]");
-  if (!code || !connect || !disconnect || !connectionState || !agentMeta || !agentVersion
+  if (!agentSettings || !code || !connect || !disconnect || !connectionState || !agentMeta || !agentVersion
     || !capabilitiesLabel || !connectionStatus || !capabilityWarning || !connectionError
     || !storageWarning || !queryInput || !check || !stop || !resultStatus || !resultError
     || !empty || !facts || !addressOut || !prefixOut || !asnOut || !nameOut || !coversOut || !copy) {
@@ -75,6 +77,7 @@ function init(): void {
   }
 
   const client = new LocalAgentClient();
+  const popover = bindAgentPopover(agentSettings);
   let answer: AsnLookupResult | null = null;
   let busy = false;
   let checkAbort: AbortController | null = null;
@@ -118,7 +121,7 @@ function init(): void {
 
   const setConnected = (connected: boolean): void => {
     connectionState.textContent = connected ? strings.AgentConnectedShort : strings.AgentDisconnectedShort;
-    root.classList.toggle("is-connected", connected);
+    popover.sync(client);
     agentMeta.hidden = !connected;
     capabilitiesLabel.textContent = client.capabilities.join(", ");
     showCapabilityWarning();
@@ -203,6 +206,7 @@ function init(): void {
       showMessage(connectionError, errorText(error));
     } finally {
       code.value = "";
+      popover.sync(client);
       if (!client.connected) connect.disabled = false;
     }
   };
@@ -223,6 +227,7 @@ function init(): void {
       } catch (error) {
         showMessage(connectionError, errorText(error));
       }
+      popover.sync(client);
     })();
   });
 

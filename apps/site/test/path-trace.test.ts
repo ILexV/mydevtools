@@ -129,7 +129,12 @@ test("reports escape HTML and render a missing round-trip time as a dash", () =>
   };
   const text = formatPathTraceText(report, labels);
   const html = formatPathTraceHtml(report, labels);
-  assert.match(text, /100\.64\.0\.1\t1\t50\t2\t1\t3\t3\t3\t\u2014\t\u2014\t\u2014\tEcho reply/);
+  const lines = text.split("\n");
+  const headerIndex = lines.findIndex((line) => line.startsWith("Host "));
+  const row = lines[headerIndex + 2];
+  assert.equal(row.split(" | ").map((cell) => cell.trim()).join(","), "100.64.0.1,1,50,2,1,3,3,3,\u2014,\u2014,\u2014,Echo reply");
+  assert.match(lines[headerIndex + 1], /^-+(-\+-+)+$/);
+  assert.equal(lines[headerIndex].indexOf(" | "), row.indexOf(" | "), "columns line up under the header");
   assert.equal(formatSpreadMs(54.74), "54.7");
   assert.equal(formatSpreadMs(63), "63.0");
   assert.equal(formatSpreadMs(null), "\u2014");

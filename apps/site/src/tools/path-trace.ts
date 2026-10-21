@@ -239,17 +239,36 @@ function headerCells(labels: PathTraceReportLabels): string[] {
   ];
 }
 
-/** Tab-separated hop table plus the typed target and the resolved address. */
+/** Characters as a reader counts them, so padding does not split surrogate pairs. */
+function textWidth(value: string): number {
+  return [...value].length;
+}
+
+/**
+ * Fixed-width hop table in the WinMTR report style: `|`-separated columns,
+ * host and status left-aligned, counters and times right-aligned, readable in a
+ * ticket to the ISP or in plain e-mail. Typed target and resolved address on top.
+ */
 export function formatPathTraceText(report: PathTraceReport, labels: PathTraceReportLabels): string {
-  const header = headerCells(labels).map(plainCell).join("\t");
-  const rows = reportRows(report, labels).map((row) => row.map(plainCell).join("\t"));
+  const header = headerCells(labels).map(plainCell);
+  const rows = reportRows(report, labels).map((row) => row.map(plainCell));
+  const last = header.length - 1;
+  const widths = header.map((cell, index) => Math.max(textWidth(cell), ...rows.map((row) => textWidth(row[index]))));
+  const leftAligned = (index: number): boolean => index === 0 || index === last;
+  const pad = (cell: string, index: number): string => {
+    const gap = " ".repeat(widths[index] - textWidth(cell));
+    return leftAligned(index) ? cell + gap : gap + cell;
+  };
+  const line = (cells: string[]): string => cells.map(pad).join(" | ").trimEnd();
+  const rule = widths.map((width) => "-".repeat(width)).join("-+-");
   return [
     labels.title,
     `${labels.target}: ${plainCell(report.targetInput)}`,
     `${labels.resolved}: ${plainCell(report.target)}`,
     "",
-    header,
-    ...rows,
+    line(header),
+    rule,
+    ...rows.map(line),
     "",
   ].join("\n");
 }
@@ -269,7 +288,7 @@ export function formatPathTraceHtml(report: PathTraceReport, labels: PathTraceRe
     `<h1>${escapeHtml(labels.title)}</h1>`,
     `<p>${escapeHtml(labels.target)}: ${escapeHtml(report.targetInput)}</p>`,
     `<p>${escapeHtml(labels.resolved)}: ${escapeHtml(report.target)}</p>`,
-    "<table>",
+    '<table border="1" cellpadding="4" style="border-collapse:collapse;font-variant-numeric:tabular-nums">',
     `<thead><tr>${headers}</tr></thead>`,
     `<tbody>${rows}</tbody>`,
     "</table>",

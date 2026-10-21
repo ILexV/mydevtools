@@ -4,15 +4,14 @@
  * This shell supplies the form, the reply block and the localized string island.
  */
 import { t } from "@/i18n/messages";
-import { localizedPath } from "@/lib/url";
 import type { LocaleCode } from "@/registry/locales";
+import AgentConnection from "@/components/tool/AgentConnection.astro";
 import Field from "@/components/tool/Field.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
 
 interface Props { lang: LocaleCode }
 const { lang } = Astro.props as Props;
 const ns = "tools/whois-lookup";
-const agentHref = localizedPath(lang, "local-agent");
 const clientKeys = [
   "Connected", "Disconnected", "Connecting", "NotConnected",
   "AgentConnectedShort", "AgentDisconnectedShort", "ConnectionNotSaved", "NeedWhoisCapability",
@@ -29,46 +28,11 @@ const stringsJson = JSON.stringify(strings);
 ---
 
 <div class="whois-lookup" data-whois-lookup>
-  <section class="ds-card whois-card" aria-labelledby="whois-connection-title">
-    <h2 id="whois-connection-title" class="ds-panel-title">{t(lang, ns, "ConnectionTitle")}</h2>
-    <div class="whois-connect-row">
-      <Field label={t(lang, ns, "PairCodeLabel")} for="whois-lookup-code" hint={t(lang, ns, "PairCodeHint")}>
-        <input id="whois-lookup-code" class="ds-field mono" type="password" autocomplete="one-time-code" spellcheck="false" data-whois-code />
-      </Field>
-      <div class="ds-action-row">
-        <button type="button" class="ds-btn ds-btn-primary" data-whois-connect-agent>{t(lang, ns, "Connect")}</button>
-        <button type="button" class="ds-btn" data-whois-disconnect disabled>{t(lang, ns, "Disconnect")}</button>
-      </div>
-    </div>
-    <p class="whois-connection-line">
-      <span class="whois-dot" aria-hidden="true"></span>
-      <span data-whois-connection-state>{t(lang, ns, "AgentDisconnectedShort")}</span>
-    </p>
-    <dl class="whois-meta" data-whois-agent-meta hidden>
-      <div><dt>{t(lang, ns, "AgentVersion")}</dt><dd class="mono" data-whois-agent-version></dd></div>
-      <div><dt>{t(lang, ns, "Capability")}</dt><dd class="mono" data-whois-capabilities></dd></div>
-    </dl>
-    <StatusMessage kind="info" data-whois-connection-status />
-    <StatusMessage kind="warning" data-whois-capability-warning />
-    <StatusMessage kind="error" data-whois-connection-error />
-    <StatusMessage kind="info" data-whois-storage-warning />
-    <details class="whois-setup">
-      <summary>{t(lang, ns, "SetupTitle")}</summary>
-      <div class="whois-setup-body">
-        <p class="ds-hint">{t(lang, ns, "SetupIntro")}</p>
-        <a class="ds-btn ds-btn-small" href={agentHref}>{t(lang, ns, "InstallAgent")}</a>
-        <ol>
-          <li>{t(lang, ns, "SetupStep2")}</li>
-          <li>{t(lang, ns, "SetupStep3")}</li>
-          <li>{t(lang, ns, "SetupStep4")}</li>
-        </ol>
-        <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
-      </div>
-    </details>
-  </section>
-
   <section class="ds-card whois-card" aria-labelledby="whois-query-title">
-    <h2 id="whois-query-title" class="ds-panel-title">{t(lang, ns, "QueryTitle")}</h2>
+    <div class="ds-panel-head">
+      <h2 id="whois-query-title" class="ds-panel-title">{t(lang, ns, "QueryTitle")}</h2>
+      <AgentConnection lang={lang} ns={ns} prefix="whois" connectKey="connect-agent" />
+    </div>
     <div class="ds-settings">
       <Field class="ds-settings-wide" label={t(lang, ns, "QueryLabel")} for="whois-lookup-query" hint={t(lang, ns, "QueryHint")}>
         <input id="whois-lookup-query" class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "QueryPlaceholder")} data-whois-query />
@@ -109,17 +73,10 @@ const stringsJson = JSON.stringify(strings);
 <style>
   .whois-lookup { display: flex; flex-direction: column; gap: 1rem; min-width: 0; max-width: 100%; }
   .whois-card { min-width: 0; }
-  .whois-connect-row { display: grid; gap: 0.75rem; }
-  .whois-connection-line { display: flex; align-items: center; gap: 0.45rem; margin: 0.75rem 0 0; }
-  .whois-dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--mdt-text-muted); }
-  .whois-lookup.is-connected .whois-dot { background: var(--mdt-cat); }
-  .whois-meta, .whois-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.55rem 1rem; margin: 0.85rem 0; }
-  .whois-meta div, .whois-facts div { min-width: 0; }
-  .whois-meta dt, .whois-facts dt { color: var(--mdt-text-muted); font-size: 0.78rem; }
-  .whois-meta dd, .whois-facts dd { margin: 0; overflow-wrap: anywhere; }
-  .whois-setup { margin-top: 0.75rem; }
-  .whois-setup-body { display: grid; gap: 0.55rem; padding-top: 0.55rem; }
-  .whois-setup-body ol { margin: 0; padding-left: 1.2rem; }
+  .whois-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.55rem 1rem; margin: 0.85rem 0; }
+  .whois-facts div { min-width: 0; }
+  .whois-facts dt { color: var(--mdt-text-muted); font-size: 0.78rem; }
+  .whois-facts dd { margin: 0; overflow-wrap: anywhere; }
   .whois-results-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.4rem 1rem; }
   .whois-results-head h2 { margin: 0; }
   .whois-reply {

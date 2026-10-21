@@ -4,15 +4,14 @@
  * This shell supplies the form, the result block and the localized string island.
  */
 import { t } from "@/i18n/messages";
-import { localizedPath } from "@/lib/url";
 import type { LocaleCode } from "@/registry/locales";
+import AgentConnection from "@/components/tool/AgentConnection.astro";
 import Field from "@/components/tool/Field.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
 
 interface Props { lang: LocaleCode }
 const { lang } = Astro.props as Props;
 const ns = "tools/asn-lookup";
-const agentHref = localizedPath(lang, "local-agent");
 const clientKeys = [
   "Connected", "Disconnected", "Connecting", "NotConnected",
   "AgentConnectedShort", "AgentDisconnectedShort", "ConnectionNotSaved", "NeedAsnCapability",
@@ -29,46 +28,11 @@ const stringsJson = JSON.stringify(strings);
 ---
 
 <div class="asn-lookup" data-asn-lookup>
-  <section class="ds-card asn-card" aria-labelledby="asn-connection-title">
-    <h2 id="asn-connection-title" class="ds-panel-title">{t(lang, ns, "ConnectionTitle")}</h2>
-    <div class="asn-connect-row">
-      <Field label={t(lang, ns, "PairCodeLabel")} for="asn-lookup-code" hint={t(lang, ns, "PairCodeHint")}>
-        <input id="asn-lookup-code" class="ds-field mono" type="password" autocomplete="one-time-code" spellcheck="false" data-asn-code />
-      </Field>
-      <div class="ds-action-row">
-        <button type="button" class="ds-btn ds-btn-primary" data-asn-connect-agent>{t(lang, ns, "Connect")}</button>
-        <button type="button" class="ds-btn" data-asn-disconnect disabled>{t(lang, ns, "Disconnect")}</button>
-      </div>
-    </div>
-    <p class="asn-connection-line">
-      <span class="asn-dot" aria-hidden="true"></span>
-      <span data-asn-connection-state>{t(lang, ns, "AgentDisconnectedShort")}</span>
-    </p>
-    <dl class="asn-meta" data-asn-agent-meta hidden>
-      <div><dt>{t(lang, ns, "AgentVersion")}</dt><dd class="mono" data-asn-agent-version></dd></div>
-      <div><dt>{t(lang, ns, "Capability")}</dt><dd class="mono" data-asn-capabilities></dd></div>
-    </dl>
-    <StatusMessage kind="info" data-asn-connection-status />
-    <StatusMessage kind="warning" data-asn-capability-warning />
-    <StatusMessage kind="error" data-asn-connection-error />
-    <StatusMessage kind="info" data-asn-storage-warning />
-    <details class="asn-setup">
-      <summary>{t(lang, ns, "SetupTitle")}</summary>
-      <div class="asn-setup-body">
-        <p class="ds-hint">{t(lang, ns, "SetupIntro")}</p>
-        <a class="ds-btn ds-btn-small" href={agentHref}>{t(lang, ns, "InstallAgent")}</a>
-        <ol>
-          <li>{t(lang, ns, "SetupStep2")}</li>
-          <li>{t(lang, ns, "SetupStep3")}</li>
-          <li>{t(lang, ns, "SetupStep4")}</li>
-        </ol>
-        <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
-      </div>
-    </details>
-  </section>
-
   <section class="ds-card asn-card" aria-labelledby="asn-query-title">
-    <h2 id="asn-query-title" class="ds-panel-title">{t(lang, ns, "QueryTitle")}</h2>
+    <div class="ds-panel-head">
+      <h2 id="asn-query-title" class="ds-panel-title">{t(lang, ns, "QueryTitle")}</h2>
+      <AgentConnection lang={lang} ns={ns} prefix="asn" connectKey="connect-agent" />
+    </div>
     <div class="ds-settings">
       <Field class="ds-settings-wide" label={t(lang, ns, "QueryLabel")} for="asn-lookup-query" hint={t(lang, ns, "QueryHint")}>
         <input id="asn-lookup-query" class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "QueryPlaceholder")} data-asn-query />
@@ -104,17 +68,10 @@ const stringsJson = JSON.stringify(strings);
 <style>
   .asn-lookup { display: flex; flex-direction: column; gap: 1rem; min-width: 0; max-width: 100%; }
   .asn-card { min-width: 0; }
-  .asn-connect-row { display: grid; gap: 0.75rem; }
-  .asn-connection-line { display: flex; align-items: center; gap: 0.45rem; margin: 0.75rem 0 0; }
-  .asn-dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--mdt-text-muted); }
-  .asn-lookup.is-connected .asn-dot { background: var(--mdt-cat); }
-  .asn-meta, .asn-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.55rem 1rem; margin: 0.85rem 0; }
-  .asn-meta div, .asn-facts div { min-width: 0; }
-  .asn-meta dt, .asn-facts dt { color: var(--mdt-text-muted); font-size: 0.78rem; }
-  .asn-meta dd, .asn-facts dd { margin: 0; overflow-wrap: anywhere; }
-  .asn-setup { margin-top: 0.75rem; }
-  .asn-setup-body { display: grid; gap: 0.55rem; padding-top: 0.55rem; }
-  .asn-setup-body ol { margin: 0; padding-left: 1.2rem; }
+  .asn-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.55rem 1rem; margin: 0.85rem 0; }
+  .asn-facts div { min-width: 0; }
+  .asn-facts dt { color: var(--mdt-text-muted); font-size: 0.78rem; }
+  .asn-facts dd { margin: 0; overflow-wrap: anywhere; }
   .asn-results-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.4rem 1rem; }
   .asn-results-head h2 { margin: 0; }
 </style>

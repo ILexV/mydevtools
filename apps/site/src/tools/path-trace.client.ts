@@ -13,6 +13,7 @@ import {
   type TraceHopSnapshot,
   type TraceSnapshot,
 } from "@/scripts/local-agent";
+import { bindAgentPopover } from "@/scripts/agent-popover";
 import { copyWithFeedback } from "@/scripts/tool-ui";
 import {
   PATH_TRACE_STORAGE_KEY,
@@ -90,6 +91,7 @@ function init(): void {
   const strings = readStrings(root);
   if (!strings) return;
 
+  const agentSettings = root.querySelector<HTMLDetailsElement>("[data-trace-agent-settings]");
   const code = root.querySelector<HTMLInputElement>("[data-trace-code]");
   const connect = root.querySelector<HTMLButtonElement>("[data-trace-connect]");
   const disconnect = root.querySelector<HTMLButtonElement>("[data-trace-disconnect]");
@@ -97,13 +99,13 @@ function init(): void {
   const agentMeta = root.querySelector<HTMLElement>("[data-trace-agent-meta]");
   const agentVersion = root.querySelector<HTMLElement>("[data-trace-agent-version]");
   const capabilitiesLabel = root.querySelector<HTMLElement>("[data-trace-capabilities]");
-  const lanPolicy = root.querySelector<HTMLElement>("[data-trace-lan]");
   const connectionStatus = root.querySelector<HTMLElement>("[data-trace-connection-status]");
   const capabilityWarning = root.querySelector<HTMLElement>("[data-trace-capability-warning]");
   const connectionError = root.querySelector<HTMLElement>("[data-trace-connection-error]");
   const storageWarning = root.querySelector<HTMLElement>("[data-trace-storage-warning]");
   const targetInput = root.querySelector<HTMLInputElement>("[data-trace-target]");
   const targetList = root.querySelector<HTMLDataListElement>("[data-trace-targets]");
+  const clearHistory = root.querySelector<HTMLButtonElement>("[data-trace-clear-history]");
   const intervalInput = root.querySelector<HTMLInputElement>("[data-trace-interval]");
   const payloadInput = root.querySelector<HTMLInputElement>("[data-trace-payload]");
   const hopsInput = root.querySelector<HTMLInputElement>("[data-trace-hops]");
@@ -123,14 +125,15 @@ function init(): void {
   const detail = root.querySelector<HTMLElement>("[data-trace-detail]");
   const copyButtons = [...root.querySelectorAll<HTMLButtonElement>("[data-trace-copy]")];
   const downloadButtons = [...root.querySelectorAll<HTMLButtonElement>("[data-trace-download]")];
-  if (!code || !connect || !disconnect || !connectionState || !agentMeta || !agentVersion
-    || !capabilitiesLabel || !lanPolicy || !connectionStatus || !capabilityWarning
-    || !connectionError || !storageWarning || !targetInput || !targetList || !intervalInput
+  if (!agentSettings || !code || !connect || !disconnect || !connectionState || !agentMeta || !agentVersion
+    || !capabilitiesLabel || !connectionStatus || !capabilityWarning
+    || !connectionError || !storageWarning || !targetInput || !targetList || !clearHistory || !intervalInput
     || !payloadInput || !hopsInput || !timeoutInput || !sourceSelect || !sourceRefresh || !sourceLine
     || !resolveInput || !start || !mtuButton
     || !mtuResult || !stop || !runState || !runError || !resolvedLine || !body || !detail) return;
 
   const client = new LocalAgentClient();
+  const popover = bindAgentPopover(agentSettings);
   let settings = loadSettings();
   let snapshot: TraceSnapshot | null = null;
   let selectedHop: number | null = null;
@@ -181,6 +184,7 @@ function init(): void {
       option.value = target;
       targetList.append(option);
     }
+    clearHistory.hidden = settings.targets.length === 0;
   };
 
   const applySettings = (): void => {
@@ -352,6 +356,7 @@ function init(): void {
     stop.disabled = !tracing;
     stop.hidden = !tracing;
     targetInput.disabled = locked;
+    clearHistory.disabled = locked;
     timeoutInput.disabled = locked;
     intervalInput.disabled = tracing;
     payloadInput.disabled = tracing;
@@ -374,7 +379,7 @@ function init(): void {
 
   const setConnected = (connected: boolean): void => {
     connectionState.textContent = connected ? strings.AgentConnectedShort : strings.AgentDisconnectedShort;
-    root.classList.toggle("is-connected", connected);
+    popover.sync(client);
     agentMeta.hidden = !connected;
     capabilitiesLabel.textContent = client.capabilities.join(", ");
     storageWarning.hidden = !connected || client.persisted;
@@ -501,7 +506,6 @@ function init(): void {
         return;
       }
       agentVersion.textContent = info.version;
-      lanPolicy.textContent = info.privateNetworkAllowed ? strings.PrivateAllowed : strings.PrivateBlocked;
       setConnected(true);
       showMessage(connectionStatus, strings.Connected);
     } catch (error) {
@@ -510,6 +514,7 @@ function init(): void {
       showMessage(connectionError, errorText(error));
     } finally {
       code.value = "";
+      popover.sync(client);
       if (!client.connected) connect.disabled = false;
     }
   };
@@ -536,6 +541,7 @@ function init(): void {
       } catch (error) {
         showMessage(connectionError, errorText(error));
       }
+      popover.sync(client);
     })();
   });
 
@@ -740,6 +746,18 @@ function init(): void {
       URL.revokeObjectURL(url);
     });
   }
+
+  clearHistory.addEventListener("click", () => {
+    settings = { ...settings, targets: [] };
+    persistSettings();
+    fillHistory();
+    targetInput.focus();
+  });
+  targetInput.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || event.isComposing) return;
+    event.preventDefault();
+    if (!start.disabled) start.click();
+  });
 
   for (const input of [intervalInput, payloadInput, hopsInput, timeoutInput]) {
     input.addEventListener("change", onSettingsChanged);

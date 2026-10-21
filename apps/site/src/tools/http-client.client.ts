@@ -12,6 +12,7 @@ import {
   type LocalAgentHeader,
   type LocalHttpResponse,
 } from "@/scripts/local-agent";
+import { bindAgentPopover } from "@/scripts/agent-popover";
 import {
   canMoveHttpWorkspaceItem,
   loadHttpWorkspace,
@@ -159,13 +160,11 @@ function init(): void {
   if (!strings) return;
 
   const code = root.querySelector<HTMLInputElement>("[data-http-code]");
-  const setup = root.querySelector<HTMLElement>(".http-setup");
   const connect = root.querySelector<HTMLButtonElement>("[data-http-connect]");
   const disconnect = root.querySelector<HTMLButtonElement>("[data-http-disconnect]");
   const agentMeta = root.querySelector<HTMLElement>("[data-http-agent-meta]");
   const agentVersion = root.querySelector<HTMLElement>("[data-http-agent-version]");
   const capabilitiesLabel = root.querySelector<HTMLElement>("[data-http-capabilities]");
-  const lanPolicy = root.querySelector<HTMLElement>("[data-http-lan]");
   const connectionStatus = root.querySelector<HTMLElement>("[data-http-connection-status]");
   const connectionError = root.querySelector<HTMLElement>("[data-http-connection-error]");
   const connectionState = root.querySelector<HTMLElement>("[data-http-connection-state]");
@@ -216,7 +215,7 @@ function init(): void {
   const htmlPreview = root.querySelector<HTMLElement>("[data-http-html-preview]")!;
   const htmlFrame = root.querySelector<HTMLIFrameElement>("[data-http-html-frame]")!;
   const download = root.querySelector<HTMLButtonElement>("[data-http-download]");
-  if (!code || !connect || !disconnect || !agentMeta || !agentVersion || !lanPolicy || !connectionStatus
+  if (!code || !connect || !disconnect || !agentMeta || !agentVersion || !connectionStatus
     || !connectionError || !connectionState || !agentSettings || !requestName || !savedList || !newRequest
     || !newFolder || !treeMenuButton || !treeMenu || !moveDialog || !moveDestination || !moveConfirm
     || !sidebarResizer || !workspaceLoadError || !workspaceSaveError || !method || !requestUrl
@@ -226,13 +225,7 @@ function init(): void {
     || !prettyButton || !rawButton) return;
 
   const client = new LocalAgentClient();
-  let hasSavedAgentSession = false;
-  try {
-    hasSavedAgentSession = localStorage.getItem("mdt.local-agent.session.v1") !== null;
-  } catch {
-    // Blocked storage means there cannot be a restorable browser session.
-  }
-  agentSettings.open = !hasSavedAgentSession;
+  const popover = bindAgentPopover(agentSettings);
   let active: { id: string; abort: AbortController } | null = null;
   let responseBlob: Blob | null = null;
   let responseName = "response.bin";
@@ -1726,9 +1719,7 @@ function init(): void {
     code.disabled = connected;
     agentMeta.hidden = !connected;
     connectionState.textContent = connected ? strings.AgentConnectedShort : strings.AgentDisconnectedShort;
-    agentSettings.classList.toggle("is-connected", connected);
-    agentSettings.open = connected ? false : !hasSavedAgentSession;
-    if (setup) setup.hidden = connected;
+    popover.sync(client);
     storageWarning.hidden = !connected || client.persisted;
     storageWarning.textContent = strings.ConnectionNotSaved;
   };
@@ -1763,7 +1754,6 @@ function init(): void {
     connectionState.textContent = strings.Connecting;
     connect.disabled = true;
     const pairingCode = automatic ? "" : code.value.trim();
-    if (!automatic) hasSavedAgentSession = false;
     try {
       let info;
       if (pairingCode) {
@@ -1774,7 +1764,6 @@ function init(): void {
       } else {
         info = await client.restore();
       }
-      if (!info) hasSavedAgentSession = false;
       if (!info) {
         setConnected(false);
         hideMessage(connectionStatus);
@@ -1783,8 +1772,6 @@ function init(): void {
       }
       agentVersion.textContent = info.version;
       if (capabilitiesLabel) capabilitiesLabel.textContent = client.capabilities.join(", ");
-      lanPolicy.textContent = info.privateNetworkAllowed ? strings.PrivateAllowed : strings.PrivateBlocked;
-      hasSavedAgentSession = client.persisted;
       setConnected(true);
       showMessage(connectionStatus, strings.Connected);
     } catch (error) {
@@ -1793,6 +1780,7 @@ function init(): void {
       showMessage(connectionError, errorText(error));
     } finally {
       code.value = "";
+      popover.sync(client);
       if (!client.connected) connect.disabled = false;
     }
   };
@@ -1800,7 +1788,6 @@ function init(): void {
   void connectAgent(true);
 
   disconnect.addEventListener("click", async () => {
-    hasSavedAgentSession = false;
     const pending = client.disconnect();
     if (active) {
       active.abort.abort();
@@ -1818,6 +1805,7 @@ function init(): void {
     } catch (error) {
       showMessage(connectionError, errorText(error));
     } finally {
+      popover.sync(client);
       connect.disabled = client.connected;
     }
   });
@@ -1901,7 +1889,6 @@ function init(): void {
         hideMessage(requestStatus);
         showMessage(requestError, errorText(error));
         if (!client.connected) {
-          hasSavedAgentSession = false;
           setConnected(false);
         }
       }

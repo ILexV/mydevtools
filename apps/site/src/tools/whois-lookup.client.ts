@@ -11,6 +11,7 @@ import {
   type LocalAgentCapability,
   type WhoisLookupResult,
 } from "@/scripts/local-agent";
+import { bindAgentPopover } from "@/scripts/agent-popover";
 import { copyWithFeedback } from "@/scripts/tool-ui";
 import {
   WHOIS_LOOKUP_STORAGE_KEY,
@@ -96,6 +97,7 @@ function init(): void {
   const strings = readStrings(root);
   if (!strings) return;
 
+  const agentSettings = root.querySelector<HTMLDetailsElement>("[data-whois-agent-settings]");
   const code = root.querySelector<HTMLInputElement>("[data-whois-code]");
   const connect = root.querySelector<HTMLButtonElement>("[data-whois-connect-agent]");
   const disconnect = root.querySelector<HTMLButtonElement>("[data-whois-disconnect]");
@@ -121,7 +123,7 @@ function init(): void {
   const truncatedNote = root.querySelector<HTMLElement>("[data-whois-truncated]");
   const reply = root.querySelector<HTMLElement>("[data-whois-text]");
   const copy = root.querySelector<HTMLButtonElement>("[data-whois-copy]");
-  if (!code || !connect || !disconnect || !connectionState || !agentMeta || !agentVersion
+  if (!agentSettings || !code || !connect || !disconnect || !connectionState || !agentMeta || !agentVersion
     || !capabilitiesLabel || !connectionStatus || !capabilityWarning || !connectionError
     || !storageWarning || !queryInput || !serverInput || !timeoutInput || !check || !stop
     || !resultStatus || !resultError || !empty || !facts || !addressOut || !timeOut
@@ -130,6 +132,7 @@ function init(): void {
   }
 
   const client = new LocalAgentClient();
+  const popover = bindAgentPopover(agentSettings);
   let settings = loadSettings();
   let answer: WhoisLookupResult | null = null;
   let busy = false;
@@ -179,7 +182,7 @@ function init(): void {
 
   const setConnected = (connected: boolean): void => {
     connectionState.textContent = connected ? strings.AgentConnectedShort : strings.AgentDisconnectedShort;
-    root.classList.toggle("is-connected", connected);
+    popover.sync(client);
     agentMeta.hidden = !connected;
     capabilitiesLabel.textContent = client.capabilities.join(", ");
     showCapabilityWarning();
@@ -260,6 +263,7 @@ function init(): void {
       showMessage(connectionError, errorText(error));
     } finally {
       code.value = "";
+      popover.sync(client);
       if (!client.connected) connect.disabled = false;
     }
   };
@@ -280,6 +284,7 @@ function init(): void {
       } catch (error) {
         showMessage(connectionError, errorText(error));
       }
+      popover.sync(client);
     })();
   });
 

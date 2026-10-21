@@ -12,7 +12,7 @@ import {
   type LocalAgentHeader,
   type LocalHttpResponse,
 } from "@/scripts/local-agent";
-import { bindAgentPopover } from "@/scripts/agent-popover";
+import { bindAgentPopover, onAgentSessionSaved } from "@/scripts/agent-popover";
 import {
   canMoveHttpWorkspaceItem,
   loadHttpWorkspace,
@@ -1757,10 +1757,9 @@ function init(): void {
     try {
       let info;
       if (pairingCode) {
-        const previous = client.capabilities;
         const inspected = await client.inspect();
         const advertised = Array.isArray(inspected.capabilities) ? inspected.capabilities : [];
-        info = await client.pair(pairingCode, mergeCapabilities(previous, advertised, "http.request"));
+        info = await client.pair(pairingCode, mergeCapabilities(advertised, "http.request"));
       } else {
         info = await client.restore();
       }
@@ -1786,6 +1785,10 @@ function init(): void {
   };
   connect.addEventListener("click", () => { void connectAgent(); });
   void connectAgent(true);
+  // A pairing made in another window lands here only while this one cannot work anyway.
+  onAgentSessionSaved(() => {
+    if (!client.connected || !client.capabilities.includes("http.request")) void connectAgent(true);
+  });
 
   disconnect.addEventListener("click", async () => {
     const pending = client.disconnect();

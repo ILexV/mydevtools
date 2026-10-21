@@ -46,3 +46,13 @@ export function bindAgentPopover(details: HTMLDetailsElement): AgentPopover {
     },
   };
 }
+
+/**
+ * Calls back when another tab or desktop tool frame saves a new agent session, so a
+ * window opened earlier picks up a pairing made elsewhere without a second code.
+ */
+export function onAgentSessionSaved(callback: () => void): void {
+  window.addEventListener("storage", (event) => {
+    if (event.key === SESSION_STORAGE_KEY && event.newValue !== null) callback();
+  });
+}

@@ -8,12 +8,11 @@ import {
   LocalAgentClient,
   LocalAgentError,
   mergeCapabilities,
-  type LocalAgentCapability,
   type PathMtuSnapshot,
   type TraceHopSnapshot,
   type TraceSnapshot,
 } from "@/scripts/local-agent";
-import { bindAgentPopover } from "@/scripts/agent-popover";
+import { bindAgentPopover, onAgentSessionSaved } from "@/scripts/agent-popover";
 import { copyWithFeedback } from "@/scripts/tool-ui";
 import {
   PATH_TRACE_STORAGE_KEY,
@@ -491,11 +490,10 @@ function init(): void {
     try {
       let info;
       if (pairingCode) {
-        const previous: readonly LocalAgentCapability[] = client.capabilities;
         const inspected = await client.inspect();
         const advertised = Array.isArray(inspected.capabilities) ? inspected.capabilities : [];
         if (!advertised.includes("icmp.trace")) throw new LocalAgentError("unsupported_capability");
-        info = await client.pairKeepingSession(pairingCode, mergeCapabilities(previous, advertised, "icmp.trace"));
+        info = await client.pairKeepingSession(pairingCode, mergeCapabilities(advertised, "icmp.trace"));
       } else {
         info = await client.restore();
       }
@@ -799,6 +797,10 @@ function init(): void {
   resolvedLine.hidden = true;
   setConnected(false);
   void connectAgent(true);
+  // A pairing made in another window lands here only while this one cannot work anyway.
+  onAgentSessionSaved(() => {
+    if (!client.connected || !client.capabilities.includes("icmp.trace")) void connectAgent(true);
+  });
 }
 
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });

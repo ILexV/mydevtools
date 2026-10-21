@@ -17,20 +17,17 @@ const CAPABILITY_ORDER: readonly LocalAgentCapability[] = [
 ];
 
 /**
- * Capabilities to request when a tool connects. Keeps capabilities this browser
- * already holds when the running agent still advertises them, and always asks
- * for the capability this tool needs. `pair()` itself does not add anything.
+ * Capabilities to request when any network tool pairs: every capability the running
+ * agent advertises that this site knows, plus the one this tool needs. One pairing
+ * code in any window then unlocks HTTP, path trace, DNS, TCP, TLS, WHOIS and ASN.
+ * A grant the agent no longer advertises is dropped. `pair()` itself adds nothing.
  */
 export function mergeCapabilities(
-  previous: readonly LocalAgentCapability[],
   advertised: readonly string[],
   needed: LocalAgentCapability,
 ): LocalAgentCapability[] {
-  const previousSet = new Set<string>(previous);
   const advertisedSet = new Set(advertised);
-  return CAPABILITY_ORDER.filter(
-    (capability) => capability === needed || (previousSet.has(capability) && advertisedSet.has(capability)),
-  );
+  return CAPABILITY_ORDER.filter((capability) => capability === needed || advertisedSet.has(capability));
 }
 
 export interface LocalAgentInfo {

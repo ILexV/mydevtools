@@ -8,10 +8,9 @@ import {
   LocalAgentClient,
   LocalAgentError,
   mergeCapabilities,
-  type LocalAgentCapability,
   type WhoisLookupResult,
 } from "@/scripts/local-agent";
-import { bindAgentPopover } from "@/scripts/agent-popover";
+import { bindAgentPopover, onAgentSessionSaved } from "@/scripts/agent-popover";
 import { copyWithFeedback } from "@/scripts/tool-ui";
 import {
   WHOIS_LOOKUP_STORAGE_KEY,
@@ -240,11 +239,10 @@ function init(): void {
     try {
       let info;
       if (pairingCode) {
-        const previous: readonly LocalAgentCapability[] = client.capabilities;
         const inspected = await client.inspect();
         const advertised = Array.isArray(inspected.capabilities) ? inspected.capabilities : [];
         if (!advertised.includes("whois.lookup")) throw new LocalAgentError("unsupported_capability");
-        info = await client.pairKeepingSession(pairingCode, mergeCapabilities(previous, advertised, "whois.lookup"));
+        info = await client.pairKeepingSession(pairingCode, mergeCapabilities(advertised, "whois.lookup"));
       } else {
         info = await client.restore();
       }
@@ -379,6 +377,10 @@ function init(): void {
   renderAnswer(null);
   setConnected(false);
   void connectAgent(true);
+  // A pairing made in another window lands here only while this one cannot work anyway.
+  onAgentSessionSaved(() => {
+    if (!client.connected || !client.capabilities.includes("whois.lookup")) void connectAgent(true);
+  });
 }
 
 if (document.readyState === "loading") {

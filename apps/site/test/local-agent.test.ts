@@ -251,55 +251,13 @@ test("LocalAgentClient persistent session lifecycle", async (t) => {
   }
 });
 
-test("mergeCapabilities keeps a previous grant only when the agent still advertises it", () => {
-  assert.deepEqual(
-    mergeCapabilities(["icmp.trace", "http.request"], ["http.request"], "http.request"),
-    ["http.request"],
-  );
-  assert.deepEqual(
-    mergeCapabilities(["http.request"], ["http.request", "icmp.trace"], "icmp.trace"),
-    ["http.request", "icmp.trace"],
-  );
-  assert.deepEqual(
-    mergeCapabilities([], [], "icmp.trace"),
-    ["icmp.trace"],
-  );
-  assert.deepEqual(
-    mergeCapabilities(["http.request", "icmp.trace"], ["http.request", "icmp.trace", "dns.lookup"], "dns.lookup"),
-    ["http.request", "icmp.trace", "dns.lookup"],
-  );
-  assert.deepEqual(
-    mergeCapabilities(
-      ["http.request", "icmp.trace", "dns.lookup"],
-      ["http.request", "icmp.trace", "dns.lookup", "tcp.connect"],
-      "tcp.connect",
-    ),
-    ["http.request", "icmp.trace", "dns.lookup", "tcp.connect"],
-  );
-  assert.deepEqual(
-    mergeCapabilities(
-      ["http.request", "icmp.trace", "dns.lookup", "tcp.connect"],
-      ["http.request", "icmp.trace", "dns.lookup", "tcp.connect", "tls.inspect"],
-      "tls.inspect",
-    ),
-    ["http.request", "icmp.trace", "dns.lookup", "tcp.connect", "tls.inspect"],
-  );
-  assert.deepEqual(
-    mergeCapabilities(
-      ["http.request", "icmp.trace", "dns.lookup", "tcp.connect", "tls.inspect"],
-      ["http.request", "icmp.trace", "dns.lookup", "tcp.connect", "tls.inspect", "whois.lookup"],
-      "whois.lookup",
-    ),
-    ["http.request", "icmp.trace", "dns.lookup", "tcp.connect", "tls.inspect", "whois.lookup"],
-  );
-  assert.deepEqual(
-    mergeCapabilities(
-      ["http.request", "icmp.trace", "dns.lookup", "tcp.connect", "tls.inspect", "whois.lookup"],
-      ["http.request", "icmp.trace", "dns.lookup", "tcp.connect", "tls.inspect", "whois.lookup", "asn.lookup"],
-      "asn.lookup",
-    ),
-    ["http.request", "icmp.trace", "dns.lookup", "tcp.connect", "tls.inspect", "whois.lookup", "asn.lookup"],
-  );
+test("mergeCapabilities asks for every advertised capability so one pairing serves all network tools", () => {
+  const all = ["http.request", "icmp.trace", "dns.lookup", "tcp.connect", "tls.inspect", "whois.lookup", "asn.lookup"];
+  assert.deepEqual(mergeCapabilities([...all].reverse(), "http.request"), all);
+  assert.deepEqual(mergeCapabilities(["http.request"], "http.request"), ["http.request"]);
+  assert.deepEqual(mergeCapabilities(["http.request", "icmp.trace"], "dns.lookup"), ["http.request", "icmp.trace", "dns.lookup"]);
+  assert.deepEqual(mergeCapabilities([], "icmp.trace"), ["icmp.trace"]);
+  assert.deepEqual(mergeCapabilities(["http.request", "port.scan"], "http.request"), ["http.request"], "unknown capabilities are never requested");
 });
 
 test("stored sessions without a capabilities field stay HTTP-only", () => {

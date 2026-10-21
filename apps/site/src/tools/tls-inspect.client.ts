@@ -8,11 +8,10 @@ import {
   LocalAgentClient,
   LocalAgentError,
   mergeCapabilities,
-  type LocalAgentCapability,
   type TlsCertificate,
   type TlsInspectResult,
 } from "@/scripts/local-agent";
-import { bindAgentPopover } from "@/scripts/agent-popover";
+import { bindAgentPopover, onAgentSessionSaved } from "@/scripts/agent-popover";
 import { copyWithFeedback } from "@/scripts/tool-ui";
 import {
   TLS_INSPECT_STORAGE_KEY,
@@ -268,11 +267,10 @@ function init(): void {
     try {
       let info;
       if (pairingCode) {
-        const previous: readonly LocalAgentCapability[] = client.capabilities;
         const inspected = await client.inspect();
         const advertised = Array.isArray(inspected.capabilities) ? inspected.capabilities : [];
         if (!advertised.includes("tls.inspect")) throw new LocalAgentError("unsupported_capability");
-        info = await client.pairKeepingSession(pairingCode, mergeCapabilities(previous, advertised, "tls.inspect"));
+        info = await client.pairKeepingSession(pairingCode, mergeCapabilities(advertised, "tls.inspect"));
       } else {
         info = await client.restore();
       }
@@ -407,6 +405,10 @@ function init(): void {
   renderAnswer(null);
   setConnected(false);
   void connectAgent(true);
+  // A pairing made in another window lands here only while this one cannot work anyway.
+  onAgentSessionSaved(() => {
+    if (!client.connected || !client.capabilities.includes("tls.inspect")) void connectAgent(true);
+  });
 }
 
 if (document.readyState === "loading") {

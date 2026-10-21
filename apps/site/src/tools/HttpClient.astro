@@ -147,7 +147,7 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
     </div>
     <div id="http-request-settings-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-request-settings-tab" hidden>
       <div class="ds-settings http-options">
-        <Field label={t(lang, ns, "TimeoutLabel")} for="http-timeout" hint={t(lang, ns, "TimeoutHint")}>
+        <Field label={t(lang, ns, "TimeoutLabel")} for="http-timeout"hintTip hint={t(lang, ns, "TimeoutHint")}>
           <input id="http-timeout" class="ds-field mono" type="number" min="100" max="120000" step="100" value="30000" data-http-timeout />
         </Field>
         <label class="ds-check-row http-redirects"><input class="ds-check" type="checkbox" data-http-redirects /><span>{t(lang, ns, "FollowRedirects")}</span></label>

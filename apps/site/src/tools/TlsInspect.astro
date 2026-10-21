@@ -30,19 +30,19 @@ const stringsJson = JSON.stringify(strings);
 ---
 
 <div class="tls-inspect" data-tls-inspect>
-  <section class="ds-card tls-card" aria-labelledby="tls-query-title">
+  <section class="ds-card ds-stack tls-card" aria-labelledby="tls-query-title">
     <div class="ds-panel-head">
       <h2 id="tls-query-title" class="ds-panel-title">{t(lang, ns, "QueryTitle")}</h2>
       <AgentConnection lang={lang} ns={ns} prefix="tls" connectKey="connect-agent" />
     </div>
     <div class="ds-settings">
-      <Field class="ds-settings-wide" label={t(lang, ns, "HostLabel")} for="tls-inspect-host" hint={t(lang, ns, "HostHint")}>
+      <Field class="ds-settings-wide" label={t(lang, ns, "HostLabel")} for="tls-inspect-host"hintTip hint={t(lang, ns, "HostHint")}>
         <input id="tls-inspect-host" class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "HostPlaceholder")} data-tls-host />
       </Field>
-      <Field label={t(lang, ns, "PortLabel")} for="tls-inspect-port" hint={t(lang, ns, "PortHint")}>
+      <Field label={t(lang, ns, "PortLabel")} for="tls-inspect-port"hintTip hint={t(lang, ns, "PortHint")}>
         <input id="tls-inspect-port" class="ds-field mono" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "PortPlaceholder")} data-tls-port />
       </Field>
-      <Field label={t(lang, ns, "TimeoutLabel")} for="tls-inspect-timeout" hint={t(lang, ns, "TimeoutHint")}>
+      <Field label={t(lang, ns, "TimeoutLabel")} for="tls-inspect-timeout"hintTip hint={t(lang, ns, "TimeoutHint")}>
         <input id="tls-inspect-timeout" class="ds-field mono" type="number" min="200" max="10000" step="1" inputmode="numeric" data-tls-timeout />
       </Field>
     </div>

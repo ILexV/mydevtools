@@ -350,6 +350,59 @@
   .ds-label-row > .ds-label {
     margin-bottom: 0;
   }
+  /* Label + "?" hint trigger (Field hintTip). */
+  .ds-label-main {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+  }
+  .ds-label-main > .ds-label {
+    margin-bottom: 0;
+  }
+  .ds-tip {
+    display: inline-flex;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    color: var(--mdt-text-faint);
+    cursor: help;
+  }
+  .ds-tip:hover,
+  .ds-tip:focus {
+    color: var(--mdt-cat);
+    outline: none;
+  }
+  .ds-tip:focus-visible {
+    box-shadow: 0 0 0 2px var(--mdt-focus-ring);
+  }
+  /* Tooltip bubble: hidden from layout until the trigger is hovered or focused;
+     bounded by the field width so it never causes horizontal page scroll. */
+  .ds-field-tipped {
+    position: relative;
+  }
+  .ds-tip-bubble {
+    display: none;
+    position: absolute;
+    top: 1.5rem;
+    left: 0;
+    z-index: 20;
+    width: max-content;
+    max-width: min(22rem, 100%);
+    min-width: min(12rem, 100%);
+    padding: 0.5rem 0.65rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface-raised);
+    box-shadow: var(--mdt-shadow-e2);
+    color: var(--mdt-text-muted);
+    font-size: var(--mdt-fs-label);
+    font-weight: 400;
+    line-height: 1.45;
+    pointer-events: none;
+  }
+  .ds-field-tipped:has(.ds-tip:hover, .ds-tip:focus) > .ds-tip-bubble {
+    display: block;
+  }
   .ds-label-aside {
     font-family: var(--mdt-font-mono);
     font-size: var(--mdt-fs-label);

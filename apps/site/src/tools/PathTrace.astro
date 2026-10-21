@@ -39,32 +39,32 @@ const stringsJson = JSON.stringify(strings);
 ---
 
 <div class="path-trace" data-path-trace>
-  <section class="ds-card path-trace-card" aria-labelledby="path-trace-target-title">
+  <section class="ds-card ds-stack path-trace-card" aria-labelledby="path-trace-target-title">
     <div class="ds-panel-head">
       <h2 id="path-trace-target-title" class="ds-panel-title">{t(lang, ns, "TargetLabel")}</h2>
       <AgentConnection lang={lang} ns={ns} prefix="trace">
         <p class="ds-hint">{t(lang, ns, "PrivateSetupNote")}</p>
       </AgentConnection>
     </div>
-    <Field label={t(lang, ns, "TargetLabel")} for="path-trace-target" hint={t(lang, ns, "TargetHint")}>
+    <Field label={t(lang, ns, "TargetLabel")} for="path-trace-target"hintTip hint={t(lang, ns, "TargetHint")}>
       <button slot="aside" type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-trace-clear-history hidden>{t(lang, ns, "ClearHistory")}</button>
       <input id="path-trace-target" class="ds-field mono" type="text" list="path-trace-targets" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "TargetPlaceholder")} data-trace-target />
     </Field>
     <datalist id="path-trace-targets" data-trace-targets></datalist>
     <div class="ds-settings">
-      <Field label={t(lang, ns, "IntervalLabel")} for="path-trace-interval" hint={t(lang, ns, "IntervalHint")}>
+      <Field label={t(lang, ns, "IntervalLabel")} for="path-trace-interval"hintTip hint={t(lang, ns, "IntervalHint")}>
         <input id="path-trace-interval" class="ds-field mono" type="number" min="200" max="60000" step="1" value="1000" inputmode="numeric" data-trace-interval />
       </Field>
-      <Field label={t(lang, ns, "PayloadLabel")} for="path-trace-payload" hint={t(lang, ns, "PayloadHint")}>
+      <Field label={t(lang, ns, "PayloadLabel")} for="path-trace-payload"hintTip hint={t(lang, ns, "PayloadHint")}>
         <input id="path-trace-payload" class="ds-field mono" type="number" min="0" max="1472" step="1" value="64" inputmode="numeric" data-trace-payload />
       </Field>
-      <Field label={t(lang, ns, "MaxHopsLabel")} for="path-trace-hops" hint={t(lang, ns, "MaxHopsHint")}>
+      <Field label={t(lang, ns, "MaxHopsLabel")} for="path-trace-hops"hintTip hint={t(lang, ns, "MaxHopsHint")}>
         <input id="path-trace-hops" class="ds-field mono" type="number" min="1" max="64" step="1" value="30" inputmode="numeric" data-trace-hops />
       </Field>
-      <Field label={t(lang, ns, "TimeoutLabel")} for="path-trace-timeout" hint={t(lang, ns, "TimeoutHint")}>
+      <Field label={t(lang, ns, "TimeoutLabel")} for="path-trace-timeout"hintTip hint={t(lang, ns, "TimeoutHint")}>
         <input id="path-trace-timeout" class="ds-field mono" type="number" min="100" max="30000" step="1" value="5000" inputmode="numeric" data-trace-timeout />
       </Field>
-      <Field class="ds-settings-wide" label={t(lang, ns, "SourceLabel")} for="path-trace-source" hint={t(lang, ns, "SourceHint")}>
+      <Field class="ds-settings-wide" label={t(lang, ns, "SourceLabel")} for="path-trace-source"hintTip hint={t(lang, ns, "SourceHint")}>
         <div class="ds-input-group">
           <select id="path-trace-source" class="ds-field-select" data-trace-source disabled>
             <option value="">{t(lang, ns, "Automatic")}</option>

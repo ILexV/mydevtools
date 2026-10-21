@@ -39,7 +39,7 @@ const agentHref = localizedPath(lang, "local-agent");
   <div class="ds-agent-body">
     <h2 class="ds-panel-title">{t(lang, ns, "ConnectionTitle")}</h2>
     <div class="ds-agent-row">
-      <Field label={t(lang, ns, "PairCodeLabel")} for={codeId} hint={t(lang, ns, "PairCodeHint")}>
+      <Field label={t(lang, ns, "PairCodeLabel")} for={codeId}hintTip hint={t(lang, ns, "PairCodeHint")}>
         <input id={codeId} class="ds-field mono" type="password" autocomplete="one-time-code" spellcheck="false" {...hook("code")} />
       </Field>
       <p class="ds-hint">{t(lang, ns, "RememberConnectionHint")}</p>

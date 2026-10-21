@@ -28,19 +28,19 @@ const stringsJson = JSON.stringify(strings);
 ---
 
 <div class="whois-lookup" data-whois-lookup>
-  <section class="ds-card whois-card" aria-labelledby="whois-query-title">
+  <section class="ds-card ds-stack whois-card" aria-labelledby="whois-query-title">
     <div class="ds-panel-head">
       <h2 id="whois-query-title" class="ds-panel-title">{t(lang, ns, "QueryTitle")}</h2>
       <AgentConnection lang={lang} ns={ns} prefix="whois" connectKey="connect-agent" />
     </div>
     <div class="ds-settings">
-      <Field class="ds-settings-wide" label={t(lang, ns, "QueryLabel")} for="whois-lookup-query" hint={t(lang, ns, "QueryHint")}>
+      <Field class="ds-settings-wide" label={t(lang, ns, "QueryLabel")} for="whois-lookup-query"hintTip hint={t(lang, ns, "QueryHint")}>
         <input id="whois-lookup-query" class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "QueryPlaceholder")} data-whois-query />
       </Field>
-      <Field class="ds-settings-wide" label={t(lang, ns, "ServerLabel")} for="whois-lookup-server" hint={t(lang, ns, "ServerHint")}>
+      <Field class="ds-settings-wide" label={t(lang, ns, "ServerLabel")} for="whois-lookup-server"hintTip hint={t(lang, ns, "ServerHint")}>
         <input id="whois-lookup-server" class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "ServerPlaceholder")} data-whois-server />
       </Field>
-      <Field label={t(lang, ns, "TimeoutLabel")} for="whois-lookup-timeout" hint={t(lang, ns, "TimeoutHint")}>
+      <Field label={t(lang, ns, "TimeoutLabel")} for="whois-lookup-timeout"hintTip hint={t(lang, ns, "TimeoutHint")}>
         <input id="whois-lookup-timeout" class="ds-field mono" type="number" min="200" max="10000" step="1" inputmode="numeric" data-whois-timeout />
       </Field>
     </div>

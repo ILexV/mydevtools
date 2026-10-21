@@ -28,19 +28,19 @@ const stringsJson = JSON.stringify(strings);
 ---
 
 <div class="tcp-connect" data-tcp-connect>
-  <section class="ds-card tcp-card" aria-labelledby="tcp-query-title">
+  <section class="ds-card ds-stack tcp-card" aria-labelledby="tcp-query-title">
     <div class="ds-panel-head">
       <h2 id="tcp-query-title" class="ds-panel-title">{t(lang, ns, "QueryTitle")}</h2>
       <AgentConnection lang={lang} ns={ns} prefix="tcp" connectKey="connect-agent" />
     </div>
     <div class="ds-settings">
-      <Field class="ds-settings-wide" label={t(lang, ns, "HostLabel")} for="tcp-connect-host" hint={t(lang, ns, "HostHint")}>
+      <Field class="ds-settings-wide" label={t(lang, ns, "HostLabel")} for="tcp-connect-host"hintTip hint={t(lang, ns, "HostHint")}>
         <input id="tcp-connect-host" class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "HostPlaceholder")} data-tcp-host />
       </Field>
-      <Field label={t(lang, ns, "PortLabel")} for="tcp-connect-port" hint={t(lang, ns, "PortHint")}>
+      <Field label={t(lang, ns, "PortLabel")} for="tcp-connect-port"hintTip hint={t(lang, ns, "PortHint")}>
         <input id="tcp-connect-port" class="ds-field mono" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "PortPlaceholder")} data-tcp-port />
       </Field>
-      <Field label={t(lang, ns, "TimeoutLabel")} for="tcp-connect-timeout" hint={t(lang, ns, "TimeoutHint")}>
+      <Field label={t(lang, ns, "TimeoutLabel")} for="tcp-connect-timeout"hintTip hint={t(lang, ns, "TimeoutHint")}>
         <input id="tcp-connect-timeout" class="ds-field mono" type="number" min="200" max="10000" step="1" inputmode="numeric" data-tcp-timeout />
       </Field>
     </div>

@@ -29,16 +29,16 @@ const stringsJson = JSON.stringify(strings);
 ---
 
 <div class="dns-lookup" data-dns-lookup>
-  <section class="ds-card dns-card" aria-labelledby="dns-query-title">
+  <section class="ds-card ds-stack dns-card" aria-labelledby="dns-query-title">
     <div class="ds-panel-head">
       <h2 id="dns-query-title" class="ds-panel-title">{t(lang, ns, "QueryTitle")}</h2>
       <AgentConnection lang={lang} ns={ns} prefix="dns" />
     </div>
     <div class="ds-settings">
-      <Field class="ds-settings-wide" label={t(lang, ns, "NameLabel")} for="dns-lookup-name" hint={t(lang, ns, "NameHint")}>
+      <Field class="ds-settings-wide" label={t(lang, ns, "NameLabel")} for="dns-lookup-name"hintTip hint={t(lang, ns, "NameHint")}>
         <input id="dns-lookup-name" class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "NamePlaceholder")} data-dns-name />
       </Field>
-      <Field label={t(lang, ns, "TypeLabel")} for="dns-lookup-type" hint={t(lang, ns, "TypeHint")}>
+      <Field label={t(lang, ns, "TypeLabel")} for="dns-lookup-type"hintTip hint={t(lang, ns, "TypeHint")}>
         <select id="dns-lookup-type" class="ds-field-select" data-dns-type>
           {recordTypes.map((recordType) => <option value={recordType}>{recordType}</option>)}
         </select>

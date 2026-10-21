@@ -93,7 +93,7 @@ pub(crate) async fn connect_prepared(
     })
 }
 
-fn normalize_host(raw: &str) -> Result<String, ApiError> {
+pub(crate) fn normalize_host(raw: &str) -> Result<String, ApiError> {
     let host = raw.trim();
     if host.is_empty() || host.chars().count() > MAX_HOST_CHARS {
         return Err(ApiError::invalid_request());
@@ -141,7 +141,7 @@ fn is_port_range(host: &str) -> bool {
 }
 
 /// First address only. A later A or AAAA is not a fallback.
-fn resolve_host(host: &str) -> Result<IpAddr, ApiError> {
+pub(crate) fn resolve_host(host: &str) -> Result<IpAddr, ApiError> {
     if let Ok(address) = host.parse::<IpAddr>() {
         return Ok(address);
     }
@@ -154,7 +154,7 @@ fn resolve_host(host: &str) -> Result<IpAddr, ApiError> {
         .ok_or_else(ApiError::name_not_found)
 }
 
-fn classify_connect_error(error: std::io::Error) -> Result<&'static str, ApiError> {
+pub(crate) fn classify_connect_error(error: std::io::Error) -> Result<&'static str, ApiError> {
     match error.kind() {
         ErrorKind::ConnectionRefused => Ok("refused"),
         ErrorKind::TimedOut => Ok("timeout"),

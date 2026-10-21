@@ -8,6 +8,7 @@ mod policy;
 mod server;
 mod state;
 mod tcp;
+mod tls;
 #[cfg(windows)]
 mod windows_shell;
 

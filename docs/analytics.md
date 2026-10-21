@@ -51,7 +51,7 @@ Private dashboard authentication is separate from visitor analytics: Cloudflare 
 
 ## Tool coverage matrix
 
-All **46 tools** support started/completed/failed for the useful-use action listed below. The seven live tools retain their existing automatic UX: no artificial Run button and no request per keystroke. Explicit cancellation is counted where the tool already has a Cancel/Stop action. Success means actual output/status is committed; failed means launched processing failed, not a rejected preflight.
+All **47 tools** support started/completed/failed for the useful-use action listed below. The seven live tools retain their existing automatic UX: no artificial Run button and no request per keystroke. Explicit cancellation is counted where the tool already has a Cancel/Stop action. Success means actual output/status is committed; failed means launched processing failed, not a rejected preflight.
 
 | Tool ID | Useful-use action | S/C/F | Success / processing failure | Preflight and exclusions |
 | --- | --- | --- | --- | --- |
@@ -91,6 +91,7 @@ All **46 tools** support started/completed/failed for the useful-use action list
 | `path-trace` | Start | yes | First hop probe committed / start or poll error before that | Invalid target, invalid settings, and a session without `icmp.trace` are preflight; explicit Stop before a hop is cancel; copy, download and settings are excluded |
 | `dns-lookup` | Lookup | yes | Answer rendered, including nodata and nxdomain / agent error | Empty name, not connected, and missing `dns.lookup` are preflight; pagehide is cancel; copy and the type setting are excluded |
 | `tcp-connect` | Check | yes | Result rendered, including refused, timeout, and unreachable / agent error | Invalid host or port, invalid timeout, not connected, and missing `tcp.connect` are preflight; AbortError, pagehide, and explicit Stop are cancel; copy and the timeout setting are excluded |
+| `tls-inspect` | Check | yes | Result rendered, including an untrusted chain, handshake_failed, refused, timeout, and unreachable / agent error | Invalid host or port, invalid timeout, not connected, and missing `tls.inspect` are preflight; AbortError, pagehide, and explicit Stop are cancel; copy and the timeout setting are excluded |
 | `color-converter` | Convert / Enter | yes | Formats/shades/swatch committed / render exception | `parseColor` succeeds before start; live picker/typing/contrast settings excluded |
 | `markdown-preview` | Settled trusted text/formatting-toolbar edit | yes | Final sanitized preview committed / rendering error | Empty/init/example and superseded/deferred duplicate work excluded |
 | `image-compressor` | Compress | yes | Compressed image/comparison committed / read/WASM/decode/output error | Selected image and idle state required; selection/quality/format excluded; explicit Cancel is separate; stale work excluded |

@@ -1,0 +1,149 @@
+---
+/**
+ * TLS inspect. One handshake runs in the local agent. This shell supplies
+ * the form, the chain table and the localized string island. A pasted PEM
+ * stays on the certificate tool.
+ */
+import { t } from "@/i18n/messages";
+import { localizedPath } from "@/lib/url";
+import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+
+interface Props { lang: LocaleCode }
+const { lang } = Astro.props as Props;
+const ns = "tools/tls-inspect";
+const agentHref = localizedPath(lang, "local-agent");
+const clientKeys = [
+  "Connected", "Disconnected", "Connecting", "NotConnected",
+  "AgentConnectedShort", "AgentDisconnectedShort", "ConnectionNotSaved", "NeedTlsCapability",
+  "InvalidInput", "InvalidTimeout", "Checking", "Check", "Copied", "CopyFailed",
+  "StatusTrusted", "StatusUntrusted", "StatusRefused", "StatusTimeout", "StatusUnreachable",
+  "StatusHandshakeFailed", "TimeValue", "Trusted", "NotTrusted",
+  "ErrorGeneric", "Error_agent_unavailable", "Error_invalid_response", "Error_invalid_request",
+  "Error_unauthorized", "Error_forbidden", "Error_pairing_invalid", "Error_pairing_expired",
+  "Error_pairing_rate_limited", "Error_unsupported_capability", "Error_timeout", "Error_busy",
+  "Error_network_error", "Error_incompatible_protocol", "Error_not_found", "Error_name_not_found",
+  "Error_private_network_denied", "Error_target_denied", "Error_tls_unavailable",
+] as const;
+const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
+const stringsJson = JSON.stringify(strings);
+---
+
+<div class="tls-inspect" data-tls-inspect>
+  <section class="ds-card tls-card" aria-labelledby="tls-connection-title">
+    <h2 id="tls-connection-title" class="ds-panel-title">{t(lang, ns, "ConnectionTitle")}</h2>
+    <div class="tls-connect-row">
+      <Field label={t(lang, ns, "PairCodeLabel")} for="tls-inspect-code" hint={t(lang, ns, "PairCodeHint")}>
+        <input id="tls-inspect-code" class="ds-field mono" type="password" autocomplete="one-time-code" spellcheck="false" data-tls-code />
+      </Field>
+      <div class="ds-action-row">
+        <button type="button" class="ds-btn ds-btn-primary" data-tls-connect-agent>{t(lang, ns, "Connect")}</button>
+        <button type="button" class="ds-btn" data-tls-disconnect disabled>{t(lang, ns, "Disconnect")}</button>
+      </div>
+    </div>
+    <p class="tls-connection-line">
+      <span class="tls-dot" aria-hidden="true"></span>
+      <span data-tls-connection-state>{t(lang, ns, "AgentDisconnectedShort")}</span>
+    </p>
+    <dl class="tls-meta" data-tls-agent-meta hidden>
+      <div><dt>{t(lang, ns, "AgentVersion")}</dt><dd class="mono" data-tls-agent-version></dd></div>
+      <div><dt>{t(lang, ns, "Capability")}</dt><dd class="mono" data-tls-capabilities></dd></div>
+    </dl>
+    <StatusMessage kind="info" data-tls-connection-status />
+    <StatusMessage kind="warning" data-tls-capability-warning />
+    <StatusMessage kind="error" data-tls-connection-error />
+    <StatusMessage kind="info" data-tls-storage-warning />
+    <details class="tls-setup">
+      <summary>{t(lang, ns, "SetupTitle")}</summary>
+      <div class="tls-setup-body">
+        <p class="ds-hint">{t(lang, ns, "SetupIntro")}</p>
+        <a class="ds-btn ds-btn-small" href={agentHref}>{t(lang, ns, "InstallAgent")}</a>
+        <ol>
+          <li>{t(lang, ns, "SetupStep2")}</li>
+          <li>{t(lang, ns, "SetupStep3")}</li>
+          <li>{t(lang, ns, "SetupStep4")}</li>
+        </ol>
+        <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="ds-card tls-card" aria-labelledby="tls-query-title">
+    <h2 id="tls-query-title" class="ds-panel-title">{t(lang, ns, "QueryTitle")}</h2>
+    <div class="ds-settings">
+      <Field class="ds-settings-wide" label={t(lang, ns, "HostLabel")} for="tls-inspect-host" hint={t(lang, ns, "HostHint")}>
+        <input id="tls-inspect-host" class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "HostPlaceholder")} data-tls-host />
+      </Field>
+      <Field label={t(lang, ns, "PortLabel")} for="tls-inspect-port" hint={t(lang, ns, "PortHint")}>
+        <input id="tls-inspect-port" class="ds-field mono" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "PortPlaceholder")} data-tls-port />
+      </Field>
+      <Field label={t(lang, ns, "TimeoutLabel")} for="tls-inspect-timeout" hint={t(lang, ns, "TimeoutHint")}>
+        <input id="tls-inspect-timeout" class="ds-field mono" type="number" min="200" max="10000" step="1" inputmode="numeric" data-tls-timeout />
+      </Field>
+    </div>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-tls-check disabled>{t(lang, ns, "Check")}</button>
+      <button type="button" class="ds-btn" data-tls-stop hidden>{t(lang, ns, "Stop")}</button>
+    </div>
+    <StatusMessage kind="info" data-tls-result />
+    <StatusMessage kind="error" data-tls-error />
+  </section>
+
+  <section class="ds-card tls-card" aria-labelledby="tls-answer-title">
+    <div class="tls-results-head">
+      <h2 id="tls-answer-title" class="ds-panel-title">{t(lang, ns, "AnswerTitle")}</h2>
+      <button type="button" class="ds-btn ds-btn-small" data-tls-copy disabled>{t(lang, ns, "CopyText")}</button>
+    </div>
+    <p class="ds-hint" data-tls-empty>{t(lang, ns, "EmptyResult")}</p>
+    <dl class="tls-facts" data-tls-facts hidden>
+      <div><dt>{t(lang, ns, "AddressLabel")}</dt><dd class="mono" data-tls-address></dd></div>
+      <div><dt>{t(lang, ns, "ProtocolLabel")}</dt><dd class="mono" data-tls-protocol></dd></div>
+      <div><dt>{t(lang, ns, "CipherLabel")}</dt><dd class="mono" data-tls-cipher></dd></div>
+      <div><dt>{t(lang, ns, "TrustLabel")}</dt><dd data-tls-trust></dd></div>
+      <div><dt>{t(lang, ns, "ExpiryLabel")}</dt><dd class="mono" data-tls-expiry></dd></div>
+      <div><dt>{t(lang, ns, "TimeLabel")}</dt><dd class="mono" data-tls-time></dd></div>
+    </dl>
+    <div class="tls-chain" data-tls-chain hidden>
+      <h3 class="ds-panel-title">{t(lang, ns, "ChainTitle")}</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>{t(lang, ns, "SubjectLabel")}</th>
+            <th>{t(lang, ns, "IssuerLabel")}</th>
+            <th>{t(lang, ns, "NotBeforeLabel")}</th>
+            <th>{t(lang, ns, "NotAfterLabel")}</th>
+            <th>{t(lang, ns, "FingerprintLabel")}</th>
+          </tr>
+        </thead>
+        <tbody data-tls-chain-body></tbody>
+      </table>
+    </div>
+  </section>
+  <script is:inline type="application/json" data-tls-strings set:html={stringsJson} />
+</div>
+
+<script>import "@/tools/tls-inspect.client.ts";</script>
+
+<style>
+  .tls-inspect { display: flex; flex-direction: column; gap: 1rem; min-width: 0; max-width: 100%; }
+  .tls-card { min-width: 0; }
+  .tls-connect-row { display: grid; gap: 0.75rem; }
+  .tls-connection-line { display: flex; align-items: center; gap: 0.45rem; margin: 0.75rem 0 0; }
+  .tls-dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--mdt-text-muted); }
+  .tls-inspect.is-connected .tls-dot { background: var(--mdt-cat); }
+  .tls-meta, .tls-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.55rem 1rem; margin: 0.85rem 0; }
+  .tls-meta div, .tls-facts div { min-width: 0; }
+  .tls-meta dt, .tls-facts dt { color: var(--mdt-text-muted); font-size: 0.78rem; }
+  .tls-meta dd, .tls-facts dd { margin: 0; overflow-wrap: anywhere; }
+  .tls-setup { margin-top: 0.75rem; }
+  .tls-setup-body { display: grid; gap: 0.55rem; padding-top: 0.55rem; }
+  .tls-setup-body ol { margin: 0; padding-left: 1.2rem; }
+  .tls-results-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.4rem 1rem; }
+  .tls-results-head h2 { margin: 0; }
+  .tls-chain { min-width: 0; max-width: 100%; overflow-x: auto; }
+  .tls-chain h3 { margin: 0 0 0.4rem; font-size: 0.95rem; }
+  .tls-chain table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .tls-chain th, .tls-chain td { text-align: start; vertical-align: top; padding: 0.35rem 0.45rem; border-bottom: 1px solid var(--mdt-border); overflow-wrap: anywhere; }
+  .tls-chain th { color: var(--mdt-text-muted); font-weight: 600; }
+</style>

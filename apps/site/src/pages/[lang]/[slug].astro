@@ -36,6 +36,7 @@ import HttpClient from "@/tools/HttpClient.astro";
 import PathTrace from "@/tools/PathTrace.astro";
 import DnsLookup from "@/tools/DnsLookup.astro";
 import TcpConnect from "@/tools/TcpConnect.astro";
+import TlsInspect from "@/tools/TlsInspect.astro";
 import HmacCalculator from "@/tools/HmacCalculator.astro";
 import JwtDecoder from "@/tools/JwtDecoder.astro";
 import JwtEncoder from "@/tools/JwtEncoder.astro";
@@ -102,7 +103,7 @@ const copiedLabel = t(lang, "common", "Common_LinkCopied");
 const relatedMixed = related.some((rel) => rel.category !== tool.category);
 const relatedLabel = relatedMixed ? t(lang, "common", "Common_RelatedTools") : catLabel;
 const homeLabel = t(lang, "common", "Nav_Home");
-const privacyLabel = slug === "http-client" || slug === "path-trace" || slug === "dns-lookup" || slug === "tcp-connect" ? t(lang, namespace, "PrivacyShort") : t(lang, "common", "NoDataSent");
+const privacyLabel = slug === "http-client" || slug === "path-trace" || slug === "dns-lookup" || slug === "tcp-connect" || slug === "tls-inspect" ? t(lang, namespace, "PrivacyShort") : t(lang, "common", "NoDataSent");
 
 // Seo_HowToSteps drives both the HowTo JSON-LD and the visible SEO block.
 // `t()` returns the raw key when missing — pass undefined in that case.
@@ -129,6 +130,7 @@ const TOOL_COMPONENTS: Record<string, any> = {
   "path-trace": PathTrace,
   "dns-lookup": DnsLookup,
   "tcp-connect": TcpConnect,
+  "tls-inspect": TlsInspect,
   "hmac-calculator": HmacCalculator,
   "jwt-decoder": JwtDecoder,
   "jwt-encoder": JwtEncoder,

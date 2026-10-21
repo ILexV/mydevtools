@@ -104,11 +104,12 @@ The request list is independent of the shorter-lived connection token.
 
 | Key | Storage | Shape | Lifetime |
 |---|---|---|---|
-| `mdt.local-agent.session.v1` | localStorage | `{ v: 1, token, expiresAt, capabilities[] }` | Until the agent's eight-hour expiry, explicit Disconnect/clear, or an unauthorized response. A record saved before path tracing has no `capabilities` field and is treated as `http.request` only. A present array is filtered to known ids and may be only `icmp.trace`, only `dns.lookup`, only `tcp.connect`, or empty. A 403 does not remove the record. |
+| `mdt.local-agent.session.v1` | localStorage | `{ v: 1, token, expiresAt, capabilities[] }` | Until the agent's eight-hour expiry, explicit Disconnect/clear, or an unauthorized response. A record saved before path tracing has no `capabilities` field and is treated as `http.request` only. A present array is filtered to known ids and may be only `icmp.trace`, only `dns.lookup`, only `tcp.connect`, only `tls.inspect`, or empty. A 403 does not remove the record. |
 | `mdt.http-workspace.v1` | localStorage | `{ v: 1, selectedId, requests[], folders[], selectedFolderId, sidebarWidth }` | Until explicit deletion or browser site-data removal; no automatic eviction |
 | `mdt.path-trace.v1` | localStorage | `{ v: 1, targets[] (≤20), intervalMs, payloadBytes, maxHops, timeoutMs, resolveNames, sourceAddress, sourceInterface }` | Until the user clears site data. Recent targets are added only after the agent accepts a trace or a path MTU search. An empty source pair means automatic. A pair that later disappears from the interface list stays saved and the control falls back to automatic until a refresh lists it again. Hop results, path MTU results, pairing codes and session tokens are not stored here. |
 | `mdt.dns-lookup.v1` | localStorage | `{ v: 1, recordType }` | Until the user clears site data. Only the selected record type is stored. The query name and the answer are not stored. An unknown type is read back as `A`. |
 | `mdt.tcp-connect.v1` | localStorage | `{ v: 1, timeoutMs }` | Until the user clears site data. Only the timeout is stored, from 200 to 10000 ms. An unknown or out-of-range value is read back as 3000. The host, the port, and the result are not stored. |
+| `mdt.tls-inspect.v1` | localStorage | `{ v: 1, timeoutMs }` | Until the user clears site data. Only the timeout is stored, from 200 to 10000 ms. An unknown or out-of-range value is read back as 5000. The host, the port, and the chain are not stored. |
 
 Draft edits are debounced by 250 ms and flushed on switch, send, pagehide and
 hidden visibility. New/rename/delete and selected request changes are persisted.
@@ -138,7 +139,7 @@ On page load, an unexpired record is restored only after `/v1/info` confirms a
 reachable agent with the expected protocol. The record stores the capabilities
 granted at pairing. A record written before path tracing has no capabilities
 field and is read as HTTP-only. A 403 from a missing capability leaves the
-saved token in place. On the path-trace, dns-lookup, and tcp-connect pages, a rejected pairing code restores the previous saved record so an earlier grant is not dropped. A temporarily unavailable agent
+saved token in place. On the path-trace, dns-lookup, tcp-connect, and tls-inspect pages, a rejected pairing code restores the previous saved record so an earlier grant is not dropped. A temporarily unavailable agent
 leaves the record intact so a later retry can reconnect. Expired, malformed and
 unauthorized records are removed. If localStorage is blocked or rejects a
 write, pairing still works for the current page in memory and the client exposes

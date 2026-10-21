@@ -131,6 +131,7 @@ const TOOL_CATALOG = [
   { slug: "path-trace", monogram: "MTR", category: "networking", wasm: null, capabilities: { cancel: true, copy: true, download: true } },
   { slug: "dns-lookup", monogram: "DNS", category: "networking", wasm: null, capabilities: { copy: true } },
   { slug: "tcp-connect", monogram: "TCP", category: "networking", wasm: null, capabilities: { cancel: true, copy: true } },
+  { slug: "tls-inspect", monogram: "TLS", category: "networking", wasm: null, capabilities: { cancel: true, copy: true } },
 
   // ── design ────────────────────────────────────────────────────────────────
   { slug: "color-converter", monogram: "#hex", category: "design", wasm: null, capabilities: { copy: true } },

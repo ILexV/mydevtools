@@ -629,7 +629,13 @@ async fn icmp_capability_is_separate_from_http_and_rejects_bad_targets() {
     assert_eq!(info.status(), StatusCode::OK);
     assert_eq!(
         response_json(info).await["capabilities"],
-        json!(["http.request", "icmp.trace", "dns.lookup", "tcp.connect"])
+        json!([
+            "http.request",
+            "icmp.trace",
+            "dns.lookup",
+            "tcp.connect",
+            "tls.inspect"
+        ])
     );
 
     for capabilities in [
@@ -638,6 +644,7 @@ async fn icmp_capability_is_separate_from_http_and_rejects_bad_targets() {
         json!(["icmp.trace", "icmp.trace"]),
         json!(["dns.lookup", "dns.lookup"]),
         json!(["tcp.connect", "tcp.connect"]),
+        json!(["tls.inspect", "tls.inspect"]),
     ] {
         let response = app
             .clone()
@@ -1548,4 +1555,245 @@ async fn tcp_connect_is_one_port_and_a_separate_capability() {
         response_json(private).await["error"]["code"],
         "private_network_denied"
     );
+}
+
+#[tokio::test]
+async fn tls_inspect_is_one_handshake_and_a_separate_capability() {
+    let (state, app) = test_app(true, 48_732);
+
+    for capabilities in [
+        json!(["http.request"]),
+        json!(["icmp.trace"]),
+        json!(["dns.lookup"]),
+        json!(["tcp.connect"]),
+    ] {
+        let paired = pair_capabilities(&state, &app, capabilities).await;
+        let denied = app
+            .clone()
+            .oneshot(request(
+                Method::POST,
+                "/v1/tls/inspect",
+                Some(json!({"host": "127.0.0.1", "port": 9, "timeoutMs": 3000})),
+                Some(paired["token"].as_str().unwrap()),
+            ))
+            .await
+            .unwrap();
+        assert_eq!(denied.status(), StatusCode::FORBIDDEN);
+    }
+
+    let tls_only = pair_capabilities(&state, &app, json!(["tls.inspect"])).await;
+    assert_eq!(tls_only["capabilities"], json!(["tls.inspect"]));
+    let token = tls_only["token"].as_str().unwrap();
+    for (path, body) in [
+        ("/v1/http/request", json!({})),
+        ("/v1/icmp/trace", trace_input(Uuid::new_v4(), "127.0.0.1")),
+        (
+            "/v1/dns/lookup",
+            json!({"name": "example.com", "type": "A"}),
+        ),
+        (
+            "/v1/tcp/connect",
+            json!({"host": "127.0.0.1", "port": 9, "timeoutMs": 3000}),
+        ),
+    ] {
+        let denied = app
+            .clone()
+            .oneshot(request(Method::POST, path, Some(body), Some(token)))
+            .await
+            .unwrap();
+        assert_eq!(denied.status(), StatusCode::FORBIDDEN);
+    }
+
+    for body in [
+        json!({"host": "127.0.0.1", "port": 0, "timeoutMs": 3000}),
+        json!({"host": "127.0.0.1:443", "port": 443, "timeoutMs": 3000}),
+        json!({"host": "80-443", "port": 443, "timeoutMs": 3000}),
+        json!({"host": "10.0.0.0/8", "port": 443, "timeoutMs": 3000}),
+        json!({"host": "127.0.0.1", "port": 443, "timeoutMs": 50}),
+        json!({"host": "127.0.0.1", "port": 443, "timeoutMs": 3000, "pem": "-----BEGIN CERTIFICATE-----"}),
+    ] {
+        let response = app
+            .clone()
+            .oneshot(request(
+                Method::POST,
+                "/v1/tls/inspect",
+                Some(body),
+                Some(token),
+            ))
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        assert_eq!(
+            response_json(response).await["error"]["code"],
+            "invalid_request"
+        );
+    }
+
+    let metadata = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/tls/inspect",
+            Some(json!({"host": "169.254.169.254", "port": 443, "timeoutMs": 3000})),
+            Some(token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(metadata.status(), StatusCode::FORBIDDEN);
+    assert_eq!(
+        response_json(metadata).await["error"]["code"],
+        "target_denied"
+    );
+
+    let self_port = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/tls/inspect",
+            Some(json!({"host": "127.0.0.1", "port": 48732, "timeoutMs": 3000})),
+            Some(token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(self_port.status(), StatusCode::FORBIDDEN);
+    assert_eq!(
+        response_json(self_port).await["error"]["code"],
+        "target_denied"
+    );
+
+    let (listen_port, server) = spawn_test_tls().await;
+    assert_ne!(listen_port, 48_732);
+    let opened = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/tls/inspect",
+            Some(json!({"host": "127.0.0.1", "port": listen_port, "timeoutMs": 3000})),
+            Some(token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(opened.status(), StatusCode::OK);
+    let opened = response_json(opened).await;
+    assert_eq!(opened["host"], "127.0.0.1");
+    assert_eq!(opened["port"], listen_port);
+    assert_eq!(opened["address"], "127.0.0.1");
+    assert_eq!(opened["status"], "ok");
+    assert!(
+        opened["protocol"]
+            .as_str()
+            .is_some_and(|value| value.starts_with("TLS"))
+    );
+    assert!(
+        opened["cipher"]
+            .as_str()
+            .is_some_and(|value| !value.is_empty())
+    );
+    assert_eq!(opened["trusted"], false);
+    let certificates = opened["certificates"].as_array().expect("chain");
+    assert!(!certificates.is_empty());
+    assert!(
+        certificates[0]["subject"]
+            .as_str()
+            .is_some_and(|subject| subject.contains("localhost"))
+    );
+    assert!(
+        certificates[0]["notAfter"]
+            .as_str()
+            .is_some_and(|expiry| expiry.ends_with('Z'))
+    );
+    assert_eq!(certificates[0]["sha256"].as_str().map(str::len), Some(64));
+    server.abort();
+
+    let refused = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/tls/inspect",
+            Some(json!({"host": "127.0.0.1", "port": listen_port, "timeoutMs": 3000})),
+            Some(token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(refused.status(), StatusCode::OK);
+    assert_eq!(response_json(refused).await["status"], "refused");
+
+    let (closed, closed_app) = test_app(false, 48_732);
+    let closed_pair = pair_capabilities(&closed, &closed_app, json!(["tls.inspect"])).await;
+    let private = closed_app
+        .oneshot(request(
+            Method::POST,
+            "/v1/tls/inspect",
+            Some(json!({"host": "127.0.0.1", "port": 9, "timeoutMs": 3000})),
+            Some(closed_pair["token"].as_str().unwrap()),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(private.status(), StatusCode::FORBIDDEN);
+    assert_eq!(
+        response_json(private).await["error"]["code"],
+        "private_network_denied"
+    );
+}
+
+async fn spawn_test_tls() -> (u16, tokio::task::JoinHandle<()>) {
+    use std::process::Command;
+
+    use rustls::pki_types::{CertificateDer, PrivateKeyDer, pem::PemObject};
+    use tokio_rustls::TlsAcceptor;
+
+    let _ = rustls::crypto::ring::default_provider().install_default();
+    let dir = std::env::temp_dir().join(format!("mdt-tls-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).expect("temp dir");
+    let key_path = dir.join("key.pem");
+    let cert_path = dir.join("cert.pem");
+    let status = Command::new("openssl")
+        .args([
+            "req",
+            "-x509",
+            "-newkey",
+            "ec",
+            "-pkeyopt",
+            "ec_paramgen_curve:P-256",
+            "-keyout",
+            key_path.to_str().expect("key path"),
+            "-out",
+            cert_path.to_str().expect("cert path"),
+            "-days",
+            "2",
+            "-nodes",
+            "-subj",
+            "/CN=localhost",
+            "-addext",
+            "subjectAltName=DNS:localhost",
+        ])
+        .status()
+        .expect("openssl");
+    assert!(status.success(), "openssl certificate");
+    let cert = CertificateDer::from_pem_slice(&std::fs::read(&cert_path).expect("cert"))
+        .expect("cert pem");
+    let key =
+        PrivateKeyDer::from_pem_slice(&std::fs::read(&key_path).expect("key")).expect("key pem");
+    let _ = std::fs::remove_dir_all(&dir);
+    let config = rustls::ServerConfig::builder()
+        .with_no_client_auth()
+        .with_single_cert(vec![cert], key)
+        .expect("server config");
+    let acceptor = TlsAcceptor::from(Arc::new(config));
+    let listener = TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("tls listener");
+    let port = listener.local_addr().expect("port").port();
+    let task = tokio::spawn(async move {
+        loop {
+            let Ok((stream, _)) = listener.accept().await else {
+                break;
+            };
+            let acceptor = acceptor.clone();
+            tokio::spawn(async move {
+                let _ = acceptor.accept(stream).await;
+            });
+        }
+    });
+    (port, task)
 }

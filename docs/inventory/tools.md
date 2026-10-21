@@ -108,7 +108,7 @@
 
 ## Astro catalog additions (2026-10-08)
 
-The Stage 1 table above records the legacy 39-tool baseline. The current Astro registry has **46 tools: 24 Rust/WASM-backed and 22 browser-only or npm-WASM-backed**, in the same 13 categories. `json-explorer`, `csv-explorer`, `parquet-explorer`, `local-data-playground`, `data-format-converter` and `log-analyzer` belong to `structured-data`. `hex-viewer` belongs to `encoding`. All seven run locally and have UI/error/SEO strings in all 10 locales.
+The Stage 1 table above records the legacy 39-tool baseline. The current Astro registry has **47 tools: 24 Rust/WASM-backed and 23 browser-only or npm-WASM-backed**, in the same 13 categories. `json-explorer`, `csv-explorer`, `parquet-explorer`, `local-data-playground`, `data-format-converter` and `log-analyzer` belong to `structured-data`. `hex-viewer` belongs to `encoding`. All seven run locally and have UI/error/SEO strings in all 10 locales.
 
 | Slug | Input and execution | View and export | Explicit boundaries |
 |---|---|---|---|
@@ -150,10 +150,10 @@ API or port/network scanner is provided.
 Protocol `/v1`: `GET /info`, `POST /pair`, `DELETE /session`,
 `POST /http/request`, `POST /http/cancel`, `POST /icmp/trace`,
 `POST /icmp/snapshot`, `POST /icmp/cancel`, `POST /icmp/mtu`,
-`GET /icmp/interfaces`, `POST /dns/lookup`, `POST /tcp/connect`. Pairing requests an explicit
+`GET /icmp/interfaces`, `POST /dns/lookup`, `POST /tcp/connect`, `POST /tls/inspect`. Pairing requests an explicit
 non-empty subset of advertised capabilities. `http.request`, `icmp.trace`,
-`dns.lookup` and `tcp.connect` are checked separately; a trace does not inherit HTTP permission,
-and an HTTP session cannot start a trace, a DNS lookup, or a TCP connect. The browser asks for
+`dns.lookup`, `tcp.connect` and `tls.inspect` are checked separately; a trace does not inherit HTTP permission,
+and an HTTP session cannot start a trace, a DNS lookup, a TCP connect, or a TLS inspect. The browser asks for
 the capability the open tool needs and keeps grants this browser already holds when the running agent
 still advertises them. Session tokens are scoped to the pairing origin.
 Future tools must introduce independently checked capabilities and routes
@@ -161,7 +161,7 @@ without inheriting HTTP or ICMP permissions. Host/Origin checks, one-time
 pairing, session expiry and cancellation live in `server.rs`/`state.rs`;
 outgoing HTTP and DNS pinning live in `http_client.rs`/`policy.rs`; ICMP
 probes live in `icmp.rs`. The DNS lookup lives in `dns.rs` and asks the
-operating-system resolver. The TCP connect lives in `tcp.rs`. The Windows tray/autostart shell stays separate.
+operating-system resolver. The TCP connect lives in `tcp.rs`. The TLS inspect lives in `tls.rs`. The Windows tray/autostart shell stays separate.
 
 `path-trace` is the ICMP page. One host or IP is resolved to the first
 address and probed continuously until Stop. The user target follows
@@ -203,6 +203,16 @@ The page stores the timeout in `mdt.tcp-connect.v1`. The host, the port, and
 the result stay on the page. The same connect path runs on every OS. It was
 checked on Linux and was not run on Windows. The published Windows download
 is still the HTTP-only build.
+
+`tls-inspect` opens one TLS handshake to one host and one port, then closes
+it without sending application data. `POST /tls/inspect` requires `tls.inspect`
+and does not take an ICMP slot, a DNS slot, or a TCP slot. The agent runs at
+most two inspections at once. A port range, a host list, and a pasted PEM are
+rejected. Trust is a separate report: an untrusted chain is still shown. The
+page stores the timeout in `mdt.tls-inspect.v1`. The host, the port, and the
+chain stay on the page. The same handshake path runs on every OS. It was
+checked on Linux and was not run on Windows. The published Windows download
+is still the HTTP-only build. Pasted PEM parsing stays in `x509`.
 
 The browser persists the origin-bound bearer and its server-issued expiry in
 versioned localStorage so navigation, reload and browser reopen do not require

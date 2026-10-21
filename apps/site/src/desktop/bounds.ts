@@ -40,6 +40,7 @@ const PROFILE_BY_SLUG: Record<string, WindowProfile> = {
   "path-trace": "wide",
   "dns-lookup": "wide",
   "tcp-connect": "wide",
+  "tls-inspect": "wide",
   "uuid-generator": "compact",
   "password-generator": "compact",
 };

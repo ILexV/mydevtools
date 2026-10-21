@@ -15,11 +15,16 @@ pub(crate) const DNS_CAPABILITY: &str = "dns.lookup";
 /// One TCP handshake to one host and one port. Pairing for HTTP, ICMP or DNS
 /// does not include this capability, and the check does not scan a range.
 pub(crate) const TCP_CAPABILITY: &str = "tcp.connect";
-pub(crate) const AGENT_CAPABILITIES: [&str; 4] = [
+/// One TLS handshake to one host and one port. Shows protocol, cipher, expiry
+/// and the peer chain. Pairing for TCP does not include this capability.
+/// A pasted PEM is not accepted on this route.
+pub(crate) const TLS_CAPABILITY: &str = "tls.inspect";
+pub(crate) const AGENT_CAPABILITIES: [&str; 5] = [
     HTTP_CAPABILITY,
     ICMP_CAPABILITY,
     DNS_CAPABILITY,
     TCP_CAPABILITY,
+    TLS_CAPABILITY,
 ];
 pub(crate) const MAX_INCOMING_JSON_BYTES: usize = 2 * 1024 * 1024;
 pub(crate) const MAX_REQUEST_BODY_BYTES: usize = 1024 * 1024;
@@ -55,7 +60,7 @@ pub(crate) struct PairRequest {
 #[serde(rename_all = "camelCase")]
 pub(crate) struct PairResponse {
     pub(crate) token: String,
-    /// Granted subset, stable order: `http.request`, `icmp.trace`, `dns.lookup`, `tcp.connect`.
+    /// Granted subset, stable order: `http.request`, `icmp.trace`, `dns.lookup`, `tcp.connect`, `tls.inspect`.
     pub(crate) capabilities: Vec<&'static str>,
     pub(crate) expires_at: String,
 }
@@ -174,6 +179,11 @@ impl ApiError {
     /// The TCP stack failed before a definite open, refusal, timeout or unreachable.
     pub(crate) const fn tcp_unavailable() -> Self {
         Self::new(StatusCode::SERVICE_UNAVAILABLE, "tcp_unavailable")
+    }
+
+    /// The TLS stack failed before a handshake result or a TCP outcome.
+    pub(crate) const fn tls_unavailable() -> Self {
+        Self::new(StatusCode::SERVICE_UNAVAILABLE, "tls_unavailable")
     }
 }
 

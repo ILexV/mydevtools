@@ -4,13 +4,14 @@ const SESSION_STORAGE_KEY = "mdt.local-agent.session.v1";
 const SESSION_STORAGE_VERSION = 1;
 
 
-export type LocalAgentCapability = "http.request" | "icmp.trace" | "dns.lookup" | "tcp.connect";
+export type LocalAgentCapability = "http.request" | "icmp.trace" | "dns.lookup" | "tcp.connect" | "tls.inspect";
 
 const CAPABILITY_ORDER: readonly LocalAgentCapability[] = [
   "http.request",
   "icmp.trace",
   "dns.lookup",
   "tcp.connect",
+  "tls.inspect",
 ];
 
 /**
@@ -153,6 +154,34 @@ export interface TcpConnectResult {
 }
 
 export interface TcpConnectRequest {
+  host: string;
+  port: number;
+  timeoutMs: number;
+}
+
+/** One certificate from a live handshake. Dates are UTC. A pasted PEM is not this type. */
+export interface TlsCertificate {
+  subject: string;
+  issuer: string;
+  notBefore: string | null;
+  notAfter: string | null;
+  sha256: string;
+}
+
+/** One TLS handshake. The host, the port and the chain are not stored. */
+export interface TlsInspectResult {
+  host: string;
+  port: number;
+  address: string;
+  status: "ok" | "refused" | "timeout" | "unreachable" | "handshake_failed";
+  elapsedMs: number;
+  protocol: string | null;
+  cipher: string | null;
+  trusted: boolean | null;
+  certificates: TlsCertificate[];
+}
+
+export interface TlsInspectRequest {
   host: string;
   port: number;
   timeoutMs: number;
@@ -486,6 +515,19 @@ export class LocalAgentClient {
     }));
   }
 
+  /**
+   * One TLS handshake to one host and one port. Requires `tls.inspect`.
+   * The socket closes without application data. A pasted PEM is not sent.
+   */
+  async inspectTls(request: TlsInspectRequest, signal?: AbortSignal): Promise<TlsInspectResult> {
+    return asTlsInspect(await this.#authorized<unknown>("/v1/tls/inspect", {
+      method: "POST",
+      signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    }));
+  }
+
   /** Path MTU on `icmp.trace`. Same Don't Fragment echoes; the agent picks the size. */
   async findPathMtu(request: PathMtuRequest, signal?: AbortSignal): Promise<PathMtuSnapshot> {
     return asPathMtu(await this.#authorized<unknown>("/v1/icmp/mtu", {
@@ -685,6 +727,79 @@ function asDnsLookup(value: unknown): DnsLookupResult {
     return { name: item.name, type: item.type, ttl: item.ttl, data: item.data, preference };
   });
   return { name: value.name, type: value.type, status: value.status, records };
+}
+
+const TLS_STATUSES = new Set(["ok", "refused", "timeout", "unreachable", "handshake_failed"]);
+const TLS_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+
+/** Rejects a TLS result the page cannot render. A chain is present only after a handshake. */
+function asTlsInspect(value: unknown): TlsInspectResult {
+  if (!isObject(value) || typeof value.host !== "string" || typeof value.address !== "string") {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (typeof value.port !== "number" || !Number.isInteger(value.port) || value.port < 1 || value.port > 65535) {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (typeof value.status !== "string" || !TLS_STATUSES.has(value.status)) {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (typeof value.elapsedMs !== "number" || !Number.isFinite(value.elapsedMs) || value.elapsedMs < 0) {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (!Array.isArray(value.certificates) || value.certificates.length > 16) {
+    throw new LocalAgentError("invalid_response");
+  }
+  const certificates = value.certificates.map(asTlsCertificate);
+  const handshake = value.status === "ok";
+  const protocol = asOptionalText(value.protocol);
+  const cipher = asOptionalText(value.cipher);
+  const trusted = typeof value.trusted === "boolean" ? value.trusted : null;
+  if (handshake) {
+    if (!protocol || !cipher || trusted === null || certificates.length === 0) {
+      throw new LocalAgentError("invalid_response");
+    }
+  } else if (protocol !== null || cipher !== null || trusted !== null || certificates.length !== 0) {
+    throw new LocalAgentError("invalid_response");
+  }
+  return {
+    host: value.host,
+    port: value.port,
+    address: value.address,
+    status: value.status as TlsInspectResult["status"],
+    elapsedMs: value.elapsedMs,
+    protocol,
+    cipher,
+    trusted,
+    certificates,
+  };
+}
+
+function asTlsCertificate(value: unknown): TlsCertificate {
+  if (!isObject(value) || typeof value.subject !== "string" || typeof value.issuer !== "string") {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (typeof value.sha256 !== "string" || !/^[0-9a-f]{64}$/.test(value.sha256)) {
+    throw new LocalAgentError("invalid_response");
+  }
+  return {
+    subject: value.subject,
+    issuer: value.issuer,
+    notBefore: asTlsTime(value.notBefore),
+    notAfter: asTlsTime(value.notAfter),
+    sha256: value.sha256,
+  };
+}
+
+function asTlsTime(value: unknown): string | null {
+  if (value === null) return null;
+  if (typeof value !== "string" || !TLS_TIME.test(value)) throw new LocalAgentError("invalid_response");
+  return value;
+}
+
+function asOptionalText(value: unknown): string | null {
+  if (value === null) return null;
+  if (typeof value !== "string" || value.length === 0) throw new LocalAgentError("invalid_response");
+  return value;
 }
 
 const TCP_STATUSES = new Set(["open", "refused", "timeout", "unreachable"]);

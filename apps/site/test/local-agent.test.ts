@@ -276,6 +276,14 @@ test("mergeCapabilities keeps a previous grant only when the agent still adverti
     ),
     ["http.request", "icmp.trace", "dns.lookup", "tcp.connect"],
   );
+  assert.deepEqual(
+    mergeCapabilities(
+      ["http.request", "icmp.trace", "dns.lookup", "tcp.connect"],
+      ["http.request", "icmp.trace", "dns.lookup", "tcp.connect", "tls.inspect"],
+      "tls.inspect",
+    ),
+    ["http.request", "icmp.trace", "dns.lookup", "tcp.connect", "tls.inspect"],
+  );
 });
 
 test("stored sessions without a capabilities field stay HTTP-only", () => {

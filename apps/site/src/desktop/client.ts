@@ -140,6 +140,7 @@ export function bootDesktop(): void {
   const taskHost = must<HTMLElement>("[data-desk-tasks]");
   const frameInput = new WeakMap<HTMLIFrameElement, () => boolean>();
   const readyFrames = new WeakSet<HTMLIFrameElement>();
+  const attachedDocs = new WeakSet<Document>();
   const pendingTransfers = new Map<HTMLIFrameElement, TransferDelivery[]>();
   const toolActivity = new Map<string, { value: number | null; label: string }>();
   let recentlyClosed: DeskWindow[] = [];
@@ -300,6 +301,10 @@ export function bootDesktop(): void {
     if (!frame || !sourceId || !sourceSlug) return;
     const message = parseFrameMessage(event.data, sourceSlug, (slug) => tools.has(slug));
     if (!message) return;
+    if (message.type === "mdt:frame-interactive") {
+      attachFrame(frame, sourceId);
+      return;
+    }
     if (message.type === "mdt:transfer-ready") {
       readyFrames.add(frame);
       const queued = pendingTransfers.get(frame) ?? [];
@@ -755,8 +760,8 @@ export function bootDesktop(): void {
       const loaded = !!doc?.querySelector("main.tool");
       error.hidden = loaded;
       if (!doc || !loaded) return;
-      frameInput.set(frame, trackUserInput(doc));
-      frame.contentWindow?.addEventListener("keydown", (event) => onFrameKey(event, record.id), true);
+      // Normally attached at `mdt:frame-interactive`; this covers a page without that script.
+      attachFrame(frame, record.id);
       void fitInitialWindow(record.id, frame);
     });
     frame.addEventListener("mdt:wake", () => {
@@ -780,6 +785,19 @@ export function bootDesktop(): void {
     error.append(message, retry);
     wrap.append(frame, error);
     return wrap;
+  }
+
+  /**
+   * Close protection and desktop hotkeys for the frame's current document, once
+   * per document: as soon as its markup is parsed, so early typing is tracked.
+   */
+  function attachFrame(frame: HTMLIFrameElement, id: string): void {
+    const doc = frame.contentDocument;
+    if (!doc || attachedDocs.has(doc) || !doc.querySelector("main.tool")) return;
+    attachedDocs.add(doc);
+    frame.dataset.attached = "";
+    frameInput.set(frame, trackUserInput(doc));
+    doc.defaultView?.addEventListener("keydown", (event) => onFrameKey(event, id), true);
   }
 
   /** Starts loading a lazily created frame; a no-op once it has a document. */

@@ -53,6 +53,7 @@ test("frame messages are accepted only for the sending tool", () => {
   assert.deepEqual(parseFrameMessage({ type: "mdt:transfer-ready", slug: "base64" }, "base64", isTool), { type: "mdt:transfer-ready" });
   assert.equal(parseFrameMessage({ type: "mdt:transfer-ready", slug: "json-formatter" }, "base64", isTool), null);
   assert.equal(parseFrameMessage(null, "base64", isTool), null);
+  assert.deepEqual(parseFrameMessage({ type: "mdt:frame-interactive" }, "base64", isTool), { type: "mdt:frame-interactive" });
   assert.equal(parseFrameMessage({ type: "mdt:unknown", slug: "base64" }, "base64", isTool), null);
 });
 

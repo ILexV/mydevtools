@@ -31,6 +31,8 @@ async function launch(page: Page, query: string, slug: string): Promise<void> {
   await input.press("Enter");
   await expect(page.locator("[data-catalog-dialog]")).not.toBeVisible();
   await expect(page.frameLocator(`iframe[data-tool-slug="${slug}"]`).locator("main.tool")).toBeAttached();
+  // The shell tracks input once the page's scripts run, which is before `load`.
+  await expect(page.locator(`iframe[data-tool-slug="${slug}"][data-attached]`)).toBeAttached();
 }
 
 const visibleWindows = (page: Page) => page.locator(".desk-window:not([hidden])");
@@ -63,10 +65,18 @@ test("two tools side by side keep input across minimize and show desktop", async
 });
 
 test("closing a window with input asks first; staying keeps the text", async ({ page }) => {
+  // Slow fonts keep the frame's `load` far behind its markup, as on a real network:
+  // text typed before `load` must still count as input.
+  await page.route("**/*.woff2", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    await route.fallback();
+  });
   await openDesk(page);
   await launch(page, "Base64", "base64-encoder");
   const input = page.frameLocator('iframe[data-tool-slug="base64-encoder"]').locator("textarea.enc-input");
   await input.fill("keep me");
+  // The fonts are still on their way: this input was typed before the frame's `load`.
+  expect(await page.frameLocator('iframe[data-tool-slug="base64-encoder"]').locator("html").evaluate(() => document.readyState)).not.toBe("complete");
 
   const close = page.locator(".desk-window:not([hidden]) [data-close]");
   await close.click();

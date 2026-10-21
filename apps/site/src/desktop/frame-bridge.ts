@@ -15,6 +15,7 @@ export const TRANSFER_MEDIA_TYPES: ReadonlySet<string> = new Set([
 ]);
 
 export type FrameMessage =
+  | { type: "mdt:frame-interactive" }
   | { type: "mdt:transfer-ready" }
   | { type: "mdt:tool-activity"; active: false }
   | { type: "mdt:tool-activity"; active: true; value: number | null; label: string }
@@ -33,6 +34,8 @@ export function parseFrameMessage(data: unknown, sourceSlug: string, isTool: (sl
   if (!data || typeof data !== "object") return null;
   const message = data as Record<string, unknown>;
   switch (message.type) {
+    case "mdt:frame-interactive":
+      return { type: "mdt:frame-interactive" };
     case "mdt:transfer-ready":
       return message.slug === sourceSlug ? { type: "mdt:transfer-ready" } : null;
     case "mdt:tool-activity":

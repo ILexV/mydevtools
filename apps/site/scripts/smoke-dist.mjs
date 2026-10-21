@@ -34,7 +34,7 @@ test("dist: every locale home + offline + 404 + manifest + sw + icons", { skip }
 test("local agent: release metadata matches the downloadable executable", { skip }, () => {
   const manifest = JSON.parse(read("downloads/local-agent.json"));
   assert.equal(manifest.platform, "windows-x64");
-  assert.equal(manifest.file, "mydevtools-agent-windows-x64.exe");
+  assert.equal(manifest.file, "mydevtools-agent-windows-x64-setup.exe");
   assert.match(manifest.version, /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/);
   assert.match(manifest.sha256, /^[0-9a-f]{64}$/);
   const executable = readFileSync(new URL(`downloads/${manifest.file}`, DIST));

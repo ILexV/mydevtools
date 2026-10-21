@@ -32,13 +32,15 @@ npm run test:agent
 
 This uses the independent Rust workspace in `apps/local-agent`. On Windows,
 install MSVC Build Tools and the Windows SDK; on Linux, install the MinGW-w64
-cross-compiler (`x86_64-w64-mingw32-gcc`). The packaging script selects the host's
-Windows target, builds the executable and generates
-`public/downloads/local-agent.json` from Cargo's version, SHA-256 and file size.
-Both downloads are gitignored. The localized download pages fail the build if
-the binary or metadata is missing or disagrees. Do not publish a page pointing
-to a fabricated release. The binary is currently unsigned; the page explains
-SmartScreen and distinguishes a checksum from a publisher signature.
+cross-compiler (`x86_64-w64-mingw32-gcc`). Both hosts also need NSIS 3 (`makensis`).
+The packaging script selects the host's Windows target, builds the executable,
+wraps it in the per-user installer `installer/mydevtools-agent.nsi`, and generates
+`public/downloads/local-agent.json` from Cargo's version and the installer's
+SHA-256 and file size. The installer and metadata are gitignored. The localized
+download pages fail the build if the installer or metadata is missing or disagrees.
+Do not publish a page pointing at a fabricated release. The installer is currently
+unsigned; the page explains SmartScreen and distinguishes a checksum from a
+publisher signature.
 
 Before publishing a native release, run the executable on Windows 10/11 x64:
 open from the download, pair with the HTTPS site, minimize/close to tray, reopen
@@ -50,7 +52,7 @@ does **not** verify these OS interactions. No automatic updater is installed.
 Browser smoke should include a target without CORS, a UTF-8 request body,
 duplicate response headers, a binary-body download, cancellation, and disconnect
 while a request is active. Confirm that a new request clears the previous result
-and that reconnect stays disabled until revocation completes. Download the EXE
+and that reconnect stays disabled until revocation completes. Download the installer
 from the description page and compare its SHA-256 with the displayed release
 metadata; downloads must bypass the service worker's runtime cache.
 
@@ -58,7 +60,8 @@ Native release 0.1.1 fixes error 87 on startup by querying the Run registry valu
 with explicit type flags (`RRF_RT_ANY | RRF_NOEXPAND`), rather than zero flags.
 Read failures are reported separately from changes to autostart. Verify both a
 missing Run value and the enable → readback → disable → readback transition.
-Existing users must exit the old process and replace the EXE; there is no updater.
+The download is a per-user installer. Running it stops an open agent and replaces
+the copy in `%LOCALAPPDATA%\MyDevTools\Agent`. There is no background updater.
 The same release embeds the MyDevTools icon for the executable, window and tray,
 restores the native caption through default `WM_NCCREATE` handling, and uses
 DPI-scaled Segoe UI controls with consistent backgrounds.
@@ -243,11 +246,11 @@ Compile targets:
 ## What `build:pages` does
 
 `validate:i18n` → `build:wasm` (regenerates all 11 WASM domains into
-`apps/site/src/generated/wasm/`) → `build:agent` (Windows executable + release metadata)
+`apps/site/src/generated/wasm/`) → `build:agent` (Windows installer + release metadata)
 → `build:site` (`astro build` + `node build-sw.mjs`) → `test:smoke`
 (static routes, release download/metadata and the existing site contracts).
 Astro empties `dist/` before each build. Agent downloads bypass the PWA runtime
-cache and use versioned URLs; the executable is not precached.
+cache and use versioned URLs; the installer is not precached.
 
 > `src/generated/` is gitignored, so `npm run build:wasm` (all 11 domains,
 > `ipcalc` included) must run on a fresh checkout and whenever Rust sources change.

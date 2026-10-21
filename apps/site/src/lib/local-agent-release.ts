@@ -7,12 +7,12 @@ import { pathToFileURL } from "node:url";
 const DOWNLOADS_DIR = pathToFileURL(resolve("public/downloads") + sep);
 const MANIFEST_URL = new URL("local-agent.json", DOWNLOADS_DIR);
 const EXPECTED_PLATFORM = "windows-x64";
-const EXPECTED_FILE = "mydevtools-agent-windows-x64.exe";
+const EXPECTED_FILE = "mydevtools-agent-windows-x64-setup.exe";
 
 export interface LocalAgentRelease {
   version: string;
   platform: "windows-x64";
-  file: "mydevtools-agent-windows-x64.exe";
+  file: "mydevtools-agent-windows-x64-setup.exe";
   sha256: string;
   size: number;
 }

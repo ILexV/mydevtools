@@ -54,20 +54,44 @@ $DownloadDirectory = Join-Path $PSScriptRoot "../site/public/downloads"
 New-Item -ItemType Directory -Force -Path $ArtifactDirectory | Out-Null
 New-Item -ItemType Directory -Force -Path $DownloadDirectory | Out-Null
 
-$FileName = "mydevtools-agent-windows-x64.exe"
-$ArtifactExe = Join-Path $ArtifactDirectory $FileName
-$DownloadExe = Join-Path $DownloadDirectory $FileName
-$DownloadExeTemporary = "$DownloadExe.tmp"
+$PayloadName = "mydevtools-agent-windows-x64.exe"
+$ArtifactExe = Join-Path $ArtifactDirectory $PayloadName
 Copy-Item -LiteralPath $SourceExe -Destination $ArtifactExe -Force
-Copy-Item -LiteralPath $SourceExe -Destination $DownloadExeTemporary -Force
-Move-Item -LiteralPath $DownloadExeTemporary -Destination $DownloadExe -Force
 
-$Hash = (Get-FileHash -LiteralPath $DownloadExe -Algorithm SHA256).Hash.ToLowerInvariant()
-$Size = (Get-Item -LiteralPath $DownloadExe).Length
+$SetupName = "mydevtools-agent-windows-x64-setup.exe"
+$SetupExe = Join-Path $ArtifactDirectory $SetupName
+$NsisScript = Join-Path $PSScriptRoot "installer/mydevtools-agent.nsi"
+$Icon = Join-Path $PSScriptRoot "assets/mydevtools.ico"
+if (-not (Get-Command "makensis" -ErrorAction SilentlyContinue)) {
+    throw "makensis is required to build the per-user Windows installer"
+}
+$Version = [string]$Package.version
+$VersionMatch = [regex]::Match($Version, '^(\d+\.\d+\.\d+)')
+if (-not $VersionMatch.Success) {
+    throw "package version must start with major.minor.patch"
+}
+$VersionQuad = "$($VersionMatch.Groups[1].Value).0"
+& makensis "-INPUTCHARSET" "UTF8" "-DPRODUCT_VERSION=$Version" "-DPRODUCT_VERSION_QUAD=$VersionQuad" "-DPAYLOAD=$SourceExe" "-DOUTFILE=$SetupExe" "-DICON=$Icon" $NsisScript
+if ($LASTEXITCODE -ne 0) { throw "makensis failed" }
+if (-not (Test-Path -LiteralPath $SetupExe -PathType Leaf)) {
+    throw "installer is missing: $SetupExe"
+}
+
+$DownloadSetup = Join-Path $DownloadDirectory $SetupName
+$DownloadSetupTemporary = "$DownloadSetup.tmp"
+Copy-Item -LiteralPath $SetupExe -Destination $DownloadSetupTemporary -Force
+Move-Item -LiteralPath $DownloadSetupTemporary -Destination $DownloadSetup -Force
+$OldPortableDownload = Join-Path $DownloadDirectory $PayloadName
+if (Test-Path -LiteralPath $OldPortableDownload) {
+    Remove-Item -LiteralPath $OldPortableDownload -Force
+}
+
+$Hash = (Get-FileHash -LiteralPath $DownloadSetup -Algorithm SHA256).Hash.ToLowerInvariant()
+$Size = (Get-Item -LiteralPath $DownloadSetup).Length
 $Release = [ordered]@{
     version = [string]$Package.version
     platform = "windows-x64"
-    file = $FileName
+    file = $SetupName
     sha256 = $Hash
     size = [long]$Size
 }
@@ -86,5 +110,5 @@ Move-Item -LiteralPath $ManifestTemporary -Destination $ManifestFile -Force
     [System.Text.UTF8Encoding]::new($false)
 )
 
-Write-Host "Windows agent: $DownloadExe"
+Write-Host "Windows agent installer: $DownloadSetup"
 Write-Host "SHA-256: $Hash"

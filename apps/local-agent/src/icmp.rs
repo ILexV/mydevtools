@@ -2012,7 +2012,9 @@ mod platform {
         }
         let parsed = unsafe { &*(reply.as_ptr() as *const ICMPV6_ECHO_REPLY_LH) };
         let mut octets = [0u8; 16];
-        for (index, word) in parsed.Address.sin6_addr.iter().enumerate() {
+        // IPV6_ADDRESS_EX is packed, so the address words are copied out before use.
+        let words = parsed.Address.sin6_addr;
+        for (index, word) in words.iter().enumerate() {
             let bytes = word.to_be_bytes();
             octets[index * 2] = bytes[0];
             octets[index * 2 + 1] = bytes[1];

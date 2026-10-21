@@ -9,6 +9,7 @@ mod server;
 mod state;
 mod tcp;
 mod tls;
+mod whois;
 #[cfg(windows)]
 mod windows_shell;
 

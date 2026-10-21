@@ -19,12 +19,16 @@ pub(crate) const TCP_CAPABILITY: &str = "tcp.connect";
 /// and the peer chain. Pairing for TCP does not include this capability.
 /// A pasted PEM is not accepted on this route.
 pub(crate) const TLS_CAPABILITY: &str = "tls.inspect";
-pub(crate) const AGENT_CAPABILITIES: [&str; 5] = [
+/// One WHOIS query on TCP port 43. Pairing for TLS does not include this
+/// capability, and the reply is not followed to another server.
+pub(crate) const WHOIS_CAPABILITY: &str = "whois.lookup";
+pub(crate) const AGENT_CAPABILITIES: [&str; 6] = [
     HTTP_CAPABILITY,
     ICMP_CAPABILITY,
     DNS_CAPABILITY,
     TCP_CAPABILITY,
     TLS_CAPABILITY,
+    WHOIS_CAPABILITY,
 ];
 pub(crate) const MAX_INCOMING_JSON_BYTES: usize = 2 * 1024 * 1024;
 pub(crate) const MAX_REQUEST_BODY_BYTES: usize = 1024 * 1024;
@@ -60,7 +64,7 @@ pub(crate) struct PairRequest {
 #[serde(rename_all = "camelCase")]
 pub(crate) struct PairResponse {
     pub(crate) token: String,
-    /// Granted subset, stable order: `http.request`, `icmp.trace`, `dns.lookup`, `tcp.connect`, `tls.inspect`.
+    /// Granted subset, stable order: `http.request`, `icmp.trace`, `dns.lookup`, `tcp.connect`, `tls.inspect`, `whois.lookup`.
     pub(crate) capabilities: Vec<&'static str>,
     pub(crate) expires_at: String,
 }
@@ -184,6 +188,11 @@ impl ApiError {
     /// The TLS stack failed before a handshake result or a TCP outcome.
     pub(crate) const fn tls_unavailable() -> Self {
         Self::new(StatusCode::SERVICE_UNAVAILABLE, "tls_unavailable")
+    }
+
+    /// The WHOIS exchange failed before a reply or a TCP outcome.
+    pub(crate) const fn whois_unavailable() -> Self {
+        Self::new(StatusCode::SERVICE_UNAVAILABLE, "whois_unavailable")
     }
 }
 

@@ -4,7 +4,7 @@ const SESSION_STORAGE_KEY = "mdt.local-agent.session.v1";
 const SESSION_STORAGE_VERSION = 1;
 
 
-export type LocalAgentCapability = "http.request" | "icmp.trace" | "dns.lookup" | "tcp.connect" | "tls.inspect";
+export type LocalAgentCapability = "http.request" | "icmp.trace" | "dns.lookup" | "tcp.connect" | "tls.inspect" | "whois.lookup";
 
 const CAPABILITY_ORDER: readonly LocalAgentCapability[] = [
   "http.request",
@@ -12,6 +12,7 @@ const CAPABILITY_ORDER: readonly LocalAgentCapability[] = [
   "dns.lookup",
   "tcp.connect",
   "tls.inspect",
+  "whois.lookup",
 ];
 
 /**
@@ -184,6 +185,24 @@ export interface TlsInspectResult {
 export interface TlsInspectRequest {
   host: string;
   port: number;
+  timeoutMs: number;
+}
+
+/** One WHOIS reply from TCP port 43. `text` is empty unless `status` is `ok`. */
+export interface WhoisLookupResult {
+  query: string;
+  server: string;
+  port: number;
+  address: string;
+  status: "ok" | "refused" | "timeout" | "unreachable";
+  elapsedMs: number;
+  truncated: boolean;
+  text: string;
+}
+
+export interface WhoisLookupRequest {
+  query: string;
+  server: string;
   timeoutMs: number;
 }
 
@@ -528,6 +547,19 @@ export class LocalAgentClient {
     }));
   }
 
+  /**
+   * One WHOIS query on TCP port 43. Requires `whois.lookup`.
+   * The agent does not follow a referral to another server.
+   */
+  async lookupWhois(request: WhoisLookupRequest, signal?: AbortSignal): Promise<WhoisLookupResult> {
+    return asWhoisLookup(await this.#authorized<unknown>("/v1/whois/lookup", {
+      method: "POST",
+      signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    }));
+  }
+
   /** Path MTU on `icmp.trace`. Same Don't Fragment echoes; the agent picks the size. */
   async findPathMtu(request: PathMtuRequest, signal?: AbortSignal): Promise<PathMtuSnapshot> {
     return asPathMtu(await this.#authorized<unknown>("/v1/icmp/mtu", {
@@ -727,6 +759,41 @@ function asDnsLookup(value: unknown): DnsLookupResult {
     return { name: item.name, type: item.type, ttl: item.ttl, data: item.data, preference };
   });
   return { name: value.name, type: value.type, status: value.status, records };
+}
+
+const WHOIS_STATUSES = new Set(["ok", "refused", "timeout", "unreachable"]);
+
+/** Rejects a WHOIS body the page cannot render. The port is always 43. */
+function asWhoisLookup(value: unknown): WhoisLookupResult {
+  if (!isObject(value) || typeof value.query !== "string" || value.query.length === 0) {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (typeof value.server !== "string" || value.server.length === 0 || typeof value.address !== "string") {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (value.port !== 43 || typeof value.status !== "string" || !WHOIS_STATUSES.has(value.status)) {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (typeof value.elapsedMs !== "number" || !Number.isFinite(value.elapsedMs) || value.elapsedMs < 0) {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (typeof value.text !== "string" || typeof value.truncated !== "boolean") {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (value.status !== "ok" && (value.text !== "" || value.truncated)) {
+    throw new LocalAgentError("invalid_response");
+  }
+  if (value.text.length > 64 * 1024) throw new LocalAgentError("invalid_response");
+  return {
+    query: value.query,
+    server: value.server,
+    port: 43,
+    address: value.address,
+    status: value.status as WhoisLookupResult["status"],
+    elapsedMs: value.elapsedMs,
+    truncated: value.truncated,
+    text: value.text,
+  };
 }
 
 const TLS_STATUSES = new Set(["ok", "refused", "timeout", "unreachable", "handshake_failed"]);

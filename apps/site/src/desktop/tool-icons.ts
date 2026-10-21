@@ -73,6 +73,7 @@ export const TOOL_ICONS: Record<string, string> = {
   "dns-lookup": `<circle cx="10" cy="10" r="6.2"/><path d="M10 3.8v12.4M4.2 10h11.6M5.2 6.6c1.4 1.2 3 1.8 4.8 1.8s3.4-.6 4.8-1.8M5.2 13.4c1.4-1.2 3-1.8 4.8-1.8s3.4.6 4.8 1.8"/>`,
   "tcp-connect": `<path d="M7 3.2v3.6M13 3.2v3.6M5.2 7.4h9.6v2.4a4.8 4.8 0 0 1-9.6 0V7.4zM10 14.6v2.6"/>`,
   "tls-inspect": `<rect x="4.2" y="9" width="11.6" height="8" rx="1.4"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9"/>`,
+  "whois-lookup": `${page}<path d="M7.2 9.2h5.6M7.2 11.6h5.6M7.2 14h3.4"/>`,
 
   /* design */
   "color-converter": `<path d="M10 3a7 7 0 0 0 0 14c1 0 1.5-.6 1.5-1.4 0-.8-.6-1.2-.6-2 0-.9.7-1.6 1.6-1.6H14a3 3 0 0 0 3-3C17 5.8 13.9 3 10 3Z"/>${dot(6.4, 9.2)}${dot(8.4, 6.2)}${dot(12.4, 6.3)}`,

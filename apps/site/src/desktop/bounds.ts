@@ -41,6 +41,7 @@ const PROFILE_BY_SLUG: Record<string, WindowProfile> = {
   "dns-lookup": "wide",
   "tcp-connect": "wide",
   "tls-inspect": "wide",
+  "whois-lookup": "wide",
   "uuid-generator": "compact",
   "password-generator": "compact",
 };

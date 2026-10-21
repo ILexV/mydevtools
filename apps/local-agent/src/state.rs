@@ -19,10 +19,11 @@ use crate::{
     icmp::{SharedTrace, TraceState},
     model::{
         ApiError, DNS_CAPABILITY, HTTP_CAPABILITY, ICMP_CAPABILITY, PairRequest, PairResponse,
-        TCP_CAPABILITY, TLS_CAPABILITY,
+        TCP_CAPABILITY, TLS_CAPABILITY, WHOIS_CAPABILITY,
     },
     tcp::MAX_CONCURRENT_CONNECTS,
     tls::MAX_CONCURRENT_INSPECTIONS,
+    whois::MAX_CONCURRENT_QUERIES,
 };
 
 const PAIRING_LIFETIME: Duration = Duration::from_secs(5 * 60);
@@ -58,6 +59,7 @@ pub(crate) struct AgentState {
     tcp_concurrency: Arc<Semaphore>,
     /// TLS handshakes in flight. One host and one port each. Separate from TCP.
     tls_concurrency: Arc<Semaphore>,
+    whois_concurrency: Arc<Semaphore>,
     /// Path MTU searches in flight. Counted with non-idle traces toward the cap of two.
     mtu_inflight: Mutex<usize>,
 }
@@ -76,6 +78,7 @@ struct Session {
     dns_lookup_allowed: bool,
     tcp_connect_allowed: bool,
     tls_inspect_allowed: bool,
+    whois_lookup_allowed: bool,
     active: HashMap<Uuid, CancellationToken>,
     cancellation_tombstones: HashMap<Uuid, Instant>,
     traces: HashMap<Uuid, Arc<Mutex<SharedTrace>>>,
@@ -103,6 +106,7 @@ impl AgentState {
             dns_concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_LOOKUPS)),
             tcp_concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_CONNECTS)),
             tls_concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_INSPECTIONS)),
+            whois_concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_QUERIES)),
             mtu_inflight: Mutex::new(0),
         })
     }
@@ -195,6 +199,9 @@ impl AgentState {
                 tls_inspect_allowed: granted
                     .iter()
                     .any(|capability| *capability == TLS_CAPABILITY),
+                whois_lookup_allowed: granted
+                    .iter()
+                    .any(|capability| *capability == WHOIS_CAPABILITY),
                 active: HashMap::new(),
                 cancellation_tombstones: HashMap::new(),
                 traces: HashMap::new(),
@@ -295,6 +302,24 @@ impl AgentState {
             .map_err(|_| ApiError::busy())
     }
 
+    pub(crate) fn authorize_whois(
+        &self,
+        authorization: Option<&str>,
+        origin: &str,
+    ) -> Result<SessionKey, ApiError> {
+        let auth = self.authorize(authorization, origin)?;
+        if !auth.whois_lookup_allowed {
+            return Err(ApiError::forbidden());
+        }
+        Ok(auth.key)
+    }
+
+    pub(crate) fn try_acquire_whois_slot(&self) -> Result<OwnedSemaphorePermit, ApiError> {
+        Arc::clone(&self.whois_concurrency)
+            .try_acquire_owned()
+            .map_err(|_| ApiError::busy())
+    }
+
     fn authorize(
         &self,
         authorization: Option<&str>,
@@ -323,6 +348,7 @@ impl AgentState {
             dns_lookup_allowed: session.dns_lookup_allowed,
             tcp_connect_allowed: session.tcp_connect_allowed,
             tls_inspect_allowed: session.tls_inspect_allowed,
+            whois_lookup_allowed: session.whois_lookup_allowed,
         })
     }
 
@@ -545,6 +571,7 @@ struct SessionAuth {
     dns_lookup_allowed: bool,
     tcp_connect_allowed: bool,
     tls_inspect_allowed: bool,
+    whois_lookup_allowed: bool,
 }
 
 impl Drop for ActiveRequestGuard {
@@ -586,6 +613,7 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
     let mut dns = false;
     let mut tcp = false;
     let mut tls = false;
+    let mut whois = false;
     for capability in requested {
         match capability.as_str() {
             HTTP_CAPABILITY if !http => http = true,
@@ -593,10 +621,11 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
             DNS_CAPABILITY if !dns => dns = true,
             TCP_CAPABILITY if !tcp => tcp = true,
             TLS_CAPABILITY if !tls => tls = true,
+            WHOIS_CAPABILITY if !whois => whois = true,
             _ => return Err(ApiError::unsupported_capability()),
         }
     }
-    let mut granted = Vec::with_capacity(5);
+    let mut granted = Vec::with_capacity(6);
     if http {
         granted.push(HTTP_CAPABILITY);
     }
@@ -611,6 +640,9 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
     }
     if tls {
         granted.push(TLS_CAPABILITY);
+    }
+    if whois {
+        granted.push(WHOIS_CAPABILITY);
     }
     Ok(granted)
 }

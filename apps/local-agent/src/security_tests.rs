@@ -634,7 +634,8 @@ async fn icmp_capability_is_separate_from_http_and_rejects_bad_targets() {
             "icmp.trace",
             "dns.lookup",
             "tcp.connect",
-            "tls.inspect"
+            "tls.inspect",
+            "whois.lookup"
         ])
     );
 
@@ -645,6 +646,7 @@ async fn icmp_capability_is_separate_from_http_and_rejects_bad_targets() {
         json!(["dns.lookup", "dns.lookup"]),
         json!(["tcp.connect", "tcp.connect"]),
         json!(["tls.inspect", "tls.inspect"]),
+        json!(["whois.lookup", "whois.lookup"]),
     ] {
         let response = app
             .clone()
@@ -1796,4 +1798,174 @@ async fn spawn_test_tls() -> (u16, tokio::task::JoinHandle<()>) {
         }
     });
     (port, task)
+}
+
+#[tokio::test]
+async fn whois_lookup_is_one_query_on_port_43_and_a_separate_capability() {
+    let (state, app) = test_app(true, 48_732);
+
+    for capabilities in [
+        json!(["http.request"]),
+        json!(["icmp.trace"]),
+        json!(["dns.lookup"]),
+        json!(["tcp.connect"]),
+        json!(["tls.inspect"]),
+    ] {
+        let paired = pair_capabilities(&state, &app, capabilities).await;
+        let denied = app
+            .clone()
+            .oneshot(request(
+                Method::POST,
+                "/v1/whois/lookup",
+                Some(json!({"query": "example.com", "server": "127.0.0.1", "timeoutMs": 1000})),
+                Some(paired["token"].as_str().unwrap()),
+            ))
+            .await
+            .unwrap();
+        assert_eq!(denied.status(), StatusCode::FORBIDDEN);
+    }
+
+    let whois_only = pair_capabilities(&state, &app, json!(["whois.lookup"])).await;
+    assert_eq!(whois_only["capabilities"], json!(["whois.lookup"]));
+    let token = whois_only["token"].as_str().unwrap();
+    for (path, body) in [
+        ("/v1/http/request", json!({})),
+        ("/v1/icmp/trace", trace_input(Uuid::new_v4(), "127.0.0.1")),
+        (
+            "/v1/dns/lookup",
+            json!({"name": "example.com", "type": "A"}),
+        ),
+        (
+            "/v1/tcp/connect",
+            json!({"host": "127.0.0.1", "port": 9, "timeoutMs": 3000}),
+        ),
+        (
+            "/v1/tls/inspect",
+            json!({"host": "127.0.0.1", "port": 443, "timeoutMs": 3000}),
+        ),
+    ] {
+        let denied = app
+            .clone()
+            .oneshot(request(Method::POST, path, Some(body), Some(token)))
+            .await
+            .unwrap();
+        assert_eq!(denied.status(), StatusCode::FORBIDDEN);
+    }
+
+    for body in [
+        json!({"query": "", "server": "whois.iana.org", "timeoutMs": 3000}),
+        json!({"query": "example.com\nexample.org", "server": "whois.iana.org", "timeoutMs": 3000}),
+        json!({"query": "80-443", "server": "whois.iana.org", "timeoutMs": 3000}),
+        json!({"query": "example.com", "server": "whois.iana.org:43", "timeoutMs": 3000}),
+        json!({"query": "example.com", "server": "whois.iana.org", "timeoutMs": 50}),
+        json!({"query": "example.com", "server": "whois.iana.org", "timeoutMs": 3000, "port": 43}),
+    ] {
+        let rejected = app
+            .clone()
+            .oneshot(request(
+                Method::POST,
+                "/v1/whois/lookup",
+                Some(body),
+                Some(token),
+            ))
+            .await
+            .unwrap();
+        assert_eq!(rejected.status(), StatusCode::BAD_REQUEST);
+        assert_eq!(
+            response_json(rejected).await["error"]["code"],
+            "invalid_request"
+        );
+    }
+
+    let metadata = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/whois/lookup",
+            Some(json!({"query": "example.com", "server": "169.254.169.254", "timeoutMs": 1000})),
+            Some(token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(metadata.status(), StatusCode::FORBIDDEN);
+    assert_eq!(
+        response_json(metadata).await["error"]["code"],
+        "target_denied"
+    );
+
+    let dialed = app
+        .clone()
+        .oneshot(request(
+            Method::POST,
+            "/v1/whois/lookup",
+            Some(json!({"query": "example.com", "server": "127.0.0.1", "timeoutMs": 1000})),
+            Some(token),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(dialed.status(), StatusCode::OK);
+    let dialed = response_json(dialed).await;
+    assert_eq!(dialed["status"], "refused");
+    assert_eq!(dialed["port"], 43);
+    assert_eq!(dialed["text"], "");
+    assert_eq!(dialed["truncated"], false);
+
+    let (closed, closed_app) = test_app(false, 48_732);
+    let closed_pair = pair_capabilities(&closed, &closed_app, json!(["whois.lookup"])).await;
+    let private_denied = closed_app
+        .oneshot(request(
+            Method::POST,
+            "/v1/whois/lookup",
+            Some(json!({"query": "example.com", "server": "127.0.0.1", "timeoutMs": 1000})),
+            Some(closed_pair["token"].as_str().unwrap()),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(private_denied.status(), StatusCode::FORBIDDEN);
+    assert_eq!(
+        response_json(private_denied).await["error"]["code"],
+        "private_network_denied"
+    );
+
+    let listener = TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("whois listener");
+    let port = listener.local_addr().expect("port").port();
+    let task = tokio::spawn(async move {
+        let (mut socket, _) = listener.accept().await.expect("accept");
+        let mut buf = Vec::new();
+        let mut tmp = [0_u8; 64];
+        loop {
+            let n = socket.read(&mut tmp).await.expect("read query");
+            if n == 0 {
+                break;
+            }
+            buf.extend_from_slice(&tmp[..n]);
+            if buf.windows(2).any(|pair| pair == b"\r\n") {
+                break;
+            }
+        }
+        assert_eq!(buf, b"example.com\r\n");
+        socket
+            .write_all(b"domain: example.com\r\n")
+            .await
+            .expect("reply");
+    });
+    let prepared = crate::whois::prepare(" example.com ", "127.0.0.1", 3_000).expect("prepare");
+    let response = crate::whois::lookup_on_port(prepared, 48_732, true, port)
+        .await
+        .expect("lookup");
+    assert_eq!(response.status, "ok");
+    assert_eq!(response.port, port);
+    assert!(!response.truncated);
+    assert!(response.text.contains("example.com"));
+    task.await.expect("listener");
+
+    let prepared = crate::whois::prepare("example.com", "127.0.0.1", 1_000).expect("prepare");
+    let closed_port = crate::whois::lookup_on_port(prepared, 48_732, true, port)
+        .await
+        .expect("refused");
+    assert_eq!(closed_port.status, "refused");
+    assert!(closed_port.text.is_empty());
+    assert!(!closed_port.truncated);
 }

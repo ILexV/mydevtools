@@ -25,7 +25,7 @@ use crate::{
         MAX_TIMEOUT_MS, PairRequest,
     },
     state::AgentState,
-    tcp, tls,
+    tcp, tls, whois,
 };
 
 const ALLOW_METHODS: &str = "GET, POST, DELETE, OPTIONS";
@@ -49,6 +49,7 @@ pub(crate) fn router(state: Arc<AgentState>) -> Router {
         .route("/v1/dns/lookup", post(dns_lookup).options(preflight))
         .route("/v1/tcp/connect", post(tcp_connect).options(preflight))
         .route("/v1/tls/inspect", post(tls_inspect).options(preflight))
+        .route("/v1/whois/lookup", post(whois_lookup).options(preflight))
         .method_not_allowed_fallback(method_not_allowed)
         .fallback(not_found)
         .layer(middleware::from_fn_with_state(
@@ -241,6 +242,26 @@ async fn tls_inspect(
     Ok((StatusCode::OK, Json(response)))
 }
 
+/// One WHOIS line on port 43. `whois.lookup` only. The reply is not chased.
+async fn whois_lookup(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<impl IntoResponse, ApiError> {
+    let _session_key = authorize_whois(&state, request.headers())?;
+    let input: whois::WhoisLookupRequest = parse_json(request).await?;
+    let prepared = whois::prepare(&input.query, &input.server, input.timeout_ms)?;
+    let permit = state.try_acquire_whois_slot()?;
+    let response = whois::lookup_on_port(
+        prepared,
+        state.config.port,
+        state.config.allow_private,
+        whois::WHOIS_PORT,
+    )
+    .await?;
+    drop(permit);
+    Ok((StatusCode::OK, Json(response)))
+}
+
 async fn preflight() -> StatusCode {
     StatusCode::NO_CONTENT
 }
@@ -320,7 +341,7 @@ fn valid_preflight(request: &Request) -> bool {
         "/v1/info" | "/v1/icmp/interfaces" => "GET",
         "/v1/pair" | "/v1/http/request" | "/v1/http/cancel" | "/v1/icmp/trace"
         | "/v1/icmp/snapshot" | "/v1/icmp/cancel" | "/v1/icmp/mtu" | "/v1/dns/lookup"
-        | "/v1/tcp/connect" | "/v1/tls/inspect" => "POST",
+        | "/v1/tcp/connect" | "/v1/tls/inspect" | "/v1/whois/lookup" => "POST",
         "/v1/session" => "DELETE",
         _ => return false,
     };
@@ -365,6 +386,12 @@ fn authorize_tcp(state: &AgentState, headers: &HeaderMap) -> Result<[u8; 32], Ap
     let origin = required_header(headers, ORIGIN)?;
     let authorization = optional_single_header(headers, AUTHORIZATION)?;
     state.authorize_tcp(authorization, &origin)
+}
+
+fn authorize_whois(state: &AgentState, headers: &HeaderMap) -> Result<[u8; 32], ApiError> {
+    let origin = required_header(headers, ORIGIN)?;
+    let authorization = optional_single_header(headers, AUTHORIZATION)?;
+    state.authorize_whois(authorization, &origin)
 }
 
 fn authorize_tls(state: &AgentState, headers: &HeaderMap) -> Result<[u8; 32], ApiError> {

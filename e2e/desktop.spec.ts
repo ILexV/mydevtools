@@ -65,11 +65,16 @@ test("two tools side by side keep input across minimize and show desktop", async
 });
 
 test("closing a window with input asks first; staying keeps the text", async ({ page }) => {
-  // Slow fonts keep the frame's `load` far behind its markup, as on a real network:
+  // A slow image keeps the frame's `load` far behind its markup, as on a real network:
   // text typed before `load` must still count as input.
-  await page.route("**/*.woff2", async (route) => {
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    await route.fallback();
+  await page.route("**/base64-encoder/?embed=1", async (route) => {
+    const response = await route.fetch();
+    const body = (await response.text()).replace("</body>", '<img src="/__slow-load.png" alt=""></body>');
+    await route.fulfill({ response, body });
+  });
+  await page.route("**/__slow-load.png", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await route.fulfill({ status: 404 });
   });
   await openDesk(page);
   await launch(page, "Base64", "base64-encoder");

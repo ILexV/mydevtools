@@ -54,9 +54,10 @@ import { CurlParseError, looksLikeCurl, parseCurl, type CurlImport } from "@/too
 import { bindCodeDialog, bindImportDialog } from "@/tools/http-curl-dialogs";
 import { AgentHistoryBackend, historyEntry, HTTP_HISTORY_STORAGE_KEY, LocalHistoryBackend, mergeHistory, parseHistory,
   type HistoryBackend } from "@/tools/http-history";
-import { runHttpRequest, scriptAssignedNames } from "@/tools/http-run";
+import { runHttpRequest, scriptAssignedNames, type RunDeps } from "@/tools/http-run";
 import { ScriptSandbox, ScriptTimeoutError } from "@/tools/http-script-sandbox";
 import { bindScriptsEditor, bindTestsPanel, type ScriptResults, type ScriptsPanelStrings } from "@/tools/http-scripts-panel";
+import { bindRunnerDialog, type RunnerStrings } from "@/tools/http-runner-dialog";
 import { bindHistoryPanel, type HistoryPanelStrings } from "@/tools/http-history-panel";
 import { openTabIds, requestFingerprint, tabAfterClose, withOpenTab } from "@/tools/http-tabs";
 import { exportPostman, importPostman, PostmanError, type PostmanImport } from "@/tools/http-postman";
@@ -66,7 +67,8 @@ import { createFormDataEditor, createRowsEditor, type FormDataStrings } from "@/
 import { bindEnvironmentsDialog, bindFolderDialog, type ScopeDialogStrings } from "@/tools/http-scope-dialogs";
 import { collectVariables, encodeQueryComponent, variableNames } from "@/tools/http-variables";
 
-interface Strings extends SecretsDialogStrings, ScopeDialogStrings, FormDataStrings, HistoryPanelStrings, ScriptsPanelStrings {
+interface Strings extends SecretsDialogStrings, ScopeDialogStrings, FormDataStrings, HistoryPanelStrings, ScriptsPanelStrings, RunnerStrings {
+  RunCollection: string;
   ScriptTimeout: string;
   ScriptRunning: string;
   RequestSkipped: string;
@@ -343,7 +345,7 @@ function init(): void {
     workspace.requests.push(initial);
   }
   type TreeTarget = { kind: "root" } | { kind: HttpWorkspaceItemKind; id: string };
-  type TreeAction = "new-request" | "new-folder" | "import-curl" | "import-postman" | "export-postman" | "settings" | "rename"
+  type TreeAction = "new-request" | "new-folder" | "import-curl" | "import-postman" | "export-postman" | "run" | "settings" | "rename"
     | "move" | "delete";
   let workspaceDirty = false;
   let currentRequest = workspace.requests.find((request) => request.id === workspace.selectedId)!;
@@ -1436,6 +1438,7 @@ function init(): void {
             { action: "import-curl", label: workspaceUi.strings.ImportCurl },
             { action: "import-postman", label: workspaceUi.strings.ImportPostman },
             { action: "export-postman", label: workspaceUi.strings.ExportPostman },
+            { action: "run", label: workspaceUi.strings.RunCollection, separate: true },
           ]
         : target.kind === "folder"
           ? [
@@ -1444,6 +1447,7 @@ function init(): void {
               { action: "import-curl", label: workspaceUi.strings.ImportCurl },
               { action: "import-postman", label: workspaceUi.strings.ImportPostman },
               { action: "export-postman", label: workspaceUi.strings.ExportPostman },
+              { action: "run", label: workspaceUi.strings.RunCollection, separate: true },
               { action: "settings", label: workspaceUi.strings.FolderSettings, separate: true },
               { action: "rename", label: workspaceUi.strings.RenameFolder },
               { action: "move", label: workspaceUi.strings.MoveItem },
@@ -2339,6 +2343,10 @@ function init(): void {
       postmanInput.click();
       return;
     }
+    if (action === "run") {
+      if (target.kind !== "request") runner.open(returnFocus ?? workspaceUi.savedList, target.kind === "folder" ? target.id : null);
+      return;
+    }
     if (action === "export-postman") {
       if (target.kind !== "request") exportCollection(target.kind === "folder" ? target.id : null);
       return;
@@ -2672,6 +2680,64 @@ function init(): void {
     }
   });
 
+  const runner = bindRunnerDialog(root.querySelector<HTMLDialogElement>("[data-http-runner-dialog]")!, {
+    strings: s,
+    workspace: () => workspace,
+    prepare: saveWorkspaceNow,
+    connected: () => client.connected,
+    deps: (signal) => requestDeps(signal),
+    errorText: (error) => error instanceof ScriptTimeoutError ? s.ScriptTimeout : buildErrorText(error),
+    changed: () => {
+      scheduleWorkspaceSave();
+      queueHintRefresh();
+    },
+  });
+
+  /**
+   * Script, build and agent access for request runs; Send and the Collection
+   * Runner share it. `cancel` stops the agent request in flight.
+   */
+  function requestDeps(signal: AbortSignal, hooks: { id?: string; onScripts?(): void; onSend?(): void } = {}): RunDeps & { cancel(): void } {
+    const bodyLimit = client.info?.limits.maxRequestBodyBytes ?? 1024 * 1024;
+    let inFlight: string | null = null;
+    return {
+      runScripts: (job) => {
+        hooks.onScripts?.();
+        return scriptSandbox.run(job, { signal });
+      },
+      build: async (input) => {
+        const built = await buildHttpRequest({ ...input,
+          readFile: (ref) => readBodyFile(ref, bodyLimit),
+          oauthToken: (config) => oauthToken(config, { signal }),
+        });
+        if (built.body.byteLength > bodyLimit) throw new HttpBuildError("body_limit");
+        return built;
+      },
+      send: async (built, request) => {
+        const id = hooks.id ?? requestId();
+        inFlight = id;
+        hooks.onSend?.();
+        try {
+          return await client.request({
+            id,
+            method: built.method,
+            url: built.url,
+            headers: built.headers,
+            bodyBase64: bytesToBase64(built.body),
+            timeoutMs: Math.max(100, Math.min(client.info?.limits.maxTimeoutMs ?? 120000, request.timeoutMs || 30000)),
+            followRedirects: request.followRedirects,
+            ...(built.basicAuth ? { basicAuth: built.basicAuth } : {}),
+          }, signal);
+        } finally {
+          inFlight = null;
+        }
+      },
+      cancel: () => {
+        if (inFlight) void client.cancel(inFlight).catch(() => undefined);
+      },
+    };
+  }
+
   send.addEventListener("click", async () => {
     if (!saveWorkspaceNow()) return;
     hideMessage(requestError);
@@ -2698,37 +2764,16 @@ function init(): void {
     syncEmptyState(output, true);
 
     try {
-      const bodyLimit = client.info?.limits.maxRequestBodyBytes ?? 1024 * 1024;
       let run;
       try {
-        run = await runHttpRequest(workspace, currentRequest, {
-          runScripts: (job) => {
-            showMessage(requestStatus, strings.ScriptRunning);
-            return scriptSandbox.run(job, { signal: abort.signal });
-          },
-          build: async (input) => {
-            const built = await buildHttpRequest({ ...input,
-              readFile: (ref) => readBodyFile(ref, bodyLimit),
-              oauthToken: (config) => oauthToken(config, { signal: abort.signal }),
-            });
-            if (built.body.byteLength > bodyLimit) throw new HttpBuildError("body_limit");
-            return built;
-          },
-          send: (built, request) => {
+        run = await runHttpRequest(workspace, currentRequest, requestDeps(abort.signal, {
+          id,
+          onScripts: () => showMessage(requestStatus, strings.ScriptRunning),
+          onSend: () => {
             sent = true;
             showMessage(requestStatus, strings.Sending);
-            return client.request({
-              id,
-              method: built.method,
-              url: built.url,
-              headers: built.headers,
-              bodyBase64: bytesToBase64(built.body),
-              timeoutMs: requestTimeout(),
-              followRedirects: request.followRedirects,
-              ...(built.basicAuth ? { basicAuth: built.basicAuth } : {}),
-            }, abort.signal);
           },
-        });
+        }));
       } catch (error) {
         if (!(error instanceof HttpBuildError)) throw error;
         if (active?.id !== id) return;

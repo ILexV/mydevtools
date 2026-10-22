@@ -41,7 +41,9 @@ const clientKeys = [
   "CurlErrorQuote", "CodeCopied", "ImportPostman", "ExportPostman", "PostmanImported", "PostmanEnvironmentImported",
   "PostmanScripts", "PostmanUnsupported", "PostmanErrorFormat", "PostmanErrorVersion", "PostmanUntitled", "CloseTab", "UnsavedChanges", "History", "HistoryToday", "HistoryYesterday",
   "HistoryEmpty", "HistoryOff", "HistoryClearConfirm", "HistoryDelete", "HistoryLoadError", "HistorySaveError", "HistoryBodyDropped", "ScriptsLabel", "ScriptEditorError", "TestsPassed", "TestsSkipped", "ScriptErrorIn", "ScriptPre", "ScriptTest",
-  "ScriptTimeout", "ScriptRunning", "RequestSkipped", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
+  "ScriptTimeout", "ScriptRunning", "RequestSkipped", "RunCollection", "RunnerTitle", "RunnerAll", "RunnerIteration", "RunnerProgress",
+  "RunnerSummary", "RunnerStoppedAborted", "RunnerStoppedNull", "RunnerStoppedMissing", "RunnerStoppedLoop", "RunnerDataRows", "RunnerDataJson",
+  "RunnerDataShape", "RunnerDataCsv", "RunnerDataTooMany", "RunnerNoRequests", "RunnerConnect", "RunnerSkipped", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
 const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhrases(lang) });
@@ -181,6 +183,49 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
     <textarea id="http-folder-script-pre" class="ds-field-textarea mono http-folder-script" rows="4" autocomplete="off" spellcheck="false" data-http-folder-script="pre"></textarea>
     <label class="http-auth-field" for="http-folder-script-test">{t(lang, ns, "ScriptTest")}</label>
     <textarea id="http-folder-script-test" class="ds-field-textarea mono http-folder-script" rows="4" autocomplete="off" spellcheck="false" data-http-folder-script="test"></textarea>
+  </dialog>
+  <dialog class="http-move-dialog http-secrets-dialog http-runner-dialog" aria-labelledby="http-runner-title" data-http-runner-dialog>
+    <div class="http-secrets-head">
+      <h2 id="http-runner-title" class="ds-panel-title" data-http-runner-title></h2>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "SecretsClose")} title={t(lang, ns, "SecretsClose")} data-http-runner-close>
+        <Icon name="close" size={15} />
+      </button>
+    </div>
+    <div class="http-runner-setup" data-http-runner-setup>
+      <div class="http-runner-options">
+        <label class="http-move-field">
+          <span>{t(lang, ns, "RunnerIterations")}</span>
+          <input class="ds-field mono" type="number" min="1" max="1000" step="1" value="1" data-http-runner-iterations />
+        </label>
+        <label class="http-move-field">
+          <span>{t(lang, ns, "RunnerDelay")}</span>
+          <input class="ds-field mono" type="number" min="0" max="60000" step="100" value="0" data-http-runner-delay />
+        </label>
+        <div class="http-move-field http-runner-data">
+          <span>{t(lang, ns, "RunnerData")}</span>
+          <span class="http-runner-data-row">
+            <button type="button" class="ds-btn ds-btn-small" data-http-runner-data-pick><Icon name="upload" size={14} />{t(lang, ns, "RunnerDataPick")}</button>
+            <span class="ds-hint" data-http-runner-data-name></span>
+            <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" hidden data-http-runner-data-clear>{t(lang, ns, "RunnerDataClear")}</button>
+          </span>
+          <input type="file" accept=".csv,.json,text/csv,application/json" hidden data-http-runner-data />
+        </div>
+      </div>
+      <p class="ds-hint http-secrets-hint">{t(lang, ns, "RunnerHint")}</p>
+      <fieldset class="http-runner-requests">
+        <legend>{t(lang, ns, "RunnerRequests")}</legend>
+        <ul data-http-runner-list></ul>
+      </fieldset>
+    </div>
+    <StatusMessage kind="error" data-http-runner-error />
+    <div class="ds-actions">
+      <button type="button" class="ds-btn ds-btn-small ds-btn-primary" data-http-runner-start><Icon name="zap" size={14} />{t(lang, ns, "RunnerStart")}</button>
+      <button type="button" class="ds-btn ds-btn-small" hidden data-http-runner-stop>{t(lang, ns, "RunnerStop")}</button>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" hidden data-http-runner-export><Icon name="download" size={14} />{t(lang, ns, "RunnerExport")}</button>
+    </div>
+    <p class="ds-hint http-runner-progress" role="status" hidden data-http-runner-progress></p>
+    <p class="http-runner-summary" role="status" hidden data-http-runner-summary></p>
+    <ol class="http-runner-results" data-http-runner-results></ol>
   </dialog>
   <dialog class="http-move-dialog http-secrets-dialog" aria-labelledby="http-import-title" aria-describedby="http-import-hint" data-http-import-dialog>
     <form method="dialog" class="http-import-form" data-http-import-form>
@@ -510,6 +555,28 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
   .http-console :global(.is-warn) { color: var(--mdt-warning); }
   .http-console :global(.is-error) { color: var(--mdt-danger); }
   .http-folder-script { width: 100%; min-height: 5rem; resize: vertical; }
+  .http-secrets-dialog.http-runner-dialog { width: min(52rem, calc(100vw - 2rem)); }
+  .http-runner-setup { display: grid; gap: 0.6rem; }
+  .http-runner-options { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; align-items: flex-end; }
+  .http-runner-options .ds-field { width: 7.5rem; }
+  .http-runner-data-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; min-height: 2.25rem; }
+  .http-runner-requests { min-width: 0; max-height: 14rem; margin: 0; overflow: auto; padding: 0.35rem 0.6rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-sm); }
+  .http-runner-requests legend { padding: 0 0.3rem; color: var(--mdt-text-muted); font-size: var(--mdt-fs-label); }
+  .http-runner-requests ul { display: grid; gap: 0.1rem; margin: 0; padding: 0; list-style: none; }
+  .http-runner-requests :global(.ds-check-row) { gap: 0.45rem; min-width: 0; overflow-wrap: anywhere; }
+  .http-runner-dialog :global(.http-runner-method) { flex: 0 0 auto; min-width: 3.4rem; color: var(--mdt-cat); font-size: 0.7rem; font-weight: 700; }
+  .http-runner-summary { margin: 0.25rem 0 0; padding: 0.5rem 0.65rem; border-radius: var(--mdt-radius-sm); background: color-mix(in srgb, var(--mdt-success) 12%, transparent); color: var(--mdt-text); font-weight: 600; }
+  .http-runner-summary.is-error { background: color-mix(in srgb, var(--mdt-danger) 12%, transparent); }
+  .http-runner-results { display: grid; gap: 0.2rem; margin: 0; padding: 0; list-style: none; }
+  .http-runner-results :global(.http-runner-iteration) { margin-top: 0.4rem; color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .http-runner-results :global(.http-runner-result) { padding: 0.35rem 0.5rem; border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-muted); }
+  .http-runner-results :global(.http-runner-head) { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 0.5rem; min-width: 0; }
+  .http-runner-results :global(.http-runner-name) { flex: 1 1 10rem; min-width: 0; overflow-wrap: anywhere; }
+  .http-runner-results :global(.http-runner-meta) { color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); }
+  .http-runner-results :global(.http-runner-status), .http-runner-results :global(.http-runner-tests) { color: var(--mdt-success); font-weight: 600; }
+  .http-runner-results :global(.is-error) > :global(.http-runner-status), .http-runner-results :global(.http-runner-status.is-error),
+  .http-runner-results :global(.http-runner-tests.is-error) { color: var(--mdt-danger); }
+  .http-runner-results :global(.http-runner-notes) { display: grid; gap: 0.1rem; margin: 0.25rem 0 0 3.9rem; padding: 0; list-style: none; color: var(--mdt-danger); font-size: var(--mdt-fs-meta); overflow-wrap: anywhere; }
   .http-saved-list[hidden] { display: none; }
   .http-saved-meta { display: grid; gap: 0.35rem; border-top: 1px solid var(--mdt-border-soft); }
   .http-workspace-info { min-width: 0; }

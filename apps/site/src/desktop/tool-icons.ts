@@ -75,6 +75,8 @@ export const TOOL_ICONS: Record<string, string> = {
   "tls-inspect": `<rect x="4.2" y="9" width="11.6" height="8" rx="1.4"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9"/>`,
   "whois-lookup": `${page}<path d="M7.2 9.2h5.6M7.2 11.6h5.6M7.2 14h3.4"/>`,
   "asn-lookup": `<circle cx="4.6" cy="7.2" r="2"/><circle cx="15.4" cy="13.2" r="2"/><path d="M6.4 8.2 13.5 12.2"/>`,
+  "port-scanner": `<rect x="2.8" y="4" width="14.4" height="12" rx="1.6"/><path d="M5.8 8h2M9 8h2M12.2 8h2M5.8 12h2M9 12h2M12.2 12h2"/>`,
+  "network-scanner": `<circle cx="10" cy="10" r="2"/><path d="M6.2 13.8a5.4 5.4 0 0 1 0-7.6M13.8 6.2a5.4 5.4 0 0 1 0 7.6M3.6 16.4a9 9 0 0 1 0-12.8M16.4 3.6a9 9 0 0 1 0 12.8"/>`,
 
   /* design */
   "color-converter": `<path d="M10 3a7 7 0 0 0 0 14c1 0 1.5-.6 1.5-1.4 0-.8-.6-1.2-.6-2 0-.9.7-1.6 1.6-1.6H14a3 3 0 0 0 3-3C17 5.8 13.9 3 10 3Z"/>${dot(6.4, 9.2)}${dot(8.4, 6.2)}${dot(12.4, 6.3)}`,

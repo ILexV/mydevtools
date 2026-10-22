@@ -43,7 +43,13 @@ pub(crate) const SSE_CAPABILITY: &str = "sse.stream";
 /// A WebSocket connection: the page reads its messages as a stream and sends
 /// through the agent. Pairing for HTTP or SSE does not include this capability.
 pub(crate) const WEBSOCKET_CAPABILITY: &str = "websocket.connect";
-pub(crate) const AGENT_CAPABILITIES: [&str; 11] = [
+/// TCP connects to many ports of one host the user typed, with live results.
+/// Pairing for `tcp.connect` does not include it.
+pub(crate) const PORT_SCAN_CAPABILITY: &str = "port.scan";
+/// Host discovery inside this computer's own IPv4 subnets (ICMP echo, TCP
+/// probes, ARP). Pairing for any other tool does not include it.
+pub(crate) const NETWORK_SCAN_CAPABILITY: &str = "network.scan";
+pub(crate) const AGENT_CAPABILITIES: [&str; 13] = [
     HTTP_CAPABILITY,
     ICMP_CAPABILITY,
     DNS_CAPABILITY,
@@ -55,6 +61,8 @@ pub(crate) const AGENT_CAPABILITIES: [&str; 11] = [
     VAULT_SECRETS_CAPABILITY,
     SSE_CAPABILITY,
     WEBSOCKET_CAPABILITY,
+    PORT_SCAN_CAPABILITY,
+    NETWORK_SCAN_CAPABILITY,
 ];
 /// `http.options`: `verifyTls`, `httpVersion`, `proxy` and timed phases in replies.
 /// `http.client_certificates`: vault certificates and `clientCertificate` (mTLS).

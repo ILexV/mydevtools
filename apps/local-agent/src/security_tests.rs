@@ -17,7 +17,7 @@ use uuid::Uuid;
 use crate::{
     policy::enforce_destination,
     server,
-    state::{AgentConfig, AgentState},
+    state::{AgentConfig, AgentState, PrivateNetwork},
 };
 
 pub(super) const ORIGIN: &str = "https://mydevtools.app";
@@ -26,7 +26,7 @@ const PAIRING_CODE: &str = "11111111111111111111111111111111";
 pub(super) fn test_app(allow_private: bool, port: u16) -> (Arc<AgentState>, Router) {
     let state = AgentState::new(AgentConfig {
         port,
-        allow_private,
+        allow_private: PrivateNetwork::new(allow_private),
         allowed_origins: HashSet::from([ORIGIN.to_owned()]),
         data_dir: None,
     });
@@ -167,7 +167,7 @@ async fn pairing_is_one_time_capability_scoped_and_protected_routes_require_bear
     let unsupported = request(
         Method::POST,
         "/v1/pair",
-        Some(json!({"code": PAIRING_CODE, "capabilities": ["network.scan"]})),
+        Some(json!({"code": PAIRING_CODE, "capabilities": ["process.exec"]})),
         None,
     );
     let response = app.clone().oneshot(unsupported).await.unwrap();
@@ -234,6 +234,40 @@ async fn pairing_attempts_are_rate_limited() {
         response_json(response).await["error"]["code"],
         "pairing_rate_limited"
     );
+}
+
+/// The agent window switch changes private-network access without a restart:
+/// `/v1/info` and the next destination check follow it.
+#[tokio::test]
+async fn private_network_switch_applies_to_the_next_request() {
+    let (state, app) = test_app(false, 48_732);
+    let token = pair(&app).await;
+    let target = || {
+        request(
+            Method::POST,
+            "/v1/http/request",
+            Some(http_input(
+                Uuid::new_v4(),
+                "http://127.0.0.1:9/".to_owned(),
+                false,
+            )),
+            Some(&token),
+        )
+    };
+    let info = || request(Method::GET, "/v1/info", None, None);
+    assert_eq!(call(&app, info()).await.1["privateNetworkAllowed"], false);
+    let (_, body) = call(&app, target()).await;
+    assert_eq!(body["error"]["code"], "private_network_denied");
+
+    state.config.allow_private.set(true);
+    assert_eq!(call(&app, info()).await.1["privateNetworkAllowed"], true);
+    let (_, body) = call(&app, target()).await;
+    assert_ne!(body["error"]["code"], "private_network_denied", "{body}");
+
+    state.config.allow_private.set(false);
+    assert_eq!(call(&app, info()).await.1["privateNetworkAllowed"], false);
+    let (_, body) = call(&app, target()).await;
+    assert_eq!(body["error"]["code"], "private_network_denied");
 }
 
 #[tokio::test]
@@ -650,7 +684,9 @@ async fn icmp_capability_is_separate_from_http_and_rejects_bad_targets() {
             "vault.data",
             "vault.secrets",
             "sse.stream",
-            "websocket.connect"
+            "websocket.connect",
+            "port.scan",
+            "network.scan"
         ])
     );
 
@@ -2187,7 +2223,7 @@ pub(super) fn vault_app(
 ) -> (Arc<AgentState>, Router) {
     let state = AgentState::new(AgentConfig {
         port: 48_732,
-        allow_private,
+        allow_private: PrivateNetwork::new(allow_private),
         allowed_origins: HashSet::from([ORIGIN.to_owned(), SECOND_ORIGIN.to_owned()]),
         data_dir,
     });

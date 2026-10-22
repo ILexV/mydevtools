@@ -121,6 +121,8 @@ The request list is independent of the shorter-lived connection token.
 | `mdt.tcp-connect.v1` | localStorage | `{ v: 1, timeoutMs }` | Until the user clears site data. Only the timeout is stored, from 200 to 10000 ms. An unknown or out-of-range value is read back as 3000. The host, the port, and the result are not stored. |
 | `mdt.tls-inspect.v1` | localStorage | `{ v: 1, timeoutMs }` | Until the user clears site data. Only the timeout is stored, from 200 to 10000 ms. An unknown or out-of-range value is read back as 5000. The host, the port, and the chain are not stored. |
 | `mdt.whois-lookup.v1` | localStorage | `{ v: 1, timeoutMs }` | Until the user clears site data. Only the timeout is stored, from 200 to 10000 ms. An unknown or out-of-range value is read back as 5000. The query, the server, and the reply are not stored. |
+| `mdt.port-scanner.v1` | localStorage | `{ v: 1, preset: "common"\|"well-known"\|"all"\|"custom", custom, timeoutMs, parallel }` | Until the user clears site data. Saved when a scan starts. The timeout is 200 to 5000 ms (default 1000) and the parallel count 1 to 64 (default 64); an unknown preset or an out-of-range number is read back as the default. The host and the results are not stored. |
+| `mdt.network-scanner.v1` | localStorage | `{ v: 1, timeoutMs, ports, resolveNames }` | Until the user clears site data. Saved when a scan starts. The timeout is 200 to 5000 ms (default 1000); `ports` is the probe-port text, up to 16 single ports (default `22, 80, 443, 445, 3389`); a list that does not parse is read back as the default. The network and the hosts found are not stored. |
 
 Draft edits are debounced by 250 ms and flushed on switch, send, pagehide and
 hidden visibility. New/rename/delete and selected request changes are persisted.
@@ -150,7 +152,7 @@ On page load, an unexpired record is restored only after `/v1/info` confirms a
 reachable agent with the expected protocol. The record stores the capabilities
 granted at pairing. A record written before path tracing has no capabilities
 field and is read as HTTP-only. A 403 from a missing capability leaves the
-saved token in place. On the path-trace, dns-lookup, tcp-connect, tls-inspect, whois-lookup, and asn-lookup pages, a rejected pairing code restores the previous saved record so an earlier grant is not dropped. A temporarily unavailable agent
+saved token in place. On the path-trace, dns-lookup, tcp-connect, tls-inspect, whois-lookup, asn-lookup, port-scanner, and network-scanner pages, a rejected pairing code restores the previous saved record so an earlier grant is not dropped. A temporarily unavailable agent
 leaves the record intact so a later retry can reconnect. Expired, malformed and
 unauthorized records are removed. If localStorage is blocked or rejects a
 write, pairing still works for the current page in memory and the client exposes

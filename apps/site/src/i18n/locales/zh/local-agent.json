@@ -28,11 +28,12 @@
   "PermissionAccount": "无需注册、登录或 MyDevTools 云代理。",
   "PermissionInstall": "无需管理员权限，也不安装 Windows 服务。安装程序只作用于当前用户。",
   "PermissionPairing": "轮换的一次性代码会建立有时限的浏览器会话。浏览器会存储连接令牌，最长 8 小时或直到助手重启，但绝不会存储配对码。",
-  "PermissionNetwork": "它只在本机监听。请求和探测由代理直接发往目标；只有在您设置代理时才经由代理。默认阻止私有网络目标。路径上的路由器即使使用私有地址也会显示。",
+  "PermissionNetwork": "它只在本机监听。请求和探测由代理直接发往目标；只有在您设置代理时才经由代理。私有网络目标会被阻止，直到您在代理窗口中允许。路径上的路由器即使使用私有地址也会显示。",
   "TrayTitle": "控制权始终在您手中",
   "TrayIntro": "关闭小窗口只会将其隐藏；单击托盘图标可再次打开。",
   "TrayCode": "查看版本和当前配对代码。",
   "TrayAutostart": "自动启动需主动选择，默认关闭。它使用您的 Windows 用户设置；更新的安装程序替换代理后，自动启动仍指向已安装的副本。",
+  "TrayPrivate": "“Allow local network and this PC as targets”默认关闭。开启后，工具可以访问私有地址和环回地址，并扫描您自己的网络；该选择会被记住，关闭它会停止正在进行的私有目标扫描。",
   "TrayExit": "退出会停止本地服务器并完全撤销活动会话。",
   "VaultTitle": "本机上的加密保管库",
   "VaultIntro": "请求保管库的工具会把数据保存在代理中，而不是浏览器里。",
@@ -40,7 +41,7 @@
   "VaultSecrets": "机密和客户端证书私钥只能写入：页面可以在请求中使用它们，但永远无法读回。",
   "VaultOrigin": "每个网站都有自己的保管库，一个网站无法读取另一个网站的数据。",
   "CapabilityTitle": "可用能力",
-  "CapabilityBody": "此版本可以配对 HTTP 请求、WebSocket 连接、Server-Sent Events、用于工作区和机密的保管库、ICMP 路径跟踪、DNS 查询、TCP 检查、TLS 检查、WHOIS 和 ASN 查询。每个工具都会请求自己的命名能力；配对不会自动授予未来的能力，因此更新后工具可能会要求重新配对。",
+  "CapabilityBody": "此版本可以配对 HTTP 请求、WebSocket 连接、Server-Sent Events、用于工作区和机密的保管库、ICMP 路径跟踪、DNS 查询、TCP 检查、TLS 检查、WHOIS 和 ASN 查询、端口扫描器和网络扫描器。每个工具都会请求自己的命名能力；配对不会自动授予未来的能力，因此更新后工具可能会要求重新配对。",
   "VerifyTitle": "验证下载文件",
   "VerifyBody": "此安装程序未经过数字签名，Windows SmartScreen 可能会警告或阻止运行。请勿关闭 Windows 防护。将下载文件的 SHA-256 与上面的值比较以验证完整性；哈希值一致并不等同于发布者签名。"
 }

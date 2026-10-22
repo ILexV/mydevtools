@@ -270,7 +270,7 @@ function init(): void {
         const inspected = await client.inspect();
         const advertised = Array.isArray(inspected.capabilities) ? inspected.capabilities : [];
         if (!advertised.includes("tls.inspect")) throw new LocalAgentError("unsupported_capability");
-        info = await client.pairKeepingSession(pairingCode, mergeCapabilities(advertised, "tls.inspect"));
+        info = await client.pairKeepingSession(pairingCode, mergeCapabilities(advertised, "tls.inspect", client.capabilities));
       } else {
         info = await client.restore();
       }

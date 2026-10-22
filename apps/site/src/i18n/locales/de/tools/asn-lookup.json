@@ -8,7 +8,7 @@
   "AgentSettings": "Verbindungseinstellungen",
   "RememberConnectionHint": "Die Verbindung bleibt in diesem Browser gespeichert, bis die Sitzung abläuft oder der Agent neu startet. Trennen entfernt sie.",
   "LanPolicy": "Private-Netzwerk-Regel",
-  "PrivateAllowed": "LAN-Zugriff beim Agent-Start aktiviert",
+  "PrivateAllowed": "Lokales Netzwerk im Agentenfenster erlaubt",
   "PrivateBlocked": "Nur öffentliche Ziele",
   "PairCodeLabel": "Kopplungscode",
   "PairCodeHint": "Fügen Sie den aktuellen Code aus dem Agentenfenster ein. Das Feld wird nach jedem Versuch geleert.",

@@ -1,7 +1,10 @@
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     path::PathBuf,
-    sync::Arc,
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    },
     time::{Duration, Instant},
 };
 
@@ -20,9 +23,10 @@ use crate::{
     dns::MAX_CONCURRENT_LOOKUPS,
     icmp::{SharedTrace, TraceState},
     model::{
-        ASN_CAPABILITY, ApiError, DNS_CAPABILITY, HTTP_CAPABILITY, ICMP_CAPABILITY, PairRequest,
-        PairResponse, SSE_CAPABILITY, TCP_CAPABILITY, TLS_CAPABILITY, VAULT_DATA_CAPABILITY,
-        VAULT_SECRETS_CAPABILITY, WEBSOCKET_CAPABILITY, WHOIS_CAPABILITY,
+        ASN_CAPABILITY, ApiError, DNS_CAPABILITY, HTTP_CAPABILITY, ICMP_CAPABILITY,
+        NETWORK_SCAN_CAPABILITY, PORT_SCAN_CAPABILITY, PairRequest, PairResponse, SSE_CAPABILITY,
+        TCP_CAPABILITY, TLS_CAPABILITY, VAULT_DATA_CAPABILITY, VAULT_SECRETS_CAPABILITY,
+        WEBSOCKET_CAPABILITY, WHOIS_CAPABILITY,
     },
     tcp::MAX_CONCURRENT_CONNECTS,
     tls::MAX_CONCURRENT_INSPECTIONS,
@@ -44,10 +48,31 @@ const CANCELLATION_TOMBSTONE_LIFETIME: Duration = Duration::from_secs(5 * 60);
 
 pub(crate) type SessionKey = [u8; 32];
 
+/// Private-network access (LAN, loopback): the `--allow-private` flag or the
+/// agent window switch. Clones share one value, so turning it off applies to
+/// the next destination check, including probes of a running scan.
+#[derive(Clone, Debug, Default)]
+pub(crate) struct PrivateNetwork(Arc<AtomicBool>);
+
+impl PrivateNetwork {
+    pub(crate) fn new(allowed: bool) -> Self {
+        Self(Arc::new(AtomicBool::new(allowed)))
+    }
+
+    pub(crate) fn allowed(&self) -> bool {
+        self.0.load(Ordering::Relaxed)
+    }
+
+    #[cfg_attr(not(any(windows, test)), allow(dead_code))] // The agent window switch.
+    pub(crate) fn set(&self, allowed: bool) {
+        self.0.store(allowed, Ordering::Relaxed);
+    }
+}
+
 #[derive(Clone, Debug)]
 pub(crate) struct AgentConfig {
     pub(crate) port: u16,
-    pub(crate) allow_private: bool,
+    pub(crate) allow_private: PrivateNetwork,
     pub(crate) allowed_origins: HashSet<String>,
     /// Vault directory; `None` leaves the agent without `vault.*` storage.
     pub(crate) data_dir: Option<PathBuf>,
@@ -74,6 +99,8 @@ pub(crate) struct AgentState {
     mtu_inflight: Mutex<usize>,
     /// Event streams and WebSockets open at once.
     stream_concurrency: Arc<Semaphore>,
+    /// Port and network scans running at once, process-wide.
+    scan_concurrency: Arc<Semaphore>,
     /// Event stream bodies held after `http.request` until the page reads them.
     pub(crate) parked_streams: crate::sse::ParkedStreams,
     /// Open WebSockets the page sends to.
@@ -100,6 +127,8 @@ struct Session {
     vault_secrets_allowed: bool,
     sse_stream_allowed: bool,
     websocket_allowed: bool,
+    port_scan_allowed: bool,
+    network_scan_allowed: bool,
     active: HashMap<Uuid, CancellationToken>,
     cancellation_tombstones: HashMap<Uuid, Instant>,
     traces: HashMap<Uuid, Arc<Mutex<SharedTrace>>>,
@@ -133,6 +162,7 @@ impl AgentState {
             asn_concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_ASN_LOOKUPS)),
             mtu_inflight: Mutex::new(0),
             stream_concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_STREAMS)),
+            scan_concurrency: Arc::new(Semaphore::new(crate::scan::MAX_CONCURRENT_SCANS)),
             parked_streams: crate::sse::ParkedStreams::default(),
             sockets: crate::websocket::Sockets::default(),
         })
@@ -244,6 +274,12 @@ impl AgentState {
                 websocket_allowed: granted
                     .iter()
                     .any(|capability| *capability == WEBSOCKET_CAPABILITY),
+                port_scan_allowed: granted
+                    .iter()
+                    .any(|capability| *capability == PORT_SCAN_CAPABILITY),
+                network_scan_allowed: granted
+                    .iter()
+                    .any(|capability| *capability == NETWORK_SCAN_CAPABILITY),
                 active: HashMap::new(),
                 cancellation_tombstones: HashMap::new(),
                 traces: HashMap::new(),
@@ -312,6 +348,37 @@ impl AgentState {
     /// do not take HTTP request permits.
     pub(crate) fn try_acquire_stream_slot(&self) -> Result<OwnedSemaphorePermit, ApiError> {
         Arc::clone(&self.stream_concurrency)
+            .try_acquire_owned()
+            .map_err(|_| ApiError::busy())
+    }
+
+    pub(crate) fn authorize_port_scan(
+        &self,
+        authorization: Option<&str>,
+        origin: &str,
+    ) -> Result<SessionKey, ApiError> {
+        let auth = self.authorize(authorization, origin)?;
+        if !auth.port_scan_allowed {
+            return Err(ApiError::forbidden());
+        }
+        Ok(auth.key)
+    }
+
+    pub(crate) fn authorize_network_scan(
+        &self,
+        authorization: Option<&str>,
+        origin: &str,
+    ) -> Result<SessionKey, ApiError> {
+        let auth = self.authorize(authorization, origin)?;
+        if !auth.network_scan_allowed {
+            return Err(ApiError::forbidden());
+        }
+        Ok(auth.key)
+    }
+
+    /// One of the process-wide scan slots, shared by port and network scans.
+    pub(crate) fn try_acquire_scan_slot(&self) -> Result<OwnedSemaphorePermit, ApiError> {
+        Arc::clone(&self.scan_concurrency)
             .try_acquire_owned()
             .map_err(|_| ApiError::busy())
     }
@@ -476,6 +543,8 @@ impl AgentState {
             vault_secrets_allowed: session.vault_secrets_allowed,
             sse_stream_allowed: session.sse_stream_allowed,
             websocket_allowed: session.websocket_allowed,
+            port_scan_allowed: session.port_scan_allowed,
+            network_scan_allowed: session.network_scan_allowed,
         })
     }
 
@@ -707,6 +776,8 @@ struct SessionAuth {
     vault_secrets_allowed: bool,
     sse_stream_allowed: bool,
     websocket_allowed: bool,
+    port_scan_allowed: bool,
+    network_scan_allowed: bool,
 }
 
 impl Drop for ActiveRequestGuard {
@@ -754,6 +825,8 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
     let mut vault_secrets = false;
     let mut sse = false;
     let mut websocket = false;
+    let mut port_scan = false;
+    let mut network_scan = false;
     for capability in requested {
         match capability.as_str() {
             HTTP_CAPABILITY if !http => http = true,
@@ -767,10 +840,12 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
             VAULT_SECRETS_CAPABILITY if !vault_secrets => vault_secrets = true,
             SSE_CAPABILITY if !sse => sse = true,
             WEBSOCKET_CAPABILITY if !websocket => websocket = true,
+            PORT_SCAN_CAPABILITY if !port_scan => port_scan = true,
+            NETWORK_SCAN_CAPABILITY if !network_scan => network_scan = true,
             _ => return Err(ApiError::unsupported_capability()),
         }
     }
-    let mut granted = Vec::with_capacity(11);
+    let mut granted = Vec::with_capacity(13);
     if http {
         granted.push(HTTP_CAPABILITY);
     }
@@ -803,6 +878,12 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
     }
     if websocket {
         granted.push(WEBSOCKET_CAPABILITY);
+    }
+    if port_scan {
+        granted.push(PORT_SCAN_CAPABILITY);
+    }
+    if network_scan {
+        granted.push(NETWORK_SCAN_CAPABILITY);
     }
     Ok(granted)
 }

@@ -8,7 +8,7 @@
   "AgentSettings": "接続設定",
   "RememberConnectionHint": "セッションの期限切れまたはエージェントの再起動まで、このブラウザーに接続が保存されます。切断すると削除されます。",
   "LanPolicy": "プライベートネットワーク方針",
-  "PrivateAllowed": "起動時に LAN アクセスを有効化",
+  "PrivateAllowed": "エージェントのウィンドウでローカルネットワークを許可済み",
   "PrivateBlocked": "公開宛先のみ",
   "PairCodeLabel": "ペアリングコード",
   "PairCodeHint": "エージェント画面の現在のコードを貼り付けます。試行のたびに欄は空になります。",

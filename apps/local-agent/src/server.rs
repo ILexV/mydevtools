@@ -25,7 +25,8 @@ use crate::{
         InfoResponse, LimitsResponse, MAX_INCOMING_JSON_BYTES, MAX_REQUEST_BODY_BYTES,
         MAX_RESPONSE_BODY_BYTES, MAX_TIMEOUT_MS, PairRequest,
     },
-    sse,
+    policy::enforce_destination,
+    scan, sse,
     state::AgentState,
     tcp, tls,
     vault::{
@@ -58,6 +59,9 @@ pub(crate) fn router(state: Arc<AgentState>) -> Router {
         )
         .route("/v1/dns/lookup", post(dns_lookup).options(preflight))
         .route("/v1/tcp/connect", post(tcp_connect).options(preflight))
+        .route("/v1/scan/ports", post(port_scan).options(preflight))
+        .route("/v1/scan/network", post(network_scan).options(preflight))
+        .route("/v1/scan/networks", get(local_networks).options(preflight))
         .route("/v1/tls/inspect", post(tls_inspect).options(preflight))
         .route("/v1/whois/lookup", post(whois_lookup).options(preflight))
         .route("/v1/asn/lookup", post(asn_lookup).options(preflight))
@@ -134,7 +138,7 @@ async fn info(State(state): State<Arc<AgentState>>) -> Json<InfoResponse> {
         features: &AGENT_FEATURES,
         version: env!("CARGO_PKG_VERSION"),
         capabilities: &AGENT_CAPABILITIES,
-        private_network_allowed: state.config.allow_private,
+        private_network_allowed: state.config.allow_private.allowed(),
         vault_available: state.vault.available(),
         limits: LimitsResponse {
             max_request_body_bytes: MAX_REQUEST_BODY_BYTES,
@@ -323,11 +327,15 @@ async fn websocket_close(
     Ok(StatusCode::NO_CONTENT)
 }
 
+/// Cancels one of the session's own requests, streams or scans. Any paired
+/// session may call it: it cannot reach another session's work.
 async fn cancel_request(
     State(state): State<Arc<AgentState>>,
     request: Request,
 ) -> Result<StatusCode, ApiError> {
-    let session_key = authorize(&state, request.headers())?;
+    let origin = required_header(request.headers(), ORIGIN)?;
+    let authorization = optional_single_header(request.headers(), AUTHORIZATION)?;
+    let session_key = state.authorize_session(authorization, &origin)?;
     let input: CancelRequest = parse_json(request).await?;
     let request_id = Uuid::parse_str(&input.id).map_err(|_| ApiError::invalid_request())?;
     state.cancel_request(session_key, request_id)?;
@@ -414,10 +422,97 @@ async fn tcp_connect(
     let input: tcp::TcpConnectRequest = parse_json(request).await?;
     let prepared = tcp::prepare(&input.host, input.port, input.timeout_ms)?;
     let permit = state.try_acquire_tcp_slot()?;
-    let response =
-        tcp::connect_prepared(prepared, state.config.port, state.config.allow_private).await?;
+    let response = tcp::connect_prepared(
+        prepared,
+        state.config.port,
+        state.config.allow_private.allowed(),
+    )
+    .await?;
     drop(permit);
     Ok((StatusCode::OK, Json(response)))
+}
+
+/// Many TCP connects to one host (`port.scan`), streamed as NDJSON. The name
+/// is resolved and the policy checked before a slot is taken, so a refused
+/// target is an ordinary HTTP error; cancel with `/v1/http/cancel`.
+async fn port_scan(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<Response, ApiError> {
+    let origin = required_header(request.headers(), ORIGIN)?;
+    let authorization = optional_single_header(request.headers(), AUTHORIZATION)?;
+    let session_key = state.authorize_port_scan(authorization, &origin)?;
+    let input: scan::PortScanRequest = parse_json(request).await?;
+    let prepared = scan::prepare_port_scan(input)?;
+    let host = prepared.host.clone();
+    let address = tokio::task::spawn_blocking(move || tcp::resolve_host(&host))
+        .await
+        .map_err(|_| ApiError::busy())??;
+    enforce_destination(
+        address,
+        0,
+        state.config.port,
+        state.config.allow_private.allowed(),
+    )?;
+    let permit = state.try_acquire_scan_slot()?;
+    let cancellation = CancellationToken::new();
+    let guard = state.register_request(session_key, prepared.id, cancellation.clone())?;
+    Ok(ndjson(scan::port_scan_body(
+        Arc::clone(&state),
+        prepared,
+        address,
+        cancellation,
+        guard,
+        permit,
+    )))
+}
+
+/// This computer's IPv4 subnets a network scan may cover (`network.scan`).
+async fn local_networks(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<impl IntoResponse, ApiError> {
+    let origin = required_header(request.headers(), ORIGIN)?;
+    let authorization = optional_single_header(request.headers(), AUTHORIZATION)?;
+    state.authorize_network_scan(authorization, &origin)?;
+    let local = tokio::task::spawn_blocking(icmp::local_ipv4_networks)
+        .await
+        .map_err(|_| ApiError::busy())??;
+    Ok((StatusCode::OK, Json(scan::network_list(&local))))
+}
+
+/// Host discovery in one of this computer's own IPv4 subnets (`network.scan`),
+/// streamed as NDJSON; cancel with `/v1/http/cancel`.
+async fn network_scan(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<Response, ApiError> {
+    let origin = required_header(request.headers(), ORIGIN)?;
+    let authorization = optional_single_header(request.headers(), AUTHORIZATION)?;
+    let session_key = state.authorize_network_scan(authorization, &origin)?;
+    let input: scan::NetworkScanRequest = parse_json(request).await?;
+    let prepared = scan::prepare_network_scan(input)?;
+    let local = tokio::task::spawn_blocking(icmp::local_ipv4_networks)
+        .await
+        .map_err(|_| ApiError::busy())??;
+    let own = scan::check_local_network(&prepared, &local)?;
+    enforce_destination(
+        std::net::IpAddr::V4(prepared.first_host()),
+        0,
+        state.config.port,
+        state.config.allow_private.allowed(),
+    )?;
+    let permit = state.try_acquire_scan_slot()?;
+    let cancellation = CancellationToken::new();
+    let guard = state.register_request(session_key, prepared.id, cancellation.clone())?;
+    Ok(ndjson(scan::network_scan_body(
+        Arc::clone(&state),
+        prepared,
+        own,
+        cancellation,
+        guard,
+        permit,
+    )))
 }
 
 /// One TLS handshake. `tls.inspect` only. The socket is closed without application data.
@@ -429,8 +524,12 @@ async fn tls_inspect(
     let input: tls::TlsInspectRequest = parse_json(request).await?;
     let prepared = tls::prepare(&input.host, input.port, input.timeout_ms)?;
     let permit = state.try_acquire_tls_slot()?;
-    let response =
-        tls::inspect_prepared(prepared, state.config.port, state.config.allow_private).await?;
+    let response = tls::inspect_prepared(
+        prepared,
+        state.config.port,
+        state.config.allow_private.allowed(),
+    )
+    .await?;
     drop(permit);
     Ok((StatusCode::OK, Json(response)))
 }
@@ -447,7 +546,7 @@ async fn whois_lookup(
     let response = whois::lookup_on_port(
         prepared,
         state.config.port,
-        state.config.allow_private,
+        state.config.allow_private.allowed(),
         whois::WHOIS_PORT,
     )
     .await?;
@@ -669,6 +768,7 @@ fn valid_preflight(request: &Request) -> bool {
     let expected_method = match request.uri().path() {
         "/v1/info"
         | "/v1/icmp/interfaces"
+        | "/v1/scan/networks"
         | "/v1/vault/documents"
         | "/v1/vault/secrets"
         | "/v1/vault/certificates" => "GET",
@@ -688,6 +788,8 @@ fn valid_preflight(request: &Request) -> bool {
         | "/v1/tls/inspect"
         | "/v1/whois/lookup"
         | "/v1/asn/lookup"
+        | "/v1/scan/ports"
+        | "/v1/scan/network"
         | "/v1/vault/document/read"
         | "/v1/vault/document/write"
         | "/v1/vault/document/delete"

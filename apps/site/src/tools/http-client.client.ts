@@ -2953,7 +2953,7 @@ function init(): void {
       if (pairingCode) {
         const inspected = await client.inspect();
         const advertised = Array.isArray(inspected.capabilities) ? inspected.capabilities : [];
-        info = await client.pair(pairingCode, mergeCapabilities(advertised, "http.request"));
+        info = await client.pair(pairingCode, mergeCapabilities(advertised, "http.request", client.capabilities));
       } else {
         info = await client.restore();
       }

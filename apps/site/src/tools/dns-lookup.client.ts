@@ -206,7 +206,7 @@ function init(): void {
         const inspected = await client.inspect();
         const advertised = Array.isArray(inspected.capabilities) ? inspected.capabilities : [];
         if (!advertised.includes("dns.lookup")) throw new LocalAgentError("unsupported_capability");
-        info = await client.pairKeepingSession(pairingCode, mergeCapabilities(advertised, "dns.lookup"));
+        info = await client.pairKeepingSession(pairingCode, mergeCapabilities(advertised, "dns.lookup", client.capabilities));
       } else {
         info = await client.restore();
       }

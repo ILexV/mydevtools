@@ -6,6 +6,8 @@ use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::ptr::{null, null_mut};
 
 use tokio_util::sync::CancellationToken;
+
+use crate::state::PrivateNetwork;
 use windows_sys::Win32::Foundation::{
     ERROR_CLASS_ALREADY_EXISTS, ERROR_FILE_NOT_FOUND, ERROR_SUCCESS, GetLastError, HWND, LPARAM,
     LRESULT, RECT, WPARAM,
@@ -18,8 +20,8 @@ use windows_sys::Win32::Graphics::Gdi::{
 };
 use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows_sys::Win32::System::Registry::{
-    HKEY_CURRENT_USER, REG_SZ, RRF_NOEXPAND, RRF_RT_ANY, RegDeleteKeyValueW, RegGetValueW,
-    RegSetKeyValueW,
+    HKEY_CURRENT_USER, REG_DWORD, REG_SZ, RRF_NOEXPAND, RRF_RT_ANY, RRF_RT_REG_DWORD,
+    RegDeleteKeyValueW, RegGetValueW, RegSetKeyValueW,
 };
 use windows_sys::Win32::UI::Controls::{BST_CHECKED, BST_UNCHECKED, EM_SETSEL};
 use windows_sys::Win32::UI::HiDpi::{AdjustWindowRectExForDpi, GetDpiForWindow};
@@ -47,6 +49,8 @@ const WINDOW_CLASS: &str = "MyDevToolsLocalAgentWindow";
 const WINDOW_TITLE: &str = "MyDevTools Local Agent";
 const RUN_KEY: &str = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
 const RUN_VALUE: &str = "MyDevToolsLocalAgent";
+const SETTINGS_KEY: &str = "Software\\MyDevTools\\LocalAgent";
+const PRIVATE_NETWORK_VALUE: &str = "AllowPrivateNetwork";
 
 const TRAY_ICON_ID: u32 = 1;
 const TIMER_ID: usize = 1;
@@ -57,10 +61,11 @@ const NIN_KEYSELECT_EVENT: u32 = NIN_SELECT + 1;
 const ID_AUTOSTART: usize = 1001;
 const ID_COPY: usize = 1002;
 const ID_EXIT: usize = 1003;
+const ID_PRIVATE_NETWORK: usize = 1004;
 const ICON_RESOURCE_ID: usize = 1;
 const BASE_DPI: u32 = 96;
 const CLIENT_WIDTH: i32 = 456;
-const CLIENT_HEIGHT: i32 = 258;
+const CLIENT_HEIGHT: i32 = 330;
 
 struct UiStrings {
     heading: &'static str,
@@ -72,6 +77,10 @@ struct UiStrings {
     exit: &'static str,
     autostart_error: &'static str,
     autostart_read_error: &'static str,
+    private_network: &'static str,
+    private_network_note: &'static str,
+    private_network_forced: &'static str,
+    private_network_error: &'static str,
     pairing_error: &'static str,
     executable_error: &'static str,
     command_too_long: &'static str,
@@ -87,6 +96,10 @@ static ENGLISH: UiStrings = UiStrings {
     exit: "Exit",
     autostart_error: "Unable to update autostart",
     autostart_read_error: "Unable to read autostart settings",
+    private_network: "Allow local network and this PC as targets",
+    private_network_note: "Only for networks you trust. Metadata and link-local addresses stay blocked.",
+    private_network_forced: "Turned on by --allow-private for this run.",
+    private_network_error: "Unable to save the local network setting",
     pairing_error: "Unable to read the pairing code.",
     executable_error: "Unable to locate this executable",
     command_too_long: "The executable path is too long for autostart.",
@@ -102,6 +115,10 @@ static RUSSIAN: UiStrings = UiStrings {
     exit: "Выход",
     autostart_error: "Не удалось изменить автозапуск",
     autostart_read_error: "Не удалось прочитать настройку автозапуска",
+    private_network: "Разрешить локальную сеть и этот ПК как цель",
+    private_network_note: "Только для сетей, которым вы доверяете. Адреса метаданных и link-local закрыты всегда.",
+    private_network_forced: "Включено флагом --allow-private на этот запуск.",
+    private_network_error: "Не удалось сохранить настройку локальной сети",
     pairing_error: "Не удалось получить код подключения.",
     executable_error: "Не удалось определить путь к исполняемому файлу",
     command_too_long: "Путь к исполняемому файлу слишком длинный для автозапуска.",
@@ -115,11 +132,21 @@ struct Controls {
     copy_button: HWND,
     autostart_checkbox: HWND,
     note: HWND,
+    private_checkbox: HWND,
+    private_note: HWND,
     exit_button: HWND,
+}
+
+/// The window's private-network switch: the shared runtime value and whether
+/// `--allow-private` holds it on for this run.
+pub(crate) struct PrivateSwitch {
+    pub(crate) network: PrivateNetwork,
+    pub(crate) forced: bool,
 }
 
 struct WindowState {
     get_pairing_code: Box<dyn Fn() -> String + Send>,
+    private_network: PrivateSwitch,
     shutdown: CancellationToken,
     strings: &'static UiStrings,
     controls: Cell<Option<Controls>>,
@@ -135,6 +162,7 @@ struct WindowState {
 
 pub(crate) fn run(
     get_pairing_code: Box<dyn Fn() -> String + Send>,
+    private_network: PrivateSwitch,
     shutdown: CancellationToken,
     start_hidden: bool,
 ) -> Result<(), String> {
@@ -188,6 +216,7 @@ pub(crate) fn run(
 
         let state = Box::new(WindowState {
             get_pairing_code,
+            private_network,
             shutdown,
             strings: ui_strings(),
             controls: Cell::new(None),
@@ -210,7 +239,7 @@ pub(crate) fn run(
             CW_USEDEFAULT,
             CW_USEDEFAULT,
             480,
-            300,
+            372,
             null_mut(),
             null_mut(),
             instance,
@@ -353,6 +382,7 @@ unsafe fn window_proc_inner(window: HWND, message: u32, wparam: WPARAM, lparam: 
             if notification == BN_CLICKED {
                 match control_id {
                     ID_AUTOSTART => unsafe { state.change_autostart(window) },
+                    ID_PRIVATE_NETWORK => unsafe { state.change_private_network(window) },
                     ID_COPY => unsafe {
                         if let Some(controls) = state.controls.get() {
                             SendMessageW(controls.pairing_edit, EM_SETSEL, 0, -1);
@@ -547,6 +577,40 @@ impl WindowState {
                     0,
                 )?
             },
+            private_checkbox: unsafe {
+                create_control(
+                    window,
+                    instance,
+                    "BUTTON",
+                    self.strings.private_network,
+                    WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX as u32,
+                    0,
+                    20,
+                    212,
+                    416,
+                    24,
+                    ID_PRIVATE_NETWORK,
+                )?
+            },
+            private_note: unsafe {
+                create_control(
+                    window,
+                    instance,
+                    "STATIC",
+                    if self.private_network.forced {
+                        self.strings.private_network_forced
+                    } else {
+                        self.strings.private_network_note
+                    },
+                    WS_CHILD | WS_VISIBLE,
+                    0,
+                    40,
+                    239,
+                    396,
+                    34,
+                    0,
+                )?
+            },
             exit_button: unsafe {
                 create_control(
                     window,
@@ -556,7 +620,7 @@ impl WindowState {
                     WS_CHILD | WS_VISIBLE | WS_TABSTOP,
                     0,
                     334,
-                    216,
+                    288,
                     102,
                     31,
                     ID_EXIT,
@@ -587,6 +651,13 @@ impl WindowState {
                 &format!("{}: {error}", self.strings.autostart_read_error),
             ),
         }
+
+        unsafe {
+            set_check(
+                controls.private_checkbox,
+                self.private_network.network.allowed(),
+            )
+        };
 
         unsafe { self.add_tray_icon(window)? };
         if unsafe { SetTimer(window, TIMER_ID, 1_000, None) } == 0 {
@@ -641,7 +712,9 @@ impl WindowState {
             (controls.copy_button, 334, 98, 102, 32),
             (controls.autostart_checkbox, 20, 145, 416, 24),
             (controls.note, 40, 172, 396, 34),
-            (controls.exit_button, 334, 216, 102, 31),
+            (controls.private_checkbox, 20, 212, 416, 24),
+            (controls.private_note, 40, 239, 396, 34),
+            (controls.exit_button, 334, 288, 102, 31),
         ] {
             if unsafe {
                 MoveWindow(
@@ -715,6 +788,8 @@ impl WindowState {
             controls.copy_button,
             controls.autostart_checkbox,
             controls.note,
+            controls.private_checkbox,
+            controls.private_note,
             controls.exit_button,
         ] {
             unsafe { SendMessageW(control, WM_SETFONT, normal_font as usize, 1) };
@@ -787,6 +862,36 @@ impl WindowState {
                 &format!("{}: {error}", self.strings.autostart_error),
             );
         }
+    }
+
+    /// Applies the switch at once and saves it for the next start. While
+    /// `--allow-private` holds it on, the box stays checked.
+    unsafe fn change_private_network(&self, window: HWND) {
+        let Some(controls) = self.controls.get() else {
+            return;
+        };
+        let checked = unsafe {
+            SendMessageW(
+                controls.private_checkbox,
+                windows_sys::Win32::UI::WindowsAndMessaging::BM_GETCHECK,
+                0,
+                0,
+            ) as u32
+                == BST_CHECKED
+        };
+        if self.private_network.forced {
+            unsafe { set_check(controls.private_checkbox, true) };
+            return;
+        }
+        if let Err(error) = save_private_network(checked) {
+            unsafe { set_check(controls.private_checkbox, !checked) };
+            show_owned_error(
+                window,
+                &format!("{}: {error}", self.strings.private_network_error),
+            );
+            return;
+        }
+        self.private_network.network.set(checked);
     }
 
     unsafe fn add_tray_icon(&self, window: HWND) -> Result<(), String> {
@@ -886,6 +991,61 @@ unsafe fn show_and_activate(window: HWND) {
     unsafe {
         ShowWindow(window, SW_RESTORE);
         SetForegroundWindow(window);
+    }
+}
+
+unsafe fn set_check(control: HWND, checked: bool) {
+    unsafe {
+        SendMessageW(
+            control,
+            windows_sys::Win32::UI::WindowsAndMessaging::BM_SETCHECK,
+            (if checked { BST_CHECKED } else { BST_UNCHECKED }) as usize,
+            0,
+        );
+    }
+}
+
+/// The saved window switch, read before the server starts. Missing or
+/// unreadable means off.
+pub(crate) fn private_network_saved() -> bool {
+    let key = wide(SETTINGS_KEY);
+    let value = wide(PRIVATE_NETWORK_VALUE);
+    let mut data: u32 = 0;
+    let mut byte_count = size_of::<u32>() as u32;
+    // SAFETY: all pointers are valid for the duration of the synchronous registry call.
+    let status = unsafe {
+        RegGetValueW(
+            HKEY_CURRENT_USER,
+            key.as_ptr(),
+            value.as_ptr(),
+            RRF_RT_REG_DWORD,
+            null_mut(),
+            (&mut data as *mut u32).cast(),
+            &mut byte_count,
+        )
+    };
+    status == ERROR_SUCCESS && data == 1
+}
+
+fn save_private_network(allowed: bool) -> Result<(), String> {
+    let key = wide(SETTINGS_KEY);
+    let value = wide(PRIVATE_NETWORK_VALUE);
+    let data: u32 = u32::from(allowed);
+    // SAFETY: the strings are NUL-terminated and data lives through the call.
+    let status = unsafe {
+        RegSetKeyValueW(
+            HKEY_CURRENT_USER,
+            key.as_ptr(),
+            value.as_ptr(),
+            REG_DWORD,
+            (&data as *const u32).cast(),
+            size_of::<u32>() as u32,
+        )
+    };
+    if status == ERROR_SUCCESS {
+        Ok(())
+    } else {
+        Err(registry_error(status))
     }
 }
 

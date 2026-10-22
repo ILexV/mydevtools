@@ -8,7 +8,7 @@
   "AgentSettings": "连接设置",
   "RememberConnectionHint": "此浏览器会记住连接，直到会话过期或助手重启。断开连接会将其删除。",
   "LanPolicy": "私有网络策略",
-  "PrivateAllowed": "助手启动时已启用局域网访问",
+  "PrivateAllowed": "已在代理窗口中允许本地网络",
   "PrivateBlocked": "仅允许公共目标",
   "PairCodeLabel": "配对码",
   "PairCodeHint": "粘贴代理窗口里的当前配对码。每次尝试后字段会清空。",

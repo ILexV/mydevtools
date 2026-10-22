@@ -250,7 +250,7 @@ function init(): void {
         const inspected = await client.inspect();
         const advertised = Array.isArray(inspected.capabilities) ? inspected.capabilities : [];
         if (!advertised.includes("whois.lookup")) throw new LocalAgentError("unsupported_capability");
-        info = await client.pairKeepingSession(pairingCode, mergeCapabilities(advertised, "whois.lookup"));
+        info = await client.pairKeepingSession(pairingCode, mergeCapabilities(advertised, "whois.lookup", client.capabilities));
       } else {
         info = await client.restore();
       }

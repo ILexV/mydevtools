@@ -38,13 +38,13 @@ fn events_input(id: Uuid, url: String) -> Value {
 }
 
 /// Reads NDJSON lines from a streamed response body.
-struct Lines {
+pub(super) struct Lines {
     body: Body,
     buffer: Vec<u8>,
 }
 
 impl Lines {
-    fn new(response: axum::response::Response) -> Self {
+    pub(super) fn new(response: axum::response::Response) -> Self {
         assert_eq!(response.headers()["content-type"], "application/x-ndjson");
         Self {
             body: response.into_body(),
@@ -52,7 +52,7 @@ impl Lines {
         }
     }
 
-    async fn next(&mut self) -> Option<Value> {
+    pub(super) async fn next(&mut self) -> Option<Value> {
         loop {
             if let Some(end) = self.buffer.iter().position(|byte| *byte == b'\n') {
                 let line: Vec<u8> = self.buffer.drain(..=end).collect();

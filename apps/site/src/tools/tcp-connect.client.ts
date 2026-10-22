@@ -222,7 +222,7 @@ function init(): void {
         const inspected = await client.inspect();
         const advertised = Array.isArray(inspected.capabilities) ? inspected.capabilities : [];
         if (!advertised.includes("tcp.connect")) throw new LocalAgentError("unsupported_capability");
-        info = await client.pairKeepingSession(pairingCode, mergeCapabilities(advertised, "tcp.connect"));
+        info = await client.pairKeepingSession(pairingCode, mergeCapabilities(advertised, "tcp.connect", client.capabilities));
       } else {
         info = await client.restore();
       }

@@ -134,6 +134,8 @@ const TOOL_CATALOG = [
   { slug: "tls-inspect", monogram: "TLS", category: "networking", wasm: null, capabilities: { cancel: true, copy: true } },
   { slug: "whois-lookup", monogram: "WHO", category: "networking", wasm: null, capabilities: { cancel: true, copy: true } },
   { slug: "asn-lookup", monogram: "ASN", category: "networking", wasm: null, capabilities: { cancel: true, copy: true } },
+  { slug: "port-scanner", monogram: "PORT", category: "networking", wasm: null, capabilities: { cancel: true, copy: true } },
+  { slug: "network-scanner", monogram: "LAN", category: "networking", wasm: null, capabilities: { cancel: true, copy: true } },
 
   // ── design ────────────────────────────────────────────────────────────────
   { slug: "color-converter", monogram: "#hex", category: "design", wasm: null, capabilities: { copy: true } },

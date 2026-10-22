@@ -178,7 +178,7 @@ pub(crate) async fn open(
         Some(proxy) => {
             // The proxy resolves a named target; a literal one is still checked here.
             if let Some(address) = literal(&host) {
-                enforce_destination(address, port, config.port, config.allow_private)?;
+                enforce_destination(address, port, config.port, config.allow_private.allowed())?;
             }
             (proxy.host.clone(), proxy.port)
         }
@@ -471,7 +471,7 @@ async fn resolve(
     config: &AgentConfig,
 ) -> Result<Vec<SocketAddr>, ApiError> {
     if let Some(address) = literal(host) {
-        enforce_destination(address, port, config.port, config.allow_private)?;
+        enforce_destination(address, port, config.port, config.allow_private.allowed())?;
         return Ok(vec![SocketAddr::new(address, port)]);
     }
     let Host::Domain(domain) = host else {
@@ -486,7 +486,12 @@ async fn resolve(
             if addresses.len() >= MAX_PINNED_ADDRESSES {
                 return Err(ApiError::new(StatusCode::FORBIDDEN, "target_denied"));
             }
-            enforce_destination(address.ip(), port, config.port, config.allow_private)?;
+            enforce_destination(
+                address.ip(),
+                port,
+                config.port,
+                config.allow_private.allowed(),
+            )?;
             addresses.push(SocketAddr::new(address.ip(), port));
         }
     }

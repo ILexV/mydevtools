@@ -258,7 +258,16 @@ test("mergeCapabilities asks for every advertised capability so one pairing serv
   assert.deepEqual(mergeCapabilities(["http.request"], "http.request"), ["http.request"]);
   assert.deepEqual(mergeCapabilities(["http.request", "icmp.trace"], "dns.lookup"), ["http.request", "icmp.trace", "dns.lookup"]);
   assert.deepEqual(mergeCapabilities([], "icmp.trace"), ["icmp.trace"]);
-  assert.deepEqual(mergeCapabilities(["http.request", "port.scan"], "http.request"), ["http.request"], "unknown capabilities are never requested");
+  assert.deepEqual(mergeCapabilities(["http.request", "process.exec"], "http.request"), ["http.request"], "unknown capabilities are never requested");
+});
+
+test("mergeCapabilities asks for a scanner only on its own page or when it is already granted", () => {
+  const advertised = ["http.request", "tcp.connect", "port.scan", "network.scan"];
+  assert.deepEqual(mergeCapabilities(advertised, "http.request"), ["http.request", "tcp.connect"]);
+  assert.deepEqual(mergeCapabilities(advertised, "port.scan"), ["http.request", "tcp.connect", "port.scan"]);
+  assert.deepEqual(mergeCapabilities(advertised, "tcp.connect", ["port.scan"]), ["http.request", "tcp.connect", "port.scan"]);
+  assert.deepEqual(mergeCapabilities(["http.request"], "http.request", ["network.scan"]), ["http.request"],
+    "a scanner the agent no longer advertises is dropped");
 });
 
 test("stored sessions without a capabilities field stay HTTP-only", () => {
@@ -272,7 +281,7 @@ test("stored sessions without a capabilities field stay HTTP-only", () => {
     assert.deepEqual(new LocalAgentClient().capabilities, ["http.request"]);
 
     const icmpOnly = createStorage({
-      [SESSION_KEY]: JSON.stringify({ v: 1, token: TOKEN, expiresAt, capabilities: ["icmp.trace", "network.scan"] }),
+      [SESSION_KEY]: JSON.stringify({ v: 1, token: TOKEN, expiresAt, capabilities: ["icmp.trace", "process.exec"] }),
     });
     installStorage(icmpOnly.storage);
     assert.deepEqual(new LocalAgentClient().capabilities, ["icmp.trace"]);

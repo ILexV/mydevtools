@@ -8,6 +8,7 @@ mod http_transport;
 mod icmp;
 mod model;
 mod policy;
+mod scan;
 mod server;
 mod sse;
 mod state;
@@ -22,6 +23,8 @@ mod windows_shell;
 #[cfg(test)]
 mod http_options_tests;
 #[cfg(test)]
+mod scan_tests;
+#[cfg(test)]
 mod security_tests;
 #[cfg(test)]
 mod stream_tests;
@@ -29,7 +32,7 @@ mod stream_tests;
 use std::{collections::HashSet, net::Ipv4Addr, sync::Arc, time::Duration};
 
 use clap::Parser;
-use state::{AgentConfig, AgentState};
+use state::{AgentConfig, AgentState, PrivateNetwork};
 use tokio::net::TcpListener;
 use tokio_util::sync::CancellationToken;
 use url::Url;
@@ -46,6 +49,7 @@ struct Args {
     #[arg(long, value_parser = parse_origin)]
     origin: Option<String>,
 
+    /// Allow private-network targets for this run; the agent window switch cannot turn it off.
     #[arg(long)]
     allow_private: bool,
 
@@ -83,9 +87,13 @@ async fn run() -> Result<(), String> {
     if let Some(origin) = args.origin {
         allowed_origins.insert(origin);
     }
+    #[cfg(windows)]
+    let saved_private = windows_shell::private_network_saved();
+    #[cfg(not(windows))]
+    let saved_private = false;
     let state = AgentState::new(AgentConfig {
         port: args.port,
-        allow_private: args.allow_private,
+        allow_private: PrivateNetwork::new(args.allow_private || saved_private),
         allowed_origins,
         data_dir: args.data_dir.or_else(vault::default_root),
     });
@@ -96,7 +104,14 @@ async fn run() -> Result<(), String> {
     let maintenance = tokio::spawn(maintain_state(Arc::clone(&state), shutdown.clone()));
 
     #[cfg(windows)]
-    let result = run_windows(listener, state, shutdown.clone(), args.autostart).await;
+    let result = run_windows(
+        listener,
+        state,
+        shutdown.clone(),
+        args.autostart,
+        args.allow_private,
+    )
+    .await;
     #[cfg(not(windows))]
     let result = run_console(listener, state, shutdown.clone()).await;
 
@@ -132,7 +147,7 @@ async fn run_console(
     println!("Listening on http://127.0.0.1:{}", state.config.port);
     println!(
         "Private network access: {}",
-        if state.config.allow_private {
+        if state.config.allow_private.allowed() {
             "enabled"
         } else {
             "disabled"
@@ -179,13 +194,23 @@ async fn run_windows(
     state: Arc<AgentState>,
     shutdown: CancellationToken,
     start_hidden: bool,
+    private_forced: bool,
 ) -> Result<(), String> {
     let pairing_codes = state.pairing_codes();
     let get_pairing_code: Box<dyn Fn() -> String + Send> =
         Box::new(move || (*pairing_codes.borrow()).clone());
+    let private_network = windows_shell::PrivateSwitch {
+        network: state.config.allow_private.clone(),
+        forced: private_forced,
+    };
     let gui_shutdown = shutdown.clone();
     let mut gui_task = tokio::task::spawn_blocking(move || {
-        windows_shell::run(get_pairing_code, gui_shutdown, start_hidden)
+        windows_shell::run(
+            get_pairing_code,
+            private_network,
+            gui_shutdown,
+            start_hidden,
+        )
     });
     let server_shutdown = shutdown.clone();
     let mut server_task = tokio::spawn(server::serve(listener, state, server_shutdown));

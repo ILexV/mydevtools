@@ -225,6 +225,8 @@ struct ListedAddress {
     name: String,
     address: IpAddr,
     scope_id: u32,
+    /// On-link prefix length; the network scanner only scans inside it.
+    prefix: u8,
 }
 
 #[derive(Debug, Serialize)]
@@ -284,7 +286,12 @@ pub(crate) async fn start_trace(
     let target = tokio::task::spawn_blocking(move || resolve_target(&host))
         .await
         .map_err(|_| ApiError::busy())??;
-    enforce_destination(target, 0, state.config.port, state.config.allow_private)?;
+    enforce_destination(
+        target,
+        0,
+        state.config.port,
+        state.config.allow_private.allowed(),
+    )?;
     ensure_icmp_available(target)?;
     let source = resolve_source(target, requested_source).await?;
 
@@ -394,7 +401,7 @@ pub(crate) async fn find_path_mtu(
     let requested_source = source_pair(request.source_address, request.source_interface)?;
     let host = target_input.clone();
     let port = state.config.port;
-    let allow_private = state.config.allow_private;
+    let allow_private = state.config.allow_private.allowed();
     let target = tokio::task::spawn_blocking(move || resolve_target(&host))
         .await
         .map_err(|_| ApiError::busy())??;
@@ -711,6 +718,46 @@ pub(crate) fn list_interfaces() -> Result<InterfaceList, ApiError> {
             })
             .collect(),
     })
+}
+
+/// This computer's IPv4 networks (address and on-link prefix), for the
+/// network scanner's "own subnets only" rule. Loopback is left out.
+pub(crate) fn local_ipv4_networks() -> Result<Vec<(String, std::net::Ipv4Addr, u8)>, ApiError> {
+    let listed = local_addresses().map_err(|_| ApiError::icmp_unavailable())?;
+    Ok(listed
+        .into_iter()
+        .filter_map(|item| match item.address {
+            IpAddr::V4(address) if !address.is_loopback() && item.prefix <= 32 => {
+                Some((item.name, address, item.prefix))
+            }
+            _ => None,
+        })
+        .collect())
+}
+
+/// One ICMP echo for the network scanner. The round trip when the host itself
+/// answered; `None` for silence, an unreachable code, a cancel, or no ICMP here.
+pub(crate) fn echo_once(
+    target: IpAddr,
+    timeout: Duration,
+    cancellation: &CancellationToken,
+) -> Option<u32> {
+    let socket = ProbeSocket::open(target).ok()?;
+    socket.set_hop_limit(64).ok()?;
+    match probe_once(&socket, target, 1, &[b' '; 32], timeout, 64, cancellation) {
+        ProbeControl::Done(outcome)
+            if outcome.status == ProbeStatus::EchoReply
+                && outcome.from.is_none_or(|from| from == target) =>
+        {
+            Some(outcome.rtt_ms)
+        }
+        _ => None,
+    }
+}
+
+/// The system's reverse DNS name for an address, as path trace shows it.
+pub(crate) fn reverse_name(address: IpAddr) -> Option<String> {
+    reverse_lookup(address)
 }
 
 /// Checks a requested source before a trace or MTU search takes a slot.
@@ -1288,17 +1335,32 @@ mod platform {
                 continue;
             }
             let family = unsafe { (*interface.ifa_addr).sa_family };
-            let (address, scope_id) = if family == libc::AF_INET as libc::sa_family_t {
+            let mask = interface.ifa_netmask;
+            let (address, scope_id, prefix) = if family == libc::AF_INET as libc::sa_family_t {
                 let socket = unsafe { &*(interface.ifa_addr as *const libc::sockaddr_in) };
+                let prefix = if mask.is_null() {
+                    32
+                } else {
+                    let mask = unsafe { &*(mask as *const libc::sockaddr_in) };
+                    u32::from_be(mask.sin_addr.s_addr).count_ones() as u8
+                };
                 (
                     IpAddr::V4(Ipv4Addr::from(u32::from_be(socket.sin_addr.s_addr))),
                     0,
+                    prefix,
                 )
             } else if family == libc::AF_INET6 as libc::sa_family_t {
                 let socket = unsafe { &*(interface.ifa_addr as *const libc::sockaddr_in6) };
+                let prefix = if mask.is_null() {
+                    128
+                } else {
+                    let mask = unsafe { &*(mask as *const libc::sockaddr_in6) };
+                    u128::from_be_bytes(mask.sin6_addr.s6_addr).count_ones() as u8
+                };
                 (
                     IpAddr::V6(Ipv6Addr::from(socket.sin6_addr.s6_addr)),
                     socket.sin6_scope_id,
+                    prefix,
                 )
             } else {
                 continue;
@@ -1310,6 +1372,7 @@ mod platform {
                 name,
                 address,
                 scope_id,
+                prefix,
             });
         }
         Ok(found)
@@ -2116,6 +2179,7 @@ mod platform {
                     name: name.clone(),
                     address,
                     scope_id,
+                    prefix: entry.OnLinkPrefixLength,
                 });
             }
         }
@@ -2603,12 +2667,12 @@ mod tests {
 
         use crate::{
             model::PairRequest,
-            state::{AgentConfig, AgentState},
+            state::{AgentConfig, AgentState, PrivateNetwork},
         };
 
         let state = AgentState::new(AgentConfig {
             port: 48_732,
-            allow_private: true,
+            allow_private: PrivateNetwork::new(true),
             allowed_origins: HashSet::from(["https://mydevtools.app".to_owned()]),
             data_dir: None,
         });

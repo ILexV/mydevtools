@@ -86,6 +86,10 @@ test("tools: every tool has a known category", () => {
   assert.equal(getTool("whois-lookup")?.wasm, null);
   assert.equal(getTool("asn-lookup")?.category, "networking");
   assert.equal(getTool("asn-lookup")?.wasm, null);
+  assert.equal(getTool("port-scanner")?.category, "networking");
+  assert.equal(getTool("port-scanner")?.wasm, null);
+  assert.equal(getTool("network-scanner")?.category, "networking");
+  assert.equal(getTool("network-scanner")?.wasm, null);
 });
 
 // Monograms tell sibling cards apart in the catalog tile: short, unique, no emoji.

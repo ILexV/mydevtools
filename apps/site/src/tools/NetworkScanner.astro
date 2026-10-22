@@ -1,0 +1,114 @@
+---
+/**
+ * Network scanner. The local agent finds hosts in one of this computer's own
+ * IPv4 subnets (`network.scan`) and streams them as they answer; this shell
+ * supplies the form, the hosts table and the localized string island.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+import AgentConnection from "@/components/tool/AgentConnection.astro";
+import Field from "@/components/tool/Field.astro";
+import Icon from "@/components/Icon.astro";
+import Progress from "@/components/tool/Progress.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+
+interface Props { lang: LocaleCode }
+const { lang } = Astro.props as Props;
+const ns = "tools/network-scanner";
+const clientKeys = [
+  "Connected", "Disconnected", "Connecting", "NotConnected",
+  "AgentConnectedShort", "AgentDisconnectedShort", "ConnectionNotSaved", "NeedScanCapability",
+  "InvalidNetwork", "InvalidPorts", "InvalidTimeout", "AddressCount", "Scan", "Scanning", "NetworkOption",
+  "NoNetworks", "Copied", "CopyFailed", "ProgressLabel", "Summary", "SummaryStopped", "TimeValue", "ThisComputer",
+  "Via_icmp", "Via_tcp", "Via_arp",
+  "ErrorGeneric", "Error_agent_unavailable", "Error_invalid_response", "Error_invalid_request",
+  "Error_unauthorized", "Error_forbidden", "Error_pairing_invalid", "Error_pairing_expired",
+  "Error_pairing_rate_limited", "Error_unsupported_capability", "Error_timeout", "Error_busy",
+  "Error_network_error", "Error_incompatible_protocol",
+  "Error_private_network_denied", "Error_target_denied", "Error_network_not_local", "Error_network_too_large",
+  "Error_cancelled",
+] as const;
+const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
+const stringsJson = JSON.stringify(strings);
+---
+
+<div class="network-scanner" data-nscan>
+  <section class="ds-card ds-stack nscan-card" aria-labelledby="nscan-query-title">
+    <div class="ds-panel-head">
+      <h2 id="nscan-query-title" class="ds-panel-title">{t(lang, ns, "QueryTitle")}</h2>
+      <AgentConnection lang={lang} ns={ns} prefix="nscan" />
+    </div>
+    <div class="ds-settings">
+      <Field label={t(lang, ns, "LocalNetworksLabel")} for="nscan-local" hintTip hint={t(lang, ns, "LocalNetworksHint")}>
+        <select id="nscan-local" class="ds-field" data-nscan-local disabled>
+          <option value="">{t(lang, ns, "NoNetworks")}</option>
+        </select>
+      </Field>
+      <Field label={t(lang, ns, "NetworkLabel")} for="nscan-network" hintTip hint={t(lang, ns, "NetworkHint")}>
+        <input id="nscan-network" class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "NetworkPlaceholder")} data-nscan-network />
+      </Field>
+      <Field label={t(lang, ns, "PortsLabel")} for="nscan-ports" hintTip hint={t(lang, ns, "PortsHint")}>
+        <input id="nscan-ports" class="ds-field mono" type="text" autocomplete="off" spellcheck="false" data-nscan-ports />
+      </Field>
+      <Field label={t(lang, ns, "TimeoutLabel")} for="nscan-timeout" hintTip hint={t(lang, ns, "TimeoutHint")}>
+        <input id="nscan-timeout" class="ds-field mono" type="number" min="200" max="5000" step="100" inputmode="numeric" data-nscan-timeout />
+      </Field>
+    </div>
+    <label class="ds-check-row">
+      <input class="ds-check" type="checkbox" data-nscan-names />
+      <span>{t(lang, ns, "ResolveNames")}</span>
+    </label>
+    <p class="ds-hint" data-nscan-count></p>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-nscan-start disabled>{t(lang, ns, "Scan")}</button>
+      <button type="button" class="ds-btn" data-nscan-stop hidden>{t(lang, ns, "Stop")}</button>
+    </div>
+    <Progress title={t(lang, ns, "ProgressTitle")} fillProps={{ "data-nscan-progress-fill": "" }} labelProps={{ "data-nscan-progress-label": "" }} barProps={{ "data-nscan-progress-bar": "" }} data-nscan-progress />
+    <StatusMessage kind="info" data-nscan-result />
+    <StatusMessage kind="error" data-nscan-error />
+  </section>
+
+  <section class="ds-card nscan-card" aria-labelledby="nscan-results-title">
+    <div class="nscan-results-head">
+      <h2 id="nscan-results-title" class="ds-panel-title">{t(lang, ns, "ResultsTitle")}</h2>
+      <button type="button" class="ds-btn ds-btn-small" data-nscan-copy disabled><Icon name="copy" size={15} />{t(lang, ns, "CopyText")}</button>
+    </div>
+    <p class="ds-hint" data-nscan-empty>{t(lang, ns, "EmptyResult")}</p>
+    <div class="nscan-scroll" data-nscan-table-wrap hidden>
+      <table class="nscan-table">
+        <caption class="visually-hidden">{t(lang, ns, "ResultsTitle")}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{t(lang, ns, "AddressColumn")}</th>
+            <th scope="col">{t(lang, ns, "NameColumn")}</th>
+            <th scope="col">{t(lang, ns, "MacColumn")}</th>
+            <th scope="col">{t(lang, ns, "RttColumn")}</th>
+            <th scope="col">{t(lang, ns, "PortsColumn")}</th>
+            <th scope="col">{t(lang, ns, "ViaColumn")}</th>
+          </tr>
+        </thead>
+        <tbody data-nscan-body></tbody>
+      </table>
+    </div>
+  </section>
+  <script is:inline type="application/json" data-nscan-strings set:html={stringsJson} />
+</div>
+
+<script>import "@/tools/network-scanner.client.ts";</script>
+
+<style>
+  .nscan-card { min-width: 0; }
+  .nscan-results-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; }
+  .nscan-results-head h2 { margin: 0; }
+  .nscan-scroll { max-height: 34rem; margin-top: 0.75rem; overflow: auto; }
+  .nscan-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .nscan-table th { position: sticky; top: 0; background: var(--mdt-surface-raised); color: var(--mdt-text-muted); font-size: 0.78rem; font-weight: 600; }
+  .nscan-table th,
+  .nscan-table :global(td) { padding: 0.4rem 0.55rem; border-bottom: 1px solid var(--mdt-border-soft); text-align: left; white-space: nowrap; }
+  .nscan-table :global(td:nth-child(1)),
+  .nscan-table :global(td:nth-child(3)),
+  .nscan-table :global(td:nth-child(5)) { font-family: var(--mdt-font-mono); }
+  .nscan-table :global(td:nth-child(4)),
+  .nscan-table th:nth-child(4) { text-align: right; }
+  .nscan-table :global(.nscan-self) { margin-left: 0.4rem; padding: 0 0.35rem; border-radius: var(--mdt-radius-xs); background: color-mix(in srgb, var(--mdt-cat) 14%, transparent); color: var(--mdt-text-muted); font-family: var(--mdt-font-sans, inherit); font-size: 0.72rem; }
+</style>

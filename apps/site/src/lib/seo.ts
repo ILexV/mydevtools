@@ -85,7 +85,7 @@ export function buildJsonLd(input: SeoInput): Record<string, unknown>[] {
     description,
     url: toolUrl,
     applicationCategory: "DeveloperApplication",
-    operatingSystem: path === "http-client" || path === "path-trace" || path === "dns-lookup" || path === "tcp-connect" || path === "tls-inspect" || path === "whois-lookup" || path === "asn-lookup" ? "Windows 10, Windows 11" : "Web Browser",
+    operatingSystem: path === "http-client" || path === "path-trace" || path === "dns-lookup" || path === "tcp-connect" || path === "tls-inspect" || path === "whois-lookup" || path === "asn-lookup" || path === "port-scanner" || path === "network-scanner" ? "Windows 10, Windows 11" : "Web Browser",
     isAccessibleForFree: true,
     offers: {
       "@type": "Offer",

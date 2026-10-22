@@ -8,7 +8,7 @@
   "AgentSettings": "Connection settings",
   "RememberConnectionHint": "The connection is remembered in this browser until the session expires or the agent restarts. Disconnect removes it.",
   "LanPolicy": "Private-network policy",
-  "PrivateAllowed": "LAN access enabled at agent startup",
+  "PrivateAllowed": "Local network allowed in the agent window",
   "PrivateBlocked": "Public targets only",
   "PairCodeLabel": "Pairing code",
   "PairCodeHint": "Paste the current code from the agent window. The field is cleared after each attempt.",

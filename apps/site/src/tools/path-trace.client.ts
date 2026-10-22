@@ -493,7 +493,7 @@ function init(): void {
         const inspected = await client.inspect();
         const advertised = Array.isArray(inspected.capabilities) ? inspected.capabilities : [];
         if (!advertised.includes("icmp.trace")) throw new LocalAgentError("unsupported_capability");
-        info = await client.pairKeepingSession(pairingCode, mergeCapabilities(advertised, "icmp.trace"));
+        info = await client.pairKeepingSession(pairingCode, mergeCapabilities(advertised, "icmp.trace", client.capabilities));
       } else {
         info = await client.restore();
       }

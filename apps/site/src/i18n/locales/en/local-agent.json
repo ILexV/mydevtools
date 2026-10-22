@@ -28,11 +28,12 @@
   "PermissionAccount": "No sign-up, login or MyDevTools cloud proxy.",
   "PermissionInstall": "No administrator rights and no Windows Service. The installer is for the current user only.",
   "PermissionPairing": "A rotating one-time code starts a time-limited browser session. The browser stores the connection token for up to 8 hours or until the agent restarts, but never stores the pairing code.",
-  "PermissionNetwork": "It listens only on this PC. Requests and probes go directly from the agent to the target, or through a proxy only when you set one. Private-network targets are blocked by default. Routers seen along a path are shown even when they use a private address.",
+  "PermissionNetwork": "It listens only on this PC. Requests and probes go directly from the agent to the target, or through a proxy only when you set one. Private-network targets are blocked until you allow them in the agent window. Routers seen along a path are shown even when they use a private address.",
   "TrayTitle": "You stay in control",
   "TrayIntro": "Closing the small window hides it; the tray icon opens it again.",
   "TrayCode": "View the version and current pairing code.",
   "TrayAutostart": "Autostart is opt-in and off by default. It uses your Windows user settings and follows the installed agent when a newer installer replaces it.",
+  "TrayPrivate": "“Allow local network and this PC as targets” is off by default. Turning it on lets tools reach private and loopback addresses and scan your own network; the choice is remembered, and turning it off stops a running scan of a private target.",
   "TrayExit": "Exit stops the local server and revokes active sessions completely.",
   "VaultTitle": "An encrypted vault on this PC",
   "VaultIntro": "Tools that ask for the vault keep their data in the agent instead of the browser.",
@@ -40,7 +41,7 @@
   "VaultSecrets": "Secrets and client certificate keys are write-only: a page can use them in requests but never read them back.",
   "VaultOrigin": "Each site gets its own vault, so one site cannot read another's data.",
   "CapabilityTitle": "Available capability",
-  "CapabilityBody": "This release can pair HTTP requests, WebSocket connections, Server-Sent Events, the vault for workspaces and secrets, ICMP path traces, DNS lookup, TCP connect, TLS inspection, WHOIS and ASN lookup. Each tool asks for its own named capability; pairing does not grant future capabilities automatically, so after an update a tool may ask you to pair again.",
+  "CapabilityBody": "This release can pair HTTP requests, WebSocket connections, Server-Sent Events, the vault for workspaces and secrets, ICMP path traces, DNS lookup, TCP connect, TLS inspection, WHOIS and ASN lookup, the port scanner and the network scanner. Each tool asks for its own named capability; pairing does not grant future capabilities automatically, so after an update a tool may ask you to pair again.",
   "VerifyTitle": "Verify the download",
   "VerifyBody": "This installer is not digitally signed; Windows SmartScreen may warn or block it. Do not disable Windows protection. Compare the SHA-256 value above with the downloaded file to check integrity; a matching hash is not a publisher signature."
 }

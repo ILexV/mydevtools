@@ -8,7 +8,7 @@
   "AgentSettings": "Paramètres de connexion",
   "RememberConnectionHint": "La connexion est mémorisée dans ce navigateur jusqu’à l’expiration de la session ou au redémarrage de l’agent. Déconnecter la supprime.",
   "LanPolicy": "Politique réseau privé",
-  "PrivateAllowed": "Accès LAN activé au démarrage",
+  "PrivateAllowed": "Réseau local autorisé dans la fenêtre de l’agent",
   "PrivateBlocked": "Cibles publiques uniquement",
   "PairCodeLabel": "Code d’appairage",
   "PairCodeHint": "Collez le code actuel de la fenêtre de l’agent. Le champ est vidé après chaque essai.",

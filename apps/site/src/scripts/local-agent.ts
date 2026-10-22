@@ -5,7 +5,7 @@ const SESSION_STORAGE_VERSION = 1;
 
 
 export type LocalAgentCapability = "http.request" | "icmp.trace" | "dns.lookup" | "tcp.connect" | "tls.inspect" | "whois.lookup" | "asn.lookup"
-  | "vault.data" | "vault.secrets" | "sse.stream" | "websocket.connect";
+  | "vault.data" | "vault.secrets" | "sse.stream" | "websocket.connect" | "port.scan" | "network.scan";
 
 const CAPABILITY_ORDER: readonly LocalAgentCapability[] = [
   "http.request",
@@ -19,20 +19,29 @@ const CAPABILITY_ORDER: readonly LocalAgentCapability[] = [
   "vault.secrets",
   "sse.stream",
   "websocket.connect",
+  "port.scan",
+  "network.scan",
 ];
+
+/** Scanners are granted only by their own page, never as a side effect of pairing another tool. */
+const SCANNER_CAPABILITIES: ReadonlySet<LocalAgentCapability> = new Set(["port.scan", "network.scan"]);
 
 /**
  * Capabilities to request when any network tool pairs: every capability the running
  * agent advertises that this site knows, plus the one this tool needs. One pairing
  * code in any window then unlocks HTTP, path trace, DNS, TCP, TLS, WHOIS and ASN.
  * A grant the agent no longer advertises is dropped. `pair()` itself adds nothing.
+ * A scanner is asked for only by its own page or when `granted` already holds it.
  */
 export function mergeCapabilities(
   advertised: readonly string[],
   needed: LocalAgentCapability,
+  granted: readonly string[] = [],
 ): LocalAgentCapability[] {
   const advertisedSet = new Set(advertised);
-  return CAPABILITY_ORDER.filter((capability) => capability === needed || advertisedSet.has(capability));
+  const grantedSet = new Set(granted);
+  return CAPABILITY_ORDER.filter((capability) => capability === needed
+    || (advertisedSet.has(capability) && (!SCANNER_CAPABILITIES.has(capability) || grantedSet.has(capability))));
 }
 
 export interface LocalAgentInfo {
@@ -242,6 +251,68 @@ export interface TcpConnectResult {
   status: "open" | "refused" | "timeout" | "unreachable";
   elapsedMs: number;
 }
+
+/** `port.scan`: one host, inclusive port ranges (all 65535 at most), up to 64 connects at once. */
+export interface PortScanRequest {
+  id: string;
+  host: string;
+  ports: [number, number][];
+  timeoutMs: number;
+  parallel?: number;
+}
+
+export type PortScanStatus = "open" | "closed" | "filtered" | "unreachable" | "denied" | "error";
+
+export interface PortScanCounts {
+  done: number;
+  open: number;
+  closed: number;
+  filtered: number;
+  other: number;
+}
+
+/** One line of `scanPorts()`; closed ports are listed only when the scan covers 1024 ports or fewer. */
+export type PortScanLine =
+  | { type: "start"; address: string; total: number }
+  | { type: "port"; port: number; status: PortScanStatus; elapsedMs: number }
+  | ({ type: "progress" } & PortScanCounts)
+  | ({ type: "end"; elapsedMs: number; stopped: boolean } & PortScanCounts)
+  | { type: "error"; code: string };
+
+/** `network.scan`: one of this computer's own IPv4 subnets, /22 at most. */
+export interface NetworkScanRequest {
+  id: string;
+  network: string;
+  timeoutMs: number;
+  ports: number[];
+  resolveNames: boolean;
+}
+
+export interface NetworkScanHost {
+  address: string;
+  name?: string;
+  mac?: string;
+  rttMs?: number;
+  openPorts: number[];
+  via: ("icmp" | "tcp" | "arp")[];
+  thisComputer: boolean;
+}
+
+/** One of this computer's subnets from `GET /v1/scan/networks`. */
+export interface LocalScanNetwork {
+  interface: string;
+  address: string;
+  network: string;
+  prefix: number;
+}
+
+/** One line of `scanNetwork()`: a `host` line for every address that answered. */
+export type NetworkScanLine =
+  | { type: "start"; network: string; total: number }
+  | ({ type: "host" } & NetworkScanHost)
+  | { type: "progress"; done: number; found: number }
+  | { type: "end"; done: number; found: number; elapsedMs: number; stopped: boolean }
+  | { type: "error"; code: string };
 
 export interface TcpConnectRequest {
   host: string;
@@ -724,6 +795,25 @@ export class LocalAgentClient {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(request),
     }));
+  }
+
+  /** Scans ports of one host and reports line by line; `cancel(id)` stops it, aborting drops it. */
+  async scanPorts(request: PortScanRequest, onLine: (line: PortScanLine) => void, signal?: AbortSignal): Promise<void> {
+    await this.#stream("/v1/scan/ports", request, onLine as (line: unknown) => void, signal);
+  }
+
+  /** This computer's IPv4 subnets a network scan may cover, each /22 or narrower. */
+  async listScanNetworks(signal?: AbortSignal): Promise<LocalScanNetwork[]> {
+    const value = await this.#authorized<unknown>("/v1/scan/networks", { method: "GET", signal });
+    if (!isObject(value) || !Array.isArray(value.networks)) throw new LocalAgentError("invalid_response");
+    return value.networks.filter((item): item is LocalScanNetwork => isObject(item)
+      && typeof item.interface === "string" && typeof item.address === "string"
+      && typeof item.network === "string" && typeof item.prefix === "number");
+  }
+
+  /** Finds hosts in one of this computer's subnets and reports them as they answer. */
+  async scanNetwork(request: NetworkScanRequest, onLine: (line: NetworkScanLine) => void, signal?: AbortSignal): Promise<void> {
+    await this.#stream("/v1/scan/network", request, onLine as (line: unknown) => void, signal);
   }
 
   /**

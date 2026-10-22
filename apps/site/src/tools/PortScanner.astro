@@ -1,0 +1,121 @@
+---
+/**
+ * Port scanner. The local agent connects to many ports of one host
+ * (`port.scan`) and streams the results; this shell supplies the form, the
+ * results table and the localized string island.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+import AgentConnection from "@/components/tool/AgentConnection.astro";
+import Field from "@/components/tool/Field.astro";
+import Icon from "@/components/Icon.astro";
+import Progress from "@/components/tool/Progress.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+
+interface Props { lang: LocaleCode }
+const { lang } = Astro.props as Props;
+const ns = "tools/port-scanner";
+const clientKeys = [
+  "Connected", "Disconnected", "Connecting", "NotConnected",
+  "AgentConnectedShort", "AgentDisconnectedShort", "ConnectionNotSaved", "NeedScanCapability",
+  "InvalidHost", "InvalidPorts", "InvalidTimeout", "InvalidParallel", "PortCount", "Scan", "Scanning",
+  "Copied", "CopyFailed", "ProgressLabel", "Summary", "SummaryStopped", "ResolvedTo", "TimeValue", "AllPortsHidden",
+  "Status_open", "Status_closed", "Status_filtered", "Status_unreachable", "Status_denied", "Status_error",
+  "ErrorGeneric", "Error_agent_unavailable", "Error_invalid_response", "Error_invalid_request",
+  "Error_unauthorized", "Error_forbidden", "Error_pairing_invalid", "Error_pairing_expired",
+  "Error_pairing_rate_limited", "Error_unsupported_capability", "Error_timeout", "Error_busy",
+  "Error_network_error", "Error_incompatible_protocol", "Error_name_not_found",
+  "Error_private_network_denied", "Error_target_denied", "Error_cancelled",
+] as const;
+const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
+const stringsJson = JSON.stringify(strings);
+---
+
+<div class="port-scanner" data-pscan>
+  <section class="ds-card ds-stack pscan-card" aria-labelledby="pscan-query-title">
+    <div class="ds-panel-head">
+      <h2 id="pscan-query-title" class="ds-panel-title">{t(lang, ns, "QueryTitle")}</h2>
+      <AgentConnection lang={lang} ns={ns} prefix="pscan" />
+    </div>
+    <div class="ds-settings">
+      <Field class="ds-settings-wide" label={t(lang, ns, "HostLabel")} for="pscan-host" hintTip hint={t(lang, ns, "HostHint")}>
+        <input id="pscan-host" class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "HostPlaceholder")} data-pscan-host />
+      </Field>
+      <Field label={t(lang, ns, "PresetLabel")} for="pscan-preset">
+        <select id="pscan-preset" class="ds-field" data-pscan-preset>
+          <option value="common">{t(lang, ns, "PresetCommon")}</option>
+          <option value="well-known">{t(lang, ns, "PresetWellKnown")}</option>
+          <option value="all">{t(lang, ns, "PresetAll")}</option>
+          <option value="custom">{t(lang, ns, "PresetCustom")}</option>
+        </select>
+      </Field>
+      <Field class="ds-settings-wide" label={t(lang, ns, "PortsLabel")} for="pscan-ports" hintTip hint={t(lang, ns, "PortsHint")} data-pscan-ports-field>
+        <input id="pscan-ports" class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "PortsPlaceholder")} data-pscan-ports />
+      </Field>
+      <Field label={t(lang, ns, "TimeoutLabel")} for="pscan-timeout" hintTip hint={t(lang, ns, "TimeoutHint")}>
+        <input id="pscan-timeout" class="ds-field mono" type="number" min="200" max="5000" step="100" inputmode="numeric" data-pscan-timeout />
+      </Field>
+      <Field label={t(lang, ns, "ParallelLabel")} for="pscan-parallel" hintTip hint={t(lang, ns, "ParallelHint")}>
+        <input id="pscan-parallel" class="ds-field mono" type="number" min="1" max="64" step="1" inputmode="numeric" data-pscan-parallel />
+      </Field>
+    </div>
+    <p class="ds-hint" data-pscan-count></p>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-pscan-start disabled>{t(lang, ns, "Scan")}</button>
+      <button type="button" class="ds-btn" data-pscan-stop hidden>{t(lang, ns, "Stop")}</button>
+    </div>
+    <Progress title={t(lang, ns, "ProgressTitle")} fillProps={{ "data-pscan-progress-fill": "" }} labelProps={{ "data-pscan-progress-label": "" }} barProps={{ "data-pscan-progress-bar": "" }} data-pscan-progress />
+    <StatusMessage kind="info" data-pscan-result />
+    <StatusMessage kind="error" data-pscan-error />
+  </section>
+
+  <section class="ds-card pscan-card" aria-labelledby="pscan-results-title">
+    <div class="pscan-results-head">
+      <h2 id="pscan-results-title" class="ds-panel-title">{t(lang, ns, "ResultsTitle")}</h2>
+      <div class="ds-action-row pscan-results-actions">
+        <label class="ds-check-row pscan-open-only">
+          <input class="ds-check" type="checkbox" data-pscan-open-only checked />
+          <span>{t(lang, ns, "OpenOnly")}</span>
+        </label>
+        <button type="button" class="ds-btn ds-btn-small" data-pscan-copy disabled><Icon name="copy" size={15} />{t(lang, ns, "CopyText")}</button>
+      </div>
+    </div>
+    <p class="ds-hint mono" data-pscan-resolved hidden></p>
+    <p class="ds-hint" data-pscan-empty>{t(lang, ns, "EmptyResult")}</p>
+    <div class="pscan-scroll" data-pscan-table-wrap hidden>
+      <table class="pscan-table">
+        <caption class="visually-hidden">{t(lang, ns, "ResultsTitle")}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{t(lang, ns, "PortColumn")}</th>
+            <th scope="col">{t(lang, ns, "ServiceColumn")}</th>
+            <th scope="col">{t(lang, ns, "StatusColumn")}</th>
+            <th scope="col">{t(lang, ns, "TimeColumn")}</th>
+          </tr>
+        </thead>
+        <tbody data-pscan-body></tbody>
+      </table>
+    </div>
+  </section>
+  <script is:inline type="application/json" data-pscan-strings set:html={stringsJson} />
+</div>
+
+<script>import "@/tools/port-scanner.client.ts";</script>
+
+<style>
+  .pscan-card { min-width: 0; }
+  .pscan-results-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; }
+  .pscan-results-head h2 { margin: 0; }
+  .pscan-results-actions { margin: 0; align-items: center; }
+  .pscan-open-only { font-size: var(--mdt-fs-meta); }
+  .pscan-scroll { max-height: 32rem; margin-top: 0.75rem; overflow: auto; }
+  .pscan-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .pscan-table th { position: sticky; top: 0; background: var(--mdt-surface-raised); color: var(--mdt-text-muted); font-size: 0.78rem; font-weight: 600; }
+  .pscan-table th,
+  .pscan-table :global(td) { padding: 0.4rem 0.55rem; border-bottom: 1px solid var(--mdt-border-soft); text-align: left; white-space: nowrap; }
+  .pscan-table :global(td:first-child),
+  .pscan-table :global(td:last-child) { font-family: var(--mdt-font-mono); }
+  .pscan-table :global(td:last-child),
+  .pscan-table th:last-child { text-align: right; }
+  .pscan-table :global(.is-open) { color: var(--mdt-success); font-weight: 600; }
+</style>

@@ -236,6 +236,36 @@ is no settings key. The address and the result stay on the page. The same path
 runs on every OS. It was checked on Linux and was not run on Windows. The
 published Windows download is still the HTTP-only build.
 
+`port-scanner` connects to many TCP ports of one host. `POST /v1/scan/ports`
+requires `port.scan` and streams NDJSON lines: start, one line per port,
+progress every 250 ms, then end or error. The request carries up to 1024 port
+ranges, a timeout of 200 to 5000 ms per port and up to 64 connections at once.
+Refused is closed, a timeout is filtered, no route is unreachable, and the
+agent's own port is reported as denied without a connection. For up to 1024
+ports every result is listed; above that only open ports are, with counts for
+the rest. No data is sent and no banner is read. The host goes through the
+same destination policy as the other tools. Stop calls `/v1/http/cancel`. The
+page stores the preset, the custom list, the timeout and the parallel count in
+`mdt.port-scanner.v1`. The host and the results stay on the page.
+
+`network-scanner` finds hosts in one of this computer's own IPv4 networks.
+`GET /v1/scan/networks` lists those networks (link-local dropped, wider than /22
+narrowed to the /22 around the address) and `POST /v1/scan/network` scans a
+CIDR from /22 to /32 that lies inside one of them; anything else is
+`network_not_local` or `network_too_large`. Both require `network.scan`. The
+network and broadcast addresses are skipped up to /30. Up to 32 addresses are
+probed at once with one ICMP echo, TCP connects to up to 16 probe ports
+(refused counts as alive) and an ARP lookup (Windows `SendARP`, Linux
+`/proc/net/arp`), plus optional reverse DNS. Local networks are private, so the
+scan needs local-network access turned on in the agent window. This
+computer's own addresses are marked. The page stores the probe ports, the
+timeout and the name-lookup setting in `mdt.network-scanner.v1`. The network
+and the hosts stay on the page.
+
+Both scanners share a limit of two scans per agent process. A scanner page
+asks only for its own capability on top of what the session already holds, and
+other tool pages do not request a scanner capability.
+
 The browser persists the origin-bound bearer and its server-issued expiry in
 versioned localStorage so navigation, reload and browser reopen do not require
 another one-time pairing code. The code itself and responses are not stored.

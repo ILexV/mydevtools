@@ -39,7 +39,7 @@ const clientKeys = [
   "BodyChooseFile", "BodyRemoveFile", "BodyFileMissing", "BodyBinary", "ErrorFileMissing",
   "ErrorGraphqlVariables", "ErrorFileUnset", "ErrorBinaryUnset", "ImportCurl", "CurlImported", "CurlIgnored", "CurlFiles", "CurlErrorNotCurl", "CurlErrorNoUrl",
   "CurlErrorQuote", "CodeCopied", "ImportPostman", "ExportPostman", "PostmanImported", "PostmanEnvironmentImported",
-  "PostmanScripts", "PostmanUnsupported", "PostmanErrorFormat", "PostmanErrorVersion", "PostmanUntitled", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
+  "PostmanScripts", "PostmanUnsupported", "PostmanErrorFormat", "PostmanErrorVersion", "PostmanUntitled", "CloseTab", "UnsavedChanges", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
 const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhrases(lang) });
@@ -216,6 +216,12 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
   ></div>
   <div class="ds-card http-main">
   <section class="http-request" aria-label={t(lang, ns, "RequestTitle")}>
+    <div class="http-open-tabs">
+      <div class="http-open-tablist" role="tablist" aria-label={t(lang, ns, "OpenTabs")} data-http-open-tablist></div>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action http-tab-new" aria-label={t(lang, ns, "NewRequest")} title={t(lang, ns, "NewRequest")} data-http-tab-new>
+        <Icon name="plus" size={15} />
+      </button>
+    </div>
     <div class="http-section-heading">
       <Icon name="globe" size={16} />
       <label class="visually-hidden" for="http-request-name">{t(lang, ns, "RequestName")}</label>
@@ -470,6 +476,19 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
   .http-sidebar-resizer:focus-visible { outline: 2px solid var(--mdt-cat); outline-offset: -2px; }
   .http-main { min-width: 0; padding: 0; border: 0; border-radius: 0; box-shadow: none; }
   .http-request { min-width: 0; }
+  .http-open-tabs { display: flex; align-items: stretch; min-width: 0; border-bottom: 1px solid var(--mdt-border-soft); background: var(--mdt-surface-inset); }
+  .http-open-tablist { display: flex; flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: thin; }
+  .http-open-tabs .http-tab-new { flex: 0 0 auto; align-self: center; width: 1.75rem; min-width: 1.75rem; min-height: 1.75rem; margin-inline: 0.35rem; padding: 0; }
+  .http-open-tabs :global(.http-open-tab) { display: flex; flex: 0 0 auto; align-items: center; max-width: 14rem; border-right: 1px solid var(--mdt-border-soft); color: var(--mdt-text-muted); }
+  .http-open-tabs :global(.http-open-tab.is-active) { color: var(--mdt-text); background: var(--mdt-surface-raised); box-shadow: inset 0 -2px 0 var(--mdt-cat); }
+  .http-open-tabs :global(.http-open-tab-button) { display: flex; align-items: center; gap: 0.4rem; min-width: 0; height: 2.25rem; padding: 0 0.25rem 0 0.75rem; border: 0; color: inherit; background: none; font: inherit; font-size: var(--mdt-fs-label); cursor: pointer; }
+  .http-open-tabs :global(.http-open-tab-button:focus-visible) { outline: 1px solid var(--mdt-cat); outline-offset: -2px; }
+  .http-open-tabs :global(.http-open-tab-method) { color: var(--mdt-cat); font-size: 0.68rem; font-weight: 700; }
+  .http-open-tabs :global(.http-open-tab-name) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .http-open-tabs :global(.http-open-tab-mark) { color: var(--mdt-warning); font-size: 0.6rem; }
+  .http-open-tabs :global(.http-open-tab-close) { flex: 0 0 auto; width: 1.5rem; height: 1.5rem; margin-right: 0.3rem; padding: 0; border: 0; border-radius: var(--mdt-radius-sm); color: var(--mdt-text-faint); background: none; font: inherit; cursor: pointer; }
+  .http-open-tabs :global(.http-open-tab-close:hover) { color: var(--mdt-text); background: var(--mdt-surface-muted); }
+  .http-open-tabs :global(.http-open-tab-close[hidden]) { display: none; }
   .http-section-heading { position: relative; z-index: 2; display: flex; align-items: center; gap: 0.5rem; height: 2.75rem; padding-inline: 1rem 0.65rem; border-bottom: 1px solid var(--mdt-border-soft); color: var(--mdt-text-muted); }
   .http-request-name { min-width: 0; flex: 1 1 auto; padding: 0.25rem 0.4rem; border: 1px solid transparent; border-radius: var(--mdt-radius-sm); color: var(--mdt-text); background: transparent; font: inherit; font-weight: 650; }
   .http-request-name:hover { border-color: var(--mdt-border-soft); }

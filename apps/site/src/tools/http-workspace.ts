@@ -97,6 +97,8 @@ export interface HttpWorkspace {
   environments?: HttpEnvironment[];
   activeEnvironmentId?: string | null;
   globals?: HttpSavedRow[];
+  /** Open request tabs in order; ids that no longer exist are ignored. */
+  openIds?: string[];
 }
 
 const STRING_FIELDS: Record<Exclude<HttpAuthType, "inherit" | "none">, readonly string[]> = {
@@ -195,6 +197,7 @@ function isWorkspace(value: unknown): value is HttpWorkspace {
     ids.add(request.id);
   }
   if ("globals" in value && !isRows(value.globals)) return false;
+  if ("openIds" in value && !(Array.isArray(value.openIds) && value.openIds.every((id: unknown) => typeof id === "string"))) return false;
   const environmentIds = new Set<string>();
   if ("environments" in value) {
     if (!Array.isArray(value.environments)) return false;
@@ -322,6 +325,8 @@ export function mergeHttpWorkspaceConflict(
   if (index >= 0) result.requests[index] = copy;
   else result.requests.push(copy);
   result.selectedId = openRequestId;
+  // Tabs are this window's layout, not shared content.
+  if (local.openIds) result.openIds = [...local.openIds];
   return result;
 }
 

@@ -52,6 +52,7 @@ import { createAuthEditor } from "@/tools/http-auth-editor";
 import { codeRequest, generateCode } from "@/tools/http-codegen";
 import { CurlParseError, looksLikeCurl, parseCurl, type CurlImport } from "@/tools/http-curl";
 import { bindCodeDialog, bindImportDialog } from "@/tools/http-curl-dialogs";
+import { openTabIds, requestFingerprint, tabAfterClose, withOpenTab } from "@/tools/http-tabs";
 import { exportPostman, importPostman, PostmanError, type PostmanImport } from "@/tools/http-postman";
 import { bodyTexts, hasBody, type BodyFields } from "@/tools/http-body";
 import { createFileField, FileStore } from "@/tools/http-file-field";
@@ -82,6 +83,8 @@ interface Strings extends SecretsDialogStrings, ScopeDialogStrings, FormDataStri
   PostmanErrorFormat: string;
   PostmanErrorVersion: string;
   PostmanUntitled: string;
+  CloseTab: string;
+  UnsavedChanges: string;
   AuthInheritFrom: string;
   AuthInheritNone: string;
   AuthTokenFetching: string;
@@ -358,6 +361,16 @@ function init(): void {
   let workspaceDirty = false;
   let currentRequest = workspace.requests.find((request) => request.id === workspace.selectedId)!;
   let treeSelection: TreeTarget = { kind: "request", id: currentRequest.id };
+  /** Request content as storage last confirmed it, for the tabs' unsaved mark. */
+  let savedFingerprints = new Map<string, string>();
+  /** Fingerprints of the workspace waiting in the agent queue; confirmed when the queue empties. */
+  let queuedFingerprints: Map<string, string> | null = null;
+  const fingerprints = (source: HttpWorkspace): Map<string, string> =>
+    new Map(source.requests.map((request) => [request.id, requestFingerprint(request)]));
+  savedFingerprints = fingerprints(workspace);
+  /** Last response per open tab, kept in page memory only. */
+  const tabResponses = new Map<string, LocalHttpResponse>();
+  let activeTabId: string | null = null;
   let menuTarget: TreeTarget | null = null;
   let menuReturnFocus: HTMLElement | null = null;
   let moveTarget: Exclude<TreeTarget, { kind: "root" }> | null = null;
@@ -629,6 +642,7 @@ function init(): void {
 
   /** Inherited-auth note, the Auth tab mark and the list of `{{vars}}` with no value. */
   function refreshRequestHints(): void {
+    renderOpenTabs();
     const own = requestAuth.get();
     const { auth, source } = effectiveAuth(workspace, { auth: own, folderId: currentRequest.folderId });
     if (own.type === "inherit") {
@@ -966,6 +980,7 @@ function init(): void {
         return false;
       }
       agentStore.queue(workspace);
+      queuedFingerprints = fingerprints(workspace);
       workspaceDirty = false;
       void flushAgentWorkspace();
       return true;
@@ -975,6 +990,8 @@ function init(): void {
       return false;
     }
     workspaceDirty = false;
+    savedFingerprints = fingerprints(workspace);
+    renderOpenTabs();
     hideMessage(workspaceUi.saveError);
     hideMessage(workspaceUi.loadError);
     return true;
@@ -1268,6 +1285,7 @@ function init(): void {
       ?? workspaceUi.savedList.querySelector<HTMLButtonElement>('[role="treeitem"]');
     if (tabStop && !workspaceUi.savedList.querySelector('[role="treeitem"][tabindex="0"]')) tabStop.tabIndex = 0;
     if (restoreTarget) (itemForTarget(restoreTarget) ?? tabStop ?? workspaceUi.savedList).focus();
+    renderOpenTabs();
   }
 
   function moveTreeItem(
@@ -1662,6 +1680,9 @@ function init(): void {
 
   function applyRequest(request: HttpSavedRequest): void {
     if (expandFolderAncestors(request.folderId)) workspaceDirty = true;
+    const known = new Set(workspace.requests.map((entry) => entry.id));
+    workspace.openIds = withOpenTab((workspace.openIds ?? []).filter((id) => known.has(id)), request.id, activeTabId);
+    activeTabId = request.id;
     bodyRevision++;
     bodyEditor?.view.destroy();
     bodyEditor = null;
@@ -1691,9 +1712,148 @@ function init(): void {
     hideMessage(bodyError);
     hideMessage(bodyEditorError);
     clearResponse();
+    const cached = tabResponses.get(request.id);
+    if (cached) renderResponse(cached);
     renderSavedList();
     showBodyMode();
   }
+
+  const openTablist = root.querySelector<HTMLElement>("[data-http-open-tablist]")!;
+  const tabNew = root.querySelector<HTMLButtonElement>("[data-http-tab-new]")!;
+  let tabsSignature = "";
+
+  /**
+   * Tab strip of open requests: method, name, an unsaved mark while storage has
+   * not confirmed the request's content, and a close button (not on the last tab).
+   */
+  function renderOpenTabs(): void {
+    const ids = openTabIds(workspace, currentRequest.id);
+    workspace.openIds = ids;
+    captureCurrentRequest();
+    const tabs = ids.map((id) => {
+      const request = workspace.requests.find((entry) => entry.id === id)!;
+      const unsaved = savedFingerprints.get(id) !== requestFingerprint(request);
+      return { id, method: request.method, name: request.name.trim() || s.UntitledRequest, url: request.url, unsaved };
+    });
+    const signature = JSON.stringify([tabs, currentRequest.id, active !== null]);
+    if (signature === tabsSignature) return;
+    tabsSignature = signature;
+    const focusedId = document.activeElement instanceof HTMLElement && openTablist.contains(document.activeElement)
+      ? document.activeElement.closest<HTMLElement>("[data-http-tab-id]")?.dataset.httpTabId : undefined;
+    openTablist.replaceChildren(...tabs.map((tab) => {
+      const selected = tab.id === currentRequest.id;
+      const wrapper = document.createElement("div");
+      wrapper.className = `http-open-tab${selected ? " is-active" : ""}`;
+      wrapper.dataset.httpTabId = tab.id;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "http-open-tab-button";
+      button.setAttribute("role", "tab");
+      button.setAttribute("aria-selected", String(selected));
+      button.tabIndex = selected ? 0 : -1;
+      button.title = tab.url ? `${tab.name}\n${tab.url}` : tab.name;
+      button.disabled = active !== null && !selected;
+      const methodLabel = document.createElement("span");
+      methodLabel.className = "http-open-tab-method mono";
+      methodLabel.textContent = tab.method;
+      const nameLabel = document.createElement("span");
+      nameLabel.className = "http-open-tab-name";
+      nameLabel.textContent = tab.name;
+      button.append(methodLabel, nameLabel);
+      if (tab.unsaved) {
+        const mark = document.createElement("span");
+        mark.className = "http-open-tab-mark";
+        mark.title = s.UnsavedChanges;
+        mark.textContent = "●";
+        const label = document.createElement("span");
+        label.className = "visually-hidden";
+        label.textContent = s.UnsavedChanges;
+        button.append(mark, label);
+      }
+      const close = document.createElement("button");
+      close.type = "button";
+      close.className = "http-open-tab-close";
+      close.tabIndex = -1;
+      close.textContent = "×";
+      const closeLabel = s.CloseTab.replace("{name}", tab.name);
+      close.title = closeLabel;
+      close.setAttribute("aria-label", closeLabel);
+      close.hidden = tabs.length < 2;
+      close.disabled = active !== null;
+      wrapper.append(button, close);
+      return wrapper;
+    }));
+    const activeTab = openTablist.querySelector<HTMLElement>(".http-open-tab.is-active");
+    if (activeTab) {
+      // Horizontal scroll only: scrollIntoView would also move the page.
+      const left = activeTab.offsetLeft - openTablist.offsetLeft;
+      if (left < openTablist.scrollLeft) openTablist.scrollLeft = left;
+      else if (left + activeTab.offsetWidth > openTablist.scrollLeft + openTablist.clientWidth) {
+        openTablist.scrollLeft = left + activeTab.offsetWidth - openTablist.clientWidth;
+      }
+    }
+    if (focusedId) openTablist.querySelector<HTMLElement>(`[data-http-tab-id="${CSS.escape(focusedId)}"] [role="tab"]`)?.focus();
+  }
+
+  function activateTab(id: string): void {
+    if (active || id === currentRequest.id) return;
+    treeSelection = { kind: "request", id };
+    switchRequest(id);
+  }
+
+  /** Closes a tab; closing the open request shows its right-hand (else left) neighbour. */
+  function closeTab(id: string): void {
+    if (active) return;
+    const ids = openTabIds(workspace, currentRequest.id);
+    if (ids.length < 2 || !ids.includes(id)) return;
+    const next = tabAfterClose(ids, id);
+    const wasFocused = openTablist.contains(document.activeElement);
+    // Switch first: until then the closing request is still open and would be put back as a tab.
+    if (id === currentRequest.id && next) {
+      activateTab(next);
+      if (currentRequest.id === id) return;
+    }
+    workspace.openIds = openTabIds(workspace, currentRequest.id).filter((entry) => entry !== id);
+    tabResponses.delete(id);
+    workspaceDirty = true;
+    saveWorkspaceNow();
+    renderOpenTabs();
+    if (wasFocused) openTablist.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus();
+  }
+
+  openTablist.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element)) return;
+    const id = event.target.closest<HTMLElement>("[data-http-tab-id]")?.dataset.httpTabId;
+    if (!id) return;
+    if (event.target.closest(".http-open-tab-close")) closeTab(id);
+    else activateTab(id);
+  });
+  openTablist.addEventListener("auxclick", (event) => {
+    if (event.button !== 1 || !(event.target instanceof Element)) return;
+    const id = event.target.closest<HTMLElement>("[data-http-tab-id]")?.dataset.httpTabId;
+    if (!id) return;
+    event.preventDefault();
+    closeTab(id);
+  });
+  openTablist.addEventListener("keydown", (event) => {
+    if (!(event.target instanceof HTMLElement) || event.target.getAttribute("role") !== "tab") return;
+    const tabs = [...openTablist.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const index = tabs.indexOf(event.target as HTMLButtonElement);
+    const id = event.target.closest<HTMLElement>("[data-http-tab-id]")?.dataset.httpTabId;
+    let next = index;
+    if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
+    else if (event.key === "ArrowLeft") next = (index - 1 + tabs.length) % tabs.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = tabs.length - 1;
+    else if (event.key === "Delete" && id) {
+      event.preventDefault();
+      closeTab(id);
+      return;
+    } else return;
+    event.preventDefault();
+    tabs[next]?.focus();
+  });
+  tabNew.addEventListener("click", () => workspaceUi.newRequest.click());
 
   function switchRequest(id: string): void {
     if (active || id === currentRequest.id || !saveWorkspaceNow()) return;
@@ -2083,6 +2243,7 @@ function init(): void {
     const label = deleted.name.trim() || workspaceUi.strings.UntitledRequest;
     if (!window.confirm(workspaceUi.strings.DeleteRequestConfirm.replace("{name}", label))) return;
     const requestsBefore = [...workspace.requests];
+    const neighbourTab = tabAfterClose(openTabIds(workspace, currentRequest.id), id);
     const previousSelectedId = workspace.selectedId;
     const previousSelectedFolderId = workspace.selectedFolderId;
     const previousCurrentRequest = currentRequest;
@@ -2092,7 +2253,8 @@ function init(): void {
     if (!workspace.requests.length) workspace.requests.push(createBlankRequest(deleted.folderId));
     const deletedCurrent = deleted === currentRequest;
     const nextRequest = deletedCurrent
-      ? workspace.requests[Math.min(index, workspace.requests.length - 1)]!
+      ? workspace.requests.find((request) => request.id === neighbourTab)
+        ?? workspace.requests[Math.min(index, workspace.requests.length - 1)]!
       : currentRequest;
     workspace.selectedId = nextRequest.id;
     workspace.selectedFolderId = deletedWasSelection ? null : previousSelectedFolderId;
@@ -2107,6 +2269,7 @@ function init(): void {
       return;
     }
     treeSelection = deletedWasSelection ? { kind: "request", id: nextRequest.id } : previousSelection;
+    tabResponses.delete(id);
     if (deletedCurrent) {
       currentRequest = nextRequest;
       applyRequest(nextRequest);
@@ -2157,6 +2320,8 @@ function init(): void {
   /** Shows another copy of the workspace; `keepSelection` keeps this window's open request. */
   function replaceWorkspace(next: HttpWorkspace | null, keepSelection = false): void {
     const keepId = keepSelection ? currentRequest.id : null;
+    // A clean replace shows what storage holds; a dirty one keeps the old confirmation.
+    const fromStorage = !workspaceDirty && next !== null;
     workspace = next ?? {
       v: 1,
       selectedId: "",
@@ -2171,6 +2336,9 @@ function init(): void {
       workspace.requests.push(initial);
     }
     if (keepId && workspace.requests.some((request) => request.id === keepId)) workspace.selectedId = keepId;
+    if (fromStorage) savedFingerprints = fingerprints(workspace);
+    const kept = new Set(workspace.requests.map((request) => request.id));
+    for (const id of tabResponses.keys()) if (!kept.has(id)) tabResponses.delete(id);
     closeTreeMenu(false);
     if (workspaceUi.moveDialog.open) workspaceUi.moveDialog.close();
     if (envDialog.open) envDialog.close();
@@ -2197,11 +2365,18 @@ function init(): void {
     const outcome = await store.flush({ keepalive });
     if (store !== agentStore) return;
     if (outcome.kind === "saved") {
+      if (!store.hasPending && queuedFingerprints) {
+        savedFingerprints = queuedFingerprints;
+        queuedFingerprints = null;
+        renderOpenTabs();
+      }
       hideMessage(workspaceUi.saveError);
       workspaceChannel?.postMessage({ revision: outcome.revision });
     } else if (outcome.kind === "conflict") {
       captureCurrentRequest();
       const merged = mergeHttpWorkspaceConflict(outcome.remote, workspace, currentRequest.id);
+      // Marked dirty first: the merged copy is not stored yet.
+      workspaceDirty = true;
       replaceWorkspace(merged);
       showMessage(workspaceStatus, s.WorkspaceMerged);
       workspaceDirty = true;
@@ -2357,6 +2532,8 @@ function init(): void {
     requestUrl.disabled = sending;
     workspaceUi.newRequest.disabled = sending;
     workspaceUi.newFolder.disabled = sending;
+    tabNew.disabled = sending;
+    queueHintRefresh();
     workspaceUi.treeMenuButton.disabled = sending;
     workspaceUi.moveDestination.disabled = sending;
     workspaceUi.moveConfirm.disabled = sending;
@@ -2515,6 +2692,7 @@ function init(): void {
         ...(built.basicAuth ? { basicAuth: built.basicAuth } : {}),
       }, abort.signal);
       if (active?.id !== id || abort.signal.aborted) return;
+      tabResponses.set(currentRequest.id, response);
       renderResponse(response);
     } catch (error) {
       if (active?.id !== id) return;

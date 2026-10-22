@@ -39,7 +39,8 @@ const clientKeys = [
   "BodyChooseFile", "BodyRemoveFile", "BodyFileMissing", "BodyBinary", "ErrorFileMissing",
   "ErrorGraphqlVariables", "ErrorFileUnset", "ErrorBinaryUnset", "ImportCurl", "CurlImported", "CurlIgnored", "CurlFiles", "CurlErrorNotCurl", "CurlErrorNoUrl",
   "CurlErrorQuote", "CodeCopied", "ImportPostman", "ExportPostman", "PostmanImported", "PostmanEnvironmentImported",
-  "PostmanScripts", "PostmanUnsupported", "PostmanErrorFormat", "PostmanErrorVersion", "PostmanUntitled", "CloseTab", "UnsavedChanges", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
+  "PostmanScripts", "PostmanUnsupported", "PostmanErrorFormat", "PostmanErrorVersion", "PostmanUntitled", "CloseTab", "UnsavedChanges", "History", "HistoryToday", "HistoryYesterday",
+  "HistoryEmpty", "HistoryOff", "HistoryClearConfirm", "HistoryDelete", "HistoryLoadError", "HistorySaveError", "HistoryBodyDropped", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
 const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhrases(lang) });
@@ -59,12 +60,23 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
         <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "Secrets")} title={t(lang, ns, "Secrets")} aria-haspopup="dialog" hidden data-http-secrets>
           <Icon name="lock" size={15} />
         </button>
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "History")} title={t(lang, ns, "History")} aria-pressed="false" aria-controls="http-history-panel" data-http-history-toggle>
+          <Icon name="history" size={15} />
+        </button>
         <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "TreeMenu")} title={t(lang, ns, "TreeMenu")} aria-haspopup="menu" aria-controls="http-tree-menu" aria-expanded="false" data-http-tree-menu-button>
           <Icon name="more" size={15} />
         </button>
       </div>
     </div>
     <nav class="http-saved-list" aria-label={t(lang, ns, "SavedRequests")} tabindex="0" data-http-saved-list></nav>
+    <section id="http-history-panel" class="http-history" aria-label={t(lang, ns, "History")} hidden data-http-history-panel>
+      <label class="ds-check-row http-history-switch"><input class="ds-check" type="checkbox" data-http-history-enabled /><span>{t(lang, ns, "HistoryEnabled")}</span></label>
+      <p class="ds-hint http-history-hint">{t(lang, ns, "HistoryHint")}</p>
+      <StatusMessage kind="error" data-http-history-error />
+      <p class="ds-hint http-history-empty" data-http-history-empty></p>
+      <ul class="http-history-list" data-http-history-list></ul>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-danger http-history-clear" hidden data-http-history-clear>{t(lang, ns, "HistoryClear")}</button>
+    </section>
     <div class="http-saved-meta">
       <details class="http-workspace-info">
         <summary title={t(lang, ns, "WorkspacePrivacy")}><span aria-hidden="true">i</span> {t(lang, ns, "TreeHint")}</summary>
@@ -434,6 +446,25 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
   .http-saved-list :global(.is-drop-invalid) { background: color-mix(in srgb, var(--mdt-danger) 13%, transparent); box-shadow: inset 0 0 0 1px var(--mdt-danger); }
   .http-saved-list.is-drop-valid { box-shadow: inset 0 0 0 2px var(--mdt-success); }
   .http-saved-list.is-drop-invalid { box-shadow: inset 0 0 0 2px var(--mdt-danger); }
+  .http-history { display: flex; flex: 1 1 auto; flex-direction: column; gap: 0.45rem; min-height: 7rem; overflow: auto; padding: 0.5rem 0.65rem; }
+  .http-history[hidden] { display: none; }
+  .http-history .ds-hint { margin: 0; }
+  .http-history-switch { font-size: var(--mdt-fs-label); }
+  .http-history-list { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+  .http-history-list :global(h3) { margin: 0 0 0.2rem; color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .http-history-list :global(ul) { display: grid; margin: 0; padding: 0; list-style: none; }
+  .http-history-list :global(.http-history-item) { display: flex; align-items: center; min-width: 0; border-radius: var(--mdt-radius-sm); }
+  .http-history-list :global(.http-history-item:hover) { background: var(--mdt-surface-raised); }
+  .http-history-list :global(.http-history-open) { display: grid; grid-template-columns: 2.85rem minmax(0, 1fr); flex: 1 1 auto; min-width: 0; gap: 0.05rem 0.25rem; padding: 0.3rem 0.35rem; border: 0; color: var(--mdt-text); background: none; font: inherit; text-align: left; cursor: pointer; }
+  .http-history-list :global(.http-history-open:focus-visible) { outline: 1px solid var(--mdt-cat); outline-offset: -1px; }
+  .http-history-list :global(.http-history-method) { color: var(--mdt-cat); font-size: 0.68rem; font-weight: 700; }
+  .http-history-list :global(.http-history-url) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--mdt-fs-meta); }
+  .http-history-list :global(.http-history-meta) { grid-column: 2; color: var(--mdt-text-faint); font-size: var(--mdt-fs-meta); }
+  .http-history-list :global(.http-history-status) { color: var(--mdt-success); font-weight: 600; }
+  .http-history-list :global(.http-history-status.is-error) { color: var(--mdt-danger); }
+  .http-history-list :global(.http-history-delete) { flex: 0 0 auto; width: 1.5rem; min-width: 1.5rem; min-height: 1.5rem; padding: 0; }
+  .http-history-clear { align-self: flex-start; }
+  .http-saved-list[hidden] { display: none; }
   .http-saved-meta { display: grid; gap: 0.35rem; border-top: 1px solid var(--mdt-border-soft); }
   .http-workspace-info { min-width: 0; }
   .http-workspace-info > summary { overflow: hidden; padding: 0.35rem 0.55rem; color: var(--mdt-text-faint); cursor: pointer; font-size: var(--mdt-fs-meta); line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }

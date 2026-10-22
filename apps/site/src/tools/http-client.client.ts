@@ -52,6 +52,9 @@ import { createAuthEditor } from "@/tools/http-auth-editor";
 import { codeRequest, generateCode } from "@/tools/http-codegen";
 import { CurlParseError, looksLikeCurl, parseCurl, type CurlImport } from "@/tools/http-curl";
 import { bindCodeDialog, bindImportDialog } from "@/tools/http-curl-dialogs";
+import { AgentHistoryBackend, historyEntry, HTTP_HISTORY_STORAGE_KEY, LocalHistoryBackend, mergeHistory, parseHistory,
+  type HistoryBackend } from "@/tools/http-history";
+import { bindHistoryPanel, type HistoryPanelStrings } from "@/tools/http-history-panel";
 import { openTabIds, requestFingerprint, tabAfterClose, withOpenTab } from "@/tools/http-tabs";
 import { exportPostman, importPostman, PostmanError, type PostmanImport } from "@/tools/http-postman";
 import { bodyTexts, hasBody, type BodyFields } from "@/tools/http-body";
@@ -60,7 +63,7 @@ import { createFormDataEditor, createRowsEditor, type FormDataStrings } from "@/
 import { bindEnvironmentsDialog, bindFolderDialog, type ScopeDialogStrings } from "@/tools/http-scope-dialogs";
 import { collectVariables, encodeQueryComponent, variableNames } from "@/tools/http-variables";
 
-interface Strings extends SecretsDialogStrings, ScopeDialogStrings, FormDataStrings {
+interface Strings extends SecretsDialogStrings, ScopeDialogStrings, FormDataStrings, HistoryPanelStrings {
   BodyBinary: string;
   ErrorFileMissing: string;
   ErrorFileUnset: string;
@@ -1718,6 +1721,46 @@ function init(): void {
     showBodyMode();
   }
 
+  /** History lives with the workspace: in the agent vault once attached, else in this browser. */
+  let agentHistory: AgentHistoryBackend | null = null;
+  const localHistory = new LocalHistoryBackend();
+  const historyBackend = (): HistoryBackend | null => {
+    if (storage !== "agent") return localHistory;
+    if (!agentStore) return null;
+    agentHistory ??= new AgentHistoryBackend(client);
+    return agentHistory;
+  };
+  const history = bindHistoryPanel(root, {
+    strings: s,
+    backend: historyBackend,
+    errorLabel: (code) => s[`Error_${code}`] ?? code,
+    open: (entry) => {
+      if (active) return;
+      const name = entry.request.name || entry.request.url.split(/[?#]/u, 1)[0]!.replace(/^[a-z][a-z0-9+.-]*:\/\//iu, "").slice(0, 120);
+      createRequestAt(null, { ...structuredClone(entry.request), name });
+    },
+  });
+
+  /** Moving to the agent takes the browser history along; the browser copy goes once the agent has it. */
+  async function moveHistoryToAgent(): Promise<void> {
+    let local: ReturnType<typeof parseHistory> = null;
+    try {
+      const raw = localStorage.getItem(HTTP_HISTORY_STORAGE_KEY);
+      local = raw === null ? null : parseHistory(JSON.parse(raw));
+    } catch {
+      return;
+    }
+    const backend = historyBackend();
+    if (!local || !backend || storage !== "agent") return;
+    try {
+      await backend.update((entries) => mergeHistory(entries, local));
+      localStorage.removeItem(HTTP_HISTORY_STORAGE_KEY);
+    } catch {
+      // Kept in the browser; the next attach tries again.
+    }
+    history.reload();
+  }
+
   const openTablist = root.querySelector<HTMLElement>("[data-http-open-tablist]")!;
   const tabNew = root.querySelector<HTMLButtonElement>("[data-http-tab-new]")!;
   let tabsSignature = "";
@@ -2448,6 +2491,8 @@ function init(): void {
       writeHttpWorkspaceLocation("agent");
       storage = "agent";
       agentStore = store;
+      agentHistory = null;
+      void moveHistoryToAgent();
       workspaceDirty = false;
       replaceWorkspace(next, true);
       hideMessage(workspaceUi.saveError);
@@ -2635,6 +2680,9 @@ function init(): void {
 
     const id = requestId();
     const abort = new AbortController();
+    // As written, before sending: history keeps {{vars}} and secrets unresolved.
+    const sentRequest = structuredClone(currentRequest);
+    let sent = false;
     active = { id, abort };
     setSending(true);
     showMessage(requestStatus, strings.Sending);
@@ -2681,6 +2729,7 @@ function init(): void {
         showMessage(requestError, strings.ErrorBodyLimit);
         return;
       }
+      sent = true;
       const response = await client.request({
         id,
         method: built.method,
@@ -2693,6 +2742,8 @@ function init(): void {
       }, abort.signal);
       if (active?.id !== id || abort.signal.aborted) return;
       tabResponses.set(currentRequest.id, response);
+      history.record(historyEntry(sentRequest, { status: response.status, elapsedMs: response.elapsedMs,
+        sizeBytes: base64ToBytes(response.bodyBase64).byteLength }, requestId()));
       renderResponse(response);
     } catch (error) {
       if (active?.id !== id) return;
@@ -2702,6 +2753,7 @@ function init(): void {
       } else {
         hideMessage(requestStatus);
         showMessage(requestError, errorText(error));
+        if (sent && error instanceof LocalAgentError) history.record(historyEntry(sentRequest, { status: null, error: error.code }, requestId()));
         if (!client.connected) {
           setConnected(false);
         }

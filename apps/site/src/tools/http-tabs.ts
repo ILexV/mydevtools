@@ -28,6 +28,7 @@ export function tabAfterClose(ids: readonly string[], id: string): string | null
 
 const DEFAULTS: Partial<HttpSavedRequest> = {
   bodyMode: "raw", urlencoded: [], formdata: [], binary: null, graphql: { query: "", variables: "" }, auth: { type: "inherit" },
+  scripts: { pre: "", test: "" },
 };
 
 function stable(value: unknown): unknown {

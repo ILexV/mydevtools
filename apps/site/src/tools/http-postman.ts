@@ -1,15 +1,15 @@
 import { effectiveAuth } from "./http-auth.ts";
 import { paramsFromUrl } from "./http-curl.ts";
-import { collectVariables } from "./http-variables.ts";
+import { collectVariables, folderChain } from "./http-variables.ts";
 import type {
-  HttpAuth, HttpEnvironment, HttpFormDataRow, HttpSavedFolder, HttpSavedRequest, HttpSavedRow, HttpWorkspace,
+  HttpAuth, HttpEnvironment, HttpFormDataRow, HttpSavedFolder, HttpScripts, HttpSavedRequest, HttpSavedRow, HttpWorkspace,
 } from "./http-workspace.ts";
 
 /**
  * Postman Collection v2.1 (and v2.0) import and export for the HTTP client, plus
  * Postman environment files on import. Folders, requests, query, headers, all
- * body modes, folder auth and collection variables carry over; scripts, examples
- * and auth types the client lacks are counted and reported, never guessed.
+ * body modes, folder auth, collection variables and pre-request/test scripts carry
+ * over; examples and auth types the client lacks are reported, never guessed.
  */
 export const POSTMAN_SCHEMA = "https://schema.getpostman.com/json/collection/v2.1.0/collection.json";
 
@@ -25,7 +25,7 @@ export interface PostmanImport {
   folders: HttpSavedFolder[];
   requests: HttpSavedRequest[];
   environments: HttpEnvironment[];
-  /** Pre-request and test scripts dropped, by item count. */
+  /** Items whose scripts call what the script sandbox lacks (pm.sendRequest, require, …). */
   scripts: number;
   /** Auth types, OAuth grants and methods the client does not have; replaced by none or GET. */
   unsupported: string[];
@@ -38,6 +38,15 @@ const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"];
 const isObject = (value: unknown): value is Json => typeof value === "object" && value !== null && !Array.isArray(value);
 const text = (value: unknown): string => typeof value === "string" ? value : typeof value === "number" || typeof value === "boolean" ? String(value) : "";
 const list = (value: unknown): unknown[] => Array.isArray(value) ? value : [];
+/** Script features the sandbox does not provide: no network, no modules, no cookie jar. */
+const UNSUPPORTED_SCRIPT = /\bpm\.(?:sendRequest|cookies|vault|visualizer|require)\b|\brequire\s*\(|\bCryptoJS\b|\bxml2Json\b|\bcheerio\b/u;
+
+function exportEvents(scripts: HttpScripts | undefined): Json[] | undefined {
+  const events = (["pre", "test"] as const).filter((key) => scripts?.[key].trim()).map((key) => ({
+    listen: key === "pre" ? "prerequest" : "test", script: { type: "text/javascript", exec: scripts![key].split("\n") },
+  }));
+  return events.length ? events : undefined;
+}
 
 function rows(value: unknown, enabledKey: "disabled" | "enabled" = "disabled"): HttpSavedRow[] {
   return list(value).filter(isObject).map((row) => ({
@@ -171,8 +180,17 @@ export function importPostman(input: unknown, parentId: string | null, newId: ()
   const schema = text(info.schema);
   if (schema && !/collection\/v2\.[01]/u.test(schema)) throw new PostmanError("version");
   const unsupported = new Set<string>();
-  const scripted = (item: Json): boolean => list(item.event).some((event) => isObject(event) && isObject(event.script)
-    && list(event.script.exec).some((line) => text(line).trim()));
+  const scriptsOf = (item: Json): HttpScripts | undefined => {
+    const scripts: HttpScripts = { pre: "", test: "" };
+    for (const event of list(item.event).filter(isObject)) {
+      const script = isObject(event.script) ? event.script : null;
+      const code = (Array.isArray(script?.exec) ? script.exec.map(text) : [text(script?.exec)]).join("\n");
+      if (event.listen === "prerequest") scripts.pre = code;
+      else if (event.listen === "test") scripts.test = code;
+    }
+    if (UNSUPPORTED_SCRIPT.test(`${scripts.pre}\n${scripts.test}`)) result.scripts++;
+    return scripts.pre.trim() || scripts.test.trim() ? scripts : undefined;
+  };
 
   const folder = (item: Json, parent: string | null): string => {
     const id = newId();
@@ -181,8 +199,9 @@ export function importPostman(input: unknown, parentId: string | null, newId: ()
     if (auth) entry.auth = auth;
     const variables = rows(item.variable);
     if (variables.length) entry.variables = variables;
+    const scripts = scriptsOf(item);
+    if (scripts) entry.scripts = scripts;
     result.folders.push(entry);
-    if (scripted(item)) result.scripts++;
     for (const child of list(item.item).filter(isObject)) {
       if (Array.isArray(child.item)) folder(child, id);
       else request(child, id);
@@ -207,7 +226,8 @@ export function importPostman(input: unknown, parentId: string | null, newId: ()
     const behavior = isObject(item.protocolProfileBehavior) ? item.protocolProfileBehavior : {};
     // Postman follows redirects unless told otherwise.
     entry.followRedirects = behavior.followRedirects !== false;
-    if (scripted(item)) result.scripts++;
+    const scripts = scriptsOf(item);
+    if (scripts) entry.scripts = scripts;
     result.requests.push(entry);
   };
 
@@ -269,8 +289,10 @@ function exportBody(request: HttpSavedRequest): Json | undefined {
 function exportRequest(request: HttpSavedRequest): Json {
   const body = exportBody(request);
   const auth = exportAuth(request.auth);
+  const event = exportEvents(request.scripts);
   return {
     name: request.name || request.url || "Request",
+    ...(event ? { event } : {}),
     ...(request.followRedirects ? {} : { protocolProfileBehavior: { followRedirects: false } }),
     request: {
       method: request.method,
@@ -292,10 +314,12 @@ export function exportPostman(workspace: HttpWorkspace, folderId: string | null,
   const items = (parent: string | null): Json[] => [
     ...workspace.folders.filter((entry) => entry.parentId === parent).map((entry) => {
       const auth = exportAuth(entry.auth);
+      const event = exportEvents(entry.scripts);
       return {
         name: entry.name,
         item: items(entry.id),
         ...(auth ? { auth } : {}),
+        ...(event ? { event } : {}),
         ...(entry.variables?.length ? { variable: exportRows(entry.variables) } : {}),
       };
     }),
@@ -308,6 +332,11 @@ export function exportPostman(workspace: HttpWorkspace, folderId: string | null,
     // The environment is left out on purpose: only this folder's chain of collection variables.
     const scope = collectVariables({ ...workspace, environments: [], activeEnvironmentId: null, globals: [] }, folderId);
     if (scope.size) collection.variable = [...scope].map(([key, value]) => ({ key, value }));
+    // The folder's own scripts and those above it run for its requests: they become collection scripts.
+    const chain = folderChain(workspace, folderId).map((chainId) => workspace.folders.find((entry) => entry.id === chainId)?.scripts);
+    const joined = (key: keyof HttpScripts) => chain.map((scripts) => scripts?.[key] ?? "").filter((code) => code.trim()).join("\n");
+    const event = exportEvents({ pre: joined("pre"), test: joined("test") });
+    if (event) collection.event = event;
   }
   return collection;
 }

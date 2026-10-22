@@ -1,7 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { exportPostman, importPostman, PostmanError, POSTMAN_SCHEMA } from "../src/tools/http-postman.ts";
-import { parseHttpWorkspace, type HttpWorkspace } from "../src/tools/http-workspace.ts";
+import { parseHttpWorkspace, type HttpSavedFolder, type HttpWorkspace } from "../src/tools/http-workspace.ts";
+
+const root = (result: { folders: HttpSavedFolder[] }) => result.folders.find((folder) => folder.parentId === null)!;
 
 const ids = () => {
   let next = 0;
@@ -46,6 +48,8 @@ const collection = {
       { key: "grant_type", value: "client_credentials" }, { key: "accessTokenUrl", value: "https://auth/token" },
       { key: "clientId", value: "cid" }, { key: "clientSecret", value: "{{secret:cs}}" }, { key: "client_authentication", value: "body" }] } } },
     { name: "Binary", request: { method: "POST", url: "https://e.com/bin", body: { mode: "file", file: { src: "dump.bin" } } } },
+    { name: "Chained", event: [{ listen: "prerequest", script: { exec: "pm.sendRequest('https://x', () => {})" } }],
+      request: { method: "GET", url: "https://e.com" } },
   ],
 };
 
@@ -82,7 +86,10 @@ test("imports a v2.1 collection as one folder with its tree, auth, variables and
     clientSecret: "{{secret:cs}}", scope: "", clientAuth: "body" });
   assert.equal(byName.get("Binary")!.bodyMode, "binary");
 
-  assert.equal(result.scripts, 2);
+  assert.deepEqual(root.scripts, { pre: "pm.environment.set('a', 1)", test: "" });
+  assert.deepEqual(create.scripts, { pre: "", test: "pm.test('ok')" });
+  assert.deepEqual(byName.get("Chained")!.scripts, { pre: "pm.sendRequest('https://x', () => {})", test: "" });
+  assert.equal(result.scripts, 1);
   assert.deepEqual(result.unsupported.sort(), ["COPY", "OAuth 2.0 authorization_code", "digest"]);
   assert.deepEqual(result.files, ["/home/me/pic.png", "dump.bin"]);
 
@@ -116,6 +123,8 @@ test("an exported folder imports back with the same requests and inherited auth 
 
   const back = importPostman(JSON.parse(JSON.stringify(exported)), null, ids(), "C");
   assert.deepEqual(back.folders[0]!.auth, orders.auth);
+  // Scripts of the folders above become the collection's scripts.
+  assert.deepEqual(back.folders[0]!.scripts, root(source).scripts);
   const strip = (requests: typeof source.requests) => requests.map(({ id, folderId, ...rest }) => rest);
   assert.deepEqual(strip(back.requests), strip(source.requests.filter((request) => request.folderId === orders.id)));
 

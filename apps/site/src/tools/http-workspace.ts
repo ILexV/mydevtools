@@ -54,6 +54,12 @@ export interface HttpFormDataRow extends HttpSavedRow {
   file?: HttpFileRef | null;
 }
 
+/** Postman-style scripts: `pre` runs before sending, `test` after the response. */
+export interface HttpScripts {
+  pre: string;
+  test: string;
+}
+
 export interface HttpSavedRequest {
   id: string;
   folderId: string | null;
@@ -74,6 +80,7 @@ export interface HttpSavedRequest {
   formdata?: HttpFormDataRow[];
   binary?: HttpFileRef | null;
   graphql?: { query: string; variables: string };
+  scripts?: HttpScripts;
 }
 
 export interface HttpSavedFolder {
@@ -85,6 +92,8 @@ export interface HttpSavedFolder {
   auth?: HttpAuth;
   /** Collection-level variables for requests inside this folder; nearer folders win. */
   variables?: HttpSavedRow[];
+  /** Run for every request inside, root folders first. */
+  scripts?: HttpScripts;
 }
 
 export interface HttpWorkspace {
@@ -125,6 +134,11 @@ function isRows(value: unknown): value is HttpSavedRow[] {
   return Array.isArray(value) && value.every((row: unknown) => typeof row === "object" && row !== null
     && "name" in row && typeof row.name === "string" && "value" in row && typeof row.value === "string"
     && "enabled" in row && typeof row.enabled === "boolean");
+}
+
+function isScripts(value: unknown): value is HttpScripts {
+  return typeof value === "object" && value !== null && typeof (value as Record<string, unknown>).pre === "string"
+    && typeof (value as Record<string, unknown>).test === "string";
 }
 
 function isFileRef(value: unknown): value is HttpFileRef {
@@ -168,7 +182,8 @@ function isWorkspace(value: unknown): value is HttpWorkspace {
       || (folder.parentId !== null && typeof folder.parentId !== "string")
       || typeof folder.expanded !== "boolean"
       || ("auth" in folder && !isHttpAuth(folder.auth))
-      || ("variables" in folder && !isRows(folder.variables))) return false;
+      || ("variables" in folder && !isRows(folder.variables))
+      || ("scripts" in folder && !isScripts(folder.scripts))) return false;
     parents.set(folder.id, folder.parentId);
   }
   const checked = new Set<string>();
@@ -193,7 +208,8 @@ function isWorkspace(value: unknown): value is HttpWorkspace {
       || typeof request.bodyFormat !== "string" || !["text", "json", "html", "xml"].includes(request.bodyFormat)
       || typeof request.timeoutMs !== "number" || !Number.isFinite(request.timeoutMs)
       || typeof request.followRedirects !== "boolean" || !isRows(request.params) || !isRows(request.headers)
-      || ("auth" in request && !isHttpAuth(request.auth)) || !hasValidBody(request)) return false;
+      || ("auth" in request && !isHttpAuth(request.auth)) || !hasValidBody(request)
+      || ("scripts" in request && !isScripts(request.scripts))) return false;
     ids.add(request.id);
   }
   if ("globals" in value && !isRows(value.globals)) return false;

@@ -187,3 +187,26 @@ class ResponseJsonFormatter {
 export function formatResponseJson(text: string): string | null {
   return new ResponseJsonFormatter(text).format();
 }
+
+/** Content types shown as text and handed to scripts as text. */
+export function isTextContentType(value: string): boolean {
+  const mime = value.split(";", 1)[0]?.trim().toLowerCase() ?? "";
+  return mime.startsWith("text/")
+    || mime === "application/json"
+    || mime.endsWith("+json")
+    || mime === "application/xml"
+    || mime.endsWith("+xml")
+    || mime === "application/javascript"
+    || mime === "application/x-javascript"
+    || mime === "application/x-www-form-urlencoded"
+    || mime === "image/svg+xml";
+}
+
+export function textDecoderFor(value: string): TextDecoder {
+  const match = /(?:^|;)\s*charset\s*=\s*["']?([^;"'\s]+)/iu.exec(value);
+  try {
+    return new TextDecoder(match?.[1] || "utf-8");
+  } catch {
+    return new TextDecoder();
+  }
+}

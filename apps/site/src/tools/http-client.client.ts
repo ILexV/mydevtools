@@ -1,7 +1,7 @@
 import { formatBytes } from "@/lib/format";
 import { syncEmptyState } from "@/scripts/tool-ui";
 import { loadEditorKit, type MdtEditor, type EditorLanguage } from "@/scripts/codemirror-loader";
-import { formatResponseJson } from "@/tools/http-response";
+import { formatResponseJson, isTextContentType, textDecoderFor } from "@/tools/http-response";
 import { sanitizeHtml } from "@/tools/markdown-sanitize";
 import {
   LocalAgentClient,
@@ -54,6 +54,9 @@ import { CurlParseError, looksLikeCurl, parseCurl, type CurlImport } from "@/too
 import { bindCodeDialog, bindImportDialog } from "@/tools/http-curl-dialogs";
 import { AgentHistoryBackend, historyEntry, HTTP_HISTORY_STORAGE_KEY, LocalHistoryBackend, mergeHistory, parseHistory,
   type HistoryBackend } from "@/tools/http-history";
+import { runHttpRequest, scriptAssignedNames } from "@/tools/http-run";
+import { ScriptSandbox, ScriptTimeoutError } from "@/tools/http-script-sandbox";
+import { bindScriptsEditor, bindTestsPanel, type ScriptResults, type ScriptsPanelStrings } from "@/tools/http-scripts-panel";
 import { bindHistoryPanel, type HistoryPanelStrings } from "@/tools/http-history-panel";
 import { openTabIds, requestFingerprint, tabAfterClose, withOpenTab } from "@/tools/http-tabs";
 import { exportPostman, importPostman, PostmanError, type PostmanImport } from "@/tools/http-postman";
@@ -63,7 +66,10 @@ import { createFormDataEditor, createRowsEditor, type FormDataStrings } from "@/
 import { bindEnvironmentsDialog, bindFolderDialog, type ScopeDialogStrings } from "@/tools/http-scope-dialogs";
 import { collectVariables, encodeQueryComponent, variableNames } from "@/tools/http-variables";
 
-interface Strings extends SecretsDialogStrings, ScopeDialogStrings, FormDataStrings, HistoryPanelStrings {
+interface Strings extends SecretsDialogStrings, ScopeDialogStrings, FormDataStrings, HistoryPanelStrings, ScriptsPanelStrings {
+  ScriptTimeout: string;
+  ScriptRunning: string;
+  RequestSkipped: string;
   BodyBinary: string;
   ErrorFileMissing: string;
   ErrorFileUnset: string;
@@ -171,28 +177,6 @@ function readStrings(root: HTMLElement): Strings | null {
   }
 }
 
-
-function isTextContentType(value: string): boolean {
-  const mime = value.split(";", 1)[0]?.trim().toLowerCase() ?? "";
-  return mime.startsWith("text/")
-    || mime === "application/json"
-    || mime.endsWith("+json")
-    || mime === "application/xml"
-    || mime.endsWith("+xml")
-    || mime === "application/javascript"
-    || mime === "application/x-javascript"
-    || mime === "application/x-www-form-urlencoded"
-    || mime === "image/svg+xml";
-}
-
-function textDecoderFor(value: string): TextDecoder {
-  const match = /(?:^|;)\s*charset\s*=\s*["']?([^;"'\s]+)/iu.exec(value);
-  try {
-    return new TextDecoder(match?.[1] || "utf-8");
-  } catch {
-    return new TextDecoder();
-  }
-}
 
 function safeFilename(headers: LocalAgentHeader[], fallback: string): string {
   const disposition = headers.find((header) => header.name.toLowerCase() === "content-disposition")?.value;
@@ -372,7 +356,7 @@ function init(): void {
     new Map(source.requests.map((request) => [request.id, requestFingerprint(request)]));
   savedFingerprints = fingerprints(workspace);
   /** Last response per open tab, kept in page memory only. */
-  const tabResponses = new Map<string, LocalHttpResponse>();
+  const tabResponses = new Map<string, { response: LocalHttpResponse; scripts: ScriptResults | null }>();
   let activeTabId: string | null = null;
   let menuTarget: TreeTarget | null = null;
   let menuReturnFocus: HTMLElement | null = null;
@@ -518,6 +502,12 @@ function init(): void {
     scheduleWorkspaceSave();
   });
   const headersTable = bindTable("headers", scheduleWorkspaceSave);
+  const scriptsEditor = bindScriptsEditor(root, {
+    strings: s, onChange: scheduleWorkspaceSave,
+    onSubmit: () => { if (!send.disabled) send.click(); },
+  });
+  const testsPanel = bindTestsPanel(root, s);
+  const scriptSandbox = new ScriptSandbox();
 
   /** OAuth 2.0 client-credentials tokens by config; kept in page memory only, never saved. */
   const oauthTokens = new Map<string, OAuthToken>();
@@ -658,12 +648,14 @@ function init(): void {
     }
     authMark.textContent = auth.type === "none" ? "" : "●";
     const scope = collectVariables(workspace, currentRequest.folderId);
+    const scripts = scriptsEditor.get();
+    const assigned = scriptAssignedNames(workspace, { ...currentRequest, ...(scripts ? { scripts } : { scripts: undefined }) });
     const body = currentBodyFields();
     bodyMark.textContent = hasBody(body) ? "●" : "";
     const texts = [workspaceUi.requestUrl.value, ...bodyTexts(body), ...headersTable.readAll().filter((row) => row.enabled)
       .flatMap((row) => [row.name, row.value]), ...Object.values(auth).filter((value) => typeof value === "string")];
     const missing = [...new Set(texts.flatMap(variableNames))]
-      .filter((name) => !scope.has(name) && !["$guid", "$timestamp", "$isoTimestamp", "$randomInt"].includes(name));
+      .filter((name) => !scope.has(name) && !assigned.has(name) && !["$guid", "$timestamp", "$isoTimestamp", "$randomInt"].includes(name));
     if (missing.length) {
       showMessage(variablesWarning, s.UnresolvedVariables.replace("{names}", missing.map((name) => `{{${name}}}`).join(", ")));
     } else {
@@ -925,6 +917,7 @@ function init(): void {
       }
       if (moveFocus) next.focus();
       if (next.id === "http-request-body-tab" && bodyMode.value === "raw") void mountBodyEditor();
+      if (next.id === "http-request-scripts-tab") scriptsEditor.mount();
     };
     tablist.addEventListener("click", (event) => {
       if (!(event.target instanceof Element)) return;
@@ -968,6 +961,9 @@ function init(): void {
     currentRequest.timeoutMs = Number.isFinite(timeoutValue) ? timeoutValue : 30000;
     currentRequest.followRedirects = workspaceUi.redirects.checked;
     currentRequest.auth = requestAuth.get();
+    const scripts = scriptsEditor.get();
+    if (scripts) currentRequest.scripts = scripts;
+    else delete currentRequest.scripts;
   }
 
   function saveWorkspaceNow(): boolean {
@@ -1678,6 +1674,7 @@ function init(): void {
     hideMessage(responseUi.editorError);
     hideMessage(responseUi.requestStatus);
     hideMessage(responseUi.requestError);
+    testsPanel.render(null);
     syncEmptyState(responseUi.output, true);
   }
 
@@ -1715,8 +1712,9 @@ function init(): void {
     hideMessage(bodyError);
     hideMessage(bodyEditorError);
     clearResponse();
+    scriptsEditor.set(request.scripts);
     const cached = tabResponses.get(request.id);
-    if (cached) renderResponse(cached);
+    if (cached) renderResponse(cached.response, cached.scripts);
     renderSavedList();
     showBodyMode();
   }
@@ -2701,12 +2699,36 @@ function init(): void {
 
     try {
       const bodyLimit = client.info?.limits.maxRequestBodyBytes ?? 1024 * 1024;
-      let built;
+      let run;
       try {
-        built = await buildHttpRequest(currentBuildInput({
-          readFile: (ref) => readBodyFile(ref, bodyLimit),
-          oauthToken: (config) => oauthToken(config, { signal: abort.signal }),
-        }));
+        run = await runHttpRequest(workspace, currentRequest, {
+          runScripts: (job) => {
+            showMessage(requestStatus, strings.ScriptRunning);
+            return scriptSandbox.run(job, { signal: abort.signal });
+          },
+          build: async (input) => {
+            const built = await buildHttpRequest({ ...input,
+              readFile: (ref) => readBodyFile(ref, bodyLimit),
+              oauthToken: (config) => oauthToken(config, { signal: abort.signal }),
+            });
+            if (built.body.byteLength > bodyLimit) throw new HttpBuildError("body_limit");
+            return built;
+          },
+          send: (built, request) => {
+            sent = true;
+            showMessage(requestStatus, strings.Sending);
+            return client.request({
+              id,
+              method: built.method,
+              url: built.url,
+              headers: built.headers,
+              bodyBase64: bytesToBase64(built.body),
+              timeoutMs: requestTimeout(),
+              followRedirects: request.followRedirects,
+              ...(built.basicAuth ? { basicAuth: built.basicAuth } : {}),
+            }, abort.signal);
+          },
+        });
       } catch (error) {
         if (!(error instanceof HttpBuildError)) throw error;
         if (active?.id !== id) return;
@@ -2723,33 +2745,38 @@ function init(): void {
           root.querySelector<HTMLButtonElement>("#http-request-auth-tab")?.click();
         }
         return;
+      } finally {
+        // Scripts may have written environment, global or folder variables.
+        scheduleWorkspaceSave();
+        queueHintRefresh();
       }
-      if (built.body.byteLength > bodyLimit) {
+      if (active?.id !== id || abort.signal.aborted) return;
+      const scripts: ScriptResults | null = run.tests.length || run.logs.length || run.scriptError
+        ? { tests: run.tests, logs: run.logs, error: run.scriptError } : null;
+      if (!run.response) {
         hideMessage(requestStatus);
-        showMessage(requestError, strings.ErrorBodyLimit);
+        if (run.scriptError) {
+          showMessage(requestError, s.ScriptErrorIn.replace("{event}", s.ScriptPre).replace("{script}", run.scriptError.script)
+            .replace("{message}", run.scriptError.message));
+          root.querySelector<HTMLButtonElement>("#http-request-scripts-tab")?.click();
+        } else {
+          showMessage(requestStatus, strings.RequestSkipped);
+        }
         return;
       }
-      sent = true;
-      const response = await client.request({
-        id,
-        method: built.method,
-        url: built.url,
-        headers: built.headers,
-        bodyBase64: bytesToBase64(built.body),
-        timeoutMs: requestTimeout(),
-        followRedirects: redirects.checked,
-        ...(built.basicAuth ? { basicAuth: built.basicAuth } : {}),
-      }, abort.signal);
-      if (active?.id !== id || abort.signal.aborted) return;
-      tabResponses.set(currentRequest.id, response);
+      const response = run.response;
+      tabResponses.set(currentRequest.id, { response, scripts });
       history.record(historyEntry(sentRequest, { status: response.status, elapsedMs: response.elapsedMs,
         sizeBytes: base64ToBytes(response.bodyBase64).byteLength }, requestId()));
-      renderResponse(response);
+      renderResponse(response, scripts);
     } catch (error) {
       if (active?.id !== id) return;
       if ((error instanceof DOMException && error.name === "AbortError")
         || (error instanceof LocalAgentError && error.code === "cancelled")) {
         showMessage(requestStatus, strings.Canceled);
+      } else if (error instanceof ScriptTimeoutError) {
+        hideMessage(requestStatus);
+        showMessage(requestError, strings.ScriptTimeout);
       } else {
         hideMessage(requestStatus);
         showMessage(requestError, errorText(error));
@@ -2789,7 +2816,8 @@ function init(): void {
     window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
   });
 
-  function renderResponse(response: LocalHttpResponse): void {
+  function renderResponse(response: LocalHttpResponse, scripts: ScriptResults | null = null): void {
+    testsPanel.render(scripts);
     const bytes = base64ToBytes(response.bodyBase64);
     const type = response.headers.find((header) => header.name.toLowerCase() === "content-type")?.value ?? "";
     responseBlob = new Blob([bytes.slice().buffer], { type: type || "application/octet-stream" });

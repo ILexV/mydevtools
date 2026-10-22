@@ -159,6 +159,19 @@ export function bindFolderDialog(dialog: HTMLDialogElement, options: ScopeDialog
   });
   authHost.replaceChildren(auth.element);
   rowsHost.replaceChildren(rows.element);
+  const scripts = [...dialog.querySelectorAll<HTMLTextAreaElement>("[data-http-folder-script]")];
+  const scriptField = (kind: "pre" | "test") => scripts.find((field) => field.dataset.httpFolderScript === kind)!;
+  for (const field of scripts) {
+    field.addEventListener("input", () => {
+      const target = folder();
+      if (!target) return;
+      const pre = scriptField("pre").value;
+      const test = scriptField("test").value;
+      if (pre.trim() || test.trim()) target.scripts = { pre, test };
+      else delete target.scripts;
+      options.changed();
+    });
+  }
 
   return {
     open(trigger, id) {
@@ -170,6 +183,8 @@ export function bindFolderDialog(dialog: HTMLDialogElement, options: ScopeDialog
       auth.set(target.auth);
       auth.setNote(s.AuthInheritParent);
       rows.replace(target.variables ?? []);
+      scriptField("pre").value = target.scripts?.pre ?? "";
+      scriptField("test").value = target.scripts?.test ?? "";
       dialog.showModal();
       dialog.querySelector<HTMLSelectElement>("select")?.focus();
     },

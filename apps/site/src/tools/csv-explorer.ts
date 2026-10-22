@@ -357,7 +357,7 @@ export function csvRecordMatches(fields: readonly string[], filter: CsvFilter | 
  */
 export class CsvByteParser {
   private readonly decoder: TextDecoder;
-  private readonly fieldBuffer = new Uint8Array(CSV_MAX_FIELD_BYTES);
+  private readonly fieldBuffer: Uint8Array;
   private fieldLength = 0;
   private fields: string[] = [];
   private quoted = false;
@@ -376,7 +376,10 @@ export class CsvByteParser {
     delimiter: CsvDelimiter,
     startOffset: number,
     onRecord: (record: CsvParsedRecord) => boolean | void,
+    /** Reuse a CSV_MAX_FIELD_BYTES scratch buffer when many short-lived parsers run one after another. */
+    fieldBuffer: Uint8Array = new Uint8Array(CSV_MAX_FIELD_BYTES),
   ) {
+    this.fieldBuffer = fieldBuffer;
     this.encoding = encoding;
     this.delimiterCode = delimiter.charCodeAt(0);
     this.onRecord = onRecord;

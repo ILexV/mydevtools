@@ -20,6 +20,9 @@ const clientKeys = [
   "RawWarning", "ErrorEmpty", "ErrorEncoding", "ErrorMalformed", "ErrorFieldTooLarge", "ErrorRecordTooLarge",
   "ErrorTooManyColumns", "ErrorWorker", "ErrorSession", "ErrorGeneric", "ErrorSave", "ErrorFallbackTooLarge",
   "DelimiterComma", "DelimiterSemicolon", "DelimiterTab", "DelimiterPipe",
+  "SortNone", "SortAsc", "SortDesc", "SortedSummary", "StatusSorting", "TypeText", "TypeInteger", "TypeNumber",
+  "TypeBoolean", "StatusDetected", "GroupNone", "ValueNone", "StatusGrouping", "GroupSummary", "NullValue",
+  "ErrorConversion", "ErrorSortTooLarge", "ErrorTooManyGroups", "ErrorValueRange",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
 const stringsJson = JSON.stringify({
@@ -127,6 +130,74 @@ const stringsJson = JSON.stringify({
       </details>
 
       <details class="ds-explorer-fold">
+        <summary class="ds-label">{t(lang, ns, "TypesTitle")}</summary>
+        <div class="csv-fold-body">
+          <div class="csv-type-list" data-csv-type-list></div>
+          <div class="ds-settings csv-invalid-settings">
+            <Field label={t(lang, ns, "InvalidLabel")} for="csv-invalid">
+              <select id="csv-invalid" class="ds-field-select" data-csv-invalid>
+                <option value="error">{t(lang, ns, "InvalidError")}</option>
+                <option value="null">{t(lang, ns, "InvalidNull")}</option>
+              </select>
+            </Field>
+          </div>
+          <div class="ds-action-row">
+            <button type="button" class="ds-btn" data-csv-detect-types>{t(lang, ns, "DetectTypes")}</button>
+          </div>
+          <p class="ds-hint">{t(lang, ns, "TypesHint")}</p>
+        </div>
+      </details>
+
+      <details class="ds-explorer-fold">
+        <summary class="ds-label">{t(lang, ns, "SortTitle")}</summary>
+        <div class="csv-fold-body">
+          <div class="ds-settings">
+            <Field label={t(lang, ns, "SortColumn")} for="csv-sort-column">
+              <select id="csv-sort-column" class="ds-field-select" data-csv-sort-column></select>
+            </Field>
+            <Field label={t(lang, ns, "SortDirection")} for="csv-sort-direction">
+              <select id="csv-sort-direction" class="ds-field-select" data-csv-sort-direction>
+                <option value="asc">{t(lang, ns, "SortAsc")}</option>
+                <option value="desc">{t(lang, ns, "SortDesc")}</option>
+              </select>
+            </Field>
+          </div>
+          <div class="ds-action-row">
+            <button type="button" class="ds-btn ds-btn-primary" data-csv-apply-sort>{t(lang, ns, "ApplySort")}</button>
+          </div>
+          <p class="ds-hint">{t(lang, ns, "SortHint")}</p>
+        </div>
+      </details>
+
+      <details class="ds-explorer-fold">
+        <summary class="ds-label">{t(lang, ns, "GroupTitle")}</summary>
+        <div class="csv-fold-body">
+          <div class="ds-settings">
+            <Field label={t(lang, ns, "GroupColumn")} for="csv-group-column">
+              <select id="csv-group-column" class="ds-field-select" data-csv-group-column></select>
+            </Field>
+            <Field label={t(lang, ns, "ValueColumn")} for="csv-value-column">
+              <select id="csv-value-column" class="ds-field-select" data-csv-value-column></select>
+            </Field>
+            <Field label={t(lang, ns, "GroupOrder")} for="csv-group-order">
+              <select id="csv-group-order" class="ds-field-select" data-csv-group-order>
+                <option value="key">{t(lang, ns, "GroupOrderKey")}</option>
+                <option value="count">{t(lang, ns, "GroupOrderCount")}</option>
+              </select>
+            </Field>
+          </div>
+          <div class="ds-action-row">
+            <button type="button" class="ds-btn ds-btn-primary" data-csv-apply-group>{t(lang, ns, "ApplyGroup")}</button>
+          </div>
+          <p class="ds-hint">{t(lang, ns, "GroupHint")}</p>
+          <div class="csv-group-result" data-csv-group-result hidden>
+            <p class="csv-summary" data-csv-group-summary aria-live="polite"></p>
+            <div class="ds-explorer-table csv-group-table" data-csv-group-table></div>
+          </div>
+        </div>
+      </details>
+
+      <details class="ds-explorer-fold">
         <summary class="ds-label" id="csv-visible-title">{t(lang, ns, "VisibleColumns")}</summary>
         <div class="csv-quiet-actions">
           <button type="button" class="ds-btn-link" data-csv-columns-all>{t(lang, ns, "SelectAll")}</button>
@@ -148,10 +219,17 @@ const stringsJson = JSON.stringify({
       <section class="csv-section" aria-labelledby="csv-export-title">
         <h3 class="ds-label" id="csv-export-title">{t(lang, ns, "ExportTitle")}</h3>
         <div class="ds-settings">
+          <Field label={t(lang, ns, "ExportSource")} for="csv-export-source">
+            <select id="csv-export-source" class="ds-field-select" data-csv-export-source>
+              <option value="rows">{t(lang, ns, "ExportRows")}</option>
+              <option value="groups" disabled>{t(lang, ns, "ExportGroups")}</option>
+            </select>
+          </Field>
           <Field label={t(lang, ns, "ExportFormat")} for="csv-export-format">
             <select id="csv-export-format" class="ds-field-select" data-csv-export-format>
               <option value="csv">CSV</option>
               <option value="jsonl">JSONL</option>
+              <option value="parquet">Parquet</option>
             </select>
           </Field>
           <div class="ds-settings-checks">
@@ -189,6 +267,14 @@ const stringsJson = JSON.stringify({
   .csv-inspector :global(dt) { color: var(--mdt-text-muted); background: var(--mdt-surface-inset); }
   .csv-inspector :global(dd) { font-family: var(--mdt-font-mono); }
   .csv-warning { color: var(--mdt-danger); }
+  .csv-fold-body { display: grid; gap: 0.75rem; min-width: 0; }
+  .csv-type-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(15rem, 100%), 1fr)); gap: 0.5rem 1rem; max-height: 16rem; overflow: auto; padding: 0.35rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-xs); }
+  .csv-type-list :global(.csv-type-row) { display: grid; grid-template-columns: minmax(0, 1fr) minmax(8.5rem, auto); align-items: center; gap: 0.5rem; min-width: 0; }
+  .csv-type-list :global(.csv-type-name) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--mdt-fs-label); }
+  .csv-invalid-settings { grid-template-columns: minmax(min(18rem, 100%), 26rem); }
+  .csv-group-result { display: grid; gap: 0.5rem; min-width: 0; }
+  /* A group summary is often a handful of rows: let the viewport shrink to them. */
+  .csv-group-table :global(.ds-explorer-viewport) { height: auto; min-height: 0; max-height: 22rem; }
   @media (max-width: 42rem) {
     .csv-filter-grid { grid-template-columns: minmax(0, 1fr); }
     .csv-inspector { grid-template-columns: minmax(6rem, 0.4fr) minmax(0, 1fr); }

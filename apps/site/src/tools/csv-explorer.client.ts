@@ -5,7 +5,18 @@ import { saveWorkerStreamedFile, StreamSaveError } from "@/scripts/stream-save";
 import { localizeResourceError } from "@/scripts/wasm/worker-protocol";
 import { bindDropzone, setDropzoneHasFile, syncEmptyState } from "@/scripts/tool-ui";
 import { CSV_MAX_EXPORT_BYTES, type CsvFilter, type CsvFilterOperator } from "@/tools/csv-explorer";
-import type { CsvDelimiterOption, CsvEncodingOption, CsvSessionSummary } from "@/tools/csv-explorer-protocol";
+import {
+  CSV_EXPORT_MIME,
+  decodeCsvConversionError,
+  type CsvDelimiterOption,
+  type CsvEncodingOption,
+  type CsvExportFormat,
+  type CsvExportSource,
+  type CsvSessionSummary,
+  type CsvSort,
+  type CsvSortDirection,
+} from "@/tools/csv-explorer-protocol";
+import { CSV_COLUMN_TYPES, type CsvColumnType, type CsvGroupOrder, type CsvInvalidPolicy } from "@/tools/csv-explorer-types";
 import { createCsvExplorerWorker, type CsvExplorerWorkerClient } from "@/tools/csv-explorer-worker-client";
 
 interface Strings {
@@ -47,6 +58,25 @@ interface Strings {
   DelimiterSemicolon: string;
   DelimiterTab: string;
   DelimiterPipe: string;
+  SortNone: string;
+  SortAsc: string;
+  SortDesc: string;
+  SortedSummary: string;
+  StatusSorting: string;
+  TypeText: string;
+  TypeInteger: string;
+  TypeNumber: string;
+  TypeBoolean: string;
+  StatusDetected: string;
+  GroupNone: string;
+  ValueNone: string;
+  StatusGrouping: string;
+  GroupSummary: string;
+  NullValue: string;
+  ErrorConversion: string;
+  ErrorSortTooLarge: string;
+  ErrorTooManyGroups: string;
+  ErrorValueRange: string;
 }
 
 const CSV_ERROR_MESSAGES: Readonly<Record<string, true>> = {
@@ -56,6 +86,9 @@ const CSV_ERROR_MESSAGES: Readonly<Record<string, true>> = {
   "invalid-encoding": true,
   "malformed-csv": true,
   "session-missing": true,
+  "sort-too-large": true,
+  "too-many-groups": true,
+  "value-out-of-range": true,
 };
 
 function readStrings(root: HTMLElement): Strings | null {
@@ -113,6 +146,20 @@ function init(): void {
   const exportBom = root.querySelector<HTMLInputElement>("[data-csv-export-bom]");
   const rawWarning = root.querySelector<HTMLElement>("[data-csv-raw-warning]");
   const downloadButton = root.querySelector<HTMLButtonElement>("[data-csv-download]");
+  const exportSource = root.querySelector<HTMLSelectElement>("[data-csv-export-source]");
+  const typeList = root.querySelector<HTMLElement>("[data-csv-type-list]");
+  const invalidPolicy = root.querySelector<HTMLSelectElement>("[data-csv-invalid]");
+  const detectButton = root.querySelector<HTMLButtonElement>("[data-csv-detect-types]");
+  const sortColumn = root.querySelector<HTMLSelectElement>("[data-csv-sort-column]");
+  const sortDirection = root.querySelector<HTMLSelectElement>("[data-csv-sort-direction]");
+  const applySortButton = root.querySelector<HTMLButtonElement>("[data-csv-apply-sort]");
+  const groupColumn = root.querySelector<HTMLSelectElement>("[data-csv-group-column]");
+  const valueColumn = root.querySelector<HTMLSelectElement>("[data-csv-value-column]");
+  const groupOrder = root.querySelector<HTMLSelectElement>("[data-csv-group-order]");
+  const applyGroupButton = root.querySelector<HTMLButtonElement>("[data-csv-apply-group]");
+  const groupResult = root.querySelector<HTMLElement>("[data-csv-group-result]");
+  const groupSummary = root.querySelector<HTMLElement>("[data-csv-group-summary]");
+  const groupTableHost = root.querySelector<HTMLElement>("[data-csv-group-table]");
   if (!zoneElement || !fileInputElement || !delimiterElement || !encodingElement || !headerElement || !clearButtonElement || !outputElement || !loadedElement || !tableHostElement) return;
   const zone = zoneElement;
   const fileInput = fileInputElement;
@@ -134,6 +181,10 @@ function init(): void {
   let inspectGeneration = 0;
   let busy = false;
   let activeOperation: ToolOperation | null = null;
+  /** The sort the worker view currently has; re-applied after a filter or type change. */
+  let activeSort: CsvSort | null = null;
+  let groupTable: ExplorerTable | null = null;
+  let columnTypes: CsvColumnType[] = [];
 
   const numberFormat = new Intl.NumberFormat(strings.Lang);
 
@@ -149,6 +200,7 @@ function init(): void {
 
   function errorCode(error: unknown): string {
     if (error instanceof Error && CSV_ERROR_MESSAGES[error.message]) return error.message;
+    if (error instanceof Error && decodeCsvConversionError(error.message)) return "conversion-failed";
     if (typeof error === "object" && error !== null && "code" in error) return String(error.code);
     return "unknown";
   }
@@ -161,6 +213,20 @@ function init(): void {
       case "record-too-large": return strings.ErrorRecordTooLarge;
       case "too-many-columns": return strings.ErrorTooManyColumns;
       case "session-missing": return strings.ErrorSession;
+      case "sort-too-large": return strings.ErrorSortTooLarge;
+      case "too-many-groups": return strings.ErrorTooManyGroups;
+      case "value-out-of-range": return strings.ErrorValueRange;
+      case "conversion-failed": {
+        const detail = decodeCsvConversionError((error as Error).message)!;
+        const column = summary?.columns[detail.column];
+        return formatString(
+          strings.ErrorConversion,
+          detail.value,
+          column?.label ?? String(detail.column + 1),
+          numberFormat.format(detail.row + 1),
+          typeLabel(columnTypes[detail.column] ?? "text"),
+        );
+      }
       case "storage-failed": return strings.ErrorSave;
       case "fallback-too-large": return strings.ErrorFallbackTooLarge;
       case "worker-failed":
@@ -171,6 +237,21 @@ function init(): void {
           invalidFormat: strings.InvalidFormat,
           corruptInput: strings.CorruptInput,
         }) ?? strings.ErrorGeneric;
+    }
+  }
+
+  /** Conversion and limit errors leave the file session usable. */
+  function recoverable(error: unknown): boolean {
+    const code = errorCode(error);
+    return code === "conversion-failed" || code === "sort-too-large" || code === "too-many-groups" || code === "value-out-of-range";
+  }
+
+  function typeLabel(type: CsvColumnType): string {
+    switch (type) {
+      case "integer": return strings.TypeInteger;
+      case "number": return strings.TypeNumber;
+      case "boolean": return strings.TypeBoolean;
+      default: return strings.TypeText;
     }
   }
 
@@ -207,9 +288,20 @@ function init(): void {
       if (progressLabel) progressLabel.textContent = "";
       if (message) showStatus(message);
     }
-    applyFilterButton && (applyFilterButton.disabled = next);
-    clearFilterButton && (clearFilterButton.disabled = next);
-    downloadButton && (downloadButton.disabled = next || selectedColumnIndices().length === 0);
+    for (const control of [applyFilterButton, clearFilterButton, applySortButton, applyGroupButton, detectButton, invalidPolicy]) {
+      if (control) control.disabled = next;
+    }
+    typeList?.querySelectorAll<HTMLSelectElement>("select").forEach((select) => { select.disabled = next; });
+    syncDownloadButton();
+  }
+
+  function exportingGroups(): boolean {
+    return exportSource?.value === "groups";
+  }
+
+  function syncDownloadButton(): void {
+    if (!downloadButton) return;
+    downloadButton.disabled = busy || (!exportingGroups() && selectedColumnIndices().length === 0);
   }
 
   function delimiterLabel(value: string): string {
@@ -264,7 +356,11 @@ function init(): void {
     const filtered = summary.rowCount === summary.unfilteredRowCount
       ? ""
       : ` · ${formatString(strings.FilteredSummary, numberFormat.format(summary.rowCount), numberFormat.format(summary.unfilteredRowCount))}`;
-    summaryElement.textContent = `${summary.fileName} · ${details}${filtered}`;
+    const sortedColumn = activeSort ? summary.columns[activeSort.column] : null;
+    const sorted = activeSort && sortedColumn
+      ? ` · ${formatString(strings.SortedSummary, sortedColumn.label, activeSort.direction === "desc" ? strings.SortDesc : strings.SortAsc)}`
+      : "";
+    summaryElement.textContent = `${summary.fileName} · ${details}${filtered}${sorted}`;
   }
 
   function tableColumns(indices: readonly number[]): ExplorerColumn[] {
@@ -272,10 +368,74 @@ function init(): void {
     return indices.map((index) => ({ key: summary!.columns[index].key, label: summary!.columns[index].label }));
   }
 
+  function fillColumnSelect(select: HTMLSelectElement | null, noneLabel: string): void {
+    if (!select) return;
+    select.replaceChildren();
+    const none = document.createElement("option");
+    none.value = "";
+    none.textContent = noneLabel;
+    select.append(none);
+    for (const column of summary?.columns ?? []) {
+      const option = document.createElement("option");
+      option.value = String(column.index);
+      option.textContent = column.label;
+      select.append(option);
+    }
+  }
+
+  function renderTypeList(): void {
+    if (!typeList) return;
+    typeList.replaceChildren();
+    for (const column of summary?.columns ?? []) {
+      const row = document.createElement("label");
+      row.className = "csv-type-row";
+      const name = document.createElement("span");
+      name.className = "csv-type-name";
+      name.textContent = column.label;
+      name.title = column.label;
+      const select = document.createElement("select");
+      select.className = "ds-field-select";
+      select.dataset.column = String(column.index);
+      select.name = `csv-type-${column.index}`;
+      for (const type of CSV_COLUMN_TYPES) {
+        const option = document.createElement("option");
+        option.value = type;
+        option.textContent = typeLabel(type);
+        select.append(option);
+      }
+      select.value = columnTypes[column.index] ?? "text";
+      row.append(name, select);
+      typeList.append(row);
+    }
+  }
+
+  function renderAnalysisControls(): void {
+    fillColumnSelect(sortColumn, strings.SortNone);
+    fillColumnSelect(groupColumn, strings.GroupNone);
+    fillColumnSelect(valueColumn, strings.ValueNone);
+    renderTypeList();
+  }
+
+  function selectedColumn(select: HTMLSelectElement | null): number | null {
+    return select && select.value !== "" ? Number(select.value) : null;
+  }
+
+  function clearGroupResult(): void {
+    groupTable?.destroy();
+    groupTable = null;
+    groupTableHost?.replaceChildren();
+    if (groupResult) groupResult.hidden = true;
+    if (groupSummary) groupSummary.textContent = "";
+    const option = exportSource?.querySelector<HTMLOptionElement>('option[value="groups"]');
+    if (option) option.disabled = true;
+    if (exportSource) exportSource.value = "rows";
+    syncExportControls();
+  }
+
   function syncProjection(): void {
     if (!summary || !table) return;
     const indices = selectedColumnIndices();
-    downloadButton && (downloadButton.disabled = busy || indices.length === 0);
+    syncDownloadButton();
     if (indices.length === 0) {
       table.setColumns([]);
       table.setRowCount(0);
@@ -302,6 +462,9 @@ function init(): void {
 
   function clearResultDom(): void {
     summary = null;
+    activeSort = null;
+    columnTypes = [];
+    clearGroupResult();
     table?.destroy();
     table = null;
     tableHost.replaceChildren();
@@ -309,6 +472,8 @@ function init(): void {
     syncEmptyState(output, true);
     renderColumnChecks(filterColumns, "csv-filter");
     renderColumnChecks(visibleColumns, "csv-visible");
+    renderAnalysisControls();
+    if (invalidPolicy) invalidPolicy.value = "error";
     if (filterQuery) filterQuery.value = "";
     if (summaryElement) summaryElement.textContent = "";
     if (headerWarning) {
@@ -416,8 +581,10 @@ function init(): void {
       if (token !== generation) return;
       summary = result;
       activeAbort = null;
+      columnTypes = result.columns.map(() => "text");
       renderColumnChecks(filterColumns, "csv-filter");
       renderColumnChecks(visibleColumns, "csv-visible");
+      renderAnalysisControls();
       loaded.hidden = false;
       syncEmptyState(output, false);
       if (headerWarning) {
@@ -477,6 +644,15 @@ function init(): void {
       const rowCount = await api.filter(summary.sessionId, filter, controller.signal, updateProgress);
       if (token !== generation || !summary) return;
       summary.rowCount = rowCount;
+      clearGroupResult();
+      if (activeSort) {
+        const sort = activeSort;
+        activeSort = null;
+        showStatus(strings.StatusSorting);
+        await api.sort(summary.sessionId, sort, controller.signal, updateProgress);
+        if (token !== generation || !summary) return;
+        activeSort = sort;
+      }
       activeAbort = null;
       resetInspector();
       updateSummary();
@@ -489,14 +665,137 @@ function init(): void {
       activeAbort = null;
       setBusy(false);
       if (errorCode(error) === "aborted") resetSession(strings.StatusCanceled);
-      else invalidateResult(error);
+      else if (recoverable(error)) {
+        refreshRows();
+        showError(error);
+      } else invalidateResult(error);
     }
+  }
+
+  function refreshRows(): void {
+    resetInspector();
+    updateSummary();
+    table?.setRowCount(summary && selectedColumnIndices().length > 0 ? summary.rowCount : 0);
+    table?.refresh();
+  }
+
+  /** Run one long session job with progress, cancel and the shared error handling. */
+  async function runJob(message: string, job: (signal: AbortSignal) => Promise<void>): Promise<void> {
+    if (!summary || busy) return;
+    const token = generation;
+    const controller = new AbortController();
+    activeAbort = controller;
+    hideError();
+    setBusy(true, message);
+    try {
+      await job(controller.signal);
+      if (token !== generation || !summary) return;
+      activeAbort = null;
+      setBusy(false);
+      showStatus(strings.StatusDone);
+    } catch (error) {
+      if (token !== generation) return;
+      activeAbort = null;
+      setBusy(false);
+      if (errorCode(error) === "aborted") resetSession(strings.StatusCanceled);
+      else if (recoverable(error)) {
+        refreshRows();
+        showError(error);
+      } else invalidateResult(error);
+    }
+  }
+
+  function applySort(): Promise<void> {
+    const column = selectedColumn(sortColumn);
+    const sort: CsvSort | null = column === null ? null : { column, direction: (sortDirection?.value ?? "asc") as CsvSortDirection };
+    return runJob(strings.StatusSorting, async (signal) => {
+      const current = summary!;
+      activeSort = null;
+      await api.sort(current.sessionId, sort, signal, updateProgress);
+      activeSort = sort;
+      refreshRows();
+    });
+  }
+
+  /** Types reset sort and group results in the worker; an active sort is rebuilt. */
+  function applyTypes(): Promise<void> {
+    return runJob(activeSort ? strings.StatusSorting : strings.StatusDone, async (signal) => {
+      const current = summary!;
+      await api.setTypes(current.sessionId, columnTypes, (invalidPolicy?.value ?? "error") as CsvInvalidPolicy);
+      clearGroupResult();
+      const sort = activeSort;
+      activeSort = null;
+      if (sort) {
+        await api.sort(current.sessionId, sort, signal, updateProgress);
+        activeSort = sort;
+      }
+      refreshRows();
+    });
+  }
+
+  async function detectTypes(): Promise<void> {
+    if (!summary || busy) return;
+    try {
+      columnTypes = await api.detectTypes(summary.sessionId);
+      renderTypeList();
+      await applyTypes();
+      if (!errorBox || errorBox.hidden) showStatus(strings.StatusDetected);
+    } catch (error) {
+      if (errorCode(error) !== "aborted") invalidateResult(error);
+    }
+  }
+
+  function applyGroup(): Promise<void> {
+    return runJob(strings.StatusGrouping, async (signal) => {
+      const current = summary!;
+      clearGroupResult();
+      const result = await api.aggregate(current.sessionId, {
+        groupColumn: selectedColumn(groupColumn),
+        valueColumn: selectedColumn(valueColumn),
+        order: (groupOrder?.value ?? "key") as CsvGroupOrder,
+      }, signal, updateProgress);
+      if (!groupTableHost || !groupResult) return;
+      groupResult.hidden = false;
+      if (groupSummary) {
+        groupSummary.textContent = formatString(strings.GroupSummary, numberFormat.format(result.groupCount), numberFormat.format(result.inputRows));
+      }
+      groupTable = createExplorerTable({
+        host: groupTableHost,
+        columns: result.columns.map((label, index) => ({ key: `g${index}`, label })),
+        readRows: async (start, count) => {
+          const rows = await api.readGroups(current.sessionId, start, count);
+          return rows.map((row) => row.map((cell) => cell ?? strings.NullValue));
+        },
+        onError(error) {
+          if (errorCode(error) !== "aborted") invalidateResult(error);
+        },
+        emptyLabel: strings.TableEmpty,
+        loadingLabel: strings.TableLoading,
+        rowLabel: (index) => formatString(strings.RowLabel, numberFormat.format(index + 1)),
+      });
+      groupTable.setRowCount(result.groupCount);
+      const option = exportSource?.querySelector<HTMLOptionElement>('option[value="groups"]');
+      if (option) option.disabled = false;
+    });
+  }
+
+  function syncExportControls(): void {
+    if (!exportFormat || !exportHeader || !exportProtect || !exportBom) return;
+    const csv = exportFormat.value === "csv";
+    exportHeader.disabled = !csv;
+    exportProtect.disabled = !csv;
+    exportBom.disabled = !csv;
+    const bomRow = exportBom.closest<HTMLElement>("label");
+    if (bomRow) bomRow.hidden = !csv;
+    if (rawWarning) rawWarning.hidden = !csv || exportProtect.checked;
+    syncDownloadButton();
   }
 
   async function download(): Promise<void> {
     if (!summary || busy || !exportFormat || !exportHeader || !exportProtect || !exportBom) return;
-    const columns = selectedColumnIndices();
-    if (columns.length === 0) {
+    const source: CsvExportSource = exportingGroups() ? "groups" : "rows";
+    const columns = source === "groups" ? [] : selectedColumnIndices();
+    if (source === "rows" && columns.length === 0) {
       showError({ code: "no-columns" });
       if (errorBox) errorBox.textContent = strings.NoColumns;
       return;
@@ -506,18 +805,19 @@ function init(): void {
     activeAbort = controller;
     hideError();
     setBusy(true, strings.StatusExporting);
-    const format = exportFormat.value as "csv" | "jsonl";
+    const format = exportFormat.value as CsvExportFormat;
     const stem = summary.fileName.replace(/\.[^.]+$/u, "") || "export";
     const sessionId = summary.sessionId;
     try {
       await saveWorkerStreamedFile({
-        suggestedName: `${stem}-filtered.${format}`,
-        mimeType: format === "csv" ? "text/csv;charset=utf-8" : "application/x-ndjson;charset=utf-8",
+        suggestedName: `${stem}-${source === "groups" ? "groups" : "filtered"}.${format}`,
+        mimeType: CSV_EXPORT_MIME[format],
         extensions: [format],
         fallbackMaxBytes: CSV_MAX_EXPORT_BYTES,
         signal: controller.signal,
       }, (stream, workerSignal) => api.exportResult(sessionId, {
         format,
+        source,
         columns,
         includeHeader: exportHeader.checked,
         protectFormulas: exportProtect.checked,
@@ -535,6 +835,7 @@ function init(): void {
         if (error instanceof StreamSaveError && !controller.signal.aborted) showStatus(strings.StatusCanceled);
         else resetSession(strings.StatusCanceled);
       } else {
+        if (recoverable(error)) refreshRows();
         showError(error);
       }
     }
@@ -569,15 +870,17 @@ function init(): void {
     visibleColumns?.querySelectorAll<HTMLInputElement>("input[data-column]").forEach((input) => { input.checked = false; });
     syncProjection();
   });
-  exportFormat?.addEventListener("change", () => {
-    if (!exportHeader || !exportProtect || !exportBom) return;
-    const csv = exportFormat.value === "csv";
-    exportHeader.disabled = !csv;
-    exportProtect.disabled = !csv;
-    exportBom.disabled = !csv;
-    const bomRow = exportBom.closest<HTMLElement>("label");
-    if (bomRow) bomRow.hidden = !csv;
-    if (rawWarning) rawWarning.hidden = !csv || exportProtect.checked;
+  exportFormat?.addEventListener("change", syncExportControls);
+  exportSource?.addEventListener("change", syncDownloadButton);
+  applySortButton?.addEventListener("click", () => void applySort());
+  applyGroupButton?.addEventListener("click", () => void applyGroup());
+  detectButton?.addEventListener("click", () => void detectTypes());
+  invalidPolicy?.addEventListener("change", () => void applyTypes());
+  typeList?.addEventListener("change", (event) => {
+    const select = event.target;
+    if (!(select instanceof HTMLSelectElement) || !select.dataset.column) return;
+    columnTypes[Number(select.dataset.column)] = select.value as CsvColumnType;
+    void applyTypes();
   });
   exportProtect?.addEventListener("change", () => {
     if (rawWarning) rawWarning.hidden = exportFormat?.value !== "csv" || exportProtect.checked;

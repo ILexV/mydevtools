@@ -38,7 +38,8 @@ const clientKeys = [
   "ErrorAuthIncomplete", "ErrorAwsSecret", "ErrorOAuthToken", "BodyFieldKind", "BodyKindText", "BodyKindFile",
   "BodyChooseFile", "BodyRemoveFile", "BodyFileMissing", "BodyBinary", "ErrorFileMissing",
   "ErrorGraphqlVariables", "ErrorFileUnset", "ErrorBinaryUnset", "ImportCurl", "CurlImported", "CurlIgnored", "CurlFiles", "CurlErrorNotCurl", "CurlErrorNoUrl",
-  "CurlErrorQuote", "CodeCopied", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
+  "CurlErrorQuote", "CodeCopied", "ImportPostman", "ExportPostman", "PostmanImported", "PostmanEnvironmentImported",
+  "PostmanScripts", "PostmanUnsupported", "PostmanErrorFormat", "PostmanErrorVersion", "PostmanUntitled", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
 const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhrases(lang) });

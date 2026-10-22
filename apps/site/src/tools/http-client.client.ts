@@ -52,6 +52,7 @@ import { createAuthEditor } from "@/tools/http-auth-editor";
 import { codeRequest, generateCode } from "@/tools/http-codegen";
 import { CurlParseError, looksLikeCurl, parseCurl, type CurlImport } from "@/tools/http-curl";
 import { bindCodeDialog, bindImportDialog } from "@/tools/http-curl-dialogs";
+import { exportPostman, importPostman, PostmanError, type PostmanImport } from "@/tools/http-postman";
 import { bodyTexts, hasBody, type BodyFields } from "@/tools/http-body";
 import { createFileField, FileStore } from "@/tools/http-file-field";
 import { createFormDataEditor, createRowsEditor, type FormDataStrings } from "@/tools/http-rows-editor";
@@ -72,6 +73,15 @@ interface Strings extends SecretsDialogStrings, ScopeDialogStrings, FormDataStri
   CurlErrorNoUrl: string;
   CurlErrorQuote: string;
   CodeCopied: string;
+  ImportPostman: string;
+  ExportPostman: string;
+  PostmanImported: string;
+  PostmanEnvironmentImported: string;
+  PostmanScripts: string;
+  PostmanUnsupported: string;
+  PostmanErrorFormat: string;
+  PostmanErrorVersion: string;
+  PostmanUntitled: string;
   AuthInheritFrom: string;
   AuthInheritNone: string;
   AuthTokenFetching: string;
@@ -343,7 +353,8 @@ function init(): void {
     workspace.requests.push(initial);
   }
   type TreeTarget = { kind: "root" } | { kind: HttpWorkspaceItemKind; id: string };
-  type TreeAction = "new-request" | "new-folder" | "import-curl" | "settings" | "rename" | "move" | "delete";
+  type TreeAction = "new-request" | "new-folder" | "import-curl" | "import-postman" | "export-postman" | "settings" | "rename"
+    | "move" | "delete";
   let workspaceDirty = false;
   let currentRequest = workspace.requests.find((request) => request.id === workspace.selectedId)!;
   let treeSelection: TreeTarget = { kind: "request", id: currentRequest.id };
@@ -1406,12 +1417,16 @@ function init(): void {
             { action: "new-request", label: workspaceUi.strings.NewRequest },
             { action: "new-folder", label: workspaceUi.strings.NewFolder },
             { action: "import-curl", label: workspaceUi.strings.ImportCurl },
+            { action: "import-postman", label: workspaceUi.strings.ImportPostman },
+            { action: "export-postman", label: workspaceUi.strings.ExportPostman },
           ]
         : target.kind === "folder"
           ? [
               { action: "new-request", label: workspaceUi.strings.NewRequest },
               { action: "new-folder", label: workspaceUi.strings.NewFolder },
               { action: "import-curl", label: workspaceUi.strings.ImportCurl },
+              { action: "import-postman", label: workspaceUi.strings.ImportPostman },
+              { action: "export-postman", label: workspaceUi.strings.ExportPostman },
               { action: "settings", label: workspaceUi.strings.FolderSettings, separate: true },
               { action: "rename", label: workspaceUi.strings.RenameFolder },
               { action: "move", label: workspaceUi.strings.MoveItem },
@@ -1421,6 +1436,7 @@ function init(): void {
               { action: "new-request", label: workspaceUi.strings.NewRequest },
               { action: "new-folder", label: workspaceUi.strings.NewFolder },
               { action: "import-curl", label: workspaceUi.strings.ImportCurl },
+              { action: "import-postman", label: workspaceUi.strings.ImportPostman },
               { action: "rename", label: workspaceUi.strings.RenameRequest, separate: true },
               { action: "move", label: workspaceUi.strings.MoveItem },
               { action: "delete", label: workspaceUi.strings.DeleteRequest, danger: true, separate: true },
@@ -1851,6 +1867,79 @@ function init(): void {
     return null;
   });
 
+  /** Postman import: a hidden file picker opened from the tree menu; the collection goes under `postmanParent`. */
+  let postmanParent: string | null = null;
+  const postmanInput = document.createElement("input");
+  postmanInput.type = "file";
+  postmanInput.accept = ".json,application/json";
+  postmanInput.hidden = true;
+  workspaceUi.root.append(postmanInput);
+  postmanInput.addEventListener("change", () => {
+    const file = postmanInput.files?.[0];
+    postmanInput.value = "";
+    if (file) void importPostmanFile(file);
+  });
+
+  async function importPostmanFile(file: File): Promise<void> {
+    const status = workspaceUi.root.querySelector<HTMLElement>("[data-http-request-status]")!;
+    const error = workspaceUi.root.querySelector<HTMLElement>("[data-http-request-error]")!;
+    hideMessage(status);
+    hideMessage(error);
+    let result: PostmanImport;
+    try {
+      // A collection is text; anything far larger would not fit the workspace anyway.
+      if (file.size > 16 * 1024 * 1024) throw new PostmanError("format");
+      result = importPostman(JSON.parse(await file.text()), postmanParent, requestId, s.PostmanUntitled);
+    } catch (failure) {
+      showMessage(error, failure instanceof PostmanError && failure.code === "version" ? s.PostmanErrorVersion : s.PostmanErrorFormat);
+      return;
+    }
+    if (active || (postmanParent !== null && !workspace.folders.some((folder) => folder.id === postmanParent))
+      || !saveWorkspaceNow()) return;
+    workspace.folders.push(...result.folders);
+    workspace.requests.push(...result.requests);
+    if (result.environments.length) workspace.environments = [...(workspace.environments ?? []), ...result.environments];
+    expandFolderAncestors(postmanParent);
+    workspaceDirty = true;
+    if (!saveWorkspaceNow()) {
+      const added = new Set([...result.folders, ...result.requests, ...result.environments].map((entry) => entry.id));
+      workspace.folders = workspace.folders.filter((folder) => !added.has(folder.id));
+      workspace.requests = workspace.requests.filter((request) => !added.has(request.id));
+      workspace.environments = workspace.environments?.filter((environment) => !added.has(environment.id));
+      workspaceDirty = false;
+      return;
+    }
+    const root = result.folders[0];
+    if (root) {
+      treeSelection = { kind: "folder", id: root.id };
+      workspace.selectedFolderId = root.id;
+    }
+    renderSavedList(root ? treeSelection : undefined);
+    renderEnvironmentSwitcher();
+    const notes = root
+      ? [s.PostmanImported.replace("{name}", root.name).replace("{requests}", String(result.requests.length))
+        .replace("{folders}", String(result.folders.length - 1))]
+      : result.environments.map((environment) => s.PostmanEnvironmentImported.replace("{name}", environment.name));
+    if (result.scripts) notes.push(s.PostmanScripts.replace("{count}", String(result.scripts)));
+    if (result.unsupported.length) notes.push(s.PostmanUnsupported.replace("{items}", result.unsupported.join(", ")));
+    if (result.files.length) notes.push(s.CurlFiles.replace("{files}", [...new Set(result.files)].join(", ")));
+    showMessage(status, notes.join(" "));
+  }
+
+  /** Downloads a folder, or the whole tree, as `<name>.postman_collection.json`. */
+  function exportCollection(folderId: string | null): void {
+    if (!saveWorkspaceNow()) return;
+    const name = folderId === null ? "MyDevTools" : workspace.folders.find((folder) => folder.id === folderId)?.name ?? "MyDevTools";
+    const collection = exportPostman(workspace, folderId, name, requestId());
+    const blob = new Blob([`${JSON.stringify(collection, null, 2)}\n`], { type: "application/json" });
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = `${name.replace(/[\\/:*?"<>|\u0000-\u001f]/gu, "_").trim().slice(0, 120) || "collection"}.postman_collection.json`;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+  }
+
   // A cURL command pasted into the URL field replaces the open request's fields, like Postman.
   workspaceUi.requestUrl.addEventListener("paste", (event) => {
     const text = event.clipboardData?.getData("text/plain") ?? "";
@@ -2039,6 +2128,15 @@ function init(): void {
     if (action === "import-curl") {
       importParent = parentForTarget(target);
       importDialog.open(returnFocus ?? workspaceUi.savedList);
+      return;
+    }
+    if (action === "import-postman") {
+      postmanParent = parentForTarget(target);
+      postmanInput.click();
+      return;
+    }
+    if (action === "export-postman") {
+      if (target.kind !== "request") exportCollection(target.kind === "folder" ? target.id : null);
       return;
     }
     if (target.kind === "root") return;

@@ -19,6 +19,8 @@ mod websocket;
 mod whois;
 #[cfg(windows)]
 mod windows_shell;
+#[cfg(windows)]
+mod windows_vault;
 
 #[cfg(test)]
 mod http_options_tests;
@@ -203,11 +205,13 @@ async fn run_windows(
         network: state.config.allow_private.clone(),
         forced: private_forced,
     };
+    let vault = Arc::clone(&state.vault);
     let gui_shutdown = shutdown.clone();
     let mut gui_task = tokio::task::spawn_blocking(move || {
         windows_shell::run(
             get_pairing_code,
             private_network,
+            vault,
             gui_shutdown,
             start_hidden,
         )

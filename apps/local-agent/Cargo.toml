@@ -13,6 +13,7 @@ publish = false
 
 [dependencies]
 axum = { version = "=0.8.4", features = ["http1", "http2", "json", "tokio"] }
+argon2 = { version = "=0.5.3", default-features = false, features = ["alloc"] }
 base64 = "=0.22.1"
 bytes = "=1.10.1"
 chrono = { version = "=0.4.41", default-features = false, features = ["clock", "std"] }
@@ -60,7 +61,9 @@ windows-sys = { version = "=0.59.0", features = [
     "Win32_System_LibraryLoader",
     "Win32_System_Registry",
     "Win32_UI_Controls",
+    "Win32_UI_Controls_Dialogs",
     "Win32_UI_HiDpi",
+    "Win32_UI_Input_KeyboardAndMouse",
     "Win32_UI_Shell",
     "Win32_UI_WindowsAndMessaging",
 ] }
@@ -70,3 +73,10 @@ codegen-units = 1
 lto = "thin"
 panic = "abort"
 strip = "symbols"
+
+# Vault export derives a key with Argon2id over 64 MiB; unoptimized it takes seconds in tests.
+[profile.dev.package.argon2]
+opt-level = 3
+
+[profile.dev.package.blake2]
+opt-level = 3

@@ -40,6 +40,7 @@
   "VaultEncryption": "모든 파일은 AES-256-GCM으로 암호화되며, 키는 Windows가 사용자 계정용으로 보호합니다.",
   "VaultSecrets": "비밀 값과 클라이언트 인증서 키는 쓰기 전용입니다. 페이지는 요청에 사용할 수 있지만 다시 읽을 수는 없습니다.",
   "VaultOrigin": "사이트마다 별도의 보관소가 있어 한 사이트가 다른 사이트의 데이터를 읽을 수 없습니다.",
+  "VaultTransfer": "다른 컴퓨터로 옮기려면 에이전트 창에서 “Export vault…”와 “Import vault…”를 사용하세요. 모든 사이트가 하나의 파일에 담기고 비밀번호로 암호화됩니다(Argon2id 및 AES-256-GCM). 페이지는 내보내기를 시작할 수 없습니다.",
   "CapabilityTitle": "사용 가능한 기능",
   "CapabilityBody": "이 릴리스는 HTTP 요청, WebSocket 연결, Server-Sent Events, 작업 공간과 비밀 값용 보관소, ICMP 경로 추적, DNS 조회, TCP 확인, TLS 검사, WHOIS, ASN 조회, 포트 스캐너, 네트워크 스캐너를 페어링할 수 있습니다. 각 도구는 자체 명명된 기능을 요청하며 페어링으로 향후 기능이 자동 부여되지 않으므로, 업데이트 후 도구가 다시 페어링을 요청할 수 있습니다.",
   "VerifyTitle": "다운로드 확인",

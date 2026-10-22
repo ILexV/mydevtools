@@ -4,10 +4,13 @@ use std::mem::{size_of, zeroed};
 use std::os::windows::ffi::OsStrExt;
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::ptr::{null, null_mut};
+use std::sync::Arc;
 
 use tokio_util::sync::CancellationToken;
 
 use crate::state::PrivateNetwork;
+use crate::vault::Vault;
+use crate::windows_vault::{self, VaultStrings};
 use windows_sys::Win32::Foundation::{
     ERROR_CLASS_ALREADY_EXISTS, ERROR_FILE_NOT_FOUND, ERROR_SUCCESS, GetLastError, HWND, LPARAM,
     LRESULT, RECT, WPARAM,
@@ -25,6 +28,7 @@ use windows_sys::Win32::System::Registry::{
 };
 use windows_sys::Win32::UI::Controls::{BST_CHECKED, BST_UNCHECKED, EM_SETSEL};
 use windows_sys::Win32::UI::HiDpi::{AdjustWindowRectExForDpi, GetDpiForWindow};
+use windows_sys::Win32::UI::Input::KeyboardAndMouse::EnableWindow;
 use windows_sys::Win32::UI::Shell::{
     NIF_ICON, NIF_MESSAGE, NIF_TIP, NIM_ADD, NIM_DELETE, NIM_SETVERSION, NIN_SELECT,
     NOTIFYICON_VERSION_4, NOTIFYICONDATAW, Shell_NotifyIconW,
@@ -62,6 +66,8 @@ const ID_AUTOSTART: usize = 1001;
 const ID_COPY: usize = 1002;
 const ID_EXIT: usize = 1003;
 const ID_PRIVATE_NETWORK: usize = 1004;
+const ID_EXPORT_VAULT: usize = 1005;
+const ID_IMPORT_VAULT: usize = 1006;
 const ICON_RESOURCE_ID: usize = 1;
 const BASE_DPI: u32 = 96;
 const CLIENT_WIDTH: i32 = 456;
@@ -134,6 +140,8 @@ struct Controls {
     note: HWND,
     private_checkbox: HWND,
     private_note: HWND,
+    export_button: HWND,
+    import_button: HWND,
     exit_button: HWND,
 }
 
@@ -147,8 +155,10 @@ pub(crate) struct PrivateSwitch {
 struct WindowState {
     get_pairing_code: Box<dyn Fn() -> String + Send>,
     private_network: PrivateSwitch,
+    vault: Arc<Vault>,
     shutdown: CancellationToken,
     strings: &'static UiStrings,
+    vault_strings: &'static VaultStrings,
     controls: Cell<Option<Controls>>,
     normal_font: Cell<HFONT>,
     heading_font: Cell<HFONT>,
@@ -163,6 +173,7 @@ struct WindowState {
 pub(crate) fn run(
     get_pairing_code: Box<dyn Fn() -> String + Send>,
     private_network: PrivateSwitch,
+    vault: Arc<Vault>,
     shutdown: CancellationToken,
     start_hidden: bool,
 ) -> Result<(), String> {
@@ -217,8 +228,14 @@ pub(crate) fn run(
         let state = Box::new(WindowState {
             get_pairing_code,
             private_network,
+            vault,
             shutdown,
             strings: ui_strings(),
+            vault_strings: if russian_ui() {
+                &windows_vault::RUSSIAN
+            } else {
+                &windows_vault::ENGLISH
+            },
             controls: Cell::new(None),
             normal_font: Cell::new(null_mut()),
             heading_font: Cell::new(null_mut()),
@@ -383,6 +400,18 @@ unsafe fn window_proc_inner(window: HWND, message: u32, wparam: WPARAM, lparam: 
                 match control_id {
                     ID_AUTOSTART => unsafe { state.change_autostart(window) },
                     ID_PRIVATE_NETWORK => unsafe { state.change_private_network(window) },
+                    ID_EXPORT_VAULT => windows_vault::export(
+                        window,
+                        &state.vault,
+                        state.vault_strings,
+                        WINDOW_TITLE,
+                    ),
+                    ID_IMPORT_VAULT => windows_vault::import(
+                        window,
+                        &state.vault,
+                        state.vault_strings,
+                        WINDOW_TITLE,
+                    ),
                     ID_COPY => unsafe {
                         if let Some(controls) = state.controls.get() {
                             SendMessageW(controls.pairing_edit, EM_SETSEL, 0, -1);
@@ -611,6 +640,36 @@ impl WindowState {
                     0,
                 )?
             },
+            export_button: unsafe {
+                create_control(
+                    window,
+                    instance,
+                    "BUTTON",
+                    self.vault_strings.export,
+                    WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+                    0,
+                    20,
+                    288,
+                    150,
+                    31,
+                    ID_EXPORT_VAULT,
+                )?
+            },
+            import_button: unsafe {
+                create_control(
+                    window,
+                    instance,
+                    "BUTTON",
+                    self.vault_strings.import,
+                    WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+                    0,
+                    178,
+                    288,
+                    150,
+                    31,
+                    ID_IMPORT_VAULT,
+                )?
+            },
             exit_button: unsafe {
                 create_control(
                     window,
@@ -628,6 +687,12 @@ impl WindowState {
             },
         };
         self.controls.set(Some(controls));
+        if !self.vault.available() {
+            unsafe {
+                EnableWindow(controls.export_button, 0);
+                EnableWindow(controls.import_button, 0);
+            }
+        }
 
         let dpi = unsafe { GetDpiForWindow(window) }.max(BASE_DPI);
         unsafe { self.apply_layout(window, dpi, true)? };
@@ -714,6 +779,8 @@ impl WindowState {
             (controls.note, 40, 172, 396, 34),
             (controls.private_checkbox, 20, 212, 416, 24),
             (controls.private_note, 40, 239, 396, 34),
+            (controls.export_button, 20, 288, 150, 31),
+            (controls.import_button, 178, 288, 150, 31),
             (controls.exit_button, 334, 288, 102, 31),
         ] {
             if unsafe {
@@ -790,6 +857,8 @@ impl WindowState {
             controls.note,
             controls.private_checkbox,
             controls.private_note,
+            controls.export_button,
+            controls.import_button,
             controls.exit_button,
         ] {
             unsafe { SendMessageW(control, WM_SETFONT, normal_font as usize, 1) };
@@ -1179,12 +1248,13 @@ fn show_owned_error(window: HWND, message: &str) {
 }
 
 fn ui_strings() -> &'static UiStrings {
+    if russian_ui() { &RUSSIAN } else { &ENGLISH }
+}
+
+fn russian_ui() -> bool {
     // LANG_RUSSIAN is 0x19; the low ten bits are the primary language identifier.
-    if unsafe { GetUserDefaultUILanguage() } & 0x03ff == 0x19 {
-        &RUSSIAN
-    } else {
-        &ENGLISH
-    }
+    let language = unsafe { GetUserDefaultUILanguage() };
+    language & 0x03ff == 0x19
 }
 
 fn registry_error(status: u32) -> String {

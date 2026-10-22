@@ -24,6 +24,12 @@ use uuid::Uuid;
 
 use crate::{http_transport::ClientIdentity, model::ApiError, tls};
 
+mod transfer;
+#[cfg_attr(not(windows), allow(unused_imports))]
+pub(crate) use transfer::{
+    MIN_PASSWORD_CHARS, TRANSFER_EXTENSION, TransferSummary, suggested_file_name,
+};
+
 pub(crate) const MAX_DOCUMENT_BYTES: usize = 1536 * 1024;
 pub(crate) const MAX_DOCUMENTS: usize = 64;
 pub(crate) const MAX_SECRETS: usize = 256;
@@ -36,6 +42,7 @@ const FILE_EXTENSION: &str = "mdtv";
 const DOCUMENT_PREFIX: &str = "doc-";
 const SECRETS_FILE: &str = "secrets.mdtv";
 const CERTIFICATES_FILE: &str = "certificates.mdtv";
+const ORIGIN_LABEL_FILE: &str = "origin.mdtv";
 pub(crate) const MAX_CERTIFICATES: usize = 32;
 /// Certificate chain and key PEM, each.
 pub(crate) const MAX_CERTIFICATE_PEM_BYTES: usize = 64 * 1024;
@@ -196,7 +203,7 @@ impl Vault {
     pub(crate) fn list_documents(&self, origin: &str) -> Result<Vec<DocumentInfo>, ApiError> {
         let mut key = self.key.lock();
         let key = self.data_key(&mut key)?;
-        let directory = self.origin_directory(origin)?;
+        let directory = self.origin_directory(&key, origin)?;
         let mut output = Vec::new();
         for name in document_names(&directory)? {
             let document = self.load_document(&key, origin, &directory, &name)?;
@@ -220,7 +227,7 @@ impl Vault {
         validate_document_name(name)?;
         let mut key = self.key.lock();
         let key = self.data_key(&mut key)?;
-        let directory = self.origin_directory(origin)?;
+        let directory = self.origin_directory(&key, origin)?;
         let document = self
             .load_document(&key, origin, &directory, name)?
             .ok_or_else(ApiError::not_found)?;
@@ -242,7 +249,7 @@ impl Vault {
         validate_document_name(&input.name)?;
         let mut key = self.key.lock();
         let key = self.data_key(&mut key)?;
-        let directory = self.origin_directory(origin)?;
+        let directory = self.origin_directory(&key, origin)?;
         let current = self.load_document(&key, origin, &directory, &input.name)?;
         let revision = match &current {
             Some(document) if document.revision == input.base_revision => document.revision + 1,
@@ -279,7 +286,7 @@ impl Vault {
         validate_document_name(&input.name)?;
         let mut key = self.key.lock();
         let key = self.data_key(&mut key)?;
-        let directory = self.origin_directory(origin)?;
+        let directory = self.origin_directory(&key, origin)?;
         let current = self
             .load_document(&key, origin, &directory, &input.name)?
             .ok_or_else(ApiError::not_found)?;
@@ -309,7 +316,7 @@ impl Vault {
         }
         let mut key = self.key.lock();
         let key = self.data_key(&mut key)?;
-        let directory = self.origin_directory(origin)?;
+        let directory = self.origin_directory(&key, origin)?;
         let mut book = self.load_secrets(&key, origin, &directory)?;
         let value = match (input.value, book.get(&input.name)) {
             (Some(value), _) => value,
@@ -334,7 +341,7 @@ impl Vault {
         validate_secret_name(name)?;
         let mut key = self.key.lock();
         let key = self.data_key(&mut key)?;
-        let directory = self.origin_directory(origin)?;
+        let directory = self.origin_directory(&key, origin)?;
         let mut book = self.load_secrets(&key, origin, &directory)?;
         if book.remove(name).is_none() {
             return Err(ApiError::not_found());
@@ -345,7 +352,7 @@ impl Vault {
     pub(crate) fn list_certificates(&self, origin: &str) -> Result<Vec<CertificateInfo>, ApiError> {
         let mut key = self.key.lock();
         let key = self.data_key(&mut key)?;
-        let directory = self.origin_directory(origin)?;
+        let directory = self.origin_directory(&key, origin)?;
         Ok(self
             .load_certificates(&key, origin, &directory)?
             .into_iter()
@@ -386,7 +393,7 @@ impl Vault {
         };
         let mut key = self.key.lock();
         let key = self.data_key(&mut key)?;
-        let directory = self.origin_directory(origin)?;
+        let directory = self.origin_directory(&key, origin)?;
         let mut book = self.load_certificates(&key, origin, &directory)?;
         let record = match (pems, book.get(&input.name)) {
             (Some((certificate_pem, key_pem, subject, not_after)), _) => CertificateRecord {
@@ -415,7 +422,7 @@ impl Vault {
         validate_secret_name(name)?;
         let mut key = self.key.lock();
         let key = self.data_key(&mut key)?;
-        let directory = self.origin_directory(origin)?;
+        let directory = self.origin_directory(&key, origin)?;
         let mut book = self.load_certificates(&key, origin, &directory)?;
         if book.remove(name).is_none() {
             return Err(ApiError::not_found());
@@ -432,7 +439,7 @@ impl Vault {
         validate_secret_name(name)?;
         let mut key = self.key.lock();
         let key = self.data_key(&mut key)?;
-        let directory = self.origin_directory(origin)?;
+        let directory = self.origin_directory(&key, origin)?;
         self.load_certificates(&key, origin, &directory)?
             .remove(name)
             .ok_or_else(certificate_not_found)
@@ -442,7 +449,7 @@ impl Vault {
     pub(crate) fn secret_book(&self, origin: &str) -> Result<SecretBook, ApiError> {
         let mut key = self.key.lock();
         let key = self.data_key(&mut key)?;
-        let directory = self.origin_directory(origin)?;
+        let directory = self.origin_directory(&key, origin)?;
         self.load_secrets(&key, origin, &directory)
     }
 
@@ -476,11 +483,22 @@ impl Vault {
         Ok(key)
     }
 
-    fn origin_directory(&self, origin: &str) -> Result<PathBuf, ApiError> {
+    /// The origin's directory, named by a digest of the origin. It also holds a
+    /// sealed label with the origin itself, so an export can name the site.
+    fn origin_directory(&self, key: &[u8; 32], origin: &str) -> Result<PathBuf, ApiError> {
         let root = self.root.as_deref().ok_or_else(vault_unavailable)?;
-        let digest = Sha256::digest(origin.as_bytes());
-        let directory = root.join(hex::encode(&digest[..16]));
+        let directory_name = origin_directory_name(origin);
+        let directory = root.join(&directory_name);
         create_private_dir(&directory)?;
+        let label = directory.join(ORIGIN_LABEL_FILE);
+        if !label.exists() {
+            let sealed = seal(
+                key,
+                &aad(&directory_name, "origin", ""),
+                origin.as_bytes().to_vec(),
+            )?;
+            write_atomic(&label, &sealed)?;
+        }
         Ok(directory)
     }
 
@@ -841,6 +859,11 @@ fn read_sealed(key: &[u8; 32], path: &Path, aad: &[u8]) -> Result<Option<Vec<u8>
         )
         .map_err(|_| vault_corrupt())?;
     Ok(Some(plaintext.to_vec()))
+}
+
+fn origin_directory_name(origin: &str) -> String {
+    let digest = Sha256::digest(origin.as_bytes());
+    hex::encode(&digest[..16])
 }
 
 fn document_path(directory: &Path, name: &str) -> PathBuf {

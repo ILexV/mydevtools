@@ -40,6 +40,7 @@
   "VaultEncryption": "Every file is encrypted with AES-256-GCM; the key is protected by Windows for your user account.",
   "VaultSecrets": "Secrets and client certificate keys are write-only: a page can use them in requests but never read them back.",
   "VaultOrigin": "Each site gets its own vault, so one site cannot read another's data.",
+  "VaultTransfer": "To move it to another computer, use “Export vault…” and “Import vault…” in the agent window: one file for every site, encrypted with your password (Argon2id and AES-256-GCM). A page cannot start an export.",
   "CapabilityTitle": "Available capability",
   "CapabilityBody": "This release can pair HTTP requests, WebSocket connections, Server-Sent Events, the vault for workspaces and secrets, ICMP path traces, DNS lookup, TCP connect, TLS inspection, WHOIS and ASN lookup, the port scanner and the network scanner. Each tool asks for its own named capability; pairing does not grant future capabilities automatically, so after an update a tool may ask you to pair again.",
   "VerifyTitle": "Verify the download",

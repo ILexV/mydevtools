@@ -40,6 +40,7 @@
   "VaultEncryption": "每个文件都使用 AES-256-GCM 加密；密钥由 Windows 为您的用户帐户保护。",
   "VaultSecrets": "机密和客户端证书私钥只能写入：页面可以在请求中使用它们，但永远无法读回。",
   "VaultOrigin": "每个网站都有自己的保管库，一个网站无法读取另一个网站的数据。",
+  "VaultTransfer": "要迁移到另一台电脑，请在代理窗口中使用“Export vault…”和“Import vault…”：所有网站一个文件，用你的密码加密（Argon2id 和 AES-256-GCM）。网页无法发起导出。",
   "CapabilityTitle": "可用能力",
   "CapabilityBody": "此版本可以配对 HTTP 请求、WebSocket 连接、Server-Sent Events、用于工作区和机密的保管库、ICMP 路径跟踪、DNS 查询、TCP 检查、TLS 检查、WHOIS 和 ASN 查询、端口扫描器和网络扫描器。每个工具都会请求自己的命名能力；配对不会自动授予未来的能力，因此更新后工具可能会要求重新配对。",
   "VerifyTitle": "验证下载文件",

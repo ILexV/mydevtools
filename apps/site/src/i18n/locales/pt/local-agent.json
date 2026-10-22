@@ -40,6 +40,7 @@
   "VaultEncryption": "Cada arquivo é criptografado com AES-256-GCM; o Windows protege a chave para sua conta de usuário.",
   "VaultSecrets": "Segredos e chaves de certificados de cliente são somente gravação: uma página pode usá-los em solicitações, mas nunca lê-los de volta.",
   "VaultOrigin": "Cada site tem seu próprio cofre, então um site não lê os dados de outro.",
+  "VaultTransfer": "Para levá-lo para outro computador, use “Export vault…” e “Import vault…” na janela do agente: um único arquivo para todos os sites, cifrado com a sua senha (Argon2id e AES-256-GCM). Uma página não consegue iniciar uma exportação.",
   "CapabilityTitle": "Capacidade disponível",
   "CapabilityBody": "Esta versão pode emparelhar solicitações HTTP, conexões WebSocket, Server-Sent Events, o cofre para espaços de trabalho e segredos, traçados de rota ICMP, consulta DNS, verificação TCP, inspeção TLS, WHOIS e pesquisa ASN, o scanner de portas e o scanner de rede. Cada ferramenta pede sua própria capacidade nomeada; o emparelhamento não concede capacidades futuras automaticamente, então após uma atualização uma ferramenta pode pedir novo emparelhamento.",
   "VerifyTitle": "Verifique o download",

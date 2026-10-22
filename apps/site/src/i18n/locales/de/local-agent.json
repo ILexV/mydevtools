@@ -40,6 +40,7 @@
   "VaultEncryption": "Jede Datei ist mit AES-256-GCM verschlüsselt; Windows schützt den Schlüssel für Ihr Benutzerkonto.",
   "VaultSecrets": "Geheimnisse und Schlüssel von Client-Zertifikaten sind nur schreibbar: Eine Seite kann sie in Anfragen verwenden, aber nie zurücklesen.",
   "VaultOrigin": "Jede Website hat ihren eigenen Tresor, sodass eine Website die Daten einer anderen nicht lesen kann.",
+  "VaultTransfer": "Um ihn auf einen anderen Computer zu übertragen, verwenden Sie „Export vault…“ und „Import vault…“ im Agentenfenster: eine Datei für alle Websites, verschlüsselt mit Ihrem Passwort (Argon2id und AES-256-GCM). Eine Seite kann keinen Export starten.",
   "CapabilityTitle": "Verfügbare Fähigkeit",
   "CapabilityBody": "Diese Version kann HTTP-Anfragen, WebSocket-Verbindungen, Server-Sent Events, den Tresor für Arbeitsbereiche und Geheimnisse, ICMP-Pfadverfolgung, DNS-Abfrage, TCP-Prüfung, TLS-Prüfung, WHOIS, ASN-Suche, den Portscanner und den Netzwerkscanner koppeln. Jedes Werkzeug fordert eine eigene benannte Fähigkeit an; die Kopplung gewährt zukünftige Fähigkeiten nicht automatisch, daher kann ein Werkzeug nach einem Update eine erneute Kopplung verlangen.",
   "VerifyTitle": "Download prüfen",

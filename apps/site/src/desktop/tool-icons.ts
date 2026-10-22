@@ -29,6 +29,7 @@ export const TOOL_ICONS: Record<string, string> = {
   "csv-explorer": `<rect x="3" y="3.5" width="14" height="13" rx="2"/><path d="M3 7.8h14M3 12.2h14M8 3.5v13M12.5 3.5v13"/>`,
   "log-analyzer": `<path d="M3 4.5h14M3 8h9M3 11.5h12M3 15h7"/><path d="M14.5 13.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6ZM16.5 17.2l2 2"/>`,
   "parquet-explorer": `<rect x="3" y="3.5" width="3.6" height="13" rx="1"/><rect x="8.2" y="3.5" width="3.6" height="13" rx="1"/><rect x="13.4" y="3.5" width="3.6" height="13" rx="1"/><path d="M3 8.5h3.6M8.2 11.5h3.6M13.4 7h3.6"/>`,
+  "sqlite-explorer": `<ellipse cx="9" cy="4.8" rx="5.5" ry="2.2"/><path d="M3.5 4.8v9.4c0 1.2 2.5 2.2 5.5 2.2M14.5 4.8V9M3.5 9.5c0 1.2 2.5 2.2 5.5 2.2"/><circle cx="14" cy="14" r="2.6"/><path d="m16 16 2 2"/>`,
   "local-data-playground": `<ellipse cx="10" cy="5" rx="6.5" ry="2.5"/><path d="M3.5 5v5c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5V5M3.5 10v5c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-5"/>`,
   "data-format-converter": `<path d="M3 5h10M10 2l3 3-3 3M17 15H7M10 12l-3 3 3 3"/><path d="M4 9.5h12" stroke-opacity=".45"/>`,
   "xml-beautifier": `<path d="M6.5 6 3 10l3.5 4M13.5 6 17 10l-3.5 4M11.4 4.5 8.6 15.5"/>`,

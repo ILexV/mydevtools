@@ -30,6 +30,7 @@ const PROFILE_BY_SLUG: Record<string, WindowProfile> = {
   "log-analyzer": "wide",
   "parquet-explorer": "wide",
   "local-data-playground": "wide",
+  "sqlite-explorer": "wide",
   "data-format-converter": "wide",
   "xml-beautifier": "wide",
   "yaml-beautifier-validator": "wide",

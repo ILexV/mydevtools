@@ -1,0 +1,154 @@
+---
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import FileDrop from "@/components/tool/FileDrop.astro";
+import Icon from "@/components/Icon.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import Progress from "@/components/tool/Progress.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import { editorPhrases } from "@/tools/editor-phrases";
+import "@/styles/codemirror.css";
+import "@/styles/explorer-ui.css";
+
+interface Props { lang: LocaleCode }
+const { lang } = Astro.props as Props;
+const ns = "tools/sqlite-explorer";
+const clientKeys = [
+  "EditorLabel", "StatusReady", "StatusOpening", "StatusOpened", "StatusRunning", "StatusComplete", "StatusCanceled",
+  "StatusExporting", "StatusExported", "StatusDownloaded", "ProgressElapsed", "ProgressRows",
+  "ResultSummary", "ResultTruncated", "ChangesSummary", "TableEmpty", "TableLoading", "RowLabel",
+  "TypeTable", "TypeView", "TypeIndex", "TypeTrigger", "IndexOn", "ModeReadOnly", "ModeWritable", "InfoPagesValue",
+  "StructureColumns", "StructureIndexes", "StructureForeignKeys", "StructureSql", "ColumnName", "ColumnType",
+  "ColumnNotNull", "ColumnDefault", "ColumnPrimaryKey", "IndexUnique", "ReopenConfirm",
+  "ErrorFormat", "ErrorCorrupt", "ErrorTooLarge", "ErrorReadOnly", "ErrorSql", "ErrorMemory", "ErrorExport",
+  "ErrorEngine", "ErrorGeneric",
+] as const;
+const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
+const stringsJson = JSON.stringify({ ...strings, Lang: lang, Phrases: editorPhrases(lang) });
+---
+
+<div class="ds-workbench sqlx-workbench" data-sqlx-tool>
+  <ToolPanel title={t(lang, ns, "DatabaseTitle")} class="sqlx-db-panel">
+    <FileDrop
+      compact
+      title={t(lang, ns, "DropTitle")}
+      buttonLabel={t(lang, ns, "DropButton")}
+      changeLabel={t(lang, ns, "DropChange")}
+      sub={t(lang, ns, "DropHint")}
+      accept=".sqlite,.sqlite3,.db,.db3,.s3db,.sl3,application/vnd.sqlite3,application/x-sqlite3"
+      data-sqlx-dropzone
+      inputProps={{ "data-sqlx-file": true }}
+    />
+    <label class="ds-check-row"><input class="ds-check" type="checkbox" data-sqlx-writable /><span>{t(lang, ns, "WritableLabel")}</span></label>
+    <p class="ds-hint">{t(lang, ns, "WritableHint")}</p>
+    <Progress
+      indeterminate
+      title={t(lang, ns, "ProgressTitle")}
+      barLabel={t(lang, ns, "ProgressTitle")}
+      cancelLabel={t(lang, ns, "Cancel")}
+      data-sqlx-progress
+      cancelProps={{ "data-sqlx-cancel": true }}
+      labelProps={{ "data-sqlx-progress-label": true }}
+    />
+    <StatusMessage kind="info" data-sqlx-status />
+    <StatusMessage kind="error" data-sqlx-error />
+    <dl class="ds-result-list sqlx-info" data-sqlx-info hidden>
+      <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{t(lang, ns, "InfoFile")}</dt><dd class="ds-result-value" data-sqlx-info-file></dd></div>
+      <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{t(lang, ns, "InfoMode")}</dt><dd class="ds-result-value" data-sqlx-info-mode></dd></div>
+      <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{t(lang, ns, "InfoPages")}</dt><dd class="ds-result-value" data-sqlx-info-pages></dd></div>
+      <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{t(lang, ns, "InfoEncoding")}</dt><dd class="ds-result-value" data-sqlx-info-encoding></dd></div>
+      <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{t(lang, ns, "InfoUserVersion")}</dt><dd class="ds-result-value" data-sqlx-info-version></dd></div>
+      <div class="ds-result-row ds-result-row-info"><dt class="ds-result-key">{t(lang, ns, "InfoEngine")}</dt><dd class="ds-result-value" data-sqlx-info-engine></dd></div>
+    </dl>
+    <p class="ds-hint sqlx-note" data-sqlx-wal hidden>{t(lang, ns, "WalNote")}</p>
+    <section class="sqlx-objects" aria-labelledby="sqlx-objects-title">
+      <h3 class="ds-label" id="sqlx-objects-title">{t(lang, ns, "ObjectsTitle")}</h3>
+      <p class="ds-hint" data-sqlx-objects-empty>{t(lang, ns, "NoObjects")}</p>
+      <ul class="sqlx-object-list" data-sqlx-objects></ul>
+    </section>
+    <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
+  </ToolPanel>
+
+  <ToolPanel title={t(lang, ns, "QueryTitle")} class="sqlx-query-panel">
+    <div class="sqlx-examples" aria-label={t(lang, ns, "ExamplesTitle")}>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" disabled data-sqlx-example="select">{t(lang, ns, "ExampleSelect")}</button>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" disabled data-sqlx-example="counts">{t(lang, ns, "ExampleCounts")}</button>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" disabled data-sqlx-example="schema">{t(lang, ns, "ExampleSchema")}</button>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" disabled data-sqlx-example="integrity">{t(lang, ns, "ExampleIntegrity")}</button>
+    </div>
+    <div class="mdt-cm sqlx-editor" data-sqlx-editor></div>
+    <p class="ds-hint" id="sqlx-editor-hint">{t(lang, ns, "EditorHint")}</p>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" disabled data-sqlx-run><Icon name="zap" size={16} />{t(lang, ns, "RunButton")}</button>
+      <span class="ds-action-row-aside">{t(lang, ns, "RunHint")}</span>
+    </div>
+  </ToolPanel>
+
+  <OutputPanel panel label={t(lang, ns, "ResultsTitle")} emptyHint={t(lang, ns, "ResultsEmpty")} class="ds-workbench-wide" data-sqlx-output>
+    <div class="ds-when-filled sqlx-results" data-sqlx-results hidden>
+      <details class="sqlx-structure" data-sqlx-structure hidden>
+        <summary class="ds-label" data-sqlx-structure-title></summary>
+        <div class="sqlx-structure-body" data-sqlx-structure-body></div>
+      </details>
+      <p class="sqlx-summary" data-sqlx-summary></p>
+      <div data-sqlx-table></div>
+      <section class="sqlx-export" aria-labelledby="sqlx-export-title" data-sqlx-export-section>
+        <h3 class="ds-label" id="sqlx-export-title">{t(lang, ns, "ExportTitle")}</h3>
+        <div class="ds-settings">
+          <Field label={t(lang, ns, "ExportFormat")} for="sqlx-export-format">
+            <select id="sqlx-export-format" class="ds-field-select" data-sqlx-export-format>
+              <option value="csv">CSV</option>
+              <option value="json">JSON</option>
+              <option value="jsonl">JSONL</option>
+              <option value="sql">SQL INSERT</option>
+            </select>
+          </Field>
+        </div>
+        <p class="ds-hint">{t(lang, ns, "ExportHint")}</p>
+        <div class="ds-action-row">
+          <button type="button" class="ds-btn ds-btn-primary" disabled data-sqlx-export><Icon name="download" size={16} />{t(lang, ns, "ExportButton")}</button>
+        </div>
+      </section>
+    </div>
+  </OutputPanel>
+
+  <ToolPanel title={t(lang, ns, "DownloadTitle")} class="ds-workbench-wide" data-sqlx-download-panel hidden>
+    <p class="ds-hint">{t(lang, ns, "DownloadHint")}</p>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn" data-sqlx-download><Icon name="download" size={16} />{t(lang, ns, "DownloadButton")}</button>
+    </div>
+  </ToolPanel>
+</div>
+
+<script is:inline type="application/json" data-sqlx-strings set:html={stringsJson} />
+<script>import "@/tools/sqlite-explorer.client.ts";</script>
+
+<style>
+  .sqlx-workbench { --ds-workbench-cols: minmax(18rem, 0.7fr) minmax(0, 1.3fr); align-items: start; }
+  .sqlx-db-panel, .sqlx-query-panel { height: 100%; }
+  .sqlx-info { --ds-result-key-w: 7.5rem; }
+  .sqlx-note { padding: 0.65rem 0.75rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-xs); background: var(--mdt-surface-inset); }
+  .sqlx-objects, .sqlx-results, .sqlx-export { display: grid; gap: 0.75rem; min-width: 0; }
+  .sqlx-object-list { display: grid; gap: 0.3rem; max-height: 22rem; margin: 0; padding: 0; overflow: auto; list-style: none; }
+  .sqlx-object-list :global(.sqlx-object) { display: flex; width: 100%; align-items: baseline; gap: 0.5rem; padding: 0.45rem 0.6rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-xs); background: var(--mdt-surface-inset); color: var(--mdt-text); font: inherit; text-align: start; cursor: pointer; }
+  .sqlx-object-list :global(.sqlx-object:hover) { border-color: var(--mdt-border); }
+  .sqlx-object-list :global(.sqlx-object.is-active) { border-color: var(--mdt-cat); background: color-mix(in srgb, var(--mdt-cat) 8%, var(--mdt-surface-inset)); }
+  .sqlx-object-list :global(.sqlx-object-name) { min-width: 0; font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-meta); overflow-wrap: anywhere; }
+  .sqlx-object-list :global(.sqlx-object-meta) { margin-inline-start: auto; color: var(--mdt-text-faint); font-size: var(--mdt-fs-micro); white-space: nowrap; }
+  .sqlx-examples { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .sqlx-editor { --mdt-cm-height: clamp(16rem, 42vh, 23rem); }
+  .sqlx-summary { margin: 0; color: var(--mdt-text-muted); font-size: var(--mdt-fs-label); font-variant-numeric: tabular-nums; }
+  .sqlx-structure { min-width: 0; padding: 0.65rem 0.8rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-xs); background: var(--mdt-surface-inset); }
+  .sqlx-structure > summary { cursor: pointer; }
+  .sqlx-structure-body { display: grid; gap: 0.75rem; min-width: 0; margin-top: 0.75rem; }
+  .sqlx-structure-body :global(h4) { margin: 0; color: var(--mdt-text-muted); font-size: var(--mdt-fs-micro); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+  .sqlx-structure-body :global(.sqlx-columns-wrap) { min-width: 0; overflow-x: auto; }
+  .sqlx-structure-body :global(table) { width: 100%; border-collapse: collapse; font-size: var(--mdt-fs-meta); }
+  .sqlx-structure-body :global(th), .sqlx-structure-body :global(td) { padding: 0.35rem 0.6rem; border-bottom: 1px solid var(--mdt-border-soft); text-align: start; white-space: nowrap; }
+  .sqlx-structure-body :global(th) { color: var(--mdt-text-muted); font-weight: 600; }
+  .sqlx-structure-body :global(td) { font-family: var(--mdt-font-mono); }
+  .sqlx-structure-body :global(ul) { display: grid; gap: 0.25rem; margin: 0; padding-inline-start: 1.1rem; font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-meta); overflow-wrap: anywhere; }
+  .sqlx-export { padding-top: 1rem; border-top: 1px solid var(--mdt-border-soft); }
+</style>

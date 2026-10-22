@@ -203,3 +203,19 @@ test("a tool page that fails to load offers a retry inside its window", async ({
   await expect(error).toBeHidden();
   await expect(page.frameLocator('iframe[data-tool-slug="uuid-generator"]').locator("main.tool")).toBeAttached();
 });
+
+test("a link to another page opens a new tab and keeps the tool in its window", async ({ page }) => {
+  const errors: string[] = [];
+  await openDesk(page, errors);
+  await launch(page, "HTTP Client", "http-client");
+  const frame = page.frameLocator('iframe[data-tool-slug="http-client"]');
+  const [popup] = await Promise.all([
+    page.waitForEvent("popup"),
+    frame.locator(".ds-agent-link").first().evaluate((link: HTMLAnchorElement) => link.click()),
+  ]);
+  await expect(popup).toHaveURL(/\/en\/local-agent\/$/);
+  await expect(frame.locator("main.tool")).toBeAttached();
+  await expect(page.locator(".desk-window:not([hidden]) .desk-frame-error")).toBeHidden();
+  // With `serviceWorkers: "block"` the new tab's service worker registration throws; a real browser does not.
+  expect(errors.filter((error) => !error.includes("'serviceWorker'"))).toEqual([]);
+});

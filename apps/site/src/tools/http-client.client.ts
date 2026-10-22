@@ -27,6 +27,7 @@ import {
   sameHttpWorkspaceContent,
   saveHttpWorkspace,
   writeHttpWorkspaceLocation,
+  type HttpFileRef,
   type HttpSavedRequest,
   type HttpSavedFolder,
   type HttpSavedRow,
@@ -44,9 +45,13 @@ import {
   oauthTokenValid,
   parseOAuthToken,
   type OAuthClientConfig,
+  type BuildInput,
   type OAuthToken,
 } from "@/tools/http-auth";
 import { createAuthEditor } from "@/tools/http-auth-editor";
+import { codeRequest, generateCode } from "@/tools/http-codegen";
+import { CurlParseError, looksLikeCurl, parseCurl, type CurlImport } from "@/tools/http-curl";
+import { bindCodeDialog, bindImportDialog } from "@/tools/http-curl-dialogs";
 import { bodyTexts, hasBody, type BodyFields } from "@/tools/http-body";
 import { createFileField, FileStore } from "@/tools/http-file-field";
 import { createFormDataEditor, createRowsEditor, type FormDataStrings } from "@/tools/http-rows-editor";
@@ -56,7 +61,17 @@ import { collectVariables, encodeQueryComponent, variableNames } from "@/tools/h
 interface Strings extends SecretsDialogStrings, ScopeDialogStrings, FormDataStrings {
   BodyBinary: string;
   ErrorFileMissing: string;
+  ErrorFileUnset: string;
+  ErrorBinaryUnset: string;
   ErrorGraphqlVariables: string;
+  ImportCurl: string;
+  CurlImported: string;
+  CurlIgnored: string;
+  CurlFiles: string;
+  CurlErrorNotCurl: string;
+  CurlErrorNoUrl: string;
+  CurlErrorQuote: string;
+  CodeCopied: string;
   AuthInheritFrom: string;
   AuthInheritNone: string;
   AuthTokenFetching: string;
@@ -328,7 +343,7 @@ function init(): void {
     workspace.requests.push(initial);
   }
   type TreeTarget = { kind: "root" } | { kind: HttpWorkspaceItemKind; id: string };
-  type TreeAction = "new-request" | "new-folder" | "settings" | "rename" | "move" | "delete";
+  type TreeAction = "new-request" | "new-folder" | "import-curl" | "settings" | "rename" | "move" | "delete";
   let workspaceDirty = false;
   let currentRequest = workspace.requests.find((request) => request.id === workspace.selectedId)!;
   let treeSelection: TreeTarget = { kind: "request", id: currentRequest.id };
@@ -487,6 +502,33 @@ function init(): void {
 
   /** Picked body files, in page memory only; the workspace keeps their names. */
   const bodyFiles = new FileStore();
+  async function readBodyFile(ref: HttpFileRef, limit: number): Promise<Uint8Array | null> {
+    const file = bodyFiles.get(ref);
+    if (!file) return null;
+    // Checked before reading, so a large file is never loaded into memory.
+    if (file.size > limit) throw new HttpBuildError("body_limit");
+    return new Uint8Array(await file.arrayBuffer());
+  }
+
+  const codeOpen = root.querySelector<HTMLButtonElement>("[data-http-code-open]")!;
+  const codeDialog = bindCodeDialog(root.querySelector<HTMLDialogElement>("[data-http-code-dialog]")!, s.CodeCopied, async (language) => {
+    const signsBody = effectiveAuth(workspace, currentRequest).auth.type === "awsv4";
+    try {
+      const built = await buildHttpRequest(currentBuildInput({
+        // Snippets name files; only a SigV4 signature needs their bytes.
+        readFile: (ref) => signsBody ? readBodyFile(ref, client.info?.limits.maxRequestBodyBytes ?? 1024 * 1024) : Promise.resolve(new Uint8Array()),
+        // A snippet never fetches a token: a cached one or a placeholder.
+        oauthToken: async (config) => {
+          const cached = oauthTokens.get(oauthCacheKey(config));
+          return oauthTokenValid(cached) ? cached : { accessToken: "<access-token>", tokenType: "Bearer", expiresAt: null };
+        },
+      }));
+      return generateCode(language, codeRequest(built, requestTimeout(), workspaceUi.redirects.checked));
+    } catch (error) {
+      throw new Error(buildErrorText(error));
+    }
+  });
+  codeOpen.addEventListener("click", () => codeDialog.open(codeOpen));
   const urlencodedRows = createRowsEditor(s, "x-www-form-urlencoded", scheduleWorkspaceSave);
   const formdataRows = createFormDataEditor(s, "form-data", bodyFiles, scheduleWorkspaceSave);
   const binaryFile = createFileField(s, bodyFiles, s.BodyBinary, scheduleWorkspaceSave);
@@ -508,6 +550,19 @@ function init(): void {
       graphql: { query: graphqlQuery.value, variables: graphqlVariables.value },
     };
   }
+
+  /** The open request as the builder takes it; send and the Code window add file and token access. */
+  const currentBuildInput = (access: Pick<BuildInput, "readFile" | "oauthToken">): BuildInput => ({
+    method: workspaceUi.method.value,
+    url: workspaceUi.requestUrl.value,
+    headers: headersTable.read(),
+    ...currentBodyFields(),
+    auth: effectiveAuth(workspace, currentRequest).auth,
+    scope: collectVariables(workspace, currentRequest.folderId),
+    ...access,
+  });
+  const requestTimeout = (): number =>
+    Math.max(100, Math.min(client.info?.limits.maxTimeoutMs ?? 120000, Number(workspaceUi.timeout.value) || 30000));
 
   /** Shows the section of the chosen body mode; raw keeps its format select and editor. */
   function showBodyMode(): void {
@@ -651,6 +706,7 @@ function init(): void {
       case "auth_incomplete": return s.ErrorAuthIncomplete;
       case "aws_secret": return s.ErrorAwsSecret;
       case "file_missing": return s.ErrorFileMissing.replace("{name}", error.message);
+      case "file_unset": return error.message === "file_unset" ? s.ErrorBinaryUnset : s.ErrorFileUnset.replace("{name}", error.message);
       case "body_limit": return s.ErrorBodyLimit;
       case "graphql_variables": return s.ErrorGraphqlVariables;
       default: return s.ErrorOAuthToken.replace("{detail}", error.message === "oauth_token" ? s.ErrorGeneric : error.message);
@@ -1349,11 +1405,13 @@ function init(): void {
         ? [
             { action: "new-request", label: workspaceUi.strings.NewRequest },
             { action: "new-folder", label: workspaceUi.strings.NewFolder },
+            { action: "import-curl", label: workspaceUi.strings.ImportCurl },
           ]
         : target.kind === "folder"
           ? [
               { action: "new-request", label: workspaceUi.strings.NewRequest },
               { action: "new-folder", label: workspaceUi.strings.NewFolder },
+              { action: "import-curl", label: workspaceUi.strings.ImportCurl },
               { action: "settings", label: workspaceUi.strings.FolderSettings, separate: true },
               { action: "rename", label: workspaceUi.strings.RenameFolder },
               { action: "move", label: workspaceUi.strings.MoveItem },
@@ -1362,6 +1420,7 @@ function init(): void {
           : [
               { action: "new-request", label: workspaceUi.strings.NewRequest },
               { action: "new-folder", label: workspaceUi.strings.NewFolder },
+              { action: "import-curl", label: workspaceUi.strings.ImportCurl },
               { action: "rename", label: workspaceUi.strings.RenameRequest, separate: true },
               { action: "move", label: workspaceUi.strings.MoveItem },
               { action: "delete", label: workspaceUi.strings.DeleteRequest, danger: true, separate: true },
@@ -1733,13 +1792,13 @@ function init(): void {
   });
   timeout.addEventListener("input", scheduleWorkspaceSave);
   redirects.addEventListener("change", scheduleWorkspaceSave);
-  function createRequestAt(parentId: string | null): void {
+  function createRequestAt(parentId: string | null, init: Partial<HttpSavedRequest> = {}): boolean {
     if (active || (parentId !== null && !workspace.folders.some((folder) => folder.id === parentId))
-      || !saveWorkspaceNow()) return;
+      || !saveWorkspaceNow()) return false;
     const previousSelectedId = workspace.selectedId;
     const previousSelectedFolderId = workspace.selectedFolderId;
     const expandedBefore = new Map(workspace.folders.map((folder) => [folder.id, folder.expanded] as const));
-    const request = createBlankRequest(parentId);
+    const request = { ...createBlankRequest(parentId), ...init };
     workspace.requests.push(request);
     workspace.selectedId = request.id;
     workspace.selectedFolderId = null;
@@ -1754,13 +1813,61 @@ function init(): void {
         if (expanded !== undefined) folder.expanded = expanded;
       }
       workspaceDirty = false;
-      return;
+      return false;
     }
     currentRequest = request;
     treeSelection = { kind: "request", id: request.id };
     applyRequest(request);
     workspaceUi.requestName.select();
+    return true;
   }
+
+  /** Where «Import cURL» puts the new request: the folder the tree menu was opened on. */
+  let importParent: string | null = null;
+
+  function curlErrorText(error: unknown): string {
+    if (!(error instanceof CurlParseError)) return errorText(error);
+    return error.code === "not_curl" ? s.CurlErrorNotCurl : error.code === "no_url" ? s.CurlErrorNoUrl : s.CurlErrorQuote;
+  }
+
+  /** After an import: what was skipped and which files must be picked again. */
+  function showCurlResult(result: CurlImport): void {
+    const notes = [s.CurlImported];
+    if (result.ignored.length) notes.push(s.CurlIgnored.replace("{options}", result.ignored.join(", ")));
+    if (result.files.length) notes.push(s.CurlFiles.replace("{files}", result.files.join(", ")));
+    showMessage(workspaceUi.root.querySelector<HTMLElement>("[data-http-request-status]")!, notes.join(" "));
+  }
+
+  const importDialog = bindImportDialog(root.querySelector<HTMLDialogElement>("[data-http-import-dialog]")!, (command) => {
+    let result: CurlImport;
+    try {
+      result = parseCurl(command);
+    } catch (error) {
+      return curlErrorText(error);
+    }
+    const name = result.fields.url.split(/[?#]/u, 1)[0]!.replace(/^[a-z][a-z0-9+.-]*:\/\//iu, "").slice(0, 120);
+    if (!createRequestAt(importParent, { ...result.fields, name })) return s.ErrorGeneric;
+    showCurlResult(result);
+    return null;
+  });
+
+  // A cURL command pasted into the URL field replaces the open request's fields, like Postman.
+  workspaceUi.requestUrl.addEventListener("paste", (event) => {
+    const text = event.clipboardData?.getData("text/plain") ?? "";
+    if (active || !looksLikeCurl(text)) return;
+    event.preventDefault();
+    let result: CurlImport;
+    try {
+      result = parseCurl(text);
+    } catch (error) {
+      showMessage(workspaceUi.root.querySelector<HTMLElement>("[data-http-request-error]")!, curlErrorText(error));
+      return;
+    }
+    Object.assign(currentRequest, { timeoutMs: 30000 }, result.fields);
+    applyRequest(currentRequest);
+    scheduleWorkspaceSave();
+    showCurlResult(result);
+  });
 
   function createFolderAt(parentId: string | null): void {
     if (active || (parentId !== null && !workspace.folders.some((folder) => folder.id === parentId))
@@ -1929,6 +2036,11 @@ function init(): void {
       createFolderAt(parentForTarget(target));
       return;
     }
+    if (action === "import-curl") {
+      importParent = parentForTarget(target);
+      importDialog.open(returnFocus ?? workspaceUi.savedList);
+      return;
+    }
     if (target.kind === "root") return;
     if (action === "settings") {
       if (target.kind === "folder") folderSettings.open(returnFocus ?? workspaceUi.savedList, target.id);
@@ -1965,6 +2077,8 @@ function init(): void {
     if (workspaceUi.moveDialog.open) workspaceUi.moveDialog.close();
     if (envDialog.open) envDialog.close();
     if (folderDialog.open) folderDialog.close();
+    const openImport = workspaceUi.root.querySelector<HTMLDialogElement>("[data-http-import-dialog]");
+    if (openImport?.open) openImport.close();
     finishDragging();
     renderEnvironmentSwitcher();
     currentRequest = workspace.requests.find((request) => request.id === workspace.selectedId)!;
@@ -2266,22 +2380,10 @@ function init(): void {
       const bodyLimit = client.info?.limits.maxRequestBodyBytes ?? 1024 * 1024;
       let built;
       try {
-        built = await buildHttpRequest({
-          method: method.value,
-          url: requestUrl.value,
-          headers: headersTable.read(),
-          ...currentBodyFields(),
-          readFile: async (ref) => {
-            const file = bodyFiles.get(ref);
-            if (!file) return null;
-            // Checked before reading, so a large file is never loaded into memory.
-            if (file.size > bodyLimit) throw new HttpBuildError("body_limit");
-            return new Uint8Array(await file.arrayBuffer());
-          },
-          auth: effectiveAuth(workspace, currentRequest).auth,
-          scope: collectVariables(workspace, currentRequest.folderId),
+        built = await buildHttpRequest(currentBuildInput({
+          readFile: (ref) => readBodyFile(ref, bodyLimit),
           oauthToken: (config) => oauthToken(config, { signal: abort.signal }),
-        });
+        }));
       } catch (error) {
         if (!(error instanceof HttpBuildError)) throw error;
         if (active?.id !== id) return;
@@ -2289,7 +2391,7 @@ function init(): void {
         showMessage(requestError, buildErrorText(error));
         if (error.code === "url") {
           requestUrl.focus();
-        } else if (error.code === "file_missing" || error.code === "graphql_variables" || error.code === "body_limit") {
+        } else if (error.code === "file_missing" || error.code === "file_unset" || error.code === "graphql_variables" || error.code === "body_limit") {
           root.querySelector<HTMLButtonElement>("#http-request-body-tab")?.click();
         } else if (error.code === "headers") {
           root.querySelector<HTMLButtonElement>("#http-request-headers-tab")?.click();
@@ -2310,7 +2412,7 @@ function init(): void {
         url: built.url,
         headers: built.headers,
         bodyBase64: bytesToBase64(built.body),
-        timeoutMs: Math.max(100, Math.min(client.info?.limits.maxTimeoutMs ?? 120000, Number(timeout.value) || 30000)),
+        timeoutMs: requestTimeout(),
         followRedirects: redirects.checked,
         ...(built.basicAuth ? { basicAuth: built.basicAuth } : {}),
       }, abort.signal);

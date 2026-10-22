@@ -37,7 +37,8 @@ const clientKeys = [
   "DeleteEnvironmentConfirm", "CopySuffix", "Variables", "FolderSettings", "FolderSettingsTitle", "UnresolvedVariables",
   "ErrorAuthIncomplete", "ErrorAwsSecret", "ErrorOAuthToken", "BodyFieldKind", "BodyKindText", "BodyKindFile",
   "BodyChooseFile", "BodyRemoveFile", "BodyFileMissing", "BodyBinary", "ErrorFileMissing",
-  "ErrorGraphqlVariables", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
+  "ErrorGraphqlVariables", "ErrorFileUnset", "ErrorBinaryUnset", "ImportCurl", "CurlImported", "CurlIgnored", "CurlFiles", "CurlErrorNotCurl", "CurlErrorNoUrl",
+  "CurlErrorQuote", "CodeCopied", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
 const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhrases(lang) });
@@ -161,6 +162,46 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
     <p class="ds-hint http-secrets-hint">{t(lang, ns, "FolderVariablesHint")}</p>
     <div data-http-folder-rows></div>
   </dialog>
+  <dialog class="http-move-dialog http-secrets-dialog" aria-labelledby="http-import-title" aria-describedby="http-import-hint" data-http-import-dialog>
+    <form method="dialog" class="http-import-form" data-http-import-form>
+      <div class="http-secrets-head">
+        <h2 id="http-import-title" class="ds-panel-title">{t(lang, ns, "ImportCurlTitle")}</h2>
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "SecretsClose")} title={t(lang, ns, "SecretsClose")} data-http-import-close>
+          <Icon name="close" size={15} />
+        </button>
+      </div>
+      <p class="ds-hint http-secrets-hint" id="http-import-hint">{t(lang, ns, "ImportCurlHint")}</p>
+      <label class="visually-hidden" for="http-import-text">{t(lang, ns, "ImportCurlLabel")}</label>
+      <textarea id="http-import-text" class="ds-field-textarea mono http-import-text" rows="8" autocomplete="off" spellcheck="false" placeholder="curl 'https://api.example.com/items' -H 'Accept: application/json'" data-http-import-text></textarea>
+      <StatusMessage kind="error" data-http-import-error />
+      <div class="ds-actions">
+        <button type="submit" class="ds-btn ds-btn-small ds-btn-primary" data-http-import-submit>{t(lang, ns, "ImportCurlSubmit")}</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog class="http-move-dialog http-secrets-dialog http-code-dialog" aria-labelledby="http-code-title" data-http-code-dialog>
+    <div class="http-secrets-head">
+      <h2 id="http-code-title" class="ds-panel-title">{t(lang, ns, "CodeTitle")}</h2>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "SecretsClose")} title={t(lang, ns, "SecretsClose")} data-http-code-close>
+        <Icon name="close" size={15} />
+      </button>
+    </div>
+    <div class="http-env-bar">
+      <label class="http-move-field">
+        <span>{t(lang, ns, "CodeLanguage")}</span>
+        <select class="ds-field-select" data-http-code-language>
+          <option value="curl">cURL</option>
+          <option value="fetch">JavaScript fetch</option>
+          <option value="python">Python requests</option>
+          <option value="httpie">HTTPie</option>
+        </select>
+      </label>
+      <button type="button" class="ds-btn ds-btn-small" data-http-code-copy><Icon name="copy" size={14} />{t(lang, ns, "CodeCopy")}</button>
+    </div>
+    <p class="ds-hint http-secrets-hint">{t(lang, ns, "CodeHint")}</p>
+    <StatusMessage kind="error" data-http-code-error />
+    <pre class="http-code-output mono" tabindex="0" aria-labelledby="http-code-title" data-http-code-output></pre>
+  </dialog>
   <div
     class="http-sidebar-resizer"
     role="separator"
@@ -185,6 +226,9 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
         </select>
         <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "Environments")} title={t(lang, ns, "Environments")} aria-haspopup="dialog" data-http-env-open>
           <Icon name="layers" size={15} />
+        </button>
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "CodeTitle")} title={t(lang, ns, "CodeTitle")} aria-haspopup="dialog" data-http-code-open>
+          <Icon name="encoding" size={15} />
         </button>
       </div>
       <AgentConnection lang={lang} ns={ns} prefix="http">
@@ -485,6 +529,11 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
   .http-body-section > .ds-hint { margin: 0; }
   .http-body-rows { margin-inline: -1rem; border-top: 1px solid var(--mdt-border-soft); }
   .http-graphql-variables { min-height: 5rem; }
+  .http-import-form { display: grid; gap: 0.75rem; }
+  .http-import-text { min-height: 10rem; }
+  .http-code-dialog { width: min(46rem, calc(100vw - 2rem)); }
+  .http-code-output { max-height: 24rem; margin: 0; padding: 0.75rem; overflow: auto; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface-inset); color: var(--mdt-text); font-size: var(--mdt-fs-label); white-space: pre; }
+  .http-code-output:empty { display: none; }
   .http-workbench :global(.http-kv-table .http-kind-cell) { width: 6.5rem; }
   .http-workbench :global(.http-kind-cell .ds-field-select) { min-height: 2rem; padding-block: 0.2rem; font-size: var(--mdt-fs-label); }
   .http-workbench :global(.http-file-field) { display: flex; align-items: center; gap: 0.4rem; min-width: 0; padding: 0.15rem 0.2rem; }

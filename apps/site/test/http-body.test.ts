@@ -71,7 +71,7 @@ test("form-data replaces a hand-set Content-Type with its boundary and reads fil
     formdata: [
       { name: "note", value: "id {{id}}", enabled: true, kind: "text" },
       { name: "logo", value: "", enabled: true, kind: "file", file },
-      { name: "empty", value: "", enabled: true, kind: "file", file: null },
+      { name: "off", value: "", enabled: false, kind: "file", file: null },
     ],
     readFile: async (ref) => ref.id === "f1" ? new Uint8Array([1, 2, 3]) : null,
   }));
@@ -79,7 +79,11 @@ test("form-data replaces a hand-set Content-Type with its boundary and reads fil
   const text = decode(built.body);
   assert.match(text, /name="note"\r\n\r\nid 42\r\n/);
   assert.match(text, /name="logo"; filename="logo.png"\r\nContent-Type: image\/png\r\n\r\n\u0001\u0002\u0003\r\n--XYZ--\r\n$/);
-  assert.doesNotMatch(text, /name="empty"/);
+  assert.doesNotMatch(text, /name="off"/);
+  await assert.rejects(buildHttpRequest(input({ bodyMode: "formdata", formdata: [{ name: "pic", value: "", enabled: true, kind: "file", file: null }] })),
+    (error: unknown) => error instanceof HttpBuildError && error.code === "file_unset" && error.message === "pic");
+  await assert.rejects(buildHttpRequest(input({ bodyMode: "binary", binary: null })),
+    (error: unknown) => error instanceof HttpBuildError && error.code === "file_unset");
 });
 
 test("binary sends the file as is; a file lost on reload is reported by name", async () => {

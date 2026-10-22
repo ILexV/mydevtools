@@ -24,7 +24,8 @@ interface ScopeDialogOptions {
   changed(): void;
 }
 
-function onClose(dialog: HTMLDialogElement, close: HTMLButtonElement): (trigger: HTMLElement) => void {
+/** Close button and focus return to the element that opened the dialog. */
+export function bindDialogClose(dialog: HTMLDialogElement, close: HTMLButtonElement): (trigger: HTMLElement) => void {
   let returnFocus: HTMLElement | null = null;
   close.addEventListener("click", () => dialog.close());
   dialog.addEventListener("close", () => {
@@ -51,7 +52,7 @@ export function bindEnvironmentsDialog(dialog: HTMLDialogElement, options: Scope
   const duplicate = dialog.querySelector<HTMLButtonElement>("[data-http-env-duplicate]")!;
   const remove = dialog.querySelector<HTMLButtonElement>("[data-http-env-delete]")!;
   const rowsHost = dialog.querySelector<HTMLElement>("[data-http-env-rows]")!;
-  const remember = onClose(dialog, dialog.querySelector<HTMLButtonElement>("[data-http-env-close]")!);
+  const remember = bindDialogClose(dialog, dialog.querySelector<HTMLButtonElement>("[data-http-env-close]")!);
   let selected = "";
 
   const environment = () => options.workspace().environments?.find((entry) => entry.id === selected);
@@ -141,7 +142,7 @@ export function bindFolderDialog(dialog: HTMLDialogElement, options: ScopeDialog
   const title = dialog.querySelector<HTMLElement>("[data-http-folder-title]")!;
   const authHost = dialog.querySelector<HTMLElement>("[data-http-folder-auth]")!;
   const rowsHost = dialog.querySelector<HTMLElement>("[data-http-folder-rows]")!;
-  const remember = onClose(dialog, dialog.querySelector<HTMLButtonElement>("[data-http-folder-close]")!);
+  const remember = bindDialogClose(dialog, dialog.querySelector<HTMLButtonElement>("[data-http-folder-close]")!);
   let folderId = "";
   const folder = () => options.workspace().folders.find((entry) => entry.id === folderId);
   const auth = createAuthEditor(s, "http-folder-auth", () => {

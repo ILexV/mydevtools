@@ -1,4 +1,5 @@
 import { signAwsV4 } from "./http-aws-sigv4.ts";
+import type { CodeBody } from "./http-codegen.ts";
 import { encodeMultipart, encodeUrlencoded, graphqlPayload, multipartBoundary, type BodyFields, type FileBytes, type MultipartPart } from "./http-body.ts";
 import { encodeQueryComponent, hasSecretPlaceholder, resolveVariables, type VariableScope } from "./http-variables.ts";
 import type { HttpAuth, HttpSavedRequest, HttpWorkspace } from "./http-workspace.ts";
@@ -30,7 +31,7 @@ export function effectiveAuth(
 }
 
 export type BuildErrorCode = "url" | "headers" | "auth_incomplete" | "aws_secret" | "oauth_token"
-  | "file_missing" | "body_limit" | "graphql_variables";
+  | "file_missing" | "file_unset" | "body_limit" | "graphql_variables";
 
 export class HttpBuildError extends Error {
   readonly code: BuildErrorCode;
@@ -151,6 +152,8 @@ export interface BuiltRequest {
   body: Uint8Array;
   basicAuth?: BasicCredentials;
   unresolved: string[];
+  /** The body as fields and file names, for code snippets. */
+  bodySpec: CodeBody;
 }
 
 const HEADER_NAME = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/u;
@@ -171,44 +174,57 @@ function withoutHeader(headers: Header[], name: string): Header[] {
  * header set by hand: a multipart body only parses with its own boundary.
  */
 async function encodeBody(input: BuildInput, resolve: (text: string) => string): Promise<{
-  bytes: Uint8Array; contentType: string; force?: boolean;
+  bytes: Uint8Array; contentType: string; force?: boolean; spec: CodeBody;
 }> {
+  const none = { bytes: new Uint8Array(), contentType: "", spec: { kind: "none" } as const };
   const encoder = new TextEncoder();
   switch (input.bodyMode ?? "raw") {
-    case "none": return { bytes: new Uint8Array(), contentType: "" };
+    case "none": return none;
     case "urlencoded": {
       const pairs = (input.urlencoded ?? []).filter((row) => row.enabled && row.name)
         .map((row) => [resolve(row.name), resolve(row.value)] as const);
-      return { bytes: encoder.encode(encodeUrlencoded(pairs)), contentType: "application/x-www-form-urlencoded" };
+      if (!pairs.length) return none;
+      return { bytes: encoder.encode(encodeUrlencoded(pairs)), contentType: "application/x-www-form-urlencoded",
+        spec: { kind: "urlencoded", pairs: pairs.map(([name, value]) => [name, value]) } };
     }
     case "formdata": {
       const parts: MultipartPart[] = [];
+      const spec: Extract<CodeBody, { kind: "formdata" }>["parts"] = [];
       for (const row of input.formdata ?? []) {
         if (!row.enabled || !row.name) continue;
         if (row.kind === "text") {
           parts.push({ name: resolve(row.name), value: resolve(row.value) });
-        } else if (row.file) {
+          spec.push({ name: resolve(row.name), value: resolve(row.value) });
+        } else {
+          // A file field with nothing picked (e.g. just imported from cURL) is not dropped silently.
+          if (!row.file) throw new HttpBuildError("file_unset", resolve(row.name));
           const bytes = await input.readFile?.(row.file) ?? null;
           if (!bytes) throw new HttpBuildError("file_missing", row.file.name);
           parts.push({ name: resolve(row.name), file: { name: row.file.name, type: row.file.type, bytes } });
+          spec.push({ name: resolve(row.name), file: { name: row.file.name, type: row.file.type } });
         }
       }
-      if (!parts.length) return { bytes: new Uint8Array(), contentType: "" };
+      if (!parts.length) return none;
       const boundary = input.boundary ?? multipartBoundary();
-      return { bytes: encodeMultipart(parts, boundary), contentType: `multipart/form-data; boundary=${boundary}`, force: true };
+      return { bytes: encodeMultipart(parts, boundary), contentType: `multipart/form-data; boundary=${boundary}`, force: true,
+        spec: { kind: "formdata", parts: spec } };
     }
     case "binary": {
-      if (!input.binary) return { bytes: new Uint8Array(), contentType: "" };
+      if (!input.binary) throw new HttpBuildError("file_unset", "");
       const bytes = await input.readFile?.(input.binary) ?? null;
       if (!bytes) throw new HttpBuildError("file_missing", input.binary.name);
-      return { bytes, contentType: input.binary.type || "application/octet-stream" };
+      const contentType = input.binary.type || "application/octet-stream";
+      return { bytes, contentType, spec: { kind: "file", name: input.binary.name, type: contentType } };
     }
     case "graphql": {
       const payload = graphqlPayload(resolve(input.graphql?.query ?? ""), resolve(input.graphql?.variables ?? ""));
       if (payload === null) throw new HttpBuildError("graphql_variables");
-      return { bytes: encoder.encode(payload), contentType: "application/json" };
+      return { bytes: encoder.encode(payload), contentType: "application/json", spec: { kind: "text", text: payload } };
     }
-    default: return { bytes: encoder.encode(resolve(input.body)), contentType: CONTENT_TYPES[input.bodyFormat] };
+    default: {
+      const text = resolve(input.body);
+      return { bytes: encoder.encode(text), contentType: CONTENT_TYPES[input.bodyFormat], spec: text ? { kind: "text", text } : { kind: "none" } };
+    }
   }
 }
 
@@ -285,5 +301,6 @@ export async function buildHttpRequest(input: BuildInput): Promise<BuiltRequest>
       region: field(auth.region), service: field(auth.service), now: input.now?.(),
     }));
   }
-  return { method: input.method, url, headers, body, ...(basicAuth ? { basicAuth } : {}), unresolved: [...unresolved] };
+  return { method: input.method, url, headers, body, ...(basicAuth ? { basicAuth } : {}), unresolved: [...unresolved],
+    bodySpec: encoded.spec };
 }

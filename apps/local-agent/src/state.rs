@@ -21,8 +21,8 @@ use crate::{
     icmp::{SharedTrace, TraceState},
     model::{
         ASN_CAPABILITY, ApiError, DNS_CAPABILITY, HTTP_CAPABILITY, ICMP_CAPABILITY, PairRequest,
-        PairResponse, TCP_CAPABILITY, TLS_CAPABILITY, VAULT_DATA_CAPABILITY,
-        VAULT_SECRETS_CAPABILITY, WHOIS_CAPABILITY,
+        PairResponse, SSE_CAPABILITY, TCP_CAPABILITY, TLS_CAPABILITY, VAULT_DATA_CAPABILITY,
+        VAULT_SECRETS_CAPABILITY, WEBSOCKET_CAPABILITY, WHOIS_CAPABILITY,
     },
     tcp::MAX_CONCURRENT_CONNECTS,
     tls::MAX_CONCURRENT_INSPECTIONS,
@@ -36,6 +36,7 @@ const PAIRING_ATTEMPT_WINDOW: Duration = Duration::from_secs(60);
 const MAX_FAILED_PAIRING_ATTEMPTS: usize = 10;
 const MAX_SESSIONS: usize = 32;
 const MAX_CONCURRENT_REQUESTS: usize = 8;
+const MAX_CONCURRENT_STREAMS: usize = 8;
 const MAX_CONCURRENT_TRACES: usize = 2;
 const MAX_STORED_TRACES: usize = 8;
 const MAX_CANCELLATION_TOMBSTONES: usize = 256;
@@ -71,6 +72,12 @@ pub(crate) struct AgentState {
     asn_concurrency: Arc<Semaphore>,
     /// Path MTU searches in flight. Counted with non-idle traces toward the cap of two.
     mtu_inflight: Mutex<usize>,
+    /// Event streams and WebSockets open at once.
+    stream_concurrency: Arc<Semaphore>,
+    /// Event stream bodies held after `http.request` until the page reads them.
+    pub(crate) parked_streams: crate::sse::ParkedStreams,
+    /// Open WebSockets the page sends to.
+    pub(crate) sockets: crate::websocket::Sockets,
 }
 
 struct PairingState {
@@ -91,6 +98,8 @@ struct Session {
     asn_lookup_allowed: bool,
     vault_data_allowed: bool,
     vault_secrets_allowed: bool,
+    sse_stream_allowed: bool,
+    websocket_allowed: bool,
     active: HashMap<Uuid, CancellationToken>,
     cancellation_tombstones: HashMap<Uuid, Instant>,
     traces: HashMap<Uuid, Arc<Mutex<SharedTrace>>>,
@@ -123,6 +132,9 @@ impl AgentState {
             whois_concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_QUERIES)),
             asn_concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_ASN_LOOKUPS)),
             mtu_inflight: Mutex::new(0),
+            stream_concurrency: Arc::new(Semaphore::new(MAX_CONCURRENT_STREAMS)),
+            parked_streams: crate::sse::ParkedStreams::default(),
+            sockets: crate::websocket::Sockets::default(),
         })
     }
 
@@ -226,6 +238,12 @@ impl AgentState {
                 vault_secrets_allowed: granted
                     .iter()
                     .any(|capability| *capability == VAULT_SECRETS_CAPABILITY),
+                sse_stream_allowed: granted
+                    .iter()
+                    .any(|capability| *capability == SSE_CAPABILITY),
+                websocket_allowed: granted
+                    .iter()
+                    .any(|capability| *capability == WEBSOCKET_CAPABILITY),
                 active: HashMap::new(),
                 cancellation_tombstones: HashMap::new(),
                 traces: HashMap::new(),
@@ -258,6 +276,44 @@ impl AgentState {
             return Err(ApiError::forbidden());
         }
         Ok(auth.key)
+    }
+
+    /// True when the session may read an event stream as it arrives.
+    pub(crate) fn sse_allowed(&self, authorization: Option<&str>, origin: &str) -> bool {
+        self.authorize(authorization, origin)
+            .is_ok_and(|auth| auth.http_request_allowed && auth.sse_stream_allowed)
+    }
+
+    pub(crate) fn authorize_sse(
+        &self,
+        authorization: Option<&str>,
+        origin: &str,
+    ) -> Result<SessionKey, ApiError> {
+        let auth = self.authorize(authorization, origin)?;
+        if !auth.sse_stream_allowed {
+            return Err(ApiError::forbidden());
+        }
+        Ok(auth.key)
+    }
+
+    pub(crate) fn authorize_websocket(
+        &self,
+        authorization: Option<&str>,
+        origin: &str,
+    ) -> Result<SessionKey, ApiError> {
+        let auth = self.authorize(authorization, origin)?;
+        if !auth.websocket_allowed {
+            return Err(ApiError::forbidden());
+        }
+        Ok(auth.key)
+    }
+
+    /// Streams (event streams and WebSockets) open at once; long-lived, so they
+    /// do not take HTTP request permits.
+    pub(crate) fn try_acquire_stream_slot(&self) -> Result<OwnedSemaphorePermit, ApiError> {
+        Arc::clone(&self.stream_concurrency)
+            .try_acquire_owned()
+            .map_err(|_| ApiError::busy())
     }
 
     pub(crate) fn authorize_icmp(
@@ -418,6 +474,8 @@ impl AgentState {
             asn_lookup_allowed: session.asn_lookup_allowed,
             vault_data_allowed: session.vault_data_allowed,
             vault_secrets_allowed: session.vault_secrets_allowed,
+            sse_stream_allowed: session.sse_stream_allowed,
+            websocket_allowed: session.websocket_allowed,
         })
     }
 
@@ -425,6 +483,7 @@ impl AgentState {
         if let Some(session) = self.sessions.lock().remove(&session_key) {
             cancel_session(session);
         }
+        self.parked_streams.forget_session(&session_key);
     }
 
     pub(crate) fn revoke_all(&self) {
@@ -432,10 +491,12 @@ impl AgentState {
         for session in sessions.into_values() {
             cancel_session(session);
         }
+        self.parked_streams.clear();
     }
 
     pub(crate) fn expire_sessions(&self) {
         remove_expired_sessions(&mut self.sessions.lock(), Instant::now());
+        self.parked_streams.prune();
     }
 
     pub(crate) fn try_acquire_request_slot(&self) -> Result<OwnedSemaphorePermit, ApiError> {
@@ -644,6 +705,8 @@ struct SessionAuth {
     asn_lookup_allowed: bool,
     vault_data_allowed: bool,
     vault_secrets_allowed: bool,
+    sse_stream_allowed: bool,
+    websocket_allowed: bool,
 }
 
 impl Drop for ActiveRequestGuard {
@@ -689,6 +752,8 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
     let mut asn = false;
     let mut vault_data = false;
     let mut vault_secrets = false;
+    let mut sse = false;
+    let mut websocket = false;
     for capability in requested {
         match capability.as_str() {
             HTTP_CAPABILITY if !http => http = true,
@@ -700,10 +765,12 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
             ASN_CAPABILITY if !asn => asn = true,
             VAULT_DATA_CAPABILITY if !vault_data => vault_data = true,
             VAULT_SECRETS_CAPABILITY if !vault_secrets => vault_secrets = true,
+            SSE_CAPABILITY if !sse => sse = true,
+            WEBSOCKET_CAPABILITY if !websocket => websocket = true,
             _ => return Err(ApiError::unsupported_capability()),
         }
     }
-    let mut granted = Vec::with_capacity(9);
+    let mut granted = Vec::with_capacity(11);
     if http {
         granted.push(HTTP_CAPABILITY);
     }
@@ -730,6 +797,12 @@ fn normalize_capabilities(requested: &[String]) -> Result<Vec<&'static str>, Api
     }
     if vault_secrets {
         granted.push(VAULT_SECRETS_CAPABILITY);
+    }
+    if sse {
+        granted.push(SSE_CAPABILITY);
+    }
+    if websocket {
+        granted.push(WEBSOCKET_CAPABILITY);
     }
     Ok(granted)
 }

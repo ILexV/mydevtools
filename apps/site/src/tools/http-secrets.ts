@@ -51,7 +51,7 @@ export function parseSecretHosts(text: string): string[] | null {
 export function suggestedSecretHost(url: string): string {
   try {
     const parsed = new URL(url.trim());
-    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.hostname : "";
+    return ["http:", "https:", "ws:", "wss:"].includes(parsed.protocol) ? parsed.hostname : "";
   } catch {
     return "";
   }

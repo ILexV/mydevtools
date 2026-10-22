@@ -56,6 +56,10 @@ const clientKeys = [
   "CookiesMenu", "CookieAddTitle", "CookieEditTitle", "CookieSaved", "CookieDeleted", "CookieSession", "CookieExpiresAt", "CookieRemoved",
   "CookiesNoMatch", "CookiesClearConfirm", "CookiesDeleteDomain", "CookiesPersistBrowser", "CookiesPersistAgent", "CookiesPersistUnavailable",
   "CookiesNeedAgent", "CookiesAgentOutdated", "CookieError_name", "CookieError_value", "CookieError_domain", "CookieError_path", "CookieError_size",
+  "Send", "WebSocketConnect", "EventsLive", "EventsEnded", "EventsStopped", "SocketOpen", "SocketClosed", "SocketBy_server", "SocketBy_client",
+  "SocketBy_agent", "SocketFailed", "MessageBinaryShown", "MessageInvalidBase64", "MessageTooLarge", "StreamTruncated",
+  "Error_websocket_runner", "Error_stream_repair", "Error_websocket_unsupported", "Error_websocket_basic_secret",
+  "Error_websocket_handshake_failed", "Error_message_too_large", "Error_event_too_large",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
 const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhrases(lang) });
@@ -440,7 +444,7 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
       <label class="visually-hidden" for="http-url">{t(lang, ns, "UrlLabel")}</label>
       <input id="http-url" class="ds-field mono" type="text" inputmode="url" placeholder="https://api.example.com/data" autocomplete="off" spellcheck="false" data-http-url />
       <div class="http-send-actions">
-        <button type="button" class="ds-btn ds-btn-primary" disabled data-http-send><Icon name="zap" size={16} />{t(lang, ns, "Send")}</button>
+        <button type="button" class="ds-btn ds-btn-primary" disabled data-http-send><Icon name="zap" size={16} /><span data-http-send-label>{t(lang, ns, "Send")}</span></button>
         <button type="button" class="ds-btn" disabled hidden data-http-cancel>{t(lang, ns, "Cancel")}</button>
       </div>
     </div>
@@ -581,6 +585,8 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
         <button type="button" role="tab" id="http-response-tests-tab" aria-selected="false" aria-controls="http-response-tests-panel" tabindex="-1">{t(lang, ns, "TestsLabel")}<span class="http-count mono" data-http-tests-count></span></button>
         <button type="button" role="tab" id="http-response-cookies-tab" aria-selected="false" aria-controls="http-response-cookies-panel" tabindex="-1" hidden>{t(lang, ns, "CookiesTitle")}<span class="http-count mono" data-http-response-cookies-count></span></button>
         <button type="button" role="tab" id="http-response-timing-tab" aria-selected="false" aria-controls="http-response-timing-panel" tabindex="-1" hidden>{t(lang, ns, "TimingLabel")}</button>
+        <button type="button" role="tab" id="http-response-events-tab" aria-selected="false" aria-controls="http-response-events-panel" tabindex="-1" hidden>{t(lang, ns, "EventsLabel")}<span class="http-count mono" data-http-events-count></span></button>
+        <button type="button" role="tab" id="http-response-messages-tab" aria-selected="false" aria-controls="http-response-messages-panel" tabindex="-1" hidden>{t(lang, ns, "MessagesLabel")}<span class="http-count mono" data-http-messages-count></span></button>
       </div>
       <section id="http-response-body-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-response-body-tab">
         <div class="http-view-toolbar">
@@ -626,6 +632,30 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
         <ol class="http-timing-list" data-http-timing-list></ol>
         <p class="ds-hint">{t(lang, ns, "TimingHint")}</p>
         <dl class="http-connection" data-http-connection></dl>
+      </section>
+      <section id="http-response-events-panel" class="http-tab-panel http-stream" role="tabpanel" aria-labelledby="http-response-events-tab" hidden>
+        <p class="ds-hint" role="status" data-http-events-state></p>
+        <p class="ds-hint" hidden data-http-events-truncated>{t(lang, ns, "StreamTruncated")}</p>
+        <ol class="http-stream-log" tabindex="0" aria-labelledby="http-response-events-tab" data-http-events-list></ol>
+      </section>
+      <section id="http-response-messages-panel" class="http-tab-panel http-stream" role="tabpanel" aria-labelledby="http-response-messages-tab" hidden>
+        <p class="ds-hint" role="status" data-http-messages-state></p>
+        <p class="ds-hint" hidden data-http-messages-truncated>{t(lang, ns, "StreamTruncated")}</p>
+        <ol class="http-stream-log" tabindex="0" aria-labelledby="http-response-messages-tab" data-http-messages-list></ol>
+        <form class="http-socket-composer" data-http-socket-form>
+          <label class="visually-hidden" for="http-socket-message">{t(lang, ns, "MessageLabel")}</label>
+          <textarea id="http-socket-message" class="ds-field mono" rows="3" spellcheck="false" placeholder={t(lang, ns, "MessageLabel")} data-http-socket-message></textarea>
+          <div class="http-socket-actions">
+            <label class="visually-hidden" for="http-socket-kind">{t(lang, ns, "MessageKind")}</label>
+            <select id="http-socket-kind" class="ds-field-select" data-http-socket-kind>
+              <option value="text">{t(lang, ns, "MessageText")}</option>
+              <option value="binary">{t(lang, ns, "MessageBinary")}</option>
+            </select>
+            <button type="submit" class="ds-btn ds-btn-primary ds-btn-small" data-http-socket-send>{t(lang, ns, "MessageSend")}</button>
+            <button type="button" class="ds-btn ds-btn-small" data-http-socket-close>{t(lang, ns, "Disconnect")}</button>
+          </div>
+          <StatusMessage kind="error" data-http-socket-error />
+        </form>
       </section>
       <p class="http-final-url"><span>{t(lang, ns, "FinalUrlLabel")}</span><code data-http-response-url></code></p>
     </div>
@@ -789,6 +819,20 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
   .http-cookies-tools .ds-field { flex: 1 1 12rem; min-width: 0; }
   .http-cookies-clear { color: var(--mdt-danger); }
   .http-response-cookies { display: grid; gap: 0.75rem; padding: 0.75rem 1rem; }
+  .http-stream { display: grid; gap: 0.6rem; padding: 0.75rem 1rem; }
+  .http-stream > .ds-hint { margin: 0; }
+  .http-stream-log { display: grid; align-content: start; max-height: 24rem; margin: 0; padding: 0; overflow: auto; list-style: none; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-sm); }
+  .http-stream-log:empty { display: none; }
+  .http-stream-log :global(.http-stream-item) { display: grid; gap: 0.15rem; min-width: 0; padding: 0.4rem 0.6rem; }
+  .http-stream-log :global(.http-stream-item + .http-stream-item) { border-top: 1px solid var(--mdt-border-soft); }
+  .http-stream-log :global(.http-stream-item.is-out) { background: var(--mdt-surface-inset); }
+  .http-stream-log :global(.http-stream-meta) { color: var(--mdt-text-muted); font-size: var(--mdt-fs-meta); }
+  .http-stream-log :global(.is-system .http-stream-meta) { color: var(--mdt-text); }
+  .http-stream-log :global(.http-stream-data) { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; font-size: var(--mdt-fs-label); }
+  .http-socket-composer { display: grid; gap: 0.5rem; }
+  .http-socket-composer textarea { min-height: 4.5rem; resize: vertical; }
+  .http-socket-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+  .http-socket-actions select { flex: 0 1 13rem; width: auto; min-width: 0; }
   .http-secrets-form { display: grid; gap: 0.65rem; padding-top: 0.75rem; border-top: 1px solid var(--mdt-border-soft); }
   .http-secrets-form-title { margin: 0; font-size: var(--mdt-fs-label); }
   .http-secrets-form :global(.ds-alert) { margin: 0; }

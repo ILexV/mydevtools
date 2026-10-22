@@ -37,7 +37,13 @@ pub(crate) const VAULT_DATA_CAPABILITY: &str = "vault.data";
 /// Write-only secrets: names and hosts are listed, values never leave the agent.
 /// `http.request` substitutes `{{secret:name}}` only with this capability too.
 pub(crate) const VAULT_SECRETS_CAPABILITY: &str = "vault.secrets";
-pub(crate) const AGENT_CAPABILITIES: [&str; 9] = [
+/// Reading a `text/event-stream` reply of `http.request` as it arrives. Without
+/// it such a reply is read whole, like any other. Pairing for HTTP does not include it.
+pub(crate) const SSE_CAPABILITY: &str = "sse.stream";
+/// A WebSocket connection: the page reads its messages as a stream and sends
+/// through the agent. Pairing for HTTP or SSE does not include this capability.
+pub(crate) const WEBSOCKET_CAPABILITY: &str = "websocket.connect";
+pub(crate) const AGENT_CAPABILITIES: [&str; 11] = [
     HTTP_CAPABILITY,
     ICMP_CAPABILITY,
     DNS_CAPABILITY,
@@ -47,6 +53,8 @@ pub(crate) const AGENT_CAPABILITIES: [&str; 9] = [
     ASN_CAPABILITY,
     VAULT_DATA_CAPABILITY,
     VAULT_SECRETS_CAPABILITY,
+    SSE_CAPABILITY,
+    WEBSOCKET_CAPABILITY,
 ];
 /// `http.options`: `verifyTls`, `httpVersion`, `proxy` and timed phases in replies.
 /// `http.client_certificates`: vault certificates and `clientCertificate` (mTLS).
@@ -131,6 +139,10 @@ pub(crate) struct HttpRequestInput {
     /// changes come back in the output. Absent leaves cookies to the headers.
     #[serde(default)]
     pub(crate) cookies: Option<Vec<Cookie>>,
+    /// Asks to leave a 2xx `text/event-stream` reply unread for `/v1/sse/stream`
+    /// (needs `sse.stream`); otherwise it is read whole like any body.
+    #[serde(default)]
+    pub(crate) stream_events: bool,
 }
 
 const fn default_true() -> bool {
@@ -182,6 +194,9 @@ pub(crate) struct HttpResponseOutput {
     /// Jar changes made by the hops (an expiry in the past deletes); only when the request sent a jar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) cookies: Option<Vec<Cookie>>,
+    /// `sse`: the body is an event stream for `/v1/sse/stream` with the same id.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) stream: Option<&'static str>,
 }
 
 #[derive(Debug, Serialize)]

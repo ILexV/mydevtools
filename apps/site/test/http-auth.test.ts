@@ -107,6 +107,8 @@ test("build: invalid URL, header and incomplete auth are typed errors", async ()
     }
   };
   assert.equal(await code({ url: "{{unknown}}/x" }), "url");
+  assert.equal(await code({ url: "ftp://files.example.com/" }), "url");
+  assert.equal(await code({ url: "wss://stream.example.com/socket" }), "ok");
   assert.equal(await code({ headers: [{ name: "Bad Name", value: "x" }] }), "headers");
   assert.equal(await code({ auth: { type: "bearer", token: "  " } }), "auth_incomplete");
   assert.equal(await code({ auth: { type: "awsv4", accessKey: "A", secretKey: "{{secret:S}}", sessionToken: "", region: "us-east-1", service: "s3" } }), "aws_secret");

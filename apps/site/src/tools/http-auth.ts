@@ -278,7 +278,8 @@ export async function buildHttpRequest(input: BuildInput): Promise<BuiltRequest>
   let parsed: URL;
   try {
     parsed = new URL(url);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error("scheme");
+    // ws: and wss: open a WebSocket through the agent (`websocket.connect`).
+    if (!["http:", "https:", "ws:", "wss:"].includes(parsed.protocol)) throw new Error("scheme");
   } catch {
     throw new HttpBuildError("url");
   }

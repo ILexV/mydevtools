@@ -11,6 +11,7 @@ import {
   mergeCapabilities,
   type LocalAgentHeader,
   type LocalHttpResponse,
+  type LocalWebSocketLine,
   type VaultCertificateInfo,
 } from "@/scripts/local-agent";
 import { bindAgentPopover, onAgentSessionSaved } from "@/scripts/agent-popover";
@@ -79,9 +80,15 @@ import {
 } from "@/tools/http-transport-options";
 import { bindClientSettingsDialog } from "@/tools/http-settings-dialog";
 import { bindCertificatesSection, type CertificatesStrings } from "@/tools/http-certificates-section";
+import {
+  bindEventsView, bindSocketView, handshakeResponse, isWebSocketUrl, splitWebSocketProtocols, SSE_CAPABILITY, WEBSOCKET_CAPABILITY,
+  type StreamStrings,
+} from "@/tools/http-streams";
 
-interface Strings extends CookiesDialogStrings, CertificatesStrings, SecretsDialogStrings, ScopeDialogStrings, FormDataStrings, HistoryPanelStrings, ScriptsPanelStrings, RunnerStrings {
+interface Strings extends StreamStrings, CookiesDialogStrings, CertificatesStrings, SecretsDialogStrings, ScopeDialogStrings, FormDataStrings, HistoryPanelStrings, ScriptsPanelStrings, RunnerStrings {
   LastResponse: string;
+  Send: string;
+  WebSocketConnect: string;
   ExampleSaved: string;
   ExampleTooLarge: string;
   ExampleBinary: string;
@@ -206,6 +213,13 @@ interface Strings extends CookiesDialogStrings, CertificatesStrings, SecretsDial
 }
 
 const PREVIEW_LIMIT = 1024 * 1024;
+
+/** How Send follows an open WebSocket: the handshake, frames, then its end. */
+interface StreamHooks {
+  opened(response: LocalHttpResponse, protocol: string | null): void;
+  line(line: LocalWebSocketLine): void;
+  ended(error: unknown): void;
+}
 
 function readStrings(root: HTMLElement): Strings | null {
   const island = root.parentElement?.querySelector<HTMLScriptElement>("[data-http-strings]");
@@ -359,7 +373,8 @@ function init(): void {
 
   const client = new LocalAgentClient();
   const popover = bindAgentPopover(agentSettings);
-  let active: { id: string; abort: AbortController } | null = null;
+  /** The request in flight; `streaming` once its event stream or WebSocket is open. */
+  let active: { id: string; abort: AbortController; streaming?: boolean } | null = null;
   let responseBlob: Blob | null = null;
   let responseName = "response.bin";
   let responseEditor: MdtEditor | null = null;
@@ -385,6 +400,35 @@ function init(): void {
   const responseCookiesEmpty = root.querySelector<HTMLElement>("[data-http-response-cookies-empty]")!;
   const manageCookies = root.querySelector<HTMLButtonElement>("[data-http-cookies-manage]")!;
   const responseBodyTab = root.querySelector<HTMLButtonElement>("#http-response-body-tab")!;
+  const sendLabel = root.querySelector<HTMLElement>("[data-http-send-label]")!;
+  const streamTab = (name: string) => ({
+    tab: root.querySelector<HTMLButtonElement>(`#http-response-${name}-tab`)!,
+    count: root.querySelector<HTMLElement>(`[data-http-${name}-count]`)!,
+    list: root.querySelector<HTMLOListElement>(`[data-http-${name}-list]`)!,
+    state: root.querySelector<HTMLElement>(`[data-http-${name}-state]`)!,
+    truncated: root.querySelector<HTMLElement>(`[data-http-${name}-truncated]`)!,
+  });
+  const eventsView = bindEventsView(streamTab("events"), s);
+  const socketView = bindSocketView({
+    ...streamTab("messages"),
+    form: root.querySelector<HTMLFormElement>("[data-http-socket-form]")!,
+    message: root.querySelector<HTMLTextAreaElement>("[data-http-socket-message]")!,
+    kind: root.querySelector<HTMLSelectElement>("[data-http-socket-kind]")!,
+    sendButton: root.querySelector<HTMLButtonElement>("[data-http-socket-send]")!,
+    closeButton: root.querySelector<HTMLButtonElement>("[data-http-socket-close]")!,
+    error: root.querySelector<HTMLElement>("[data-http-socket-error]")!,
+  }, s, {
+    send: async (message) => {
+      if (active?.streaming) await client.sendWebSocket(active.id, message);
+    },
+    close: async () => {
+      if (active?.streaming) await client.closeWebSocket(active.id, 1000);
+    },
+    errorText: (error) => errorText(error),
+  });
+  const eventsTab = root.querySelector<HTMLButtonElement>("#http-response-events-tab")!;
+  const messagesTab = root.querySelector<HTMLButtonElement>("#http-response-messages-tab")!;
+  const codeText = (code: string): string => s[`Error_${code}`] || s.ErrorGeneric;
   const timingList = root.querySelector<HTMLElement>("[data-http-timing-list]")!;
   const connectionList = root.querySelector<HTMLElement>("[data-http-connection]")!;
   const PHASE_LABELS = {
@@ -729,6 +773,7 @@ function init(): void {
   /** Inherited-auth note, the Auth tab mark and the list of `{{vars}}` with no value. */
   function refreshRequestHints(): void {
     renderOpenTabs();
+    sendLabel.textContent = isWebSocketUrl(workspaceUi.requestUrl.value) ? s.WebSocketConnect : s.Send;
     const own = requestAuth.get();
     const { auth, source } = effectiveAuth(workspace, { auth: own, folderId: currentRequest.folderId });
     if (own.type === "inherit") {
@@ -2993,7 +3038,13 @@ function init(): void {
    * Script, build and agent access for request runs; Send and the Collection
    * Runner share it. `cancel` stops the agent request in flight.
    */
-  function requestDeps(signal: AbortSignal, hooks: { id?: string; onScripts?(): void; onSend?(): void } = {}): RunDeps & { cancel(): void } {
+  function requestDeps(signal: AbortSignal, hooks: {
+    id?: string;
+    onScripts?(): void;
+    onSend?(): void;
+    /** Send only: event streams stay open and ws:// URLs connect; the Runner reads every reply whole. */
+    stream?: StreamHooks;
+  } = {}): RunDeps & { cancel(): void } {
     const bodyLimit = client.info?.limits.maxRequestBodyBytes ?? 1024 * 1024;
     let inFlight: string | null = null;
     return {
@@ -3017,6 +3068,24 @@ function init(): void {
         if (Object.keys(transport).length && !client.info?.features?.includes(HTTP_OPTIONS_FEATURE)) {
           throw new LocalAgentError("agent_outdated");
         }
+        const timeoutMs = Math.max(100, Math.min(client.info?.limits.maxTimeoutMs ?? 120000, request.timeoutMs || 30000));
+        if (isWebSocketUrl(built.url)) {
+          if (!hooks.stream) throw new LocalAgentError("websocket_runner");
+          if (!client.capabilities.includes(WEBSOCKET_CAPABILITY)) {
+            throw new LocalAgentError(client.info?.capabilities.includes(WEBSOCKET_CAPABILITY) ? "stream_repair" : "websocket_unsupported");
+          }
+          if (built.basicAuth) throw new LocalAgentError("websocket_basic_secret");
+          const { headers, protocols } = splitWebSocketProtocols(built.headers);
+          // A WebSocket handshake is HTTP/1.1 only; the rest of the transport applies.
+          const { httpVersion: _version, ...socketTransport } = transport;
+          inFlight = id;
+          hooks.onSend?.();
+          return await connectSocket({
+            id, url: built.url, headers, timeoutMs, ...(protocols.length ? { protocols } : {}), ...socketTransport,
+          }, hooks.stream, signal).finally(() => {
+            inFlight = null;
+          });
+        }
         // An older agent takes no jar: the request goes with its own headers only.
         const now = nowSeconds();
         const jar = request.useCookies !== false && cookiesAvailable()
@@ -3030,8 +3099,9 @@ function init(): void {
             url: built.url,
             headers: built.headers,
             bodyBase64: bytesToBase64(built.body),
-            timeoutMs: Math.max(100, Math.min(client.info?.limits.maxTimeoutMs ?? 120000, request.timeoutMs || 30000)),
+            timeoutMs,
             followRedirects: request.followRedirects,
+            ...(hooks.stream && client.capabilities.includes(SSE_CAPABILITY) ? { streamEvents: true } : {}),
             ...(built.basicAuth ? { basicAuth: built.basicAuth } : {}),
             ...transport,
             ...(jar ? { cookies: jar } : {}),
@@ -3048,6 +3118,39 @@ function init(): void {
         if (inFlight) void client.cancel(inFlight).catch(() => undefined);
       },
     };
+  }
+
+  /**
+   * Opens a WebSocket and resolves with its handshake as a response. The view
+   * starts before the promise settles, so frames in the same chunk are logged;
+   * `ended` reports when the open connection is over.
+   */
+  function connectSocket(
+    request: Parameters<LocalAgentClient["connectWebSocket"]>[0], stream: StreamHooks, signal: AbortSignal,
+  ): Promise<LocalHttpResponse> {
+    const started = performance.now();
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      client.connectWebSocket(request, (line) => {
+        if (settled) {
+          stream.line(line);
+        } else if (line.type === "open" || line.type === "rejected") {
+          settled = true;
+          const response = handshakeResponse(line, request.url, Math.round(performance.now() - started));
+          if (line.type === "open") stream.opened(response, line.protocol);
+          resolve(response);
+        } else if (line.type === "error") {
+          settled = true;
+          reject(new LocalAgentError(line.code));
+        }
+      }, signal).then(() => {
+        if (!settled) reject(new LocalAgentError("invalid_response"));
+        else stream.ended(null);
+      }, (error: unknown) => {
+        if (!settled) reject(error);
+        else stream.ended(error);
+      });
+    });
   }
 
   send.addEventListener("click", async () => {
@@ -3074,6 +3177,24 @@ function init(): void {
     htmlPreview.hidden = true;
     htmlButton.hidden = true;
     syncEmptyState(output, true);
+    // Resolves when an open WebSocket is over; Send stays busy until then.
+    let socketOpen = false;
+    let socketEnded!: () => void;
+    const socketDone = new Promise<void>((resolve) => {
+      socketEnded = resolve;
+    });
+    const stream: StreamHooks = {
+      opened: (response, protocol) => {
+        socketOpen = true;
+        if (active?.id === id) active.streaming = true;
+        socketView.start(response, protocol);
+      },
+      line: (line) => socketView.line(line, codeText),
+      ended: (error) => {
+        if (error) socketView.failed(error instanceof DOMException && error.name === "AbortError" ? strings.Canceled : errorText(error));
+        socketEnded();
+      },
+    };
 
     try {
       let run;
@@ -3085,6 +3206,7 @@ function init(): void {
             sent = true;
             showMessage(requestStatus, strings.Sending);
           },
+          stream,
         }));
       } catch (error) {
         if (!(error instanceof HttpBuildError)) throw error;
@@ -3126,7 +3248,18 @@ function init(): void {
       shownExample = null;
       history.record(historyEntry(sentRequest, { status: response.status, elapsedMs: response.elapsedMs,
         sizeBytes: base64ToBytes(response.bodyBase64).byteLength }, requestId()));
+      if (response.stream === "sse") {
+        eventsView.start(response);
+        active.streaming = true;
+      }
       renderResponse(response, scripts);
+      if (response.stream === "sse") {
+        await client.sseStream(id, (line) => eventsView.line(line, codeText), abort.signal).catch((error: unknown) => {
+          eventsView.failed(error instanceof DOMException && error.name === "AbortError" ? strings.Canceled : errorText(error));
+        });
+      } else if (socketOpen) {
+        await socketDone;
+      }
     } catch (error) {
       if (active?.id !== id) return;
       if ((error instanceof DOMException && error.name === "AbortError")
@@ -3155,12 +3288,15 @@ function init(): void {
     if (!active) return;
     const current = active;
     cancel.disabled = true;
+    if (current.streaming) eventsView.stopping();
     try {
       await client.cancel(current.id);
     } catch (error) {
       showMessage(requestError, errorText(error));
     } finally {
-      current.abort.abort();
+      // An open stream ends with its last line from the agent; the abort is the fallback.
+      if (current.streaming) window.setTimeout(() => current.abort.abort(), 3000);
+      else current.abort.abort();
     }
   });
 
@@ -3275,6 +3411,9 @@ function init(): void {
     responseUi.headers.textContent = response.headers.map((header) => `${header.name}: ${header.value}`).join("\n");
     renderTiming(exampleName === undefined ? response : null);
     renderResponseCookies(exampleName === undefined ? response : null);
+    eventsView.show(response);
+    socketView.show(response);
+    for (const tab of [eventsTab, messagesTab]) if (tab.hidden && tab.getAttribute("aria-selected") === "true") responseBodyTab.click();
     prettyPreview = null;
     const mime = type.split(";", 1)[0]?.trim().toLowerCase() ?? "";
     sourceLanguage = mime === "application/json" || mime.endsWith("+json") ? "json"

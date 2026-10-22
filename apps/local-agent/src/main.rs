@@ -9,10 +9,12 @@ mod icmp;
 mod model;
 mod policy;
 mod server;
+mod sse;
 mod state;
 mod tcp;
 mod tls;
 mod vault;
+mod websocket;
 mod whois;
 #[cfg(windows)]
 mod windows_shell;
@@ -21,6 +23,8 @@ mod windows_shell;
 mod http_options_tests;
 #[cfg(test)]
 mod security_tests;
+#[cfg(test)]
+mod stream_tests;
 
 use std::{collections::HashSet, net::Ipv4Addr, sync::Arc, time::Duration};
 

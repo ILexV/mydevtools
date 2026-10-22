@@ -142,18 +142,28 @@ impl Drop for AbortOnDrop {
     }
 }
 
-trait Io: AsyncRead + AsyncWrite + Unpin + Send + 'static {}
+pub(crate) trait Io: AsyncRead + AsyncWrite + Unpin + Send + 'static {}
 impl<T: AsyncRead + AsyncWrite + Unpin + Send + 'static> Io for T {}
 
-/// Sends one request and waits for the response head.
-pub(crate) async fn send(
-    method: &Method,
+/// A connected stream to the URL's host: policy-checked addresses, the proxy
+/// tunnel when set, TLS for https and wss.
+pub(crate) struct Connection {
+    pub(crate) stream: Box<dyn Io>,
+    pub(crate) remote: SocketAddr,
+    pub(crate) timings: Timings,
+    pub(crate) tls: Option<TlsSummary>,
+    alpn_h2: bool,
+}
+
+/// Opens the connection a request or a WebSocket runs on. `tunnel_plain`
+/// tunnels a plain target through the proxy too (WebSocket); plain HTTP uses
+/// absolute-form instead.
+pub(crate) async fn open(
     url: &Url,
-    headers: &HeaderMap,
-    body: Bytes,
+    tunnel_plain: bool,
     config: &AgentConfig,
     options: &Options<'_>,
-) -> Result<Head, ApiError> {
+) -> Result<Connection, ApiError> {
     let host = url.host().ok_or_else(ApiError::invalid_request)?.to_owned();
     let port = url
         .port_or_known_default()
@@ -161,7 +171,7 @@ pub(crate) async fn send(
     if port == 0 {
         return Err(ApiError::invalid_request());
     }
-    let https = url.scheme() == "https";
+    let secure = matches!(url.scheme(), "https" | "wss");
     let mut timings = Timings::default();
 
     let (connect_host, connect_port) = match options.proxy {
@@ -181,14 +191,14 @@ pub(crate) async fn send(
     let started = Instant::now();
     let (tcp, remote) = connect(&addresses).await?;
     let mut stream: Box<dyn Io> = Box::new(tcp);
-    if let (Some(proxy), true) = (options.proxy, https) {
+    if let (Some(proxy), true) = (options.proxy, secure || tunnel_plain) {
         stream = Box::new(tunnel(stream, &host, port, proxy).await?);
     }
     timings.connect_ms = millis(started.elapsed());
 
     let mut tls_summary = None;
-    let mut use_h2 = options.version == HttpVersionChoice::Http2 && options.proxy.is_none();
-    if https {
+    let mut alpn_h2 = false;
+    if secure {
         let started = Instant::now();
         let connector = TlsConnector::from(client_config(options)?);
         let tls_stream = connector
@@ -197,11 +207,7 @@ pub(crate) async fn send(
             .map_err(map_tls_error)?;
         timings.tls_ms = Some(millis(started.elapsed()));
         let (_, session) = tls_stream.get_ref();
-        let alpn_h2 = session.alpn_protocol() == Some(b"h2");
-        if options.version == HttpVersionChoice::Http2 && !alpn_h2 {
-            return Err(ApiError::new(StatusCode::BAD_GATEWAY, "http2_unsupported"));
-        }
-        use_h2 = alpn_h2;
+        alpn_h2 = session.alpn_protocol() == Some(b"h2");
         tls_summary = Some(TlsSummary {
             protocol: session
                 .protocol_version()
@@ -217,6 +223,40 @@ pub(crate) async fn send(
         });
         stream = Box::new(tls_stream);
     }
+    Ok(Connection {
+        stream,
+        remote,
+        timings,
+        tls: tls_summary,
+        alpn_h2,
+    })
+}
+
+/// Sends one request and waits for the response head.
+pub(crate) async fn send(
+    method: &Method,
+    url: &Url,
+    headers: &HeaderMap,
+    body: Bytes,
+    config: &AgentConfig,
+    options: &Options<'_>,
+) -> Result<Head, ApiError> {
+    let https = url.scheme() == "https";
+    let Connection {
+        stream,
+        remote,
+        mut timings,
+        tls: tls_summary,
+        alpn_h2,
+    } = open(url, false, config, options).await?;
+    if https && options.version == HttpVersionChoice::Http2 && !alpn_h2 {
+        return Err(ApiError::new(StatusCode::BAD_GATEWAY, "http2_unsupported"));
+    }
+    let use_h2 = if https {
+        alpn_h2
+    } else {
+        options.version == HttpVersionChoice::Http2 && options.proxy.is_none()
+    };
 
     let absolute_form = options.proxy.is_some() && !https;
     let request = build_request(method, url, headers, body, use_h2, absolute_form, options)?;
@@ -280,6 +320,23 @@ impl Head {
         &self.exchange.headers
     }
 
+    /// The head without reading the body, and the body to read as it arrives (event streams).
+    pub(crate) fn into_stream(self) -> (Exchange, BodyStream) {
+        let Head {
+            response,
+            started_body: _,
+            exchange,
+            _driver,
+        } = self;
+        (
+            exchange,
+            BodyStream {
+                body: response.into_body(),
+                _driver,
+            },
+        )
+    }
+
     /// Reads the body up to the response limit; an announced larger length fails first.
     pub(crate) async fn read_body(self) -> Result<Exchange, ApiError> {
         let Head {
@@ -311,6 +368,28 @@ impl Head {
         exchange.timings.download_ms = millis(started_body.elapsed());
         exchange.body = bytes;
         Ok(exchange)
+    }
+}
+
+/// A response body read chunk by chunk; the connection lives as long as it does.
+pub(crate) struct BodyStream {
+    body: hyper::body::Incoming,
+    _driver: AbortOnDrop,
+}
+
+impl BodyStream {
+    /// The next data chunk, none at the end; trailers are skipped.
+    pub(crate) async fn chunk(&mut self) -> Option<Result<Bytes, ApiError>> {
+        loop {
+            match self.body.frame().await? {
+                Ok(frame) => {
+                    if let Ok(data) = frame.into_data() {
+                        return Some(Ok(data));
+                    }
+                }
+                Err(error) => return Some(Err(map_hyper_error(error))),
+            }
+        }
     }
 }
 

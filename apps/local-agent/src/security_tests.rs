@@ -605,7 +605,11 @@ fn trace_input(id: Uuid, target: &str) -> Value {
     })
 }
 
-async fn pair_capabilities(state: &AgentState, app: &Router, capabilities: Value) -> Value {
+pub(super) async fn pair_capabilities(
+    state: &AgentState,
+    app: &Router,
+    capabilities: Value,
+) -> Value {
     state.replace_pairing_code([0x11; 16]);
     let response = app
         .clone()
@@ -644,7 +648,9 @@ async fn icmp_capability_is_separate_from_http_and_rejects_bad_targets() {
             "whois.lookup",
             "asn.lookup",
             "vault.data",
-            "vault.secrets"
+            "vault.secrets",
+            "sse.stream",
+            "websocket.connect"
         ])
     );
 

@@ -5,7 +5,7 @@ const SESSION_STORAGE_VERSION = 1;
 
 
 export type LocalAgentCapability = "http.request" | "icmp.trace" | "dns.lookup" | "tcp.connect" | "tls.inspect" | "whois.lookup" | "asn.lookup"
-  | "vault.data" | "vault.secrets";
+  | "vault.data" | "vault.secrets" | "sse.stream" | "websocket.connect";
 
 const CAPABILITY_ORDER: readonly LocalAgentCapability[] = [
   "http.request",
@@ -17,6 +17,8 @@ const CAPABILITY_ORDER: readonly LocalAgentCapability[] = [
   "asn.lookup",
   "vault.data",
   "vault.secrets",
+  "sse.stream",
+  "websocket.connect",
 ];
 
 /**
@@ -72,6 +74,8 @@ export interface LocalHttpRequest {
   clientCertificate?: string;
   /** The cookie jar (`http.cookies`): picked per hop by the agent; absent leaves cookies to the headers. */
   cookies?: LocalHttpCookie[];
+  /** `sse.stream`: leave a 2xx `text/event-stream` reply open for `sseStream()` instead of reading it whole. */
+  streamEvents?: boolean;
 }
 
 /** A jar cookie as the agent takes and returns it; `expires` is Unix seconds, absent for a session cookie. */
@@ -115,7 +119,43 @@ export interface LocalHttpResponse {
   clientCertificate?: string;
   /** Jar changes from `Set-Cookie` of every hop when the request sent a jar; a past expiry deletes. */
   cookies?: LocalHttpCookie[];
+  /** `sse`: an event stream left unread (`sse.stream`); `sseStream()` with the request id reads it. */
+  stream?: "sse";
 }
+
+/** One line of `sseStream()`: an event, then `end` or `error`. */
+export type LocalSseLine =
+  | { type: "event"; event: string; data: string; id?: string; retry?: number }
+  | { type: "end" }
+  | { type: "error"; code: string };
+
+/** `websocket.connect`: the handshake takes `timeoutMs`; the open connection has no limit. */
+export interface LocalWebSocketRequest {
+  id: string;
+  url: string;
+  headers: LocalAgentHeader[];
+  protocols?: string[];
+  timeoutMs: number;
+  verifyTls?: boolean;
+  proxy?: LocalHttpRequest["proxy"];
+  clientCertificate?: string;
+}
+
+/** One line of `connectWebSocket()`: `open` or `rejected` first, then messages and `close` or `error`. */
+export type LocalWebSocketLine =
+  | {
+    type: "open";
+    status: number;
+    headers: LocalAgentHeader[];
+    protocol: string | null;
+    remoteAddress: string;
+    tls: { protocol: string; cipher: string; verified: boolean } | null;
+  }
+  | { type: "rejected"; status: number; headers: LocalAgentHeader[]; bodyBase64: string }
+  | { type: "message"; kind: "text"; data: string }
+  | { type: "message"; kind: "binary"; dataBase64: string }
+  | { type: "close"; code: number; reason: string; initiator: "server" | "client" | "agent" }
+  | { type: "error"; code: string };
 
 interface PairResponse {
   token: string;
@@ -582,6 +622,38 @@ export class LocalAgentClient {
     });
   }
 
+  /** Reads a parked event stream until it ends; aborting the signal closes it. */
+  async sseStream(id: string, onLine: (line: LocalSseLine) => void, signal?: AbortSignal): Promise<void> {
+    await this.#stream("/v1/sse/stream", { id }, onLine as (line: unknown) => void, signal);
+  }
+
+  /** Opens a WebSocket and reports it line by line until it closes; aborting the signal drops it. */
+  async connectWebSocket(
+    request: LocalWebSocketRequest,
+    onLine: (line: LocalWebSocketLine) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    await this.#stream("/v1/ws/connect", request, onLine as (line: unknown) => void, signal);
+  }
+
+  /** Sends one text or binary message on an open WebSocket. */
+  async sendWebSocket(id: string, message: { text: string } | { binaryBase64: string }): Promise<void> {
+    await this.#authorized<void>("/v1/ws/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...message }),
+    });
+  }
+
+  /** Starts the closing handshake; the `close` line arrives on the connection's stream. */
+  async closeWebSocket(id: string, code?: number, reason?: string): Promise<void> {
+    await this.#authorized<void>("/v1/ws/close", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...(code === undefined ? {} : { code }), ...(reason ? { reason } : {}) }),
+    });
+  }
+
   async cancel(id: string): Promise<void> {
     await this.#authorized<void>("/v1/http/cancel", {
       method: "POST",
@@ -831,6 +903,34 @@ export class LocalAgentClient {
       if (error instanceof LocalAgentError && error.code === "unauthorized") this.clear();
       throw error;
     }
+  }
+
+  /** POSTs JSON and hands each NDJSON line of the reply to `onLine` while it arrives. */
+  async #stream(path: string, body: unknown, onLine: (line: unknown) => void, signal?: AbortSignal): Promise<void> {
+    this.#clearIfExpired();
+    if (!this.#token) throw new LocalAgentError("unauthorized");
+    let response: Response;
+    try {
+      response = await fetch(`${AGENT_BASE_URL}${path}`, {
+        method: "POST",
+        signal,
+        cache: "no-store",
+        credentials: "omit",
+        referrerPolicy: "no-referrer",
+        headers: { Accept: "application/x-ndjson", "Content-Type": "application/json", Authorization: `Bearer ${this.#token}` },
+        body: JSON.stringify(body),
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") throw error;
+      throw new LocalAgentError("agent_unavailable");
+    }
+    if (!response.ok) {
+      const error = await responseError(response);
+      if (error.code === "unauthorized") this.clear();
+      throw error;
+    }
+    if (!response.body) throw new LocalAgentError("invalid_response", response.status);
+    await readNdjson(response.body, onLine);
   }
 
   #readStoredSessionRaw(): string | null {
@@ -1209,6 +1309,38 @@ function asTraceSnapshot(value: unknown): TraceSnapshot {
     sourceInterface: asNullableString(value.sourceInterface),
     hops,
   };
+}
+
+/** Splits a byte stream into JSON lines; a broken line or connection is a `network_error`. */
+export async function readNdjson(body: ReadableStream<Uint8Array>, onLine: (line: unknown) => void): Promise<void> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      buffer += decoder.decode(value, { stream: !done });
+      let end: number;
+      while ((end = buffer.indexOf("\n")) >= 0) {
+        const text = buffer.slice(0, end);
+        buffer = buffer.slice(end + 1);
+        if (!text.trim()) continue;
+        let line: unknown;
+        try {
+          line = JSON.parse(text);
+        } catch {
+          throw new LocalAgentError("invalid_response");
+        }
+        if (isObject(line) && typeof line.type === "string") onLine(line);
+      }
+      if (done) return;
+    }
+  } catch (error) {
+    if (error instanceof LocalAgentError || (error instanceof DOMException && error.name === "AbortError")) throw error;
+    throw new LocalAgentError("network_error");
+  } finally {
+    reader.releaseLock();
+  }
 }
 
 export function bytesToBase64(bytes: Uint8Array): string {

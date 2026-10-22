@@ -12,8 +12,8 @@ use url::Url;
 use crate::{
     cookies::{self, Jar},
     http_transport::{
-        self, ClientIdentity, Head, HttpVersionChoice, MAX_RESPONSE_HEADER_BYTES,
-        MAX_RESPONSE_HEADERS, Options, Proxy, response_too_large,
+        self, BodyStream, ClientIdentity, Exchange, Head, HttpVersionChoice,
+        MAX_RESPONSE_HEADER_BYTES, MAX_RESPONSE_HEADERS, Options, Proxy, response_too_large,
     },
     model::{
         ApiError, HeaderEntry, HttpRequestInput, HttpResponseOutput, MAX_REQUEST_BODY_BYTES,
@@ -26,7 +26,7 @@ use crate::{
 const MAX_REDIRECTS: usize = 5;
 const MAX_REQUEST_HEADERS: usize = 256;
 const MAX_REQUEST_HEADER_BYTES: usize = 64 * 1024;
-const MAX_URL_BYTES: usize = 16 * 1024;
+pub(crate) const MAX_URL_BYTES: usize = 16 * 1024;
 
 /// True when the URL, a header value or the body has `{{secret:`.
 pub(crate) fn mentions_secret(input: &HttpRequestInput) -> bool {
@@ -44,16 +44,25 @@ pub(crate) fn mentions_secret(input: &HttpRequestInput) -> bool {
         })
 }
 
+/// A 2xx `text/event-stream` reply whose body is left to `/v1/sse/stream`;
+/// secret echoes in its events are redacted like the rest of the reply.
+pub(crate) struct EventStream {
+    pub(crate) body: BodyStream,
+    pub(crate) substitutions: Substitutions,
+}
+
 /// `secrets` is the origin's book when the request uses placeholders. Each used
 /// secret must list the target host and every followed redirect host; echoes of
-/// its value in the response are redacted back to the placeholder.
+/// its value in the response are redacted back to the placeholder. With
+/// `stream_events` an event stream reply returns its head and the unread body.
 pub(crate) async fn execute(
     input: HttpRequestInput,
     config: &AgentConfig,
     cancellation: CancellationToken,
     secrets: Option<&SecretBook>,
     certificate: Option<&CertificateRecord>,
-) -> Result<HttpResponseOutput, ApiError> {
+    stream_events: bool,
+) -> Result<(HttpResponseOutput, Option<EventStream>), ApiError> {
     let timeout = input.timeout_ms;
     if timeout == 0 || timeout > MAX_TIMEOUT_MS {
         return Err(ApiError::invalid_request());
@@ -122,7 +131,7 @@ pub(crate) async fn execute(
     };
     let started = Instant::now();
 
-    let operation = execute_redirect_chain(
+    let chain = execute_redirect_chain(
         method,
         url,
         headers,
@@ -133,7 +142,16 @@ pub(crate) async fn execute(
         &substitutions,
         jar.as_mut(),
     );
-    let output = tokio::select! {
+    let operation = async {
+        let (head, url, redirects) = chain.await?;
+        if stream_events && is_event_stream(&head) {
+            let (exchange, body) = head.into_stream();
+            Ok((exchange_output(exchange, &url, redirects)?, Some(body)))
+        } else {
+            Ok((output(head, &url, redirects).await?, None))
+        }
+    };
+    let (output, events) = tokio::select! {
         _ = cancellation.cancelled() => Err(cancelled()),
         result = tokio::time::timeout(Duration::from_millis(timeout), operation) => {
             match result {
@@ -152,10 +170,28 @@ pub(crate) async fn execute(
     } else {
         redact_output(output, &substitutions)
     };
-    Ok(HttpResponseOutput {
-        elapsed_ms: started.elapsed().as_millis().min(u128::from(u64::MAX)) as u64,
-        ..output
-    })
+    Ok((
+        HttpResponseOutput {
+            elapsed_ms: started.elapsed().as_millis().min(u128::from(u64::MAX)) as u64,
+            stream: events.is_some().then_some("sse"),
+            ..output
+        },
+        events.map(|body| EventStream {
+            body,
+            substitutions,
+        }),
+    ))
+}
+
+/// A successful `text/event-stream` reply, whatever its parameters.
+fn is_event_stream(head: &Head) -> bool {
+    head.status().is_success()
+        && head
+            .headers()
+            .get(CONTENT_TYPE)
+            .and_then(|value| value.to_str().ok())
+            .and_then(|value| value.split(';').next())
+            .is_some_and(|mime| mime.trim().eq_ignore_ascii_case("text/event-stream"))
 }
 
 fn redact_output(output: HttpResponseOutput, substitutions: &Substitutions) -> HttpResponseOutput {
@@ -198,7 +234,7 @@ async fn execute_redirect_chain(
     options: &RequestOptions<'_>,
     substitutions: &Substitutions,
     mut jar: Option<&mut Jar>,
-) -> Result<HttpResponseOutput, ApiError> {
+) -> Result<(Head, Url, u8), ApiError> {
     let mut redirects: u8 = 0;
     loop {
         let jar_cookies = jar
@@ -241,7 +277,7 @@ async fn execute_redirect_chain(
                 // A secret never follows a redirect to a host outside its list:
                 // the page gets the 3xx itself.
                 if !substitutions.is_empty() && !substitutions.host_allowed(&next_url) {
-                    return output(head, &url, redirects).await;
+                    return Ok((head, url, redirects));
                 }
                 if url.scheme() == "https" && next_url.scheme() == "http" {
                     return Err(ApiError::new(StatusCode::FORBIDDEN, "target_denied"));
@@ -256,7 +292,7 @@ async fn execute_redirect_chain(
             }
         }
 
-        return output(head, &url, redirects).await;
+        return Ok((head, url, redirects));
     }
 }
 
@@ -306,28 +342,36 @@ struct RequestOptions<'a> {
 
 impl RequestOptions<'_> {
     fn proxy_for(&self, url: &Url) -> Option<&Proxy> {
-        let (proxy, bypass) = self.proxy.as_ref()?;
-        let host = url
-            .host_str()?
-            .trim_start_matches('[')
-            .trim_end_matches(']')
-            .to_ascii_lowercase();
-        let bypassed = bypass.iter().any(|pattern| {
-            if let Some(suffix) = pattern.strip_prefix("*.") {
-                host.len() > suffix.len() + 1
-                    && host.ends_with(suffix)
-                    && host.as_bytes()[host.len() - suffix.len() - 1] == b'.'
-            } else {
-                host == *pattern
-            }
-        });
-        (!bypassed).then_some(proxy)
+        proxy_for(self.proxy.as_ref(), url)
     }
+}
+
+/// The proxy for this URL, or none when its host matches a bypass pattern.
+pub(crate) fn proxy_for<'a>(
+    proxy: Option<&'a (Proxy, Vec<String>)>,
+    url: &Url,
+) -> Option<&'a Proxy> {
+    let (proxy, bypass) = proxy?;
+    let host = url
+        .host_str()?
+        .trim_start_matches('[')
+        .trim_end_matches(']')
+        .to_ascii_lowercase();
+    let bypassed = bypass.iter().any(|pattern| {
+        if let Some(suffix) = pattern.strip_prefix("*.") {
+            host.len() > suffix.len() + 1
+                && host.ends_with(suffix)
+                && host.as_bytes()[host.len() - suffix.len() - 1] == b'.'
+        } else {
+            host == *pattern
+        }
+    });
+    (!bypassed).then_some(proxy)
 }
 
 const MAX_PROXY_BYPASS: usize = 64;
 
-fn parse_proxy(input: ProxyInput) -> Result<(Proxy, Vec<String>), ApiError> {
+pub(crate) fn parse_proxy(input: ProxyInput) -> Result<(Proxy, Vec<String>), ApiError> {
     let url = parse_url(&input.url)?;
     if url.scheme() != "http"
         || !matches!(url.path(), "" | "/")
@@ -377,7 +421,14 @@ fn parse_proxy(input: ProxyInput) -> Result<(Proxy, Vec<String>), ApiError> {
 }
 
 async fn output(head: Head, url: &Url, redirects: u8) -> Result<HttpResponseOutput, ApiError> {
-    let exchange = head.read_body().await?;
+    exchange_output(head.read_body().await?, url, redirects)
+}
+
+fn exchange_output(
+    exchange: Exchange,
+    url: &Url,
+    redirects: u8,
+) -> Result<HttpResponseOutput, ApiError> {
     let headers = response_headers(&exchange.headers)?;
     Ok(HttpResponseOutput {
         status: exchange.status.as_u16(),
@@ -401,6 +452,7 @@ async fn output(head: Head, url: &Url, redirects: u8) -> Result<HttpResponseOutp
         redirects,
         tls: exchange.tls,
         cookies: None,
+        stream: None,
     })
 }
 
@@ -430,7 +482,7 @@ fn parse_url(value: &str) -> Result<Url, ApiError> {
     Ok(url)
 }
 
-fn has_userinfo(url: &Url) -> bool {
+pub(crate) fn has_userinfo(url: &Url) -> bool {
     let serialized = url.as_str();
     let authority = &serialized[url.scheme().len() + 3..];
     authority
@@ -449,7 +501,7 @@ fn parse_redirect_url(base: &Url, location: &str) -> Result<Url, ApiError> {
     parse_url(joined.as_str()).map_err(|_| ApiError::new(StatusCode::BAD_GATEWAY, "network_error"))
 }
 
-fn parse_headers(entries: Vec<HeaderEntry>) -> Result<HeaderMap, ApiError> {
+pub(crate) fn parse_headers(entries: Vec<HeaderEntry>) -> Result<HeaderMap, ApiError> {
     if entries.len() > MAX_REQUEST_HEADERS {
         return Err(ApiError::invalid_request());
     }

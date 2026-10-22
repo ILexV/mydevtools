@@ -2,7 +2,7 @@ use std::{future::IntoFuture, sync::Arc, time::Duration};
 
 use axum::{
     Json, Router,
-    body::to_bytes,
+    body::{Body, to_bytes},
     extract::{Request, State},
     http::{
         HeaderMap, HeaderName, HeaderValue, Method, StatusCode,
@@ -25,12 +25,13 @@ use crate::{
         InfoResponse, LimitsResponse, MAX_INCOMING_JSON_BYTES, MAX_REQUEST_BODY_BYTES,
         MAX_RESPONSE_BODY_BYTES, MAX_TIMEOUT_MS, PairRequest,
     },
+    sse,
     state::AgentState,
     tcp, tls,
     vault::{
         CertificateWrite, DocumentDelete, DocumentName, DocumentWrite, SecretName, SecretWrite,
     },
-    whois,
+    websocket, whois,
 };
 
 const ALLOW_METHODS: &str = "GET, POST, DELETE, OPTIONS";
@@ -43,6 +44,10 @@ pub(crate) fn router(state: Arc<AgentState>) -> Router {
         .route("/v1/session", delete(revoke_session).options(preflight))
         .route("/v1/http/request", post(http_request).options(preflight))
         .route("/v1/http/cancel", post(cancel_request).options(preflight))
+        .route("/v1/sse/stream", post(sse_stream).options(preflight))
+        .route("/v1/ws/connect", post(websocket_connect).options(preflight))
+        .route("/v1/ws/send", post(websocket_send).options(preflight))
+        .route("/v1/ws/close", post(websocket_close).options(preflight))
         .route("/v1/icmp/trace", post(icmp_trace).options(preflight))
         .route("/v1/icmp/snapshot", post(icmp_snapshot).options(preflight))
         .route("/v1/icmp/cancel", post(icmp_cancel).options(preflight))
@@ -169,6 +174,8 @@ async fn http_request(
         optional_single_header(request.headers(), AUTHORIZATION)?.map(str::to_owned);
     let input: HttpRequestInput = parse_json(request).await?;
     let request_id = Uuid::parse_str(&input.id).map_err(|_| ApiError::invalid_request())?;
+    // With `sse.stream` an event stream reply is parked for `/v1/sse/stream`.
+    let stream_events = input.stream_events && state.sse_allowed(authorization.as_deref(), &origin);
     // `{{secret:name}}` needs `vault.secrets` as well; values stay in the agent.
     let secrets = if http_client::mentions_secret(&input) {
         state.authorize_vault_secrets(authorization.as_deref(), &origin)?;
@@ -196,11 +203,124 @@ async fn http_request(
         cancellation,
         secrets.as_ref(),
         certificate.as_ref(),
+        stream_events,
     )
     .await;
     drop(active_request);
     drop(permit);
-    Ok((StatusCode::OK, Json(result?)))
+    let (output, events) = result?;
+    if let Some(events) = events {
+        state.parked_streams.park(session_key, request_id, events);
+    }
+    Ok((StatusCode::OK, Json(output)))
+}
+
+fn ndjson(body: Body) -> Response {
+    (
+        [
+            (CONTENT_TYPE, "application/x-ndjson"),
+            (CACHE_CONTROL, "no-store"),
+        ],
+        body,
+    )
+        .into_response()
+}
+
+/// The parked event stream of an `http.request` reply, as NDJSON lines while
+/// events arrive. `sse.stream` only; cancel with `/v1/http/cancel` or by
+/// closing the response.
+async fn sse_stream(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<Response, ApiError> {
+    let origin = required_header(request.headers(), ORIGIN)?;
+    let authorization = optional_single_header(request.headers(), AUTHORIZATION)?;
+    let session_key = state.authorize_sse(authorization, &origin)?;
+    let input: CancelRequest = parse_json(request).await?;
+    let request_id = Uuid::parse_str(&input.id).map_err(|_| ApiError::invalid_request())?;
+    let stream = state
+        .parked_streams
+        .take(session_key, request_id)
+        .ok_or_else(ApiError::not_found)?;
+    let permit = state.try_acquire_stream_slot()?;
+    let cancellation = CancellationToken::new();
+    let guard = state.register_request(session_key, request_id, cancellation.clone())?;
+    Ok(ndjson(sse::body(stream, cancellation, guard, permit)))
+}
+
+/// Opens a WebSocket and streams its handshake and frames as NDJSON lines.
+/// `websocket.connect` only; secrets and a client certificate need `vault.secrets`.
+async fn websocket_connect(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<Response, ApiError> {
+    let origin = required_header(request.headers(), ORIGIN)?;
+    let authorization =
+        optional_single_header(request.headers(), AUTHORIZATION)?.map(str::to_owned);
+    let session_key = state.authorize_websocket(authorization.as_deref(), &origin)?;
+    let input: websocket::ConnectInput = parse_json(request).await?;
+    let request_id = Uuid::parse_str(&input.id).map_err(|_| ApiError::invalid_request())?;
+    let secrets = if input.mentions_secret() {
+        state.authorize_vault_secrets(authorization.as_deref(), &origin)?;
+        let vault = Arc::clone(&state.vault);
+        let origin = origin.clone();
+        Some(run_vault(move || vault.secret_book(&origin)).await?)
+    } else {
+        None
+    };
+    let certificate = match input.client_certificate.clone() {
+        Some(name) => {
+            state.authorize_vault_secrets(authorization.as_deref(), &origin)?;
+            let vault = Arc::clone(&state.vault);
+            Some(run_vault(move || vault.certificate(&origin, &name)).await?)
+        }
+        None => None,
+    };
+    let permit = state.try_acquire_stream_slot()?;
+    let cancellation = CancellationToken::new();
+    let guard = state.register_request(session_key, request_id, cancellation.clone())?;
+    let connecting =
+        websocket::connect(input, &state.config, secrets.as_ref(), certificate.as_ref());
+    let (handshake, substitutions) = tokio::select! {
+        _ = cancellation.cancelled() => return Err(ApiError::new(StatusCode::CONFLICT, "cancelled")),
+        result = connecting => result?,
+    };
+    Ok(ndjson(websocket::body(
+        Arc::clone(&state),
+        session_key,
+        request_id,
+        handshake,
+        substitutions,
+        cancellation,
+        guard,
+        permit,
+    )))
+}
+
+async fn websocket_send(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<StatusCode, ApiError> {
+    let origin = required_header(request.headers(), ORIGIN)?;
+    let authorization = optional_single_header(request.headers(), AUTHORIZATION)?;
+    let session_key = state.authorize_websocket(authorization, &origin)?;
+    let input: websocket::SendInput = parse_json(request).await?;
+    let request_id = Uuid::parse_str(&input.id).map_err(|_| ApiError::invalid_request())?;
+    state.sockets.send(session_key, request_id, input).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+async fn websocket_close(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<StatusCode, ApiError> {
+    let origin = required_header(request.headers(), ORIGIN)?;
+    let authorization = optional_single_header(request.headers(), AUTHORIZATION)?;
+    let session_key = state.authorize_websocket(authorization, &origin)?;
+    let input: websocket::CloseInput = parse_json(request).await?;
+    let request_id = Uuid::parse_str(&input.id).map_err(|_| ApiError::invalid_request())?;
+    state.sockets.close(session_key, request_id, input).await?;
+    Ok(StatusCode::NO_CONTENT)
 }
 
 async fn cancel_request(
@@ -555,6 +675,10 @@ fn valid_preflight(request: &Request) -> bool {
         "/v1/pair"
         | "/v1/http/request"
         | "/v1/http/cancel"
+        | "/v1/sse/stream"
+        | "/v1/ws/connect"
+        | "/v1/ws/send"
+        | "/v1/ws/close"
         | "/v1/icmp/trace"
         | "/v1/icmp/snapshot"
         | "/v1/icmp/cancel"

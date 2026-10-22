@@ -93,7 +93,7 @@ export function certificateFor(url: string, certificates: readonly { name: strin
   let host: string;
   try {
     const parsed = new URL(url);
-    if (parsed.protocol !== "https:") return undefined;
+    if (parsed.protocol !== "https:" && parsed.protocol !== "wss:") return undefined;
     host = parsed.hostname.toLowerCase();
   } catch {
     return undefined;

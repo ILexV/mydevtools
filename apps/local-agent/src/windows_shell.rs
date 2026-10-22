@@ -18,8 +18,9 @@ use windows_sys::Win32::Foundation::{
 use windows_sys::Win32::Globalization::GetUserDefaultUILanguage;
 use windows_sys::Win32::Graphics::Gdi::{
     CLEARTYPE_QUALITY, CLIP_DEFAULT_PRECIS, COLOR_WINDOW, CreateFontW, DEFAULT_CHARSET,
-    DEFAULT_PITCH, DeleteObject, FF_DONTCARE, FW_REGULAR, FW_SEMIBOLD, GetSysColor,
-    GetSysColorBrush, HFONT, OUT_DEFAULT_PRECIS, SetBkColor,
+    DEFAULT_PITCH, DeleteObject, FF_DONTCARE, FW_REGULAR, FW_SEMIBOLD, GetMonitorInfoW,
+    GetSysColor, GetSysColorBrush, HFONT, MONITOR_DEFAULTTONEAREST, MONITORINFO, MonitorFromWindow,
+    OUT_DEFAULT_PRECIS, SetBkColor,
 };
 use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows_sys::Win32::System::Registry::{
@@ -36,17 +37,17 @@ use windows_sys::Win32::UI::Shell::{
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     BN_CLICKED, BS_AUTOCHECKBOX, CREATESTRUCTW, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT,
     CreateWindowExW, DefWindowProcW, DestroyWindow, DispatchMessageW, ES_AUTOHSCROLL, ES_READONLY,
-    FindWindowW, GWLP_USERDATA, GetMessageW, GetSystemMetrics, GetWindowLongPtrW, HICON, IDC_ARROW,
-    IMAGE_ICON, IsDialogMessageW, IsWindow, KillTimer, LR_SHARED, LoadCursorW, LoadImageW,
-    MB_ICONERROR, MB_OK, MB_SETFOREGROUND, MSG, MessageBoxW, MoveWindow, PostMessageW,
+    FindWindowW, GWLP_USERDATA, GetMessageW, GetSystemMetrics, GetWindowLongPtrW, GetWindowRect,
+    HICON, IDC_ARROW, IMAGE_ICON, IsDialogMessageW, IsWindow, KillTimer, LR_SHARED, LoadCursorW,
+    LoadImageW, MB_ICONERROR, MB_OK, MB_SETFOREGROUND, MSG, MessageBoxW, MoveWindow, PostMessageW,
     PostQuitMessage, RegisterClassExW, RegisterWindowMessageW, SIZE_MINIMIZED, SM_CXICON,
     SM_CXSMICON, SM_CYICON, SM_CYSMICON, SW_HIDE, SW_RESTORE, SW_SHOW, SWP_NOACTIVATE, SWP_NOMOVE,
-    SWP_NOZORDER, SendMessageW, SetForegroundWindow, SetTimer, SetWindowLongPtrW, SetWindowPos,
-    SetWindowTextW, ShowWindow, TranslateMessage, WM_APP, WM_CLOSE, WM_COMMAND, WM_COPY, WM_CREATE,
-    WM_CTLCOLORBTN, WM_CTLCOLORSTATIC, WM_DESTROY, WM_DPICHANGED, WM_ENDSESSION, WM_LBUTTONUP,
-    WM_NCCREATE, WM_NCDESTROY, WM_QUERYENDSESSION, WM_SETFONT, WM_SIZE, WM_TIMER, WNDCLASSEXW,
-    WS_CAPTION, WS_CHILD, WS_EX_CLIENTEDGE, WS_MINIMIZEBOX, WS_OVERLAPPED, WS_SYSMENU, WS_TABSTOP,
-    WS_VISIBLE,
+    SWP_NOSIZE, SWP_NOZORDER, SendMessageW, SetForegroundWindow, SetTimer, SetWindowLongPtrW,
+    SetWindowPos, SetWindowTextW, ShowWindow, TranslateMessage, WM_APP, WM_CLOSE, WM_COMMAND,
+    WM_COPY, WM_CREATE, WM_CTLCOLORBTN, WM_CTLCOLORSTATIC, WM_DESTROY, WM_DPICHANGED,
+    WM_ENDSESSION, WM_LBUTTONUP, WM_NCCREATE, WM_NCDESTROY, WM_QUERYENDSESSION, WM_SETFONT,
+    WM_SIZE, WM_TIMER, WNDCLASSEXW, WS_CAPTION, WS_CHILD, WS_EX_CLIENTEDGE, WS_MINIMIZEBOX,
+    WS_OVERLAPPED, WS_SYSMENU, WS_TABSTOP, WS_VISIBLE,
 };
 
 const WINDOW_CLASS: &str = "MyDevToolsLocalAgentWindow";
@@ -696,6 +697,7 @@ impl WindowState {
 
         let dpi = unsafe { GetDpiForWindow(window) }.max(BASE_DPI);
         unsafe { self.apply_layout(window, dpi, true)? };
+        unsafe { center_on_monitor(window) };
 
         self.refresh_pairing_code();
         if self.last_pairing_code.borrow().is_empty() {
@@ -1054,6 +1056,37 @@ unsafe fn create_control(
     } else {
         Ok(control)
     }
+}
+
+/// Centers the window in the work area (without the taskbar) of the monitor it
+/// was created on. Best effort: a failed call leaves the default position.
+unsafe fn center_on_monitor(window: HWND) {
+    let mut bounds: RECT = unsafe { zeroed() };
+    if unsafe { GetWindowRect(window, &mut bounds) } == 0 {
+        return;
+    }
+    let monitor = unsafe { MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST) };
+    let mut info: MONITORINFO = unsafe { zeroed() };
+    info.cbSize = size_of::<MONITORINFO>() as u32;
+    if monitor.is_null() || unsafe { GetMonitorInfoW(monitor, &mut info) } == 0 {
+        return;
+    }
+    let work = info.rcWork;
+    let width = bounds.right - bounds.left;
+    let height = bounds.bottom - bounds.top;
+    let x = work.left + ((work.right - work.left - width) / 2).max(0);
+    let y = work.top + ((work.bottom - work.top - height) / 2).max(0);
+    unsafe {
+        SetWindowPos(
+            window,
+            null_mut(),
+            x,
+            y,
+            0,
+            0,
+            SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE,
+        )
+    };
 }
 
 unsafe fn show_and_activate(window: HWND) {

@@ -95,6 +95,10 @@ class FakeVault implements HistoryVaultClient {
     this.data = structuredClone(data);
     return ++this.revision;
   }
+
+  async deleteDocument() {
+    throw new Error("not used");
+  }
 }
 
 test("the agent backend re-reads and reapplies the change after another window's write", async () => {

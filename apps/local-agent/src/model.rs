@@ -5,7 +5,10 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::http_transport::{HttpVersionChoice, Timings, TlsSummary};
+use crate::{
+    cookies::Cookie,
+    http_transport::{HttpVersionChoice, Timings, TlsSummary},
+};
 
 pub(crate) const HTTP_CAPABILITY: &str = "http.request";
 /// Continuous ICMP traceroute. Granted only when the page asks for it; pairing
@@ -47,7 +50,8 @@ pub(crate) const AGENT_CAPABILITIES: [&str; 9] = [
 ];
 /// `http.options`: `verifyTls`, `httpVersion`, `proxy` and timed phases in replies.
 /// `http.client_certificates`: vault certificates and `clientCertificate` (mTLS).
-pub(crate) const AGENT_FEATURES: [&str; 2] = ["http.options", "http.client_certificates"];
+pub(crate) const AGENT_FEATURES: [&str; 3] =
+    ["http.options", "http.client_certificates", "http.cookies"];
 pub(crate) const MAX_INCOMING_JSON_BYTES: usize = 2 * 1024 * 1024;
 pub(crate) const MAX_REQUEST_BODY_BYTES: usize = 1024 * 1024;
 pub(crate) const MAX_RESPONSE_BODY_BYTES: usize = 16 * 1024 * 1024;
@@ -123,6 +127,10 @@ pub(crate) struct HttpRequestInput {
     /// presented only to hosts in its list.
     #[serde(default)]
     pub(crate) client_certificate: Option<String>,
+    /// The page's cookie jar: cookies are picked per hop and `Set-Cookie`
+    /// changes come back in the output. Absent leaves cookies to the headers.
+    #[serde(default)]
+    pub(crate) cookies: Option<Vec<Cookie>>,
 }
 
 const fn default_true() -> bool {
@@ -171,6 +179,9 @@ pub(crate) struct HttpResponseOutput {
     pub(crate) timings: Timings,
     pub(crate) redirects: u8,
     pub(crate) tls: Option<TlsSummary>,
+    /// Jar changes made by the hops (an expiry in the past deletes); only when the request sent a jar.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) cookies: Option<Vec<Cookie>>,
 }
 
 #[derive(Debug, Serialize)]

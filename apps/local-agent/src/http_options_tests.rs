@@ -1,4 +1,5 @@
-//! HTTP request options: timed phases, TLS verification, HTTP version and proxy.
+//! HTTP request options: timed phases, TLS verification, HTTP version, proxy,
+//! client certificates and the cookie jar.
 
 use std::{convert::Infallible, sync::Arc};
 
@@ -606,5 +607,101 @@ async fn client_certificates_are_validated_host_bound_and_keys_never_listed() {
     assert_eq!(call(&app, delete).await.0, StatusCode::NO_CONTENT);
     let (_, reply) = call(&app, send(input(Some("client")), &token)).await;
     assert_eq!(reply["error"]["code"], "certificate_not_found");
+    server.abort();
+}
+
+/// `/login` sets a session and redirects to `/me`; `/logout` deletes it; every
+/// other path echoes the `Cookie` header it received.
+async fn spawn_cookie_server() -> (u16, tokio::task::JoinHandle<()>) {
+    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let port = listener.local_addr().unwrap().port();
+    let task = tokio::spawn(async move {
+        while let Ok((stream, _)) = listener.accept().await {
+            tokio::spawn(async move {
+                let service = service_fn(
+                    |request: hyper::Request<hyper::body::Incoming>| async move {
+                        let cookie = request
+                            .headers()
+                            .get("cookie")
+                            .map_or("-".to_owned(), |value| {
+                                String::from_utf8_lossy(value.as_bytes()).into_owned()
+                            });
+                        let response = match request.uri().path() {
+                            "/login" => hyper::Response::builder()
+                                .status(302)
+                                .header("location", "/me")
+                                .header("set-cookie", "sid=abc; Path=/; HttpOnly")
+                                .header("set-cookie", "theme=light; Path=/; Max-Age=3600")
+                                .body(Full::new(Bytes::new())),
+                            "/logout" => hyper::Response::builder()
+                                .header("set-cookie", "sid=; Path=/; Max-Age=0")
+                                .body(Full::new(Bytes::from(cookie))),
+                            _ => hyper::Response::builder().body(Full::new(Bytes::from(cookie))),
+                        };
+                        Ok::<_, Infallible>(response.unwrap())
+                    },
+                );
+                let _ = conn::http1::Builder::new()
+                    .serve_connection(TokioIo::new(stream), service)
+                    .await;
+            });
+        }
+    });
+    (port, task)
+}
+
+#[tokio::test]
+async fn cookie_jar_follows_redirect_hops_merges_written_cookies_and_reports_changes() {
+    let (port, server) = spawn_cookie_server().await;
+    let input = |path: &str, cookies: Option<Value>| {
+        let mut input = http_input(
+            Uuid::new_v4(),
+            format!("http://127.0.0.1:{port}{path}"),
+            true,
+        );
+        if let Some(cookies) = cookies {
+            input["cookies"] = cookies;
+        }
+        input
+    };
+
+    // The session set by the 302 reaches the next hop.
+    let (status, reply) = send(input("/login", Some(json!([])))).await;
+    assert_eq!(status, StatusCode::OK, "{reply}");
+    assert_eq!(body_text(&reply), "sid=abc; theme=light");
+    let changes = reply["cookies"].as_array().unwrap();
+    assert_eq!(changes.len(), 2);
+    assert_eq!(changes[0]["name"], "sid");
+    assert_eq!(changes[0]["domain"], "127.0.0.1");
+    assert_eq!(changes[0]["hostOnly"], true);
+    assert_eq!(changes[0]["httpOnly"], true);
+    assert!(changes[0].get("expires").is_none());
+    assert!(changes[1]["expires"].as_i64().unwrap() > crate::cookies::now());
+
+    // A cookie written by hand wins over the jar's one of the same name.
+    let jar = json!([
+        {"name": "sid", "value": "abc", "domain": "127.0.0.1", "path": "/", "hostOnly": true},
+        {"name": "theme", "value": "light", "domain": "127.0.0.1", "path": "/", "hostOnly": true},
+        {"name": "other", "value": "1", "domain": "example.com", "path": "/"},
+    ]);
+    let mut written = input("/me", Some(jar.clone()));
+    written["headers"] = json!([{"name": "Cookie", "value": "theme=dark"}]);
+    let (_, reply) = send(written).await;
+    assert_eq!(body_text(&reply), "theme=dark; sid=abc");
+    assert_eq!(reply["cookies"], json!([]));
+
+    let (_, reply) = send(input("/logout", Some(jar))).await;
+    assert_eq!(body_text(&reply), "sid=abc; theme=light");
+    assert_eq!(reply["cookies"][0]["name"], "sid");
+    assert_eq!(reply["cookies"][0]["expires"], 0);
+
+    // Without a jar nothing is added or reported.
+    let (_, reply) = send(input("/login", None)).await;
+    assert_eq!(body_text(&reply), "-");
+    assert!(reply.get("cookies").is_none());
+
+    let bad = json!([{"name": "a b", "value": "1", "domain": "127.0.0.1", "path": "/"}]);
+    let (status, _) = send(input("/me", Some(bad))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
     server.abort();
 }

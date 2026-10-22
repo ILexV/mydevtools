@@ -229,6 +229,7 @@ export function importPostman(input: unknown, parentId: string | null, newId: ()
     // Postman follows redirects unless told otherwise.
     entry.followRedirects = behavior.followRedirects !== false;
     if (behavior.strictSSL === false) entry.verifyTls = false;
+    if (behavior.disableCookies === true) entry.useCookies = false;
     if (behavior.protocolVersion === "http1" || behavior.protocolVersion === "http2") entry.httpVersion = behavior.protocolVersion;
     const scripts = scriptsOf(item);
     if (scripts) entry.scripts = scripts;
@@ -302,6 +303,7 @@ function behaviorOf(request: HttpSavedRequest): Json | null {
   const behavior: Json = {
     ...(request.followRedirects ? {} : { followRedirects: false }),
     ...(request.verifyTls === false ? { strictSSL: false } : {}),
+    ...(request.useCookies === false ? { disableCookies: true } : {}),
     ...(request.httpVersion && request.httpVersion !== "auto" ? { protocolVersion: request.httpVersion } : {}),
   };
   return Object.keys(behavior).length ? behavior : null;

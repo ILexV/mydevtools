@@ -62,6 +62,11 @@ import { bindScriptsEditor, bindTestsPanel, type ScriptResults, type ScriptsPane
 import { exampleFromResponse, responseFromExample } from "@/tools/http-examples";
 import { bindRunnerDialog, type RunnerStrings } from "@/tools/http-runner-dialog";
 import { bindHistoryPanel, type HistoryPanelStrings } from "@/tools/http-history-panel";
+import {
+  AgentCookieStore, applyCookieChanges, compactCookie, cookieExpired, HTTP_COOKIES_FEATURE, HTTP_COOKIES_PERSIST_KEY, HTTP_COOKIES_STORAGE_KEY,
+  LocalCookieStore, nowSeconds, parseCookies, type CookieStore, type HttpCookie,
+} from "@/tools/http-cookies";
+import { bindCookiesDialog, cookieItem, type CookiesDialogStrings } from "@/tools/http-cookies-dialog";
 import { openTabIds, requestFingerprint, tabAfterClose, withOpenTab } from "@/tools/http-tabs";
 import { exportPostman, importPostman, PostmanError, type PostmanImport } from "@/tools/http-postman";
 import { bodyTexts, hasBody, type BodyFields } from "@/tools/http-body";
@@ -75,7 +80,7 @@ import {
 import { bindClientSettingsDialog } from "@/tools/http-settings-dialog";
 import { bindCertificatesSection, type CertificatesStrings } from "@/tools/http-certificates-section";
 
-interface Strings extends CertificatesStrings, SecretsDialogStrings, ScopeDialogStrings, FormDataStrings, HistoryPanelStrings, ScriptsPanelStrings, RunnerStrings {
+interface Strings extends CookiesDialogStrings, CertificatesStrings, SecretsDialogStrings, ScopeDialogStrings, FormDataStrings, HistoryPanelStrings, ScriptsPanelStrings, RunnerStrings {
   LastResponse: string;
   ExampleSaved: string;
   ExampleTooLarge: string;
@@ -195,6 +200,7 @@ interface Strings extends CertificatesStrings, SecretsDialogStrings, ScopeDialog
   ConnectionRedirects: string;
   ConnectionClientCertificate: string;
   ClientSettings: string;
+  CookiesMenu: string;
   ProxyUrlInvalid: string;
   [key: `Error_${string}`]: string;
 }
@@ -311,6 +317,7 @@ function init(): void {
   const timeout = root.querySelector<HTMLInputElement>("[data-http-timeout]");
   const redirects = root.querySelector<HTMLInputElement>("[data-http-redirects]");
   const verifyTls = root.querySelector<HTMLInputElement>("[data-http-verify-tls]")!;
+  const useCookies = root.querySelector<HTMLInputElement>("[data-http-use-cookies]")!;
   const httpVersion = root.querySelector<HTMLSelectElement>("[data-http-version]")!;
   const send = root.querySelector<HTMLButtonElement>("[data-http-send]");
   const cancel = root.querySelector<HTMLButtonElement>("[data-http-cancel]");
@@ -372,6 +379,11 @@ function init(): void {
   let mountedBodyLanguage: EditorLanguage | null = null;
   const s = strings;
   const timingTab = root.querySelector<HTMLButtonElement>("#http-response-timing-tab")!;
+  const cookiesTab = root.querySelector<HTMLButtonElement>("#http-response-cookies-tab")!;
+  const cookiesCount = root.querySelector<HTMLElement>("[data-http-response-cookies-count]")!;
+  const responseCookies = root.querySelector<HTMLUListElement>("[data-http-response-cookies]")!;
+  const responseCookiesEmpty = root.querySelector<HTMLElement>("[data-http-response-cookies-empty]")!;
+  const manageCookies = root.querySelector<HTMLButtonElement>("[data-http-cookies-manage]")!;
   const responseBodyTab = root.querySelector<HTMLButtonElement>("#http-response-body-tab")!;
   const timingList = root.querySelector<HTMLElement>("[data-http-timing-list]")!;
   const connectionList = root.querySelector<HTMLElement>("[data-http-connection]")!;
@@ -398,7 +410,7 @@ function init(): void {
     workspace.requests.push(initial);
   }
   type TreeTarget = { kind: "root" } | { kind: HttpWorkspaceItemKind; id: string };
-  type TreeAction = "new-request" | "new-folder" | "import-curl" | "import-postman" | "export-postman" | "run" | "client-settings" | "settings" | "rename"
+  type TreeAction = "new-request" | "new-folder" | "import-curl" | "import-postman" | "export-postman" | "run" | "cookies" | "client-settings" | "settings" | "rename"
     | "move" | "delete";
   let workspaceDirty = false;
   let currentRequest = workspace.requests.find((request) => request.id === workspace.selectedId)!;
@@ -1064,6 +1076,8 @@ function init(): void {
     currentRequest.followRedirects = workspaceUi.redirects.checked;
     if (verifyTls.checked) delete currentRequest.verifyTls;
     else currentRequest.verifyTls = false;
+    if (useCookies.checked) delete currentRequest.useCookies;
+    else currentRequest.useCookies = false;
     if (httpVersion.value === "http1" || httpVersion.value === "http2") currentRequest.httpVersion = httpVersion.value;
     else delete currentRequest.httpVersion;
     currentRequest.auth = requestAuth.get();
@@ -1567,7 +1581,8 @@ function init(): void {
               { action: "delete", label: workspaceUi.strings.DeleteRequest, danger: true, separate: true },
             ];
     // Workspace-wide, so every menu ends with it.
-    definitions.push({ action: "client-settings", label: workspaceUi.strings.ClientSettings, separate: true });
+    definitions.push({ action: "cookies", label: workspaceUi.strings.CookiesMenu, separate: true },
+      { action: "client-settings", label: workspaceUi.strings.ClientSettings });
     const fragment = document.createDocumentFragment();
     let firstMenuItem = true;
     for (const definition of definitions) {
@@ -1887,6 +1902,7 @@ function init(): void {
     workspaceUi.timeout.value = String(request.timeoutMs);
     workspaceUi.redirects.checked = request.followRedirects;
     verifyTls.checked = request.verifyTls !== false;
+    useCookies.checked = request.useCookies !== false;
     httpVersion.value = request.httpVersion ?? "auto";
     requestAuth.set(request.auth);
     requestAuth.setTokenStatus(null);
@@ -1923,6 +1939,85 @@ function init(): void {
       createRequestAt(null, { ...structuredClone(entry.request), name });
     },
   });
+
+  /**
+   * Cookie jar: page memory is what this window sends, updated at once so the
+   * next request of a run sees it. «Keep cookies» (a per-browser switch, off by
+   * default) also applies every change to storage next to the workspace.
+   */
+  let cookieJar: HttpCookie[] = [];
+  const readCookiesPersisted = (): boolean => {
+    try {
+      return localStorage.getItem(HTTP_COOKIES_PERSIST_KEY) === "1";
+    } catch {
+      return false;
+    }
+  };
+  let cookiesPersisted = readCookiesPersisted();
+  let agentCookies: AgentCookieStore | null = null;
+  const localCookies = new LocalCookieStore();
+  const cookieStore = (): CookieStore | null => {
+    if (storage !== "agent") return localCookies;
+    if (!agentStore || !client.connected) return null;
+    agentCookies ??= new AgentCookieStore(client);
+    return agentCookies;
+  };
+  const cookiesAvailable = (): boolean => client.connected && !!client.info?.features?.includes(HTTP_COOKIES_FEATURE);
+  async function changeCookies(update: (jar: HttpCookie[]) => HttpCookie[]): Promise<void> {
+    cookieJar = update(cookieJar);
+    cookiesDialog.refresh();
+    const store = cookiesPersisted ? cookieStore() : null;
+    if (store) await store.update(update);
+  }
+  /** Merges kept cookies into memory (memory wins) and writes back what only memory had. */
+  async function loadKeptCookies(): Promise<void> {
+    const store = cookiesPersisted ? cookieStore() : null;
+    if (!store) return;
+    try {
+      if (storage === "agent" && store !== localCookies) {
+        // Moving to the agent takes the browser copy along; it goes once the agent has it.
+        const raw = localStorage.getItem(HTTP_COOKIES_STORAGE_KEY);
+        const local = raw === null ? null : parseCookies(JSON.parse(raw));
+        if (local) {
+          await store.update((jar) => applyCookieChanges(jar, local, nowSeconds()));
+          localStorage.removeItem(HTTP_COOKIES_STORAGE_KEY);
+        }
+      }
+      const memory = cookieJar;
+      const kept = memory.length ? await store.update((jar) => applyCookieChanges(jar, memory, nowSeconds())) : await store.load();
+      cookieJar = applyCookieChanges(kept, cookieJar, nowSeconds());
+      cookiesDialog.refresh();
+    } catch {
+      // Memory keeps working; the window shows storage errors on the next change.
+    }
+  }
+  const cookiesDialog = bindCookiesDialog(root.querySelector<HTMLDialogElement>("[data-http-cookies-dialog]")!, {
+    strings: s,
+    errorText: (error) => errorText(error),
+    requestUrl: () => workspaceUi.requestUrl.value,
+    jar: {
+      cookies: () => cookieJar,
+      change: changeCookies,
+      persistTarget: () => storage !== "agent" ? "browser" : cookieStore() ? "agent" : null,
+      persisted: () => cookiesPersisted,
+      agentState: () => !client.connected ? "disconnected" : cookiesAvailable() ? "ok" : "outdated",
+      async setPersisted(on) {
+        const store = cookieStore();
+        if (!store) return;
+        if (on) {
+          const memory = cookieJar;
+          cookieJar = await store.update((jar) => applyCookieChanges(jar, memory, nowSeconds()));
+          localStorage.setItem(HTTP_COOKIES_PERSIST_KEY, "1");
+        } else {
+          // Turning it off removes the stored copy; this page keeps the jar until it closes.
+          await store.clear();
+          localStorage.removeItem(HTTP_COOKIES_PERSIST_KEY);
+        }
+        cookiesPersisted = on;
+      },
+    },
+  });
+  void loadKeptCookies();
 
   /** Moving to the agent takes the browser history along; the browser copy goes once the agent has it. */
   async function moveHistoryToAgent(): Promise<void> {
@@ -2195,6 +2290,7 @@ function init(): void {
   timeout.addEventListener("input", scheduleWorkspaceSave);
   redirects.addEventListener("change", scheduleWorkspaceSave);
   verifyTls.addEventListener("change", scheduleWorkspaceSave);
+  useCookies.addEventListener("change", scheduleWorkspaceSave);
   httpVersion.addEventListener("change", scheduleWorkspaceSave);
   function createRequestAt(parentId: string | null, init: Partial<HttpSavedRequest> = {}): boolean {
     if (active || (parentId !== null && !workspace.folders.some((folder) => folder.id === parentId))
@@ -2342,6 +2438,7 @@ function init(): void {
     }
     delete currentRequest.verifyTls;
     delete currentRequest.httpVersion;
+    delete currentRequest.useCookies;
     Object.assign(currentRequest, { timeoutMs: 30000 }, result.fields);
     applyRequest(currentRequest);
     scheduleWorkspaceSave();
@@ -2511,6 +2608,10 @@ function init(): void {
   function runTreeAction(action: TreeAction, target: TreeTarget, returnFocus: HTMLElement | null): void {
     if (action === "client-settings") {
       clientSettings.open(returnFocus ?? workspaceUi.savedList);
+      return;
+    }
+    if (action === "cookies") {
+      cookiesDialog.open(returnFocus ?? workspaceUi.savedList);
       return;
     }
     if (active || !targetExists(target)) return;
@@ -2698,6 +2799,7 @@ function init(): void {
     } finally {
       attaching = false;
       syncStorageNotes();
+      void loadKeptCookies();
     }
   }
 
@@ -2915,6 +3017,10 @@ function init(): void {
         if (Object.keys(transport).length && !client.info?.features?.includes(HTTP_OPTIONS_FEATURE)) {
           throw new LocalAgentError("agent_outdated");
         }
+        // An older agent takes no jar: the request goes with its own headers only.
+        const now = nowSeconds();
+        const jar = request.useCookies !== false && cookiesAvailable()
+          ? cookieJar.filter((cookie) => !cookieExpired(cookie, now)).map(compactCookie) : undefined;
         inFlight = id;
         hooks.onSend?.();
         try {
@@ -2928,7 +3034,12 @@ function init(): void {
             followRedirects: request.followRedirects,
             ...(built.basicAuth ? { basicAuth: built.basicAuth } : {}),
             ...transport,
-          }, signal).then((response) => certificate ? { ...response, clientCertificate: certificate } : response);
+            ...(jar ? { cookies: jar } : {}),
+          }, signal).then((response) => {
+            const changes = response.cookies;
+            if (changes?.length) void changeCookies((current) => applyCookieChanges(current, changes, nowSeconds())).catch(() => undefined);
+            return certificate ? { ...response, clientCertificate: certificate } : response;
+          });
         } finally {
           inFlight = null;
         }
@@ -3123,6 +3234,29 @@ function init(): void {
     }));
   }
 
+  /** Cookies tab: what the response's `Set-Cookie` headers changed in the jar; only when the jar was sent. */
+  let responseHost = "";
+  function renderResponseCookies(response: LocalHttpResponse | null): void {
+    const changes = response?.cookies;
+    cookiesTab.hidden = !changes;
+    if (!changes) {
+      if (cookiesTab.getAttribute("aria-selected") === "true") responseBodyTab.click();
+      responseCookies.replaceChildren();
+      return;
+    }
+    try {
+      responseHost = new URL(response.url).hostname;
+    } catch {
+      responseHost = "";
+    }
+    const now = nowSeconds();
+    cookiesCount.textContent = changes.length ? String(changes.length) : "";
+    responseCookies.replaceChildren(...changes.map((cookie) => cookieItem(cookie, s, { withDomain: true, removed: cookieExpired(cookie, now) })));
+    responseCookies.hidden = changes.length === 0;
+    responseCookiesEmpty.hidden = changes.length !== 0;
+  }
+  manageCookies.addEventListener("click", () => cookiesDialog.open(manageCookies, responseHost));
+
   /** Shows a response; `exampleName` marks a saved example (no time or final URL). */
   function renderResponse(response: LocalHttpResponse, scripts: ScriptResults | null = null, exampleName?: string): void {
     testsPanel.render(scripts);
@@ -3140,6 +3274,7 @@ function init(): void {
     responseUi.url.parentElement!.hidden = !response.url;
     responseUi.headers.textContent = response.headers.map((header) => `${header.name}: ${header.value}`).join("\n");
     renderTiming(exampleName === undefined ? response : null);
+    renderResponseCookies(exampleName === undefined ? response : null);
     prettyPreview = null;
     const mime = type.split(";", 1)[0]?.trim().toLowerCase() ?? "";
     sourceLanguage = mime === "application/json" || mime.endsWith("+json") ? "json"

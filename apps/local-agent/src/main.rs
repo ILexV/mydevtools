@@ -1,6 +1,7 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
 mod asn;
+mod cookies;
 mod dns;
 mod http_client;
 mod http_transport;

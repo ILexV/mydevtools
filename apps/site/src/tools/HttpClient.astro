@@ -53,6 +53,9 @@ const clientKeys = [
   "CertificateAddTitle", "CertificateEditTitle", "CertificateEdit", "CertificateDelete", "CertificateDeleteConfirm", "CertificateSaved",
   "CertificateDeleted", "CertificateFilesRequired", "CertificateExpires", "ConnectionClientCertificate",
   "Error_client_certificate_invalid", "Error_certificate_not_found", "Error_certificate_host_denied",
+  "CookiesMenu", "CookieAddTitle", "CookieEditTitle", "CookieSaved", "CookieDeleted", "CookieSession", "CookieExpiresAt", "CookieRemoved",
+  "CookiesNoMatch", "CookiesClearConfirm", "CookiesDeleteDomain", "CookiesPersistBrowser", "CookiesPersistAgent", "CookiesPersistUnavailable",
+  "CookiesNeedAgent", "CookiesAgentOutdated", "CookieError_name", "CookieError_value", "CookieError_domain", "CookieError_path", "CookieError_size",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
 const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhrases(lang) });
@@ -232,6 +235,60 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
         </div>
       </form>
     </div>
+  </dialog>
+  <dialog class="http-move-dialog http-secrets-dialog" aria-labelledby="http-cookies-title" aria-describedby="http-cookies-hint" data-http-cookies-dialog>
+    <div class="http-secrets-head">
+      <h2 id="http-cookies-title" class="ds-panel-title">{t(lang, ns, "CookiesTitle")}</h2>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "SecretsClose")} title={t(lang, ns, "SecretsClose")} data-http-cookies-close>
+        <Icon name="close" size={15} />
+      </button>
+    </div>
+    <p id="http-cookies-hint" class="ds-hint http-secrets-hint">{t(lang, ns, "CookiesHint")}</p>
+    <StatusMessage kind="warning" data-http-cookies-agent />
+    <label class="ds-check-row"><input class="ds-check" type="checkbox" aria-describedby="http-cookies-persist-hint" data-http-cookies-persist /><span>{t(lang, ns, "CookiesPersist")}</span></label>
+    <span id="http-cookies-persist-hint" class="ds-hint" data-http-cookies-persist-hint></span>
+    <div class="http-cookies-tools">
+      <label class="visually-hidden" for="http-cookies-filter">{t(lang, ns, "CookiesFilter")}</label>
+      <input id="http-cookies-filter" class="ds-field mono" type="search" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "CookiesFilter")} data-http-cookies-filter />
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-cookies-clear" disabled data-http-cookies-clear>{t(lang, ns, "CookiesClearAll")}</button>
+    </div>
+    <ul class="http-secrets-list" aria-labelledby="http-cookies-title" hidden data-http-cookies-list></ul>
+    <p class="ds-hint" data-http-cookies-empty>{t(lang, ns, "CookiesEmpty")}</p>
+    <form class="http-secrets-form" novalidate data-http-cookies-form>
+      <h4 class="http-secrets-form-title" data-http-cookies-form-title>{t(lang, ns, "CookieAddTitle")}</h4>
+      <div class="http-proxy-auth">
+        <label class="http-move-field">
+          <span>{t(lang, ns, "SecretName")}</span>
+          <input class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder="session" required data-http-cookie-name />
+        </label>
+        <label class="http-move-field">
+          <span>{t(lang, ns, "ValueLabel")}</span>
+          <input class="ds-field mono" type="text" autocomplete="off" spellcheck="false" data-http-cookie-value />
+        </label>
+        <label class="http-move-field">
+          <span>{t(lang, ns, "CookieDomain")}</span>
+          <input class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder="api.example.com" required data-http-cookie-domain />
+        </label>
+        <label class="http-move-field">
+          <span>{t(lang, ns, "CookiePath")}</span>
+          <input class="ds-field mono" type="text" autocomplete="off" spellcheck="false" value="/" required data-http-cookie-path />
+        </label>
+      </div>
+      <label class="http-move-field">
+        <span>{t(lang, ns, "CookieExpires")}</span>
+        <input class="ds-field mono" type="datetime-local" step="1" aria-describedby="http-cookie-expires-hint" data-http-cookie-expires />
+        <span id="http-cookie-expires-hint" class="ds-hint">{t(lang, ns, "CookieExpiresHint")}</span>
+      </label>
+      <label class="ds-check-row"><input class="ds-check" type="checkbox" data-http-cookie-subdomains /><span>{t(lang, ns, "CookieSubdomains")}</span></label>
+      <label class="ds-check-row"><input class="ds-check" type="checkbox" data-http-cookie-secure /><span>{t(lang, ns, "CookieSecure")}</span></label>
+      <label class="ds-check-row"><input class="ds-check" type="checkbox" data-http-cookie-http-only /><span>HttpOnly</span></label>
+      <StatusMessage kind="error" data-http-cookies-error />
+      <StatusMessage kind="success" data-http-cookies-status />
+      <div class="ds-actions">
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" hidden data-http-cookie-cancel>{t(lang, ns, "Cancel")}</button>
+        <button type="submit" class="ds-btn ds-btn-small ds-btn-primary" data-http-cookie-save>{t(lang, ns, "CookieSave")}</button>
+      </div>
+    </form>
   </dialog>
   <dialog class="http-move-dialog http-secrets-dialog" aria-labelledby="http-folder-title" data-http-folder-dialog>
     <div class="http-secrets-head">
@@ -493,6 +550,7 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
           </select>
         </Field>
         <label class="ds-check-row http-redirects"><input class="ds-check" type="checkbox" checked data-http-verify-tls /><span>{t(lang, ns, "VerifyTls")}</span></label>
+        <label class="ds-check-row http-redirects"><input class="ds-check" type="checkbox" checked data-http-use-cookies /><span>{t(lang, ns, "UseCookies")}</span></label>
       </div>
     </div>
     <StatusMessage kind="info" data-http-request-status />
@@ -521,6 +579,7 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
         <button type="button" role="tab" id="http-response-body-tab" aria-selected="true" aria-controls="http-response-body-panel" tabindex="0">{t(lang, ns, "ResponseBody")}</button>
         <button type="button" role="tab" id="http-response-headers-tab" aria-selected="false" aria-controls="http-response-headers-panel" tabindex="-1">{t(lang, ns, "ResponseHeaders")}</button>
         <button type="button" role="tab" id="http-response-tests-tab" aria-selected="false" aria-controls="http-response-tests-panel" tabindex="-1">{t(lang, ns, "TestsLabel")}<span class="http-count mono" data-http-tests-count></span></button>
+        <button type="button" role="tab" id="http-response-cookies-tab" aria-selected="false" aria-controls="http-response-cookies-panel" tabindex="-1" hidden>{t(lang, ns, "CookiesTitle")}<span class="http-count mono" data-http-response-cookies-count></span></button>
         <button type="button" role="tab" id="http-response-timing-tab" aria-selected="false" aria-controls="http-response-timing-panel" tabindex="-1" hidden>{t(lang, ns, "TimingLabel")}</button>
       </div>
       <section id="http-response-body-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-response-body-tab">
@@ -555,6 +614,13 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
         <ul class="http-test-list" data-http-tests-list></ul>
         <h3 class="http-secrets-form-title" hidden data-http-console-title>{t(lang, ns, "ConsoleLabel")}</h3>
         <pre class="ds-code-block mono http-console" tabindex="0" hidden data-http-console></pre>
+      </section>
+      <section id="http-response-cookies-panel" class="http-tab-panel http-response-cookies" role="tabpanel" aria-labelledby="http-response-cookies-tab" hidden>
+        <p class="ds-hint" data-http-response-cookies-empty>{t(lang, ns, "ResponseCookiesEmpty")}</p>
+        <ul class="http-secrets-list" aria-labelledby="http-response-cookies-tab" hidden data-http-response-cookies></ul>
+        <div class="ds-actions">
+          <button type="button" class="ds-btn ds-btn-small" data-http-cookies-manage>{t(lang, ns, "CookiesManage")}</button>
+        </div>
       </section>
       <section id="http-response-timing-panel" class="http-tab-panel http-timing" role="tabpanel" aria-labelledby="http-response-timing-tab" hidden>
         <ol class="http-timing-list" data-http-timing-list></ol>
@@ -715,6 +781,14 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
   .http-secrets-list :global(.http-secret-actions) { display: flex; flex-wrap: wrap; gap: 0.15rem; }
   .http-secrets-list :global(.http-secret-actions .ds-btn) { padding-inline: 0.5rem; }
   .http-secrets-list :global(.http-secret-delete) { color: var(--mdt-danger); }
+  .http-secrets-list :global(.http-cookie-domain) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.35rem 0.75rem; padding: 0.35rem 0.6rem; background: var(--mdt-surface-inset); font-weight: 600; }
+  .http-secrets-list :global(.http-cookie-domain + .http-secret-item), .http-secrets-list :global(.http-secret-item + .http-cookie-domain) { border-top: 1px solid var(--mdt-border-soft); }
+  .http-secrets-list :global(.http-cookie-value) { overflow-wrap: anywhere; font-size: var(--mdt-fs-meta); color: var(--mdt-text-muted); }
+  .http-secrets-list :global(.is-removed .http-secret-name) { text-decoration: line-through; }
+  .http-cookies-tools { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  .http-cookies-tools .ds-field { flex: 1 1 12rem; min-width: 0; }
+  .http-cookies-clear { color: var(--mdt-danger); }
+  .http-response-cookies { display: grid; gap: 0.75rem; padding: 0.75rem 1rem; }
   .http-secrets-form { display: grid; gap: 0.65rem; padding-top: 0.75rem; border-top: 1px solid var(--mdt-border-soft); }
   .http-secrets-form-title { margin: 0; font-size: var(--mdt-fs-label); }
   .http-secrets-form :global(.ds-alert) { margin: 0; }

@@ -1,3 +1,4 @@
+import { RevisionedVaultDocument, type VaultDocumentClient } from "./http-vault-document.ts";
 import type { HttpSavedRequest } from "./http-workspace.ts";
 
 /**
@@ -95,11 +96,7 @@ export function groupHistoryByDay(entries: readonly HttpHistoryEntry[]): { day: 
   return groups;
 }
 
-export interface HistoryVaultClient {
-  listDocuments(): Promise<{ name: string }[]>;
-  readDocument(name: string): Promise<{ revision: number; data: unknown } | null>;
-  writeDocument(name: string, baseRevision: number, data: unknown): Promise<number>;
-}
+export type HistoryVaultClient = VaultDocumentClient;
 
 /** Where history is kept: the browser, or the agent vault next to the workspace. */
 export interface HistoryBackend {
@@ -125,45 +122,19 @@ export class LocalHistoryBackend implements HistoryBackend {
   }
 }
 
-/** Read-modify-write over the document revision; another window's write is re-read and the change applied again. */
+/** History as the agent vault document `http-history`, changed by revision. */
 export class AgentHistoryBackend implements HistoryBackend {
-  #client: HistoryVaultClient;
-  #chain: Promise<unknown> = Promise.resolve();
+  #document: RevisionedVaultDocument<HttpHistoryEntry[]>;
 
-  constructor(client: HistoryVaultClient) {
-    this.#client = client;
+  constructor(client: VaultDocumentClient) {
+    this.#document = new RevisionedVaultDocument(client, HTTP_HISTORY_DOCUMENT, parseHistory, () => []);
   }
 
-  async #read(): Promise<{ entries: HttpHistoryEntry[]; revision: number }> {
-    // Listing first keeps a missing document from showing up as a 404 in the console.
-    const listed = (await this.#client.listDocuments()).some((info) => info.name === HTTP_HISTORY_DOCUMENT);
-    const document = listed ? await this.#client.readDocument(HTTP_HISTORY_DOCUMENT) : null;
-    if (!document) return { entries: [], revision: 0 };
-    const entries = parseHistory(document.data);
-    if (!entries) throw new Error("history_corrupt");
-    return { entries, revision: document.revision };
-  }
-
-  async load(): Promise<HttpHistoryEntry[]> {
-    return (await this.#read()).entries;
+  load(): Promise<HttpHistoryEntry[]> {
+    return this.#document.load();
   }
 
   update(change: (entries: HttpHistoryEntry[]) => HttpHistoryEntry[]): Promise<HttpHistoryEntry[]> {
-    const run = async (): Promise<HttpHistoryEntry[]> => {
-      for (let attempt = 0; ; attempt++) {
-        const current = await this.#read();
-        const entries = change(current.entries);
-        try {
-          await this.#client.writeDocument(HTTP_HISTORY_DOCUMENT, current.revision, { v: 1, entries });
-          return entries;
-        } catch (error) {
-          const conflict = typeof error === "object" && error !== null && "code" in error && error.code === "revision_conflict";
-          if (!conflict || attempt >= 2) throw error;
-        }
-      }
-    };
-    const next = this.#chain.then(run);
-    this.#chain = next.catch(() => undefined);
-    return next;
+    return this.#document.update(change, (entries) => ({ v: 1, entries }));
   }
 }

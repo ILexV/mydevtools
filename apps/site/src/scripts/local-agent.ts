@@ -70,6 +70,23 @@ export interface LocalHttpRequest {
   proxy?: { url: string; username?: string; password?: string; bypass?: string[] };
   /** Vault client certificate by name (`http.client_certificates`, needs `vault.secrets`). */
   clientCertificate?: string;
+  /** The cookie jar (`http.cookies`): picked per hop by the agent; absent leaves cookies to the headers. */
+  cookies?: LocalHttpCookie[];
+}
+
+/** A jar cookie as the agent takes and returns it; `expires` is Unix seconds, absent for a session cookie. */
+export interface LocalHttpCookie {
+  name: string;
+  value: string;
+  /** Lowercase, without a leading dot. */
+  domain: string;
+  path: string;
+  /** Only `domain` itself, not its subdomains. */
+  hostOnly?: boolean;
+  secure?: boolean;
+  httpOnly?: boolean;
+  sameSite?: "Strict" | "Lax" | "None";
+  expires?: number;
 }
 
 /** Phases of the last connection in milliseconds; `tlsMs` is null for http. */
@@ -96,6 +113,8 @@ export interface LocalHttpResponse {
   tls?: { protocol: string; cipher: string; verified: boolean } | null;
   /** Set by the page: the client certificate it asked the agent to present. */
   clientCertificate?: string;
+  /** Jar changes from `Set-Cookie` of every hop when the request sent a jar; a past expiry deletes. */
+  cookies?: LocalHttpCookie[];
 }
 
 interface PairResponse {

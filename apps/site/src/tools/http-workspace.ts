@@ -118,6 +118,8 @@ export interface HttpSavedRequest {
   verifyTls?: boolean;
   /** Missing means auto. */
   httpVersion?: HttpVersionChoice;
+  /** Missing means on: the request sends and updates the cookie jar. */
+  useCookies?: boolean;
 }
 
 export interface HttpSavedFolder {
@@ -267,6 +269,7 @@ function isWorkspace(value: unknown): value is HttpWorkspace {
       || ("scripts" in request && !isScripts(request.scripts))
       || ("examples" in request && !(Array.isArray(request.examples) && request.examples.every(isExample)))
       || ("verifyTls" in request && typeof request.verifyTls !== "boolean")
+      || ("useCookies" in request && typeof request.useCookies !== "boolean")
       || ("httpVersion" in request && !HTTP_VERSION_CHOICES.includes(request.httpVersion))) return false;
     ids.add(request.id);
   }

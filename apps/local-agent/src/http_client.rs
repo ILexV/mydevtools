@@ -2,7 +2,7 @@ use std::time::{Duration, Instant};
 
 use axum::http::{
     HeaderMap, HeaderName, HeaderValue, Method, StatusCode,
-    header::{CONTENT_ENCODING, CONTENT_TYPE, LOCATION},
+    header::{CONTENT_ENCODING, CONTENT_TYPE, COOKIE, LOCATION},
 };
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use bytes::Bytes;
@@ -10,6 +10,7 @@ use tokio_util::sync::CancellationToken;
 use url::Url;
 
 use crate::{
+    cookies::{self, Jar},
     http_transport::{
         self, ClientIdentity, Head, HttpVersionChoice, MAX_RESPONSE_HEADER_BYTES,
         MAX_RESPONSE_HEADERS, Options, Proxy, response_too_large,
@@ -112,6 +113,7 @@ pub(crate) async fn execute(
         Some(record) => Some((record.identity()?, record)),
         None => None,
     };
+    let mut jar = input.cookies.map(Jar::new).transpose()?;
     let options = RequestOptions {
         verify_tls: input.verify_tls,
         version: input.http_version,
@@ -129,6 +131,7 @@ pub(crate) async fn execute(
         config,
         &options,
         &substitutions,
+        jar.as_mut(),
     );
     let output = tokio::select! {
         _ = cancellation.cancelled() => Err(cancelled()),
@@ -140,6 +143,10 @@ pub(crate) async fn execute(
         }
     }?;
 
+    let output = HttpResponseOutput {
+        cookies: jar.map(Jar::into_changes),
+        ..output
+    };
     let output = if substitutions.is_empty() {
         output
     } else {
@@ -167,6 +174,15 @@ fn redact_output(output: HttpResponseOutput, substitutions: &Substitutions) -> H
             })
             .collect(),
         body_base64: body,
+        cookies: output.cookies.map(|cookies| {
+            cookies
+                .into_iter()
+                .map(|cookie| cookies::Cookie {
+                    value: substitutions.redact_str(&cookie.value),
+                    ..cookie
+                })
+                .collect()
+        }),
         ..output
     }
 }
@@ -181,9 +197,14 @@ async fn execute_redirect_chain(
     config: &AgentConfig,
     options: &RequestOptions<'_>,
     substitutions: &Substitutions,
+    mut jar: Option<&mut Jar>,
 ) -> Result<HttpResponseOutput, ApiError> {
     let mut redirects: u8 = 0;
     loop {
+        let jar_cookies = jar
+            .as_deref()
+            .and_then(|jar| jar.header(&url, cookies::now()));
+        let hop_headers = jar_cookies.map(|value| with_jar_cookies(&headers, &value));
         let transport = Options {
             verify_tls: options.verify_tls,
             version: options.version,
@@ -195,8 +216,18 @@ async fn execute_redirect_chain(
                 .filter(|(_, record)| record.allows(&url))
                 .map(|(identity, _)| identity),
         };
-        let head =
-            http_transport::send(&method, &url, &headers, body.clone(), config, &transport).await?;
+        let head = http_transport::send(
+            &method,
+            &url,
+            hop_headers.as_ref().unwrap_or(&headers),
+            body.clone(),
+            config,
+            &transport,
+        )
+        .await?;
+        if let Some(jar) = jar.as_deref_mut() {
+            jar.store(&url, head.headers(), cookies::now());
+        }
 
         if follow_redirects && is_followable_redirect(head.status()) {
             if let Some(location) = head.headers().get(LOCATION) {
@@ -227,6 +258,42 @@ async fn execute_redirect_chain(
 
         return output(head, &url, redirects).await;
     }
+}
+
+/// The hop's headers with the jar's cookies after a `Cookie` header written
+/// by hand; a name set by hand wins over the jar's cookie of the same name.
+fn with_jar_cookies(headers: &HeaderMap, jar_value: &str) -> HeaderMap {
+    let mut headers = headers.clone();
+    let explicit: Vec<String> = headers
+        .get_all(COOKIE)
+        .iter()
+        .filter_map(|value| value.to_str().ok())
+        .map(str::to_owned)
+        .collect();
+    let written: Vec<&str> = explicit
+        .iter()
+        .flat_map(|value| value.split(';'))
+        .filter_map(|pair| pair.split_once('=').map(|(name, _)| name.trim()))
+        .collect();
+    let added: Vec<&str> = jar_value
+        .split("; ")
+        .filter(|pair| {
+            pair.split_once('=')
+                .is_some_and(|(name, _)| !written.contains(&name))
+        })
+        .collect();
+    let combined = explicit
+        .iter()
+        .map(String::as_str)
+        .chain(added)
+        .collect::<Vec<_>>()
+        .join("; ");
+    headers.remove(COOKIE);
+    // from_bytes keeps UTF-8 cookie values that from_str would reject.
+    if let Ok(value) = HeaderValue::from_bytes(combined.as_bytes()) {
+        headers.insert(COOKIE, value);
+    }
+    headers
 }
 
 /// Per-request transport settings from the page.
@@ -333,6 +400,7 @@ async fn output(head: Head, url: &Url, redirects: u8) -> Result<HttpResponseOutp
         timings: exchange.timings,
         redirects,
         tls: exchange.tls,
+        cookies: None,
     })
 }
 

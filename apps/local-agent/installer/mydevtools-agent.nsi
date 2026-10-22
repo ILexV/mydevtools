@@ -3,7 +3,7 @@
 ; %LOCALAPPDATA%\MyDevTools\Agent. It does not install a Windows service and
 ; does not check for updates on its own.
 ;
-; makensis -INPUTCHARSET UTF8 -DPRODUCT_VERSION=0.2.0 -DPRODUCT_VERSION_QUAD=0.2.0.0
+; makensis -INPUTCHARSET UTF8 -DPRODUCT_VERSION=0.3.0 -DPRODUCT_VERSION_QUAD=0.3.0.0
 ;   -DPAYLOAD=...\mydevtools-local-agent.exe -DOUTFILE=...\setup.exe -DICON=...\mydevtools.ico
 ;   installer/mydevtools-agent.nsi
 

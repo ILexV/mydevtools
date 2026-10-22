@@ -27,7 +27,9 @@ use crate::{
     },
     state::AgentState,
     tcp, tls,
-    vault::{DocumentDelete, DocumentName, DocumentWrite, SecretName, SecretWrite},
+    vault::{
+        CertificateWrite, DocumentDelete, DocumentName, DocumentWrite, SecretName, SecretWrite,
+    },
     whois,
 };
 
@@ -71,6 +73,18 @@ pub(crate) fn router(state: Arc<AgentState>) -> Router {
             post(vault_document_delete).options(preflight),
         )
         .route("/v1/vault/secrets", get(vault_secrets).options(preflight))
+        .route(
+            "/v1/vault/certificates",
+            get(vault_certificates).options(preflight),
+        )
+        .route(
+            "/v1/vault/certificate/write",
+            post(vault_certificate_write).options(preflight),
+        )
+        .route(
+            "/v1/vault/certificate/delete",
+            post(vault_certificate_delete).options(preflight),
+        )
         .route(
             "/v1/vault/secret/write",
             post(vault_secret_write).options(preflight),
@@ -159,14 +173,31 @@ async fn http_request(
     let secrets = if http_client::mentions_secret(&input) {
         state.authorize_vault_secrets(authorization.as_deref(), &origin)?;
         let vault = Arc::clone(&state.vault);
+        let origin = origin.clone();
         Some(run_vault(move || vault.secret_book(&origin)).await?)
     } else {
         None
     };
+    // A client certificate is a vault secret too: its key stays in the agent.
+    let certificate = match input.client_certificate.clone() {
+        Some(name) => {
+            state.authorize_vault_secrets(authorization.as_deref(), &origin)?;
+            let vault = Arc::clone(&state.vault);
+            Some(run_vault(move || vault.certificate(&origin, &name)).await?)
+        }
+        None => None,
+    };
     let permit = state.try_acquire_request_slot()?;
     let cancellation = CancellationToken::new();
     let active_request = state.register_request(session_key, request_id, cancellation.clone())?;
-    let result = http_client::execute(input, &state.config, cancellation, secrets.as_ref()).await;
+    let result = http_client::execute(
+        input,
+        &state.config,
+        cancellation,
+        secrets.as_ref(),
+        certificate.as_ref(),
+    )
+    .await;
     drop(active_request);
     drop(permit);
     Ok((StatusCode::OK, Json(result?)))
@@ -395,6 +426,42 @@ async fn vault_secret_delete(
     Ok(StatusCode::NO_CONTENT)
 }
 
+/// Client certificate names, hosts, subjects and expiry; never keys. `vault.secrets` only.
+async fn vault_certificates(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<impl IntoResponse, ApiError> {
+    let origin = authorize_vault_secrets(&state, request.headers())?;
+    let vault = Arc::clone(&state.vault);
+    let certificates = run_vault(move || vault.list_certificates(&origin)).await?;
+    Ok((
+        StatusCode::OK,
+        Json(json!({ "certificates": certificates })),
+    ))
+}
+
+async fn vault_certificate_write(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<StatusCode, ApiError> {
+    let origin = authorize_vault_secrets(&state, request.headers())?;
+    let input: CertificateWrite = parse_json(request).await?;
+    let vault = Arc::clone(&state.vault);
+    run_vault(move || vault.write_certificate(&origin, input)).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+async fn vault_certificate_delete(
+    State(state): State<Arc<AgentState>>,
+    request: Request,
+) -> Result<StatusCode, ApiError> {
+    let origin = authorize_vault_secrets(&state, request.headers())?;
+    let input: SecretName = parse_json(request).await?;
+    let vault = Arc::clone(&state.vault);
+    run_vault(move || vault.delete_certificate(&origin, &input.name)).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
 /// Vault file work is blocking and serialized by the vault's own lock.
 async fn run_vault<T: Send + 'static>(
     work: impl FnOnce() -> Result<T, ApiError> + Send + 'static,
@@ -480,7 +547,11 @@ fn valid_preflight(request: &Request) -> bool {
         HeaderName::from_static("access-control-request-method"),
     );
     let expected_method = match request.uri().path() {
-        "/v1/info" | "/v1/icmp/interfaces" | "/v1/vault/documents" | "/v1/vault/secrets" => "GET",
+        "/v1/info"
+        | "/v1/icmp/interfaces"
+        | "/v1/vault/documents"
+        | "/v1/vault/secrets"
+        | "/v1/vault/certificates" => "GET",
         "/v1/pair"
         | "/v1/http/request"
         | "/v1/http/cancel"
@@ -497,7 +568,9 @@ fn valid_preflight(request: &Request) -> bool {
         | "/v1/vault/document/write"
         | "/v1/vault/document/delete"
         | "/v1/vault/secret/write"
-        | "/v1/vault/secret/delete" => "POST",
+        | "/v1/vault/secret/delete"
+        | "/v1/vault/certificate/write"
+        | "/v1/vault/certificate/delete" => "POST",
         "/v1/session" => "DELETE",
         _ => return false,
     };

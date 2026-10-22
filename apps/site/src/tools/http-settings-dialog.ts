@@ -10,6 +10,8 @@ export function bindClientSettingsDialog(dialog: HTMLDialogElement, options: {
   strings: { ProxyUrlInvalid: string };
   workspace(): HttpWorkspace;
   changed(): void;
+  /** Runs after the window opens, for agent-backed sections. */
+  opened?(): void;
 }): { open(trigger: HTMLElement): void } {
   const enabled = dialog.querySelector<HTMLInputElement>("[data-http-proxy-enabled]")!;
   const url = dialog.querySelector<HTMLInputElement>("[data-http-proxy-url]")!;
@@ -48,6 +50,7 @@ export function bindClientSettingsDialog(dialog: HTMLDialogElement, options: {
       validate();
       remember(trigger);
       dialog.showModal();
+      options.opened?.();
     },
   };
 }

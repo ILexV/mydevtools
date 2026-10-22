@@ -78,3 +78,26 @@ export function timingPhases(response: LocalHttpResponse): { phase: TimingPhase;
 export function formatPhaseMs(ms: number): string {
   return ms < 100 ? `${(Math.round(ms * 10) / 10).toFixed(1)} ms` : `${Math.round(ms)} ms`;
 }
+
+export const HTTP_CLIENT_CERTIFICATES_FEATURE = "http.client_certificates";
+
+/** The agent's host rule: the exact host, or `*.domain` for its subdomains only. */
+export function hostMatches(pattern: string, host: string): boolean {
+  if (!pattern.startsWith("*.")) return pattern === host;
+  const domain = pattern.slice(2);
+  return host.length > domain.length + 1 && host.endsWith(`.${domain}`);
+}
+
+/** The first certificate (by name) whose hosts cover the URL, as Postman picks one per host. */
+export function certificateFor(url: string, certificates: readonly { name: string; hosts: readonly string[] }[]): string | undefined {
+  let host: string;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:") return undefined;
+    host = parsed.hostname.toLowerCase();
+  } catch {
+    return undefined;
+  }
+  return [...certificates].sort((left, right) => left.name.localeCompare(right.name))
+    .find((certificate) => certificate.hosts.some((pattern) => hostMatches(pattern, host)))?.name;
+}

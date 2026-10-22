@@ -324,3 +324,287 @@ async fn proxy_is_policy_checked_validated_and_bypassed_by_host() {
     assert_eq!(body_text(&reply), "direct");
     server.await.unwrap();
 }
+
+struct Pki {
+    ca: CertificateDer<'static>,
+    client_cert: String,
+    client_key: String,
+    other_key: String,
+}
+
+/// A CA, a client certificate it signed (CN=mdt-client) and an unrelated key.
+fn client_pki() -> Pki {
+    let dir = std::env::temp_dir().join(format!("mdt-mtls-{}", Uuid::new_v4()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let run = |args: &[&str]| {
+        let status = std::process::Command::new("openssl")
+            .args(args)
+            .current_dir(&dir)
+            .stderr(std::process::Stdio::null())
+            .stdout(std::process::Stdio::null())
+            .status()
+            .expect("openssl");
+        assert!(status.success(), "openssl {args:?}");
+    };
+    run(&[
+        "req",
+        "-x509",
+        "-newkey",
+        "ec",
+        "-pkeyopt",
+        "ec_paramgen_curve:P-256",
+        "-keyout",
+        "ca.key",
+        "-out",
+        "ca.pem",
+        "-days",
+        "2",
+        "-nodes",
+        "-subj",
+        "/CN=mdt-test-ca",
+    ]);
+    run(&[
+        "req",
+        "-newkey",
+        "ec",
+        "-pkeyopt",
+        "ec_paramgen_curve:P-256",
+        "-keyout",
+        "client.key",
+        "-out",
+        "client.csr",
+        "-nodes",
+        "-subj",
+        "/CN=mdt-client",
+    ]);
+    std::fs::write(dir.join("ext.cnf"), "extendedKeyUsage=clientAuth\n").unwrap();
+    run(&[
+        "x509",
+        "-req",
+        "-in",
+        "client.csr",
+        "-CA",
+        "ca.pem",
+        "-CAkey",
+        "ca.key",
+        "-CAcreateserial",
+        "-out",
+        "client.pem",
+        "-days",
+        "2",
+        "-extfile",
+        "ext.cnf",
+    ]);
+    run(&[
+        "genpkey",
+        "-algorithm",
+        "EC",
+        "-pkeyopt",
+        "ec_paramgen_curve:P-256",
+        "-out",
+        "other.key",
+    ]);
+    let read = |name: &str| std::fs::read_to_string(dir.join(name)).unwrap();
+    let pki = Pki {
+        ca: CertificateDer::from_pem_slice(read("ca.pem").as_bytes()).unwrap(),
+        client_cert: read("client.pem"),
+        client_key: read("client.key"),
+        other_key: read("other.key"),
+    };
+    let _ = std::fs::remove_dir_all(&dir);
+    pki
+}
+
+/// HTTPS server that requires a client certificate from `ca` and echoes the result.
+async fn spawn_mtls(ca: CertificateDer<'static>) -> (u16, tokio::task::JoinHandle<()>) {
+    let _ = rustls::crypto::ring::default_provider().install_default();
+    let (cert, key) = self_signed();
+    let mut roots = rustls::RootCertStore::empty();
+    roots.add(ca).unwrap();
+    let verifier = rustls::server::WebPkiClientVerifier::builder(Arc::new(roots))
+        .build()
+        .unwrap();
+    let config = rustls::ServerConfig::builder()
+        .with_client_cert_verifier(verifier)
+        .with_single_cert(vec![cert], key)
+        .unwrap();
+    let acceptor = TlsAcceptor::from(Arc::new(config));
+    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let port = listener.local_addr().unwrap().port();
+    let task = tokio::spawn(async move {
+        while let Ok((stream, _)) = listener.accept().await {
+            let acceptor = acceptor.clone();
+            tokio::spawn(async move {
+                let Ok(mut tls) = acceptor.accept(stream).await else {
+                    return;
+                };
+                let presented = tls.get_ref().1.peer_certificates().map_or(0, <[_]>::len);
+                let mut buffer = [0_u8; 4096];
+                let read = tls.read(&mut buffer).await.unwrap_or(0);
+                // `/hop` sends the client on to the same server under another host name.
+                let reply = if buffer[..read].starts_with(b"GET /hop ") {
+                    format!(
+                        "HTTP/1.1 302 Found\r\nLocation: https://localhost:{port}/\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+                    )
+                } else {
+                    let body = format!("client chain {presented}");
+                    format!(
+                        "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                        body.len()
+                    )
+                };
+                let _ = tls.write_all(reply.as_bytes()).await;
+                let _ = tls.shutdown().await;
+            });
+        }
+    });
+    (port, task)
+}
+
+#[tokio::test]
+async fn client_certificates_are_validated_host_bound_and_keys_never_listed() {
+    use crate::security_tests::{
+        ORIGIN, TempDir, call, origin_request, pair_from, vault_app, vault_files,
+    };
+
+    let pki = client_pki();
+    let dir = TempDir::new();
+    let (state, app) = vault_app(true, Some(dir.0.clone()));
+    let token = pair_from(
+        &state,
+        &app,
+        ORIGIN,
+        json!(["http.request", "vault.secrets"]),
+    )
+    .await;
+    let http_only = pair_from(&state, &app, ORIGIN, json!(["http.request"])).await;
+    let write = |body: Value| {
+        origin_request(
+            ORIGIN,
+            Method::POST,
+            "/v1/vault/certificate/write",
+            Some(body),
+            &token,
+        )
+    };
+
+    let bad = [
+        json!({"name": "c", "hosts": ["127.0.0.1"], "certificatePem": "nope", "keyPem": pki.client_key}),
+        json!({"name": "c", "hosts": ["127.0.0.1"], "certificatePem": pki.client_cert, "keyPem": pki.other_key}),
+        json!({"name": "c", "hosts": ["127.0.0.1"], "certificatePem": pki.client_cert}),
+    ];
+    assert_eq!(
+        call(&app, write(bad[0].clone())).await.1["error"]["code"],
+        "client_certificate_invalid"
+    );
+    assert_eq!(
+        call(&app, write(bad[1].clone())).await.1["error"]["code"],
+        "client_certificate_invalid"
+    );
+    assert_eq!(
+        call(&app, write(bad[2].clone())).await.0,
+        StatusCode::BAD_REQUEST
+    );
+    assert_eq!(
+        call(&app, write(json!({"name": "c", "hosts": ["127.0.0.1"]})))
+            .await
+            .0,
+        StatusCode::NOT_FOUND
+    );
+    let good = json!({"name": "client", "hosts": ["localhost"], "certificatePem": pki.client_cert, "keyPem": pki.client_key});
+    assert_eq!(call(&app, write(good)).await.0, StatusCode::NO_CONTENT);
+
+    let (status, listed) = call(
+        &app,
+        origin_request(ORIGIN, Method::GET, "/v1/vault/certificates", None, &token),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let entry = &listed["certificates"][0];
+    assert_eq!(entry["name"], "client");
+    assert_eq!(entry["hosts"], json!(["localhost"]));
+    assert!(entry["subject"].as_str().unwrap().contains("mdt-client"));
+    assert!(entry["notAfter"].is_string());
+    let text = listed.to_string();
+    assert!(!text.contains("PRIVATE KEY") && !text.contains("BEGIN CERTIFICATE"));
+    let key_line = pki.client_key.lines().nth(1).unwrap();
+    for file in vault_files(&dir.0) {
+        let bytes = std::fs::read(file).unwrap();
+        assert!(
+            !String::from_utf8_lossy(&bytes).contains(key_line),
+            "key stored in clear"
+        );
+    }
+    let denied = origin_request(
+        ORIGIN,
+        Method::GET,
+        "/v1/vault/certificates",
+        None,
+        &http_only,
+    );
+    assert_eq!(call(&app, denied).await.0, StatusCode::FORBIDDEN);
+
+    let (port, server) = spawn_mtls(pki.ca.clone()).await;
+    let input = |certificate: Option<&str>| {
+        let mut input = http_input(Uuid::new_v4(), format!("https://127.0.0.1:{port}/"), false);
+        input["verifyTls"] = json!(false);
+        if let Some(name) = certificate {
+            input["clientCertificate"] = json!(name);
+        }
+        input
+    };
+    let send = |input: Value, token: &str| {
+        origin_request(ORIGIN, Method::POST, "/v1/http/request", Some(input), token)
+    };
+
+    // The certificate lists localhost, not 127.0.0.1.
+    let (status, reply) = call(&app, send(input(Some("client")), &token)).await;
+    assert_eq!(
+        (status, reply["error"]["code"].as_str()),
+        (StatusCode::FORBIDDEN, Some("certificate_host_denied"))
+    );
+    let hosts_only = json!({"name": "client", "hosts": ["127.0.0.1", "localhost"]});
+    assert_eq!(
+        call(&app, write(hosts_only)).await.0,
+        StatusCode::NO_CONTENT
+    );
+
+    let (status, reply) = call(&app, send(input(Some("client")), &token)).await;
+    assert_eq!(status, StatusCode::OK, "{reply}");
+    assert_eq!(body_text(&reply), "client chain 1");
+    let (status, _) = call(&app, send(input(None), &token)).await;
+    assert_eq!(status, StatusCode::BAD_GATEWAY);
+    let (status, _) = call(&app, send(input(Some("client")), &http_only)).await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+
+    // Every redirect hop is checked against the hosts: localhost gets the
+    // certificate only while it is listed, else the server refuses the handshake.
+    let hop = || {
+        let mut hop = input(Some("client"));
+        hop["url"] = json!(format!("https://127.0.0.1:{port}/hop"));
+        hop["followRedirects"] = json!(true);
+        hop
+    };
+    let (status, reply) = call(&app, send(hop(), &token)).await;
+    assert_eq!(status, StatusCode::OK, "{reply}");
+    assert_eq!(body_text(&reply), "client chain 1");
+    let first_host_only = json!({"name": "client", "hosts": ["127.0.0.1"]});
+    assert_eq!(
+        call(&app, write(first_host_only)).await.0,
+        StatusCode::NO_CONTENT
+    );
+    let (status, _) = call(&app, send(hop(), &token)).await;
+    assert_eq!(status, StatusCode::BAD_GATEWAY);
+
+    let delete = origin_request(
+        ORIGIN,
+        Method::POST,
+        "/v1/vault/certificate/delete",
+        Some(json!({"name": "client"})),
+        &token,
+    );
+    assert_eq!(call(&app, delete).await.0, StatusCode::NO_CONTENT);
+    let (_, reply) = call(&app, send(input(Some("client")), &token)).await;
+    assert_eq!(reply["error"]["code"], "certificate_not_found");
+    server.abort();
+}

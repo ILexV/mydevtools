@@ -182,7 +182,11 @@ async fn handshake(
         return Err(HandshakeStop::Failed);
     }
     let trusted = chain_is_trusted(&ders, &server_name);
-    let certificates = ders.iter().take(MAX_CHAIN).map(describe_cert).collect();
+    let certificates = ders
+        .iter()
+        .take(MAX_CHAIN)
+        .map(describe_certificate)
+        .collect();
     Ok(Done {
         protocol,
         cipher,
@@ -245,7 +249,8 @@ fn chain_is_trusted(ders: &[CertificateDer<'static>], server_name: &ServerName<'
         .is_ok()
 }
 
-fn describe_cert(der: &CertificateDer<'_>) -> TlsCertificate {
+/// Subject, issuer, validity and SHA-256 of one certificate.
+pub(crate) fn describe_certificate(der: &CertificateDer<'_>) -> TlsCertificate {
     let mut hasher = Sha256::new();
     hasher.update(der.as_ref());
     let sha256 = hex::encode(hasher.finalize());

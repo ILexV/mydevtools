@@ -19,7 +19,8 @@ use hyper::client::conn::{http1, http2};
 use hyper_util::rt::{TokioExecutor, TokioIo};
 use rustls::{
     ClientConfig, RootCertStore,
-    pki_types::{CertificateDer, PrivateKeyDer, ServerName},
+    pki_types::{CertificateDer, PrivateKeyDer, ServerName, pem::PemObject},
+    sign::CertifiedKey,
 };
 use serde::{Deserialize, Serialize};
 use tokio::{
@@ -41,6 +42,7 @@ pub(crate) const MAX_RESPONSE_HEADER_BYTES: usize = 128 * 1024;
 const MAX_PINNED_ADDRESSES: usize = 16;
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(30);
 const MAX_PROXY_REPLY_BYTES: usize = 16 * 1024;
+const MAX_CLIENT_CHAIN: usize = 8;
 const USER_AGENT_VALUE: &str = concat!("MyDevTools-Local-Agent/", env!("CARGO_PKG_VERSION"));
 
 /// Postman's "HTTP version" request setting. `auto` offers h2 and HTTP/1.1 by ALPN.
@@ -66,6 +68,24 @@ pub(crate) struct Proxy {
 pub(crate) struct ClientIdentity {
     pub(crate) chain: Vec<CertificateDer<'static>>,
     pub(crate) key: PrivateKeyDer<'static>,
+}
+
+impl ClientIdentity {
+    /// An unencrypted PEM key (PKCS#8, PKCS#1 or SEC1) and a PEM chain, leaf first.
+    pub(crate) fn from_pem(certificate_pem: &str, key_pem: &str) -> Result<Self, ApiError> {
+        let invalid = || ApiError::new(StatusCode::BAD_REQUEST, "client_certificate_invalid");
+        let chain = CertificateDer::pem_slice_iter(certificate_pem.as_bytes())
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|_| invalid())?;
+        if chain.is_empty() || chain.len() > MAX_CLIENT_CHAIN {
+            return Err(invalid());
+        }
+        let key = PrivateKeyDer::from_pem_slice(key_pem.as_bytes()).map_err(|_| invalid())?;
+        // Loads the key and checks it belongs to the leaf certificate.
+        CertifiedKey::from_der(chain.clone(), key.clone_key(), &tls::provider())
+            .map_err(|_| invalid())?;
+        Ok(Self { chain, key })
+    }
 }
 
 pub(crate) struct Options<'a> {

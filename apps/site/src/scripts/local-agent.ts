@@ -68,6 +68,8 @@ export interface LocalHttpRequest {
   verifyTls?: boolean;
   httpVersion?: "auto" | "http1" | "http2";
   proxy?: { url: string; username?: string; password?: string; bypass?: string[] };
+  /** Vault client certificate by name (`http.client_certificates`, needs `vault.secrets`). */
+  clientCertificate?: string;
 }
 
 /** Phases of the last connection in milliseconds; `tlsMs` is null for http. */
@@ -92,6 +94,8 @@ export interface LocalHttpResponse {
   timings?: LocalHttpTimings;
   redirects?: number;
   tls?: { protocol: string; cipher: string; verified: boolean } | null;
+  /** Set by the page: the client certificate it asked the agent to present. */
+  clientCertificate?: string;
 }
 
 interface PairResponse {
@@ -304,6 +308,25 @@ function asVaultDocumentInfo(value: unknown): VaultDocumentInfo {
     throw new LocalAgentError("invalid_response");
   }
   return { name: value.name, revision: value.revision, updatedAt: value.updatedAt };
+}
+
+/** A client certificate in the agent vault; the key is never returned. */
+export interface VaultCertificateInfo {
+  name: string;
+  hosts: string[];
+  subject: string;
+  notAfter: string | null;
+  updatedAt: string;
+}
+
+function asVaultCertificateInfo(value: unknown): VaultCertificateInfo {
+  if (!isObject(value) || typeof value.name !== "string" || typeof value.updatedAt !== "string" || typeof value.subject !== "string"
+    || !(value.notAfter === null || value.notAfter === undefined || typeof value.notAfter === "string")
+    || !Array.isArray(value.hosts) || !value.hosts.every((host) => typeof host === "string")) {
+    throw new LocalAgentError("invalid_response");
+  }
+  return { name: value.name, hosts: value.hosts as string[], subject: value.subject, notAfter: (value.notAfter as string | undefined) ?? null,
+    updatedAt: value.updatedAt };
 }
 
 function asVaultSecretInfo(value: unknown): VaultSecretInfo {
@@ -738,6 +761,30 @@ export class LocalAgentClient {
 
   async deleteSecret(name: string): Promise<void> {
     await this.#authorized<void>("/v1/vault/secret/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+  }
+
+  /** Client certificate names, hosts, subjects and expiry. Requires `vault.secrets`. */
+  async listCertificates(signal?: AbortSignal): Promise<VaultCertificateInfo[]> {
+    const value = await this.#authorized<unknown>("/v1/vault/certificates", { method: "GET", signal });
+    if (!isObject(value) || !Array.isArray(value.certificates)) throw new LocalAgentError("invalid_response");
+    return value.certificates.map(asVaultCertificateInfo);
+  }
+
+  /** Stores a certificate chain and its unencrypted key (PEM); omit `pems` to change only the hosts. */
+  async writeCertificate(name: string, hosts: readonly string[], pems?: { certificatePem: string; keyPem: string }): Promise<void> {
+    await this.#authorized<void>("/v1/vault/certificate/write", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, hosts, ...pems }),
+    });
+  }
+
+  async deleteCertificate(name: string): Promise<void> {
+    await this.#authorized<void>("/v1/vault/certificate/delete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),

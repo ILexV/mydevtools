@@ -3,6 +3,7 @@ import { t } from "@/i18n/messages";
 import type { LocaleCode } from "@/registry/locales";
 import AgentConnection from "@/components/tool/AgentConnection.astro";
 import Field from "@/components/tool/Field.astro";
+import FileButton from "@/components/tool/FileButton.astro";
 import Icon from "@/components/Icon.astro";
 import OutputPanel from "@/components/tool/OutputPanel.astro";
 import StatusMessage from "@/components/tool/StatusMessage.astro";
@@ -49,6 +50,9 @@ const clientKeys = [
   "ConnectionRemote", "ConnectionTls", "ConnectionCertificate", "CertificateVerified", "CertificateNotVerified", "ConnectionRedirects",
   "ClientSettings", "ProxyUrlInvalid", "Error_tls_certificate_invalid", "Error_tls_handshake_failed", "Error_http2_unsupported",
   "Error_proxy_failed", "Error_proxy_auth_required", "Error_proxy_invalid", "Error_agent_outdated",
+  "CertificateAddTitle", "CertificateEditTitle", "CertificateEdit", "CertificateDelete", "CertificateDeleteConfirm", "CertificateSaved",
+  "CertificateDeleted", "CertificateFilesRequired", "CertificateExpires", "ConnectionClientCertificate",
+  "Error_client_certificate_invalid", "Error_certificate_not_found", "Error_certificate_host_denied",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
 const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhrases(lang) });
@@ -200,6 +204,34 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
       <span id="http-proxy-bypass-hint" class="ds-hint">{t(lang, ns, "ProxyBypassHint")}</span>
     </label>
     <StatusMessage kind="error" id="http-proxy-error" data-http-proxy-error />
+    <h3 class="http-secrets-form-title">{t(lang, ns, "CertificatesTitle")}</h3>
+    <p class="ds-hint http-secrets-hint">{t(lang, ns, "CertificatesHint")}</p>
+    <p class="ds-hint" data-http-certs-unavailable>{t(lang, ns, "CertificatesUnavailable")}</p>
+    <div class="http-certs" hidden data-http-certs>
+      <ul class="http-secrets-list" aria-label={t(lang, ns, "CertificatesTitle")} hidden data-http-certs-list></ul>
+      <p class="ds-hint" data-http-certs-empty>{t(lang, ns, "CertificatesEmpty")}</p>
+      <form class="http-secrets-form" novalidate data-http-certs-form>
+        <h4 class="http-secrets-form-title" data-http-certs-form-title>{t(lang, ns, "CertificateAddTitle")}</h4>
+        <label class="http-move-field">
+          <span>{t(lang, ns, "SecretName")}</span>
+          <input class="ds-field mono" type="text" maxlength="64" autocomplete="off" spellcheck="false" placeholder="client-cert" required data-http-cert-name />
+        </label>
+        <label class="http-move-field">
+          <span>{t(lang, ns, "SecretHosts")}</span>
+          <input class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder="api.example.com, *.example.com" aria-describedby="http-cert-hosts-hint" required data-http-cert-hosts />
+          <span id="http-cert-hosts-hint" class="ds-hint">{t(lang, ns, "CertificateHostsHint")}</span>
+        </label>
+        <FileButton label={t(lang, ns, "CertificateFile")} accept=".pem,.crt,.cer" inputProps={{ "data-http-cert-file": true }} nameProps={{ "data-http-cert-file-name": true }} />
+        <FileButton label={t(lang, ns, "CertificateKeyFile")} accept=".pem,.key" inputProps={{ "data-http-cert-key": true }} nameProps={{ "data-http-cert-key-name": true }} />
+        <span class="ds-hint" hidden data-http-cert-keep>{t(lang, ns, "CertificateKeep")}</span>
+        <StatusMessage kind="error" data-http-certs-error />
+        <StatusMessage kind="success" data-http-certs-status />
+        <div class="ds-actions">
+          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" hidden data-http-cert-cancel>{t(lang, ns, "Cancel")}</button>
+          <button type="submit" class="ds-btn ds-btn-small ds-btn-primary" data-http-cert-save>{t(lang, ns, "CertificateSave")}</button>
+        </div>
+      </form>
+    </div>
   </dialog>
   <dialog class="http-move-dialog http-secrets-dialog" aria-labelledby="http-folder-title" data-http-folder-dialog>
     <div class="http-secrets-head">
@@ -789,6 +821,9 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
   .http-response :global(.ds-actions) { margin-left: auto; flex-wrap: wrap; gap: 0.6rem; }
   .http-response :global(.ds-empty-state) { min-height: 23rem; }
   .http-result { min-width: 0; }
+  .http-certs { display: grid; gap: 0.75rem; }
+  .http-certs[hidden] { display: none; }
+  .http-certs h4 { margin: 0; }
   .http-proxy-auth { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
   .http-timing { display: grid; gap: 0.75rem; padding: 0.75rem 1rem; }
   .http-timing[hidden] { display: none; }

@@ -1538,12 +1538,13 @@ async fn tcp_connect_is_one_port_and_a_separate_capability() {
     assert!(opened["elapsedMs"].as_u64().is_some());
     drop(listener);
 
+    let (_held, closed_port) = held_closed_port();
     let refused = app
         .clone()
         .oneshot(request(
             Method::POST,
             "/v1/tcp/connect",
-            Some(json!({"host": "127.0.0.1", "port": open_port, "timeoutMs": 3000})),
+            Some(json!({"host": "127.0.0.1", "port": closed_port, "timeoutMs": 3000})),
             Some(token),
         ))
         .await
@@ -1719,12 +1720,13 @@ async fn tls_inspect_is_one_handshake_and_a_separate_capability() {
     assert_eq!(certificates[0]["sha256"].as_str().map(str::len), Some(64));
     server.abort();
 
+    let (_held, closed_port) = held_closed_port();
     let refused = app
         .clone()
         .oneshot(request(
             Method::POST,
             "/v1/tls/inspect",
-            Some(json!({"host": "127.0.0.1", "port": listen_port, "timeoutMs": 3000})),
+            Some(json!({"host": "127.0.0.1", "port": closed_port, "timeoutMs": 3000})),
             Some(token),
         ))
         .await
@@ -1748,6 +1750,17 @@ async fn tls_inspect_is_one_handshake_and_a_separate_capability() {
         response_json(private).await["error"]["code"],
         "private_network_denied"
     );
+}
+
+/// A loopback port that refuses connections and stays reserved while the socket lives:
+/// bound without `listen`, so parallel tests cannot pick it up the way they can a dropped listener's.
+fn held_closed_port() -> (tokio::net::TcpSocket, u16) {
+    let socket = tokio::net::TcpSocket::new_v4().expect("socket");
+    socket
+        .bind("127.0.0.1:0".parse().expect("address"))
+        .expect("bind");
+    let port = socket.local_addr().expect("address").port();
+    (socket, port)
 }
 
 async fn spawn_test_tls() -> (u16, tokio::task::JoinHandle<()>) {
@@ -2146,10 +2159,10 @@ async fn asn_lookup_uses_the_local_prefix_table_and_a_separate_capability() {
 
 const SECOND_ORIGIN: &str = "http://127.0.0.1:3312";
 
-struct TempDir(std::path::PathBuf);
+pub(super) struct TempDir(pub(super) std::path::PathBuf);
 
 impl TempDir {
-    fn new() -> Self {
+    pub(super) fn new() -> Self {
         let path = std::env::temp_dir().join(format!("mdt-vault-test-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&path).unwrap();
         Self(path)
@@ -2162,7 +2175,7 @@ impl Drop for TempDir {
     }
 }
 
-fn vault_app(
+pub(super) fn vault_app(
     allow_private: bool,
     data_dir: Option<std::path::PathBuf>,
 ) -> (Arc<AgentState>, Router) {
@@ -2176,7 +2189,7 @@ fn vault_app(
     (state, app)
 }
 
-fn origin_request(
+pub(super) fn origin_request(
     origin: &str,
     method: Method,
     path: &str,
@@ -2190,7 +2203,12 @@ fn origin_request(
     request
 }
 
-async fn pair_from(state: &AgentState, app: &Router, origin: &str, capabilities: Value) -> String {
+pub(super) async fn pair_from(
+    state: &AgentState,
+    app: &Router,
+    origin: &str,
+    capabilities: Value,
+) -> String {
     state.replace_pairing_code([0x11; 16]);
     let mut pair = request(
         Method::POST,
@@ -2207,7 +2225,7 @@ async fn pair_from(state: &AgentState, app: &Router, origin: &str, capabilities:
         .to_owned()
 }
 
-async fn call(app: &Router, request: Request<Body>) -> (StatusCode, Value) {
+pub(super) async fn call(app: &Router, request: Request<Body>) -> (StatusCode, Value) {
     let response = app.clone().oneshot(request).await.unwrap();
     let status = response.status();
     let body = to_bytes(response.into_body(), 32 * 1024 * 1024)
@@ -2221,7 +2239,7 @@ async fn call(app: &Router, request: Request<Body>) -> (StatusCode, Value) {
     (status, json)
 }
 
-fn vault_files(root: &std::path::Path) -> Vec<std::path::PathBuf> {
+pub(super) fn vault_files(root: &std::path::Path) -> Vec<std::path::PathBuf> {
     let mut files = Vec::new();
     for entry in std::fs::read_dir(root).unwrap() {
         let path = entry.unwrap().path();

@@ -11,6 +11,7 @@ import {
   mergeCapabilities,
   type LocalAgentHeader,
   type LocalHttpResponse,
+  type VaultCertificateInfo,
 } from "@/scripts/local-agent";
 import { bindAgentPopover, onAgentSessionSaved } from "@/scripts/agent-popover";
 import {
@@ -68,10 +69,13 @@ import { createFileField, FileStore } from "@/tools/http-file-field";
 import { createFormDataEditor, createRowsEditor, type FormDataStrings } from "@/tools/http-rows-editor";
 import { bindEnvironmentsDialog, bindFolderDialog, type ScopeDialogStrings } from "@/tools/http-scope-dialogs";
 import { collectVariables, encodeQueryComponent, variableNames } from "@/tools/http-variables";
-import { formatPhaseMs, HTTP_OPTIONS_FEATURE, proxyUrlError, timingPhases, transportFields } from "@/tools/http-transport-options";
+import {
+  certificateFor, formatPhaseMs, HTTP_CLIENT_CERTIFICATES_FEATURE, HTTP_OPTIONS_FEATURE, proxyUrlError, timingPhases, transportFields,
+} from "@/tools/http-transport-options";
 import { bindClientSettingsDialog } from "@/tools/http-settings-dialog";
+import { bindCertificatesSection, type CertificatesStrings } from "@/tools/http-certificates-section";
 
-interface Strings extends SecretsDialogStrings, ScopeDialogStrings, FormDataStrings, HistoryPanelStrings, ScriptsPanelStrings, RunnerStrings {
+interface Strings extends CertificatesStrings, SecretsDialogStrings, ScopeDialogStrings, FormDataStrings, HistoryPanelStrings, ScriptsPanelStrings, RunnerStrings {
   LastResponse: string;
   ExampleSaved: string;
   ExampleTooLarge: string;
@@ -189,6 +193,7 @@ interface Strings extends SecretsDialogStrings, ScopeDialogStrings, FormDataStri
   CertificateVerified: string;
   CertificateNotVerified: string;
   ConnectionRedirects: string;
+  ConnectionClientCertificate: string;
   ClientSettings: string;
   ProxyUrlInvalid: string;
   [key: `Error_${string}`]: string;
@@ -655,9 +660,31 @@ function init(): void {
   };
   const environments = bindEnvironmentsDialog(envDialog, scopeOptions);
   const folderSettings = bindFolderDialog(folderDialog, scopeOptions);
-  const clientSettings = bindClientSettingsDialog(root.querySelector<HTMLDialogElement>("[data-http-settings-dialog]")!, {
-    strings: s, workspace: () => workspace, changed: scheduleWorkspaceSave,
+  const settingsDialog = root.querySelector<HTMLDialogElement>("[data-http-settings-dialog]")!;
+  /** Vault client certificates, kept to pick one per request host. */
+  let clientCertificates: VaultCertificateInfo[] = [];
+  const certificatesAvailable = (): boolean => client.connected && client.capabilities.includes("vault.secrets")
+    && !!client.info?.features?.includes(HTTP_CLIENT_CERTIFICATES_FEATURE);
+  const certificatesSection = bindCertificatesSection(settingsDialog, {
+    client, strings: s, errorText: (error) => errorText(error), requestUrl: () => workspaceUi.requestUrl.value,
+    changed: (list) => { clientCertificates = list; },
   });
+  const clientSettings = bindClientSettingsDialog(settingsDialog, {
+    strings: s, workspace: () => workspace, changed: scheduleWorkspaceSave,
+    opened: () => { void certificatesSection.refresh(certificatesAvailable()); },
+  });
+  /** Loads the certificate list quietly after connecting; the window shows errors. */
+  async function loadClientCertificates(): Promise<void> {
+    if (!certificatesAvailable()) {
+      clientCertificates = [];
+      return;
+    }
+    try {
+      clientCertificates = await client.listCertificates();
+    } catch {
+      clientCertificates = [];
+    }
+  }
 
   /** Environment select in the request header: none or one of the workspace environments. */
   function renderEnvironmentSwitcher(): void {
@@ -2731,6 +2758,8 @@ function init(): void {
     agentMeta.hidden = !connected;
     secretsButton.hidden = !connected || !client.capabilities.includes("vault.secrets");
     if (secretsButton.hidden && secretsDialog.open) secretsDialog.close();
+    if (connected) void loadClientCertificates();
+    else clientCertificates = [];
     connectionState.textContent = connected ? strings.AgentConnectedShort : strings.AgentDisconnectedShort;
     popover.sync(client);
     storageWarning.hidden = !connected || client.persisted;
@@ -2881,7 +2910,8 @@ function init(): void {
       send: async (built, request) => {
         const id = hooks.id ?? requestId();
         if (workspace.proxy?.enabled && proxyUrlError(workspace.proxy.url)) throw new LocalAgentError("proxy_invalid");
-        const transport = transportFields(request, workspace.proxy);
+        const certificate = certificatesAvailable() ? certificateFor(built.url, clientCertificates) : undefined;
+        const transport = { ...transportFields(request, workspace.proxy), ...(certificate ? { clientCertificate: certificate } : {}) };
         if (Object.keys(transport).length && !client.info?.features?.includes(HTTP_OPTIONS_FEATURE)) {
           throw new LocalAgentError("agent_outdated");
         }
@@ -2898,7 +2928,7 @@ function init(): void {
             followRedirects: request.followRedirects,
             ...(built.basicAuth ? { basicAuth: built.basicAuth } : {}),
             ...transport,
-          }, signal);
+          }, signal).then((response) => certificate ? { ...response, clientCertificate: certificate } : response);
         } finally {
           inFlight = null;
         }
@@ -3081,6 +3111,7 @@ function init(): void {
       facts.push([s.ConnectionTls, `${response.tls.protocol.replace("TLSv1_", "TLS 1.")} · ${response.tls.cipher}`]);
       facts.push([s.ConnectionCertificate, response.tls.verified ? s.CertificateVerified : s.CertificateNotVerified, !response.tls.verified]);
     }
+    if (response.clientCertificate) facts.push([s.ConnectionClientCertificate, response.clientCertificate]);
     if (response.redirects) facts.push([s.ConnectionRedirects, String(response.redirects)]);
     connectionList.replaceChildren(...facts.flatMap(([term, detail, warning]) => {
       const dt = document.createElement("dt");

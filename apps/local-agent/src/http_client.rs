@@ -11,15 +11,15 @@ use url::Url;
 
 use crate::{
     http_transport::{
-        self, Head, HttpVersionChoice, MAX_RESPONSE_HEADER_BYTES, MAX_RESPONSE_HEADERS, Options,
-        Proxy, response_too_large,
+        self, ClientIdentity, Head, HttpVersionChoice, MAX_RESPONSE_HEADER_BYTES,
+        MAX_RESPONSE_HEADERS, Options, Proxy, response_too_large,
     },
     model::{
         ApiError, HeaderEntry, HttpRequestInput, HttpResponseOutput, MAX_REQUEST_BODY_BYTES,
         MAX_TIMEOUT_MS, ProxyInput,
     },
     state::AgentConfig,
-    vault::{self, SecretBook, Substitutions},
+    vault::{self, CertificateRecord, SecretBook, Substitutions},
 };
 
 const MAX_REDIRECTS: usize = 5;
@@ -51,6 +51,7 @@ pub(crate) async fn execute(
     config: &AgentConfig,
     cancellation: CancellationToken,
     secrets: Option<&SecretBook>,
+    certificate: Option<&CertificateRecord>,
 ) -> Result<HttpResponseOutput, ApiError> {
     let timeout = input.timeout_ms;
     if timeout == 0 || timeout > MAX_TIMEOUT_MS {
@@ -106,10 +107,16 @@ pub(crate) async fn execute(
         return Err(vault::secret_host_denied());
     }
     let headers = parse_headers(header_entries)?;
+    let client = match certificate {
+        Some(record) if !record.allows(&url) => return Err(vault::certificate_host_denied()),
+        Some(record) => Some((record.identity()?, record)),
+        None => None,
+    };
     let options = RequestOptions {
         verify_tls: input.verify_tls,
         version: input.http_version,
         proxy: input.proxy.map(parse_proxy).transpose()?,
+        client,
     };
     let started = Instant::now();
 
@@ -172,7 +179,7 @@ async fn execute_redirect_chain(
     mut body: Bytes,
     follow_redirects: bool,
     config: &AgentConfig,
-    options: &RequestOptions,
+    options: &RequestOptions<'_>,
     substitutions: &Substitutions,
 ) -> Result<HttpResponseOutput, ApiError> {
     let mut redirects: u8 = 0;
@@ -181,7 +188,12 @@ async fn execute_redirect_chain(
             verify_tls: options.verify_tls,
             version: options.version,
             proxy: options.proxy_for(&url),
-            identity: None,
+            // A redirect to a host outside the certificate's list goes without it.
+            identity: options
+                .client
+                .as_ref()
+                .filter(|(_, record)| record.allows(&url))
+                .map(|(identity, _)| identity),
         };
         let head =
             http_transport::send(&method, &url, &headers, body.clone(), config, &transport).await?;
@@ -218,13 +230,14 @@ async fn execute_redirect_chain(
 }
 
 /// Per-request transport settings from the page.
-struct RequestOptions {
+struct RequestOptions<'a> {
     verify_tls: bool,
     version: HttpVersionChoice,
     proxy: Option<(Proxy, Vec<String>)>,
+    client: Option<(ClientIdentity, &'a CertificateRecord)>,
 }
 
-impl RequestOptions {
+impl RequestOptions<'_> {
     fn proxy_for(&self, url: &Url) -> Option<&Proxy> {
         let (proxy, bypass) = self.proxy.as_ref()?;
         let host = url

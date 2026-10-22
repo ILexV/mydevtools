@@ -46,7 +46,8 @@ pub(crate) const AGENT_CAPABILITIES: [&str; 9] = [
     VAULT_SECRETS_CAPABILITY,
 ];
 /// `http.options`: `verifyTls`, `httpVersion`, `proxy` and timed phases in replies.
-pub(crate) const AGENT_FEATURES: [&str; 1] = ["http.options"];
+/// `http.client_certificates`: vault certificates and `clientCertificate` (mTLS).
+pub(crate) const AGENT_FEATURES: [&str; 2] = ["http.options", "http.client_certificates"];
 pub(crate) const MAX_INCOMING_JSON_BYTES: usize = 2 * 1024 * 1024;
 pub(crate) const MAX_REQUEST_BODY_BYTES: usize = 1024 * 1024;
 pub(crate) const MAX_RESPONSE_BODY_BYTES: usize = 16 * 1024 * 1024;
@@ -118,6 +119,10 @@ pub(crate) struct HttpRequestInput {
     pub(crate) http_version: HttpVersionChoice,
     #[serde(default)]
     pub(crate) proxy: Option<ProxyInput>,
+    /// A vault client certificate by name; needs `vault.secrets` and is
+    /// presented only to hosts in its list.
+    #[serde(default)]
+    pub(crate) client_certificate: Option<String>,
 }
 
 const fn default_true() -> bool {

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  agentProxy, formatPhaseMs, proxyBypass, proxyUrlError, timingPhases, transportFields,
+  agentProxy, certificateFor, formatPhaseMs, hostMatches, proxyBypass, proxyUrlError, timingPhases, transportFields,
 } from "../src/tools/http-transport-options.ts";
 import { parseCurl } from "../src/tools/http-curl.ts";
 import { codeRequest, generateCode } from "../src/tools/http-codegen.ts";
@@ -101,4 +101,27 @@ test("workspace keeps request transport settings and the proxy; defaults leave n
   assert.equal(parseHttpWorkspace({ ...workspace, proxy: { enabled: "yes" } }), null);
   assert.equal(requestFingerprint(request({})), requestFingerprint(request({ verifyTls: true, httpVersion: "auto" })));
   assert.notEqual(requestFingerprint(request({})), requestFingerprint(request({ verifyTls: false })));
+});
+
+test("client certificate host rules match the agent's", () => {
+  assert.equal(hostMatches("api.example.com", "api.example.com"), true);
+  assert.equal(hostMatches("api.example.com", "www.example.com"), false);
+  assert.equal(hostMatches("*.example.com", "a.b.example.com"), true);
+  assert.equal(hostMatches("*.example.com", "example.com"), false);
+  assert.equal(hostMatches("*.example.com", "badexample.com"), false);
+});
+
+test("the first certificate by name covering an https URL is picked", () => {
+  const certificates = [
+    { name: "zeta", hosts: ["*.corp.local"] },
+    { name: "alpha", hosts: ["api.corp.local"] },
+    { name: "beta", hosts: ["other.example"] },
+  ];
+  assert.equal(certificateFor("https://api.corp.local/v1", certificates), "alpha");
+  assert.equal(certificateFor("https://web.corp.local/", certificates), "zeta");
+  assert.equal(certificateFor("https://API.Corp.Local:8443/", certificates), "alpha");
+  assert.equal(certificateFor("http://api.corp.local/", certificates), undefined);
+  assert.equal(certificateFor("https://nowhere.example/", certificates), undefined);
+  assert.equal(certificateFor("not a url", certificates), undefined);
+  assert.equal(certificateFor("https://api.corp.local/", []), undefined);
 });

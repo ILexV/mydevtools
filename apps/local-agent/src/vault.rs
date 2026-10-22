@@ -1,4 +1,5 @@
-//! Encrypted on-disk vault: page documents with revisions and write-only secrets.
+//! Encrypted on-disk vault: page documents with revisions, write-only secrets
+//! and client certificates (mTLS) whose private keys never leave the agent.
 //! One random data key per computer, wrapped by Windows DPAPI for the current
 //! user. Every file is AES-256-GCM with origin, kind and name as associated data,
 //! so a file cannot be swapped for another. Each origin has its own directory.
@@ -21,7 +22,7 @@ use sha2::{Digest, Sha256};
 use url::{Host, Url};
 use uuid::Uuid;
 
-use crate::model::ApiError;
+use crate::{http_transport::ClientIdentity, model::ApiError, tls};
 
 pub(crate) const MAX_DOCUMENT_BYTES: usize = 1536 * 1024;
 pub(crate) const MAX_DOCUMENTS: usize = 64;
@@ -34,6 +35,10 @@ const FILE_MAGIC: &[u8; 5] = b"MDTV\x01";
 const FILE_EXTENSION: &str = "mdtv";
 const DOCUMENT_PREFIX: &str = "doc-";
 const SECRETS_FILE: &str = "secrets.mdtv";
+const CERTIFICATES_FILE: &str = "certificates.mdtv";
+pub(crate) const MAX_CERTIFICATES: usize = 32;
+/// Certificate chain and key PEM, each.
+pub(crate) const MAX_CERTIFICATE_PEM_BYTES: usize = 64 * 1024;
 const PLACEHOLDER_OPEN: &[u8] = b"{{secret:";
 const PLACEHOLDER_CLOSE: &[u8] = b"}}";
 
@@ -66,6 +71,52 @@ pub(crate) struct SecretWrite {
     /// Absent keeps the stored value and replaces only the host list.
     pub(crate) value: Option<String>,
     pub(crate) hosts: Vec<String>,
+}
+
+/// Both PEMs for a new certificate; neither to change only the host list.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct CertificateWrite {
+    pub(crate) name: String,
+    pub(crate) hosts: Vec<String>,
+    pub(crate) certificate_pem: Option<String>,
+    pub(crate) key_pem: Option<String>,
+}
+
+/// What a page may see about a client certificate: never the key.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct CertificateInfo {
+    pub(crate) name: String,
+    pub(crate) hosts: Vec<String>,
+    pub(crate) subject: String,
+    pub(crate) not_after: Option<String>,
+    pub(crate) updated_at: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct CertificateRecord {
+    certificate_pem: String,
+    key_pem: String,
+    hosts: Vec<String>,
+    subject: String,
+    not_after: Option<String>,
+    updated_at: String,
+}
+
+type CertificateBook = BTreeMap<String, CertificateRecord>;
+
+impl CertificateRecord {
+    /// True when the URL's host is in the certificate's list.
+    pub(crate) fn allows(&self, url: &Url) -> bool {
+        url.host_str()
+            .is_some_and(|host| self.hosts.iter().any(|pattern| host_matches(pattern, host)))
+    }
+
+    pub(crate) fn identity(&self) -> Result<ClientIdentity, ApiError> {
+        ClientIdentity::from_pem(&self.certificate_pem, &self.key_pem)
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -291,6 +342,102 @@ impl Vault {
         self.store_secrets(&key, origin, &directory, &book)
     }
 
+    pub(crate) fn list_certificates(&self, origin: &str) -> Result<Vec<CertificateInfo>, ApiError> {
+        let mut key = self.key.lock();
+        let key = self.data_key(&mut key)?;
+        let directory = self.origin_directory(origin)?;
+        Ok(self
+            .load_certificates(&key, origin, &directory)?
+            .into_iter()
+            .map(|(name, record)| CertificateInfo {
+                name,
+                hosts: record.hosts,
+                subject: record.subject,
+                not_after: record.not_after,
+                updated_at: record.updated_at,
+            })
+            .collect())
+    }
+
+    /// The chain must parse, the key must be unencrypted PEM and match the leaf.
+    pub(crate) fn write_certificate(
+        &self,
+        origin: &str,
+        input: CertificateWrite,
+    ) -> Result<(), ApiError> {
+        validate_secret_name(&input.name)?;
+        let hosts = normalize_host_patterns(&input.hosts)?;
+        let pems = match (input.certificate_pem, input.key_pem) {
+            (Some(certificate), Some(key)) => {
+                if certificate.len() > MAX_CERTIFICATE_PEM_BYTES
+                    || key.len() > MAX_CERTIFICATE_PEM_BYTES
+                {
+                    return Err(ApiError::new(
+                        StatusCode::PAYLOAD_TOO_LARGE,
+                        "request_too_large",
+                    ));
+                }
+                let identity = ClientIdentity::from_pem(&certificate, &key)?;
+                let leaf = tls::describe_certificate(&identity.chain[0]);
+                Some((certificate, key, leaf.subject, leaf.not_after))
+            }
+            (None, None) => None,
+            _ => return Err(ApiError::invalid_request()),
+        };
+        let mut key = self.key.lock();
+        let key = self.data_key(&mut key)?;
+        let directory = self.origin_directory(origin)?;
+        let mut book = self.load_certificates(&key, origin, &directory)?;
+        let record = match (pems, book.get(&input.name)) {
+            (Some((certificate_pem, key_pem, subject, not_after)), _) => CertificateRecord {
+                certificate_pem,
+                key_pem,
+                hosts,
+                subject,
+                not_after,
+                updated_at: now(),
+            },
+            (None, Some(existing)) => CertificateRecord {
+                hosts,
+                updated_at: now(),
+                ..existing.clone()
+            },
+            (None, None) => return Err(ApiError::not_found()),
+        };
+        if !book.contains_key(&input.name) && book.len() >= MAX_CERTIFICATES {
+            return Err(vault_full());
+        }
+        book.insert(input.name, record);
+        self.store_certificates(&key, origin, &directory, &book)
+    }
+
+    pub(crate) fn delete_certificate(&self, origin: &str, name: &str) -> Result<(), ApiError> {
+        validate_secret_name(name)?;
+        let mut key = self.key.lock();
+        let key = self.data_key(&mut key)?;
+        let directory = self.origin_directory(origin)?;
+        let mut book = self.load_certificates(&key, origin, &directory)?;
+        if book.remove(name).is_none() {
+            return Err(ApiError::not_found());
+        }
+        self.store_certificates(&key, origin, &directory, &book)
+    }
+
+    /// One certificate with its key, for the HTTP request that names it.
+    pub(crate) fn certificate(
+        &self,
+        origin: &str,
+        name: &str,
+    ) -> Result<CertificateRecord, ApiError> {
+        validate_secret_name(name)?;
+        let mut key = self.key.lock();
+        let key = self.data_key(&mut key)?;
+        let directory = self.origin_directory(origin)?;
+        self.load_certificates(&key, origin, &directory)?
+            .remove(name)
+            .ok_or_else(certificate_not_found)
+    }
+
     /// Values for agent-side substitution. Never serialized back to a page.
     pub(crate) fn secret_book(&self, origin: &str) -> Result<SecretBook, ApiError> {
         let mut key = self.key.lock();
@@ -372,6 +519,35 @@ impl Vault {
             return Ok(SecretBook::new());
         };
         serde_json::from_slice(&plaintext).map_err(|_| vault_corrupt())
+    }
+
+    fn load_certificates(
+        &self,
+        key: &[u8; 32],
+        origin: &str,
+        directory: &Path,
+    ) -> Result<CertificateBook, ApiError> {
+        let Some(plaintext) = read_sealed(
+            key,
+            &directory.join(CERTIFICATES_FILE),
+            &aad(origin, "certificates", ""),
+        )?
+        else {
+            return Ok(CertificateBook::new());
+        };
+        serde_json::from_slice(&plaintext).map_err(|_| vault_corrupt())
+    }
+
+    fn store_certificates(
+        &self,
+        key: &[u8; 32],
+        origin: &str,
+        directory: &Path,
+        book: &CertificateBook,
+    ) -> Result<(), ApiError> {
+        let plaintext = serde_json::to_vec(book).map_err(|_| vault_corrupt())?;
+        let sealed = seal(key, &aad(origin, "certificates", ""), plaintext)?;
+        write_atomic(&directory.join(CERTIFICATES_FILE), &sealed)
     }
 
     fn store_secrets(
@@ -782,6 +958,15 @@ fn revision_conflict() -> ApiError {
 
 pub(crate) fn secret_not_found() -> ApiError {
     ApiError::new(StatusCode::BAD_REQUEST, "secret_not_found")
+}
+
+pub(crate) fn certificate_not_found() -> ApiError {
+    ApiError::new(StatusCode::BAD_REQUEST, "certificate_not_found")
+}
+
+/// The request's host is not in the client certificate's list.
+pub(crate) fn certificate_host_denied() -> ApiError {
+    ApiError::new(StatusCode::FORBIDDEN, "certificate_host_denied")
 }
 
 pub(crate) fn secret_host_denied() -> ApiError {

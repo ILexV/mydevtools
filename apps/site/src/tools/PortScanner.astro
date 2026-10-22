@@ -37,8 +37,8 @@ const stringsJson = JSON.stringify(strings);
       <h2 id="pscan-query-title" class="ds-panel-title">{t(lang, ns, "QueryTitle")}</h2>
       <AgentConnection lang={lang} ns={ns} prefix="pscan" />
     </div>
-    <div class="ds-settings">
-      <Field class="ds-settings-wide" label={t(lang, ns, "HostLabel")} for="pscan-host" hintTip hint={t(lang, ns, "HostHint")}>
+    <div class="ds-settings pscan-settings">
+      <Field label={t(lang, ns, "HostLabel")} for="pscan-host" hintTip hint={t(lang, ns, "HostHint")}>
         <input id="pscan-host" class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "HostPlaceholder")} data-pscan-host />
       </Field>
       <Field label={t(lang, ns, "PresetLabel")} for="pscan-preset">
@@ -49,14 +49,14 @@ const stringsJson = JSON.stringify(strings);
           <option value="custom">{t(lang, ns, "PresetCustom")}</option>
         </select>
       </Field>
-      <Field class="ds-settings-wide" label={t(lang, ns, "PortsLabel")} for="pscan-ports" hintTip hint={t(lang, ns, "PortsHint")} data-pscan-ports-field>
-        <input id="pscan-ports" class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "PortsPlaceholder")} data-pscan-ports />
-      </Field>
       <Field label={t(lang, ns, "TimeoutLabel")} for="pscan-timeout" hintTip hint={t(lang, ns, "TimeoutHint")}>
         <input id="pscan-timeout" class="ds-field mono" type="number" min="200" max="5000" step="100" inputmode="numeric" data-pscan-timeout />
       </Field>
       <Field label={t(lang, ns, "ParallelLabel")} for="pscan-parallel" hintTip hint={t(lang, ns, "ParallelHint")}>
         <input id="pscan-parallel" class="ds-field mono" type="number" min="1" max="64" step="1" inputmode="numeric" data-pscan-parallel />
+      </Field>
+      <Field class="ds-settings-wide" label={t(lang, ns, "PortsLabel")} for="pscan-ports" hintTip hint={t(lang, ns, "PortsHint")} data-pscan-ports-field>
+        <input id="pscan-ports" class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder={t(lang, ns, "PortsPlaceholder")} data-pscan-ports />
       </Field>
     </div>
     <p class="ds-hint" data-pscan-count></p>
@@ -109,6 +109,13 @@ const stringsJson = JSON.stringify(strings);
   :global(html.is-embed) .port-scanner { min-height: calc(100dvh - 1.85rem); }
   :global(html.is-embed) .pscan-results { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
   :global(html.is-embed) .pscan-scroll { flex: 1 1 0; min-height: 12rem; max-height: none; }
+  /* Host, preset, timeout and parallel share one row on a wide window; the custom port list sits below. */
+  @media (min-width: 56rem) {
+    .pscan-settings { grid-template-columns: minmax(0, 2fr) minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); }
+  }
+  @media (min-width: 30rem) and (max-width: 55.999rem) {
+    .pscan-settings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
   .pscan-results-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; }
   .pscan-results-head h2 { margin: 0; }
   .pscan-results-actions { margin: 0; align-items: center; }
@@ -122,5 +129,9 @@ const stringsJson = JSON.stringify(strings);
   .pscan-table :global(td:last-child) { font-family: var(--mdt-font-mono); }
   .pscan-table :global(td:last-child),
   .pscan-table th:last-child { text-align: right; }
+  @media (min-width: 40rem) {
+    .pscan-table th:first-child { width: 8rem; }
+    .pscan-table th:last-child { width: 7rem; }
+  }
   .pscan-table :global(.is-open) { color: var(--mdt-success); font-weight: 600; }
 </style>

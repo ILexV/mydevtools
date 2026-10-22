@@ -69,7 +69,7 @@ const stringsJson = JSON.stringify(strings);
     <StatusMessage kind="error" data-pscan-error />
   </section>
 
-  <section class="ds-card pscan-card" aria-labelledby="pscan-results-title">
+  <section class="ds-card pscan-card pscan-results" aria-labelledby="pscan-results-title">
     <div class="pscan-results-head">
       <h2 id="pscan-results-title" class="ds-panel-title">{t(lang, ns, "ResultsTitle")}</h2>
       <div class="ds-action-row pscan-results-actions">
@@ -103,7 +103,12 @@ const stringsJson = JSON.stringify(strings);
 <script>import "@/tools/port-scanner.client.ts";</script>
 
 <style>
+  .port-scanner { display: flex; flex-direction: column; gap: 1rem; min-width: 0; max-width: 100%; }
   .pscan-card { min-width: 0; }
+  /* In a desktop window the results card fills the window and scrolls its table; 1.85rem is the embed .tool padding. */
+  :global(html.is-embed) .port-scanner { min-height: calc(100dvh - 1.85rem); }
+  :global(html.is-embed) .pscan-results { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
+  :global(html.is-embed) .pscan-scroll { flex: 1 1 0; min-height: 12rem; max-height: none; }
   .pscan-results-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; }
   .pscan-results-head h2 { margin: 0; }
   .pscan-results-actions { margin: 0; align-items: center; }

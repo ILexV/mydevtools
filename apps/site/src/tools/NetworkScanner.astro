@@ -68,7 +68,7 @@ const stringsJson = JSON.stringify(strings);
     <StatusMessage kind="error" data-nscan-error />
   </section>
 
-  <section class="ds-card nscan-card" aria-labelledby="nscan-results-title">
+  <section class="ds-card nscan-card nscan-results" aria-labelledby="nscan-results-title">
     <div class="nscan-results-head">
       <h2 id="nscan-results-title" class="ds-panel-title">{t(lang, ns, "ResultsTitle")}</h2>
       <button type="button" class="ds-btn ds-btn-small" data-nscan-copy disabled><Icon name="copy" size={15} />{t(lang, ns, "CopyText")}</button>
@@ -97,7 +97,12 @@ const stringsJson = JSON.stringify(strings);
 <script>import "@/tools/network-scanner.client.ts";</script>
 
 <style>
+  .network-scanner { display: flex; flex-direction: column; gap: 1rem; min-width: 0; max-width: 100%; }
   .nscan-card { min-width: 0; }
+  /* In a desktop window the results card fills the window and scrolls its table; 1.85rem is the embed .tool padding. */
+  :global(html.is-embed) .network-scanner { min-height: calc(100dvh - 1.85rem); }
+  :global(html.is-embed) .nscan-results { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
+  :global(html.is-embed) .nscan-scroll { flex: 1 1 0; min-height: 12rem; max-height: none; }
   .nscan-results-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; }
   .nscan-results-head h2 { margin: 0; }
   .nscan-scroll { max-height: 34rem; margin-top: 0.75rem; overflow: auto; }

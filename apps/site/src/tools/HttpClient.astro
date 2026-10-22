@@ -35,7 +35,9 @@ const clientKeys = [
   "AuthInheritNone", "AuthInheritParent", "AuthTokenFetching", "AuthTokenReady", "AuthTokenReadyNoExpiry", "NoEnvironment",
   "GlobalVariables", "NewEnvironment", "NewEnvironmentName", "EnvironmentName", "DuplicateEnvironment", "DeleteEnvironment",
   "DeleteEnvironmentConfirm", "CopySuffix", "Variables", "FolderSettings", "FolderSettingsTitle", "UnresolvedVariables",
-  "ErrorAuthIncomplete", "ErrorAwsSecret", "ErrorOAuthToken", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
+  "ErrorAuthIncomplete", "ErrorAwsSecret", "ErrorOAuthToken", "BodyFieldKind", "BodyKindText", "BodyKindFile",
+  "BodyChooseFile", "BodyRemoveFile", "BodyFileMissing", "BodyBinary", "ErrorFileMissing",
+  "ErrorGraphqlVariables", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
 const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhrases(lang) });
@@ -208,7 +210,7 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
       <button type="button" role="tab" id="http-request-params-tab" aria-selected="true" aria-controls="http-request-params-panel" tabindex="0">{t(lang, ns, "ParamsLabel")}<span class="http-count mono" data-http-params-count></span></button>
       <button type="button" role="tab" id="http-request-auth-tab" aria-selected="false" aria-controls="http-request-auth-panel" tabindex="-1">{t(lang, ns, "AuthLabel")}<span class="http-count mono" data-http-auth-mark></span></button>
       <button type="button" role="tab" id="http-request-headers-tab" aria-selected="false" aria-controls="http-request-headers-panel" tabindex="-1">{t(lang, ns, "HeadersLabel")}<span class="http-count mono" data-http-headers-count></span></button>
-      <button type="button" role="tab" id="http-request-body-tab" aria-selected="false" aria-controls="http-request-body-panel" tabindex="-1">{t(lang, ns, "BodyLabel")}</button>
+      <button type="button" role="tab" id="http-request-body-tab" aria-selected="false" aria-controls="http-request-body-panel" tabindex="-1">{t(lang, ns, "BodyLabel")}<span class="http-count mono" data-http-body-mark></span></button>
       <button type="button" role="tab" id="http-request-settings-tab" aria-selected="false" aria-controls="http-request-settings-panel" tabindex="-1">{t(lang, ns, "SettingsLabel")}</button>
     </div>
     {(["params", "headers"] as const).map((kind) => (
@@ -231,21 +233,54 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
     <div id="http-request-auth-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-request-auth-tab" hidden data-http-auth-host></div>
     <div id="http-request-body-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-request-body-tab" hidden>
       <div class="ds-action-row http-body-toolbar">
-        <label class="visually-hidden" for="http-body-format">{t(lang, ns, "BodyFormatLabel")}</label>
-        <select id="http-body-format" class="ds-field-select" data-http-body-format>
-          <option value="text">{t(lang, ns, "TextFormat")}</option>
-          <option value="json">JSON</option>
-          <option value="html">HTML</option>
-          <option value="xml">XML</option>
+        <label class="visually-hidden" for="http-body-mode">{t(lang, ns, "BodyModeLabel")}</label>
+        <select id="http-body-mode" class="ds-field-select" data-http-body-mode>
+          <option value="none">{t(lang, ns, "BodyNone")}</option>
+          <option value="raw">{t(lang, ns, "BodyRaw")}</option>
+          <option value="formdata">form-data</option>
+          <option value="urlencoded">x-www-form-urlencoded</option>
+          <option value="binary">{t(lang, ns, "BodyBinary")}</option>
+          <option value="graphql">GraphQL</option>
         </select>
-        <button type="button" class="ds-btn ds-btn-small" data-http-format-json disabled>{t(lang, ns, "FormatJson")}</button>
+        <span class="http-body-raw-tools" data-http-body-raw-tools>
+          <label class="visually-hidden" for="http-body-format">{t(lang, ns, "BodyFormatLabel")}</label>
+          <select id="http-body-format" class="ds-field-select" data-http-body-format>
+            <option value="text">{t(lang, ns, "TextFormat")}</option>
+            <option value="json">JSON</option>
+            <option value="html">HTML</option>
+            <option value="xml">XML</option>
+          </select>
+          <button type="button" class="ds-btn ds-btn-small" data-http-format-json disabled>{t(lang, ns, "FormatJson")}</button>
+        </span>
       </div>
-      <p class="ds-hint" id="http-body-hint">{t(lang, ns, "BodyHint")}</p>
-      <StatusMessage kind="error" data-http-body-error />
-      <StatusMessage kind="error" data-http-body-editor-error />
-      <div class="mdt-cm http-body-editor" data-http-body-editor hidden></div>
-      <label class="visually-hidden" for="http-body">{t(lang, ns, "BodyLabel")}</label>
-      <textarea id="http-body" class="ds-field-textarea mono http-body" aria-describedby="http-body-hint" rows="10" autocomplete="off" spellcheck="false" data-http-body></textarea>
+      <p class="ds-hint" data-http-body-section="none" hidden>{t(lang, ns, "BodyNoneHint")}</p>
+      <div class="http-body-section" data-http-body-section="raw">
+        <p class="ds-hint" id="http-body-hint">{t(lang, ns, "BodyHint")}</p>
+        <StatusMessage kind="error" data-http-body-error />
+        <StatusMessage kind="error" data-http-body-editor-error />
+        <div class="mdt-cm http-body-editor" data-http-body-editor hidden></div>
+        <label class="visually-hidden" for="http-body">{t(lang, ns, "BodyLabel")}</label>
+        <textarea id="http-body" class="ds-field-textarea mono http-body" aria-describedby="http-body-hint" rows="10" autocomplete="off" spellcheck="false" data-http-body></textarea>
+      </div>
+      <div class="http-body-section" data-http-body-section="urlencoded" hidden>
+        <p class="ds-hint">{t(lang, ns, "BodyFormHint")}</p>
+        <div class="http-body-rows" data-http-body-urlencoded></div>
+      </div>
+      <div class="http-body-section" data-http-body-section="formdata" hidden>
+        <p class="ds-hint">{t(lang, ns, "BodyMultipartHint")} {t(lang, ns, "BodyFilesHint")}</p>
+        <div class="http-body-rows" data-http-body-formdata></div>
+      </div>
+      <div class="http-body-section" data-http-body-section="binary" hidden>
+        <p class="ds-hint">{t(lang, ns, "BodyBinaryHint")} {t(lang, ns, "BodyFilesHint")}</p>
+        <div data-http-body-binary></div>
+      </div>
+      <div class="http-body-section http-graphql" data-http-body-section="graphql" hidden>
+        <p class="ds-hint" id="http-graphql-hint">{t(lang, ns, "GraphqlHint")}</p>
+        <label class="http-auth-field" for="http-graphql-query">{t(lang, ns, "GraphqlQuery")}</label>
+        <textarea id="http-graphql-query" class="ds-field-textarea mono http-body" aria-describedby="http-graphql-hint" rows="8" autocomplete="off" spellcheck="false" placeholder="query { viewer { id } }" data-http-graphql-query></textarea>
+        <label class="http-auth-field" for="http-graphql-variables">{t(lang, ns, "GraphqlVariables")}</label>
+        <textarea id="http-graphql-variables" class="ds-field-textarea mono http-graphql-variables" rows="4" autocomplete="off" spellcheck="false" placeholder='{"id": "{{userId}}"}' data-http-graphql-variables></textarea>
+      </div>
     </div>
     <div id="http-request-settings-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-request-settings-tab" hidden>
       <div class="ds-settings http-options">
@@ -443,6 +478,20 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
   .http-body { min-height: 8rem; }
   .http-body-toolbar { flex-wrap: wrap; }
   .http-body-toolbar select { width: auto; }
+  .http-body-raw-tools { display: contents; }
+  .http-body-raw-tools[hidden] { display: none; }
+  .http-body-section { display: grid; gap: 0.5rem; }
+  .http-body-section[hidden] { display: none; }
+  .http-body-section > .ds-hint { margin: 0; }
+  .http-body-rows { margin-inline: -1rem; border-top: 1px solid var(--mdt-border-soft); }
+  .http-graphql-variables { min-height: 5rem; }
+  .http-workbench :global(.http-kv-table .http-kind-cell) { width: 6.5rem; }
+  .http-workbench :global(.http-kind-cell .ds-field-select) { min-height: 2rem; padding-block: 0.2rem; font-size: var(--mdt-fs-label); }
+  .http-workbench :global(.http-file-field) { display: flex; align-items: center; gap: 0.4rem; min-width: 0; padding: 0.15rem 0.2rem; }
+  .http-workbench :global(.http-file-field[hidden]) { display: none; }
+  .http-workbench :global(.http-file-field .ds-btn) { flex: 0 0 auto; }
+  .http-workbench :global(.http-file-name) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--mdt-text-muted); font-size: var(--mdt-fs-label); }
+  .http-workbench :global(.http-file-name.is-missing) { color: var(--mdt-warning); }
   .http-body-editor { --mdt-cm-height: 14rem; }
   .http-request > #http-request-body-panel { max-height: none; }
   .http-html-hint { padding: 0 1rem; }

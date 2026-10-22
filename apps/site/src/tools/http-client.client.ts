@@ -47,10 +47,16 @@ import {
   type OAuthToken,
 } from "@/tools/http-auth";
 import { createAuthEditor } from "@/tools/http-auth-editor";
+import { bodyTexts, hasBody, type BodyFields } from "@/tools/http-body";
+import { createFileField, FileStore } from "@/tools/http-file-field";
+import { createFormDataEditor, createRowsEditor, type FormDataStrings } from "@/tools/http-rows-editor";
 import { bindEnvironmentsDialog, bindFolderDialog, type ScopeDialogStrings } from "@/tools/http-scope-dialogs";
 import { collectVariables, encodeQueryComponent, variableNames } from "@/tools/http-variables";
 
-interface Strings extends SecretsDialogStrings, ScopeDialogStrings {
+interface Strings extends SecretsDialogStrings, ScopeDialogStrings, FormDataStrings {
+  BodyBinary: string;
+  ErrorFileMissing: string;
+  ErrorGraphqlVariables: string;
   AuthInheritFrom: string;
   AuthInheritNone: string;
   AuthTokenFetching: string;
@@ -191,6 +197,7 @@ function createBlankRequest(folderId: string | null = null): HttpSavedRequest {
     headers: [],
     body: "",
     bodyFormat: "text",
+    bodyMode: "none",
     timeoutMs: 30000,
     followRedirects: false,
   };
@@ -229,6 +236,12 @@ function init(): void {
   const envDialog = root.querySelector<HTMLDialogElement>("[data-http-env-dialog]")!;
   const folderDialog = root.querySelector<HTMLDialogElement>("[data-http-folder-dialog]")!;
   const authHost = root.querySelector<HTMLElement>("[data-http-auth-host]")!;
+  const bodyMode = root.querySelector<HTMLSelectElement>("[data-http-body-mode]")!;
+  const bodyRawTools = root.querySelector<HTMLElement>("[data-http-body-raw-tools]")!;
+  const bodySections = [...root.querySelectorAll<HTMLElement>("[data-http-body-section]")];
+  const bodyMark = root.querySelector<HTMLElement>("[data-http-body-mark]")!;
+  const graphqlQuery = root.querySelector<HTMLTextAreaElement>("[data-http-graphql-query]")!;
+  const graphqlVariables = root.querySelector<HTMLTextAreaElement>("[data-http-graphql-variables]")!;
   const authMark = root.querySelector<HTMLElement>("[data-http-auth-mark]")!;
   const variablesWarning = root.querySelector<HTMLElement>("[data-http-variables-warning]")!;
   const sidebarResizer = root.querySelector<HTMLElement>("[data-http-sidebar-resizer]");
@@ -471,6 +484,43 @@ function init(): void {
     scheduleWorkspaceSave();
   }, () => { void refreshRequestToken(); });
   authHost.replaceChildren(requestAuth.element);
+
+  /** Picked body files, in page memory only; the workspace keeps their names. */
+  const bodyFiles = new FileStore();
+  const urlencodedRows = createRowsEditor(s, "x-www-form-urlencoded", scheduleWorkspaceSave);
+  const formdataRows = createFormDataEditor(s, "form-data", bodyFiles, scheduleWorkspaceSave);
+  const binaryFile = createFileField(s, bodyFiles, s.BodyBinary, scheduleWorkspaceSave);
+  root.querySelector("[data-http-body-urlencoded]")!.replaceChildren(urlencodedRows.element);
+  root.querySelector("[data-http-body-formdata]")!.replaceChildren(formdataRows.element);
+  root.querySelector("[data-http-body-binary]")!.replaceChildren(binaryFile.element);
+  for (const field of [graphqlQuery, graphqlVariables]) field.addEventListener("input", scheduleWorkspaceSave);
+
+  /** Body of the open request as edited, in every mode (only the chosen one is sent). */
+  function currentBodyFields(): BodyFields {
+    if (bodyEditor && !bodyHost.hidden) workspaceUi.requestBody.value = bodyEditor.getValue();
+    return {
+      body: workspaceUi.requestBody.value,
+      bodyFormat: bodyFormat.value as HttpSavedRequest["bodyFormat"],
+      bodyMode: bodyMode.value as NonNullable<HttpSavedRequest["bodyMode"]>,
+      urlencoded: urlencodedRows.read(),
+      formdata: formdataRows.read(),
+      binary: binaryFile.get(),
+      graphql: { query: graphqlQuery.value, variables: graphqlVariables.value },
+    };
+  }
+
+  /** Shows the section of the chosen body mode; raw keeps its format select and editor. */
+  function showBodyMode(): void {
+    const mode = bodyMode.value;
+    for (const section of bodySections) section.hidden = section.dataset.httpBodySection !== mode;
+    bodyRawTools.hidden = mode !== "raw";
+    const panel = workspaceUi.root.querySelector<HTMLElement>("#http-request-body-panel");
+    if (mode === "raw" && panel && !panel.hidden) void mountBodyEditor();
+  }
+  bodyMode.addEventListener("change", () => {
+    showBodyMode();
+    scheduleWorkspaceSave();
+  });
   const scopeOptions = {
     strings: s,
     workspace: () => workspace,
@@ -525,7 +575,9 @@ function init(): void {
     }
     authMark.textContent = auth.type === "none" ? "" : "●";
     const scope = collectVariables(workspace, currentRequest.folderId);
-    const texts = [workspaceUi.requestUrl.value, workspaceUi.requestBody.value, ...headersTable.readAll().filter((row) => row.enabled)
+    const body = currentBodyFields();
+    bodyMark.textContent = hasBody(body) ? "●" : "";
+    const texts = [workspaceUi.requestUrl.value, ...bodyTexts(body), ...headersTable.readAll().filter((row) => row.enabled)
       .flatMap((row) => [row.name, row.value]), ...Object.values(auth).filter((value) => typeof value === "string")];
     const missing = [...new Set(texts.flatMap(variableNames))]
       .filter((name) => !scope.has(name) && !["$guid", "$timestamp", "$isoTimestamp", "$randomInt"].includes(name));
@@ -598,6 +650,9 @@ function init(): void {
       case "headers": return s.ErrorHeaders;
       case "auth_incomplete": return s.ErrorAuthIncomplete;
       case "aws_secret": return s.ErrorAwsSecret;
+      case "file_missing": return s.ErrorFileMissing.replace("{name}", error.message);
+      case "body_limit": return s.ErrorBodyLimit;
+      case "graphql_variables": return s.ErrorGraphqlVariables;
       default: return s.ErrorOAuthToken.replace("{detail}", error.message === "oauth_token" ? s.ErrorGeneric : error.message);
     }
   }
@@ -785,7 +840,7 @@ function init(): void {
         if (panel && root.contains(panel)) panel.hidden = !selected;
       }
       if (moveFocus) next.focus();
-      if (next.id === "http-request-body-tab") void mountBodyEditor();
+      if (next.id === "http-request-body-tab" && bodyMode.value === "raw") void mountBodyEditor();
     };
     tablist.addEventListener("click", (event) => {
       if (!(event.target instanceof Element)) return;
@@ -819,15 +874,13 @@ function init(): void {
   };
 
   function captureCurrentRequest(): void {
-    if (bodyEditor && !bodyHost.hidden) workspaceUi.requestBody.value = bodyEditor.getValue();
     const timeoutValue = Number(workspaceUi.timeout.value);
     currentRequest.name = workspaceUi.requestName.value;
     currentRequest.method = workspaceUi.method.value;
     currentRequest.url = workspaceUi.requestUrl.value;
     currentRequest.params = paramsTable.readAll();
     currentRequest.headers = headersTable.readAll();
-    currentRequest.body = workspaceUi.requestBody.value;
-    currentRequest.bodyFormat = bodyFormat.value as HttpSavedRequest["bodyFormat"];
+    Object.assign(currentRequest, currentBodyFields());
     currentRequest.timeoutMs = Number.isFinite(timeoutValue) ? timeoutValue : 30000;
     currentRequest.followRedirects = workspaceUi.redirects.checked;
     currentRequest.auth = requestAuth.get();
@@ -1548,6 +1601,12 @@ function init(): void {
     headersTable.replace(request.headers);
     workspaceUi.requestBody.value = request.body;
     bodyFormat.value = request.bodyFormat;
+    bodyMode.value = request.bodyMode ?? "raw";
+    urlencodedRows.replace(request.urlencoded ?? []);
+    formdataRows.replace(request.formdata ?? []);
+    binaryFile.set(request.binary);
+    graphqlQuery.value = request.graphql?.query ?? "";
+    graphqlVariables.value = request.graphql?.variables ?? "";
     workspaceUi.timeout.value = String(request.timeoutMs);
     workspaceUi.redirects.checked = request.followRedirects;
     requestAuth.set(request.auth);
@@ -1558,8 +1617,7 @@ function init(): void {
     hideMessage(bodyEditorError);
     clearResponse();
     renderSavedList();
-    const bodyPanel = workspaceUi.root.querySelector<HTMLElement>("#http-request-body-panel");
-    if (bodyPanel && !bodyPanel.hidden) void mountBodyEditor();
+    showBodyMode();
   }
 
   function switchRequest(id: string): void {
@@ -2205,14 +2263,21 @@ function init(): void {
     syncEmptyState(output, true);
 
     try {
+      const bodyLimit = client.info?.limits.maxRequestBodyBytes ?? 1024 * 1024;
       let built;
       try {
         built = await buildHttpRequest({
           method: method.value,
           url: requestUrl.value,
           headers: headersTable.read(),
-          body: requestBody.value,
-          bodyFormat: bodyFormat.value as HttpSavedRequest["bodyFormat"],
+          ...currentBodyFields(),
+          readFile: async (ref) => {
+            const file = bodyFiles.get(ref);
+            if (!file) return null;
+            // Checked before reading, so a large file is never loaded into memory.
+            if (file.size > bodyLimit) throw new HttpBuildError("body_limit");
+            return new Uint8Array(await file.arrayBuffer());
+          },
           auth: effectiveAuth(workspace, currentRequest).auth,
           scope: collectVariables(workspace, currentRequest.folderId),
           oauthToken: (config) => oauthToken(config, { signal: abort.signal }),
@@ -2224,6 +2289,8 @@ function init(): void {
         showMessage(requestError, buildErrorText(error));
         if (error.code === "url") {
           requestUrl.focus();
+        } else if (error.code === "file_missing" || error.code === "graphql_variables" || error.code === "body_limit") {
+          root.querySelector<HTMLButtonElement>("#http-request-body-tab")?.click();
         } else if (error.code === "headers") {
           root.querySelector<HTMLButtonElement>("#http-request-headers-tab")?.click();
           root.querySelector<HTMLInputElement>('[data-http-table="headers"] [data-row-key]')?.focus();
@@ -2232,7 +2299,6 @@ function init(): void {
         }
         return;
       }
-      const bodyLimit = client.info?.limits.maxRequestBodyBytes ?? 1024 * 1024;
       if (built.body.byteLength > bodyLimit) {
         hideMessage(requestStatus);
         showMessage(requestError, strings.ErrorBodyLimit);

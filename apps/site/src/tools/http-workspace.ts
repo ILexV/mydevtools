@@ -34,6 +34,26 @@ export interface HttpEnvironment {
   variables: HttpSavedRow[];
 }
 
+/** Body kinds of the Body tab, named after Postman's modes; a save without one is raw. */
+export type HttpBodyMode = "none" | "raw" | "urlencoded" | "formdata" | "binary" | "graphql";
+
+/**
+ * A file picked for a form-data field or a binary body. Only this description is
+ * saved: the bytes stay in page memory and must be chosen again after a reload.
+ */
+export interface HttpFileRef {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+}
+
+/** form-data field: text, or a file (null until one is picked). */
+export interface HttpFormDataRow extends HttpSavedRow {
+  kind: "text" | "file";
+  file?: HttpFileRef | null;
+}
+
 export interface HttpSavedRequest {
   id: string;
   folderId: string | null;
@@ -48,6 +68,12 @@ export interface HttpSavedRequest {
   followRedirects: boolean;
   /** Missing means inherit from the folder. */
   auth?: HttpAuth;
+  /** Missing means raw (`body` with `bodyFormat`); the other modes keep their own fields. */
+  bodyMode?: HttpBodyMode;
+  urlencoded?: HttpSavedRow[];
+  formdata?: HttpFormDataRow[];
+  binary?: HttpFileRef | null;
+  graphql?: { query: string; variables: string };
 }
 
 export interface HttpSavedFolder {
@@ -99,6 +125,32 @@ function isRows(value: unknown): value is HttpSavedRow[] {
     && "enabled" in row && typeof row.enabled === "boolean");
 }
 
+function isFileRef(value: unknown): value is HttpFileRef {
+  if (typeof value !== "object" || value === null) return false;
+  const record = value as Record<string, unknown>;
+  return typeof record.id === "string" && !!record.id && typeof record.name === "string" && typeof record.type === "string"
+    && typeof record.size === "number" && Number.isFinite(record.size) && record.size >= 0;
+}
+
+const BODY_MODES: readonly string[] = ["none", "raw", "urlencoded", "formdata", "binary", "graphql"];
+
+function hasValidBody(request: Record<string, unknown>): boolean {
+  if ("bodyMode" in request && (typeof request.bodyMode !== "string" || !BODY_MODES.includes(request.bodyMode))) return false;
+  if ("urlencoded" in request && !isRows(request.urlencoded)) return false;
+  if ("formdata" in request && !(isRows(request.formdata) && request.formdata.every((row) => {
+    const field = row as unknown as Record<string, unknown>;
+    return (field.kind === "text" || field.kind === "file")
+      && (!("file" in field) || field.file === null || isFileRef(field.file));
+  }))) return false;
+  if ("binary" in request && request.binary !== null && !isFileRef(request.binary)) return false;
+  if ("graphql" in request) {
+    const graphql = request.graphql as Record<string, unknown> | null;
+    if (typeof graphql !== "object" || graphql === null
+      || typeof graphql.query !== "string" || typeof graphql.variables !== "string") return false;
+  }
+  return true;
+}
+
 function isWorkspace(value: unknown): value is HttpWorkspace {
   if (typeof value !== "object" || value === null || !("v" in value) || value.v !== 1
     || !("selectedId" in value) || typeof value.selectedId !== "string"
@@ -139,7 +191,7 @@ function isWorkspace(value: unknown): value is HttpWorkspace {
       || typeof request.bodyFormat !== "string" || !["text", "json", "html", "xml"].includes(request.bodyFormat)
       || typeof request.timeoutMs !== "number" || !Number.isFinite(request.timeoutMs)
       || typeof request.followRedirects !== "boolean" || !isRows(request.params) || !isRows(request.headers)
-      || ("auth" in request && !isHttpAuth(request.auth))) return false;
+      || ("auth" in request && !isHttpAuth(request.auth)) || !hasValidBody(request)) return false;
     ids.add(request.id);
   }
   if ("globals" in value && !isRows(value.globals)) return false;

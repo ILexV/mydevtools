@@ -1,4 +1,5 @@
 import { signAwsV4 } from "./http-aws-sigv4.ts";
+import { encodeMultipart, encodeUrlencoded, graphqlPayload, multipartBoundary, type BodyFields, type FileBytes, type MultipartPart } from "./http-body.ts";
 import { encodeQueryComponent, hasSecretPlaceholder, resolveVariables, type VariableScope } from "./http-variables.ts";
 import type { HttpAuth, HttpSavedRequest, HttpWorkspace } from "./http-workspace.ts";
 
@@ -28,7 +29,8 @@ export function effectiveAuth(
   return { auth: { type: "none" }, source: { kind: "default" } };
 }
 
-export type BuildErrorCode = "url" | "headers" | "auth_incomplete" | "aws_secret" | "oauth_token";
+export type BuildErrorCode = "url" | "headers" | "auth_incomplete" | "aws_secret" | "oauth_token"
+  | "file_missing" | "body_limit" | "graphql_variables";
 
 export class HttpBuildError extends Error {
   readonly code: BuildErrorCode;
@@ -128,17 +130,18 @@ export function oauthTokenValid(token: OAuthToken | undefined, now = Date.now())
   return token !== undefined && (token.expiresAt === null || token.expiresAt - 30_000 > now);
 }
 
-export interface BuildInput {
+export interface BuildInput extends BodyFields {
   method: string;
   url: string;
   headers: readonly Header[];
-  body: string;
-  bodyFormat: HttpSavedRequest["bodyFormat"];
   auth: ConcreteAuth;
   scope: VariableScope;
   /** Returns a token for the resolved OAuth config (cached or fetched through the agent). */
   oauthToken?: (config: OAuthClientConfig) => Promise<OAuthToken>;
   now?: () => Date;
+  /** Bytes of a picked file; null when it is gone (files are not saved). May throw `body_limit`. */
+  readFile?: FileBytes;
+  boundary?: string;
 }
 
 export interface BuiltRequest {
@@ -163,16 +166,63 @@ function withoutHeader(headers: Header[], name: string): Header[] {
   return headers.filter((header) => header.name.toLowerCase() !== lower);
 }
 
+/**
+ * Body bytes of the chosen mode with its default Content-Type. `force` replaces a
+ * header set by hand: a multipart body only parses with its own boundary.
+ */
+async function encodeBody(input: BuildInput, resolve: (text: string) => string): Promise<{
+  bytes: Uint8Array; contentType: string; force?: boolean;
+}> {
+  const encoder = new TextEncoder();
+  switch (input.bodyMode ?? "raw") {
+    case "none": return { bytes: new Uint8Array(), contentType: "" };
+    case "urlencoded": {
+      const pairs = (input.urlencoded ?? []).filter((row) => row.enabled && row.name)
+        .map((row) => [resolve(row.name), resolve(row.value)] as const);
+      return { bytes: encoder.encode(encodeUrlencoded(pairs)), contentType: "application/x-www-form-urlencoded" };
+    }
+    case "formdata": {
+      const parts: MultipartPart[] = [];
+      for (const row of input.formdata ?? []) {
+        if (!row.enabled || !row.name) continue;
+        if (row.kind === "text") {
+          parts.push({ name: resolve(row.name), value: resolve(row.value) });
+        } else if (row.file) {
+          const bytes = await input.readFile?.(row.file) ?? null;
+          if (!bytes) throw new HttpBuildError("file_missing", row.file.name);
+          parts.push({ name: resolve(row.name), file: { name: row.file.name, type: row.file.type, bytes } });
+        }
+      }
+      if (!parts.length) return { bytes: new Uint8Array(), contentType: "" };
+      const boundary = input.boundary ?? multipartBoundary();
+      return { bytes: encodeMultipart(parts, boundary), contentType: `multipart/form-data; boundary=${boundary}`, force: true };
+    }
+    case "binary": {
+      if (!input.binary) return { bytes: new Uint8Array(), contentType: "" };
+      const bytes = await input.readFile?.(input.binary) ?? null;
+      if (!bytes) throw new HttpBuildError("file_missing", input.binary.name);
+      return { bytes, contentType: input.binary.type || "application/octet-stream" };
+    }
+    case "graphql": {
+      const payload = graphqlPayload(resolve(input.graphql?.query ?? ""), resolve(input.graphql?.variables ?? ""));
+      if (payload === null) throw new HttpBuildError("graphql_variables");
+      return { bytes: encoder.encode(payload), contentType: "application/json" };
+    }
+    default: return { bytes: encoder.encode(resolve(input.body)), contentType: CONTENT_TYPES[input.bodyFormat] };
+  }
+}
+
 /** Resolves a request for sending: variables, then auth, then validation of URL and headers. */
 export async function buildHttpRequest(input: BuildInput): Promise<BuiltRequest> {
   const unresolved = new Set<string>();
   const resolve = (text: string): string => resolveVariables(text, input.scope, { unresolved, now: input.now });
   let url = resolve(input.url.trim());
   let headers: Header[] = input.headers.map(({ name, value }) => ({ name: resolve(name).trim(), value: resolve(value) }));
-  const bodyText = resolve(input.body);
-  const body = new TextEncoder().encode(bodyText);
+  const encoded = await encodeBody(input, resolve);
+  const body = encoded.bytes;
+  if (body.byteLength && encoded.force) headers = withoutHeader(headers, "Content-Type");
   if (body.byteLength && !headers.some(({ name }) => name.toLowerCase() === "content-type")) {
-    headers.push({ name: "Content-Type", value: CONTENT_TYPES[input.bodyFormat] });
+    headers.push({ name: "Content-Type", value: encoded.contentType });
   }
   let basicAuth: BasicCredentials | undefined;
   const auth = input.auth;
@@ -221,7 +271,7 @@ export async function buildHttpRequest(input: BuildInput): Promise<BuiltRequest>
   if (auth.type === "awsv4") {
     const keys = [auth.accessKey, auth.secretKey, auth.sessionToken].map(resolve);
     // The page signs, so it must see every signed byte: an agent secret would change them after signing.
-    if (keys.some(hasSecretPlaceholder) || hasSecretPlaceholder(url) || hasSecretPlaceholder(bodyText)
+    if (keys.some(hasSecretPlaceholder) || hasSecretPlaceholder(url) || hasSecretPlaceholder(new TextDecoder().decode(body))
       || headers.some(({ value }) => hasSecretPlaceholder(value))) throw new HttpBuildError("aws_secret");
     url = parsed.href;
     const [accessKey, secretKey, sessionToken] = keys as [string, string, string];

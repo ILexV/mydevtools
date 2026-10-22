@@ -1,4 +1,5 @@
-import type { HttpSavedRow } from "@/tools/http-workspace";
+import { createFileField, type FileField, type FileFieldStrings, type FileStore } from "@/tools/http-file-field";
+import type { HttpFormDataRow, HttpSavedRow } from "@/tools/http-workspace";
 
 export interface RowsEditorStrings {
   KeyLabel: string;
@@ -8,22 +9,40 @@ export interface RowsEditorStrings {
   AddRow: string;
 }
 
-export interface RowsEditor {
+export interface RowsEditor<T extends HttpSavedRow = HttpSavedRow> {
   element: HTMLElement;
-  read(): HttpSavedRow[];
-  replace(rows: readonly HttpSavedRow[]): void;
+  read(): T[];
+  replace(rows: readonly T[]): void;
+}
+
+export interface FormDataStrings extends FileFieldStrings {
+  BodyFieldKind: string;
+  BodyKindText: string;
+  BodyKindFile: string;
 }
 
 /**
  * Key/value/enabled table for HTTP client variables (environment, global and
- * folder scopes), built in code for dialogs. A trailing blank row is always
- * kept for typing; blank rows are not returned.
+ * folder scopes) and x-www-form-urlencoded fields. A trailing blank row is
+ * always kept for typing; blank rows are not returned.
  */
-export function createRowsEditor(
+export function createRowsEditor(strings: RowsEditorStrings, label: string, onChange: () => void): RowsEditor {
+  return createTable(strings, label, onChange, null) as RowsEditor;
+}
+
+/** The same table for multipart/form-data: each row is a text value or a picked file. */
+export function createFormDataEditor(
+  strings: RowsEditorStrings & FormDataStrings, label: string, store: FileStore, onChange: () => void,
+): RowsEditor<HttpFormDataRow> {
+  return createTable(strings, label, onChange, { strings, store });
+}
+
+function createTable(
   strings: RowsEditorStrings,
   label: string,
   onChange: () => void,
-): RowsEditor {
+  files: { strings: FormDataStrings; store: FileStore } | null,
+): RowsEditor<HttpFormDataRow> {
   const element = document.createElement("div");
   element.className = "http-rows-editor";
   const scroll = document.createElement("div");
@@ -50,6 +69,7 @@ export function createRowsEditor(
   headRow.append(
     headCell(strings.EnabledLabel, "http-check-cell", true),
     headCell(strings.KeyLabel),
+    ...(files ? [headCell(files.strings.BodyFieldKind, "http-kind-cell")] : []),
     headCell(strings.ValueLabel),
     headCell(strings.RemoveRow, "http-remove-cell", true),
   );
@@ -63,7 +83,10 @@ export function createRowsEditor(
   add.textContent = `+ ${strings.AddRow}`;
   element.append(scroll, add);
 
-  interface Row { element: HTMLTableRowElement; enabled: HTMLInputElement; key: HTMLInputElement; value: HTMLInputElement }
+  interface Row {
+    element: HTMLTableRowElement; enabled: HTMLInputElement; key: HTMLInputElement; value: HTMLInputElement;
+    kind: HTMLSelectElement | null; file: FileField | null;
+  }
   const rows: Row[] = [];
   const input = (aria: string): HTMLInputElement => {
     const field = document.createElement("input");
@@ -81,9 +104,10 @@ export function createRowsEditor(
     td.append(child);
     return td;
   };
-  const blank = (row: Row | undefined): boolean => row !== undefined && !row.key.value && !row.value.value && row.enabled.checked;
+  const blank = (row: Row | undefined): boolean => row !== undefined && !row.key.value && !row.value.value
+    && row.enabled.checked && !row.file?.get() && row.kind?.value !== "file";
 
-  function append(entry?: HttpSavedRow): Row {
+  function append(entry?: HttpFormDataRow): Row {
     const tr = document.createElement("tr");
     const enabled = document.createElement("input");
     enabled.type = "checkbox";
@@ -100,8 +124,29 @@ export function createRowsEditor(
     remove.setAttribute("aria-label", strings.RemoveRow);
     remove.title = strings.RemoveRow;
     remove.textContent = "×";
-    tr.append(cell(enabled, "http-check-cell"), cell(key), cell(value), cell(remove, "http-remove-cell"));
-    const row: Row = { element: tr, enabled, key, value };
+    let kind: HTMLSelectElement | null = null;
+    let file: FileField | null = null;
+    const valueCell = cell(value);
+    if (files) {
+      kind = document.createElement("select");
+      kind.className = "ds-field-select";
+      kind.setAttribute("aria-label", files.strings.BodyFieldKind);
+      kind.append(new Option(files.strings.BodyKindText, "text"), new Option(files.strings.BodyKindFile, "file"));
+      kind.value = entry?.kind ?? "text";
+      file = createFileField(files.strings, files.store, strings.ValueLabel, () => tr.dispatchEvent(new Event("input")));
+      file.set(entry?.file);
+      valueCell.append(file.element);
+      const selectKind = kind;
+      const showKind = (): void => {
+        value.hidden = selectKind.value === "file";
+        file!.element.hidden = selectKind.value !== "file";
+      };
+      showKind();
+      kind.addEventListener("change", showKind);
+    }
+    tr.append(cell(enabled, "http-check-cell"), cell(key), ...(kind ? [cell(kind, "http-kind-cell")] : []), valueCell,
+      cell(remove, "http-remove-cell"));
+    const row: Row = { element: tr, enabled, key, value, kind, file };
     rows.push(row);
     body.append(tr);
     tr.addEventListener("input", () => {
@@ -124,7 +169,7 @@ export function createRowsEditor(
     (blank(last) ? last! : append()).key.focus();
   });
 
-  function replace(entries: readonly HttpSavedRow[]): void {
+  function replace(entries: readonly HttpFormDataRow[]): void {
     rows.length = 0;
     body.replaceChildren();
     for (const entry of entries) append(entry);
@@ -134,8 +179,11 @@ export function createRowsEditor(
   replace([]);
   return {
     element,
-    read: () => rows.filter((row) => row.key.value || row.value.value)
-      .map((row) => ({ name: row.key.value, value: row.value.value, enabled: row.enabled.checked })),
+    read: () => rows.filter((row) => row.key.value || row.value.value || row.file?.get())
+      .map((row) => {
+        const entry = { name: row.key.value, value: row.value.value, enabled: row.enabled.checked };
+        return row.kind ? { ...entry, kind: row.kind.value as HttpFormDataRow["kind"], file: row.file!.get() } : entry as HttpFormDataRow;
+      }),
     replace,
   };
 }

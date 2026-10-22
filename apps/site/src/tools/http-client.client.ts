@@ -57,6 +57,7 @@ import { AgentHistoryBackend, historyEntry, HTTP_HISTORY_STORAGE_KEY, LocalHisto
 import { runHttpRequest, scriptAssignedNames, type RunDeps } from "@/tools/http-run";
 import { ScriptSandbox, ScriptTimeoutError } from "@/tools/http-script-sandbox";
 import { bindScriptsEditor, bindTestsPanel, type ScriptResults, type ScriptsPanelStrings } from "@/tools/http-scripts-panel";
+import { exampleFromResponse, responseFromExample } from "@/tools/http-examples";
 import { bindRunnerDialog, type RunnerStrings } from "@/tools/http-runner-dialog";
 import { bindHistoryPanel, type HistoryPanelStrings } from "@/tools/http-history-panel";
 import { openTabIds, requestFingerprint, tabAfterClose, withOpenTab } from "@/tools/http-tabs";
@@ -68,6 +69,13 @@ import { bindEnvironmentsDialog, bindFolderDialog, type ScopeDialogStrings } fro
 import { collectVariables, encodeQueryComponent, variableNames } from "@/tools/http-variables";
 
 interface Strings extends SecretsDialogStrings, ScopeDialogStrings, FormDataStrings, HistoryPanelStrings, ScriptsPanelStrings, RunnerStrings {
+  LastResponse: string;
+  ExampleSaved: string;
+  ExampleTooLarge: string;
+  ExampleBinary: string;
+  ExampleLimit: string;
+  ExampleLabel: string;
+  MediaPreviewLabel: string;
   RunCollection: string;
   ScriptTimeout: string;
   ScriptRunning: string;
@@ -300,6 +308,13 @@ function init(): void {
   const htmlPreview = root.querySelector<HTMLElement>("[data-http-html-preview]")!;
   const htmlFrame = root.querySelector<HTMLIFrameElement>("[data-http-html-frame]")!;
   const download = root.querySelector<HTMLButtonElement>("[data-http-download]");
+  const mediaButton = root.querySelector<HTMLButtonElement>('[data-http-view="media"]')!;
+  const mediaPreview = root.querySelector<HTMLElement>("[data-http-media-preview]")!;
+  const searchBody = root.querySelector<HTMLButtonElement>("[data-http-search-body]")!;
+  const examplesBar = root.querySelector<HTMLElement>("[data-http-examples-bar]")!;
+  const examplesSelect = root.querySelector<HTMLSelectElement>("[data-http-examples]")!;
+  const exampleDelete = root.querySelector<HTMLButtonElement>("[data-http-example-delete]")!;
+  const exampleSave = root.querySelector<HTMLButtonElement>("[data-http-example-save]")!;
   if (!code || !connect || !disconnect || !agentMeta || !agentVersion || !connectionStatus
     || !connectionError || !connectionState || !agentSettings || !requestName || !savedList || !newRequest
     || !newFolder || !treeMenuButton || !treeMenu || !moveDialog || !moveDestination || !moveConfirm
@@ -321,6 +336,11 @@ function init(): void {
   let prettyPreview: string | null = null;
   let sourceLanguage: EditorLanguage = "text";
   let htmlSource: string | null = null;
+  /** Object URL of an image or PDF response for the Preview view. */
+  let mediaUrl: string | null = null;
+  let mediaKind: "image" | "pdf" | null = null;
+  /** Id of the saved example on screen instead of the last response. */
+  let shownExample: string | null = null;
   let bodyEditor: MdtEditor | null = null;
   let bodyRevision = 0;
   let mountedBodyLanguage: EditorLanguage | null = null;
@@ -826,16 +846,34 @@ function init(): void {
     scheduleWorkspaceSave();
   });
 
-  const showPreview = async (mode: "pretty" | "raw" | "html"): Promise<void> => {
+  const showPreview = async (mode: "pretty" | "raw" | "html" | "media"): Promise<void> => {
     const revision = ++previewRevision;
     const renderHtml = mode === "html" && htmlSource !== null;
+    const renderMedia = mode === "media" && mediaUrl !== null;
     const formatted = mode === "pretty" && prettyPreview !== null;
     const text = formatted ? prettyPreview! : rawPreview;
     const language: EditorLanguage = formatted ? "json" : sourceLanguage;
     prettyButton.setAttribute("aria-pressed", String(formatted));
-    rawButton.setAttribute("aria-pressed", String(!formatted && !renderHtml));
+    rawButton.setAttribute("aria-pressed", String(!formatted && !renderHtml && !renderMedia));
     htmlButton.setAttribute("aria-pressed", String(renderHtml));
+    mediaButton.setAttribute("aria-pressed", String(renderMedia));
     htmlPreview.hidden = !renderHtml;
+    mediaPreview.hidden = !renderMedia;
+    searchBody.hidden = true;
+    if (renderMedia) {
+      editorError.hidden = true;
+      editorHost.hidden = true;
+      responsePreview.hidden = true;
+      if (!mediaPreview.firstElementChild) {
+        // An <img> never runs SVG scripts; the PDF blob is typed application/pdf, so it opens in the viewer, not as a page.
+        const element = mediaKind === "pdf" ? document.createElement("iframe") : document.createElement("img");
+        element.src = mediaUrl!;
+        if (element instanceof HTMLIFrameElement) element.title = s.MediaPreviewLabel;
+        else element.alt = s.MediaPreviewLabel;
+        mediaPreview.replaceChildren(element);
+      }
+      return;
+    }
     if (renderHtml) {
       editorError.hidden = true;
       editorHost.hidden = true;
@@ -893,6 +931,7 @@ function init(): void {
       responseEditor.setValue(text);
       editorHost.hidden = false;
       responsePreview.hidden = true;
+      searchBody.hidden = false;
       responseEditor.view.requestMeasure();
     } catch {
       if (revision !== previewRevision) return;
@@ -906,6 +945,8 @@ function init(): void {
   prettyButton.addEventListener("click", () => { void showPreview("pretty"); });
   rawButton.addEventListener("click", () => { void showPreview("raw"); });
   htmlButton.addEventListener("click", () => { void showPreview("html"); });
+  mediaButton.addEventListener("click", () => { void showPreview("media"); });
+  searchBody.addEventListener("click", () => responseEditor?.openSearch());
   for (const tablist of root.querySelectorAll<HTMLElement>("[data-http-tabs]")) {
     const tabs = [...tablist.querySelectorAll<HTMLButtonElement>(':scope > [role="tab"]')];
     const activate = (next: HTMLButtonElement, moveFocus: boolean): void => {
@@ -1645,6 +1686,75 @@ function init(): void {
     });
   });
 
+  function dropMedia(): void {
+    if (mediaUrl) URL.revokeObjectURL(mediaUrl);
+    mediaUrl = null;
+    mediaKind = null;
+    mediaPreview.replaceChildren();
+    mediaPreview.hidden = true;
+    mediaButton.hidden = true;
+  }
+
+  /** The Examples select of the open request, and whether its last response can be saved. */
+  function renderExamples(): void {
+    const examples = currentRequest.examples ?? [];
+    if (shownExample !== null && !examples.some((example) => example.id === shownExample)) shownExample = null;
+    examplesBar.hidden = examples.length === 0;
+    const option = (value: string, label: string): HTMLOptionElement => {
+      const element = document.createElement("option");
+      element.value = value;
+      element.textContent = label;
+      return element;
+    };
+    examplesSelect.replaceChildren(option("", s.LastResponse), ...examples.map((example) => option(example.id, example.name)));
+    examplesSelect.value = shownExample ?? "";
+    exampleDelete.hidden = shownExample === null;
+    exampleSave.disabled = shownExample !== null || !tabResponses.has(currentRequest.id) || active !== null;
+  }
+
+  /** Shows the last response of the open request, or nothing when it has none yet. */
+  function showLastResponse(): void {
+    shownExample = null;
+    const cached = tabResponses.get(currentRequest.id);
+    if (cached) renderResponse(cached.response, cached.scripts);
+    else clearResponse();
+    renderExamples();
+  }
+
+  examplesSelect.addEventListener("change", () => {
+    const example = currentRequest.examples?.find((entry) => entry.id === examplesSelect.value);
+    if (!example) {
+      showLastResponse();
+      return;
+    }
+    shownExample = example.id;
+    renderResponse(responseFromExample(example), null, example.name);
+    renderExamples();
+  });
+  exampleDelete.addEventListener("click", () => {
+    if (shownExample === null) return;
+    const id = shownExample;
+    currentRequest.examples = (currentRequest.examples ?? []).filter((example) => example.id !== id);
+    if (!currentRequest.examples.length) delete currentRequest.examples;
+    scheduleWorkspaceSave();
+    showLastResponse();
+    examplesSelect.focus();
+  });
+  exampleSave.addEventListener("click", () => {
+    const cached = tabResponses.get(currentRequest.id);
+    if (!cached) return;
+    hideMessage(requestError);
+    const example = exampleFromResponse(cached.response, currentRequest.examples ?? [], requestId());
+    if ("error" in example) {
+      showMessage(requestError, example.error === "binary" ? s.ExampleBinary : example.error === "size" ? s.ExampleTooLarge : s.ExampleLimit);
+      return;
+    }
+    currentRequest.examples = [...(currentRequest.examples ?? []), example];
+    scheduleWorkspaceSave();
+    showMessage(requestStatus, s.ExampleSaved.replace("{name}", example.name));
+    renderExamples();
+  });
+
   function clearResponse(): void {
     previewRevision++;
     responseUi.status.textContent = "";
@@ -1671,6 +1781,8 @@ function init(): void {
     htmlFrame.removeAttribute("srcdoc");
     htmlPreview.hidden = true;
     htmlButton.hidden = true;
+    dropMedia();
+    searchBody.hidden = true;
     responseUi.prettyButton.disabled = true;
     responseUi.prettyButton.setAttribute("aria-pressed", "true");
     responseUi.rawButton.setAttribute("aria-pressed", "false");
@@ -1717,8 +1829,10 @@ function init(): void {
     hideMessage(bodyEditorError);
     clearResponse();
     scriptsEditor.set(request.scripts);
+    shownExample = null;
     const cached = tabResponses.get(request.id);
     if (cached) renderResponse(cached.response, cached.scripts);
+    renderExamples();
     renderSavedList();
     showBodyMode();
   }
@@ -2584,6 +2698,9 @@ function init(): void {
     workspaceUi.newRequest.disabled = sending;
     workspaceUi.newFolder.disabled = sending;
     tabNew.disabled = sending;
+    examplesSelect.disabled = sending;
+    exampleDelete.disabled = sending;
+    exampleSave.disabled = sending || shownExample !== null || !tabResponses.has(currentRequest.id);
     queueHintRefresh();
     workspaceUi.treeMenuButton.disabled = sending;
     workspaceUi.moveDestination.disabled = sending;
@@ -2811,6 +2928,7 @@ function init(): void {
       }
       const response = run.response;
       tabResponses.set(currentRequest.id, { response, scripts });
+      shownExample = null;
       history.record(historyEntry(sentRequest, { status: response.status, elapsedMs: response.elapsedMs,
         sizeBytes: base64ToBytes(response.bodyBase64).byteLength }, requestId()));
       renderResponse(response, scripts);
@@ -2861,8 +2979,10 @@ function init(): void {
     window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
   });
 
-  function renderResponse(response: LocalHttpResponse, scripts: ScriptResults | null = null): void {
+  /** Shows a response; `exampleName` marks a saved example (no time or final URL). */
+  function renderResponse(response: LocalHttpResponse, scripts: ScriptResults | null = null, exampleName?: string): void {
     testsPanel.render(scripts);
+    dropMedia();
     const bytes = base64ToBytes(response.bodyBase64);
     const type = response.headers.find((header) => header.name.toLowerCase() === "content-type")?.value ?? "";
     responseBlob = new Blob([bytes.slice().buffer], { type: type || "application/octet-stream" });
@@ -2870,9 +2990,10 @@ function init(): void {
     responseUi.status.textContent = `${response.status} ${response.statusText}`.trim();
     responseUi.status.classList.toggle("is-error", response.status >= 400);
     responseUi.meta.hidden = false;
-    responseUi.time.textContent = `${response.elapsedMs} ms`;
+    responseUi.time.textContent = exampleName === undefined ? `${response.elapsedMs} ms` : s.ExampleLabel;
     responseUi.size.textContent = formatBytes(bytes.byteLength, 2);
     responseUi.url.textContent = response.url;
+    responseUi.url.parentElement!.hidden = !response.url;
     responseUi.headers.textContent = response.headers.map((header) => `${header.name}: ${header.value}`).join("\n");
     prettyPreview = null;
     const mime = type.split(";", 1)[0]?.trim().toLowerCase() ?? "";
@@ -2896,13 +3017,17 @@ function init(): void {
     } else {
       rawPreview = s.BinaryPreview;
     }
+    mediaKind = mime === "application/pdf" ? "pdf"
+      : /^image\/(?:png|jpeg|gif|webp|avif|bmp|x-icon|vnd\.microsoft\.icon|svg\+xml)$/u.test(mime) ? "image" : null;
+    if (mediaKind && bytes.byteLength) mediaUrl = URL.createObjectURL(new Blob([bytes.slice().buffer], { type: mime }));
+    mediaButton.hidden = mediaUrl === null;
     responseUi.prettyButton.disabled = prettyPreview === null;
     htmlButton.hidden = htmlSource === null;
     responseUi.result.hidden = false;
-    void showPreview(prettyPreview === null ? "raw" : "pretty");
+    void showPreview(mediaUrl !== null ? "media" : prettyPreview === null ? "raw" : "pretty");
     syncEmptyState(responseUi.output, false);
     responseUi.download.disabled = false;
-    showMessage(responseUi.requestStatus, s.ResponseSummary
+    showMessage(responseUi.requestStatus, exampleName !== undefined ? `${s.ExampleLabel} «${exampleName}» · ${response.status}` : s.ResponseSummary
       .replace("{status}", String(response.status))
       .replace("{time}", String(response.elapsedMs))
       .replace("{size}", formatBytes(bytes.byteLength, 2)));

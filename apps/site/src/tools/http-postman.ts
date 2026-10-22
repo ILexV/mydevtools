@@ -2,14 +2,16 @@ import { effectiveAuth } from "./http-auth.ts";
 import { paramsFromUrl } from "./http-curl.ts";
 import { collectVariables, folderChain } from "./http-variables.ts";
 import type {
-  HttpAuth, HttpEnvironment, HttpFormDataRow, HttpSavedFolder, HttpScripts, HttpSavedRequest, HttpSavedRow, HttpWorkspace,
+  HttpAuth, HttpEnvironment, HttpExample, HttpFormDataRow, HttpSavedFolder, HttpScripts, HttpSavedRequest, HttpSavedRow, HttpWorkspace,
 } from "./http-workspace.ts";
+import { HTTP_EXAMPLE_MAX_CHARS, HTTP_EXAMPLES_PER_REQUEST } from "./http-workspace.ts";
 
 /**
  * Postman Collection v2.1 (and v2.0) import and export for the HTTP client, plus
  * Postman environment files on import. Folders, requests, query, headers, all
  * body modes, folder auth, collection variables and pre-request/test scripts carry
- * over; examples and auth types the client lacks are reported, never guessed.
+ * over, and so do saved responses (examples, text bodies); auth types the client
+ * lacks are reported, never guessed.
  */
 export const POSTMAN_SCHEMA = "https://schema.getpostman.com/json/collection/v2.1.0/collection.json";
 
@@ -228,6 +230,13 @@ export function importPostman(input: unknown, parentId: string | null, newId: ()
     entry.followRedirects = behavior.followRedirects !== false;
     const scripts = scriptsOf(item);
     if (scripts) entry.scripts = scripts;
+    const examples = list(item.response).filter(isObject).map((response): HttpExample => ({
+      id: newId(), name: text(response.name) || `${text(response.code)} ${text(response.status)}`.trim(), savedAt: Date.now(),
+      status: Number.isInteger(response.code) ? response.code as number : 200, statusText: text(response.status),
+      headers: list(response.header).filter(isObject).map((header) => ({ name: text(header.key), value: text(header.value) })),
+      body: text(response.body).slice(0, HTTP_EXAMPLE_MAX_CHARS),
+    })).slice(0, HTTP_EXAMPLES_PER_REQUEST);
+    if (examples.length) entry.examples = examples;
     result.requests.push(entry);
   };
 
@@ -301,7 +310,14 @@ function exportRequest(request: HttpSavedRequest): Json {
       url: exportUrl(request.url, request.params),
       ...(auth ? { auth } : {}),
     },
-    response: [],
+    response: (request.examples ?? []).map((example) => {
+      const type = example.headers.find((header) => header.name.toLowerCase() === "content-type")?.value.toLowerCase() ?? "";
+      return {
+        name: example.name, status: example.statusText, code: example.status,
+        _postman_previewlanguage: type.includes("json") ? "json" : type.includes("html") ? "html" : type.includes("xml") ? "xml" : "text",
+        header: example.headers.map((header) => ({ key: header.name, value: header.value })), cookie: [], body: example.body,
+      };
+    }),
   };
 }
 

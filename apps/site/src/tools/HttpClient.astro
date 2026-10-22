@@ -43,7 +43,8 @@ const clientKeys = [
   "HistoryEmpty", "HistoryOff", "HistoryClearConfirm", "HistoryDelete", "HistoryLoadError", "HistorySaveError", "HistoryBodyDropped", "ScriptsLabel", "ScriptEditorError", "TestsPassed", "TestsSkipped", "ScriptErrorIn", "ScriptPre", "ScriptTest",
   "ScriptTimeout", "ScriptRunning", "RequestSkipped", "RunCollection", "RunnerTitle", "RunnerAll", "RunnerIteration", "RunnerProgress",
   "RunnerSummary", "RunnerStoppedAborted", "RunnerStoppedNull", "RunnerStoppedMissing", "RunnerStoppedLoop", "RunnerDataRows", "RunnerDataJson",
-  "RunnerDataShape", "RunnerDataCsv", "RunnerDataTooMany", "RunnerNoRequests", "RunnerConnect", "RunnerSkipped", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
+  "RunnerDataShape", "RunnerDataCsv", "RunnerDataTooMany", "RunnerNoRequests", "RunnerConnect", "RunnerSkipped",
+  "LastResponse", "ExampleSaved", "ExampleTooLarge", "ExampleBinary", "ExampleLimit", "ExampleLabel", "MediaPreviewLabel", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
 const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhrases(lang) });
@@ -430,6 +431,14 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
         <div><dt class="visually-hidden">{t(lang, ns, "TimeLabel")}</dt><dd class="mono" data-http-response-time></dd></div>
         <div><dt class="visually-hidden">{t(lang, ns, "SizeLabel")}</dt><dd class="mono" data-http-response-size></dd></div>
       </dl>
+      <span class="http-examples" hidden data-http-examples-bar>
+        <label class="visually-hidden" for="http-examples">{t(lang, ns, "Examples")}</label>
+        <select id="http-examples" class="ds-field-select http-examples-select" title={t(lang, ns, "Examples")} data-http-examples></select>
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "DeleteExample")} title={t(lang, ns, "DeleteExample")} hidden data-http-example-delete>
+          <Icon name="close" size={14} />
+        </button>
+      </span>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" disabled data-http-example-save><Icon name="plus" size={15} />{t(lang, ns, "SaveExample")}</button>
       <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" disabled data-http-download><Icon name="download" size={15} />{t(lang, ns, "Download")}</button>
     </Fragment>
     <div class="ds-when-filled http-result" hidden data-http-result>
@@ -444,12 +453,17 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
             <button type="button" aria-pressed="true" data-http-view="pretty" disabled>{t(lang, ns, "PrettyLabel")}</button>
             <button type="button" aria-pressed="false" data-http-view="raw">{t(lang, ns, "RawLabel")}</button>
             <button type="button" aria-pressed="false" data-http-view="html" hidden>{t(lang, ns, "HtmlPreview")}</button>
+            <button type="button" aria-pressed="false" data-http-view="media" hidden>{t(lang, ns, "MediaPreview")}</button>
           </div>
           <span class="ds-hint mono" data-http-response-type></span>
+          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action http-search-body" aria-label={t(lang, ns, "SearchBody")} title={t(lang, ns, "SearchBody")} hidden data-http-search-body>
+            <Icon name="search" size={15} />
+          </button>
         </div>
         <StatusMessage kind="error" data-http-editor-error />
         <div class="mdt-cm http-response-editor" data-http-response-editor hidden></div>
         <pre class="ds-code-block mono http-preview" tabindex="0" data-http-response-preview></pre>
+        <div class="http-media-preview" hidden data-http-media-preview></div>
         <div data-http-html-preview hidden>
           <p class="ds-hint http-html-hint">{t(lang, ns, "HtmlPreviewHint")}</p>
           <iframe class="http-html-frame" title={t(lang, ns, "HtmlPreview")} sandbox="" referrerpolicy="no-referrer" data-http-html-frame></iframe>
@@ -555,6 +569,15 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
   .http-console :global(.is-warn) { color: var(--mdt-warning); }
   .http-console :global(.is-error) { color: var(--mdt-danger); }
   .http-folder-script { width: 100%; min-height: 5rem; resize: vertical; }
+  .http-media-preview { display: grid; place-items: center; min-height: 12rem; padding: 0.75rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-sm);
+    background: repeating-conic-gradient(var(--mdt-surface-muted) 0 25%, var(--mdt-surface-raised) 0 50%) 0 0 / 16px 16px; }
+  .http-media-preview[hidden] { display: none; }
+  .http-media-preview :global(img) { max-width: 100%; max-height: 32rem; object-fit: contain; }
+  .http-media-preview :global(iframe) { width: 100%; height: 32rem; border: 0; background: #fff; }
+  .http-search-body { margin-left: auto; }
+  .http-examples { display: inline-flex; align-items: center; gap: 0.15rem; min-width: 0; }
+  .http-examples[hidden] { display: none; }
+  .http-examples-select { max-width: 12rem; min-height: 2rem; padding-block: 0.2rem; font-size: var(--mdt-fs-label); }
   .http-secrets-dialog.http-runner-dialog { width: min(52rem, calc(100vw - 2rem)); }
   .http-runner-setup { display: grid; gap: 0.6rem; }
   .http-runner-options { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; align-items: flex-end; }

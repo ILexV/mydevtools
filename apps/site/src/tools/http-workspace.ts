@@ -60,6 +60,22 @@ export interface HttpScripts {
   test: string;
 }
 
+/** A saved response (Postman "example"): text bodies only, to keep the workspace small. */
+export interface HttpExample {
+  id: string;
+  name: string;
+  /** Epoch ms. */
+  savedAt: number;
+  status: number;
+  statusText: string;
+  headers: { name: string; value: string }[];
+  body: string;
+}
+
+/** Longer example bodies are not saved. */
+export const HTTP_EXAMPLE_MAX_CHARS = 256 * 1024;
+export const HTTP_EXAMPLES_PER_REQUEST = 20;
+
 export interface HttpSavedRequest {
   id: string;
   folderId: string | null;
@@ -81,6 +97,7 @@ export interface HttpSavedRequest {
   binary?: HttpFileRef | null;
   graphql?: { query: string; variables: string };
   scripts?: HttpScripts;
+  examples?: HttpExample[];
 }
 
 export interface HttpSavedFolder {
@@ -139,6 +156,16 @@ function isRows(value: unknown): value is HttpSavedRow[] {
 function isScripts(value: unknown): value is HttpScripts {
   return typeof value === "object" && value !== null && typeof (value as Record<string, unknown>).pre === "string"
     && typeof (value as Record<string, unknown>).test === "string";
+}
+
+function isExample(value: unknown): value is HttpExample {
+  if (typeof value !== "object" || value === null) return false;
+  const record = value as Record<string, unknown>;
+  return typeof record.id === "string" && !!record.id && typeof record.name === "string" && typeof record.body === "string"
+    && typeof record.savedAt === "number" && Number.isFinite(record.savedAt)
+    && typeof record.status === "number" && Number.isInteger(record.status) && typeof record.statusText === "string"
+    && Array.isArray(record.headers) && record.headers.every((header: unknown) => typeof header === "object" && header !== null
+      && typeof (header as Record<string, unknown>).name === "string" && typeof (header as Record<string, unknown>).value === "string");
 }
 
 function isFileRef(value: unknown): value is HttpFileRef {
@@ -209,7 +236,8 @@ function isWorkspace(value: unknown): value is HttpWorkspace {
       || typeof request.timeoutMs !== "number" || !Number.isFinite(request.timeoutMs)
       || typeof request.followRedirects !== "boolean" || !isRows(request.params) || !isRows(request.headers)
       || ("auth" in request && !isHttpAuth(request.auth)) || !hasValidBody(request)
-      || ("scripts" in request && !isScripts(request.scripts))) return false;
+      || ("scripts" in request && !isScripts(request.scripts))
+      || ("examples" in request && !(Array.isArray(request.examples) && request.examples.every(isExample)))) return false;
     ids.add(request.id);
   }
   if ("globals" in value && !isRows(value.globals)) return false;

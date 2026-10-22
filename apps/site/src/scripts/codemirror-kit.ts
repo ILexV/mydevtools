@@ -25,7 +25,7 @@ import {
   syntaxHighlighting,
   type LanguageSupport,
 } from "@codemirror/language";
-import { highlightSelectionMatches, search, searchKeymap } from "@codemirror/search";
+import { highlightSelectionMatches, openSearchPanel, search, searchKeymap } from "@codemirror/search";
 import {
   Compartment,
   EditorSelection,
@@ -113,6 +113,8 @@ export interface MdtEditor {
   setDiagnostic(diagnostic: EditorDiagnostic | null, options?: { announce?: boolean }): void;
   /** Focus the editor, select the diagnostic range and scroll it into view. */
   revealDiagnostic(): void;
+  /** Opens the find panel (also Ctrl/Cmd-F inside the editor). */
+  openSearch(): void;
 }
 
 // Per-language chunks: a page only downloads the grammar it uses.
@@ -482,5 +484,8 @@ export async function createEditor(host: HTMLElement, opts: EditorOptions): Prom
       if (d && options?.announce) announce(d.detail ? `${d.message}. ${d.detail}` : d.message);
     },
     revealDiagnostic,
+    openSearch: () => {
+      openSearchPanel(view);
+    },
   };
 }

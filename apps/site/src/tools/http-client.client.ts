@@ -33,6 +33,7 @@ import {
   type HttpSavedRow,
   type HttpWorkspace,
   type HttpWorkspaceItemKind,
+  type HttpVersionChoice,
 } from "@/tools/http-workspace";
 import { AgentWorkspaceStore } from "@/tools/http-workspace-agent";
 import { bindSecretsDialog, type SecretsDialogStrings } from "@/tools/http-secrets-dialog";
@@ -67,6 +68,8 @@ import { createFileField, FileStore } from "@/tools/http-file-field";
 import { createFormDataEditor, createRowsEditor, type FormDataStrings } from "@/tools/http-rows-editor";
 import { bindEnvironmentsDialog, bindFolderDialog, type ScopeDialogStrings } from "@/tools/http-scope-dialogs";
 import { collectVariables, encodeQueryComponent, variableNames } from "@/tools/http-variables";
+import { formatPhaseMs, HTTP_OPTIONS_FEATURE, proxyUrlError, timingPhases, transportFields } from "@/tools/http-transport-options";
+import { bindClientSettingsDialog } from "@/tools/http-settings-dialog";
 
 interface Strings extends SecretsDialogStrings, ScopeDialogStrings, FormDataStrings, HistoryPanelStrings, ScriptsPanelStrings, RunnerStrings {
   LastResponse: string;
@@ -172,6 +175,22 @@ interface Strings extends SecretsDialogStrings, ScopeDialogStrings, FormDataStri
   AgentConnectedShort: string;
   AgentDisconnectedShort: string;
   AgentSettings: string;
+  TimingDns: string;
+  TimingConnect: string;
+  TimingTls: string;
+  TimingFirstByte: string;
+  TimingDownload: string;
+  TimingOther: string;
+  TimingTotal: string;
+  ConnectionVersion: string;
+  ConnectionRemote: string;
+  ConnectionTls: string;
+  ConnectionCertificate: string;
+  CertificateVerified: string;
+  CertificateNotVerified: string;
+  ConnectionRedirects: string;
+  ClientSettings: string;
+  ProxyUrlInvalid: string;
   [key: `Error_${string}`]: string;
 }
 
@@ -286,6 +305,8 @@ function init(): void {
   const storageWarning = root.querySelector<HTMLElement>("[data-http-storage-warning]")!;
   const timeout = root.querySelector<HTMLInputElement>("[data-http-timeout]");
   const redirects = root.querySelector<HTMLInputElement>("[data-http-redirects]");
+  const verifyTls = root.querySelector<HTMLInputElement>("[data-http-verify-tls]")!;
+  const httpVersion = root.querySelector<HTMLSelectElement>("[data-http-version]")!;
   const send = root.querySelector<HTMLButtonElement>("[data-http-send]");
   const cancel = root.querySelector<HTMLButtonElement>("[data-http-cancel]");
   const requestStatus = root.querySelector<HTMLElement>("[data-http-request-status]");
@@ -345,6 +366,13 @@ function init(): void {
   let bodyRevision = 0;
   let mountedBodyLanguage: EditorLanguage | null = null;
   const s = strings;
+  const timingTab = root.querySelector<HTMLButtonElement>("#http-response-timing-tab")!;
+  const responseBodyTab = root.querySelector<HTMLButtonElement>("#http-response-body-tab")!;
+  const timingList = root.querySelector<HTMLElement>("[data-http-timing-list]")!;
+  const connectionList = root.querySelector<HTMLElement>("[data-http-connection]")!;
+  const PHASE_LABELS = {
+    dns: s.TimingDns, connect: s.TimingConnect, tls: s.TimingTls, firstByte: s.TimingFirstByte, download: s.TimingDownload, other: s.TimingOther,
+  } as const;
   const loadedWorkspace = loadHttpWorkspace();
   /** `agent` once the workspace moved to the agent vault; the browser then keeps no copy. */
   let storage = readHttpWorkspaceLocation();
@@ -365,7 +393,7 @@ function init(): void {
     workspace.requests.push(initial);
   }
   type TreeTarget = { kind: "root" } | { kind: HttpWorkspaceItemKind; id: string };
-  type TreeAction = "new-request" | "new-folder" | "import-curl" | "import-postman" | "export-postman" | "run" | "settings" | "rename"
+  type TreeAction = "new-request" | "new-folder" | "import-curl" | "import-postman" | "export-postman" | "run" | "client-settings" | "settings" | "rename"
     | "move" | "delete";
   let workspaceDirty = false;
   let currentRequest = workspace.requests.find((request) => request.id === workspace.selectedId)!;
@@ -562,7 +590,8 @@ function init(): void {
           return oauthTokenValid(cached) ? cached : { accessToken: "<access-token>", tokenType: "Bearer", expiresAt: null };
         },
       }));
-      return generateCode(language, codeRequest(built, requestTimeout(), workspaceUi.redirects.checked));
+      return generateCode(language, codeRequest(built, requestTimeout(), workspaceUi.redirects.checked,
+        { verifyTls: verifyTls.checked, httpVersion: httpVersion.value as HttpVersionChoice }));
     } catch (error) {
       throw new Error(buildErrorText(error));
     }
@@ -626,6 +655,9 @@ function init(): void {
   };
   const environments = bindEnvironmentsDialog(envDialog, scopeOptions);
   const folderSettings = bindFolderDialog(folderDialog, scopeOptions);
+  const clientSettings = bindClientSettingsDialog(root.querySelector<HTMLDialogElement>("[data-http-settings-dialog]")!, {
+    strings: s, workspace: () => workspace, changed: scheduleWorkspaceSave,
+  });
 
   /** Environment select in the request header: none or one of the workspace environments. */
   function renderEnvironmentSwitcher(): void {
@@ -1003,6 +1035,10 @@ function init(): void {
     Object.assign(currentRequest, currentBodyFields());
     currentRequest.timeoutMs = Number.isFinite(timeoutValue) ? timeoutValue : 30000;
     currentRequest.followRedirects = workspaceUi.redirects.checked;
+    if (verifyTls.checked) delete currentRequest.verifyTls;
+    else currentRequest.verifyTls = false;
+    if (httpVersion.value === "http1" || httpVersion.value === "http2") currentRequest.httpVersion = httpVersion.value;
+    else delete currentRequest.httpVersion;
     currentRequest.auth = requestAuth.get();
     const scripts = scriptsEditor.get();
     if (scripts) currentRequest.scripts = scripts;
@@ -1503,6 +1539,8 @@ function init(): void {
               { action: "move", label: workspaceUi.strings.MoveItem },
               { action: "delete", label: workspaceUi.strings.DeleteRequest, danger: true, separate: true },
             ];
+    // Workspace-wide, so every menu ends with it.
+    definitions.push({ action: "client-settings", label: workspaceUi.strings.ClientSettings, separate: true });
     const fragment = document.createDocumentFragment();
     let firstMenuItem = true;
     for (const definition of definitions) {
@@ -1821,6 +1859,8 @@ function init(): void {
     graphqlVariables.value = request.graphql?.variables ?? "";
     workspaceUi.timeout.value = String(request.timeoutMs);
     workspaceUi.redirects.checked = request.followRedirects;
+    verifyTls.checked = request.verifyTls !== false;
+    httpVersion.value = request.httpVersion ?? "auto";
     requestAuth.set(request.auth);
     requestAuth.setTokenStatus(null);
     queueHintRefresh();
@@ -2127,6 +2167,8 @@ function init(): void {
   });
   timeout.addEventListener("input", scheduleWorkspaceSave);
   redirects.addEventListener("change", scheduleWorkspaceSave);
+  verifyTls.addEventListener("change", scheduleWorkspaceSave);
+  httpVersion.addEventListener("change", scheduleWorkspaceSave);
   function createRequestAt(parentId: string | null, init: Partial<HttpSavedRequest> = {}): boolean {
     if (active || (parentId !== null && !workspace.folders.some((folder) => folder.id === parentId))
       || !saveWorkspaceNow()) return false;
@@ -2271,6 +2313,8 @@ function init(): void {
       showMessage(workspaceUi.root.querySelector<HTMLElement>("[data-http-request-error]")!, curlErrorText(error));
       return;
     }
+    delete currentRequest.verifyTls;
+    delete currentRequest.httpVersion;
     Object.assign(currentRequest, { timeoutMs: 30000 }, result.fields);
     applyRequest(currentRequest);
     scheduleWorkspaceSave();
@@ -2438,6 +2482,10 @@ function init(): void {
   }
 
   function runTreeAction(action: TreeAction, target: TreeTarget, returnFocus: HTMLElement | null): void {
+    if (action === "client-settings") {
+      clientSettings.open(returnFocus ?? workspaceUi.savedList);
+      return;
+    }
     if (active || !targetExists(target)) return;
     if (action === "new-request") {
       createRequestAt(parentForTarget(target));
@@ -2832,6 +2880,11 @@ function init(): void {
       },
       send: async (built, request) => {
         const id = hooks.id ?? requestId();
+        if (workspace.proxy?.enabled && proxyUrlError(workspace.proxy.url)) throw new LocalAgentError("proxy_invalid");
+        const transport = transportFields(request, workspace.proxy);
+        if (Object.keys(transport).length && !client.info?.features?.includes(HTTP_OPTIONS_FEATURE)) {
+          throw new LocalAgentError("agent_outdated");
+        }
         inFlight = id;
         hooks.onSend?.();
         try {
@@ -2844,6 +2897,7 @@ function init(): void {
             timeoutMs: Math.max(100, Math.min(client.info?.limits.maxTimeoutMs ?? 120000, request.timeoutMs || 30000)),
             followRedirects: request.followRedirects,
             ...(built.basicAuth ? { basicAuth: built.basicAuth } : {}),
+            ...transport,
           }, signal);
         } finally {
           inFlight = null;
@@ -2979,6 +3033,65 @@ function init(): void {
     window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
   });
 
+  /** Timing tab: a waterfall of the agent's phases and the connection; hidden for examples and older agents. */
+  function renderTiming(response: LocalHttpResponse | null): void {
+    const phases = response ? timingPhases(response) : null;
+    timingTab.hidden = !phases;
+    if (!phases || !response) {
+      if (timingTab.getAttribute("aria-selected") === "true") responseBodyTab.click();
+      timingList.replaceChildren();
+      connectionList.replaceChildren();
+      return;
+    }
+    const total = Math.max(response.elapsedMs, phases.reduce((sum, entry) => sum + entry.ms, 0), 0.001);
+    let offset = 0;
+    const row = (label: string, ms: number, start: number | null): HTMLLIElement => {
+      const item = document.createElement("li");
+      const name = document.createElement("span");
+      name.textContent = label;
+      const track = document.createElement("span");
+      track.className = "http-timing-track";
+      track.setAttribute("aria-hidden", "true");
+      if (start !== null) {
+        const bar = document.createElement("span");
+        bar.className = "http-timing-bar";
+        bar.style.left = `${(start / total) * 100}%`;
+        bar.style.width = `${(ms / total) * 100}%`;
+        track.append(bar);
+      }
+      const value = document.createElement("span");
+      value.className = "http-timing-ms mono";
+      value.textContent = formatPhaseMs(ms);
+      item.append(name, track, value);
+      return item;
+    };
+    const items = phases.map((entry) => {
+      const item = row(PHASE_LABELS[entry.phase], entry.ms, offset);
+      offset += entry.ms;
+      return item;
+    });
+    // elapsedMs is whole milliseconds; never show a total below its phases.
+    const totalRow = row(s.TimingTotal, Math.max(response.elapsedMs, offset), null);
+    totalRow.classList.add("is-total");
+    timingList.replaceChildren(...items, totalRow);
+    const facts: [string, string, boolean?][] = [];
+    if (response.httpVersion) facts.push([s.ConnectionVersion, response.httpVersion]);
+    if (response.remoteAddress) facts.push([s.ConnectionRemote, response.remoteAddress]);
+    if (response.tls) {
+      facts.push([s.ConnectionTls, `${response.tls.protocol.replace("TLSv1_", "TLS 1.")} · ${response.tls.cipher}`]);
+      facts.push([s.ConnectionCertificate, response.tls.verified ? s.CertificateVerified : s.CertificateNotVerified, !response.tls.verified]);
+    }
+    if (response.redirects) facts.push([s.ConnectionRedirects, String(response.redirects)]);
+    connectionList.replaceChildren(...facts.flatMap(([term, detail, warning]) => {
+      const dt = document.createElement("dt");
+      dt.textContent = term;
+      const dd = document.createElement("dd");
+      dd.className = warning ? "mono is-warning" : "mono";
+      dd.textContent = detail;
+      return [dt, dd];
+    }));
+  }
+
   /** Shows a response; `exampleName` marks a saved example (no time or final URL). */
   function renderResponse(response: LocalHttpResponse, scripts: ScriptResults | null = null, exampleName?: string): void {
     testsPanel.render(scripts);
@@ -2995,6 +3108,7 @@ function init(): void {
     responseUi.url.textContent = response.url;
     responseUi.url.parentElement!.hidden = !response.url;
     responseUi.headers.textContent = response.headers.map((header) => `${header.name}: ${header.value}`).join("\n");
+    renderTiming(exampleName === undefined ? response : null);
     prettyPreview = null;
     const mime = type.split(";", 1)[0]?.trim().toLowerCase() ?? "";
     sourceLanguage = mime === "application/json" || mime.endsWith("+json") ? "json"

@@ -5,6 +5,8 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 
+use crate::http_transport::{HttpVersionChoice, Timings, TlsSummary};
+
 pub(crate) const HTTP_CAPABILITY: &str = "http.request";
 /// Continuous ICMP traceroute. Granted only when the page asks for it; pairing
 /// for `http.request` does not include this capability.
@@ -43,6 +45,8 @@ pub(crate) const AGENT_CAPABILITIES: [&str; 9] = [
     VAULT_DATA_CAPABILITY,
     VAULT_SECRETS_CAPABILITY,
 ];
+/// `http.options`: `verifyTls`, `httpVersion`, `proxy` and timed phases in replies.
+pub(crate) const AGENT_FEATURES: [&str; 1] = ["http.options"];
 pub(crate) const MAX_INCOMING_JSON_BYTES: usize = 2 * 1024 * 1024;
 pub(crate) const MAX_REQUEST_BODY_BYTES: usize = 1024 * 1024;
 pub(crate) const MAX_RESPONSE_BODY_BYTES: usize = 16 * 1024 * 1024;
@@ -52,6 +56,8 @@ pub(crate) const MAX_TIMEOUT_MS: u64 = 120_000;
 #[serde(rename_all = "camelCase")]
 pub(crate) struct InfoResponse {
     pub(crate) protocol_version: u8,
+    /// Optional parts of the protocol; a page checks one before using it.
+    pub(crate) features: &'static [&'static str],
     pub(crate) version: &'static str,
     pub(crate) capabilities: &'static [&'static str],
     pub(crate) private_network_allowed: bool,
@@ -105,6 +111,30 @@ pub(crate) struct HttpRequestInput {
     /// password is substituted before Base64. Excludes an `Authorization` header.
     #[serde(default)]
     pub(crate) basic_auth: Option<BasicAuthInput>,
+    /// Off accepts any server certificate (self-signed, expired, wrong name).
+    #[serde(default = "default_true")]
+    pub(crate) verify_tls: bool,
+    #[serde(default)]
+    pub(crate) http_version: HttpVersionChoice,
+    #[serde(default)]
+    pub(crate) proxy: Option<ProxyInput>,
+}
+
+const fn default_true() -> bool {
+    true
+}
+
+/// A plain `http://host:port` proxy; hosts matching `bypass` connect directly.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct ProxyInput {
+    pub(crate) url: String,
+    #[serde(default)]
+    pub(crate) username: String,
+    #[serde(default)]
+    pub(crate) password: String,
+    #[serde(default)]
+    pub(crate) bypass: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -129,6 +159,13 @@ pub(crate) struct HttpResponseOutput {
     pub(crate) headers: Vec<HeaderEntry>,
     pub(crate) body_base64: String,
     pub(crate) elapsed_ms: u64,
+    /// `HTTP/1.1` or `HTTP/2` of the last hop.
+    pub(crate) http_version: &'static str,
+    pub(crate) remote_address: String,
+    /// Phases of the last hop; earlier redirect hops count only in `elapsed_ms`.
+    pub(crate) timings: Timings,
+    pub(crate) redirects: u8,
+    pub(crate) tls: Option<TlsSummary>,
 }
 
 #[derive(Debug, Serialize)]

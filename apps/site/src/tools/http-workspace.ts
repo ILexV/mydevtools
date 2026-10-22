@@ -76,6 +76,22 @@ export interface HttpExample {
 export const HTTP_EXAMPLE_MAX_CHARS = 256 * 1024;
 export const HTTP_EXAMPLES_PER_REQUEST = 20;
 
+/** Postman's per-request "HTTP version" setting; `auto` negotiates h2 or HTTP/1.1. */
+export type HttpVersionChoice = "auto" | "http1" | "http2";
+export const HTTP_VERSION_CHOICES: readonly HttpVersionChoice[] = ["auto", "http1", "http2"];
+
+/**
+ * Workspace-wide HTTP proxy the agent connects through (`http://host:port`).
+ * `bypass` is a comma list of hosts and `*.domain` patterns sent directly.
+ */
+export interface HttpProxySettings {
+  enabled: boolean;
+  url: string;
+  username: string;
+  password: string;
+  bypass: string;
+}
+
 export interface HttpSavedRequest {
   id: string;
   folderId: string | null;
@@ -98,6 +114,10 @@ export interface HttpSavedRequest {
   graphql?: { query: string; variables: string };
   scripts?: HttpScripts;
   examples?: HttpExample[];
+  /** Missing means on: the agent checks the server certificate. */
+  verifyTls?: boolean;
+  /** Missing means auto. */
+  httpVersion?: HttpVersionChoice;
 }
 
 export interface HttpSavedFolder {
@@ -125,6 +145,7 @@ export interface HttpWorkspace {
   globals?: HttpSavedRow[];
   /** Open request tabs in order; ids that no longer exist are ignored. */
   openIds?: string[];
+  proxy?: HttpProxySettings;
 }
 
 const STRING_FIELDS: Record<Exclude<HttpAuthType, "inherit" | "none">, readonly string[]> = {
@@ -194,6 +215,13 @@ function hasValidBody(request: Record<string, unknown>): boolean {
   return true;
 }
 
+function isProxy(value: unknown): value is HttpProxySettings {
+  if (typeof value !== "object" || value === null) return false;
+  const proxy = value as Record<string, unknown>;
+  return typeof proxy.enabled === "boolean"
+    && ["url", "username", "password", "bypass"].every((key) => typeof proxy[key] === "string");
+}
+
 function isWorkspace(value: unknown): value is HttpWorkspace {
   if (typeof value !== "object" || value === null || !("v" in value) || value.v !== 1
     || !("selectedId" in value) || typeof value.selectedId !== "string"
@@ -237,10 +265,13 @@ function isWorkspace(value: unknown): value is HttpWorkspace {
       || typeof request.followRedirects !== "boolean" || !isRows(request.params) || !isRows(request.headers)
       || ("auth" in request && !isHttpAuth(request.auth)) || !hasValidBody(request)
       || ("scripts" in request && !isScripts(request.scripts))
-      || ("examples" in request && !(Array.isArray(request.examples) && request.examples.every(isExample)))) return false;
+      || ("examples" in request && !(Array.isArray(request.examples) && request.examples.every(isExample)))
+      || ("verifyTls" in request && typeof request.verifyTls !== "boolean")
+      || ("httpVersion" in request && !HTTP_VERSION_CHOICES.includes(request.httpVersion))) return false;
     ids.add(request.id);
   }
   if ("globals" in value && !isRows(value.globals)) return false;
+  if ("proxy" in value && !isProxy(value.proxy)) return false;
   if ("openIds" in value && !(Array.isArray(value.openIds) && value.openIds.every((id: unknown) => typeof id === "string"))) return false;
   const environmentIds = new Set<string>();
   if ("environments" in value) {
@@ -315,8 +346,8 @@ export function writeHttpWorkspaceLocation(location: HttpWorkspaceLocation): voi
 
 /** True when both hold the same requests and folders; view state is ignored. */
 export function sameHttpWorkspaceContent(left: HttpWorkspace, right: HttpWorkspace): boolean {
-  return JSON.stringify([left.requests, left.folders, left.environments ?? [], left.globals ?? []])
-    === JSON.stringify([right.requests, right.folders, right.environments ?? [], right.globals ?? []]);
+  return JSON.stringify([left.requests, left.folders, left.environments ?? [], left.globals ?? [], left.proxy ?? null])
+    === JSON.stringify([right.requests, right.folders, right.environments ?? [], right.globals ?? [], right.proxy ?? null]);
 }
 
 /**

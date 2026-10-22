@@ -6,7 +6,7 @@ import type { HttpAuth, HttpFormDataRow, HttpSavedRequest, HttpSavedRow } from "
  * Files named with `@` cannot be read by the page and are listed for re-picking.
  */
 export type CurlFields = Pick<HttpSavedRequest, "method" | "url" | "params" | "headers" | "body" | "bodyFormat" | "bodyMode"
-  | "urlencoded" | "formdata" | "binary" | "followRedirects"> & { timeoutMs?: number; auth?: HttpAuth };
+  | "urlencoded" | "formdata" | "binary" | "followRedirects" | "verifyTls" | "httpVersion"> & { timeoutMs?: number; auth?: HttpAuth };
 
 export interface CurlImport {
   fields: CurlFields;
@@ -163,13 +163,13 @@ const SKIP_WITH_VALUE = new Set(["-o", "--output", "-w", "--write-out", "--conne
   "-y", "--speed-time", "-Y", "--speed-limit", "--max-redirs", "--keepalive-time", "--output-dir", "--config", "-K"]);
 const SKIP_FLAGS = new Set(["-s", "--silent", "-S", "--show-error", "-v", "--verbose", "-i", "--include", "--compressed",
   "-#", "--progress-bar", "-f", "--fail", "--fail-with-body", "-N", "--no-buffer", "-g", "--globoff", "-O", "--remote-name",
-  "-J", "--remote-header-name", "--http1.1", "--http2", "--http2-prior-knowledge", "--http3", "-n", "--netrc",
+  "-J", "--remote-header-name", "--http3", "-n", "--netrc",
   "--no-progress-meter", "-q", "--disable", "--tr-encoding", "--path-as-is", "--location-trusted"]);
 /** Options with an effect the client cannot reproduce; reported to the user. */
 const IGNORED_WITH_VALUE = new Set(["-x", "--proxy", "-E", "--cert", "--key", "--cacert", "--capath", "--resolve",
   "--connect-to", "--interface", "-U", "--proxy-user", "--cert-type", "--key-type", "--pass", "--ciphers", "--tls-max",
   "--oauth2-bearer", "-z", "--time-cond", "--aws-sigv4"]);
-const IGNORED_FLAGS = new Set(["-k", "--insecure", "--digest", "--ntlm", "--negotiate", "--anyauth", "-4", "--ipv4",
+const IGNORED_FLAGS = new Set(["--digest", "--ntlm", "--negotiate", "--anyauth", "-4", "--ipv4",
   "-6", "--ipv6", "-0", "--http1.0", "--tlsv1.2", "--tlsv1.3", "--ssl-no-revoke", "--proxy-insecure"]);
 const SHORT_WITH_VALUE = new Set(["X", "H", "d", "F", "u", "A", "e", "b", "m", "T", "r", "o", "w", "c", "D", "x", "E",
   "U", "K", "y", "Y", "z"]);
@@ -215,6 +215,8 @@ export function parseCurl(command: string): CurlImport {
   let head = false;
   let user: string | null = null;
   let followRedirects = false;
+  let verifyTls = true;
+  let httpVersion: CurlFields["httpVersion"];
   let timeoutMs: number | undefined;
   const ignored: string[] = [];
   const files: string[] = [];
@@ -299,6 +301,9 @@ export function parseCurl(command: string): CurlImport {
       case "-G": case "--get": getData = true; break;
       case "-I": case "--head": head = true; break;
       case "-L": case "--location": followRedirects = true; break;
+      case "-k": case "--insecure": verifyTls = false; break;
+      case "--http1.1": httpVersion = "http1"; break;
+      case "--http2": case "--http2-prior-knowledge": httpVersion = "http2"; break;
       case "-m": case "--max-time": {
         const seconds = Number(value());
         if (Number.isFinite(seconds) && seconds > 0) timeoutMs = Math.round(Math.min(120, Math.max(0.1, seconds)) * 1000);
@@ -333,6 +338,8 @@ export function parseCurl(command: string): CurlImport {
     method: "", url, params: [], headers: kept, body: "", bodyFormat: "text", bodyMode: "none",
     urlencoded: [], formdata: [], binary: null, followRedirects,
     ...(timeoutMs ? { timeoutMs } : {}),
+    ...(verifyTls ? {} : { verifyTls: false }),
+    ...(httpVersion ? { httpVersion } : {}),
   };
   if (user !== null) {
     const colon = user.indexOf(":");

@@ -20,10 +20,10 @@ use crate::{
     state::{AgentConfig, AgentState},
 };
 
-const ORIGIN: &str = "https://mydevtools.app";
+pub(super) const ORIGIN: &str = "https://mydevtools.app";
 const PAIRING_CODE: &str = "11111111111111111111111111111111";
 
-fn test_app(allow_private: bool, port: u16) -> (Arc<AgentState>, Router) {
+pub(super) fn test_app(allow_private: bool, port: u16) -> (Arc<AgentState>, Router) {
     let state = AgentState::new(AgentConfig {
         port,
         allow_private,
@@ -35,7 +35,12 @@ fn test_app(allow_private: bool, port: u16) -> (Arc<AgentState>, Router) {
     (state, app)
 }
 
-fn request(method: Method, path: &str, body: Option<Value>, token: Option<&str>) -> Request<Body> {
+pub(super) fn request(
+    method: Method,
+    path: &str,
+    body: Option<Value>,
+    token: Option<&str>,
+) -> Request<Body> {
     let mut builder = Request::builder()
         .method(method)
         .uri(path)
@@ -53,14 +58,14 @@ fn request(method: Method, path: &str, body: Option<Value>, token: Option<&str>)
     builder.body(body).expect("test request")
 }
 
-async fn response_json(response: axum::response::Response) -> Value {
+pub(super) async fn response_json(response: axum::response::Response) -> Value {
     let body = to_bytes(response.into_body(), 32 * 1024 * 1024)
         .await
         .expect("response body");
     serde_json::from_slice(&body).expect("JSON response")
 }
 
-async fn pair(app: &Router) -> String {
+pub(super) async fn pair(app: &Router) -> String {
     let response = app
         .clone()
         .oneshot(request(
@@ -81,7 +86,7 @@ async fn pair(app: &Router) -> String {
         .to_owned()
 }
 
-fn http_input(id: Uuid, url: String, follow_redirects: bool) -> Value {
+pub(super) fn http_input(id: Uuid, url: String, follow_redirects: bool) -> Value {
     json!({
         "id": id.to_string(),
         "method": "GET",

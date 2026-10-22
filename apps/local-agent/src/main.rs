@@ -3,6 +3,7 @@
 mod asn;
 mod dns;
 mod http_client;
+mod http_transport;
 mod icmp;
 mod model;
 mod policy;
@@ -15,6 +16,8 @@ mod whois;
 #[cfg(windows)]
 mod windows_shell;
 
+#[cfg(test)]
+mod http_options_tests;
 #[cfg(test)]
 mod security_tests;
 

@@ -43,7 +43,8 @@ test("short options, form data in pairs, auth, timeout and options the client ca
   assert.deepEqual(fields.auth, { type: "basic", username: "bob", password: "pa:ss" });
   assert.equal(fields.timeoutMs, 5000);
   assert.equal(fields.followRedirects, true);
-  assert.deepEqual(ignored, ["-k", "--proxy", "-X TRACE"]);
+  assert.equal(fields.verifyTls, false);
+  assert.deepEqual(ignored, ["--proxy", "-X TRACE"]);
 });
 
 test("multipart fields, files to pick again and a dropped boundary header", () => {

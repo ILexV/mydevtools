@@ -206,7 +206,7 @@ fn connector() -> TlsConnector {
         .clone()
 }
 
-fn provider() -> Arc<rustls::crypto::CryptoProvider> {
+pub(crate) fn provider() -> Arc<rustls::crypto::CryptoProvider> {
     static PROVIDER: OnceLock<Arc<rustls::crypto::CryptoProvider>> = OnceLock::new();
     PROVIDER
         .get_or_init(|| {
@@ -215,6 +215,12 @@ fn provider() -> Arc<rustls::crypto::CryptoProvider> {
             Arc::new(provider)
         })
         .clone()
+}
+
+/// Accepts any chain (signatures still checked); for inspection and for
+/// HTTP requests that turned certificate verification off.
+pub(crate) fn observe_verifier() -> Arc<dyn ServerCertVerifier> {
+    Arc::new(ObserveServerCerts)
 }
 
 fn trust_verifier() -> Arc<rustls::client::WebPkiServerVerifier> {

@@ -1,23 +1,23 @@
-use std::{
-    net::{IpAddr, SocketAddr},
-    time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 
-use axum::http::{HeaderMap, HeaderName, HeaderValue, Method, StatusCode};
+use axum::http::{
+    HeaderMap, HeaderName, HeaderValue, Method, StatusCode,
+    header::{CONTENT_ENCODING, CONTENT_TYPE, LOCATION},
+};
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use bytes::Bytes;
-use futures_util::StreamExt;
-use reqwest::{Client, redirect::Policy};
-use tokio::net::lookup_host;
 use tokio_util::sync::CancellationToken;
-use url::{Host, Url};
+use url::Url;
 
 use crate::{
+    http_transport::{
+        self, Head, HttpVersionChoice, MAX_RESPONSE_HEADER_BYTES, MAX_RESPONSE_HEADERS, Options,
+        Proxy, response_too_large,
+    },
     model::{
         ApiError, HeaderEntry, HttpRequestInput, HttpResponseOutput, MAX_REQUEST_BODY_BYTES,
-        MAX_RESPONSE_BODY_BYTES, MAX_TIMEOUT_MS,
+        MAX_TIMEOUT_MS, ProxyInput,
     },
-    policy::enforce_destination,
     state::AgentConfig,
     vault::{self, SecretBook, Substitutions},
 };
@@ -25,10 +25,7 @@ use crate::{
 const MAX_REDIRECTS: usize = 5;
 const MAX_REQUEST_HEADERS: usize = 256;
 const MAX_REQUEST_HEADER_BYTES: usize = 64 * 1024;
-const MAX_RESPONSE_HEADERS: usize = 256;
-const MAX_RESPONSE_HEADER_BYTES: usize = 128 * 1024;
 const MAX_URL_BYTES: usize = 16 * 1024;
-const MAX_PINNED_ADDRESSES: usize = 16;
 
 /// True when the URL, a header value or the body has `{{secret:`.
 pub(crate) fn mentions_secret(input: &HttpRequestInput) -> bool {
@@ -109,6 +106,11 @@ pub(crate) async fn execute(
         return Err(vault::secret_host_denied());
     }
     let headers = parse_headers(header_entries)?;
+    let options = RequestOptions {
+        verify_tls: input.verify_tls,
+        version: input.http_version,
+        proxy: input.proxy.map(parse_proxy).transpose()?,
+    };
     let started = Instant::now();
 
     let operation = execute_redirect_chain(
@@ -118,7 +120,7 @@ pub(crate) async fn execute(
         body,
         input.follow_redirects,
         config,
-        &cancellation,
+        &options,
         &substitutions,
     );
     let output = tokio::select! {
@@ -170,24 +172,23 @@ async fn execute_redirect_chain(
     mut body: Bytes,
     follow_redirects: bool,
     config: &AgentConfig,
-    cancellation: &CancellationToken,
+    options: &RequestOptions,
     substitutions: &Substitutions,
 ) -> Result<HttpResponseOutput, ApiError> {
-    let mut redirects = 0;
+    let mut redirects: u8 = 0;
     loop {
-        let client = pinned_client(&url, config).await?;
-        let response = tokio::select! {
-            _ = cancellation.cancelled() => return Err(cancelled()),
-            response = client
-                .request(method.clone(), url.clone())
-                .headers(headers.clone())
-                .body(body.clone())
-                .send() => response.map_err(map_network_error)?,
+        let transport = Options {
+            verify_tls: options.verify_tls,
+            version: options.version,
+            proxy: options.proxy_for(&url),
+            identity: None,
         };
+        let head =
+            http_transport::send(&method, &url, &headers, body.clone(), config, &transport).await?;
 
-        if follow_redirects && is_followable_redirect(response.status()) {
-            if let Some(location) = response.headers().get(reqwest::header::LOCATION) {
-                if redirects >= MAX_REDIRECTS {
+        if follow_redirects && is_followable_redirect(head.status()) {
+            if let Some(location) = head.headers().get(LOCATION) {
+                if usize::from(redirects) >= MAX_REDIRECTS {
                     return Err(ApiError::new(StatusCode::BAD_GATEWAY, "network_error"));
                 }
                 let location = location
@@ -197,7 +198,7 @@ async fn execute_redirect_chain(
                 // A secret never follows a redirect to a host outside its list:
                 // the page gets the 3xx itself.
                 if !substitutions.is_empty() && !substitutions.host_allowed(&next_url) {
-                    return read_response(response, cancellation).await;
+                    return output(head, &url, redirects).await;
                 }
                 if url.scheme() == "https" && next_url.scheme() == "http" {
                     return Err(ApiError::new(StatusCode::FORBIDDEN, "target_denied"));
@@ -205,109 +206,120 @@ async fn execute_redirect_chain(
                 if !same_origin(&url, &next_url) {
                     retain_cross_origin_safe_headers(&mut headers);
                 }
-                rewrite_redirect_request(response.status(), &mut method, &mut body, &mut headers);
+                rewrite_redirect_request(head.status(), &mut method, &mut body, &mut headers);
                 url = next_url;
                 redirects += 1;
                 continue;
             }
         }
 
-        return read_response(response, cancellation).await;
+        return output(head, &url, redirects).await;
     }
 }
 
-async fn pinned_client(url: &Url, config: &AgentConfig) -> Result<Client, ApiError> {
-    let port = url
-        .port_or_known_default()
-        .ok_or_else(ApiError::invalid_request)?;
-    if port == 0 {
+/// Per-request transport settings from the page.
+struct RequestOptions {
+    verify_tls: bool,
+    version: HttpVersionChoice,
+    proxy: Option<(Proxy, Vec<String>)>,
+}
+
+impl RequestOptions {
+    fn proxy_for(&self, url: &Url) -> Option<&Proxy> {
+        let (proxy, bypass) = self.proxy.as_ref()?;
+        let host = url
+            .host_str()?
+            .trim_start_matches('[')
+            .trim_end_matches(']')
+            .to_ascii_lowercase();
+        let bypassed = bypass.iter().any(|pattern| {
+            if let Some(suffix) = pattern.strip_prefix("*.") {
+                host.len() > suffix.len() + 1
+                    && host.ends_with(suffix)
+                    && host.as_bytes()[host.len() - suffix.len() - 1] == b'.'
+            } else {
+                host == *pattern
+            }
+        });
+        (!bypassed).then_some(proxy)
+    }
+}
+
+const MAX_PROXY_BYPASS: usize = 64;
+
+fn parse_proxy(input: ProxyInput) -> Result<(Proxy, Vec<String>), ApiError> {
+    let url = parse_url(&input.url)?;
+    if url.scheme() != "http"
+        || !matches!(url.path(), "" | "/")
+        || url.query().is_some()
+        || url.fragment().is_some()
+    {
         return Err(ApiError::invalid_request());
     }
-
-    let mut builder = Client::builder()
-        .redirect(Policy::none())
-        .no_proxy()
-        .connect_timeout(Duration::from_secs(30))
-        .pool_max_idle_per_host(0)
-        .http2_max_header_list_size(MAX_RESPONSE_HEADER_BYTES as u32)
-        .user_agent(concat!(
-            "MyDevTools-Local-Agent/",
-            env!("CARGO_PKG_VERSION")
-        ));
-
-    match url.host().ok_or_else(ApiError::invalid_request)? {
-        Host::Ipv4(address) => {
-            enforce_destination(IpAddr::V4(address), port, config.port, config.allow_private)?;
-        }
-        Host::Ipv6(address) => {
-            enforce_destination(IpAddr::V6(address), port, config.port, config.allow_private)?;
-        }
-        Host::Domain(domain) => {
-            let resolved = lookup_host((domain, port))
-                .await
-                .map_err(|_| ApiError::new(StatusCode::BAD_GATEWAY, "network_error"))?;
-            let mut addresses: Vec<SocketAddr> = Vec::new();
-            for address in resolved {
-                if !addresses.iter().any(|pinned| pinned.ip() == address.ip()) {
-                    if addresses.len() >= MAX_PINNED_ADDRESSES {
-                        return Err(ApiError::new(StatusCode::FORBIDDEN, "target_denied"));
-                    }
-                    enforce_destination(address.ip(), port, config.port, config.allow_private)?;
-                    addresses.push(SocketAddr::new(address.ip(), port));
-                }
-            }
-            if addresses.is_empty() {
-                return Err(ApiError::new(StatusCode::BAD_GATEWAY, "network_error"));
-            }
-            builder = builder.resolve_to_addrs(domain, &addresses);
-        }
+    let authorization = if input.username.is_empty() && input.password.is_empty() {
+        None
+    } else {
+        let encoded = STANDARD.encode(format!("{}:{}", input.username, input.password));
+        Some(
+            HeaderValue::from_str(&format!("Basic {encoded}"))
+                .map_err(|_| ApiError::invalid_request())?,
+        )
+    };
+    if input.bypass.len() > MAX_PROXY_BYPASS
+        || input
+            .bypass
+            .iter()
+            .any(|pattern| pattern.is_empty() || pattern.len() > 253)
+    {
+        return Err(ApiError::invalid_request());
     }
-
-    builder
-        .build()
-        .map_err(|_| ApiError::new(StatusCode::BAD_GATEWAY, "network_error"))
+    let bypass = input
+        .bypass
+        .iter()
+        .map(|pattern| {
+            pattern
+                .trim()
+                .trim_start_matches('[')
+                .trim_end_matches(']')
+                .to_ascii_lowercase()
+        })
+        .collect();
+    Ok((
+        Proxy {
+            host: url.host().ok_or_else(ApiError::invalid_request)?.to_owned(),
+            port: url
+                .port_or_known_default()
+                .ok_or_else(ApiError::invalid_request)?,
+            authorization,
+        },
+        bypass,
+    ))
 }
 
-async fn read_response(
-    response: reqwest::Response,
-    cancellation: &CancellationToken,
-) -> Result<HttpResponseOutput, ApiError> {
-    if response
-        .content_length()
-        .is_some_and(|length| length > MAX_RESPONSE_BODY_BYTES as u64)
-    {
-        return Err(response_too_large());
-    }
-
-    let status = response.status();
-    let url = response.url().to_string();
-    let headers = response_headers(response.headers())?;
-    let capacity = response
-        .content_length()
-        .unwrap_or(0)
-        .min(MAX_RESPONSE_BODY_BYTES as u64) as usize;
-    let mut body = Vec::with_capacity(capacity);
-    let mut stream = response.bytes_stream();
-    loop {
-        let next = tokio::select! {
-            _ = cancellation.cancelled() => return Err(cancelled()),
-            next = stream.next() => next,
-        };
-        let Some(chunk) = next else { break };
-        let chunk = chunk.map_err(map_network_error)?;
-        if chunk.len() > MAX_RESPONSE_BODY_BYTES.saturating_sub(body.len()) {
-            return Err(response_too_large());
-        }
-        body.extend_from_slice(&chunk);
-    }
-
+async fn output(head: Head, url: &Url, redirects: u8) -> Result<HttpResponseOutput, ApiError> {
+    let exchange = head.read_body().await?;
+    let headers = response_headers(&exchange.headers)?;
     Ok(HttpResponseOutput {
-        status: status.as_u16(),
-        status_text: status.canonical_reason().unwrap_or_default().to_owned(),
-        url,
+        status: exchange.status.as_u16(),
+        status_text: exchange
+            .reason
+            .filter(|reason| !reason.is_empty())
+            .unwrap_or_else(|| {
+                exchange
+                    .status
+                    .canonical_reason()
+                    .unwrap_or_default()
+                    .to_owned()
+            }),
+        url: url.to_string(),
         headers,
-        body_base64: STANDARD.encode(body),
+        body_base64: STANDARD.encode(exchange.body),
         elapsed_ms: 0,
+        http_version: exchange.version,
+        remote_address: exchange.remote.to_string(),
+        timings: exchange.timings,
+        redirects,
+        tls: exchange.tls,
     })
 }
 
@@ -465,8 +477,8 @@ fn rewrite_redirect_request(
     if switch_to_get {
         *method = Method::GET;
         *body = Bytes::new();
-        headers.remove(reqwest::header::CONTENT_TYPE);
-        headers.remove(reqwest::header::CONTENT_ENCODING);
+        headers.remove(CONTENT_TYPE);
+        headers.remove(CONTENT_ENCODING);
     }
 }
 
@@ -492,18 +504,6 @@ fn same_origin(left: &Url, right: &Url) -> bool {
         && left.port_or_known_default() == right.port_or_known_default()
 }
 
-fn map_network_error(error: reqwest::Error) -> ApiError {
-    if error.is_timeout() {
-        ApiError::new(StatusCode::REQUEST_TIMEOUT, "timeout")
-    } else {
-        ApiError::new(StatusCode::BAD_GATEWAY, "network_error")
-    }
-}
-
 fn cancelled() -> ApiError {
     ApiError::new(StatusCode::CONFLICT, "cancelled")
-}
-
-fn response_too_large() -> ApiError {
-    ApiError::new(StatusCode::PAYLOAD_TOO_LARGE, "response_too_large")
 }

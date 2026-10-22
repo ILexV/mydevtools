@@ -228,6 +228,8 @@ export function importPostman(input: unknown, parentId: string | null, newId: ()
     const behavior = isObject(item.protocolProfileBehavior) ? item.protocolProfileBehavior : {};
     // Postman follows redirects unless told otherwise.
     entry.followRedirects = behavior.followRedirects !== false;
+    if (behavior.strictSSL === false) entry.verifyTls = false;
+    if (behavior.protocolVersion === "http1" || behavior.protocolVersion === "http2") entry.httpVersion = behavior.protocolVersion;
     const scripts = scriptsOf(item);
     if (scripts) entry.scripts = scripts;
     const examples = list(item.response).filter(isObject).map((response): HttpExample => ({
@@ -295,6 +297,16 @@ function exportBody(request: HttpSavedRequest): Json | undefined {
   }
 }
 
+/** Postman's per-request switches; only values that differ from Postman's defaults are written. */
+function behaviorOf(request: HttpSavedRequest): Json | null {
+  const behavior: Json = {
+    ...(request.followRedirects ? {} : { followRedirects: false }),
+    ...(request.verifyTls === false ? { strictSSL: false } : {}),
+    ...(request.httpVersion && request.httpVersion !== "auto" ? { protocolVersion: request.httpVersion } : {}),
+  };
+  return Object.keys(behavior).length ? behavior : null;
+}
+
 function exportRequest(request: HttpSavedRequest): Json {
   const body = exportBody(request);
   const auth = exportAuth(request.auth);
@@ -302,7 +314,7 @@ function exportRequest(request: HttpSavedRequest): Json {
   return {
     name: request.name || request.url || "Request",
     ...(event ? { event } : {}),
-    ...(request.followRedirects ? {} : { protocolProfileBehavior: { followRedirects: false } }),
+    ...(behaviorOf(request) ? { protocolProfileBehavior: behaviorOf(request) } : {}),
     request: {
       method: request.method,
       header: exportRows(request.headers),

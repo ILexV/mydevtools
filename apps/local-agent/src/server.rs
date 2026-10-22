@@ -21,9 +21,9 @@ use uuid::Uuid;
 use crate::{
     asn, dns, http_client, icmp,
     model::{
-        AGENT_CAPABILITIES, ApiError, CancelRequest, HttpRequestInput, InfoResponse,
-        LimitsResponse, MAX_INCOMING_JSON_BYTES, MAX_REQUEST_BODY_BYTES, MAX_RESPONSE_BODY_BYTES,
-        MAX_TIMEOUT_MS, PairRequest,
+        AGENT_CAPABILITIES, AGENT_FEATURES, ApiError, CancelRequest, HttpRequestInput,
+        InfoResponse, LimitsResponse, MAX_INCOMING_JSON_BYTES, MAX_REQUEST_BODY_BYTES,
+        MAX_RESPONSE_BODY_BYTES, MAX_TIMEOUT_MS, PairRequest,
     },
     state::AgentState,
     tcp, tls,
@@ -112,6 +112,7 @@ pub(crate) async fn serve(
 async fn info(State(state): State<Arc<AgentState>>) -> Json<InfoResponse> {
     Json(InfoResponse {
         protocol_version: 1,
+        features: &AGENT_FEATURES,
         version: env!("CARGO_PKG_VERSION"),
         capabilities: &AGENT_CAPABILITIES,
         private_network_allowed: state.config.allow_private,

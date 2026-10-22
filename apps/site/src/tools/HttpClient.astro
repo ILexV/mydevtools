@@ -45,6 +45,10 @@ const clientKeys = [
   "RunnerSummary", "RunnerStoppedAborted", "RunnerStoppedNull", "RunnerStoppedMissing", "RunnerStoppedLoop", "RunnerDataRows", "RunnerDataJson",
   "RunnerDataShape", "RunnerDataCsv", "RunnerDataTooMany", "RunnerNoRequests", "RunnerConnect", "RunnerSkipped",
   "LastResponse", "ExampleSaved", "ExampleTooLarge", "ExampleBinary", "ExampleLimit", "ExampleLabel", "MediaPreviewLabel", "TreeMenu", "TreeHint", "Cancel", "AgentConnectedShort", "AgentDisconnectedShort", "AgentSettings",
+  "TimingDns", "TimingConnect", "TimingTls", "TimingFirstByte", "TimingDownload", "TimingOther", "TimingTotal", "ConnectionVersion",
+  "ConnectionRemote", "ConnectionTls", "ConnectionCertificate", "CertificateVerified", "CertificateNotVerified", "ConnectionRedirects",
+  "ClientSettings", "ProxyUrlInvalid", "Error_tls_certificate_invalid", "Error_tls_handshake_failed", "Error_http2_unsupported",
+  "Error_proxy_failed", "Error_proxy_auth_required", "Error_proxy_invalid", "Error_agent_outdated",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
 const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhrases(lang) });
@@ -165,6 +169,37 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
       </div>
     </div>
     <div data-http-env-rows></div>
+  </dialog>
+  <dialog class="http-move-dialog http-secrets-dialog" aria-labelledby="http-settings-title" data-http-settings-dialog>
+    <div class="http-secrets-head">
+      <h2 id="http-settings-title" class="ds-panel-title">{t(lang, ns, "ClientSettingsTitle")}</h2>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost http-tree-action" aria-label={t(lang, ns, "SecretsClose")} title={t(lang, ns, "SecretsClose")} data-http-settings-close>
+        <Icon name="close" size={15} />
+      </button>
+    </div>
+    <h3 class="http-secrets-form-title">{t(lang, ns, "ProxyTitle")}</h3>
+    <p class="ds-hint http-secrets-hint">{t(lang, ns, "ProxyHint")}</p>
+    <label class="ds-check-row"><input class="ds-check" type="checkbox" data-http-proxy-enabled /><span>{t(lang, ns, "ProxyEnabled")}</span></label>
+    <label class="http-move-field">
+      <span>{t(lang, ns, "ProxyUrl")}</span>
+      <input class="ds-field mono" type="url" autocomplete="off" spellcheck="false" placeholder="http://proxy.example:3128" aria-describedby="http-proxy-error" data-http-proxy-url />
+    </label>
+    <div class="http-proxy-auth">
+      <label class="http-move-field">
+        <span>{t(lang, ns, "ProxyUsername")}</span>
+        <input class="ds-field mono" type="text" autocomplete="off" spellcheck="false" data-http-proxy-username />
+      </label>
+      <label class="http-move-field">
+        <span>{t(lang, ns, "ProxyPassword")}</span>
+        <input class="ds-field mono" type="password" autocomplete="new-password" spellcheck="false" data-http-proxy-password />
+      </label>
+    </div>
+    <label class="http-move-field">
+      <span>{t(lang, ns, "ProxyBypass")}</span>
+      <input class="ds-field mono" type="text" autocomplete="off" spellcheck="false" placeholder="localhost, *.corp.example" aria-describedby="http-proxy-bypass-hint" data-http-proxy-bypass />
+      <span id="http-proxy-bypass-hint" class="ds-hint">{t(lang, ns, "ProxyBypassHint")}</span>
+    </label>
+    <StatusMessage kind="error" id="http-proxy-error" data-http-proxy-error />
   </dialog>
   <dialog class="http-move-dialog http-secrets-dialog" aria-labelledby="http-folder-title" data-http-folder-dialog>
     <div class="http-secrets-head">
@@ -418,6 +453,14 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
           <input id="http-timeout" class="ds-field mono" type="number" min="100" max="120000" step="100" value="30000" data-http-timeout />
         </Field>
         <label class="ds-check-row http-redirects"><input class="ds-check" type="checkbox" data-http-redirects /><span>{t(lang, ns, "FollowRedirects")}</span></label>
+        <Field label={t(lang, ns, "HttpVersionLabel")} for="http-version" hintTip hint={t(lang, ns, "HttpVersionHint")}>
+          <select id="http-version" class="ds-field-select" data-http-version>
+            <option value="auto">{t(lang, ns, "HttpVersionAuto")}</option>
+            <option value="http1">HTTP/1.1</option>
+            <option value="http2">HTTP/2</option>
+          </select>
+        </Field>
+        <label class="ds-check-row http-redirects"><input class="ds-check" type="checkbox" checked data-http-verify-tls /><span>{t(lang, ns, "VerifyTls")}</span></label>
       </div>
     </div>
     <StatusMessage kind="info" data-http-request-status />
@@ -446,6 +489,7 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
         <button type="button" role="tab" id="http-response-body-tab" aria-selected="true" aria-controls="http-response-body-panel" tabindex="0">{t(lang, ns, "ResponseBody")}</button>
         <button type="button" role="tab" id="http-response-headers-tab" aria-selected="false" aria-controls="http-response-headers-panel" tabindex="-1">{t(lang, ns, "ResponseHeaders")}</button>
         <button type="button" role="tab" id="http-response-tests-tab" aria-selected="false" aria-controls="http-response-tests-panel" tabindex="-1">{t(lang, ns, "TestsLabel")}<span class="http-count mono" data-http-tests-count></span></button>
+        <button type="button" role="tab" id="http-response-timing-tab" aria-selected="false" aria-controls="http-response-timing-panel" tabindex="-1" hidden>{t(lang, ns, "TimingLabel")}</button>
       </div>
       <section id="http-response-body-panel" class="http-tab-panel" role="tabpanel" aria-labelledby="http-response-body-tab">
         <div class="http-view-toolbar">
@@ -479,6 +523,11 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
         <ul class="http-test-list" data-http-tests-list></ul>
         <h3 class="http-secrets-form-title" hidden data-http-console-title>{t(lang, ns, "ConsoleLabel")}</h3>
         <pre class="ds-code-block mono http-console" tabindex="0" hidden data-http-console></pre>
+      </section>
+      <section id="http-response-timing-panel" class="http-tab-panel http-timing" role="tabpanel" aria-labelledby="http-response-timing-tab" hidden>
+        <ol class="http-timing-list" data-http-timing-list></ol>
+        <p class="ds-hint">{t(lang, ns, "TimingHint")}</p>
+        <dl class="http-connection" data-http-connection></dl>
       </section>
       <p class="http-final-url"><span>{t(lang, ns, "FinalUrlLabel")}</span><code data-http-response-url></code></p>
     </div>
@@ -740,6 +789,21 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
   .http-response :global(.ds-actions) { margin-left: auto; flex-wrap: wrap; gap: 0.6rem; }
   .http-response :global(.ds-empty-state) { min-height: 23rem; }
   .http-result { min-width: 0; }
+  .http-proxy-auth { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+  .http-timing { display: grid; gap: 0.75rem; padding: 0.75rem 1rem; }
+  .http-timing[hidden] { display: none; }
+  .http-timing .ds-hint { margin: 0; }
+  .http-timing-list { display: grid; gap: 0.35rem; margin: 0; padding: 0; list-style: none; }
+  .http-timing-list :global(li) { display: grid; grid-template-columns: minmax(7rem, 11rem) minmax(0, 1fr) 4.5rem; align-items: center; gap: 0.6rem; font-size: var(--mdt-fs-meta); }
+  .http-timing-list :global(.http-timing-track) { position: relative; height: 0.6rem; border-radius: 999px; background: var(--mdt-surface-muted); }
+  .http-timing-list :global(.http-timing-bar) { position: absolute; top: 0; bottom: 0; min-width: 2px; border-radius: 999px; background: var(--mdt-cat); }
+  .http-timing-list :global(.http-timing-ms) { text-align: right; white-space: nowrap; }
+  .http-timing-list :global(li.is-total .http-timing-track) { background: none; }
+  .http-timing-list :global(li.is-total) { padding-top: 0.35rem; border-top: 1px solid var(--mdt-border-soft); font-weight: 600; }
+  .http-connection { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0.3rem 0.9rem; margin: 0; font-size: var(--mdt-fs-meta); }
+  .http-connection :global(dt) { color: var(--mdt-text-muted); }
+  .http-connection :global(dd) { margin: 0; overflow-wrap: anywhere; }
+  .http-connection :global(dd.is-warning) { color: var(--mdt-warning); }
   .http-response-meta { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 0; }
   .http-response-meta div { min-width: 0; }
   .http-response-meta dd { margin: 0; font-size: var(--mdt-fs-meta); overflow-wrap: anywhere; }
@@ -767,6 +831,9 @@ const stringsJson = JSON.stringify({ ...strings, Lang: lang, phrases: editorPhra
     .http-send-actions { grid-column: 1 / -1; }
     .http-send-actions .ds-btn-primary { flex: 1 1 auto; }
     .http-options { grid-template-columns: minmax(0, 1fr); }
+    .http-proxy-auth { grid-template-columns: minmax(0, 1fr); }
+    .http-timing-list :global(li) { grid-template-columns: minmax(0, 1fr) 4.5rem; }
+    .http-timing-list :global(.http-timing-track) { grid-column: 1 / -1; grid-row: 2; }
     .http-tabs { gap: 1rem; padding-inline: 0.75rem; }
     .http-tabs > [role="tab"] { font-size: var(--mdt-fs-meta); }
     .http-final-url { display: grid; gap: 0.2rem; }

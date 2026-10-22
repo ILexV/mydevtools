@@ -23,6 +23,8 @@ export interface CodeRequest {
   basicAuth?: { username: string; password: string };
   timeoutMs: number;
   followRedirects: boolean;
+  verifyTls?: boolean;
+  httpVersion?: "auto" | "http1" | "http2";
 }
 
 /** POSIX shell single quotes. */
@@ -38,6 +40,9 @@ function curl(request: CodeRequest): string {
   const first = request.method === "GET" ? "curl" : request.method === "HEAD" ? "curl --head" : `curl -X ${request.method}`;
   const lines = [`${first} ${shellQuote(request.url)}`];
   if (request.followRedirects) lines.push("-L");
+  if (request.verifyTls === false) lines.push("-k");
+  if (request.httpVersion === "http1") lines.push("--http1.1");
+  else if (request.httpVersion === "http2") lines.push("--http2");
   lines.push(`--max-time ${seconds(request.timeoutMs)}`);
   for (const header of request.headers) lines.push(`-H ${shellQuote(header.value ? `${header.name}: ${header.value}` : `${header.name};`)}`);
   if (request.basicAuth) lines.push(`-u ${shellQuote(`${request.basicAuth.username}:${request.basicAuth.password}`)}`);
@@ -128,6 +133,7 @@ function python(request: CodeRequest): string {
   }
   if (request.basicAuth) args.push(`auth=(${literal(request.basicAuth.username)}, ${literal(request.basicAuth.password)})`);
   args.push(`timeout=${seconds(request.timeoutMs)}`, `allow_redirects=${request.followRedirects ? "True" : "False"}`);
+  if (request.verifyTls === false) args.push("verify=False");
   lines.push("", `response = requests.request(${literal(request.method)}, ${args.join(", ")})`, "print(response.status_code)", "print(response.text)");
   return lines.join("\n");
 }
@@ -170,11 +176,14 @@ export function codeRequest(
   built: { method: string; url: string; headers: { name: string; value: string }[]; basicAuth?: { username: string; password: string }; bodySpec: CodeBody },
   timeoutMs: number,
   followRedirects: boolean,
+  transport: Pick<CodeRequest, "verifyTls" | "httpVersion"> = {},
 ): CodeRequest {
   const headers = built.bodySpec.kind === "formdata"
     ? built.headers.filter(({ name }) => name.toLowerCase() !== "content-type") : built.headers;
   return {
     method: built.method, url: built.url, headers: headers.map(({ name, value }) => ({ name, value })), body: built.bodySpec,
     ...(built.basicAuth ? { basicAuth: built.basicAuth } : {}), timeoutMs, followRedirects,
+    ...(transport.verifyTls === false ? { verifyTls: false } : {}),
+    ...(transport.httpVersion && transport.httpVersion !== "auto" ? { httpVersion: transport.httpVersion } : {}),
   };
 }

@@ -35,6 +35,8 @@ export function mergeCapabilities(
 
 export interface LocalAgentInfo {
   protocolVersion: number;
+  /** Optional protocol parts, such as `http.options`; missing on older agents. */
+  features?: string[];
   version: string;
   capabilities: LocalAgentCapability[];
   privateNetworkAllowed: boolean;
@@ -62,6 +64,19 @@ export interface LocalHttpRequest {
   followRedirects: boolean;
   /** Basic credentials the agent encodes after substituting `{{secret:name}}` (vault agents only). */
   basicAuth?: { username: string; password: string };
+  /** `http.options` agents only, like `httpVersion` and `proxy`; omitted means on. */
+  verifyTls?: boolean;
+  httpVersion?: "auto" | "http1" | "http2";
+  proxy?: { url: string; username?: string; password?: string; bypass?: string[] };
+}
+
+/** Phases of the last connection in milliseconds; `tlsMs` is null for http. */
+export interface LocalHttpTimings {
+  dnsMs: number;
+  connectMs: number;
+  tlsMs: number | null;
+  firstByteMs: number;
+  downloadMs: number;
 }
 
 export interface LocalHttpResponse {
@@ -71,6 +86,12 @@ export interface LocalHttpResponse {
   headers: LocalAgentHeader[];
   bodyBase64: string;
   elapsedMs: number;
+  /** The rest comes from `http.options` agents. */
+  httpVersion?: string;
+  remoteAddress?: string;
+  timings?: LocalHttpTimings;
+  redirects?: number;
+  tls?: { protocol: string; cipher: string; verified: boolean } | null;
 }
 
 interface PairResponse {

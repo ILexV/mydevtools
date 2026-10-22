@@ -108,6 +108,17 @@ const exactFileSize = new Intl.NumberFormat(numberLocale).format(release.size);
           <li><Icon name="check" size={17} /><span>{label("TrayExit")}</span></li>
         </ul>
       </section>
+
+      <section class="ds-panel info-card" aria-labelledby="vault-title">
+        <span class="section-icon"><Icon name="folder" size={20} /></span>
+        <h2 id="vault-title">{label("VaultTitle")}</h2>
+        <p>{label("VaultIntro")}</p>
+        <ul class="check-list">
+          <li><Icon name="check" size={17} /><span>{label("VaultEncryption")}</span></li>
+          <li><Icon name="check" size={17} /><span>{label("VaultSecrets")}</span></li>
+          <li><Icon name="check" size={17} /><span>{label("VaultOrigin")}</span></li>
+        </ul>
+      </section>
     </div>
 
     <section class="agent-section capability" aria-labelledby="capability-title">
@@ -202,7 +213,7 @@ const exactFileSize = new Intl.NumberFormat(numberLocale).format(release.size);
   .setup-steps li > span { display: grid; flex: none; place-items: center; width: 1.65rem; height: 1.65rem; color: var(--mdt-accent); background: color-mix(in srgb, var(--mdt-accent) 12%, transparent); border-radius: 50%; font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-label); font-weight: 700; }
   .setup-steps h3 { font-size: 1rem; }
   .setup-steps p { margin-top: 0.35rem; color: var(--mdt-text-muted); font-size: var(--mdt-fs-meta); }
-  .agent-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-block: 3rem; }
+  .agent-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-block: 3rem; }
   .info-card { padding: 1.4rem; }
   .info-card h2 { margin-top: 1rem; font-size: var(--mdt-fs-h3); }
   .info-card > p { margin-top: 0.4rem; color: var(--mdt-text-muted); }
@@ -218,6 +229,7 @@ const exactFileSize = new Intl.NumberFormat(numberLocale).format(release.size);
     .agent-hero { grid-template-columns: 1fr; }
     .release-card { max-width: 36rem; }
     .setup-steps { grid-template-columns: 1fr; }
+    .agent-grid { grid-template-columns: repeat(2, 1fr); }
   }
   @media (max-width: 40rem) {
     .agent-page { width: min(100% - 1.25rem, var(--mdt-content-max)); padding-top: 2rem; }

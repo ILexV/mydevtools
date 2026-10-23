@@ -11,6 +11,8 @@ import { localizeResourceError } from "@/scripts/wasm/worker-protocol";
 import { formatBytes, formatMs, formatString, progressPercent } from "@/lib/format";
 import { PARQUET_INSPECT_CHARS, PARQUET_MAX_EXPORT_BYTES, PARQUET_PREVIEW_CHARS } from "@/tools/parquet-explorer";
 import type { ParquetSessionSummary } from "@/tools/parquet-explorer-protocol";
+import { PARQUET_MAX_CONDITIONS, type ParquetCondition, type ParquetFilterOperator } from "@/tools/parquet-explorer-query";
+import type { CsvGroupOrder } from "@/tools/csv-explorer-types";
 import { createParquetExplorerWorker, type ParquetExplorerWorkerClient } from "@/tools/parquet-explorer-worker-client";
 
 interface Strings {
@@ -23,6 +25,10 @@ interface Strings {
   StatusReady: string;
   StatusDone: string;
   StatusCanceled: string;
+  StatusFiltered: string;
+  StatusGrouped: string;
+  StatusExported: string;
+  StatusScanCanceled: string;
   SummaryPattern: string;
   CreatedBy: string;
   DuplicateColumns: string;
@@ -60,6 +66,16 @@ interface Strings {
   GroupBytes: string;
   GroupCompressed: string;
   GroupCodecs: string;
+  StatusFiltering: string;
+  StatusGrouping: string;
+  FilteredSummary: string;
+  GroupNone: string;
+  ValueNone: string;
+  GroupSummary: string;
+  NullValue: string;
+  ErrorFilterValue: string;
+  ErrorTooManyGroups: string;
+  ErrorNoConditions: string;
 }
 
 const ERROR_MESSAGES: Readonly<Record<string, true>> = {
@@ -70,6 +86,7 @@ const ERROR_MESSAGES: Readonly<Record<string, true>> = {
   "cell-too-large": true,
   "unsupported-codec": true,
   "session-missing": true,
+  "too-many-groups": true,
   aborted: true,
   "worker-failed": true,
   unknown: true,
@@ -125,6 +142,20 @@ function init(): void {
   const exportBom = root.querySelector<HTMLInputElement>("[data-parquet-export-bom]");
   const rawWarning = root.querySelector<HTMLElement>("[data-parquet-raw-warning]");
   const downloadButton = root.querySelector<HTMLButtonElement>("[data-parquet-download]");
+  const exportSource = root.querySelector<HTMLSelectElement>("[data-parquet-export-source]");
+  const conditionsHost = root.querySelector<HTMLElement>("[data-parquet-conditions]");
+  const conditionTemplate = root.querySelector<HTMLTemplateElement>("[data-parquet-condition-template]");
+  const addConditionButton = root.querySelector<HTMLButtonElement>("[data-parquet-add-condition]");
+  const caseSensitive = root.querySelector<HTMLInputElement>("[data-parquet-case-sensitive]");
+  const applyFilterButton = root.querySelector<HTMLButtonElement>("[data-parquet-apply-filter]");
+  const clearFilterButton = root.querySelector<HTMLButtonElement>("[data-parquet-clear-filter]");
+  const groupColumn = root.querySelector<HTMLSelectElement>("[data-parquet-group-column]");
+  const valueColumn = root.querySelector<HTMLSelectElement>("[data-parquet-value-column]");
+  const groupOrder = root.querySelector<HTMLSelectElement>("[data-parquet-group-order]");
+  const applyGroupButton = root.querySelector<HTMLButtonElement>("[data-parquet-apply-group]");
+  const groupResult = root.querySelector<HTMLElement>("[data-parquet-group-result]");
+  const groupSummary = root.querySelector<HTMLElement>("[data-parquet-group-summary]");
+  const groupTableHost = root.querySelector<HTMLElement>("[data-parquet-group-table]");
   if (!zoneElement || !fileInputElement || !clearButton || !outputElement || !loadedElement || !tableHostElement || !schemaHostElement || !groupsHostElement || !visibleColumnsElement) return;
   const zone = zoneElement;
   const fileInput = fileInputElement;
@@ -138,6 +169,8 @@ function init(): void {
 
   let api: ParquetExplorerWorkerClient = createParquetExplorerWorker();
   let summary: ParquetSessionSummary | null = null;
+  /** File of the open session, kept so a canceled scan can reopen it. */
+  let openedFile: File | null = null;
   let table: ExplorerTable | null = null;
   let busy = false;
   let generation = 0;
@@ -145,6 +178,9 @@ function init(): void {
   let progressMode: "bytes" | "rows" = "bytes";
   let activeAbort: AbortController | null = null;
   let activeOperation: ToolOperation | null = null;
+  /** Rows in the current view: the filter result, or the whole file. */
+  let viewRows = 0;
+  let groupTable: ExplorerTable | null = null;
   const numberFormat = new Intl.NumberFormat(strings.Lang);
 
   function showStatus(message: string): void {
@@ -159,6 +195,7 @@ function init(): void {
 
   function errorCode(error: unknown): string {
     if (error instanceof Error && ERROR_MESSAGES[error.message]) return error.message;
+    if (error instanceof Error && error.message.startsWith("filter-value:")) return "filter-value";
     if (typeof error === "object" && error !== null && "code" in error) {
       return String(error.code);
     }
@@ -174,6 +211,12 @@ function init(): void {
       case "cell-too-large": return strings.ErrorCellTooLarge;
       case "unsupported-codec": return strings.ErrorCodec;
       case "session-missing": return strings.ErrorSession;
+      case "too-many-groups": return strings.ErrorTooManyGroups;
+      case "no-conditions": return strings.ErrorNoConditions;
+      case "filter-value": {
+        const column = summary?.columns[Number((error as Error).message.slice("filter-value:".length))];
+        return formatString(strings.ErrorFilterValue, column?.label ?? "", column?.typeLabel ?? "");
+      }
       case "storage-failed": return strings.ErrorSave;
       case "fallback-too-large": return strings.ErrorFallbackTooLarge;
       case "worker-failed":
@@ -225,6 +268,9 @@ function init(): void {
     if (progressBlock) progressBlock.hidden = !next;
     fileInput.disabled = next;
     zone.setAttribute("aria-disabled", next ? "true" : "false");
+    for (const control of [applyFilterButton, clearFilterButton, applyGroupButton, addConditionButton, downloadButton]) {
+      if (control) control.disabled = next;
+    }
     if (next) {
       if (progressFill) progressFill.style.width = "0%";
       progressBar?.setAttribute("aria-valuenow", "0");
@@ -286,9 +332,9 @@ function init(): void {
     }
   }
 
-  function renderSummary(): void {
+  function renderSummaryLine(): void {
     if (!summary || !summaryEl) return;
-    summaryEl.textContent = formatString(
+    const base = formatString(
       strings.SummaryPattern,
       summary.fileName || "parquet",
       numberFormat.format(summary.rows),
@@ -296,6 +342,77 @@ function init(): void {
       numberFormat.format(summary.rowGroupCount),
       formatBytes(summary.fileSize),
     );
+    summaryEl.textContent = viewRows === summary.rows
+      ? base
+      : `${base} · ${formatString(strings.FilteredSummary, numberFormat.format(viewRows), numberFormat.format(summary.rows))}`;
+  }
+
+  function fillColumnSelect(select: HTMLSelectElement | null, noneLabel: string | null): void {
+    if (!select) return;
+    select.replaceChildren();
+    if (noneLabel !== null) {
+      const none = document.createElement("option");
+      none.value = "";
+      none.textContent = noneLabel;
+      select.append(none);
+    }
+    for (const column of summary?.columns ?? []) {
+      const option = document.createElement("option");
+      option.value = String(column.index);
+      option.textContent = column.label;
+      select.append(option);
+    }
+  }
+
+  function addCondition(): void {
+    if (!conditionsHost || !conditionTemplate || !summary) return;
+    if (conditionsHost.children.length >= PARQUET_MAX_CONDITIONS) return;
+    const fragment = conditionTemplate.content.cloneNode(true) as DocumentFragment;
+    const row = fragment.firstElementChild as HTMLElement;
+    fillColumnSelect(row.querySelector("[data-condition-column]"), null);
+    const operator = row.querySelector<HTMLSelectElement>("[data-condition-operator]");
+    const value = row.querySelector<HTMLInputElement>("[data-condition-value]");
+    const syncValue = () => { if (value && operator) value.hidden = operator.value === "empty" || operator.value === "not-empty"; };
+    operator?.addEventListener("change", syncValue);
+    value?.addEventListener("keydown", (event) => { if (event.key === "Enter") void applyFilter(); });
+    row.querySelector("[data-condition-remove]")?.addEventListener("click", () => {
+      row.remove();
+      syncConditionButtons();
+    });
+    conditionsHost.append(row);
+    syncConditionButtons();
+  }
+
+  function syncConditionButtons(): void {
+    if (addConditionButton && conditionsHost) addConditionButton.hidden = conditionsHost.children.length >= PARQUET_MAX_CONDITIONS;
+  }
+
+  function readConditions(): ParquetCondition[] {
+    return [...(conditionsHost?.querySelectorAll<HTMLElement>(".pq-condition") ?? [])].map((row) => ({
+      column: Number(row.querySelector<HTMLSelectElement>("[data-condition-column]")?.value ?? 0),
+      operator: (row.querySelector<HTMLSelectElement>("[data-condition-operator]")?.value ?? "contains") as ParquetFilterOperator,
+      value: row.querySelector<HTMLInputElement>("[data-condition-value]")?.value ?? "",
+    }));
+  }
+
+  function clearGroupResult(): void {
+    groupTable?.destroy();
+    groupTable = null;
+    groupTableHost?.replaceChildren();
+    if (groupResult) groupResult.hidden = true;
+    if (groupSummary) groupSummary.textContent = "";
+    const option = exportSource?.querySelector<HTMLOptionElement>('option[value="groups"]');
+    if (option) option.disabled = true;
+    if (exportSource) exportSource.value = "rows";
+  }
+
+  function renderSummary(): void {
+    if (!summary || !summaryEl) return;
+    renderSummaryLine();
+    fillColumnSelect(groupColumn, strings.GroupNone);
+    fillColumnSelect(valueColumn, strings.ValueNone);
+    conditionsHost?.replaceChildren();
+    addCondition();
     if (createdBy) {
       createdBy.hidden = !summary.createdBy;
       createdBy.textContent = summary.createdBy ? formatString(strings.CreatedBy, summary.createdBy) : "";
@@ -352,6 +469,9 @@ function init(): void {
 
   function clearResultDom(): void {
     summary = null;
+    viewRows = 0;
+    clearGroupResult();
+    conditionsHost?.replaceChildren();
     table?.destroy();
     table = null;
     loaded.hidden = true;
@@ -388,7 +508,88 @@ function init(): void {
       rowLabel: (index) => formatString(strings.RowLabel, numberFormat.format(index + 1)),
       onRowClick: (index) => void inspect(index),
     });
-    table.setRowCount(columns.length === 0 ? 0 : summary.rows);
+    table.setRowCount(columns.length === 0 ? 0 : viewRows);
+  }
+
+  /** Run one scan job with progress, cancel and errors that keep the open file. */
+  async function runScan(message: string, doneMessage: string, job: (signal: AbortSignal) => Promise<void>): Promise<void> {
+    if (!summary || busy) return;
+    const token = generation;
+    const controller = new AbortController();
+    activeAbort = controller;
+    hideError();
+    progressMode = "rows";
+    setBusy(true, message);
+    try {
+      await job(controller.signal);
+      if (token !== generation) return;
+      activeAbort = null;
+      setBusy(false);
+      showStatus(doneMessage);
+    } catch (error) {
+      if (token !== generation) return;
+      activeAbort = null;
+      setBusy(false);
+      if (errorCode(error) === "aborted") reopenAfterCancel();
+      else showError(error);
+    }
+  }
+
+  function applyFilter(clear = false): Promise<void> {
+    const conditions = clear ? [] : readConditions();
+    if (!clear && conditions.length === 0) {
+      showError({ code: "no-conditions" });
+      return Promise.resolve();
+    }
+    return runScan(strings.StatusFiltering, clear ? strings.StatusDone : strings.StatusFiltered, async (signal) => {
+      const current = summary!;
+      clearGroupResult();
+      viewRows = await api.filter(current.sessionId, conditions.length === 0 ? null : {
+        conditions,
+        caseSensitive: caseSensitive?.checked ?? false,
+      }, signal, updateProgress);
+      renderSummaryLine();
+      resetInspector();
+      createTable();
+    });
+  }
+
+  function selectedColumn(select: HTMLSelectElement | null): number | null {
+    return select && select.value !== "" ? Number(select.value) : null;
+  }
+
+  function applyGroup(): Promise<void> {
+    return runScan(strings.StatusGrouping, strings.StatusGrouped, async (signal) => {
+      const current = summary!;
+      clearGroupResult();
+      const result = await api.aggregate(current.sessionId, {
+        groupColumn: selectedColumn(groupColumn),
+        valueColumn: selectedColumn(valueColumn),
+        order: (groupOrder?.value ?? "key") as CsvGroupOrder,
+      }, signal, updateProgress);
+      if (!groupTableHost || !groupResult) return;
+      groupResult.hidden = false;
+      if (groupSummary) {
+        groupSummary.textContent = formatString(strings.GroupSummary, numberFormat.format(result.groupCount), numberFormat.format(result.inputRows));
+      }
+      groupTable = createExplorerTable({
+        host: groupTableHost,
+        columns: result.columns.map((label, index) => ({ key: `g${index}`, label })),
+        readRows: async (start, count) => {
+          const rows = await api.readGroups(current.sessionId, start, count);
+          return rows.map((row) => row.map((cell) => cell ?? strings.NullValue));
+        },
+        onError(error) {
+          if (errorCode(error) !== "aborted") showError(error);
+        },
+        emptyLabel: strings.TableEmpty,
+        loadingLabel: strings.TableLoading,
+        rowLabel: (index) => formatString(strings.RowLabel, numberFormat.format(index + 1)),
+      });
+      groupTable.setRowCount(result.groupCount);
+      const option = exportSource?.querySelector<HTMLOptionElement>('option[value="groups"]');
+      if (option) option.disabled = false;
+    });
   }
 
   async function inspect(index: number): Promise<void> {
@@ -424,6 +625,7 @@ function init(): void {
 
   function resetSession(readyMessage = strings.StatusReady): void {
     generation++;
+    openedFile = null;
     activeAbort?.abort();
     activeOperation = null;
     activeAbort = null;
@@ -436,8 +638,18 @@ function init(): void {
     showStatus(readyMessage);
   }
 
-  async function openFile(file: File, explicit = false): Promise<void> {
+  /**
+   * Cancel terminates the worker and with it the session. Reopening only reads the footer,
+   * so a canceled filter, group or export returns to the unfiltered file instead of closing it.
+   */
+  function reopenAfterCancel(): void {
+    if (openedFile) void openFile(openedFile, false, strings.StatusScanCanceled);
+    else resetSession(strings.StatusCanceled);
+  }
+
+  async function openFile(file: File, explicit = false, doneMessage = strings.StatusDone): Promise<void> {
     const token = ++generation;
+    openedFile = file;
     activeAbort?.abort();
     api.terminate();
     api = createParquetExplorerWorker();
@@ -458,6 +670,7 @@ function init(): void {
       const result = await api.open(file, controller.signal, updateProgress);
       if (token !== generation) return;
       summary = result;
+      viewRows = result.rows;
       activeAbort = null;
       loaded.hidden = false;
       syncEmptyState(output, false);
@@ -465,7 +678,7 @@ function init(): void {
       renderSummary();
       createTable();
       setBusy(false);
-      showStatus(strings.StatusDone);
+      showStatus(doneMessage);
       operation?.complete();
       if (activeOperation === operation) activeOperation = null;
     } catch (error) {
@@ -487,8 +700,9 @@ function init(): void {
 
   async function download(): Promise<void> {
     if (!summary || busy || !exportFormat || !exportHeader || !exportProtect || !exportBom) return;
-    const columns = selectedColumnIndexes();
-    if (columns.length === 0) {
+    const source = exportSource?.value === "groups" ? "groups" : "rows";
+    const columns = source === "groups" ? [] : selectedColumnIndexes();
+    if (source === "rows" && columns.length === 0) {
       if (errorBox) {
         errorBox.textContent = strings.NoColumns;
         errorBox.hidden = false;
@@ -507,12 +721,13 @@ function init(): void {
     const sessionId = summary.sessionId;
     try {
       await saveWorkerStreamedFile({
-        suggestedName: `${stem}.${format}`,
+        suggestedName: `${stem}${source === "groups" ? "-groups" : viewRows !== summary.rows ? "-filtered" : ""}.${format}`,
         mimeType: format === "csv" ? "text/csv;charset=utf-8" : "application/x-ndjson;charset=utf-8",
         extensions: [format],
         fallbackMaxBytes: PARQUET_MAX_EXPORT_BYTES,
         signal: controller.signal,
       }, (stream, workerSignal) => api.exportResult(sessionId, {
+        source,
         format,
         columns,
         includeHeader: exportHeader.checked,
@@ -522,14 +737,14 @@ function init(): void {
       if (token !== generation || !summary) return;
       activeAbort = null;
       setBusy(false);
-      showStatus(strings.StatusDone);
+      showStatus(strings.StatusExported);
     } catch (error) {
       if (token !== generation) return;
       activeAbort = null;
       setBusy(false);
       if (errorCode(error) === "aborted") {
         if (error instanceof StreamSaveError && !controller.signal.aborted) showStatus(strings.StatusCanceled);
-        else resetSession(strings.StatusCanceled);
+        else reopenAfterCancel();
       } else {
         showError(error);
       }
@@ -571,6 +786,14 @@ function init(): void {
     if (rawWarning) rawWarning.hidden = exportFormat?.value === "jsonl" || exportProtect.checked;
   });
   downloadButton?.addEventListener("click", () => void download());
+  addConditionButton?.addEventListener("click", addCondition);
+  applyFilterButton?.addEventListener("click", () => void applyFilter());
+  clearFilterButton?.addEventListener("click", () => {
+    conditionsHost?.replaceChildren();
+    addCondition();
+    void applyFilter(true);
+  });
+  applyGroupButton?.addEventListener("click", () => void applyGroup());
   showStatus(strings.StatusReady);
 }
 

@@ -28,6 +28,8 @@
   }
   .ds-explorer-fold[open] {
     display: grid;
+    /* A zero track minimum keeps wide scrollable tables inside the fold instead of widening the page. */
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.65rem;
   }
   .ds-explorer-header,

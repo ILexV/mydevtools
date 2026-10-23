@@ -34,6 +34,7 @@ export type ParquetExplorerErrorCode =
   | "export-too-large"
   | "cell-too-large"
   | "unsupported-codec"
+  | "filter-value"
   | "session-missing";
 
 /** Failure the page can map to a localized sentence. `code` is the stable id. */

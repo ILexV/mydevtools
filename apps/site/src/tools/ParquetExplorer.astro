@@ -15,12 +15,14 @@ const { lang } = Astro.props as Props;
 const ns = "tools/parquet-explorer";
 const clientKeys = [
   "DropChange", "ProgressBytes", "ProgressRows", "StatusOpening", "StatusExporting", "StatusReady",
-  "StatusDone", "StatusCanceled", "SummaryPattern", "CreatedBy", "DuplicateColumns", "RowGroupsTruncated",
+  "StatusDone", "StatusCanceled", "StatusFiltered", "StatusGrouped", "StatusExported", "StatusScanCanceled", "SummaryPattern", "CreatedBy", "DuplicateColumns", "RowGroupsTruncated",
   "MetadataTruncated", "CodecUncompressed", "NoColumns", "TableEmpty", "TableLoading", "RowLabel",
   "InspectorEmpty", "InspectorRow", "InspectorTruncated", "RawWarning", "ErrorEmpty", "ErrorInvalid",
   "ErrorTooManyColumns", "ErrorExportTooLarge", "ErrorCellTooLarge", "ErrorCodec", "ErrorWorker",
   "ErrorSession", "ErrorGeneric", "ErrorSave", "ErrorFallbackTooLarge", "SchemaName", "SchemaType",
   "SchemaRepetition", "SchemaCompression", "GroupIndex", "GroupRows", "GroupBytes", "GroupCompressed", "GroupCodecs",
+  "StatusFiltering", "StatusGrouping", "FilteredSummary", "GroupNone", "ValueNone", "GroupSummary", "NullValue",
+  "ErrorFilterValue", "ErrorTooManyGroups", "ErrorNoConditions",
 ] as const;
 const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
 const stringsJson = JSON.stringify({
@@ -68,6 +70,72 @@ const stringsJson = JSON.stringify({
       <p class="ds-hint" data-parquet-created-by hidden></p>
       <p class="ds-hint" data-parquet-duplicates hidden></p>
 
+      <details class="ds-explorer-fold">
+        <summary class="ds-label">{t(lang, ns, "FilterTitle")}</summary>
+        <div class="pq-fold-body">
+          <div class="pq-conditions" data-parquet-conditions></div>
+          <div class="pq-filter-tools">
+            <button type="button" class="ds-btn ds-btn-small" data-parquet-add-condition><Icon name="plus" size={14} />{t(lang, ns, "AddCondition")}</button>
+            <label class="ds-check-row">
+              <input class="ds-check" type="checkbox" data-parquet-case-sensitive />
+              <span>{t(lang, ns, "CaseSensitive")}</span>
+            </label>
+          </div>
+          <div class="ds-action-row">
+            <button type="button" class="ds-btn ds-btn-primary" data-parquet-apply-filter>{t(lang, ns, "ApplyFilter")}</button>
+            <button type="button" class="ds-btn" data-parquet-clear-filter>{t(lang, ns, "ClearFilter")}</button>
+          </div>
+          <p class="ds-hint">{t(lang, ns, "FilterHint")}</p>
+        </div>
+      </details>
+      <template data-parquet-condition-template>
+        <div class="pq-condition">
+          <select class="ds-field-select" data-condition-column aria-label={t(lang, ns, "ConditionColumn")}></select>
+          <select class="ds-field-select" data-condition-operator aria-label={t(lang, ns, "ConditionOperator")}>
+            <option value="contains">{t(lang, ns, "OperatorContains")}</option>
+            <option value="not-contains">{t(lang, ns, "OperatorNotContains")}</option>
+            <option value="equals">{t(lang, ns, "OperatorEquals")}</option>
+            <option value="not-equals">{t(lang, ns, "OperatorNotEquals")}</option>
+            <option value="gt">&gt;</option>
+            <option value="gte">≥</option>
+            <option value="lt">&lt;</option>
+            <option value="lte">≤</option>
+            <option value="empty">{t(lang, ns, "OperatorEmpty")}</option>
+            <option value="not-empty">{t(lang, ns, "OperatorNotEmpty")}</option>
+          </select>
+          <input class="ds-field" type="search" autocomplete="off" data-condition-value aria-label={t(lang, ns, "ConditionValue")} placeholder={t(lang, ns, "ConditionValue")} />
+          <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-condition-remove aria-label={t(lang, ns, "RemoveCondition")} title={t(lang, ns, "RemoveCondition")}><Icon name="close" size={14} /></button>
+        </div>
+      </template>
+
+      <details class="ds-explorer-fold">
+        <summary class="ds-label">{t(lang, ns, "GroupTitle")}</summary>
+        <div class="pq-fold-body">
+          <div class="ds-settings">
+            <Field label={t(lang, ns, "GroupColumn")} for="pq-group-column">
+              <select id="pq-group-column" class="ds-field-select" data-parquet-group-column></select>
+            </Field>
+            <Field label={t(lang, ns, "ValueColumn")} for="pq-value-column">
+              <select id="pq-value-column" class="ds-field-select" data-parquet-value-column></select>
+            </Field>
+            <Field label={t(lang, ns, "GroupOrder")} for="pq-group-order">
+              <select id="pq-group-order" class="ds-field-select" data-parquet-group-order>
+                <option value="key">{t(lang, ns, "GroupOrderKey")}</option>
+                <option value="count">{t(lang, ns, "GroupOrderCount")}</option>
+              </select>
+            </Field>
+          </div>
+          <div class="ds-action-row">
+            <button type="button" class="ds-btn ds-btn-primary" data-parquet-apply-group>{t(lang, ns, "ApplyGroup")}</button>
+          </div>
+          <p class="ds-hint">{t(lang, ns, "GroupHint")}</p>
+          <div class="pq-group-result" data-parquet-group-result hidden>
+            <p class="pq-summary" data-parquet-group-summary aria-live="polite"></p>
+            <div class="pq-group-table" data-parquet-group-table></div>
+          </div>
+        </div>
+      </details>
+
       <div data-parquet-table></div>
 
       <details class="ds-explorer-fold">
@@ -107,6 +175,12 @@ const stringsJson = JSON.stringify({
       <section class="pq-section" aria-labelledby="pq-export-title">
         <h3 class="ds-label" id="pq-export-title">{t(lang, ns, "ExportTitle")}</h3>
         <div class="ds-settings">
+          <Field label={t(lang, ns, "ExportSource")} for="pq-export-source">
+            <select id="pq-export-source" class="ds-field-select" data-parquet-export-source>
+              <option value="rows">{t(lang, ns, "ExportRows")}</option>
+              <option value="groups" disabled>{t(lang, ns, "ExportGroups")}</option>
+            </select>
+          </Field>
           <Field label={t(lang, ns, "ExportFormat")} for="pq-export-format">
             <select id="pq-export-format" class="ds-field-select" data-parquet-export-format>
               <option value="csv">CSV</option>
@@ -154,7 +228,16 @@ const stringsJson = JSON.stringify({
   .pq-metadata :global(dt), .pq-inspector :global(dt) { color: var(--mdt-text-muted); background: var(--mdt-surface-inset); }
   .pq-inspector :global(dd) { font-family: var(--mdt-font-mono); }
   .pq-warning { color: var(--mdt-danger); }
+  .pq-fold-body { display: grid; gap: 0.75rem; min-width: 0; }
+  .pq-conditions { display: grid; gap: 0.5rem; min-width: 0; }
+  .pq-conditions :global(.pq-condition) { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1.4fr) auto; gap: 0.5rem; align-items: center; min-width: 0; }
+  .pq-filter-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.25rem; }
+  .pq-group-result { display: grid; gap: 0.5rem; min-width: 0; }
+  /* A group summary is often a handful of rows: let the viewport shrink to them. */
+  .pq-group-table :global(.ds-explorer-viewport) { height: auto; min-height: 0; max-height: 22rem; }
   @media (max-width: 42rem) {
+    .pq-conditions :global(.pq-condition) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; }
+    .pq-conditions :global([data-condition-value]) { grid-column: 1 / 3; grid-row: 2; }
     .pq-metadata, .pq-inspector { grid-template-columns: minmax(6rem, 0.4fr) minmax(0, 1fr); }
   }
 </style>

@@ -8,14 +8,15 @@
  */
 import {
   parquetMetadataAsync,
-  parquetReadObjects,
+  parquetScan,
   parquetSchema,
   type AsyncBuffer,
+  type FileMetaData,
+  type ParquetScan,
   type SchemaElement,
 } from "hyparquet";
 import { compressors } from "hyparquet-compressors";
 import {
-  PARQUET_EXPORT_WINDOW,
   PARQUET_MAX_CELL_CHARS,
   PARQUET_MAX_COLUMNS,
   PARQUET_MAX_EXPORT_BYTES,
@@ -32,6 +33,9 @@ import {
   uniqueColumnLabels,
   type ParquetFieldType,
 } from "./parquet-explorer.ts";
+import { PARQUET_PARSERS, forEachParquetWindow, parquetColumnKind, type ParquetColumnKind, type ParquetRowSelection } from "./parquet-explorer-query.ts";
+import { csvTypedJson, csvTypedText, type CsvAggregateResult } from "./csv-explorer-types.ts";
+import { encodeCsvRow } from "./explorer-delimited.ts";
 
 export interface ParquetColumn {
   index: number;
@@ -40,6 +44,8 @@ export interface ParquetColumn {
   /** Unique label for the table header and for JSONL keys. */
   label: string;
   typeLabel: string;
+  /** Comparison and aggregation kind for filters and group summaries. */
+  kind: ParquetColumnKind;
   repetition: string;
   codecs: string[];
 }
@@ -73,6 +79,8 @@ export interface ParquetFileSummary {
 }
 
 export interface ParquetExportOptions {
+  /** Rows of the current (filtered) view, or the group summary. */
+  source?: "rows" | "groups";
   columns: number[];
   format: "csv" | "jsonl";
   includeHeader: boolean;
@@ -144,11 +152,24 @@ function wrapReadError(error: unknown): never {
   throw new ParquetExplorerError("invalid", message || "The Parquet file could not be read");
 }
 
+/** Optional state a read or export shares with the worker session. */
+export interface ParquetReadContext {
+  metadata?: FileMetaData;
+  selection?: ParquetRowSelection | null;
+  reader?: ParquetViewReader;
+  aggregate?: CsvAggregateResult | null;
+}
+
 /**
  * Read the Parquet footer: schema, row-group sizes and codecs, file metadata.
  * Column pages are not decoded.
  */
 export async function openParquet(file: AsyncBuffer): Promise<ParquetFileSummary> {
+  return (await openParquetSource(file)).summary;
+}
+
+/** Summary plus the parsed footer, which later reads reuse instead of fetching it again. */
+export async function openParquetSource(file: AsyncBuffer): Promise<{ summary: ParquetFileSummary; metadata: FileMetaData }> {
   await readMagic(file);
   let metadata;
   try {
@@ -192,13 +213,14 @@ export async function openParquet(file: AsyncBuffer): Promise<ParquetFileSummary
     }
   }
   const pairs = metadata.key_value_metadata ?? [];
-  return {
+  const summary: ParquetFileSummary = {
     rows: asCount(metadata.num_rows, "row count"),
     columns: fields.map((field, index) => ({
       index,
       name: names[index],
       label: labels[index],
       typeLabel: parquetTypeLabel(fieldType(field.element)),
+      kind: field.children.length > 0 ? "text" : parquetColumnKind(field.element.type, fieldType(field.element).logical),
       repetition: field.element.repetition_type ?? (field.element.type ? "REQUIRED" : "GROUP"),
       codecs: [...codecsByColumn[index]],
     })),
@@ -216,6 +238,7 @@ export async function openParquet(file: AsyncBuffer): Promise<ParquetFileSummary
     })),
     metadataTruncated: pairs.length > PARQUET_MAX_METADATA_PAIRS,
   };
+  return { summary, metadata };
 }
 
 function selectedColumns(summary: ParquetFileSummary, indexes: readonly number[]): ParquetFileSummary["columns"] {
@@ -226,32 +249,75 @@ function selectedColumns(summary: ParquetFileSummary, indexes: readonly number[]
   return columns;
 }
 
-async function readValues(
-  file: AsyncBuffer,
-  names: readonly string[],
-  start: number,
-  count: number,
-): Promise<unknown[][]> {
-  if (count === 0) return [];
-  let rows;
+const VIEW_BLOCK_ROWS = 4096;
+
+/**
+ * Table and inspector reads. Rows are fetched in aligned 4,096-row blocks inside row groups
+ * that have an offset index, otherwise as the whole group; hyparquet keeps the last range per
+ * column, so scrolling through one group decodes its pages once instead of on every page.
+ */
+export class ParquetViewReader {
+  private readonly file: AsyncBuffer;
+  private readonly metadata: FileMetaData;
+  private readonly groups: { start: number; end: number; indexed: boolean }[] = [];
+  private scan: Promise<ParquetScan> | null = null;
+
+  constructor(file: AsyncBuffer, metadata: FileMetaData) {
+    this.file = file;
+    this.metadata = metadata;
+    let start = 0;
+    for (const group of metadata.row_groups) {
+      const rows = Number(group.num_rows);
+      const indexed = group.columns.every((chunk) => !!chunk.offset_index_offset && !!chunk.offset_index_length);
+      this.groups.push({ start, end: start + rows, indexed });
+      start += rows;
+    }
+  }
+
+  private rangeOf(row: number): { start: number; end: number } {
+    let low = 0;
+    let high = this.groups.length - 1;
+    while (low < high) {
+      const middle = Math.ceil((low + high) / 2);
+      if (this.groups[middle].start <= row) low = middle;
+      else high = middle - 1;
+    }
+    const group = this.groups[low];
+    if (!group.indexed) return group;
+    const start = Math.max(group.start, Math.floor(row / VIEW_BLOCK_ROWS) * VIEW_BLOCK_ROWS);
+    return { start, end: Math.min(group.end, start + VIEW_BLOCK_ROWS) };
+  }
+
+  /** Values of `names` for ascending file row numbers. */
+  async read(rows: readonly number[], names: readonly string[]): Promise<unknown[][]> {
+    this.scan ??= parquetScan({ file: this.file, metadata: this.metadata, compressors, parsers: PARQUET_PARSERS, utf8: false });
+    const scan = await this.scan;
+    const out: unknown[][] = rows.map(() => new Array<unknown>(names.length));
+    for (let first = 0; first < rows.length;) {
+      const range = this.rangeOf(rows[first]);
+      let last = first;
+      while (last < rows.length && rows[last] < range.end) last++;
+      for (let column = 0; column < names.length; column++) {
+        const data = await scan.readColumn({ column: names[column], rowStart: range.start, rowEnd: range.end }) as ArrayLike<unknown>;
+        for (let index = first; index < last; index++) out[index][column] = data[rows[index] - range.start];
+      }
+      first = last;
+    }
+    return out;
+  }
+}
+
+async function contextMetadata(file: AsyncBuffer, context: ParquetReadContext): Promise<FileMetaData> {
+  if (context.metadata) return context.metadata;
   try {
-    rows = await parquetReadObjects({
-      file,
-      columns: [...names],
-      rowStart: start,
-      rowEnd: start + count,
-      compressors,
-      // Plain BYTE_ARRAY stays bytes so binary cells can be shown as hex.
-      // STRING / UTF8 columns still decode to text.
-      utf8: false,
-    });
+    context.metadata = await parquetMetadataAsync(file);
   } catch (error) {
     wrapReadError(error);
   }
-  return rows.map((row) => names.map((name) => row[name]));
+  return context.metadata;
 }
 
-/** Decode one window of selected columns into clipped table cells. */
+/** Decode one window of the current view (all rows or the filter selection) into clipped cells. */
 export async function readParquetRows(
   file: AsyncBuffer,
   summary: ParquetFileSummary,
@@ -259,13 +325,24 @@ export async function readParquetRows(
   count: number,
   columnIndexes: readonly number[],
   maxChars: number,
+  context: ParquetReadContext = {},
 ): Promise<string[][]> {
-  if (start < 0 || count < 0 || count > PARQUET_MAX_READ_ROWS || start > summary.rows) {
+  const viewRows = context.selection ? context.selection.count : summary.rows;
+  if (start < 0 || count < 0 || count > PARQUET_MAX_READ_ROWS || start > viewRows) {
     throw new ParquetExplorerError("invalid", "The requested row window is outside the file");
   }
   const columns = selectedColumns(summary, columnIndexes);
-  const end = Math.min(count, summary.rows - start);
-  const values = await readValues(file, columns.map((column) => column.name), start, end);
+  const rows = context.selection
+    ? context.selection.rowsForView(start, count)
+    : Array.from({ length: Math.min(count, summary.rows - start) }, (_, index) => start + index);
+  if (rows.length === 0) return [];
+  const reader = context.reader ?? new ParquetViewReader(file, await contextMetadata(file, context));
+  let values: unknown[][];
+  try {
+    values = await reader.read(rows, columns.map((column) => column.name));
+  } catch (error) {
+    wrapReadError(error);
+  }
   return values.map((row) => row.map((value) => formatParquetCell(value, maxChars).text));
 }
 
@@ -281,10 +358,13 @@ export async function exportParquetStream(
   options: ParquetExportOptions,
   write: (bytes: Uint8Array) => Promise<void>,
   onProgress?: (processed: number, total: number) => void,
+  context: ParquetReadContext = {},
 ): Promise<ParquetStreamExportResult> {
-  const columns = selectedColumns(summary, options.columns);
+  const groups = options.source === "groups";
+  if (groups && !context.aggregate) throw new ParquetExplorerError("session-missing", "No group result");
+  const columns = groups ? [] : selectedColumns(summary, options.columns);
   const names = columns.map((column) => column.name);
-  const labels = columns.map((column) => column.label);
+  const labels = groups ? uniqueColumnLabels(context.aggregate!.columns).labels : columns.map((column) => column.label);
   const maxBytes = options.maxBytes ?? Number.POSITIVE_INFINITY;
   const encoder = new TextEncoder();
   let pending = "";
@@ -306,28 +386,51 @@ export async function exportParquetStream(
   if (options.format === "csv" && options.bom) append("\uFEFF");
   if (options.format === "csv" && options.includeHeader) append(buildCsvLine(labels, false));
   let exported = 0;
-  onProgress?.(0, summary.rows);
-  while (exported < summary.rows) {
-    const count = Math.min(PARQUET_EXPORT_WINDOW, summary.rows - exported);
-    const values = await readValues(file, names, exported, count);
-    if (values.length === 0) break;
-    for (const row of values) {
-      for (const value of row) assertExportableValue(value);
+
+  if (groups) {
+    const types = context.aggregate!.types;
+    for (const row of context.aggregate!.rows) {
       if (options.format === "csv") {
-        const cells = row.map((value) => formatParquetCell(value, PARQUET_MAX_CELL_CHARS));
-        if (cells.some((cell) => cell.truncated)) {
-          throw new ParquetExplorerError("cell-too-large", "A value exceeds the 1 MiB cell limit");
-        }
-        append(buildCsvLine(cells.map((cell) => cell.text), options.protectFormulas));
+        append(`${row.map((value, index) => encodeCsvRow([csvTypedText(value)], types[index] === "text" && options.protectFormulas)).join(",")}\n`);
       } else {
-        append(buildJsonlLine(labels, row));
+        append(`{${row.map((value, index) => `${JSON.stringify(labels[index])}:${csvTypedJson(value)}`).join(",")}}\n`);
       }
+      exported++;
       if (pending.length >= PARQUET_EXPORT_CHUNK_CHARS) await flush();
     }
-    exported += values.length;
-    onProgress?.(exported, summary.rows);
+    await flush();
+    return { rowCount: exported, bytesWritten };
+  }
+
+  const selection = context.selection ?? null;
+  const total = summary.rows;
+  onProgress?.(0, total);
+  const metadata = await contextMetadata(file, context);
+  try {
+    await forEachParquetWindow({ file, metadata }, names, async (start, end, data) => {
+      for (let row = start; row < end; row++) {
+        if (selection && !selection.has(row)) continue;
+        const values = data.map((column) => column[row - start]);
+        for (const value of values) assertExportableValue(value);
+        if (options.format === "csv") {
+          const cells = values.map((value) => formatParquetCell(value, PARQUET_MAX_CELL_CHARS));
+          if (cells.some((cell) => cell.truncated)) {
+            throw new ParquetExplorerError("cell-too-large", "A value exceeds the 1 MiB cell limit");
+          }
+          append(buildCsvLine(cells.map((cell) => cell.text), options.protectFormulas));
+        } else {
+          append(buildJsonlLine(labels, values));
+        }
+        exported++;
+        if (pending.length >= PARQUET_EXPORT_CHUNK_CHARS) await flush();
+      }
+      onProgress?.(end, total);
+    }, { skip: selection ? (start, end) => !selection.hasAny(start, end) : undefined });
+  } catch (error) {
+    wrapReadError(error);
   }
   await flush();
+  onProgress?.(total, total);
   return { rowCount: exported, bytesWritten };
 }
 
@@ -337,6 +440,7 @@ export async function exportParquet(
   summary: ParquetFileSummary,
   options: ParquetExportOptions,
   onProgress?: (processed: number, total: number) => void,
+  context: ParquetReadContext = {},
 ): Promise<ParquetExportResult> {
   const maxBytes = options.maxBytes ?? PARQUET_MAX_EXPORT_BYTES;
   const parts: Uint8Array[] = [];
@@ -346,6 +450,7 @@ export async function exportParquet(
     { ...options, maxBytes },
     async (bytes) => { parts.push(bytes); },
     onProgress,
+    context,
   );
   const bytes = new Uint8Array(result.bytesWritten);
   let offset = 0;

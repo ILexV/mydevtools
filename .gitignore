@@ -64,8 +64,6 @@ nunit-*.xml
 /apps/site/public/downloads/mydevtools-agent-windows-x64-setup.exe
 /apps/site/public/downloads/local-agent.json
 /nul
-# Leftover build output of the removed Blazor site
-/MyDevToolsApp/
 node_modules/
 dist/
 coverage/

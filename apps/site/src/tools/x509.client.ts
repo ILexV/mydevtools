@@ -1,7 +1,8 @@
 /**
  * X.509 client controller. Generate self-signed certs / CSRs and parse PEM or
  * Base64-DER certificates and PKCS#10 CSRs (subject, key, SANs, extensions,
- * self-signature check) via the main-thread `crypto-client` WASM helpers.
+ * fingerprints, self-signature check) and certificate bundles (chain report
+ * with link signature verification) via the main-thread `crypto-client` WASM helpers.
  * Legacy parity: Ed25519 by default (legacy passed algorithm id 1 = Ed25519),
  * pretty-JSON output, copy/download, download names
  * certificate.pem / request.csr.pem / x509.json.
@@ -14,6 +15,7 @@
  */
 import { startToolOperation } from "@/scripts/analytics/instrumentation";
 import {
+  x509ChainReport,
   x509Parse,
   x509ParseCsr,
   x509Warnings,
@@ -31,9 +33,21 @@ import {
   syncEmptyState,
   withPreparing,
 } from "@/scripts/tool-ui";
-import { base64ToBytes, derBase64ToPem, isCsrPem, parseSanList, parseValidityDays, prettyJson, type SanList } from "@/tools/x509-helpers";
+import {
+  base64ToBytes,
+  chainFindings,
+  countPemCertificates,
+  derBase64ToPem,
+  isCsrPem,
+  parseSanList,
+  parseValidityDays,
+  prettyJson,
+  type ChainReport,
+  type ChainStrings,
+  type SanList,
+} from "@/tools/x509-helpers";
 
-interface Strings {
+interface Strings extends ChainStrings {
   copy: string;
   copied: string;
   copyFailed: string;
@@ -79,6 +93,7 @@ function init() {
   const copyBtn = root.querySelector<HTMLButtonElement>("[data-x509-copy]");
   const downloadBtn = root.querySelector<HTMLButtonElement>("[data-x509-download]");
   const warnings = root.querySelector<HTMLElement>("[data-x509-warnings]");
+  const verifiedEl = root.querySelector<HTMLElement>("[data-x509-verified]");
   const errorEl = root.querySelector<HTMLElement>("[data-x509-error]");
   const outputPanel = root.querySelector<HTMLElement>("[data-x509-output-panel]");
   const parseHost = root.querySelector<HTMLElement>("[data-x509-parse-host]");
@@ -118,6 +133,10 @@ function init() {
 
   function clearMessages() {
     setWarnings([]);
+    if (verifiedEl) {
+      verifiedEl.hidden = true;
+      verifiedEl.textContent = "";
+    }
     errorBox.hidden = true;
     errorBox.textContent = "";
     for (const el of [subjectInput, validityInput, sanArea, parseArea]) el.removeAttribute("aria-invalid");
@@ -287,7 +306,17 @@ function init() {
         }
       };
       try {
-        if (isCsrPem(input)) {
+        if (countPemCertificates(input) > 1) {
+          // Bundle (fullchain / CA bundle): link checks with signature verification.
+          const json = await guard(x509ChainReport(input));
+          setOutput(prettyJson(json), "chain.json");
+          const findings = chainFindings(JSON.parse(json) as ChainReport, strings);
+          setWarnings(findings.warnings);
+          if (verifiedEl && findings.verified) {
+            verifiedEl.textContent = findings.verified;
+            verifiedEl.hidden = false;
+          }
+        } else if (isCsrPem(input)) {
           showCsr(await guard(x509ParseCsr(input)));
         } else if (input.includes("BEGIN")) {
           setOutput(prettyJson(await guard(x509Parse(input))), "x509.json");

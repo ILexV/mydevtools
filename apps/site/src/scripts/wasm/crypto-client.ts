@@ -198,6 +198,17 @@ export async function x509Warnings(pem: string): Promise<string[]> {
   return wrap(() => crypto.x509_warnings_pem(pem, BigInt(Math.floor(Date.now() / 1000))));
 }
 
+/**
+ * Chain report for a PEM bundle (fullchain / CA bundle): per certificate its
+ * issuer inside the bundle and the link signature status ("valid" | "invalid"
+ * | "unsupported" | "issuerMissing"), plus `ordered` / `endsInRoot`. JSON
+ * shape: `chain_report` in wasm/cryptography/src/x509.rs.
+ */
+export async function x509ChainReport(bundle: string): Promise<string> {
+  await ensureReady();
+  return wrap(() => crypto.x509_chain_report_pem(bundle, BigInt(Math.floor(Date.now() / 1000))));
+}
+
 export interface X509GenerateResult {
   privateKey: string;
   certificate: string;

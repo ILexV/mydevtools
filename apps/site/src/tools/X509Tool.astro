@@ -5,7 +5,9 @@
  * IP / e-mail, key algorithm, validity days — legacy ignored the DN attributes
  * and the days field and had no SAN input), PEM or Base64-DER parsing of
  * certificates and PKCS#10 CSRs to a pretty JSON summary, validity / CSR
- * signature warnings, copy/download.
+ * signature warnings, SHA-256 / SHA-1 fingerprints; a pasted bundle of two or
+ * more certificates gets a chain report (issuer lookup + link signature
+ * verification, offline — no trust store or revocation), copy/download.
  * Workbench: generate panel (subject, SAN, algorithm, validity → Generate
  * certificate / CSR) over the parse panel (empty state; "Load example"
  * generates a throwaway example.com certificate) | output panel.
@@ -54,6 +56,12 @@ const s = {
   errorValidityDays: t(lang, ns, "ErrorValidityDays"),
   errorInvalidSubject: t(lang, ns, "ErrorInvalidSubject"),
   warningCsrSignature: t(lang, ns, "WarningCsrSignature"),
+  chainSignatureInvalid: t(lang, ns, "ChainSignatureInvalid"),
+  chainIssuerMissing: t(lang, ns, "ChainIssuerMissing"),
+  chainSignatureUnsupported: t(lang, ns, "ChainSignatureUnsupported"),
+  chainIssuerNotCa: t(lang, ns, "ChainIssuerNotCa"),
+  chainNotOrdered: t(lang, ns, "ChainNotOrdered"),
+  chainVerified: t(lang, ns, "ChainVerified"),
   error: t(lang, "common", "Common_Error"),
 };
 const stringsJson = JSON.stringify(s);
@@ -135,6 +143,7 @@ const stringsJson = JSON.stringify(s);
       <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-x509-download disabled>{s.download}</button>
     </Fragment>
     <StatusMessage kind="error" data-x509-error />
+    <StatusMessage kind="success" data-x509-verified />
     <StatusMessage kind="warning" data-x509-warnings />
     <textarea id="x509-output" class="ds-field-textarea mono x509-out ds-when-filled" data-x509-output rows="16" readonly spellcheck="false"></textarea>
   </OutputPanel>

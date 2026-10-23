@@ -4,7 +4,8 @@
  * pretty-printing
  * the WASM JSON summary, validating the "Validity (days)" field
  * (whole days 1–36500, mirrors X509_MAX_VALIDITY_DAYS in wasm/cryptography)
- * and parsing the Subject Alternative Name list (parseSanList).
+ * and parsing the Subject Alternative Name list (parseSanList); chain
+ * bundle detection and localized findings for the chain report (chainFindings).
  */
 export const X509_MAX_VALIDITY_DAYS = 36_500;
 
@@ -143,4 +144,66 @@ export function parseSanList(text: string): SanList {
     }
   }
   return out;
+}
+
+/** Number of `-----BEGIN CERTIFICATE-----` blocks; two or more switch Parse to chain analysis. */
+export function countPemCertificates(text: string): number {
+  return text.match(/-----BEGIN CERTIFICATE-----/g)?.length ?? 0;
+}
+
+/** Link signature status from the WASM chain report (`chain_report` in wasm/cryptography/src/x509.rs). */
+export type ChainSignature = "valid" | "invalid" | "unsupported" | "issuerMissing";
+
+export interface ChainEntry {
+  index: number;
+  subject: string;
+  isCa: boolean;
+  selfIssued: boolean;
+  issuerIndex: number | null;
+  signature: ChainSignature;
+  warnings: string[];
+}
+
+export interface ChainReport {
+  count: number;
+  ordered: boolean;
+  endsInRoot: boolean;
+  certificates: ChainEntry[];
+}
+
+/** Localized templates; `{n}` / `{issuer}` are 1-based bundle positions. */
+export interface ChainStrings {
+  chainSignatureInvalid: string;
+  chainIssuerMissing: string;
+  chainSignatureUnsupported: string;
+  chainIssuerNotCa: string;
+  chainNotOrdered: string;
+  chainVerified: string;
+}
+
+function fill(template: string, params: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (m, key: string) => (key in params ? String(params[key]) : m));
+}
+
+/**
+ * Chain report → localized findings. `warnings` lists broken or unchecked
+ * links, a non-CA issuer, wrong order and per-certificate validity warnings
+ * (prefixed `#n:`); `verified` is the summary shown when every link
+ * signature verifies (offline only — trust and revocation are not checked).
+ */
+export function chainFindings(report: ChainReport, s: ChainStrings): { warnings: string[]; verified: string | null } {
+  const warnings: string[] = [];
+  for (const cert of report.certificates) {
+    const n = cert.index + 1;
+    const issuer = cert.issuerIndex === null ? "" : cert.issuerIndex + 1;
+    if (cert.signature === "invalid") warnings.push(fill(s.chainSignatureInvalid, { n, issuer }));
+    else if (cert.signature === "issuerMissing") warnings.push(fill(s.chainIssuerMissing, { n }));
+    else if (cert.signature === "unsupported") warnings.push(fill(s.chainSignatureUnsupported, { n }));
+    const signer = cert.issuerIndex === null ? null : report.certificates[cert.issuerIndex];
+    if (signer && !cert.selfIssued && !signer.isCa) warnings.push(fill(s.chainIssuerNotCa, { n, issuer }));
+    for (const w of cert.warnings) warnings.push(`#${n}: ${w}`);
+  }
+  if (!report.ordered) warnings.push(s.chainNotOrdered);
+  const allValid = report.certificates.every((c) => c.signature === "valid");
+  return { warnings, verified: allValid ? fill(s.chainVerified, { count: report.count }) : null };
 }

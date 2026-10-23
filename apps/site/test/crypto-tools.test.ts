@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { alphabetSize, entropyBits, hasCharset, sanitizeSettings, strengthFill, strengthLevel, PW_MAX_LENGTH, PW_MIN_LENGTH } from "../src/tools/password-settings.ts";
 import { aeadAlgorithmId, aeadProgressView, bytesToHex, decryptedName, encryptedName, formatDuration } from "../src/tools/aead-file-helpers.ts";
 import { guessSshInput, rsaBits, sshErrorKey } from "../src/tools/openssh-keys-helpers.ts";
-import { base64ToBytes, derBase64ToPem, isCsrPem, parseSanList, parseValidityDays, prettyJson, X509_MAX_VALIDITY_DAYS } from "../src/tools/x509-helpers.ts";
+import { base64ToBytes, chainFindings, countPemCertificates, derBase64ToPem, isCsrPem, parseSanList, parseValidityDays, prettyJson, X509_MAX_VALIDITY_DAYS, type ChainEntry, type ChainReport } from "../src/tools/x509-helpers.ts";
 import { hasEdgeWhitespace, passwordCandidates } from "../src/tools/crypto-password.ts";
 import { HASH_ALGORITHMS, DEFAULT_HASH_ALGORITHMS } from "../src/tools/hash-algorithms.ts";
 
@@ -230,4 +230,56 @@ test("x509: parseSanList rejects malformed entries", () => {
     assert.deepEqual(parseSanList(entry), { dns: [], ip: [], email: [], invalid: [entry] }, entry);
   }
   assert.deepEqual(parseSanList("ok.example, 999.0.0.1").invalid, ["999.0.0.1"]);
+});
+
+test("x509: countPemCertificates counts certificate blocks only", () => {
+  const block = "-----BEGIN CERTIFICATE-----\nAAAA\n-----END CERTIFICATE-----\n";
+  assert.equal(countPemCertificates(block), 1);
+  assert.equal(countPemCertificates(block + block), 2);
+  assert.equal(countPemCertificates("-----BEGIN CERTIFICATE REQUEST-----\nAAAA\n"), 0);
+});
+
+const CHAIN_STRINGS = {
+  chainSignatureInvalid: "#{n} bad sig by #{issuer}",
+  chainIssuerMissing: "#{n} no issuer",
+  chainSignatureUnsupported: "#{n} unsupported",
+  chainIssuerNotCa: "#{n} issuer #{issuer} not CA",
+  chainNotOrdered: "not ordered",
+  chainVerified: "all {count} ok",
+};
+
+function chainEntry(index: number, over: Partial<ChainEntry> = {}): ChainEntry {
+  return { index, subject: `CN=${index}`, isCa: true, selfIssued: false, issuerIndex: index + 1, signature: "valid", warnings: [], ...over };
+}
+
+test("x509: chainFindings reports a fully verified chain", () => {
+  const report: ChainReport = {
+    count: 2,
+    ordered: true,
+    endsInRoot: true,
+    certificates: [chainEntry(0, { isCa: false }), chainEntry(1, { selfIssued: true, issuerIndex: 1 })],
+  };
+  assert.deepEqual(chainFindings(report, CHAIN_STRINGS), { warnings: [], verified: "all 2 ok" });
+});
+
+test("x509: chainFindings flags broken, missing, non-CA and order problems", () => {
+  const report: ChainReport = {
+    count: 3,
+    ordered: false,
+    endsInRoot: false,
+    certificates: [
+      chainEntry(0, { isCa: false, issuerIndex: 1, signature: "invalid", warnings: ["certificate expired"] }),
+      chainEntry(1, { isCa: false, issuerIndex: 2 }),
+      chainEntry(2, { issuerIndex: null, signature: "issuerMissing" }),
+    ],
+  };
+  const { warnings, verified } = chainFindings(report, CHAIN_STRINGS);
+  assert.equal(verified, null);
+  assert.deepEqual(warnings, [
+    "#1 bad sig by #2",
+    "#1 issuer #2 not CA",
+    "#1: certificate expired",
+    "#3 no issuer",
+    "not ordered",
+  ]);
 });

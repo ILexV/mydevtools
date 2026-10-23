@@ -165,7 +165,17 @@ fn validity_strings(cert: &X509Certificate<'_>) -> (String, String) {
     (format!("{}", validity.not_before), format!("{}", validity.not_after))
 }
 
-fn cert_to_json(cert: &X509Certificate<'_>) -> String {
+/// Certificate fingerprint as upper-case colon-separated hex (OpenSSL `-fingerprint` style).
+fn fingerprint(der: &[u8], alg: &'static ring::digest::Algorithm) -> String {
+    ring::digest::digest(alg, der)
+        .as_ref()
+        .iter()
+        .map(|b| format!("{b:02X}"))
+        .collect::<Vec<_>>()
+        .join(":")
+}
+
+fn cert_to_json(cert: &X509Certificate<'_>, der: &[u8]) -> String {
     let subject = escape_json(&subject_string(cert));
     let issuer = escape_json(&issuer_string(cert));
     let (not_before, not_after) = validity_strings(cert);
@@ -179,9 +189,13 @@ fn cert_to_json(cert: &X509Certificate<'_>) -> String {
         .collect::<Vec<_>>()
         .join(",");
 
+    let serial = escape_json(&cert.raw_serial_as_string());
+    let sha256 = fingerprint(der, &ring::digest::SHA256);
+    let sha1 = fingerprint(der, &ring::digest::SHA1_FOR_LEGACY_USE_ONLY);
+
     format!(
-        "{{\"subject\":\"{}\",\"issuer\":\"{}\",\"notBefore\":\"{}\",\"notAfter\":\"{}\",\"signatureAlgorithmOid\":\"{}\",\"publicKeyAlgorithmOid\":\"{}\",\"subjectAltNames\":[{}]}}",
-        subject, issuer, not_before, not_after, sig_alg, pk_alg, san
+        "{{\"subject\":\"{}\",\"issuer\":\"{}\",\"serialNumber\":\"{}\",\"notBefore\":\"{}\",\"notAfter\":\"{}\",\"signatureAlgorithmOid\":\"{}\",\"publicKeyAlgorithmOid\":\"{}\",\"subjectAltNames\":[{}],\"fingerprintSha256\":\"{}\",\"fingerprintSha1\":\"{}\"}}",
+        subject, issuer, serial, not_before, not_after, sig_alg, pk_alg, san, sha256, sha1
     )
 }
 
@@ -448,14 +462,14 @@ pub fn x509_parse_pem(pem: &str) -> Result<String, JsValue> {
     let der = parse_pem_to_der(pem)?;
     let (_, cert) = parse_x509_certificate(&der)
         .map_err(|_| JsValue::from_str("invalid certificate"))?;
-    Ok(cert_to_json(&cert))
+    Ok(cert_to_json(&cert, &der))
 }
 
 /// Parses certificate from DER and returns JSON string with basic fields.
 #[wasm_bindgen]
 pub fn x509_parse_der(der: &[u8]) -> Result<String, JsValue> {
     let cert = parse_cert_from_der(der)?;
-    Ok(cert_to_json(&cert))
+    Ok(cert_to_json(&cert, der))
 }
 
 /* ── CSR (PKCS#10) parsing ───────────────────────────────────────────── */
@@ -653,6 +667,116 @@ pub fn x509_chain_warnings_pem(pem_chain: Vec<String>, now_unix: i64) -> Result<
 
     warnings.push("signature verification not performed".to_string());
     Ok(warnings)
+}
+
+/* ── Chain analysis with link signature checks ───────────────────────── */
+
+/// One certificate of a pasted bundle, in input order.
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ChainEntry {
+    index: usize,
+    subject: String,
+    issuer: String,
+    serial_number: String,
+    not_before: String,
+    not_after: String,
+    is_ca: bool,
+    self_issued: bool,
+    /// Bundle index of the certificate whose key signed this one (itself when self-issued).
+    issuer_index: Option<usize>,
+    /// "valid" | "invalid" | "unsupported" (algorithm not verifiable here) | "issuerMissing".
+    signature: &'static str,
+    fingerprint_sha256: String,
+    warnings: Vec<String>,
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ChainReport {
+    count: usize,
+    /// True when every certificate is followed by its issuer (leaf → root order).
+    ordered: bool,
+    /// True when the last link ends in a self-issued certificate whose signature verifies.
+    ends_in_root: bool,
+    certificates: Vec<ChainEntry>,
+}
+
+fn signature_status(cert: &X509Certificate<'_>, issuer: &X509Certificate<'_>) -> &'static str {
+    match cert.verify_signature(Some(issuer.public_key())) {
+        Ok(()) => "valid",
+        Err(X509Error::SignatureUnsupportedAlgorithm) => "unsupported",
+        Err(_) => "invalid",
+    }
+}
+
+/// Analyses a PEM bundle of certificates (fullchain.pem, a CA bundle): for each
+/// certificate finds its issuer inside the bundle by subject DN and verifies the
+/// link signature with the issuer's public key. Offline only: no trust store,
+/// no revocation (CRL/OCSP), no name or path-length constraints.
+pub(crate) fn chain_report(bundle: &str, now_unix: i64) -> Result<String, String> {
+    let ders = x509_parser::pem::Pem::iter_from_buffer(bundle.as_bytes())
+        .filter_map(|pem| pem.ok())
+        .filter(|pem| pem.label == "CERTIFICATE")
+        .map(|pem| pem.contents)
+        .collect::<Vec<_>>();
+    if ders.is_empty() {
+        return Err("no certificates".to_string());
+    }
+    let certs = ders
+        .iter()
+        .map(|der| parse_x509_certificate(der).map(|(_, c)| c))
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|_| "invalid certificate".to_string())?;
+
+    let mut entries = Vec::with_capacity(certs.len());
+    for (i, cert) in certs.iter().enumerate() {
+        let self_issued = cert.issuer().as_raw() == cert.subject().as_raw();
+        let (issuer_index, signature) = if self_issued {
+            (Some(i), signature_status(cert, cert))
+        } else {
+            // Several candidates (cross-signed CAs): take the first that verifies.
+            let candidates = certs
+                .iter()
+                .enumerate()
+                .filter(|(j, c)| *j != i && c.subject().as_raw() == cert.issuer().as_raw())
+                .map(|(j, c)| (j, signature_status(cert, c)))
+                .collect::<Vec<_>>();
+            match candidates.iter().find(|(_, s)| *s == "valid").or(candidates.first()) {
+                Some((j, s)) => (Some(*j), *s),
+                None => (None, "issuerMissing"),
+            }
+        };
+        let (not_before, not_after) = validity_strings(cert);
+        entries.push(ChainEntry {
+            index: i,
+            subject: subject_string(cert),
+            issuer: issuer_string(cert),
+            serial_number: cert.raw_serial_as_string(),
+            not_before,
+            not_after,
+            is_ca: matches!(cert.basic_constraints(), Ok(Some(bc)) if bc.value.ca),
+            self_issued,
+            issuer_index,
+            signature,
+            fingerprint_sha256: fingerprint(&ders[i], &ring::digest::SHA256),
+            warnings: cert_warnings(cert, now_unix),
+        });
+    }
+
+    let ordered = entries
+        .iter()
+        .enumerate()
+        .all(|(i, e)| if i + 1 < entries.len() { e.issuer_index == Some(i + 1) } else { true });
+    let ends_in_root = entries.last().is_some_and(|e| e.self_issued && e.signature == "valid");
+    let report = ChainReport { count: entries.len(), ordered, ends_in_root, certificates: entries };
+    serde_json::to_string(&report).map_err(|e| e.to_string())
+}
+
+/// PEM bundle → JSON chain report (see `chain_report`); `now_unix` drives expiry warnings.
+#[wasm_bindgen]
+pub fn x509_chain_report_pem(bundle: &str, now_unix: i64) -> Result<String, JsValue> {
+    chain_report(bundle, now_unix).map_err(|e| JsValue::from_str(&e))
 }
 
 #[cfg(test)]
@@ -938,5 +1062,81 @@ mod tests {
         let legacy_label = csr_ex(X509_ALG_ED25519, "CN=old", vec![], vec![], vec![]).expect("csr")[0]
             .replace("CERTIFICATE REQUEST", "NEW CERTIFICATE REQUEST");
         assert_eq!(csr_value(&legacy_label)["subject"], "CN=old");
+    }
+
+    /// CA (self-signed, basicConstraints CA) + leaf signed by it, both P-256.
+    fn ca_and_leaf(ca_cn: &str) -> (String, String) {
+        use rcgen::{BasicConstraints, IsCa};
+        let ca_key = KeyPair::generate_for(&rcgen::PKCS_ECDSA_P256_SHA256).expect("ca key");
+        let mut ca_params = CertificateParams::default();
+        ca_params.distinguished_name.push(DnType::CommonName, ca_cn);
+        ca_params.is_ca = IsCa::Ca(BasicConstraints::Unconstrained);
+        let ca = ca_params.self_signed(&ca_key).expect("ca");
+        let leaf_key = KeyPair::generate_for(&rcgen::PKCS_ECDSA_P256_SHA256).expect("leaf key");
+        let mut leaf_params = CertificateParams::new(vec!["example.com".to_string()]).expect("leaf params");
+        leaf_params.distinguished_name.push(DnType::CommonName, "example.com");
+        let leaf = leaf_params.signed_by(&leaf_key, &ca, &ca_key).expect("leaf");
+        (ca.pem(), leaf.pem())
+    }
+
+    fn chain_value(bundle: &str) -> serde_json::Value {
+        serde_json::from_str(&chain_report(bundle, NOW).expect("report")).expect("json")
+    }
+
+    #[test]
+    fn parse_reports_fingerprints_and_serial() {
+        let out = self_signed_ex(X509_ALG_ED25519, "CN=fp", 30, NOW, vec![], vec![], vec![]).expect("cert");
+        let json = parse_cert(&out[0]);
+        let der = parse_pem_to_der(&out[0]).expect("der");
+        use sha2::Digest;
+        let expected = sha2::Sha256::digest(&der).iter().map(|b| format!("{b:02X}")).collect::<Vec<_>>().join(":");
+        assert_eq!(json["fingerprintSha256"], expected.as_str());
+        assert_eq!(json["fingerprintSha1"].as_str().unwrap().len(), 20 * 3 - 1);
+        assert!(!json["serialNumber"].as_str().unwrap().is_empty());
+    }
+
+    #[test]
+    fn chain_leaf_to_root_verifies() {
+        let (ca, leaf) = ca_and_leaf("Test Root CA");
+        let report = chain_value(&format!("{leaf}\n{ca}"));
+        assert_eq!(report["count"], 2);
+        assert_eq!(report["ordered"], true);
+        assert_eq!(report["endsInRoot"], true);
+        let certs = report["certificates"].as_array().unwrap();
+        assert_eq!(certs[0]["signature"], "valid");
+        assert_eq!(certs[0]["issuerIndex"], 1);
+        assert_eq!(certs[0]["isCa"], false);
+        assert_eq!(certs[1]["signature"], "valid");
+        assert_eq!(certs[1]["selfIssued"], true);
+        assert_eq!(certs[1]["isCa"], true);
+    }
+
+    #[test]
+    fn chain_reversed_order_still_links() {
+        let (ca, leaf) = ca_and_leaf("Test Root CA");
+        let report = chain_value(&format!("{ca}{leaf}"));
+        assert_eq!(report["ordered"], false);
+        assert_eq!(report["endsInRoot"], false);
+        let certs = report["certificates"].as_array().unwrap();
+        assert_eq!(certs[1]["issuerIndex"], 0);
+        assert_eq!(certs[1]["signature"], "valid");
+    }
+
+    #[test]
+    fn chain_wrong_issuer_key_is_invalid() {
+        // Same issuer DN, different key: linkage by name matches, signature does not.
+        let (_, leaf) = ca_and_leaf("Lookalike CA");
+        let (other_ca, _) = ca_and_leaf("Lookalike CA");
+        let report = chain_value(&format!("{leaf}{other_ca}"));
+        assert_eq!(report["certificates"][0]["signature"], "invalid");
+    }
+
+    #[test]
+    fn chain_missing_issuer_and_bad_input() {
+        let (_, leaf) = ca_and_leaf("Absent CA");
+        let report = chain_value(&leaf);
+        assert_eq!(report["certificates"][0]["signature"], "issuerMissing");
+        assert!(report["certificates"][0]["issuerIndex"].is_null());
+        assert!(chain_report("no pem here", NOW).is_err());
     }
 }

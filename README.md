@@ -1,559 +1,227 @@
-# 📘 MyDevTools.app — Privacy-First Developer Tools
-
-> Основная часть этого README описывает legacy-сайт на Blazor. Актуальный фронтенд — статический Astro в [`apps/site`](apps/site), каталог определяется `src/registry/tools.ts`, доступны 10 языков. Обычные инструменты работают в браузере; HTTP-клиент использует необязательный локальный Windows-агент. Текущие ограничения: [`docs/inventory/tools.md`](docs/inventory/tools.md), [`docs/inventory/parity-fixtures.md`](docs/inventory/parity-fixtures.md); публикация — [`apps/site/RELEASING.md`](apps/site/RELEASING.md).
-
-Анонимные счётчики действий работают отдельно от обработки данных; production-сборки всегда выполняются с `ANALYTICS_ENABLED=true`, если владелец явно не запросил отключение. Передаются только ID инструмента и тип события — не ввод, файлы, секреты или идентификаторы посетителей. Скрытая панель `/admin/analytics/` защищается Cloudflare Access: доступ только владельцу, SQL-токен остаётся в Worker. Настройка, покрытие инструментов, отчёты и ограничения: [`docs/analytics.md`](docs/analytics.md).
-
-## Локальный агент Windows и HTTP-клиент
-
-В `/{lang}/http-client/` есть предложение скачать агент. Оно ведёт на
-`/{lang}/local-agent/`: описание разрешений, текущая версия, Windows x64,
-размер, SHA-256 и скачивание исполняемого файла. Метаданные проверяются
-по реальному бинарнику во время сборки сайта.
-
-Скачиваемый файл — установщик для текущего пользователя. Он кладёт агент в
-`%LOCALAPPDATA%\MyDevTools\Agent` и не ставит службу Windows. Повторный запуск
-установщика останавливает уже открытый агент и заменяет эту копию. Права
-администратора не нужны. Первый запуск открывает небольшое окно с версией
-и одноразовым кодом подключения; закрытие или сворачивание окна скрывает его
-в трей. Щелчок по значку возвращает окно. «Выход» полностью останавливает
-агент. Автозапуск при входе пользователя включается только флажком в окне
-и использует HKCU `Software\Microsoft\Windows\CurrentVersion\Run`. Если
-автозапуск уже был включён, установщик переписывает путь на установленный файл.
-Автозапуск не сохраняет расширенные параметры командной строки, включая доступ к LAN.
-
-Сборка из корня репозитория:
-
-```powershell
-npm run build:agent
-npm run test:agent
-```
-
-На Windows нужны Rust 1.88, PowerShell 7 и MSVC Build Tools с Windows SDK.
-На Linux сборка Windows x64 использует `x86_64-w64-mingw32-gcc`.
-Готовый установщик: `apps/local-agent/dist/windows-x64/mydevtools-agent-windows-x64-setup.exe`.
-Рядом остаётся сам агент `mydevtools-agent-windows-x64.exe`. Скрипт также
-размещает установщик и `local-agent.json` в `apps/site/public/downloads/`;
-эти генерируемые файлы не хранятся в Git. Для сборки установщика нужен `makensis` (NSIS 3).
-Пока нет сертификата подписи издателя: Windows SmartScreen может предупредить
-или заблокировать запуск. SHA-256 подтверждает целостность, но не заменяет подпись.
-
-Для проверки локального сайта запустите агент с точным origin:
-
-```powershell
-& "$env:LOCALAPPDATA\MyDevTools\Agent\mydevtools-agent.exe" --origin http://localhost:4321
-```
-
-По умолчанию разрешены только публичные HTTP(S)-цели. Для осознанной работы
-с localhost/LAN добавьте `--allow-private`; метаданные облака, link-local,
-зарезервированные адреса и собственный API агента остаются запрещены.
-Для доступа из браузера может потребоваться разрешение локальной сети.
+<div align="center">
+
+<a href="https://mydevtools.app/"><img src="apps/site/public/icons/icon-192.png" width="72" height="72" alt="MyDevTools logo"></a>
+
+# MyDevTools
+
+**59 free developer tools that run entirely in your browser.**
+JSON, Base64, JWT, hashes, regex, crypto keys, images, PDF — and explorers for multi-gigabyte CSV, JSON, logs, Parquet and SQLite files.
+Your input and files never leave your device.
+
+### 👉 [mydevtools.app](https://mydevtools.app/)
+
+[![Website](https://img.shields.io/website?url=https%3A%2F%2Fmydevtools.app%2Fen%2F&label=mydevtools.app)](https://mydevtools.app/)
+![Tools](https://img.shields.io/badge/tools-59-4f46e5)
+![Languages](https://img.shields.io/badge/languages-10-0d9488)
+![Rust + WebAssembly](https://img.shields.io/badge/Rust-WebAssembly-b7410e)
+![Astro](https://img.shields.io/badge/Astro-static-ff5d01)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+[English](https://mydevtools.app/en/) · [Русский](https://mydevtools.app/ru/) · [Español](https://mydevtools.app/es/) · [Deutsch](https://mydevtools.app/de/) · [Português](https://mydevtools.app/pt/) · [中文](https://mydevtools.app/zh/) · [Français](https://mydevtools.app/fr/) · [日本語](https://mydevtools.app/ja/) · [한국어](https://mydevtools.app/ko/) · [हिन्दी](https://mydevtools.app/hi/)
+
+<a href="https://mydevtools.app/">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/home-dark.png">
+    <img src="docs/assets/home-light.png" width="860" alt="MyDevTools home page: developer tools right in your browser">
+  </picture>
+</a>
+
+</div>
+
+## Why MyDevTools
 
-Текущие разрешения — `http.request` и отдельно `icmp.trace` (трассировка пути). Токен связан с origin и живёт
-в памяти не более восьми часов; код одноразовый и меняется каждые пять минут.
-Запросы идут от компьютера прямо к выбранному API, не через сервер MyDevTools.
-Страница не сохраняет URL, заголовки, тела, ответы и токены.
-Лимиты: тело запроса 1 МиБ, ответ 16 МиБ, тайм-аут 120 секунд,
-не более восьми запросов одновременно. Отмена останавливает нативный запрос.
-Сканирование сети/портов не реализовано: будущим модулям потребуются отдельные
-именованные разрешения, маршруты и проверки доступа, а не универсальный запуск команд.
-
-
-[![.NET 10](https://img.shields.io/badge/.NET-10-blue)](https://dotnet.microsoft.com/)
-[![Blazor](https://img.shields.io/badge/Blazor-SSR-purple)](https://blazor.net/)
-
-## 📌 Общая идея проекта
-
-Проект **MyDevTools.app** — это веб-сервис инструментов для разработчиков
-(JSON, XML, Base64, hash, formatter, validator и т.д.).
-
-### Ключевые принципы
-
-* 🔐 **Privacy-first** — все преобразования выполняются **в браузере пользователя**
-* 🚫 **Никакие пользовательские данные не отправляются на сервер**
-* ⚡ **WASM для вычислений**, сервер используется только для SSR и статики
-* 🌍 **Многоязычный сайт (i18n)** — поддержка английского, русского, испанского
-* 🔍 **SEO-friendly (SSR, JSON-LD, hreflang)**
-
----
-
-## ✅ Реализованные функции
-
-### 🎯 Готово к использованию
-
-- ✅ **SSR (Server-Side Rendering)** — быстрая первая загрузка, SEO-оптимизация
-- ✅ **Многоязычность** — автоматическое определение языка браузера
-  - 🇬🇧 Английский (en)
-  - 🇷🇺 Русский (ru)
-  - 🇪🇸 Испанский (es)
-- ✅ **Strongly-Typed Resources** — compile-time безопасность для переводов
-- ✅ **Темная/Светлая тема** — CSS-переменные для кастомизации
-- ✅ **Первый инструмент: Hash Calculator** — хэши текста и файлов (streaming) через Rust→WASM.
-  - вычисляет **только по выбранным алгоритмам** (для файла — по кнопке, для текста — можно пересчитать сразу)
-  - выбор алгоритмов сохраняется в **localStorage** (по умолчанию: **MD5, SHA-1, SHA-256**)
-  - большой список алгоритмов: поиск, «выбранные сверху», сортировка по алфавиту
-  - прогресс и отмена для файлов, кнопка копирования результата
-  Поддерживаются: MD5, SHA-1/2/3, Keccak, SHAKE, BLAKE2/3, RIPEMD, CRC32/Adler32, xxHash, SipHash, HighwayHash, MetroHash, FNV/FxHash/SeaHash, Streebog-256/512 (ГОСТ Р 34.11-2012).
-- ✅ **Encoding инструменты (WASM + JS UI)** — Hex, Base32, Base58, Base64, URL (text+file где применимо)
-- ✅ **Cryptography WASM core** — OpenSSH keys (public/private + bcrypt KDF), AEAD (AES-GCM/ChaCha/XChaCha + streaming), X.509 self-signed + CSR, PEM/DER parsing + warnings
-- ✅ **SEO компоненты** — MetaTags, JSON-LD, Hreflang
-- ✅ **Переиспользуемые UI компоненты** — ToolLayout, LoadingSkeleton, ThemeToggle
-
-### 🚧 В разработке
-
-- 🔜 **Новые инструменты** — JSON Beautifier, XML Formatter
-- 🔜 **Structured Data WASM** — JSON/XML/YAML форматирование и валидация
-
----
-
-## 🧱 Технологический стек
-
-* **.NET 10** — последняя версия платформы
-* **Blazor Web App (SSR)** — server-side rendering без WebSocket
-* **Blazor Components** — переиспользуемые UI компоненты
-* **WebAssembly** (используется)
-  * основной язык WASM: **Rust**
-  * C# используется только для UI и orchestration
-* **Web Crypto API** — опционально (для некоторых сценариев), но Hash Calculator считает всё через WASM
-* **Cloudflare CDN** — кэширование статики (планируется)
-* **Без server-side API для обработки данных**
-
----
-
-## 🧠 Архитектурные правила (ОЧЕНЬ ВАЖНО)
-
-### ❌ Запрещено
-
-* ❌ Любая обработка пользовательских данных на сервере
-* ❌ Отправка файлов, текста, JSON, XML на backend
-* ❌ Использование ASP.NET Minimal API для логики инструментов
-* ❌ WebSocket / SignalR для интерактивности (только SSR + JavaScript)
-
-### ✅ Разрешено
-
-* ✅ Server-Side Rendering **только для HTML**
-* ✅ Client-side JavaScript для UI интерактивности
-* ✅ Client-side WASM для вычислений (а JS — для UI)
-* ✅ Сервер — только:
-  * SSR
-  * отдача статики
-  * SEO-метаданные
-  * токены доступа (без данных пользователя)
-
----
-
-## 🏗️ Структура проекта
-
-### 🗂️ Структура репозитория (актуально)
-
-> Ниже — структура от корня репозитория. Папки `bin/`, `obj/`, `.vs/`, `_ReSharper.Caches/` и т.п. намеренно опущены.
-
-```
-/
-├── README.md
-├── MyDevToolsApp/
-│   ├── MyDevToolsApp.slnx
-│   └── MyDevTools.Site/
-│       ├── Program.cs
-│       ├── Components/
-│       ├── Middleware/
-│       ├── Resources/
-│       ├── Services/
-│       └── wwwroot/
-└── wasm/
-    ├── cryptography/   # Rust → WASM: шифрование/подпись/ключи (реализовано)
-    ├── encoding/       # Rust → WASM: hex/base64/url/… (реализовано)
-  ├── structured_data/ # Rust → WASM: JSON/XML/YAML форматирование + валидация (планируется)
-    └── hash/           # Rust → WASM: хэши строк/файлов (реализовано)
-  └── build.ps1       # Сборка cargo+wasm-bindgen → wwwroot/wasm/<domain>
-```
-
-### `wasm/structured_data`: назначение
-
-Этот домен — “всё про структурированные форматы”:
-
-* форматирование: beautify/minify/normalize
-* валидация (syntax + schema, где применимо)
-* в перспективе: YAML (и возможно конвертации, если будет нужно)
-
----
-
-### MyDevTools.Site (Blazor SSR)
-
-```
-MyDevToolsApp/MyDevTools.Site/
-├── Components/
-│   ├── Layout/
-│   │   ├── MainLayout.razor           ✅ Главный layout с header/footer
-│   │   └── ToolLayout.razor            ✅ Универсальный layout для инструментов
-│   ├── Common/
-│   │   ├── LanguageSwitcher.razor     ✅ Переключатель языков
-│   │   ├── ThemeToggle.razor          ✅ Переключатель темы
-│   │   └── LoadingSkeleton.razor      ✅ Скелетон загрузки
-│   ├── Seo/
-│   │   ├── MetaTags.razor             ✅ Meta теги для SEO
-│   │   ├── JsonLdTool.razor           ✅ Schema.org разметка
-│   │   └── HreflangLinks.razor        ✅ Языковые альтернативы
-│   ├── Tools/
-│   │   └── HashCalculator.razor       ✅ Калькулятор хэшей (первый инструмент)
-│   └── Pages/
-│       └── Home.razor                  ✅ Главная страница
-├── Services/
-│   ├── ILocalizationService.cs        ✅ Интерфейс локализации
-│   └── LocalizationService.cs         ✅ Реализация (en, ru, es)
-├── Middleware/
-│   └── CultureRedirectMiddleware.cs   ✅ Редирект + определение языка
-├── Resources/
-│   ├── AppStrings.resx                ✅ Английские тексты
-│   ├── AppStrings.ru.resx             ✅ Русские переводы
-│   ├── AppStrings.es.resx             ✅ Испанские переводы
-│   └── AppStrings.Designer.cs         ✅ Автогенерированный strongly-typed класс
-├── wwwroot/
-│   └── app.css                         ✅ Стили с поддержкой тем
-└── Program.cs                          ✅ Настройка локализации и middleware
-```
-
----
-
-## 🧩 Использование компонентов
-
-### ToolLayout — базовый шаблон инструмента
-
-**Все инструменты** должны использовать `ToolLayout`:
-
-```razor
-@page "/{lang}/my-tool"
-@using MyDevTools.Site.Resources
-
-<ToolLayout Title="@AppStrings.MyTool_Title" 
-            Description="@AppStrings.MyTool_Description">
-    
-    <div class="tool-grid">
-        <div class="input-section">
-            <!-- Input UI -->
-        </div>
-        <div class="output-section">
-            <!-- Output UI -->
-        </div>
-    </div>
-    
-</ToolLayout>
-
-<script>
-    // Client-side logic here
-    // All processing happens in browser!
-</script>
-```
-
-**НЕ создавайте** уникальные layouts для каждого инструмента!
-
----
-
-## 🌍 Локализация (i18n)
-
-### ✅ Реализовано: Strongly-Typed Resources
-
-**Все тексты** используют strongly-typed ресурсы из `AppStrings.Designer.cs`:
-
-```razor
-@using MyDevTools.Site.Resources
-
-<!-- ✅ Правильно: compile-time безопасность -->
-<h1>@AppStrings.HashCalculator_Title</h1>
-<button>@AppStrings.HashCalculator_Calculate</button>
-
-<!-- ❌ Неправильно: магические строки -->
-<h1>@L["HashCalculator_Title"]</h1>
-```
-
-### URL-структура
-
-```
-/                          → редирект на /en/, /ru/ или /es/ (по языку браузера)
-/en/hash-calculator       → Hash Calculator
-/ru/hash-calculator       → Калькулятор хэшей
-/es/hash-calculator       → Calculadora de Hash
-```
-
-### Добавление новых переводов
-
-1. Откройте `Resources/AppStrings.resx` в Visual Studio
-2. Добавьте новый ключ: `MyTool_ActionButton`
-3. Visual Studio автоматически обновит `AppStrings.Designer.cs`
-4. Добавьте переводы в `.ru.resx` и `.es.resx`
-5. Используйте: `@AppStrings.MyTool_ActionButton`
-
-**См. также:** `LOCALIZATION_GUIDE.md`
-
----
-
-## ⚙️ WASM: правила интеграции (будущее)
-
-### Общие требования
-
-* WASM **загружается лениво**
-* При загрузке показывается skeleton / loading state
-* Вычисления происходят:
-  * в памяти браузера
-  * без network calls
-
-### Категоризация WASM (оптимизация)
-
-* WASM делится по доменам (соответствует папке `wasm/`):
-  * `hash.wasm` — MD5, SHA, Blake2, xxHash и т.д.
-  * `encoding.wasm` — Base64, Hex, URL encoding, etc.
-  * `cryptography.wasm` — шифрование/подпись/ключи (реализовано)
-  * `structured_data.wasm` — JSON/XML/YAML: форматирование + валидация
-
-### Важно про криптографию в WASM
-
-* PKCS#12/.pfx — **native-only** (нужен OpenSSL/`aws-lc-rs`).
-* Для X.509 в WASM реалистичны **ed25519** и **ECDSA P-256/P-384**; RSA/P-521 — помечаются как *native-only*.
-* JWT (JWS/JWE) и HPKE — отложено, требует отдельной оценки wasm-совместимости.
-* Реализовано в WASM: OpenSSH public/private keys (bcrypt KDF), AEAD (AES-GCM/ChaCha/XChaCha, streaming), X.509 self-signed + CSR и парсинг PEM/DER.
-* Детали и актуальные ограничения: см. crypto-roadmap.md.
-
-### Рекомендованное оформление Rust/WASM
-
-* `wasm/` как **Cargo workspace** (один `Cargo.toml` на корне `wasm/`)
-* 1 домен = 1 crate (простая сборка + простой lazy-load):
-  * `wasm/hash/` → crate, который собирается в `hash.wasm`
-  * `wasm/encoding/` → crate → `encoding.wasm`
-  * `wasm/structured_data/` → crate → `structured_data.wasm`
-  * и т.д.
-* Артефакты сборки складывать в `MyDevToolsApp/MyDevTools.Site/wwwroot/wasm/<domain>/...` (чтобы сайт мог грузить модули как статику)
-* Экспорт функций — через `wasm-bindgen` (удобно вызывать из JS и потом обвязать в C#)
-
-### Сборка и тесты (рекомендованный базовый путь)
-
-Цели: (1) писать тесты на все функции, (2) грузить минимум данных (1 wasm на домен), (3) после сборки складывать артефакты в `wwwroot/wasm`.
-
-* Логику держать в обычных Rust-модулях внутри доменного crate и покрывать `cargo test`.
-* Для wasm-crate выставить типы библиотеки так, чтобы тесты тоже работали (примерно: `cdylib` + `rlib`).
-* Для сборки использовать `cargo build --target wasm32-unknown-unknown` + `wasm-bindgen` (стабильно, прозрачно и удобно для CI).
-
-Предварительная установка (1 раз на машину/в CI):
-
-```powershell
-rustup target add wasm32-unknown-unknown
-cargo install wasm-bindgen-cli --locked
-```
-
-Команда сборки всех доменов (складывает результат в `MyDevToolsApp/MyDevTools.Site/wwwroot/wasm/<domain>`):
-
-```powershell
-pwsh ./wasm/build.ps1 -Configuration Release
-```
-
-Пример запуска тестов в домене (когда появится `Cargo.toml`):
-
-```powershell
-cd ./wasm/hash
-cargo test
-```
-
-Для `wasm/cryptography` дополнительно есть wasm-специфичные smoke-тесты (`wasm-bindgen-test`).
-Пример (локально):
-
-```powershell
-cd ./wasm/cryptography
-cargo test
-
-# wasm-тесты (нужен wasm-bindgen-test-runner)
-$env:CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER = "wasm-bindgen-test-runner"
-cargo test --target wasm32-unknown-unknown
-```
-
-**НЕ объединяйте** всё в один огромный wasm — используйте lazy loading!
-
-### Текущая реализация (временная)
-
-Сейчас все хэши в Hash Calculator считаются **внутри Rust WASM** (единый путь для всех алгоритмов).
-
-Для файлов хэши считаются потоково (chunking) и можно вычислять несколько алгоритмов **за один проход чтения файла**: один и тот же чанк обновляет несколько независимых hasher-состояний.
-
-### Важный нюанс: Blazor SSR + Enhanced Navigation
-
-В Blazor SSR с включённой **enhanced navigation** страница может обновляться через DOM-morphing (частичная замена DOM без полной перезагрузки).
-Из-за этого обработчики, повешенные напрямую на элементы через `addEventListener`/`onclick` в момент initial load, иногда «теряются» после переходов.
-
-Рекомендация для инструментов:
-- использовать **делегирование событий** (один `document.addEventListener('click', ...)` + `target.closest(...)`) или
-- переинициализировать биндинги на событиях `enhancedload` / `pageshow`.
-
----
-
-## 🔍 SEO и AI-дружественность
-
-### ✅ Реализовано
-
-Каждый инструмент автоматически получает:
-
-1. **Meta теги** (`MetaTags.razor`):
-   ```html
-   <meta name="description" content="..." />
-   <meta property="og:title" content="..." />
-   ```
-
-2. **JSON-LD разметка** (`JsonLdTool.razor`):
-   ```json
-   {
-     "@type": "SoftwareApplication",
-     "name": "Hash Calculator",
-     "applicationCategory": "DeveloperApplication",
-     "isAccessibleForFree": true
-   }
-   ```
-
-3. **Hreflang ссылки** (`HreflangLinks.razor`):
-   ```html
-   <link rel="alternate" hreflang="en" href="/en/hash-calculator" />
-   <link rel="alternate" hreflang="ru" href="/ru/hash-calculator" />
-   <link rel="alternate" hreflang="es" href="/es/hash-calculator" />
-   ```
-
----
-
-## 🎨 Темизация
-
-### Светлая / Темная тема
-
-Используются CSS-переменные для легкой кастомизации:
-
-```css
-:root {
-    --bg-primary: #ffffff;
-    --text-primary: #212529;
-    --accent-color: #0066cc;
-}
-
-[data-theme="dark"] {
-    --bg-primary: #1a1a1a;
-    --text-primary: #e9ecef;
-    --accent-color: #4d9fff;
-}
-```
-
-Переключатель темы сохраняет выбор пользователя в `localStorage`.
-
----
-
-## 🚀 Быстрый старт
-
-### Запуск проекта
+- **Private by design.** The site is a set of static pages. Every tool processes your input inside the browser — no uploads, no server-side processing, no account.
+- **Built for big files.** Explorers stream files of many gigabytes in Web Workers with chunked reads, progress and cancel: filter a 20M-row Parquet file, diff two 500 MB files, browse a CSV that would freeze a spreadsheet.
+- **Fast where it matters.** Hashing, encryption, compression, image, PDF, regex and QR processing run in WebAssembly compiled from Rust; DuckDB and SQLite run as official WASM builds.
+- **Works offline.** Once a page has been opened, it keeps working without a connection. Install it as a PWA for quick access.
+- **10 languages.** The interface and every tool guide are translated: English, Russian, Spanish, German, Portuguese, Chinese, French, Japanese, Korean and Hindi.
+- **Free.** No ads, no paywall, no sign-up.
+
+## Tools
+
+Every tool works on its own page in all 10 languages; the links below open the English version.
+
+### Encoding
+
+| Tool | What it does |
+|---|---|
+| [Base64 Encoder / Decoder](https://mydevtools.app/en/base64-encoder/) | Encode text or files to Base64 and decode back: standard or URL-safe alphabet, padding control, 76-char line wrap and image preview. |
+| [Base32 Encoder / Decoder](https://mydevtools.app/en/base32-encoder/) | Encode and decode Base32 with RFC 4648, Crockford or z-base-32 alphabets, padding and letter-case options, for text and files. |
+| [Base58 Encoder / Decoder](https://mydevtools.app/en/base58-encoder/) | Encode and decode Base58 with the Bitcoin, Flickr or Ripple alphabet for text and files up to 1 MiB. |
+| [Hex Encoder / Decoder](https://mydevtools.app/en/hex-encoder/) | Convert text or files to hexadecimal and back. Pick charset and case; decode hex with spaces, colons, dashes or 0x prefixes. |
+| [Hex Viewer](https://mydevtools.app/en/hex-viewer/) | Open a local file as hex and ASCII/UTF-8, jump to an offset, search for bytes, and chart block entropy. |
+| [Archive Explorer](https://mydevtools.app/en/archive-explorer/) | Open ZIP, TAR, TAR.GZ and Zstandard or Brotli archives, list their contents, safely extract selected files and create new ZIP or TAR archives. |
+| [Compression Benchmark](https://mydevtools.app/en/compression-benchmark/) | Compress your own file with gzip, Brotli and Zstandard at the levels you choose and compare size, ratio, speed and memory. |
+| [URL Encoder / Decoder](https://mydevtools.app/en/url-encoder/) | Percent-encode and decode URLs and query strings in component, URI or form mode, with UTF-8, UTF-16 or Latin-1 charsets. |
+| [HTML Entity Encoder / Decoder](https://mydevtools.app/en/html-entity-encoder/) | Escape HTML special characters as named, decimal or hex entities and decode entities back to text. Handles emoji correctly. |
+
+### Structured data
+
+| Tool | What it does |
+|---|---|
+| [JSON Beautifier](https://mydevtools.app/en/json-beautifier/) | Format, minify and validate JSON: 2/4-space or tab indent, recursive key sorting, exact big numbers, open and save .json files. |
+| [JSON to TypeScript Converter](https://mydevtools.app/en/json-to-typescript/) | Generate TypeScript interfaces or type aliases from a JSON sample: nested types, merged array items, optional fields, export keyword. |
+| [Large JSON / JSONL Explorer](https://mydevtools.app/en/json-explorer/) | Open, index, search and export large JSON and JSONL files locally with a virtual table, lazy tree and exact numeric values. |
+| [Large CSV/TSV Explorer](https://mydevtools.app/en/csv-explorer/) | Open, filter, sort, group, inspect and export very large CSV or TSV files locally — with column types and CSV, JSONL or Parquet export. |
+| [Large Log Analyzer](https://mydevtools.app/en/log-analyzer/) | Stream, filter, chart and export very large Serilog, .NET, Nginx, JSON Lines and text logs locally. |
+| [Parquet Explorer](https://mydevtools.app/en/parquet-explorer/) | Open a local Parquet file, inspect its schema and row groups, filter rows, group and summarize, and browse selected columns in a virtualized table. |
+| [Local Data Playground](https://mydevtools.app/en/local-data-playground/) | Import local CSV, JSON, JSONL or Parquet files and query them with DuckDB SQL. |
+| [SQLite Explorer](https://mydevtools.app/en/sqlite-explorer/) | Open a local SQLite database: browse tables, views and indexes, run SQL and export results. |
+| [Data Format Converter](https://mydevtools.app/en/data-format-converter/) | Convert local CSV, JSON, JSONL and Parquet files, choose column types and preview the result. |
+| [XML Beautifier](https://mydevtools.app/en/xml-beautifier/) | Pretty-print or minify XML with 2/4-space or tab indent; keeps comments, CDATA and processing instructions and reports parse errors. |
+| [YAML Beautifier/Validator](https://mydevtools.app/en/yaml-beautifier-validator/) | Validate YAML and reformat it into clean block style with 2-space indentation; errors show line and column. |
+| [Cron Expression Generator](https://mydevtools.app/en/cron-generator/) | Build a cron expression field by field — minute, hour, day, month, weekday — with validation, a plain-language description and the next 5 run times. |
+| [Cron Expression Parser](https://mydevtools.app/en/cron-parser/) | Explain a cron expression in plain language, validate every field and list the next 5 run times in your local time zone. Presets and @macros included. |
+
+### Text
+
+| Tool | What it does |
+|---|---|
+| [Word / Character Counter](https://mydevtools.app/en/word-counter/) | Count words, characters, lines, paragraphs and sentences as you type, with reading and speaking time. Emoji and Chinese/Japanese text are counted correctly. |
+| [Text Case Converter](https://mydevtools.app/en/text-case-converter/) | Convert text to camelCase, snake_case, kebab-case, Title Case, Sentence case, UPPER or lower case. Splits identifiers like XMLHttpRequest correctly. |
+| [Text Diff Viewer](https://mydevtools.app/en/text-diff-viewer/) | Compare two texts or files line by line: added, removed and changed lines shown side by side or as a unified diff, with word-level highlights. |
+| [Large File Diff](https://mydevtools.app/en/large-file-diff/) | Compare two large local files line by line or byte by byte, with whitespace, line-ending and encoding options and a downloadable report. |
+
+### JWT & tokens
+
+| Tool | What it does |
+|---|---|
+| [JWT Decoder](https://mydevtools.app/en/jwt-decoder/) | Decode a JWT header and payload, check exp/nbf/iat dates and verify HS256/384/512 or RS256/384/512 signatures. |
+| [JWT Encoder](https://mydevtools.app/en/jwt-encoder/) | Create and sign JWTs with HS256, HS384 or HS512. Edit header and payload JSON; claim order and extra header fields like kid are kept. |
+
+### Regular expressions
+
+| Tool | What it does |
+|---|---|
+| [Regex Tester](https://mydevtools.app/en/regex-tester/) | Test regular expressions live with the Rust regex engine (WebAssembly): match highlighting, capture and named groups, i/m/s flags and saved patterns. |
+
+### Hashing & security
+
+| Tool | What it does |
+|---|---|
+| [Hash Calculator](https://mydevtools.app/en/hash-calculator/) | Hash text or multiple files sequentially with 39 algorithms. Compare expected digests, track speed and ETA, and export results as TXT, CSV or JSON. |
+| [Password Generator](https://mydevtools.app/en/password-generator/) | Generate random passwords of 4–128 characters from uppercase, lowercase, digits and your own symbol set, using the browser's secure RNG. |
+
+### Cryptography
+
+| Tool | What it does |
+|---|---|
+| [HMAC Calculator](https://mydevtools.app/en/hmac-calculator/) | Compute HMAC-SHA256 or HMAC-SHA512 of a message with a secret key, live as you type. Hex output, UTF-8 input, empty messages supported. |
+| [AEAD File Encrypt/Decrypt](https://mydevtools.app/en/aead-file/) | Encrypt a file with a password using AES-256-GCM or (X)ChaCha20-Poly1305 and Argon2id, then decrypt it again. |
+| [OpenSSH Keys](https://mydevtools.app/en/openssh-keys/) | Generate Ed25519, ECDSA or RSA SSH key pairs, optionally passphrase-protected, and convert between OpenSSH, PKCS#8 and SPKI PEM. |
+| [X.509 Certificates](https://mydevtools.app/en/x509/) | Create self-signed X.509 certificates and CSRs with Ed25519 or ECDSA keys, and decode certificates or CSRs from PEM/DER. |
+
+### Generators
+
+| Tool | What it does |
+|---|---|
+| [UUID/GUID Generator](https://mydevtools.app/en/uuid-generator/) | Generate random UUID v4 or time-ordered UUID v7 in batches of up to 100, as hyphenated, plain, braced or URN strings, with copy and TXT download. |
+| [Lorem Ipsum Generator](https://mydevtools.app/en/lorem-ipsum-generator/) | Generate Lorem Ipsum placeholder text by paragraphs, sentences or words (1–1000) as plain text, HTML with `<p>` tags or Markdown, with word counts. |
+
+### Converters
+
+| Tool | What it does |
+|---|---|
+| [Unit Converter](https://mydevtools.app/en/unit-converter/) | Convert length, weight, temperature and volume between metric, imperial and US units as you type, with the formula and quick reference conversions. |
+| [Date Converter](https://mydevtools.app/en/date-converter/) | Convert Unix timestamps in seconds or milliseconds to ISO 8601, RFC 5322, UTC, local or custom-formatted dates and back, live. |
+
+### Network
+
+All but the subnet calculator run through the optional [local Windows agent](apps/local-agent/README.md): requests and probes leave your own computer, not a MyDevTools server.
+
+| Tool | What it does |
+|---|---|
+| [IP Subnet Calculator](https://mydevtools.app/en/ip-subnet-calculator/) | IPv4 and IPv6 subnet calculator: network, broadcast, netmask, host range, address count and address type from CIDR or IP + mask input. |
+| [HTTP Client](https://mydevtools.app/en/http-client/) | Send HTTP requests from your Windows machine through a local companion, with no account or MyDevTools proxy. |
+| [Path Trace](https://mydevtools.app/en/path-trace/) | Watch packet loss and latency at each hop. ICMP probes leave your computer through the local agent. |
+| [DNS Lookup](https://mydevtools.app/en/dns-lookup/) | Look up A, AAAA, CNAME, MX, NS, TXT, SOA and PTR records through the DNS resolver on your computer. |
+| [TCP Connect](https://mydevtools.app/en/tcp-connect/) | Open one TCP connection to a host and port you choose, and see how long the handshake takes. |
+| [TLS Certificate](https://mydevtools.app/en/tls-inspect/) | Open one TLS handshake to a host and port you choose, and see the protocol, the cipher, the expiry and the chain. |
+| [WHOIS Lookup](https://mydevtools.app/en/whois-lookup/) | Ask one WHOIS server for one name and read the reply from TCP port 43. |
+| [ASN Lookup](https://mydevtools.app/en/asn-lookup/) | Find the network that announces one address, using a prefix table stored on this computer. |
+| [Port Scanner](https://mydevtools.app/en/port-scanner/) | Scan the TCP ports of one host from your computer: a common list, 1–1024, all 65535 or your own ranges. |
+| [Network Scanner](https://mydevtools.app/en/network-scanner/) | Find the devices on your local network: ping, a few TCP ports and the ARP table, from your own computer. |
+
+### Colors & design
+
+| Tool | What it does |
+|---|---|
+| [Color Converter](https://mydevtools.app/en/color-converter/) | Convert colors between HEX, RGB, HSL and CMYK, get a 9-step shades palette and check WCAG contrast between two colors. |
+| [Markdown Preview](https://mydevtools.app/en/markdown-preview/) | Write Markdown with a live HTML preview side by side: GitHub Flavored tables, task lists, strikethrough. Copy sanitized HTML or download an .html file. |
+
+### Images
+
+| Tool | What it does |
+|---|---|
+| [Image Compressor](https://mydevtools.app/en/image-compressor/) | Compress a JPEG, PNG or WebP image: set quality 1–100, keep or change the format and compare sizes. |
+| [Image Converter](https://mydevtools.app/en/image-converter/) | Convert images between PNG, JPEG, WebP, GIF, BMP, ICO, TIFF and TGA. |
+| [Image Resizer](https://mydevtools.app/en/image-resizer/) | Resize an image to exact pixel dimensions with aspect-ratio lock and Lanczos3 resampling, then save as JPEG, PNG or WebP. |
+
+### PDF
+
+| Tool | What it does |
+|---|---|
+| [PDF Compressor](https://mydevtools.app/en/pdf-compressor/) | Shrink PDF files losslessly: recompress streams, merge duplicate objects and strip metadata. Batch processing. |
+| [PDF Merger](https://mydevtools.app/en/pdf-merger/) | Merge two or more PDF files into one merged.pdf, in the order you set with move up/down. Pages keep size and rotation. |
+| [PDF to Text](https://mydevtools.app/en/pdf-to-text/) | Extract the text layer of PDF files into UTF-8 .txt files, with Unicode font mapping and batch processing (no OCR). |
+
+### QR codes
+
+| Tool | What it does |
+|---|---|
+| [QR Code Generator](https://mydevtools.app/en/qr-code-generator/) | Create a QR code from a URL or text with colors, square/dots/rounded styles, error correction L–H, a center logo, and PNG or SVG download. |
+| [QR Code Scanner](https://mydevtools.app/en/qr-scanner/) | Read a QR code with your camera or from a PNG, JPEG or WebP image, then copy the text or open the link. |
+
+## Privacy
+
+- Tool input, files, keys and passwords are processed in the browser and are never sent anywhere.
+- Only explicit settings (theme, language, favorites, recent tools, per-tool options) are stored, in your browser's `localStorage`. Tool input is not persisted.
+- The site counts anonymous tool usage (tool ID, event type, a coarse duration bucket, an error category) to decide what to improve. It never sends your input, files or any visitor identifier. Details: [`docs/analytics.md`](docs/analytics.md).
+- Network tools are the one exception to "browser only": they need the optional [local Windows agent](apps/local-agent/README.md), and their traffic goes from your computer straight to the target — never through a MyDevTools server.
+
+## Tech stack
+
+| Layer | What is used |
+|---|---|
+| Site | [Astro](https://astro.build/) static build, vanilla TypeScript controllers, no UI framework |
+| Compute | Rust → WebAssembly (`wasm-bindgen`), 12 crates in [`wasm/`](wasm) |
+| Data | DuckDB-WASM, `@sqlite.org/sqlite-wasm`, hyparquet |
+| Editors | CodeMirror 6, lazy-loaded on editor pages |
+| Large files | Web Workers, 1 MiB chunks, progress and `AbortController` cancel |
+| Hosting | GitHub Pages behind Cloudflare, PWA service worker |
+| Tests | `node:test` unit tests, Playwright visual and cross-browser suites, `cargo test` |
+
+## Development
+
+Requirements: Node 25, npm 11, Rust 1.88 with the `wasm32-unknown-unknown` target, `wasm-bindgen-cli` 0.2.108 and PowerShell 7 (`pwsh`). The `cryptography` crate also needs `clang` and `llvm-ar`.
 
 ```bash
-cd MyDevToolsApp/MyDevTools.Site
-dotnet run
+npm install
+npm run build:wasm                     # Rust → apps/site/src/generated/wasm (required before the first build)
+npm run dev -w @mydevtools/site        # http://localhost:3312/
+npm run verify -w @mydevtools/site     # astro check + i18n + unit tests + build + dist smoke
+cargo test --workspace --manifest-path wasm/Cargo.toml
 ```
 
-Откройте браузер: `https://localhost:5001`
+Repository layout:
 
-Автоматический редирект на:
-- `/en/` — если браузер на английском
-- `/ru/` — если браузер на русском
-- `/es/` — если браузер на испанском
-
-### Проверка локализации
-
-1. Откройте `/en/hash-calculator` — все тексты на английском
-2. Откройте `/ru/hash-calculator` — все тексты на русском
-3. Используйте переключатель языков в header
-
----
-
-## 🧼 Код-стайл и качество
-
-### Обязательные требования
-
-* ✅ **Nullable reference types** — включены
-* ✅ **XML-комментарии** у базовых компонентов (в блоке `@code`)
-* ✅ **Минимум логики в UI** — вся обработка в JavaScript/WASM
-* ✅ **Чёткие имена компонентов** (`HashCalculator`, а не `Tool1`)
-* ✅ **Strongly-typed ресурсы** — никаких магических строк
-
-### Пример правильного комментария
-
-```razor
-@code {
-    /// <summary>
-    /// Universal SSR-compatible layout for all developer tools.
-    /// All data processing happens client-side via WASM.
-    /// </summary>
-    [Parameter, EditorRequired]
-    public string Title { get; set; } = default!;
-}
+```
+apps/site/          live Astro site: routes, tool shells and controllers, i18n, workers
+  src/registry/     tools, categories and locales — the single source of truth
+wasm/<domain>/      Rust crates compiled to WebAssembly
+apps/local-agent/   optional Windows companion for the HTTP client and network tools
+e2e/                Playwright visual-regression and cross-browser suites
+docs/               inventory, design system, QA notes
 ```
 
-**❌ НЕ размещайте** XML-комментарии перед `@inject` или `@page` — они рендерятся как текст!
+Contributor and architecture guide: [`AGENTS.md`](AGENTS.md). Release procedure: [`apps/site/RELEASING.md`](apps/site/RELEASING.md). The former Blazor site in `MyDevToolsApp/` is legacy and not deployed — its notes live in [`docs/legacy/README-blazor.md`](docs/legacy/README-blazor.md).
 
----
+## Feedback
 
-## 📚 Дополнительная документация
+Found a bug or missing a tool? [Open an issue](https://github.com/ILexV/mydevtools/issues). Every tool page also has a short "What should we improve next?" vote.
 
-- **`LOCALIZATION_GUIDE.md`** — как добавлять переводы
-- **`STRONGLY_TYPED_RESOURCES.md`** — использование AppStrings
-- **`FIXES_LOG.md`** — история исправлений и улучшений
+If MyDevTools saves you time, a ⭐ on GitHub helps other developers find it.
 
----
+## License
 
-## 🔐 Безопасность и Privacy
-
-### Privacy-First подход
-
-1. **Введённые данные и файлы не покидают браузер пользователя**
-2. **Нет server-side API** для обработки данных
-3. **Нет логирования** пользовательского контента
-4. **Анонимные счётчики операций опциональны**: флаг сборки выключен по умолчанию; Do Not Track и Global Privacy Control отключают отправку. Без cookies и идентификаторов посетителей.
-
-### WASM Security (будущее)
-
-* WASM **может** проверять `window.location.hostname`
-* WASM **может** проверять подписанный сервером токен
-* **НЕ полагаться** только на домен (это обфускация, а не защита)
-
----
-
-## 🤖 Для AI помощников (GitHub Copilot, ChatGPT и др.)
-
-### При создании новых инструментов:
-
-1. ✅ Используйте `ToolLayout` для всех инструментов
-2. ✅ Добавляйте переводы в `.resx` файлы
-3. ✅ Используйте `@AppStrings.*` для текстов
-4. ✅ Вся обработка данных — только в браузере (JavaScript → WASM)
-5. ✅ Добавляйте SEO компоненты: `MetaTags`, `JsonLdTool`, `HreflangLinks`
-6. ❌ НЕ создавайте server-side API для обработки
-7. ❌ НЕ отправляйте данные на сервер
-
-### Пример нового инструмента
-
-```razor
-@page "/{lang}/json-beautifier"
-@using MyDevTools.Site.Resources
-
-<MetaTags Title="@AppStrings.JsonBeautifier_Title" 
-          Description="@AppStrings.JsonBeautifier_Description" />
-<HreflangLinks ToolPath="json-beautifier" />
-<JsonLdTool ToolName="@AppStrings.JsonBeautifier_Title" 
-            Description="@AppStrings.JsonBeautifier_Description" />
-
-<ToolLayout Title="@AppStrings.JsonBeautifier_Title" 
-            Description="@AppStrings.JsonBeautifier_Description">
-    <!-- Tool UI here -->
-</ToolLayout>
-
-<script>
-    // Client-side processing only!
-</script>
-```
-
----
-
-## 🧭 Краткий принцип проекта
-
-> **MyDevTools.app** — privacy-first developer tools,  
-> where **all data stays in your browser**.
-
-**Никакого server-side processing. Только SSR для HTML.**
-
+[MIT](LICENSE) © ILexV. Third-party libraries keep their own licenses.

@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { TOOLS, type ToolId } from "../../../apps/site/src/registry/tools.ts";
 import {
+  DESK_EVENT_PAIRS,
   DURATION_BUCKETS,
   TOOL_ERROR_CATEGORIES,
   VOTE_CHOICES,
@@ -106,6 +107,12 @@ function metrics(completed = 2): PeriodMetrics {
       choice: id,
       votes: index === 0 ? completed + 2 : 0,
       maximumSampleInterval: index === 0 ? 2 : 0,
+    })),
+    desk: DESK_EVENT_PAIRS.map(({ event, detail }, index) => ({
+      event,
+      detail,
+      count: index === 1 ? 4 : 0,
+      maximumSampleInterval: index === 1 ? 1 : 0,
     })),
     maximumSampleInterval: 3,
   };
@@ -264,6 +271,33 @@ test("reads former catalogs without padding or dropping retired counters", async
   assert.equal(kv.values.get(key), serialized);
 });
 
+test("reads snapshots archived before desktop events as empty desk totals", async () => {
+  const kv = new MemoryKv();
+  const env = environment(kv);
+  const { desk: _desk, ...legacyMetrics } = metrics(5);
+  const legacy = {
+    ...legacyMetrics,
+    month: "2026-07",
+    complete: true,
+    generatedAt: "2026-08-01T00:00:00.000Z",
+    dataset: "mydevtools_tool_usage",
+  };
+  const key = "analytics-history/mydevtools_tool_usage/2026-07";
+  const serialized = JSON.stringify(legacy);
+  kv.values.set(key, serialized);
+
+  const history = await readAnalyticsHistory(env, 2026, new Date("2026-09-10T00:00:00.000Z"));
+  assert.deepEqual(history.months, [{ ...legacy, desk: [] }]);
+  // Reading never rewrites the stored legacy snapshot.
+  assert.equal(kv.values.get(key), serialized);
+
+  // A fresh archive run stores the desk totals alongside the other aggregates.
+  await archiveAnalytics(env, async () => metrics(), new Date("2026-09-10T00:00:00.000Z"));
+  const stored = JSON.parse(kv.values.get("analytics-history/mydevtools_tool_usage/2026-09")!) as MonthlyAnalyticsSnapshot;
+  assert.equal(stored.desk.length, DESK_EVENT_PAIRS.length);
+  assert.equal(stored.desk[1]?.count, 4);
+});
+
 test("rejects corrupted aggregates instead of dropping or exposing malformed rows", async () => {
   const kv = new MemoryKv();
   const env = environment(kv);
@@ -332,6 +366,38 @@ test("rejects corrupted aggregates instead of dropping or exposing malformed row
       maximumSampleInterval: 2,
       tools: valid.tools.map((tool, index) =>
         index === 0 ? { ...tool, maximumSampleInterval: 0 } : tool
+      ),
+    },
+    { ...valid, desk: "not-a-list" },
+    {
+      ...valid,
+      desk: valid.desk.map((entry, index) =>
+        index === 0 ? { ...entry, event: "Desk Opened" } : entry
+      ),
+    },
+    {
+      ...valid,
+      desk: valid.desk.map((entry, index) =>
+        index === 0 ? { ...entry, detail: "<script>" } : entry
+      ),
+    },
+    {
+      ...valid,
+      desk: valid.desk.map((entry, index) =>
+        index === 0 ? { ...entry, input: "private" } : entry
+      ),
+    },
+    { ...valid, desk: [...valid.desk, { ...valid.desk[0]! }] },
+    {
+      ...valid,
+      desk: valid.desk.map((entry, index) =>
+        index === 0 ? { ...entry, count: 3, maximumSampleInterval: 0 } : entry
+      ),
+    },
+    {
+      ...valid,
+      desk: valid.desk.map((entry, index) =>
+        index === 0 ? { ...entry, count: 3, maximumSampleInterval: 9 } : entry
       ),
     },
     { ...valid, dataset: "mydevtools_tool_usage_staging" },

@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { TOOLS } from "../apps/site/src/registry/tools";
-import { DURATION_BUCKETS, TOOL_ERROR_CATEGORIES, VOTE_CHOICES } from "../apps/site/src/scripts/analytics/events";
+import { DESK_EVENT_PAIRS, DURATION_BUCKETS, TOOL_ERROR_CATEGORIES, VOTE_CHOICES } from "../apps/site/src/scripts/analytics/events";
 import type { AnalyticsReport } from "../apps/site/src/scripts/analytics/reports";
 
 const dayMs = 86_400_000;
@@ -18,6 +18,12 @@ function metrics(total = 0, sampling = 1) {
     durations: durations(total),
     errors: errors(),
     votes: VOTE_CHOICES.map(({ id }) => ({ choice: id, votes: 0, maximumSampleInterval: 0 })),
+    desk: DESK_EVENT_PAIRS.map(({ event, detail }) => ({
+      event,
+      detail,
+      count: event === "desk_opened" ? total : 0,
+      maximumSampleInterval: event === "desk_opened" && total ? sampling : 0,
+    })),
     maximumSampleInterval: total ? sampling : 0,
   };
 }
@@ -63,6 +69,9 @@ test("analytics dashboard accepts a half-open period ending exactly at UTC midni
   await openDashboard(page, fixture("2026-10-12T00:00:00.000Z"));
   await expect(page.locator("#summary-completed")).toHaveText("3");
   await expect(page.locator("#tools-body .tool-row").first()).toBeVisible();
+  await expect(page.locator("#desk-body tr")).toHaveCount(DESK_EVENT_PAIRS.length);
+  await expect(page.locator("#desk-body tr").first()).toContainText("Desktop opened");
+  await expect(page.locator("#desk-body tr").first().locator("td").last()).toHaveText("3");
 });
 
 test("analytics dashboard retains provisional history across a month boundary", async ({ page }) => {

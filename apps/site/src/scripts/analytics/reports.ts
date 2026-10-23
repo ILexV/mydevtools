@@ -39,6 +39,18 @@ export interface VoteCounts<TChoice extends string = VoteChoice> {
   maximumSampleInterval: number;
 }
 
+/**
+ * Weighted desktop-mode event totals per (event, detail) pair; `event` is the bare name
+ * (e.g. "desk_windows") and `detail` is "" for events without one. Current-catalog reports list
+ * every known pair (zero-padded); archived snapshots keep whatever pairs were collected then.
+ */
+export interface DeskEventCounts {
+  event: string;
+  detail: string;
+  count: number;
+  maximumSampleInterval: number;
+}
+
 export interface PeriodMetrics<TTool extends string = ToolId, TChoice extends string = VoteChoice> {
   summary: OperationCounts;
   tools: ToolOperationCounts<TTool>[];
@@ -46,6 +58,8 @@ export interface PeriodMetrics<TTool extends string = ToolId, TChoice extends st
   durations: DurationCounts;
   errors: ErrorCounts;
   votes: VoteCounts<TChoice>[];
+  /** Missing in snapshots archived before desktop events existed; readers normalize it to []. */
+  desk: DeskEventCounts[];
   maximumSampleInterval: number;
 }
 

@@ -5,6 +5,7 @@ import {
 import type {
   AnalyticsDataset,
   AnalyticsHistory,
+  DeskEventCounts,
   MonthlyAnalyticsSnapshot,
   OperationCounts,
   PeriodMetrics,
@@ -34,12 +35,18 @@ const TOOL_KEYS = [
   "errors",
 ] as const;
 const VOTE_KEYS = ["choice", "votes", "maximumSampleInterval"] as const;
+const DESK_KEYS = ["event", "detail", "count", "maximumSampleInterval"] as const;
+const DESK_EVENT_NAME = /^[a-z0-9]+(?:_[a-z0-9]+)*$/;
+const DESK_DETAIL = /^(?:[a-z0-9]+(?:_[a-z0-9]+)*)?$/;
+const MAX_DESK_EVENT_LENGTH = 64;
+const MAX_DESK_DETAIL_LENGTH = 32;
 const METRICS_KEYS = [
   "summary",
   "tools",
   "durations",
   "errors",
   "votes",
+  "desk",
   "maximumSampleInterval",
 ] as const;
 const SNAPSHOT_KEYS = [
@@ -49,6 +56,8 @@ const SNAPSHOT_KEYS = [
   "generatedAt",
   "dataset",
 ] as const;
+// Snapshots archived before desktop events existed have no `desk` field; read them as desk: [].
+const LEGACY_SNAPSHOT_KEYS = SNAPSHOT_KEYS.filter((key) => key !== "desk");
 
 export interface ArchiveEnv {
   ANALYTICS_HISTORY?: KVNamespace;
@@ -203,6 +212,7 @@ function zeroCounts(keys: readonly string[]): Record<string, number> {
 
 function readPeriodMetrics(value: unknown): PeriodMetrics<string, string> | null {
   if (!isObject(value)) return null;
+  const desk = value.desk === undefined ? [] : value.desk;
 
   const summary = readOperationCounts(value.summary);
   const durations = readKeyedCounts(value.durations, DURATION_COUNT_KEYS);
@@ -213,6 +223,7 @@ function readPeriodMetrics(value: unknown): PeriodMetrics<string, string> | null
     errors === null ||
     !Array.isArray(value.tools) ||
     !Array.isArray(value.votes) ||
+    !Array.isArray(desk) ||
     !isCount(value.maximumSampleInterval)
   ) {
     return null;
@@ -300,8 +311,30 @@ function readPeriodMetrics(value: unknown): PeriodMetrics<string, string> | null
     maximumSampleInterval = Math.max(maximumSampleInterval, candidate.maximumSampleInterval);
   }
 
+  const deskPairs = new Set<string>();
+  for (const candidate of desk as unknown[]) {
+    if (!isObject(candidate) || !hasExactKeys(candidate, DESK_KEYS)) return null;
+    const { event, detail } = candidate;
+    if (
+      typeof event !== "string" ||
+      event.length > MAX_DESK_EVENT_LENGTH ||
+      !DESK_EVENT_NAME.test(event) ||
+      typeof detail !== "string" ||
+      detail.length > MAX_DESK_DETAIL_LENGTH ||
+      !DESK_DETAIL.test(detail) ||
+      deskPairs.has(`${event}\u0000${detail}`) ||
+      !isCount(candidate.count) ||
+      !isCount(candidate.maximumSampleInterval) ||
+      (candidate.count === 0) !== (candidate.maximumSampleInterval === 0)
+    ) {
+      return null;
+    }
+    deskPairs.add(`${event}\u0000${detail}`);
+    maximumSampleInterval = Math.max(maximumSampleInterval, candidate.maximumSampleInterval);
+  }
+
   if (value.maximumSampleInterval !== maximumSampleInterval) return null;
-  return value as unknown as PeriodMetrics<string, string>;
+  return { ...value, desk: desk as DeskEventCounts[] } as unknown as PeriodMetrics<string, string>;
 }
 
 function monthParts(month: string): { year: number; monthIndex: number } | null {
@@ -335,8 +368,13 @@ function readSnapshot(
 ): MonthlyAnalyticsSnapshot | null {
   if (
     !isObject(value) ||
-    !hasExactKeys(value, SNAPSHOT_KEYS) ||
-    readPeriodMetrics(value) === null ||
+    !(hasExactKeys(value, SNAPSHOT_KEYS) || hasExactKeys(value, LEGACY_SNAPSHOT_KEYS))
+  ) {
+    return null;
+  }
+  const metrics = readPeriodMetrics(value);
+  if (
+    metrics === null ||
     value.month !== expectedMonth ||
     typeof value.complete !== "boolean" ||
     !isCanonicalIsoDate(value.generatedAt) ||
@@ -357,7 +395,7 @@ function readSnapshot(
   ) {
     return null;
   }
-  return value as unknown as MonthlyAnalyticsSnapshot;
+  return { ...value, desk: metrics.desk } as unknown as MonthlyAnalyticsSnapshot;
 }
 
 function snapshotKey(config: ArchiveConfig, month: string): string {

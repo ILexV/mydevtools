@@ -4,6 +4,8 @@ import {
   TOOL_ERROR_CATEGORIES,
   TOOL_EVENTS,
   VOTE_CHOICES,
+  isDeskEvent,
+  type DeskEvent,
   type ToolEvent,
   type ToolEventType,
   type ToolVote,
@@ -142,5 +144,24 @@ export function validateToolVote(input: string): ToolVote | null {
   return choice !== undefined &&
     VOTE_CHOICES.some(({ id }) => id === choice)
     ? { choice: choice as ToolVote["choice"] }
+    : null;
+}
+
+/**
+ * Desktop-mode event: exactly `{"event":"<name>"}` for detail-less events, or exactly
+ * `{"event":"<name>","detail":"<bucket>"}` with a catalogued non-empty detail. An explicit
+ * empty detail, unknown pairs, or any extra field are rejected.
+ */
+export function validateDeskEvent(input: string): DeskEvent | null {
+  const fields = parseStringObject(input);
+  if (!fields || !fields.has("event")) return null;
+  const event = fields.get("event");
+  if (fields.size === 1) {
+    return isDeskEvent(event, "") ? ({ event, detail: "" } as DeskEvent) : null;
+  }
+  if (fields.size !== 2 || !fields.has("detail")) return null;
+  const detail = fields.get("detail");
+  return detail !== "" && isDeskEvent(event, detail)
+    ? ({ event, detail } as DeskEvent)
     : null;
 }

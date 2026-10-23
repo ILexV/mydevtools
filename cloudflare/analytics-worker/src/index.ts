@@ -1,6 +1,8 @@
 import {
+  ANALYTICS_DESK_ENDPOINT,
   ANALYTICS_ENDPOINT,
   ANALYTICS_VOTE_ENDPOINT,
+  DESK_EVENT,
   VOTE_EVENT,
 } from "../../../apps/site/src/scripts/analytics/events.ts";
 import {
@@ -14,7 +16,7 @@ import {
   handleReportRequest,
   type ReportEnv,
 } from "./reports.ts";
-import { validateToolEvent, validateToolVote } from "./validation.ts";
+import { validateDeskEvent, validateToolEvent, validateToolVote } from "./validation.ts";
 
 const MAX_BODY_BYTES = 512;
 
@@ -120,7 +122,9 @@ export async function handleRequest(
     return handleReportRequest(request, url, env, ctx?.access, allowedOrigin);
   }
   if (
-    (url.pathname !== ANALYTICS_ENDPOINT && url.pathname !== ANALYTICS_VOTE_ENDPOINT) ||
+    (url.pathname !== ANALYTICS_ENDPOINT &&
+      url.pathname !== ANALYTICS_VOTE_ENDPOINT &&
+      url.pathname !== ANALYTICS_DESK_ENDPOINT) ||
     url.search !== ""
   ) {
     return response(404);
@@ -150,6 +154,20 @@ export async function handleRequest(
         ],
         doubles: [1],
         indexes: [event.tool],
+      });
+    } catch {
+      return response(500);
+    }
+  } else if (url.pathname === ANALYTICS_DESK_ENDPOINT) {
+    const desk = validateDeskEvent(body.text);
+    if (desk === null) return response(400);
+    // Prefixed blob1 + dedicated blob2 keep desktop rows out of tool and vote report queries.
+    const deskKey = `desk:${desk.event}`;
+    try {
+      env.TOOL_ANALYTICS.writeDataPoint({
+        blobs: [deskKey, DESK_EVENT, desk.detail, ""],
+        doubles: [1],
+        indexes: [deskKey],
       });
     } catch {
       return response(500);

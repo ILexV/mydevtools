@@ -1,6 +1,11 @@
 import {
+  ANALYTICS_DESK_ENDPOINT,
   ANALYTICS_ENDPOINT,
   ANALYTICS_VOTE_ENDPOINT,
+  deskEventBody,
+  isDeskEvent,
+  type DeskEvent,
+  type DeskEventBody,
   type ToolEvent,
   type ToolVote,
   type VoteChoice,
@@ -14,7 +19,7 @@ function privacyDisabled(): boolean {
   return navigator.onLine === false || privacy.doNotTrack === "1" || privacy.globalPrivacyControl === true;
 }
 
-function post(endpoint: string, payload: ToolEvent | ToolVote): Promise<Response> | null {
+function post(endpoint: string, payload: ToolEvent | ToolVote | DeskEventBody): Promise<Response> | null {
   try {
     if (privacyDisabled()) return null;
     const controller = new AbortController();
@@ -53,6 +58,12 @@ export function sendToolEvent(event: ToolEvent): void {
       payload = { tool: event.tool, event: event.event };
   }
   void post(ANALYTICS_ENDPOINT, payload)?.catch(() => undefined);
+}
+
+/** Internal best-effort desktop-mode transport; only the canonical event/detail pair is serialized. */
+export function sendDeskEvent(event: DeskEvent): void {
+  if (!isDeskEvent(event?.event, event?.detail)) return;
+  void post(ANALYTICS_DESK_ENDPOINT, deskEventBody(event))?.catch(() => undefined);
 }
 
 /** Submit one anonymous fixed-choice vote. */

@@ -16,7 +16,7 @@ The expanded analytics release was published on 2026-10-13: all-41-tool coverage
 - Browser payloads are closed unions: started/cancelled `{tool,event}`, completed `{tool,event,duration}`, failed `{tool,event,reason}`. `/api/analytics/event` stays at the origin root independently of Astro's base. Fetch uses `credentials: omit`, `cache: no-store`, `referrerPolicy: no-referrer`, `redirect: error`, and a 3-second AbortController timeout. Tool processing never awaits telemetry; no retries, offline queue, background sync or persistent analytics state.
 - `navigator.onLine === false`, Do Not Track (`"1"`) and Global Privacy Control (`true`) suppress requests without changing tool processing.
 - `cloudflare/analytics-worker` owns anonymous ingestion and authenticated reports. Its production route remains **only** `mydevtools.app/api/analytics/*`; no apex-wide route, `www` route, DNS/SSL change or tool-processing service. The hidden dashboard is static Astro HTML; no reporting/SQL endpoint is public.
-- Public ingestion requires exact `/api/analytics/event` or `/api/analytics/vote`, no query, POST, JSON media type, unencoded UTF-8 body ≤512 bytes, exactly the fields required by its variant, no duplicate keys, and allowlisted values. Chunked requests are bounded too. Responses are empty and `Cache-Control: no-store`: 204 accepted; 400 invalid; 413 too large; 405 method with `Allow: POST`; 404 other path/query; 403 foreign browser source; 500 binding error.
+- Public ingestion requires exact `/api/analytics/event`, `/api/analytics/vote` or `/api/analytics/desk`, no query, POST, JSON media type, unencoded UTF-8 body ≤512 bytes, exactly the fields required by its variant, no duplicate keys, and allowlisted values. Chunked requests are bounded too. Responses are empty and `Cache-Control: no-store`: 204 accepted; 400 invalid; 413 too large; 405 method with `Allow: POST`; 404 other path/query; 403 foreign browser source; 500 binding error.
 - Production pins browser Origin to `https://mydevtools.app`; staging allows only its concrete request origin (`self`). `Sec-Fetch-Site`, if present, must be `same-origin`. CLI clients may omit both headers. These checks are defense-in-depth, **not authentication**; a sender can spoof/omit them.
 
 ### Metrics and cancellation
@@ -33,12 +33,12 @@ Older stored points without these dimensions remain `unclassified` in reports; n
 
 | Stored Analytics Engine dimension | Meaning |
 | --- | --- |
-| `blob1` | Allowlisted tool ID, or `vote:<choice>` for a fixed proposal |
-| `blob2` | `tool_started`, `tool_completed`, `tool_failed`, `tool_cancelled`, or `feedback_vote` |
-| `blob3` | Successful duration bucket; otherwise empty |
+| `blob1` | Allowlisted tool ID, `vote:<choice>` for a fixed proposal, or `desk:<event>` for a desktop-mode event |
+| `blob2` | `tool_started`, `tool_completed`, `tool_failed`, `tool_cancelled`, `feedback_vote`, or `desk_event` |
+| `blob3` | Successful duration bucket, or the fixed desktop-event detail bucket; otherwise empty |
 | `blob4` | Fixed failure category; otherwise empty |
 | `double1` | Constant `1` |
-| `index1` | Same value as `blob1`, keeping tool/proposal sampling separate |
+| `index1` | Same value as `blob1`, keeping tool/proposal/desktop sampling separate |
 | `timestamp` | Cloudflare server-side event timestamp |
 
 No input text, file bytes/name/size, analyzed URL, token/key/password, error/stack, operation parameters, referrer/path, user metadata, cookies, IP, UA, geography, fingerprint, UUID, session or visitor ID enters the application dataset. Ingestion does not read cookies or save network headers. The private reporting handler checks Cloudflare's verified Access context, not browser-supplied identity headers. Neither handler logs request bodies, headers, validation errors or binding exceptions. Observability logs/invocation logs, traces, issues, Logpush and dependency instrumentation are disabled in Wrangler config; recheck dashboard overrides, Tail Workers and account-wide log exports before release.
@@ -118,6 +118,25 @@ All **49 tools** support started/completed/failed for the useful-use action list
 
 The enabled site shows a localized fixed-choice form, not a free-text questionnaire. `POST /api/analytics/vote` sends only `{choice}`; current proposals cover SQL formatting, JSON Schema validation, cURL-to-code, large-file performance, more image formats and batch conversion. A successful acknowledgement disables further votes on that page. Failure can be retried by the user; no automatic retry or persisted vote/identifier. Reload permits another vote, and a lost acknowledgement can cause a repeated count. Votes are **not unique people or a fraud-proof poll**. Offline/DNT/GPC suppress voting requests too. Votes use separate `vote:` indexes and are excluded from tool-operation totals.
 
+### Desktop-mode events
+
+The desktop mode (`/{lang}/desktop/`) reports a few anonymous usage counters through `trackDeskEvent()` in `apps/site/src/scripts/analytics/desk-events.ts`. The catalog (`DESK_EVENTS`, shared with the Worker from `events.ts`) is closed; each event has a fixed set of detail buckets:
+
+| Event | Detail | Meaning |
+| --- | --- | --- |
+| `desk_opened` | — | The desktop was opened |
+| `desk_windows` | `1`, `2`, `3`, `4_5`, `6_plus` | The number of open windows first reached this bucket during the visit (each bucket at most once per page load, so the highest bucket sent is the visit's peak; nothing for zero) |
+| `desk_transfer` | `once`, `link` | A result went to another window once ("Open in…", a dragged result) or a live link was created |
+| `desk_workspace` | `builtin`, `saved` | A layout was applied: a ready-made scenario or one of the user's saved layouts |
+| `desk_file_drop` | — | Files were dropped on the desk wallpaper or a window frame (not their names, sizes, types or bytes) |
+| `desk_popout` | — | A window was moved into its own browser pop-up or a Picture-in-Picture window |
+| `desk_clipboard` | — | An item of the desk clipboard widget was pasted into a window (never the content) |
+| `desk_launch` | `file_handler`, `share_target` | The installed app opened files from the OS (`file_handler`). `share_target` is reserved: the manifest declares no share target, because a GET share would put the text into a request URL |
+
+When exactly each event fires is decided by the desktop controller (`apps/site/src/desktop/client.ts`). The wire body is canonical: `{"event":"desk_opened"}` for detail-less events and `{"event":"desk_windows","detail":"3"}` otherwise; an explicit empty `detail`, unknown pairs or any extra field get 400. No tool ID, window title, layout name, file information, clipboard content, input, identifier or timestamp is sent. Gating and transport are identical to tool events: a no-op unless the site was built with `ANALYTICS_ENABLED=true`, and suppressed offline or under DNT/GPC; fire-and-forget with no retries or queue.
+
+The Worker stores `blobs: ["desk:<event>", "desk_event", <detail>, ""]`, `index1 = desk:<event>`. Tool reports select only `blob2 IN (tool_*)` and votes only `blob2 = 'feedback_vote'`, so desktop rows never enter tool or vote totals. Reports add a `desk: {event, detail, count, maximumSampleInterval}[]` field (weighted `SUM(_sample_interval * double1)` grouped by `blob1, blob3`): current reports list every catalogued pair with zeros, monthly archives keep whatever pairs were collected. Snapshots archived before this field existed are read as `desk: []`. The admin dashboard shows them in a **Desktop mode** table and in monthly details.
+
 
 ## Local verification commands
 
@@ -194,7 +213,7 @@ There is no existing GitHub Actions deploy pipeline in this repository; the Page
    ```
 
    Allow for ingestion visibility delay; confirm the same tool and **+1 per event versus baseline**, not merely a 204 or nonempty table. Check `_sample_interval`; this small smoke should be unsampled. Live staging was verified on 2026-10-09: `hash-calculator` started increased from 1 to 2 and completed from 0 to 1, with `_sample_interval = 1`. Both writes returned 204 with `Cache-Control: no-store`; their stored points were visible about two minutes after submission, not within the initial 36-second readback window. Eight malformed/disallowed requests returned the expected 400/403/404/405/413 responses.
-6. Review **Security → Security rules → Rate limiting rules** for **both** exact public paths `/api/analytics/event` and `/api/analytics/vote`; include the canonical hostname where the plan supports it. An existing event-only rule does not cover votes. Start with **30 requests / 10 seconds**, **10-second block**, edge IP counting only. Normal processing uses two requests; voting uses one. Prefer 429 where supported; reassess shared-NAT/batch use from aggregate metrics. Blocked telemetry must not block computation. Do not use cookies, fingerprints, application IDs or request-body logging; review entitlements and any existing rule before changing it.
+6. Review **Security → Security rules → Rate limiting rules** for **all** exact public paths `/api/analytics/event`, `/api/analytics/vote` and `/api/analytics/desk`; include the canonical hostname where the plan supports it. An existing event-only rule does not cover votes or desktop events. Start with **30 requests / 10 seconds**, **10-second block**, edge IP counting only. Normal processing uses two requests; voting uses one. Prefer 429 where supported; reassess shared-NAT/batch use from aggregate metrics. Blocked telemetry must not block computation. Do not use cookies, fingerprints, application IDs or request-body logging; review entitlements and any existing rule before changing it.
 7. In **Caching → Cache Rules**, add/review an exact canonical-host `/api/analytics/*` **Bypass cache** exception with effective precedence over broader cache rules. POST is not cached by the app/Worker, but account overrides must still be checked. Review Workers Observability/Logpush/Tail/export settings for this Worker and any endpoint logs. Confirm a deployed CSP, if present, permits `connect-src 'self'`; no external analytics script or origin is needed.
 8. Obtain owner approval, then deploy production:
 
@@ -249,8 +268,8 @@ Monitor Workers request/error/CPU totals and Analytics Engine writes/queries in 
 ## Hidden owner dashboard
 
 - URL: `https://mydevtools.app/admin/analytics/`. It is absent from navigation and the sitemap, with `noindex`, `nofollow` and `noarchive`. Hiding the URL is **not** authentication.
-- UI: 7/30/90-day rolling periods; started/completed/failed/explicitly-cancelled totals; UTC daily activity; per-tool distributions/ranking; proposal totals; selected-year monthly history and manual archive refresh. For 7/30 days, show the immediately preceding equal-length period, absolute differences and percentages; growth from zero has no invented percentage. A 90-day comparison would exceed Engine retention and is omitted. Partial UTC boundary days are zero-filled only when intersecting the half-open window. Ten languages, both themes and 375-pixel layout are supported.
-- APIs are bodyless POSTs: `/api/analytics/reports/summary?days=7|30|90`, `/api/analytics/reports/history?year=YYYY`, `/api/analytics/reports/archive`. Browsers cannot submit SQL. Summary uses weighted operation/vote aggregates and daily rows, plus a comparison for 7/30 days; archives query all retained historical IDs rather than dropping retired catalogs. SQL uses supported `toDateTime` epoch-second bounds (rounded upward for second-resolution stored timestamps), not unsupported `toDateTime64`. Responses contain aggregates, not raw events or identities.
+- UI: 7/30/90-day rolling periods; started/completed/failed/explicitly-cancelled totals; UTC daily activity; per-tool distributions/ranking; proposal totals; desktop-mode event totals; selected-year monthly history and manual archive refresh. For 7/30 days, show the immediately preceding equal-length period, absolute differences and percentages; growth from zero has no invented percentage. A 90-day comparison would exceed Engine retention and is omitted. Partial UTC boundary days are zero-filled only when intersecting the half-open window. Ten languages, both themes and 375-pixel layout are supported.
+- APIs are bodyless POSTs: `/api/analytics/reports/summary?days=7|30|90`, `/api/analytics/reports/history?year=YYYY`, `/api/analytics/reports/archive`. Browsers cannot submit SQL. Summary uses weighted operation/vote/desktop aggregates and daily rows, plus a comparison for 7/30 days; archives query all retained historical IDs rather than dropping retired catalogs. SQL uses supported `toDateTime` epoch-second bounds (rounded upward for second-resolution stored timestamps), not unsupported `toDateTime64`. Responses contain aggregates, not raw events or identities.
 - Authentication: the Worker requires its configured application audience to equal Cloudflare's verified `ExecutionContext.access.aud`. Missing/wrong context fails closed; copying an Access-looking header or cookie cannot authenticate. Origin checks are additional defenses, not the identity check.
 - Privacy/cache: requests use same-origin authentication, no referrer and no-store. Responses are `Cache-Control: private, no-store`; the page and reports are excluded from service-worker caches. Activation removes old private entries. Reports deliberately use POST so an already-installed older GET-caching service worker cannot store their data. Metrics are not persisted and are cleared on logout, page exit and request failure.
 
@@ -267,7 +286,7 @@ Use **Cloudflare Zero Trust → Access controls → Applications → Add an appl
 
 Enable the **One-time PIN** identity provider. Add one Allow policy for the exact owner email `iav.fenix.net@gmail.com`; no Everyone/email-domain allow rule and no bypass policy. Unmatched users are denied. Use an eight-hour session, an HttpOnly cookie, and a hostname-scoped rather than application-path-scoped cookie so the dashboard and API share the same login. Hide the app from the Access launcher.
 
-Do **not** protect the entire hostname, Worker or `/api/analytics/*`: `/api/analytics/event` and `/api/analytics/vote` must stay anonymous and ordinary tool pages public. Do not enable organization-wide denial for unmatched requests. Review vote rate-limit coverage separately; existing DNS/TLS and API cache bypass remain unchanged.
+Do **not** protect the entire hostname, Worker or `/api/analytics/*`: `/api/analytics/event`, `/api/analytics/vote` and `/api/analytics/desk` must stay anonymous and ordinary tool pages public. Do not enable organization-wide denial for unmatched requests. Review vote rate-limit coverage separately; existing DNS/TLS and API cache bypass remain unchanged.
 
 For API provisioning, a temporary account-scoped token needs **Access: Apps and Policies — Edit** and **Access: Organizations, Identity Providers and Groups — Edit**. Keep it outside the repo, for example as `CLOUDFLARE_ACCESS_TOKEN` in `$HOME/.config/mydevtools/access.env` (file mode `600`). Do not use this management token as the SQL read token or put either token in chat. Revoke the temporary management token after setup.
 
@@ -430,6 +449,17 @@ WHERE timestamp >= NOW() - INTERVAL '30' DAY AND blob2 = 'tool_failed'
 GROUP BY blob1
 ORDER BY failed_operations DESC
 LIMIT 43
+```
+
+### Desktop-mode events: 30 days
+
+```sql
+SELECT blob1 AS desk, blob3 AS detail, SUM(_sample_interval * double1) AS events,
+       MAX(_sample_interval) AS maximum_sample_interval
+FROM mydevtools_tool_usage
+WHERE timestamp >= NOW() - INTERVAL '30' DAY AND blob2 = 'desk_event'
+GROUP BY blob1, blob3
+ORDER BY desk, detail
 ```
 
 ## Rollback

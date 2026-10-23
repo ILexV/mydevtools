@@ -78,6 +78,8 @@ Request JSON:
 - [ ] Список `toolId` получать из каталога проекта на этапе подготовки к сборке Worker или поддерживать явно синхронизируемый allowlist; не принимать произвольные tool name, в том числе для защиты cardinality.
 - [ ] Не отправлять payload с `details`, `error`, `duration`, `filename`, `fileSize`, `pathname`, `referrer`, `sessionId` или `userId` в MVP.
 - [ ] При валидном запросе возвращать `204 No Content`; при неверном методе — `405`, неверном payload — `400`, слишком большом теле — `413`.
+
+> Расширения после MVP (актуальный контракт — `docs/analytics.md`): `POST /api/analytics/vote` (`{choice}`) для анонимных голосов и `POST /api/analytics/desk` для событий режима рабочего стола — `{"event":"desk_opened"}` или `{"event":"desk_windows","detail":"3"}` с закрытым списком событий и бакетов (`DESK_EVENTS`). Те же проверки метода, Origin, Content-Type и размера; никакого содержимого, имён файлов или идентификаторов.
 - [ ] Не добавлять `Set-Cookie`; не читать и не сохранять входящие cookies.
 - [ ] Ответы: `Cache-Control: no-store`; запретить кеширование POST на уровне Worker/правил Cloudflare.
 

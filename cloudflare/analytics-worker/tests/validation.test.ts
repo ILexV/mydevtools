@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { validateToolEvent, validateToolVote } from "../src/validation.ts";
+import { validateDeskEvent, validateToolEvent, validateToolVote } from "../src/validation.ts";
 
 test("accepts every exact event variant independent of field order", () => {
   assert.deepEqual(
@@ -63,5 +63,38 @@ test("accepts only a single fixed vote choice field", () => {
     '{"choice":"sql-formatter","choice":"batch-conversion"}',
   ]) {
     assert.equal(validateToolVote(payload), null);
+  }
+});
+
+test("accepts only canonical desktop event bodies", () => {
+  assert.deepEqual(validateDeskEvent('{"event":"desk_opened"}'), {
+    event: "desk_opened",
+    detail: "",
+  });
+  assert.deepEqual(validateDeskEvent('{ "detail": "3", "event": "desk_windows" }'), {
+    event: "desk_windows",
+    detail: "3",
+  });
+  assert.deepEqual(validateDeskEvent('{"event":"desk_launch","detail":"share_target"}'), {
+    event: "desk_launch",
+    detail: "share_target",
+  });
+  for (const payload of [
+    "{}",
+    '{"event":"desk_unknown"}',
+    '{"event":"desk_opened","detail":""}',
+    '{"event":"desk_opened","detail":"1"}',
+    '{"event":"desk_windows"}',
+    '{"event":"desk_windows","detail":""}',
+    '{"event":"desk_windows","detail":"7"}',
+    '{"event":"desk_transfer","detail":"link","tool":"base64-encoder"}',
+    '{"event":"desk_popout","input":"private"}',
+    '{"detail":"once"}',
+    '{"event":"desk_opened","event":"desk_popout"}',
+    '{"event":"toString"}',
+    '{"event":"desk_opened"}{"event":"desk_opened"}',
+    '{"event":1}',
+  ]) {
+    assert.equal(validateDeskEvent(payload), null, payload);
   }
 });

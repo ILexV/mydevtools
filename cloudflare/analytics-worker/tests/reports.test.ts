@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { TOOLS } from "../../../apps/site/src/registry/tools.ts";
 import {
+  DESK_EVENT_PAIRS,
   VOTE_CHOICES,
 } from "../../../apps/site/src/scripts/analytics/events.ts";
 import type { AnalyticsReport } from "../../../apps/site/src/scripts/analytics/reports.ts";
@@ -61,6 +62,10 @@ function assertReportHeaders(response: Response): void {
   assert.equal(response.headers.get("Content-Type"), "application/json; charset=utf-8");
   assert.equal(response.headers.get("X-Robots-Tag"), "noindex");
   assert.equal(response.headers.get("Set-Cookie"), null);
+}
+
+function isDeskQuery(init: RequestInit | undefined): boolean {
+  return String(init?.body ?? "").includes("blob2 = 'desk_event'");
 }
 
 function operationRows(): Record<string, unknown>[] {
@@ -170,8 +175,16 @@ test("summary returns weighted classified metrics, zero catalogs, votes, and exa
     { data: [] },
   ];
   let call = 0;
-  t.mock.method(globalThis, "fetch", async () =>
-    Response.json(results[call++]!));
+  const queries: string[] = [];
+  const deskRows = [
+    { desk: "desk:desk_windows", detail: "3", events: "6", maximum_sample_interval: "2" },
+    { desk: "desk:desk_opened", detail: "", events: 9, maximum_sample_interval: 1 },
+    { desk: "desk:desk_launch", detail: "share_target", events: "2", maximum_sample_interval: "1" },
+  ];
+  t.mock.method(globalThis, "fetch", async (_input: RequestInfo | URL, init?: RequestInit) => {
+    queries.push(String(init?.body ?? ""));
+    return Response.json(isDeskQuery(init) ? { data: deskRows } : results[call++]!);
+  });
 
   const response = await handleRequest(
     privateRequest(`${SUMMARY_ENDPOINT}?days=7`),
@@ -222,6 +235,34 @@ test("summary returns weighted classified metrics, zero catalogs, votes, and exa
   assert.ok(report.daily.every(({ started, completed, failed, cancelled }) =>
     started === 0 && completed === 0 && failed === 0 && cancelled === 0));
 
+  // Desktop totals: every catalogued pair, in catalog order, zero-padded.
+  assert.deepEqual(
+    report.desk.map(({ event, detail }) => ({ event, detail })),
+    DESK_EVENT_PAIRS.map(({ event, detail }) => ({ event, detail })),
+  );
+  const desk = (event: string, detail: string) =>
+    report.desk.find((entry) => entry.event === event && entry.detail === detail);
+  assert.deepEqual(desk("desk_windows", "3"), {
+    event: "desk_windows",
+    detail: "3",
+    count: 6,
+    maximumSampleInterval: 2,
+  });
+  assert.equal(desk("desk_opened", "")?.count, 9);
+  assert.equal(desk("desk_launch", "share_target")?.count, 2);
+  assert.equal(desk("desk_popout", "")?.count, 0);
+  assert.equal(report.comparison?.desk.find(({ event }) => event === "desk_opened")?.count, 9);
+
+  // Desk rows are queried separately; tool, vote and daily queries never select them.
+  const deskQueries = queries.filter((query) => query.includes("'desk_event'"));
+  assert.equal(deskQueries.length, 2);
+  assert.ok(deskQueries.every((query) =>
+    query.includes("(blob1 = 'desk:desk_windows' AND blob3 = '6_plus')") &&
+    query.includes("(blob1 = 'desk:desk_opened' AND blob3 = '')") &&
+    query.includes("GROUP BY blob1, blob3")));
+  for (const query of queries.filter((entry) => !entry.includes("'desk_event'"))) {
+    assert.ok(/blob2 IN \('tool_started'|blob2 = 'feedback_vote'/.test(query), query);
+  }
 });
 
 test("90-day summary has no unsupported comparison and still exposes zero catalogs", async (t) => {
@@ -238,6 +279,9 @@ test("90-day summary has no unsupported comparison and still exposes zero catalo
   assert.deepEqual(report.summary, { started: 0, completed: 0, failed: 0, cancelled: 0 });
   assert.equal(report.tools.length, TOOLS.length);
   assert.equal(report.votes.length, VOTE_CHOICES.length);
+  assert.equal(report.desk.length, DESK_EVENT_PAIRS.length);
+  assert.ok(report.desk.every(({ count, maximumSampleInterval }) =>
+    count === 0 && maximumSampleInterval === 0));
 });
 
 test("rejects invalid route parameters and bodies before private storage or SQL", async (t) => {
@@ -310,6 +354,22 @@ test("query failures and malformed dimensions never masquerade as zero analytics
     accessContext(),
   );
   assert.equal(malformed.status, 502);
+
+  for (const row of [
+    { desk: "desk:desk_windows", detail: "99", events: 1, maximum_sample_interval: 1 },
+    { desk: "desk_opened", detail: "", events: 1, maximum_sample_interval: 1 },
+    { desk: "desk:desk_opened", detail: "", events: -1, maximum_sample_interval: 1 },
+  ]) {
+    t.mock.restoreAll();
+    t.mock.method(globalThis, "fetch", async (_input: RequestInfo | URL, init?: RequestInit) =>
+      Response.json({ data: isDeskQuery(init) ? [row] : [] }));
+    const malformedDesk = await handleRequest(
+      privateRequest(`${SUMMARY_ENDPOINT}?days=90`),
+      createEnv(),
+      accessContext(),
+    );
+    assert.equal(malformedDesk.status, 502);
+  }
 });
 
 test("archive collector retains weighted rows for retired catalog IDs", async (t) => {
@@ -362,7 +422,20 @@ test("archive collector retains weighted rows for retired catalog IDs", async (t
     },
   ];
   let call = 0;
-  t.mock.method(globalThis, "fetch", async () => Response.json(results[call++]!));
+  let deskCalls = 0;
+  t.mock.method(globalThis, "fetch", async (_input: RequestInfo | URL, init?: RequestInit) => {
+    if (isDeskQuery(init)) {
+      deskCalls += 1;
+      assert.equal(String(init?.body).includes("blob3 = '6_plus'"), false);
+      return Response.json({
+        data: [
+          { desk: "desk:desk_retired", detail: "old_bucket", events: "3", maximum_sample_interval: "6" },
+          { desk: "desk:desk_opened", detail: "", events: "2", maximum_sample_interval: "1" },
+        ],
+      });
+    }
+    return Response.json(results[call++]!);
+  });
 
   const collected = await collectPeriodMetrics(
     createEnv(),
@@ -385,8 +458,13 @@ test("archive collector retains weighted rows for retired catalog IDs", async (t
     votes: 9,
     maximumSampleInterval: 5,
   }]);
-  assert.equal(collected.maximumSampleInterval, 5);
+  assert.deepEqual(collected.desk, [
+    { event: "desk_opened", detail: "", count: 2, maximumSampleInterval: 1 },
+    { event: "desk_retired", detail: "old_bucket", count: 3, maximumSampleInterval: 6 },
+  ]);
+  assert.equal(collected.maximumSampleInterval, 6);
   assert.equal(call, 2);
+  assert.equal(deskCalls, 1);
 });
 
 test("fixed collector handles an empty interval and rejects unsafe bounds without querying", async (t) => {
@@ -406,6 +484,7 @@ test("fixed collector handles an empty interval and rejects unsafe bounds withou
   });
   assert.deepEqual(empty.tools, []);
   assert.deepEqual(empty.votes, []);
+  assert.deepEqual(empty.desk, []);
   assert.equal(empty.maximumSampleInterval, 0);
   await assert.rejects(() =>
     collectPeriodMetrics(env, new Date("invalid"), new Date("2026-10-01T00:00:00.000Z")));

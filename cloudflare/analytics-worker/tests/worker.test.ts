@@ -5,6 +5,7 @@ import { handleRequest, type Env } from "../src/index.ts";
 
 const ENDPOINT = "https://mydevtools.app/api/analytics/event";
 const VOTE_ENDPOINT = "https://mydevtools.app/api/analytics/vote";
+const DESK_ENDPOINT = "https://mydevtools.app/api/analytics/desk";
 const PRODUCTION_ORIGIN = "https://mydevtools.app";
 
 type DataPoint = Parameters<AnalyticsEngineDataset["writeDataPoint"]>[0];
@@ -199,6 +200,53 @@ test("stores anonymous votes separately without request or input metadata", asyn
   assertPrivateResponse(rejected, 400);
   assert.equal(points.length, 1);
 });
+test("stores desktop events under a prefixed key without request metadata", async () => {
+  const { env, points } = createHarness();
+  const deskPost = (body: string, headers: HeadersInit = {}): Request =>
+    new Request(DESK_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...headers },
+      body,
+    });
+
+  assertPrivateResponse(await handleRequest(deskPost('{"event":"desk_windows","detail":"4_5"}', {
+    Cookie: "session=PRIVATE_COOKIE",
+    "CF-Connecting-IP": "192.0.2.1",
+    Origin: PRODUCTION_ORIGIN,
+    "Sec-Fetch-Site": "same-origin",
+  }), env), 204);
+  assertPrivateResponse(await handleRequest(deskPost('{"event":"desk_opened"}'), env), 204);
+  assert.deepEqual(points, [
+    {
+      blobs: ["desk:desk_windows", "desk_event", "4_5", ""],
+      doubles: [1],
+      indexes: ["desk:desk_windows"],
+    },
+    {
+      blobs: ["desk:desk_opened", "desk_event", "", ""],
+      doubles: [1],
+      indexes: ["desk:desk_opened"],
+    },
+  ]);
+
+  const rejected: Array<[Request, number]> = [
+    [deskPost('{"event":"desk_opened","detail":""}'), 400],
+    [deskPost('{"event":"desk_windows","detail":"9"}'), 400],
+    [deskPost('{"event":"desk_popout","title":"PRIVATE_TITLE"}'), 400],
+    [deskPost('{"tool":"base64-encoder","event":"tool_started"}'), 400],
+    [deskPost('{"event":"desk_opened"}', { "Content-Type": "text/plain" }), 400],
+    [deskPost('{"event":"desk_opened"}', { Origin: "https://attacker.example" }), 403],
+    [deskPost('{"event":"desk_opened"}', { "Sec-Fetch-Site": "cross-site" }), 403],
+    [deskPost('{"event":"desk_opened"}', { "Content-Length": "513" }), 413],
+    [new Request(`${DESK_ENDPOINT}?event=desk_opened`, { method: "POST" }), 404],
+    [new Request(DESK_ENDPOINT), 405],
+  ];
+  for (const [request, status] of rejected) {
+    assertPrivateResponse(await handleRequest(request, env), status);
+  }
+  assert.equal(points.length, 2);
+});
+
 test("rejects declared and streamed bodies over 512 bytes", async () => {
   const { env, points } = createHarness();
   const declared = post(validBody(), { "Content-Length": "513" });

@@ -1,5 +1,7 @@
 import { getTool, TOOLS } from "../../../apps/site/src/registry/tools.ts";
 import {
+  DESK_EVENT,
+  DESK_EVENT_PAIRS,
   DURATION_BUCKETS,
   TOOL_ERROR_CATEGORIES,
   TOOL_EVENTS,
@@ -15,6 +17,7 @@ import {
   ANALYTICS_REPORT_ENDPOINT,
   type AnalyticsReport,
   type DailyOperationCounts,
+  type DeskEventCounts,
   type DurationCounts,
   type ErrorCounts,
   type OperationCounts,
@@ -54,6 +57,14 @@ const OPERATION_ROW_LIMIT = TOOLS.length *
 const EVENT_LIST_SQL = TOOL_EVENTS.map((event) => `'${event}'`).join(", ");
 const TOOL_FILTER_SQL = `\n  AND blob1 IN (${TOOLS.map(({ slug }) => `'${slug}'`).join(", ")})`;
 const VOTE_KEYS_SQL = VOTE_CHOICES.map(({ id }) => `'vote:${id}'`).join(", ");
+const DESK_PAIR_FILTER_SQL = DESK_EVENT_PAIRS
+  .map(({ event, detail }) => `(blob1 = 'desk:${event}' AND blob3 = '${detail}')`)
+  .join("\n    OR ");
+// Historical desk dimensions: snake_case event names and (possibly empty) snake_case buckets.
+const DESK_EVENT_NAME = /^[a-z0-9]+(?:_[a-z0-9]+)*$/;
+const DESK_DETAIL = /^(?:[a-z0-9]+(?:_[a-z0-9]+)*)?$/;
+const MAX_DESK_EVENT_LENGTH = 64;
+const MAX_DESK_DETAIL_LENGTH = 32;
 
 export interface ReportEnv extends ArchiveEnv {
   ANALYTICS_READ_TOKEN?: string;
@@ -212,6 +223,28 @@ WHERE ${sqlBounds(from, to)}
 GROUP BY blob1
 ORDER BY vote
 LIMIT ${rowLimit + (mode === "current" ? 0 : 1)}
+FORMAT JSON`;
+}
+
+/** Desktop-mode totals per (event, detail); current mode keeps only catalogued pairs. */
+function deskQuery(
+  config: ReportConfig,
+  from: Date,
+  to: Date,
+  mode: CatalogMode,
+): string {
+  const currentCatalogFilter = mode === "current"
+    ? `\n  AND (${DESK_PAIR_FILTER_SQL})`
+    : "";
+  const rowLimit = mode === "current" ? DESK_EVENT_PAIRS.length : HISTORICAL_ROW_LIMIT + 1;
+  return `SELECT blob1 AS desk, blob3 AS detail, SUM(_sample_interval * double1) AS events,
+       MAX(_sample_interval) AS maximum_sample_interval
+FROM ${config.dataset}
+WHERE ${sqlBounds(from, to)}
+  AND blob2 = '${DESK_EVENT}'${currentCatalogFilter}
+GROUP BY blob1, blob3
+ORDER BY desk, detail
+LIMIT ${rowLimit}
 FORMAT JSON`;
 }
 
@@ -502,6 +535,62 @@ function aggregateVotes(
   return { votes, maximumSampleInterval };
 }
 
+function aggregateDesk(
+  rows: SqlRow[],
+  mode: CatalogMode,
+): { desk: DeskEventCounts[]; maximumSampleInterval: number } | null {
+  const desk: DeskEventCounts[] = mode === "current"
+    ? DESK_EVENT_PAIRS.map(({ event, detail }) => ({
+        event,
+        detail,
+        count: 0,
+        maximumSampleInterval: 0,
+      }))
+    : [];
+  const pairKey = (event: string, detail: string) => `${event}\u0000${detail}`;
+  const byPair = new Map(desk.map((entry) => [pairKey(entry.event, entry.detail), entry]));
+  let maximumSampleInterval = 0;
+
+  for (const row of rows) {
+    if (typeof row.desk !== "string" || !row.desk.startsWith("desk:")) return null;
+    const event = row.desk.slice(5);
+    const detail = row.detail === undefined || row.detail === null
+      ? ""
+      : typeof row.detail === "string" ? row.detail : null;
+    if (
+      detail === null ||
+      event.length > MAX_DESK_EVENT_LENGTH ||
+      !DESK_EVENT_NAME.test(event) ||
+      detail.length > MAX_DESK_DETAIL_LENGTH ||
+      !DESK_DETAIL.test(detail)
+    ) {
+      return null;
+    }
+    const key = pairKey(event, detail);
+    let target = byPair.get(key);
+    if (target === undefined) {
+      if (mode === "current") return null;
+      target = { event, detail, count: 0, maximumSampleInterval: 0 };
+      desk.push(target);
+      byPair.set(key, target);
+    }
+    const count = readNonnegativeInteger(row.events);
+    const rowMaximum = readPositiveInteger(row.maximum_sample_interval);
+    if (count === null || rowMaximum === null) return null;
+    const total = addCount(target.count, count);
+    if (total === null) return null;
+    target.count = total;
+    target.maximumSampleInterval = Math.max(target.maximumSampleInterval, rowMaximum);
+    maximumSampleInterval = Math.max(maximumSampleInterval, rowMaximum);
+  }
+
+  if (mode === "historical") {
+    desk.sort((left, right) =>
+      left.event.localeCompare(right.event) || left.detail.localeCompare(right.detail));
+  }
+  return { desk, maximumSampleInterval };
+}
+
 function readUtcDay(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const match = /^(\d{4})-(\d{2})-(\d{2})(?:[ T]00:00:00(?:\.0+)?Z?)?$/.exec(value);
@@ -566,27 +655,35 @@ function validateCollectionBounds(from: Date, to: Date): boolean {
 function aggregatePeriodMetrics(
   operationRows: SqlRow[],
   voteRows: SqlRow[],
+  deskRows: SqlRow[],
   mode: "current",
 ): PeriodMetrics;
 function aggregatePeriodMetrics(
   operationRows: SqlRow[],
   voteRows: SqlRow[],
+  deskRows: SqlRow[],
   mode: "historical",
 ): PeriodMetrics<string, string>;
 function aggregatePeriodMetrics(
   operationRows: SqlRow[],
   voteRows: SqlRow[],
+  deskRows: SqlRow[],
   mode: CatalogMode,
 ): PeriodMetrics<string, string> {
   const operationMetrics = aggregateOperations(operationRows, mode);
   const voteMetrics = aggregateVotes(voteRows, mode);
-  if (operationMetrics === null || voteMetrics === null) throw new ReportQueryError(false);
+  const deskMetrics = aggregateDesk(deskRows, mode);
+  if (operationMetrics === null || voteMetrics === null || deskMetrics === null) {
+    throw new ReportQueryError(false);
+  }
   return {
     ...operationMetrics,
     votes: voteMetrics.votes,
+    desk: deskMetrics.desk,
     maximumSampleInterval: Math.max(
       operationMetrics.maximumSampleInterval,
       voteMetrics.maximumSampleInterval,
+      deskMetrics.maximumSampleInterval,
     ),
   };
 }
@@ -596,7 +693,7 @@ async function collectWithConfig(
   from: Date,
   to: Date,
 ): Promise<PeriodMetrics> {
-  const [operationRows, voteRows] = await Promise.all([
+  const [operationRows, voteRows, deskRows] = await Promise.all([
     queryAnalyticsEngine(
       config,
       operationQuery(config, from, to, "current"),
@@ -607,8 +704,13 @@ async function collectWithConfig(
       voteQuery(config, from, to, "current"),
       VOTE_CHOICES.length,
     ),
+    queryAnalyticsEngine(
+      config,
+      deskQuery(config, from, to, "current"),
+      DESK_EVENT_PAIRS.length,
+    ),
   ]);
-  return aggregatePeriodMetrics(operationRows, voteRows, "current");
+  return aggregatePeriodMetrics(operationRows, voteRows, deskRows, "current");
 }
 
 export async function collectPeriodMetrics(
@@ -621,9 +723,9 @@ export async function collectPeriodMetrics(
     throw new ReportQueryError(false);
   }
   if (from.getTime() === to.getTime()) {
-    return aggregatePeriodMetrics([], [], "historical");
+    return aggregatePeriodMetrics([], [], [], "historical");
   }
-  const [operationRows, voteRows] = await Promise.all([
+  const [operationRows, voteRows, deskRows] = await Promise.all([
     queryAnalyticsEngine(
       config,
       operationQuery(config, from, to, "historical"),
@@ -634,8 +736,13 @@ export async function collectPeriodMetrics(
       voteQuery(config, from, to, "historical"),
       HISTORICAL_ROW_LIMIT,
     ),
+    queryAnalyticsEngine(
+      config,
+      deskQuery(config, from, to, "historical"),
+      HISTORICAL_ROW_LIMIT,
+    ),
   ]);
-  return aggregatePeriodMetrics(operationRows, voteRows, "historical");
+  return aggregatePeriodMetrics(operationRows, voteRows, deskRows, "historical");
 }
 
 function archiveErrorResponse(error: unknown): Response {

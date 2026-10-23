@@ -198,6 +198,28 @@ const clientDataJson = JSON.stringify(clientData).replace(/</g, "\\u003c");
           <div id="vote-totals" class="vote-grid"></div>
         </section>
 
+        <section class="desk-panel ds-panel" aria-labelledby="desk-title">
+          <div class="panel-head">
+            <div>
+              <h2 id="desk-title" data-i18n="DeskTitle">{str("DeskTitle")}</h2>
+              <p data-i18n="DeskDescription">{str("DeskDescription")}</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="desk-table">
+              <caption class="visually-hidden" data-i18n="DeskTableCaption">{str("DeskTableCaption")}</caption>
+              <thead>
+                <tr>
+                  <th scope="col" data-i18n="DeskEvent">{str("DeskEvent")}</th>
+                  <th scope="col" data-i18n="DeskDetail">{str("DeskDetail")}</th>
+                  <th scope="col" data-i18n="DeskCount">{str("DeskCount")}</th>
+                </tr>
+              </thead>
+              <tbody id="desk-body"></tbody>
+            </table>
+          </div>
+        </section>
+
         <section class="history-panel ds-panel" aria-labelledby="history-title">
           <div class="panel-head history-head">
             <div>
@@ -266,7 +288,7 @@ const clientDataJson = JSON.stringify(clientData).replace(/</g, "\\u003c");
   .metric-cancelled { --metric-color: var(--mdt-warning); }
   .metric-value { margin-top: 0.35rem; font-family: var(--mdt-font-display); font-size: clamp(1.75rem, 5vw, 2.75rem); font-weight: 700; line-height: 1; }
   .metric-comparison { min-height: 1.2em; margin-top: 0.55rem; color: var(--mdt-text-muted); font-size: var(--mdt-fs-meta); overflow-wrap: anywhere; }
-  .chart-panel, .distribution-panel, .tools-panel, .votes-panel, .history-panel { padding: 1.2rem; display: grid; gap: 1rem; min-width: 0; }
+  .chart-panel, .distribution-panel, .tools-panel, .votes-panel, .desk-panel, .history-panel { padding: 1.2rem; display: grid; gap: 1rem; min-width: 0; }
   .panel-head { display: flex; justify-content: space-between; align-items: start; gap: 1rem; min-width: 0; }
   .chart-legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; font-size: var(--mdt-fs-meta); color: var(--mdt-text-muted); }
   .chart-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
@@ -294,6 +316,9 @@ const clientDataJson = JSON.stringify(clientData).replace(/</g, "\\u003c");
   .tool-row td:nth-child(2) { overflow-wrap: anywhere; font-weight: 600; }
   .tool-detail td { padding: 0.75rem; text-align: left; background: color-mix(in srgb, var(--mdt-surface) 65%, transparent); }
   .tool-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .desk-table th:nth-child(-n + 2), .desk-table td:nth-child(-n + 2) { text-align: left; overflow-wrap: anywhere; }
+  .desk-table th:first-child, .desk-table td:first-child { width: 50%; }
+  .desk-table th:last-child, .desk-table td:last-child { width: 6.5rem; }
   .vote-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.65rem; }
   .vote-total { padding: 0.8rem; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-sm); background: var(--mdt-surface); min-width: 0; }
   .vote-total dt { color: var(--mdt-text-muted); overflow-wrap: anywhere; }
@@ -338,7 +363,7 @@ const clientDataJson = JSON.stringify(clientData).replace(/</g, "\\u003c");
     .history-controls label { width: 100%; }
     .history-controls select, .history-controls button { flex: 1 1 8rem; }
     .chart-legend { gap: 0.35rem 0.65rem; }
-    .chart-panel, .distribution-panel, .tools-panel, .votes-panel, .history-panel { padding: 1rem; }
+    .chart-panel, .distribution-panel, .tools-panel, .votes-panel, .desk-panel, .history-panel { padding: 1rem; }
     .table-wrap { overflow: visible; }
     .tools-table, .tools-table thead, .tools-table tbody, .tools-table tr, .tools-table th, .tools-table td { display: block; width: 100% !important; }
     .tools-table thead { position: absolute; width: 1px !important; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }

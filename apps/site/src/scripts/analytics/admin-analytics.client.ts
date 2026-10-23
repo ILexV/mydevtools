@@ -1,9 +1,11 @@
 import type { LocaleCode } from "../../registry/locales.ts";
 import type { ToolId } from "../../registry/tools.ts";
 import {
+  DESK_EVENT_PAIRS,
   DURATION_BUCKETS,
   TOOL_ERROR_CATEGORIES,
   VOTE_CHOICES,
+  type DeskEventType,
 } from "./events.ts";
 import {
   ANALYTICS_ARCHIVE_ENDPOINT,
@@ -14,6 +16,7 @@ import {
   type AnalyticsHistory,
   type AnalyticsReport,
   type DailyOperationCounts,
+  type DeskEventCounts,
   type MonthlyAnalyticsSnapshot,
   type OperationCounts,
   type PeriodMetrics,
@@ -51,7 +54,33 @@ const COUNT_KEYS: CountKey[] = ["started", "completed", "failed", "cancelled"];
 const REPORT_DURATION_BUCKETS: ReportDurationBucket[] = [...DURATION_BUCKETS, "unclassified"];
 const REPORT_ERROR_CATEGORIES: ReportErrorCategory[] = [...TOOL_ERROR_CATEGORIES, "unclassified"];
 const DATASETS: AnalyticsDataset[] = ["mydevtools_tool_usage", "mydevtools_tool_usage_staging"];
-const PERIOD_METRIC_KEYS = ["summary", "tools", "durations", "errors", "votes", "maximumSampleInterval"] as const;
+const PERIOD_METRIC_KEYS = ["summary", "tools", "durations", "errors", "votes", "desk", "maximumSampleInterval"] as const;
+// A Worker deployed before desktop events omits `desk`; treat that as no desktop data.
+const LEGACY_PERIOD_METRIC_KEYS = PERIOD_METRIC_KEYS.filter((key) => key !== "desk");
+const DESK_EVENT_LABEL_KEYS: Record<DeskEventType, string> = {
+  desk_opened: "DeskOpened",
+  desk_windows: "DeskWindows",
+  desk_transfer: "DeskTransfer",
+  desk_workspace: "DeskWorkspace",
+  desk_file_drop: "DeskFileDrop",
+  desk_popout: "DeskPopout",
+  desk_clipboard: "DeskClipboard",
+  desk_launch: "DeskLaunch",
+};
+const DESK_DETAIL_LABEL_KEYS: Record<string, string> = {
+  once: "DeskDetailOnce",
+  link: "DeskDetailLink",
+  builtin: "DeskDetailBuiltin",
+  saved: "DeskDetailSaved",
+  file_handler: "DeskDetailFileHandler",
+  share_target: "DeskDetailShareTarget",
+};
+// Window-count buckets are numeric and need no translation.
+const DESK_WINDOW_LABELS: Record<string, string> = { "1": "1", "2": "2", "3": "3", "4_5": "4–5", "6_plus": "6+" };
+const DESK_EVENT_PATTERN = /^[a-z0-9]+(?:_[a-z0-9]+)*$/;
+const DESK_DETAIL_PATTERN = /^(?:[a-z0-9]+(?:_[a-z0-9]+)*)?$/;
+const HISTORICAL_DESK_EVENT_MAX_LENGTH = 64;
+const HISTORICAL_DESK_DETAIL_MAX_LENGTH = 32;
 const CANONICAL_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const HISTORICAL_TOOL_ID_MAX_LENGTH = 96;
 const HISTORICAL_VOTE_CHOICE_MAX_LENGTH = 91;
@@ -134,6 +163,19 @@ function voteLabel(choice: string): string {
   const key = VOTE_CHOICES.find((entry) => entry.id === choice)?.labelKey;
   if (!key) return choice;
   return data.voteStrings[locale]?.[key] ?? data.voteStrings[data.defaultLocale]?.[key] ?? choice;
+}
+
+/** Retired (historical) desktop events and details fall back to their raw identifiers. */
+function deskEventLabel(event: string): string {
+  const key = DESK_EVENT_LABEL_KEYS[event as DeskEventType];
+  return key ? tr(key) : event;
+}
+
+function deskDetailLabel(event: string, detail: string): string {
+  if (detail === "") return "—";
+  if (event === "desk_windows" && Object.hasOwn(DESK_WINDOW_LABELS, detail)) return DESK_WINDOW_LABELS[detail]!;
+  const key = DESK_DETAIL_LABEL_KEYS[detail];
+  return key ? tr(key) : detail;
 }
 
 function configureFormatters(language: string): void {
@@ -488,6 +530,18 @@ function renderVotes(votes: VoteCounts[]): void {
   }
 }
 
+function renderDesk(desk: DeskEventCounts[]): void {
+  const body = byId<HTMLTableSectionElement>("desk-body");
+  body.replaceChildren();
+  for (const entry of desk) {
+    const row = document.createElement("tr");
+    appendCell(row, deskEventLabel(entry.event), "DeskEvent");
+    appendCell(row, deskDetailLabel(entry.event, entry.detail), "DeskDetail");
+    appendCell(row, formatCount(entry.count), "DeskCount");
+    body.append(row);
+  }
+}
+
 function renderComparison(report: AnalyticsReport): void {
   const comparison = report.comparison;
   for (const key of COUNT_KEYS) {
@@ -542,6 +596,7 @@ function renderReport(report: AnalyticsReport): void {
   renderGlobalDistributions(report);
   renderTools(report.tools);
   renderVotes(report.votes);
+  renderDesk(report.desk);
 }
 
 function renderHistoryDetails(snapshot: MonthlyAnalyticsSnapshot): HTMLElement {
@@ -573,6 +628,29 @@ function renderHistoryDetails(snapshot: MonthlyAnalyticsSnapshot): HTMLElement {
     voteSection.append(row);
   }
   content.append(voteSection);
+  if (snapshot.desk.length > 0) {
+    const deskSection = document.createElement("section");
+    deskSection.className = "distribution";
+    const deskHeading = document.createElement("h3");
+    deskHeading.textContent = tr("DeskTitle");
+    deskSection.append(deskHeading);
+    for (const entry of snapshot.desk) {
+      const row = document.createElement("div");
+      row.className = "distribution-row";
+      const label = document.createElement("span");
+      label.className = "distribution-label";
+      label.textContent = deskEventLabel(entry.event);
+      const detail = document.createElement("span");
+      detail.className = "distribution-label";
+      detail.textContent = deskDetailLabel(entry.event, entry.detail);
+      const count = document.createElement("span");
+      count.className = "tabular";
+      count.textContent = formatCount(entry.count);
+      row.append(label, detail, count);
+      deskSection.append(row);
+    }
+    content.append(deskSection);
+  }
   details.append(summary, content);
   return details;
 }
@@ -657,7 +735,7 @@ function clearPrivateData(): void {
   for (const id of ["report-range", "report-dataset", "comparison-note", "report-estimate-note", "history-generated"]) {
     byId(id).textContent = "";
   }
-  for (const id of ["tools-body", "vote-totals", "duration-distribution", "error-distribution", "history-months", "history-year"]) {
+  for (const id of ["tools-body", "vote-totals", "desk-body", "duration-distribution", "error-distribution", "history-months", "history-year"]) {
     byId(id).replaceChildren();
   }
   svgById("activity-chart").replaceChildren();
@@ -730,6 +808,38 @@ function parseVote(value: unknown, isValidChoice: (choice: string) => boolean): 
   return { choice: value.choice, votes: value.votes, maximumSampleInterval: value.maximumSampleInterval };
 }
 
+function parseDeskEntry(value: unknown, historical: boolean): DeskEventCounts | null {
+  if (!isPlainObject(value) || !hasExactKeys(value, ["event", "detail", "count", "maximumSampleInterval"])) return null;
+  const { event, detail } = value;
+  if (typeof event !== "string" || typeof detail !== "string") return null;
+  if (historical) {
+    if (event.length > HISTORICAL_DESK_EVENT_MAX_LENGTH || !DESK_EVENT_PATTERN.test(event)) return null;
+    if (detail.length > HISTORICAL_DESK_DETAIL_MAX_LENGTH || !DESK_DETAIL_PATTERN.test(detail)) return null;
+  } else if (!DESK_EVENT_PAIRS.some((pair) => pair.event === event && pair.detail === detail)) {
+    return null;
+  }
+  if (!isCount(value.count) || !isCount(value.maximumSampleInterval)) return null;
+  if ((value.count === 0) !== (value.maximumSampleInterval === 0)) return null;
+  return { event, detail, count: value.count, maximumSampleInterval: value.maximumSampleInterval };
+}
+
+/** Current reports list every catalogued pair once; snapshots may hold retired pairs. */
+function parseDesk(value: unknown, historical: boolean): DeskEventCounts[] | null {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) return null;
+  const desk: DeskEventCounts[] = [];
+  const seen = new Set<string>();
+  for (const item of value) {
+    const entry = parseDeskEntry(item, historical);
+    const key = entry ? `${entry.event}\u0000${entry.detail}` : "";
+    if (!entry || seen.has(key)) return null;
+    seen.add(key);
+    desk.push(entry);
+  }
+  if (!historical && value.length !== 0 && seen.size !== DESK_EVENT_PAIRS.length) return null;
+  return desk;
+}
+
 function sumCounts(entries: OperationCounts[]): OperationCounts {
   return entries.reduce<OperationCounts>((total, entry) => ({
     started: total.started + entry.started,
@@ -769,7 +879,10 @@ function parsePeriodMetrics(
   extraKeys: readonly string[] = [],
   catalog: "current" | "historical" = "current",
 ): PeriodMetrics<string, string> | null {
-  if (!isPlainObject(value) || !hasExactKeys(value, [...PERIOD_METRIC_KEYS, ...extraKeys])) return null;
+  if (
+    !isPlainObject(value) ||
+    !(hasExactKeys(value, [...PERIOD_METRIC_KEYS, ...extraKeys]) || hasExactKeys(value, [...LEGACY_PERIOD_METRIC_KEYS, ...extraKeys]))
+  ) return null;
   const summary = parseCounts(value.summary);
   const durations = parseDistribution(value.durations, REPORT_DURATION_BUCKETS);
   const errors = parseDistribution(value.errors, REPORT_ERROR_CATEGORIES);
@@ -801,14 +914,21 @@ function parsePeriodMetrics(
     votes.push(vote);
   }
   if (!historical && (seenVotes.size !== knownChoices.size || [...knownChoices].some((choice) => !seenVotes.has(choice)))) return null;
+  const desk = parseDesk(value.desk, historical);
+  if (!desk) return null;
 
   if (!sameCounts(sumCounts(tools), summary)) return null;
   if (sumDistribution(durations) !== summary.completed || sumDistribution(errors) !== summary.failed) return null;
   if (!sameDistribution(durations, summedToolDistribution(tools, "durations", REPORT_DURATION_BUCKETS), REPORT_DURATION_BUCKETS)) return null;
   if (!sameDistribution(errors, summedToolDistribution(tools, "errors", REPORT_ERROR_CATEGORIES), REPORT_ERROR_CATEGORIES)) return null;
-  const maximum = Math.max(0, ...tools.map((tool) => tool.maximumSampleInterval), ...votes.map((vote) => vote.maximumSampleInterval));
+  const maximum = Math.max(
+    0,
+    ...tools.map((tool) => tool.maximumSampleInterval),
+    ...votes.map((vote) => vote.maximumSampleInterval),
+    ...desk.map((entry) => entry.maximumSampleInterval),
+  );
   if (value.maximumSampleInterval !== maximum) return null;
-  return { summary, tools, durations, errors, votes, maximumSampleInterval: value.maximumSampleInterval };
+  return { summary, tools, durations, errors, votes, desk, maximumSampleInterval: value.maximumSampleInterval };
 }
 
 function parseDaily(value: unknown): DailyOperationCounts | null {

@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * Visual regression for the Astro site (FRONTEND_REBUILD_TODO §324).
+ * Visual regression for the Astro site (docs/legacy/FRONTEND_REBUILD_TODO.md §324).
  *
  * Lives at the repo root (outside apps/site) so Playwright's tsconfig loader
  * never touches `apps/site/tsconfig.json` — which `extends astro/tsconfigs/

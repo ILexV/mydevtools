@@ -4,7 +4,7 @@
 
 MyDevTools is a privacy-first collection of 59 multilingual developer utilities. The **live site** is a static Astro build in `apps/site`, published to GitHub Pages at https://mydevtools.app/ (custom domain via `apps/site/public/CNAME`, branch `gh-pages`; the old https://ilexv.github.io/mydevtools/ redirects there). All computation runs in the browser: vanilla TypeScript controllers plus lazy-loaded Rust/WASM, no server runtime.
 
-The former .NET 10 Blazor SSR site (`MyDevToolsApp/`) and the React UI kit (`packages/ui-kit`, `apps/storybook`) are **legacy**: kept for reference, not deployed, and not used by the Astro site. Do not add features there.
+The former .NET 10 Blazor SSR site and the React UI kit were removed on 2026-10-23; they remain in git history only.
 
 ## Architecture & Data Flow
 
@@ -29,8 +29,8 @@ The former .NET 10 Blazor SSR site (`MyDevToolsApp/`) and the React UI kit (`pac
 - `e2e/`: Playwright visual-regression and cross-browser suites (kept at repo root on purpose).
 - `scripts/deploy-pages.mjs`: publishes `apps/site/dist` to `gh-pages`.
 - `docs/inventory/`: parity inventory (tools, locales, client state, SEO, parity fixtures); `docs/design/`: design direction and spec.
-- `FRONTEND_REBUILD_TODO.md`: migration checklist, decisions and known deviations from legacy.
-- Legacy: `MyDevToolsApp/` (Blazor), `packages/ui-kit/`, `apps/storybook/`.
+- `docs/roadmap-todo.md`: product roadmap and status; `docs/cloudflare-analytics-tz.md`: analytics spec; `docs/legacy/FRONTEND_REBUILD_TODO.md`: finished Blazor → Astro migration checklist with known deviations from legacy.
+- `apps/local-agent/`: optional Windows companion for the HTTP client and network tools.
 
 ## Development Commands
 
@@ -82,7 +82,7 @@ cargo test --workspace --manifest-path wasm/Cargo.toml
 - The `cryptography` crate depends on `ring`, which compiles C for wasm32 and needs **clang + llvm-ar** (gcc cannot target wasm). On Debian/Ubuntu: `sudo apt install clang llvm`.
 - Pass several domains to `build.ps1` from bash via `pwsh -Command './wasm/build.ps1 … -Domains a,b'` — with `pwsh -File`-style invocation the comma list is taken as one folder name.
 - Pages specifics: `public/CNAME` (`mydevtools.app`) is mandatory — the deploy force-pushes an orphan commit, so without it the custom domain is dropped; the deploy script refuses to publish without it. `.nojekyll` is mandatory (otherwise Jekyll drops `_astro/` and CSS/JS 404); the deploy script refuses to publish without it. No build runs on GitHub — dist is built locally and pushed.
-- Trust code, registries and scripts over prose; legacy docs (`ARCHITECTURE.md`, `DEVELOPMENT.md`, `TOOL_DEVELOPMENT_GUIDE.md`, `WASM_INTEGRATION.md`, etc.) describe the Blazor site.
+- Trust code, registries and scripts over prose.
 
 ## Testing & QA
 

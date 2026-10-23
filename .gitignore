@@ -52,8 +52,6 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
-/MyDevToolsApp/.vs
-/MyDevToolsApp/_ReSharper.Caches
 
 # IDE / user-specific
 *.user
@@ -66,13 +64,11 @@ nunit-*.xml
 /apps/site/public/downloads/mydevtools-agent-windows-x64-setup.exe
 /apps/site/public/downloads/local-agent.json
 /nul
-/MyDevToolsApp/MyDevTools.Site/server.log
-/MyDevToolsApp/MyDevTools.Site/nul
+# Leftover build output of the removed Blazor site
+/MyDevToolsApp/
 node_modules/
-storybook-static/
 dist/
 coverage/
 *.tsbuildinfo
 .playwright-mcp/
-storybook-*.png
 graphify-out/

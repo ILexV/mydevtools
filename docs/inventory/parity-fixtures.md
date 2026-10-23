@@ -3,7 +3,7 @@
 > Single source of truth for the functional parity of the new Astro frontend
 > vs. the legacy Blazor site, plus the cross-cutting QA results collected
 > during the rebuild. Supersedes the scattered per-tool notes — the per-tool
-> migration matrix in [`FRONTEND_REBUILD_TODO.md`](../../FRONTEND_REBUILD_TODO.md)
+> migration matrix in [`FRONTEND_REBUILD_TODO.md`](../legacy/FRONTEND_REBUILD_TODO.md)
 > Stage 9 remains the authoritative "done/not-done" record; this file records
 > the **vectors** behind those checks.
 

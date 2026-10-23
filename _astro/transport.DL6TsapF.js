@@ -1,0 +1,1 @@
+import"./events.CVxjUPHd.js";async function e(e){return`disabled`}export{e as t};

@@ -5,6 +5,9 @@
  * verifies the signature with `jwtVerify` on every input/secret change.
  * Status: verified / invalid / unsigned (`alg: none`) / unsupported alg /
  * "enter a secret" when the secret is empty (instead of a bare "invalid").
+ * A JWK or JWKS in the key field takes the WebCrypto path (`jwk.ts`): the key
+ * is picked by the header `kid` (or every alg-compatible key is tried) and
+ * HS*, RS*, PS*, ES* and EdDSA are verified.
  * Also renders the colourized token-parts preview (collapsible) and the
  * temporal status of exp/nbf/iat, refreshed on a timer (1 s near a boundary,
  * 60 s otherwise, paused while the tab is hidden) WITHOUT re-verifying the
@@ -21,6 +24,7 @@ import {
   withPreparing,
 } from "@/scripts/tool-ui";
 import { algFromHeader, classifyAlg, decodeJwt, normalizeToken } from "@/tools/jwt";
+import { kidFromHeader, parseJwkInput, selectKeys, verifyWithJwk, type Jwk, type JwkVerifyResult } from "@/tools/jwk";
 import {
   nextRefreshDelay,
   readTemporalClaims,
@@ -41,6 +45,12 @@ interface Strings {
   enterSecret: string;
   unsignedToken: string;
   unsupportedAlgorithm: string;
+  jwkVerifiedKid: string;
+  jwkKidNotFound: string;
+  jwkNoCompatibleKey: string;
+  jwkKeyMismatch: string;
+  jwkUnsupportedBrowser: string;
+  jwkInvalid: string;
   claimExpired: string;
   claimExpiresAt: string;
   claimNotBefore: string;
@@ -92,6 +102,11 @@ const TIME_BADGE: Record<TemporalStatus, { tone: string; icon: string }> = {
   valid: { tone: "ds-badge-success", icon: ICON_CLOCK },
   unbounded: { tone: "", icon: ICON_CLOCK },
 };
+
+/** `{name}` placeholders → values (a replacer function keeps `$` in values literal). */
+function fill(template: string, params: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (m, key: string) => (key in params ? String(params[key]) : m));
+}
 
 function readStrings(): Strings | null {
   const el = document.querySelector<HTMLScriptElement>("[data-jwtd-strings]");
@@ -386,6 +401,48 @@ function init() {
 
     if (kind === "none") {
       showStatus("warning", strings.unsignedToken, ICON_INVALID);
+      operation?.complete();
+      return;
+    }
+    const jwkInput = parseJwkInput(secretArea.value);
+    if (jwkInput.kind === "invalid") {
+      showStatus("error", strings.jwkInvalid, ICON_INVALID);
+      operation?.complete();
+      return;
+    }
+    if (jwkInput.kind !== "none") {
+      const selection = selectKeys(jwkInput, kidFromHeader(headerJson), alg);
+      if (!selection.ok) {
+        showStatus(
+          "warning",
+          selection.reason === "kid-not-found"
+            ? fill(strings.jwkKidNotFound, { kid: selection.kid, count: selection.count })
+            : fill(strings.jwkNoCompatibleKey, { alg }),
+        );
+        operation?.complete();
+        return;
+      }
+      const results: JwkVerifyResult[] = [];
+      let verifiedKey: Jwk | null = null;
+      for (const key of selection.keys) {
+        const result = await verifyWithJwk(token, alg, key);
+        if (id !== runId) return;
+        results.push(result);
+        if (result === "valid") {
+          verifiedKey = key;
+          break;
+        }
+      }
+      if (verifiedKey) {
+        const message = verifiedKey.kid ? fill(strings.jwkVerifiedKid, { kid: verifiedKey.kid }) : strings.signatureVerified;
+        showStatus("success", message, ICON_VALID);
+      } else if (results.includes("invalid")) {
+        showStatus("error", strings.signatureInvalid, ICON_INVALID);
+      } else if (results.includes("unsupported")) {
+        showStatus("warning", fill(strings.jwkUnsupportedBrowser, { alg }));
+      } else {
+        showStatus("error", fill(strings.jwkKeyMismatch, { alg }), ICON_INVALID);
+      }
       operation?.complete();
       return;
     }

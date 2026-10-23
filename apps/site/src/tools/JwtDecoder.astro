@@ -5,8 +5,9 @@
  * the cryptography WASM. Also shows the algorithm badge and the exp/nbf/iat
  * time claims (expired / not-yet-valid flagged), and verifies the signature
  * against an optional secret or RSA public key (alg from the header:
- * HS256/384/512, RS256/384/512). `alg: none` is reported as unsigned, never
- * as verified. Helpers in `jwt.ts`.
+ * HS256/384/512, RS256/384/512), or against a JWK / JWKS picked by `kid`
+ * (WebCrypto: HS*, RS*, PS*, ES*, EdDSA). `alg: none` is reported as
+ * unsigned, never as verified. Helpers in `jwt.ts`.
  * Workbench: token panel (empty state + "Load example" demo token, then a
  * colourized read-only preview of the header.payload.signature parts that
  * collapses after 3 lines) and the signature panel (alg as panel meta) |
@@ -57,6 +58,12 @@ const stringsJson = JSON.stringify({
   enterSecret: t(lang, ns, "EnterSecret"),
   unsignedToken: t(lang, ns, "UnsignedToken"),
   unsupportedAlgorithm: t(lang, ns, "UnsupportedAlgorithm"),
+  jwkVerifiedKid: t(lang, ns, "JwkVerifiedKid"),
+  jwkKidNotFound: t(lang, ns, "JwkKidNotFound"),
+  jwkNoCompatibleKey: t(lang, ns, "JwkNoCompatibleKey"),
+  jwkKeyMismatch: t(lang, ns, "JwkKeyMismatch"),
+  jwkUnsupportedBrowser: t(lang, ns, "JwkUnsupportedBrowser"),
+  jwkInvalid: t(lang, ns, "JwkInvalid"),
   claimExpired: t(lang, ns, "ClaimExpired"),
   claimExpiresAt: t(lang, ns, "ClaimExpiresAt"),
   claimNotBefore: t(lang, ns, "ClaimNotBefore"),

@@ -37,6 +37,22 @@ Your input and files never leave your device.
 - **10 languages.** The interface and every tool guide are translated: English, Russian, Spanish, German, Portuguese, Chinese, French, Japanese, Korean and Hindi.
 - **Free.** No ads, no paywall, no sign-up.
 
+## Desktop mode
+
+Working with several tools at once? Open **[Desktop](https://mydevtools.app/en/desktop/)** — a windowed workspace in the browser tab. Every tool runs in its own window: browse a large CSV next to a JSON formatter, or decode a JWT while testing a regex, without losing input when you switch.
+
+- Open any tool from the launcher (`Ctrl+K`), desktop folders or the taskbar.
+- Drag, resize, maximize and minimize windows; dock them side by side with `Alt+Shift+←/→`.
+- Save named layouts and come back to the same arrangement; favorites and recent tools sit in a side column; pick your own wallpaper.
+- Layouts store only window positions — never the text, files or results inside the tools.
+
+<p align="center">
+  <a href="https://mydevtools.app/en/desktop/"><img src="docs/assets/desktop-data.png" width="860" alt="MyDevTools desktop mode: a 250,000-row CSV in Large CSV/TSV Explorer next to JSON Beautifier"></a>
+</p>
+<p align="center">
+  <a href="https://mydevtools.app/en/desktop/"><img src="docs/assets/desktop-jwt-regex.png" width="860" alt="MyDevTools desktop mode: JWT Decoder with a verified signature next to Regex Tester"></a>
+</p>
+
 ## Tools
 
 Every tool works on its own page in all 10 languages; the links below open the English version.
@@ -214,7 +230,7 @@ e2e/                Playwright visual-regression and cross-browser suites
 docs/               inventory, design system, QA notes
 ```
 
-Contributor and architecture guide: [`AGENTS.md`](AGENTS.md). Release procedure: [`apps/site/RELEASING.md`](apps/site/RELEASING.md). The former Blazor site in `MyDevToolsApp/` is legacy and not deployed — its notes live in [`docs/legacy/README-blazor.md`](docs/legacy/README-blazor.md).
+Contributor and architecture guide: [`AGENTS.md`](AGENTS.md). Release procedure: [`apps/site/RELEASING.md`](apps/site/RELEASING.md).
 
 ## Feedback
 

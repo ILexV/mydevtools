@@ -196,6 +196,38 @@ test("LocalAgentClient persistent session lifecycle", async (t) => {
       assert.equal(client.persisted, false);
     });
 
+    await t.test("a rejected token adopts a newer session another window saved and keeps it stored", async () => {
+      const fresh = "B".repeat(43);
+      const { storage, values } = createStorage({
+        [SESSION_KEY]: JSON.stringify({ v: 1, token: TOKEN, expiresAt: futureExpiry(), capabilities: ["http.request"] }),
+      });
+      installStorage(storage);
+      const authorizations: string[] = [];
+      globalThis.fetch = async (input, init) => {
+        const path = new URL(String(input)).pathname;
+        if (path === "/v1/info") return jsonResponse(INFO);
+        if (path === "/v1/http/cancel") {
+          const authorization = new Headers(init?.headers).get("Authorization") ?? "";
+          authorizations.push(authorization);
+          return authorization === `Bearer ${fresh}`
+            ? new Response(null, { status: 204 })
+            : jsonResponse({ error: { code: "unauthorized" } }, 401);
+        }
+        throw new Error(`Unexpected request: ${path}`);
+      };
+
+      const client = new LocalAgentClient();
+      await client.restore();
+      // Another window paired after the agent restarted and saved its token.
+      const freshRecord = JSON.stringify({ v: 1, token: fresh, expiresAt: futureExpiry(), capabilities: ["http.request", "port.scan"] });
+      values.set(SESSION_KEY, freshRecord);
+      await client.cancel("80a6dd3a-0825-4a96-8bf1-ddb8e657f96d");
+      assert.deepEqual(authorizations, [`Bearer ${TOKEN}`, `Bearer ${fresh}`]);
+      assert.equal(values.get(SESSION_KEY), freshRecord);
+      assert.equal(client.connected, true);
+      assert.deepEqual(client.capabilities, ["http.request", "port.scan"]);
+    });
+
     await t.test("keeps a successful pair in memory when browser storage is blocked", async () => {
       const blocked = new DOMException("Access denied", "SecurityError");
       const storage = {
@@ -261,11 +293,10 @@ test("mergeCapabilities asks for every advertised capability so one pairing serv
   assert.deepEqual(mergeCapabilities(["http.request", "process.exec"], "http.request"), ["http.request"], "unknown capabilities are never requested");
 });
 
-test("mergeCapabilities asks for a scanner only on its own page or when it is already granted", () => {
+test("mergeCapabilities includes the scanners so one pairing serves them too", () => {
   const advertised = ["http.request", "tcp.connect", "port.scan", "network.scan"];
-  assert.deepEqual(mergeCapabilities(advertised, "http.request"), ["http.request", "tcp.connect"]);
-  assert.deepEqual(mergeCapabilities(advertised, "port.scan"), ["http.request", "tcp.connect", "port.scan"]);
-  assert.deepEqual(mergeCapabilities(advertised, "tcp.connect", ["port.scan"]), ["http.request", "tcp.connect", "port.scan"]);
+  assert.deepEqual(mergeCapabilities(advertised, "http.request"), advertised);
+  assert.deepEqual(mergeCapabilities(advertised, "port.scan"), advertised);
   assert.deepEqual(mergeCapabilities(["http.request"], "http.request", ["network.scan"]), ["http.request"],
     "a scanner the agent no longer advertises is dropped");
 });

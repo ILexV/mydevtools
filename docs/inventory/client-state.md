@@ -172,7 +172,11 @@ The agent keeps sessions in memory with an eight-hour expiry and invalidates
 them on exit/restart. Protocol v1 has no non-destructive authenticated session
 inspection route: `/v1/info` verifies the agent and protocol, not the saved
 bearer. After an agent restart, the next protected request receives
-`unauthorized` and removes the stale browser record.
+`unauthorized`; if another tab or desktop window has meanwhile saved a newer
+record, the page adopts it and retries once, otherwise it removes the stale
+record. A page never removes a record that holds a token other than its own.
+Pairing from any network tool requests every capability the agent advertises,
+the port and network scanners included, so one code serves every window.
 
 The Windows agent has one opt-in OS setting: the current user's
 `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\MyDevToolsLocalAgent` value.

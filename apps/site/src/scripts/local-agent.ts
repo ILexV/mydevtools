@@ -23,25 +23,20 @@ const CAPABILITY_ORDER: readonly LocalAgentCapability[] = [
   "network.scan",
 ];
 
-/** Scanners are granted only by their own page, never as a side effect of pairing another tool. */
-const SCANNER_CAPABILITIES: ReadonlySet<LocalAgentCapability> = new Set(["port.scan", "network.scan"]);
-
 /**
  * Capabilities to request when any network tool pairs: every capability the running
  * agent advertises that this site knows, plus the one this tool needs. One pairing
- * code in any window then unlocks HTTP, path trace, DNS, TCP, TLS, WHOIS and ASN.
- * A grant the agent no longer advertises is dropped. `pair()` itself adds nothing.
- * A scanner is asked for only by its own page or when `granted` already holds it.
+ * code in any window then unlocks every network tool, the port and network scanners
+ * included. Unknown capabilities are never requested. `pair()` itself adds nothing.
+ * `granted` is kept for callers; anything still advertised is requested anyway.
  */
 export function mergeCapabilities(
   advertised: readonly string[],
   needed: LocalAgentCapability,
-  granted: readonly string[] = [],
+  _granted: readonly string[] = [],
 ): LocalAgentCapability[] {
   const advertisedSet = new Set(advertised);
-  const grantedSet = new Set(granted);
-  return CAPABILITY_ORDER.filter((capability) => capability === needed
-    || (advertisedSet.has(capability) && (!SCANNER_CAPABILITIES.has(capability) || grantedSet.has(capability))));
+  return CAPABILITY_ORDER.filter((capability) => capability === needed || advertisedSet.has(capability));
 }
 
 export interface LocalAgentInfo {
@@ -981,24 +976,28 @@ export class LocalAgentClient {
     this.#removeStoredSession();
   }
 
-  async #authorized<T>(path: string, init: RequestInit): Promise<T> {
+  async #authorized<T>(path: string, init: RequestInit, retry = true): Promise<T> {
     this.#clearIfExpired();
-    if (!this.#token) throw new LocalAgentError("unauthorized");
+    const token = this.#token;
+    if (!token) throw new LocalAgentError("unauthorized");
     try {
       return await jsonRequest<T>(path, {
         ...init,
-        headers: { ...init.headers, Authorization: `Bearer ${this.#token}` },
+        headers: { ...init.headers, Authorization: `Bearer ${token}` },
       });
     } catch (error) {
-      if (error instanceof LocalAgentError && error.code === "unauthorized") this.clear();
+      if (error instanceof LocalAgentError && error.code === "unauthorized" && this.#replaceRejected(token) && retry) {
+        return await this.#authorized<T>(path, init, false);
+      }
       throw error;
     }
   }
 
   /** POSTs JSON and hands each NDJSON line of the reply to `onLine` while it arrives. */
-  async #stream(path: string, body: unknown, onLine: (line: unknown) => void, signal?: AbortSignal): Promise<void> {
+  async #stream(path: string, body: unknown, onLine: (line: unknown) => void, signal?: AbortSignal, retry = true): Promise<void> {
     this.#clearIfExpired();
-    if (!this.#token) throw new LocalAgentError("unauthorized");
+    const token = this.#token;
+    if (!token) throw new LocalAgentError("unauthorized");
     let response: Response;
     try {
       response = await fetch(`${AGENT_BASE_URL}${path}`, {
@@ -1007,7 +1006,7 @@ export class LocalAgentClient {
         cache: "no-store",
         credentials: "omit",
         referrerPolicy: "no-referrer",
-        headers: { Accept: "application/x-ndjson", "Content-Type": "application/json", Authorization: `Bearer ${this.#token}` },
+        headers: { Accept: "application/x-ndjson", "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(body),
       });
     } catch (error) {
@@ -1016,7 +1015,9 @@ export class LocalAgentClient {
     }
     if (!response.ok) {
       const error = await responseError(response);
-      if (error.code === "unauthorized") this.clear();
+      if (error.code === "unauthorized" && this.#replaceRejected(token) && retry) {
+        return await this.#stream(path, body, onLine, signal, false);
+      }
       throw error;
     }
     if (!response.body) throw new LocalAgentError("invalid_response", response.status);
@@ -1094,7 +1095,36 @@ export class LocalAgentClient {
   }
 
   #clearIfExpired(): void {
-    if (this.#expiresAt !== null && Date.parse(this.#expiresAt) <= Date.now()) this.clear();
+    if (this.#token !== null && this.#expiresAt !== null && Date.parse(this.#expiresAt) <= Date.now()) {
+      this.#replaceRejected(this.#token);
+    }
+  }
+
+  /**
+   * Drops a token the agent rejected or that expired, then adopts a newer session
+   * another tab or desktop window saved meanwhile (true when one was adopted).
+   * The stored record is removed only while it still holds the dropped token, so a
+   * stale window never erases a fresh pairing and one code serves every window.
+   */
+  #replaceRejected(rejected: string): boolean {
+    // A parallel request already moved this client to another session.
+    if (this.#token !== null && this.#token !== rejected) return true;
+    this.#token = null;
+    this.#expiresAt = null;
+    this.#capabilities = [];
+    this.#persisted = false;
+    const stored = this.#readStoredSession();
+    if (!stored) return false;
+    if (stored.token === rejected || Date.parse(stored.expiresAt) <= Date.now()) {
+      this.#removeStoredSession();
+      this.#info = null;
+      return false;
+    }
+    this.#token = stored.token;
+    this.#expiresAt = stored.expiresAt;
+    this.#capabilities = stored.capabilities;
+    this.#persisted = true;
+    return true;
   }
 }
 

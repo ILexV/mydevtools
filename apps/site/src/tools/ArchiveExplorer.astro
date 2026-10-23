@@ -1,0 +1,158 @@
+---
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import FileButton from "@/components/tool/FileButton.astro";
+import FileDrop from "@/components/tool/FileDrop.astro";
+import Icon from "@/components/Icon.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import Progress from "@/components/tool/Progress.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import "@/styles/explorer-ui.css";
+
+interface Props { lang: LocaleCode }
+const { lang } = Astro.props as Props;
+const ns = "tools/archive-explorer";
+const clientKeys = [
+  "ProgressBytes", "StatusReady", "StatusOpening", "StatusOpened", "StatusExtracting", "StatusExtracted", "StatusCreating",
+  "StatusCreated", "StatusCanceled", "FormatZip", "FormatTar", "FormatCompressedTar", "FormatSingle", "SummaryLine",
+  "SummaryStream", "NoteUnsafe", "NoteRenamed", "NoteEncrypted", "NoteUnsupported", "NoteOverlap", "NoteSuspicious",
+  "NoteLinks", "NoteZip64", "NoteComment", "SelectionLine", "SelectionNone", "ColumnSelect", "ColumnName", "ColumnSize",
+  "ColumnPacked", "ColumnModified", "ColumnMethod", "ColumnNotes", "KindDir", "KindSymlink", "KindHardlink", "KindOther",
+  "IssueAbsolute", "IssueTraversal", "IssueControl", "IssueTooLong", "IssueEmpty", "IssueRenamed", "FlagEncrypted",
+  "FlagUnsupported", "FlagOverlap", "TableEmpty", "TableLoading", "RowLabel", "Unknown", "ExtractedLine", "SkippedLine",
+  "CreateFilesLine", "CreateNone", "CreatedLine", "ErrorUnsupportedFormat", "ErrorUnsupportedNamed", "ErrorCorrupt",
+  "ErrorTruncated", "ErrorTooManyEntries", "ErrorOverlap", "ErrorBomb", "ErrorSizeMismatch", "ErrorChecksum",
+  "ErrorTooLarge", "ErrorFallbackTooLarge", "ErrorNeedOne", "ErrorNeedSelection", "ErrorWorker", "ErrorGeneric", "ErrorFolder", "LevelStore",
+] as const;
+const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
+const stringsJson = JSON.stringify({
+  ...strings,
+  Lang: lang,
+  MemoryExhausted: t(lang, "common", "Common_MemoryExhausted"),
+  InvalidFormat: t(lang, "common", "Common_InvalidFormat"),
+  CorruptInput: t(lang, "common", "Common_CorruptInput"),
+});
+---
+
+<div class="ds-workbench ds-workbench-single ax-workbench" data-archive-tool>
+  <ToolPanel title={t(lang, ns, "OpenTitle")}>
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small" data-archive-clear>{t(lang, ns, "Clear")}</button>
+    </Fragment>
+    <FileDrop
+      title={t(lang, ns, "DropTitle")}
+      buttonLabel={t(lang, ns, "DropButton")}
+      changeLabel={t(lang, ns, "DropChange")}
+      sub={t(lang, ns, "DropHint")}
+      data-archive-dropzone
+      inputProps={{ "data-archive-file": true }}
+    >
+      <p class="ax-file-name" data-archive-name hidden></p>
+    </FileDrop>
+    <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
+    <Progress
+      title={t(lang, ns, "ProgressTitle")}
+      barLabel={t(lang, ns, "ProgressTitle")}
+      cancelLabel={t(lang, ns, "Cancel")}
+      data-archive-progress
+      cancelProps={{ "data-archive-cancel": true }}
+      barProps={{ "data-archive-progress-bar": true }}
+      fillProps={{ "data-archive-progress-fill": true }}
+      labelProps={{ "data-archive-progress-label": true }}
+    />
+    <StatusMessage kind="info" data-archive-status />
+    <StatusMessage kind="error" data-archive-error />
+  </ToolPanel>
+
+  <OutputPanel panel label={t(lang, ns, "ContentsTitle")} emptyHint={t(lang, ns, "ContentsEmpty")} data-archive-output>
+    <div class="ds-when-filled ax-results" data-archive-loaded hidden>
+      <p class="ax-summary" data-archive-summary></p>
+      <ul class="ax-notes" data-archive-notes></ul>
+
+      <div class="ax-toolbar">
+        <Field label={t(lang, ns, "Filter")} for="ax-filter">
+          <input id="ax-filter" class="ds-field" type="search" autocomplete="off" placeholder={t(lang, ns, "FilterPlaceholder")} data-archive-filter />
+        </Field>
+        <div class="ds-action-row">
+          <button type="button" class="ds-btn ds-btn-small" data-archive-select-all>{t(lang, ns, "SelectAll")}</button>
+          <button type="button" class="ds-btn ds-btn-small" data-archive-select-filtered>{t(lang, ns, "SelectFiltered")}</button>
+          <button type="button" class="ds-btn ds-btn-small" data-archive-select-none>{t(lang, ns, "SelectNone")}</button>
+        </div>
+      </div>
+      <p class="ax-selection" data-archive-selection aria-live="polite"></p>
+      <p class="ds-hint">{t(lang, ns, "SelectHint")}</p>
+
+      <div class="ax-table" data-archive-table></div>
+
+      <section class="ax-section" aria-labelledby="ax-extract-title">
+        <h3 class="ds-label" id="ax-extract-title">{t(lang, ns, "ExtractTitle")}</h3>
+        <div class="ds-action-row">
+          <button type="button" class="ds-btn ds-btn-primary" data-archive-extract-folder hidden><Icon name="download" size={16} />{t(lang, ns, "ExtractFolder")}</button>
+          <button type="button" class="ds-btn" data-archive-extract-zip><Icon name="download" size={16} />{t(lang, ns, "ExtractZip")}</button>
+          <button type="button" class="ds-btn" data-archive-extract-file><Icon name="download" size={16} />{t(lang, ns, "ExtractFile")}</button>
+        </div>
+        <p class="ds-hint" data-archive-extract-result hidden></p>
+        <p class="ds-hint">{t(lang, ns, "SafetyNote")}</p>
+        <p class="ds-hint">{t(lang, ns, "LimitNote")}</p>
+      </section>
+    </div>
+  </OutputPanel>
+
+  <ToolPanel title={t(lang, ns, "CreateTitle")}>
+    <FileDrop
+      compact
+      multiple
+      title={t(lang, ns, "CreateDropTitle")}
+      buttonLabel={t(lang, ns, "CreateDropButton")}
+      changeLabel={t(lang, ns, "CreateDropChange")}
+      sub={t(lang, ns, "CreateDropHint")}
+      data-archive-create-dropzone
+      inputProps={{ "data-archive-create-files": true }}
+    />
+    <FileButton label={t(lang, ns, "CreateFolderButton")} inputProps={{ "data-archive-create-folder": true, multiple: true, ...({ webkitdirectory: true } as Record<string, boolean>) }} />
+    <p class="ax-file-name" data-archive-create-list>{t(lang, ns, "CreateNone")}</p>
+    <div class="ds-settings ax-settings">
+      <Field label={t(lang, ns, "CreateFormat")} for="ax-create-format">
+        <select id="ax-create-format" class="ds-field-select" data-archive-create-format>
+          <option value="zip">ZIP</option>
+          <option value="tar.gz">TAR.GZ</option>
+          <option value="tar.zst">TAR.ZST</option>
+          <option value="tar">TAR</option>
+        </select>
+      </Field>
+      <Field label={t(lang, ns, "CreateLevel")} for="ax-create-level">
+        <input id="ax-create-level" class="ds-field" type="number" min="0" max="9" step="1" value="6" inputmode="numeric" data-archive-create-level />
+      </Field>
+    </div>
+    <p class="ds-hint" data-archive-create-level-hint></p>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-archive-create><Icon name="download" size={16} />{t(lang, ns, "Create")}</button>
+      <button type="button" class="ds-btn ds-btn-small" data-archive-create-clear>{t(lang, ns, "Clear")}</button>
+    </div>
+    <p class="ds-hint">{t(lang, ns, "CreateNote")}</p>
+  </ToolPanel>
+</div>
+
+<script is:inline type="application/json" data-archive-strings set:html={stringsJson} />
+<script>import "@/tools/archive-explorer.client.ts";</script>
+
+<style>
+  .ax-workbench { align-items: start; }
+  .ax-file-name { margin: 0.35rem 0 0; font-size: var(--mdt-fs-small); color: var(--mdt-text-muted); overflow-wrap: anywhere; }
+  .ax-results { display: grid; gap: 1rem; min-width: 0; }
+  .ax-section { display: grid; gap: 0.65rem; min-width: 0; padding-top: 0.9rem; border-top: 1px solid var(--mdt-border-soft); }
+  .ax-summary { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .ax-notes { margin: 0; padding: 0 0 0 1.1rem; display: grid; gap: 0.2rem; font-size: var(--mdt-fs-label); color: var(--mdt-text-muted); }
+  .ax-notes :global(li) { overflow-wrap: anywhere; }
+  .ax-notes :global(li.is-warning) { color: var(--mdt-warning, var(--mdt-danger)); }
+  .ax-toolbar { display: grid; gap: 0.65rem; grid-template-columns: minmax(0, 1fr); }
+  .ax-selection { margin: 0; font-size: var(--mdt-fs-label); font-variant-numeric: tabular-nums; }
+  .ax-table { min-width: 0; font-size: var(--mdt-fs-small); }
+  .ax-table :global(.ds-explorer-row) { cursor: pointer; }
+  .ax-table :global(.ax-row-selected) { background: color-mix(in srgb, var(--mdt-cat, var(--mdt-accent)) 14%, transparent); }
+  .ax-table :global(.ax-row-unsafe .ds-explorer-cell:nth-child(8)) { color: var(--mdt-danger); }
+  .ax-table :global(.ax-row-dir .ds-explorer-cell:nth-child(3)) { font-weight: 600; }
+  .ax-settings { max-width: 32rem; }
+</style>

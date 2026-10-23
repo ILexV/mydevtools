@@ -1,0 +1,171 @@
+---
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import FileDrop from "@/components/tool/FileDrop.astro";
+import Icon from "@/components/Icon.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import Progress from "@/components/tool/Progress.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import { BENCH_CODECS, BENCH_DEFAULT_LEVELS, BENCH_DEFAULT_SAMPLE_MIB, BENCH_LEVELS, BENCH_SAMPLE_MIB } from "@/tools/compression-benchmark";
+
+interface Props { lang: LocaleCode }
+const { lang } = Astro.props as Props;
+const ns = "tools/compression-benchmark";
+const clientKeys = [
+  "ProgressRun", "StatusReady", "StatusRunning", "StatusDone", "StatusCanceled", "StatusSaving", "StatusSaved",
+  "CodecGzip", "CodecBrotli", "CodecZstd", "CodecGzipNative", "SampleLine", "BestRatio", "BestSpeed", "Verified",
+  "VerifyFailed", "NotChecked", "Save", "SaveLabel", "ErrorNoFile", "ErrorNoRuns", "ErrorLevels", "ErrorWorker",
+  "ErrorGeneric", "ErrorCorrupt", "Unknown",
+] as const;
+const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
+const stringsJson = JSON.stringify({
+  ...strings,
+  Lang: lang,
+  MemoryExhausted: t(lang, "common", "Common_MemoryExhausted"),
+  InvalidFormat: t(lang, "common", "Common_InvalidFormat"),
+  CorruptInput: t(lang, "common", "Common_CorruptInput"),
+});
+const codecLabels = { gzip: "CodecGzip", brotli: "CodecBrotli", zstd: "CodecZstd", "gzip-native": "CodecGzipNative" } as const;
+---
+
+<div class="ds-workbench ds-workbench-single cb-workbench" data-bench-tool>
+  <ToolPanel title={t(lang, ns, "InputTitle")}>
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small" data-bench-clear>{t(lang, ns, "Clear")}</button>
+    </Fragment>
+    <FileDrop
+      compact
+      title={t(lang, ns, "DropTitle")}
+      buttonLabel={t(lang, ns, "DropButton")}
+      changeLabel={t(lang, ns, "DropChange")}
+      sub={t(lang, ns, "DropHint")}
+      data-bench-dropzone
+      inputProps={{ "data-bench-file": true }}
+    >
+      <p class="cb-file-name" data-bench-name hidden></p>
+    </FileDrop>
+    <div class="ds-settings cb-settings">
+      <Field label={t(lang, ns, "Sample")} for="cb-sample">
+        <select id="cb-sample" class="ds-field-select" data-bench-sample>
+          {BENCH_SAMPLE_MIB.map((mib) => (
+            <option value={mib} selected={mib === BENCH_DEFAULT_SAMPLE_MIB}>{t(lang, ns, "SampleOption").replace("{0}", String(mib))}</option>
+          ))}
+        </select>
+      </Field>
+    </div>
+    <fieldset class="cb-codecs">
+      <legend class="ds-label">{t(lang, ns, "CodecsTitle")}</legend>
+      {BENCH_CODECS.map((codec) => (
+        <div class="cb-codec">
+          <label class="ds-check-row">
+            <input type="checkbox" class="ds-check" checked data-bench-codec={codec} />
+            <span>{t(lang, ns, codecLabels[codec])}</span>
+          </label>
+          {codec === "gzip-native" ? (
+            <p class="ds-hint cb-codec-hint">{t(lang, ns, "NativeHint")}</p>
+          ) : (
+            <input
+              class="ds-field cb-levels"
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              spellcheck="false"
+              value={BENCH_DEFAULT_LEVELS[codec]}
+              aria-label={`${t(lang, ns, codecLabels[codec])} · ${t(lang, ns, "Levels")} ${BENCH_LEVELS[codec][0]}–${BENCH_LEVELS[codec][1]}`}
+              data-bench-levels={codec}
+            />
+          )}
+          {codec !== "gzip-native" && <span class="cb-range">{t(lang, ns, "Levels")} {BENCH_LEVELS[codec][0]}–{BENCH_LEVELS[codec][1]}</span>}
+        </div>
+      ))}
+    </fieldset>
+    <label class="ds-check-row">
+      <input type="checkbox" class="ds-check" checked data-bench-verify />
+      <span>{t(lang, ns, "Verify")}</span>
+    </label>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-bench-run>{t(lang, ns, "Run")}</button>
+    </div>
+    <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
+    <p class="ds-hint">{t(lang, ns, "SlowNote")}</p>
+    <Progress
+      title={t(lang, ns, "ProgressTitle")}
+      barLabel={t(lang, ns, "ProgressTitle")}
+      cancelLabel={t(lang, ns, "Cancel")}
+      data-bench-progress
+      cancelProps={{ "data-bench-cancel": true }}
+      barProps={{ "data-bench-progress-bar": true }}
+      fillProps={{ "data-bench-progress-fill": true }}
+      labelProps={{ "data-bench-progress-label": true }}
+    />
+    <StatusMessage kind="info" data-bench-status />
+    <StatusMessage kind="error" data-bench-error />
+  </ToolPanel>
+
+  <OutputPanel panel label={t(lang, ns, "ResultsTitle")} emptyHint={t(lang, ns, "ResultsEmpty")} data-bench-output>
+    <div class="ds-when-filled cb-results" data-bench-loaded hidden>
+      <p class="cb-summary" data-bench-summary></p>
+      <ul class="cb-notes" data-bench-notes></ul>
+      <div class="cb-table-wrap">
+        <table class="cb-table">
+          <thead>
+            <tr>
+              <th scope="col">{t(lang, ns, "ColumnCodec")}</th>
+              <th scope="col">{t(lang, ns, "ColumnLevel")}</th>
+              <th scope="col">{t(lang, ns, "ColumnSize")}</th>
+              <th scope="col">{t(lang, ns, "ColumnRatio")}</th>
+              <th scope="col">{t(lang, ns, "ColumnSaved")}</th>
+              <th scope="col">{t(lang, ns, "ColumnCompress")}</th>
+              <th scope="col">{t(lang, ns, "ColumnCompressSpeed")}</th>
+              <th scope="col">{t(lang, ns, "ColumnDecompress")}</th>
+              <th scope="col">{t(lang, ns, "ColumnDecompressSpeed")}</th>
+              <th scope="col">{t(lang, ns, "ColumnMemory")}</th>
+              <th scope="col">{t(lang, ns, "ColumnCheck")}</th>
+              <th scope="col"><span class="visually-hidden">{t(lang, ns, "Save")}</span></th>
+            </tr>
+          </thead>
+          <tbody data-bench-rows></tbody>
+        </table>
+      </div>
+      <div class="ds-action-row">
+        <button type="button" class="ds-btn" data-bench-csv><Icon name="download" size={16} />{t(lang, ns, "DownloadCsv")}</button>
+      </div>
+      <p class="ds-hint">{t(lang, ns, "MetricsNote")}</p>
+    </div>
+  </OutputPanel>
+</div>
+
+<script is:inline type="application/json" data-bench-strings set:html={stringsJson} />
+<script>import "@/tools/compression-benchmark.client.ts";</script>
+
+<style>
+  .cb-workbench { align-items: start; }
+  .cb-file-name { margin: 0.35rem 0 0; font-size: var(--mdt-fs-small); color: var(--mdt-text-muted); overflow-wrap: anywhere; }
+  .cb-settings { max-width: 20rem; }
+  .cb-codecs { display: grid; gap: 0.55rem; margin: 0; padding: 0; border: 0; min-width: 0; }
+  .cb-codec { display: grid; grid-template-columns: minmax(10rem, 14rem) minmax(0, 12rem) auto; gap: 0.35rem 0.75rem; align-items: center; min-width: 0; }
+  .cb-codec .ds-check-row { margin: 0; }
+  .cb-codec-hint { margin: 0; grid-column: 2 / -1; }
+  .cb-range { font-size: var(--mdt-fs-label); color: var(--mdt-text-muted); font-variant-numeric: tabular-nums; }
+  @media (max-width: 34rem) {
+    .cb-codec { grid-template-columns: minmax(0, 1fr) auto; }
+    .cb-codec .ds-check-row { grid-column: 1 / -1; }
+    .cb-codec-hint { grid-column: 1 / -1; }
+  }
+  .cb-results { display: grid; gap: 1rem; min-width: 0; }
+  .cb-summary { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .cb-notes { margin: 0; padding: 0 0 0 1.1rem; display: grid; gap: 0.2rem; font-size: var(--mdt-fs-label); color: var(--mdt-text-muted); }
+  .cb-table-wrap { position: relative; min-width: 0; max-width: 100%; overflow-x: auto; border: 1px solid var(--mdt-border-soft); border-radius: var(--mdt-radius-md); }
+  .cb-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: var(--mdt-fs-small); }
+  .cb-table th { background: var(--mdt-surface-raised); color: var(--mdt-text-muted); font-size: 0.78rem; font-weight: 600; text-align: right; }
+  .cb-table th,
+  .cb-table :global(td) { padding: 0.4rem 0.55rem; border-bottom: 1px solid var(--mdt-border-soft); white-space: nowrap; text-align: right; }
+  .cb-table th:first-child,
+  .cb-table :global(td:first-child) { text-align: left; }
+  .cb-table :global(tr.is-best-ratio td:nth-child(4)),
+  .cb-table :global(tr.is-best-speed td:nth-child(7)) { color: var(--mdt-success); font-weight: 700; }
+  .cb-table :global(td.is-failed) { color: var(--mdt-danger); font-weight: 600; }
+  .cb-table :global(.cb-bar) { display: block; height: 3px; margin-top: 0.2rem; border-radius: 2px; background: var(--mdt-cat, var(--mdt-accent)); }
+</style>

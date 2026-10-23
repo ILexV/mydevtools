@@ -2,14 +2,14 @@
 
 ## Project Overview
 
-MyDevTools is a privacy-first collection of 57 multilingual developer utilities. The **live site** is a static Astro build in `apps/site`, published to GitHub Pages at https://mydevtools.app/ (custom domain via `apps/site/public/CNAME`, branch `gh-pages`; the old https://ilexv.github.io/mydevtools/ redirects there). All computation runs in the browser: vanilla TypeScript controllers plus lazy-loaded Rust/WASM, no server runtime.
+MyDevTools is a privacy-first collection of 59 multilingual developer utilities. The **live site** is a static Astro build in `apps/site`, published to GitHub Pages at https://mydevtools.app/ (custom domain via `apps/site/public/CNAME`, branch `gh-pages`; the old https://ilexv.github.io/mydevtools/ redirects there). All computation runs in the browser: vanilla TypeScript controllers plus lazy-loaded Rust/WASM, no server runtime.
 
 The former .NET 10 Blazor SSR site (`MyDevToolsApp/`) and the React UI kit (`packages/ui-kit`, `apps/storybook`) are **legacy**: kept for reference, not deployed, and not used by the Astro site. Do not add features there.
 
 ## Architecture & Data Flow
 
 - Config: `apps/site/astro.config.mjs` — `output: "static"`, `site: https://mydevtools.app`, `base: "/"`, `trailingSlash: "always"`, `build.format: "directory"` (each route emits `index.html` so deep links survive Pages). `@/*` aliases `src/`.
-- Registries are the single source of truth (`apps/site/src/registry/`): `tools.ts` (57 tools: slug, category, WASM domain, capabilities), `categories.ts` (13), `locales.ts` (10 languages, native names, og:locale, hreflang), `catalog.ts` (grouping/related), `validate.ts` (build-time assertions). Routes, home catalog, search, command palette, related tools and sitemap are all derived from them.
+- Registries are the single source of truth (`apps/site/src/registry/`): `tools.ts` (59 tools: slug, category, WASM domain, capabilities), `categories.ts` (13), `locales.ts` (10 languages, native names, og:locale, hreflang), `catalog.ts` (grouping/related), `validate.ts` (build-time assertions). Routes, home catalog, search, command palette, related tools and sitemap are all derived from them.
 - Routes: `src/pages/index.astro` (root language redirect), `[lang]/index.astro` (home), `[lang]/[slug].astro` (tool page via `getStaticPaths` over LOCALES × TOOLS; picks the component from the `TOOL_COMPONENTS` map), plus `404.astro`, `offline.astro`, `design.astro` (design-system showcase), `sitemap.xml.ts`, `manifest.webmanifest.ts`.
 - Tool flow: `/{lang}/{slug}/` → `src/tools/<PascalName>.astro` (markup + localized strings as an inline JSON island) → `src/tools/<slug>.client.ts` controller → optional `src/scripts/wasm/<domain>-client.ts` → dynamic import of `src/generated/wasm/<domain>/` bindings; heavy/file work runs in `src/workers/*.worker.ts` (protocol in `scripts/wasm/worker-protocol.ts`: start/progress/result/error/cancel, 1 MiB chunks).
 - Localization: JSON in `src/i18n/locales/<lang>/{common,home,categories}.json` and `tools/<slug>.json`. Rendered at build time with `t()` from `src/i18n/messages.ts` (fallback locale → en → key, `{param}` interpolation); pluralization via `src/lib/format.ts` (`Intl.PluralRules`). Languages: `en`, `ru`, `es`, `de`, `pt`, `zh`, `fr`, `ja`, `ko`, `hi`.
@@ -25,7 +25,7 @@ The former .NET 10 Blazor SSR site (`MyDevToolsApp/`) and the React UI kit (`pac
 - `apps/site/src/generated/wasm/`: wasm-bindgen output — **gitignored, must be generated** (`npm run build:wasm`).
 - `apps/site/{test,scripts}/`: unit tests (node:test) and build tooling (`validate-i18n.mjs`, `smoke-dist.mjs`).
 - `apps/site/public/`: static files copied to `dist` (icons, `robots.txt`, `.nojekyll`).
-- `wasm/<domain>/`: Rust crates (hash, encoding, cryptography, structured_data, password, text_tools, image_tools, regex_tool, qrcode, pdf, ipcalc).
+- `wasm/<domain>/`: Rust crates (hash, encoding, cryptography, structured_data, password, text_tools, image_tools, regex_tool, qrcode, pdf, ipcalc, compression).
 - `e2e/`: Playwright visual-regression and cross-browser suites (kept at repo root on purpose).
 - `scripts/deploy-pages.mjs`: publishes `apps/site/dist` to `gh-pages`.
 - `docs/inventory/`: parity inventory (tools, locales, client state, SEO, parity fixtures); `docs/design/`: design direction and spec.
@@ -38,7 +38,7 @@ Run from the repository root (npm workspaces).
 
 ```bash
 npm install                                  # all workspaces
-npm run build:wasm                           # wasm/build.ps1 → apps/site/src/generated/wasm (all 11 domains)
+npm run build:wasm                           # wasm/build.ps1 → apps/site/src/generated/wasm (all 12 domains)
 pwsh -Command './wasm/build.ps1 -Configuration Release -WasmOutRoot apps/site/src/generated/wasm -Domains ipcalc'   # one domain
 
 npm run dev -w @mydevtools/site              # http://localhost:3312/

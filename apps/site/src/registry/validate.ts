@@ -26,6 +26,7 @@ const KNOWN_WASM: Record<WasmDomain, true> = {
   qrcode: true,
   pdf: true,
   ipcalc: true,
+  compression: true,
 };
 
 export interface RegistryIssue {

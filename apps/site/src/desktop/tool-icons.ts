@@ -19,6 +19,8 @@ export const TOOL_ICONS: Record<string, string> = {
   "base58-encoder": radix("58"),
   "hex-encoder": `<path d="M10 2.6 16.4 6.3v7.4L10 17.4 3.6 13.7V6.3Z"/>${label("0x", 12.6, 7.4)}`,
   "hex-viewer": `<rect x="3" y="3.5" width="14" height="13" rx="2"/><path d="M6 7.3h2M10.5 7.3h3.5M6 10h2M10.5 10h3.5M6 12.7h2M10.5 12.7h2"/>`,
+  "archive-explorer": `<rect x="3.5" y="3" width="13" height="14" rx="2"/><path d="M10 3v2M10 6.5v1.5M10 9.5v1.5"/><rect x="8.6" y="12" width="2.8" height="2.6" rx="0.6"/>`,
+  "compression-benchmark": `<path d="M3.5 16.5h13"/><path d="M5 16.5V6.5M8.7 16.5V10M12.4 16.5V12.5M16 16.5v-3"/><path d="M4 4.5l3 1.5 3-1.5 3 1.5 3-1.5"/>`,
   "url-encoder": `<path d="M8.6 11.4a3 3 0 0 0 4.2 0l2.6-2.6a3 3 0 0 0-4.2-4.2l-1 1"/><path d="M11.4 8.6a3 3 0 0 0-4.2 0l-2.6 2.6a3 3 0 0 0 4.2 4.2l1-1"/>`,
   "html-entity-encoder": `<path d="M5.5 6 2.5 10l3 4M14.5 6l3 4-3 4"/>${label("&amp;", 13.6, 9.5)}`,
 

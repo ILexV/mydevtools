@@ -95,6 +95,7 @@ export const TOOL_ICONS: Record<string, string> = {
   "pdf-compressor": `${page}<path d="M10 8.6v5M7.9 11.6 10 13.7l2.1-2.1"/>`,
   "pdf-merger": `<rect x="2.5" y="2.8" width="7.5" height="9.5" rx="1.4"/><rect x="10" y="7.7" width="7.5" height="9.5" rx="1.4"/><path d="M4.6 15.2h3M6.1 13.7v3"/>`,
   "pdf-to-text": `${page}<path d="M7.4 9.6h5.2M10 9.6v5"/>`,
+  "pdf-organizer": `${page}<path d="M7.3 11.6a2.8 2.8 0 1 0 1-2.4"/><path d="M7.4 7.9v1.6h1.6"/>`,
 
   /* QR */
   "qr-code-generator": `<rect x="3" y="3" width="5.6" height="5.6" rx="1.1"/><rect x="11.4" y="3" width="5.6" height="5.6" rx="1.1"/><rect x="3" y="11.4" width="5.6" height="5.6" rx="1.1"/>${dot(5.8, 5.8, 0.9)}${dot(14.2, 5.8, 0.9)}${dot(5.8, 14.2, 0.9)}<path d="M14.2 11.4v5.6M11.4 14.2H17"/>`,

@@ -6,6 +6,8 @@ use std::io::Cursor;
 use ttf_parser::Face;
 use wasm_bindgen::prelude::*;
 
+mod pages;
+
 const BUILD_ID: &str = "winansi-fallback-2026-02-19-2";
 
 // Diagnostic logging. Off by default: text extraction used to emit thousands
@@ -157,7 +159,7 @@ pub fn merge_pdfs_bytes(files: &[Vec<u8>]) -> Result<Vec<u8>, String> {
 
 /// Inheritable page attributes (PDF 32000 §7.7.3.4) missing on the page but
 /// set on an ancestor /Pages node, nearest ancestor first.
-fn inherited_page_attrs(doc: &Document, page_id: ObjectId) -> Vec<(Vec<u8>, Object)> {
+pub(crate) fn inherited_page_attrs(doc: &Document, page_id: ObjectId) -> Vec<(Vec<u8>, Object)> {
     const KEYS: [&[u8]; 4] = [b"Resources", b"MediaBox", b"CropBox", b"Rotate"];
     let mut found: Vec<(Vec<u8>, Object)> = Vec::new();
     let Ok(page) = doc.get_dictionary(page_id) else { return found };
@@ -2270,7 +2272,7 @@ pub fn extract_text(data: js_sys::Uint8Array) -> Result<String, JsValue> {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
     use lopdf::content::Operation;
     use lopdf::{dictionary, Stream};
@@ -2278,7 +2280,7 @@ mod tests {
     /// Build a PDF in memory with one page per entry of `pages`, each showing
     /// its text in Helvetica (WinAnsi). Adds an /Info dict so compression can
     /// be checked for metadata stripping.
-    fn make_pdf(pages: &[&str]) -> Vec<u8> {
+    pub(crate) fn make_pdf(pages: &[&str]) -> Vec<u8> {
         let mut doc = Document::with_version("1.4");
         let pages_id = doc.new_object_id();
         let font_id = doc.add_object(dictionary! {

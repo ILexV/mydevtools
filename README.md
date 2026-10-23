@@ -4,14 +4,14 @@
 
 # MyDevTools
 
-**59 free developer tools that run entirely in your browser.**
+**60 free developer tools that run entirely in your browser.**
 JSON, Base64, JWT, hashes, regex, crypto keys, images, PDF — and explorers for multi-gigabyte CSV, JSON, logs, Parquet and SQLite files.
 Your input and files never leave your device.
 
 ### 👉 [mydevtools.app](https://mydevtools.app/)
 
 [![Website](https://img.shields.io/website?url=https%3A%2F%2Fmydevtools.app%2Fen%2F&label=mydevtools.app)](https://mydevtools.app/)
-![Tools](https://img.shields.io/badge/tools-59-4f46e5)
+![Tools](https://img.shields.io/badge/tools-60-4f46e5)
 ![Languages](https://img.shields.io/badge/languages-10-0d9488)
 ![Rust + WebAssembly](https://img.shields.io/badge/Rust-WebAssembly-b7410e)
 ![Astro](https://img.shields.io/badge/Astro-static-ff5d01)
@@ -179,6 +179,7 @@ All but the subnet calculator run through the optional [local Windows agent](app
 |---|---|
 | [PDF Compressor](https://mydevtools.app/en/pdf-compressor/) | Shrink PDF files losslessly: recompress streams, merge duplicate objects and strip metadata. Batch processing. |
 | [PDF Merger](https://mydevtools.app/en/pdf-merger/) | Merge two or more PDF files into one merged.pdf, in the order you set with move up/down. Pages keep size and rotation. |
+| [PDF Page Organizer](https://mydevtools.app/en/pdf-organizer/) | Rotate, delete, reorder and split PDF pages with thumbnails; split every N pages or by ranges, download parts as ZIP. |
 | [PDF to Text](https://mydevtools.app/en/pdf-to-text/) | Extract the text layer of PDF files into UTF-8 .txt files, with Unicode font mapping and batch processing (no OCR). |
 
 ### QR codes

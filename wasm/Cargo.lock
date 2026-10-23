@@ -1753,6 +1753,8 @@ dependencies = [
  "hex",
  "js-sys",
  "lopdf",
+ "serde",
+ "serde_json",
  "sha2",
  "ttf-parser 0.19.2",
  "wasm-bindgen",

@@ -1,0 +1,268 @@
+---
+/**
+ * PDF Organizer (pdf WASM domain + lazy pdf.js thumbnails). One PDF → page
+ * grid with thumbnails: select, rotate left/right, delete, reorder by drag or
+ * move buttons, reset. Save as one PDF, or split every N pages / by custom
+ * ranges (`1-3, 5, 8-`, positions in the edited order) into several PDFs with
+ * a ZIP of all parts. Page edits run in the pdf worker (`organizePdf`, lopdf):
+ * pages are moved, not re-rendered. Helpers in `pdf-organizer.ts`, thumbnails
+ * in `pdf-thumbnails.ts`, behavior in `pdf-organizer.client.ts`.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+import FileDrop from "@/components/tool/FileDrop.astro";
+import Field from "@/components/tool/Field.astro";
+import Progress from "@/components/tool/Progress.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/pdf-organizer";
+const k = (key: string) => t(lang, ns, key);
+const s = {
+  dropZone: k("DropZoneTitle"),
+  dropSubtitle: t(lang, "common", "Common_FileDropSubtitle"),
+  chooseFile: k("ChooseFile"),
+  changeFile: k("ChangeFile"),
+  pagesTitle: k("PagesTitle"),
+  pagesMeta: k("PagesMeta"),
+  dragHint: k("DragHint"),
+  selectAll: k("SelectAll"),
+  selectNone: k("SelectNone"),
+  selectedCount: k("SelectedCount"),
+  rotateLeft: k("RotateLeft"),
+  rotateRight: k("RotateRight"),
+  deleteSelected: k("DeleteSelected"),
+  reset: k("Reset"),
+  pageLabel: k("PageLabel"),
+  fromSource: k("FromSource"),
+  moveEarlier: k("MoveEarlier"),
+  moveLater: k("MoveLater"),
+  deletePage: k("DeletePage"),
+  outputTitle: k("OutputTitle"),
+  modeLabel: k("ModeLabel"),
+  modeSingle: k("ModeSingle"),
+  modeEvery: k("ModeEvery"),
+  modeRanges: k("ModeRanges"),
+  everyLabel: k("EveryLabel"),
+  rangesLabel: k("RangesLabel"),
+  rangesHint: k("RangesHint"),
+  saveButton: k("SaveButton"),
+  splitButton: k("SplitButton"),
+  working: k("Working"),
+  loading: k("Loading"),
+  cancel: k("Cancel"),
+  canceled: k("Canceled"),
+  resultTitle: k("ResultTitle"),
+  resultSummary: k("ResultSummary"),
+  resultPages: k("ResultPages"),
+  downloadAll: k("DownloadAll"),
+  download: k("Download"),
+  errorNotPdf: k("ErrorNotPdf"),
+  errorInvalidPdf: k("ErrorInvalidPdf"),
+  errorEncrypted: k("ErrorEncrypted"),
+  errorRanges: k("ErrorRanges"),
+  errorNoPages: k("ErrorNoPages"),
+  nothingChanged: k("NothingChanged"),
+  errorBuild: k("ErrorBuild"),
+  thumbsUnavailable: k("ThumbsUnavailable"),
+  preparing: t(lang, "common", "Common_Preparing"),
+  processingFailed: t(lang, "common", "Common_ProcessingFailed"),
+  memoryExhausted: t(lang, "common", "Common_MemoryExhausted"),
+  invalidFormat: t(lang, "common", "Common_InvalidFormat"),
+  corruptInput: t(lang, "common", "Common_CorruptInput"),
+};
+const stringsJson = JSON.stringify(s);
+---
+
+<div class="ds-stack pdfo-tool" data-pdfo-tool>
+  <FileDrop
+    title={s.dropZone}
+    sub={s.dropSubtitle}
+    buttonLabel={s.chooseFile}
+    changeLabel={s.changeFile}
+    accept=".pdf,application/pdf"
+    data-pdfo-dropzone
+    inputProps={{ "data-pdfo-file": true }}
+  />
+
+  <Progress indeterminate title={s.loading} data-pdfo-loading labelProps={{ "data-pdfo-loading-label": true }} />
+  <StatusMessage kind="error" data-pdfo-error />
+
+  <ToolPanel title={s.pagesTitle} meta="" metaProps={{ "data-pdfo-meta": true }} data-pdfo-pages hidden>
+    <div class="pdfo-toolbar" role="toolbar" aria-label={s.pagesTitle}>
+      <button type="button" class="ds-btn ds-btn-small" data-pdfo-select-all>{s.selectAll}</button>
+      <button type="button" class="ds-btn ds-btn-small" data-pdfo-select-none disabled>{s.selectNone}</button>
+      <span class="pdfo-selected" data-pdfo-selected aria-live="polite"></span>
+      <span class="pdfo-toolbar-gap"></span>
+      <button type="button" class="ds-btn ds-btn-small" data-pdfo-rotate="-90" disabled>{s.rotateLeft}</button>
+      <button type="button" class="ds-btn ds-btn-small" data-pdfo-rotate="90" disabled>{s.rotateRight}</button>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-danger" data-pdfo-delete-selected disabled>{s.deleteSelected}</button>
+      <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-pdfo-reset disabled>{s.reset}</button>
+    </div>
+    <p class="ds-hint">{s.dragHint}</p>
+    <StatusMessage kind="info" data-pdfo-thumbs-note />
+    <ol class="pdfo-grid" data-pdfo-grid></ol>
+  </ToolPanel>
+
+  <ToolPanel title={s.outputTitle} data-pdfo-output hidden>
+    <div class="ds-settings ds-settings-flat">
+      <fieldset class="ds-check-group ds-settings-wide">
+        <legend class="ds-label">{s.modeLabel}</legend>
+        <label class="ds-check-row"><input type="radio" class="ds-radio" name="pdfo-mode" value="single" checked data-pdfo-mode /><span>{s.modeSingle}</span></label>
+        <label class="ds-check-row"><input type="radio" class="ds-radio" name="pdfo-mode" value="every" data-pdfo-mode /><span>{s.modeEvery}</span></label>
+        <label class="ds-check-row"><input type="radio" class="ds-radio" name="pdfo-mode" value="ranges" data-pdfo-mode /><span>{s.modeRanges}</span></label>
+      </fieldset>
+      <Field label={s.everyLabel} for="pdfo-every" data-pdfo-every-field hidden>
+        <input id="pdfo-every" type="number" class="ds-field" min="1" step="1" value="1" inputmode="numeric" data-pdfo-every />
+      </Field>
+      <Field label={s.rangesLabel} for="pdfo-ranges" hint={s.rangesHint} class="ds-settings-wide" data-pdfo-ranges-field hidden>
+        <input
+          id="pdfo-ranges"
+          type="text"
+          class="ds-field mono"
+          placeholder="1-3, 5, 8-"
+          autocomplete="off"
+          spellcheck="false"
+          aria-describedby="pdfo-ranges-hint"
+          data-pdfo-ranges
+        />
+      </Field>
+    </div>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-pdfo-run>{s.saveButton}</button>
+    </div>
+    <Progress
+      indeterminate
+      title={s.working}
+      cancelLabel={s.cancel}
+      data-pdfo-progress
+      cancelProps={{ "data-pdfo-cancel": true }}
+      labelProps={{ "data-pdfo-progress-label": true }}
+    />
+    <StatusMessage kind="info" data-pdfo-note />
+  </ToolPanel>
+
+  <ToolPanel title={s.resultTitle} meta="" metaProps={{ "data-pdfo-result-meta": true }} data-pdfo-result hidden>
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small ds-btn-primary" data-pdfo-download-all hidden>{s.downloadAll}</button>
+    </Fragment>
+    <ol class="ds-file-list" data-pdfo-result-list></ol>
+  </ToolPanel>
+</div>
+
+<script is:inline type="application/json" data-pdfo-strings set:html={stringsJson} />
+<script>import "@/tools/pdf-organizer.client.ts";</script>
+
+<style>
+  /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
+  .pdfo-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .pdfo-toolbar-gap { flex: 1 1 0; }
+  .pdfo-selected {
+    font-size: var(--mdt-fs-meta);
+    color: var(--mdt-text-muted);
+  }
+  .pdfo-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: 0.75rem;
+  }
+</style>
+
+<!-- Runtime cards (controller-created): global, scoped under the tool root. -->
+<style is:global>
+  [data-pdfo-tool] .pdfo-card {
+    position: relative;
+    display: grid;
+    gap: 0.4rem;
+    padding: 0.5rem;
+    border: 1px solid var(--mdt-border);
+    border-radius: var(--mdt-radius-sm);
+    background: var(--mdt-surface);
+    min-width: 0;
+  }
+  [data-pdfo-tool] .pdfo-card.is-selected {
+    border-color: var(--mdt-cat);
+    box-shadow: 0 0 0 1px var(--mdt-cat);
+  }
+  [data-pdfo-tool] .pdfo-card.is-dragging { opacity: 0.45; }
+  [data-pdfo-tool] .pdfo-card.is-drop-before { box-shadow: inset 4px 0 0 var(--mdt-cat); }
+  [data-pdfo-tool] .pdfo-card.is-drop-after { box-shadow: inset -4px 0 0 var(--mdt-cat); }
+  [data-pdfo-tool] .pdfo-card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+  [data-pdfo-tool] .pdfo-card-label {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    font-size: var(--mdt-fs-meta);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  [data-pdfo-tool] .pdfo-card .ds-icon-btn {
+    width: 1.85rem;
+    height: 1.85rem;
+    flex-shrink: 0;
+  }
+  [data-pdfo-tool] .pdfo-card-label > span { white-space: nowrap; }
+  [data-pdfo-tool] .pdfo-from {
+    color: var(--mdt-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  [data-pdfo-tool] .pdfo-thumb {
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: var(--mdt-radius-xs);
+    background: var(--mdt-surface-raised);
+    cursor: grab;
+  }
+  [data-pdfo-tool] .pdfo-thumb canvas {
+    max-width: 100%;
+    max-height: 100%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+    transition: transform var(--mdt-dur-micro);
+  }
+  [data-pdfo-tool] .pdfo-thumb-placeholder {
+    font-family: var(--mdt-font-mono);
+    font-size: 1.4rem;
+    color: var(--mdt-text-muted);
+  }
+  [data-pdfo-tool] .pdfo-card-meta {
+    display: flex;
+    gap: 0.5rem;
+    min-width: 0;
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-meta);
+    color: var(--mdt-text-muted);
+  }
+  [data-pdfo-tool] .pdfo-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.15rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-pdfo-tool] .pdfo-thumb canvas { transition: none; }
+  }
+</style>

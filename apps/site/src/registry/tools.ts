@@ -154,6 +154,7 @@ const TOOL_CATALOG = [
   // ── pdf ───────────────────────────────────────────────────────────────────
   { slug: "pdf-compressor", monogram: "−KB", category: "pdf", wasm: "pdf", capabilities: { file: "multi", progress: true, download: true } },
   { slug: "pdf-merger", monogram: "1+2", category: "pdf", wasm: "pdf", capabilities: { file: "multi", progress: true, download: true } },
+  { slug: "pdf-organizer", monogram: "3↔1", category: "pdf", wasm: "pdf", capabilities: { file: "single", progress: true, cancel: true, download: true } },
   { slug: "pdf-to-text", monogram: "txt", category: "pdf", wasm: "pdf", capabilities: { file: "multi", progress: true, download: true } },
 
   // ── qrcode ────────────────────────────────────────────────────────────────

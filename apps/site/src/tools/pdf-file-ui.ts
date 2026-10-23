@@ -15,6 +15,10 @@ export const PDF_ICONS = {
   up: `${SVG_OPEN}<path d="M10 15.5V4.5M5.5 9 10 4.5 14.5 9"/></svg>`,
   down: `${SVG_OPEN}<path d="M10 4.5v11M5.5 11l4.5 4.5 4.5-4.5"/></svg>`,
   check: `${SVG_OPEN}<path d="m4 10.5 4 4 8-9"/></svg>`,
+  left: `${SVG_OPEN}<path d="M15.5 10H4.5M9 5.5 4.5 10 9 14.5"/></svg>`,
+  right: `${SVG_OPEN}<path d="M4.5 10h11M11 5.5l4.5 4.5-4.5 4.5"/></svg>`,
+  rotateLeft: `${SVG_OPEN}<path d="M4.5 8.5A6 6 0 1 1 5 13"/><path d="M4.5 4v4.5H9"/></svg>`,
+  rotateRight: `${SVG_OPEN}<path d="M15.5 8.5A6 6 0 1 0 15 13"/><path d="M15.5 4v4.5H11"/></svg>`,
 } as const;
 
 export interface FileRowParts {

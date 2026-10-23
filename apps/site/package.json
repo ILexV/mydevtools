@@ -45,7 +45,8 @@
     "hyparquet": "^1.31.4",
     "hyparquet-compressors": "^1.1.2",
     "hyparquet-writer": "^0.16.12",
-    "parquet-wasm": "^0.9.0"
+    "parquet-wasm": "^0.9.0",
+    "pdfjs-dist": "5.7.284"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",

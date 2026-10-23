@@ -75,6 +75,7 @@ import ImageConverter from "@/tools/ImageConverter.astro";
 import ImageResizer from "@/tools/ImageResizer.astro";
 import PdfCompressor from "@/tools/PdfCompressor.astro";
 import PdfMerger from "@/tools/PdfMerger.astro";
+import PdfOrganizer from "@/tools/PdfOrganizer.astro";
 import PdfToText from "@/tools/PdfToText.astro";
 
 assertRegistryValid();
@@ -177,6 +178,7 @@ const TOOL_COMPONENTS: Record<string, any> = {
   "image-resizer": ImageResizer,
   "pdf-compressor": PdfCompressor,
   "pdf-merger": PdfMerger,
+  "pdf-organizer": PdfOrganizer,
   "pdf-to-text": PdfToText,
 };
 const ActiveTool = TOOL_COMPONENTS[slug];

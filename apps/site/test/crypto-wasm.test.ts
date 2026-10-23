@@ -182,6 +182,25 @@ function aeadEncrypt3(c: any, plain: Uint8Array, password: string, alg: number, 
   } while (off < plain.length);
   return Buffer.concat(parts);
 }
+test("aead wasm: MDT3 v2 header stores custom Argon2id cost and decrypt reads it back", { skip }, async () => {
+  const c = await load("cryptography");
+  const salt = new Uint8Array(16).fill(7);
+  const prefix = new Uint8Array(4).fill(8);
+  const header: Uint8Array = c.aead_stream3_header_pack_kdf(1, salt, prefix, 64, 8 * 1024, 2, 2);
+  const info = c.aead_stream_header_info(header);
+  assert.deepEqual([...info].slice(5), [44, 3, 8 * 1024, 2, 2]);
+  // The site default passed by the worker is overridden by the stored cost.
+  const key = c.aead_stream_derive_key_from_header(header, enc.encode("pw"), ...SITE_KDF);
+  assert.equal(hex(key), hex(c.kdf_argon2id(enc.encode("pw"), salt, 8 * 1024, 2, 2)));
+  const ct = c.aead_stream3_encrypt_chunk(header, key, 0n, true, enc.encode("payload"));
+  const tampered = Uint8Array.from(header);
+  tampered[19] = 3; // passes 2 → 3: different key and AAD
+  const key2 = c.aead_stream_derive_key_from_header(tampered, enc.encode("pw"), ...SITE_KDF);
+  assert.throws(() => c.aead_stream3_decrypt_chunk(tampered, key2, 0n, true, ct));
+  assert.equal(new TextDecoder().decode(c.aead_stream3_decrypt_chunk(header, key, 0n, true, ct)), "payload");
+  assert.throws(() => c.aead_stream3_header_pack_kdf(1, salt, prefix, 64, 1024, 2, 1), /invalid header/);
+});
+
 function aeadDecrypt(c: any, file: Uint8Array, candidates: string[]): { plain: Buffer; format: number; passwordIndex: number } {
   const info = c.aead_stream_header_info(file.subarray(0, 128));
   const [alg, , , , chunk, hlen] = info;

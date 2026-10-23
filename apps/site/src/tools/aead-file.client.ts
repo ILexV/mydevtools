@@ -18,9 +18,20 @@ import {
   type AeadProgress,
 } from "@/scripts/wasm/aead-file-client";
 import { localizeResourceError, WasmError } from "@/scripts/wasm/worker-protocol";
-import { formatBytes } from "@/lib/format";
+import { formatBytes, formatString } from "@/lib/format";
 import { revealOutput, startPreparing, syncEmptyState } from "@/scripts/tool-ui";
-import { aeadProgressView, decryptedName, encryptedName } from "@/tools/aead-file-helpers";
+import {
+  AEAD_KDF_LIMITS,
+  AEAD_KDF_PRESETS,
+  aeadProgressView,
+  decryptedName,
+  encryptedName,
+  isDefaultKdf,
+  isWeakKdf,
+  kdfLabel,
+  parseKdfCustom,
+} from "@/tools/aead-file-helpers";
+import type { AeadKdfParams } from "@/scripts/wasm/aead-file-protocol";
 import { hasEdgeWhitespace, passwordCandidates } from "@/tools/crypto-password";
 
 interface Strings {
@@ -34,6 +45,11 @@ interface Strings {
   errorInvalidContainer: string;
   noteTrimmedPassword: string;
   noteLegacyFormat: string;
+  noteCustomKdf: string;
+  kdfMemory: string;
+  kdfIterations: string;
+  kdfParallelism: string;
+  kdfInvalid: string;
   /** `Common_Preparing` — first-run WASM load feedback. */
   preparing?: string;
   processingFailed: string;
@@ -80,6 +96,14 @@ function init() {
   const errorBox = root.querySelector<HTMLElement>("[data-aead-error]");
   const noteBox = root.querySelector<HTMLElement>("[data-aead-note]");
   const whitespaceHint = root.querySelector<HTMLElement>("[data-aead-password-ws]");
+  const kdfSelect = root.querySelector<HTMLSelectElement>("[data-aead-kdf]");
+  const kdfCustom = root.querySelector<HTMLElement>("[data-aead-kdf-custom]");
+  const kdfMemory = root.querySelector<HTMLInputElement>("[data-aead-kdf-memory]");
+  const kdfIterations = root.querySelector<HTMLInputElement>("[data-aead-kdf-iterations]");
+  const kdfParallelism = root.querySelector<HTMLInputElement>("[data-aead-kdf-parallelism]");
+  const kdfWeak = root.querySelector<HTMLElement>("[data-aead-kdf-weak]");
+  const kdfRow = root.querySelector<HTMLElement>("[data-aead-kdf-row]");
+  const kdfOut = root.querySelector<HTMLElement>("[data-aead-kdf-out]");
 
   if (
     !encFile || !encFileName || !decFile || !decFileName || !algorithm || !password ||
@@ -170,7 +194,36 @@ function init() {
     if (busy) downloadButton.disabled = true;
   }
 
+  /** Selected Argon2id cost; custom fields are validated (null → error shown, field marked). */
+  function readKdf(report: boolean): AeadKdfParams | null {
+    const preset = kdfSelect?.value ?? "standard";
+    const fields = { memory: kdfMemory, iterations: kdfIterations, parallelism: kdfParallelism };
+    for (const el of Object.values(fields)) el?.removeAttribute("aria-invalid");
+    if (preset !== "custom") return AEAD_KDF_PRESETS[preset] ?? AEAD_KDF_PRESETS.standard;
+    const parsed = parseKdfCustom(kdfMemory?.value ?? "", kdfIterations?.value ?? "", kdfParallelism?.value ?? "");
+    if (typeof parsed !== "string") return parsed;
+    if (report) {
+      const [label, limits] =
+        parsed === "memory"
+          ? [strings.kdfMemory, AEAD_KDF_LIMITS.memMib]
+          : parsed === "iterations"
+            ? [strings.kdfIterations, AEAD_KDF_LIMITS.iterations]
+            : [strings.kdfParallelism, AEAD_KDF_LIMITS.parallelism];
+      showError(formatString(strings.kdfInvalid, label, limits[0], limits[1]));
+      fields[parsed]?.setAttribute("aria-invalid", "true");
+      fields[parsed]?.focus();
+    }
+    return null;
+  }
+
+  function syncKdf() {
+    if (kdfCustom) kdfCustom.hidden = kdfSelect?.value !== "custom";
+    const kdf = readKdf(false);
+    if (kdfWeak) kdfWeak.hidden = !(kdf && isWeakKdf(kdf));
+  }
+
   function resetOutput() {
+    if (kdfRow) kdfRow.hidden = true;
     lastBlob = null;
     lastName = null;
     headerField.textContent = "";
@@ -211,6 +264,8 @@ function init() {
       showError(mode === "encrypt" ? strings.errorSelectFileToEncrypt : strings.errorSelectFileToDecrypt);
       return;
     }
+    const kdf = mode === "encrypt" ? readKdf(true) : null;
+    if (mode === "encrypt" && !kdf) return;
     const pw = readPassword();
     if (pw === null) return;
     const operation = startToolOperation("aead-file");
@@ -243,11 +298,13 @@ function init() {
       const notes: string[] = [];
       let blob: Blob;
       let headerHex: string;
+      let usedKdf: AeadKdfParams | null;
       if (mode === "encrypt") {
-        ({ blob, headerHex } = await aeadEncryptFile(file, pw, (algorithmSelect.value || "aes-256-gcm") as AeadAlgorithm, opts));
+        ({ blob, headerHex, kdf: usedKdf } = await aeadEncryptFile(file, pw, (algorithmSelect.value || "aes-256-gcm") as AeadAlgorithm, opts, kdf!));
+        if (usedKdf && !isDefaultKdf(usedKdf)) notes.push(strings.noteCustomKdf);
       } else {
         const res = await aeadDecryptFile(file, passwordCandidates(pw), opts);
-        ({ blob, headerHex } = res);
+        ({ blob, headerHex, kdf: usedKdf } = res);
         if (res.passwordIndex > 0) notes.push(strings.noteTrimmedPassword);
         if (res.format === 2) notes.push(strings.noteLegacyFormat);
       }
@@ -256,6 +313,10 @@ function init() {
       lastBlob = blob;
       lastName = outName;
       headerField.textContent = headerHex;
+      if (kdfRow && kdfOut) {
+        kdfOut.textContent = usedKdf ? kdfLabel(usedKdf) : "";
+        kdfRow.hidden = !usedKdf;
+      }
       resultField.textContent = `${outName} • ${formatBytes(blob.size, 2)}`;
       downloadButton.disabled = false;
       if (outputPanel) syncEmptyState(outputPanel, false);
@@ -288,6 +349,9 @@ function init() {
 
   encFileInput.addEventListener("change", () => updateFileName(encFileInput, encFileLabel));
   decFileInput.addEventListener("change", () => updateFileName(decFileInput, decFileLabel));
+  kdfSelect?.addEventListener("change", syncKdf);
+  for (const el of [kdfMemory, kdfIterations, kdfParallelism]) el?.addEventListener("input", syncKdf);
+  syncKdf();
   encryptButton.addEventListener("click", () => void run("encrypt"));
   decryptButton.addEventListener("click", () => void run("decrypt"));
   cancelBtn.addEventListener("click", () => {

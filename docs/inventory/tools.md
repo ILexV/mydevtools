@@ -65,7 +65,7 @@
 
 **hash-calculator.** 39 algos via search-backed multi-list (MD5; SHA-1/2/3; Streebog; Keccak; SHAKE; BLAKE2/3; RIPEMD; CRC32; Adler-32; xxh; SipHash; HighwayHash; MetroHash; FxHash; FNV-1a; SeaHash). File hashing 1 MiB chunks + progress + cancel; per-row copy.
 
-**aead-file.** Streaming AEAD 1 MiB chunks (encrypt) / chunk-from-header (decrypt). KDF = **Argon2id** (m=64 KiB, t=3, p=1), random 16-byte salt + nonce prefix. Encrypt → hex header preview; Decrypt reads header from first 128 bytes. Password shared between panels. Progress + cancel.
+**aead-file.** Streaming AEAD 1 MiB chunks (encrypt) / chunk-from-header (decrypt). KDF = **Argon2id**, default m=64 MiB, t=3, p=1 (presets Light 19 MiB×2, Strong 256 MiB×4, Maximum 1 GiB×4 or custom 8–2048 MiB / 1–64 / 1–16, warning below the OWASP floor; non-default cost is stored in an MDT3 version 2 header and read back on decrypt), random 16-byte salt + nonce prefix. Encrypt → hex header preview; Decrypt reads header from first 128 bytes. Password shared between panels. Progress + cancel.
 
 **Cryptography-WASM group (hmac/jwt-decoder/jwt-encoder/openssh-keys/x509).** Lazy-load `/wasm/cryptography/`. jwt-decoder verifies live when secret supplied. x509 controller is **`x509-tool.js`** (not `x509.js`).
 

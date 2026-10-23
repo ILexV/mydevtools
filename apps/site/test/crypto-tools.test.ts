@@ -6,7 +6,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { alphabetSize, entropyBits, hasCharset, sanitizeSettings, strengthFill, strengthLevel, PW_MAX_LENGTH, PW_MIN_LENGTH } from "../src/tools/password-settings.ts";
-import { aeadAlgorithmId, aeadProgressView, bytesToHex, decryptedName, encryptedName, formatDuration } from "../src/tools/aead-file-helpers.ts";
+import { AEAD_KDF_DEFAULT, AEAD_KDF_PRESETS, aeadAlgorithmId, aeadProgressView, bytesToHex, decryptedName, encryptedName, formatDuration, isDefaultKdf, isWeakKdf, kdfLabel, parseKdfCustom } from "../src/tools/aead-file-helpers.ts";
 import { guessSshInput, rsaBits, sshErrorKey } from "../src/tools/openssh-keys-helpers.ts";
 import { base64ToBytes, chainFindings, countPemCertificates, derBase64ToPem, isCsrPem, parseSanList, parseValidityDays, prettyJson, X509_MAX_VALIDITY_DAYS, type ChainEntry, type ChainReport } from "../src/tools/x509-helpers.ts";
 import { hasEdgeWhitespace, passwordCandidates } from "../src/tools/crypto-password.ts";
@@ -282,4 +282,22 @@ test("x509: chainFindings flags broken, missing, non-CA and order problems", () 
     "#3 no issuer",
     "not ordered",
   ]);
+});
+
+test("aead kdf: presets, custom parsing, OWASP weak rule and label", () => {
+  assert.ok(isDefaultKdf(AEAD_KDF_PRESETS.standard));
+  assert.ok(!isDefaultKdf(AEAD_KDF_PRESETS.strong));
+  for (const p of Object.values(AEAD_KDF_PRESETS)) assert.ok(!isWeakKdf(p), kdfLabel(p));
+  assert.deepEqual(parseKdfCustom(" 128 ", "2", "4"), { memKib: 128 * 1024, iterations: 2, parallelism: 4 });
+  assert.equal(parseKdfCustom("7", "3", "1"), "memory");
+  assert.equal(parseKdfCustom("4096", "3", "1"), "memory");
+  assert.equal(parseKdfCustom("64", "0", "1"), "iterations");
+  assert.equal(parseKdfCustom("64", "2.5", "1"), "iterations");
+  assert.equal(parseKdfCustom("64", "3", "17"), "parallelism");
+  // OWASP floor: 19 MiB × 2, 46 MiB × 1.
+  assert.ok(isWeakKdf({ memKib: 18 * 1024, iterations: 2, parallelism: 1 }));
+  assert.ok(!isWeakKdf({ memKib: 12 * 1024, iterations: 4, parallelism: 1 }));
+  assert.ok(isWeakKdf({ memKib: 32 * 1024, iterations: 1, parallelism: 1 }));
+  assert.ok(!isWeakKdf({ memKib: 46 * 1024, iterations: 1, parallelism: 1 }));
+  assert.equal(kdfLabel(AEAD_KDF_DEFAULT), "Argon2id m=64 MiB, t=3, p=1");
 });

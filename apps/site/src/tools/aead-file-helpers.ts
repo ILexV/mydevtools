@@ -3,10 +3,11 @@
  * output file names (`<name>.aead` on encrypt; strip `.aead` or append
  * `.dec` on decrypt — legacy parity), the progress line
  * `X / Y • speed/s • ETA m:ss`, duration formatting, and the container
- * algorithm id / header hex used by the AEAD worker.
+ * algorithm id / header hex used by the AEAD worker, and the Argon2id cost
+ * presets / custom-value parsing / weak-setting rule of the KDF selector.
  */
 import { formatBytes, progressPercent } from "../lib/format.ts";
-import type { AeadAlgorithm } from "../scripts/wasm/aead-file-protocol.ts";
+import type { AeadAlgorithm, AeadKdfParams } from "../scripts/wasm/aead-file-protocol.ts";
 
 export const AEAD_EXTENSION = ".aead";
 
@@ -59,4 +60,54 @@ export function bytesToHex(bytes: Uint8Array): string {
   let out = "";
   for (const b of bytes) out += b.toString(16).padStart(2, "0");
   return out;
+}
+
+/** Site default (MDT3 header version 1, no stored parameters): 64 MiB, 3 passes, 1 lane. */
+export const AEAD_KDF_DEFAULT: AeadKdfParams = { memKib: 64 * 1024, iterations: 3, parallelism: 1 };
+
+/** Key-derivation presets; "custom" opens memory/passes/lanes fields. */
+export const AEAD_KDF_PRESETS: Readonly<Record<string, AeadKdfParams>> = {
+  light: { memKib: 19 * 1024, iterations: 2, parallelism: 1 },
+  standard: AEAD_KDF_DEFAULT,
+  strong: { memKib: 256 * 1024, iterations: 4, parallelism: 1 },
+  maximum: { memKib: 1024 * 1024, iterations: 4, parallelism: 1 },
+};
+
+/** Custom field bounds (match the WASM header limits, memory capped lower for browsers). */
+export const AEAD_KDF_LIMITS = { memMib: [8, 2048], iterations: [1, 64], parallelism: [1, 16] } as const;
+
+function intInRange(text: string, [min, max]: readonly [number, number]): number | null {
+  const value = text.trim();
+  if (!/^\d+$/.test(value)) return null;
+  const n = Number(value);
+  return n >= min && n <= max ? n : null;
+}
+
+/** Custom fields (memory in MiB, passes, lanes) → params, or the name of the first invalid field. */
+export function parseKdfCustom(memMib: string, iterations: string, parallelism: string): AeadKdfParams | "memory" | "iterations" | "parallelism" {
+  const mem = intInRange(memMib, AEAD_KDF_LIMITS.memMib);
+  if (mem === null) return "memory";
+  const it = intInRange(iterations, AEAD_KDF_LIMITS.iterations);
+  if (it === null) return "iterations";
+  const par = intInRange(parallelism, AEAD_KDF_LIMITS.parallelism);
+  if (par === null) return "parallelism";
+  return { memKib: mem * 1024, iterations: it, parallelism: par };
+}
+
+/**
+ * Below the OWASP Argon2id floor (19 MiB × 2 passes, or the equivalent
+ * memory × passes product such as 46 MiB × 1) — guessing gets cheap.
+ */
+export function isWeakKdf(p: AeadKdfParams): boolean {
+  const mib = p.memKib / 1024;
+  return p.iterations === 1 ? mib < 46 : mib * p.iterations < 38;
+}
+
+export function isDefaultKdf(p: AeadKdfParams): boolean {
+  return p.memKib === AEAD_KDF_DEFAULT.memKib && p.iterations === AEAD_KDF_DEFAULT.iterations && p.parallelism === AEAD_KDF_DEFAULT.parallelism;
+}
+
+/** Compact technical label shown in the result: `Argon2id m=64 MiB, t=3, p=1`. */
+export function kdfLabel(p: AeadKdfParams): string {
+  return `Argon2id m=${Math.round(p.memKib / 1024)} MiB, t=${p.iterations}, p=${p.parallelism}`;
 }

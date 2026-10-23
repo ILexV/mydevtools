@@ -18,11 +18,18 @@ export type AeadAlgorithm = "aes-256-gcm" | "chacha20-poly1305" | "xchacha20-pol
  */
 export type AeadFailure = "header" | "auth" | "crypto";
 
+/** Argon2id cost: memory in KiB, passes, lanes. Stored in the MDT3 header when not the default. */
+export interface AeadKdfParams {
+  memKib: number;
+  iterations: number;
+  parallelism: number;
+}
+
 export type AeadWorkerRequest =
-  | { id: number; op: "encrypt"; file: File; password: string; algorithm: AeadAlgorithm }
+  | { id: number; op: "encrypt"; file: File; password: string; algorithm: AeadAlgorithm; kdf: AeadKdfParams }
   | { id: number; op: "decrypt"; file: File; passwords: string[] };
 
 export type AeadWorkerResponse =
   | { id: number; type: "progress"; processed: number; total: number; elapsedMs: number }
-  | { id: number; type: "result"; blob: Blob; headerHex: string; format: 2 | 3; passwordIndex: number }
+  | { id: number; type: "result"; blob: Blob; headerHex: string; format: 2 | 3; passwordIndex: number; kdf: AeadKdfParams | null }
   | { id: number; type: "error"; failure: AeadFailure; message: string; code?: WasmErrorCode };

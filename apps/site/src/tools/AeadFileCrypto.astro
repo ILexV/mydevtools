@@ -1,7 +1,8 @@
 ---
 /**
  * AEAD File Encrypt/Decrypt (cryptography WASM domain). Workbench: encrypt
- * panel (file, algorithm, shared password → Encrypt) over the decrypt panel
+ * panel (file, algorithm, Argon2id cost preset or custom memory/passes/lanes
+ * with a below-OWASP warning, shared password → Encrypt) over the decrypt panel
  * (file → Decrypt) | output panel (progress + cancel, result + header hex
  * rows, Download in its header, empty state until a run finishes). Streaming chunked WASM
  * ops via aead-file-client (writes MDT3, reads MDT3 + legacy MDT2).
@@ -27,6 +28,20 @@ const s = {
   fileHint: t(lang, ns, "FileHint"),
   algorithmLabel: t(lang, ns, "AlgorithmLabel"),
   passwordLabel: t(lang, ns, "PasswordLabel"),
+  kdfLabel: t(lang, ns, "KdfLabel"),
+  kdfHint: t(lang, ns, "KdfHint"),
+  kdfLight: t(lang, ns, "KdfLight"),
+  kdfStandard: t(lang, ns, "KdfStandard"),
+  kdfStrong: t(lang, ns, "KdfStrong"),
+  kdfMaximum: t(lang, ns, "KdfMaximum"),
+  kdfCustom: t(lang, ns, "KdfCustom"),
+  kdfMemory: t(lang, ns, "KdfMemory"),
+  kdfIterations: t(lang, ns, "KdfIterations"),
+  kdfParallelism: t(lang, ns, "KdfParallelism"),
+  kdfWeak: t(lang, ns, "KdfWeak"),
+  kdfInvalid: t(lang, ns, "KdfInvalid"),
+  kdfResultLabel: t(lang, ns, "KdfResultLabel"),
+  noteCustomKdf: t(lang, ns, "NoteCustomKdf"),
   encryptButton: t(lang, ns, "EncryptButton"),
   decryptButton: t(lang, ns, "DecryptButton"),
   headerLabel: t(lang, ns, "HeaderLabel"),
@@ -78,6 +93,28 @@ const stringsJson = JSON.stringify(s);
           <option value="xchacha20-poly1305">XChaCha20-Poly1305 (Extended Nonce)</option>
         </select>
       </Field>
+
+      <Field label={s.kdfLabel} for="aead-kdf" hint={s.kdfHint}>
+        <select id="aead-kdf" class="ds-field-select" aria-describedby="aead-kdf-hint" data-aead-kdf>
+          <option value="light">{s.kdfLight}</option>
+          <option value="standard" selected>{s.kdfStandard}</option>
+          <option value="strong">{s.kdfStrong}</option>
+          <option value="maximum">{s.kdfMaximum}</option>
+          <option value="custom">{s.kdfCustom}</option>
+        </select>
+      </Field>
+      <div class="ds-settings" data-aead-kdf-custom hidden>
+        <Field label={s.kdfMemory} for="aead-kdf-memory">
+          <input id="aead-kdf-memory" type="text" inputmode="numeric" class="ds-field mono" value="64" autocomplete="off" data-aead-kdf-memory />
+        </Field>
+        <Field label={s.kdfIterations} for="aead-kdf-iterations">
+          <input id="aead-kdf-iterations" type="text" inputmode="numeric" class="ds-field mono" value="3" autocomplete="off" data-aead-kdf-iterations />
+        </Field>
+        <Field label={s.kdfParallelism} for="aead-kdf-parallelism">
+          <input id="aead-kdf-parallelism" type="text" inputmode="numeric" class="ds-field mono" value="1" autocomplete="off" data-aead-kdf-parallelism />
+        </Field>
+      </div>
+      <StatusMessage kind="warning" data-aead-kdf-weak>{s.kdfWeak}</StatusMessage>
 
       <Field label={s.passwordLabel} for="aead-password">
         <div class="ds-input-group">
@@ -150,6 +187,10 @@ const stringsJson = JSON.stringify(s);
       <div class="ds-result-row ds-result-row-info">
         <dt class="ds-result-key">{s.resultLabel}</dt>
         <dd class="ds-result-value" data-aead-result></dd>
+      </div>
+      <div class="ds-result-row ds-result-row-info" data-aead-kdf-row hidden>
+        <dt class="ds-result-key">{s.kdfResultLabel}</dt>
+        <dd class="ds-result-value" data-aead-kdf-out></dd>
       </div>
       <div class="ds-result-row ds-result-row-info">
         <dt class="ds-result-key">{s.headerLabel}</dt>

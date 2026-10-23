@@ -19,6 +19,17 @@ const AEAD_STREAM_VERSION: u8 = 1;
 /// `header ‖ final_flag` as AAD, so truncation at a chunk boundary, dropped
 /// tails, appended chunks and header edits are detected.
 const AEAD_STREAM3_MAGIC: [u8; 4] = *b"MDT3";
+/// MDT3 header version 2: Argon2id memory (KiB, u32le), iterations (u32le)
+/// and lanes (u8) follow the chunk size, so files encrypted with non-default
+/// KDF settings decrypt without the user re-entering them. The parameters
+/// are part of the header and therefore authenticated by every chunk.
+const AEAD_STREAM_VERSION_KDF_PARAMS: u8 = 2;
+/// Argon2id parameters accepted from a v2 header (bounds keep a hostile header
+/// from asking the browser for absurd memory or time).
+pub const KDF_PARAMS_MAX_MEM_KIB: u32 = 2 * 1024 * 1024;
+pub const KDF_PARAMS_MIN_MEM_KIB: u32 = 8 * 1024;
+pub const KDF_PARAMS_MAX_ITERATIONS: u32 = 64;
+pub const KDF_PARAMS_MAX_PARALLELISM: u8 = 16;
 
 const KDF_ARGON2ID: u8 = 1;
 const KDF_PBKDF2_SHA512: u8 = 2;
@@ -138,6 +149,10 @@ pub struct StreamHeader {
     pub nonce_len: u16,
     pub chunk_size: u32,
     pub header_len: usize,
+    /// Fixed part before the salt: 15 bytes (version 1) or 24 (version 2).
+    pub fixed_len: usize,
+    /// Argon2id (memory KiB, iterations, lanes) stored in a version 2 header.
+    pub kdf_params: Option<(u32, u32, u8)>,
 }
 
 /// Largest chunk size an MDT3 header may declare (the site writes 1 MiB).
@@ -158,8 +173,14 @@ pub fn parse_stream_header_core(data: &[u8]) -> Result<StreamHeader, StreamError
     } else {
         return Err(StreamError::BadMagic);
     };
-    if data[4] != AEAD_STREAM_VERSION {
-        return Err(StreamError::UnsupportedVersion);
+    let version = data[4];
+    let fixed_len = match (format, version) {
+        (_, AEAD_STREAM_VERSION) => 15usize,
+        (3, AEAD_STREAM_VERSION_KDF_PARAMS) => 24usize,
+        _ => return Err(StreamError::UnsupportedVersion),
+    };
+    if data.len() < fixed_len {
+        return Err(StreamError::ShortHeader);
     }
 
     let algorithm = data[5];
@@ -168,7 +189,22 @@ pub fn parse_stream_header_core(data: &[u8]) -> Result<StreamHeader, StreamError
     let nonce_len = u16::from_le_bytes([data[9], data[10]]);
     let chunk_size = u32::from_le_bytes([data[11], data[12], data[13], data[14]]);
 
-    let header_len = 15usize + salt_len as usize + nonce_len as usize;
+    let kdf_params = (fixed_len == 24).then(|| {
+        let mem = u32::from_le_bytes([data[15], data[16], data[17], data[18]]);
+        let iterations = u32::from_le_bytes([data[19], data[20], data[21], data[22]]);
+        (mem, iterations, data[23])
+    });
+    if let Some((mem, iterations, lanes)) = kdf_params {
+        let ok = kdf_id == KDF_ARGON2ID
+            && (KDF_PARAMS_MIN_MEM_KIB..=KDF_PARAMS_MAX_MEM_KIB).contains(&mem)
+            && (1..=KDF_PARAMS_MAX_ITERATIONS).contains(&iterations)
+            && (1..=KDF_PARAMS_MAX_PARALLELISM).contains(&lanes);
+        if !ok {
+            return Err(StreamError::BadHeader);
+        }
+    }
+
+    let header_len = fixed_len + salt_len as usize + nonce_len as usize;
     if data.len() < header_len {
         return Err(StreamError::ShortHeader);
     }
@@ -184,12 +220,13 @@ pub fn parse_stream_header_core(data: &[u8]) -> Result<StreamHeader, StreamError
         }
     }
 
-    Ok(StreamHeader { format, algorithm, kdf_id, salt_len, nonce_len, chunk_size, header_len })
+    Ok(StreamHeader { format, algorithm, kdf_id, salt_len, nonce_len, chunk_size, header_len, fixed_len, kdf_params })
 }
 
 /// Returns stream header info for MDT2 or MDT3 containers:
-/// [algorithm, kdf_id, salt_len, nonce_prefix_len, chunk_size, header_len, format]
-/// where format is 2 (legacy MDT2) or 3 (MDT3, final chunk authenticated).
+/// [algorithm, kdf_id, salt_len, nonce_prefix_len, chunk_size, header_len, format,
+///  argon2 memory KiB, iterations, lanes] where format is 2 (legacy MDT2) or 3
+/// (MDT3, final chunk authenticated); the KDF triple is 0,0,0 unless the header stores it.
 #[wasm_bindgen]
 pub fn aead_stream_header_info(data: &[u8]) -> Result<Vec<u32>, JsValue> {
     let h = parse_stream_header_core(data).map_err(|e| JsValue::from_str(e.message()))?;
@@ -201,6 +238,9 @@ pub fn aead_stream_header_info(data: &[u8]) -> Result<Vec<u32>, JsValue> {
         h.chunk_size,
         h.header_len as u32,
         h.format as u32,
+        h.kdf_params.map_or(0, |p| p.0),
+        h.kdf_params.map_or(0, |p| p.1),
+        h.kdf_params.map_or(0, |p| p.2 as u32),
     ])
 }
 
@@ -219,22 +259,23 @@ pub fn aead_stream_header_pack(
 /// Extracts salt from stream header.
 #[wasm_bindgen]
 pub fn aead_stream_extract_salt(data: &[u8]) -> Result<Vec<u8>, JsValue> {
-    let (_, _, salt_len, _, _, _) = parse_aead_stream_header(data)?;
-    let salt_start = 15;
-    let salt_end = salt_start + salt_len as usize;
+    let h = parse_stream_header_core(data).map_err(|e| JsValue::from_str(e.message()))?;
+    let salt_start = h.fixed_len;
+    let salt_end = salt_start + h.salt_len as usize;
     Ok(data[salt_start..salt_end].to_vec())
 }
 
 /// Extracts nonce prefix from stream header.
 #[wasm_bindgen]
 pub fn aead_stream_extract_nonce_prefix(data: &[u8]) -> Result<Vec<u8>, JsValue> {
-    let (_, _, salt_len, nonce_len, _, _) = parse_aead_stream_header(data)?;
-    let nonce_start = 15 + salt_len as usize;
-    let nonce_end = nonce_start + nonce_len as usize;
+    let h = parse_stream_header_core(data).map_err(|e| JsValue::from_str(e.message()))?;
+    let nonce_start = h.fixed_len + h.salt_len as usize;
+    let nonce_end = nonce_start + h.nonce_len as usize;
     Ok(data[nonce_start..nonce_end].to_vec())
 }
 
-/// Derives key from stream header (password-based).
+/// Derives key from stream header (password-based). Argon2id parameters
+/// stored in a version 2 header take precedence over the arguments.
 #[wasm_bindgen]
 pub fn aead_stream_derive_key_from_header(
     data: &[u8],
@@ -243,8 +284,9 @@ pub fn aead_stream_derive_key_from_header(
     iterations: u32,
     parallelism: u32,
 ) -> Result<Vec<u8>, JsValue> {
-    let (_algorithm, kdf_id, _salt_len, _nonce_len, _chunk_size, _header_len) =
-        parse_aead_stream_header(data)?;
+    let h = parse_stream_header_core(data).map_err(|e| JsValue::from_str(e.message()))?;
+    let kdf_id = h.kdf_id;
+    let (mem_kib, iterations, parallelism) = h.kdf_params.map_or((mem_kib, iterations, parallelism), |p| (p.0, p.1, p.2 as u32));
     let salt = aead_stream_extract_salt(data)?;
 
     match kdf_id {
@@ -321,6 +363,40 @@ pub fn aead_stream3_header_pack(
     let mut header = pack_aead_stream_header(algorithm, kdf_id, salt, nonce_prefix, chunk_size)?;
     header[0..4].copy_from_slice(&AEAD_STREAM3_MAGIC);
     parse_stream_header_core(&header).map_err(|e| JsValue::from_str(e.message()))?;
+    Ok(header)
+}
+
+/// MDT3 header (version 2) that stores custom Argon2id parameters; see
+/// `AEAD_STREAM_VERSION_KDF_PARAMS`. The default 64 MiB / 3 / 1 keeps using
+/// `aead_stream3_header_pack` so such files stay readable by older builds.
+#[wasm_bindgen]
+pub fn aead_stream3_header_pack_kdf(
+    algorithm: u8,
+    salt: &[u8],
+    nonce_prefix: &[u8],
+    chunk_size: u32,
+    mem_kib: u32,
+    iterations: u32,
+    parallelism: u8,
+) -> Result<Vec<u8>, JsValue> {
+    let base = pack_aead_stream_header(algorithm, KDF_ARGON2ID, salt, nonce_prefix, chunk_size)?;
+    stream3_kdf_header(&base, mem_kib, iterations, parallelism).map_err(|e| JsValue::from_str(e.message()))
+}
+
+/// Version 1 stream header → MDT3 version 2 with the Argon2id parameters inserted before the salt.
+pub fn stream3_kdf_header(base: &[u8], mem_kib: u32, iterations: u32, parallelism: u8) -> Result<Vec<u8>, StreamError> {
+    if base.len() < 15 {
+        return Err(StreamError::ShortHeader);
+    }
+    let mut header = Vec::with_capacity(base.len() + 9);
+    header.extend_from_slice(&AEAD_STREAM3_MAGIC);
+    header.push(AEAD_STREAM_VERSION_KDF_PARAMS);
+    header.extend_from_slice(&base[5..15]);
+    header.extend_from_slice(&mem_kib.to_le_bytes());
+    header.extend_from_slice(&iterations.to_le_bytes());
+    header.push(parallelism);
+    header.extend_from_slice(&base[15..]);
+    parse_stream_header_core(&header)?;
     Ok(header)
 }
 
@@ -1102,7 +1178,7 @@ mod tests {
         }
         assert_eq!(manual, stream3_seal(&header, &key, &plain).expect("seal"));
         let info = aead_stream_header_info(&header).expect("info");
-        assert_eq!(info, vec![1, 1, 16, 4, 64, 35, 3]);
+        assert_eq!(info, vec![1, 1, 16, 4, 64, 35, 3, 0, 0, 0]);
     }
 
     #[test]
@@ -1170,6 +1246,36 @@ mod tests {
     }
 
     #[test]
+    fn mdt3_v2_header_carries_kdf_params() {
+        let salt = [0x44u8; 16];
+        let prefix = [0x55u8; 4];
+        let header = aead_stream3_header_pack_kdf(AEAD_ALGO_AES256_GCM, &salt, &prefix, 64, 8 * 1024, 2, 2).expect("v2");
+        assert_eq!(header.len(), 24 + 16 + 4);
+        let h = parse_stream_header_core(&header).expect("parse");
+        assert_eq!((h.format, h.fixed_len, h.kdf_params), (3, 24, Some((8 * 1024, 2, 2))));
+        assert_eq!(aead_stream_extract_salt(&header).expect("salt"), salt);
+        assert_eq!(aead_stream_extract_nonce_prefix(&header).expect("prefix"), prefix);
+        let info = aead_stream_header_info(&header).expect("info");
+        assert_eq!(&info[5..], &[44, 3, 8 * 1024, 2, 2]);
+        // Header params win over the arguments, so decrypt needs no settings.
+        let key = aead_stream_derive_key_from_header(&header, b"pw", 64 * 1024, 3, 1).expect("key");
+        assert_eq!(key, kdf::kdf_argon2id(b"pw", &salt, 8 * 1024, 2, 2).expect("argon"));
+        let sealed = stream3_seal(&header, &key, b"secret payload").expect("seal");
+        let mut tampered = sealed.clone();
+        tampered[19] ^= 1; // iterations 2 → 3: still valid, but the AAD no longer matches
+        let h2 = parse_stream_header_core(&tampered).expect("parse tampered");
+        assert!(stream3_chunk(false, &tampered[..h2.header_len], &key, 0, true, &tampered[h2.header_len..]).is_err());
+        // Out-of-range params and v2 on MDT2 are rejected.
+        let base = aead_stream_header_pack(AEAD_ALGO_AES256_GCM, KDF_ARGON2ID, &salt, &prefix, 64).expect("base");
+        assert_eq!(stream3_kdf_header(&base, 1024, 2, 1), Err(StreamError::BadHeader));
+        assert_eq!(stream3_kdf_header(&base, 8 * 1024, 0, 1), Err(StreamError::BadHeader));
+        assert_eq!(stream3_kdf_header(&base, 8 * 1024, 1, 17), Err(StreamError::BadHeader));
+        let mut mdt2 = header.clone();
+        mdt2[0..4].copy_from_slice(&AEAD_STREAM_MAGIC);
+        assert_eq!(parse_stream_header_core(&mdt2), Err(StreamError::UnsupportedVersion));
+    }
+
+    #[test]
     fn mdt3_header_validation() {
         let ok = mdt3_header(AEAD_ALGO_AES256_GCM, 1024);
         assert_eq!(parse_stream_header_core(&ok).expect("ok").format, 3);
@@ -1189,7 +1295,7 @@ mod tests {
         assert_eq!(parse_stream_header_core(&ok[..20]), Err(StreamError::ShortHeader));
         assert_eq!(parse_stream_header_core(b"not an aead file"), Err(StreamError::BadMagic));
         let mut bad_version = ok.clone();
-        bad_version[4] = 2;
+        bad_version[4] = 3;
         assert_eq!(parse_stream_header_core(&bad_version), Err(StreamError::UnsupportedVersion));
         // MDT2 keeps its lenient legacy parsing (unknown algorithm is rejected later).
         let mut legacy = ok.clone();

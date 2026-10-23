@@ -31,6 +31,16 @@ C_i  = AEAD(key, nonce = prefix ‖ u64be(i), P_i, aad = header ‖ flag)
 
 Заголовок MDT3 проверяется строго (алгоритм ↔ длина префикса, kdf, salt, chunk_size). Разбор MDT2 оставлен прежним, нестрогим.
 
+Дополнение 2026-10-23 — версия 2 заголовка MDT3 (настраиваемая стоимость Argon2id):
+
+```
+header = "MDT3" ‖ version u8 = 2 ‖ alg u8 ‖ kdf u8 = 1 ‖ salt_len u16le ‖ prefix_len u16le ‖ chunk_size u32le
+         ‖ mem_kib u32le ‖ iterations u32le ‖ lanes u8 ‖ salt ‖ nonce_prefix
+  8 MiB ≤ mem ≤ 2 GiB, 1 ≤ iterations ≤ 64, 1 ≤ lanes ≤ 16; только Argon2id; размер 44 B (56 B для XChaCha)
+```
+
+Параметры входят в заголовок, а значит в AAD каждого чанка. Расшифровка берёт их из заголовка: `aead_stream_derive_key_from_header` предпочитает сохранённые значения аргументам. Сайт пишет версию 2 только при нестандартной стоимости; при 64 MiB / 3 / 1 заголовок остаётся версии 1, байт в байт как раньше. Файлы версии 2 старые сборки инструмента не прочитают (`unsupported version`). Версия 2 у MDT2 отвергается.
+
 **Код.**
 - `wasm/cryptography/src/aead.rs`:
   - ядро без JsValue: `StreamError`, `parse_stream_header_core`, `stream3_seal`, `stream_open`;

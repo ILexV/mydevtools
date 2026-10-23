@@ -2,7 +2,9 @@
 /**
  * AEAD file Web Worker (cryptography WASM): Argon2id key derivation
  * (64 MiB, 3 iters, 1 lane, ~1 s) and chunked (1 MiB) streaming
- * encrypt/decrypt off the main thread, so the page never freezes. Writes
+ * encrypt/decrypt off the main thread, so the page never freezes. Custom
+ * Argon2id cost goes into an MDT3 version 2 header (decrypt reads it back);
+ * the default keeps the version 1 header older builds understand. Writes
  * MDT3 (header + final-chunk flag bound into every chunk's AAD → truncation
  * and extension detected); still reads legacy MDT2 (empty AAD, no final
  * flag). Decrypt tries password candidates (as typed, then trimmed) on the
@@ -11,7 +13,8 @@
 import init, * as crypto from "@/generated/wasm/cryptography/cryptography.js";
 import type { AeadFailure, AeadWorkerRequest, AeadWorkerResponse } from "@/scripts/wasm/aead-file-protocol";
 import { classifyWorkerError } from "@/scripts/wasm/worker-protocol";
-import { aeadAlgorithmId, bytesToHex } from "@/tools/aead-file-helpers";
+import type { AeadKdfParams } from "@/scripts/wasm/aead-file-protocol";
+import { aeadAlgorithmId, AEAD_KDF_DEFAULT, bytesToHex, isDefaultKdf } from "@/tools/aead-file-helpers";
 
 let ready: Promise<void> | null = null;
 function ensureReady(): Promise<void> {
@@ -21,9 +24,6 @@ function ensureReady(): Promise<void> {
 
 const CHUNK_SIZE = 1024 * 1024; // 1 MiB, legacy parity
 const KDF_ID = 1; // Argon2id
-const KDF_MEM_KIB = 64 * 1024;
-const KDF_ITERATIONS = 3;
-const KDF_PARALLELISM = 1;
 const TAG_LEN = 16;
 
 class AeadFail extends Error {
@@ -47,9 +47,9 @@ function deriveKey(header: Uint8Array, password: string): Uint8Array {
     return crypto.aead_stream_derive_key_from_header(
       header,
       new TextEncoder().encode(password),
-      KDF_MEM_KIB,
-      KDF_ITERATIONS,
-      KDF_PARALLELISM,
+      AEAD_KDF_DEFAULT.memKib,
+      AEAD_KDF_DEFAULT.iterations,
+      AEAD_KDF_DEFAULT.parallelism,
     );
   } catch (e) {
     throw new AeadFail("crypto", e);
@@ -66,7 +66,10 @@ async function encrypt(req: Extract<AeadWorkerRequest, { op: "encrypt" }>): Prom
 
   let header: Uint8Array;
   try {
-    header = crypto.aead_stream3_header_pack(algId, KDF_ID, salt, noncePrefix, CHUNK_SIZE);
+    const kdf = req.kdf;
+    header = isDefaultKdf(kdf)
+      ? crypto.aead_stream3_header_pack(algId, KDF_ID, salt, noncePrefix, CHUNK_SIZE)
+      : crypto.aead_stream3_header_pack_kdf(algId, salt, noncePrefix, CHUNK_SIZE, kdf.memKib, kdf.iterations, kdf.parallelism);
   } catch (e) {
     throw new AeadFail("crypto", e);
   }
@@ -99,6 +102,7 @@ async function encrypt(req: Extract<AeadWorkerRequest, { op: "encrypt" }>): Prom
     headerHex: bytesToHex(header),
     format: 3,
     passwordIndex: 0,
+    kdf: req.kdf,
   };
 }
 
@@ -125,6 +129,9 @@ async function decrypt(req: Extract<AeadWorkerRequest, { op: "decrypt" }>): Prom
   const chunkSize = info[4];
   const headerLen = info[5];
   const format: 2 | 3 = info[6] === 3 ? 3 : 2;
+  // [7..9] = Argon2id cost stored in a version 2 header (0 = site default); PBKDF2 legacy has none.
+  const kdf: AeadKdfParams | null =
+    info[1] !== KDF_ID ? null : info[7] ? { memKib: info[7], iterations: info[8], parallelism: info[9] } : AEAD_KDF_DEFAULT;
   const total = file.size - headerLen;
   // MDT3 always carries a final chunk; a bare header means the file was cut.
   if (format === 3 && total === 0) throw new AeadFail("auth", "truncated container");
@@ -185,6 +192,7 @@ async function decrypt(req: Extract<AeadWorkerRequest, { op: "decrypt" }>): Prom
     headerHex: bytesToHex(headerBytes),
     format,
     passwordIndex,
+    kdf,
   };
 }
 

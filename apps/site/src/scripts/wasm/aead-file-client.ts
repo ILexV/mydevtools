@@ -10,7 +10,8 @@
  * Network: worker + cryptography wasm load only on the first run.
  */
 import { toWasmError, WasmError } from "@/scripts/wasm/worker-protocol";
-import type { AeadAlgorithm, AeadFailure, AeadWorkerRequest, AeadWorkerResponse } from "@/scripts/wasm/aead-file-protocol";
+import type { AeadAlgorithm, AeadFailure, AeadKdfParams, AeadWorkerRequest, AeadWorkerResponse } from "@/scripts/wasm/aead-file-protocol";
+import { AEAD_KDF_DEFAULT } from "@/tools/aead-file-helpers";
 
 export type { AeadAlgorithm, AeadFailure } from "@/scripts/wasm/aead-file-protocol";
 
@@ -37,6 +38,8 @@ export interface AeadRunOptions {
 export interface AeadEncryptResult {
   blob: Blob;
   headerHex: string;
+  /** Argon2id cost used for the key. */
+  kdf: AeadKdfParams | null;
 }
 
 export interface AeadDecryptResult {
@@ -46,6 +49,8 @@ export interface AeadDecryptResult {
   format: 2 | 3;
   /** Index of the password candidate that authenticated the first chunk. */
   passwordIndex: number;
+  /** Argon2id cost read from the header (default when not stored); null for legacy PBKDF2 headers. */
+  kdf: AeadKdfParams | null;
 }
 
 type ResultMessage = Extract<AeadWorkerResponse, { type: "result" }>;
@@ -223,9 +228,10 @@ export async function aeadEncryptFile(
   password: string,
   algorithm: AeadAlgorithm,
   opts: AeadRunOptions = {},
+  kdf: AeadKdfParams = AEAD_KDF_DEFAULT,
 ): Promise<AeadEncryptResult> {
-  const res = await runJob({ op: "encrypt", file, password, algorithm }, opts);
-  return { blob: res.blob, headerHex: res.headerHex };
+  const res = await runJob({ op: "encrypt", file, password, algorithm, kdf }, opts);
+  return { blob: res.blob, headerHex: res.headerHex, kdf: res.kdf };
 }
 
 /**
@@ -241,5 +247,5 @@ export async function aeadDecryptFile(
   const candidates = typeof passwords === "string" ? [passwords] : [...passwords];
   if (candidates.length === 0) throw new AeadError("crypto", "no password");
   const res = await runJob({ op: "decrypt", file, passwords: candidates }, opts);
-  return { blob: res.blob, headerHex: res.headerHex, format: res.format, passwordIndex: res.passwordIndex };
+  return { blob: res.blob, headerHex: res.headerHex, format: res.format, passwordIndex: res.passwordIndex, kdf: res.kdf };
 }

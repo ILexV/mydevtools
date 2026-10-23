@@ -681,6 +681,36 @@ export function zipEnd(count: number, dirOffset: number, dirSize: number): Uint8
   return out.bytes;
 }
 
+/**
+ * In-memory stored (uncompressed) ZIP of already compressed files — PDF parts,
+ * JPEG/PNG/WebP outputs — for a "download all" button. `crc` may be passed
+ * when the caller already has it.
+ */
+export function storedZip(files: readonly { name: string; bytes: Uint8Array; crc?: number }[], mtime = Date.now()): Blob {
+  const parts: Uint8Array[] = [];
+  const central: Uint8Array[] = [];
+  let offset = 0;
+  for (const file of files) {
+    const entry: ZipWriteEntry = {
+      name: new TextEncoder().encode(file.name),
+      mtime,
+      method: 0,
+      zip64: file.bytes.length >= ZIP64_THRESHOLD,
+      offset,
+      crc: file.crc ?? crc32(file.bytes),
+      packed: file.bytes.length,
+      size: file.bytes.length,
+    };
+    const local = zipLocalHeader(entry);
+    const descriptor = zipDataDescriptor(entry);
+    parts.push(local, file.bytes, descriptor);
+    offset += local.length + file.bytes.length + descriptor.length;
+    central.push(zipCentralHeader(entry));
+  }
+  const dirSize = central.reduce((sum, c) => sum + c.length, 0);
+  return new Blob([...parts, ...central, zipEnd(files.length, offset, dirSize)] as BlobPart[], { type: "application/zip" });
+}
+
 // ---------------------------------------------------------------- TAR writing
 
 function octal(value: number, length: number): string {

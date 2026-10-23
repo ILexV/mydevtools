@@ -10,15 +10,14 @@
  */
 import { createJobWorker, transferableCopy } from "@/scripts/wasm/job-worker";
 import { WasmError } from "@/scripts/wasm/worker-protocol";
-import type { ImageWorkerRequest, ImageWorkerResponse } from "@/scripts/wasm/image-tools-protocol";
+import type { ImageDimensions, ImageWorkerRequest, ImageWorkerResponse } from "@/scripts/wasm/image-tools-protocol";
 
 type ImageJobRequest = ImageWorkerRequest extends infer Request
   ? Request extends unknown ? Omit<Request, "id"> : never
   : never;
 type ImageJobSuccess = Extract<ImageWorkerResponse, { ok: true }>;
-const jobs = createJobWorker<ImageJobRequest, ImageJobSuccess>(
-  () => new Worker(new URL("../../workers/image-tools.worker.ts", import.meta.url), { type: "module" }),
-);
+const spawnImageWorker = () => new Worker(new URL("../../workers/image-tools.worker.ts", import.meta.url), { type: "module" });
+const jobs = createJobWorker<ImageJobRequest, ImageJobSuccess>(spawnImageWorker);
 
 type JobPayload =
   | { op: "compress" | "convert"; format: string; quality: number }
@@ -71,3 +70,39 @@ export function resizeImage(
 ): Promise<ImageJobResult> {
   return run(input, { op: "resize", width, height, format }, signal);
 }
+
+/** Batch result: encoded output plus source and output pixel sizes. */
+export interface ProcessedImageResult extends ImageJobResult, ImageDimensions {}
+
+/** Batch settings: fit inside max width×height (0 = no limit, never upscales), format, quality 1-100. */
+export interface ProcessImageOptions {
+  maxWidth: number;
+  maxHeight: number;
+  format: string;
+  quality: number;
+}
+
+/**
+ * Pool of image workers for batch processing (Batch Image Processor): each
+ * slot is its own worker, so `size` images decode in parallel. Aborting a job
+ * terminates only its worker; `terminate()` frees every worker (and its WASM
+ * memory) once the batch is over.
+ */
+export function createImageWorkerPool(size: number) {
+  const workers = Array.from({ length: Math.max(1, size) }, () => createJobWorker<ImageJobRequest, ImageJobSuccess>(spawnImageWorker));
+  return {
+    size: workers.length,
+    async process(slot: number, input: Uint8Array, options: ProcessImageOptions, signal?: AbortSignal): Promise<ProcessedImageResult> {
+      if (signal?.aborted) throw new WasmError("aborted", "Aborted");
+      const buffer = transferableCopy(input);
+      const result = await workers[slot % workers.length].run({ op: "process", input: buffer, ...options } as ImageJobRequest, [buffer], signal);
+      const dims = result.dims ?? { sourceWidth: 0, sourceHeight: 0, width: 0, height: 0 };
+      return { bytes: new Uint8Array(result.output), webpLossy: result.webpLossy, ...dims };
+    },
+    terminate(): void {
+      for (const w of workers) w.terminate();
+    },
+  };
+}
+
+export type ImageWorkerPool = ReturnType<typeof createImageWorkerPool>;

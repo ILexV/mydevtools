@@ -27,9 +27,9 @@ import {
   paperName,
   parseRanges,
   rotatePage,
-  storedZip,
   type OrganizerPage,
 } from "@/tools/pdf-organizer";
+import { storedZip } from "@/tools/archive-format";
 import { openThumbnails, type ThumbnailSource } from "@/tools/pdf-thumbnails";
 
 interface Strings {

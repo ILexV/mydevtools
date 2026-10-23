@@ -37,6 +37,97 @@ pub fn resize_image(input_data: &[u8], width: u32, height: u32, format_str: &str
     encode_dynamic_image(&resized, format_str, 90)
 }
 
+/// Batch result: encoded bytes plus source and output pixel dimensions, so the
+/// batch report needs no second decode.
+#[wasm_bindgen]
+pub struct ProcessedImage {
+    bytes: Vec<u8>,
+    source_width: u32,
+    source_height: u32,
+    width: u32,
+    height: u32,
+}
+
+#[wasm_bindgen]
+impl ProcessedImage {
+    /// Move the encoded bytes out (call once).
+    pub fn take_bytes(&mut self) -> Vec<u8> {
+        std::mem::take(&mut self.bytes)
+    }
+    #[wasm_bindgen(getter)]
+    pub fn source_width(&self) -> u32 {
+        self.source_width
+    }
+    #[wasm_bindgen(getter)]
+    pub fn source_height(&self) -> u32 {
+        self.source_height
+    }
+    #[wasm_bindgen(getter)]
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+    #[wasm_bindgen(getter)]
+    pub fn height(&self) -> u32 {
+        self.height
+    }
+}
+
+/// Batch image processing: decode once, shrink to fit inside
+/// `max_width`×`max_height` keeping the aspect ratio (0 = no limit on that
+/// side, never upscales), then encode as `format_str` with `quality`.
+/// `format_str` "rgba" returns raw RGBA8 pixels for the browser's lossy WebP
+/// encoder instead of an encoded file.
+#[wasm_bindgen]
+pub fn process_image(
+    input_data: &[u8],
+    max_width: u32,
+    max_height: u32,
+    format_str: &str,
+    quality: u8,
+) -> Result<ProcessedImage, String> {
+    console_error_panic_hook::set_once();
+    let raw = format_str.eq_ignore_ascii_case("rgba");
+    if !raw && !is_supported_target(format_str) {
+        return Err(format!("Unsupported target format: {}", format_str));
+    }
+    let img = decode(input_data)?;
+    let (source_width, source_height) = (img.width(), img.height());
+    let (w, h) = fit_within(source_width, source_height, max_width, max_height);
+    let img = if (w, h) == (source_width, source_height) {
+        img
+    } else {
+        img.resize_exact(w, h, image::imageops::FilterType::Lanczos3)
+    };
+    let bytes = if raw { img.to_rgba8().into_raw() } else { encode_dynamic_image(&img, format_str, quality)? };
+    // ICO output is capped at 256 px by the encoder; report what was written.
+    let (width, height) = if format_str.eq_ignore_ascii_case("ico") && (w > ICO_MAX_SIDE || h > ICO_MAX_SIDE) {
+        fit_within(w, h, ICO_MAX_SIDE, ICO_MAX_SIDE)
+    } else {
+        (w, h)
+    };
+    Ok(ProcessedImage { bytes, source_width, source_height, width, height })
+}
+
+fn is_supported_target(format_str: &str) -> bool {
+    matches!(
+        format_str.to_lowercase().as_str(),
+        "jpeg" | "jpg" | "png" | "webp" | "gif" | "bmp" | "ico" | "tiff" | "tif" | "tga"
+    )
+}
+
+/// Largest size inside `max_w`×`max_h` (0 = unlimited) with the source aspect
+/// ratio, never larger than the source and at least 1×1.
+fn fit_within(w: u32, h: u32, max_w: u32, max_h: u32) -> (u32, u32) {
+    let sx = if max_w > 0 && w > max_w { max_w as f64 / w as f64 } else { 1.0 };
+    let sy = if max_h > 0 && h > max_h { max_h as f64 / h as f64 } else { 1.0 };
+    let scale = sx.min(sy);
+    if scale >= 1.0 {
+        return (w, h);
+    }
+    let fit = |v: u32| ((v as f64 * scale).round() as u32).max(1);
+    (fit(w).min(if max_w > 0 { max_w } else { u32::MAX }), fit(h).min(if max_h > 0 { max_h } else { u32::MAX }))
+}
+
 /// Decode any supported input. TGA has no magic number, so unrecognized bytes
 /// are tried as TGA (otherwise .tga uploads always failed). The EXIF/TIFF
 /// orientation tag is applied to the pixels: re-encoding drops the metadata,
@@ -351,6 +442,40 @@ mod tests {
             let out = compress_image(&src, fmt, 90).unwrap();
             assert_eq!(image::load_from_memory(&out).unwrap().dimensions(), (2, 4), "{fmt}");
         }
+    }
+
+    #[test]
+    fn process_fits_inside_box_without_upscaling() {
+        let png = rgba_png(400, 200, 255);
+        let mut r = process_image(&png, 100, 100, "png", 100).unwrap();
+        assert_eq!((r.source_width(), r.source_height(), r.width(), r.height()), (400, 200, 100, 50));
+        let out = image::load_from_memory(&r.take_bytes()).unwrap();
+        assert_eq!(out.dimensions(), (100, 50));
+        // Only one side limited; smaller sources stay as they are.
+        let r = process_image(&png, 0, 50, "jpeg", 80).unwrap();
+        assert_eq!((r.width(), r.height()), (100, 50));
+        let r = process_image(&png, 1000, 1000, "jpeg", 80).unwrap();
+        assert_eq!((r.width(), r.height()), (400, 200));
+        let r = process_image(&png, 0, 0, "jpeg", 80).unwrap();
+        assert_eq!((r.width(), r.height()), (400, 200));
+    }
+
+    #[test]
+    fn process_rgba_returns_raw_pixels_and_ico_reports_cap() {
+        let png = rgba_png(300, 150, 200);
+        let mut r = process_image(&png, 30, 0, "rgba", 80).unwrap();
+        assert_eq!((r.width(), r.height()), (30, 15));
+        assert_eq!(r.take_bytes().len(), 30 * 15 * 4);
+        let r = process_image(&png, 0, 0, "ico", 80).unwrap();
+        assert_eq!((r.width(), r.height()), (256, 128));
+    }
+
+    #[test]
+    fn process_rejects_bad_format_before_decoding_and_bad_input() {
+        assert!(process_image(&rgba_png(4, 4, 255), 0, 0, "heic", 80).err().unwrap().starts_with("Unsupported target format"));
+        assert!(process_image(b"not an image", 0, 0, "png", 80).err().unwrap().starts_with("Failed to load image"));
+        assert_eq!(fit_within(1, 1000, 10, 10), (1, 10));
+        assert_eq!(fit_within(3000, 2000, 1920, 1080), (1620, 1080));
     }
 
     #[test]

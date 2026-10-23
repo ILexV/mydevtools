@@ -3,9 +3,8 @@
  * page list edits (rotate, move, delete), split modes — one file, every N
  * pages, custom ranges like `1-3, 5, 8-` (positions in the edited order) —
  * turned into WASM page plans, output file names and a stored ZIP of the
- * split parts.
+ * split parts (`storedZip` in archive-format.ts).
  */
-import { crc32, zipCentralHeader, zipDataDescriptor, zipEnd, zipLocalHeader, type ZipWriteEntry } from "./archive-format.ts";
 
 /** One page of the edited document: 0-based source page and added clockwise rotation. */
 export interface OrganizerPage {
@@ -105,33 +104,6 @@ export function outputNames(fileName: string, groups: readonly number[][]): stri
     used.set(stem, n);
     return `${n === 1 ? stem : `${stem}_${n}`}.pdf`;
   });
-}
-
-/** Stored (uncompressed — PDFs are already compressed) ZIP of the split parts. */
-export function storedZip(files: readonly { name: string; bytes: Uint8Array }[], mtime = Date.now()): Blob {
-  const parts: Uint8Array[] = [];
-  const central: Uint8Array[] = [];
-  let offset = 0;
-  for (const file of files) {
-    const name = new TextEncoder().encode(file.name);
-    const entry: ZipWriteEntry = {
-      name,
-      mtime,
-      method: 0,
-      zip64: file.bytes.length >= 0xffff0000,
-      offset,
-      crc: crc32(file.bytes),
-      packed: file.bytes.length,
-      size: file.bytes.length,
-    };
-    const local = zipLocalHeader(entry);
-    const descriptor = zipDataDescriptor(entry);
-    parts.push(local, file.bytes, descriptor);
-    offset += local.length + file.bytes.length + descriptor.length;
-    central.push(zipCentralHeader(entry));
-  }
-  const dirSize = central.reduce((sum, c) => sum + c.length, 0);
-  return new Blob([...parts, ...central, zipEnd(files.length, offset, dirSize)] as BlobPart[], { type: "application/zip" });
 }
 
 /** "A4", "Letter", … for common paper sizes (either orientation, ±2 pt), else null. */

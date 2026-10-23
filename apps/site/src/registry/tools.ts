@@ -149,6 +149,7 @@ const TOOL_CATALOG = [
   // ── images ────────────────────────────────────────────────────────────────
   { slug: "image-compressor", monogram: "−%", category: "images", wasm: "image_tools", capabilities: { file: "multi", progress: true, download: true } },
   { slug: "image-converter", monogram: "png", category: "images", wasm: "image_tools", capabilities: { file: "single", download: true } },
+  { slug: "image-batch", monogram: "×N", category: "images", wasm: "image_tools", capabilities: { file: "multi", progress: true, cancel: true, download: true } },
   { slug: "image-resizer", monogram: "px", category: "images", wasm: "image_tools", capabilities: { file: "single", download: true } },
 
   // ── pdf ───────────────────────────────────────────────────────────────────

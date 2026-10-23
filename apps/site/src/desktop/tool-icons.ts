@@ -89,6 +89,7 @@ export const TOOL_ICONS: Record<string, string> = {
   /* images */
   "image-compressor": `<rect x="3" y="3" width="14" height="14" rx="2.6"/><path d="M6.3 6.3 9 9M9 6.4V9H6.4M13.7 13.7 11 11M11 13.6V11h2.6"/>`,
   "image-converter": `<rect x="2.5" y="3.5" width="11" height="9.5" rx="1.6"/><path d="m2.5 11 3-3 3 3 2-2 3 3"/><path d="M16.5 7.5v7A1.6 1.6 0 0 1 14.9 16H6.5"/>`,
+  "image-batch": `<rect x="6" y="6" width="11" height="11" rx="2"/><path d="M3.5 13V5a1.5 1.5 0 0 1 1.5-1.5h8"/><path d="m8.5 14 2.4-2.8 1.7 1.9 1-1.1 1.4 2"/>`,
   "image-resizer": `<rect x="3" y="8" width="9" height="9" rx="1.5"/><path d="M8 3.2h7.3a1.5 1.5 0 0 1 1.5 1.5V12M12.5 3.2h4.3v4.3M16.8 3.2 11.5 8.5"/>`,
 
   /* PDF */

@@ -1,0 +1,210 @@
+---
+/**
+ * Batch Image Processor (image_tools WASM, worker pool). Many images at once:
+ * one output format (or each file's own), one quality, optional fit inside
+ * max width×height (never upscales), "keep the original when the result is
+ * not smaller". The report table shows per-file sizes, change, pixel size and
+ * time; totals give saved %, wall time, MB/s and megapixels/s. Results
+ * download one by one, as a stored ZIP, or the report as CSV. Helpers in
+ * `image-batch.ts`, behavior in `image-batch.client.ts`.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import FileDrop from "@/components/tool/FileDrop.astro";
+import Icon from "@/components/Icon.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import Progress from "@/components/tool/Progress.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/image-batch";
+const k = (key: string) => t(lang, ns, key);
+const clientKeys = [
+  "QueueMeta", "Remove", "Download", "StatusWaiting", "StatusWorking", "StatusDone", "StatusKept", "StatusFailed",
+  "StatusCanceled", "ProgressLabel", "Canceled", "SummaryKept", "SummaryFailed", "ErrorNotImage",
+  "ErrorDamaged", "ErrorMaxSize", "ErrorProcess", "WebpLosslessNote", "Threads",
+] as const;
+const stringsJson = JSON.stringify({
+  ...Object.fromEntries(clientKeys.map((key) => [key, k(key)])),
+  Lang: lang,
+  Preparing: t(lang, "common", "Common_Preparing"),
+  memoryExhausted: t(lang, "common", "Common_MemoryExhausted"),
+  invalidFormat: t(lang, "common", "Common_InvalidFormat"),
+  corruptInput: t(lang, "common", "Common_CorruptInput"),
+});
+---
+
+<div class="ds-stack ib-tool" data-ib-tool>
+  <ToolPanel title={k("InputTitle")} meta="" metaProps={{ "data-ib-meta": true }}>
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small" data-ib-clear disabled>{k("Clear")}</button>
+    </Fragment>
+    <FileDrop
+      compact
+      multiple
+      title={k("DropZoneTitle")}
+      sub="JPEG · PNG · WebP · GIF · BMP · TIFF · ICO · TGA"
+      buttonLabel={k("ChooseFiles")}
+      changeLabel={k("AddFiles")}
+      accept="image/*,.tga,.tif,.tiff,.ico"
+      data-ib-dropzone
+      inputProps={{ "data-ib-file": true }}
+    />
+
+    <div class="ds-settings">
+      <Field label={k("Format")} for="ib-format">
+        <select id="ib-format" class="ds-field-select" data-ib-format>
+          <option value="original" selected>{k("FormatOriginal")}</option>
+          <option value="jpeg">JPEG</option>
+          <option value="png">PNG</option>
+          <option value="webp">WebP</option>
+          <option value="gif">GIF</option>
+          <option value="bmp">BMP</option>
+          <option value="tiff">TIFF</option>
+        </select>
+      </Field>
+      <Field label={k("Quality")} for="ib-quality" hint={k("QualityHint")} aside="80%" asideProps={{ "data-ib-quality-value": true }}>
+        <input type="range" id="ib-quality" class="ib-range" min="1" max="100" value="80" data-ib-quality />
+      </Field>
+      <Field label={k("MaxWidth")} for="ib-max-width">
+        <input id="ib-max-width" type="text" inputmode="numeric" class="ds-field mono" placeholder={k("NoLimit")} autocomplete="off" data-ib-max-width />
+      </Field>
+      <Field label={k("MaxHeight")} for="ib-max-height">
+        <input id="ib-max-height" type="text" inputmode="numeric" class="ds-field mono" placeholder={k("NoLimit")} autocomplete="off" data-ib-max-height />
+      </Field>
+    </div>
+    <p class="ds-hint">{k("MaxHint")}</p>
+    <label class="ds-check-row">
+      <input type="checkbox" class="ds-check" checked data-ib-keep />
+      <span>{k("KeepOriginal")}</span>
+    </label>
+    <p class="ds-hint">{k("KeepOriginalHint")}</p>
+
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-ib-run disabled>
+        <Icon name="zap" size={16} />{k("Run")}
+      </button>
+    </div>
+    <p class="ds-hint">{k("MetadataNote")}</p>
+    <Progress
+      title={k("ProgressTitle")}
+      barLabel={k("ProgressTitle")}
+      cancelLabel={k("Cancel")}
+      data-ib-progress
+      cancelProps={{ "data-ib-cancel": true }}
+      barProps={{ "data-ib-progress-bar": true }}
+      fillProps={{ "data-ib-progress-fill": true }}
+      labelProps={{ "data-ib-progress-label": true }}
+    />
+    <StatusMessage kind="error" data-ib-error />
+    <StatusMessage kind="info" data-ib-note />
+  </ToolPanel>
+
+  <OutputPanel panel label={k("ReportTitle")} emptyHint={k("ReportEmpty")} data-ib-output>
+    <div class="ds-when-filled ib-report" data-ib-loaded hidden>
+      <dl class="ib-stats" data-ib-stats hidden>
+        <div><dt>{k("StatImages")}</dt><dd data-ib-stat="images"></dd></div>
+        <div><dt>{k("StatBefore")}</dt><dd data-ib-stat="before"></dd></div>
+        <div><dt>{k("StatAfter")}</dt><dd data-ib-stat="after"></dd></div>
+        <div><dt>{k("StatChange")}</dt><dd data-ib-stat="change"></dd></div>
+        <div><dt>{k("StatTime")}</dt><dd data-ib-stat="time"></dd></div>
+        <div><dt>{k("StatSpeed")}</dt><dd data-ib-stat="speed"></dd></div>
+      </dl>
+      <p class="ds-hint ib-stats-note" data-ib-stats-note hidden></p>
+      <StatusMessage kind="info" data-ib-webp-note />
+      <div class="ds-action-row" data-ib-actions hidden>
+        <button type="button" class="ds-btn ds-btn-primary" data-ib-zip><Icon name="download" size={16} />{k("DownloadAll")}</button>
+        <button type="button" class="ds-btn" data-ib-csv><Icon name="download" size={16} />{k("DownloadCsv")}</button>
+      </div>
+      <div class="ib-table-wrap">
+        <table class="ib-table">
+          <thead>
+            <tr>
+              <th scope="col">{k("ColFile")}</th>
+              <th scope="col">{k("ColBefore")}</th>
+              <th scope="col">{k("ColAfter")}</th>
+              <th scope="col">{k("ColChange")}</th>
+              <th scope="col">{k("ColPixels")}</th>
+              <th scope="col">{k("ColTime")}</th>
+              <th scope="col">{k("ColStatus")}</th>
+              <th scope="col"><span class="visually-hidden">{k("Download")}</span></th>
+            </tr>
+          </thead>
+          <tbody data-ib-rows></tbody>
+        </table>
+      </div>
+    </div>
+  </OutputPanel>
+</div>
+
+<script is:inline type="application/json" data-ib-strings set:html={stringsJson} />
+<script>import "@/tools/image-batch.client.ts";</script>
+
+<style>
+  /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
+  .ib-range { width: 100%; }
+  .ib-report { display: grid; gap: 1rem; min-width: 0; }
+  .ib-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    gap: 0.5rem;
+    margin: 0;
+  }
+  .ib-stats > div {
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--mdt-border-soft);
+    border-radius: var(--mdt-radius-md);
+    background: var(--mdt-surface-raised);
+    min-width: 0;
+  }
+  .ib-stats dt { font-size: var(--mdt-fs-label); color: var(--mdt-text-muted); }
+  .ib-stats dd {
+    margin: 0.15rem 0 0;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  .ib-stats :global(dd.is-smaller) { color: var(--mdt-success); }
+  .ib-stats-note { margin: 0; }
+  .ib-table-wrap {
+    /* Contains the visually hidden header text, which would otherwise widen the page. */
+    position: relative;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--mdt-border-soft);
+    border-radius: var(--mdt-radius-md);
+  }
+  .ib-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: var(--mdt-fs-small); }
+  .ib-table th {
+    background: var(--mdt-surface-raised);
+    color: var(--mdt-text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-align: right;
+  }
+  .ib-table th,
+  .ib-table :global(td) {
+    padding: 0.4rem 0.55rem;
+    border-bottom: 1px solid var(--mdt-border-soft);
+    white-space: nowrap;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .ib-table th:first-child,
+  .ib-table :global(td:first-child) {
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    min-width: 12rem;
+  }
+  .ib-table :global(td.is-smaller) { color: var(--mdt-success); font-weight: 600; }
+  .ib-table :global(td.is-failed) { color: var(--mdt-danger); white-space: normal; text-align: left; min-width: 10rem; }
+  .ib-table :global(td.is-muted) { color: var(--mdt-text-muted); }
+  .ib-table :global(.ds-icon-btn) { width: 1.9rem; height: 1.9rem; }
+</style>

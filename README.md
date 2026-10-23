@@ -4,14 +4,14 @@
 
 # MyDevTools
 
-**60 free developer tools that run entirely in your browser.**
+**61 free developer tools that run entirely in your browser.**
 JSON, Base64, JWT, hashes, regex, crypto keys, images, PDF — and explorers for multi-gigabyte CSV, JSON, logs, Parquet and SQLite files.
 Your input and files never leave your device.
 
 ### 👉 [mydevtools.app](https://mydevtools.app/)
 
 [![Website](https://img.shields.io/website?url=https%3A%2F%2Fmydevtools.app%2Fen%2F&label=mydevtools.app)](https://mydevtools.app/)
-![Tools](https://img.shields.io/badge/tools-60-4f46e5)
+![Tools](https://img.shields.io/badge/tools-61-4f46e5)
 ![Languages](https://img.shields.io/badge/languages-10-0d9488)
 ![Rust + WebAssembly](https://img.shields.io/badge/Rust-WebAssembly-b7410e)
 ![Astro](https://img.shields.io/badge/Astro-static-ff5d01)
@@ -172,6 +172,7 @@ All but the subnet calculator run through the optional [local Windows agent](app
 | [Image Compressor](https://mydevtools.app/en/image-compressor/) | Compress a JPEG, PNG or WebP image: set quality 1–100, keep or change the format and compare sizes. |
 | [Image Converter](https://mydevtools.app/en/image-converter/) | Convert images between PNG, JPEG, WebP, GIF, BMP, ICO, TIFF and TGA. |
 | [Image Resizer](https://mydevtools.app/en/image-resizer/) | Resize an image to exact pixel dimensions with aspect-ratio lock and Lanczos3 resampling, then save as JPEG, PNG or WebP. |
+| [Batch Image Processor](https://mydevtools.app/en/image-batch/) | Resize, convert and compress many images at once on parallel workers: fit into a max width/height, JPEG/PNG/WebP with quality, ZIP of results and a size/speed report (CSV). |
 
 ### PDF
 

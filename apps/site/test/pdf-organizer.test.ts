@@ -14,8 +14,8 @@ import {
   paperName,
   parseRanges,
   rotatePage,
-  storedZip,
 } from "../src/tools/pdf-organizer.ts";
+import { storedZip } from "../src/tools/archive-format.ts";
 
 test("pdf-organizer: rotation wraps in both directions", () => {
   const p = initialPages(1)[0];

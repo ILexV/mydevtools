@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 /**
- * Image tools Web Worker: runs compress/convert/resize (image_tools WASM) off
+ * Image tools Web Worker: runs compress/convert/resize/batch process (image_tools WASM) off
  * the main thread so large images don't freeze the page. One job at a time;
  * cancellation is done by the client terminating the worker (WASM calls are
  * synchronous and can't be interrupted cooperatively). The result buffer is
@@ -12,10 +12,10 @@
  * really returns `image/webp` (Safari falls back to PNG — detected by the
  * blob type), otherwise the lossless WASM path; `webpLossy` reports which.
  */
-import init, { compress_image, convert_image, resize_image } from "@/generated/wasm/image_tools/image_tools.js";
+import init, { compress_image, convert_image, process_image, resize_image } from "@/generated/wasm/image_tools/image_tools.js";
 import { classifyWorkerError } from "@/scripts/wasm/worker-protocol";
 import { isImageDecodeError } from "@/tools/image-tools";
-import type { ImageWorkerRequest, ImageWorkerResponse } from "@/scripts/wasm/image-tools-protocol";
+import type { ImageDimensions, ImageWorkerRequest, ImageWorkerResponse } from "@/scripts/wasm/image-tools-protocol";
 
 /** Fixed WebP quality for the resizer (no slider; matches its JPEG quality 90). */
 const RESIZE_WEBP_QUALITY = 90;
@@ -75,11 +75,51 @@ async function browserWebp(source: Uint8Array, quality: number, sourceIsPng = fa
   }
 }
 
+/** Raw RGBA8 pixels → lossy WebP via the browser encoder; null when it can't. */
+async function rgbaToWebp(rgba: Uint8Array, width: number, height: number, quality: number): Promise<ArrayBuffer | null> {
+  try {
+    const canvas = new OffscreenCanvas(width, height);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.putImageData(new ImageData(new Uint8ClampedArray(rgba.buffer as ArrayBuffer, rgba.byteOffset, rgba.byteLength), width, height), 0, 0);
+    const blob = await canvas.convertToBlob({ type: "image/webp", quality: Math.min(100, Math.max(1, quality)) / 100 });
+    return blob.type === "image/webp" ? await blob.arrayBuffer() : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Batch op: one WASM decode + fit-inside resize + encode. WebP goes through
+ * raw RGBA pixels to the browser's lossy encoder (no PNG round trip), falling
+ * back to lossless WASM WebP.
+ */
+async function processJob(req: Extract<ImageWorkerRequest, { op: "process" }>): Promise<{ buf: ArrayBuffer; webpLossy: boolean; dims: ImageDimensions }> {
+  const input = new Uint8Array(req.input);
+  const run = (format: string) => {
+    const r = process_image(input, req.maxWidth, req.maxHeight, format, req.quality);
+    try {
+      const dims = { sourceWidth: r.source_width, sourceHeight: r.source_height, width: r.width, height: r.height };
+      return { bytes: r.take_bytes(), dims };
+    } finally {
+      r.free();
+    }
+  };
+  if (req.format.toLowerCase() === "webp" && (await canEncodeLossyWebp())) {
+    const { bytes, dims } = run("rgba");
+    const lossy = await rgbaToWebp(bytes, dims.width, dims.height, req.quality);
+    if (lossy) return { buf: lossy, webpLossy: true, dims };
+  }
+  const { bytes, dims } = run(req.format);
+  return { buf: bytes.buffer as ArrayBuffer, webpLossy: false, dims };
+}
+
 function post(msg: ImageWorkerResponse, transfer: Transferable[] = []): void {
   (self as DedicatedWorkerGlobalScope).postMessage(msg, transfer);
 }
 
-async function runJob(req: ImageWorkerRequest): Promise<{ buf: ArrayBuffer; webpLossy: boolean }> {
+async function runJob(req: ImageWorkerRequest): Promise<{ buf: ArrayBuffer; webpLossy: boolean; dims?: ImageDimensions }> {
+  if (req.op === "process") return processJob(req);
   const input = new Uint8Array(req.input);
   const webp = req.format.toLowerCase() === "webp";
   if (req.op === "resize") {
@@ -103,8 +143,8 @@ self.addEventListener("message", async (ev: MessageEvent<ImageWorkerRequest>) =>
   const req = ev.data;
   try {
     await ensureReady();
-    const { buf, webpLossy } = await runJob(req);
-    post({ id: req.id, ok: true, output: buf, webpLossy }, [buf]);
+    const { buf, webpLossy, dims } = await runJob(req);
+    post({ id: req.id, ok: true, output: buf, webpLossy, dims }, [buf]);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     const error = classifyWorkerError(e, isImageDecodeError(message) ? "corrupt-input" : "unknown");

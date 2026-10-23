@@ -1,7 +1,7 @@
 {
   "Title": "压缩包浏览器",
   "Description": "在浏览器中打开 ZIP、TAR、TAR.GZ 以及 Zstandard 或 Brotli 压缩包，列出其内容，安全解压所选文件，并创建新的 ZIP 或 TAR 压缩包。",
-  "Seo_Title": "压缩包浏览器 — 在本地打开、解压和创建 ZIP 与 TAR.GZ | MyDevTools",
+  "Seo_Title": "在线打开和解压 ZIP、TAR.GZ | MyDevTools",
   "Keywords": "zip 查看器, 在线打开 zip, 浏览器解压 zip, tar.gz 解压工具, tgz 查看器, 在线创建 zip, zstd 压缩包, 无需上传解压, zip slip 防护, 在线解压缩",
   "OpenTitle": "压缩包",
   "Clear": "清除",

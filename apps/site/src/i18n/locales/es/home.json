@@ -20,7 +20,7 @@
   "Category_NetworkUtilities": "Utilidades de red",
   "FeatureWasmDescription": "Hashing, cifrado y procesamiento de imágenes y PDF se ejecutan en WebAssembly compilado desde Rust; las herramientas simples son JavaScript ligero.",
   "FeatureWasmTitle": "WebAssembly donde hace falta",
-  "SeoContent_P1": "MyDevTools es una colección gratuita de utilidades para desarrolladores que funcionan en el navegador: formateadores y validadores de JSON, XML y YAML, codificadores Base64, Hex y URL, calculadoras de hash y HMAC, herramientas para JWT y X.509, un probador de expresiones regulares, utilidades de imagen y PDF, y generadores de UUID, contraseñas y códigos QR. No hay nada que instalar ni cuenta que crear.",
+  "SeoContent_P1": "MyDevTools es una colección gratuita de utilidades para desarrolladores que funcionan en el navegador: formateadores y validadores de JSON, XML y YAML, codificadores Base64, Hex y URL, calculadoras de hash y HMAC, herramientas para JWT y X.509, un probador de expresiones regulares, utilidades de imagen y PDF, y generadores de UUID, contraseñas y códigos QR. No hay nada que instalar ni cuenta que crear. Para archivos locales grandes hay exploradores de CSV, JSON, logs, Parquet y SQLite de varios gigabytes, un comparador de archivos grandes y un explorador de archivos comprimidos, y un complemento opcional para Windows añade un cliente HTTP y herramientas de red: DNS, WHOIS, TLS, traceroute y escaneo de puertos.",
   "Category_JwtAndTokens": "JWT y tokens",
   "Category_TextTools": "Herramientas de texto",
   "SeoContent_Title": "¿Por qué elegir MyDevTools?",

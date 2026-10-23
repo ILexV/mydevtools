@@ -1,7 +1,7 @@
 {
   "Title": "SQLite Explorer",
   "Description": "Lokale SQLite-Datenbank im Browser öffnen: Tabellen, Views und Indizes durchsuchen, SQL ausführen und Ergebnisse exportieren, ohne die Datei hochzuladen.",
-  "Seo_Title": "SQLite Explorer online — .db-Dateien lokal durchsuchen und abfragen | MyDevTools",
+  "Seo_Title": "SQLite Viewer online — .db-Dateien abfragen | MyDevTools",
   "Keywords": "SQLite Viewer, SQLite Browser online, .db-Datei öffnen, sqlite3 Abfrage, SQLite Schema anzeigen, SQLite nach CSV exportieren, lokales SQL",
   "DatabaseTitle": "Datenbank",
   "DropTitle": "SQLite-Datei hier ablegen",

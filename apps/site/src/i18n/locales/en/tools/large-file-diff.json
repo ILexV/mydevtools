@@ -1,7 +1,7 @@
 {
   "Title": "Large File Diff",
   "Description": "Compare two large local files line by line or byte by byte, with whitespace, line-ending and encoding options and a downloadable report.",
-  "Seo_Title": "Large File Diff — Compare Big Text and Binary Files Locally | MyDevTools",
+  "Seo_Title": "Large File Diff — Compare Big Text and Binary Files | MyDevTools",
   "Keywords": "large file diff, compare large files, compare log files, binary file compare, diff big files online, unified diff, file comparison in browser",
   "InputTitle": "Files",
   "FileATitle": "Original file",

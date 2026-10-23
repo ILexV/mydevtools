@@ -1,7 +1,7 @@
 {
   "Title": "아카이브 탐색기",
   "Description": "ZIP, TAR, TAR.GZ 및 Zstandard·Brotli 아카이브를 브라우저에서 열어 내용을 확인하고, 선택한 파일을 안전하게 추출하며, 새 ZIP 또는 TAR 아카이브를 만듭니다.",
-  "Seo_Title": "아카이브 탐색기 — ZIP·TAR.GZ를 로컬에서 열기, 추출, 만들기 | MyDevTools",
+  "Seo_Title": "ZIP·TAR.GZ 온라인 열기·추출 | MyDevTools",
   "Keywords": "zip 뷰어, zip 온라인 열기, 브라우저에서 zip 압축 해제, tar.gz 압축 해제, tgz 뷰어, zip 온라인 만들기, zstd 아카이브, 업로드 없이 압축 풀기, zip slip 방지, 압축 파일 미리보기",
   "OpenTitle": "아카이브",
   "Clear": "지우기",

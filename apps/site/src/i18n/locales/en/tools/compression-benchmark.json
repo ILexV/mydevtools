@@ -1,7 +1,7 @@
 {
   "Title": "Compression Benchmark",
   "Description": "Compress your own file with gzip, Brotli and Zstandard at the levels you choose and compare size, ratio, speed and memory, all in the browser.",
-  "Seo_Title": "Compression Benchmark — Compare gzip, Brotli and Zstandard on Your File | MyDevTools",
+  "Seo_Title": "Compression Benchmark — gzip vs Brotli vs Zstandard | MyDevTools",
   "Keywords": "compression benchmark, gzip vs brotli, zstd vs gzip, compression ratio calculator, brotli level comparison, zstandard benchmark, compress file online, compression speed test",
   "InputTitle": "File and codecs",
   "Clear": "Clear",

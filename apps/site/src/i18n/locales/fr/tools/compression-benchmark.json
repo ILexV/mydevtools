@@ -1,7 +1,7 @@
 {
   "Title": "Benchmark de compression",
   "Description": "Compressez votre propre fichier avec gzip, Brotli et Zstandard aux niveaux de votre choix et comparez taille, taux, vitesse et mémoire, le tout dans le navigateur.",
-  "Seo_Title": "Benchmark de compression — comparer gzip, Brotli et Zstandard sur votre fichier | MyDevTools",
+  "Seo_Title": "Benchmark de compression — gzip, Brotli, Zstandard | MyDevTools",
   "Keywords": "benchmark compression, gzip vs brotli, zstd vs gzip, calcul taux de compression, comparer niveaux brotli, benchmark zstandard, compresser fichier en ligne, test vitesse compression",
   "InputTitle": "Fichier et codecs",
   "Clear": "Effacer",

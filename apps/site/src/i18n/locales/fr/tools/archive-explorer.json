@@ -1,7 +1,7 @@
 {
   "Title": "Explorateur d'archives",
   "Description": "Ouvrez des archives ZIP, TAR, TAR.GZ, Zstandard ou Brotli dans le navigateur, listez leur contenu, extrayez les fichiers choisis en toute sécurité et créez de nouvelles archives ZIP ou TAR.",
-  "Seo_Title": "Explorateur d'archives — ouvrir, extraire et créer des ZIP et TAR.GZ en local | MyDevTools",
+  "Seo_Title": "Ouvrir et extraire ZIP et TAR.GZ en ligne | MyDevTools",
   "Keywords": "visionneuse zip, ouvrir zip en ligne, extraire zip dans le navigateur, extracteur tar.gz, ouvrir tgz, créer zip en ligne, archive zstd, décompresser sans upload, protection zip slip, dézipper en ligne",
   "OpenTitle": "Archive",
   "Clear": "Effacer",

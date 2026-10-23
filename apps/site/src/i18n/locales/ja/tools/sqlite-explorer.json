@@ -1,7 +1,7 @@
 {
   "Title": "SQLite Explorer",
   "Description": "ローカルの SQLite データベースをブラウザーで開き、テーブル・ビュー・インデックスの閲覧、SQL の実行、結果のエクスポートをファイルをアップロードせずに行えます。",
-  "Seo_Title": "SQLite Explorer オンライン — .db ファイルをローカルで閲覧・クエリ | MyDevTools",
+  "Seo_Title": "SQLite ビューアー — .db を閲覧・クエリ | MyDevTools",
   "Keywords": "SQLite ビューアー, SQLite ブラウザー オンライン, .db ファイルを開く, sqlite3 クエリ, SQLite スキーマ表示, SQLite を CSV にエクスポート, ローカル SQL",
   "DatabaseTitle": "データベース",
   "DropTitle": "SQLite ファイルをここにドロップ",

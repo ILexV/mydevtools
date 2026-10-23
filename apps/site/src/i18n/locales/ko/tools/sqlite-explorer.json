@@ -1,7 +1,7 @@
 {
   "Title": "SQLite Explorer",
   "Description": "로컬 SQLite 데이터베이스를 브라우저에서 열어 테이블, 뷰, 인덱스를 살펴보고 SQL을 실행하고 결과를 내보낼 수 있습니다. 파일은 업로드되지 않습니다.",
-  "Seo_Title": "SQLite Explorer 온라인 — .db 파일을 로컬에서 탐색하고 쿼리하기 | MyDevTools",
+  "Seo_Title": "SQLite 뷰어 온라인 — .db 탐색과 쿼리 | MyDevTools",
   "Keywords": "SQLite 뷰어, SQLite 브라우저 온라인, .db 파일 열기, sqlite3 쿼리, SQLite 스키마 보기, SQLite CSV 내보내기, 로컬 SQL",
   "DatabaseTitle": "데이터베이스",
   "DropTitle": "SQLite 파일을 여기에 끌어다 놓으세요",

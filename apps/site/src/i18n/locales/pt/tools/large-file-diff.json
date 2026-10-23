@@ -1,7 +1,7 @@
 {
   "Title": "Comparador de Arquivos Grandes",
   "Description": "Compare dois arquivos locais grandes linha a linha ou byte a byte, com opções de espaços, finais de linha e codificação, e um relatório para baixar.",
-  "Seo_Title": "Comparador de Arquivos Grandes — compare textos e binários enormes localmente | MyDevTools",
+  "Seo_Title": "Comparar arquivos grandes — texto e binários | MyDevTools",
   "Keywords": "comparar arquivos grandes, diff de arquivos grandes, comparar logs, comparar arquivos binários, diff online de arquivos enormes, unified diff, comparação de arquivos no navegador",
   "InputTitle": "Arquivos",
   "FileATitle": "Arquivo original",

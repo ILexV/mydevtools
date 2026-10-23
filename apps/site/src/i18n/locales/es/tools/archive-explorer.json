@@ -1,7 +1,7 @@
 {
   "Title": "Explorador de archivos comprimidos",
   "Description": "Abre archivos ZIP, TAR, TAR.GZ y comprimidos con Zstandard o Brotli en el navegador, consulta su contenido, extrae de forma segura los archivos elegidos y crea nuevos archivos ZIP o TAR.",
-  "Seo_Title": "Explorador de archivos comprimidos — Abre, extrae y crea ZIP y TAR.GZ localmente | MyDevTools",
+  "Seo_Title": "Explorador de ZIP y TAR.GZ — abrir y extraer online | MyDevTools",
   "Keywords": "visor zip, abrir zip online, extraer zip en el navegador, descomprimir tar.gz, visor tgz, crear zip online, archivo zstd, descomprimir sin subir, protección zip slip",
   "OpenTitle": "Archivo comprimido",
   "Clear": "Limpiar",

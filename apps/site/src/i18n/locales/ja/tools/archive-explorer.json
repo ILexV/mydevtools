@@ -1,7 +1,7 @@
 {
   "Title": "アーカイブエクスプローラー",
   "Description": "ZIP、TAR、TAR.GZ、Zstandard や Brotli のアーカイブをブラウザーで開き、中身を一覧表示し、選んだファイルを安全に展開し、新しい ZIP や TAR アーカイブを作成します。",
-  "Seo_Title": "アーカイブエクスプローラー — ZIP・TAR.GZ をローカルで開く・展開・作成 | MyDevTools",
+  "Seo_Title": "ZIP・TAR.GZ をオンラインで開く・展開 | MyDevTools",
   "Keywords": "zip ビューアー, zip オンライン 開く, zip ブラウザー 解凍, tar.gz 解凍, tgz ビューアー, zip 作成 オンライン, zstd アーカイブ, アップロードなし 解凍, zip slip 対策",
   "OpenTitle": "アーカイブ",
   "Clear": "クリア",

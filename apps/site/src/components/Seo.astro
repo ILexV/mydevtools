@@ -6,7 +6,7 @@
  *   web app manifest link, and favicon/icon set.
  *
  * Replaces the inline head previously in `BaseLayout.astro`. Pages pass
- * `isHome` (+ optional `categoryName`) so `buildJsonLd` can emit the right
+ * `isHome` so `buildJsonLd` can emit the right
  * schema graph (WebSite+Organization for home, SoftwareApplication+Breadcrumb
  * for tools) — mirroring the legacy `MetaTags.razor` contract.
  */
@@ -25,7 +25,6 @@ interface Props {
   description: string;
   keywords?: string[];
   isHome?: boolean;
-  categoryName?: string;
   /** `Seo_HowToSteps` markdown — emits HowTo JSON-LD on tool pages. */
   howToSteps?: string;
   /**
@@ -43,7 +42,6 @@ const {
   description,
   keywords = [],
   isHome = false,
-  categoryName,
   howToSteps,
   seoTitle,
 } = Astro.props as Props;
@@ -60,7 +58,7 @@ const ogImage = absoluteUrl(withBase(ogSlug ? ogImagePath(locale, ogSlug) : "ico
 const ogImageAlt = isHome ? description : title;
 const manifestHref = withBase("manifest.webmanifest");
 
-const jsonLd = buildJsonLd({ locale, path, title, description, isHome, categoryName, howToSteps });
+const jsonLd = buildJsonLd({ locale, path, title, description, isHome, howToSteps });
 const jsonLdString = JSON.stringify(jsonLd);
 ---
 

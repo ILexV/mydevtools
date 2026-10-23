@@ -1,7 +1,7 @@
 {
   "Title": "Сравнение сжатия",
   "Description": "Сожмите свой файл gzip, Brotli и Zstandard на выбранных уровнях и сравните размер, степень сжатия, скорость и память — всё в браузере.",
-  "Seo_Title": "Сравнение сжатия — gzip, Brotli и Zstandard на вашем файле | MyDevTools",
+  "Seo_Title": "Сравнение сжатия — gzip, Brotli и Zstandard | MyDevTools",
   "Keywords": "бенчмарк сжатия, gzip или brotli, zstd или gzip, степень сжатия, уровни brotli, тест zstandard, сжать файл онлайн, скорость сжатия",
   "InputTitle": "Файл и кодеки",
   "Clear": "Очистить",

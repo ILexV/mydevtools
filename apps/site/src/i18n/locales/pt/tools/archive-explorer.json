@@ -1,7 +1,7 @@
 {
   "Title": "Explorador de Arquivos Compactados",
   "Description": "Abra arquivos compactados ZIP, TAR, TAR.GZ e Zstandard ou Brotli no navegador, veja o conteúdo, extraia com segurança os arquivos selecionados e crie novos arquivos ZIP ou TAR.",
-  "Seo_Title": "Explorador de Arquivos Compactados — Abra, Extraia e Crie ZIP e TAR.GZ Localmente | MyDevTools",
+  "Seo_Title": "Abrir e extrair ZIP e TAR.GZ online | MyDevTools",
   "Keywords": "visualizador zip, abrir zip online, extrair zip no navegador, extrator tar.gz, abrir tgz, criar zip online, descompactar arquivo online, arquivo zstd, descompactar sem upload, proteção zip slip",
   "OpenTitle": "Arquivo compactado",
   "Clear": "Limpar",

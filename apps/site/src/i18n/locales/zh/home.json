@@ -20,7 +20,7 @@
   "Category_NetworkUtilities": "网络工具",
   "FeatureWasmDescription": "哈希、加密、图片和 PDF 处理在 Rust 编译的 WebAssembly 中运行；简单的工具使用轻量的 JavaScript。",
   "FeatureWasmTitle": "WebAssembly 用在关键处",
-  "SeoContent_P1": "MyDevTools 是一套免费的浏览器端开发者工具：JSON、XML 和 YAML 的格式化与校验，Base64、Hex 和 URL 编码器，哈希和 HMAC 计算器，JWT 和 X.509 工具，正则表达式测试器，图片和 PDF 工具，以及 UUID、密码和二维码生成器。无需安装，也无需注册账号。",
+  "SeoContent_P1": "MyDevTools 是一套免费的浏览器端开发者工具：JSON、XML 和 YAML 的格式化与校验，Base64、Hex 和 URL 编码器，哈希和 HMAC 计算器，JWT 和 X.509 工具，正则表达式测试器，图片和 PDF 工具，以及 UUID、密码和二维码生成器。无需安装，也无需注册账号。针对本地大文件，还有可处理数 GB 的 CSV、JSON、日志、Parquet 和 SQLite 浏览器、大文件对比和压缩包浏览器；可选的 Windows 代理程序还提供 HTTP 客户端和网络工具：DNS、WHOIS、TLS、路由追踪和端口扫描。",
   "Category_JwtAndTokens": "JWT 与令牌",
   "Category_TextTools": "文本工具",
   "SeoContent_Title": "为何选择 MyDevTools？",

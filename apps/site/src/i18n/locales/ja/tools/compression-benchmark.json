@@ -1,7 +1,7 @@
 {
   "Title": "圧縮ベンチマーク",
   "Description": "自分のファイルを gzip、Brotli、Zstandard で好きなレベルで圧縮し、サイズ、圧縮率、速度、メモリをブラウザー内で比較します。",
-  "Seo_Title": "圧縮ベンチマーク — 自分のファイルで gzip・Brotli・Zstandard を比較 | MyDevTools",
+  "Seo_Title": "圧縮ベンチマーク — gzip・Brotli・Zstandard | MyDevTools",
   "Keywords": "圧縮 ベンチマーク, gzip brotli 比較, zstd gzip 比較, 圧縮率 計算, brotli レベル 比較, zstandard ベンチマーク, ファイル 圧縮 オンライン, 圧縮速度 テスト",
   "InputTitle": "ファイルとコーデック",
   "Clear": "クリア",

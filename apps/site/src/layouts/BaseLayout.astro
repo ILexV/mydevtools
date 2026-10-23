@@ -20,8 +20,6 @@ interface Props {
   keywords?: string[];
   /** Home page emits WebSite+Organization JSON-LD; tools emit SoftwareApplication. */
   isHome?: boolean;
-  /** Localized category name — inserted into the tool breadcrumb JSON-LD. */
-  categoryName?: string;
   /** `Seo_HowToSteps` markdown — forwarded to Seo for HowTo JSON-LD. */
   howToSteps?: string;
   /** Search-result `<title>` (locale `Seo_Title`); defaults to "title — site". */
@@ -42,7 +40,6 @@ const {
   description,
   keywords = [],
   isHome = false,
-  categoryName,
   howToSteps,
   seoTitle,
   desktopHref,
@@ -69,7 +66,6 @@ const analyticsEnabled = process.env.ANALYTICS_ENABLED === "true";
       description={description}
       keywords={keywords}
       isHome={isHome}
-      categoryName={categoryName}
       howToSteps={howToSteps}
       seoTitle={seoTitle}
     />

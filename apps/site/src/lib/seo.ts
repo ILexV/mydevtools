@@ -2,7 +2,7 @@
  * JSON-LD structured data builders.
  *
  * Mirrors the legacy `MetaTags.razor` structured-data contract:
- *  - Home page → WebSite (with SearchAction) + Organization + BreadcrumbList.
+ *  - Home page → WebSite + Organization.
  *  - Tool page → SoftwareApplication (free web dev tool) + BreadcrumbList.
  *
  * All URLs are absolute (required by schema.org) and base-aware (GitHub Pages).
@@ -11,6 +11,11 @@
 import type { LocaleCode } from "@/registry/locales";
 import { absoluteUrl, localizedPath, withBase } from "@/lib/url";
 import { parseHowToSteps } from "@/lib/markdown";
+import { LOCALES } from "@/registry/locales";
+import { t } from "@/i18n/messages";
+
+/** Public source repository, linked from the footer and Organization.sameAs. */
+const SOURCE_URL = "https://github.com/ILexV/mydevtools";
 
 export interface SeoInput {
   locale: LocaleCode;
@@ -19,8 +24,6 @@ export interface SeoInput {
   title: string;
   description: string;
   isHome: boolean;
-  /** Localized category name (tool pages only) — inserted as a breadcrumb. */
-  categoryName?: string;
   /**
    * `Seo_HowToSteps` markdown ("### Step N: Title\nBody …"), tool pages only.
    * When it parses to at least one step, a HowTo schema is appended — mirrors
@@ -36,10 +39,13 @@ function logoUrl(): string {
 
 /** Build the JSON-LD object array for the current page context. */
 export function buildJsonLd(input: SeoInput): Record<string, unknown>[] {
-  const { locale, path = "", title, description, isHome, categoryName, howToSteps } = input;
+  const { locale, path = "", title, description, isHome, howToSteps } = input;
+  const inLanguage = LOCALES.find((l) => l.code === locale)?.bcp47 ?? locale;
 
   if (isHome) {
     const siteUrl = absoluteUrl(localizedPath(locale));
+    // No SearchAction: Google retired the sitelinks search box (2024) and the
+    // catalog search has no query URL to template.
     return [
       {
         "@context": "https://schema.org",
@@ -47,15 +53,7 @@ export function buildJsonLd(input: SeoInput): Record<string, unknown>[] {
         name: title,
         url: siteUrl,
         description,
-        // Client-side search lives on the home page; the SearchAction points there.
-        potentialAction: {
-          "@type": "SearchAction",
-          target: {
-            "@type": "EntryPoint",
-            urlTemplate: siteUrl,
-          },
-          "query-input": "required name=search_term_string",
-        },
+        inLanguage,
       },
       {
         "@context": "https://schema.org",
@@ -63,13 +61,7 @@ export function buildJsonLd(input: SeoInput): Record<string, unknown>[] {
         name: title,
         url: siteUrl,
         logo: logoUrl(),
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: title, item: siteUrl },
-        ],
+        sameAs: [SOURCE_URL],
       },
     ];
   }
@@ -84,6 +76,7 @@ export function buildJsonLd(input: SeoInput): Record<string, unknown>[] {
     name: title,
     description,
     url: toolUrl,
+    inLanguage,
     applicationCategory: "DeveloperApplication",
     operatingSystem: path === "http-client" || path === "path-trace" || path === "dns-lookup" || path === "tcp-connect" || path === "tls-inspect" || path === "whois-lookup" || path === "asn-lookup" || path === "port-scanner" || path === "network-scanner" ? "Windows 10, Windows 11" : "Web Browser",
     isAccessibleForFree: true,
@@ -94,15 +87,12 @@ export function buildJsonLd(input: SeoInput): Record<string, unknown>[] {
     },
   };
 
+  // Home → tool. The category has no page of its own (only a home anchor), and a
+  // crumb that repeats the home URL is reported as an invalid item by Google.
   const crumbs: Record<string, unknown>[] = [
-    { "@type": "ListItem", position: 1, name: "Home", item: homeUrl },
+    { "@type": "ListItem", position: 1, name: t(locale, "common", "Nav_Home"), item: homeUrl },
+    { "@type": "ListItem", position: 2, name: title, item: toolUrl },
   ];
-  if (categoryName) {
-    crumbs.push({ "@type": "ListItem", position: 2, name: categoryName, item: homeUrl });
-    crumbs.push({ "@type": "ListItem", position: 3, name: title, item: toolUrl });
-  } else {
-    crumbs.push({ "@type": "ListItem", position: 2, name: title, item: toolUrl });
-  }
 
   const schemas: Record<string, unknown>[] = [
     app,

@@ -1,7 +1,7 @@
 {
   "Title": "SQLite Explorer",
   "Description": "Open a local SQLite database in your browser: browse tables, views and indexes, run SQL and export results without uploading the file.",
-  "Seo_Title": "SQLite Explorer Online — Browse and Query .db Files Locally | MyDevTools",
+  "Seo_Title": "SQLite Viewer Online — Browse and Query .db Files | MyDevTools",
   "Keywords": "SQLite viewer, SQLite browser online, open .db file, sqlite3 query, SQLite schema viewer, export SQLite to CSV, local SQL",
   "DatabaseTitle": "Database",
   "DropTitle": "Drop a SQLite file here",

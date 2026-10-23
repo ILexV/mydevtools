@@ -1,7 +1,7 @@
 {
   "Title": "Kompressions-Benchmark",
   "Description": "Komprimieren Sie Ihre eigene Datei mit gzip, Brotli und Zstandard in Stufen Ihrer Wahl und vergleichen Sie Größe, Verhältnis, Geschwindigkeit und Speicher – alles im Browser.",
-  "Seo_Title": "Kompressions-Benchmark — gzip, Brotli und Zstandard mit Ihrer Datei vergleichen | MyDevTools",
+  "Seo_Title": "Kompressions-Benchmark — gzip, Brotli, Zstandard | MyDevTools",
   "Keywords": "kompression benchmark, gzip vs brotli, zstd vs gzip, kompressionsrate berechnen, brotli stufen vergleich, zstandard benchmark, datei online komprimieren, kompressionsgeschwindigkeit test",
   "InputTitle": "Datei und Codecs",
   "Clear": "Leeren",

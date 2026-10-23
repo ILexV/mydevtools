@@ -182,7 +182,7 @@ const TOOL_COMPONENTS: Record<string, any> = {
 const ActiveTool = TOOL_COMPONENTS[slug];
 ---
 
-<BaseLayout locale={lang} path={slug} title={title} description={description} keywords={[tool.slug]} categoryName={catLabel} howToSteps={howToSteps} seoTitle={seoTitle} footerPrivacy={privacyLabel}>
+<BaseLayout locale={lang} path={slug} title={title} description={description} keywords={[tool.slug]} howToSteps={howToSteps} seoTitle={seoTitle} footerPrivacy={privacyLabel}>
   <span data-visit-slug data-slug={slug} hidden></span>
   <div class="scroll-progress" aria-hidden="true"></div>
   <main class="tool" style={`--mdt-cat: var(--mdt-cat-${tool.category})`}>
@@ -190,7 +190,7 @@ const ActiveTool = TOOL_COMPONENTS[slug];
       <nav class="crumbs" aria-label="breadcrumb">
         <a href={`/${lang}/`}>{homeLabel}</a>
         <span aria-hidden="true">/</span>
-        <span>{catLabel}</span>
+        <a href={`/${lang}/#cat-${tool.category}`}>{catLabel}</a>
         <span aria-hidden="true">/</span>
         <span class="crumb-current">{tool.slug}</span>
       </nav>

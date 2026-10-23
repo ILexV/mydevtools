@@ -20,7 +20,7 @@
   "Category_NetworkUtilities": "네트워크 유틸리티",
   "FeatureWasmDescription": "해시, 암호화, 이미지와 PDF 처리는 Rust로 컴파일한 WebAssembly에서 실행되고, 간단한 도구는 가벼운 JavaScript로 동작합니다.",
   "FeatureWasmTitle": "필요한 곳에 WebAssembly",
-  "SeoContent_P1": "MyDevTools는 브라우저에서 동작하는 무료 개발자 유틸리티 모음입니다. JSON, XML, YAML 포매터와 검증기, Base64, Hex, URL 인코더, 해시와 HMAC 계산기, JWT와 X.509 도구, 정규식 테스터, 이미지와 PDF 도구, UUID·비밀번호·QR 코드 생성기를 제공합니다. 설치할 것도, 만들 계정도 없습니다.",
+  "SeoContent_P1": "MyDevTools는 브라우저에서 동작하는 무료 개발자 유틸리티 모음입니다. JSON, XML, YAML 포매터와 검증기, Base64, Hex, URL 인코더, 해시와 HMAC 계산기, JWT와 X.509 도구, 정규식 테스터, 이미지와 PDF 도구, UUID·비밀번호·QR 코드 생성기를 제공합니다. 설치할 것도, 만들 계정도 없습니다. 큰 로컬 파일을 위해 수 GB의 CSV, JSON, 로그, Parquet, SQLite 탐색기와 대용량 파일 비교, 아카이브 탐색기가 있으며, 선택 사항인 Windows 에이전트를 설치하면 HTTP 클라이언트와 DNS, WHOIS, TLS, 경로 추적, 포트 스캔 같은 네트워크 도구도 쓸 수 있습니다.",
   "Category_JwtAndTokens": "JWT 및 토큰",
   "Category_TextTools": "텍스트 도구",
   "SeoContent_Title": "MyDevTools를 선택하는 이유는 무엇인가요?",

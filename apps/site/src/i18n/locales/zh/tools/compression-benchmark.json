@@ -1,7 +1,7 @@
 {
   "Title": "压缩基准测试",
   "Description": "用 gzip、Brotli 和 Zstandard 以你选择的级别压缩自己的文件，并比较大小、压缩比、速度和内存，全部在浏览器中完成。",
-  "Seo_Title": "压缩基准测试 — 用你的文件比较 gzip、Brotli 和 Zstandard | MyDevTools",
+  "Seo_Title": "压缩基准测试 — gzip、Brotli、Zstandard | MyDevTools",
   "Keywords": "压缩基准测试, gzip vs brotli, zstd vs gzip, 压缩比计算器, brotli 级别对比, zstandard 基准测试, 在线压缩文件, 压缩速度测试, 压缩算法对比",
   "InputTitle": "文件和编解码器",
   "Clear": "清除",

@@ -1,7 +1,7 @@
 {
   "Title": "大文件对比",
   "Description": "逐行或逐字节对比两个本地大文件，可设置空白、换行符和编码选项，并下载对比报告。",
-  "Seo_Title": "大文件对比 — 在本地对比超大文本和二进制文件 | MyDevTools",
+  "Seo_Title": "大文件对比 — 文本与二进制文件 | MyDevTools",
   "Keywords": "大文件对比, 大文件 diff, 日志文件对比, 二进制文件对比, 在线对比大文件, unified diff, 浏览器文件比较",
   "InputTitle": "文件",
   "FileATitle": "原始文件",

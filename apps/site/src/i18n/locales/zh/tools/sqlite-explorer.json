@@ -1,7 +1,7 @@
 {
   "Title": "SQLite Explorer",
   "Description": "在浏览器中打开本地 SQLite 数据库：浏览表、视图和索引，运行 SQL 并导出结果，文件无需上传。",
-  "Seo_Title": "SQLite Explorer 在线工具 — 本地浏览和查询 .db 文件 | MyDevTools",
+  "Seo_Title": "SQLite 在线查看器 — 浏览和查询 .db 文件 | MyDevTools",
   "Keywords": "SQLite 查看器, 在线 SQLite 浏览器, 打开 .db 文件, sqlite3 查询, SQLite 结构查看, SQLite 导出 CSV, 本地 SQL",
   "DatabaseTitle": "数据库",
   "DropTitle": "将 SQLite 文件拖放到此处",

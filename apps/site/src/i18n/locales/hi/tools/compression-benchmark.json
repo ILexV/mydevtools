@@ -1,7 +1,7 @@
 {
   "Title": "कम्प्रेशन बेंचमार्क",
   "Description": "अपनी फ़ाइल को gzip, Brotli और Zstandard से अपने चुने स्तरों पर संपीड़ित करें और आकार, अनुपात, गति व मेमोरी की तुलना करें, सब कुछ ब्राउज़र में।",
-  "Seo_Title": "कम्प्रेशन बेंचमार्क — अपनी फ़ाइल पर gzip, Brotli और Zstandard की तुलना करें | MyDevTools",
+  "Seo_Title": "कम्प्रेशन बेंचमार्क — gzip, Brotli, Zstandard | MyDevTools",
   "Keywords": "कम्प्रेशन बेंचमार्क, gzip vs brotli, zstd vs gzip, कम्प्रेशन अनुपात कैलकुलेटर, brotli स्तर तुलना, zstandard बेंचमार्क, फ़ाइल ऑनलाइन संपीड़ित करें, कम्प्रेशन गति टेस्ट",
   "InputTitle": "फ़ाइल और कोडेक",
   "Clear": "साफ़ करें",

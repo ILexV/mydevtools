@@ -20,7 +20,7 @@
   "Category_NetworkUtilities": "नेटवर्क उपयोगिताएँ",
   "FeatureWasmDescription": "हैशिंग, एन्क्रिप्शन, इमेज और PDF प्रोसेसिंग Rust से बने WebAssembly में चलती है; सरल टूल्स हल्का JavaScript हैं।",
   "FeatureWasmTitle": "जहाँ ज़रूरी, वहाँ WebAssembly",
-  "SeoContent_P1": "MyDevTools ब्राउज़र में चलने वाले मुफ़्त डेवलपर टूल्स का संग्रह है: JSON, XML और YAML के फ़ॉर्मेटर और वैलिडेटर, Base64, Hex और URL एनकोडर, हैश और HMAC कैलकुलेटर, JWT और X.509 टूल्स, रेगेक्स टेस्टर, इमेज और PDF टूल्स, तथा UUID, पासवर्ड और QR कोड जनरेटर। न कुछ इंस्टॉल करना है, न कोई खाता बनाना है।",
+  "SeoContent_P1": "MyDevTools ब्राउज़र में चलने वाले मुफ़्त डेवलपर टूल्स का संग्रह है: JSON, XML और YAML के फ़ॉर्मेटर और वैलिडेटर, Base64, Hex और URL एनकोडर, हैश और HMAC कैलकुलेटर, JWT और X.509 टूल्स, रेगेक्स टेस्टर, इमेज और PDF टूल्स, तथा UUID, पासवर्ड और QR कोड जनरेटर। न कुछ इंस्टॉल करना है, न कोई खाता बनाना है। बड़ी लोकल फ़ाइलों के लिए कई गीगाबाइट की CSV, JSON, लॉग, Parquet और SQLite फ़ाइलों के एक्सप्लोरर, बड़ी फ़ाइलों की तुलना और आर्काइव एक्सप्लोरर हैं; वैकल्पिक Windows एजेंट HTTP क्लाइंट और नेटवर्क टूल जोड़ता है: DNS, WHOIS, TLS, ट्रेसरूट और पोर्ट स्कैन।",
   "Category_JwtAndTokens": "JWT और टोकन",
   "Category_TextTools": "टेक्स्ट टूल्स",
   "SeoContent_Title": "MyDevTools क्यों चुनें?",

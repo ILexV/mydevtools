@@ -1,7 +1,7 @@
 {
   "Title": "압축 벤치마크",
   "Description": "내 파일을 gzip, Brotli, Zstandard로 원하는 수준에서 압축해 크기, 압축률, 속도, 메모리를 브라우저에서 바로 비교합니다.",
-  "Seo_Title": "압축 벤치마크 — 내 파일로 gzip, Brotli, Zstandard 비교 | MyDevTools",
+  "Seo_Title": "압축 벤치마크 — gzip, Brotli, Zstandard | MyDevTools",
   "Keywords": "압축 벤치마크, gzip vs brotli, zstd vs gzip, 압축률 계산기, brotli 레벨 비교, zstandard 벤치마크, 파일 온라인 압축, 압축 속도 테스트, 압축 알고리즘 비교",
   "InputTitle": "파일과 코덱",
   "Clear": "지우기",

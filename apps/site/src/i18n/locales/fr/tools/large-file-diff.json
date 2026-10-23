@@ -1,7 +1,7 @@
 {
   "Title": "Comparateur de gros fichiers",
   "Description": "Comparez deux gros fichiers locaux ligne par ligne ou octet par octet, avec des options d’espaces, de fins de ligne et d’encodage, et un rapport téléchargeable.",
-  "Seo_Title": "Comparateur de gros fichiers — comparez de gros textes et binaires en local | MyDevTools",
+  "Seo_Title": "Comparer de gros fichiers texte et binaires | MyDevTools",
   "Keywords": "comparer gros fichiers, diff gros fichiers, comparer fichiers journaux, comparer fichiers binaires, diff en ligne de gros fichiers, unified diff, comparaison de fichiers dans le navigateur",
   "InputTitle": "Fichiers",
   "FileATitle": "Fichier d’origine",

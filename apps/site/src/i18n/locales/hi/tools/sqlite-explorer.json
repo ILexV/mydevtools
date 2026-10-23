@@ -1,7 +1,7 @@
 {
   "Title": "SQLite Explorer",
   "Description": "लोकल SQLite डेटाबेस को ब्राउज़र में खोलें: टेबल, व्यू और इंडेक्स देखें, SQL चलाएँ और फ़ाइल अपलोड किए बिना नतीजे एक्सपोर्ट करें।",
-  "Seo_Title": "SQLite Explorer ऑनलाइन — .db फ़ाइलें लोकल रूप से देखें और क्वेरी करें | MyDevTools",
+  "Seo_Title": "SQLite व्यूअर ऑनलाइन — .db फ़ाइलें देखें और क्वेरी करें | MyDevTools",
   "Keywords": "SQLite व्यूअर, SQLite ब्राउज़र ऑनलाइन, .db फ़ाइल खोलें, sqlite3 क्वेरी, SQLite स्कीमा व्यूअर, SQLite को CSV में एक्सपोर्ट, लोकल SQL",
   "DatabaseTitle": "डेटाबेस",
   "DropTitle": "SQLite फ़ाइल यहाँ छोड़ें",

@@ -1,7 +1,7 @@
 {
   "Title": "Vergleich großer Dateien",
   "Description": "Zwei große lokale Dateien zeilen- oder byteweise vergleichen – mit Optionen für Leerraum, Zeilenenden und Kodierung sowie einem Bericht zum Herunterladen.",
-  "Seo_Title": "Vergleich großer Dateien — große Text- und Binärdateien lokal vergleichen | MyDevTools",
+  "Seo_Title": "Große Text- und Binärdateien vergleichen | MyDevTools",
   "Keywords": "große Dateien vergleichen, Dateivergleich, Logdateien vergleichen, Binärdateien vergleichen, diff für große Dateien online, unified diff, Dateivergleich im Browser",
   "InputTitle": "Dateien",
   "FileATitle": "Originaldatei",

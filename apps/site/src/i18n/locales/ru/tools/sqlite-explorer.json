@@ -1,7 +1,7 @@
 {
   "Title": "SQLite Explorer",
   "Description": "Откройте локальную базу SQLite в браузере: таблицы, представления и индексы, SQL-запросы и экспорт результатов без загрузки файла на сервер.",
-  "Seo_Title": "SQLite Explorer онлайн — просмотр и запросы к .db локально | MyDevTools",
+  "Seo_Title": "Просмотр SQLite онлайн — открыть .db и выполнить SQL | MyDevTools",
   "Keywords": "просмотр SQLite, SQLite онлайн, открыть файл .db, запрос sqlite3, схема SQLite, экспорт SQLite в CSV, локальный SQL",
   "DatabaseTitle": "База данных",
   "DropTitle": "Перетащите файл SQLite сюда",

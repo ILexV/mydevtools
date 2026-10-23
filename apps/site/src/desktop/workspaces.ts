@@ -7,9 +7,9 @@
 import { normalizeBounds } from "./bounds.ts";
 import type { Bounds, DeskSize, DeskWindow } from "./types.ts";
 
-export const WIDGET_IDS = ["favorites", "recent"] as const;
+export const WIDGET_IDS = ["favorites", "recent", "clipboard"] as const;
 export type WidgetId = (typeof WIDGET_IDS)[number];
-export const DEFAULT_WIDGETS: readonly WidgetId[] = ["favorites", "recent"];
+export const DEFAULT_WIDGETS: readonly WidgetId[] = ["favorites", "recent", "clipboard"];
 
 export const MAX_WORKSPACES = 16;
 export const MAX_WORKSPACE_WINDOWS = 16;
@@ -31,6 +31,46 @@ export interface SavedWorkspace {
 }
 
 const WORKSPACE_ID = /^[A-Za-z0-9_-]{1,64}$/;
+
+/**
+ * Ready-made desk scenarios (starter layouts) shipped with the site: a task such as
+ * API debugging or release verification opens its tools side by side in one click.
+ * Names and hints are locale keys in `desktop.json`; nothing is stored until the person saves.
+ */
+export interface BuiltinWorkspace {
+  id: string;
+  nameKey: string;
+  hintKey: string;
+  slugs: readonly string[];
+}
+
+export const BUILTIN_WORKSPACES: readonly BuiltinWorkspace[] = [
+  { id: "api", nameKey: "ScenarioApi", hintKey: "ScenarioApiHint", slugs: ["http-client", "jwt-decoder", "json-beautifier"] },
+  { id: "release", nameKey: "ScenarioRelease", hintKey: "ScenarioReleaseHint", slugs: ["hash-calculator", "file-signature"] },
+  { id: "data", nameKey: "ScenarioData", hintKey: "ScenarioDataHint", slugs: ["csv-explorer", "data-format-converter", "json-beautifier"] },
+  { id: "images", nameKey: "ScenarioImages", hintKey: "ScenarioImagesHint", slugs: ["image-batch", "image-compressor", "image-converter"] },
+  { id: "encoding", nameKey: "ScenarioEncoding", hintKey: "ScenarioEncodingHint", slugs: ["base64-encoder", "url-encoder", "hex-encoder", "hash-calculator"] },
+  { id: "keys", nameKey: "ScenarioKeys", hintKey: "ScenarioKeysHint", slugs: ["openssh-keys", "x509", "aead-file"] },
+  { id: "text", nameKey: "ScenarioText", hintKey: "ScenarioTextHint", slugs: ["regex-tester", "text-diff-viewer", "word-counter"] },
+];
+
+/**
+ * Tiles 1–4 tools over the stage as shares: one fills it, two split it in halves,
+ * three put the first on the left half and stack the rest on the right, four take the quarters.
+ */
+export function scenarioWindows(slugs: readonly string[]): WorkspaceWindow[] {
+  const list = slugs.slice(0, 4);
+  const half = (x: number, y: number, height: number): Bounds => ({ x, y, width: 0.5, height });
+  const cells: Bounds[][] = [
+    [],
+    [{ x: 0, y: 0, width: 1, height: 1 }],
+    [half(0, 0, 1), half(0.5, 0, 1)],
+    [half(0, 0, 1), half(0.5, 0, 0.5), half(0.5, 0.5, 0.5)],
+    [half(0, 0, 0.5), half(0.5, 0, 0.5), half(0, 0.5, 0.5), half(0.5, 0.5, 0.5)],
+  ];
+  const layout = cells[list.length]!;
+  return list.map((slug, index) => ({ slug, bounds: layout[index]!, mode: "normal" as const }));
+}
 
 /** Front-most window of each tool, back-to-front, so applying the list leaves that window active. */
 export function captureWorkspace(windows: readonly DeskWindow[], desk: DeskSize): WorkspaceWindow[] {
@@ -98,5 +138,5 @@ export function shiftWidget(order: readonly WidgetId[], id: WidgetId, delta: -1 
 }
 
 export function isWidgetId(value: unknown): value is WidgetId {
-  return value === "favorites" || value === "recent";
+  return value === "favorites" || value === "recent" || value === "clipboard";
 }

@@ -31,6 +31,7 @@ const targetSlugs = [
 const stringsJson = JSON.stringify({
   slug,
   openIn: t(lang, "transfer", "OpenIn"),
+  dragResult: t(lang, "transfer", "DragResult"),
   received: t(lang, "transfer", "Received"),
   popupBlocked: t(lang, "transfer", "PopupBlocked"),
   targets: targetSlugs.map((target) => ({
@@ -51,6 +52,9 @@ const stringsJson = JSON.stringify({
   .mdt-transfer > summary::after { content: "▾"; margin-inline-start: 0.35rem; font-size: 0.72em; }
   .mdt-transfer[open] > summary::after { transform: rotate(180deg); }
   .mdt-transfer.is-disabled > summary { opacity: 0.5; cursor: not-allowed; }
+  .mdt-transfer-drag { cursor: grab; font-size: 1rem; line-height: 1; }
+  .mdt-transfer-drag:active { cursor: grabbing; }
+  .mdt-transfer-drag:disabled { opacity: 0.5; cursor: not-allowed; }
   .mdt-transfer-menu {
     position: absolute;
     z-index: 20;

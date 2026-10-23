@@ -87,8 +87,17 @@ export function prepareCopyButton(
   if (fail) fillFace(fail, "alert", null, true, size);
 }
 
-/** Write text to the clipboard; falls back to execCommand("copy") where the async API is missing or refused. */
+/**
+ * Write text to the clipboard; falls back to execCommand("copy") where the async API is missing or refused.
+ * A successful copy also fires `mdt:copied` on the document so the desktop clipboard widget can list it.
+ */
 async function writeClipboard(text: string): Promise<boolean> {
+  const ok = await writeClipboardRaw(text);
+  if (ok) document.dispatchEvent(new CustomEvent("mdt:copied", { detail: { text } }));
+  return ok;
+}
+
+async function writeClipboardRaw(text: string): Promise<boolean> {
   try {
     if (navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(text);

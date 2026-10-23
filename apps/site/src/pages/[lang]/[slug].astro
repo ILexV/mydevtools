@@ -190,6 +190,7 @@ const ActiveTool = TOOL_COMPONENTS[slug];
 
 <BaseLayout locale={lang} path={slug} title={title} description={description} keywords={[tool.slug]} howToSteps={howToSteps} seoTitle={seoTitle} footerPrivacy={privacyLabel}>
   <span data-visit-slug data-slug={slug} hidden></span>
+  <span data-desk-return data-label={t(lang, "desktop", "ReturnToDesk")} hidden></span>
   <div class="scroll-progress" aria-hidden="true"></div>
   <main class="tool" style={`--mdt-cat: var(--mdt-cat-${tool.category})`}>
     <header class="tool-head">

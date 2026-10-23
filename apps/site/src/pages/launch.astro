@@ -1,0 +1,28 @@
+---
+/**
+ * `/launch/` — language-neutral entry of the installed app: OS file launches
+ * (manifest `file_handlers`) and the "Desktop" app shortcut. Not indexed; the
+ * script forwards to `/{lang}/desktop/`, the links work without JavaScript.
+ */
+import { t } from "@/i18n/messages";
+import { localizedPath } from "@/lib/url";
+import { DEFAULT_LOCALE, LOCALES } from "@/registry/locales";
+---
+
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{t(DEFAULT_LOCALE, "common", "AppName")}</title>
+  </head>
+  <body>
+    <p style="font-family: system-ui, sans-serif; padding: 2rem">
+      {LOCALES.map((locale) => (
+        <><a href={localizedPath(locale.code, "desktop")} hreflang={locale.bcp47}>{t(locale.code, "desktop", "Title")} · {locale.nativeName}</a><br /></>
+      ))}
+    </p>
+    <script>import "@/desktop/launch.client.ts";</script>
+  </body>
+</html>

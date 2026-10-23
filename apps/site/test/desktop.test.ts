@@ -331,7 +331,7 @@ test("preferences and layout drop unknown versions, slugs and duplicate ids", ()
   assert.deepEqual(prefs?.pinned, []);
   assert.equal(prefs?.density, "comfortable");
   assert.equal(prefs?.hintDismissed, false);
-  assert.deepEqual(prefs?.widgets, ["favorites", "recent"]);
+  assert.deepEqual(prefs?.widgets, ["favorites", "recent", "clipboard"]);
   assert.deepEqual(prefs?.workspaces, []);
   assert.deepEqual(prefs?.folders, []);
   assert.equal(prefs?.focusMode, false);
@@ -413,7 +413,8 @@ test("a saved layout keeps slug and stage shares and drops typed text", () => {
     ],
   });
   const prefs = parsePrefs(raw, slugs, categories);
-  assert.deepEqual(prefs?.widgets, ["recent"]);
+  // A desk saved before the clipboard widget existed gets it once, at the bottom.
+  assert.deepEqual(prefs?.widgets, ["recent", "clipboard"]);
   assert.deepEqual(prefs?.widgetsCollapsed, ["favorites"]);
   assert.equal(prefs?.workspaces.length, 1);
   assert.equal(prefs?.workspaces[0]?.name, "Pair");

@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { LOCALES, DEFAULT_LOCALE } from "@/registry/locales";
 import { t } from "@/i18n/messages";
+import { manifestAccept } from "@/desktop/file-routes";
 
 /**
  * Web App Manifest — emitted at build time as `dist/manifest.webmanifest`.
@@ -41,10 +42,21 @@ export const GET: APIRoute = () => {
     theme_color: "#6a5af9",
     categories: ["developer", "utilities", "productivity"],
     icons,
-    shortcuts: LOCALES.slice(0, 4).map((l) => ({
-      name: l.nativeName,
-      url: `${base}${l.code}/`,
-    })),
+    // `/launch/` picks the visitor's language before opening the desk.
+    shortcuts: [
+      { name: t(DEFAULT_LOCALE, "desktop", "Title"), url: `${base}launch/` },
+      ...LOCALES.slice(0, 4).map((l) => ({
+        name: l.nativeName,
+        url: `${base}${l.code}/`,
+      })),
+    ],
+    // "Open with → MyDevTools" for file types some tool opens; the desk then offers the matching tools.
+    file_handlers: [
+      {
+        action: `${base}launch/`,
+        accept: manifestAccept(),
+      },
+    ],
   };
 
   return new Response(JSON.stringify(manifest), {

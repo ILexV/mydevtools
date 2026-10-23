@@ -10,6 +10,7 @@ import type { Bounds, DeskState, DeskWindow, ShortcutPositions } from "./types.t
 import { WALLPAPER_PRESETS, type WallpaperPresetId } from "./wallpaper.ts";
 import {
   DEFAULT_WIDGETS,
+  WIDGET_IDS,
   MAX_WORKSPACE_WINDOWS,
   MAX_WORKSPACES,
   isWidgetId,
@@ -68,6 +69,8 @@ export interface DeskPrefs {
   folders: CustomFolder[];
   /** Focus mode hides shortcuts and widgets while leaving an always-visible exit. */
   focusMode: boolean;
+  /** The ready-made scenario card on an empty desk stays hidden after the person closes it. */
+  startersDismissed: boolean;
 }
 
 export function defaultPrefs(categoryIds: readonly string[]): DeskPrefs {
@@ -89,6 +92,7 @@ export function defaultPrefs(categoryIds: readonly string[]): DeskPrefs {
     widgetsCollapsed: [],
     folders: [],
     focusMode: false,
+    startersDismissed: false,
   };
 }
 
@@ -214,10 +218,11 @@ export function parsePrefs(
     locked: parsed.locked === true,
     hintDismissed: parsed.hintDismissed === true,
     workspaces: readWorkspaces(parsed.workspaces, slugs),
-    widgets: readWidgets(parsed.widgets, [...DEFAULT_WIDGETS]),
+    widgets: withNewWidgets(readWidgets(parsed.widgets, [...DEFAULT_WIDGETS]), parsed.knownWidgets),
     widgetsCollapsed: readWidgets(parsed.widgetsCollapsed, []),
     folders,
     focusMode: parsed.focusMode === true,
+    startersDismissed: parsed.startersDismissed === true,
   };
 }
 
@@ -239,6 +244,16 @@ function readFolders(value: unknown, slugs: ReadonlySet<string>): CustomFolder[]
     folders.push({ id: candidate.id, name, items });
   }
   return folders;
+}
+
+/**
+ * Widgets added after a desk was saved appear once at the bottom of the column;
+ * `knownWidgets` records what the person has already seen, so hiding one sticks.
+ */
+function withNewWidgets(widgets: WidgetId[], known: unknown): WidgetId[] {
+  const seen = Array.isArray(known) ? known.filter(isWidgetId) : ["favorites", "recent"];
+  const added = WIDGET_IDS.filter((id) => !seen.includes(id) && !widgets.includes(id));
+  return [...widgets, ...added];
 }
 
 function readWidgets(value: unknown, fallback: WidgetId[]): WidgetId[] {
@@ -290,7 +305,7 @@ function readFractionBounds(value: unknown): Bounds | null {
 }
 
 export function serializePrefs(prefs: DeskPrefs): string {
-  return JSON.stringify({ v: 1, ...prefs });
+  return JSON.stringify({ v: 1, ...prefs, knownWidgets: [...WIDGET_IDS] });
 }
 
 function readWindow(value: unknown, slugs: ReadonlySet<string>, categories: ReadonlySet<string>): DeskWindow | null {

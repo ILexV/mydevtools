@@ -26,16 +26,26 @@ import {
 import { desktopReducer } from "./reducer.ts";
 import { arrangeShortcuts, cellSize, moveShortcut, packedPositions, stripColumns } from "./shortcuts.ts";
 import { cycleWindow, isEditableTarget, isMacPlatform, shellCommand, type ShellCommand } from "./shell-keys.ts";
-import { parseFrameMessage, transferDelivery, type TransferDelivery } from "./frame-bridge.ts";
+import { linkDelivery, parseFrameMessage, transferDelivery, type FrameMessage, type TransferDelivery } from "./frame-bridge.ts";
+import { deliverFiles } from "./file-delivery.ts";
+import { toolsForFiles } from "./file-routes.ts";
+import { takeLaunchFiles } from "./launch-store.ts";
+import { addLink, dropWindows, incoming, linkProblem, outgoing, type WindowLink } from "./links.ts";
+import { STRUCTURED_TARGETS, TARGETS, TEXT_TARGETS, canReceive, isTransferMediaType, resultTargets } from "@/scripts/transfer-specs";
 import { createTaskPreview } from "./task-preview.ts";
 import type { Bounds, DeskSize, DeskState, DeskWindow, Dock, ResizeEdge, ShortcutCell } from "./types.ts";
 import { emptyDesk } from "./types.ts";
 import { clearWallpaperBlob, loadWallpaperBlob, prepareWallpaper, saveWallpaperBlob } from "./wallpaper.ts";
+import { trackDeskEvent, windowCountBucket } from "@/scripts/analytics/desk-events.ts";
 import {
+  BUILTIN_WORKSPACES,
   captureWorkspace,
   isWorkspaceName,
+  scenarioWindows,
+  type BuiltinWorkspace,
   moveWidget,
   shiftWidget,
+  isWidgetId,
   type SavedWorkspace,
   type WidgetId,
 } from "./workspaces.ts";
@@ -81,6 +91,35 @@ type MenuEntry =
 const FRAME_LOAD_TIMEOUT_MS = 20_000;
 
 const EDGES: ResizeEdge[] = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
+
+const WIDGET_META: Record<WidgetId, { label: string; icon: string; empty: string }> = {
+  favorites: { label: "Favorites", icon: "star", empty: "NoFavorites" },
+  recent: { label: "Recent", icon: "history", empty: "NoRecent" },
+  clipboard: { label: "Clipboard", icon: "clipboard", empty: "ClipboardEmpty" },
+};
+
+/** Desk clipboard: newest first, kept only in this tab's memory. */
+const CLIP_LIMIT = 20;
+const CLIP_MAX_CHARS = 1_000_000;
+/** "Open with" lists at most this many tools. */
+const OPEN_WITH_LIMIT = 8;
+
+interface Clip {
+  text: string;
+  slug: string;
+}
+
+/** A tool moved out of the desk into a browser pop-up or an always-on-top Picture-in-Picture window. */
+interface Popout {
+  slug: string;
+  win: Window;
+  /** Picture-in-Picture hosts the tool in an iframe; a pop-up is the tool page itself. */
+  frame?: HTMLIFrameElement;
+}
+
+interface DocumentPictureInPicture {
+  requestWindow(options: { width: number; height: number }): Promise<Window>;
+}
 
 export function bootDesktop(): void {
   const dataEl = document.getElementById("desk-data");
@@ -144,6 +183,18 @@ export function bootDesktop(): void {
   const pendingTransfers = new Map<HTMLIFrameElement, TransferDelivery[]>();
   const toolActivity = new Map<string, { value: number | null; label: string }>();
   let recentlyClosed: DeskWindow[] = [];
+  let links: WindowLink[] = [];
+  /** Frames whose tool has announced a linkable result in the current document. */
+  const linkSources = new WeakSet<HTMLIFrameElement>();
+  /** Files waiting for a window's tool page to finish loading. */
+  const pendingFiles = new Map<HTMLIFrameElement, File[]>();
+  const clips: Clip[] = [];
+  /** Last text field the person focused in each frame: where a clipboard item is pasted. */
+  const lastEditable = new WeakMap<HTMLIFrameElement, HTMLElement>();
+  const popouts = new Map<string, Popout>();
+  let popoutTimer = 0;
+  const sentWindowBuckets = new Set<string>();
+  let toastTimer = 0;
   let closeNoticeTimer = 0;
   const snap = must<HTMLElement>("[data-desk-snap]");
   const bg = must<HTMLElement>("[data-desk-bg]");
@@ -279,7 +330,10 @@ export function bootDesktop(): void {
   wireTile();
   wireWorkspaces();
   wireFolders();
+  wireStarters();
+  wireDrops();
   startClock();
+  trackDeskEvent({ event: "desk_opened", detail: "" });
 
   void restoreImage().finally(() => {
     applyWallpaper(prefs, imageUrl);
@@ -290,6 +344,7 @@ export function bootDesktop(): void {
       scheduleSave();
     }
     render();
+    void openLaunchedFiles();
   });
 
   function onToolMessage(event: MessageEvent<unknown>): void {
@@ -298,9 +353,26 @@ export function bootDesktop(): void {
       .find((candidate) => candidate.contentWindow === event.source);
     const sourceId = frame?.dataset.toolId;
     const sourceSlug = frame?.dataset.toolSlug;
-    if (!frame || !sourceId || !sourceSlug) return;
+    if (!frame || !sourceId || !sourceSlug) {
+      onPopoutMessage(event);
+      return;
+    }
     const message = parseFrameMessage(event.data, sourceSlug, (slug) => tools.has(slug));
     if (!message) return;
+    if (message.type === "mdt:link-source-ready") {
+      linkSources.add(frame);
+      sendLinkWatch(sourceId);
+      return;
+    }
+    if (message.type === "mdt:link-update") {
+      for (const link of outgoing(links, sourceId)) {
+        const target = state.windows.find((record) => record.id === link.targetId);
+        const targetFrame = frameFor(link.targetId);
+        if (target && targetFrame) deliverTo(targetFrame, linkDelivery(link.id, target.slug, message));
+      }
+      return;
+    }
+    if (message.type === "mdt:popout-return") return;
     if (message.type === "mdt:frame-interactive") {
       attachFrame(frame, sourceId);
       return;
@@ -319,13 +391,42 @@ export function bootDesktop(): void {
       frame.closest<HTMLElement>(".desk-window")?.classList.toggle("is-busy", toolActivity.has(sourceId));
       return;
     }
+    sendTransfer(message);
+  }
+
+  /** "Open in…" from a desk window or a moved-out window: open the target on the desk and hand the result over. */
+  function sendTransfer(message: Extract<FrameMessage, { type: "mdt:transfer-request" }>): void {
     const targetId = openTool(message.targetSlug, false);
     if (!targetId) return;
     const targetFrame = frameFor(targetId);
     if (!targetFrame) return;
-    const delivery = transferDelivery(message);
-    if (readyFrames.has(targetFrame)) targetFrame.contentWindow?.postMessage(delivery, location.origin);
-    else pendingTransfers.set(targetFrame, [...(pendingTransfers.get(targetFrame) ?? []), delivery]);
+    deliverTo(targetFrame, transferDelivery(message));
+    trackDeskEvent({ event: "desk_transfer", detail: "once" });
+  }
+
+  /** Posts now when the tool is listening, otherwise queues; a newer live update replaces a queued one. */
+  function deliverTo(frame: HTMLIFrameElement, delivery: TransferDelivery): void {
+    if (readyFrames.has(frame)) {
+      frame.contentWindow?.postMessage(delivery, location.origin);
+      return;
+    }
+    const queued = (pendingTransfers.get(frame) ?? []).filter((item) => !(delivery.live && item.requestId === delivery.requestId));
+    pendingTransfers.set(frame, [...queued, delivery]);
+  }
+
+  /** Messages from moved-out windows: "Open in…" still opens on the desk, "Return to desk" brings the tool back. */
+  function onPopoutMessage(event: MessageEvent<unknown>): void {
+    for (const [id, popout] of popouts) {
+      const source = popout.frame?.contentWindow ?? popout.win;
+      if (source !== event.source) continue;
+      const message = parseFrameMessage(event.data, popout.slug, (slug) => tools.has(slug));
+      if (message?.type === "mdt:transfer-request") sendTransfer(message);
+      if (message?.type === "mdt:popout-return") {
+        closePopout(id);
+        openTool(popout.slug, false);
+      }
+      return;
+    }
   }
 
   function dispatch(action: Parameters<typeof desktopReducer>[1]): void {
@@ -346,6 +447,12 @@ export function bootDesktop(): void {
     }
     const openBefore = openSlugs(state);
     state = next;
+    pruneLinks();
+    const bucket = windowCountBucket(state.windows.length);
+    if (bucket && ready && !sentWindowBuckets.has(bucket)) {
+      sentWindowBuckets.add(bucket);
+      trackDeskEvent({ event: "desk_windows", detail: bucket });
+    }
     // Shortcut dots and the recent widget only change when the set of open tools does.
     if (action.type === "clamp" || action.type === "hydrate" || openSlugs(next) !== openBefore) render();
     else renderWindowLayer();
@@ -385,6 +492,23 @@ export function bootDesktop(): void {
       focusToggle.setAttribute("title", text(prefs.focusMode ? "ExitFocusMode" : "EnterFocusMode"));
     }
     if (hint) hint.hidden = prefs.hintDismissed;
+    const starters = document.querySelector<HTMLElement>("[data-desk-starters]");
+    if (starters) {
+      starters.hidden = prefs.startersDismissed || state.windows.length > 0;
+      if (!starters.hidden) {
+        // Centre the card in the free wallpaper between the shortcut columns and the widgets.
+        const left = iconHost.offsetWidth + 16;
+        const right = stage.clientWidth - widgetGutter();
+        const free = right - left;
+        if (free >= 480) {
+          starters.style.left = `${left + free / 2}px`;
+          starters.style.maxWidth = `${free - 16}px`;
+        } else {
+          starters.style.removeProperty("left");
+          starters.style.removeProperty("max-width");
+        }
+      }
+    }
     const count = document.querySelector<HTMLElement>("[data-desk-count]");
     if (count) {
       count.hidden = state.windows.length === 0;
@@ -549,7 +673,13 @@ export function bootDesktop(): void {
     const actions = document.createElement("div");
     actions.className = "desk-window-actions";
     header.append(markHost, name, actions);
+    const linkButton = winButton("LinkResult", glyph("link"), () => {
+      const box = linkButton.getBoundingClientRect();
+      if (node.dataset.activeId) openLinkMenu(node.dataset.activeId, box.right - 240, box.bottom + 4);
+    }, "data-link");
+    linkButton.setAttribute("aria-haspopup", "menu");
     actions.append(
+      linkButton,
       winButton("Favorite", glyph("star"), () => {
         const current = state.windows.find((record) => record.id === node.dataset.activeId);
         if (current?.kind === "tool") window.MDT?.favorites.toggle(current.slug);
@@ -680,6 +810,17 @@ export function bootDesktop(): void {
       button.setAttribute("aria-label", text(keyName));
       button.title = text(keyName);
     }
+    const linkBtn = node.querySelector<HTMLButtonElement>("[data-link]");
+    if (linkBtn) {
+      const linked = record.kind === "tool" && (outgoing(links, record.id).length > 0 || !!incoming(links, record.id));
+      linkBtn.hidden = record.kind !== "tool" || (!linked && resultTargets(record.slug).filter((slug) => TARGETS[slug]).length === 0);
+      linkBtn.classList.toggle("is-on", linked);
+      linkBtn.setAttribute("aria-pressed", String(linked));
+      const summary = linkSummary(record.id);
+      linkBtn.title = summary || text("LinkResult");
+      linkBtn.setAttribute("aria-label", summary || text("LinkResult"));
+    }
+    node.classList.toggle("is-linked", record.kind === "tool" && (outgoing(links, record.id).length > 0 || !!incoming(links, record.id)));
     const maxBtn = node.querySelector<HTMLButtonElement>("[data-max]");
     if (maxBtn && maxBtn.dataset.glyph !== String(restore)) {
       maxBtn.dataset.glyph = String(restore);
@@ -763,6 +904,11 @@ export function bootDesktop(): void {
       // Normally attached at `mdt:frame-interactive`; this covers a page without that script.
       attachFrame(frame, record.id);
       void fitInitialWindow(record.id, frame);
+      const files = pendingFiles.get(frame);
+      if (files) {
+        pendingFiles.delete(frame);
+        handFiles(frame, files);
+      }
     });
     frame.addEventListener("mdt:wake", () => {
       window.clearTimeout(loadTimer);
@@ -798,6 +944,29 @@ export function bootDesktop(): void {
     frame.dataset.attached = "";
     frameInput.set(frame, trackUserInput(doc));
     doc.defaultView?.addEventListener("keydown", (event) => onFrameKey(event, id), true);
+    // A file dropped outside the tool's own drop zone would navigate the frame away; give it to the tool instead.
+    doc.addEventListener("dragover", (event) => {
+      if (!event.defaultPrevented && event.dataTransfer?.types.includes("Files")) event.preventDefault();
+    });
+    doc.addEventListener("drop", (event) => {
+      const files = [...(event.dataTransfer?.files ?? [])];
+      if (event.defaultPrevented || files.length === 0) return;
+      event.preventDefault();
+      if (!deliverFiles(doc, files)) showToast(text("FileNotAccepted"));
+    });
+    const slug = frame.dataset.toolSlug ?? "";
+    doc.addEventListener("mdt:copied", (event) => {
+      const detail = (event as CustomEvent<{ text?: unknown }>).detail;
+      if (typeof detail?.text === "string") addClip(detail.text, slug);
+    });
+    doc.addEventListener("copy", (event) => {
+      const fromEvent = event.clipboardData?.getData("text/plain") ?? "";
+      addClip(fromEvent || selectedText(doc), slug);
+    });
+    doc.addEventListener("focusin", (event) => {
+      const target = event.target as HTMLElement | null;
+      if (target && isEditableTarget(target)) lastEditable.set(frame, target);
+    });
   }
 
   /** Starts loading a lazily created frame; a no-op once it has a document. */
@@ -885,6 +1054,12 @@ export function bootDesktop(): void {
       if (records.every((record) => record.mode === "minimized")) button.classList.add("is-min");
       if (records.some((record) => toolActivity.has(record.id))) button.classList.add("is-busy");
       taskPreview.bind(button, front.id);
+      taskHost.append(button);
+    }
+    for (const popout of popouts.values()) {
+      const info = toolInfo(popout.slug);
+      const button = taskButton(info, `${info.label} — ${text("PopoutTask")}`, false, () => popout.win.focus());
+      button.classList.add("is-running", "is-external");
       taskHost.append(button);
     }
   }
@@ -1864,6 +2039,9 @@ export function bootDesktop(): void {
         });
       }
     }
+    for (const scenario of BUILTIN_WORKSPACES) {
+      add(text(scenario.nameKey), text("ApplyScenario"), () => void activateSavedWorkspace(scenarioWorkspace(scenario), false, "builtin"));
+    }
     for (const workspace of prefs.workspaces) {
       add(workspace.name, text("ApplyWorkspace"), () => void activateSavedWorkspace(workspace, false));
     }
@@ -2356,6 +2534,7 @@ export function bootDesktop(): void {
         { kind: "label", label: text("Widgets") },
         { kind: "item", label: text("Favorites"), checked: prefs.widgets.includes("favorites"), run: () => toggleWidget("favorites") },
         { kind: "item", label: text("Recent"), checked: prefs.widgets.includes("recent"), run: () => toggleWidget("recent") },
+        { kind: "item", label: text("Clipboard"), checked: prefs.widgets.includes("clipboard"), run: () => toggleWidget("clipboard") },
         { kind: "separator" },
         { kind: "item", label: text("AlignIcons"), icon: "apps", run: () => settingsDialog.querySelector<HTMLButtonElement>("[data-align]")?.click() },
         {
@@ -2372,6 +2551,7 @@ export function bootDesktop(): void {
         { kind: "item", label: text("ShowDesktop"), icon: "desktop", run: () => dispatch({ type: state.concealed ? "reveal" : "conceal" }) },
         { kind: "item", label: text(prefs.focusMode ? "ExitFocusMode" : "EnterFocusMode"), icon: "zap", checked: prefs.focusMode, run: () => setFocusMode(!prefs.focusMode) },
         { kind: "separator" },
+        { kind: "item", label: text("ScenariosTitle"), icon: "windows", run: () => document.querySelector<HTMLButtonElement>("[data-desk-workspaces]")?.click() },
         { kind: "item", label: text("Settings"), icon: "settings", run: () => openSettings() },
       ],
       x,
@@ -2479,7 +2659,14 @@ export function bootDesktop(): void {
           },
         },
         { kind: "item", label: text("OpenAnother"), icon: "windows", run: () => openTool(record.slug, true) },
+        { kind: "item", label: text("PopoutWindow"), icon: "external", run: () => void popoutWindow(record.id, false) },
       );
+      if ("documentPictureInPicture" in window) {
+        items.push({ kind: "item", label: text("PopoutPip"), icon: "external", run: () => void popoutWindow(record.id, true) });
+      }
+      if (resultTargets(record.slug).some((slug) => TARGETS[slug]) || outgoing(links, record.id).length > 0 || incoming(links, record.id)) {
+        items.push({ kind: "item", label: text("LinkResult"), icon: "link", run: () => openLinkMenu(record.id, x, y) });
+      }
       const seenGroups = new Set<string>();
       for (const other of [...state.windows].sort((a, b) => b.z - a.z)) {
         const key = other.groupId ?? other.id;
@@ -2665,23 +2852,24 @@ export function bootDesktop(): void {
 
   function renderWidget(id: WidgetId): HTMLElement {
     const collapsed = prefs.widgetsCollapsed.includes(id);
-    const items = widgetItems(id);
+    const items = id === "clipboard" ? [] : widgetItems(id);
+    const meta = WIDGET_META[id];
     const section = document.createElement("section");
     section.className = "desk-widget";
     section.classList.toggle("is-collapsed", collapsed);
     section.dataset.widget = id;
-    section.setAttribute("aria-label", text(id === "favorites" ? "Favorites" : "Recent"));
+    section.setAttribute("aria-label", text(meta.label));
 
     const head = document.createElement("div");
     head.className = "desk-widget-head";
     const badge = document.createElement("span");
     badge.className = "desk-widget-icon";
-    badge.innerHTML = glyph(id === "favorites" ? "star" : "history", 14);
+    badge.innerHTML = glyph(meta.icon, 14);
     const title = document.createElement("h2");
-    title.textContent = text(id === "favorites" ? "Favorites" : "Recent");
+    title.textContent = text(meta.label);
     const peek = document.createElement("span");
     peek.className = "desk-widget-peek";
-    peek.textContent = String(items.length);
+    peek.textContent = String(id === "clipboard" ? clips.length : items.length);
     peek.hidden = !collapsed;
     const fold = document.createElement("button");
     fold.type = "button";
@@ -2711,6 +2899,9 @@ export function bootDesktop(): void {
           { kind: "item", label: text(collapsed ? "ExpandWidget" : "CollapseWidget"), run: () => fold.click() },
           { kind: "item", label: text("MoveWidgetUp"), run: () => reorderWidget(id, -1) },
           { kind: "item", label: text("MoveWidgetDown"), run: () => reorderWidget(id, 1) },
+          ...(id === "clipboard" && clips.length > 0
+            ? [{ kind: "item" as const, label: text("ClearClipboard"), run: clearClips }]
+            : []),
           { kind: "item", label: text("HideWidget"), run: () => toggleWidget(id) },
         ],
         box.left,
@@ -2722,10 +2913,11 @@ export function bootDesktop(): void {
 
     const list = document.createElement("ul");
     list.className = "desk-widget-body";
-    if (items.length === 0) {
+    if (id === "clipboard") fillClipList(list);
+    else if (items.length === 0) {
       const empty = document.createElement("li");
       empty.className = "desk-widget-empty";
-      empty.textContent = text(id === "favorites" ? "NoFavorites" : "NoRecent");
+      empty.textContent = text(meta.empty);
       list.append(empty);
     }
     for (const item of items) {
@@ -2811,7 +3003,7 @@ export function bootDesktop(): void {
   function widgetDrop(clientY: number, dragging: WidgetId): { id: WidgetId; after: boolean } | null {
     for (const node of widgetHost.querySelectorAll<HTMLElement>("[data-widget]")) {
       const widgetId = node.dataset.widget;
-      if (widgetId !== "favorites" && widgetId !== "recent") continue;
+      if (!isWidgetId(widgetId)) continue;
       if (widgetId === dragging) continue;
       const box = node.getBoundingClientRect();
       if (clientY < box.top || clientY > box.bottom) continue;
@@ -2892,7 +3084,58 @@ export function bootDesktop(): void {
     });
   }
 
-  async function activateSavedWorkspace(workspace: SavedWorkspace, replace: boolean): Promise<void> {
+  /** A ready-made scenario as a layout; tools missing from this build are skipped. */
+  function scenarioWorkspace(scenario: BuiltinWorkspace): SavedWorkspace {
+    return {
+      id: `builtin-${scenario.id}`,
+      name: text(scenario.nameKey),
+      windows: scenarioWindows(scenario.slugs.filter((slug) => tools.has(slug))),
+    };
+  }
+
+  /** Tool chips of a scenario: category tile and localized title. */
+  function scenarioChips(scenario: BuiltinWorkspace, className: string): HTMLElement {
+    const list = document.createElement("ul");
+    list.className = className;
+    for (const slug of scenario.slugs) {
+      if (!tools.has(slug)) continue;
+      const item = document.createElement("li");
+      item.append(makeTile(toolInfo(slug), "desk-task-tile"), document.createTextNode(toolInfo(slug).label));
+      list.append(item);
+    }
+    return list;
+  }
+
+  /** Starter card on an empty desk: one click opens a scenario; closing it is remembered. */
+  function wireStarters(): void {
+    const host = document.querySelector<HTMLElement>("[data-starters-list]");
+    if (!host) return;
+    for (const scenario of BUILTIN_WORKSPACES) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "desk-starter";
+      button.dataset.scenario = scenario.id;
+      const name = document.createElement("strong");
+      name.textContent = text(scenario.nameKey);
+      const tiles = document.createElement("span");
+      tiles.className = "desk-starter-tiles";
+      for (const slug of scenario.slugs) if (tools.has(slug)) tiles.append(makeTile(toolInfo(slug), "desk-task-tile"));
+      const hint = document.createElement("span");
+      hint.className = "desk-muted";
+      hint.textContent = text(scenario.hintKey);
+      button.append(tiles, name, hint);
+      button.title = scenario.slugs.filter((slug) => tools.has(slug)).map((slug) => toolInfo(slug).label).join(", ");
+      button.addEventListener("click", () => void activateSavedWorkspace(scenarioWorkspace(scenario), false, "builtin"));
+      host.append(button);
+    }
+    document.querySelector("[data-starters-dismiss]")?.addEventListener("click", () => {
+      prefs = { ...prefs, startersDismissed: true };
+      scheduleSave();
+      renderWindowLayer();
+    });
+  }
+
+  async function activateSavedWorkspace(workspace: SavedWorkspace, replace: boolean, source: "builtin" | "saved" = "saved"): Promise<void> {
     if (replace && dirtyIds(state.windows.map((record) => record.id)).length > 0) {
       const confirmed = await askDiscard(true, {
         title: text("ReplaceTitle"),
@@ -2918,6 +3161,7 @@ export function bootDesktop(): void {
     for (const record of state.windows) {
       if (!before.has(record.id) && record.kind === "tool") window.MDT?.recent.record(record.slug);
     }
+    trackDeskEvent({ event: "desk_workspace", detail: source });
     const dialog = document.querySelector<HTMLDialogElement>("[data-workspaces-dialog]");
     if (dialog?.open) dialog.close();
   }
@@ -2983,7 +3227,28 @@ export function bootDesktop(): void {
       list.replaceChildren();
       empty.hidden = prefs.workspaces.length > 0;
       for (const workspace of prefs.workspaces) list.append(workspaceCard(workspace));
+      const scenarios = must<HTMLElement>("[data-scenario-list]");
+      scenarios.replaceChildren(...BUILTIN_WORKSPACES.map(scenarioCard));
       updateWorkspaceSave();
+    }
+
+    function scenarioCard(scenario: BuiltinWorkspace): HTMLElement {
+      const card = document.createElement("article");
+      card.className = "desk-workspace-card";
+      card.dataset.scenario = scenario.id;
+      const heading = document.createElement("h3");
+      heading.textContent = text(scenario.nameKey);
+      const hint = document.createElement("p");
+      hint.className = "desk-muted";
+      hint.textContent = text(scenario.hintKey);
+      const actions = document.createElement("div");
+      actions.className = "desk-workspace-actions";
+      actions.append(
+        workspaceButton("AddToOpen", () => void activateSavedWorkspace(scenarioWorkspace(scenario), false, "builtin"), true),
+        workspaceButton("ReplaceDesk", () => void activateSavedWorkspace(scenarioWorkspace(scenario), true, "builtin"), false),
+      );
+      card.append(heading, hint, scenarioChips(scenario, "desk-scenario-tools"), actions);
+      return card;
     }
 
     function updateWorkspaceSave(): void {
@@ -3037,6 +3302,410 @@ export function bootDesktop(): void {
 
 
     document.querySelector("[data-desk-workspaces]")?.addEventListener("click", () => openWorkspaces());
+  }
+
+  // ---------- desk clipboard ----------
+
+  /** Remembers a copy made in any window: newest first, duplicates collapse, memory only. */
+  function addClip(value: string, slug: string): void {
+    if (!value.trim() || value.length > CLIP_MAX_CHARS) return;
+    const existing = clips.findIndex((clip) => clip.text === value);
+    if (existing === 0) return;
+    if (existing > 0) clips.splice(existing, 1);
+    clips.unshift({ text: value, slug });
+    clips.length = Math.min(clips.length, CLIP_LIMIT);
+    if (prefs.widgets.includes("clipboard")) renderWidgets();
+  }
+
+  function clearClips(): void {
+    clips.length = 0;
+    renderWidgets();
+  }
+
+  function fillClipList(list: HTMLElement): void {
+    if (clips.length === 0) {
+      const empty = document.createElement("li");
+      empty.className = "desk-widget-empty";
+      empty.textContent = text("ClipboardEmpty");
+      list.append(empty);
+      return;
+    }
+    for (const clip of clips) {
+      const row = document.createElement("li");
+      row.className = "desk-clip";
+      const paste = document.createElement("button");
+      paste.type = "button";
+      paste.className = "desk-widget-item desk-clip-paste";
+      paste.style.setProperty("--mdt-cat", `var(--mdt-cat-${toolInfo(clip.slug).category})`);
+      const preview = document.createElement("span");
+      preview.className = "desk-widget-name desk-clip-text";
+      preview.textContent = clip.text.replace(/\s+/g, " ").trim().slice(0, 120);
+      paste.append(makeTile(toolInfo(clip.slug), "desk-task-tile"), preview);
+      paste.title = fill("PasteClip", { name: toolInfo(clip.slug).label });
+      paste.addEventListener("click", () => pasteClip(clip));
+      const copy = winButton("CopyClip", glyph("copy", 14), () => void copyClip(clip));
+      row.append(paste, copy);
+      list.append(row);
+    }
+    for (const button of list.querySelectorAll<HTMLButtonElement>(".desk-win-btn")) {
+      const key = button.dataset.labelKey;
+      if (!key) continue;
+      button.setAttribute("aria-label", text(key));
+      button.title = text(key);
+    }
+  }
+
+  /** Inserts the item at the cursor of the active window's last text field; without one it goes to the system clipboard. */
+  function pasteClip(clip: Clip): void {
+    trackDeskEvent({ event: "desk_clipboard", detail: "" });
+    const frame = state.activeId && !state.concealed ? frameFor(state.activeId) : null;
+    const doc = frame?.contentDocument;
+    const remembered = frame ? lastEditable.get(frame) : undefined;
+    const field = remembered?.isConnected && remembered.ownerDocument === doc
+      ? remembered
+      : doc?.querySelector<HTMLElement>("main.tool textarea:not([readonly]), main.tool .cm-content[contenteditable=true], main.tool input[type=text]:not([readonly])");
+    if (!frame || !doc || !field) {
+      void copyClip(clip);
+      return;
+    }
+    frame.focus();
+    field.focus({ preventScroll: true });
+    // execCommand keeps the field's undo history and is understood by CodeMirror.
+    if (!doc.execCommand("insertText", false, clip.text)) {
+      if (field instanceof (doc.defaultView?.HTMLTextAreaElement ?? HTMLTextAreaElement) || field instanceof (doc.defaultView?.HTMLInputElement ?? HTMLInputElement)) {
+        const input = field as HTMLTextAreaElement | HTMLInputElement;
+        input.setRangeText(clip.text, input.selectionStart ?? input.value.length, input.selectionEnd ?? input.value.length, "end");
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      } else {
+        void copyClip(clip);
+      }
+    }
+  }
+
+  async function copyClip(clip: Clip): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(clip.text);
+      showToast(text("ClipCopied"));
+    } catch {
+      showToast(text("ClipCopyFailed"));
+    }
+  }
+
+  function selectedText(doc: Document): string {
+    const active = doc.activeElement;
+    if (active instanceof (doc.defaultView?.HTMLTextAreaElement ?? HTMLTextAreaElement) || active instanceof (doc.defaultView?.HTMLInputElement ?? HTMLInputElement)) {
+      const input = active as HTMLTextAreaElement | HTMLInputElement;
+      return input.value.slice(input.selectionStart ?? 0, input.selectionEnd ?? 0);
+    }
+    return doc.getSelection()?.toString() ?? "";
+  }
+
+  function showToast(message: string): void {
+    const toast = document.querySelector<HTMLElement>("[data-desk-toast]");
+    if (!toast) return;
+    toast.textContent = message;
+    toast.hidden = false;
+    window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => { toast.hidden = true; }, 4000);
+  }
+
+  // ---------- files and dragged results ----------
+
+  /** Files or a dragged result over the desk: drop on a window to hand it over, on the wallpaper to choose a tool. */
+  function wireDrops(): void {
+    const accepts = (event: DragEvent) => {
+      const types = event.dataTransfer?.types ?? [];
+      return types.includes("Files") || types.includes("text/plain");
+    };
+    stage.addEventListener("dragover", (event) => {
+      if (!accepts(event)) return;
+      event.preventDefault();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
+      document.body.classList.add("is-drop-over");
+    });
+    stage.addEventListener("dragleave", (event) => {
+      if (!event.relatedTarget || !stage.contains(event.relatedTarget as Node)) document.body.classList.remove("is-drop-over");
+    });
+    stage.addEventListener("drop", (event) => {
+      document.body.classList.remove("is-drop-over");
+      const data = event.dataTransfer;
+      if (!data || !accepts(event)) return;
+      event.preventDefault();
+      const windowNode = (event.target as HTMLElement).closest<HTMLElement>(".desk-window");
+      const targetId = windowNode?.dataset.activeId;
+      const target = targetId ? state.windows.find((record) => record.id === targetId && record.kind === "tool") : undefined;
+      const files = [...data.files];
+      if (files.length > 0) {
+        trackDeskEvent({ event: "desk_file_drop", detail: "" });
+        if (target) {
+          dispatch({ type: "activate", id: target.id });
+          const frame = frameFor(target.id);
+          if (frame) handFiles(frame, files);
+        } else {
+          showOpenWith(files, event.clientX, event.clientY);
+        }
+        return;
+      }
+      const payload = data.getData("text/plain");
+      if (!payload) return;
+      let mediaType = "text/plain";
+      try {
+        const meta = JSON.parse(data.getData("application/x-mdt-transfer") || "{}") as { mediaType?: unknown };
+        if (typeof meta.mediaType === "string" && isTransferMediaType(meta.mediaType)) mediaType = meta.mediaType;
+      } catch {
+        /* plain text from elsewhere */
+      }
+      const accepted = target ? acceptedMediaType(target.slug, mediaType) : null;
+      if (target && accepted) {
+        dispatch({ type: "activate", id: target.id });
+        const frame = frameFor(target.id);
+        if (frame) deliverTo(frame, { type: "mdt:transfer-deliver", requestId: crypto.randomUUID(), targetSlug: target.slug, mediaType: accepted, payload });
+        return;
+      }
+      showTextTargets(payload, mediaType, event.clientX, event.clientY);
+    });
+  }
+
+  /** The dragged type when the tool takes it, otherwise any type the tool's input accepts. */
+  function acceptedMediaType(slug: string, preferred: string): string | null {
+    if (!TARGETS[slug]) return null;
+    if (isTransferMediaType(preferred) && STRUCTURED_TARGETS[preferred].includes(slug)) return preferred;
+    return Object.keys(STRUCTURED_TARGETS).find((type) => isTransferMediaType(type) && STRUCTURED_TARGETS[type].includes(slug)) ?? null;
+  }
+
+  function showOpenWith(files: File[], x: number, y: number): void {
+    const choices = toolsForFiles(files, slugs).slice(0, OPEN_WITH_LIMIT);
+    const heading = files.length === 1 ? fill("OpenFileWith", { name: files[0]!.name }) : fill("OpenFilesWith", { count: files.length });
+    const items: MenuEntry[] = [{ kind: "label", label: heading }];
+    for (const slug of choices) items.push({ kind: "item", label: toolInfo(slug).label, run: () => openFilesIn(slug, files) });
+    if (choices.length === 0) items.push({ kind: "label", label: text("NoToolForFile") });
+    showMenu(items, x, y);
+  }
+
+  function showTextTargets(payload: string, mediaType: string, x: number, y: number): void {
+    const candidates = isTransferMediaType(mediaType) ? STRUCTURED_TARGETS[mediaType] : TEXT_TARGETS;
+    const items: MenuEntry[] = [{ kind: "label", label: text("OpenTextWith") }];
+    for (const slug of candidates) {
+      if (!tools.has(slug) || !TARGETS[slug]) continue;
+      items.push({
+        kind: "item",
+        label: toolInfo(slug).label,
+        run: () => {
+          const id = openTool(slug, false);
+          const frame = id ? frameFor(id) : null;
+          if (frame) deliverTo(frame, { type: "mdt:transfer-deliver", requestId: crypto.randomUUID(), targetSlug: slug, mediaType, payload });
+          trackDeskEvent({ event: "desk_transfer", detail: "once" });
+        },
+      });
+    }
+    showMenu(items, x, y);
+  }
+
+  /** Opens the tool (a fresh copy when the open one holds unsaved input) and hands it the files. */
+  function openFilesIn(slug: string, files: File[]): void {
+    const open = state.windows.filter((record) => record.kind === "tool" && record.slug === slug);
+    const busy = open.length > 0 && dirtyIds(open.map((record) => record.id)).length === open.length;
+    const id = openTool(slug, busy);
+    const frame = id ? frameFor(id) : null;
+    if (frame) handFiles(frame, files);
+  }
+
+  /** Delivers now when the tool page is ready, otherwise when its frame finishes loading. */
+  function handFiles(frame: HTMLIFrameElement, files: File[]): void {
+    const doc = frame.contentDocument;
+    const loaded = frame.getAttribute("src") && doc?.readyState === "complete" && doc.querySelector("main.tool");
+    if (!loaded || !doc) {
+      pendingFiles.set(frame, files);
+      return;
+    }
+    // One task later the controller's listeners are bound even on a page that just loaded.
+    window.setTimeout(() => {
+      if (!deliverFiles(doc, files)) showToast(text("FileNotAccepted"));
+    }, 0);
+  }
+
+  /** Files the OS opened with the installed app (`/launch/` stored their handles for this page). */
+  async function openLaunchedFiles(): Promise<void> {
+    const params = new URLSearchParams(location.search);
+    const key = params.get("launch");
+    if (!key) return;
+    params.delete("launch");
+    history.replaceState(history.state, "", `${location.pathname}${params.size ? `?${params}` : ""}${location.hash}`);
+    const files = await takeLaunchFiles(key);
+    if (files.length === 0) return;
+    trackDeskEvent({ event: "desk_launch", detail: "file_handler" });
+    const box = stage.getBoundingClientRect();
+    showOpenWith(files, box.left + box.width / 2 - 120, box.top + box.height / 3);
+  }
+
+  // ---------- live window links ----------
+
+  function openLinkMenu(id: string, x: number, y: number): void {
+    const record = state.windows.find((item) => item.id === id);
+    if (!record || record.kind !== "tool") return;
+    const items: MenuEntry[] = [];
+    const candidates = state.windows.filter((other) => other.kind === "tool" && canReceive(record.slug, other.slug) && !linkProblem(links, id, other.id));
+    if (candidates.length > 0) {
+      items.push({ kind: "label", label: text("LinkTo") });
+      for (const other of candidates) {
+        items.push({ kind: "item", label: windowTitle(other, toolInfo(other.slug).label), icon: "link", run: () => createLink(id, other.id) });
+      }
+    }
+    const fresh = resultTargets(record.slug).filter((slug) => TARGETS[slug] && tools.has(slug));
+    if (fresh.length > 0) {
+      items.push({ kind: "label", label: text("LinkToNew") });
+      for (const slug of fresh) {
+        items.push({
+          kind: "item",
+          label: toolInfo(slug).label,
+          icon: "plus",
+          run: () => {
+            const targetId = openTool(slug, true);
+            if (targetId) createLink(id, targetId);
+          },
+        });
+      }
+    }
+    const linked = [...outgoing(links, id), ...[incoming(links, id)].filter((link): link is WindowLink => !!link)];
+    if (linked.length > 0) {
+      items.push({ kind: "separator" });
+      for (const link of linked) {
+        const otherId = link.sourceId === id ? link.targetId : link.sourceId;
+        const other = state.windows.find((item) => item.id === otherId);
+        if (!other) continue;
+        const name = windowTitle(other, toolInfo(other.slug).label);
+        items.push({ kind: "item", label: fill(link.sourceId === id ? "UnlinkTo" : "UnlinkFrom", { name }), icon: "close", run: () => removeLink(link.id) });
+      }
+    }
+    if (items.length === 0) items.push({ kind: "label", label: text("NothingToLink") });
+    showMenu(items, x, y);
+  }
+
+  function createLink(sourceId: string, targetId: string): void {
+    if (linkProblem(links, sourceId, targetId)) return;
+    links = addLink(links, { id: `link-${crypto.randomUUID()}`, sourceId, targetId });
+    trackDeskEvent({ event: "desk_transfer", detail: "link" });
+    sendLinkWatch(sourceId);
+    renderWindowLayer();
+    const source = state.windows.find((record) => record.id === sourceId);
+    const target = state.windows.find((record) => record.id === targetId);
+    if (source && target) {
+      showToast(fill("LinkCreated", { from: windowTitle(source, toolInfo(source.slug).label), to: windowTitle(target, toolInfo(target.slug).label) }));
+    }
+  }
+
+  function removeLink(linkId: string): void {
+    const link = links.find((item) => item.id === linkId);
+    if (!link) return;
+    links = links.filter((item) => item.id !== linkId);
+    sendLinkWatch(link.sourceId);
+    renderWindowLayer();
+  }
+
+  /** Tells a source window whether anyone follows its result, so idle tools do no work. */
+  function sendLinkWatch(sourceId: string): void {
+    const frame = frameFor(sourceId);
+    if (!frame || !linkSources.has(frame)) return;
+    frame.contentWindow?.postMessage({ type: "mdt:link-watch", watching: outgoing(links, sourceId).length > 0 }, location.origin);
+  }
+
+  /** Closed windows take their links with them; a source left without followers stops watching. */
+  function pruneLinks(): void {
+    if (links.length === 0) return;
+    const live = new Set(state.windows.map((record) => record.id));
+    const gone = links.flatMap((link) => [link.sourceId, link.targetId]).filter((id) => !live.has(id));
+    if (gone.length === 0) return;
+    const before = links;
+    links = dropWindows(links, gone);
+    for (const link of before) if (live.has(link.sourceId) && !links.includes(link)) sendLinkWatch(link.sourceId);
+  }
+
+  function linkSummary(id: string): string {
+    const parts: string[] = [];
+    const from = incoming(links, id);
+    const name = (otherId: string) => {
+      const other = state.windows.find((record) => record.id === otherId);
+      return other ? windowTitle(other, toolInfo(other.slug).label) : "";
+    };
+    if (from) parts.push(fill("LinkedFrom", { name: name(from.sourceId) }));
+    const to = outgoing(links, id).map((link) => name(link.targetId)).filter(Boolean);
+    if (to.length > 0) parts.push(fill("LinkedTo", { name: to.join(", ") }));
+    return parts.join(" · ");
+  }
+
+  // ---------- moving a window out of the desk ----------
+
+  /** Moves a tool into its own browser window (or an always-on-top PiP window). Typed input does not travel. */
+  async function popoutWindow(id: string, pip: boolean): Promise<void> {
+    const record = state.windows.find((item) => item.id === id);
+    const tool = record ? tools.get(record.slug) : undefined;
+    if (!record || !tool) return;
+    if (dirtyIds([id]).length > 0) {
+      const confirmed = await askDiscard(false, { title: text("PopoutTitle"), body: text("PopoutBody"), confirm: text("PopoutConfirm") });
+      if (!confirmed) return;
+    }
+    const node = frameFor(id)?.closest<HTMLElement>(".desk-window");
+    const box = node?.getBoundingClientRect() ?? { left: 80, top: 80, width: 720, height: 560 };
+    const width = Math.round(Math.max(360, box.width));
+    const height = Math.round(Math.max(320, box.height));
+    const popoutId = `popout-${crypto.randomUUID()}`;
+    let entry: Popout | null = null;
+    if (pip) {
+      const api = (window as unknown as { documentPictureInPicture?: DocumentPictureInPicture }).documentPictureInPicture;
+      try {
+        const pipWin = await api?.requestWindow({ width, height });
+        if (pipWin) {
+          const frame = pipWin.document.createElement("iframe");
+          frame.src = `${tool.href}?embed=1`;
+          frame.title = tool.title;
+          frame.setAttribute("allow", "camera; clipboard-read; clipboard-write");
+          frame.style.cssText = "position:fixed;inset:0;width:100%;height:100%;border:0";
+          pipWin.document.body.style.margin = "0";
+          pipWin.document.title = tool.title;
+          pipWin.document.body.append(frame);
+          pipWin.addEventListener("message", onToolMessage);
+          pipWin.addEventListener("pagehide", () => closePopout(popoutId), { once: true });
+          entry = { slug: record.slug, win: pipWin, frame };
+        }
+      } catch {
+        entry = null;
+      }
+    } else {
+      const left = Math.round(window.screenX + box.left);
+      const top = Math.round(window.screenY + box.top);
+      const win = window.open(`${tool.href}?embed=1&popout=1`, popoutId, `popup=yes,width=${width},height=${height},left=${left},top=${top}`);
+      if (win) entry = { slug: record.slug, win };
+    }
+    if (!entry) {
+      showToast(text("PopoutBlocked"));
+      return;
+    }
+    popouts.set(popoutId, entry);
+    trackDeskEvent({ event: "desk_popout", detail: "" });
+    dispatch({ type: "close-many", ids: [id] });
+    renderTasks();
+    if (!pip && !popoutTimer) popoutTimer = window.setInterval(watchPopouts, 1000);
+  }
+
+  function closePopout(id: string): void {
+    const popout = popouts.get(id);
+    if (!popout) return;
+    popouts.delete(id);
+    try {
+      if (!popout.win.closed) popout.win.close();
+    } catch {
+      /* already gone */
+    }
+    renderTasks();
+  }
+
+  /** Pop-ups closed by the person disappear from the taskbar. */
+  function watchPopouts(): void {
+    for (const [id, popout] of popouts) if (popout.win.closed) closePopout(id);
+    if (![...popouts.values()].some((popout) => !popout.frame)) {
+      window.clearInterval(popoutTimer);
+      popoutTimer = 0;
+    }
   }
 
   function flushSave(): void {

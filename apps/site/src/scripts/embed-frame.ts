@@ -17,3 +17,34 @@ if (document.documentElement.classList.contains("is-embed") && window.parent !==
     link.rel = "noopener";
   }, true);
 }
+
+/**
+ * A desktop window moved into its own browser window (`?embed=1&popout=1`,
+ * opened by the desk): a small button sends the tool back to the desk.
+ */
+const popoutParams = new URLSearchParams(window.location.search);
+if (document.documentElement.classList.contains("is-embed") && window.parent === window && popoutParams.get("popout") === "1") {
+  const opener = window.opener as Window | null;
+  let deskOpen = false;
+  try {
+    deskOpen = Boolean(opener) && opener!.location.origin === window.location.origin;
+  } catch {
+    deskOpen = false;
+  }
+  const marker = document.querySelector<HTMLElement>("[data-desk-return]");
+  const slug = document.querySelector<HTMLElement>("[data-visit-slug]")?.dataset.slug;
+  if (deskOpen && marker?.dataset.label && slug) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "ds-btn ds-btn-small embed-return";
+    button.textContent = marker.dataset.label;
+    button.addEventListener("click", () => {
+      try {
+        opener!.postMessage({ type: "mdt:popout-return", slug }, window.location.origin);
+      } finally {
+        window.close();
+      }
+    });
+    document.body.append(button);
+  }
+}

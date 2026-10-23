@@ -2195,6 +2195,137 @@ dialog.desk-launcher {
   min-width: 12rem;
 }
 
+.desk-section-title {
+  margin: 0.4rem 0 0.1rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mdt-text-muted);
+}
+
+/* Scenario cards: name, short purpose and the tools it opens. */
+.desk-scenario-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0 0 0.65rem;
+  padding: 0;
+  list-style: none;
+}
+
+.desk-scenario-tools li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.5rem 0.15rem 0.15rem;
+  border-radius: 999px;
+  background: var(--mdt-surface);
+  font-size: 0.78rem;
+}
+
+.desk-scenario-tools .desk-task-tile {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 0.4rem;
+}
+
+.desk-scenario-tools .desk-task-tile svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+/* ---------- starter scenarios on an empty desk ---------- */
+
+.desk-starters {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: min(48rem, calc(100% - 2rem));
+  max-height: calc(100% - 2rem);
+  overflow: auto;
+  padding: 1rem 1.1rem 1.1rem;
+  border: 1px solid var(--desk-glass-line);
+  border-radius: 1.1rem;
+  background: var(--desk-glass-strong);
+  backdrop-filter: blur(22px);
+  color: var(--mdt-text);
+  box-shadow: var(--desk-shadow-pop);
+  transform: translate(-50%, -50%);
+}
+
+.desk-starters-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.desk-starters h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.desk-starters > .desk-muted {
+  margin: 0.2rem 0 0.8rem;
+}
+
+.desk-starters-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr));
+  gap: 0.5rem;
+}
+
+.desk-starter {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--mdt-border);
+  border-radius: 0.8rem;
+  background: color-mix(in srgb, var(--mdt-surface) 55%, transparent);
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.desk-starter:hover {
+  border-color: var(--mdt-accent);
+}
+
+.desk-starter strong {
+  font-size: 0.88rem;
+}
+
+.desk-starter-tiles {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.desk-starter-tiles .desk-task-tile {
+  width: 1.45rem;
+  height: 1.45rem;
+  border-radius: 0.42rem;
+}
+
+.desk-starter-tiles .desk-task-tile svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+/* The card is guidance for an empty desk; it never covers a working tool. */
+.desk-stage:has(.desk-window:not([hidden])) .desk-starters,
+.is-focus-mode .desk-starters {
+  display: none;
+}
+
+/* One piece of guidance at a time: the scenario card wins over the shortcut hint. */
+.desk-stage:has(.desk-starters:not([hidden])) .desk-hint {
+  display: none;
+}
+
 /* ---------- settings ---------- */
 
 dialog.desk-settings {
@@ -2564,4 +2695,66 @@ body.desk.is-focus-mode .desk-hint {
   .desk-snap {
     transition: none;
   }
+}
+
+/* ---------- live links, drops, clipboard, moved-out windows ---------- */
+
+/* A linked window shows the chain in its title and a thin accent edge. */
+.desk-win-btn[data-link].is-on {
+  color: var(--mdt-accent);
+}
+
+.desk-win-btn[data-link].is-on svg {
+  fill: none;
+}
+
+.desk-window.is-linked {
+  outline: 2px solid color-mix(in srgb, var(--mdt-accent) 55%, transparent);
+  outline-offset: -1px;
+}
+
+/* Files or a result dragged over the desk: windows and wallpaper become drop targets. */
+.is-drop-over .desk-stage {
+  outline: 2px dashed color-mix(in srgb, var(--mdt-accent) 70%, transparent);
+  outline-offset: -6px;
+}
+
+.is-drop-over .desk-window {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--mdt-accent) 45%, transparent), var(--desk-shadow-pop);
+}
+
+.desk-toast {
+  position: fixed;
+  z-index: 7;
+  left: 50%;
+  bottom: 4.6rem;
+  max-width: min(32rem, calc(100vw - 2rem));
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--mdt-border);
+  border-radius: 0.85rem;
+  background: var(--mdt-surface-raised);
+  box-shadow: var(--desk-shadow-pop);
+  font-size: 0.875rem;
+  transform: translateX(-50%);
+}
+
+.desk-clip {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.desk-clip-paste {
+  flex: 1;
+  min-width: 0;
+}
+
+.desk-clip-text {
+  font-family: var(--mdt-font-mono);
+  font-size: 0.78rem;
+}
+
+.desk-task.is-external .desk-task-tile {
+  outline: 1px dashed currentColor;
+  outline-offset: 2px;
 }

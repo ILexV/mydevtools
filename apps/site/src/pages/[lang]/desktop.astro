@@ -54,7 +54,7 @@ const payload = {
   strings,
   // Window chrome, launcher and widgets draw these in the browser.
   icons: Object.fromEntries(
-    (["star", "help", "more", "minimize", "maximize", "restore", "close", "external", "tile", "chevron", "plus", "check", "history", "folder", "windows", "apps", "desktop", "settings", "lock", "zap"] as const).map((name) => [name, ICONS[name]]),
+    (["star", "help", "more", "minimize", "maximize", "restore", "close", "external", "tile", "chevron", "plus", "check", "history", "folder", "windows", "apps", "desktop", "settings", "lock", "zap", "link", "clipboard", "copy"] as const).map((name) => [name, ICONS[name]]),
   ),
 };
 const payloadJson = JSON.stringify(payload).replace(/</g, "\\u003c");
@@ -148,6 +148,14 @@ const keyRows: [string, string, string][] = [
         <p id="desk-move-hint">{label("MoveHint")}</p>
         <button type="button" class="ds-btn ds-btn-small" data-hint-dismiss>{label("MoveHintDismiss")}</button>
       </div>
+      <section class="desk-starters" data-desk-starters aria-labelledby="desk-starters-title" hidden>
+        <div class="desk-starters-head">
+          <h2 id="desk-starters-title">{label("StartersTitle")}</h2>
+          <button type="button" class="desk-win-btn" data-starters-dismiss aria-label={label("StartersDismiss")} title={label("StartersDismiss")}><Icon name="close" size={16} /></button>
+        </div>
+        <p class="desk-muted">{label("StartersHint")}</p>
+        <div class="desk-starters-list" data-starters-list></div>
+      </section>
       <button type="button" class="desk-focus-exit ds-btn ds-btn-primary" data-focus-exit hidden>{label("ExitFocusMode")}</button>
     </div>
 
@@ -185,6 +193,7 @@ const keyRows: [string, string, string][] = [
       <button type="button" class="desk-win-btn" data-close-dismiss aria-label={label("Close")} title={label("Close")}><Icon name="close" size={16} /></button>
     </div>
 
+    <div class="desk-toast" data-desk-toast role="status" aria-live="polite" hidden></div>
     <div class="desk-menu" data-desk-menu role="menu" hidden></div>
     <section class="desk-pop" data-desk-pop role="dialog" aria-labelledby="desk-pop-title" hidden></section>
 
@@ -366,10 +375,13 @@ const keyRows: [string, string, string][] = [
 
     <dialog class="desk-dialog" data-workspaces-dialog aria-labelledby="desk-workspaces-title">
       <div class="desk-dialog-head">
-        <h2 id="desk-workspaces-title">{label("WorkspacesTitle")}</h2>
+        <h2 id="desk-workspaces-title">{label("Workspaces")}</h2>
         <button type="button" class="desk-win-btn" data-dialog-close aria-label={label("Close")} title={label("Close")}><Icon name="close" size={16} /></button>
       </div>
       <div class="desk-dialog-body">
+        <h3 class="desk-section-title">{label("ScenariosTitle")}</h3>
+        <div class="desk-workspace-list" data-scenario-list></div>
+        <h3 class="desk-section-title">{label("WorkspacesTitle")}</h3>
         <p class="desk-muted">{label("WorkspacesHint")}</p>
         <div class="desk-workspace-list" data-workspace-list></div>
         <p class="desk-muted" data-workspace-empty hidden>{label("NoWorkspaces")}</p>

@@ -1,5 +1,6 @@
 {
   "OpenIn": "Open in…",
   "Received": "Result received and opened.",
-  "PopupBlocked": "Allow pop-ups to open the result in another tool."
+  "PopupBlocked": "Allow pop-ups to open the result in another tool.",
+  "DragResult": "Drag the result to another window"
 }

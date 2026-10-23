@@ -1,4 +1,4 @@
-type TransferMediaType = "text/plain" | "text/html" | "application/json" | "application/xml" | "application/yaml" | "application/jwt" | "application/cron";
+import { SOURCES, STRUCTURED_TARGETS, TARGETS, type SourceSpec, type TargetSpec, type TransferMediaType } from "@/scripts/transfer-specs";
 
 interface TransferTarget {
   slug: string;
@@ -9,6 +9,7 @@ interface TransferTarget {
 interface TransferStrings {
   slug: string;
   openIn: string;
+  dragResult?: string;
   received: string;
   popupBlocked: string;
   targets: TransferTarget[];
@@ -29,22 +30,15 @@ interface TransferDelivery {
   targetSlug: string;
   mediaType: TransferMediaType;
   payload: string;
+  /** Live window link: replace the input quietly, without focus or an announcement. */
+  live?: boolean;
 }
 
-interface SourceSpec {
-  panel: string;
-  actions?: string;
-  value: string;
-  read: "value" | "text" | "html" | "codemirror" | "data-copy-lines";
-  mediaType: TransferMediaType;
-}
-
-interface TargetSpec {
-  root: string;
-  input: string;
-  write: "value" | "codemirror";
-  action?: string;
-}
+/** Live links push a result again only when it changes, and never above this size. */
+const LINK_MAX_PAYLOAD = 8_000_000;
+const LINK_DEBOUNCE_MS = 250;
+/** Tools set result fields through `.value`, which no DOM event reports: a followed result is also re-read this often. */
+const LINK_POLL_MS = 400;
 
 interface EditorReadDetail {
   value?: string;
@@ -56,58 +50,6 @@ interface EditorWriteDetail {
   value: string;
   accepted?: boolean;
 }
-
-const TEXT_TARGETS = ["base64-encoder", "hash-calculator", "url-encoder", "text-case-converter"] as const;
-const STRUCTURED_TARGETS: Record<TransferMediaType, readonly string[]> = {
-  "text/plain": TEXT_TARGETS,
-  "text/html": ["html-entity-encoder", "base64-encoder", "hash-calculator"],
-  "application/json": ["json-beautifier", "json-to-typescript", "base64-encoder", "hash-calculator"],
-  "application/xml": ["xml-beautifier", "base64-encoder", "hash-calculator"],
-  "application/yaml": ["yaml-beautifier-validator", "base64-encoder", "hash-calculator"],
-  "application/jwt": ["jwt-decoder", "hash-calculator", "base64-encoder"],
-  "application/cron": ["cron-parser", "hash-calculator", "base64-encoder"],
-};
-
-/** Exact result adapters: no positional textarea guessing. */
-const SOURCES: Record<string, SourceSpec> = {
-  "base64-encoder": { panel: "[data-b64-output-panel]", value: "[data-b64-output]", read: "value", mediaType: "text/plain" },
-  "base32-encoder": { panel: "[data-b32-output-panel]", value: "[data-b32-output]", read: "value", mediaType: "text/plain" },
-  "base58-encoder": { panel: "[data-b58-output-panel]", value: "[data-b58-output]", read: "value", mediaType: "text/plain" },
-  "hex-encoder": { panel: "[data-hex-output-panel]", value: "[data-hex-output]", read: "value", mediaType: "text/plain" },
-  "url-encoder": { panel: "[data-url-output-panel]", value: "[data-url-output]", read: "value", mediaType: "text/plain" },
-  "html-entity-encoder": { panel: "[data-ent-output-panel]", value: "[data-ent-output]", read: "value", mediaType: "text/plain" },
-  "date-converter": { panel: "[data-date-output-panel]", value: "[data-date-output]", read: "value", mediaType: "text/plain" },
-  "hmac-calculator": { panel: "[data-hmac-output-panel]", value: "[data-hmac-output]", read: "value", mediaType: "text/plain" },
-  "lorem-ipsum-generator": { panel: "[data-lorem-tool] .ds-output", value: "[data-li-output]", read: "value", mediaType: "text/plain" },
-  "password-generator": { panel: "[data-pw-result-panel]", value: "[data-pw-result]", read: "text", mediaType: "text/plain" },
-  "qr-scanner": { panel: "[data-qrs-result]", value: "[data-qrs-output]", read: "value", mediaType: "text/plain" },
-  "uuid-generator": { panel: "[data-uuid-output]", value: "[data-uuid-list]", read: "data-copy-lines", mediaType: "text/plain" },
-  "jwt-encoder": { panel: "[data-jwte-output-panel]", value: "[data-jwte-output]", read: "value", mediaType: "application/jwt" },
-  "jwt-decoder": { panel: "[data-jwtd-output]", value: "[data-jwtd-payload]", read: "value", mediaType: "application/json" },
-  "cron-generator": { panel: "[data-crong-output-panel]", value: "[data-crong-output]", read: "text", mediaType: "application/cron" },
-  "json-to-typescript": { panel: "[data-jts-output-panel]", value: "[data-jts-output]", read: "codemirror", mediaType: "text/plain" },
-  "yaml-beautifier-validator": { panel: "[data-yaml-output-panel]", value: "[data-yaml-output]", read: "codemirror", mediaType: "application/yaml" },
-  "json-beautifier": { panel: "[data-json-tool] > .ds-card", actions: "[data-json-tool] > .ds-card > .ds-panel-head .ds-panel-actions", value: "[data-json-editor]", read: "codemirror", mediaType: "application/json" },
-  "xml-beautifier": { panel: "[data-xml-tool] > .ds-card", actions: "[data-xml-tool] > .ds-card > .ds-panel-head .ds-panel-actions", value: "[data-xml-editor]", read: "codemirror", mediaType: "application/xml" },
-  "text-case-converter": { panel: "[data-tcc-tool] > .ds-card", actions: "[data-tcc-tool] > .ds-card > .ds-panel-head .ds-panel-actions", value: "[data-tcc-textarea]", read: "value", mediaType: "text/plain" },
-  "markdown-preview": { panel: "[data-md-output-panel]", value: "[data-md-output]", read: "html", mediaType: "text/html" },
-  "pdf-to-text": { panel: "[data-pdft-result]", value: "[data-pdft-preview]", read: "value", mediaType: "text/plain" },
-};
-
-/** Exact input adapters and their useful default action. */
-const TARGETS: Record<string, TargetSpec> = {
-  "base64-encoder": { root: "[data-b64-tool]", input: "[data-b64-input]", write: "value", action: "[data-b64-encode]" },
-  "hash-calculator": { root: "[data-hash-tool]", input: "[data-hash-textarea]", write: "value", action: "[data-hash-calculate]" },
-  "url-encoder": { root: "[data-url-tool]", input: "[data-url-input]", write: "value", action: "[data-url-encode]" },
-  "html-entity-encoder": { root: "[data-ent-tool]", input: "[data-ent-input]", write: "value", action: "[data-ent-encode]" },
-  "text-case-converter": { root: "[data-tcc-tool]", input: "[data-tcc-textarea]", write: "value" },
-  "json-beautifier": { root: "[data-json-tool]", input: "[data-json-editor]", write: "codemirror", action: "[data-json-format]" },
-  "json-to-typescript": { root: "[data-jts-tool]", input: "[data-jts-input]", write: "codemirror", action: "[data-jts-convert]" },
-  "xml-beautifier": { root: "[data-xml-tool]", input: "[data-xml-editor]", write: "codemirror", action: "[data-xml-format]" },
-  "yaml-beautifier-validator": { root: "[data-yaml-tool]", input: "[data-yaml-input]", write: "codemirror", action: "[data-yaml-format]" },
-  "jwt-decoder": { root: "[data-jwtd-tool]", input: "[data-jwtd-encoded]", write: "value" },
-  "cron-parser": { root: "[data-cronp-tool]", input: "[data-cronp-input]", write: "value", action: "[data-cronp-parse]" },
-};
 
 const island = document.querySelector<HTMLScriptElement>("[data-transfer-strings]");
 if (island) {
@@ -121,7 +63,11 @@ if (island) {
 function init(strings: TransferStrings): void {
   if (!strings.slug || !Array.isArray(strings.targets)) return;
   const exactOrigin = window.location.origin;
-  const embedded = window.parent !== window && new URLSearchParams(window.location.search).get("embed") === "1";
+  const params = new URLSearchParams(window.location.search);
+  const embedded = window.parent !== window && params.get("embed") === "1";
+  // A desktop window moved into its own browser window keeps talking to the desk that opened it.
+  const popout = !embedded && params.get("embed") === "1" && params.get("popout") === "1" && sameOriginOpener();
+  const shell: Window | null = embedded ? window.parent : popout ? window.opener as Window : null;
   const targetBySlug: Record<string, TransferTarget> = Object.fromEntries(strings.targets.map((target) => [target.slug, target]));
   const source = SOURCES[strings.slug];
   const target = TARGETS[strings.slug];
@@ -160,13 +106,18 @@ function init(strings: TransferStrings): void {
       pendingWindows.delete(pending.request.requestId);
       return;
     }
+    if (event.data.type === "mdt:link-watch") {
+      if (shell && event.source === shell) linkWatch?.(event.data.watching === true);
+      return;
+    }
     if (event.data.type !== "mdt:transfer-deliver") return;
     const delivery = parseDelivery(event.data, strings.slug);
     if (!delivery || !target) return;
-    const trustedDesktop = embedded && event.source === window.parent;
+    const trustedDesktop = Boolean(shell) && event.source === shell;
     const trustedPopup = Boolean(transferToken && event.source === window.opener && delivery.requestId === transferToken);
     if (!trustedDesktop && !trustedPopup) return;
-    if (applyTransfer(target, delivery.payload)) announce(strings.received);
+    const live = trustedDesktop && delivery.live === true;
+    if (applyTransfer(target, delivery.payload, live) && !live) announce(strings.received);
   };
   window.addEventListener("message", onMessage);
 
@@ -174,7 +125,7 @@ function init(strings: TransferStrings): void {
     whenTargetReady(target, () => {
       const postReady = () => {
         const ready = { type: "mdt:transfer-ready", slug: strings.slug, requestId: transferToken ?? undefined };
-        if (embedded) window.parent.postMessage(ready, exactOrigin);
+        if (shell) shell.postMessage(ready, exactOrigin);
         else if (transferToken && window.opener) window.opener.postMessage(ready, exactOrigin);
       };
       if (document.readyState === "complete") {
@@ -187,6 +138,8 @@ function init(strings: TransferStrings): void {
     });
   }
 
+  /** Set while a desktop window links this tool's result to another window's input. */
+  let linkWatch: ((watching: boolean) => void) | null = null;
   if (source) installSourceAction(source);
   if (embedded) observeProgress(strings.slug, exactOrigin);
 
@@ -233,6 +186,62 @@ function init(strings: TransferStrings): void {
     details.append(summary, menu);
     actions.append(details);
 
+    // Desktop windows: drag the result onto another window's field or onto the desk.
+    let grip: HTMLButtonElement | null = null;
+    if (shell && strings.dragResult) {
+      grip = document.createElement("button");
+      grip.type = "button";
+      grip.className = "ds-btn ds-btn-small ds-btn-ghost mdt-transfer-drag";
+      grip.draggable = true;
+      grip.textContent = "⠿";
+      grip.title = strings.dragResult;
+      grip.setAttribute("aria-label", strings.dragResult);
+      grip.addEventListener("dragstart", (event) => {
+        const payload = readSource(spec, valueNode);
+        if (!payload || !event.dataTransfer) {
+          event.preventDefault();
+          return;
+        }
+        event.dataTransfer.effectAllowed = "copy";
+        event.dataTransfer.setData("text/plain", payload);
+        event.dataTransfer.setData("application/x-mdt-transfer", JSON.stringify({ sourceSlug: strings.slug, mediaType: spec.mediaType }));
+      });
+      actions.append(grip);
+    }
+
+    if (shell) {
+      let watching = false;
+      let lastSent: string | null = null;
+      let timer = 0;
+      const push = () => {
+        timer = 0;
+        if (!watching) return;
+        // An empty result (cleared or not computed yet) never wipes the follower's input.
+        const payload = hasSourceValue(spec, valueNode) ? readSource(spec, valueNode) : "";
+        if (!payload || payload === lastSent || payload.length > LINK_MAX_PAYLOAD) return;
+        lastSent = payload;
+        shell.postMessage({ type: "mdt:link-update", slug: strings.slug, mediaType: spec.mediaType, payload }, exactOrigin);
+      };
+      const schedulePush = () => {
+        if (!watching) return;
+        window.clearTimeout(timer);
+        timer = window.setTimeout(push, LINK_DEBOUNCE_MS);
+      };
+      let poll = 0;
+      linkWatch = (next) => {
+        watching = next;
+        lastSent = null;
+        window.clearInterval(poll);
+        poll = next ? window.setInterval(push, LINK_POLL_MS) : 0;
+        if (next) schedulePush();
+      };
+      const linkObserver = new MutationObserver(schedulePush);
+      linkObserver.observe(valueNode, { attributes: true, childList: true, characterData: true, subtree: true });
+      valueNode.addEventListener("input", schedulePush);
+      panel.addEventListener("input", schedulePush);
+      shell.postMessage({ type: "mdt:link-source-ready", slug: strings.slug }, exactOrigin);
+    }
+
     let syncScheduled = false;
     const sync = () => {
       syncScheduled = false;
@@ -241,6 +250,10 @@ function init(strings: TransferStrings): void {
         summary.setAttribute("aria-disabled", String(disabled));
       }
       if (details.classList.contains("is-disabled") !== disabled) details.classList.toggle("is-disabled", disabled);
+      if (grip && grip.draggable === disabled) {
+        grip.draggable = !disabled;
+        grip.disabled = disabled;
+      }
       if (disabled && details.open) details.open = false;
     };
     const scheduleSync = () => {
@@ -269,8 +282,8 @@ function init(strings: TransferStrings): void {
       mediaType,
       payload,
     };
-    if (embedded) {
-      window.parent.postMessage(request, exactOrigin);
+    if (shell) {
+      shell.postMessage(request, exactOrigin);
       return;
     }
     const url = new URL(option.href, window.location.href);
@@ -311,7 +324,7 @@ function readSource(spec: SourceSpec, node: HTMLElement): string {
   return detail.value ?? "";
 }
 
-function applyTransfer(spec: TargetSpec, payload: string): boolean {
+function applyTransfer(spec: TargetSpec, payload: string, live = false): boolean {
   const input = document.querySelector<HTMLElement>(spec.input);
   if (!input) return false;
   if (spec.write === "codemirror") {
@@ -326,7 +339,7 @@ function applyTransfer(spec: TargetSpec, payload: string): boolean {
     input.value = payload;
     input.dispatchEvent(new Event("input", { bubbles: true }));
     input.dispatchEvent(new Event("change", { bubbles: true }));
-    input.focus({ preventScroll: true });
+    if (!live) input.focus({ preventScroll: true });
   }
   const action = spec.action ? document.querySelector<HTMLButtonElement>(spec.action) : null;
   if (action && !action.disabled) action.click();
@@ -365,7 +378,15 @@ function parseDelivery(value: Record<string, unknown>, targetSlug: string): Tran
   if (!requestId || slug !== targetSlug || !mediaType || payload === null) return null;
   if (!(mediaType in STRUCTURED_TARGETS)) return null;
   if (!STRUCTURED_TARGETS[mediaType].includes(targetSlug)) return null;
-  return { type: "mdt:transfer-deliver", requestId, targetSlug: slug, mediaType, payload };
+  return { type: "mdt:transfer-deliver", requestId, targetSlug: slug, mediaType, payload, live: value.live === true };
+}
+
+function sameOriginOpener(): boolean {
+  try {
+    return Boolean(window.opener) && (window.opener as Window).location.origin === window.location.origin;
+  } catch {
+    return false;
+  }
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {

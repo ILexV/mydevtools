@@ -1,5 +1,6 @@
 {
   "OpenIn": "Abrir en…",
   "Received": "Resultado recibido y abierto.",
-  "PopupBlocked": "Permite las ventanas emergentes para abrir el resultado en otra herramienta."
+  "PopupBlocked": "Permite las ventanas emergentes para abrir el resultado en otra herramienta.",
+  "DragResult": "Arrastra el resultado a otra ventana"
 }

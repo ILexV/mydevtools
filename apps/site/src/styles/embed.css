@@ -117,3 +117,12 @@ html.is-embed .http-workbench {
     height: auto;
   }
 }
+
+/* A window moved out of the desktop into its own browser window: the way back. */
+.embed-return {
+  position: fixed;
+  z-index: 50;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  box-shadow: var(--mdt-shadow-e2);
+}

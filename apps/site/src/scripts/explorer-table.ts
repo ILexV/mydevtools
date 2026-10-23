@@ -14,6 +14,8 @@ export interface ExplorerTableOptions {
   loadingLabel: string;
   rowLabel: (index: number) => string;
   onRowClick?: (index: number) => void;
+  /** Extra class for a rendered row, e.g. a diff marker; styled by the page. */
+  rowClass?: (row: readonly string[], index: number) => string | undefined;
 }
 
 export interface ExplorerTable {
@@ -117,6 +119,8 @@ export function createExplorerTable(options: ExplorerTableOptions): ExplorerTabl
       const row = document.createElement("div");
       row.id = `${tableId}-row-${index}`;
       row.className = "ds-explorer-row";
+      const extra = options.rowClass?.(data[i] ?? [], index);
+      if (extra) row.classList.add(extra);
       row.dataset.explorerRowIndex = String(index);
       row.setAttribute("role", "row");
       row.setAttribute("aria-rowindex", String(index + 2));

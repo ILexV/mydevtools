@@ -1,0 +1,163 @@
+---
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+import Field from "@/components/tool/Field.astro";
+import FileDrop from "@/components/tool/FileDrop.astro";
+import Icon from "@/components/Icon.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import Progress from "@/components/tool/Progress.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+import "@/styles/explorer-ui.css";
+
+interface Props { lang: LocaleCode }
+const { lang } = Astro.props as Props;
+const ns = "tools/large-file-diff";
+const clientKeys = [
+  "ProgressBytes", "ProgressRows", "StatusReady", "StatusIndexing", "StatusMatching", "StatusComparingBytes",
+  "StatusDone", "StatusCanceled", "StatusExporting", "StatusExported", "SummaryText", "SummaryIdentical",
+  "SummaryIdenticalBinary", "SummaryBinary", "SummaryRangesCapped", "FileLine", "BinaryFileLine", "EolLf", "EolCrlf",
+  "EolMixed", "EolNone", "Approximate", "ChangePosition", "ColumnA", "ColumnB", "ColumnMark", "ColumnText",
+  "ColumnOffset", "ColumnLength", "ColumnBytesA", "ColumnBytesB", "TableEmpty", "TableLoading", "RowLabel",
+  "NoNewlineMarker", "ExportHintText", "ExportHintBinary", "ErrorNeedBoth", "ErrorTooManyLines", "ErrorLineTooLong",
+  "ErrorEncoding", "ErrorWorker", "ErrorGeneric",
+] as const;
+const strings = Object.fromEntries(clientKeys.map((key) => [key, t(lang, ns, key)]));
+const stringsJson = JSON.stringify({
+  ...strings,
+  Lang: lang,
+  MemoryExhausted: t(lang, "common", "Common_MemoryExhausted"),
+  InvalidFormat: t(lang, "common", "Common_InvalidFormat"),
+  CorruptInput: t(lang, "common", "Common_CorruptInput"),
+});
+const encodings = [
+  ["auto", "EncodingAuto"], ["utf-8", "EncodingUtf8"], ["utf-16le", "EncodingUtf16Le"], ["utf-16be", "EncodingUtf16Be"],
+  ["windows-1251", "EncodingWindows1251"], ["windows-1252", "EncodingWindows1252"], ["koi8-r", "EncodingKoi8R"],
+  ["iso-8859-2", "EncodingIso88592"], ["shift_jis", "EncodingShiftJis"], ["gb18030", "EncodingGb18030"], ["euc-kr", "EncodingEucKr"],
+] as const;
+---
+
+<div class="ds-workbench ds-workbench-single fd-workbench" data-diff-tool>
+  <ToolPanel title={t(lang, ns, "InputTitle")}>
+    <Fragment slot="actions">
+      <button type="button" class="ds-btn ds-btn-small" data-diff-clear>{t(lang, ns, "Clear")}</button>
+    </Fragment>
+    <div class="fd-files">
+      <FileDrop
+        compact
+        title={t(lang, ns, "FileATitle")}
+        buttonLabel={t(lang, ns, "FileAButton")}
+        changeLabel={t(lang, ns, "DropChange")}
+        sub={t(lang, ns, "DropHint")}
+        data-diff-dropzone-a
+        inputProps={{ "data-diff-file-a": true }}
+      >
+        <p class="fd-file-name" data-diff-name-a hidden></p>
+      </FileDrop>
+      <FileDrop
+        compact
+        title={t(lang, ns, "FileBTitle")}
+        buttonLabel={t(lang, ns, "FileBButton")}
+        changeLabel={t(lang, ns, "DropChange")}
+        sub={t(lang, ns, "DropHint")}
+        data-diff-dropzone-b
+        inputProps={{ "data-diff-file-b": true }}
+      >
+        <p class="fd-file-name" data-diff-name-b hidden></p>
+      </FileDrop>
+    </div>
+    <div class="ds-settings fd-settings">
+      <Field label={t(lang, ns, "Mode")} for="fd-mode">
+        <select id="fd-mode" class="ds-field-select" data-diff-mode>
+          <option value="auto">{t(lang, ns, "ModeAuto")}</option>
+          <option value="text">{t(lang, ns, "ModeText")}</option>
+          <option value="binary">{t(lang, ns, "ModeBinary")}</option>
+        </select>
+      </Field>
+      <Field label={t(lang, ns, "Encoding")} for="fd-encoding">
+        <select id="fd-encoding" class="ds-field-select" data-diff-encoding>
+          {encodings.map(([value, key]) => <option value={value}>{t(lang, ns, key)}</option>)}
+        </select>
+      </Field>
+      <Field label={t(lang, ns, "Whitespace")} for="fd-whitespace">
+        <select id="fd-whitespace" class="ds-field-select" data-diff-whitespace>
+          <option value="exact">{t(lang, ns, "WhitespaceExact")}</option>
+          <option value="trailing">{t(lang, ns, "WhitespaceTrailing")}</option>
+          <option value="change">{t(lang, ns, "WhitespaceChange")}</option>
+          <option value="all">{t(lang, ns, "WhitespaceAll")}</option>
+        </select>
+      </Field>
+      <Field label={t(lang, ns, "Context")} for="fd-context">
+        <input id="fd-context" class="ds-field" type="number" min="0" max="20" step="1" value="3" inputmode="numeric" data-diff-context />
+      </Field>
+    </div>
+    <label class="ds-check-row">
+      <input type="checkbox" class="ds-check" data-diff-ignore-eol checked />
+      <span>{t(lang, ns, "IgnoreEol")}</span>
+    </label>
+    <div class="ds-action-row">
+      <button type="button" class="ds-btn ds-btn-primary" data-diff-compare>{t(lang, ns, "Compare")}</button>
+    </div>
+    <p class="ds-hint">{t(lang, ns, "PrivacyNote")}</p>
+    <Progress
+      title={t(lang, ns, "ProgressTitle")}
+      barLabel={t(lang, ns, "ProgressTitle")}
+      cancelLabel={t(lang, ns, "Cancel")}
+      data-diff-progress
+      cancelProps={{ "data-diff-cancel": true }}
+      barProps={{ "data-diff-progress-bar": true }}
+      fillProps={{ "data-diff-progress-fill": true }}
+      labelProps={{ "data-diff-progress-label": true }}
+    />
+    <StatusMessage kind="info" data-diff-status />
+    <StatusMessage kind="error" data-diff-error />
+  </ToolPanel>
+
+  <OutputPanel panel label={t(lang, ns, "ResultsTitle")} emptyHint={t(lang, ns, "ResultsEmpty")} data-diff-output>
+    <div class="ds-when-filled fd-results" data-diff-loaded hidden>
+      <p class="fd-summary" data-diff-summary></p>
+      <ul class="fd-sides" data-diff-sides></ul>
+      <p class="ds-hint" data-diff-note hidden></p>
+
+      <div class="ds-action-row fd-nav" data-diff-nav>
+        <button type="button" class="ds-btn ds-btn-small" data-diff-prev>{t(lang, ns, "PrevChange")}</button>
+        <button type="button" class="ds-btn ds-btn-small" data-diff-next>{t(lang, ns, "NextChange")}</button>
+        <span class="fd-position" data-diff-position aria-live="polite"></span>
+      </div>
+
+      <div class="fd-table" data-diff-table></div>
+
+      <section class="fd-section" aria-labelledby="fd-export-title">
+        <h3 class="ds-label" id="fd-export-title">{t(lang, ns, "ExportTitle")}</h3>
+        <p class="ds-hint" data-diff-export-hint></p>
+        <p class="ds-hint">{t(lang, ns, "LimitNote")}</p>
+        <div class="ds-action-row">
+          <button type="button" class="ds-btn ds-btn-primary" data-diff-download><Icon name="download" size={16} />{t(lang, ns, "Download")}</button>
+        </div>
+      </section>
+    </div>
+  </OutputPanel>
+</div>
+
+<script is:inline type="application/json" data-diff-strings set:html={stringsJson} />
+<script>import "@/tools/large-file-diff.client.ts";</script>
+
+<style>
+  .fd-workbench { align-items: start; }
+  .fd-files { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+  .fd-file-name { margin: 0.35rem 0 0; font-size: var(--mdt-fs-small); color: var(--mdt-text-muted); overflow-wrap: anywhere; }
+  .fd-results { display: grid; gap: 1rem; min-width: 0; }
+  .fd-section { display: grid; gap: 0.65rem; min-width: 0; padding-top: 0.9rem; border-top: 1px solid var(--mdt-border-soft); }
+  .fd-summary { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .fd-sides { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.2rem; font-size: var(--mdt-fs-label); color: var(--mdt-text-muted); font-variant-numeric: tabular-nums; }
+  .fd-sides :global(li) { overflow-wrap: anywhere; }
+  .fd-nav { align-items: center; }
+  .fd-position { font-size: var(--mdt-fs-label); color: var(--mdt-text-muted); font-variant-numeric: tabular-nums; }
+  .fd-table { min-width: 0; font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-small); }
+  .fd-table :global(.ds-explorer-cell) { padding-inline: 0.45rem; white-space: pre; }
+  .fd-table :global(.fd-row-header) { color: var(--mdt-text-muted); background: var(--mdt-surface-inset); }
+  .fd-table :global(.fd-row-removed) { background: color-mix(in srgb, var(--mdt-danger) 14%, transparent); }
+  .fd-table :global(.fd-row-added) { background: color-mix(in srgb, var(--mdt-success) 14%, transparent); }
+  .fd-table :global(.fd-row-removed .ds-explorer-cell:nth-child(4)) { color: var(--mdt-danger); font-weight: 700; }
+  .fd-table :global(.fd-row-added .ds-explorer-cell:nth-child(4)) { color: var(--mdt-success); font-weight: 700; }
+</style>

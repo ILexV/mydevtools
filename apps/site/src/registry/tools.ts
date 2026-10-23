@@ -100,6 +100,7 @@ const TOOL_CATALOG = [
   { slug: "word-counter", monogram: "wc", category: "text", wasm: null, capabilities: { copy: true } },
   { slug: "text-case-converter", monogram: "Aa", category: "text", wasm: null, capabilities: { copy: true } },
   { slug: "text-diff-viewer", monogram: "±", category: "text", wasm: null, capabilities: { file: "optional", copy: true } },
+  { slug: "large-file-diff", monogram: "±±", category: "text", wasm: null, capabilities: { file: "multi", chunked: true, progress: true, cancel: true, download: true } },
 
   // ── jwt ───────────────────────────────────────────────────────────────────
   { slug: "jwt-decoder", monogram: "eyJ", category: "jwt", wasm: "cryptography", capabilities: { copy: true } },

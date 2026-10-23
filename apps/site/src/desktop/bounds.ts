@@ -35,6 +35,7 @@ const PROFILE_BY_SLUG: Record<string, WindowProfile> = {
   "xml-beautifier": "wide",
   "yaml-beautifier-validator": "wide",
   "text-diff-viewer": "wide",
+  "large-file-diff": "wide",
   "markdown-preview": "wide",
   "hex-viewer": "wide",
   "http-client": "wide",

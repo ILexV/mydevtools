@@ -92,6 +92,8 @@ test("tools: every tool has a known category", () => {
   assert.equal(getTool("network-scanner")?.wasm, null);
   assert.equal(getTool("sqlite-explorer")?.category, "structured-data");
   assert.equal(getTool("sqlite-explorer")?.wasm, null);
+  assert.equal(getTool("large-file-diff")?.category, "text");
+  assert.equal(getTool("large-file-diff")?.wasm, null);
 });
 
 // Monograms tell sibling cards apart in the catalog tile: short, unique, no emoji.

@@ -41,6 +41,7 @@ export const TOOL_ICONS: Record<string, string> = {
   "word-counter": `<path d="M3.5 5h13M3.5 8.5h13M3.5 12h6.5"/>${`<text x="14.2" y="17" font-size="6.2" ${MONO}>12</text>`}`,
   "text-case-converter": label("Aa", 14.6, 12),
   "text-diff-viewer": `<rect x="2.5" y="3.5" width="6.6" height="13" rx="1.6"/><rect x="10.9" y="3.5" width="6.6" height="13" rx="1.6"/><path d="M4.3 10h3M12.7 10h3M14.2 8.5v3"/>`,
+  "large-file-diff": `<path d="M4 2.5h6l3 3V12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1z"/><path d="M8 7h8a1 1 0 0 1 1 1v8.5a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V13"/><path d="M5.5 7.5h3M10 12.5h3M11.5 11v3"/>`,
 
   /* JWT */
   "jwt-decoder": `<rect x="3" y="3" width="14" height="6.4" rx="3.2"/>${dot(6.6, 6.2)}${dot(10, 6.2)}${dot(13.4, 6.2)}<path d="M5 12.5h10M5 15.6h6.5"/>`,

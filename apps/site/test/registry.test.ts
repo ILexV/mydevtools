@@ -102,6 +102,8 @@ test("tools: every tool has a known category", () => {
   assert.equal(getTool("pdf-organizer")?.wasm, "pdf");
   assert.equal(getTool("image-batch")?.category, "images");
   assert.equal(getTool("image-batch")?.wasm, "image_tools");
+  assert.equal(getTool("file-signature")?.category, "cryptography");
+  assert.equal(getTool("file-signature")?.wasm, "cryptography");
 });
 
 // Monograms tell sibling cards apart in the catalog tile: short, unique, no emoji.

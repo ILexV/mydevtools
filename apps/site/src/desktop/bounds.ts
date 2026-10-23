@@ -42,6 +42,7 @@ const PROFILE_BY_SLUG: Record<string, WindowProfile> = {
   "compression-benchmark": "wide",
   "pdf-organizer": "wide",
   "image-batch": "wide",
+  "file-signature": "wide",
   "http-client": "wide",
   "path-trace": "wide",
   "dns-lookup": "wide",

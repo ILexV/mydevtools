@@ -60,6 +60,7 @@ export const TOOL_ICONS: Record<string, string> = {
   "hmac-calculator": `<path d="M3.5 4.2h6.3l6.8 6.8-5.6 5.6-6.8-6.8Z"/><circle cx="7" cy="7.7" r="1.3"/>`,
   "aead-file": `${page}<rect x="7.2" y="10.6" width="5.6" height="4.2" rx=".9"/><path d="M8.4 10.6v-1a1.6 1.6 0 0 1 3.2 0v1"/>`,
   "openssh-keys": `<circle cx="6.5" cy="13.5" r="3.2"/><path d="m8.8 11.2 7.7-7.7M13.8 5.9l2 2M11.6 8.1l1.6 1.6"/>`,
+  "file-signature": `<path d="M5 2.5h6.5L15 6v4"/><path d="M11.5 2.5V6H15"/><path d="M5 2.5A1.5 1.5 0 0 0 3.5 4v12A1.5 1.5 0 0 0 5 17.5h4"/><path d="m11 15.5 1.8 1.8 3.7-4"/>`,
   x509: `<rect x="2.5" y="3.5" width="15" height="10.5" rx="1.6"/><path d="M5.5 7h9M5.5 10h4.5"/><circle cx="14" cy="13.6" r="2.3"/><path d="m12.8 15.5-.6 2.5 1.8-1 1.8 1-.6-2.5"/>`,
 
   /* generators */

@@ -8,7 +8,7 @@ use rsa::{
 };
 use sha2::Sha256;
 
-struct WasmRng;
+pub(crate) struct WasmRng;
 
 impl RngCore for WasmRng {
     fn next_u32(&mut self) -> u32 {

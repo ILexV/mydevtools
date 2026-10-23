@@ -120,6 +120,7 @@ const TOOL_CATALOG = [
   { slug: "hmac-calculator", monogram: "MAC", category: "cryptography", wasm: "cryptography", capabilities: { copy: true } },
   { slug: "aead-file", monogram: "AES", category: "cryptography", wasm: "cryptography", capabilities: { file: "single", chunked: true, progress: true, cancel: true, download: true } },
   { slug: "openssh-keys", monogram: "ssh", category: "cryptography", wasm: "cryptography", capabilities: { file: "optional", progress: true, cancel: true, copy: true, download: true } },
+  { slug: "file-signature", monogram: "SIG", category: "cryptography", wasm: "cryptography", capabilities: { file: "single", chunked: true, progress: true, cancel: true, copy: true, download: true } },
   { slug: "x509", monogram: "509", category: "cryptography", wasm: "cryptography", capabilities: { copy: true, download: true } },
 
   // ── generators (legacy: ungrouped; new IA) ────────────────────────────────

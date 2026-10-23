@@ -4,6 +4,7 @@ pub mod aead;
 pub mod detached;
 pub mod ecdsa;
 pub mod ed25519;
+pub mod filesig;
 pub mod hmac;
 pub mod jwt;
 pub mod kdf;

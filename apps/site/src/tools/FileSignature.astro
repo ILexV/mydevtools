@@ -1,0 +1,215 @@
+---
+/**
+ * File Signature (cryptography WASM, worker). Verify: OpenSSH SSHSIG
+ * (`ssh-keygen -Y sign`, optional allowed_signers / .pub trust list and
+ * namespace), minisign `.minisig` (prehashed BLAKE2b and legacy, trusted
+ * comment) and raw OpenSSL signatures (Ed25519, ECDSA P-256/P-384 DER or
+ * r‖s, RSA PKCS#1 v1.5 / PSS; hash and encoding auto-detected) with PEM,
+ * certificate, OpenSSH or JWK keys. Sign: SSHSIG or raw with an OpenSSH,
+ * PEM (PKCS#8, encrypted PKCS#8, SEC1, PKCS#1) or JWK private key. Files of
+ * any size are hashed in 1 MiB chunks. Helpers in `file-signature.ts`,
+ * behavior in `file-signature.client.ts`.
+ */
+import { t } from "@/i18n/messages";
+import type { LocaleCode } from "@/registry/locales";
+import CopyButton from "@/components/tool/CopyButton.astro";
+import Field from "@/components/tool/Field.astro";
+import FileButton from "@/components/tool/FileButton.astro";
+import FileDrop from "@/components/tool/FileDrop.astro";
+import OutputPanel from "@/components/tool/OutputPanel.astro";
+import Progress from "@/components/tool/Progress.astro";
+import StatusMessage from "@/components/tool/StatusMessage.astro";
+import ToolPanel from "@/components/tool/ToolPanel.astro";
+
+interface Props {
+  lang: LocaleCode;
+}
+const { lang } = Astro.props as Props;
+const ns = "tools/file-signature";
+const k = (key: string) => t(lang, ns, key);
+const clientKeys = [
+  "PanelVerify", "PanelSign", "SignatureBinaryNote", "PublicKeyHint", "PublicKeyOptionalHint", "ProgressLabel", "Canceled",
+  "VerdictValid", "VerdictInvalid", "UntrustedNote", "FailSignature", "FailNamespace", "FailUntrusted", "FailKeyMismatch",
+  "FailComment", "RowFormat", "RowAlgorithm", "RowScheme", "RowHash", "RowFingerprint", "RowSigner", "RowNamespace",
+  "RowKeyId", "RowComment", "RowEncoding", "RowFile", "RowTime", "RowPublicKey", "RowAllowedSigners", "RowCommand",
+  "FormatNameSshsig", "FormatNameMinisign", "FormatNameRaw", "EncodingBinary", "SignedNote", "SignedRawNote",
+  "ErrorNoFile", "ErrorNoSignature", "ErrorPrivateKeyMissing", "ErrorSignatureFormat", "ErrorKeyFormat",
+  "ErrorKeyUnsupported", "ErrorPrivateKeyGiven", "ErrorPublicKeyGiven", "ErrorKeyMissing", "ErrorPassphraseRequired",
+  "ErrorPassphraseWrong", "ErrorLegacyEncryptedPem", "ErrorNamespaceEmpty", "ErrorTooLarge", "ShowPassphrase",
+  "HidePassphrase",
+] as const;
+const stringsJson = JSON.stringify({
+  ...Object.fromEntries(clientKeys.map((key) => [key, k(key)])),
+  Copy: t(lang, "common", "Common_Copy"),
+  Copied: t(lang, "common", "Common_Copied"),
+  CopyFailed: t(lang, "common", "Common_CopyFailed"),
+  Preparing: t(lang, "common", "Common_Preparing"),
+  ProcessingFailed: t(lang, "common", "Common_ProcessingFailed"),
+  memoryExhausted: t(lang, "common", "Common_MemoryExhausted"),
+  invalidFormat: t(lang, "common", "Common_InvalidFormat"),
+  corruptInput: t(lang, "common", "Common_CorruptInput"),
+});
+---
+
+<div class="ds-workbench" data-fs-tool>
+  <ToolPanel title={k("PanelVerify")} data-fs-panel>
+    <div class="seg fs-mode" role="group" aria-label={k("ModeLabel")}>
+      <button type="button" aria-pressed="true" data-fs-mode="verify">{k("ModeVerify")}</button>
+      <button type="button" aria-pressed="false" data-fs-mode="sign">{k("ModeSign")}</button>
+    </div>
+
+    <FileDrop
+      compact
+      title={k("DropZoneTitle")}
+      sub={t(lang, "common", "Common_FileDropSubtitle")}
+      buttonLabel={k("ChooseFile")}
+      changeLabel={k("ChangeFile")}
+      data-fs-dropzone
+      inputProps={{ "data-fs-file": true }}
+    >
+      <span class="ds-file-name" aria-live="polite" data-fs-file-name></span>
+    </FileDrop>
+
+    <div class="ds-stack fs-fields" data-fs-verify>
+      <Field label={k("SignatureLabel")} for="fs-signature" hint={k("SignatureHint")}>
+        <textarea
+          id="fs-signature"
+          class="ds-field-textarea mono fs-text"
+          rows="5"
+          spellcheck="false"
+          autocomplete="off"
+          aria-describedby="fs-signature-hint"
+          data-fs-signature
+        ></textarea>
+      </Field>
+      <FileButton label={k("LoadSignature")} inputProps={{ "data-fs-signature-file": true }} nameProps={{ "data-fs-signature-name": true }} />
+
+      <Field label={k("PublicKeyLabel")} for="fs-public-key" hint={k("PublicKeyHint")} hintProps={{ "data-fs-public-key-hint": true }}>
+        <textarea
+          id="fs-public-key"
+          class="ds-field-textarea mono fs-text"
+          rows="4"
+          spellcheck="false"
+          autocomplete="off"
+          aria-describedby="fs-public-key-hint"
+          data-fs-public-key
+        ></textarea>
+      </Field>
+      <FileButton label={k("LoadKey")} inputProps={{ "data-fs-public-key-file": true }} nameProps={{ "data-fs-public-key-name": true }} />
+
+      <Field label={k("NamespaceLabel")} for="fs-verify-namespace" hint={k("NamespaceHint")} data-fs-namespace-field>
+        <input id="fs-verify-namespace" type="text" class="ds-field mono" value="file" spellcheck="false" autocomplete="off" data-fs-verify-namespace />
+      </Field>
+
+      <div class="ds-action-row">
+        <button type="button" class="ds-btn ds-btn-primary" data-fs-verify-run>{k("VerifyButton")}</button>
+      </div>
+    </div>
+
+    <div class="ds-stack fs-fields" data-fs-sign hidden>
+      <Field label={k("PrivateKeyLabel")} for="fs-private-key" hint={k("PrivateKeyHint")}>
+        <textarea
+          id="fs-private-key"
+          class="ds-field-textarea mono fs-text"
+          rows="5"
+          spellcheck="false"
+          autocomplete="off"
+          aria-describedby="fs-private-key-hint"
+          data-fs-private-key
+        ></textarea>
+      </Field>
+      <FileButton label={k("LoadKey")} inputProps={{ "data-fs-private-key-file": true }} nameProps={{ "data-fs-private-key-name": true }} />
+
+      <Field label={k("PassphraseLabel")} for="fs-passphrase" hint={k("PassphraseHint")}>
+        <div class="ds-input-group">
+          <input id="fs-passphrase" type="password" class="ds-field" autocomplete="off" spellcheck="false" data-fs-passphrase />
+          <button type="button" class="ds-btn ds-btn-small" aria-pressed="false" data-fs-passphrase-toggle>{k("ShowPassphrase")}</button>
+        </div>
+      </Field>
+
+      <div class="ds-settings">
+        <Field label={k("FormatLabel")} for="fs-format">
+          <select id="fs-format" class="ds-field-select" data-fs-format>
+            <option value="sshsig" selected>{k("FormatSshsig")}</option>
+            <option value="raw">{k("FormatRaw")}</option>
+          </select>
+        </Field>
+        <Field label={k("NamespaceLabel")} for="fs-sign-namespace" data-fs-sign-namespace-field>
+          <input id="fs-sign-namespace" type="text" class="ds-field mono" value="file" spellcheck="false" autocomplete="off" data-fs-sign-namespace />
+        </Field>
+        <Field label={k("HashLabel")} for="fs-hash" data-fs-raw-field hidden>
+          <select id="fs-hash" class="ds-field-select" data-fs-hash>
+            <option value="sha256" selected>SHA-256</option>
+            <option value="sha384">SHA-384</option>
+            <option value="sha512">SHA-512</option>
+          </select>
+        </Field>
+        <Field label={k("PaddingLabel")} for="fs-padding" data-fs-raw-field hidden>
+          <select id="fs-padding" class="ds-field-select" data-fs-padding>
+            <option value="pkcs1" selected>PKCS#1 v1.5</option>
+            <option value="pss">PSS</option>
+          </select>
+        </Field>
+        <Field label={k("EncodingLabel")} for="fs-encoding" data-fs-raw-field hidden>
+          <select id="fs-encoding" class="ds-field-select" data-fs-encoding>
+            <option value="der" selected>{k("EncodingDer")}</option>
+            <option value="p1363">{k("EncodingP1363")}</option>
+          </select>
+        </Field>
+      </div>
+      <p class="ds-hint" data-fs-raw-field hidden>{k("RawHint")}</p>
+
+      <div class="ds-action-row">
+        <button type="button" class="ds-btn ds-btn-primary" data-fs-sign-run>{k("SignButton")}</button>
+      </div>
+    </div>
+
+    <Progress
+      title={k("ProgressTitle")}
+      barLabel={k("ProgressTitle")}
+      cancelLabel={k("Cancel")}
+      data-fs-progress
+      cancelProps={{ "data-fs-cancel": true }}
+      barProps={{ "data-fs-progress-bar": true }}
+      fillProps={{ "data-fs-progress-fill": true }}
+      labelProps={{ "data-fs-progress-label": true }}
+    />
+    <StatusMessage kind="error" data-fs-error />
+    <StatusMessage kind="info" data-fs-note />
+  </ToolPanel>
+
+  <OutputPanel panel label={k("ResultTitle")} emptyHint={k("ResultEmpty")} data-fs-output>
+    <div class="ds-when-filled ds-stack fs-result" data-fs-loaded hidden>
+      <StatusMessage kind="success" data-fs-valid />
+      <StatusMessage kind="error" role="status" data-fs-invalid />
+      <StatusMessage kind="warning" data-fs-warning />
+
+      <div class="ds-field-group" data-fs-signed hidden>
+        <div class="ds-label-row">
+          <label class="ds-label" for="fs-signature-out">{k("SignatureLabel")}</label>
+        </div>
+        <textarea id="fs-signature-out" class="ds-field-textarea mono fs-text" rows="6" readonly data-fs-signature-out></textarea>
+        <div class="ds-action-row">
+          <button type="button" class="ds-btn ds-btn-primary" data-fs-download>{k("DownloadSig")}</button>
+          <CopyButton label={t(lang, "common", "Common_Copy")} copiedLabel={t(lang, "common", "Common_Copied")} failedLabel={t(lang, "common", "Common_CopyFailed")} data-fs-copy-signature />
+        </div>
+        <p class="ds-hint" data-fs-signed-note></p>
+      </div>
+
+      <dl class="ds-result-list" data-fs-rows></dl>
+    </div>
+  </OutputPanel>
+</div>
+
+<script is:inline type="application/json" data-fs-strings set:html={stringsJson} />
+<script>import "@/tools/file-signature.client.ts";</script>
+
+<style>
+  /* Layout-only: shared visuals come from styles/tool-ui.css (ds-*). */
+  .fs-mode { justify-self: start; }
+  .fs-fields { gap: 0.75rem; }
+  .fs-text { min-height: 0; overflow-wrap: anywhere; }
+  .fs-result { min-width: 0; }
+  .fs-result :global(.ds-result-value) { overflow-wrap: anywhere; }
+  .fs-result :global(.fs-pre) { white-space: pre-wrap; font-family: var(--mdt-font-mono); font-size: var(--mdt-fs-meta); }
+</style>

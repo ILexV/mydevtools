@@ -19,6 +19,7 @@ aead = "0.5"
 argon2 = "0.5"
 pbkdf2 = "0.12"
 sha2 = "0.10"
+blake2 = "0.10"
 base64 = "0.22"
 rand_core = "0.6"
 rsa = { version = "0.9", features = ["sha2"] }

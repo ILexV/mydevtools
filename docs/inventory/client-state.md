@@ -69,6 +69,8 @@ Explorer exports do not persist file handles. Where supported, the save picker o
 
 `image-batch` persists nothing: the queued files, settings (format, quality, max width/height, keep-original), outputs and the report stay in the page; output object URLs are revoked on the next run, on remove and on clear.
 
+`file-signature` persists nothing: the file, signatures, public and private keys, the passphrase and all options stay in the form; keys reach only the signature worker for the duration of one job.
+
 `archive-explorer` and `compression-benchmark` persist nothing: archive and input files, entry lists, filters, selections, folder handles, created-archive file lists, codec/level choices and benchmark results stay in the page/worker session. Folder extraction uses a directory handle only for that run.
 
 `log-analyzer` persists nothing: file handles, parser preset, filters, source/filter checkpoints, aggregate counts and inspected lines remain in the current page/worker session. Cancellation terminates the worker and clears the result; the user selects the file again to restart. Full filtered UTF-8 exports use the shared streaming save core, with a 512 MiB Blob fallback and no saved destination handle.

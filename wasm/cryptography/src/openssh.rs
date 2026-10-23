@@ -43,16 +43,16 @@ const OPENSSH_KDF_BCRYPT: &str = "bcrypt";
 
 type Aes256Ctr = ctr::Ctr128BE<Aes256>;
 
-const OPENSSH_ALG_ED25519: u8 = 1;
-const OPENSSH_ALG_ECDSA_P256: u8 = 2;
-const OPENSSH_ALG_ECDSA_P384: u8 = 3;
-const OPENSSH_ALG_RSA: u8 = 4;
+pub(crate) const OPENSSH_ALG_ED25519: u8 = 1;
+pub(crate) const OPENSSH_ALG_ECDSA_P256: u8 = 2;
+pub(crate) const OPENSSH_ALG_ECDSA_P384: u8 = 3;
+pub(crate) const OPENSSH_ALG_RSA: u8 = 4;
 
-fn write_u32_be(buf: &mut Vec<u8>, value: u32) {
+pub(crate) fn write_u32_be(buf: &mut Vec<u8>, value: u32) {
     buf.extend_from_slice(&value.to_be_bytes());
 }
 
-fn read_u32_be(data: &[u8], pos: &mut usize) -> Result<u32, JsValue> {
+pub(crate) fn read_u32_be(data: &[u8], pos: &mut usize) -> Result<u32, JsValue> {
     if *pos + 4 > data.len() {
         return Err(JsValue::from_str("invalid blob length"));
     }
@@ -61,7 +61,7 @@ fn read_u32_be(data: &[u8], pos: &mut usize) -> Result<u32, JsValue> {
     Ok(value)
 }
 
-fn write_mpint(buf: &mut Vec<u8>, value: &BigUint) {
+pub(crate) fn write_mpint(buf: &mut Vec<u8>, value: &BigUint) {
     let mut bytes = value.to_bytes_be();
     if bytes.first().is_some_and(|b| (b & 0x80) != 0) {
         bytes.insert(0, 0);
@@ -70,7 +70,7 @@ fn write_mpint(buf: &mut Vec<u8>, value: &BigUint) {
     buf.extend_from_slice(&bytes);
 }
 
-fn read_mpint(data: &[u8], pos: &mut usize) -> Result<BigUint, JsValue> {
+pub(crate) fn read_mpint(data: &[u8], pos: &mut usize) -> Result<BigUint, JsValue> {
     let len = read_u32_be(data, pos)? as usize;
     if *pos + len > data.len() {
         return Err(JsValue::from_str("invalid mpint length"));
@@ -85,12 +85,12 @@ fn read_mpint(data: &[u8], pos: &mut usize) -> Result<BigUint, JsValue> {
     Ok(BigUint::from_bytes_be(bytes))
 }
 
-fn write_string(buf: &mut Vec<u8>, value: &[u8]) {
+pub(crate) fn write_string(buf: &mut Vec<u8>, value: &[u8]) {
     write_u32_be(buf, value.len() as u32);
     buf.extend_from_slice(value);
 }
 
-fn read_string(data: &[u8], pos: &mut usize) -> Result<Vec<u8>, JsValue> {
+pub(crate) fn read_string(data: &[u8], pos: &mut usize) -> Result<Vec<u8>, JsValue> {
     let len = read_u32_be(data, pos)? as usize;
     if *pos + len > data.len() {
         return Err(JsValue::from_str("invalid string length"));
@@ -100,7 +100,7 @@ fn read_string(data: &[u8], pos: &mut usize) -> Result<Vec<u8>, JsValue> {
     Ok(out)
 }
 
-fn read_string_as_str(data: &[u8], pos: &mut usize) -> Result<String, JsValue> {
+pub(crate) fn read_string_as_str(data: &[u8], pos: &mut usize) -> Result<String, JsValue> {
     let bytes = read_string(data, pos)?;
     String::from_utf8(bytes).map_err(|_| JsValue::from_str("invalid utf-8"))
 }
@@ -356,7 +356,7 @@ pub fn openssh_rsa_public_key_from_private_pkcs8(private_key_der: &[u8], comment
     openssh_rsa_public_key_from_spki(&spki, comment)
 }
 
-fn openssh_ed25519_public_blob(public_key: &[u8]) -> Result<Vec<u8>, JsValue> {
+pub(crate) fn openssh_ed25519_public_blob(public_key: &[u8]) -> Result<Vec<u8>, JsValue> {
     if public_key.len() != 32 {
         return Err(JsValue::from_str("public_key must be 32 bytes"));
     }
@@ -370,7 +370,7 @@ fn openssh_ed25519_public_blob(public_key: &[u8]) -> Result<Vec<u8>, JsValue> {
     Ok(blob)
 }
 
-fn openssh_ecdsa_public_blob(public_key_uncompressed: &[u8], key_type: &str, curve: &str) -> Result<Vec<u8>, JsValue> {
+pub(crate) fn openssh_ecdsa_public_blob(public_key_uncompressed: &[u8], key_type: &str, curve: &str) -> Result<Vec<u8>, JsValue> {
     let mut blob = Vec::with_capacity(
         4 + key_type.len() + 4 + curve.len() + 4 + public_key_uncompressed.len(),
     );
@@ -383,7 +383,7 @@ fn openssh_ecdsa_public_blob(public_key_uncompressed: &[u8], key_type: &str, cur
     Ok(blob)
 }
 
-fn openssh_rsa_public_blob(public_key: &RsaPublicKey) -> Vec<u8> {
+pub(crate) fn openssh_rsa_public_blob(public_key: &RsaPublicKey) -> Vec<u8> {
     let key_type = OPENSSH_RSA.as_bytes();
     let mut blob = Vec::with_capacity(4 + key_type.len() + 4 + 8 + 4 + 512);
     write_u32_be(&mut blob, key_type.len() as u32);
@@ -889,14 +889,14 @@ fn openssh_public_key_from_spki_der(spki_der: &[u8], comment: Option<String>) ->
     Err(JsValue::from_str("unsupported SPKI"))
 }
 
-struct ParsedOpenSshPrivateKey {
-    algorithm: u8,
-    public_key: Vec<u8>,
-    private_key: Vec<u8>,
-    comment: String,
+pub(crate) struct ParsedOpenSshPrivateKey {
+    pub(crate) algorithm: u8,
+    pub(crate) public_key: Vec<u8>,
+    pub(crate) private_key: Vec<u8>,
+    pub(crate) comment: String,
 }
 
-fn parse_openssh_private_key(pem: &str, passphrase: Option<String>) -> Result<ParsedOpenSshPrivateKey, JsValue> {
+pub(crate) fn parse_openssh_private_key(pem: &str, passphrase: Option<String>) -> Result<ParsedOpenSshPrivateKey, JsValue> {
     let blob = openssh_private_key_blob_from_pem(pem)?;
     if blob.len() < OPENSSH_PRIVATE_MAGIC.len() || &blob[..OPENSSH_PRIVATE_MAGIC.len()] != OPENSSH_PRIVATE_MAGIC {
         return Err(JsValue::from_str("invalid OpenSSH private key"));

@@ -4,7 +4,7 @@
 
 # MyDevTools
 
-**61 free developer tools that run entirely in your browser.**
+**62 free developer tools that run entirely in your browser.**
 JSON, Base64, JWT, hashes, regex, crypto keys, images, PDF — and explorers for multi-gigabyte CSV, JSON, logs, Parquet and SQLite files.
 Your input and files never leave your device.
 
@@ -125,6 +125,7 @@ Every tool works on its own page in all 10 languages; the links below open the E
 | [HMAC Calculator](https://mydevtools.app/en/hmac-calculator/) | Compute HMAC-SHA256 or HMAC-SHA512 of a message with a secret key, live as you type. Hex output, UTF-8 input, empty messages supported. |
 | [AEAD File Encrypt/Decrypt](https://mydevtools.app/en/aead-file/) | Encrypt a file with a password using AES-256-GCM or (X)ChaCha20-Poly1305 and Argon2id, then decrypt it again. |
 | [OpenSSH Keys](https://mydevtools.app/en/openssh-keys/) | Generate Ed25519, ECDSA or RSA SSH key pairs, optionally passphrase-protected, and convert between OpenSSH, PKCS#8 and SPKI PEM. |
+| [File Signature](https://mydevtools.app/en/file-signature/) | Verify and create file signatures: OpenSSH `ssh-keygen -Y` (with allowed_signers), minisign and raw OpenSSL signatures with Ed25519, ECDSA P-256/P-384 or RSA keys in PEM, OpenSSH or JWK. |
 | [X.509 Certificates](https://mydevtools.app/en/x509/) | Create self-signed X.509 certificates and CSRs with Ed25519 or ECDSA keys, and decode certificates or CSRs from PEM/DER. |
 
 ### Generators

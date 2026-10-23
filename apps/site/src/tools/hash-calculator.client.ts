@@ -10,6 +10,10 @@
  * cached digests of the last calculation (selected algorithms only, never
  * rehashed). Editing the source text/file or the algorithm selection marks the
  * cache stale, which clears match marks until the next result arrives.
+ * A checksum file (SHA256SUMS, *.sha256, md5sum or BSD list; `hash-manifest.ts`)
+ * is verified against the same cached digests by file name: per-file OK /
+ * mismatch badges, a summary and the list of problems. Loading it selects the
+ * algorithms it needs.
  */
 import { startToolOperation, type ToolOperation } from "@/scripts/analytics/instrumentation";
 import { hashText, hashFile, type ProgressInfo } from "@/scripts/wasm/hash-client";
@@ -17,6 +21,7 @@ import { localizeResourceError, WasmError } from "@/scripts/wasm/worker-protocol
 import { HASH_ALGORITHMS, DEFAULT_HASH_ALGORITHMS } from "@/tools/hash-algorithms";
 import { formatBytes, formatMs, formatString, progressPercent } from "@/lib/format";
 import { matchingDigests, parseExpectedHash } from "@/tools/hash-compare";
+import { algorithmsToSelect, parseManifest, verifyManifest, type Manifest, type ManifestRow } from "@/tools/hash-manifest";
 import { formatDuration } from "@/tools/aead-file-helpers";
 import { exportHashResults, HASH_EXPORT_TYPES, type HashExportFormat, type HashResultGroup } from "@/tools/hash-results";
 import { appendMeta, badge, buildFileRow, iconButton, PDF_ICONS, spinner } from "@/tools/pdf-file-ui";
@@ -66,7 +71,25 @@ interface Strings {
   corruptInput: string;
   progressStats: string;
   resultStats: string;
+  manifestLoaded: string;
+  manifestInvalid: string;
+  manifestSummary: string;
+  manifestAllOk: string;
+  manifestRowFailed: string;
+  manifestRowMissing: string;
+  manifestRowNoAlgorithm: string;
+  manifestRowError: string;
+  manifestRowUnlisted: string;
+  manifestDigestLength: string;
+  manifestBadgeOk: string;
+  manifestBadgeFailed: string;
+  manifestBadgeUnlisted: string;
 }
+
+/** Checksum files are small text lists; refuse anything larger than this. */
+const MANIFEST_MAX_BYTES = 16 * 1024 * 1024;
+/** Problem lines shown under the checksum-file summary. */
+const MANIFEST_MAX_ISSUES = 50;
 
 const ICON_MATCH =
   '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16" stroke-width="2.25" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>';
@@ -140,6 +163,12 @@ function init() {
   const compareLive = root.querySelector<HTMLElement>("[data-hash-compare-live]");
   const exportBtn = root.querySelector<HTMLButtonElement>("[data-hash-export]");
   const exportFormat = root.querySelector<HTMLSelectElement>("[data-hash-export-format]");
+  const manifestFile = root.querySelector<HTMLInputElement>("[data-hash-manifest-file]");
+  const manifestNameEl = root.querySelector<HTMLElement>("[data-hash-manifest-name]");
+  const manifestRemove = root.querySelector<HTMLButtonElement>("[data-hash-manifest-remove]");
+  const manifestReport = root.querySelector<HTMLElement>("[data-hash-manifest-report]");
+  const manifestSummary = root.querySelector<HTMLElement>("[data-hash-manifest-summary]");
+  const manifestIssues = root.querySelector<HTMLElement>("[data-hash-manifest-issues]");
 
   const currentFiles: File[] = [];
   let abortController: AbortController | null = null;
@@ -152,6 +181,7 @@ function init() {
   let generation = 0;
   let announceTimer: number | undefined;
   let lastAnnounced = "";
+  let manifest: Manifest | null = null;
   const labelById: Record<string, string> = Object.fromEntries(HASH_ALGORITHMS.map((a) => [a.id, a.label]));
   const defaultSelection: Record<string, true> = Object.fromEntries(DEFAULT_HASH_ALGORITHMS.map((id) => [id, true]));
   const listFmt = new Intl.ListFormat(document.documentElement.lang || undefined, { type: "conjunction" });
@@ -386,6 +416,7 @@ function init() {
         }
       });
     }
+    const manifestText = renderManifest(matches);
     results?.querySelectorAll<HTMLElement>(".ds-result-row").forEach((row) => {
       const hit = matches.has(`${row.dataset.hashSource}:${row.dataset.hashId}`);
       row.classList.toggle("is-match", hit);
@@ -398,7 +429,7 @@ function init() {
     if (parsed.kind === "ok") {
       if (!cachedDigests) summary = calculating ? "" : strings.comparePending;
       else if (digestsStale) summary = strings.compareStale;
-      else if (matches.size > 0) {
+      else if (names.length > 0) {
         summary = formatString(strings.compareMatches, listFmt.format(names));
         icon = ICON_MATCH;
       } else if (calculating) {
@@ -410,9 +441,138 @@ function init() {
         icon = ICON_MISMATCH;
       }
     }
-    setSummary(summary, icon, matches.size > 0);
-    announce(invalidMsg || summary);
+    setSummary(summary, icon, names.length > 0);
+    announce([invalidMsg || summary, manifestText].filter(Boolean).join(" "));
   }
+
+  /** Per-file badge from the checksum file in the file row head (replaces the previous one). */
+  function setManifestBadge(index: number, text: string | null, tone: "success" | "danger" | "") {
+    const actions = results?.querySelector(`[data-hash-group="${index}"] .ds-file-item-actions`);
+    actions?.querySelector(".hash-manifest-badge")?.remove();
+    if (!actions || text === null) return;
+    const el = badge(text, tone);
+    el.classList.add("hash-manifest-badge");
+    actions.prepend(el);
+  }
+
+  function manifestIssue(row: ManifestRow): string | null {
+    const path = row.entry.path;
+    const algo = row.algo ? labelById[row.algo] ?? row.algo : formatString(strings.manifestDigestLength, row.entry.hex.length);
+    switch (row.status) {
+      case "failed":
+        return formatString(strings.manifestRowFailed, path, algo);
+      case "missing":
+        return formatString(strings.manifestRowMissing, path);
+      case "no-algorithm":
+        return formatString(strings.manifestRowNoAlgorithm, path, algo);
+      case "error":
+        return formatString(strings.manifestRowError, path);
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * Checksum-file report: summary, problem list and per-file badges. Adds the
+   * matching rows of OK files to `matches`; returns the summary for the live region.
+   */
+  function renderManifest(matches: Set<string>): string {
+    results?.querySelectorAll(".hash-manifest-badge").forEach((el) => el.remove());
+    if (!manifest || !manifestReport || !manifestSummary || !manifestIssues) {
+      if (manifestReport) manifestReport.hidden = true;
+      return "";
+    }
+    manifestReport.hidden = false;
+    manifestSummary.classList.remove("is-success", "is-error");
+    manifestSummary.replaceChildren();
+    manifestIssues.hidden = true;
+    if (!cachedDigests || digestsStale) {
+      const text = calculating ? "" : digestsStale ? strings.compareStale : strings.comparePending;
+      manifestSummary.textContent = text;
+      return text;
+    }
+    const report = verifyManifest(manifest, cachedDigests);
+    const issues: string[] = [];
+    for (const row of report.rows) {
+      if (row.groupIndex !== null) {
+        if (row.status === "ok") {
+          matches.add(`${row.groupIndex}:${row.algo}`);
+          setManifestBadge(row.groupIndex, strings.manifestBadgeOk, "success");
+        } else if (row.status === "failed") setManifestBadge(row.groupIndex, strings.manifestBadgeFailed, "danger");
+      }
+      const issue = manifestIssue(row);
+      if (issue) issues.push(issue);
+    }
+    for (const index of report.unlisted) {
+      setManifestBadge(index, strings.manifestBadgeUnlisted, "");
+      issues.push(formatString(strings.manifestRowUnlisted, cachedDigests[index].name ?? ""));
+    }
+    const { ok, failed, missing } = report.counts;
+    const notChecked = report.counts.pending + report.counts.error + report.counts["no-algorithm"];
+    const allOk = ok === report.rows.length && report.rows.length > 0;
+    const text = allOk
+      ? formatString(strings.manifestAllOk, ok)
+      : formatString(strings.manifestSummary, ok, failed, missing, notChecked);
+    manifestSummary.innerHTML = allOk ? ICON_MATCH : failed > 0 ? ICON_MISMATCH : "";
+    manifestSummary.append(text);
+    manifestSummary.classList.toggle("is-success", allOk);
+    manifestSummary.classList.toggle("is-error", failed > 0);
+    const shown = issues.slice(0, MANIFEST_MAX_ISSUES);
+    if (issues.length > shown.length) shown.push("…");
+    manifestIssues.replaceChildren(...shown.map((line) => {
+      const li = document.createElement("li");
+      li.textContent = line;
+      return li;
+    }));
+    manifestIssues.hidden = shown.length === 0;
+    return text;
+  }
+
+  function setManifestName(text: string, isError: boolean) {
+    if (!manifestNameEl) return;
+    manifestNameEl.textContent = text;
+    manifestNameEl.classList.toggle("is-error", isError);
+  }
+
+  async function loadManifest(file: File) {
+    let parsed: Manifest | null = null;
+    if (file.size <= MANIFEST_MAX_BYTES) {
+      try {
+        parsed = parseManifest(await file.text(), file.name);
+      } catch {
+        parsed = null;
+      }
+    }
+    if (!parsed || parsed.entries.length === 0) {
+      manifest = null;
+      setManifestName(formatString(strings.manifestInvalid, file.name), true);
+    } else {
+      manifest = parsed;
+      setManifestName(formatString(strings.manifestLoaded, file.name, parsed.entries.length), false);
+      const add = algorithmsToSelect(parsed, selectedAlgos());
+      if (add.length > 0) {
+        for (const c of algoCheckboxes) if (add.includes(c.value)) c.checked = true;
+        updateCount();
+        saveSelection();
+        invalidateDigests();
+      }
+    }
+    if (manifestRemove) manifestRemove.hidden = false;
+    renderComparison();
+  }
+
+  manifestFile?.addEventListener("change", () => {
+    const file = manifestFile.files?.[0];
+    manifestFile.value = "";
+    if (file) void loadManifest(file);
+  });
+  manifestRemove?.addEventListener("click", () => {
+    manifest = null;
+    setManifestName("", false);
+    manifestRemove.hidden = true;
+    renderComparison();
+    manifestFile?.focus();
+  });
 
   expectedInput?.addEventListener("input", () => renderComparison());
   results?.addEventListener("click", (e) => {
@@ -432,7 +592,7 @@ function init() {
       calcBtn.setAttribute("aria-busy", String(busy));
     }
     if (cancelBtn) cancelBtn.hidden = !busy;
-    for (const control of [textarea, fileInput, algoSearch, resetBtn, exampleBtn, ...algoCheckboxes]) {
+    for (const control of [textarea, fileInput, manifestFile, manifestRemove, algoSearch, resetBtn, exampleBtn, ...algoCheckboxes]) {
       if (control) control.disabled = busy;
     }
     inputHost?.setAttribute("aria-disabled", String(busy));

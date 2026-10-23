@@ -5,7 +5,8 @@
  * worker-backed `hash-client` (text or sequential files, progress/cancel).
  *
  * Workbench: text/file selection → algorithms → Calculate | per-source
- * digests, expected-checksum comparison, terminal errors/cancellation and
+ * digests, expected-checksum comparison, checksum-file (SHA256SUMS / md5sum /
+ * BSD list) verification by file name, terminal errors/cancellation and
  * TXT/CSV/JSON downloads. Only algorithm choices persist in localStorage.
  *
  * Locale strings for the current tool namespace are embedded as a JSON island
@@ -75,6 +76,22 @@ const strings = {
   resultStats: t(lang, ns, "ResultStats"),
   exportLabel: t(lang, ns, "ExportLabel"),
   exportFormat: t(lang, ns, "ExportFormat"),
+  manifestButton: t(lang, ns, "ManifestButton"),
+  manifestHint: t(lang, ns, "ManifestHint"),
+  manifestRemove: t(lang, ns, "ManifestRemove"),
+  manifestLoaded: t(lang, ns, "ManifestLoaded"),
+  manifestInvalid: t(lang, ns, "ManifestInvalid"),
+  manifestSummary: t(lang, ns, "ManifestSummary"),
+  manifestAllOk: t(lang, ns, "ManifestAllOk"),
+  manifestRowFailed: t(lang, ns, "ManifestRowFailed"),
+  manifestRowMissing: t(lang, ns, "ManifestRowMissing"),
+  manifestRowNoAlgorithm: t(lang, ns, "ManifestRowNoAlgorithm"),
+  manifestRowError: t(lang, ns, "ManifestRowError"),
+  manifestRowUnlisted: t(lang, ns, "ManifestRowUnlisted"),
+  manifestDigestLength: t(lang, ns, "ManifestDigestLength"),
+  manifestBadgeOk: t(lang, ns, "ManifestBadgeOk"),
+  manifestBadgeFailed: t(lang, ns, "ManifestBadgeFailed"),
+  manifestBadgeUnlisted: t(lang, ns, "ManifestBadgeUnlisted"),
 };
 const defaults: Record<string, true> = Object.fromEntries(DEFAULT_HASH_ALGORITHMS.map((id) => [id, true]));
 const stringsJson = JSON.stringify(strings);
@@ -167,6 +184,20 @@ const stringsJson = JSON.stringify(strings);
       />
       <p class="ds-hint ds-hint-error hash-expected-error" id="hash-expected-error" data-hash-expected-error hidden></p>
     </Field>
+    <div class="hash-manifest">
+      <div class="hash-manifest-head">
+        <label class="ds-btn ds-btn-small ds-btn-ghost ds-file-btn">
+          <input type="file" data-hash-manifest-file aria-describedby="hash-manifest-hint" />{strings.manifestButton}
+        </label>
+        <span class="hash-manifest-name" data-hash-manifest-name></span>
+        <button type="button" class="ds-btn ds-btn-small ds-btn-ghost" data-hash-manifest-remove hidden>{strings.manifestRemove}</button>
+      </div>
+      <p class="ds-hint" id="hash-manifest-hint">{strings.manifestHint}</p>
+      <div class="hash-manifest-report" data-hash-manifest-report hidden>
+        <p class="hash-compare-summary" data-hash-manifest-summary></p>
+        <ul class="hash-manifest-issues" data-hash-manifest-issues hidden></ul>
+      </div>
+    </div>
     <p class="hash-compare-summary" data-hash-compare-summary hidden></p>
     <div class="ds-result-list ds-when-filled" data-hash-results aria-live="polite"></div>
     <p class="visually-hidden" role="status" aria-live="polite" data-hash-compare-live></p>
@@ -244,6 +275,25 @@ const stringsJson = JSON.stringify(strings);
     overflow-wrap: anywhere;
   }
   .hash-compare-summary.is-success { color: var(--mdt-success); }
+  .hash-compare-summary.is-error { color: var(--mdt-danger); }
+  .hash-manifest { display: grid; gap: 0.4rem; }
+  .hash-manifest-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+  .hash-manifest-name {
+    min-width: 0;
+    font-family: var(--mdt-font-mono);
+    font-size: var(--mdt-fs-meta);
+    color: var(--mdt-text-muted);
+    overflow-wrap: anywhere;
+  }
+  .hash-manifest-name.is-error { color: var(--mdt-danger); }
+  .hash-manifest-report { display: grid; gap: 0.35rem; }
+  .hash-manifest-issues {
+    margin: 0;
+    padding-left: 1.2rem;
+    font-size: var(--mdt-fs-meta);
+    color: var(--mdt-text-muted);
+    overflow-wrap: anywhere;
+  }
   .hash-compare-summary :global(svg) { width: 1.1rem; height: 1.1rem; flex-shrink: 0; }
 </style>
 
